@@ -25,7 +25,7 @@ import {qualifySectionAI,canRetainSectionAIEditor} from './topic-section-ai.js';
 import {stageTopicYearWindow,stageTopicYearExtent} from './topic-year-requalification.js';
 import {ContinuousCollection,continuousItemKey} from './continuous-collection.js';
 import {ContinuousTopicReader} from './continuous-topic-reader.js';
-import {request,element} from './common.js';
+import {request,element,statusLabel} from './common.js';
 import {LibraryEntryEditor} from './library-entry-editor.js';
 import {AutosaveSession,RevisionSession,textOf} from './editor-primitives.js';
 import {RecoveryDraftSession} from './recovery-draft.js';
@@ -1586,7 +1586,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   if(!available&&reportFailure)this.onStatus('后台消息通道暂时中断；当前内容保留。','error');
   if(strict&&!available)throw {code:'MESSAGE_CHANNEL_INTERRUPTED'};return available?state:null;
  }
- async readContentRefresh(){if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}if(this.sectionEndWriter?.hasDraft())return false;if(this.mutating){this.mutationDeferredRead={key:this.readKey(),intent:this.openIntent,presentation:this.presentationIntent,epoch:this.statusEpoch};return false;}const serial=++this.serial,rootCueEpoch=this.rootCueEpoch||0;$('thought-home-tools').hidden=!!this.id;$('thought-collection').hidden=!!this.id;$('revision-history').hidden=!this.id;$('thought-document').hidden=!this.id;
+ async readContentRefresh(){if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}if(this.sectionEndWriter?.hasDraft())return false;if(this.mutating){this.mutationDeferredRead={key:this.readKey(),intent:this.openIntent,presentation:this.presentationIntent,epoch:this.statusEpoch};return false;}const serial=++this.serial,rootCueEpoch=this.rootCueEpoch||0,readIntent=this.openIntent;$('thought-home-tools').hidden=!!this.id;$('thought-collection').hidden=!!this.id;$('revision-history').hidden=!this.id;$('thought-document').hidden=!this.id;
   if(!this.id){
    this.ensureContinuousRoot();this.rootProviderKey=null;const query='',scope=this.homeCollectionScope(query);$('thought-source-scope').value='';if(query&&this.personalRoot)void this.loadRootSearchBase();
    if(!this.homeCollection||this.homeCollection.scope!==scope||this.homeCollection.query!==query)this.homeCollection=this.createHomeCollection(query);
@@ -1622,7 +1622,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(!$('topic-heading').children.length)$('topic-heading').append(element('h1','',topic.name));
    if(this.editor&&!await this.checkAllTracked(serial))return false;
    const cached=this.aiTopics.get(this.id)?.presentation;this.originalPane.hidden=false;this.aiPane.hidden=false;$('topic-toolbar').hidden=false;$('topic-continuous-before').hidden=true;$('topic-continuous-after').hidden=true;
-   const sectionId=this.activeSectionId,current=()=>serial===this.serial&&this.view==='ai'&&this.id===topic.id&&this.activeSectionId===sectionId&&!this.sectionEndWriter?.hasDraft();
+   const sectionId=this.activeSectionId,current=()=>serial===this.serial&&this.openIntent===readIntent&&rootCueEpoch===(this.rootCueEpoch||0)&&this.view==='ai'&&this.id===topic.id&&this.activeSectionId===sectionId&&!this.sectionEndWriter?.hasDraft();
    // Eligibility and purge checks precede presentation deferral, even during
    // selection or IME. Reflow must wait; forbidden evidence must not wait.
    await this.aiEditor?.refreshEvidence?.();if(!current())return false;
@@ -1630,23 +1630,67 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(!current())return false;
    const scopeKey=JSON.stringify([this.id,sectionId,projection?.complete===true,[...(projection?.admittedFields||[])].sort(),projection?.generation,projection?.recoveryEpoch]);
    const defer=()=>{const active=this.aiEditor,topicId=this.id,intent=this.openIntent;if(!active||!cached)return false;active.deferReadingRefresh(async()=>{if(active.disposed||this.aiEditor!==active||this.id!==topicId||this.activeSectionId!==sectionId||this.view!=='ai'||this.openIntent!==intent)return;await this.refresh();});return true;};
-   const canPaint=()=>current()&&![this.editor,this.aiEditor,this.dialogEditor].some(isComposing)&&(!cached||!this.aiEditor?.readingReflowBlocked());
-   if(cached&&this.aiEditor?.readingReflowBlocked()){defer();return 'deferred';}
+   const active=this.aiEditor,run=this.aiSectionNavigationRun,intent=this.openIntent,oldScopeKey=this.aiScopeKey;
+   let oldScope;try{oldScope=JSON.parse(oldScopeKey);}catch{}
+   const crossingSection=!!active&&!active.disposed&&!active.recoveryOnly&&run?.topicId===topic.id&&run.intent===intent&&!run.published&&run.previous?.section!==sectionId&&Array.isArray(oldScope)&&oldScope[0]===topic.id&&oldScope[1]===run.previous?.section&&oldScope[2]===true&&oldScope[5]===active.row?.recoveryEpoch;
+   let handoffCurrent=null,handoffQualified=false,recheckHandoff=null;
+   if(crossingSection){
+    const oldRow=active.row,oldSignature=JSON.stringify(oldRow),fields=[...(active.admittedFields||active.nodes.keys())],evidence=[...(active.sectionEvidence||[])];
+    handoffCurrent=()=>current()&&this.aiEditor===active&&!active.disposed&&!active.recoveryOnly&&active.row===oldRow&&JSON.stringify(oldRow)===oldSignature&&this.aiScopeKey===oldScopeKey&&this.aiSectionNavigationRun===run&&this.openIntent===intent&&!run.published;
+    // A destination's different field set is not revocation of its predecessor.
+    // Independently reread that exact old Section, including original purge
+    // tracking; fieldsOnly.refreshEvidence alone does not retire edit authority.
+    recheckHandoff=async()=>{
+     const prior=await qualifySectionAI(oldRow,{topicId:topic.id,sectionId:run.previous.section,isCurrent:handoffCurrent,load:async options=>{
+      // Each exact anchor tracks only its own old evidence. The original
+      // reader caps tracking at 100; a qualified field can reference 200 IDs.
+      const tracked=options.anchorId&&evidence.includes(options.anchorId)?[options.anchorId]:[];
+      const page=await request('GET_LIBRARY_SECTION_READING',{options:{...options,...(tracked.length?{trackedEntryIds:tracked}:{})}});
+      if(page?.cursorInvalid&&page.anchorUnavailable)return page;
+      if(tracked.length&&(!Array.isArray(page?.tracked)||tracked.some(id=>!page.tracked.some(row=>row.id===id&&row.lifecycle==='active'&&!row.purged))))throw Error('SECTION_AUTHORITY_CHANGED');
+      return page;
+     }});
+     if(!handoffCurrent())return false;
+     const qualified=cached?.recoveryEpoch===oldRow.recoveryEpoch&&prior.complete===true&&JSON.stringify([...fields].sort())===JSON.stringify([...(oldScope[3]||[])].sort())&&fields.every(field=>prior.admittedFields.has(field))&&evidence.every(id=>prior.sectionEvidence.has(id));
+     if(!qualified){
+      // Proven old-scope loss retires the native writer immediately, before a
+      // destination-generation mismatch or IME can delay the presentation fence.
+      if(!active.withdraw?.()){active.dispose();if(this.aiEditor===active)this.aiEditor=null;}
+     }
+     return qualified;
+    };
+    handoffQualified=await recheckHandoff();if(!handoffQualified)return false;
+   }
+   const withdrawAuthority=!!active&&!active.recoveryOnly&&!handoffQualified&&(!cached||projection?.complete!==true||cached.recoveryEpoch!==active.row?.recoveryEpoch||[...(active.admittedFields||active.nodes.keys())].some(field=>!projection.admittedFields.has(field))||[...(active.sectionEvidence||[])].some(id=>!projection.sectionEvidence.has(id))||crossingSection);
+   const canPaint=()=>current()&&(!handoffQualified||handoffCurrent())&&![this.editor,...(withdrawAuthority?[]:[this.aiEditor]),this.dialogEditor].some(isComposing)&&(withdrawAuthority||!cached||!this.aiEditor?.readingReflowBlocked());
+   if(handoffQualified&&isComposing(active))return false;
+   if(!withdrawAuthority&&cached&&this.aiEditor?.readingReflowBlocked()){defer();return 'deferred';}
    if(!canPaint())return false;
-   if(this.aiEditor&&(this.aiEditor.dirty()||this.aiEditor.saving)){
+   if(this.aiEditor&&!this.aiEditor.recoveryOnly&&!withdrawAuthority&&(this.aiEditor.dirty()||this.aiEditor.saving)){
     this.aiEditor.collect();if(!await this.aiEditor.flush()&&this.aiEditor.dirty())return false;if(!canPaint())return false;
    }
    const commit=()=>{
-   if(!canPaint()){defer();return false;}
-   if(this.aiEditor&&this.aiScopeKey===scopeKey&&cached&&this.aiEditor.row.revision>=cached.revision){this.filterAIReading();return true;}
-   if(canRetainSectionAIEditor(this.aiEditor,cached,projection,this.aiScopeKey,scopeKey)){
-    this.aiEditor.row=structuredClone(cached);this.aiScopeKey=scopeKey;this.filterAIReading();return true;
+   // New input after the async flush/qualification still belongs to the old
+   // Section. A saved revision also requires a fresh destination status read.
+   if(!canPaint()||handoffQualified&&(active.dirty()||active.saving)){defer();return false;}
+   if(this.aiEditor?.recoveryOnly){
+    // Refresh cannot silently lose a failed draft, retry it, or mount a second
+    // writer. A protected draft can transfer only to a freshly qualified view.
+    if(this.aiEditor.dirty()||this.aiEditor.recoveryPending||!projection?.complete||!projection.admittedFields.size){this.aiEditor.mountRecovery();return true;}
+    this.aiEditor.dispose();this.aiEditor=null;
    }
+   if(canRetainSectionAIEditor(this.aiEditor,cached,projection,this.aiScopeKey,scopeKey)){
+    // Fresh qualification is identical except for the reader generation. Keep
+    // the exact live row/nodes: a late human input or save owns them already.
+    this.aiScopeKey=scopeKey;this.filterAIReading();return true;
+   }
+   if(this.aiEditor&&!this.aiEditor.dirty()&&!this.aiEditor.saving&&!this.aiEditor.recoveryPending&&this.aiScopeKey===scopeKey&&cached&&this.aiEditor.row.revision>=cached.revision){this.filterAIReading();return true;}
+   if(this.aiEditor?.withdraw?.()){this.aiScopeKey=scopeKey;this.readingHistoryOwner=null;return true;}
    this.aiEditor?.dispose();this.aiEditor=null;this.aiScopeKey=scopeKey;this.aiPane.replaceChildren();
    if(!cached){
     const draft=this.aiTopics.get(this.id)?.userDraft;
     if(draft){const box=element('section','ai-user-draft');box.append(element('p','','主题级人工整理仍保存在原范围。'),button('保留主题级人工整理为独立内容',async()=>{if(!await this.flushReadingNavigation())return;await this.checked('RECOVER_AI_PRESENTATION_DRAFT',{options:{topicId:this.id,expectedRevision:draft.revision,operationId:op()}});await this.refresh();}));this.aiPane.append(box);}
-    else this.aiPane.append(element('p','muted','AI 服务尚未上线。尚无已保存的 AI整理。'));
+    else this.aiPane.append(element('p','muted',this.aiState?.serviceAvailable===true?'尚无已保存的 AI整理。':'AI 服务尚未上线。尚无已保存的 AI整理。'));
     this.renderSectionNav();return true;
    }
    if(!projection.complete||!projection.admittedFields.size)this.aiPane.append(element('p','muted',projection.complete?'当前章节暂无可独立归属的已保存 AI 整理。':'当前章节的整理范围暂时无法核对，请重试读取。'));
@@ -1657,10 +1701,11 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    }
    this.filterAIReading();return true;
    };
-   aiPublication={commit,current,projection,sectionId,committed:false,defer};return true;
+   aiPublication={commit,current,projection,sectionId,committed:false,defer,recheckHandoff};return true;
    })();
    if(presentationRead===false||presentationRead==='deferred')return false;
   }
+  try{
   $('topic-toolbar').hidden=false;
   const visible=this.topicReader?.scopeSectionId===this.activeSectionId?this.topicAnchor():null,navigationAnchor=this.topicNavigationAnchor,resetFromStart=this.topicResetFromStart,anchorId=resetFromStart?null:(navigationAnchor?.entryId||visible?.id||positionAnchor?.entryId||null),sectionId=this.topicNavigationSection||null,restoreAnchor=resetFromStart?null:(navigationAnchor?.entryId?{id:navigationAnchor.entryId,top:navigationAnchor.top}:visible);this.topicResetFromStart=false;this.topicNavigationAnchor=null;this.topicNavigationSection=null;const timeEdge=this.topicTimeEdge||null;this.topicTimeEdge=null;
   if(!await this.checkAllTracked(serial)||serial!==this.serial)return false;
@@ -1674,12 +1719,19 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(staged.projection?.complete&&(staged.projection.recoveryEpoch!==page.recoveryEpoch||staged.projection.authority!==JSON.stringify(page.authority??null)))return false;
    if(!staged.commit())return false;staged.committed=true;return true;
   }:null;
-  const state=await this.resetTopicReader({anchorId,sectionId,timeEdge,restoreAnchor,saved,expectedSerial:serial,beforePaint,prepareInitial:explicitEntry||!!positionAnchor,...(explicitEntry?{isCurrent:navigationAnchor.isCurrent}:positionAnchor?{isCurrent:positionCurrent}:{})});if(serial!==this.serial||state.stale||state.paintRefused||aiPublication&&!aiPublication.committed)return false;
+  const state=await this.resetTopicReader({anchorId,sectionId,timeEdge,restoreAnchor,saved,expectedSerial:serial,beforePaint,prepareInitial:explicitEntry||!!positionAnchor,...(explicitEntry?{isCurrent:navigationAnchor.isCurrent}:positionAnchor?{isCurrent:positionCurrent}:{})});
+  if(serial!==this.serial||state.stale||state.paintRefused||aiPublication&&!aiPublication.committed)return false;
   this.updateTopicSearchCount();
   if(this.editor&&this.document){for(const m of this.editor.metadata){const row=m.kind==='topic'?this.document.topic:this.document.sections.find(s=>s.sectionId===m.row.sectionId);if(row&&!(m.kind==='topic'&&this.document.kind==='section_reading'))m.receive(row);}this.editor.entry.receive(this.document.items.filter(x=>!x.entry.large).map(x=>x.entry));}
   return true;
+  }finally{
+   // Tracked-body and final destination reads may reject after the old-scope
+   // proof. Recheck this same owner before any uncommitted exit; neither an
+   // interrupted read nor a changed generation may leave revoked fields live.
+   if(serial===this.serial&&aiPublication&&!aiPublication.committed)await aiPublication.recheckHandoff?.();
+  }
 
- }
+ } 
  async leaveEditors({historyIntent=null}={}){
   const claim=Symbol('topic-leave'),route={id:this.id,view:this.view,intent:this.openIntent,open:this.topicOpenIntent,departure:this.homeDepartureToken,presentation:this.presentationIntent,cue:this.rootCueEpoch};
   this.leavePublication=claim;let serial=this.serial,epoch=this.statusEpoch;
@@ -1747,11 +1799,63 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
  async searchTopic(){if(this.id&&this.view==='original'&&this.originalMode==='years'&&this.topicTimeline){await this.topicTimeline.changeQuery('');return;}return this.searchContent();}
  rememberView(){this.rememberContent();if(this.id){const anchor=this.topicAnchor();this.aiViewSession.remember(this.id,this.view,{scroll:Math.max(0,scrollY||0),cursor:this.cursor,pages:this.pages,query:''||'',anchor});}}
  ensureAITopicStatus(){let host=$('ai-topic-status');if(host)return host;host=element('section','ai-topic-status');host.id='ai-topic-status';host.setAttribute('role','status');host.setAttribute('aria-live','polite');host.hidden=true;const row=$('topic-heading')?.closest('.topic-title-row');if(row)row.after(host);else $('thought-document')?.prepend(host);return host;}
+ runningAIPresentation(state=this.aiState){const runtime=state?.runtime;return runtime?.topicId===this.id&&['preparing','running'].includes(runtime.phase)&&['preparing','running'].includes(runtime.state)?runtime:null;}
  renderAITopicStatus(state=null,selected=this.id?this.aiTopics.get(this.id):null){
   const host=this.ensureAITopicStatus();host.hidden=!this.id||this.view!=='ai';
   if(host.hidden){host.textContent='';delete host.dataset.state;return;}
-  host.dataset.state='service-unavailable';
-  host.textContent='AI 服务尚未上线。'+(this.statusUnavailable?.includes('ai')?'已保存内容状态暂时无法确认，请重试读取。':selected?.presentation?'已保存的整理仍可阅读、编辑和查看历史。':'已有内容保留，不会自动生成或覆盖。');
+  if((state||this.aiState)?.serviceAvailable!==true||this.statusUnavailable?.includes('ai')){
+   host.dataset.state='service-unavailable';
+   host.textContent='AI 服务尚未上线。'+(this.statusUnavailable?.includes('ai')?'已保存内容状态暂时无法确认，请重试读取。':selected?.presentation?'已保存的整理仍可阅读、编辑和查看历史。':'已有内容保留，不会自动生成或覆盖。');return;
+  }
+  const topicId=this.id,intent=this.openIntent,presentation=this.presentationIntent,sectionId=this.activeSectionId;
+  const current=()=>topicId===this.id&&intent===this.openIntent&&presentation===this.presentationIntent&&sectionId===this.activeSectionId&&this.view==='ai';
+  const action=this.aiOrganizeActions?.get(topicId)||this.runningAIPresentation(state||this.aiState),notice=this.aiOrganizeNotice?.topicId===topicId&&this.aiOrganizeNotice.intent===intent?this.aiOrganizeNotice:null,runtime=(state||this.aiState)?.runtime,stopping=action?.phase==='stopping'||this.aiOrganizeStops?.has(topicId);
+  host.dataset.state=action?.phase||notice?.state||'ready';
+  host.textContent=action?(action.stopError||(notice?.state==='failed'?notice.text+'。':''))+(stopping?'正在停止本次整理；已有内容保留。':action.phase==='preparing'?'正在核对当前主题的整理范围…':'正在整理当前主题；已有内容保留。'):notice?.text||(runtime?.topicId===topicId&&runtime.errorCode?statusLabel(runtime.errorCode):selected?.presentation?'已保存的整理仍可阅读和编辑。':'尚无已保存的 AI整理。');
+  const refresh=button(selected?.presentation?'更新 AI整理':'生成 AI整理',()=>{if(current())return this.refreshAIPresentation();});refresh.dataset.aiOrganizeRefresh='true';refresh.disabled=!!action;host.append(refresh);
+  if(action&&action.phase!=='preparing'){const stop=button('停止本次整理',()=>{if(current())return this.stopAIPresentation(topicId);});stop.disabled=stopping;host.append(stop);}
+ }
+ async stopAIPresentation(topicId){
+  const action=this.aiOrganizeActions?.get(topicId),runtime=this.runningAIPresentation(),intent=this.openIntent,presentation=this.presentationIntent;
+  const current=()=>this.id===topicId&&this.openIntent===intent&&this.presentationIntent===presentation&&this.view==='ai'&&this.aiOrganizeActions?.get(topicId)===action;
+  if((action||runtime)?.phase!=='running'||!current()||this.aiOrganizeStops?.has(topicId))return false;
+  this.aiOrganizeStops??=new Set();this.aiOrganizeStops.add(topicId);if(action){action.phase='stopping';delete action.stopError;}this.renderAITopicStatus();
+  try{const result=await request('STOP_AI_PRESENTATION',{topicId});if(result?.error)throw {code:result.error};if(current())await this.updateViewStatus({strict:false,isCurrent:current});return true;}
+  catch(error){if(current()){if(action){action.phase='running';action.stopError=statusLabel(error?.code||'UNAVAILABLE')+'。';}else this.aiOrganizeNotice={topicId,intent,text:statusLabel(error?.code||'UNAVAILABLE'),state:'failed'};}return false;}
+  finally{this.aiOrganizeStops.delete(topicId);if(current())this.renderAITopicStatus();}
+ }
+ async refreshAIPresentation(){
+  const topicId=this.id,intent=this.openIntent,presentation=this.presentationIntent,sectionId=this.activeSectionId,epoch=this.statusEpoch,departure=this.homeDepartureToken;
+  const current=()=>topicId===this.id&&intent===this.openIntent&&presentation===this.presentationIntent&&sectionId===this.activeSectionId&&epoch===this.statusEpoch&&departure===this.homeDepartureToken&&this.view==='ai';
+  const composing=()=>[this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+  const protectedEdit=()=>composing()||this.sectionEndWriter?.hasDraft()||[this.editor,this.aiEditor,this.dialogEditor].some(editor=>editor?.dirty?.()||editor?.saving||editor?.recoveryPending);
+  if(!topicId||!current()||composing()||this.aiState?.serviceAvailable!==true||this.statusUnavailable?.includes('ai')||this.aiOrganizeActions?.has(topicId)||this.runningAIPresentation())return false;
+  this.aiOrganizeActions??=new Map();const action={phase:'preparing'};this.aiOrganizeActions.set(topicId,action);this.aiOrganizeNotice=null;this.renderAITopicStatus();
+  const notice=(text,state='failed')=>{if(current())this.aiOrganizeNotice={topicId,intent,text,state};};
+  let sent=false;
+  try{
+   if(!await this.flushReadingNavigation()||!current()||protectedEdit()){notice('请先完成并保存当前编辑，再整理。');return false;}
+   const scope=await request('GET_AI_PRESENTATION_SCOPE',{options:{topicId}});
+   // Scope reads are not an authorization to replay a click after navigation,
+   // new human work, or IME. The worker still owns every exact scope/CAS fence.
+   if(!current()||protectedEdit()){notice('当前编辑已变化，请保存后重新整理。');return false;}
+   if(scope?.blockedReason==='NO_DELTA'){notice('当前主题没有需要更新的整理内容。','ready');return false;}
+   if(scope?.available!==true||scope?.blockedReason){notice(statusLabel(scope?.blockedReason||'AI_SERVICE_UNAVAILABLE'));return false;}
+   if(scope.topicId!==topicId||scope.complete!==true||typeof scope.scopeBinding!=='string'||!/^[a-f0-9]{64}$/.test(scope.scopeBinding)){notice('当前整理范围无法完整核对，请重试读取。');return false;}
+   action.phase='running';this.renderAITopicStatus();sent=true;
+   const result=await request('UPDATE_AI_PRESENTATION',{topicId,userActionId:op(),scopeBinding:scope.scopeBinding});
+   if(!current())return false;
+   if(result?.error){notice(statusLabel(result.error));return false;}
+   if(result?.completed!==true||result.topicId!==topicId){notice('本次整理结果尚未确认，已有内容保留。');return false;}
+   notice(result.noDelta?'当前主题没有需要更新的整理内容。':result.cached?'已读取当前有效的整理。':result.candidateCreated?'新的整理候选已保存，可查看后再决定是否采用。':'本次整理结果已保存。','ready');return true;
+  }catch(error){notice(statusLabel(error?.code||'UNAVAILABLE'));return false;}
+  finally{
+   if(this.aiOrganizeActions.get(topicId)===action)this.aiOrganizeActions.delete(topicId);
+   if(current()){
+    this.renderAITopicStatus();
+    if(sent){if(protectedEdit())await this.updateViewStatus({strict:false,isCurrent:current});else await this.refresh();}
+   }
+  }
  }
  async switchView(view,{restoreFocus=null}={}){
   if(!['original','ai'].includes(view))return;const transition=this.presentationIntent=(this.presentationIntent||0)+1;if(!this.id){this.requestedTopicView=view;return;}if(this.viewSwitchPromise){await this.viewSwitchPromise;if(transition!==this.presentationIntent)return;return this.switchView(view,{restoreFocus});}if(view===this.view)return;

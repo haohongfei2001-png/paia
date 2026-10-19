@@ -228,7 +228,11 @@ async function withQueuedAISectionRefresh(run,{holdScopes=['A','C'],holdCReader=
   assert.equal(message.type,'GET_LIBRARY_SECTION_READING');const options=message.options,scope=options.scopeSectionId;scopeReads.push(structuredClone(options));
   if(holdScopes.includes(scope))await heldDestination;
   if(options.anchorId&&options.anchorId!==scope+'-entry')return {ok:true,data:{cursorInvalid:true,anchorUnavailable:true}};
-  return {ok:true,data:page(scope)};
+  const data=page(scope);
+  // Match the original reader's requested tracked identities. The native
+  // Store/SectionReading regression separately exercises revoked metadata.
+  data.tracked=(options.trackedEntryIds||[]).map(id=>id==='B-entry'?{id,lifecycle:'active',purged:false,revision:1,fieldRevisions:{body:1,title:1,note:1,type:1},currentInputRevision:null}:{id,lifecycle:'unavailable',purged:true});
+  return {ok:true,data};
  }}};
  const owner=Object.assign(Object.create(TopicController.prototype),{
   id:'topic',topic,activeSectionId:'B',view:'ai',originalMode:'content',readingSort:'asc',topicProviderKey:null,rootProviderKey:null,cursor:null,

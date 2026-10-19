@@ -1,3 +1,4 @@
+import {assertMaintenanceQualification,maintenanceQualificationReader,chargeMaintenanceQualificationHash} from './ai-usage/maintenance-qualification.js';
 import {hashText} from './dedupe.js';
 import {fail,keys,idOK,keyedHash,same} from './thought-model.js';
 
@@ -13,13 +14,15 @@ export async function inputProjection(store,t,inputId) {
  }
  return {inputId,documentId:b.documentId,contentRevision:m.contentRevision,lastRemovalSequence:m.lastRemovalSequence||0,body:b.libraryText??original,note:b.note||'',sourceRecordIds:sources.sort(),identities:identities.sort(),block:b};
 }
-export async function evidenceFor(store,specs,{independentContext=false}={}) {
+export async function evidenceFor(store,specs,{independentContext=false,qualification=null}={}) {
+ if(qualification!==null)assertMaintenanceQualification(qualification,store);
  await store.finishFoundation();
  if(!Array.isArray(specs)||specs.length>100||new Set(specs.map(x=>x?.inputId)).size!==specs.length)fail();
  let contexts=0;
  for(const s of specs){keys(s,['inputId','role','selectedFields','anchorId'],['inputId','role','selectedFields']);if(!idOK(s.inputId)||!['primary','supporting','context_only'].includes(s.role)||!Array.isArray(s.selectedFields)||!s.selectedFields.length||new Set(s.selectedFields).size!==s.selectedFields.length||s.selectedFields.some(f=>!['body','note'].includes(f)))fail();if(s.role==='context_only')contexts++;}
  if(contexts>2)fail();
  const data=await store.run(()=>store.repository.transaction(false,async t=>{
+  if(qualification!==null)t=maintenanceQualificationReader(qualification,store,t,{topicLabels:true});
   const gate=(await t.get('meta','thought-library'))||{};if(gate.sealed)fail();
   const secret=(await t.get('meta','thought-suppression-key')).value,epoch=(await t.get('meta','thought-epoch'))?.value||0,rows=[];
   for(const s of specs){const p=await inputProjection(store,t,s.inputId);if(!p)fail();if(s.role!=='context_only'&&await store.isFiltered(t,p.block,await t.get('meta','smart-filter')))fail();rows.push(p);}
@@ -34,11 +37,12 @@ export async function evidenceFor(store,specs,{independentContext=false}={}) {
  }));
  const evidence=[];
  for(let i=0;i<specs.length;i++) {
-  const p=data.rows[i],s=specs[i],digests={};for(const field of [...s.selectedFields].sort())digests[field]=await hashText(p[field]);
+  if(qualification!==null)assertMaintenanceQualification(qualification,store);
+  const p=data.rows[i],s=specs[i],digests={};for(const field of [...s.selectedFields].sort()){if(qualification!==null)chargeMaintenanceQualificationHash(qualification,store,p[field]);digests[field]=await hashText(p[field]);if(qualification!==null)assertMaintenanceQualification(qualification,store);}
   const scopeToken=await keyedHash(data.secret,['scope',p.identities.length?p.identities:['input:'+p.inputId]]);
   evidence.push({inputId:p.inputId,basedOnContentRevision:p.contentRevision,selectedFields:[...s.selectedFields].sort(),fieldDigests:digests,role:s.role,sourceRecordIds:p.sourceRecordIds,sourceIdentityTokens:p.identities,scopeToken,versionToken:await keyedHash(data.secret,['version',scopeToken,digests]),epoch:data.epoch,...(s.anchorId?{anchorId:s.anchorId}:{})});
  }
- return evidence;
+ if(qualification!==null)assertMaintenanceQualification(qualification,store);return evidence;
 }
 export async function validateEvidence(store,evidence,options) {
  if(!Array.isArray(evidence)||evidence.length>100)fail();

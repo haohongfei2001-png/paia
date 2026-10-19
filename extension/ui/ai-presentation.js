@@ -5,7 +5,8 @@ import {textOf,AutosaveSession,UndoJournal,RevisionSession} from './editor-primi
 import {LibraryEntryEditor} from './library-entry-editor.js';
 import {boundedLocalRead} from './optional-library-status.js';
 import {evolutionEntryIds,evolutionPlan,evolutionDateLabel,usableEvolutionEntry} from './evolution-model.js';
-import {readingCopyButton} from './reading-actions.js';
+import {AIHumanDelta,humanDeltaText} from './ai-human-delta.js';
+import {readingCopyButton,copyReadingText} from './reading-actions.js';
 import {RecoveryDraftSession} from './recovery-draft.js';
 const labels={keyInformation:'已有信息',decisions:'已有决定',preferences:'已有偏好',judgments:'已有判断',openQuestions:'已有问题'};
 export function localizeSavedAIControls(root){for(const node of root.querySelectorAll('[data-ai-product-label]'))node.textContent=tc(node.dataset.aiProductLabel);for(const node of root.querySelectorAll('[data-ai-product-aria]'))node.setAttribute('aria-label',tc(node.dataset.aiProductAria));}
@@ -14,7 +15,7 @@ export class AIReadingEditor {
   this.admittedFields=admittedFields instanceof Set?new Set([...admittedFields].filter(field=>SECTION_AI_FIELDS.includes(field))):admittedFields===null?null:new Set();
   this.sectionEvidence=sectionEvidence instanceof Set?new Set(sectionEvidence):this.admittedFields===null?null:new Set();
   this.fieldsOnly=fieldsOnly;this.recoveryChecked=this.admittedFields===null;
-  this.root=root;this.row=structuredClone(presentation);this.onStatus=onStatus;this.pending=null;this.failed=false;this.disposed=false;this.recovery=new RecoveryDraftSession({epoch:this.row.recoveryEpoch,kind:'ai_presentation',ownerId:this.row.topicId});this.recoveryLast=null;this.recoveryFailed=false;this.nodes=new Map();this.controller=new AbortController();this.autosave=new AutosaveSession(()=>void this.flush(),{delay:650,maxWait:3000});this.journal=new UndoJournal();this.revisions=new RevisionSession();this.draft={};this.excerptEditors=[];this.excerptHosts=new Map();this.evidenceEpoch=0;this.evidenceRows=new Map();
+  this.root=root;this.row=structuredClone(presentation);this.onStatus=onStatus;this.pending=null;this.failed=false;this.disposed=false;this.recovery=new RecoveryDraftSession({epoch:this.row.recoveryEpoch,kind:'ai_presentation',ownerId:this.row.topicId});this.recoveryLast=null;this.recoveryFailed=false;this.nodes=new Map();this.humanDeltas=new Map();this.controller=new AbortController();this.autosave=new AutosaveSession(()=>void this.flush(),{delay:650,maxWait:3000});this.journal=new UndoJournal();this.revisions=new RevisionSession();this.draft={};this.excerptEditors=[];this.excerptHosts=new Map();this.evidenceEpoch=0;this.evidenceRows=new Map();
   if(fieldsOnly){
    const legacy=element('details','ai-legacy');legacy.dataset.aiSavedFields='true';const summary=element('summary','',tc('已保存的 AI 整理'));summary.dataset.aiProductLabel='已保存的 AI 整理';legacy.append(summary);
    this.field('blockSummary',this.row.blockSummary,legacy,'主题速览','ai-summary');
@@ -52,22 +53,25 @@ export class AIReadingEditor {
   root.addEventListener('compositionend',()=>queueMicrotask(resume),{signal:this.controller.signal});
   this.ready=this.refreshEvidence();this.recoveryReady=this.restoreRecovery().finally(()=>{this.recoveryChecked=true;if(this.admittedFields!==null)for(const nodes of this.nodes.values())for(const node of nodes)node.contentEditable=this.recoveryForeign?'false':'plaintext-only';});
  }
- readingReflowBlocked(){const selection=this.root.ownerDocument?.getSelection?.()||document.getSelection?.();return this.composing||!!(selection&&!selection.isCollapsed&&selection.rangeCount&&(this.root.contains(selection.anchorNode)||this.root.contains(selection.focusNode)));}
+ readingReflowBlocked(){if(this.recoveryOnly)return false;const selection=this.root.ownerDocument?.getSelection?.()||document.getSelection?.();return this.composing||!!(selection&&!selection.isCollapsed&&selection.rangeCount&&(this.root.contains(selection.anchorNode)||this.root.contains(selection.focusNode)));}
  deferReadingRefresh(refresh){this.deferredReadingRefresh=refresh;}
  resumeDeferredReading(){if(this.disposed||this.readingReflowBlocked())return;const refresh=this.deferredReadingRefresh,evidence=this.deferredEvidenceRefresh;this.deferredReadingRefresh=null;this.deferredEvidenceRefresh=null;if(evidence)void Promise.resolve(evidence()).then(()=>{if(!this.disposed)refresh?.();});else if(refresh)void refresh();}
  admits(field){return this.admittedFields==null||this.admittedFields.has(field);}
  readingProjection(){return {...this.row,possibleEvolution:this.admits('possibleEvolution')?this.row.possibleEvolution:[],evidenceEntryIds:this.sectionEvidence?[...this.sectionEvidence]:(this.row.evidenceEntryIds||[])};}
  fieldNode(field,text,host,label,className){
   const prose=element('div',className,text||'');prose.contentEditable=this.recoveryChecked?'plaintext-only':'false';prose.setAttribute('aria-label',this.fieldsOnly?tc(label):label);if(this.fieldsOnly)prose.dataset.aiProductAria=label;prose.dataset.aiField=field;
+  const tracker=new AIHumanDelta(text||'');this.humanDeltas.set(prose,tracker);
   const options={signal:this.controller.signal};
+  prose.addEventListener('beforeinput',event=>{if(!this.disposed)tracker.beforeInput(event,prose);},options);
   prose.addEventListener('compositionstart',()=>{this.composing=true;this.autosave.cancel();},options);
   prose.addEventListener('compositionend',()=>{this.composing=false;this.schedule();},options);
-  prose.addEventListener('input',()=>{if(!this.composing)this.schedule();},options);
+  prose.addEventListener('input',event=>{if(this.disposed)return;tracker.update(textOf(prose),event);if(!this.composing)this.schedule();},options);
   prose.addEventListener('blur',()=>{if(!this.composing)void this.flush();},options);host.append(prose);return prose;
  }
  field(field,text,host,label,className){if(!this.admits(field)||!text?.trim())return;const prose=this.fieldNode(field,text,host,label,className);this.nodes.set(field,[prose]);this.draft[field]=this.values(field);}
  stageShell(key,index,kind='线索'){const stage=element('section','ai-reading-section evolution-stage');stage.dataset.stageKey=key;stage.dataset.readingKind=kind==='原话'?'original':'line';stage.id='evolution-'+key;stage.append(element('h2','',kind+' '+String(index).padStart(2,'0')),element('p','evolution-date',''));return stage;}
  async refreshEvidence(){
+  if(this.disposed)return;
   const epoch=++this.evidenceEpoch,ids=evolutionEntryIds(this.readingProjection()).filter(id=>!this.sectionEvidence||this.sectionEvidence.has(id)),rows=[],unavailable=[];
   for(let offset=0;offset<ids.length;offset+=8){
    const batch=await Promise.all(ids.slice(offset,offset+8).map(async id=>({id,...await boundedLocalRead(()=>request('GET_LIBRARY_ENTRY',{id}))})));
@@ -124,7 +128,7 @@ export class AIReadingEditor {
   if(typeof IntersectionObserver==='function'){this.observer=new IntersectionObserver(records=>{for(const record of records)if(record.isIntersecting){const index=stages.indexOf(record.target);range.value=String(index+1);range.setAttribute('aria-valuetext','线索 '+(index+1)+'，共 '+stages.length+' 条');this.rail.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-current',String(i===index)));}},{rootMargin:'-12% 0px -65% 0px'});stages.forEach(stage=>this.observer.observe(stage));}
  }
  collect(){if(this.composing||this.disposed)return;this.excerptEditors.forEach(e=>e.collect());const changes=[];for(const field of this.nodes.keys()){const value=this.values(field);if(JSON.stringify(value)!==JSON.stringify(this.draft[field]))changes.push({field,before:this.draft[field],after:value});}if(changes.length){this.journal.record(changes);for(const c of changes)this.draft[c.field]=structuredClone(c.after);}}
- async history(redo=false){if(this.composing)return;this.collect();const from=redo?this.journal.redo:this.journal.undo,to=redo?this.journal.undo:this.journal.redo;if(!from.length)return;const changes=from.pop();to.push(changes);for(const c of changes){const value=structuredClone(redo?c.after:c.before);this.draft[c.field]=value;this.nodes.get(c.field).forEach((node,i)=>node.textContent=Array.isArray(value)?value[i].text:value);}this.failed=false;await this.flush();}
+ async history(redo=false){if(this.composing||this.disposed)return;this.collect();const from=redo?this.journal.redo:this.journal.undo,to=redo?this.journal.undo:this.journal.redo;if(!from.length)return;const changes=from.pop();to.push(changes);for(const c of changes){const value=structuredClone(redo?c.after:c.before);this.draft[c.field]=value;this.nodes.get(c.field).forEach((node,i)=>node.textContent=Array.isArray(value)?value[i].text:value);}this.failed=false;await this.flush();}
  values(field){
   const nodes=this.nodes.get(field),array=Array.isArray(this.row[field]),retained=this.draft[field]??this.row[field];
   const value=(node,index)=>{
@@ -137,13 +141,14 @@ export class AIReadingEditor {
   };
   return array?nodes.map((node,index)=>({...this.row[field][index],text:value(node,index)})):value(nodes[0],0);
  }
- dirty(){return this.composing||this.excerptEditors.some(e=>e.dirty())||[...this.nodes.keys()].some(k=>JSON.stringify(this.values(k))!==JSON.stringify(this.row[k]));}
+ dirty(){if(this.recoveryOnly)return !this.recoveryResolved&&!this.recovery.retainedProtected;return this.composing||this.excerptEditors.some(e=>e.dirty())||[...this.nodes.keys()].some(k=>JSON.stringify(this.values(k))!==JSON.stringify(this.row[k]));}
  schedule(){if(this.disposed||this.admittedFields!=null&&!this.recoveryChecked)return;this.collect();this.failed=false;this.onStatus('正在保存…');this.autosave.schedule();void this.protectRecovery();}
  recoverySnapshot(){const values={};for(const field of this.nodes.keys()){const value=this.values(field);if(JSON.stringify(value)!==JSON.stringify(this.row[field]))values[field]=value;}if(!Object.keys(values).length)return null;return {type:'AI_RECOVERY_SNAPSHOT',topicId:this.row.topicId,generation:this.row.recoveryGeneration||'legacy',baseRevision:this.row.revision,values};}
- async protectRecovery(){if(this.recoveryForeign)return false;const operation=this.recoverySnapshot();if(!operation){const token=this.recoveryLast?.token;if(token)void this.recovery.clear(token);this.recoveryLast=null;return true;}const signature=JSON.stringify(operation);if(!this.recoveryLast||this.recoveryLast.signature!==signature)this.recoveryLast={signature,token:crypto.randomUUID()};try{await this.recovery.protect(operation,this.recoveryLast.token);this.recoveryFailed=false;return true;}catch{this.recoveryFailed=true;return false;}}
- async restoreRecovery(){let draft;try{draft=await this.recovery.load();}catch{if(this.admittedFields!=null){this.recoveryForeign=true;this.conflicted=true;this.onStatus('恢复草稿暂时无法核对，已有内容仍保留，请稍后重新读取再编辑。','error');}return false;}if(!draft)return false;const operation=draft.operation;if(operation?.type!=='AI_RECOVERY_SNAPSHOT'||operation.topicId!==this.row.topicId||!operation.values||typeof operation.values!=='object'){await this.recovery.clear(draft.token).catch(()=>{});return false;}const entries=Object.entries(operation.values).filter(([field])=>this.nodes.has(field));if(this.admittedFields!=null&&Object.entries(operation.values).some(([field,value])=>!this.nodes.has(field)&&JSON.stringify(this.row[field])!==JSON.stringify(value))){this.recoveryForeign=true;this.conflicted=true;this.onStatus('另一个阅读范围仍有未保存的 AI 整理修改。已保留原草稿，请返回对应范围处理后再编辑。','conflict');return false;}if(!entries.length){await this.recovery.clear(draft.token).catch(()=>{});return false;}if(entries.every(([field,value])=>JSON.stringify(this.row[field])===JSON.stringify(value))){await this.recovery.clear(draft.token).catch(()=>{});return false;}for(const [field,value]of entries){this.nodes.get(field).forEach((node,i)=>node.textContent=Array.isArray(value)?value[i]?.text||'':value);this.draft[field]=structuredClone(value);}if(this.row.revision!==operation.baseRevision){this.conflicted=true;this.onStatus('检测到上次未完成的 AI 整理人工修改，但已保存版本同时变化。草稿已恢复到页面，未自动覆盖。','conflict');return false;}this.recoveryLast={signature:JSON.stringify(operation),token:draft.token};this.onStatus('正在恢复上次未完成的修改…');this.failed=false;return this.flush();}
+ async protectRecovery(){if(this.recoveryOnly)return this.recovery.retainedProtected;if(this.recoveryForeign)return false;const operation=this.recoverySnapshot();if(!operation){const token=this.recoveryLast?.token;if(token)void this.recovery.clear(token);this.recoveryLast=null;return true;}const signature=JSON.stringify(operation);if(!this.recoveryLast||this.recoveryLast.signature!==signature)this.recoveryLast={signature,token:crypto.randomUUID()};try{await this.recovery.protect(operation,this.recoveryLast.token);if(!this.recoveryOnly)this.recoveryFailed=false;return true;}catch{if(!this.recoveryOnly)this.recoveryFailed=true;return false;}}
+ async restoreRecovery(){let draft;try{draft=await this.recovery.load();}catch{if(this.disposed)return false;if(this.admittedFields!=null){this.recoveryForeign=true;this.conflicted=true;this.onStatus('恢复草稿暂时无法核对，已有内容仍保留，请稍后重新读取再编辑。','error');}return false;}if(this.disposed||!draft)return false;const operation=draft.operation;if(operation?.type!=='AI_RECOVERY_SNAPSHOT'||operation.topicId!==this.row.topicId||!operation.values||typeof operation.values!=='object'){await this.recovery.clear(draft.token).catch(()=>{});return false;}const entries=Object.entries(operation.values).filter(([field])=>this.nodes.has(field));if(this.admittedFields!=null&&Object.entries(operation.values).some(([field,value])=>!this.nodes.has(field)&&JSON.stringify(this.row[field])!==JSON.stringify(value))){this.recoveryForeign=true;this.conflicted=true;this.onStatus('另一个阅读范围仍有未保存的 AI 整理修改。已保留原草稿，请返回对应范围处理后再编辑。','conflict');return false;}if(!entries.length){await this.recovery.clear(draft.token).catch(()=>{});return false;}if(entries.every(([field,value])=>JSON.stringify(this.row[field])===JSON.stringify(value))){await this.recovery.clear(draft.token).catch(()=>{});return false;}for(const [field,value]of entries){this.nodes.get(field).forEach((node,i)=>node.textContent=Array.isArray(value)?value[i]?.text||'':value);this.draft[field]=structuredClone(value);}if(this.row.revision!==operation.baseRevision){this.conflicted=true;this.onStatus('检测到上次未完成的 AI 整理人工修改，但已保存版本同时变化。草稿已恢复到页面，未自动覆盖。','conflict');return false;}this.recoveryLast={signature:JSON.stringify(operation),token:draft.token};this.onStatus('正在恢复上次未完成的修改…');this.failed=false;return this.flush();}
  get recoveryPending(){return !!this.recovery?.pending||this.excerptEditors.some(e=>e.recoveryPending);}
  async flush(){
+  if(this.recoveryOnly){if(this.recovery.running)await this.recovery.running;if(this.dirty())this.updateRecoveryStatus();return !this.dirty();}
   this.autosave.cancel();
   const unavailable=()=>this.composing||this.disposed,stopped=()=>unavailable()||this.conflicted||this.failed;
   if(unavailable())return false;
@@ -162,8 +167,11 @@ export class AIReadingEditor {
     if(stopped())return false;
     const value=this.values(field);if(JSON.stringify(value)===JSON.stringify(this.row[field]))continue;
     try{
-     const r=await request('EDIT_AI_PRESENTATION',{edit:this.revisions.attempt({topicId:this.row.topicId,field,value,expectedRevision:this.row.revision})});
+     const edit=this.revisions.attempt({topicId:this.row.topicId,field,value,expectedRevision:this.row.revision}),r=await request('EDIT_AI_PRESENTATION',{edit});
+     if(this.recoveryOnly){this.recoveryAcknowledgement={operationId:edit.operationId,revision:r.revision};return false;}
+     if(r.revision>this.row.revision)this.row.protections={...this.row.protections,[field]:true};
      this.row[field]=value;this.row.revision=r.revision;
+     this.nodes.get(field)?.forEach((node,i)=>this.humanDeltas.get(node)?.commit(Array.isArray(value)?value[i].text:value));
      // A sent operation still has its exact ACK, but retirement or a new IME
      // session cannot authorize sampling/sending the next field after that ACK.
      if(stopped())return false;
@@ -180,8 +188,60 @@ export class AIReadingEditor {
   let ok;try{ok=await task;}finally{if(this.pending===task)this.pending=null;}
   return ok&&this.dirty()?this.flush():ok;
  }
+ // Retirement of edit authority is synchronous. Only this existing owner and
+ // its existing recovery writer survive; no canonical command can restart.
+ withdraw(){
+  if(this.recoveryOnly)return true;if(this.disposed)return false;
+  const operation=this.recoverySnapshot();if(!operation){this.dispose();return false;}
+  const deltas=[];
+  for(const field of Object.keys(operation.values))for(const [index,node]of (this.nodes.get(field)||[]).entries()){
+   const tracker=this.humanDeltas.get(node);if(!tracker)continue;tracker.update(Array.isArray(operation.values[field])?operation.values[field][index].text:operation.values[field]);const delta=tracker.snapshot();if(delta)deltas.push({field,index:Array.isArray(this.row[field])?index:null,label:({blockSummary:'主题速览',currentView:'当前理解',possibleEvolution:'思考线索',...labels})[field],...delta});
+  }
+  const signature=JSON.stringify(operation),token=this.recoveryLast?.signature===signature?this.recoveryLast.token:crypto.randomUUID();
+  this.dispose();this.recoveryOnly=true;this.recoveryResolved=false;this.ownComposing=false;this.humanRecovery=deltas;
+  this.row={topicId:operation.topicId,revision:operation.baseRevision,recoveryGeneration:operation.generation,recoveryEpoch:this.recovery.epoch};
+  this.draft={};this.nodes.clear();this.humanDeltas.clear();this.evidenceRows.clear();this.excerptHosts.clear();this.evolutionNodes=[];this.sectionEvidence=new Set();this.admittedFields=new Set();this.recoveryLast=null;this.revisions.last=null;
+  this.coverage=this.stages=this.rail=null;this.root.replaceChildren();this.recoveryController=new AbortController();
+  // retain joins an already running exact SAVE, uses its exact receipt, or
+  // starts the first protection of a not-yet-scheduled composition. A failed
+  // matching write is never automatically retried by refresh/navigation.
+  this.recoveryProtection=this.recovery.retain(operation,token).then(async()=>{if(this.recovery.running)await this.recovery.running;this.updateRecoveryStatus();});
+  this.mountRecovery();return true;
+ }
+ mountRecovery(){
+  if(!this.recoveryOnly||this.recoveryRetired)return;
+  const box=element('section','ai-user-draft');box.dataset.aiHumanRecovery='true';
+  box.append(element('h2','','未完成的人工修改'),element('p','','原整理已不在当前阅读范围。这里只显示能确认的人工输入和删除意图。'));
+  const preview=element('pre','entry-prose',humanDeltaText(this.humanRecovery));preview.dataset.aiHumanDelta='true';box.append(preview);
+  this.recoveryStatus=element('p','evolution-note');this.recoveryStatus.setAttribute('role','status');box.append(this.recoveryStatus);
+  const action=(label,run)=>{const node=element('button','',label);node.type='button';node.addEventListener('click',run,{signal:this.recoveryController.signal});box.append(node);return node;};
+  this.recoveryRetry=action('重试保护草稿',()=>void this.retryRecovery());
+  action('复制人工修改',()=>void this.copyHumanRecovery());
+  action('放弃此草稿',()=>void this.discardHumanRecovery());
+  this.root.replaceChildren(box);this.updateRecoveryStatus();
+ }
+ updateRecoveryStatus(){
+  if(!this.recoveryOnly||this.recoveryRetired)return;
+  const pending=this.recovery.pending,protectedDraft=this.recovery.retainedProtected;
+  this.recoveryFailed=!pending&&!protectedDraft&&!this.recoveryResolved;
+  const text=this.recoveryResolved?'已放弃此草稿。':pending?'正在保护人工修改；尚未确认保存在本机。':protectedDraft?'恢复草稿已保存在本机；重试保护不会提交整理修改。':'人工修改尚未保存在本机。请保持此页打开，重试或复制人工修改。';
+  if(this.recoveryStatus)this.recoveryStatus.textContent=text;if(this.recoveryRetry)this.recoveryRetry.disabled=pending||protectedDraft||this.recoveryResolved;
+  this.onStatus?.(text,this.recoveryFailed?'error':undefined);
+ }
+ async retryRecovery(){
+  if(!this.recoveryOnly||this.recoveryRetired||this.recoveryResolved)return false;
+  const task=this.recovery.retryRetained();this.updateRecoveryStatus();const ok=await task;if(this.recovery.running)await this.recovery.running;this.updateRecoveryStatus();return ok;
+ }
+ async copyHumanRecovery(){
+  if(!this.recoveryOnly||this.recoveryRetired)return false;
+  return copyReadingText(humanDeltaText(this.humanRecovery),{signal:this.recoveryController.signal,isCurrent:()=>!this.recoveryRetired&&!this.recoveryResolved});
+ }
+ async discardHumanRecovery(){
+  if(!this.recoveryOnly||this.recoveryRetired||this.recoveryResolved||!globalThis.confirm?.('放弃这份尚未提交的人工修改？此操作不会改动已保存的整理。'))return false;
+  try{if(!await this.recovery.discardRetained()||this.recoveryRetired)return false;this.recoveryResolved=true;this.humanRecovery=[];this.recoveryController.abort();this.recoveryController=new AbortController();this.mountRecovery();return true;}catch{this.updateRecoveryStatus();return false;}
+ }
  get composing(){return !!this.ownComposing||this.excerptEditors.some(e=>e.surface?.composing);}
  set composing(value){this.ownComposing=value;}
  get saving(){return !!this.pending||this.excerptEditors.some(e=>e.saving);}
- dispose(){this.deferredReadingRefresh=null;this.deferredEvidenceRefresh=null;this.evidenceEpoch++;this.observer?.disconnect();this.excerptEditors.forEach(e=>e.dispose());this.excerptEditors=[];this.autosave.dispose();this.controller.abort();this.journal.clear();this.disposed=true;for(const nodes of this.nodes.values())for(const node of nodes)node.remove();}
+ dispose(){if(this.recoveryOnly){this.recoveryRetired=true;this.recoveryController?.abort();this.recovery.releaseRetained();this.humanRecovery=[];this.root.replaceChildren();}this.deferredReadingRefresh=null;this.deferredEvidenceRefresh=null;this.evidenceEpoch++;this.observer?.disconnect();this.excerptEditors.forEach(e=>e.dispose());this.excerptEditors=[];this.autosave.dispose();this.controller.abort();this.journal.clear();this.disposed=true;for(const nodes of this.nodes.values())for(const node of nodes)node.remove();}
 }

@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMaintenancePayload} from '../core/ai-usage/maintenance-payload.js';
+import {createMaintenanceQualification,maintenanceQualificationReceipt,maintenanceQualificationReader,releaseMaintenanceQualification} from '../core/ai-usage/maintenance-qualification.js';
 import {LocalMaintenanceSession} from '../core/ai-usage/local-maintenance-session.js';
 import {readMaintenanceBatch,unsupportedMaintenanceCoverage} from '../core/ai-usage/maintenance-batch.js';
 import {TopicFormationService} from '../core/topic-formation.js';
+import {authoredContextEvidence} from '../core/context-authored-entry.js';
 import {AIUsageFoundation} from '../core/ai-usage/foundation.js';
 import {ContextMaintenanceService} from '../core/context-maintenance.js';
 import {CONTEXT_CARDS_ROW,ContextCardsService} from '../core/context-cards.js';
@@ -159,19 +161,49 @@ test('old standalone Context receipt fastreturn is not this job ACK',async()=>{
 });
 
 
-for(const stop of ['timeout','dispose','window-revoke'])test('bounded '+stop+' settles an ignored-signal provider; late actual proposal never decodes or ACKs',async()=>{
+// Production checks both the timer and monotonic deadline. Advance their
+// test clocks together so provider-entry and pre-entry expiry are distinct.
+function deterministicClock(t){
+ let monotonic=0;
+ t.mock.timers.enable({apis:['setTimeout']});
+ t.mock.method(performance,'now',()=>monotonic);
+ return {tick(ms){monotonic+=ms;t.mock.timers.tick(ms);},advance(ms){monotonic+=ms;}};
+}
+for(const stop of ['timeout','dispose','window-revoke'])test('bounded '+stop+' settles an ignored-signal provider; late actual proposal never decodes or ACKs',async t=>{
  const f=await fixture();f.s.organizerBudget.limits.timeoutMs=25;
  let release,entered,physical,controls;const admitted=new Promise(r=>{entered=r;});f.state.held=new Promise(r=>{release=r;});
  const execute=f.provider.execute.bind(f.provider);f.provider.execute=(request,execution)=>{controls=execution;physical=execute(request);entered();return physical;};
- const h=await f.session.prepare(options),running=f.session.run(h);await Promise.race([admitted,running.then(result=>{assert.fail('Maintenance settled before provider entry: '+result.state);})]);
+ const h=await f.session.prepare(options);const testClock=deterministicClock(t);const running=f.session.run(h);await Promise.race([admitted,running.then(result=>{assert.fail('Maintenance settled before provider entry: '+result.state);})]);
  assert.equal(controls.timeoutMs,25);assert.ok(controls.signal instanceof AbortSignal);assert.equal(controls.signal.aborted,false);
- if(stop==='dispose')f.session.dispose();else if(stop==='window-revoke')f.clock.abort();
+ testClock.tick(24);await Promise.resolve();assert.equal(controls.signal.aborted,false,'the original25ms budget is not exhausted at24ms');
+ if(stop==='dispose')f.session.dispose();else if(stop==='window-revoke')f.clock.abort();else testClock.tick(1);
  const result=await running;assert.equal(result.state,stop==='timeout'?'OUTCOME_UNKNOWN':'UNAVAILABLE');nonAuthority(result);assert.equal(controls.signal.aborted,true);
  const rows=await read(f.s,'organizerUsage');assert.equal(rows.length,1);assert.equal(rows[0].attemptCount,1);assert.equal(rows[0].state,'OUTCOME_UNKNOWN');assert.equal(rows[0].spendState,'RESERVATION_RETAINED');assert.equal((await ack(f)).length,0);
  const before=await snapshot(f.s),writes=f.s.repository.metrics.writes;release();await physical;await Promise.resolve();
  assert.equal(f.responses.length,1,'actual late complete proposal returned');assert.equal(f.state.topicAssessments,0);assert.equal(f.state.contextOperations,0);assert.deepEqual(await snapshot(f.s),before);assert.equal(f.s.repository.metrics.writes,writes);assert.equal(f.calls.length,1);
  assert.equal((await f.session.run(h)).state,stop==='timeout'?'OUTCOME_UNKNOWN':'UNAVAILABLE');
  if(stop==='timeout'){const restart=new LocalMaintenanceSession(f.s,f.constructor);assert.equal((await restart.run(await restart.prepare(options))).state,'OUTCOME_UNKNOWN');assert.equal(f.calls.length,1);assert.deepEqual(await snapshot(f.s),before);}
+});
+
+test('the original25ms Maintenance deadline can expire during final authority before provider entry',async t=>{
+ const f=await fixture();f.s.organizerBudget.limits.timeoutMs=25;
+ const testClock=deterministicClock(t);let armed=false,expired=false;
+ const schedule=globalThis.setTimeout,resolve=f.materialProcessing.resolve;
+ t.mock.method(globalThis,'setTimeout',(callback,delay,...args)=>{if(delay===25)armed=true;return schedule(callback,delay,...args);});
+ f.materialProcessing.resolve=async(...args)=>{const result=await resolve(...args);if(armed&&!expired){expired=true;testClock.tick(24);assert.equal(f.calls.length,0);testClock.tick(1);}return result;};
+ const session=new LocalMaintenanceSession(f.s,f.constructor),h=await session.prepare(options),result=await session.run(h);assert.equal(armed,true);assert.equal(expired,true);assert.equal(result.state,'OUTCOME_UNKNOWN');nonAuthority(result);assert.equal(f.calls.length,0,'expired pre-provider authority cannot dispatch');
+ const rows=await read(f.s,'organizerUsage');assert.equal(rows.length,1);assert.equal(rows[0].attemptCount,1);assert.equal(rows[0].state,'OUTCOME_UNKNOWN');assert.equal(rows[0].spendState,'RESERVATION_RETAINED');assert.equal((await ack(f)).length,0);
+ assert.equal((await session.run(h)).state,'OUTCOME_UNKNOWN');assert.equal(f.calls.length,0);assert.equal(f.state.topicAssessments,0);assert.equal(f.state.contextOperations,0);
+});
+
+
+test('independent: monotonic expiry in final authority also refuses entry with the timer still pending',async t=>{
+ const f=await fixture();f.s.organizerBudget.limits.timeoutMs=25;const testClock=deterministicClock(t);let armed=false,expired=false;
+ const schedule=globalThis.setTimeout,resolve=f.materialProcessing.resolve;
+ t.mock.method(globalThis,'setTimeout',(callback,delay,...args)=>{if(delay===25)armed=true;return schedule(callback,delay,...args);});
+ f.materialProcessing.resolve=async(...args)=>{const result=await resolve(...args);if(armed&&!expired){expired=true;testClock.advance(24);assert.equal(f.calls.length,0);testClock.advance(1);}return result;};
+ const session=new LocalMaintenanceSession(f.s,f.constructor),h=await session.prepare(options),result=await session.run(h);assert.equal(armed,true);assert.equal(expired,true);assert.equal(result.state,'OUTCOME_UNKNOWN');assert.equal(f.calls.length,0);assert.equal((await ack(f)).length,0);
+ const rows=await read(f.s,'organizerUsage');assert.equal(rows[0].attemptCount,1);assert.equal(rows[0].state,'OUTCOME_UNKNOWN');assert.equal(rows[0].spendState,'RESERVATION_RETAINED');
 });
 
 test('41 actual independent Source Inputs require a third partition and refuse without consuming a window or truncating coverage',async()=>{
@@ -238,7 +270,7 @@ async function restoredEntryFixture(){
 
 test('restored Input-bound Entry Topic and Context facets use exact Entry authority and original owners',async()=>{
  const f=await restoredEntryFixture(),scopes=[],resolve=f.materialProcessing.resolve;
- f.materialProcessing.resolve=async(t,scope)=>{scopes.push(structuredClone(scope));return resolve(t,scope);};
+ f.materialProcessing.resolve=async(t,scope)=>{if(scope.purpose==='ai-maintenance-payload')scopes.push(structuredClone(scope));return resolve(t,scope);};
  const session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:f.materialProcessing}),h=await session.prepare(options),r=await session.run(h);
  assert.equal(r.state,'COMMITTED',JSON.stringify(r));assert.equal(f.calls.length,1);
  const key=JSON.stringify(['library_entry',f.entry.id]),entryAcks=(await ack(f)).filter(a=>a.unit.key===key);
@@ -251,7 +283,7 @@ test('restored Input-bound Entry Topic and Context facets use exact Entry author
 
 for(const defect of ['missing-entry-authority','wrong-entry-revision','missing-entry-assessment','foreign-entry-assessment','entry-edit','entry-remove','unjournaled-revision'])test('restored Entry '+defect+' cannot ACK its Topic delta',async()=>{
  const f=await restoredEntryFixture(),execute=f.provider.execute,resolve=f.materialProcessing.resolve;
- f.materialProcessing.resolve=async(t,scope)=>{const r=await resolve(t,scope);if(defect==='missing-entry-authority'){const {entries,...rest}=r.scope;r.scope=rest;}if(defect==='wrong-entry-revision')r.scope={...r.scope,entries:r.scope.entries.map(e=>({...e,revision:e.revision-1}))};return r;};
+ f.materialProcessing.resolve=async(t,scope)=>{const r=await resolve(t,scope);if(scope.purpose==='ai-maintenance-payload'&&defect==='missing-entry-authority'){const {entries,...rest}=r.scope;r.scope=rest;}if(scope.purpose==='ai-maintenance-payload'&&defect==='wrong-entry-revision')r.scope={...r.scope,entries:r.scope.entries.map(e=>({...e,revision:e.revision-1}))};return r;};
  f.provider.execute=async request=>{const r=await execute(request);if(defect==='missing-entry-assessment')delete r.fixture.topicAssessment.entries[0].entryId;if(defect==='foreign-entry-assessment')r.fixture.topicAssessment.entries[0].entryId=op();if(defect==='unjournaled-revision')await f.s.repository.transaction(true,async t=>{const row=await t.get('thoughts',f.entry.id);row.revision++;await t.put('thoughts',row);});if(defect==='entry-remove')await f.s.removeEntry({id:f.entry.id,expectedRevision:f.entry.revision,operationId:op()});if(defect==='entry-edit')await f.s.editEntry({id:f.entry.id,expectedRevision:f.entry.revision,changes:{note:'Synthetic later note'},operationId:op()});return r;};
  const session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:f.materialProcessing}),r=await session.run(await session.prepare(options));
  assert.notEqual(r.processedState,'COMMITTED');const key=JSON.stringify(['library_entry',f.entry.id]);assert.equal((await ack(f)).filter(a=>a.unit.key===key).length,0);
@@ -306,7 +338,7 @@ for(const variant of ['other-reason','edited','missing-owner','history-collision
  const session=new LocalMaintenanceSession(f.s,f.constructor),transaction=f.s.repository.transaction.bind(f.s.repository);let hit=false;
  if(variant==='abort')f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const put=t.put.bind(t);t.put=async(...args)=>{const value=await put(...args);if(args[0]==='organizerWorkItems'&&args[1].reconsideredBecause){hit=true;session.dispose();}return value;};return fn(t);},stores);
  const before=await snapshot(f.s);
- if(['history-collision','abort'].includes(variant)){await assert.rejects(session.prepare({...options,routeVersion:'synthetic-entry-context-v1'}));assert.deepEqual(await snapshot(f.s),before);if(variant==='abort')assert.equal(hit,true);}
+ if(['history-collision','abort','missing-owner'].includes(variant)){await assert.rejects(session.prepare({...options,routeVersion:'synthetic-entry-context-v1'}));assert.deepEqual(await snapshot(f.s),before);if(variant==='abort')assert.equal(hit,true);}
  else{await session.prepare({...options,routeVersion:'synthetic-entry-context-v1'});const rows=await read(f.s,'organizerWorkItems');assert.equal(rows.some(r=>r.originalId===old.id&&r.reconsideredBecause==='RESTORED_ENTRY_TOPIC_MAPPER_V1'),false);if(variant==='other-reason')assert.equal(rows.find(r=>r.id===old.id).retryCondition,'SEMANTIC_EVIDENCE_REQUIRED');}
  assert.equal(f.calls.length,0);assert.equal((await ack(f)).length,0);f.s.repository.transaction=transaction;
 });
@@ -393,7 +425,7 @@ test('remaining Entry Context-only coverage still requests Entry processing and 
  const foundation=new AIUsageFoundation(f.s,{resolveAuthority:f.authority});await foundation.cancel(initial.jobId);
  const oldAttempt=structuredClone((await read(f.s,'organizerUsage'))[0]);
  f.service.responseAdapter.context=adapter;const scopes=[],resolve=f.materialProcessing.resolve;
- f.materialProcessing.resolve=async(t,scope)=>{scopes.push(structuredClone(scope));return resolve(t,scope);};
+ f.materialProcessing.resolve=async(t,scope)=>{if(scope.purpose==='ai-maintenance-payload')scopes.push(structuredClone(scope));return resolve(t,scope);};
  let grant;const window={acquire:async r=>(grant={version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-context-next',reservationId:'synthetic-context-next',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal}),isCurrent:r=>r===grant};
  const session=new LocalMaintenanceSession(f.s,{...f.constructor,window,processing:f.materialProcessing}),h=await session.prepare(options),r=await session.run(h);
  assert.equal(r.state,'COMMITTED',JSON.stringify(r));assert.equal(f.calls.length,2);assert.equal(f.calls[1].coverage.every(u=>u.facet==='context'),true);assert.equal(f.calls[1].material.entries.length,1);
@@ -428,7 +460,7 @@ async function placedEntryFixture(){
 }
 
 test('manual Placement Context uses original target and exact key without changing human placement',async()=>{
- const f=await placedEntryFixture(),scopes=[],resolve=f.materialProcessing.resolve;f.materialProcessing.resolve=async(t,scope)=>{scopes.push(structuredClone(scope));return resolve(t,scope);};
+ const f=await placedEntryFixture(),scopes=[],resolve=f.materialProcessing.resolve;f.materialProcessing.resolve=async(t,scope)=>{if(scope.purpose==='ai-maintenance-payload')scopes.push(structuredClone(scope));return resolve(t,scope);};
  const before=await Promise.all(['thoughts','topics','sections','placements'].map(n=>read(f.s,n))),session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:f.materialProcessing}),h=await session.prepare(options),r=await session.run(h);
  assert.equal(r.state,'PARTIAL',JSON.stringify(r));assert.equal(r.processedState,'COMMITTED',JSON.stringify(r));assert.equal(f.calls.length,2);const key=JSON.stringify(['placement',f.placement.id]);
  assert.deepEqual((await ack(f)).filter(a=>a.unit.key===key).map(a=>a.unit.facet),['context']);assert.equal((await ack(f)).length,3);assert.equal(h.deferredUnits,1);
@@ -462,7 +494,7 @@ for(const defect of ['note','binding','journal','target-layout','section-removed
  assert.notEqual(r.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await ack(f)).length,2);
 });
 for(const defect of ['missing-placement','wrong-target','missing-entry'])test('manual Placement '+defect+' processing scope cannot borrow Input authority',async()=>{
- const f=await placedEntryFixture(),resolve=f.materialProcessing.resolve;f.materialProcessing.resolve=async(t,scope)=>{const r=await resolve(t,scope);r.scope=structuredClone(r.scope);if(defect==='missing-placement')delete r.scope.placements;if(defect==='wrong-target')r.scope.placements[0].topicId=op();if(defect==='missing-entry')delete r.scope.entries;return r;};
+ const f=await placedEntryFixture(),resolve=f.materialProcessing.resolve;f.materialProcessing.resolve=async(t,scope)=>{const r=await resolve(t,scope);if(scope.purpose!=='ai-maintenance-payload')return r;r.scope=structuredClone(r.scope);if(defect==='missing-placement')delete r.scope.placements;if(defect==='wrong-target')r.scope.placements[0].topicId=op();if(defect==='missing-entry')delete r.scope.entries;return r;};
  const session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:f.materialProcessing}),r=await session.run(await session.prepare(options));assert.notEqual(r.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await ack(f)).length,2);
 });
 for(const defect of ['note','journal','target-layout','remove','revoke'])test('manual Placement '+defect+' after response cannot publish Context',async()=>{
@@ -511,56 +543,104 @@ for(const defect of ['reason','journal','history-collision','abort'])test('manua
 test('manual Placement payload rejects incomplete, duplicate, foreign, malformed and over-budget metadata',async()=>{
  const f=await placedEntryFixture(),session=new LocalMaintenanceSession(f.s,f.constructor);await session.run(await session.prepare(options));
  const {material:sent,...metadata}=f.calls[1],material={sourceCount:1,view:{...sent,inputs:sent.inputs.map(i=>({id:i.inputId,revision:i.revision,role:'primary',fields:{body:i.body}})),entries:sent.entries.map(e=>({id:e.entryId,revision:e.revision,body:e.body,bodyBinding:e.bodyBinding,workingInputId:e.workingInputId}))}},limits=f.s.organizerBudget.limits;
- assert.deepEqual(createMaintenancePayload(metadata,material,limits,sent.placements).material,sent);
+ assert.deepEqual(createMaintenancePayload(metadata,material,limits,sent.placements,[],[],[],[],[],sent.existingContextItems,sent.existingContextSummary).material,sent);
  for(const defect of ['missing','duplicate','extra','entry-revision','target','input','layout','budget']){let ps=structuredClone(sent.placements);if(defect==='missing')ps=[];if(defect==='duplicate')ps.push(ps[0]);if(defect==='extra')ps[0].unapproved='synthetic';if(defect==='entry-revision')ps[0].entryRevision++;if(defect==='target')ps[0].topicId=op();if(defect==='input')ps[0].inputId=op();if(defect==='layout')ps[0].layoutGeneration++;if(defect==='budget')ps[0].sectionId='x'.repeat(limits.maxContentBytes);assert.throws(()=>createMaintenancePayload(metadata,material,limits,ps),undefined,defect);}
 });
 
-test('mixed Topic work leaves supported human Placement Context dirty for a fresh admitted opportunity',async()=>{
+test('mixed Topic and human Placement Context complete within the original two-child opportunity',async()=>{
  const f=await placedEntryFixture();await inputEdit(f.s,f.input.id,{libraryText:'SYNTHETIC updated current Input before mixed maintenance'});
- const key=JSON.stringify(['placement',f.placement.id]),session=new LocalMaintenanceSession(f.s,f.constructor);
+ const key=JSON.stringify(['placement',f.placement.id]),session=new LocalMaintenanceSession(f.s,f.constructor),before=await read(f.s,'placements',f.placement.id);
  const h=await session.prepare({...options,routeVersion:'synthetic-mixed-placement-v1'}),r=await session.run(h);
- assert.equal(r.state,'PARTIAL');assert.equal(r.processedState,'COMMITTED',JSON.stringify(r));assert.equal(r.pendingPlacementUnits,1);
- assert.equal(r.complete,false);assert.equal(r.nextCursor,null);assert.equal(r.remainingWork,true);
- assert.equal(f.calls.length,2);assert.equal(f.calls[1].material.placements?.length??0,0);
- assert.equal((await ack(f)).some(a=>a.unit.key===key),false,'withheld Placement has no ACK');
- const pending=(await read(f.s,'organizerWorkItems')).filter(x=>x.unit?.key===key);
- assert.equal(pending.some(x=>x.unit.facet==='context'&&x.state==='DEFERRED'),false,'supported Context is not falsely classified unsupported');
- const beforeCalls=f.calls.length;await session.run(h);assert.equal(f.calls.length,beforeCalls,'settled handle never auto-dispatches backlog');session.dispose();
- const next=new LocalMaintenanceSession(f.s,f.constructor),nextHandle=await next.prepare({...options,routeVersion:'synthetic-mixed-placement-v1'}),result=await next.run(nextHandle);
- assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,3);
- assert.equal(f.calls[2].material.placements.length,1);assert.equal((await ack(f)).filter(a=>a.unit.key===key&&a.unit.facet==='context').length,1);
+ assert.equal(r.state,'PARTIAL');assert.equal(r.processedState,'COMMITTED',JSON.stringify(r));assert.equal(r.pendingPlacementUnits??0,0);
+ assert.equal(r.complete,true);assert.equal(r.nextCursor,null);assert.equal(r.remainingWork,true,'unsupported Placement Topic remains separate');
+ assert.equal(h.childCount,2);assert.equal(f.calls.length,3);assert.equal(f.calls[1].material.placements?.length??0,0);assert.equal(f.calls[2].material.placements.length,1);
+ assert.deepEqual(await read(f.s,'placements',f.placement.id),before);assert.equal((await ack(f)).filter(a=>a.unit.key===key&&a.unit.facet==='context').length,1);
+ assert.equal((await read(f.s,'organizerWorkItems')).some(x=>x.unit?.key===key&&x.unit.facet==='context'&&x.state==='DEFERRED'),false);
+ const beforeCalls=f.calls.length;await session.run(h);assert.equal(f.calls.length,beforeCalls,'settled handle never repeats either child');session.dispose();
+ const next=new LocalMaintenanceSession(f.s,f.constructor),result=await next.run(await next.prepare({...options,routeVersion:'synthetic-mixed-placement-v1'}));
+ assert.equal(result.state,'DEFERRED');assert.equal(f.calls.length,beforeCalls);next.dispose();
 });
 
-for(const failure of ['unknown','denied-next-window'])test('mixed Placement backlog preserves '+failure+' admission and financial boundaries',async()=>{
+for(const failure of ['unknown','denied-second-grant'])test('mixed Placement preserves '+failure+' admission and financial boundaries',async()=>{
  const f=await placedEntryFixture();await inputEdit(f.s,f.input.id,{libraryText:'SYNTHETIC changed Input for admission refusal'});
- const key=JSON.stringify(['placement',f.placement.id]),session=new LocalMaintenanceSession(f.s,f.constructor);
+ const key=JSON.stringify(['placement',f.placement.id]);
  if(failure==='unknown'){const execute=f.provider.execute;f.provider.execute=async request=>{await execute(request);throw Error('SYNTHETIC unknown physical outcome');};}
- const h=await session.prepare(options),result=await session.run(h),calls=f.calls.length;
+ else {const resolve=f.materialProcessing.resolve;f.materialProcessing.resolve=async(t,scope)=>({...await resolve(t,scope),processing:!scope.placements});}
+ const session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:f.materialProcessing}),h=await session.prepare(options),result=await session.run(h),calls=f.calls.length;
  if(failure==='unknown'){
   assert.equal(result.state,'OUTCOME_UNKNOWN');assert.equal((await session.run(h)).state,'OUTCOME_UNKNOWN');
-  const next=new LocalMaintenanceSession(f.s,f.constructor);assert.equal((await next.run(await next.prepare(options))).state,'OUTCOME_UNKNOWN');
+  const next=new LocalMaintenanceSession(f.s,f.constructor);assert.equal((await next.run(await next.prepare(options))).state,'OUTCOME_UNKNOWN');next.dispose();
  }else{
-  assert.equal(result.processedState,'COMMITTED');
-  const next=new LocalMaintenanceSession(f.s,{...f.constructor,window:{acquire:async()=>{throw Object.assign(Error('SYNTHETIC no new opportunity'),{code:'UNAVAILABLE'});},isCurrent:()=>false}});
-  await assert.rejects(next.prepare(options),{code:'UNAVAILABLE'});
+  assert.equal(result.state,'UNAVAILABLE');assert.equal((await session.run(h)).state,'UNAVAILABLE');
+  const receipts=(await read(f.s,'organizerUsage')).filter(x=>x.jobId===h.jobId);assert.equal(receipts.filter(x=>x.attemptCount===0&&x.state==='RESERVED').length,1);
  }
- assert.equal(f.calls.length,calls);assert.equal((await ack(f)).some(a=>a.unit.key===key),false);
- assert.equal((await read(f.s,'organizerWorkItems')).some(r=>r.unit?.key===key&&r.unit.facet==='context'&&r.state==='DEFERRED'),false);
+ assert.equal(f.calls.length,calls);assert.equal(calls,2);assert.equal((await ack(f)).some(a=>a.unit.key===key),false);
+ assert.equal((await read(f.s,'organizerWorkItems')).some(r=>r.unit?.key===key&&r.unit.facet==='context'&&r.state==='DEFERRED'),false);session.dispose();
 });
 
-test('Topic work for a different Input also withholds Placement and preserves the incoming scan boundary',async()=>{
+test('Topic work for a different Input reserves a separate exact Placement child',async()=>{
  const f=await placedEntryFixture();await f.s.capture(capture((await f.s.status()).epoch,'synthetic-unrelated-input','SYNTHETIC independently changed Input'));
  const session=new LocalMaintenanceSession(f.s,f.constructor),cursor='aiu:delta:pending:';
- const handle=await session.prepare({...options,cursor});assert.equal(handle.pendingPlacementUnits,1);assert.equal(handle.complete,false);assert.equal(handle.nextCursor,cursor);
- const job=await read(f.s,'organizerJobs',handle.jobId);assert.ok(job.coverage.some(u=>u.facet==='topic'));
- assert.equal(job.coverage.some(u=>u.key===JSON.stringify(['placement',f.placement.id])),false);assert.equal(f.calls.length,1,'prepare has no physical call');
+ const handle=await session.prepare({...options,cursor});assert.equal(handle.pendingPlacementUnits??0,0);assert.equal(handle.complete,true);assert.equal(handle.childCount,2);
+ const job=await read(f.s,'organizerJobs',handle.jobId),key=JSON.stringify(['placement',f.placement.id]);assert.ok(job.coverage.some(u=>u.facet==='topic'));
+ const child=job.childCoverage.find(us=>us.some(u=>u.key===key));assert.deepEqual(child.map(u=>u.facet),['context']);assert.equal(f.calls.length,1,'prepare has no physical call');session.dispose();
 });
 
-test('concurrent ACK before plan retains Placement backlog in passive handle and result',async()=>{
+test('concurrent completed mixed ACK gives a passive no-delta handle without replay',async()=>{
  const f=await placedEntryFixture();await inputEdit(f.s,f.input.id,{libraryText:'SYNTHETIC mixed passive race'});
  const first=new LocalMaintenanceSession(f.s,f.constructor),h=await first.prepare(options);let grant;
  const second=new LocalMaintenanceSession(f.s,{...f.constructor,window:{acquire:async r=>{await first.run(h);return grant={version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-later',reservationId:'synthetic-later',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal};},isCurrent:r=>r===grant}});
  const next=await second.prepare({...options,routeVersion:'synthetic-other-route'}),before=await snapshot(f.s),result=await second.run(next);
- for(const value of [next,result]){assert.equal(value.state,'PARTIAL');assert.equal(value.processedState,'NO_DELTA');assert.equal(value.pendingPlacementUnits,1);assert.equal(value.complete,false);assert.equal(value.nextCursor,null);assert.equal(value.remainingWork,true);}
- assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,2);second.dispose();assert.equal((await second.run(next)).state,'UNAVAILABLE');
+ for(const value of [next,result]){assert.equal(value.state,'NO_DELTA');assert.equal(value.pendingPlacementUnits??0,0);assert.equal(value.complete,true);assert.equal(value.nextCursor,null);assert.equal(value.remainingWork,true);}
+ assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,3);second.dispose();assert.equal((await second.run(next)).state,'UNAVAILABLE');first.dispose();
+});
+
+for(const mutation of ['edit','exclude'])test('final shared material fence blocks late Input '+mutation+' before physical dispatch',async()=>{
+ const f=await fixture(),h=await f.session.prepare(options),input=(await f.s.snapshot()).library.blocks[0],check=TopicFormationService.prototype.checkMaterial,topicRead=TopicFormationService.prototype.read,foundationRead=AIUsageFoundation.prototype.read;let completedChecks=0,compositeChecks=0,active=null,changed=false;
+ const mutate=async()=>{changed=true;if(mutation==='edit')await inputEdit(f.s,input.id,{libraryText:'SYNTHETIC Input changed at final material boundary'});else await f.s.excludeLibrary(input.id,true);};
+ TopicFormationService.prototype.checkMaterial=async function(handle,finalFence){const previous=active;active={composite:typeof finalFence==='function'?++compositeChecks:0,reads:0};try{return await check.call(this,handle,finalFence);}finally{active=previous;completedChecks++;}};
+ TopicFormationService.prototype.read=async function(...args){if(active&&++active.reads===2&&active.composite===2&&!changed)await mutate();return topicRead.apply(this,args);};
+ // Regression witness for the former separate authored-only transaction after
+ // the sixth/physical Input check. The composite implementation instead meets
+ // the same mutation immediately before its original final guarded read above.
+ AIUsageFoundation.prototype.read=async function(...args){if(!changed&&completedChecks===6&&!f.calls.length)await mutate();return foundationRead.apply(this,args);};
+ try{await f.session.run(h);assert.equal(changed,true,'real owner mutation must complete at the final asynchronous boundary');assert.equal(f.calls.length,0,'stale or excluded Working body must not reach the provider');assert.equal((await ack(f)).length,0);assert.equal(mutation==='edit'?(await f.s.input(input.id)).libraryText:(await f.s.input(input.id)).excluded,mutation==='edit'?'SYNTHETIC Input changed at final material boundary':true);}
+ finally{TopicFormationService.prototype.checkMaterial=check;TopicFormationService.prototype.read=topicRead;AIUsageFoundation.prototype.read=foundationRead;f.session.dispose();}
+});
+
+async function inputAndAuthoredContextFixture(){
+ const f=await fixture();f.state.contextHook=async()=>{throw Error('Synthetic unfinished Input Context');};const first=await f.session.prepare(options);assert.equal((await f.session.run(first)).state,'PARTIAL');assert.deepEqual((await ack(f)).map(a=>a.unit.facet),['topic']);await new AIUsageFoundation(f.s,{resolveAuthority:f.authority}).cancel(first.jobId);f.session.dispose();f.state.contextHook=null;
+ const topic=await f.s.createTopic({name:'Synthetic authored mixed-fence Topic',operationId:op()}),entry=await f.s.createEntry({actor:'user',operationId:op(),body:'SYNTHETIC mixed-fence authored body',type:'idea',formation:'explicit',evidence:[]});await f.s.placeEntry({topicId:topic.id,entryId:entry.id,expectedEntryRevision:entry.revision,expectedTopicRevision:(await f.s.topic(topic.id)).organizationRevision,operationId:op()});
+ f.calls.length=0;f.provider.execute=async request=>{f.calls.push(structuredClone(request));assert.equal(request.material.inputs.length,1);assert.equal(request.material.authoredEntries.length,1);return {accepted:true,operationReceiptId:'synthetic-mixed-fence-'+request.childOperationId,body:'SYNTHETIC mixed-fence Context'};};
+ f.service.responseAdapter.context=async(response,metadata,binding)=>{const evidence=[];for(const inputId of metadata.inputIds){let scope;for(const topic of await read(f.s,'topics')){const next=await readContextTopicScope(f.s,{topicId:topic.id});if(next.available&&next.scope.inputIds.includes(inputId)){scope=next;break;}}assert.ok(scope);const p=await f.s.repository.transaction(false,t=>inputProjection(f.s,t,inputId));evidence.push({topicId:scope.binding.topicId,inputId,selectedFields:['body'],fieldDigests:{body:await hashText(p.body)},expectedTopicBinding:scope.binding,expectedRemovalSequence:p.lastRemovalSequence});}for(const mapping of metadata.authoredEntries){const scope=await readContextTopicScope(f.s,{topicId:mapping.topicId});assert.equal(scope.available,true);evidence.push(authoredContextEvidence(mapping,scope.binding,mapping.bodyDigest));}return {binding,value:[{units:metadata.units,change:{operationId:op(),epoch:evidence[0].expectedTopicBinding.epoch,itemId:op(),card:'info',expectedRevision:0,body:response.body,section:'Synthetic mixed',associationIds:[op()],evidence}}]};};
+ let grant;const session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:{resolve:(...args)=>f.materialProcessing.resolve(...args),isCurrent:(...args)=>f.materialProcessing.isCurrent(...args)},window:{acquire:async r=>grant={version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-mixed-fence',reservationId:'synthetic-mixed-fence',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal},isCurrent:r=>r===grant}}),handle=await session.prepare({...options,routeVersion:'synthetic-mixed-fence'}),job=await read(f.s,'organizerJobs',handle.jobId);assert.ok(job.coverage.every(u=>u.facet==='context'));assert.equal(job.coverage.length,2);return {...f,session,handle,entry,topic,input:(await f.s.snapshot()).library.blocks[0]};
+}
+for(const mutation of ['none','input-edit','input-exclude','authored-body','authored-placement'])test('mixed Input and authored Context share one final transaction: '+mutation,async()=>{
+ const f=await inputAndAuthoredContextFixture(),check=TopicFormationService.prototype.checkMaterial,topicRead=TopicFormationService.prototype.read,repositoryRead=f.s.repository.transaction.bind(f.s.repository);let compositeChecks=0,active=null,changed=false;const finalTransactions=[];
+ const mutate=async()=>{changed=true;if(mutation==='input-edit')await inputEdit(f.s,f.input.id,{libraryText:'SYNTHETIC mixed late Input edit'});else if(mutation==='input-exclude')await f.s.excludeLibrary(f.input.id,true);else{const row=await read(f.s,'thoughts',f.entry.id);if(mutation==='authored-body')await f.s.editEntry({id:row.id,expectedRevision:row.revision,operationId:op(),changes:{body:'SYNTHETIC mixed late authored edit'}});else{const p=(await read(f.s,'placements')).find(p=>p.entryId===row.id);await f.s.placeEntry({entryId:row.id,topicId:p.topicId,expectedEntryRevision:row.revision,expectedTopicRevision:(await f.s.topic(p.topicId)).organizationRevision,expectedPlacementRevision:p.revision,rank:'500000000000',operationId:op()});}}};
+ TopicFormationService.prototype.checkMaterial=async function(handle,finalFence){const previous=active;active={composite:typeof finalFence==='function'?++compositeChecks:0,reads:0};try{return await check.call(this,handle,finalFence);}finally{active=previous;}};
+ TopicFormationService.prototype.read=async function(...args){if(active&&++active.reads===2&&active.composite===2&&!changed&&mutation!=='none')await mutate();return topicRead.apply(this,args);};
+ f.s.repository.transaction=(write,fn,...args)=>repositoryRead(write,async t=>{if(!write&&active?.composite===2&&active.reads===2){const observed={transaction:t.tx,inputs:0,authored:0,memberships:0};finalTransactions.push(observed);const get=t.get.bind(t),page=t.rangePage.bind(t);t.get=async(name,id)=>{if(name==='inputStates'&&id===f.input.id)observed.inputs++;if(name==='thoughts'&&id===f.entry.id)observed.authored++;return get(name,id);};t.rangePage=async(...args)=>{if(args[0]==='placements'&&args[1]==='byEntry')observed.memberships++;return page(...args);};}return fn(t);},...args);
+ try{const result=await f.session.run(f.handle);if(mutation==='none'){assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,1);const materialTransactions=finalTransactions.filter(t=>t.inputs||t.authored||t.memberships);assert.equal(materialTransactions.length,1);assert.ok(materialTransactions[0].inputs>0&&materialTransactions[0].authored>0&&materialTransactions[0].memberships>0,'same final transaction reads current Input, authored owner, and complete membership');assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,2);}else{assert.equal(changed,true);assert.equal(f.calls.length,0);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);}}
+ finally{TopicFormationService.prototype.checkMaterial=check;TopicFormationService.prototype.read=topicRead;f.s.repository.transaction=repositoryRead;f.session.dispose();}
+});
+
+for(const field of ['body','title','note'])test('existing wholeInput mirror '+field+' needs a fresh exact local qualification before any mirror text',async()=>{const f=await inputAndAuthoredContextFixture(),mirror=(await read(f.s,'thoughts')).find(e=>e.bodyBinding==='input'),resolve=f.materialProcessing.resolve,transaction=f.s.repository.transaction.bind(f.s.repository);let requested=0,texts=0;f.materialProcessing.resolve=async(t,scope)=>{const grant=await resolve(t,scope);if(scope.purpose==='ai-maintenance-qualification'&&scope.phase==='child'&&scope.entries.some(e=>e.entryId===mirror.id)){requested++;const changed=structuredClone(scope);changed.entries.find(e=>e.entryId===mirror.id).selectedFields=changed.entries.find(e=>e.entryId===mirror.id).selectedFields.filter(f=>f!==field);return {...grant,scope:changed};}return grant;};f.s.repository.transaction=(write,fn,...args)=>transaction(write,t=>{const get=t.get.bind(t);t.get=async(n,id,...a)=>{const row=await get(n,id,...a);if(n==='thoughts'&&id===mirror.id)for(const k of ['thoughtText','title','note']){const d=Object.getOwnPropertyDescriptor(row,k);if(d)Object.defineProperty(row,k,{enumerable:true,get(){texts++;return d.value;}});}return row;};return fn(t);},...args);try{const result=await f.session.run(f.handle);assert.notEqual(result.processedState,'COMMITTED');assert.equal(requested,1);assert.equal(texts,0);assert.equal(f.calls.length,0);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);}finally{f.s.repository.transaction=transaction;f.session.dispose();await f.s.repository.close();}});
+for(const cause of ['expiry','revoke','currentness'])test('existing wholeInput mirror grant '+cause+' after resolve blocks mirror text and dispatch',async()=>{const f=await inputAndAuthoredContextFixture(),mirror=(await read(f.s,'thoughts')).find(e=>e.bodyBinding==='input'),resolve=f.materialProcessing.resolve,transaction=f.s.repository.transaction.bind(f.s.repository),now=Date.now;let requested=0,texts=0;f.materialProcessing.resolve=async(t,scope)=>{const grant=await resolve(t,scope);if(scope.purpose==='ai-maintenance-qualification'&&scope.phase==='child'&&scope.entries.some(e=>e.entryId===mirror.id)){requested++;if(cause==='expiry')Date.now=()=>grant.expiresAt;else if(cause==='revoke')f.contextAbort.abort();else f.state.processing=false;}return grant;};f.s.repository.transaction=(write,fn,...args)=>transaction(write,t=>{const get=t.get.bind(t);t.get=async(n,id,...a)=>{const row=await get(n,id,...a);if(n==='thoughts'&&id===mirror.id)for(const k of ['thoughtText','title','note']){const d=Object.getOwnPropertyDescriptor(row,k);if(d)Object.defineProperty(row,k,{enumerable:true,get(){texts++;return d.value;}});}return row;};return fn(t);},...args);try{const result=await f.session.run(f.handle);assert.notEqual(result.processedState,'COMMITTED');assert.equal(requested,1);assert.equal(texts,0);assert.equal(f.calls.length,0);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);}finally{Date.now=now;f.s.repository.transaction=transaction;f.session.dispose();await f.s.repository.close();}});
+for(const stage of ['ACK','usage','job'])test('new local wholeInput mirror facts reject '+stage+' drift after Context mutation',async()=>{const f=await inputAndAuthoredContextFixture(),mirror=(await read(f.s,'thoughts')).find(e=>e.bodyBinding==='input'),transaction=f.s.repository.transaction.bind(f.s.repository);let entered=false,hit=false;const before=await read(f.s,'thoughts',mirror.id);f.s.repository.transaction=(write,fn,...args)=>transaction(write,t=>{if(write){const put=t.put.bind(t);t.put=async(n,row,...a)=>{const result=await put(n,row,...a);if(n==='meta'&&row.id===CONTEXT_CARDS_ROW)entered=true;if(!hit&&entered&&(stage==='ACK'?n==='organizerWorkItems'&&row.state==='ACKNOWLEDGED'&&row.unit?.facet==='context':stage==='usage'?n==='organizerUsage'&&row.state==='COMMITTED':n==='organizerJobs'&&row.committedCoverage?.length)){hit=true;await new Promise((resolve,reject)=>{const request=t.tx.objectStore('thoughts').put({...before,note:'SYNTHETIC late unjournaled mirror note'});request.onsuccess=resolve;request.onerror=reject;});}return result;};}return fn(t);},...args);try{const result=await f.session.run(f.handle);assert.equal(hit,true);assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);assert.deepEqual(await read(f.s,'thoughts',mirror.id),before);}finally{f.s.repository.transaction=transaction;f.session.dispose();await f.s.repository.close();}});
+for(const changed of ['dependency','provenance','binding','provenance-type'])test('wholeInput mirror '+changed+' metadata drift after local grant rejects before text',async()=>{const f=await inputAndAuthoredContextFixture(),mirror=(await read(f.s,'thoughts')).find(e=>e.bodyBinding==='input'),transaction=f.s.repository.transaction.bind(f.s.repository),resolve=f.materialProcessing.resolve;let granted=false,hit=false,texts=0;f.materialProcessing.resolve=async(t,scope)=>{const r=await resolve(t,scope);if(scope.phase==='child'&&scope.inputMirrorQualifications?.some(x=>x.entry.id===mirror.id))granted=true;return r;};const wrap=(table,row)=>{if(!row)return row;if(granted&&changed==='dependency'&&table==='dependencies'&&row.targetId===mirror.id){hit=true;row.basedOnContentRevision++;}if(granted&&changed==='provenance'&&table==='provenance'&&row.ownerId===mirror.id){hit=true;row.versionToken='f'.repeat(64);}if(table==='thoughts'&&row.id===mirror.id){if(granted&&changed==='binding'){hit=true;row.bindingRevision++;}if(granted&&changed==='provenance-type'){hit=true;row.provenanceType='user_created';}for(const k of ['thoughtText','title','note']){const d=Object.getOwnPropertyDescriptor(row,k);if(d)Object.defineProperty(row,k,{enumerable:true,get(){texts++;return d.value;}});}}return row;};f.s.repository.transaction=(write,fn,...a)=>transaction(write,t=>{const get=t.get.bind(t),page=t.rangePage.bind(t);t.get=async(n,...a)=>wrap(n,await get(n,...a));t.rangePage=async(n,...a)=>{const result=await page(n,...a);for(const row of result.rows)row.value=wrap(n,row.value);return result;};return fn(t);},...a);try{const r=await f.session.run(f.handle);assert.equal(granted,true);assert.equal(hit,true);assert.notEqual(r.processedState,'COMMITTED');assert.equal(texts,0);assert.equal(f.calls.length,0);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);}finally{f.s.repository.transaction=transaction;f.session.dispose();await f.s.repository.close();}});
+for(const timing of ['before-grant','after-grant'])test('wholeInput mirror qualification never reads an ungranted new Topic member '+timing,async()=>{
+ const f=await inputAndAuthoredContextFixture(),mirror=(await read(f.s,'thoughts')).find(e=>e.bodyBinding==='input'),placement=(await read(f.s,'placements')).find(p=>p.entryId===mirror.id),transaction=f.s.repository.transaction.bind(f.s.repository),resolve=f.materialProcessing.resolve,prepareMaterial=TopicFormationService.prototype.prepareMaterial;let granted=false,inserting=false,inserted=false,texts=0,stranger=null;
+ const insert=async()=>{inserting=true;stranger=await f.s.createEntry({actor:'user',operationId:op(),body:'SYNTHETIC unselected sibling body',type:'idea',formation:'explicit',evidence:[]});await f.s.placeEntry({topicId:placement.topicId,entryId:stranger.id,expectedEntryRevision:stranger.revision,expectedTopicRevision:(await f.s.topic(placement.topicId)).organizationRevision,operationId:op()});inserted=true;};
+ f.materialProcessing.resolve=async(t,scope)=>{const r=await resolve(t,scope);if(scope.phase==='child'&&scope.inputMirrorQualifications?.some(x=>x.entry.id===mirror.id)){granted=true;assert.equal(scope.entries.some(x=>x.entryId===stranger?.id),false);}return r;};
+ f.s.repository.transaction=async(write,fn,...a)=>{const result=await transaction(write,t=>{const get=t.get.bind(t);t.get=async(n,id,...args)=>{const row=await get(n,id,...args);if(inserted&&n==='thoughts'&&id===stranger.id&&row)for(const k of ['thoughtText','title','note']){const d=Object.getOwnPropertyDescriptor(row,k);if(d)Object.defineProperty(row,k,{enumerable:true,get(){texts++;return d.value;}});}return row;};return fn(t);},...a);return result;};
+ TopicFormationService.prototype.prepareMaterial=async function(...args){if(timing==='after-grant'&&granted&&!inserting)await insert();return prepareMaterial.apply(this,args);};
+ try{if(timing==='before-grant')await insert();const result=await f.session.run(f.handle);assert.equal(inserted,true);if(timing==='after-grant')assert.equal(granted,true);assert.notEqual(result.processedState,'COMMITTED');assert.equal(texts,0,'a mirror grant never includes an unrelated new member');assert.equal(f.calls.length,0);assert.equal((await ack(f)).filter(x=>x.unit.facet==='context').length,0);}finally{TopicFormationService.prototype.prepareMaterial=prepareMaterial;f.s.repository.transaction=transaction;f.session.dispose();await f.s.repository.close();}
+});
+
+for(const refused of ['none','body','title','note'])test('already selected wholeInput mirror dedup keeps exact three-field qualification: '+refused,async()=>{
+ const f=await inputAndAuthoredContextFixture(),mirror=(await read(f.s,'thoughts')).find(e=>e.bodyBinding==='input'),resolve=f.materialProcessing.resolve,transaction=f.s.repository.transaction.bind(f.s.repository);let token,texts=0,requested=false;
+ const processing={isCurrent:(...args)=>f.materialProcessing.isCurrent(...args),resolve:async(t,scope)=>{requested=true;assert.deepEqual(scope.entries,[{entryId:mirror.id,revision:mirror.revision,selectedFields:['body','title','note']}]);assert.equal(Object.hasOwn(scope,'inputMirrorQualifications'),false);const raw=await resolve(t,scope);if(refused==='none')return raw;const altered=structuredClone(scope);altered.entries[0].selectedFields=altered.entries[0].selectedFields.filter(x=>x!==refused);return {...raw,scope:altered};}};
+ const acquire=()=>transaction(false,t=>{const get=t.get.bind(t);t.get=async(n,id,...a)=>{const row=await get(n,id,...a);if(n==='thoughts'&&id===mirror.id)for(const key of ['thoughtText','title','note']){const d=Object.getOwnPropertyDescriptor(row,key);if(d)Object.defineProperty(row,key,{enumerable:true,get(){texts++;return d.value;}});}return row;};return createMaintenanceQualification(f.s,t,{items:[],coverage:[]},{processing,caller:f.caller,binding:{childOperationId:'synthetic-exact-selected-mirror'},phase:'child',isCurrent:()=>true,signal:f.contextAbort.signal,selection:{inputIds:[f.input.id],inputMirrorInputs:[f.input.id],entryIds:[mirror.id]}});});
+ try{if(refused==='none'){token=await acquire();assert.equal(maintenanceQualificationReceipt(token,f.s).scope.entries.length,1);await transaction(false,async t=>{const q=maintenanceQualificationReader(token,f.s,t),row=await q.get('thoughts',mirror.id);for(const key of ['thoughtText','title','note'])assert.equal(row[key],mirror[key]);});}else await assert.rejects(acquire());assert.equal(requested,true);assert.equal(texts,0,'grant assembly never reads selected Entry text');assert.equal(f.calls.length,0);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);}finally{releaseMaintenanceQualification(token);f.session.dispose();await f.s.repository.close();}
 });

@@ -1,0 +1,189 @@
+name: PAIA Maintenance Native Development Evidence
+
+# Bounded offline development regression, not Full or visual qualification.
+# Existing mandatory, candidate and certification workflows are unchanged.
+on:
+  push:
+    branches: ['codex/native-maintenance-structured-20261018']
+    paths:
+      - 'extension/core/**'
+      - 'extension/background/**'
+      - 'extension/content/prompt-assist.js'
+      - 'extension/content/prompt-next.js'
+      - 'extension/content/prompt-surface.js'
+      - 'extension/ui/prompt-surface.js'
+      - 'extension/ui/prompt-assist-state.js'
+      - 'extension/ui/prompt-assist-view.js'
+      - 'extension/ui/settings-assist-state.js'
+      - 'extension/ui/settings-assist.js'
+      - 'extension/ui/settings-next.js'
+      - 'extension/tests/ai-assist-automatic-r3-chrome-e2e.test.mjs'
+      - 'extension/ui/context-cards.js'
+      - 'extension/ui/context-cards.css'
+      - 'extension/ui/context-connections-view.js'
+      - 'extension/tests/context-connections-chrome-e2e.test.mjs'
+      - 'extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs'
+      - 'extension/tests/harness/**'
+      - 'extension/scripts/build_current_release.py'
+      - 'extension/scripts/package_assets.py'
+      - 'extension/package.json'
+      - '.github/workflows/paia-maintenance-native-development.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paia-maintenance-native-development-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  offline-native-maintenance:
+    if: github.ref == 'refs/heads/codex/native-maintenance-structured-20261018' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install existing exact direct dependency versions without scripts
+        # extension/package.json pins direct versions but has no tracked lock.
+        # Transitive dependencies are not fully locked; do not claim otherwise.
+        run: npm install --registry=https://registry.npmjs.org --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Use only the standard runner's existing Chrome
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Record exact scoped development identity
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code -- package.json
+          test ! -e package-lock.json
+          printf 'head=%s\n' "$GITHUB_SHA"
+          printf 'tree=%s\n' "$(git rev-parse HEAD^{tree})"
+          node --version
+          npm ls --depth=0
+          sha256sum tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs core/context-maintenance.js core/context-item-lineage.js core/topic-formation.js core/ai-usage/local-maintenance-session.js core/ai-usage/maintenance-service-response.js
+          printf '%s\n' 'scope=offline synthetic native Source/release Maintenance; no provider, database service, deployment or visual qualification'
+      - name: Run the complete original Source and release Maintenance native file
+        run: node --test --test-reporter=tap tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs
+      - name: Print body-free mechanism evidence to the ordinary job log
+        if: always()
+        run: |
+          node --input-type=module <<'JS'
+          import {readdir, readFile} from 'node:fs/promises';
+          for (const variant of ['source', 'release']) {
+            const directory = `work/ctx4-05/${variant}`;
+            let names;
+            try { names = await readdir(directory); }
+            catch (error) { if (error.code === 'ENOENT') { console.log(`${variant}: no completed mechanism evidence`); continue; } throw error; }
+            for (const name of names.filter(name => name.endsWith('.json')).sort()) {
+              console.log(`${variant}/${name}`);
+              console.log(await readFile(`${directory}/${name}`, 'utf8'));
+            }
+          }
+          JS
+      # No artifact upload, cache, service container, credentials or paid runner.
+
+  offline-native-context-connections:
+    if: github.ref == 'refs/heads/codex/native-maintenance-structured-20261018' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install exact direct versions; transitive versions have no lock
+        run: npm install --registry=https://registry.npmjs.org --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Use only existing runner Chrome
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+          node --version
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code -- package.json
+          test ! -e package-lock.json
+          printf 'head=%s\n' "$GITHUB_SHA"
+          sha256sum tests/context-connections-chrome-e2e.test.mjs ui/context-connections-view.js ui/context-cards.css background/context-connections.js
+      - name: Actual offline Source and release Context connection detail
+        run: node --test --test-reporter=tap tests/context-connections-chrome-e2e.test.mjs
+      - name: Print only body-free layout observations
+        if: always()
+        run: |
+          node --input-type=module <<'JS'
+          import {readFile} from 'node:fs/promises';
+          for (const variant of ['source', 'release']) {
+            try { console.log(await readFile(`work/context-connections/${variant}/body-free-layout.json`, 'utf8')); }
+            catch (error) { if (error.code !== 'ENOENT') throw error; console.log(`${variant}: no completed layout evidence`); }
+          }
+          JS
+      # Screenshots stay in this ephemeral job only. No artifact or cache upload.
+      # Generation alone is not human-visible fidelity acceptance.
+
+  offline-native-automatic-assist:
+    if: github.ref == 'refs/heads/codex/native-maintenance-structured-20261018' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install exact direct versions; transitive versions have no lock
+        run: npm install --registry=https://registry.npmjs.org --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Use only existing runner Chrome and record original source identity
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+          node --version
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code -- package.json
+          test ! -e package-lock.json
+          printf 'head=%s\n' "$GITHUB_SHA"
+          sha256sum tests/ai-assist-automatic-r3-chrome-e2e.test.mjs background/assist-consent.js background/prompt-assist.js background/prompt-next.js content/prompt-surface.js ui/prompt-surface.js
+          printf '%s\n' 'scope=actual offline source R3 automatic local capsule and direct insertion; no real account, provider or visual acceptance'
+      - name: Run complete original automatic R3 native file
+        run: node --test --test-reporter=tap tests/ai-assist-automatic-r3-chrome-e2e.test.mjs
+      # Source-only original file. No screenshot/artifact/cache upload or service.

@@ -225,7 +225,7 @@ for(const variant of ['source','release'])test(`NIB S4 Settings current-install 
     await settings.locator('.sidebar-bottom [data-view="settings"]').click();await settings.locator('#settings-panel').waitFor({state:'visible'});await chooseConsumerGroup(settings,'ai');
     const next=settings.locator('#settings-next-enabled'),dialog=settings.locator('#settings-next-consent');
     await eventually(()=>next.isEnabled(),'actual Settings Next owner is ready');assert.equal(await next.isChecked(),false);assert.equal((await rpc(settings,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);
-    assert.equal(await settings.locator('#settings-next-explanation').textContent(),'Off by default, for this browser session only; independent of capture pause.');
+    assert.equal(await settings.locator('#settings-next-explanation').textContent(),'Off by default. Eligible new replies automatically produce local suggestions after enabling. The preference persists independently of capture pause.');
     await next.click();await dialog.waitFor({state:'visible'});assert.equal((await rpc(settings,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);await settings.locator('#settings-next-cancel').click();await dialog.waitFor({state:'hidden'});
     assert.equal((await rpc(settings,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);assert.deepEqual(await settings.evaluate(()=>__s4Controls.next),[],'cancel makes no authorization write');
     await next.click();await dialog.waitFor({state:'visible'});assert.match(await dialog.textContent(),/only the current AI reply completed after enabling/);await settings.locator('#settings-next-confirm').click();

@@ -587,7 +587,7 @@ async function workerRecoveryBatch(extensionPath){
 
 async function installMaintenanceSession(page){
  await page.evaluate(async()=>{
-  const [{LocalMaintenanceSession},{OrganizerStore},{TopicFormationService},{TopicIdentityRetrieval},{readFormationEvidence},{readContextTopicScope},{inputProjection},{hashText},{CONTEXT_CARDS_ROW}]=await Promise.all(['core/ai-usage/local-maintenance-session.js','core/organizer/store.js','core/topic-formation.js','core/topic-retrieval.js','core/topic-formation-evidence.js','core/context-topic-scope.js','core/thought-evidence.js','core/dedupe.js','core/context-cards.js'].map(p=>import(chrome.runtime.getURL(p))));
+  const [{LocalMaintenanceSession},{OrganizerStore},{TopicFormationService},{TopicIdentityRetrieval},{readFormationEvidence},{readContextTopicScope},{inputProjection},{hashText},{CONTEXT_CARDS_ROW,ContextCardsService},{readAuthoredEntryContext,authoredContextEvidence}]=await Promise.all(['core/ai-usage/local-maintenance-session.js','core/organizer/store.js','core/topic-formation.js','core/topic-retrieval.js','core/topic-formation-evidence.js','core/context-topic-scope.js','core/thought-evidence.js','core/dedupe.js','core/context-cards.js','core/context-authored-entry.js'].map(p=>import(chrome.runtime.getURL(p))));
   const assert={ok(v,m='assertion'){if(!v)throw Error(m);},equal(a,b,m='equality'){if(a!==b)throw Error(m);},deepEqual(a,b,m='deep equality'){if(JSON.stringify(a)!==JSON.stringify(b))throw Error(m);}};
   const op=()=>crypto.randomUUID(),read=(s,n,id)=>s.repository.transaction(false,t=>id?t.get(n,id):t.all(n));
   const options={scope:'synthetic-maintenance',contractVersion:'synthetic-aiu-1',routeVersion:'synthetic-maintenance-1'};
@@ -636,6 +636,55 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
 }
 
 
+  globalThis.__maintenanceAuthoredContextNative=async phase=>{
+   assert.ok(indexedDB instanceof IDBFactory);const f=await maintenanceFixture(),original=f.s.repository.transaction.bind(f.s.repository),cryptoPrototype=Object.getPrototypeOf(crypto.subtle),originalDigest=cryptoPrototype.digest;let session=f.session,hit=false,rollbackBefore=null;
+   try{
+    assert.ok(f.s.repository.db instanceof IDBDatabase);session.dispose();
+    const topic=await f.s.createTopic({name:'Synthetic native authored Topic',operationId:op()}),birthOperation=op(),made=await f.s.createEntry({actor:'user',operationId:birthOperation,body:'SYNTHETIC native authored private body',type:'idea',formation:'explicit',evidence:[]});
+    await f.s.placeEntry({topicId:topic.id,entryId:made.id,expectedEntryRevision:made.revision,expectedTopicRevision:(await f.s.topic(topic.id)).organizationRevision,operationId:op()});
+    if(['body-edit','coalesced-placement','edit-restore'].includes(phase)){
+     let row=await read(f.s,'thoughts',made.id);await f.s.editEntry({id:row.id,expectedRevision:row.revision,operationId:op(),changes:{body:'SYNTHETIC native authored first edit'}});
+     if(phase==='coalesced-placement'){row=await read(f.s,'thoughts',made.id);const p=(await read(f.s,'placements'))[0];await f.s.placeEntry({topicId:topic.id,entryId:row.id,expectedEntryRevision:row.revision,expectedTopicRevision:(await f.s.topic(topic.id)).organizationRevision,expectedPlacementRevision:p.revision,rank:'500000000000',operationId:op()});row=await read(f.s,'thoughts',made.id);await f.s.editEntry({id:row.id,expectedRevision:row.revision,operationId:op(),changes:{body:'SYNTHETIC native authored second edit'}});const edits=(await read(f.s,'revisions')).filter(j=>j.kind==='library_entry'&&j.reason==='edit');assert.equal(edits.length,1);assert.ok(edits[0].afterRevision>edits[0].baseRevision+1);}
+    }
+    if(['restore','edit-restore'].includes(phase)){let row=await read(f.s,'thoughts',made.id);const revisions=structuredClone(row.fieldRevisions),contentRevision=row.contentRevision;await f.s.removeEntry({id:row.id,expectedRevision:row.revision,operationId:op()});row=await read(f.s,'thoughts',made.id);await f.s.restoreEntry({id:row.id,expectedRevision:row.revision,operationId:op()});row=await read(f.s,'thoughts',made.id);assert.deepEqual(row.fieldRevisions,revisions);assert.equal(row.contentRevision,contentRevision);}
+    const key=JSON.stringify(['library_entry',made.id]),sourceInput=(await read(f.s,'meta')).find(r=>r.id.startsWith('aiu:delta:pending:')&&r.descriptor.kind==='input'),selected={...options,routeVersion:'synthetic-native-authored-1',cursor:sourceInput.id},owners=['records','blocks','inputStates','thoughts','topics','sections','placements','dependencies','provenance'],before=await Promise.all(owners.map(n=>read(f.s,n))),entry=await read(f.s,'thoughts',made.id),itemId=op(),associationId=op();
+    const mapped=await original(false,t=>readAuthoredEntryContext(f.s,t,made.id));assert.ok(mapped);assert.equal(mapped.birthOperationId,birthOperation);assert.equal(mapped.bodyOperationId,entry.authorship.body.operationId);assert.equal(mapped.bodyFieldRevision,phase==='coalesced-placement'?2:['body-edit','edit-restore'].includes(phase)?1:0);
+    f.provider.execute=async request=>{f.calls.push(structuredClone(request));assert.equal(request.type,'AI_MAINTENANCE');assert.equal(request.automaticRetries,0);assert.equal(request.material.inputs.length,0);assert.equal(request.material.authoredEntries.length,1);assert.equal(request.material.authoredEntries[0].entryId,made.id);assert.equal(request.material.authoredEntries[0].body,entry.thoughtText);return {accepted:true,operationReceiptId:'synthetic-native-authored-'+request.childOperationId,body:'SYNTHETIC native authored derived Context'};};
+    f.service.responseAdapter.context=async(response,metadata,binding)=>{
+     if(phase==='restore-drift'){let row=await read(f.s,'thoughts',made.id);await f.s.removeEntry({id:row.id,expectedRevision:row.revision,operationId:op()});row=await read(f.s,'thoughts',made.id);await f.s.restoreEntry({id:row.id,expectedRevision:row.revision,operationId:op()});}
+     const scope=await readContextTopicScope(f.s,{topicId:topic.id});assert.equal(scope.available,true);assert.equal(metadata.authoredEntries.length,1);const mapping=metadata.authoredEntries[0];return {binding,value:[{units:metadata.units,change:{operationId:op(),epoch:scope.binding.epoch,itemId,card:'info',expectedRevision:0,body:response.body,section:'Synthetic authored',associationIds:[associationId],evidence:[authoredContextEvidence(mapping,scope.binding,mapping.bodyDigest)]}}]};
+    };
+    const denied=['grant-denied','payload-grant-denied'].includes(phase),processingPurposes=[];let qualificationTextReads=0,prepareError=null;
+    if(denied){const resolve=f.constructor.processing.resolve;f.constructor.processing.resolve=async(t,scope)=>{processingPurposes.push(scope.purpose);const receipt=await resolve(t,scope);return phase==='payload-grant-denied'&&scope.purpose==='ai-maintenance-payload'?{...receipt,processing:false}:receipt;};}
+    session=new LocalMaintenanceSession(f.s,f.constructor);if(phase==='grant-denied'){
+     f.state.processing=false;
+     // Observe only the session's denied pre-job reads, after trusted fixture
+     // setup. Rows may be inspected for metadata; no text getter may run.
+     const fields=(object,keys)=>{for(const key of keys){const d=Object.getOwnPropertyDescriptor(object||{},key);if(d&&Object.hasOwn(d,'value'))Object.defineProperty(object,key,{configurable:true,enumerable:d.enumerable,get(){qualificationTextReads++;return d.value;}});}};
+     const observe=(table,row)=>{if(!row)return row;if(table==='thoughts')fields(row,['thoughtText','title','note']);if(table==='revisions')for(const side of ['before','after'])fields(row[side],['body','title','note','name']);if(table==='blocks')fields(row.value,['libraryText','note']);if(table==='records')fields(row.value,['originalText','note','editedText']);return row;};
+     f.s.repository.transaction=(write,fn,...args)=>original(write,t=>{for(const name of ['get','edge']){const read=t[name].bind(t);t[name]=async(...a)=>observe(a[0],await read(...a));}const all=t.all.bind(t);t.all=async(...a)=>(await all(...a)).map(row=>observe(a[0],row));const page=t.rangePage.bind(t);t.rangePage=async(...a)=>{const result=await page(...a);for(const row of result.rows)row.value=observe(a[0],row.value);return result;};return fn(t);},...args);
+    }
+    if(phase==='ack-abort')f.s.repository.transaction=async(write,fn,stores)=>{const before=write?await snapshot(f.s):null;return original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,v,...args)=>{if(!hit&&n==='organizerWorkItems'&&v.unit?.key===key&&v.unit.facet==='context'&&v.state==='ACKNOWLEDGED'){hit=true;rollbackBefore=before;t.tx.abort();throw Error('Synthetic authored ACK abort');}return put(n,v,...args);};}return fn(t);},stores);};
+    let handle;
+    if(phase==='grant-denied'){try{handle=await session.prepare(selected);}catch(error){prepareError=error;}assert.equal(prepareError?.code,'UNAVAILABLE','all-purpose refusal occurs in pre-job qualification');assert.equal(handle,undefined);}
+    else handle=await session.prepare(selected);
+    if(phase==='hash-race')cryptoPrototype.digest=async function(algorithm,data){const result=await originalDigest.call(this,algorithm,data);if(!hit&&new TextDecoder().decode(data)===entry.thoughtText){hit=true;await original(true,async t=>{const row=await t.get('thoughts',made.id);row.thoughtText='SYNTHETIC native unjournaled body race';await t.put('thoughts',row);});}return result;};
+    const result=handle?await session.run(handle):null;f.s.repository.transaction=original;cryptoPrototype.digest=originalDigest;
+    const acks=async()=>(await read(f.s,'organizerWorkItems')).filter(r=>r.state==='ACKNOWLEDGED'),items=async()=>(await read(f.s,'meta',CONTEXT_CARDS_ROW))?.items||[];
+    if(['grant-denied','payload-grant-denied','hash-race','restore-drift','ack-abort'].includes(phase)){assert.equal((await acks()).length,0);assert.equal((await items()).length,0);}
+    if(denied){assert.equal(phase==='grant-denied'?prepareError.code:result.state,'UNAVAILABLE');
+     assert.ok(processingPurposes.length>0);if(phase==='grant-denied'){assert.ok(processingPurposes.every(p=>p==='ai-maintenance-qualification'));assert.equal(qualificationTextReads,0);assert.equal((await read(f.s,'organizerJobs')).length,0);}else{assert.ok(processingPurposes.includes('ai-maintenance-qualification'));assert.ok(processingPurposes.includes('ai-maintenance-payload'));}
+     assert.equal(f.calls.length,0);assert.equal((await read(f.s,'organizerUsage')).length,0);assert.deepEqual(await Promise.all(owners.map(n=>read(f.s,n))),before);}
+    else if(phase==='hash-race'){assert.ok(hit);assert.equal(result.state,'STALE_BASE');assert.equal(f.calls.length,0);}
+    else if(phase==='restore-drift'){assert.equal(result.state,'PARTIAL');assert.equal(f.calls.length,1);}
+    else{
+     if(phase==='ack-abort'){assert.ok(hit);assert.equal(result.state,'PARTIAL');assert.deepEqual(await snapshot(f.s),rollbackBefore,'all original stores roll back after authored ACK abort');assert.equal((await session.run(handle)).processedState,'COMMITTED');}else assert.equal(result.processedState,'COMMITTED');
+     assert.equal(f.calls.length,1);assert.equal((await acks()).length,1);assert.equal((await acks())[0].unit.key,key);assert.equal((await acks())[0].unit.facet,'context');assert.deepEqual(await Promise.all(owners.map(n=>read(f.s,n))),before);const item=(await items())[0];assert.equal(item.maintenance.provenance.evidence[0].kind,'humanEntry');assert.equal(Object.hasOwn(item.maintenance.provenance.evidence[0],'inputId'),false);assert.equal((await new ContextCardsService(f.s).snapshot()).items.length,1);const basis=await new ContextCardsService(f.s).basis({itemId:item.id,expectedRevision:item.revision,epoch:item.maintenance.provenance.epoch});assert.equal(basis.evidence[0].fields[0].excerpt,entry.thoughtText);const saved=await snapshot(f.s);await session.run(handle);assert.deepEqual(await snapshot(f.s),saved);
+    }
+    const durable=JSON.stringify(await Promise.all(['organizerJobs','organizerUsage','organizerWorkItems'].map(n=>read(f.s,n))));assert.ok(!durable.includes(entry.thoughtText)&&!durable.includes('SYNTHETIC native authored derived Context'));return {passed:true,nativeFactory:true,nativeDatabase:true,phase,physicalAttempts:f.calls.length,...(denied?{refusedAt:phase==='grant-denied'?'prejob':'payload',processingPurposes,qualificationTextReads:phase==='grant-denied'?qualificationTextReads:null}:{}),atomicRollback:phase==='ack-abort'&&hit,bodyHashRace:phase==='hash-race'&&hit};
+   }finally{f.s.repository.transaction=original;cryptoPrototype.digest=originalDigest;session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('fixture cleanup'));r.onblocked=()=>reject(Error('blocked cleanup'));});}
+  };
+
   globalThis.__maintenanceEntryContextNative=async phase=>{
    assert.ok(indexedDB instanceof IDBFactory);const f=await maintenanceFixture({restoredEntry:true}),original=f.s.repository.transaction.bind(f.s.repository);let session=f.session,hit=false,rollbackBefore=null;
    try{
@@ -668,21 +717,26 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
     if(phase==='mixed'||phase==='mixed-race'){
      const live=await f.s.input(input.id);await f.s.editDocument({operationId:op(),documentId:live.documentId,blocks:[{id:live.id,expectedRevision:live.revision,libraryText:'SYNTHETIC native edited Input with pending Placement',note:live.note,excluded:live.excluded}]});
      f.provider.execute=async request=>{const response=await execute(request);response.fixture.contextProposal.inputIds=[input.id];response.fixture.topicAssessment.entries=[{span:{inputId:input.id,field:'body',start:0,end:request.material.inputs[0].body.length},type:'idea',additional:[]}];for(const relation of response.fixture.topicAssessment.relations)if(relation.topicId===topic.id)relation.relation='same';return response;};
-     const handle=await session.prepare(options);let result;
+     const sourceBefore=await Promise.all(['records','blocks','inputStates'].map(n=>read(f.s,n))),handle=await session.prepare(options);let result;
+     // Keep body-free actuals with the original two-child/passive contract.
+     // Diagnostic CI39159820150 confirmed these dispositions and counts.
+     const progress=value=>({state:value.state,processedState:value.processedState??null,pendingPlacementUnits:value.pendingPlacementUnits??0,complete:value.complete??null,nextCursorPresent:value.nextCursor!==null&&value.nextCursor!==undefined,remainingWork:value.remainingWork??null,childCount:value.childCount??null});
+     const diagnostics=(value,passive=null)=>JSON.stringify({phase,handle:progress(handle),result:progress(value),...(passive?{passive:progress(passive)}:{}),physicalAttempts:f.calls.length,placementCounts:f.calls.map(call=>call.material.placements?.length??0)});
      if(phase==='mixed-race'){
       let raceGrant;const raceSession=new LocalMaintenanceSession(f.s,{...f.constructor,window:{acquire:async r=>{await session.run(handle);return raceGrant={version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-race',reservationId:'synthetic-race',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal};},isCurrent:r=>r===raceGrant}});
       const passive=await raceSession.prepare({...options,routeVersion:'synthetic-race-route'}),beforePassive=await snapshot(f.s);result=await raceSession.run(passive);
-      assert.equal(passive.state,'PARTIAL');assert.equal(passive.pendingPlacementUnits,1);assert.equal(result.processedState,'NO_DELTA');assert.deepEqual(await snapshot(f.s),beforePassive);raceSession.dispose();
-     }else{result=await session.run(handle);assert.equal(result.processedState,'COMMITTED');}
-     assert.equal(result.state,'PARTIAL');assert.equal(result.pendingPlacementUnits,1);assert.equal(result.complete,false);assert.equal(result.nextCursor,null);assert.equal(result.remainingWork,true);
-     assert.equal(f.calls.length,2);assert.equal(f.calls[1].material.placements?.length??0,0);
-     assert.equal((await read(f.s,'organizerWorkItems')).some(r=>r.unit?.key===key&&r.unit.facet==='context'),false,'withheld Context has neither ACK nor fake DEFER');
-     await session.run(handle);assert.equal(f.calls.length,2,'no implicit extra dispatch');session.dispose();
+      const diagnostic=diagnostics(result,passive);for(const value of [passive,result]){assert.equal(value.state,'NO_DELTA','passive/result state: '+diagnostic);assert.equal(value.processedState,undefined,'NO_DELTA has no processedState: '+diagnostic);assert.equal(value.pendingPlacementUnits??0,0,'passive pendingPlacementUnits: '+diagnostic);assert.equal(value.complete,true,'passive complete: '+diagnostic);assert.equal(value.nextCursor,null,'passive nextCursor: '+diagnostic);assert.equal(value.remainingWork,true,'unsupported Placement Topic remains pending: '+diagnostic);}assert.deepEqual(await snapshot(f.s),beforePassive,'passive durable snapshot unchanged: '+diagnostic);raceSession.dispose();
+     }else{result=await session.run(handle);assert.equal(result.state,'PARTIAL','result.state: '+diagnostics(result));assert.equal(result.processedState,'COMMITTED','result.processedState: '+diagnostics(result));}
+     const diagnostic=diagnostics(result);assert.equal(handle.childCount,2,'original two-child opportunity: '+diagnostic);assert.equal(result.pendingPlacementUnits??0,0,'result.pendingPlacementUnits: '+diagnostic);assert.equal(result.complete,true,'result.complete: '+diagnostic);assert.equal(result.nextCursor,null,'result.nextCursor: '+diagnostic);assert.equal(result.remainingWork,true,'unsupported Placement Topic remains pending: '+diagnostic);
+     assert.equal(f.calls.length,3,'warm call plus two admitted children: '+diagnostic);assert.deepEqual(f.calls.map(call=>call.material.placements?.length??0),[0,0,1],'exact child Placement counts: '+diagnostic);assert.equal(f.calls[1].logicalJobId,handle.jobId);assert.equal(f.calls[2].logicalJobId,handle.jobId);assert.ok(f.calls[1].childOperationId!==f.calls[2].childOperationId);
+     assert.equal(f.calls[2].material.placements[0].placementId,placementId);assert.equal(f.calls[2].material.placements[0].topicId,topic.id);assert.equal(f.calls[2].material.entries[0].entryId,entry.id);
+     const work=await read(f.s,'organizerWorkItems'),contextRows=work.filter(r=>r.unit?.key===key&&r.unit.facet==='context');assert.equal(contextRows.filter(r=>r.state==='ACKNOWLEDGED').length,1,'exact Placement Context ACK');assert.equal(contextRows.some(r=>r.state==='DEFERRED'),false,'completed Placement Context has no fake DEFER');assert.equal(work.filter(r=>r.unit?.key===key&&r.unit.facet==='topic'&&r.state==='DEFERRED').length,1,'exact unsupported Placement Topic stays deferred');assert.equal(work.some(r=>r.unit?.key===key&&r.unit.facet==='topic'&&r.state==='ACKNOWLEDGED'),false);
+     assert.deepEqual(await read(f.s,'placements',placementId),placement,'human Placement membership/section/order unchanged');assert.deepEqual(await Promise.all(['records','blocks','inputStates'].map(n=>read(f.s,n))),sourceBefore,'complete Source and Working rows unchanged');
+     const committed=await snapshot(f.s);await session.run(handle);assert.deepEqual(await snapshot(f.s),committed,'same-handle replay preserves every durable row including provenance');assert.equal(f.calls.length,3,'same handle has no fourth physical call');session.dispose();
      let freshGrant;const nextWindow={acquire:async r=>(freshGrant={version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-next-placement',reservationId:'synthetic-next-placement',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal}),isCurrent:r=>r===freshGrant};
      session=new LocalMaintenanceSession(f.s,{...f.constructor,window:nextWindow});const nextResult=await session.run(await session.prepare(options));
-     assert.equal(nextResult.processedState,'COMMITTED');assert.equal(f.calls.length,3);assert.equal(f.calls[2].material.placements.length,1);
-     assert.equal((await read(f.s,'organizerWorkItems')).filter(r=>r.unit?.key===key&&r.unit.facet==='context'&&r.state==='ACKNOWLEDGED').length,1);
-     return {passed:true,nativeFactory:true,phase,physicalAttempts:3,withheldContextUnits:1,freshOpportunityRequired:true,exactPlacementContextAck:true};
+     assert.equal(nextResult.state,'DEFERRED','only unsupported Placement Topic remains');assert.equal(f.calls.length,3,'new opportunity has no fourth physical call');assert.deepEqual(await snapshot(f.s),committed,'new opportunity preserves all completed data, provenance and ACKs');
+     return {passed:true,nativeFactory:true,phase,physicalAttempts:3,opportunityChildCount:2,pendingPlacementUnits:0,freshOpportunityRequired:false,exactPlacementContextAck:true,placementTopicDeferred:true,sourceUnchanged:true,noFourthCall:true};
     }
     if(phase==='stale')f.state.contextHook=async()=>{const latest=await read(f.s,'topics',topic.id);await f.s.placeEntry({entryId:entry.id,topicId:topic.id,expectedEntryRevision:current.revision,expectedTopicRevision:latest.organizationRevision,expectedPlacementRevision:placement.revision,remove:true,operationId:op()});};
     if(phase==='ack-abort')f.s.repository.transaction=async(write,fn,stores)=>{const saved=write?await snapshot(f.s):null;return original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,v,...rest)=>{if(!hit&&n==='organizerWorkItems'&&v.unit?.key===key&&v.unit?.facet==='context'&&v.state==='ACKNOWLEDGED'){hit=true;rollbackBefore=saved;t.tx.abort();throw Error('Synthetic Placement ACK abort');}return put(n,v,...rest);};}return fn(t);},stores);};
@@ -831,6 +885,50 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
  });
 }
 
+// Repository-only native terminal mechanism leaves. These keep the original
+// Source/release owners above intact and use a separate disposable native DB.
+// They do not claim a production identity-processing capability or a paid job.
+async function installRepositoryTerminal(page){
+ await page.evaluate(async()=>{
+  const {ArchiveRepository,registerRepositoryFinalReadFence}=await import(chrome.runtime.getURL('core/idb-repository.js'));
+  const check=(ok,label)=>{if(!ok)throw Error(label);},same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+  globalThis.__repositoryTerminalNative=async mode=>{
+   check(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'original native IndexedDB required');
+   const name='paia-terminal-native-'+crypto.randomUUID(),repository=new ArchiveRepository({},{indexedDB,name});await repository.open();
+   const source={id:'selected-source',value:{originalText:'SYNTHETIC terminal Source'}},receipt={id:'selected-operation',result:{state:'committed'}};
+   await repository.transaction(true,t=>t.put('records',source));
+   const snapshot=()=>repository.transaction(false,async t=>Object.fromEntries(await Promise.all(repository.stores.map(async n=>[n,await t.all(n)]))));
+   const before=await snapshot();let current=true,expiresAt=Date.now()+60000,finalized=false,completed=false,aborted=false,caught=false,rejected=false,firstChecked=false,release;
+   try{
+    try{await repository.transaction(true,async t=>{
+     check(t.tx instanceof IDBTransaction,'original transaction');t.tx.addEventListener('complete',()=>{completed=true;},{once:true});t.tx.addEventListener('abort',()=>{aborted=true;},{once:true});
+     const put=t.put.bind(t);t.put=async(n,row,...rest)=>{const result=await put(n,row,...rest);if(n==='meta'&&row.id==='backup-data-generation'){
+      finalized=true;if(mode==='finalizer-source')await put('records',{id:source.id,value:{originalText:'SYNTHETIC changed after finalizer'}});if(mode==='finalizer-revoke')current=false;if(mode==='finalizer-expiry')expiresAt=Date.now()-1;
+     }return result;};
+     await t.put('operationReceipts',receipt);
+     if(mode==='native-auto-complete-control'){
+      // This deliberately demonstrates the original native hazard: an arbitrary
+      // await can let the transaction complete before a later rejection/abort.
+      await new Promise(resolve=>t.tx.addEventListener('complete',resolve,{once:true}));throw Error('late callback failure after real completion');
+     }
+     const isCurrent=()=>current&&Date.now()<expiresAt;
+     const plan=mode==='non-idb-promise'?async function*(){await new Promise(resolve=>{release=resolve;});return true;}:function*(){
+      check(finalized,'all original finalizers completed first');const actual=yield {method:'get',table:'records',key:source.id};check(same(actual,source),'original captured Source');firstChecked=true;return true;
+     };
+     registerRepositoryFinalReadFence(repository,t,{plan,isCurrent});
+     if(mode==='caught-terminal-write')registerRepositoryFinalReadFence(repository,t,{isCurrent,plan:function*(){check(firstChecked,'first fence already verified Source');t.put('records',{id:source.id,value:{originalText:'SYNTHETIC forbidden write'}}).catch(()=>{caught=true;});return true;}});
+     if(mode==='second-fence-revoke')registerRepositoryFinalReadFence(repository,t,{isCurrent:()=>true,plan:function*(){yield {method:'get',table:'records',key:source.id};current=false;return true;}});
+    });}catch{rejected=true;}finally{release?.();}
+    const after=await snapshot();
+    if(mode==='native-auto-complete-control'){check(rejected&&completed&&!aborted,'real automatic native completion preceded late failure');check(after.operationReceipts.some(row=>row.id===receipt.id),'late abort cannot roll back committed control');}
+    else if(mode==='complete'){check(!rejected&&completed&&!aborted&&firstChecked,'legitimate closed-plan transaction committed');check(after.operationReceipts.some(row=>row.id===receipt.id),'original receipt committed');check(same(after.records,before.records),'Source unchanged');}
+    else{check(rejected&&aborted&&!completed,'closed terminal refusal aborted original native transaction');check(same(after,before),'all native stores rolled back');if(mode==='caught-terminal-write')check(caught,'second fence caught the write rejection but could not commit');}
+    return {passed:true,nativeFactory:true,mode,rejected,completed,aborted,caught,firstChecked};
+   }finally{await repository.close();await new Promise((resolve,reject)=>{const request=indexedDB.deleteDatabase(name);request.onsuccess=resolve;request.onerror=()=>reject(Error('terminal fixture cleanup'));request.onblocked=()=>reject(Error('terminal fixture cleanup blocked'));});}
+  };
+ });
+}
+
 for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dormant maintenance transaction and lineage fences',{timeout:180000},async t=>{
  const output=join(root,'work','ctx4-05',variant),temporary=await mkdtemp(join(tmpdir(),'paia-ctx4-05-native-'));
  const reports=[];let harness;
@@ -852,6 +950,7 @@ for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dorma
    await record(await page.evaluate(name=>globalThis.__ctx4Native.run(name),name));
   });
   await installMaintenanceSession(page);
+  for(const phase of ['complete','body-edit','coalesced-placement','restore','edit-restore','grant-denied','payload-grant-denied','ack-abort','restore-drift','hash-race'])await t.test('unified-maintenance-authored-context-'+phase,{timeout:20000},async()=>{const report=await page.evaluate(phase=>globalThis.__maintenanceAuthoredContextNative(phase),phase);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-authored-context-'+phase+'.json'),JSON.stringify(report,null,2));});
   for(const phase of ['complete','stale','ack-abort'])await t.test('unified-maintenance-entry-context-'+phase,{timeout:20000},async()=>{const report=await page.evaluate(phase=>globalThis.__maintenanceEntryContextNative(phase),phase);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-entry-context-'+phase+'.json'),JSON.stringify(report,null,2));});
   for(const phase of ['complete','stale','ack-abort','mixed','mixed-race'])await t.test('unified-maintenance-placement-context-'+phase,{timeout:20000},async()=>{const report=await page.evaluate(phase=>globalThis.__maintenancePlacementContextNative(phase),phase);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-placement-context-'+phase+'.json'),JSON.stringify(report,null,2));});
   for(const phase of ['complete','defer','close','post-callback','dispose','capacity'])await t.test('unified-maintenance-mixed-'+phase,{timeout:20000},async()=>{const report=await page.evaluate(phase=>globalThis.__maintenanceMixedNative(phase),phase);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-mixed-'+phase+'.json'),JSON.stringify(report,null,2));});
@@ -862,6 +961,8 @@ for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dorma
    const report=await page.evaluate(scenario=>globalThis.__maintenanceNative(scenario),scenario);assert.equal(report.passed,true);
    await writeFile(join(output,'maintenance-'+(scenario.denied?'denied':scenario.phase||scenario.adapterMode||'complete')+'-'+(scenario.mode||'storage')+'.json'),JSON.stringify(report,null,2));
   });
+  await installRepositoryTerminal(page);
+  for(const mode of ['complete','finalizer-source','finalizer-revoke','finalizer-expiry','caught-terminal-write','non-idb-promise','second-fence-revoke','native-auto-complete-control'])await t.test('repository-terminal-'+mode,{timeout:20000},async()=>{const report=await page.evaluate(mode=>globalThis.__repositoryTerminalNative(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'repository-terminal-'+mode+'.json'),JSON.stringify(report,null,2));});
   assert.deepEqual(await page.evaluate(()=>chrome.storage.local.get(null)),appSettings,'Isolated fixtures preserve actual app settings');
   assert.equal(harness.extensionNetworkRequests,0);assert.equal(harness.externalRequests,0);assert.equal(harness.deepSeekRequests.length,0);
   assert.deepEqual(harness.errors,[]);

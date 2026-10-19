@@ -442,3 +442,11 @@ dialog h2{font-size:21px;line-height:1.5;overflow-wrap:anywhere}
 #organizer-reading-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 #organizer-reading-actions #bounded-progress{flex-basis:100%}
 #organizer-reading-actions #library-cost-preview:empty{display:none}
+/* Independent AI permission remains inside the existing Filter details. */
+#filter-recent-dialog .filter-ai-permission{margin:0 0 20px;padding:0 0 16px;border-bottom:1px solid var(--line,#e8e9ec)}
+#filter-recent-dialog .filter-ai-permission h3{margin:8px 0;font-size:14px;font-weight:600}
+#filter-recent-dialog .filter-ai-permission .ux-setting-row{gap:16px;min-width:0;padding:10px 0}
+#filter-recent-dialog .filter-ai-permission .ux-setting-copy{min-width:0;overflow-wrap:anywhere}
+#filter-recent-dialog .filter-ai-permission p{font-size:13px;line-height:1.6}
+#filter-recent-dialog .filter-ai-confirmation{padding:12px;border:1px solid var(--line,#e8e9ec);border-radius:8px}
+#filter-recent-dialog .filter-ai-confirmation button{margin:4px 8px 0 0}

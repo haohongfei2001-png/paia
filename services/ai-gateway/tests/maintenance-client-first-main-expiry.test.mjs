@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {maintenanceServiceFixture} from './maintenance-client-fixture.mjs';
+import {readMaintenanceFilterCapability} from '../../../extension/core/ai-usage/maintenance-service-client.js';
+for(const branch of ['write','visibility'])test('first-main '+branch+' rejects original identity deadline crossed by final issuer before timers can run',async t=>{
+ let view,armed=false,changed=false,accepted=null;
+ const f=await maintenanceServiceFixture(t,{filter:true,configure:({configuration,server,filterRuntime,local})=>{const original=configuration.processing;configuration.processing={resolve:original.resolve,isCurrent:(raw,s)=>{if(armed&&raw.scope.purpose==='ai-maintenance-filter-qualification'){armed=false;changed=true;server.now=view.identity.verifiedUntil;}return original.isCurrent(raw,s);}};configuration.service.filter={...filterRuntime.serviceFilter,authorizeReservation(cap,scope){const result=filterRuntime.serviceFilter.authorizeReservation(cap,scope);if(branch==='write'){view=readMaintenanceFilterCapability(cap,local.s);assert.ok(view);armed=true;accepted=view.isCurrent();}return result;},retainPublication(cap,p){view=readMaintenanceFilterCapability(cap,local.s);return filterRuntime.serviceFilter.retainPublication(cap,p);}};}});t.after(()=>f.session.dispose());const result=await f.run();if(branch==='visibility'){assert.equal(result.state,'COMMITTED');assert.ok(view);assert.equal(view.isVisibilityCurrent(),true);armed=true;accepted=view.isVisibilityCurrent();}assert.equal(changed,true);assert.equal(accepted,false);
+});

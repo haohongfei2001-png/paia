@@ -24,6 +24,26 @@ export const sortOf=r=>[r.sourceSentAt?0:1,r.sourceSentAt||'',r.conversationOrde
 export const tombstoneId=t=>typeof t==='string'?'snapshot:'+t:'source:'+t.sourceIdentityHash;
 const stripDoc=d=>{const v=structuredClone(d);delete v.sourceRecordIds;return v;};
 
+// Process-local one-shot observation of a real eligible delta in this exact
+// transaction. No DTO field, durable row, provider grant or additional read.
+const semanticWriteReceipts=new WeakMap();
+export function consumeCommittedSemanticWrite(repository,result){
+ const receipt=result&&typeof result==='object'?semanticWriteReceipts.get(result):null;
+ if(!receipt||receipt.repository!==repository||receipt.used)return false;
+ receipt.used=true;return true;
+}
+function bindSemanticWriteReceipt(repository,result){
+ if(!result||typeof result!=='object')return;
+ const receipt={repository,used:false};semanticWriteReceipts.set(result,receipt);
+ // The original single-field owner returns its one batch item's exact object.
+ // Share one token with that alias; never invoke getters or walk result bodies.
+ try{const items=Object.getOwnPropertyDescriptor(result,'items')?.value;
+  if(!Array.isArray(items)||Object.getOwnPropertyDescriptor(items,'length')?.value!==1)return;
+  const item=Object.getOwnPropertyDescriptor(items,'0')?.value;
+  if(item&&typeof item==='object')semanticWriteReceipts.set(item,receipt);
+ }catch{/* An optional observation cannot change a committed operation result. */}
+}
+
 // Only this owner can mint scope identity. Public wrapper promises and tx-like
 // objects are not evidence of either native identity or transaction settlement.
 // Capture original platform accessors once. Calling them requires native IDB
@@ -45,7 +65,80 @@ const nativeTransactionEvidence=transaction=>{
   return {database:nativeTransactionDb.call(transaction),mode:nativeTransactionMode.call(transaction)};
  }catch{return null;}
 };
+// Process-local refusal fence only. No row cache, durable generation, native
+// proof or financial authority. Any original write admission invalidates prior
+// observations, even if it later aborts; pending writers cannot be observed as
+// quiescent. Readonly Source probes do not invalidate this owner.
+const repositoryWrites=new WeakMap(),repositoryWriteObservations=new WeakMap();
+export function observeRepositoryWriteFence(repository){
+ const state=repositoryWrites.get(repository);if(!state||state.active!==0||!repository.db)throw new ArchiveError('STALE_BASE');
+ const token=Object.freeze({});repositoryWriteObservations.set(token,{repository,state,generation:state.generation,db:repository.db,factory:repository.factory,name:repository.name});return token;
+}
+export function requireRepositoryWriteFence(repository,token){
+ const observed=repositoryWriteObservations.get(token),state=repositoryWrites.get(repository);
+ if(!observed||observed.repository!==repository||observed.state!==state||state.active!==0||observed.generation!==state.generation||observed.db!==repository.db||observed.factory!==repository.factory||observed.name!==repository.name)throw new ArchiveError('STALE_BASE');
+ return true;
+}
 const repositoryScopes=new WeakMap();
+const repositoryNativeScopes=new WeakMap();
+function refuseTerminal(record){
+ record.terminalFailed=true;try{record.transaction.abort();}catch{}
+ throw new ArchiveError('STALE_BASE');
+}
+const sameScope=record=>Object.getOwnPropertyDescriptor(record.scope,'tx')?.value===record.transaction&&record.repository.db===record.identity.database;
+function requireWritableScope(scope){
+ const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);
+ if(record?.finalReadFences.length&&!sameScope(record))refuseTerminal(record);
+ if(record&&(record.phase==='terminal'||record.phase==='terminal-compatibility'||record.terminalFailed))refuseTerminal(record);
+}
+function requireReadableScope(scope){const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);if(record&&(record.terminalFailed||record.finalReadFences.length&&!sameScope(record)||record.phase==='terminal'&&!record.driverReading))refuseTerminal(record);}
+function synchronousTrue(record,check){
+ let value;try{value=check();}catch{refuseTerminal(record);}
+ if(value!==true){try{if(value instanceof Promise)value.catch(()=>{});}catch{}refuseTerminal(record);}
+ if(record.terminalFailed||record.nativeSettled||!sameScope(record))refuseTerminal(record);
+}
+// Original-owner terminal read plans, bound to this exact live write scope.
+// The plan is a synchronous generator: only Repository performs the yielded
+// IDB reads. Async generators/checkers and arbitrary awaited work cannot enter
+// the strict final segment. A second registration never replaces prior facts.
+export function registerRepositoryFinalReadFence(repository,scope,{plan,isCurrent,compatibilityRecheck=null}={}){
+ const record=scopeRecord(repository,scope);requireRepositoryTransactionScope(repository,scope);
+ if(record.identity.mode!=='readwrite'||record.phase!=='callback'||record.terminalFailed)refuseTerminal(record);
+ if(typeof plan!=='function'||typeof isCurrent!=='function'||compatibilityRecheck!==null&&typeof compatibilityRecheck!=='function')refuseTerminal(record);
+ synchronousTrue(record,isCurrent);record.finalReadFences.push(Object.freeze({plan,isCurrent,compatibilityRecheck}));
+}
+async function runFinalReadFences(scope,record){
+ if(!record.finalReadFences.length)return;
+ record.phase='terminal-compatibility';const fences=Object.freeze([...record.finalReadFences]);
+ const current=()=>{for(const f of fences)synchronousTrue(record,f.isCurrent);};
+ // Legacy processing resolvers predate synchronous opaque qualification. This
+ // compatibility recheck is deliberately OUTSIDE the closed read-plan segment;
+ // delayed non-IDB legacy resolvers have no native atomic-revocation guarantee.
+ // Strict production owners must omit it and use their original private cap.
+ for(const f of fences)if(f.compatibilityRecheck){current();await f.compatibilityRecheck();current();}
+ record.phase='terminal';
+ for(const f of fences){
+  current();const iterator=f.plan();
+  if(!iterator||typeof iterator.next!=='function'||typeof iterator.then==='function')refuseTerminal(record);
+  let value;
+  for(;;){
+   current();const step=iterator.next(value);current();
+   if(!step||typeof step!=='object'||typeof step.then==='function')refuseTerminal(record);
+   if(step.done){if(step.value!==true)refuseTerminal(record);break;}
+   const spec=step.value,descriptors=spec&&Object.getOwnPropertyDescriptors(spec);
+   if(!descriptors||![Object.prototype,null].includes(Object.getPrototypeOf(spec))||Object.values(descriptors).some(d=>!Object.hasOwn(d,'value'))||!Object.hasOwn(descriptors,'method')||!Object.hasOwn(descriptors,'table'))refuseTerminal(record);
+   const method=descriptors.method.value,table=descriptors.table.value,key=descriptors.key?.value,index=descriptors.index?.value;
+   if(typeof table!=='string'||!record.transaction.objectStoreNames.contains(table)||!['get','count'].includes(method)||Reflect.ownKeys(spec).some(k=>!['method','table','key','index'].includes(k)))refuseTerminal(record);
+   current();
+   if(method==='get'){if(index!==undefined||key===undefined)refuseTerminal(record);let reading;record.driverReading=true;try{reading=originalDataMethods.find(([name])=>name==='get')[1].value.call(scope,table,key);}finally{record.driverReading=false;}value=await reading;}
+   else{if(index!==undefined&&typeof index!=='string')refuseTerminal(record);scope.metrics.reads++;const target=record.transaction.objectStore(table);value=await req(index?target.index(index).count(key):target.count(key));}
+   current();
+  }
+ }
+ // No application storage read/write or non-IDB await follows this check.
+ current();
+}
+
 const originalOwnDescriptor=Object.getOwnPropertyDescriptor;
 const originalPrototypeOf=Object.getPrototypeOf;
 const scopeRecord=(repository,scope)=>{const r=repositoryScopes.get(scope);if(!r||r.repository!==repository)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');return r;};
@@ -61,6 +154,14 @@ export function requireRepositoryTransactionDataMethods(repository,scope){
   const descriptor=originalOwnDescriptor(originalDataPrototype,name);
   if(originalOwnDescriptor(scope,name)||!descriptor||descriptor.value!==expected.value||descriptor.get!==expected.get||descriptor.set!==expected.set||descriptor.writable!==expected.writable||descriptor.enumerable!==expected.enumerable||descriptor.configurable!==expected.configurable)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
  }
+}
+// Internal domain-owner settlement evidence, without claiming native BNS
+// retention qualification for non-native mechanism fixtures. The original
+// repository callback, finalizers and success path must all have unwound.
+export function requireRepositoryTransactionSucceeded(repository,scope){
+ const r=scopeRecord(repository,scope);
+ if(r.nativeOutcome!=='completed'||!r.originalSuccess||!r.unwound||r.identity.nativeTransaction&&r.trustedNativeOutcome!=='completed')throw new ArchiveError('STALE_BASE');
+ return true;
 }
 export function requireRepositoryTransactionCommitted(repository,scope){
  const r=scopeRecord(repository,scope);
@@ -141,9 +242,9 @@ export function requireRepositoryHumanRetentionReadDrained(repository,scope,tran
 const backupDataStores=new Set(['importSources','records','blocks','documents','libraryDocuments','inputStates','inputRemovals','thoughts','topics','sections','placements','provenance','dependencies','revisions','thoughtSuppressions','entryRelations','filterInputs','filterIntents','times','tombstones','operationReceipts']);
 class Transaction {
  constructor(tx,metrics,semanticEnabled=false){this.tx=tx;this.metrics=metrics;this.semanticEnabled=semanticEnabled;}
- async has(store,key){this.metrics.reads++;return (await req(this.tx.objectStore(store).getKey(key)))!==undefined;}
- async get(store,key){this.metrics.reads++;return req(this.tx.objectStore(store).get(key));}
- async put(store,value,key){if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key===undefined?value?.id:key),value);await trackSemanticWrite(this,store,key===undefined?value?.id:key,value);await trackNavigationWrite(this,store,key===undefined?value?.id:key,value);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(value.id))this.backupChanged=true;this.metrics.writes++;return req(key===undefined?this.tx.objectStore(store).put(value):this.tx.objectStore(store).put(value,key));}
+ async has(store,key){requireReadableScope(this);this.metrics.reads++;return (await req(this.tx.objectStore(store).getKey(key)))!==undefined;}
+ async get(store,key){requireReadableScope(this);this.metrics.reads++;return req(this.tx.objectStore(store).get(key));}
+ async put(store,value,key){requireWritableScope(this);if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key===undefined?value?.id:key),value);await trackSemanticWrite(this,store,key===undefined?value?.id:key,value);await trackNavigationWrite(this,store,key===undefined?value?.id:key,value);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(value.id))this.backupChanged=true;requireWritableScope(this);this.metrics.writes++;return req(key===undefined?this.tx.objectStore(store).put(value):this.tx.objectStore(store).put(value,key));}
  async putDerivedSearchRow(store,value){
   if(!['thoughts','topics','sections'].includes(store)||!value?.id)throw fail();
   const previous=await this.get(store,value.id);
@@ -177,14 +278,14 @@ class Transaction {
   if(!same(withoutRead(previous),withoutRead(value)))throw fail();
   const changed=this.backupChanged,result=await this.put('topics',value);this.backupChanged=changed;return result;
  }
- async delete(store,key){if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key),null);await trackSemanticWrite(this,store,key,null);await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;this.metrics.writes++;return req(this.tx.objectStore(store).delete(key));}
- async clear(store){if(store==='blockIndex')await clearArchiveYearIndex(this);await trackSemanticClear(this,store);if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;return req(this.tx.objectStore(store).clear());}
- async count(store,index,key){return req(index?this.tx.objectStore(store).index(index).count(key):this.tx.objectStore(store).count());}
- async all(store,index,key,limit){this.metrics.scans++;const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);const rows=await req(target.getAll(key,limit));this.metrics.reads+=rows.length;return rows;}
- async keys(store,index,key){return req((index?this.tx.objectStore(store).index(index):this.tx.objectStore(store)).getAllKeys(key));}
- async edge(store,index,key,direction='next'){return new Promise((resolve,reject)=>{const r=this.tx.objectStore(store).index(index).openCursor(key,direction);r.onsuccess=()=>resolve(r.result?.value);r.onerror=()=>reject(fail());});}
- async rangePage(store,index,range,after,limit,direction='next'){return new Promise((resolve,reject)=>{const reverse=direction==='prev',rows=[],effective=after?(reverse?(range?.lower!==undefined?IDBKeyRange.bound(range.lower,after,range.lowerOpen,true):IDBKeyRange.upperBound(after,true)):(range?.upper!==undefined?IDBKeyRange.bound(after,range.upper,true,range.upperOpen):IDBKeyRange.lowerBound(after,true))):range,target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store),r=target.openCursor(effective,direction);r.onerror=()=>reject(fail());r.onsuccess=()=>{const c=r.result;if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}if(after&&(reverse?indexedKeyCompare(c.key,after)>=0:indexedKeyCompare(c.key,after)<=0)){c.continue();return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();};});}
- async indexPrimaryPage(store,index,key,{after=null,limit=100}={}){
+ async delete(store,key){requireWritableScope(this);if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key),null);await trackSemanticWrite(this,store,key,null);await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;requireWritableScope(this);this.metrics.writes++;return req(this.tx.objectStore(store).delete(key));}
+ async clear(store){requireWritableScope(this);if(store==='blockIndex')await clearArchiveYearIndex(this);await trackSemanticClear(this,store);if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;requireWritableScope(this);return req(this.tx.objectStore(store).clear());}
+ async count(store,index,key){requireReadableScope(this);return req(index?this.tx.objectStore(store).index(index).count(key):this.tx.objectStore(store).count());}
+ async all(store,index,key,limit){requireReadableScope(this);this.metrics.scans++;const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);const rows=await req(target.getAll(key,limit));this.metrics.reads+=rows.length;return rows;}
+ async keys(store,index,key){requireReadableScope(this);return req((index?this.tx.objectStore(store).index(index):this.tx.objectStore(store)).getAllKeys(key));}
+ async edge(store,index,key,direction='next'){requireReadableScope(this);return new Promise((resolve,reject)=>{const r=this.tx.objectStore(store).index(index).openCursor(key,direction);r.onsuccess=()=>resolve(r.result?.value);r.onerror=()=>reject(fail());});}
+ async rangePage(store,index,range,after,limit,direction='next'){requireReadableScope(this);return new Promise((resolve,reject)=>{const reverse=direction==='prev',rows=[],effective=after?(reverse?(range?.lower!==undefined?IDBKeyRange.bound(range.lower,after,range.lowerOpen,true):IDBKeyRange.upperBound(after,true)):(range?.upper!==undefined?IDBKeyRange.bound(after,range.upper,true,range.upperOpen):IDBKeyRange.lowerBound(after,true))):range,target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store),r=target.openCursor(effective,direction);r.onerror=()=>reject(fail());r.onsuccess=()=>{const c=r.result;if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}if(after&&(reverse?indexedKeyCompare(c.key,after)>=0:indexedKeyCompare(c.key,after)<=0)){c.continue();return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();};});}
+ async indexPrimaryPage(store,index,key,{after=null,limit=100}={}){requireReadableScope(this);
   if(!Number.isInteger(limit)||limit<1||limit>100||after!==null&&typeof after!=='string')throw new ArchiveError('INVALID_REQUEST');
   return new Promise((resolve,reject)=>{const rows=[],r=this.tx.objectStore(store).index(index).openCursor(IDBKeyRange.only(key));r.onerror=()=>reject(fail(r.error));r.onsuccess=()=>{
    const c=r.result;if(!c){resolve({rows,next:null});return;}
@@ -194,7 +295,7 @@ class Transaction {
    if(rows.length===limit){resolve({rows,next:c.primaryKey});return;}c.continue();
   };});
  }
- async primaryRangePage(store,{prefix='',after=null,limit=100}={}){
+ async primaryRangePage(store,{prefix='',after=null,limit=100}={}){requireReadableScope(this);
   if(typeof prefix!=='string'||!Number.isInteger(limit)||limit<1||limit>100||after!==null&&(typeof after!=='string'||!after.startsWith(prefix)||after>=prefix+'\uffff'))throw new ArchiveError('INVALID_REQUEST');
   const upper=prefix+'\uffff',range=IDBKeyRange.bound(after===null?prefix:after,upper,after!==null,true),target=this.tx.objectStore(store);
   return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail(r.error));r.onsuccess=()=>{
@@ -206,7 +307,7 @@ class Transaction {
    probe.onerror=()=>reject(fail(probe.error));probe.onsuccess=()=>{this.metrics.primaryKeyProbes=(this.metrics.primaryKeyProbes||0)+1;resolve({rows,next:probe.result?c.key:null});};
   };});
  }
- async page(store,{index,after,limit=100}={}){
+ async page(store,{index,after,limit=100}={}){requireReadableScope(this);
   const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);
   const range=after===undefined?undefined:IDBKeyRange.lowerBound(after,true);
   return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail());r.onsuccess=()=>{const c=r.result;if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();};});
@@ -220,7 +321,7 @@ const originalDataPrototypeParent=originalPrototypeOf(originalDataPrototype);
 const originalDataMethods=Object.freeze(['get','put','count','rangePage','primaryRangePage','delete'].map(name=>Object.freeze([name,Object.freeze(originalOwnDescriptor(originalDataPrototype,name))])));
 
 export class ArchiveRepository {
- constructor(local,{indexedDB=globalThis.indexedDB,name=DATABASE_NAME,checkpoint=async()=>{},ia=false,smartFilter=false,thoughtLibrary=false}={}){this.local=local;this.ia=ia;this.smartFilter=smartFilter;this.thoughtLibrary=thoughtLibrary;this.stores=[...STORES,...(ia?IA_STORES:[]),...(smartFilter?FILTER_STORES:[]),...(thoughtLibrary?LIBRARY_STORES:[])];this.factory=indexedDB;this.name=name;this.checkpoint=checkpoint;this.metrics={reads:0,writes:0,scans:0};}
+ constructor(local,{indexedDB=globalThis.indexedDB,name=DATABASE_NAME,checkpoint=async()=>{},ia=false,smartFilter=false,thoughtLibrary=false}={}){this.local=local;this.ia=ia;this.smartFilter=smartFilter;this.thoughtLibrary=thoughtLibrary;this.stores=[...STORES,...(ia?IA_STORES:[]),...(smartFilter?FILTER_STORES:[]),...(thoughtLibrary?LIBRARY_STORES:[])];this.factory=indexedDB;this.name=name;this.checkpoint=checkpoint;this.metrics={reads:0,writes:0,scans:0};repositoryWrites.set(this,{generation:Object.freeze({}),active:0});}
  async open(){
   if(this.db)return; if(!this.factory)throw fail();
   this.db=await new Promise((resolve,reject)=>{
@@ -247,11 +348,14 @@ export class ArchiveRepository {
   });
  }
  async transaction(write,fn,stores=this.stores){
+  const writeState=repositoryWrites.get(this);if(!writeState)throw fail();
+  if(write){writeState.generation=Object.freeze({});writeState.active++;}
+  try{
   await this.open();if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
   const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
   const native=nativeTransactionEvidence(tx);
-  let release;const record={repository:this,transaction:tx,dataPrototype:originalPrototypeOf(scope),nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
-  repositoryScopes.set(scope,record);
+  let release;const record={scope,phase:'callback',terminalFailed:false,finalReadFences:[],repository:this,transaction:tx,dataPrototype:originalPrototypeOf(scope),nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
+  repositoryScopes.set(scope,record);repositoryNativeScopes.set(tx,record);
   const maybeRelease=()=>{if(record.nativeSettled&&record.unwound)release();};
   const done=new Promise((resolve,reject)=>{
    // False native events do not consume either listener or settle any state.
@@ -272,7 +376,8 @@ export class ArchiveRepository {
   });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{const result=await fn(scope);if(write)await flushNavigationWrites(scope);if(write)await flushSemanticWrites(scope);if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}await done;record.originalSuccess=true;return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.unwound=true;maybeRelease();}
+  try{const result=await fn(scope);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);for(const fence of record.finalReadFences)synchronousTrue(record,fence.isCurrent);}await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
+  }finally{if(write)writeState.active--;}
  }
  async initialize(){
   await this.open();let m=await this.transaction(false,t=>t.get('meta','migration'));
@@ -344,7 +449,7 @@ export class ArchiveRepository {
   return {schemaVersion:5,library:{documents:libraryDocuments,blocks,classificationRules:control.classificationRules,filterRules:control.filterRules},memoryAccessPolicy:control.memoryAccessPolicy,settings:control.settings,records,tombstones,sourceTimes,diagnostics:control.diagnostics,conversations:documents,preferences:control.preferences};
  });}
  async tombstones(){return this.transaction(false,async t=>(await t.all('tombstones')).map(r=>r.value));}
- async close(){this.db?.close();this.db=null;}
+ async close(){const state=repositoryWrites.get(this);if(state)state.generation=Object.freeze({});this.db?.close();this.db=null;}
 }
 export function recordIndex(r,sequence){return {id:r.id,sequence,sourceKey:r.sourceKey,sourceMessageId:r.sourceMessageId,chatKey:chatOf(r),legacyChat:r.sourceKey?undefined:chatOf(r),dedupeKey:r.dedupeKey,contentHash:r.contentHash,listKey:[chatOf(r),r.hidden||r.deletedAt?1:0,...sortOf(r)],sort:sortOf(r),sourceSentAt:r.sourceSentAt,conversationOrder:r.conversationOrder,hidden:r.hidden,deletedAt:r.deletedAt,trashKey:r.deletedAt?1:0,hiddenKey:r.hidden&&!r.deletedAt?1:0,visibleKey:r.hidden||r.deletedAt?1:0,known:r.sourceSentAt?0:1};}
 export function blockIndex(b,sequence,records){const r=records.find(r=>r.id===b.sourceRecordId);return {id:b.id,sequence,documentId:b.documentId,recordIds:b.provenance.map(p=>p.sourceRecordId),attachedDocument:b.provenance.length?b.documentId:undefined,sourceRecordId:b.sourceRecordId,excluded:b.excluded,excludedKey:b.excluded?1:0,known:r?.sourceSentAt?0:1,stamp:r?.sourceSentAt||'',listKey:[b.documentId,b.excluded?1:0,...sortOf({...r,id:b.id})],sort:sortOf({...r,id:b.id}),sourceSentAt:r?.sourceSentAt||null,conversationOrder:r?.conversationOrder??null};}

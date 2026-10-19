@@ -1,12 +1,12 @@
 import {canonical,equal,fail,digest} from '../core/ai-usage/contracts.js';
 import {ASSIST_LIMITS} from '../core/ai-usage/assist-response.js';
 const id=x=>typeof x==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$/.test(x);
-// Dormant constructor-owned bridge. There is no worker RPC, Next authorization
-// import, Settings writer or persistent reply body in this owner.
+// Original private lease, connected only by the distinct Assist commands.
+// No Next authorization or persistent reply body enters this owner.
 export class AssistReplyLease {
- #listeners=new Set();#leases=new Map();#caps=new WeakMap();#epoch=0;#access=false;#remote=false;#session=crypto.randomUUID();#accessEpoch=crypto.randomUUID();#remoteEpoch=crypto.randomUUID();#disposed=false;#last=0;
+ #listeners=new Set();#leases=new Map();#caps=new WeakMap();#epoch=0;#access=false;#remote=false;#automatic=false;#session=crypto.randomUUID();#accessEpoch=crypto.randomUUID();#remoteEpoch=crypto.randomUUID();#disposed=false;#last=0;
  constructor({runtimeId,tabs,probe,current,clock=()=>performance.now()}={}){this.runtimeId=runtimeId;this.tabs=tabs;this.probe=probe;this.current=current;this.clock=clock;}
- configure({replyAccess,remoteProcessing}){if(typeof replyAccess!=='boolean'||typeof remoteProcessing!=='boolean')fail();if(this.#access!==replyAccess||this.#remote!==remoteProcessing){this.#epoch++;this.#leases.clear();this.#caps=new WeakMap();for(const fn of [...this.#listeners]){try{fn();}catch{}}if(this.#access!==replyAccess)this.#accessEpoch=crypto.randomUUID();if(this.#remote!==remoteProcessing)this.#remoteEpoch=crypto.randomUUID();}this.#access=replyAccess;this.#remote=remoteProcessing;}
+ configure({replyAccess,remoteProcessing,automatic=false}){if(typeof replyAccess!=='boolean'||typeof remoteProcessing!=='boolean'||typeof automatic!=='boolean')fail();if(this.#access!==replyAccess||this.#remote!==remoteProcessing||this.#automatic!==automatic){this.#epoch++;this.#leases.clear();this.#caps=new WeakMap();for(const fn of [...this.#listeners]){try{fn();}catch{}}if(this.#access!==replyAccess)this.#accessEpoch=crypto.randomUUID();if(this.#remote!==remoteProcessing)this.#remoteEpoch=crypto.randomUUID();}this.#access=replyAccess;this.#remote=remoteProcessing;this.#automatic=automatic;}
  invalidate(){this.#epoch++;this.#leases.clear();this.#caps=new WeakMap();for(const fn of [...this.#listeners]){try{fn();}catch{}}}
  onInvalidate(fn){if(typeof fn!=='function'||this.#listeners.size>=8)fail('RESOURCE_LIMIT');this.#listeners.add(fn);return ()=>this.#listeners.delete(fn);}
  #now(){const n=this.clock();if(!Number.isFinite(n)||n<0||n<this.#last){this.dispose();fail('UNAVAILABLE');}this.#last=n;return n;}
@@ -22,9 +22,11 @@ export class AssistReplyLease {
   row={key,host,b:structuredClone(b),binding,created:now,epoch,cap};this.#leases.set(key,row);this.#caps.set(cap,row);if(!this.#valid(row)){this.#leases.delete(key);fail('STALE_BASE');}return cap;
  }
  #valid(r){return !!r&&!this.#disposed&&this.#access&&this.#remote&&r.epoch===this.#epoch&&this.#leases.get(r.key)===r&&this.#now()-r.created<ASSIST_LIMITS.ttl&&typeof this.current==='function'&&this.current(r.host,r.b)===true;}
+ automaticCurrent(cap){return this.#automatic&&this.isCurrent(cap);}
  isCurrent(cap){try{return this.#valid(this.#caps.get(cap));}catch{return false;}}
  metadata(cap){const r=this.#caps.get(cap);if(!this.#valid(r))fail('STALE_BASE');return {binding:structuredClone(r.binding),host:structuredClone(r.host),replyBinding:structuredClone(r.b)};}
  async snapshot(cap){const r=this.#caps.get(cap);if(!this.#valid(r))fail('STALE_BASE');const tab=await this.tabs.get(r.host.tabId);if(!this.#valid(r))fail('STALE_BASE');if(tab?.active!==true||tab?.incognito||tab?.url!==r.host.url)fail('STALE_BASE');const result=await this.probe(r.host,{snapshot:true});if(!this.#valid(r)||result?.ready!==true||!equal(result.binding,r.b))fail('STALE_BASE');return structuredClone(result.snapshot);}
+ async replyKey(cap){const r=this.#caps.get(cap);if(!this.#valid(r))fail('STALE_BASE');const key=await digest([r.host.url,r.b.replyId]);if(!this.#valid(r))fail('STALE_BASE');return key;}
  async evaluationKey(cap,dependencies,contractVersion,routeVersion){const r=this.#caps.get(cap);if(!this.#valid(r))fail('STALE_BASE');const key=await digest([this.#session,r.host,r.b,this.#accessEpoch,this.#remoteEpoch,dependencies,contractVersion,routeVersion]);if(!this.#valid(r))fail('STALE_BASE');return key;}
  dispose(){this.#disposed=true;for(const fn of [...this.#listeners]){try{fn();}catch{}}this.#listeners.clear();this.#epoch++;this.#leases.clear();this.#caps=new WeakMap();}
 }

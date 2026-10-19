@@ -1,3 +1,45 @@
+# Trial integration checkpoint — 2026-10-18
+
+The 0.55.0 local trial combines the reviewed 1.2 double-card runtime with the restore owner below. This does not relabel any prior native gate as passed.
+
+## Preserved restore qualification
+
+# Authored Context restore continuity — 2026-10-18 / successor native pending
+
+A separate 0.54.2 successor retains the exact PR295 repair tree and adds only the reviewed authored journal-continuity owner, its unit/native regressions and synchronized package identity. Code tree `249be9110daad6f4959475f6d6a555dc8d02d13a` passed7657/7657 default-four units, zero failures/skips, standard release513 files/16528 guardrails/489 runtime resources, Source16592/493 and privacy59/59; all commands exited0 at01:00:56UTC. The owner/version subset passes100/100 and is not added to that full-suite count.
+
+Original-owner genuine restores now qualify only through the complete bounded body/removal/restoration history plus fresh current authority. Independent review repaired an earlier disguised-journal counterexample before this frozen candidate. The three reviewed owner/test blobs remain exact. Two added native phases per Source/release remain NOT_RUN. PR295 c76 is still independently in certification; this successor does not update its head, replace its pending gates, certify main6cc or establish human visual acceptance. See [the owning receipt](ai-usage/AI-COST-03-AUTHORED-RESTORE-CONTINUITY.md). Input-only privacy, human ownership/order, paused Sync, all original failures and the separately open revoked-draft storage-failure gap remain.
+
+## Preserved earlier runtime qualification
+
+# Prompt theme and status clearance — 2026-10-18 / 0.54.1 follow-up
+
+PR295 exact `c76bba7d02d07002e0f9c26d19278dba5054763d` completed Full39084449356 with nine Browser shards and all four Unit shards (7605/7605, zero failures/skips), both macOS gates, Sync native and build/privacy passing. Browser6 first failed Source/release Save clicks because the persistent status message intercepted pointer events, then was cancelled at the 18-minute job boundary; Full/Integration remain FAILED. Prompt Foundation39084449385 separately failed the old v2 theme-color oracle; Prompt Visual39084449408 and D739084449439 passed. Original failures retain their identities.
+
+The reviewed follow-up shares the frozen approved B palette assertion with the native theme journey and restores persistent status to the existing card flex flow, retaining its bounded scrolling and interactive Copy action. Quiet 480ms feedback stays out of layout. The original dirty/save/cancel/IME/theme scenarios remain, with additional native rectangle, hit-target and focus checks. The combined focused suite passes47/47; standard release16528/489/513, Source16592/493 and privacy59/59 pass. Both code reviews are CLEAN. These are focused local results; new-head native geometry and complete required CI remain pending. See [the integration receipt](AUTHORED-JUBAN-INTEGRATION-20261018.md) for original traces, exact scope and limits.
+
+Exact-c76 Browser8 passes41/41: Source/release held-owner and changed-generation late-publication records each show one EDIT, one successful ACK and one user journal increment. This qualifies that saved-AI repair on c76, without erasing main6cc's failed run. Separate PR296 remains dependent and unmerged; its a19 Browser8 has a new UX-R2 Raw Input Original qualification failure under investigation. Human visual, physical120Hz/NIB50ms, live-provider and installation acceptance remain open. Input-only privacy, human membership/order and paused Sync features are unchanged.
+
+## Preserved preceding checkpoint
+
+# Authored Context and B 句瓣 — 2026-10-18 / 0.54.1 qualification repair
+
+PR294 is merged as main `6cc5bd682076bd98b64421c69310eca750f7b806`, tree `39229b98869e8098872b81e16cf0bae5ff25a086`, after exact-d1a Full39079496026/D739079496055 passed. Exact-main Full39080866509 subsequently FAILED Browser8 release's empty-summary save (six list ACKs, revision7, recovery ACK but zero EDIT); the other nine Browser shards and remaining component gates passed. PR295 original6edf Full39080235098 separately failed Browser2 reload-fixture and Browser6 native orb Enter-reopen; Foundation failed the keyboard journey, and Visual stopped at the historical v2 color oracle. These original failures remain failed.
+
+The coherent0.54.1 repair combines the frozen-approved-B visual oracle, nonce-bound host collapsed-form focus, per-document synthetic host arrangement, deterministic original25ms Maintenance deadline controls, and exact-qualified saved-AI owner retention across late input. All20 reviewed repair blobs match their independent reviews. The final default-four local unit suite passes7605/7605, Source16592/493, standard release16528/489/513, and privacy59/59; all exit0 with zero test failures/skips. Earlier local7575/7576 and both deterministic original-owner RED cases remain evidence. No workflow, routing, frozen reference, budget, timeout or permission changes. See [the integration receipt](AUTHORED-JUBAN-INTEGRATION-20261018.md) for exact scopes and artifacts.
+
+Changed-head Full/D7/Prompt qualification and safe merge remain pending; local native Chrome was not run. Exact6edf D7 Source/release23/23 and Browser4 authored Source/release seven phases each are scoped successes, not aggregate or new-head acceptance. The separate authored remove/restore successor and the pre-existing non-equivalent revocation plus failed recovery-storage draft gap remain open. Human visual, physical120Hz/NIB50ms, live-provider quality and installation remain unverified. Input-only privacy, human membership/order and paused Sync features remain unchanged.
+
+## Preserved preceding checkpoint
+
+# Authored Context and B 句瓣 — 2026-10-18 / combined candidate pending
+
+The approved Authored Entry Context and fixed-anchor B句瓣 slices are combined locally as one coherent0.54.0 candidate, preserving the pending PR294 worker-readiness repair and all existing histories. Both owner snapshots passed independent review; the initial Authored late-Input P1 was reproduced and repaired with a shared final transaction fence, and the sentence-petal minimum-height/IME/same-point controls were corrected before combination. All20 Authored and19句瓣 reviewed blobs remain exact, with no shared changed path. The combined version/Backup/layout subset passes22/22; complete default-four units7542/7542, Source16592/493, standard0.54.0 release16528/489/513 and privacy59/59 all pass with zero failures/skips. A preceding environment-interrupted execution remains unqualified. Published PR294 head d1a is absorbed without changing any tested tree byte; its Full39079496026/D739079496055 and this product candidate's native Full/final integration review remain pending; neither this code nor Now is claimed merged or installed. See [the integration receipt](AUTHORED-JUBAN-INTEGRATION-20261018.md) for supported scope, real failures, evidence boundaries and outstanding gates.
+
+Input-only privacy, human membership/order and paused new Sync features remain unchanged. Human visual, physical120Hz/NIB50ms, live-provider and installation acceptance remain open.
+
+## Preserved preceding checkpoint
+
 # Now integration worker readiness repair — 2026-10-18 / changed-head qualification pending
 
 PR #294 head `6b54a640c6d863798a84706c459c4a67b284feab` completed [Full 39076922397](https://github.com/haohongfei2001-png/paia/actions/runs/39076922397) with one failure: Current Browser 6 passed 81/82; Source UIR-03 failed its setup assertion that the original native worker was running, before its observer, status request or lexical-index journey. The original Browser 5 now passes 26/26, including both D2/D5 Source and release cases; the prior consent repair is qualified on this head. The other nine Browser shards, four Unit shards 7464/7464 with zero failures/skips, both macOS gates, Sync native and build/privacy pass. Full and Integration remain FAILED for 6b54. The failed Browser 6 artifact 12117911661 is CRC-verified with SHA256 `536a386194801951c6c587c074e4cd452765d24edd7390dfedbb0cca30c302b6`; the early failure produced no UIR-03 journey diagnostic. The prior failed runs below retain their identities.

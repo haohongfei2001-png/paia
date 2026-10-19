@@ -1,4 +1,5 @@
 import {quickPromptEligible,promptGraphemeCount} from '../core/prompt-reuse-preferences.js';
+import {mountPromptAssist} from './prompt-assist-view.js';
 import {createIcon} from './icons.js';
 import {PromptHistorySession} from './prompt-history-session.js';
 import {PromptListSession} from '../core/prompt-family.js';
@@ -7,6 +8,7 @@ import {resolveAppearance,resolveLanguage} from './ux-r1-state.js';
 if(location.hash.startsWith('#next-')){void import('./prompt-next.js');}else{
 const nonce=location.hash.slice(1),session=new PromptListSession(),list=document.getElementById('list'),editor=document.getElementById('editor'),status=document.getElementById('status');
 const checkText=document.getElementById('check-text'),searchInput=document.getElementById('search-query'),history=new PromptHistorySession(({query,cursor,searchSnapshot})=>rpc({type:'PAIA_PROMPT_HISTORY_QUERY',query,cursor,searchSnapshot}));
+let assistSurface=null,automaticSuggestion=false;
 let candidateTarget=null,candidateReady=false,candidateRequest=0;
 let mode='candidates',projectionGeneration=0,searchComposing=false,searchLoading=false,historyFailure=false,searchTimer=null;
 let checking=null,checkingRequest=null,copyRequest=null,layoutScheduled=false,lastMeasuredHeight=0,lastMinimumHeight=0,lastAppearance=null,lastLanguage=null,layoutPending=false,layoutDirty=false,pointerGesture=false,layoutTicket=0,disposed=false;
@@ -23,7 +25,8 @@ const attempted=new Set();
 
 // Translate only this surface's UI copy. Original authored bodies stay untouched.
 const copy={
- '较长的常用表达':'Long expressions','仅匹配到较长表达，请在 PAIA 中继续查看。':'These matches are longer expressions. Continue in PAIA.','没有可快速复用的表达。':'No quick expressions available.','最多 150 个字符；编辑仍保留。':'At most 150 characters. Your edit is retained.','当前输入框无法原样保留 CRLF 换行，请复制原文。':'This composer cannot preserve CRLF line endings exactly. Copy the original text.','核对全文':'View full text','展开常用输入':'Expand frequent inputs','收起为胶囊':'Collapse to capsule','收起为圆球':'Collapse to orb',
+ '本轮 AI 建议':'Current AI suggestion','正在准备本轮建议；常用输入仍可使用。':'Preparing a suggestion. Saved prompts remain available.','本轮 AI 建议暂不可用；常用输入仍可使用。':'AI suggestions are unavailable. Saved prompts remain available.','请先在 PAIA 设置中分别允许本轮回复读取与远端处理。':'In PAIA settings, separately allow current-reply access and remote processing.','启用后等待当前回复完成，再明确请求建议。':'Wait for a reply to finish after enabling, then explicitly request a suggestion.','本轮没有必要的新建议。':'No new suggestion is necessary for this reply.','本轮回复或相关 Context 已变化，请重新请求。':'The current reply or relevant Context changed. Request a suggestion again.',
+ '较长的常用表达':'Long expressions','仅匹配到较长表达，请在 PAIA 中继续查看。':'These matches are longer expressions. Continue in PAIA.','没有可快速复用的表达。':'No quick expressions available.','最多 150 个字符；编辑仍保留。':'At most 150 characters. Your edit is retained.','当前输入框无法原样保留 CRLF 换行，请复制原文。':'This composer cannot preserve CRLF line endings exactly. Copy the original text.','核对全文':'View full text','展开常用表达':'Expand frequent expressions','收起为胶囊':'Collapse to capsule','收起为圆球':'Collapse to orb',
  '为当前任务选择历史候选':'Select historical candidates for this task','采用已准备的历史候选':'Use prepared historical candidates','候选已准备；返回常用输入后可明确采用。':'Candidates are ready. Return to frequent inputs to use them explicitly.','历史候选暂不可用；常用输入和本机搜索仍可使用。':'Historical candidates are unavailable. Frequent inputs and local search remain available.',
  '选择代表原文':'Choose representative original','选择此 Family 的代表原文。':'Choose the original expression that represents this Family.','正在读取当前原文…':'Reading current original expressions…','原文已变化，请取消后重新选择。':'The original expressions changed. Cancel and choose again.',
  '更多列表操作':'More list actions','清除搜索':'Clear search','搜索全部档案':'Search all Archive Inputs','搜索':'Search','返回常用输入':'Back to frequent inputs','上一页':'Previous page','下一页':'Next page','打开 PAIA':'Open PAIA','请输入搜索词。':'Enter a search term.','正在继续搜索本机输入…':'Searching local Inputs…','没有找到匹配内容。':'No matches.','本页结果；还有更多内容。':'This page; more results are available.','档案仍在变化，请重新搜索。':'Archive is still changing. Search again.','当前档案输入':'Current Archive Input','填入选段':'Insert selection','复制选段':'Copy selection','取消选区':'Clear selection','已保存为独立常用表达。':'Saved as an independent expression.',
@@ -48,19 +51,20 @@ function applyDisplay(preferences=displayPreferences){
  for(const [node,entries]of copyBindings){if(!node.isConnected){copyBindings.delete(node);continue;}for(const [attribute,value]of entries){if(attribute)node.setAttribute(attribute,localize(value));else node.textContent=localize(value);}}
  document.title=localize('PAIA 常用输入');scheduleLayout();
 }
-for(const [selector,label,attribute]of [['#capsule','常用表达','aria-label'],['#capsule-expand','展开常用输入','aria-label'],['#long-expressions','较长的常用表达'],['#collapse-capsule','收起为胶囊'],['#collapse-orb','收起为圆球'],['#surface-more','更多列表操作','aria-label'],['#search-clear','清除搜索','aria-label'],['#open-search','搜索全部档案','aria-label'],['#leave-search','返回常用输入','aria-label'],['#search-query','搜索全部档案','aria-label'],['#search-query','搜索全部档案','placeholder'],['#search-previous','上一页'],['#search-next','下一页'],['#open-paia','打开 PAIA'],['#card','常用输入','aria-label'],['header span','常用输入'],['#list','Prompt 列表','aria-label'],['#check-text','核对完整表达','aria-label'],['#surface-tools','列表操作','aria-label'],['#new','新建 Prompt','aria-label'],['#refresh','刷新列表','aria-label'],['#hidden','显示隐藏的 Prompt','aria-label'],['#hidden','隐藏项'],['#close','关闭卡片','aria-label']])bindCopy(document.querySelector(selector),label,attribute);
+for(const [selector,label,attribute]of [['#capsule','常用表达','aria-label'],['#long-expressions','较长的常用表达'],['#collapse-capsule','收起为胶囊'],['#collapse-orb','收起为圆球'],['#surface-more','更多列表操作','aria-label'],['#search-clear','清除搜索','aria-label'],['#open-search','搜索全部档案','aria-label'],['#leave-search','返回常用输入','aria-label'],['#search-query','搜索全部档案','aria-label'],['#search-query','搜索全部档案','placeholder'],['#search-previous','上一页'],['#search-next','下一页'],['#open-paia','打开 PAIA'],['#card','常用输入','aria-label'],['header span','常用输入'],['#list','Prompt 列表','aria-label'],['#check-text','核对完整表达','aria-label'],['#surface-tools','列表操作','aria-label'],['#new','新建 Prompt','aria-label'],['#refresh','刷新列表','aria-label'],['#hidden','显示隐藏的 Prompt','aria-label'],['#hidden','隐藏项'],['#close','关闭卡片','aria-label']])bindCopy(document.querySelector(selector),label,attribute);
 document.getElementById('open-search').replaceChildren(createIcon('search'));
 systemAppearance.addEventListener('change',()=>applyDisplay());
 
 async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command});if(!r?.ok)throw Error(r?.error||'UNAVAILABLE');return r.data;}
 const button=(text,fn,label=text)=>{const b=document.createElement('button');b.type='button';bindCopy(b,text);bindCopy(b,label,'aria-label');if(busy||refreshing){b.dataset.pendingDisabled='0';b.disabled=true;}trackActivation(b);b.addEventListener('click',e=>{if(e.isTrusted&&e.detail<2)void fn(e);});return b;};
 function pending(value){busy=value;for(const b of document.querySelectorAll('button,textarea,input')){if((b===searchInput||b.id==='search-clear')&&mode==='search')continue;if(value){if(!('pendingDisabled' in b.dataset))b.dataset.pendingDisabled=b.disabled?'1':'0';b.disabled=true;}else if('pendingDisabled' in b.dataset){b.disabled=b.dataset.pendingDisabled==='1';delete b.dataset.pendingDisabled;}}}
-let feedbackTimer;
-const tell=(text,temporary=false)=>{clearTimeout(feedbackTimer);status.dataset.quiet=String(temporary);status.replaceChildren(...(text?[copyText(text)]:[]));if(temporary)feedbackTimer=setTimeout(()=>tell(''),480);};
+let feedbackTimer,feedbackOwner=null;
+const assistFeedbackOwner=Object.freeze({});
+const tell=(text,temporary=false,owner=null)=>{feedbackOwner=owner;clearTimeout(feedbackTimer);status.dataset.quiet=String(temporary);status.replaceChildren(...(text?[copyText(text)]:[]));if(temporary)feedbackTimer=setTimeout(()=>tell(''),480);};
 async function refresh(internal=false){
  if(mode==='search'){if(!editing&&!checking)await runHistory();return;}
  if(checking||editing||(busy&&internal!==true)||drag||refreshing)return;
- refreshing=true;pending(true);const ticket=++epoch,displayTicket=++displayEpoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(q.surfaceForm)document.documentElement.dataset.surfaceForm=q.surfaceForm;revision=q.revision;projectionGeneration=q.generation;manualOrder=q.manualOrder;oversizedItems=q.oversizedItems||[];session.open(q);candidateTarget=q.target;attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);}
+ refreshing=true;pending(true);const ticket=++epoch,displayTicket=++displayEpoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(q.surfaceForm)document.documentElement.dataset.surfaceForm=q.surfaceForm;automaticSuggestion=q.automaticSuggestion===true;revision=q.revision;projectionGeneration=q.generation;manualOrder=q.manualOrder;oversizedItems=q.oversizedItems||[];session.open(q);candidateTarget=q.target;attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);if(document.hasFocus?.()&&document.activeElement===document.body&&document.documentElement.dataset.surfaceForm!=='capsule')list.querySelector('.insert:not(:disabled)')?.focus();}
 }
 // The board retains one fixed ordinary rectangle in every internal view.
 // Accessibility minimums may constrain its viewport, never its content identity.
@@ -69,13 +73,21 @@ function contentHeight(node){
  for(const child of node.children){if(child.hidden||getComputedStyle(child).display==='none')continue;const css=getComputedStyle(child);total+=child.getBoundingClientRect().height+(parseFloat(css.marginTop)||0)+(parseFloat(css.marginBottom)||0);}
  return total;
 }
+// Only flow boxes consume the board budget; quiet live feedback is absolute.
+function flowHeight(node){
+ const style=getComputedStyle(node);if(style.display==='none'||['absolute','fixed'].includes(style.position))return 0;
+ return node.getBoundingClientRect().height+(parseFloat(style.marginTop)||0)+(parseFloat(style.marginBottom)||0);
+}
 function measureLayout(){
- layoutScheduled=false;if(disposed)return;if(layoutPending||pointerGesture){layoutDirty=true;return;}const card=document.getElementById('card');if(!card.clientWidth)return;
- const header=document.querySelector('header'),content=checking?checkText:editing&&list.hidden?editor:list;
- const chrome=header.getBoundingClientRect().height+status.getBoundingClientRect().height;
- const row=list.querySelector('.row'),line=row?row.getBoundingClientRect().height:Math.max(44,parseFloat(getComputedStyle(card).fontSize)*1.55+22);
- const minimumHeight=Math.min(1024,Math.ceil(chrome+line+4));
- const height=Math.max(312,minimumHeight);
+ layoutScheduled=false;if(disposed)return;if(layoutPending||pointerGesture){layoutDirty=true;return;}const card=document.getElementById('card'),visible=card.clientWidth>0;if(!visible&&document.documentElement.dataset.surfaceForm!=='capsule')return;
+ // The R3 capsule hides the board, not its display owner. Publish appearance
+ // and language with the last valid envelope; hidden boxes cannot remeasure it.
+ let minimumHeight=lastMinimumHeight||108,height=lastMeasuredHeight||328;
+ if(visible){
+  const header=document.querySelector('header'),chrome=flowHeight(header)+flowHeight(status);
+  const row=list.querySelector('.row'),line=Math.max(44,row?.getBoundingClientRect().height||0,parseFloat(getComputedStyle(card).fontSize)*1.55);
+  minimumHeight=Math.min(1024,Math.ceil(chrome+line+16));height=Math.max(328,minimumHeight);
+ }
  const appearance=document.documentElement.dataset.paiaTheme||resolveAppearance(displayPreferences.appearance,systemAppearance.matches);
  if(height===lastMeasuredHeight&&minimumHeight===lastMinimumHeight&&appearance===lastAppearance&&language===lastLanguage){restoreListReturn();return;}lastMeasuredHeight=height;lastMinimumHeight=minimumHeight;lastAppearance=appearance;lastLanguage=language;
  const ticket=++layoutTicket;let acknowledged=false;layoutPending=true;document.documentElement.setAttribute('data-layout-pending','');
@@ -91,13 +103,19 @@ new ResizeObserver(scheduleLayout).observe(document.getElementById('card'));
 new MutationObserver(scheduleLayout).observe(document.getElementById('card'),{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['hidden','style']});
 const currentItems=()=>mode==='search'?history.items:showOversized?structuredClone(oversizedItems):session.current();
 const selectionRef=item=>item.ref??{kind:item.edited?'manual_reuse':'prompt_family',id:item.id,revision,generation:projectionGeneration};
+// A completion may change eligibility while another original action owns pending.
+// Update its saved state without enabling the control before that action's ACK.
+function setPendingEligibility(control,disabled){
+ if('pendingDisabled' in control.dataset){control.dataset.pendingDisabled=disabled?'1':'0';control.disabled=true;}
+ else control.disabled=busy||refreshing||disabled;
+}
 function paintCapsule(){
  const item=session.current().find(row=>!row.hidden&&quickPromptEligible(row.text)),text=document.getElementById('capsule-text'),use=document.getElementById('capsule-use');
- if(!text||!use)return;text.textContent=item?.text||localize('没有可快速复用的表达。');use.disabled=busy||!item||attempted.has(item.id);
+ if(!text||!use)return;const suggestion=assistSurface?.state.result;if(suggestion&&quickPromptEligible(suggestion.text)){text.textContent=suggestion.text;setPendingEligibility(use,assistSurface.state.busy||assistSurface.state.attempted);assistSurface.state.markPresented(suggestion);use.dataset.suggestion='true';return;}delete use.dataset.suggestion;text.textContent=automaticSuggestion?'':item?.text||localize('没有可快速复用的表达。');setPendingEligibility(use,automaticSuggestion||!item||attempted.has(item.id));
 }
 async function setSurfaceForm(form){
- if(editing||checking||busy||drag||composing||searchComposing)return;
- try{const result=await rpc({type:'surface_form',form});document.documentElement.dataset.surfaceForm=result.form==='orb'?'board':result.form;paintCapsule();}catch{tell('无法关闭，请稍后重试。');}
+ if(editing||checking||busy||refreshing||drag||composing||searchComposing)return;
+ pending(true);try{const result=await rpc({type:'surface_form',form});document.documentElement.dataset.surfaceForm=result.form==='orb'?'board':result.form;paintCapsule();}catch{tell('无法关闭，请稍后重试。');}finally{pending(false);if(form==='board'&&document.hasFocus?.())list.querySelector('.insert:not(:disabled)')?.focus();}
 }
 function clipped(item,node){return /[\r\n\t]/.test(item.text)||/^\s|\s$| {2}/.test(item.text)||node.scrollWidth>node.clientWidth+1;}
 function leaveCheck(restoreFocus=true){
@@ -141,7 +159,7 @@ async function insert(item,b,reviewed=false,key=null){
  attempted.add(item.id);const original=list.querySelector(`[data-id="${item.id}"] .insert`);if(original)original.disabled=true;b.disabled=true;pending(true);tell('正在插入…');
  let verified=false;
  try{const typed=true;const r=await rpc(typed?{type:'PAIA_PROMPT_SELECTION_INSERT',...(key?{activationKey:key}:{}),ref:checking?.item===item?checking.ref:selectionRef(item),range:checking?.item===item?checking.range:null,target:checking?.item===item?checking.target:mode==='search'?history.target:candidateTarget,operationId:crypto.randomUUID()}:{type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});verified=r.status==='inserted'&&r.verified===true;tell(verified?'已插入，未发送。':r.reason==='unsupported_line_endings'?'当前输入框无法原样保留 CRLF 换行，请复制原文。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch{tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
- if(verified){const row=original?.closest('.row');if(row)row.dataset.inserted='true';setTimeout(()=>{if(row)delete row.dataset.inserted;attempted.delete(item.id);if(original&&currentItems().some(current=>current.id===item.id&&current.text===item.text))original.disabled=false;paintCapsule();},480);paintCapsule();leaveCheck(false);return;}
+ if(verified){const feedback=b.id==='capsule-use'?b:original?.closest('.row');if(feedback)feedback.dataset.inserted='true';setTimeout(()=>{if(feedback)delete feedback.dataset.inserted;attempted.delete(item.id);if(original&&currentItems().some(current=>current.id===item.id&&current.text===item.text&&!current.hidden&&quickPromptEligible(current.text)))setPendingEligibility(original,false);paintCapsule();},480);paintCapsule();leaveCheck(false);return;}
  const copy=button('复制',()=>copyWhole(item,true));status.append(copy);
 }
 function edit(item){
@@ -209,11 +227,17 @@ function render(){
  }
 }
 async function requestClose(event){
- if(composing||event?.isComposing||event?.keyCode===229)return;
+ if(composing||searchComposing||event?.isComposing||event?.keyCode===229)return;
  if(editing){tell('请先保存或取消编辑。');return;}
  if(busy||refreshing||drag)return;
  // Freeze admission while the existing authenticated close RPC is in flight.
- pending(true);try{await rpc({type:'close'});document.documentElement.dataset.surfaceForm='capsule';}catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
+ pending(true);try{
+  const closed=await rpc({type:'close'});
+  if(closed?.closed!==true||closed.nonce!==nonce||!['orb','capsule'].includes(closed.form))throw Error('unconfirmed close');
+  if(closed.form==='capsule')document.documentElement.dataset.surfaceForm='capsule';
+ }catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
+ // The authenticated host ACK restores its same persistent circle in both
+ // collapsed forms. A retained or retiring child must never take focus back.
 }
 function closeSurfaceTools(){document.getElementById('surface-tools').hidden=true;document.getElementById('surface-more').setAttribute('aria-expanded','false');}
 function paintHistoryControls(){
@@ -264,12 +288,12 @@ const candidateAdopt=button('采用已准备的历史候选',async()=>{
  catch{if(ticket===epoch)tell('历史候选暂不可用；常用输入和本机搜索仍可使用。');}finally{if(ticket===epoch)pending(false);}
 });candidateAdopt.id='history-candidates-adopt';candidateAdopt.hidden=true;
 document.getElementById('surface-tools').append(candidateRefresh,candidateAdopt);
+assistSurface=mountPromptAssist({card:document.getElementById('card'),list,tools:document.getElementById('surface-tools'),send:rpc,button,bindCopy,tell:text=>tell(text,false,assistFeedbackOwner),clearFeedback:()=>{if(feedbackOwner===assistFeedbackOwner)tell('');},canActivate:()=>!disposed&&!editing&&!checking&&!busy&&!refreshing&&!drag&&!composing&&!searchComposing,changed:()=>{paintCapsule();scheduleLayout();}});
 let candidateAvailable=false;
 function paintCandidateControls(){candidateRefresh.hidden=!candidateAvailable||mode!=='search';candidateRefresh.disabled=!history.query.trim();candidateAdopt.hidden=!candidateReady||mode!=='candidates';}
 void rpc({type:'history_candidates_status'}).then(value=>{if(!disposed){candidateAvailable=value.available===true;paintCandidateControls();}},()=>{});
 trackActivation(document.getElementById('capsule-use'));
-document.getElementById('capsule-use').addEventListener('click',e=>{if(!e.isTrusted)return;const item=session.current().find(row=>!row.hidden&&quickPromptEligible(row.text));if(item)void insert(item,e.currentTarget,false,activationKey(e));});
-document.getElementById('capsule-expand').addEventListener('click',e=>{if(e.isTrusted)void setSurfaceForm('board');});
+document.getElementById('capsule-use').addEventListener('click',e=>{if(!e.isTrusted||e.detail>1)return;if(assistSurface?.state.result){void assistSurface.state.insert();return;}if(automaticSuggestion)return;const item=session.current().find(row=>!row.hidden&&quickPromptEligible(row.text));if(item)void insert(item,e.currentTarget,false,activationKey(e));});
 for(const form of ['orb','capsule'])document.getElementById('collapse-'+form).addEventListener('click',e=>{if(e.isTrusted)void setSurfaceForm(form);});
 document.getElementById('long-expressions').addEventListener('click',()=>{if(busy||editing||checking||composing)return;showOversized=!showOversized;mode='candidates';paintHistoryControls();render();});
 document.getElementById('surface-more').addEventListener('click',()=>{if(busy||composing||searchComposing||drag)return;const tools=document.getElementById('surface-tools');tools.hidden=!tools.hidden;document.getElementById('surface-more').setAttribute('aria-expanded',String(!tools.hidden));scheduleLayout();});
@@ -291,17 +315,11 @@ async function openPaia(){if(busy||editing||drag||composing||searchLoading)retur
 document.getElementById('open-paia').addEventListener('click',openPaia);
 document.getElementById('new').addEventListener('click',()=>edit(null));document.getElementById('refresh').addEventListener('click',refresh);document.getElementById('hidden').addEventListener('click',()=>{if(editing||busy)return;hidden=!hidden;void refresh();});document.getElementById('close').addEventListener('click',e=>{if(e.isTrusted)void requestClose(e);});
 document.getElementById('card').addEventListener('keydown',e=>{if(e.isTrusted&&e.key==='Escape'&&!composing&&!e.isComposing&&e.keyCode!==229){e.preventDefault();void requestClose(e);}});
-chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_NEXT_ACTIVITY'){if(s.id===chrome.runtime.id&&!s.tab&&r.nonce===nonce)reply({idle:!editing&&!busy&&!composing&&!drag&&!refreshing});return;}if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;void requestClose();reply({received:true});return;}if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;invalidateRepresentative();invalidateSplit();if(mode!=='search')history.invalidate();if(copyRequest){copyRequest=null;pending(false);}if(mode==='search'){const displayTicket=++displayEpoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(!disposed&&displayTicket===displayEpoch)applyDisplay(q.displayPreferences);},()=>{});++epoch;history.invalidate();if(searchLoading){searchLoading=false;pending(false);}if(checkingRequest!==null){checkingRequest=null;pending(false);}if(checking)leaveCheck(false);if(!editing){render();tell('内容已变化，请刷新。');}return;}if(refreshing)return;const ticket=++epoch,displayTicket=++displayEpoch;if(checkingRequest!==null){checkingRequest=null;pending(false);tell('此表达已变化，请刷新。');}void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(!editing){revision=q.revision;projectionGeneration=q.generation;candidateTarget=q.target;}session.reconcile(q);const longCurrent=new Map((q.oversizedItems||[]).map(item=>[item.id,item]));oversizedItems=oversizedItems.filter(item=>longCurrent.get(item.id)?.text===item.text);paintCapsule();if(checking&&!session.current().some(x=>x.id===checking.item.id&&x.text===checking.item.text)){leaveCheck();tell('此表达已变化，请刷新。');}if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(checking)leaveCheck(false);if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
+chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_ASSIST_CHANGED'||r?.type==='PAIA_PROMPT_NEXT_CHANGED'){if(s.id===chrome.runtime.id&&!s.tab)assistSurface?.invalidate();return;}if(r?.type==='PAIA_PROMPT_NEXT_ACTIVITY'){if(s.id===chrome.runtime.id&&!s.tab&&r.nonce===nonce)reply({idle:!editing&&!busy&&!composing&&!drag&&!refreshing&&!assistSurface?.active});return;}if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;if(document.documentElement.dataset.surfaceForm==='capsule')void setSurfaceForm('board');else void requestClose();reply({received:true});return;}if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;assistSurface?.invalidate();invalidateRepresentative();invalidateSplit();if(mode!=='search')history.invalidate();if(copyRequest){copyRequest=null;pending(false);}if(mode==='search'){const displayTicket=++displayEpoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(!disposed&&displayTicket===displayEpoch)applyDisplay(q.displayPreferences);},()=>{});++epoch;history.invalidate();if(searchLoading){searchLoading=false;pending(false);}if(checkingRequest!==null){checkingRequest=null;pending(false);}if(checking)leaveCheck(false);if(!editing){render();tell('内容已变化，请刷新。');}return;}if(refreshing)return;const ticket=++epoch,displayTicket=++displayEpoch;if(checkingRequest!==null){checkingRequest=null;pending(false);tell('此表达已变化，请刷新。');}void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(!editing){revision=q.revision;projectionGeneration=q.generation;candidateTarget=q.target;}session.reconcile(q);const longCurrent=new Map((q.oversizedItems||[]).map(item=>[item.id,item]));oversizedItems=oversizedItems.filter(item=>longCurrent.get(item.id)?.text===item.text);paintCapsule();if(checking&&!session.current().some(x=>x.id===checking.item.id&&x.text===checking.item.text)){leaveCheck();tell('此表达已变化，请刷新。');}if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(checking)leaveCheck(false);if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
 void refresh();
-const next=document.createElement('button');next.id='next-reopen';bindCopy(next,'本轮建议');next.hidden=true;document.getElementById('surface-tools').append(next);
-let nextAvailabilityEpoch=0;
-async function nextAvailable(){const ticket=++nextAvailabilityEpoch;try{const value=await rpc({type:'next_available'});if(ticket===nextAvailabilityEpoch)next.hidden=!value.available;}catch{if(ticket===nextAvailabilityEpoch)next.hidden=true;}}
-next.addEventListener('click',e=>{if(e.isTrusted&&!busy&&!editing&&!drag&&!composing){const ticket=nextAvailabilityEpoch;void rpc({type:'next_reopen'}).catch(()=>{if(ticket===nextAvailabilityEpoch)next.hidden=true;});}});
-chrome.runtime.onMessage.addListener((r,s)=>{if(s.id===chrome.runtime.id&&!s.tab&&r.type==='PAIA_PROMPT_NEXT_CHANGED')void nextAvailable();});void nextAvailable();
-
 // An inactive cross-origin frame retains its last focused element. Reveal controls only while this document actually owns focus.
 const reflectFocus=()=>document.documentElement.toggleAttribute('data-focused',document.hasFocus());
-window.addEventListener('pagehide',()=>{disposed=true;invalidateSplit();++candidateRequest;++epoch;copyRequest=null;checkingRequest=null;++layoutTicket;});
+window.addEventListener('pagehide',()=>{disposed=true;assistSurface?.dispose();invalidateSplit();++candidateRequest;++epoch;copyRequest=null;checkingRequest=null;++layoutTicket;});
 window.addEventListener('focus',reflectFocus);window.addEventListener('blur',reflectFocus);reflectFocus();
 
 }

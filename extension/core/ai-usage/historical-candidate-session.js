@@ -1,4 +1,6 @@
 import {AIUsageFoundation} from './foundation.js';
+import {observeRepositoryWriteFence,requireRepositoryWriteFence} from '../idb-repository.js';
+import {requireHistoricalServiceClient} from './historical-service-client.js';
 import {canonical,digest,equal,exact,fail,validateCoverage,localProviderDescriptor} from './contracts.js';
 import {KNOWN_PREFIX} from './delta.js';
 import {queryPromptHistory,readPromptHistoryInTransaction} from '../prompt-selection.js';
@@ -11,13 +13,13 @@ export const requireHistoricalCandidateSession=(session,store)=>{if(owned.get(se
 // Constructor-only capabilities. Default production has no provider, authority
 // or processing permission. Neither query nor a local tier flag is authority.
 export class HistoricalCandidateSession{
- #provider;#permission;#live;#unsubscribe;#manual=null;#states=new Map();#handles=new WeakMap();#deliveries=new WeakMap();#serial=0;#disposed=false;#running=null;#physical=null;#clock;#last=0;
- constructor(store,{provider=null,resolveIntent=null,isCurrentIntent=null,onInvalidate=null,resolveAuthority=null,clock=()=>performance.now(),contractVersion='history-candidates-v1',routeVersion='unavailable'}={}){
-  owned.set(this,store);this.#provider=provider;this.#permission=resolveIntent;this.#live=isCurrentIntent;this.#unsubscribe=typeof onInvalidate==='function'?onInvalidate(()=>this.invalidate()):null;this.#clock=clock;this.contractVersion=contractVersion;this.routeVersion=routeVersion;
+ #service;#provider;#permission;#live;#unsubscribe;#manual=null;#states=new Map();#handles=new WeakMap();#deliveries=new WeakMap();#serial=0;#disposed=false;#running=null;#physical=null;#clock;#last=0;
+ constructor(store,{service=null,provider=null,resolveIntent=null,isCurrentIntent=null,onInvalidate=null,resolveAuthority=null,clock=()=>performance.now(),contractVersion='history-candidates-v1',routeVersion='unavailable'}={}){
+  owned.set(this,store);if(service!==null&&provider!==null)fail('UNAVAILABLE');this.#service=service===null?null:requireHistoricalServiceClient(service);this.#provider=provider;this.#permission=resolveIntent;this.#live=isCurrentIntent;this.#unsubscribe=typeof onInvalidate==='function'?onInvalidate(()=>this.invalidate()):null;this.#clock=clock;this.contractVersion=contractVersion;this.routeVersion=routeVersion;
   this.foundation=new AIUsageFoundation(store,{resolveAuthority,resolveHistoricalIntent:(t,r)=>this.#resolve(t,r),candidateResult:(t,r)=>this.#commit(t,r)});
  }
  bindPromptOwner(read){if(this.#manual||typeof read!=='function')fail();this.#manual=read;}
- available(){return !this.#disposed&&this.#provider!==null&&typeof this.#permission==='function'&&typeof this.#live==='function'&&typeof this.foundation.resolveAuthority==='function'&&this.#manual!==null;}
+ available(){return !this.#disposed&&(this.#provider!==null||this.#service?.available()===true)&&typeof this.#permission==='function'&&typeof this.#live==='function'&&typeof this.foundation.resolveAuthority==='function'&&this.#manual!==null;}
  #now(){const n=this.#clock();if(!Number.isFinite(n)||n<0||n<this.#last){this.dispose();fail('UNAVAILABLE');}this.#last=n;return n;}
  #valid(s){return !!s&&!this.#disposed&&this.#states.get(s.key)===s&&s.serial===this.#serial&&this.#live(s.permissionScope,s.binding)===true&&this.#now()-s.created<HISTORICAL_LIMITS.ttl;}
  #get(handle){const s=this.#handles.get(handle);if(!this.#valid(s))fail('STALE_BASE');return s;}
@@ -47,7 +49,11 @@ export class HistoricalCandidateSession{
  async prepare({query}={}, {identity=null,assertCurrent=null}={}){
   if(!this.available())fail('UNAVAILABLE');if(!(await this.foundation.s.status()).consented)fail('UNAVAILABLE');if(typeof query!=='string'||!query.trim()||query.length>1000)fail();
   if(identity!==null&&(typeof identity!=='string'||identity.length>1000)||assertCurrent!==null&&typeof assertCurrent!=='function')fail();
-  if(assertCurrent&&await assertCurrent()===false)fail('FORBIDDEN');const serial=this.#serial;await this.#retire();
+  if(assertCurrent&&await assertCurrent()===false)fail('FORBIDDEN');const serial=this.#serial;
+  // Explicit refresh may settle only original metadata before any new content
+  // search/plan. Retained live results still own their ordinary CAS retry.
+  if(this.#service)await this.#service.recover(this.foundation,{isCurrent:()=>!this.#disposed&&serial===this.#serial,retainJob:id=>[...this.#states.values()].some(s=>s.job?.id===id&&(s.planning||s.running||s.validated||this.#physical===s))});
+  await this.#retire();
   const manual=await this.#manual(),page=await findInputPage({query,cursor:null,ranked:true,qualified:true,read:({query,cursor,searchSnapshot})=>queryPromptHistory(this.foundation.s,{query,cursor,searchSnapshot})});if(page.changed||page.restarted||page.restartRequired)fail('STALE_BASE');
   const blocked=new Set(manual.families.filter(x=>x.hidden||x.edited||x.pinned||x.retained).flatMap(x=>x.members));
   const eligible=new Map(manual.inputs.map(x=>[x.id,x.text]));
@@ -57,6 +63,7 @@ export class HistoricalCandidateSession{
   const items=await this.foundation.read(async t=>{const out=[];for(const x of selected){const input=await readPromptHistoryInTransaction(this.foundation.s,t,x.ref),key=JSON.stringify(['input',x.ref.id]),known=await t.get('meta',KNOWN_PREFIX+key);if(input.body!==x.text||!known||known.descriptor.removed||known.descriptor.revision!==x.ref.contentRevision)fail('STALE_BASE');out.push({key,signature:known.signature,descriptor:known.descriptor});}return out;});
   const permissionScope={purpose:'historical-candidates',intentDigest,evidenceKeys:items.map(x=>x.key).sort()},permit=await this.foundation.read(t=>this.#permit(t,permissionScope));
   const key=await digest({intentDigest,items:items.map(x=>({key:x.key,signature:x.signature})),consentEpoch:permit.consentEpoch,permissionEpoch:permit.permissionEpoch});
+  if(this.#service)await this.#service.assertCanPlan(this.foundation,key);
   if(serial!==this.#serial||this.#disposed)fail('STALE_BASE');const old=this.#states.get(key);if(old){await old.ready;await this.#qualified(old,assertCurrent);return this.#handle(old,identity,assertCurrent);}
   await this.#retire();if(serial!==this.#serial||this.#disposed)fail('STALE_BASE');const concurrent=this.#states.get(key);if(concurrent){await concurrent.ready;await this.#qualified(concurrent,assertCurrent);return this.#handle(concurrent,identity,assertCurrent);}if(this.#states.size>=HISTORICAL_LIMITS.capacity)fail('RESOURCE_LIMIT');
   const binding={version:1,evaluationKey:key,consentEpoch:permit.consentEpoch,permissionEpoch:permit.permissionEpoch},obligation={version:1,evaluationKey:key},coverage=validateCoverage(items.map(x=>({key:x.key,facet:'assist',scope:key})),'AI_ASSIST');
@@ -70,15 +77,47 @@ export class HistoricalCandidateSession{
  }
  run(handle){const s=this.#get(handle);if(s.running)return s.running.then(()=>this.read(handle));if(this.#physical===s)fail('OUTCOME_UNKNOWN');if(this.#running||this.#physical)fail('REQUEST_ALREADY_IN_FLIGHT');const task=this.#run(s,handle,this.#deliveries.get(handle));s.running=task;this.#running=s;return task.finally(()=>{if(s.running===task)s.running=null;if(this.#running===s)this.#running=null;});}
  async #run(s,handle,assertCurrent){
-  await this.#qualified(s,assertCurrent);if(s.published)return this.read(handle);const status=await this.foundation.status(s.job.id);if(status.state==='COMMITTED'&&!s.validated)fail('UNAVAILABLE');
+  await this.#qualified(s,assertCurrent);if(s.published){await this.#report(s,assertCurrent);return this.read(handle);}const status=await this.foundation.status(s.job.id);if(status.state==='COMMITTED'&&!s.validated){await this.#report(s,assertCurrent);fail('UNAVAILABLE');}
   if(status.state!=='COMMITTED'){
+   if(this.#service){if(!s.validated)await this.#runService(s,assertCurrent);}else{
    const descriptor=localProviderDescriptor(this.#provider);await this.foundation.reserve(s.job.id,{reservationId:'private-history:'+s.key,executionKind:descriptor.executionKind});const childId=s.job.childIds[0];
    s.controller=new AbortController();await this.foundation.dispatch(s.job.id,childId,{describe:()=>descriptor,execute:async(usage,{signal})=>{await this.#qualified(s,assertCurrent);if(signal.aborted)fail('CANCELLED');this.#physical=s;try{const raw=await this.#provider.execute({...structuredClone(s.payload),usage},{signal});if(signal.aborted||!this.#valid(s))fail('STALE_BASE');const value=validateHistoricalResponse(raw,new Set(s.selected.map(x=>x.ref.id)));s.validated={childId,receipt:'history:'+childId,value};return {accepted:true,operationReceiptId:s.validated.receipt};}finally{if(this.#physical===s)this.#physical=null;}}},{signal:s.controller.signal,timeoutMs:this.foundation.s.organizerBudget.limits.timeoutMs});
+   }
    if(!s.validated)fail('OUTCOME_UNKNOWN');await this.#qualified(s,assertCurrent);await this.foundation.commitHistoricalCandidates(s.job.id);
+   await this.#report(s,assertCurrent);
   }
   const current=await this.foundation.status(s.job.id);await this.#qualified(s,assertCurrent);if(current.state!=='COMMITTED'||current.attempts.length!==1||current.attempts[0].state!=='COMMITTED'||current.attempts[0].attemptCount!==1||!s.validated)fail('STALE_BASE');s.published=s.validated.value;return this.read(handle);
  }
+ async #report(s,assertCurrent){
+  if(!this.#service)return;await this.#qualified(s,assertCurrent);
+  try{await this.#service.report(this.foundation,s.job);}catch{/* Original metadata receipt stays pending. No provider retry. */}
+  await this.#qualified(s,assertCurrent);
+ }
+ async #runService(s,assertCurrent){
+  const prepared=await this.#service.prepare(this.foundation,s.job,s.payload,{
+   evaluationKey:s.key,assertCurrent:()=>this.#qualified(s,assertCurrent),isCurrent:()=>this.#valid(s),
+   // Observe BEFORE the domain reads: never capture a new generation after a
+   // read/Source await and accidentally bless stale material. The final guard
+   // is synchronous and any intervening original writer invalidates it.
+   assertBeforeSend:async()=>{
+    const repository=this.foundation.s.repository,token=observeRepositoryWriteFence(repository);
+    await this.#qualified(s,assertCurrent);if(assertCurrent&&await assertCurrent()===false)fail('FORBIDDEN');
+    return ()=>{if(this.foundation.s.repository!==repository)fail('STALE_BASE');requireRepositoryWriteFence(repository,token);};
+   }
+  });
+  s.controller=new AbortController();this.#physical=s;
+  try{
+   await this.#qualified(s,assertCurrent);
+   const childId=s.job.childIds[0],response=await this.foundation.dispatch(s.job.id,childId,prepared.provider,{signal:s.controller.signal,timeoutMs:this.foundation.s.organizerBudget.limits.timeoutMs});
+   await this.#qualified(s,assertCurrent);if(response.state!=='RESPONSE_RECORDED')fail('OUTCOME_UNKNOWN');
+   let value;try{value=validateHistoricalResponse(JSON.stringify(response.value),new Set(s.selected.map(x=>x.ref.id)));}catch(error){await this.foundation.cancel(s.job.id);throw error;}
+   const status=await this.foundation.status(s.job.id);
+   await this.#qualified(s,assertCurrent);const receipt=status.attempts.find(x=>x.childId===childId);
+   if(receipt?.state!=='RESPONSE_RECORDED'||receipt.executionKind!=='server-backed'||!receipt.operationReceiptId)fail('OUTCOME_UNKNOWN');
+   s.validated={childId,receipt:receipt.operationReceiptId,value};
+  }catch(error){try{const state=(await this.foundation.status(s.job.id)).state;if(['RESERVED','RESPONSE_RECORDED'].includes(state))await this.foundation.cancelServer(s.job.id);}catch{/* No unproven release or provider replay. */}throw error;}finally{prepared.dispose();if(this.#physical===s)this.#physical=null;}
+ }
  async read(handle){const s=this.#get(handle);await this.#qualified(s,this.#deliveries.get(handle));if(!s.published)fail('UNAVAILABLE');return s.published.kind==='DEFER'?structuredClone(s.published):{version:1,kind:'CANDIDATES',refs:s.published.ids.map(id=>structuredClone(s.selected.find(x=>x.ref.id===id).ref))};}
  invalidate(){this.#serial++;for(const s of this.#states.values()){s.controller?.abort();s.published=null;s.validated=null;s.payload=null;}this.#handles=new WeakMap();this.#deliveries=new WeakMap();}
- dispose(){this.#disposed=true;try{this.#unsubscribe?.();}finally{this.invalidate();}}
+ dispose(){this.#disposed=true;try{this.#unsubscribe?.();}finally{this.invalidate();this.#service?.dispose();}}
 }

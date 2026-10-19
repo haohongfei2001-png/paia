@@ -134,10 +134,10 @@ for(const mode of ['protected','stale-revision'])test('explicit UPDATE preserves
  const page=await f.s.repository.transaction(false,t=>t.primaryRangePage('meta',{prefix:DIRTY_PREFIX,limit:100})),at=page.rows.findIndex(r=>r.value.descriptor.kind==='input');assert.ok(at>=0);
  const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),result=await f.session.run(await f.session.prepare({...options,cursor:at?page.rows[at-1].key:null,limit:1}));
  assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);assert.equal(f.calls.length,1);
- assert.equal(result.state,mode==='protected'?'COMMITTED':'PARTIAL');
- assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,mode==='protected'?1:0);
+ assert.equal(result.state,'PARTIAL');
+ assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);
  assert.equal((await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='updated').length,0);
- if(mode==='protected')assert.equal((await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='protected').length,1);
+ if(mode==='protected')assert.equal((await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='protected').length,0);
 });
 
 for(const stage of ['receipt','ack','usage','job','generation'])test('explicit UPDATE '+stage+' failure rolls back and resumes without another provider call',async()=>{

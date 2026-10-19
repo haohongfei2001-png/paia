@@ -1,3 +1,6 @@
+import {validStructuralContextEvidence,readStructuralContextEvidence,structuralContextProperty} from './ai-usage/structural-context-mapping.js';
+import {readBoundEntryContext,validBoundContextEvidence,boundContextEvidenceMatches,boundSelectedText} from './context-bound-entry.js';
+import {readAuthoredEntryContext,validAuthoredContextEvidence,authoredContextEvidenceMatches,authoredSelectedFields,authoredSelectedText} from './context-authored-entry.js';
 import {ArchiveError} from './constants.js';
 import {validContextTemporal} from './context-temporal.js';
 import {hashText} from './dedupe.js';
@@ -5,7 +8,7 @@ import {idOK,revisionOK} from './thought-model.js';
 import {inputProjection} from './thought-evidence.js';
 import {MemoryService} from './memory/service.js';
 import {ContextTopicAccessService} from './context-topic-access.js';
-import {readContextTopicScope,readContextProcessingPreflight,createContextScopeWorkBudget,CONTEXT_TOPIC_SCOPE_LIMITS} from './context-topic-scope.js';
+import {readContextTopicScope,readContextProcessingPreflight,createContextScopeWorkBudget,contextScopeTransactionReader,CONTEXT_TOPIC_SCOPE_LIMITS} from './context-topic-scope.js';
 import {evaluateContextTopicAccess} from './context-topic-access-policy.js';
 import {contextTopicEpoch,contextTopicDigest,contextTopicOperationId,validContextTopicBinding,sameContextTopicBinding} from './context-topic-preferences.js';
 
@@ -33,25 +36,38 @@ const hashes=(x,selected)=>lineageExact(x,selected)&&selected.every(f=>contextTo
 const fail=reason=>{throw Object.assign(new ArchiveError('CONTEXT_INVALIDATED'),reason?{lineageUnavailable:reason}:{});};
 const need=x=>{if(!x)fail();};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
-const specKeys=['topicId','inputId','selectedFields','fieldDigests','expectedTopicBinding','expectedRemovalSequence'];
+const authoredCaptures=new WeakMap();
+const entryEvidence=e=>['humanEntry','boundEntry'].includes(e?.kind);
+const inputEvidence=e=>!entryEvidence(e);
+const entryMaterialKey=e=>e.kind==='boundEntry'?JSON.stringify([e.kind,e.entryId,e.topicId]):e.entryId;
+export const contextEvidenceKey=e=>JSON.stringify([entryEvidence(e)?e.kind:'input',entryEvidence(e)?e.entryId:e?.inputId]);
+const structureOf=s=>s.humanTopic||s.humanSection;
+const structuralPairs=xs=>xs.every(s=>!structureOf(s)||structureOf(s).entries.every(e=>xs.some(x=>x.inputId===e.inputId&&same(structureOf(x),structureOf(s)))));
+const boundPairs=xs=>xs.every(e=>e?.kind!=='boundEntry'||xs.some(input=>input&&inputEvidence(input)&&input.inputId===e.inputId&&input.topicId===e.topicId&&Array.isArray(input.selectedFields)&&input.selectedFields.includes('body')&&input.expectedRemovalSequence===e.expectedRemovalSequence&&same(input.expectedTopicBinding,e.expectedTopicBinding)&&(!input.sourceRecordIds||same(input.sourceRecordIds,e.sourceRecordIds)&&same(input.sourceIdentityTokens,e.sourceIdentityTokens))));
+export function releaseContextLineage(captured){authoredCaptures.delete(captured);}
+export function contextLineageBudgetReader(store,transaction,captured){const held=authoredCaptures.get(captured);return held?contextScopeTransactionReader(store,transaction,held.budget):transaction;}
+const specKeys=x=>['topicId','inputId','selectedFields','fieldDigests','expectedTopicBinding','expectedRemovalSequence',...(Object.hasOwn(x||{},'humanSection')?['humanSection']:[]),...(Object.hasOwn(x||{},'humanTopic')?['humanTopic']:[])];
 export function validContextEvidenceSpec(x){
- return lineageExact(x,specKeys)&&idOK(x.topicId)&&idOK(x.inputId)&&fields(x.selectedFields)&&hashes(x.fieldDigests,x.selectedFields)&&validContextTopicBinding(x.expectedTopicBinding)&&x.expectedTopicBinding.topicId===x.topicId&&revisionOK(x.expectedRemovalSequence);
+ return x?.kind==='boundEntry'?validBoundContextEvidence(x):x?.kind==='humanEntry'?validAuthoredContextEvidence(x):lineageExact(x,specKeys(x))&&idOK(x.topicId)&&idOK(x.inputId)&&fields(x.selectedFields)&&hashes(x.fieldDigests,x.selectedFields)&&validContextTopicBinding(x.expectedTopicBinding)&&x.expectedTopicBinding.topicId===x.topicId&&revisionOK(x.expectedRemovalSequence)&&(!(Object.hasOwn(x,'humanSection')&&Object.hasOwn(x,'humanTopic')))&&(!(Object.hasOwn(x,'humanSection')||Object.hasOwn(x,'humanTopic'))||validStructuralContextEvidence(structureOf(x))&&Object.hasOwn(x,structuralContextProperty(structureOf(x)))&&structureOf(x).topicId===x.topicId&&same(x.selectedFields,['body'])&&structureOf(x).entries.some(e=>e.inputId===x.inputId));
 }
-export function validContextEvidenceSpecs(xs){return lineageArray(xs,CONTEXT_LINEAGE_LIMITS.inputs,1)&&xs.every(validContextEvidenceSpec)&&unique(xs.map(x=>x.inputId))&&new Set(xs.map(x=>x.topicId)).size<=CONTEXT_LINEAGE_LIMITS.topics;}
+export function validContextEvidenceSpecs(xs){return lineageArray(xs,CONTEXT_LINEAGE_LIMITS.inputs,1)&&xs.every(validContextEvidenceSpec)&&structuralPairs(xs)&&boundPairs(xs)&&unique(xs.map(contextEvidenceKey))&&new Set(xs.map(x=>x.topicId)).size<=CONTEXT_LINEAGE_LIMITS.topics;}
 export function validContextMaintenance(x){
  if(!lineageExact(x,['version','associationIds','provenance',...(Object.hasOwn(x||{},'invalidation')?['invalidation']:[]),...(Object.hasOwn(x||{},'temporal')?['temporal']:[])])||Object.hasOwn(x,'temporal')&&!validContextTemporal(x.temporal)||x.version!==1||!lineageArray(x.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)||!x.associationIds.every(contextTopicOperationId)||!unique(x.associationIds))return false;
  return validContextProvenance(x.provenance)&&(!Object.hasOwn(x,'invalidation')||validContextProvenance(x.invalidation));
 }
 function validContextProvenance(p){
- return lineageExact(p,['epoch','evidence'])&&contextTopicEpoch(p.epoch)&&lineageArray(p.evidence,CONTEXT_LINEAGE_LIMITS.inputs,1)&&unique(p.evidence.map(e=>e?.inputId))&&new Set(p.evidence.map(e=>e?.topicId)).size<=CONTEXT_LINEAGE_LIMITS.topics&&p.evidence.every(e=>lineageExact(e,[...specKeys,'contentRevision','sourceRecordIds','sourceIdentityTokens'])&&validContextEvidenceSpec(Object.fromEntries(specKeys.map(k=>[k,e[k]])))&&e.expectedTopicBinding.epoch===p.epoch&&revisionOK(e.contentRevision)&&ids(e.sourceRecordIds,CONTEXT_LINEAGE_LIMITS.sources,1)&&sourceFamiliesMatch(e.sourceIdentityTokens,e.sourceRecordIds));
+ return lineageExact(p,['epoch','evidence'])&&contextTopicEpoch(p.epoch)&&lineageArray(p.evidence,CONTEXT_LINEAGE_LIMITS.inputs,1)&&unique(p.evidence.map(contextEvidenceKey))&&new Set(p.evidence.map(e=>e?.topicId)).size<=CONTEXT_LINEAGE_LIMITS.topics&&boundPairs(p.evidence)&&structuralPairs(p.evidence)&&p.evidence.every(e=>e?.kind==='boundEntry'?validBoundContextEvidence(e)&&sourceFamiliesMatch(e.sourceIdentityTokens,e.sourceRecordIds)&&e.expectedTopicBinding.epoch===p.epoch:e?.kind==='humanEntry'?validAuthoredContextEvidence(e)&&e.expectedTopicBinding.epoch===p.epoch:lineageExact(e,[...specKeys(e),'contentRevision','sourceRecordIds','sourceIdentityTokens'])&&validContextEvidenceSpec(Object.fromEntries(specKeys(e).map(k=>[k,e[k]])))&&e.expectedTopicBinding.epoch===p.epoch&&revisionOK(e.contentRevision)&&ids(e.sourceRecordIds,CONTEXT_LINEAGE_LIMITS.sources,1)&&sourceFamiliesMatch(e.sourceIdentityTokens,e.sourceRecordIds));
 }
-export const contextLineageSourceIds=item=>[...new Set([item.maintenance.provenance,item.maintenance.invalidation].filter(Boolean).flatMap(p=>p.evidence.flatMap(e=>e.sourceRecordIds)))].sort();
+export const contextLineageSourceIds=item=>[...new Set([item.maintenance.provenance,item.maintenance.invalidation].filter(Boolean).flatMap(p=>p.evidence.flatMap(e=>e.kind==='humanEntry'?[]:e.sourceRecordIds)))].sort();
 // Evidence identity ignores ordering and ambient grant/operation/time changes.
 // Re-evaluation needs changed material or source/Topic identity, not another
 // delivery of the same qualified facts. Renames/layout/access epochs and
 // revisions of unselected fields do not make unchanged selected text novel.
+// Explicitly selected human Topic/Section interpretation is instead bound below to
+// its actual title digest, human operation and complete current membership.
+const structuralEvidenceIdentity=s=>({...((s.kind==='topic')?{kind:'topic'}:{sectionId:s.sectionId}),topicId:s.topicId,operationId:s.operationId,selectedFields:[...s.selectedFields].sort(),fieldDigests:{...s.fieldDigests},entries:s.entries.map(e=>({entryId:e.entryId,inputId:e.inputId,membershipOperationId:e.membershipOperationId,...(s.kind==='topic'?{sectionId:e.sectionId}:{})})).sort((a,b)=>a.entryId.localeCompare(b.entryId))});
 export function contextEvidenceIdentity(p){
- return JSON.stringify(p.evidence.map(e=>({topicId:e.topicId,inputId:e.inputId,selectedFields:[...e.selectedFields].sort(),fieldDigests:Object.fromEntries(Object.entries(e.fieldDigests).sort(([a],[b])=>a.localeCompare(b))),topicCreatedAt:e.expectedTopicBinding.createdAt,sourceRecordIds:[...e.sourceRecordIds].sort(),sourceIdentityTokens:[...e.sourceIdentityTokens].sort()})).sort((a,b)=>a.inputId.localeCompare(b.inputId)||a.topicId.localeCompare(b.topicId)));
+ return JSON.stringify(p.evidence.map(e=>e.kind==='boundEntry'?{kind:'boundEntry',topicId:e.topicId,entryId:e.entryId,entryCreatedAt:e.entryCreatedAt,birthOperationId:e.birthOperationId,inputId:e.inputId,selectedFields:e.selectedFields,fieldRevisions:e.fieldRevisions,fieldOperationIds:e.fieldOperationIds,fieldDigests:e.fieldDigests,expectedRemovalSequence:e.expectedRemovalSequence,sourceRecordIds:e.sourceRecordIds,sourceIdentityTokens:e.sourceIdentityTokens,topicCreatedAt:e.expectedTopicBinding.createdAt,membershipOperationId:e.membership.operationId}:e.kind==='humanEntry'?{kind:'humanEntry',topicId:e.topicId,entryId:e.entryId,entryCreatedAt:e.entryCreatedAt,birthOperationId:e.birthOperationId,...(e.fieldRevisions?{selectedFields:e.selectedFields,fieldRevisions:e.fieldRevisions,fieldOperationIds:e.fieldOperationIds}:{bodyFieldRevision:e.bodyFieldRevision,bodyOperationId:e.bodyOperationId}),fieldDigests:e.fieldDigests,topicCreatedAt:e.expectedTopicBinding.createdAt,membershipOperationId:e.membership.operationId}:{...(structureOf(e)?{[structuralContextProperty(structureOf(e))]:structuralEvidenceIdentity(structureOf(e))}:{}),topicId:e.topicId,inputId:e.inputId,selectedFields:[...e.selectedFields].sort(),fieldDigests:Object.fromEntries(Object.entries(e.fieldDigests).sort(([a],[b])=>a.localeCompare(b))),topicCreatedAt:e.expectedTopicBinding.createdAt,sourceRecordIds:[...e.sourceRecordIds].sort(),sourceIdentityTokens:[...e.sourceIdentityTokens].sort()}).sort((a,b)=>contextEvidenceKey(a).localeCompare(contextEvidenceKey(b))||a.topicId.localeCompare(b.topicId)));
 }
 export function contextLineageReady(store){return !!store?.repository?.db&&!!store.controlCache&&typeof store.readableEntry==='function'&&typeof store.isFiltered==='function';}
 export async function contextLineageRead(store,fn,stores,database=store?.repository?.db){
@@ -63,12 +79,15 @@ export async function contextLineageAdmission(store,t,epoch){
  need(contextLineageReady(store));return new ContextTopicAccessService(store).admission(t,epoch,{scope:true});
 }
 export async function fenceContextLineage(store,captured,{transaction=null,rowSerialized=null}={}){
- const fence=async t=>{
+ const fence=async transaction=>{
+  const heldCapture=authoredCaptures.get(captured),t=heldCapture?contextScopeTransactionReader(store,transaction,heldCapture.budget):transaction;
   const now=await contextLineageAdmission(store,t,captured.epoch);
   need(now.authority===captured.authority&&now.gate===captured.gate);
   if(rowSerialized!==null)need(JSON.stringify(await t.get('meta','context-cards:v1'))===rowSerialized);
+  for(const held of authoredCaptures.get(captured)?.structures?.values()||[]){const current=await readStructuralContextEvidence(store,t,held.spec);need(current&&same(current.mapping,held.mapping)&&same(current.fields,held.fields)&&same(current.inputs,held.inputs));}
+  for(const held of authoredCaptures.get(captured)?.rows.values()||[]){const entryId=held.mapping.entryId,bound=held.mapping.kind==='boundEntry';need(same(bound?await readBoundEntryContext(store,t,entryId,null,held.mapping.topicId):await readAuthoredEntryContext(store,t,entryId),held.mapping));need(same(bound?boundSelectedText(await t.get('thoughts',entryId),held.mapping.selectedFields):authoredSelectedText(await t.get('thoughts',entryId),authoredSelectedFields(held.mapping)),held.fields));}
  };
- need(contextLineageReady(store));return transaction?fence(transaction):contextLineageRead(store,fence,['meta'],captured.database||store.repository.db);
+ need(contextLineageReady(store));return transaction?fence(transaction):contextLineageRead(store,fence,authoredCaptures.has(captured)?undefined:['meta'],captured.database||store.repository.db);
 }
 
 // Scope policy deliberately has no selection: ordinary Global/Card/Topic
@@ -78,17 +97,17 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
  need(contextLineageReady(store)&&!workBudget.signal?.aborted);
  const database=workBudget.database||store.repository.db,captured=await contextLineageRead(store,t=>contextLineageAdmission(store,t,epoch),['meta'],database);captured.database=database;
  if(expectedAuthority!==null)need(captured.authority===expectedAuthority);
- const specs=groups.flatMap(g=>g.evidence),topics=[...new Set(specs.map(s=>s.topicId))],inputs=[...new Set(specs.map(s=>s.inputId))];
- if(topics.length>CONTEXT_LINEAGE_LIMITS.readTopics||inputs.length>CONTEXT_LINEAGE_LIMITS.readInputs)fail('budget_exceeded');
+ const specs=groups.flatMap(g=>g.evidence),topics=[...new Set(specs.map(s=>s.topicId))],inputs=[...new Set(specs.filter(inputEvidence).map(s=>s.inputId))],entryIds=[...new Set(specs.filter(entryEvidence).map(s=>s.entryId))];
+ if(topics.length>CONTEXT_LINEAGE_LIMITS.readTopics||inputs.length+entryIds.length>CONTEXT_LINEAGE_LIMITS.readInputs)fail('budget_exceeded');
  const scopes=new Map();
  for(const topicId of topics){
   need(!workBudget.signal?.aborted);const requested=specs.filter(s=>s.topicId===topicId);
-  // A body-free metadata probe may aggregate accepted Items up to its existing
+  // Canonical eligibility validation may aggregate accepted Items up to its existing
   //4096-reference graph bound; each maintenance WRITE remains16 Inputs.
-  const preflight=await readContextProcessingPreflight(store,{topicId,inputIds:[...new Set(requested.map(s=>s.inputId))],expectedAuthority:captured.authority},workBudget);
+  const preflight=await readContextProcessingPreflight(store,{topicId,inputIds:[...new Set(requested.filter(inputEvidence).map(s=>s.inputId))],...(requested.some(s=>s.kind==='humanEntry')?{entryIds:[...new Set(requested.filter(s=>s.kind==='humanEntry').map(s=>s.entryId))]}:{}),expectedAuthority:captured.authority},workBudget);
   if(!preflight.available||requested.some(s=>!sameContextTopicBinding(preflight.binding,s.expectedTopicBinding))){
    if(!preflight.available&&['scope_budget','hash_budget'].includes(preflight.reason))fail('budget_exceeded');
-   if(!preflight.available&&!['input_unavailable','topic_unavailable','legacy_restricted','content_unavailable'].includes(preflight.reason))fail();
+   if(!preflight.available&&!['input_unavailable','entry_unavailable','topic_unavailable','legacy_restricted','content_unavailable'].includes(preflight.reason))fail();
    scopes.set(topicId,null);continue;
   }
   const scope=await readContextTopicScope(store,{topicId,expectedAuthority:captured.authority},workBudget);
@@ -97,9 +116,9 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
   scopes.set(topicId,scope.available&&evaluateContextTopicAccess(scope.snapshot).reason==='topic_off'?scope:null);
  }
  const material=await contextLineageRead(store,async transaction=>{
-  const t=Object.create(transaction);for(const method of ['get','has'])t[method]=async(...args)=>{need(!workBudget.signal?.aborted);if(++workBudget.reads>CONTEXT_TOPIC_SCOPE_LIMITS.reads)fail('budget_exceeded');return transaction[method](...args);};
+  const t=contextScopeTransactionReader(store,transaction,workBudget);
   await fenceContextLineage(store,captured,{transaction:t});
-  const rows=new Map(),memory=new MemoryService(store),filter=await t.get('meta','smart-filter');
+  const rows=new Map(),authored=new Map(),structures=new Map(),memory=new MemoryService(store),filter=await t.get('meta','smart-filter');
   for(const inputId of inputs){
    if(!specs.some(s=>s.inputId===inputId&&scopes.get(s.topicId)?.scope.inputIds.includes(inputId))){rows.set(inputId,null);continue;}
    const raw=await t.get('blocks',inputId),state=await t.get('inputStates',inputId);
@@ -107,34 +126,62 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
    const p=await inputProjection(store,t,inputId);
    if(!p||typeof p.body!=='string'||typeof p.note!=='string'||!revisionOK(p.contentRevision)||!revisionOK(p.lastRemovalSequence)||!ids(p.sourceRecordIds,CONTEXT_LINEAGE_LIMITS.sources,1)||await store.isFiltered(t,p.block,filter)||!await memory.safeSources(t,p.sourceRecordIds)){rows.set(inputId,null);continue;}
    const identities=[...new Set(p.identities)].sort();need(sourceIdentities(identities));
-   const selected=[...new Set(specs.filter(s=>s.inputId===inputId).flatMap(s=>s.selectedFields))],text={};
+   const selected=[...new Set(specs.filter(s=>inputEvidence(s)&&s.inputId===inputId).flatMap(s=>s.selectedFields))],text={};
    for(const field of selected){workBudget.hashBytes+=new TextEncoder().encode(p[field]).byteLength;workBudget.hashFields++;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes||workBudget.hashFields>CONTEXT_TOPIC_SCOPE_LIMITS.hashFields)fail('budget_exceeded');text[field]=p[field];}
    rows.set(inputId,{contentRevision:p.contentRevision,sourceRecordIds:p.sourceRecordIds,sourceIdentityTokens:identities,removalSequence:p.lastRemovalSequence,text,hashes:{}});
   }
-  return rows;
+  for(const entryId of entryIds){
+   const requested=specs.filter(s=>entryEvidence(s)&&s.entryId===entryId),groups=new Map();
+   for(const spec of requested){const key=entryMaterialKey(spec),group=groups.get(key)||[];group.push(spec);groups.set(key,group);}
+   for(const [key,group]of groups){
+    const bound=group[0].kind==='boundEntry';if(!group.some(s=>scopes.get(s.topicId)?.scope.entryIds.includes(entryId)))continue;
+    // Match the independently granted fields before materializing or hashing.
+    // Separate exact Topic memberships also keep stale Items from suppressing
+    // a current Item for this Entry in a different human-selected Topic.
+    const mapping=bound?await readBoundEntryContext(store,t,entryId,null,group[0].topicId):await readAuthoredEntryContext(store,t,entryId);if(!mapping||!group.some(spec=>(bound?boundContextEvidenceMatches:authoredContextEvidenceMatches)(spec,mapping)))continue;
+    const fields=bound?boundSelectedText(await t.get('thoughts',entryId),mapping.selectedFields):authoredSelectedText(await t.get('thoughts',entryId),authoredSelectedFields(mapping));for(const text of Object.values(fields)){need(typeof text==='string');workBudget.hashBytes+=new TextEncoder().encode(text).byteLength;workBudget.hashFields++;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes||workBudget.hashFields>CONTEXT_TOPIC_SCOPE_LIMITS.hashFields)fail('budget_exceeded');}authored.set(key,{mapping,fields,fieldDigests:{}});
+   }
+  }
+  for(const spec of specs.filter(s=>structureOf(s))){
+   const key=JSON.stringify(structureOf(spec));if(structures.has(key))continue;
+   const held=await readStructuralContextEvidence(store,t,structureOf(spec));if(!held)continue;
+   for(const text of Object.values(held.fields)){workBudget.hashBytes+=new TextEncoder().encode(text).byteLength;workBudget.hashFields++;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes||workBudget.hashFields>CONTEXT_TOPIC_SCOPE_LIMITS.hashFields)fail('budget_exceeded');}
+   structures.set(key,{...held,spec:structuredClone(structureOf(spec)),fieldDigests:{}});
+  }
+  return {rows,authored,structures};
  },undefined,database);
+ authoredCaptures.set(captured,{rows:material.authored,structures:material.structures,budget:workBudget});
  try{
   // WebCrypto runs only after the material transaction has definitively closed.
-  for(const row of material.values())if(row)for(const field of Object.keys(row.text)){need(!workBudget.signal?.aborted);row.hashes[field]=await hashText(row.text[field]);row.text[field]='';need(!workBudget.signal?.aborted);}
+  for(const row of material.rows.values())if(row)for(const field of Object.keys(row.text)){need(!workBudget.signal?.aborted);row.hashes[field]=await hashText(row.text[field]);row.text[field]='';need(!workBudget.signal?.aborted);}
+  for(const held of [...material.authored.values(),...material.structures.values()])for(const [field,text]of Object.entries(held.fields)){need(!workBudget.signal?.aborted);held.fieldDigests[field]=await hashText(text);need(!workBudget.signal?.aborted);}
   await fenceContextLineage(store,captured);
   const results=groups.map(group=>{
    const evidence=[];let eligible=group.epoch===captured.epoch;
    for(const spec of group.evidence){
-    const scope=scopes.get(spec.topicId),row=material.get(spec.inputId);
-    const valid=scope&&scope.scope.inputIds.includes(spec.inputId)&&sameContextTopicBinding(scope.binding,spec.expectedTopicBinding)&&row&&row.removalSequence===spec.expectedRemovalSequence&&spec.selectedFields.every(f=>row.hashes[f]===spec.fieldDigests[f])&&(!Object.hasOwn(spec,'sourceRecordIds')||same(spec.sourceRecordIds,row.sourceRecordIds)&&same(spec.sourceIdentityTokens,row.sourceIdentityTokens));
+    const scope=scopes.get(spec.topicId);
+    if(entryEvidence(spec)){const held=material.authored.get(entryMaterialKey(spec)),matches=spec.kind==='boundEntry'?boundContextEvidenceMatches:authoredContextEvidenceMatches;if(!scope||!scope.scope.entryIds.includes(spec.entryId)||!sameContextTopicBinding(scope.binding,spec.expectedTopicBinding)||!held||!matches(spec,held.mapping)||!same(spec.fieldDigests,held.fieldDigests)){eligible=false;continue;}evidence.push(structuredClone(spec));continue;}
+    const row=material.rows.get(spec.inputId);
+    const structure=structureOf(spec)?material.structures.get(JSON.stringify(structureOf(spec))):null;
+    const valid=(!structureOf(spec)||structure&&same(structure.fieldDigests,structureOf(spec).fieldDigests))&&scope&&scope.scope.inputIds.includes(spec.inputId)&&sameContextTopicBinding(scope.binding,spec.expectedTopicBinding)&&row&&row.removalSequence===spec.expectedRemovalSequence&&spec.selectedFields.every(f=>row.hashes[f]===spec.fieldDigests[f])&&(!Object.hasOwn(spec,'sourceRecordIds')||same(spec.sourceRecordIds,row.sourceRecordIds)&&same(spec.sourceIdentityTokens,row.sourceIdentityTokens));
     if(!valid){eligible=false;continue;}
-    evidence.push({...Object.fromEntries(specKeys.map(k=>[k,structuredClone(spec[k])])),contentRevision:row.contentRevision,sourceRecordIds:[...row.sourceRecordIds],sourceIdentityTokens:[...row.sourceIdentityTokens]});
+    evidence.push({...Object.fromEntries(specKeys(spec).map(k=>[k,structuredClone(spec[k])])),contentRevision:row.contentRevision,sourceRecordIds:[...row.sourceRecordIds],sourceIdentityTokens:[...row.sourceIdentityTokens]});
    }
    return {eligible,evidence};
   });
   return {captured,results};
- }finally{for(const row of material.values())if(row)row.text={};}
+ }catch(error){releaseContextLineage(captured);throw error;}finally{for(const row of material.rows.values())if(row)row.text={};}
 }
-export async function captureContextEvidence(store,evidence,{epoch,expectedAuthority=null,signal=null}={}){
- need(validContextEvidenceSpecs(evidence));const result=await assess(store,[{epoch,evidence}],{epoch,expectedAuthority,workBudget:createContextScopeWorkBudget({signal,database:store.repository.db})});need(result.results[0].eligible);
+export async function captureContextEvidence(store,evidence,{epoch,expectedAuthority=null,signal=null,workBudget=null}={}){
+ need(validContextEvidenceSpecs(evidence));
+ // A trusted caller may share the original branded work budget across its
+ // metadata/current-material phase and this qualification. Never reset it or
+ // accept an unbranded allowance, another database, or a different abort lease.
+ if(workBudget!==null){try{contextScopeTransactionReader(store,{},workBudget);}catch{fail('budget_exceeded');}need(workBudget.database===store.repository.db&&(signal===null||workBudget.signal===signal));if(workBudget.reads>=CONTEXT_TOPIC_SCOPE_LIMITS.reads||workBudget.hashBytes>=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes||workBudget.hashFields>=CONTEXT_TOPIC_SCOPE_LIMITS.hashFields)fail('budget_exceeded');}
+ const result=await assess(store,[{epoch,evidence}],{epoch,expectedAuthority,workBudget:workBudget??createContextScopeWorkBudget({signal,database:store.repository.db})});if(!result.results[0].eligible){releaseContextLineage(result.captured);fail();}
  return {captured:result.captured,provenance:{epoch,evidence:result.results[0].evidence}};
 }
-export async function readableContextItems(store,items,{epoch,expectedAuthority=null,rowSerialized=null}={}){
+export async function readableContextItems(store,items,{epoch,expectedAuthority=null,rowSerialized=null,retainAuthoredCapture=false}={}){
  items=items.filter(item=>item.lifecycle==='active');
  const automatic=items.filter(x=>x.origin==='automatic'&&x.maintenance.provenance.epoch===epoch),manual=items.filter(x=>x.origin!=='automatic');
  if(!automatic.length)return {items:manual,captured:null};
@@ -145,13 +192,13 @@ export async function readableContextItems(store,items,{epoch,expectedAuthority=
   // consumes one request-wide budget. No durable Item capacity is reduced.
   for(let index=0;index<automatic.length;){
    const batch=[],topics=new Set(),inputs=new Set();
-   while(index<automatic.length){const item=automatic[index],ts=new Set(topics),ins=new Set(inputs);for(const e of item.maintenance.provenance.evidence){ts.add(e.topicId);ins.add(e.inputId);}if(batch.length&&(ts.size>CONTEXT_LINEAGE_LIMITS.readTopics||ins.size>CONTEXT_LINEAGE_LIMITS.readInputs))break;batch.push(item);for(const id of ts)topics.add(id);for(const id of ins)inputs.add(id);index++;}
-   const assessed=await assess(store,batch.map(x=>x.maintenance.provenance),{epoch,expectedAuthority:captured?.authority??expectedAuthority,workBudget});captured??=assessed.captured;
+   while(index<automatic.length){const item=automatic[index],ts=new Set(topics),ins=new Set(inputs);for(const e of item.maintenance.provenance.evidence){ts.add(e.topicId);ins.add(contextEvidenceKey(e));}if(batch.length&&(ts.size>CONTEXT_LINEAGE_LIMITS.readTopics||ins.size>CONTEXT_LINEAGE_LIMITS.readInputs))break;batch.push(item);for(const id of ts)topics.add(id);for(const id of ins)inputs.add(id);index++;}
+   const assessed=await assess(store,batch.map(x=>x.maintenance.provenance),{epoch,expectedAuthority:captured?.authority??expectedAuthority,workBudget});if(captured){const held=authoredCaptures.get(captured).rows;for(const [id,value]of authoredCaptures.get(assessed.captured).rows)held.set(id,value);for(const [id,value]of authoredCaptures.get(assessed.captured).structures)authoredCaptures.get(captured).structures.set(id,value);releaseContextLineage(assessed.captured);}else captured=assessed.captured;
    for(let i=0;i<batch.length;i++)if(assessed.results[i].eligible)allowed.add(batch[i].id);
   }
-  await fenceContextLineage(store,captured,{rowSerialized});
+  await fenceContextLineage(store,captured,{rowSerialized});if(!retainAuthoredCapture)releaseContextLineage(captured);
   return {items:items.filter(x=>x.origin!=='automatic'||allowed.has(x.id)),captured};
- }catch(error){
+ }catch(error){releaseContextLineage(captured);
   // Even an empty/manual-only fallback must not return an old row or cross a
   // restore/consent boundary. Automatic source authority remains explicitly
   // unknown; no automatic body or successful completeness claim is returned.

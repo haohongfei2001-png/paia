@@ -1,7 +1,15 @@
+import {createAIFilterRuntime} from './ai-filter-commands.js';
+import {readAIFilterPolicyConfiguration} from './ai-filter-policy-configuration.js';
+import {readMaintenanceServiceConfiguration} from '../core/ai-usage/maintenance-service-configuration.js';
+import {readMaintenanceIdentityCurrentnessEndpoint} from '../core/ai-usage/maintenance-identity-currentness-configuration.js';
+import {AssistPromptCommands} from './prompt-assist.js';
+import {createMaintenanceRunner} from '../core/ai-usage/maintenance-runner.js';
 import {ContextReadService} from '../core/context-read.js';
+import {ContextConnections} from './context-connections.js';
+import {installContextConnectionLifecycle} from './context-connection-lifecycle.js';
 import {TopicSectionPromotionCommands} from './topic-section-promotion-commands.js';
 import {installToolbarEntry} from './toolbar-entry.js';
-import {HistoricalCandidateSession} from '../core/ai-usage/historical-candidate-session.js';
+import {createConfiguredHistoricalCandidateSession} from '../core/ai-usage/configured-historical-session.js';
 import {ArchiveArrival} from './archive-arrival.js';
 import {NextPromptCommands} from './prompt-next.js';
 import {readSettingsUpdateStatus} from '../core/settings-update-status.js';
@@ -28,7 +36,7 @@ import {BackupService} from '../core/backup-service.js';
 import {LegacyUsageRecords} from '../core/legacy-usage-records.js';
 import {assertFeatureAvailable} from '../core/feature-availability.js';
 import {BoundedOrganizerWorkflow} from '../core/organizer/bounded-workflow.js';
-import {AIPresentationRunner} from '../core/organizer/ai-presentation.js';
+import {createConfiguredOrganizeRunner} from '../core/organizer/configured-organize-runner.js';
 import {LibraryRunner} from '../core/library-runner.js';
 import {FilterRunner} from '../core/filter-runner.js';
 import {ImportHandler} from './import-handler.js';
@@ -46,20 +54,26 @@ import {unavailableAIProvider,unavailableAICredentials} from '../core/organizer/
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
 import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
-const store = new IndexedArchiveStore(chrome.storage.local);
+const aiFilterRuntime=createAIFilterRuntime(chrome,{getStore:()=>store,policy:readAIFilterPolicyConfiguration()});
+const store = new IndexedArchiveStore(chrome.storage.local,{aiFilterAuthority:aiFilterRuntime.authority});
+const maintenanceConfiguration=aiFilterRuntime.configureService(readMaintenanceServiceConfiguration(store),readMaintenanceIdentityCurrentnessEndpoint());
+const maintenanceRunner=createMaintenanceRunner(store,maintenanceConfiguration);
+const contextConnections=new ContextConnections(store,chrome);
 const localScopePreviewCapability=Object.freeze({});
 const contextScopePreview=new ContextReadService(store,{localPreviewCapability:localScopePreviewCapability});
 const thoughtLibraryRead=new ThoughtLibraryReadModel(store);
 const sectionPromotion=new TopicSectionPromotionCommands(store,chrome);
 const thoughtSectionReading=new ThoughtSectionReading(thoughtLibraryRead);
-const promptReuse = new PromptReuseCommands(new PromptReuseService(store,{historyCandidates:new HistoricalCandidateSession(store)}),chrome);
+const promptReuse = new PromptReuseCommands(new PromptReuseService(store,{historyCandidates:createConfiguredHistoricalCandidateSession(store)}),chrome);
 const archiveArrival = new ArchiveArrival(promptReuse.service,chrome);
 const promptSurface = new PromptSurfaceCommands(promptReuse,chrome,{openArchiveArrival:(descriptor,source)=>archiveArrival.open(descriptor,source)});
 const promptNext = new NextPromptCommands(promptReuse.service,chrome,promptSurface);
 promptSurface.next=promptNext;
-chrome.tabs?.onRemoved?.addListener(id=>{promptSurface.removeTab(id);promptNext.removeTab(id);archiveArrival.removeTab(id);});
-chrome.tabs?.onUpdated?.addListener((id,change)=>{if(change.url||change.status==='loading')promptNext.removeTab(id);archiveArrival.changedTab(id,change);});
-chrome.runtime.onInstalled?.addListener(()=>{void promptNext.configure(false).catch(()=>{});});
+const promptAssist=new AssistPromptCommands(store,chrome,{surface:promptSurface});
+promptSurface.assist=promptAssist;
+chrome.tabs?.onRemoved?.addListener(id=>{promptSurface.removeTab(id);promptNext.removeTab(id);promptAssist.removeTab(id);archiveArrival.removeTab(id);});
+chrome.tabs?.onUpdated?.addListener((id,change)=>{if(change.url||change.status==='loading'){promptNext.removeTab(id);promptAssist.removeTab(id);}archiveArrival.changedTab(id,change);});
+// Missing new suggestion preferences are off; installation/update never resets a user preference.
 const legacyUsage = new LegacyUsageRecords(store);
 const passport = new PassportService(store);
 const revisit = new RevisitService(store);
@@ -127,7 +141,7 @@ chrome.runtime.onInstalled?.addListener(details=>{
 const unavailableSession={get:async()=>{throw new ArchiveError('UNAVAILABLE');},set:async()=>{throw new ArchiveError('UNAVAILABLE');},remove:async()=>{throw new ArchiveError('UNAVAILABLE');}};
 const privacySession=chrome.storage.session||unavailableSession;
 const originalOrganizer=new SimpleOriginalOrganizerRunner(store,{provider:unavailableAIProvider,credentials:unavailableAICredentials});
-const aiOrganizer=new AIPresentationRunner(store,{provider:unavailableAIProvider,credentials:unavailableAICredentials});
+const aiOrganizer=createConfiguredOrganizeRunner(store);
 const boundedOrganizer=new BoundedOrganizerWorkflow(store,{original:originalOrganizer,ai:aiOrganizer});
 const onboarding=new OnboardingService(store);
 const integrity=new IntegrityChecker(store);
@@ -145,6 +159,7 @@ const privacyReady=Promise.resolve(privacySession.setAccessLevel?.({accessLevel:
 privacyReady.catch(()=>{});
 ready.catch(() => {});
 installCaptureRecovery(chrome, ready);
+installContextConnectionLifecycle(contextConnections,chrome,ready);
 const backupReady=ready.then(()=>backups.recoverSettings());backupReady.catch(()=>{});
 const originalReady=Promise.all([ready,privacyReady,backupReady]).then(()=>Promise.all([originalOrganizer.reconcileInterrupted(),aiOrganizer.reconcileInterrupted(),boundedOrganizer.reconcileInterrupted()]));
 originalReady.catch(()=>{});
@@ -165,6 +180,7 @@ async function handle(request, sender) {
   await ready;
   if (!request || typeof request.type !== 'string') throw new ArchiveError('INVALID_REQUEST');
   if(request.type.startsWith('PAIA_ARCHIVE_ARRIVAL_'))return archiveArrival.handle(request,sender);
+  if(request.type.startsWith('PAIA_PROMPT_ASSIST_'))return promptAssist.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_NEXT_'))return promptNext.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_SURFACE_'))return promptSurface.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_'))return promptReuse.handle(request,sender);
@@ -239,7 +255,7 @@ async function handle(request, sender) {
     const allowed=request.type==='PAIA_SETTINGS_AI_STYLE'?['type']:['type','changes'];if(Object.keys(request).some(key=>!allowed.includes(key)))throw new ArchiveError('INVALID_REQUEST');
   }
   if(request.type==='PURGE_SOURCE'&&(request.confirm!==true||Object.keys(request).some(key=>!['type','id','confirm'].includes(key))))throw new ArchiveError('INVALID_REQUEST');
-  const needsConsent=request.type==='START_BOUNDED_ORGANIZER'||request.type==='EDIT_DOCUMENT'&&request.edit?.removeScope!==undefined||request.type.startsWith('PAIA_ARCHIVE_')||request.type.startsWith('PAIA_RECOVERY_')||['PURGE_SOURCE','PURGE_RECORD','ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT'].includes(request.type)||request.type.startsWith('PAIA_CONTEXT_')||request.type.startsWith('PAIA_READER_')||request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type==='PAIA_CORE_LOOP_ACTION'||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
+  const needsConsent=request.type.startsWith('PAIA_AI_FILTER_')||request.type==='START_BOUNDED_ORGANIZER'||request.type==='EDIT_DOCUMENT'&&request.edit?.removeScope!==undefined||request.type.startsWith('PAIA_ARCHIVE_')||request.type.startsWith('PAIA_RECOVERY_')||['PURGE_SOURCE','PURGE_RECORD','ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT'].includes(request.type)||request.type.startsWith('PAIA_CONTEXT_')||request.type.startsWith('PAIA_READER_')||request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type==='PAIA_CORE_LOOP_ACTION'||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
   if(needsConsent&&request.type!=='GET_LIBRARY_FOUNDATION_STATUS'&&!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
   assertFeatureAvailable(request);
   if(['START_BOUNDED_ORGANIZER','STOP_BOUNDED_ORGANIZER','GET_BOUNDED_ORGANIZER','UPDATE_AI_PRESENTATION','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME','STOP_AI_PRESENTATION','GET_AI_PRESENTATION_STATUS','EDIT_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW','STOP_ORIGINAL_LIBRARY_VIEW','GET_ORIGINAL_ORGANIZER_STATUS'].includes(request.type))await originalReady;
@@ -263,7 +279,22 @@ async function handle(request, sender) {
       return contextScopePreview.preview(localScopePreviewCapability,{kind:request.kind,options:request.options});
     }
     case 'PAIA_CONTEXT_CARDS_DRAFTS': return withRecoveryFence(async()=>{const captured=await contextCards.recoveryBatchFence(),drafts=[];for(const ref of await recoveryDraftStore().list('context_item')){const draft=await loadRecoveryDraft(ref);if(draft)drafts.push(draft);}await contextCards.recoveryBatchFence(captured);return drafts;});
-    case 'PAIA_CONTEXT_CARDS_SNAPSHOT': {if(Object.keys(request).some(key=>!['type','mode'].includes(key)))throw new ArchiveError('INVALID_REQUEST');const snapshot=await contextCards.snapshot(request.mode);if(snapshot.automaticEvaluation?.complete===false)throw new ArchiveError('CONTEXT_INVALIDATED');return snapshot;}
+    case 'PAIA_AI_FILTER_STATUS':
+    case 'PAIA_AI_FILTER_CONFIGURE': return aiFilterRuntime.handle(request,sender);
+    case 'PAIA_CONTEXT_CONNECTIONS_STATUS': {
+      if(Object.keys(request).some(key=>key!=='type'))throw new ArchiveError('INVALID_REQUEST');return contextConnections.status();
+    }
+    case 'PAIA_CONTEXT_CONNECTIONS_PAIR':
+    case 'PAIA_CONTEXT_CONNECTIONS_REPAIR':
+    case 'PAIA_CONTEXT_CONNECTIONS_CHANGE': {
+      if(sender.url!==chrome.runtime.getURL('ui/archive.html')||(sender.frameId!==undefined&&sender.frameId!==0)||sender.tab?.incognito)throw new ArchiveError('FORBIDDEN');
+      if(Object.keys(request).some(key=>!['type','options'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      const options=request.options,keys=request.type!=='PAIA_CONTEXT_CONNECTIONS_CHANGE'?['expectedRevision','port']:['id','action','expectedRevision'];
+      if(options&&Object.hasOwn(options,'authorizationPolicyId')){if(typeof options.authorizationPolicyId!=='string'||request.type==='PAIA_CONTEXT_CONNECTIONS_CHANGE'&&options.action!=='reconnect')throw new ArchiveError('INVALID_REQUEST');keys.push('authorizationPolicyId');}
+      if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).length!==keys.length||Object.keys(options).some(key=>!keys.includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      return request.type!=='PAIA_CONTEXT_CONNECTIONS_CHANGE'?contextConnections.pair(options,{replaceStale:request.type==='PAIA_CONTEXT_CONNECTIONS_REPAIR'}):contextConnections.change(options);
+    }
+    case 'PAIA_CONTEXT_CARDS_SNAPSHOT': {if(Object.keys(request).some(key=>!['type','mode'].includes(key)))throw new ArchiveError('INVALID_REQUEST');const snapshot=await contextCards.snapshot(request.mode);if(snapshot.automaticEvaluation?.complete===false)throw new ArchiveError('CONTEXT_INVALIDATED');const connectionStatus=await contextConnections.status(),maintenance=maintenanceRunner.status();return {...snapshot,maintenance,connectionStatus,connections:connectionStatus.connectedCount,capabilities:{...snapshot.capabilities,automatic:maintenance.available,external:connectionStatus.connectedCount>0}};}
     case 'PAIA_CONTEXT_CARDS_CHANGE': return contextCards.change(request.change);
     case 'PAIA_CONTEXT_CARDS_OUTCOME': return contextCards.outcome(request.query);
     case 'PAIA_CONTEXT_TOPICS_PAGE':
@@ -349,7 +380,7 @@ async function handle(request, sender) {
     case 'PAIA_BACKUP_BEGIN_RESTORE': return backups.beginRestore();
     case 'PAIA_BACKUP_STAGE': return backups.stageRestore(request.options);
     case 'PAIA_BACKUP_PREVIEW': return backups.previewRestore(request.options);
-    case 'PAIA_BACKUP_RESTORE': return withRecoveryFence(async()=>{await promptNext.configure(false);const result=await backups.restore(request.options);if(request.options?.mode!=='merge')await recoveryDraftStore().clearAll().catch(()=>{});return result;});
+    case 'PAIA_BACKUP_RESTORE': return withRecoveryFence(async()=>{await promptNext.configure(false);await promptAssist.configure({replyAccess:false,remoteProcessing:false});const result=await backups.restore(request.options);if(request.options?.mode!=='merge')await recoveryDraftStore().clearAll().catch(()=>{});return result;});
     case 'PAIA_BACKUP_CANCEL': return backups.cancel(request.options);
     case 'GET_BOUNDED_ORGANIZER': return boundedOrganizer.status();
     case 'STOP_BOUNDED_ORGANIZER': return boundedOrganizer.stop();
@@ -364,8 +395,10 @@ async function handle(request, sender) {
     case 'GET_LIBRARY_DUAL_VIEW_STATUS': return store.dualViewStatus();
     case 'GET_ORIGINAL_ORGANIZER_STATUS': return store.originalOrganizerStatus();
     case 'GET_AI_PRESENTATION_OPERATION_OUTCOME': return store.aiPresentationOperationOutcome(request.options);
+    case 'GET_AI_PRESENTATION_SCOPE': return aiOrganizer.handle(request);
+    case 'UPDATE_AI_PRESENTATION': return aiOrganizer.handle(request);
     case 'STOP_AI_PRESENTATION': return aiOrganizer.stop({topicId:request.topicId});
-    case 'GET_AI_PRESENTATION_STATUS': return recoverySnapshot(()=>store.aiPresentationStatus(request.options),(value,epoch)=>({...value,topics:value.topics.map(topic=>({...topic,recoveryEpoch:epoch,presentation:topic.presentation?{...topic.presentation,recoveryEpoch:epoch}:null}))}));
+    case 'GET_AI_PRESENTATION_STATUS': return recoverySnapshot(()=>aiOrganizer.status(request.options),(value,epoch)=>({...value,topics:value.topics.map(topic=>({...topic,recoveryEpoch:epoch,presentation:topic.presentation?{...topic.presentation,recoveryEpoch:epoch}:null}))}));
     case 'RECOVER_AI_PRESENTATION_DRAFT': return store.recoverAIDraft(request.options);
     case 'EDIT_AI_PRESENTATION': return store.editAIPresentation(request.edit);
     case 'STOP_ORIGINAL_LIBRARY_VIEW': return originalOrganizer.stop('CANCELLED');
@@ -471,7 +504,7 @@ async function handle(request, sender) {
     case 'UPDATE_DOCUMENT': return store.updateDocument(request.id, request.changes);
     case 'GET_MEMORY_CONTEXT': return store.memoryContext();
     case 'GET_STATE': return recoverySnapshot(()=>store.snapshot());
-    case 'CONSENT': return store.consent(request.accepted);
+    case 'CONSENT': {if(request.accepted!==true){contextConnections.invalidate();aiFilterRuntime.invalidate();}return store.consent(request.accepted);}
     case 'SET_ENABLED': return store.setEnabled(request.enabled);
     case 'UPDATE_RECORD': return store.update(request.id, request.changes);
     case 'TRASH_RECORD': return store.trash(request.id);
@@ -496,12 +529,43 @@ const safety=new SafetyRunner(store);
 const libraryRunner=new LibraryRunner(store);
 // Original Organizer is cost-gated: capture, startup, timers, and rerenders may
 // maintain local state but can never dispatch its remote provider.
-const scheduleFilter=(options)=>{void safety.wake(options);void libraryRunner.wake(options);return runner.wake(options);};
+const scheduleFilter=(options)=>Promise.all([safety.wake(options),libraryRunner.wake(options),runner.wake(options)]);
+// Only original successful semantic-write messages offer an opportunity. Reads,
+// settings, source metadata and duplicate capture never spend an accumulated
+// Maintenance window. The session still proves actual eligible delta/consent.
+const maintenanceWrites=new Set(['CAPTURE','EDIT_DOCUMENT','EXCLUDE_LIBRARY','PAIA_CONTEXT_CARDS_CHANGE','CREATE_LIBRARY_ENTRY','CONTINUE_THINKING','ADD_TO_TOPICS','EDIT_LIBRARY_FIELDS','EDIT_LIBRARY_BATCH','RESTORE_LIBRARY_ENTRY','EDIT_THOUGHT','RESTORE_THOUGHT_INPUT','PLACE_LIBRARY_ENTRY','RESTORE_LIBRARY_PLACEMENT','EDIT_LIBRARY_TOPIC','EDIT_LIBRARY_SECTION','RESTORE_LIBRARY_TOPIC']);
+const maintenanceWrite=request=>maintenanceWrites.has(request?.type)&&(request.type!=='EDIT_DOCUMENT'||request.edit?.blocks?.length>0)&&(request.type!=='PAIA_CONTEXT_CARDS_CHANGE'||['put','delete','restore'].includes(request.change?.kind))&&(request.type!=='EDIT_LIBRARY_TOPIC'||['name','summary'].some(key=>Object.hasOwn(request.edit?.changes||{},key)));
+const maintenanceMutation=(request,data)=>{
+ if(!maintenanceWrite(request)||!data||data.ok===false||data.conflict===true||data.unavailable===true)return false;
+ if(request.type==='CAPTURE')return Number(data.added)>0;
+ if(['EDIT_DOCUMENT','PAIA_CONTEXT_CARDS_CHANGE'].includes(request.type))return data.ok===true;
+ if(request.type==='EDIT_LIBRARY_FIELDS')return !!data.revisionId;
+ if(request.type==='EDIT_LIBRARY_BATCH')return data.items?.some(item=>!!item.revisionId)===true;
+ if(['EDIT_LIBRARY_TOPIC','EDIT_THOUGHT','EDIT_LIBRARY_SECTION','RESTORE_LIBRARY_ENTRY','RESTORE_LIBRARY_TOPIC'].includes(request.type))return data.revision>request.edit?.expectedRevision;
+ return true;
+};
+let maintenanceOpportunity=null;
+const scheduleMaintenance=(local=ready.then(()=>scheduleFilter()))=>{
+ // Coalescing optional remote work must not skip ordinary local maintenance
+ // for writes arriving while the earlier opportunity is still in flight.
+ if(maintenanceOpportunity){void local.catch(()=>{});return maintenanceOpportunity;}
+ const task=local.then(async()=>{
+  // Local runners may have accepted another wake during their current drain.
+  // Await those original drains too, and fail closed on local safety failure.
+  for(;;){const pending=[safety.running,libraryRunner.running,runner.running].filter(Boolean);if(!pending.length)break;await Promise.all(pending);}
+  if(safety.failed||libraryRunner.failed||runner.failed)return;
+  return maintenanceRunner.wake();
+ }).catch(()=>{});
+ maintenanceOpportunity=task;
+ void task.finally(()=>{if(maintenanceOpportunity===task)maintenanceOpportunity=null;});
+ return task;
+};
 const localToolRequest=type=>type==='PAIA_LIBRARY_SECTION_PROMOTION'||['PAIA_SETTINGS_AI_STYLE','PAIA_SETTINGS_UPDATE_STATUS','GET_LIBRARY_ROOT_PROJECTION','GET_LIBRARY_ROOT_PREVIEWS','GET_LIBRARY_SECTION_PROJECTION','GET_LIBRARY_SECTION_READING','GET_LIBRARY_TOPIC_READING_METADATA'].includes(type)||type.startsWith('PAIA_PROMPT_')||type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
-runtime.onStartup?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
+const startupMaintenance=()=>{void scheduleMaintenance();};
+runtime.onStartup?.addListener(startupMaintenance);
 runtime.onInstalled?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
 // Startup may reconcile an unknown prior outcome, but it never dispatches Original.
-if(runtime.onStartup)void ready.then(()=>scheduleFilter()).catch(()=>{});
+if(runtime.onStartup)startupMaintenance();
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   handle(request, sender)
@@ -509,6 +573,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const archiveMutation=request.type==='CAPTURE'?(Number(data?.added)>0||data?.timeChanged===true):request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:request.type==='OBSERVE_SOURCE_STRUCTURE'?false:true;
       if(request.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&['confirm','resume','restore'].includes(request.command)&&data?.state==='committed')void notifyArchiveChanged(request.type);
       if(request.type==='PURGE_SOURCE')await notifyArchiveChanged(request.type);
+      if(['PAIA_CONTEXT_CARDS_CHANGE','PAIA_CONTEXT_TOPICS_CHANGE'].includes(request.type)&&data?.ok===true)await promptAssist.contextChanged();
       sendResponse({ ok: true, data });
       if(request.type==='CONSENT'||request.type==='UPDATE_PREFERENCES'&&data?.ok===true&&['appearance','language'].some(key=>Object.hasOwn(request.changes||{},key)))void chrome.tabs.query({url:'https://chatgpt.com/*'}).then(tabs=>Promise.allSettled(tabs.filter(t=>!t.incognito).map(t=>chrome.tabs.sendMessage(t.id,{type:'PAIA_PROMPT_SURFACE_ACTIVATE',...(request.type==='UPDATE_PREFERENCES'?{reason:'display-preferences'}:{})},{frameId:0})))).catch(()=>{});
       if(request.type==='OBSERVE_SOURCE_STRUCTURE'&&data?.event===true)void notifySourceStructureChanged();
@@ -517,7 +582,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if(isAIStyleOnlyRequest(request)&&data?.ok===true&&data.changed===true)void chrome.runtime.sendMessage?.({type:'PAIA_SETTINGS_AI_STYLE_CHANGED'}).catch(()=>{});
       if(request.type==='SET_THOUGHT_REVERSE_EDIT')notifyArchiveChanged(request.type);
       if(['PAIA_READER_CONFIGURE','PAIA_READER_CAPTURE_SCOPE'].includes(request.type))void chrome.runtime.sendMessage?.({type:'PAIA_READER_POLICY_CHANGED'}).catch(()=>{});
-      if(request.type!=='OBSERVE_SOURCE_STRUCTURE'&&!isAIStyleOnlyRequest(request)&&!localToolRequest(request.type)&&(!request.type.startsWith('IMPORT_')||['IMPORT_COMMIT','IMPORT_COMPLETE','IMPORT_RESOLVE_BRANCH'].includes(request.type))&&!['GET_ONBOARDING','SET_ONBOARDING'].includes(request.type)&&!request.type.startsWith('PAIA_MEMORY_')&&!request.type.startsWith('PAIA_INTEGRITY_')&&!request.type.startsWith('PAIA_BACKUP_')&&request.type!=='GET_BOUNDED_ORGANIZER'&&!['GET_AI_PRESENTATION_STATUS','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME'].includes(request.type)&&request.type!=='GET_ORIGINAL_ORGANIZER_STATUS'&&request.type!=='GET_DEEPSEEK_STATUS'&&request.type!=='FILTER_DIAGNOSTICS'&&!['SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))void scheduleFilter({retry:['FILTER_RECOVER','FILTER_MODE'].includes(request.type)});
+      if(maintenanceMutation(request,data)){
+        const local=ready.then(()=>scheduleFilter());
+        if(maintenanceRunner.consumeSemanticWrite(data))void scheduleMaintenance(local);
+        else void local.catch(()=>{});
+      }
+      else if(request.type!=='OBSERVE_SOURCE_STRUCTURE'&&!isAIStyleOnlyRequest(request)&&!localToolRequest(request.type)&&(!request.type.startsWith('IMPORT_')||['IMPORT_COMMIT','IMPORT_COMPLETE','IMPORT_RESOLVE_BRANCH'].includes(request.type))&&!['GET_ONBOARDING','SET_ONBOARDING'].includes(request.type)&&!request.type.startsWith('PAIA_MEMORY_')&&!request.type.startsWith('PAIA_INTEGRITY_')&&!request.type.startsWith('PAIA_BACKUP_')&&request.type!=='GET_BOUNDED_ORGANIZER'&&!['GET_AI_PRESENTATION_STATUS','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME'].includes(request.type)&&request.type!=='GET_ORIGINAL_ORGANIZER_STATUS'&&request.type!=='GET_DEEPSEEK_STATUS'&&request.type!=='FILTER_DIAGNOSTICS'&&!['SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))void scheduleFilter({retry:['FILTER_RECOVER','FILTER_MODE'].includes(request.type)});
       if(request.type!=='PURGE_SOURCE'&&archiveMutation&&!isAIStyleOnlyRequest(request)&&!localToolRequest(request.type)&&!['PAIA_MEMORY_STATUS','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_MEMORY_ENTRIES'].includes(request.type)&&!request.type.startsWith('PAIA_INTEGRITY_')&&!['PAIA_BACKUP_BEGIN_EXPORT','PAIA_BACKUP_EXPORT_PAGE','PAIA_BACKUP_BEGIN_RESTORE','PAIA_BACKUP_STAGE','PAIA_BACKUP_PREVIEW','PAIA_BACKUP_CANCEL','GET_BOUNDED_ORGANIZER','GET_LIBRARY_REMOVED_TOPICS','GET_LIBRARY_REMOVED_PLACEMENTS','GET_LIBRARY_RENAME_SUGGESTIONS','GET_LIBRARY_MERGE_SUGGESTIONS','GET_ORGANIZER_CONTROLS','GET_AI_PRESENTATION_REVISIONS','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME','GET_AI_PRESENTATION_STATUS','GET_ORIGINAL_ORGANIZER_STATUS','GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK','LIBRARY_UPDATES','LIBRARY_ORGANIZER_JOBS','GET_LIBRARY_UNPLACED','GET_LIBRARY_PLACEMENT','LIBRARY_INDEX_PAGE','GET_LIBRARY_ROOT_SEARCH','TOPIC_DOCUMENT_PAGE','GET_LIBRARY_TOPIC_TIMELINE','GET_LIBRARY_TOPIC','GET_LIBRARY_ENTRY','GET_LIBRARY_PATHS','GET_LIBRARY_PROVENANCE','GET_LIBRARY_REMOVED','SEARCH_LIBRARY','GET_LIBRARY_LAYOUT','GET_LIBRARY_FOUNDATION_STATUS','GET_LIBRARY_DUAL_VIEW_STATUS','PREVIEW_AI_LIBRARY_UPDATE','FILTER_DIAGNOSTICS','FILTER_STATUS','FILTER_NOTICE','FILTER_RECENT','SEARCH_INPUTS','GET_INPUT','GET_IA_STATUS','GET_REVISIONS','GET_THOUGHTS','GET_THOUGHT','GET_STATUS','GET_STATE','GET_PAGE','GET_MIGRATION_STATUS','RESPONSE_POLL','RESPONSE_VIEW','RESPONSE_ARM','DIAGNOSTIC','GET_ONBOARDING','SET_ONBOARDING','IMPORT_LATEST','IMPORT_CANCEL','IMPORT_CAPABILITIES','IMPORT_TASKS','IMPORT_STATUS','IMPORT_BEGIN','IMPORT_PREFLIGHT','IMPORT_READY','IMPORT_PAUSE'].includes(request.type))notifyArchiveChanged(request.type);
     })
     .catch(error => sendResponse({ ok: false, ...(['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)?{phase:'message_handler'}:{}), ...(request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&error?.phase==='promotion_not_confirmed'?{phase:'promotion_not_confirmed'}:{}), error: request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&['BNS_GROUP_OWNER_UNSUPPORTED','BNS_HUMAN_UNSUPPORTED_MUTATION'].includes(error?.code)?error.code:typeof request?.type==='string' && request.type.startsWith('IMPORT_') ? safeImportError(error) : ['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)&&!(error instanceof ArchiveError)?'INTERNAL_RUNTIME_ERROR':safeErrorCode(error) }));

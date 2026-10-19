@@ -184,6 +184,24 @@ def audit_js(path, text):
             scanned = scanned.replace("this.fetchImpl(", "APPROVED_DEEPSEEK_FETCH(")
         if label == "website storage or nonlocal extension storage" and path in {ROOT / "background/service-worker.js"}:
             scanned = scanned.replace("chrome.storage.session", "APPROVED_SESSION_CREDENTIAL_STORAGE")
+        if label == "native messaging" and path == ROOT / "background/context-connections.js":
+            exact = "this.#api.runtime.connectNative(HOST)"
+            require(text.count(exact) == 1, "Context read bridge must keep one private native call")
+            require(text.count("const HOST='com.paia.context_read'") == 1,
+                    "Context read bridge must retain its independent fixed host")
+            require(not re.search(r"\bHOST\s*=(?!'com\.paia\.context_read')", text),
+                    "Context read host must not be reassigned")
+            require("readContextConnectionConfiguration()" in text and
+                    "permissions?.contains?.({permissions:['nativeMessaging']})" in text,
+                    "Context bridge must retain qualification and permission gates")
+            scanned = scanned.replace(exact, "APPROVED_CONTEXT_READ_NATIVE_PORT(HOST)", 1)
+        if label == "clipboard access" and path == ROOT / "ui/context-connections-view.js":
+            exact = "navigator.clipboard.writeText(this.secret)"
+            require(text.count(exact) == 1 and
+                    "copyButton=button(copy('复制凭证','Copy credential'),async()=>" in text and
+                    "if(!this.active||!this.secret)return" in text,
+                    "Context credential copy must remain one explicit live user button")
+            scanned = scanned.replace(exact, "EXPLICIT_CONTEXT_CREDENTIAL_COPY(this.secret)", 1)
         if label == "native messaging" and path == ROOT / "core/macos-native-secure-store.js":
             scanned = scanned.replace("runtime.sendNativeMessage(", "APPROVED_MACOS_SECURE_STORE_MESSAGE(")
         if label == "clipboard access" and path == ROOT / "adapter/chatgpt-composer.js":

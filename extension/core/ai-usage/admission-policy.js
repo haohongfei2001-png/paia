@@ -1,6 +1,8 @@
 import {integer} from './contracts.js';
-// Pure preflight only. The eventual trusted service must verify facts, enforce
-// time windows and atomically reserve again. No returned value permits dispatch.
+// Pure preflight only. BudgetWindowReservation implements bounded-window atomic
+// accounting through the existing ledger, but a separately qualified trusted
+// service must supply authentic facts and durable transactions. No returned
+// value here or in the local accounting modules permits provider dispatch.
 export const ENVELOPES=Object.freeze({
  AI_MAINTENANCE:Object.freeze({input:12000,output:2000,children:2,free:Object.freeze([3,6,72000,12000,100000,2000000]),pro:Object.freeze([24,48,576000,96000,500000,6000000])}),
  AI_ORGANIZE:Object.freeze({input:16000,output:6000,children:4,free:Object.freeze([3,12,192000,72000,380000,9000000]),pro:Object.freeze([100,200,1600000,600000,2200000,20000000])}),

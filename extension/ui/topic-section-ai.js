@@ -58,11 +58,15 @@ export async function qualifySectionAI(row,{topicId=row?.topicId,sectionId,load,
 // freshly qualified editor and its native Undo history. This is not authority
 // reuse: the caller has just completed the original scope/evidence reads.
 export function canRetainSectionAIEditor(editor,cached,projection,previousScope,nextScope){
- if(!editor||editor.disposed||editor.saving||editor.failed||editor.conflicted||editor.recoveryForeign||editor.dirty()||projection?.complete!==true)return false;
+ if(!editor||editor.disposed||editor.failed||editor.conflicted||editor.recoveryForeign||projection?.complete!==true)return false;
  let prior,next;try{prior=JSON.parse(previousScope);next=JSON.parse(nextScope);}catch{return false;}
  if(!Array.isArray(prior)||!Array.isArray(next)||prior.length!==6||next.length!==6||![0,1,2,3,5].every(index=>JSON.stringify(prior[index])===JSON.stringify(next[index]))||prior[2]!==true)return false;
  const sameSet=(left,right)=>left instanceof Set&&right instanceof Set&&left.size===right.size&&[...left].every(value=>right.has(value));
  if(!sameSet(editor.admittedFields,projection.admittedFields)||!sameSet(editor.sectionEvidence,projection.sectionEvidence))return false;
- const row=editor.row,keys=[...SECTION_AI_FIELDS,'topicId','revision','schemaVersion','recoveryEpoch','recoveryGeneration','recoveryPurgeRevision','evidenceEntryIds','fieldEvidenceEntryIds','stale','staleReasons'];
- return !!row&&!!cached&&keys.every(key=>JSON.stringify(row[key])===JSON.stringify(cached[key]));
+ const row=editor.row;
+ if(!row||!cached)return false;
+ // Compare the entire canonical DTO, including protections, optional identity
+ // and every revision/evidence field. A draft is not a canonical row change.
+ const keys=new Set([...Object.keys(row),...Object.keys(cached)]);
+ return [...keys].every(key=>JSON.stringify(row[key])===JSON.stringify(cached[key]));
 }

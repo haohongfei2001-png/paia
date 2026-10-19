@@ -105,7 +105,27 @@ export class PromptSurfaceCommands{
   if(!host?.open||host.nonce!==r.nonce||host.url!==tab.url)fail();
   this.frames.set(tab.id,{id:sender.frameId,nonce:r.nonce});
   const c=r.command;if(!c||typeof c.type!=='string')fail();
+  if(['suggestion_current','suggestion_result','suggestion_insert'].includes(c.type)){
+   if(typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active')fail();
+   const source={tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url},context={identity:JSON.stringify(source),assertCurrent:()=>this.currentSelectionTarget(source)};
+   await context.assertCurrent();
+   if(c.type==='suggestion_current'){
+    if(!own(c,['type'])||Object.keys(c).length!==1)fail();
+    let value;try{value=await this.assist?.card({type:'assist_current'},tab,context);}catch{/* Unavailable remote service never enables remote work here. */}
+    await context.assertCurrent();if(value?.result?.kind==='SUGGESTION')return {source:'assist',result:value.result};
+    const local=await this.next?.card({type:'next_current'},tab,context);await context.assertCurrent();return {source:'local',result:local?.result??null};
+   }
+   const keys=c.type==='suggestion_result'?['type','source','id']:['type','source','id','operationId','conditionPresented'];
+   if(!own(c,keys)||Object.keys(c).length!==keys.length||!['assist','local'].includes(c.source))fail();
+   const {source:kind,...command}=c;command.type=(kind==='assist'?'assist_':'next_')+(c.type==='suggestion_result'?'result':'insert');
+   return kind==='assist'?this.assist.card(command,tab,context):this.next.card(command,tab,context);
+  }
   if(['next_available','next_reopen'].includes(c.type))return this.next.card(c,tab);
+  if(['assist_status','assist_current','assist_activate','assist_result','assist_insert','assist_dismiss','assist_cancel'].includes(c.type)){
+   if(typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active')fail();
+   const source={tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url};
+   return this.assist.card(c,tab,{identity:JSON.stringify(source),assertCurrent:()=>this.currentSelectionTarget(source)});
+  }
   if(c.type==='surface_form'){
    if(!own(c,['type','form'])||Object.keys(c).length!==2||!['orb','capsule','board'].includes(c.form))fail();
    if(c.form!=='board')await this.geometry(async()=>{await this.consent();const saved=await this.readGeometry();await this.consent();await api.storage.local.set({[KEY]:{...saved,collapsedForm:c.form}});});
@@ -139,7 +159,14 @@ export class PromptSurfaceCommands{
    if(!own(c,['type','height',...(hasMinimum?['minimumHeight']:[]),...(hasAppearance?['appearance']:[]),...(hasLanguage?['language']:[])])||!Number.isInteger(c.height)||c.height<1||c.height>4096||hasMinimum&&(!Number.isInteger(c.minimumHeight)||c.minimumHeight<44||c.minimumHeight>1024||c.minimumHeight>c.height))fail();
    await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_MEASURE',nonce:r.nonce,height:c.height,...(hasMinimum?{minimumHeight:c.minimumHeight}:{}),...(hasAppearance?{appearance:c.appearance}:{}),...(hasLanguage?{language:c.language}:{})},{frameId:0});return {};
   }
-  if(c.type==='close'&&own(c,['type'])){this.candidates.delete(tab.id);await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_CLOSE',nonce:r.nonce},{frameId:0});return {};}
+  if(c.type==='close'&&own(c,['type'])){
+   this.candidates.delete(tab.id);
+   const closed=await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_CLOSE',nonce:r.nonce},{frameId:0});
+   // The original host alone knows whether this exact frame was retained.
+   // A missing/old/foreign ACK cannot authorize focus in a retiring child.
+   if(!own(closed,['closed','nonce','form'])||closed.closed!==true||closed.nonce!==r.nonce||!['orb','capsule'].includes(closed.form))fail();
+   return {closed:true,nonce:r.nonce,form:closed.form};
+  }
   if(c.type==='history_open_paia'){
    if(!own(c,['type','query','searchSnapshot','ref','range'])||!['query','searchSnapshot','ref'].every(key=>Object.hasOwn(c,key))||typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active')fail();
    if(c.ref!==null)await this.commands.service.resolveSelection(c.ref,c.range??null);else if(c.range!==undefined&&c.range!==null)fail();
@@ -177,7 +204,7 @@ export class PromptSurfaceCommands{
   // settings body, control capability or alternate persistence is exposed.
   const displayPreferences=await this.readDisplayPreferences();
   await this.currentReadTarget(readSource);await this.commands.service.assertCurrent(result.generation);
-  return {...result,target:{url:tab.url,documentId:sender.documentId,nonce:r.nonce},theme:host.dark?'dark':'light',displayPreferences,surfaceForm:host.expanded===false?'capsule':'board'};
+  return {...result,target:{url:tab.url,documentId:sender.documentId,nonce:r.nonce},theme:host.dark?'dark':'light',displayPreferences,surfaceForm:host.expanded===false?'capsule':'board',automaticSuggestion:host.automaticSuggestion===true};
  }
  async currentReadTarget(source){
   const fail=()=>{throw new ArchiveError('FORBIDDEN');},api=this.api;

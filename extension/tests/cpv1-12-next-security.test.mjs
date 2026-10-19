@@ -1,24 +1,26 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
+import {detectNextAction} from '../core/next-action-detector.js';
+import {PromptAssistState} from '../ui/prompt-assist-state.js';
 import {NextPromptCommands,NEXT_AUTH_KEY} from '../background/prompt-next.js';
 const url='https://chatgpt.com/c/next-fixture',nonce='11111111-1111-4111-8111-111111111111';
 async function fixture(){
  const stored={},writes=[],sends=[];let consented=true,liveBinding={url,conversation:'/c/next-fixture',cycle:1,replyId:'reply-1',revision:2},insertResult={status:'inserted',verified:true};
- const api={runtime:{id:'extension',getURL:p=>'chrome-extension://extension/'+p,sendMessage:async()=>{}},storage:{session:{get:async()=>({...stored}),set:async x=>{writes.push(x);Object.assign(stored,x);}}},tabs:{get:async()=>({id:1,url,incognito:false}),query:async()=>[{id:1,url}],sendMessage:async(id,r,options)=>{sends.push({id,r,options});if(r.type==='PAIA_PROMPT_NEXT_PROBE')return {authorization:(await c.authorization()).generation,binding:liveBinding,nonce,idle:true};if(r.type==='PAIA_PROMPT_NEXT_INSERT')return insertResult;return {};}}};
+ const api={runtime:{id:'extension',getURL:p=>'chrome-extension://extension/'+p,sendMessage:async()=>{}},storage:{local:{get:async()=>({...stored}),set:async x=>{writes.push(x);Object.assign(stored,x);}}},tabs:{get:async()=>({id:1,url,incognito:false}),query:async()=>[{id:1,url}],sendMessage:async(id,r,options)=>{sends.push({id,r,options});if(r.type==='PAIA_PROMPT_NEXT_PROBE')return {authorization:(await c.authorization()).generation,binding:liveBinding,nonce,idle:true};if(r.type==='PAIA_PROMPT_NEXT_INSERT')return insertResult;return {};}}};
  const c=new NextPromptCommands({s:{status:async()=>({consented})}},api,{isIdle:async()=>true});
  const top={id:'extension',url,tab:{id:1},frameId:0,documentId:'document-1',documentLifecycle:'active'},popup={id:'extension',url:api.runtime.getURL('ui/popup.html')},frame={id:'extension',url:api.runtime.getURL('ui/prompt-surface.html')+'#next-'+nonce,tab:{id:1},frameId:3,documentId:'private-frame'};
  const config=enabled=>c.handle({type:'PAIA_PROMPT_NEXT_CONFIGURE',enabled},popup);
- const offer=async(text='登录完成后告诉我“已登录”。')=>c.handle({type:'PAIA_PROMPT_NEXT_OFFER',binding:{...liveBinding},authorization:(await c.authorization()).generation,snapshot:{completed:true,text,blocks:1,excluded:false}},top);
+ const offer=async(text='回复“已登录”。')=>c.handle({type:'PAIA_PROMPT_NEXT_OFFER',binding:{...liveBinding},authorization:(await c.authorization()).generation,snapshot:{completed:true,text,blocks:1,excluded:false}},top);
  const rpc=command=>c.handle({type:'PAIA_PROMPT_NEXT_RPC',nonce,command},frame);
  return {c,api,stored,writes,sends,top,popup,frame,config,offer,rpc,setBinding:b=>{liveBinding=b;},getBinding:()=>liveBinding,setConsent:x=>{consented=x;},setInsert:r=>{insertResult=r;}};
 }
 test('default OFF, separate explicit popup authorization, no body admission or storage while OFF',async()=>{
  const f=await fixture();assert.equal((await f.c.authorization()).enabled,false);await assert.rejects(f.offer);assert.equal(f.c.groups.size,0);assert.equal(f.writes.length,0);
  for(const sender of [f.top,f.frame,{...f.popup,id:'host'},{...f.popup,url:f.popup.url+'?fake'}])await assert.rejects(()=>f.c.handle({type:'PAIA_PROMPT_NEXT_CONFIGURE',enabled:true},sender));
- assert.equal((await f.config(true)).enabled,true);assert.equal(f.writes.length,1);assert.deepEqual(Object.keys(f.stored[NEXT_AUTH_KEY]).sort(),['enabled','generation']);
+ assert.equal((await f.config(true)).enabled,true);assert.equal(f.writes.length,1);assert.deepEqual(Object.keys(f.stored[NEXT_AUTH_KEY]).sort(),['enabled','generation','version']);
 });
 test('candidate is bounded, exact, ephemeral and independently bound to source document',async()=>{
- const f=await fixture();await f.config(true);await f.offer();const view=await f.rpc({type:'get'});assert.equal(view.choices[0].text,'已登录');assert.equal(view.condition,'登录后');assert.equal(view.type,'DIRECT_REPLY');
- assert.equal(JSON.stringify([...f.c.groups.values()]).includes('登录完成后告诉我'),false);assert.equal(JSON.stringify(f.writes).includes('已登录'),false);
+ const f=await fixture();await f.config(true);await f.offer();const view=await f.rpc({type:'get'});assert.equal(view.choices[0].text,'已登录');assert.equal(view.condition,'');assert.equal(view.type,'DIRECT_REPLY');
+ assert.equal(JSON.stringify([...f.c.groups.values()]).includes('回复“已登录”。'),false);assert.equal(JSON.stringify(f.writes).includes('已登录'),false);
  const status=await f.rpc({type:'insert',id:view.choices[0].id,operationId:crypto.randomUUID()});assert.deepEqual(status,{status:'inserted',verified:true});
  const send=f.sends.find(x=>x.r.type==='PAIA_PROMPT_NEXT_INSERT');assert.equal(send.r.text,'已登录');assert.deepEqual(send.options,{documentId:'document-1'});assert.equal(Object.keys(send.r).includes('snapshot'),false);
  await assert.rejects(()=>f.rpc({type:'copy',id:view.choices[0].id}));await assert.rejects(()=>f.rpc({type:'insert',id:view.choices[0].id,operationId:crypto.randomUUID()}));
@@ -59,3 +61,45 @@ test('Stage 3A has no network/body persistence/logging; existing user-only captu
 });
 
 test('exact trusted popup document tab has the same opt-in as action popup',async()=>{const f=await fixture(),sender={...f.popup,tab:{id:8},frameId:0};assert.equal((await f.c.handle({type:'PAIA_PROMPT_NEXT_STATUS'},sender)).enabled,false);assert.equal((await f.c.handle({type:'PAIA_PROMPT_NEXT_CONFIGURE',enabled:true},sender)).enabled,true);await assert.rejects(()=>f.c.handle({type:'PAIA_PROMPT_NEXT_CONFIGURE',enabled:true},{...sender,frameId:4}));});
+
+
+test('unpresentable condition or ambiguous choices cannot enter the first-click R3 surface',async()=>{
+ for(const text of ['登录完成后告诉我“已登录”。','请选择：A 或 B。']){const f=await fixture();await f.config(true);const response=await f.offer(text);assert.equal(response.available,false);assert.equal(f.c.groups.size,0);assert.equal(f.sends.some(x=>x.r.type==='PAIA_PROMPT_NEXT_INSERT'),false);assert.equal(JSON.stringify(f.writes).includes(text),false);}
+});
+
+// Native late-delivery proof must begin with a real supported local offer.
+// The original arbitrary marker is intentionally still refused by the detector.
+const nativeNextSource=await readFile(new URL('./cpv1-12-next-prompt-chrome-e2e.test.mjs',import.meta.url),'utf8');
+const lateReplyLiteral=/const lateReplyLiteral='([^']+)'/.exec(nativeNextSource)?.[1];
+test('late native availability fixture uses one original safe literal without expanding the detector',async()=>{
+ assert.equal(lateReplyLiteral,'I am ready');
+ const f=await fixture();await f.config(true);
+ const rejected=await f.offer('Reply "LATE_R3_VALUE".');
+ assert.deepEqual(rejected,{available:false,reason:'UNSAFE_OR_UNSUPPORTED_LITERAL'});
+ assert.equal(f.c.groups.size,0);
+ const text=`Reply "${lateReplyLiteral}".`,detected=detectNextAction({completed:true,text,blocks:1,excluded:false});
+ assert.equal(detected.type,'DIRECT_REPLY');assert.deepEqual(detected.choices,[lateReplyLiteral]);assert.equal(detected.condition,'');
+ const offered=await f.offer(text);assert.equal(offered.available,true);
+ const current=await f.c.card({type:'next_current'},{id:1});assert.equal(current.result.text,lateReplyLiteral);
+ assert.equal(f.sends.some(x=>x.r.type==='PAIA_PROMPT_NEXT_INSERT'),false);
+ assert.doesNotMatch(JSON.stringify(f.writes),/LATE_R3_VALUE|I am ready/);
+});
+test('original safe local result held after currentness cannot revive the latest invalidated shared state',async()=>{
+ const f=await fixture();await f.config(true);await f.offer(`Reply "${lateReplyLiteral}".`);
+ let release,held=false,signalEntered;const delivered=[],entered=new Promise(resolve=>signalEntered=resolve);
+ const state=new PromptAssistState({send:async command=>{
+  assert.equal(command.type,'suggestion_current');const value=await f.c.card({type:'next_current'},{id:1});
+  delivered.push(value.result?.text??null);
+  if(!held&&value.result?.text===lateReplyLiteral){held=true;await new Promise(resolve=>{release=resolve;signalEntered();});}
+  return {source:'local',result:value.result};
+ }});
+ const old=state.refresh();try{
+ await Promise.race([entered,old.then(()=>{throw Error('Original availability settled without reaching the held safe result');})]);
+ const original=f.c.groups.get(1);f.setBinding({...f.getBinding(),revision:f.getBinding().revision+1});
+ await f.c.handle({type:'PAIA_PROMPT_NEXT_INVALIDATE',id:original.id},f.top);
+ await state.refresh();assert.equal(state.result,null);release();await old;
+ assert.deepEqual(delivered,[lateReplyLiteral,null]);assert.equal(state.result,null);assert.equal(state.busy,false);
+ assert.equal(f.sends.some(x=>x.r.type==='PAIA_PROMPT_NEXT_INSERT'),false);
+ assert.doesNotMatch(JSON.stringify(f.writes),/I am ready/);
+ }finally{release?.();await old;}
+});

@@ -4,7 +4,7 @@ import {topicRootTarget} from '../core/topic-root-target.js';
 import {own} from '../core/prompt-reuse-preferences.js';
 import {matchNextFamily} from '../core/next-family-matcher.js';
 import {detectNextAction} from '../core/next-action-detector.js';
-export const NEXT_AUTH_KEY='promptNextAuthorizationV1';
+export const NEXT_AUTH_KEY='promptNextAutomaticPreferenceV2';
 const uuid=x=>typeof x==='string'&&/^[a-f0-9-]{36}$/.test(x);
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const site=url=>{try{return new URL(url).origin==='https://chatgpt.com';}catch{return false;}};
@@ -12,19 +12,20 @@ const supported=url=>{try{const u=new URL(url);return u.origin==='https://chatgp
 const validBinding=b=>own(b,['url','conversation','cycle','replyId','revision'])&&supported(b.url)&&b.conversation===new URL(b.url).pathname&&Number.isSafeInteger(b.cycle)&&b.cycle>0&&Number.isSafeInteger(b.revision)&&b.revision>=0&&typeof b.replyId==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$/.test(b.replyId);
 const fail=()=>{throw new ArchiveError('FORBIDDEN');};
 export class NextPromptCommands{
+ #insertions=new WeakMap();
  constructor(service,api,surface){this.service=service;this.api=api;this.surface=surface;this.instance=crypto.randomUUID();this.groups=new Map();this.serial=0;this.changing=false;this.tail=Promise.resolve();this.offers=new Map();}
  async authorization(){
   const serial=this.serial;
-  const stored=this.api.storage.session?(await this.api.storage.session.get(NEXT_AUTH_KEY))[NEXT_AUTH_KEY]:undefined;
+  const stored=this.api.storage.local?(await this.api.storage.local.get(NEXT_AUTH_KEY))[NEXT_AUTH_KEY]:undefined;
   const consented=(await this.service.s.status()).consented;
-  return {enabled:!this.changing&&serial===this.serial&&consented&&stored?.enabled===true&&uuid(stored.generation),generation:(stored?.generation||'off')+':'+this.instance+':'+this.serial};
+  return {enabled:!this.changing&&serial===this.serial&&consented&&stored?.version===2&&stored.enabled===true&&uuid(stored.generation),generation:(stored?.generation||'off')+':'+this.instance+':'+this.serial};
  }
  async configure(enabled){
   // Synchronous invalidation precedes IO, including concurrent enable/revoke.
   const ticket=++this.serial;this.changing=true;this.groups.clear();this.offers.clear();
   const write=async()=>{
-   if(!this.api.storage.session&&enabled)throw new ArchiveError('UNAVAILABLE');
-   if(this.api.storage.session)await this.api.storage.session.set({[NEXT_AUTH_KEY]:{enabled,generation:crypto.randomUUID()}});
+   if(!this.api.storage.local&&enabled)throw new ArchiveError('UNAVAILABLE');
+   if(this.api.storage.local)await this.api.storage.local.set({[NEXT_AUTH_KEY]:{version:2,enabled,generation:crypto.randomUUID()}});
    if(ticket===this.serial)this.changing=false;
    const tabs=this.api.tabs?.query?await this.api.tabs.query({url:'https://chatgpt.com/*'}):[];
    await Promise.allSettled(tabs.filter(t=>!t.incognito).map(t=>this.api.tabs.sendMessage(t.id,{type:'PAIA_PROMPT_NEXT_AUTH_CHANGED'},{frameId:0})));
@@ -54,6 +55,15 @@ export class NextPromptCommands{
   if(group.family){const selected=await this.service.resolve({id:group.family.id,text:group.family.text});if(selected.generation!==group.family.generation)fail();}
   return this.assertCurrent(group);
  }
+ retireConsumed(group,status){
+  if(!['inserted','uncertain'].includes(status))return;
+  group.retired=true;
+  if(this.groups.get(group.tabId)!==group)return;
+  // This body-free notice can only retire the exact original host opportunity.
+  // Keep the original attempt/outcome tombstone, including checked legacy copy.
+  try{void this.api.tabs.sendMessage(group.tabId,{type:'PAIA_PROMPT_NEXT_CONSUMED',id:group.id,binding:group.binding,authorization:group.authorization,status},{documentId:group.documentId}).catch(()=>{});}catch{};
+  void this.api.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_CHANGED'}).catch(()=>{});
+ }
  async handle(r,sender){
   const api=this.api,popup=sender.id===api.runtime.id&&(!sender.tab||sender.frameId===0&&!sender.tab.incognito)&&sender.url===api.runtime.getURL('ui/popup.html');
   const archiveURL=api.runtime.getURL('ui/archive.html');
@@ -82,6 +92,8 @@ export class NextPromptCommands{
    const latest=await this.probe(tab,sender.documentId);if(!same(latest?.binding,r.binding)||latest?.authorization!==auth.generation||this.offers.get(tab.id)!==attempt)fail();
    this.groups.delete(tab.id);
    if(result.type==='DEFER')return {available:false,reason:result.reason};
+   if(result.condition)return {available:false,reason:'PREREQUISITE_UNPRESENTABLE'};
+   if(result.choices.length!==1)return {available:false,reason:'AMBIGUOUS_QUICK_CHOICE'};
    if(result.choices.some(text=>!quickPromptEligible(text)))return {available:false,reason:'QUICK_EXPRESSION_TOO_LONG'};
    if(this.groups.size>=100)return {available:false,reason:'RESOURCE_LIMIT'};
    const group={id:crypto.randomUUID(),tabId:tab.id,documentId:sender.documentId,binding:r.binding,authorization:auth.generation,type:result.type,sourceType:result.sourceType,...(result.family?{family:result.family}:{}),condition:result.condition,evidence:result.evidence,choices:result.choices.map((text,i)=>({id:crypto.randomUUID(),text,label:result.labels?.[i]||text})),attempted:new Set(),outcomes:new Map()};
@@ -90,11 +102,21 @@ export class NextPromptCommands{
    void api.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_CHANGED'}).catch(()=>{});
    return {available:true,id:group.id};
   }
+  if(r.type==='PAIA_PROMPT_NEXT_INSERT_CURRENT'){
+   if(!own(r,['type','id','operationId','choiceId'])||Object.keys(r).length!==4||!uuid(r.id)||!uuid(r.operationId)||!uuid(r.choiceId))fail();
+   const tab=await this.top(sender),g=this.groups.get(tab.id),pending=g&&this.#insertions.get(g);
+   const current=()=>!!pending&&this.groups.get(tab.id)===g&&!g.retired&&g.documentId===sender.documentId&&g.id===r.id&&this.#insertions.get(g)===pending&&pending.operationId===r.operationId&&pending.choiceId===r.choiceId&&g.attempted.has(pending.choiceId)&&!pending.checked;
+   if(!current())fail();
+   // This is the original accepted click, not a fresh display opportunity.
+   // The busy original surface must not turn a legitimate Family click into
+   // failure. Family, permission and exact live reply still requalify.
+   await this.resolveFamily(g);if(!current())fail();pending.checked=true;return {current:true};
+  }
   if(r.type==='PAIA_PROMPT_NEXT_PRESENT'){
    if(!own(r,['type','id']))fail();const tab=await this.top(sender),g=this.groups.get(tab.id);if(g?.id!==r.id||g.documentId!==sender.documentId)fail();
-   const {live}=await this.assertCurrent(g),safe=live.idle===true&&await this.surface.isIdle(tab.id);
+   const {live}=await this.assertCurrent(g),safe=!g.retired&&live.idle===true&&await this.surface.isIdle(tab.id);
    // The idle probe yields; do not qualify a replaced/revoked Family or reply.
-   await this.assertCurrent(g);return {safe,sourceType:g.sourceType};
+   await this.assertCurrent(g);return {safe:safe&&!g.retired,sourceType:g.sourceType};
   }
   // Extension frame only: same resource, distinct nonce and independently bound host.
   if(r.type!=='PAIA_PROMPT_NEXT_RPC'||!own(r,['type','nonce','command'])||!uuid(r.nonce)||sender.id!==api.runtime.id||!sender.tab||sender.tab.incognito||!Number.isInteger(sender.frameId)||sender.frameId<=0||sender.url!==api.runtime.getURL('ui/prompt-surface.html')+'#next-'+r.nonce)fail();
@@ -111,19 +133,30 @@ export class NextPromptCommands{
   if(c?.type!=='insert'||!own(c,['type','id','operationId'])||!uuid(c.operationId))fail();
   const choice=g.choices.find(x=>x.id===c.id);if(!choice||g.attempted.has(choice.id)||!quickPromptEligible(choice.text))fail();
   g.attempted.add(choice.id);
+  const pending={operationId:c.operationId,choiceId:choice.id,checked:false};this.#insertions.set(g,pending);
   let timer,result;
   try{
    await this.resolveFamily(g);
-   result=await Promise.race([api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_INSERT',id:g.id,text:choice.text,sourceType:g.sourceType,operationId:c.operationId,binding:g.binding,authorization:g.authorization},{documentId:g.documentId}),new Promise(resolve=>{timer=setTimeout(()=>resolve({status:'uncertain'}),2000);})]);
-  }catch{result={status:'uncertain'};}finally{clearTimeout(timer);}
-  const status=result?.status==='inserted'&&result.verified===true?'inserted':result?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);return {status,verified:status==='inserted'};
+   result=await Promise.race([api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_INSERT',id:g.id,text:choice.text,sourceType:g.sourceType,operationId:c.operationId,choiceId:choice.id,binding:g.binding,authorization:g.authorization},{documentId:g.documentId}),new Promise(resolve=>{timer=setTimeout(()=>resolve({status:'uncertain'}),2000);})]);
+  }catch{result={status:'uncertain'};}finally{clearTimeout(timer);if(this.#insertions.get(g)===pending)this.#insertions.delete(g);}
+  const status=result?.status==='inserted'&&result.verified===true?'inserted':result?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted'};
  }
- async card(command,tab){
+ async card(command,tab,{assertCurrent=async()=>{}}={}){
+  if(['next_current','next_result','next_insert'].includes(command?.type)){
+   const keys=command.type==='next_current'?['type']:command.type==='next_result'?['type','id']:['type','id','operationId','conditionPresented'];if(!own(command,keys)||Object.keys(command).length!==keys.length)fail();
+   await assertCurrent();const g=this.groups.get(tab.id);if(!g||g.retired){if(command.type==='next_current')return {result:null};fail();}await this.resolveFamily(g);await assertCurrent();
+   const choice=command.type==='next_current'?g.choices.find(x=>!g.attempted.has(x.id)&&quickPromptEligible(x.text)):g.choices.find(x=>x.id===command.id);
+   if(!choice||g.condition||!quickPromptEligible(choice.text)){if(command.type==='next_current')return {result:null};fail();}
+   const result={id:choice.id,kind:'SUGGESTION',text:choice.text,condition:''};if(command.type==='next_current')return {result};if(command.type==='next_result')return result;
+   if(!uuid(command.operationId)||command.conditionPresented!==true||g.attempted.has(choice.id))fail();
+   g.attempted.add(choice.id);const pending={operationId:command.operationId,choiceId:choice.id,checked:false};this.#insertions.set(g,pending);let timer,response;try{await this.resolveFamily(g);await assertCurrent();response=await Promise.race([this.api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_INSERT',id:g.id,text:choice.text,sourceType:g.sourceType,operationId:command.operationId,choiceId:choice.id,binding:g.binding,authorization:g.authorization},{documentId:g.documentId}),new Promise(resolve=>{timer=setTimeout(()=>resolve({status:'uncertain'}),2000);})]);}catch{response={status:'uncertain'};}finally{clearTimeout(timer);if(this.#insertions.get(g)===pending)this.#insertions.delete(g);}
+   const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted'};
+  }
   if(command?.type==='next_available'&&own(command,['type'])){
-   const g=this.groups.get(tab.id);if(!g)return {available:false};try{await this.assertCurrent(g);return {available:true};}catch{if(this.groups.get(tab.id)===g)this.groups.delete(tab.id);return {available:false};}
+   const g=this.groups.get(tab.id);if(!g||g.retired)return {available:false};try{await this.assertCurrent(g);return {available:true};}catch{if(this.groups.get(tab.id)===g)this.groups.delete(tab.id);return {available:false};}
   }
   if(command?.type==='next_reopen'&&own(command,['type'])){
-   const g=this.groups.get(tab.id);if(!g)fail();await this.assertCurrent(g);
+   const g=this.groups.get(tab.id);if(!g||g.retired)fail();await this.assertCurrent(g);
    if(!await this.surface.isIdle(tab.id))fail();
    // The idle probe yields: authorization or the current reply may change.
    await this.resolveFamily(g);
