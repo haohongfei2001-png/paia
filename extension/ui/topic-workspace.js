@@ -1586,7 +1586,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   if(!available&&reportFailure)this.onStatus('后台消息通道暂时中断；当前内容保留。','error');
   if(strict&&!available)throw {code:'MESSAGE_CHANNEL_INTERRUPTED'};return available?state:null;
  }
- async readContentRefresh(){if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}if(this.sectionEndWriter?.hasDraft())return false;if(this.mutating){this.mutationDeferredRead={key:this.readKey(),intent:this.openIntent,presentation:this.presentationIntent,epoch:this.statusEpoch};return false;}const serial=++this.serial,rootCueEpoch=this.rootCueEpoch||0;$('thought-home-tools').hidden=!!this.id;$('thought-collection').hidden=!!this.id;$('revision-history').hidden=!this.id;$('thought-document').hidden=!this.id;
+ async readContentRefresh(){if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}if(this.sectionEndWriter?.hasDraft())return false;if(this.mutating){this.mutationDeferredRead={key:this.readKey(),intent:this.openIntent,presentation:this.presentationIntent,epoch:this.statusEpoch};return false;}const serial=++this.serial,rootCueEpoch=this.rootCueEpoch||0,readIntent=this.openIntent;$('thought-home-tools').hidden=!!this.id;$('thought-collection').hidden=!!this.id;$('revision-history').hidden=!this.id;$('thought-document').hidden=!this.id;
   if(!this.id){
    this.ensureContinuousRoot();this.rootProviderKey=null;const query='',scope=this.homeCollectionScope(query);$('thought-source-scope').value='';if(query&&this.personalRoot)void this.loadRootSearchBase();
    if(!this.homeCollection||this.homeCollection.scope!==scope||this.homeCollection.query!==query)this.homeCollection=this.createHomeCollection(query);
@@ -1622,7 +1622,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(!$('topic-heading').children.length)$('topic-heading').append(element('h1','',topic.name));
    if(this.editor&&!await this.checkAllTracked(serial))return false;
    const cached=this.aiTopics.get(this.id)?.presentation;this.originalPane.hidden=false;this.aiPane.hidden=false;$('topic-toolbar').hidden=false;$('topic-continuous-before').hidden=true;$('topic-continuous-after').hidden=true;
-   const sectionId=this.activeSectionId,current=()=>serial===this.serial&&this.view==='ai'&&this.id===topic.id&&this.activeSectionId===sectionId&&!this.sectionEndWriter?.hasDraft();
+   const sectionId=this.activeSectionId,current=()=>serial===this.serial&&this.openIntent===readIntent&&rootCueEpoch===(this.rootCueEpoch||0)&&this.view==='ai'&&this.id===topic.id&&this.activeSectionId===sectionId&&!this.sectionEndWriter?.hasDraft();
    // Eligibility and purge checks precede presentation deferral, even during
    // selection or IME. Reflow must wait; forbidden evidence must not wait.
    await this.aiEditor?.refreshEvidence?.();if(!current())return false;
@@ -1630,19 +1630,49 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(!current())return false;
    const scopeKey=JSON.stringify([this.id,sectionId,projection?.complete===true,[...(projection?.admittedFields||[])].sort(),projection?.generation,projection?.recoveryEpoch]);
    const defer=()=>{const active=this.aiEditor,topicId=this.id,intent=this.openIntent;if(!active||!cached)return false;active.deferReadingRefresh(async()=>{if(active.disposed||this.aiEditor!==active||this.id!==topicId||this.activeSectionId!==sectionId||this.view!=='ai'||this.openIntent!==intent)return;await this.refresh();});return true;};
-   const active=this.aiEditor,withdrawAuthority=!!active&&!active.recoveryOnly&&(!cached||projection?.complete!==true||cached.recoveryEpoch!==active.row?.recoveryEpoch||[...(active.admittedFields||active.nodes.keys())].some(field=>!projection.admittedFields.has(field))||[...(active.sectionEvidence||[])].some(id=>!projection.sectionEvidence.has(id)));
-   // Different destination fields during an explicit Section handoff do not
-   // revoke the old Section's live composition. Original evidence refresh above
-   // still retires actually forbidden material before this presentation fence.
-   const crossingSection=()=>{const run=this.aiSectionNavigationRun;return run?.topicId===topic.id&&run.intent===this.openIntent&&!run.published&&run.previous?.section!==sectionId;};
-   const canPaint=()=>current()&&![this.editor,...(withdrawAuthority&&!crossingSection()?[]:[this.aiEditor]),this.dialogEditor].some(isComposing)&&(withdrawAuthority||!cached||!this.aiEditor?.readingReflowBlocked());
+   const active=this.aiEditor,run=this.aiSectionNavigationRun,intent=this.openIntent,oldScopeKey=this.aiScopeKey;
+   let oldScope;try{oldScope=JSON.parse(oldScopeKey);}catch{}
+   const crossingSection=!!active&&!active.disposed&&!active.recoveryOnly&&run?.topicId===topic.id&&run.intent===intent&&!run.published&&run.previous?.section!==sectionId&&Array.isArray(oldScope)&&oldScope[0]===topic.id&&oldScope[1]===run.previous?.section&&oldScope[2]===true&&oldScope[5]===active.row?.recoveryEpoch;
+   let handoffCurrent=null,handoffQualified=false,recheckHandoff=null;
+   if(crossingSection){
+    const oldRow=active.row,oldSignature=JSON.stringify(oldRow),fields=[...(active.admittedFields||active.nodes.keys())],evidence=[...(active.sectionEvidence||[])];
+    handoffCurrent=()=>current()&&this.aiEditor===active&&!active.disposed&&!active.recoveryOnly&&active.row===oldRow&&JSON.stringify(oldRow)===oldSignature&&this.aiScopeKey===oldScopeKey&&this.aiSectionNavigationRun===run&&this.openIntent===intent&&!run.published;
+    // A destination's different field set is not revocation of its predecessor.
+    // Independently reread that exact old Section, including original purge
+    // tracking; fieldsOnly.refreshEvidence alone does not retire edit authority.
+    recheckHandoff=async()=>{
+     const prior=await qualifySectionAI(oldRow,{topicId:topic.id,sectionId:run.previous.section,isCurrent:handoffCurrent,load:async options=>{
+      // Each exact anchor tracks only its own old evidence. The original
+      // reader caps tracking at 100; a qualified field can reference 200 IDs.
+      const tracked=options.anchorId&&evidence.includes(options.anchorId)?[options.anchorId]:[];
+      const page=await request('GET_LIBRARY_SECTION_READING',{options:{...options,...(tracked.length?{trackedEntryIds:tracked}:{})}});
+      if(page?.cursorInvalid&&page.anchorUnavailable)return page;
+      if(tracked.length&&(!Array.isArray(page?.tracked)||tracked.some(id=>!page.tracked.some(row=>row.id===id&&row.lifecycle==='active'&&!row.purged))))throw Error('SECTION_AUTHORITY_CHANGED');
+      return page;
+     }});
+     if(!handoffCurrent())return false;
+     const qualified=cached?.recoveryEpoch===oldRow.recoveryEpoch&&prior.complete===true&&JSON.stringify([...fields].sort())===JSON.stringify([...(oldScope[3]||[])].sort())&&fields.every(field=>prior.admittedFields.has(field))&&evidence.every(id=>prior.sectionEvidence.has(id));
+     if(!qualified){
+      // Proven old-scope loss retires the native writer immediately, before a
+      // destination-generation mismatch or IME can delay the presentation fence.
+      if(!active.withdraw?.()){active.dispose();if(this.aiEditor===active)this.aiEditor=null;}
+     }
+     return qualified;
+    };
+    handoffQualified=await recheckHandoff();if(!handoffQualified)return false;
+   }
+   const withdrawAuthority=!!active&&!active.recoveryOnly&&!handoffQualified&&(!cached||projection?.complete!==true||cached.recoveryEpoch!==active.row?.recoveryEpoch||[...(active.admittedFields||active.nodes.keys())].some(field=>!projection.admittedFields.has(field))||[...(active.sectionEvidence||[])].some(id=>!projection.sectionEvidence.has(id))||crossingSection);
+   const canPaint=()=>current()&&(!handoffQualified||handoffCurrent())&&![this.editor,...(withdrawAuthority?[]:[this.aiEditor]),this.dialogEditor].some(isComposing)&&(withdrawAuthority||!cached||!this.aiEditor?.readingReflowBlocked());
+   if(handoffQualified&&isComposing(active))return false;
    if(!withdrawAuthority&&cached&&this.aiEditor?.readingReflowBlocked()){defer();return 'deferred';}
    if(!canPaint())return false;
    if(this.aiEditor&&!this.aiEditor.recoveryOnly&&!withdrawAuthority&&(this.aiEditor.dirty()||this.aiEditor.saving)){
     this.aiEditor.collect();if(!await this.aiEditor.flush()&&this.aiEditor.dirty())return false;if(!canPaint())return false;
    }
    const commit=()=>{
-   if(!canPaint()){defer();return false;}
+   // New input after the async flush/qualification still belongs to the old
+   // Section. A saved revision also requires a fresh destination status read.
+   if(!canPaint()||handoffQualified&&(active.dirty()||active.saving)){defer();return false;}
    if(this.aiEditor?.recoveryOnly){
     // Refresh cannot silently lose a failed draft, retry it, or mount a second
     // writer. A protected draft can transfer only to a freshly qualified view.
@@ -1671,10 +1701,11 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    }
    this.filterAIReading();return true;
    };
-   aiPublication={commit,current,projection,sectionId,committed:false,defer};return true;
+   aiPublication={commit,current,projection,sectionId,committed:false,defer,recheckHandoff};return true;
    })();
    if(presentationRead===false||presentationRead==='deferred')return false;
   }
+  try{
   $('topic-toolbar').hidden=false;
   const visible=this.topicReader?.scopeSectionId===this.activeSectionId?this.topicAnchor():null,navigationAnchor=this.topicNavigationAnchor,resetFromStart=this.topicResetFromStart,anchorId=resetFromStart?null:(navigationAnchor?.entryId||visible?.id||positionAnchor?.entryId||null),sectionId=this.topicNavigationSection||null,restoreAnchor=resetFromStart?null:(navigationAnchor?.entryId?{id:navigationAnchor.entryId,top:navigationAnchor.top}:visible);this.topicResetFromStart=false;this.topicNavigationAnchor=null;this.topicNavigationSection=null;const timeEdge=this.topicTimeEdge||null;this.topicTimeEdge=null;
   if(!await this.checkAllTracked(serial)||serial!==this.serial)return false;
@@ -1688,12 +1719,19 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(staged.projection?.complete&&(staged.projection.recoveryEpoch!==page.recoveryEpoch||staged.projection.authority!==JSON.stringify(page.authority??null)))return false;
    if(!staged.commit())return false;staged.committed=true;return true;
   }:null;
-  const state=await this.resetTopicReader({anchorId,sectionId,timeEdge,restoreAnchor,saved,expectedSerial:serial,beforePaint,prepareInitial:explicitEntry||!!positionAnchor,...(explicitEntry?{isCurrent:navigationAnchor.isCurrent}:positionAnchor?{isCurrent:positionCurrent}:{})});if(serial!==this.serial||state.stale||state.paintRefused||aiPublication&&!aiPublication.committed)return false;
+  const state=await this.resetTopicReader({anchorId,sectionId,timeEdge,restoreAnchor,saved,expectedSerial:serial,beforePaint,prepareInitial:explicitEntry||!!positionAnchor,...(explicitEntry?{isCurrent:navigationAnchor.isCurrent}:positionAnchor?{isCurrent:positionCurrent}:{})});
+  if(serial!==this.serial||state.stale||state.paintRefused||aiPublication&&!aiPublication.committed)return false;
   this.updateTopicSearchCount();
   if(this.editor&&this.document){for(const m of this.editor.metadata){const row=m.kind==='topic'?this.document.topic:this.document.sections.find(s=>s.sectionId===m.row.sectionId);if(row&&!(m.kind==='topic'&&this.document.kind==='section_reading'))m.receive(row);}this.editor.entry.receive(this.document.items.filter(x=>!x.entry.large).map(x=>x.entry));}
   return true;
+  }finally{
+   // Tracked-body and final destination reads may reject after the old-scope
+   // proof. Recheck this same owner before any uncommitted exit; neither an
+   // interrupted read nor a changed generation may leave revoked fields live.
+   if(serial===this.serial&&aiPublication&&!aiPublication.committed)await aiPublication.recheckHandoff?.();
+  }
 
- }
+ } 
  async leaveEditors({historyIntent=null}={}){
   const claim=Symbol('topic-leave'),route={id:this.id,view:this.view,intent:this.openIntent,open:this.topicOpenIntent,departure:this.homeDepartureToken,presentation:this.presentationIntent,cue:this.rootCueEpoch};
   this.leavePublication=claim;let serial=this.serial,epoch=this.statusEpoch;
