@@ -24,6 +24,7 @@ import {canonical,equal,exact,opaque,fail} from './contracts.js';
 // This is deliberately not general semantic retrieval. In particular, a reply,
 // callback ID, external-read switch or matching name cannot grant processing.
 export const ASSIST_CONTEXT_LIMITS=Object.freeze({items:CONTEXT_READ_LIMITS.page,evidence:CONTEXT_LINEAGE_LIMITS.inputs,topics:CONTEXT_LINEAGE_LIMITS.topics,sources:CONTEXT_LINEAGE_LIMITS.sources});
+const sourceSelections=new WeakMap();
 const held=new WeakMap(),copy=x=>structuredClone(x),bytes=x=>new TextEncoder().encode(JSON.stringify(x)).byteLength;
 const need=(x,code='STALE_BASE')=>{if(!x)fail(code);};
 const own=(row,key)=>{const d=Object.getOwnPropertyDescriptor(row||{},key);need(d&&Object.hasOwn(d,'value'),'UNAVAILABLE');return d.value;};
@@ -144,7 +145,7 @@ export async function selectAssistContext(store,t,{binding,replyBinding,replyTex
  if(replyText!==null){need(typeof replyText==='string'&&[...replyText].length<=ASSIST_LIMITS.replyCharacters&&new TextEncoder().encode(replyText).byteLength<=ASSIST_LIMITS.replyBytes,'UNAVAILABLE');replyText=normalized(replyText);budget.hashFields++;budget.hashBytes+=new TextEncoder().encode(replyText).byteLength;need(budget.hashBytes<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes,'RESOURCE_LIMIT');}
  const relevance={chatKey:'chatgpt:'+chat.id,narrow:copy(narrow),epoch:admission.epoch},selection=await candidatesIn(reader,relevance),candidates=selection.items;
  const evidence=scopeEvidence(candidates),inputs=inputScope(evidence),sources=[...new Set(evidence.flatMap(e=>e.sourceRecordIds||[]))].sort();need(evidence.length<=ASSIST_CONTEXT_LIMITS.evidence&&new Set(evidence.map(e=>e.topicId)).size<=ASSIST_CONTEXT_LIMITS.topics&&sources.length<=ASSIST_CONTEXT_LIMITS.sources,'RESOURCE_LIMIT');
- const handle=Object.freeze({}),h={store,database:store.repository.db,binding:copy(binding),replyBinding:copy(replyBinding),replyText,admission,budget,relevance,selection,selected:candidates,evidence,signal:controller.signal,controller,removeSignal,isCurrent,read:null,processing:null,receipt:null,discovery:null,discoveryReceipt:null,removeAbort:null,expiryTimer:null,removeDiscoveryAbort:null,discoveryExpiryTimer:null,onRevoke:null,captured:false,released:false,items:[],snapshots:null,lineages:[]};
+ const handle=Object.freeze({}),h={sourceIdentity:Object.freeze({}),store,database:store.repository.db,binding:copy(binding),replyBinding:copy(replyBinding),replyText,admission,budget,relevance,selection,selected:candidates,evidence,signal:controller.signal,controller,removeSignal,isCurrent,read:null,processing:null,receipt:null,discovery:null,discoveryReceipt:null,removeAbort:null,expiryTimer:null,removeDiscoveryAbort:null,discoveryExpiryTimer:null,onRevoke:null,captured:false,released:false,items:[],snapshots:null,lineages:[]};
  active=h;held.set(handle,h);try{await buildScope(h,reader,candidates);alive(h);return handle;
  }catch(error){releaseAssistContext(handle);throw error;}
  }catch(error){controller.abort();removeSignal();throw error;}
@@ -161,7 +162,7 @@ const normalized=s=>s.normalize('NFKC').replace(/\s+/gu,' ').trim().toLowerCase(
 async function discover(h,t,handle,base){
  if(!base.discovery.length)return {items:base.items,seeds:base.seeds};need(h.discovery&&typeof h.replyText==='string'&&h.replyText.length<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes,'UNAVAILABLE');
  const scope={purpose:'assist-context-discovery',version:1,binding:copy(h.binding),contextItems:base.discovery.map(m=>({itemId:m.id,revision:m.revision,card:m.card,selectedFields:['section']}))};need(bytes(scope)+bytes(h.scope)<=32768,'RESOURCE_LIMIT');
- const receipt=grant(h,await h.discovery.resolve(t,copy(scope)),scope);alive(h);trackReceipt(h,handle,receipt,{discovery:true});alive(h);
+ const receipt=grant(h,await resolveOriginalSelection(h,t,h.discovery,scope,base.discovery),scope);alive(h);trackReceipt(h,handle,receipt,{discovery:true});alive(h);
  const row=await t.get('meta',CONTEXT_CARDS_ROW),labels=[];
  for(const m of base.discovery){alive(h);const item=row?.items.find(x=>x.id===m.id);need(item&&equal(metadata(item),m));need(h.budget.hashFields<CONTEXT_TOPIC_SCOPE_LIMITS.hashFields&&h.budget.hashBytes+320<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes,'RESOURCE_LIMIT');const label=own(item,'section');need(typeof label==='string'&&label.length<=80&&!label.includes('\u0000'),'UNAVAILABLE');h.budget.hashFields++;h.budget.hashBytes+=new TextEncoder().encode(label).byteLength;labels.push(label);alive(h);}
  // One bounded calculation over independently granted labels. Its output is
@@ -172,6 +173,23 @@ async function discover(h,t,handle,base){
 }
 function entrySpecsFields(entry,evidence){return [...new Set(['body','title','note',...evidence.filter(e=>entryEvidence(e)&&e.entryId===entry.id).flatMap(e=>e.selectedFields)])].sort();}
 export function assistContextScope(handle){return copy(state(handle).scope);}
+// A short-lived provenance witness supplied only by this original selector. It
+// proves where a proposed scope came from; it is NOT a processing permission.
+async function resolveOriginalSelection(h,t,issuer,scope,selected=h.selected){
+ alive(h);const negative=await restrictions(t);alive(h);
+ const proof=Object.freeze({}),record={h,t,scope:copy(scope),metadata:copy(selected),negative,active:true};sourceSelections.set(proof,record);
+ try{return await issuer.resolve(t,copy(scope),proof);}finally{record.active=false;sourceSelections.delete(proof);}
+}
+export function readOriginalAssistSelection(proof,store,transaction){
+ const record=sourceSelections.get(proof),h=record?.h;
+ need(record?.active&&record.t===transaction&&h.store===store&&!h.released&&store.repository.db===h.database&&!nativeAborted.call(h.signal),'UNAVAILABLE');
+ const scope=copy(record.scope),selected=record.metadata;
+ need(scope.contextItems.length===selected.length,'UNAVAILABLE');
+ return {selection:h.sourceIdentity,scope,replyText:h.replyText,binding:copy(h.binding),replyBinding:copy(h.replyBinding),restoreEpoch:h.admission.epoch,authority:h.admission.authority,
+  metadata:copy(selected),restrictions:copy(record.negative),topicIds:[...new Set([...(h.evidence||[]).map(e=>e.topicId),...(h.graph?.placements||[]).filter(p=>p.lifecycle==='active').map(p=>p.topicId)])],
+  topics:copy(h.graph?.topics||[]),sections:copy(h.graph?.sections||[]),signal:h.signal};
+}
+
 function grant(h,raw,scope=h.scope){
  const capability=scope.purpose==='assist-context-discovery'?h.discovery:h.processing;
  need(raw&&typeof raw==='object'&&[Object.prototype,null].includes(Object.getPrototypeOf(raw)),'UNAVAILABLE');
@@ -183,7 +201,7 @@ function grant(h,raw,scope=h.scope){
  receiptRecords.set(raw,{store:h.store,repository:h.store.repository,database:h.database,scope:captured.snapshot,epoch:values.epoch,resolve:capability.resolve,current:capability.isCurrent,expiresAt:values.expiresAt,signal:values.revocationSignal,lastNow:now,retired:false,nodes:[{value:raw,prototype:Object.getPrototypeOf(raw),keys,fields,immutable:Object.isFrozen(raw)},...captured.nodes]});
  receiptFacts(raw,capability,h);return raw;
 }
-async function authorize(h,t){alive(h);if(!h.selected.length)return;need(h.processing&&typeof h.processing.resolve==='function'&&typeof h.processing.isCurrent==='function','UNAVAILABLE');const current=grant(h,await h.processing.resolve(t,copy(h.scope)));if(h.receipt){const prior=receiptFacts(h.receipt,h.processing,h),next=receiptFacts(current,h.processing,h);need(next.epoch===prior.epoch&&next.expiresAt===prior.expiresAt&&next.signal===prior.signal&&equal(next.scope,prior.scope),'UNAVAILABLE');}else h.receipt=current;alive(h);}
+async function authorize(h,t){alive(h);if(!h.selected.length)return;need(h.processing&&typeof h.processing.resolve==='function'&&typeof h.processing.isCurrent==='function','UNAVAILABLE');const current=grant(h,await resolveOriginalSelection(h,t,h.processing,h.scope));if(h.receipt){const prior=receiptFacts(h.receipt,h.processing,h),next=receiptFacts(current,h.processing,h);need(next.epoch===prior.epoch&&next.expiresAt===prior.expiresAt&&next.signal===prior.signal&&equal(next.scope,prior.scope),'UNAVAILABLE');}else h.receipt=current;alive(h);}
 async function material(h,t){
  if(!h.evidence.length)return null;
  const inputs=[],sources=[],entries=[],structures=[],memory=new MemoryService(h.store),filter=await t.get('meta','smart-filter');let retained=0;const retain=value=>{retained+=bytes(value);need(retained<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes,'RESOURCE_LIMIT');return value;};

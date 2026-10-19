@@ -1,7 +1,9 @@
 import {AssistConsent,ASSIST_AUTH_KEY,ASSIST_CONSENT_VERSION} from './assist-consent.js';
 import {ASSIST_LIMITS} from '../core/ai-usage/assist-response.js';
+import {createAssistContextProcessingSource} from './assist-context-processing.js';
 import {AssistReplyLease} from './assist-reply-lease.js';
 import {createConfiguredAssistSession} from '../core/ai-usage/configured-assist-session.js';
+import {readAssistServiceConfiguration} from '../core/ai-usage/assist-service-configuration.js';
 import {ArchiveError} from '../core/constants.js';
 import {topicRootTarget} from '../core/topic-root-target.js';
 import {own,quickPromptEligible} from '../core/prompt-reuse-preferences.js';
@@ -14,7 +16,8 @@ const hostKey=host=>host.tabId+':'+host.documentId;
 // A source-authenticated, prospective completed-reply opportunity owns generation.
 // The private R3 surface consumes an already generated result; it never triggers AI.
 export class AssistPromptCommands {
- constructor(store,api,{configuration,surface=null}={}){
+ constructor(store,api,{configuration,surface=null,contextProcessingSource}={}){
+  if(contextProcessingSource!==undefined&&contextProcessingSource!==null)fail('INVALID_REQUEST');
   this.store=store;this.api=api;this.surface=surface;this.hosts=new Map();this.views=new Map();this.activations=new Map();
   this.consent=new AssistConsent(api,{consented:async()=> (await store.status()).consented===true});
   this.lease=new AssistReplyLease({runtimeId:api.runtime.id,tabs:api.tabs,
@@ -23,7 +26,9 @@ export class AssistPromptCommands {
     if(!this.consent.isCurrent(auth)||this.hosts.get(hostKey(host))!==known||live?.generation!==auth.generation)fail('STALE_BASE');known.binding=live.binding??null;known.authorization=auth;return live;
    },current:(host,binding)=>{const known=this.hosts.get(hostKey(host));return !!known&&this.consent.isCurrent(known.authorization)&&equal(known.binding,binding);}
   });
-  this.session=createConfiguredAssistSession(store,{lease:this.lease,...(configuration===undefined?{}:{configuration})});
+  const selectedConfiguration=configuration===undefined?readAssistServiceConfiguration():configuration;
+  this.contextProcessingSource=contextProcessingSource===null||selectedConfiguration===null?null:createAssistContextProcessingSource(store,{consent:this.consent,leases:this.lease});
+  this.session=createConfiguredAssistSession(store,{lease:this.lease,contextProcessingSource:this.contextProcessingSource,configuration:selectedConfiguration});
   this.consent.onInvalidate(()=>{this.lease.invalidate();this.views.clear();this.clearActivations();for(const host of this.hosts.values()){host.binding=null;void this.api.tabs.sendMessage(host.sender.tab.id,{type:'PAIA_PROMPT_ASSIST_AUTH_CHANGED'},{documentId:host.sender.documentId}).catch(()=>{});}this.changed();});
   this.storage=(changes,area)=>{if(area==='local'&&changes[ASSIST_AUTH_KEY]){this.consent.invalidate();void this.notifyHosts();}};
   api.storage?.onChanged?.addListener(this.storage);
@@ -128,5 +133,5 @@ export class AssistPromptCommands {
    const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';return {status,verified:status==='inserted'};
   }catch{return {status:'uncertain',verified:false};}finally{clearTimeout(timer);view.inserting=null;}
  }
- dispose(){this.api.storage?.onChanged?.removeListener(this.storage);this.consent.dispose();this.session?.dispose();this.lease.dispose();this.hosts.clear();this.views.clear();this.clearActivations();}
+ dispose(){this.api.storage?.onChanged?.removeListener(this.storage);this.consent.dispose();this.session?.dispose();this.contextProcessingSource?.dispose();this.lease.dispose();this.hosts.clear();this.views.clear();this.clearActivations();}
 }

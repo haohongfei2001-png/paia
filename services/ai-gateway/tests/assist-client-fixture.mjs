@@ -24,7 +24,7 @@ import {createPostgresOperationStatusService} from '../operation-status-service.
 // Actual signed issuers + actual HTTP parsers/owners/ledger. SQL locking is the
 // existing deterministic protocol simulator, NOT real PostgreSQL evidence.
 // Only the external HTTPS completion is synthetic; no callback makes a receipt.
-export async function assistServiceFixture(t,{beforeResponse=null,afterResponse=null,holdProvider=null,loseReservation=false,dropRevocation=false,loseProvider=false,loseResult=false,defer=false,unknownUsage=false,condition='',tier='pro',statusTransform=null}={}){
+export async function assistServiceFixture(t,{beforeResponse=null,afterResponse=null,holdProvider=null,loseReservation=false,dropRevocation=false,loseProvider=false,loseResult=false,defer=false,unknownUsage=false,condition='',tier='pro',statusTransform=null,sourceProcessing=false}={}){
  const losses={reservation:loseReservation,provider:loseProvider,result:loseResult};
  const local=await setup(OrganizerStore);await local.s.finishFoundation();
  const sender={id:'synthetic-extension',tab:{id:1},frameId:0,documentId:'synthetic-document',documentLifecycle:'active',url:'https://chatgpt.com/c/synthetic'};
@@ -76,7 +76,8 @@ export async function assistServiceFixture(t,{beforeResponse=null,afterResponse=
    return response;
   }
  };
- let commands=new AssistPromptCommands(local.s,api,{configuration});
+ if(sourceProcessing){delete configuration.contextProcessing;delete configuration.contextSelector;}
+ let commands=new AssistPromptCommands(local.s,api,{configuration,...(sourceProcessing?{}:{contextProcessingSource:null})});
  const settings={id:sender.id,url:api.runtime.getURL('ui/archive.html')};
  const enable=async()=>{await commands.handle({type:'PAIA_PROMPT_ASSIST_CONFIGURE',consentVersion:2,replyAccess:true,remoteProcessing:true,expectedGeneration:(await commands.handle({type:'PAIA_PROMPT_ASSIST_STATUS'},settings)).generation},settings);authorization=(await commands.handle({type:'PAIA_PROMPT_ASSIST_STATUS'},sender)).generation;ready=true;};
  const surface=new PromptSurfaceCommands(new PromptReuseCommands(new PromptReuseService(local.s),api),api);surface.assist=commands;
@@ -84,6 +85,6 @@ export async function assistServiceFixture(t,{beforeResponse=null,afterResponse=
  await enable();
  return {...local,server,api,sender,settings,surface,frame,surfaceState,selected,contextRequests,revokeContext:()=>contextAbort.abort(),advanceContextAuthority:()=>{contextEpoch='SYNTHETIC-'+crypto.randomUUID();},rpc,run,enable,configuration,calls,broadcasts,insertions,snapshot,get commands(){return commands;},get binding(){return binding;},restoreAcks:()=>{for(const key of Object.keys(losses))losses[key]=false;},restore:()=>{live=true;},physical:()=>physical,payload:()=>lastPayload,
   newerReply:async()=>{await commands.handle({type:'PAIA_PROMPT_ASSIST_INVALIDATE',generation:authorization},sender);binding={...binding,replyId:'reply-'+crypto.randomUUID(),cycle:binding.cycle+1,revision:binding.revision+1};},
-  restart:async()=>{commands.dispose();commands=new AssistPromptCommands(local.s,api,{configuration});surface.assist=commands;const status=await commands.handle({type:'PAIA_PROMPT_ASSIST_STATUS'},sender);authorization=status.generation;ready=false;},
+  restart:async()=>{commands.dispose();commands=new AssistPromptCommands(local.s,api,{configuration,...(sourceProcessing?{}:{contextProcessingSource:null})});surface.assist=commands;const status=await commands.handle({type:'PAIA_PROMPT_ASSIST_STATUS'},sender);authorization=status.generation;ready=false;},
   ready:value=>{ready=value;},revoke:(notify=true)=>{live=false;if(notify)listener?.();}};
 }

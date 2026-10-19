@@ -1,3 +1,4 @@
+import {requireAssistContextProcessingSource,beginAssistContextProcessing,resolveAssistContextProcessing,finishAssistContextProcessing} from '../../background/assist-context-processing.js';
 import {quickPromptEligible} from '../prompt-reuse-preferences.js';
 import {assistServicePayload,validateAssistServiceResponse} from './assist-service-response.js';
 import {observeRepositoryWriteFence,requireRepositoryWriteFence} from '../idb-repository.js';
@@ -9,8 +10,10 @@ import {ASSIST_LIMITS,assembleAssistPayload,assertAssistPayload,validateAssistRe
 // The configured worker composes these original local lease/result owners.
 // Capabilities are trusted host dependencies; reply/result bytes stay transient.
 export class LocalAssistSession {
- #store;#service;#lease;#provider;#selector;#contextProcessing;#contextDiscovery;#states=new Map();#preparations=new Set();#handles=new WeakMap();#disposed=false;#generation=0;#clock;#last=0;#unsubscribe;#intent;
- constructor(store,{lease,provider=null,service=null,resolveAuthority=null,contextSelector=null,contextProcessing=null,contextDiscovery=null,intent='explicit',contractVersion='assist-local-v1',routeVersion='unavailable',clock=()=>performance.now()}={}){
+ #store;#service;#lease;#provider;#selector;#contextProcessing;#contextDiscovery;#contextSource;#states=new Map();#preparations=new Set();#handles=new WeakMap();#disposed=false;#generation=0;#clock;#last=0;#unsubscribe;#intent;
+ constructor(store,{lease,provider=null,service=null,resolveAuthority=null,contextSelector=null,contextProcessing=null,contextDiscovery=null,contextProcessingSource=null,intent='explicit',contractVersion='assist-local-v1',routeVersion='unavailable',clock=()=>performance.now()}={}){
+  if(contextProcessingSource!==null&&(contextProcessing!==null||contextDiscovery!==null))fail('UNAVAILABLE');
+  this.#contextSource=contextProcessingSource===null?null:requireAssistContextProcessingSource(contextProcessingSource,store,lease);
   if(!['explicit','automatic_assist'].includes(intent))fail('UNAVAILABLE');this.#intent=intent;this.#store=store;this.#service=service===null?null:requireAssistServiceClient(service);this.#lease=lease;this.#unsubscribe=lease.onInvalidate(()=>this.#invalidate());this.#provider=provider;this.#selector=contextSelector;this.#contextProcessing=contextProcessing;this.#contextDiscovery=contextDiscovery;this.#clock=clock;this.contractVersion=contractVersion;this.routeVersion=routeVersion;
   this.foundation=new AIUsageFoundation(store,{resolveAuthority,resolveAssistIntent:(t,r)=>this.#resolve(t,r),assistResult:(t,r)=>this.#commit(t,r)});
  }
@@ -39,18 +42,23 @@ export class LocalAssistSession {
   await assertAssistContext(this.#store,t,s.contextHandle);if(!this.#valid(s))fail('STALE_BASE');
   return {allowed:true,remoteProcessing:true,binding:structuredClone(binding),scope:structuredClone(scope)};
  }
- async prepare({lease,assertCurrent=null}={}){
+ async prepare(options={}){
+  const ticket=this.#contextSource===null?null:beginAssistContextProcessing(this.#contextSource,this.#store,this.#lease,options.lease);
+  try{return await this.#prepare(options,ticket);}finally{finishAssistContextProcessing(ticket);}
+ }
+ async #prepare({lease,assertCurrent=null}={},sourceTicket=null){
   if(this.#service&&typeof assertCurrent!=='function')fail('UNAVAILABLE');if(assertCurrent)await assertCurrent();
   if(this.#disposed||this.#intent==='automatic_assist'&&this.#lease.automaticCurrent?.(lease)!==true)fail('UNAVAILABLE');const recoveryGeneration=this.#generation;if(this.#service)await this.#service.recover(this.foundation,{retainJob:id=>[...this.#states.values()].some(s=>s.job?.id===id&&(s.running||s.validated||s.published)),isCurrent:()=>!this.#disposed&&this.#generation===recoveryGeneration});await this.#retireInvalid();if(this.#states.size>=8&&![...this.#states.values()].some(s=>s.lease===lease&&this.#valid(s)))fail('RESOURCE_LIMIT');
   const generation=this.#generation,meta=this.#lease.metadata(lease),snapshot=await this.#lease.snapshot(lease);
   // Reject an oversized reply before selecting or acquiring any Context.
   assembleAssistPayload(snapshot,[]);
+  const sourceGrant=sourceTicket===null?null:resolveAssistContextProcessing(sourceTicket,lease,snapshot);
   const current=()=>!this.#disposed&&generation===this.#generation&&this.#lease.isCurrent(lease)===true;
   const controller=new AbortController();this.#preparations.add(controller);
   let contextHandle=null,owner=null,retained=false;
   try{
    contextHandle=await this.foundation.read(async t=>{const narrow=this.#selector===null?null:structuredClone(await this.#selector(t,{replyBinding:meta.replyBinding}));return selectAssistContext(this.#store,t,{binding:meta.binding,replyBinding:meta.replyBinding,replyText:snapshot.text,narrow,isCurrent:current,signal:controller.signal});});
-   await captureAssistContext(this.#store,contextHandle,{read:fn=>this.foundation.read(fn),processing:this.#contextProcessing,discovery:this.#contextDiscovery,onRevoke:()=>{controller.abort();if(owner){owner.published=null;owner.validated=null;owner.payload=null;owner.snapshot=null;if(this.#service&&owner.job)void this.foundation.cancelServer(owner.job.id).catch(()=>{});}}});
+   await captureAssistContext(this.#store,contextHandle,{read:fn=>this.foundation.read(fn),processing:sourceGrant===null?this.#contextProcessing:sourceGrant.processing,discovery:sourceGrant===null?this.#contextDiscovery:sourceGrant.discovery,onRevoke:()=>{controller.abort();if(owner){owner.published=null;owner.validated=null;owner.payload=null;owner.snapshot=null;if(this.#service&&owner.job)void this.foundation.cancelServer(owner.job.id).catch(()=>{});}}});
    const selected=assistContextValue(contextHandle),payload=assembleAssistPayload(snapshot,selected.context),key=await this.#lease.evaluationKey(lease,selected.dependencies,this.contractVersion,this.routeVersion);
    if(!current()||controller.signal.aborted)fail('STALE_BASE');
    const old=this.#states.get(key);if(old){await old.ready;if(!this.#valid(old))fail('STALE_BASE');old.assertSurface=assertCurrent;return old.handle;}

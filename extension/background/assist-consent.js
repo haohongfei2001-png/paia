@@ -1,6 +1,7 @@
 import {ArchiveError} from '../core/constants.js';
 export const ASSIST_AUTH_KEY='promptAssistAutomaticPreferenceV2';
 export const ASSIST_CONSENT_VERSION=2;
+const processingOwners=new WeakMap(),processingWitnesses=new WeakMap();
 const uuid=value=>typeof value==='string'&&/^[a-f0-9-]{36}$/.test(value);
 const valid=value=>{if(!value||![Object.prototype,null].includes(Object.getPrototypeOf(value)))return false;const keys=Reflect.ownKeys(value);if(keys.length!==5||keys.some(k=>!['version','trigger','replyAccess','remoteProcessing','generation'].includes(k)))return false;const d=Object.getOwnPropertyDescriptors(value);if(keys.some(k=>!Object.hasOwn(d[k],'value')||!d[k].enumerable))return false;return value.version===ASSIST_CONSENT_VERSION&&value.trigger==='eligible-reply'&&typeof value.replyAccess==='boolean'&&typeof value.remoteProcessing==='boolean'&&uuid(value.generation);};
 // Durable, explicitly confirmed automatic-experience preferences. These are
@@ -9,7 +10,7 @@ const valid=value=>{if(!value||![Object.prototype,null].includes(Object.getProto
 // consent is deliberately never imported into this new automatic contract.
 export class AssistConsent {
  #api;#consented;#listeners=new Set();#serial=0;#instance=crypto.randomUUID();#value=null;#changing=false;#tail=Promise.resolve();#writes=0;#disposed=false;#blocked=false;
- constructor(api,{consented=async()=>false}={}){this.#api=api;this.#consented=consented;}
+ constructor(api,{consented=async()=>false}={}){this.#api=api;this.#consented=consented;processingOwners.set(this,()=>this.#disposed||this.#changing||this.#blocked||this.#value?.replyAccess!==true||this.#value?.remoteProcessing!==true?null:this.#snapshot().generation);}
  onInvalidate(fn){if(typeof fn!=='function'||this.#listeners.size>=8)throw new ArchiveError('RESOURCE_LIMIT');this.#listeners.add(fn);return ()=>this.#listeners.delete(fn);}
  #invalidate(){++this.#serial;this.#value=null;for(const fn of [...this.#listeners])try{fn();}catch{/* Every original lease still receives invalidation. */}}
  invalidate(){this.#invalidate();}
@@ -50,3 +51,16 @@ export class AssistConsent {
  }
  dispose(){this.#disposed=true;this.#changing=true;this.#invalidate();this.#listeners.clear();}
 }
+
+// This witness proves only the original current automatic-purpose consent. It
+// grants no Context fields, reply bytes, entitlement or external read access.
+export function captureAssistConsentProcessing(owner){
+ const read=processingOwners.get(owner),generation=read?.();
+ if(!generation)throw new ArchiveError('UNAVAILABLE');
+ const witness=Object.freeze({});processingWitnesses.set(witness,{owner,read,generation});return witness;
+}
+export function assistConsentProcessingFacts(witness,owner){
+ const record=processingWitnesses.get(witness);return !!record&&record.owner===owner&&processingOwners.get(owner)===record.read&&record.read()===record.generation;
+}
+
+export const isAssistConsentProcessingOwner=owner=>processingOwners.has(owner);
