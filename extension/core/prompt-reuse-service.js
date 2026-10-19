@@ -5,45 +5,169 @@ import {NextFamilyView} from './next-family-view.js';
 import {ArchiveError,CONSENT_VERSION} from './constants.js';
 import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
 const publicationSettled=async t=>{try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')throw new ArchiveError(e.code);throw e;}};
-import {readPromptReuseMaterial} from './manual-materials.js';
+import {readPromptReuseMaterial,observedPromptReuseMaterial,promptMaterialReadIsStatic} from './manual-materials.js';
+import {originalFoundationPromptQueueOwner} from './thought-store.js';
+import {observeOriginalControlPublication,requireOriginalControlObservation,originalControlIdentityFailure} from './indexed-store.js';
+import {originalRepositoryTransactionOwner,observeRepositoryWriteFence,requireRepositoryWriteFence,requireRepositoryTransactionDataMethods,requireRepositoryTransactionSucceeded} from './idb-repository.js';
+import {controlPublicationEncoding} from './local-control-publication.js';
 import {memoryRange,validateMemoryRow} from './memory/model.js';
 import {projectPromptFamilies} from './prompt-family.js';
 import {PROMPT_REUSE_ROW,own,validPromptText,quickPromptEligible,readPromptPreferences,validPromptPreferences} from './prompt-reuse-preferences.js';
 const fail=()=>{throw new ArchiveError('INVALID_REQUEST');};
 const changed=()=>{throw new ArchiveError('MEMORY_STALE');};
+const declineRead=read=>{if(read.unshareable)return;read.unshareable=true;read.decline();};
 const generation=async t=>(await t.get('meta','backup-data-generation'))?.value||0;
+const originalMethod=(value,name,expected)=>{
+ for(let owner=value;owner;owner=Object.getPrototypeOf(owner)){const descriptor=Object.getOwnPropertyDescriptor(owner,name);if(descriptor)return Object.hasOwn(descriptor,'value')&&descriptor.value===expected;}
+ return false;
+};
 export class PromptReuseService{
- #nextFamilyView;#historyCandidates;
+ #nextFamilyView;#historyCandidates;#pendingRead=null;
  constructor(store,{clock=()=>Date.now(),syncJournal=null,historyCandidates=null}={}){this.s=store;this.#historyCandidates=historyCandidates===null?null:requireHistoricalCandidateSession(historyCandidates,store);this.#historyCandidates?.bindPromptOwner(()=>this.snapshot());this.clock=clock;this.#nextFamilyView=new NextFamilyView(clock);this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
  async syncCorrectionSnapshot(journal){if(!(#nextFamilyView in this)||this.syncJournal!==journal)fail();return this.#snapshot(false);}
  async snapshot(){return this.#snapshot(true);}
- async #snapshot(projectCorrections){
+ async #snapshot(projectCorrections,observation=null){
   await this.s.finishFoundation();
   let after,base,preferences;const inputs=[];
   do{
+   let pageScope=null,originalPage=null;const pageRepository=this.s.repository;
    const page=await this.s.run(()=>this.s.repository.transaction(false,async t=>{
+    if(observation&&!observation.unshareable){pageScope=t;try{requireRepositoryTransactionDataMethods(pageRepository,t);}catch{declineRead(observation);}}
     const current=await generation(t);if(base!==undefined&&base!==current)changed();
     const prefs=await readPromptPreferences(t),rows=await t.all('meta',null,memoryRange());
     if(rows.some(x=>!validateMemoryRow(x)))fail();
     const memory={s:this.s,state:async()=>({rows})},filter=await t.get('meta','smart-filter');
     const batch=await t.page('inputStates',{after,limit:100}),items=[];
+    if(observation)observation.expected+=batch.rows.length;
     for(const {value:m}of batch.rows){
-     const item=await readPromptReuseMaterial(memory,t,m.id,filter);if(item)items.push(item);
+     let item;
+     if(observation&&!observation.unshareable){
+      const read=await observedPromptReuseMaterial(memory,t,m.id,filter);item=read.item;observation.receipts.push(read.token);
+      if(!promptMaterialReadIsStatic(this.s,read.token))declineRead(observation);
+     }else item=await readPromptReuseMaterial(memory,t,m.id,filter);
+     if(item)items.push(item);
     }
-    return {items,next:batch.next,current,prefs};
+    return originalPage={items,next:batch.next,current,prefs};
    }));
+   if(observation&&!observation.unshareable){
+    try{if(page!==originalPage||this.s.repository!==pageRepository)throw new Error();requireRepositoryTransactionSucceeded(pageRepository,pageScope);}catch{declineRead(observation);}
+   }
    base=page.current;preferences=page.prefs;inputs.push(...page.items);after=page.next??undefined;
   }while(after!==undefined);
   const families=await projectPromptFamilies(inputs,preferences,this.clock());
   await this.s.run(()=>this.s.repository.transaction(false,async t=>{if(base!==await generation(t))changed();},['meta']));
+  if(observation){
+   observation.static=!observation.unshareable&&observation.expected===observation.receipts.length&&observation.receipts.every(token=>promptMaterialReadIsStatic(this.s,token,true));
+   // Fix the private material before any caller can receive a Family object.
+   // Query/resolve never expose these Inputs or preference owner objects.
+   if(observation.static)observation.material=Object.freeze({inputs,preferences,generation:base});
+  }
   const snapshot={families,preferences,generation:base,inputs};if(projectCorrections&&this.syncJournal?.correctionBindings)return {...snapshot,...await this.syncJournal.projectCorrections(snapshot,this.clock())};return snapshot;
+ }
+ #originalReadOwner(){return originalFoundationPromptQueueOwner(this.s)&&originalRepositoryTransactionOwner(this.s.repository)&&originalMethod(this,'snapshot',originalSnapshot)&&this.syncJournal===null;}
+ async #readBinding(observation=null){
+  // This is an optional, body-free admission. An unsupported/custom owner
+  // follows its original independent snapshot rather than gaining a brand.
+  const owns=()=>{const current=this.#originalReadOwner();if(!current&&observation)observation.ownerChanged=true;return current;};
+  if(!owns())return null;
+  const store=this.s,repository=store.repository,db=repository.db,local=store.local,clock=this.clock;
+  let binding=null,scope=null;
+  try{
+   const returned=await store.run(async()=>{
+    if(!owns())return null;
+    const writeFence=observeRepositoryWriteFence(repository),control=await observeOriginalControlPublication(store);
+    if(!owns())return null;
+    const value=await repository.transaction(false,async t=>{
+     scope=t;requireRepositoryTransactionDataMethods(repository,t);await publicationSettled(t);if(!owns())return null;
+     const publication=await store.qualifyControlPublicationRead(t);if(!owns())return null;
+     const settings=(await store.control(t)).settings;
+     if(settings.consentVersion!==CONSENT_VERSION)return null;
+     const memory=await t.all('meta',null,memoryRange());if(memory.some(row=>!validateMemoryRow(row)))return null;
+     const current=await generation(t),filter=await t.get('meta','smart-filter');
+     binding=Object.freeze({store,repository,db,local,get:local.get,set:local.set,clock,writeFence,key:controlPublicationEncoding({control:control.row,publication,memory,filter,generation:current}),deliveryKey:controlPublicationEncoding({control:control.row,publication,generation:current})});
+     return binding;
+    },['meta']);
+    if(value!==binding)return null;
+    requireOriginalControlObservation(store,control.token);requireRepositoryWriteFence(repository,writeFence);return binding;
+   });
+   if(!owns()||!binding||returned!==binding||this.s!==store||store.repository!==repository||repository.db!==db||store.local!==local||this.clock!==clock)return null;
+   requireRepositoryTransactionSucceeded(repository,scope);requireRepositoryWriteFence(repository,binding.writeFence);return binding;
+  }catch(error){if(observation&&originalControlIdentityFailure(store,error))observation.ownerChanged=true;owns();return null;}
+ }
+ #sameReadBinding(a,b,observation=null){
+  if(observation?.ownerChanged||!a||!b||a.store!==b.store||a.repository!==b.repository||a.db!==b.db||a.local!==b.local||a.get!==b.get||a.set!==b.set||a.clock!==b.clock||a.key!==b.key)return false;
+  if(!this.#originalReadOwner()||this.s!==a.store||this.s.repository!==a.repository||this.s.local!==a.local||a.local.get!==a.get||a.local.set!==a.set||this.clock!==a.clock){if(observation)observation.ownerChanged=true;return false;}
+  try{requireRepositoryWriteFence(a.repository,a.writeFence);requireRepositoryWriteFence(b.repository,b.writeFence);return true;}catch{return false;}
+ }
+ async #readStillCurrent(caller,first,observation){
+  // A source-identity rejection belongs to this shared original read. Other
+  // waiting callers cannot revive that same material after a method restores.
+  if(observation.ownerChanged)changed();let current=await this.#readBinding(observation);
+  // A readonly queue admission can invalidate the native observer's tail
+  // identity without changing any authority. Retry metadata once, retaining
+  // both original anchors. A real mismatch is never retried or refreshed.
+  if(!current&&!observation.ownerChanged&&this.#sameReadBinding(caller,first,observation))current=await this.#readBinding(observation);
+  if(observation.ownerChanged||!this.#sameReadBinding(current,caller,observation)||!this.#sameReadBinding(current,first,observation))changed();
+  const {store,repository}=caller,delivery=Object.freeze({});let scope=null;
+  try{
+   const result=await store.run(()=>{
+    if(!this.#sameReadBinding(caller,first,observation))changed();
+    return repository.transaction(false,async t=>{
+    scope=t;requireRepositoryTransactionDataMethods(repository,t);await publicationSettled(t);if(!this.#sameReadBinding(caller,first,observation))changed();
+    const publication=await store.qualifyControlPublicationRead(t),generationValue=await generation(t);if(!this.#sameReadBinding(caller,first,observation))changed();
+    const control=store.controlPublicationLoadedRow();
+    if(controlPublicationEncoding({control,publication,generation:generationValue})!==caller.deliveryKey)changed();
+    return delivery;
+   },['meta']);});
+   if(result!==delivery)changed();requireRepositoryTransactionSucceeded(repository,scope);
+  }catch{changed();}
+  // This last durable check also covers another Repository instance's write;
+  // the process-local write fence alone cannot observe that other owner.
+  if(!this.#sameReadBinding(caller,first,observation))changed();
+ }
+ async #querySnapshot(){
+  if(!this.#originalReadOwner())return this.snapshot();
+  // A disproved scan remains in its original slot until actual settlement.
+  // New callers simply perform their own original work, without observers.
+  if(this.#pendingRead?.active&&this.#pendingRead.unshareable)return this.snapshot();
+  await this.s.finishFoundation();const binding=await this.#readBinding();
+  if(!binding)return this.snapshot();
+  const pending=this.#pendingRead;
+  if(pending?.active){
+   if(pending.unshareable||!this.#sameReadBinding(binding,pending.binding,pending))return this.snapshot();
+   pending.joined=true;
+   // A private decline conveys no material and grants no scope. It only
+   // stops waiting for work that already cannot be reused. Both complete
+   // original-currentness guards around the independent scan remain.
+   try{await Promise.race([pending.promise,pending.declined]);}catch{
+    await this.#readStillCurrent(binding,pending.binding,pending);
+    const fresh=await this.snapshot();await this.#readStillCurrent(binding,pending.binding,pending);return fresh;
+   }
+   await this.#readStillCurrent(binding,pending.binding,pending);
+   if(!pending.static){const fresh=await this.snapshot();await this.#readStillCurrent(binding,pending.binding,pending);return fresh;}
+   // Only already-waiting callers can use this settled result. Reproject with
+   // this caller's original clock and own independent objects, then requalify.
+   const material=pending.material,copy={inputs:structuredClone(material.inputs),preferences:structuredClone(material.preferences),generation:material.generation};
+   copy.families=await projectPromptFamilies(copy.inputs,copy.preferences,this.clock());
+   await this.#readStillCurrent(binding,pending.binding,pending);return copy;
+  }
+  const read={binding,active:true,joined:false,ownerChanged:false,unshareable:false,static:false,expected:0,receipts:[],promise:null,declined:null,decline:null};
+  read.declined=new Promise(resolve=>{read.decline=resolve;});
+  this.#pendingRead=read;read.promise=this.#snapshot(true,read);
+  const retire=()=>{read.active=false;read.receipts=[];if(this.#pendingRead===read)this.#pendingRead=null;};
+  // Retire at the underlying original settlement, before caller final checks.
+  // Never await this work while occupying the Store's serialization queue.
+  read.promise.then(retire,retire);
+  const result=await read.promise;
+  if(read.joined&&read.static)await this.#readStillCurrent(binding,binding,read);
+  return result;
  }
  async members(id){
   const x=await this.snapshot(),family=x.families.find(f=>f.id===id);if(!family)changed();
   return x.inputs.filter(i=>family.members.includes(i.id)).map(i=>({id:i.id,text:i.text}));
  }
  async query({includeHidden=false}={}){
-  if(typeof includeHidden!=='boolean')fail();const serial=this.#nextFamilyView.begin(),x=await this.snapshot();
+  if(typeof includeHidden!=='boolean')fail();const serial=this.#nextFamilyView.begin(),x=await this.#querySnapshot();
   this.#nextFamilyView.publish(serial,x);
   const eligible=x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained));
   return {revision:x.preferences.revision,generation:x.generation,manualOrder:[...x.preferences.pins],items:eligible.filter(f=>quickPromptEligible(f.text)),oversizedItems:eligible.filter(f=>!quickPromptEligible(f.text)),complete:true,...(x.unresolved?{unresolved:x.unresolved,bindingsComplete:x.bindingsComplete}:{})};
@@ -68,7 +192,7 @@ export class PromptReuseService{
  }
  async nextFamilyView(){return this.#nextFamilyView.read(expected=>this.assertCurrent(expected));}
  async resolve({id,text}={}){
-  if(typeof id!=='string'||!validPromptText(text))fail();const x=await this.snapshot();
+  if(typeof id!=='string'||!validPromptText(text))fail();const x=await this.#querySnapshot();
   const f=x.families.find(f=>f.id===id&&!f.hidden&&(f.useful||f.pinned||f.edited||f.retained));
   if(!f||f.text!==text)changed();return {id:f.id,text:f.text,generation:x.generation};
  }
@@ -183,3 +307,4 @@ export class PromptReuseService{
   }));
  }
 }
+const originalSnapshot=PromptReuseService.prototype.snapshot;

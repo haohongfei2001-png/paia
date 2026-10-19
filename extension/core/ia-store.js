@@ -1,7 +1,7 @@
 import {humanPruneTime} from './browser-native-sync/human-library-allocation.js';
 import {sourceAppendPlan} from './browser-native-sync/source-append-plan.js';
 import {initialSourcePlan} from './browser-native-sync/source-bootstrap-plan.js';
-import {IndexedArchiveStore} from './indexed-store.js';
+import {IndexedArchiveStore,originalIndexedPromptReadOwner} from './indexed-store.js';
 import {ArchiveError} from './constants.js';
 import {hashText} from './dedupe.js';
 import {nextSequence} from './thought-journal.js';
@@ -239,4 +239,10 @@ export class IAStore extends IndexedArchiveStore {
  refreshThought({id,expectedRevision,inputVersions,thoughtText}={}){this.validateThoughtChanges({thoughtText});return this.write(async t=>{const row=await this.checkedThought(t,id);if(row.userEdited)return {protected:true};if(row.revision!==expectedRevision||row.lifecycle!=='active'||!row.inputRefs.length)return {conflict:true};for(const ref of row.inputRefs){const meta=await t.get('inputStates',ref.inputBlockId),b=(await t.get('blocks',ref.inputBlockId))?.value;if(!b||b.excluded||meta?.contentRevision!==inputVersions?.[ref.inputBlockId])return {conflict:true};}
   const before=thoughtSnapshot(row);row.thoughtText=thoughtText;row.revision++;row.contentRevision++;row.freshness='current';row.staleReason=null;row.updatedAt=this.clock();for(const r of row.inputRefs){r.basedOnContentRevision=inputVersions[r.inputBlockId];await t.put('dependencies',{id:JSON.stringify([r.inputBlockId,id]),inputId:r.inputBlockId,inputList:[r.inputBlockId,id],thoughtId:id,basedOnContentRevision:r.basedOnContentRevision});}await t.put('thoughts',row);await this.journal(t,{kind:'thought',entityId:id,documentId:id,before,after:thoughtSnapshot(row),reason:'ai_update',important:true,sourceRecordIds:await this.thoughtSources(t,row)});return {ok:true};
  });}
+}
+
+const promptQueuePrototype=IAStore.prototype,promptQueueParent=Object.getPrototypeOf(promptQueuePrototype),promptQueueMethod=Object.getOwnPropertyDescriptor(promptQueuePrototype,'run');
+const promptQueueDescriptor=(actual,expected)=>!!actual&&['value','get','set','writable','enumerable','configurable'].every(key=>actual[key]===expected[key]);
+export function originalIAPromptQueueOwner(store){
+ return originalIndexedPromptReadOwner(store)&&Object.getPrototypeOf(promptQueuePrototype)===promptQueueParent&&promptQueueDescriptor(Object.getOwnPropertyDescriptor(promptQueuePrototype,'run'),promptQueueMethod);
 }
