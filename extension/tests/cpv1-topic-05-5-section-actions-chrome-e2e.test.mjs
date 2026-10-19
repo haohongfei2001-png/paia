@@ -7,13 +7,21 @@ import {mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {thoughtPrimary} from './harness/current-thought-navigation.mjs';
 const rpc=async(p,type,fields={})=>{const result=await p.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(result?.ok,true,JSON.stringify(result));return result.data;};
+const seedSections=async p=>{
+ await eventually(async()=>{const status=await rpc(p,'GET_STATUS');return status.consented===true&&status.enabled===true;},'the original worker acknowledges consent before Section setup');
+ const foundation=await rpc(p,'GET_LIBRARY_FOUNDATION_STATUS');assert.equal(foundation.phase,'active');assert.equal(foundation.bindingMigration.complete,true);
+ const op=()=>crypto.randomUUID(),t=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC Section actions',operationId:op()}}),ids=[];
+ for(const title of ['SYNTHETIC A','SYNTHETIC Empty B'])ids.push((await rpc(p,'CREATE_LIBRARY_SECTION',{section:{topicId:t.id,expectedTopicRevision:(await rpc(p,'GET_LIBRARY_TOPIC',{id:t.id})).organizationRevision,title,operationId:op()}})).sectionId);
+ const e=await rpc(p,'CONTINUE_THINKING',{thought:{topicId:t.id,body:'SYNTHETIC protected prose\n\n中文 paragraph',operationId:op()}});
+ return {topic:t.id,defaultId:t.sectionId,ids,entry:e.id};
+};
 for(const variant of ['source','release'])test('TOPIC-05.5 native contextual Section rename/order and protected prose '+variant,{timeout:120000},async()=>{
  const borrowed=process.env.TOPIC_PROMOTION_RELEASE_PATH;const release=variant==='release'?borrowed||await mkdtemp(resolve(tmpdir(),'paia-section-actions-')):null;
  if(release&&!borrowed)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
  const h=await FakeChatGPT.start({extensionPath:release||resolve('.')}),p=h.archive;
  try{
   await p.setViewportSize({width:1280,height:900});await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
-  const f=await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID();await s.finishFoundation();const t=await s.createTopic({name:'SYNTHETIC Section actions',operationId:op()}),ids=[];for(const title of ['SYNTHETIC A','SYNTHETIC Empty B'])ids.push((await s.createSection({topicId:t.id,expectedTopicRevision:(await s.topic(t.id)).organizationRevision,title,operationId:op()})).sectionId);const e=await s.continueThinking({topicId:t.id,body:'SYNTHETIC protected prose\n\n中文 paragraph',operationId:op()});return {topic:t.id,defaultId:t.sectionId,ids,entry:e.id};});
+  const f=await seedSections(p);
   assert.ok(f.defaultId,'the original create acknowledgement identifies the actual default Section');
   const bodyBefore=(await rpc(p,'GET_LIBRARY_ENTRY',{id:f.entry})).body;
   const sections=async()=>(await rpc(p,'GET_LIBRARY_SECTION_PROJECTION',{options:{topicId:f.topic,limit:100}})).items;
