@@ -12,12 +12,14 @@ ROOT=Path(__file__).resolve().parents[1]
 def verify_static_presentation(root,check):
     from art_direction import Fragments
     from launch_checks import Text,find
+    from brand_adoption_checks import restore_approved_brand
     fixture=json.loads((root/'website/presentation_invariants.json').read_text())
     for name,sha in fixture['unchanged'].items():
         data = (root/name).read_bytes()
         if name == 'assets/website/launch.css':
             from cool_neutral_white_checks import restore_approved_environment
             data = restore_approved_environment(root, data)
+        data = restore_approved_brand(name, data)
         check(hashlib.sha256(data).hexdigest()==sha,'presentation unchanged except approved environment: '+name)
     for name,expectations in fixture['home_text'].items():
         source=(root/name).read_text();p=Fragments(source)

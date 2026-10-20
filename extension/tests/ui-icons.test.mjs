@@ -17,15 +17,48 @@ test('repeated locale labels retain the original control, state, handler and lit
 test('icon-only controls require their own accessible label and keep it on refresh',()=>withDOM(()=>{
  const control=new PresentationNode('button');assert.throws(()=>setIconOnly(control,'more'),/PAIA_ICON_ACCESSIBLE_LABEL_REQUIRED/);setIconOnly(control,'more','Input actions');setIconOnly(control,'more');assert.equal(control.getAttribute('aria-label'),'Input actions');assert.equal(control.children.length,1);assert.equal(control.firstChild.getAttribute('aria-hidden'),'true');assert.equal(control.textContent,'');
 }));
-test('manifest action and favicons use all four approved compact-brand derivatives',async()=>{
- const manifest=JSON.parse(await readFile(new URL('../manifest.json',import.meta.url))),proof=JSON.parse(await readFile(new URL('../icons/brand-icons-provenance.json',import.meta.url))),hash=b=>createHash('sha256').update(b).digest('hex');
- for(const [path,source]of Object.entries(proof.sources))assert.equal(hash(await readFile(new URL('../../'+path,import.meta.url))),source.sha256);
- assert.equal(proof.sources['design/brand/mailbox-final-20261018/png/paia-32.png'].sha256,'7a46a1a3c67b2a193f159ea6295be219ee8aa45be725b058ac0ecfffcf76c649');
- assert.equal(proof.sources['design/brand/mailbox-final-20261018/png/paia-64.png'].sha256,'c60ae70b7347285ee1e841fbd07aa9d5e84b4eb3847f26dedf922626f7cae9ac');
- for(const size of [16,32,48,128]){const path=`icons/icon${size}.png`,bytes=await readFile(new URL('../'+path,import.meta.url));assert.equal(manifest.icons[size],path);assert.equal(manifest.action.default_icon[size],path);assert.deepEqual([bytes.readUInt32BE(16),bytes.readUInt32BE(20)],[size,size]);assert.equal(hash(bytes),proof.outputs['extension/'+path].sha256);}
- for(const [path,output]of Object.entries({...proof.outputs,...proof.ui_outputs})){const bytes=await readFile(new URL('../../'+path,import.meta.url));assert.deepEqual(bytes,await readFile(new URL('../../'+output.source,import.meta.url)),'each runtime icon uses the exact matching optical size');assert.deepEqual([bytes.readUInt32BE(16),bytes.readUInt32BE(20)],output.dimensions);}
- for(const page of ['archive.html','popup.html'])assert.match(await readFile(new URL('../ui/'+page,import.meta.url),'utf8'),/rel="icon" href="\.\.\/icons\/icon32\.png"/);
+test('app icons, compact toolbar/favicons and UI marks use their exact approved role and size',async()=>{
+ const root='design/brand/soft-blue-p-20261021',brand='PAIA-OPEN-P-SOFT-BLUE-20261021';
+ const manifest=JSON.parse(await readFile(new URL('../manifest.json',import.meta.url))),proof=JSON.parse(await readFile(new URL('../icons/brand-icons-provenance.json',import.meta.url))),authority=JSON.parse(await readFile(new URL('../../'+root+'/manifest.json',import.meta.url))),hash=b=>createHash('sha256').update(b).digest('hex');
+ // Independent adoption digests keep a self-consistent rewritten proof from
+ // silently substituting another brand or interchanging the three roles.
+ const approved={
+  'app-icon-16.png':'44746b2ce726df968671d35c8656c7dfdacc16cd76a6917aaea0a49abbab69bb',
+  'app-icon-32.png':'4a24c2666f56e30354852bcb3d98e74508228d9bff6db1d71efa6d7f1ff17768',
+  'app-icon-48.png':'af9cf1eba4065294abc3df1286335fd3fa4a6d100cd4130beb4a868c6772787a',
+  'app-icon-128.png':'e1cc293d27173a8760982f3e163ad5d0ac95e0e2e07cfa858e3e10213fb80092',
+  'ui-symbol-16.png':'2e975d55af7f88b20645daafd49600d4abf6dc9ecd648f3a48969bde97bcb235',
+  'ui-symbol-32.png':'b6c86e6de3ce336e98f2d9dd963380c2d71831e9208762cb0170c25fee74d509',
+  'ui-symbol-48.png':'f83df176291d072cab163528f02f7e144a957312a9e8d64ff22d9cb6a3ddc5ae',
+  'ui-symbol-128.png':'c4a90b2733f0665c761255ed1884ae2953ddd436d70c5d9eb2e3399a460aea65',
+  'symbol-32.png':'bcb0338bbe8d3c95fc6e08a6bf9db14be8d4aad307df50da0ad4f2518374b632',
+  'symbol-64.png':'aed5ef16d483a7d0be6cd20541909ca059301f101abb66a6acdb0f538e536fa0'
+ };
+ assert.equal(proof.schema_version,3);assert.equal(authority.schema_version,3);
+ assert.equal(proof.brand_id,brand);assert.equal(authority.brand_id,brand);assert.equal(proof.authority_manifest,root+'/manifest.json');
+ assert.deepEqual(Object.keys(proof.sources).sort(),Object.keys(approved).map(name=>root+'/png/'+name).sort());
+ for(const [name,digest]of Object.entries(approved)){
+  const path=root+'/png/'+name,source=proof.sources[path],size=Number(name.match(/-(\d+)\.png$/)[1]),bytes=await readFile(new URL('../../'+path,import.meta.url));
+  assert.deepEqual(source,authority.sources[path]);assert.equal(source.sha256,digest);assert.equal(hash(bytes),digest);
+  assert.deepEqual(source.dimensions,[size,size]);assert.deepEqual([bytes.readUInt32BE(16),bytes.readUInt32BE(20)],[size,size]);
+ }
+ const sizes=[16,32,48,128],groups={
+  outputs:Object.fromEntries(sizes.map(size=>[`extension/icons/icon${size}.png`,['app-icon',size]])),
+  action_outputs:Object.fromEntries(sizes.map(size=>[`extension/icons/action${size}.png`,['ui-symbol',size]])),
+  ui_outputs:Object.fromEntries([32,64].map(size=>[`extension/ui/assets/paia-logo-${size}.png`,['symbol',size]]))
+ };
+ assert.deepEqual(Object.keys(manifest.icons).sort(),sizes.map(String).sort());assert.deepEqual(Object.keys(manifest.action.default_icon).sort(),sizes.map(String).sort());
+ for(const size of sizes){assert.equal(manifest.icons[size],`icons/icon${size}.png`);assert.equal(manifest.action.default_icon[size],`icons/action${size}.png`);}
+ for(const [group,expected]of Object.entries(groups)){
+  assert.deepEqual(Object.keys(proof[group]).sort(),Object.keys(expected).sort());
+  for(const [path,[role,size]]of Object.entries(expected)){
+   const output=proof[group][path],source=root+`/png/${role}-${size}.png`,bytes=await readFile(new URL('../../'+path,import.meta.url));
+   assert.equal(output.source,source);assert.deepEqual(output.dimensions,[size,size]);assert.equal(output.sha256,approved[`${role}-${size}.png`]);
+   for(const key of ['source','dimensions','sha256'])assert.deepEqual(output[key],authority.targets[path][key]);
+   assert.equal(hash(bytes),output.sha256);assert.deepEqual(bytes,await readFile(new URL('../../'+source,import.meta.url)),'each runtime icon uses the exact approved role and size');
+   assert.deepEqual([bytes.readUInt32BE(16),bytes.readUInt32BE(20)],[size,size]);
+  }
+ }
+ for(const page of ['archive.html','popup.html'])assert.match(await readFile(new URL('../ui/'+page,import.meta.url),'utf8'),/rel="icon" href="\.\.\/icons\/action32\.png"/);
  await assert.rejects(readFile(new URL('../ui/product-signals.html',import.meta.url)),{code:'ENOENT'});
- assert.equal(hash(await readFile(new URL('../ui/assets/paia-logo-32.png',import.meta.url))),'7a46a1a3c67b2a193f159ea6295be219ee8aa45be725b058ac0ecfffcf76c649');
- assert.equal(hash(await readFile(new URL('../icons/icon32.png',import.meta.url))),proof.sources['design/brand/mailbox-final-20261018/png/paia-32.png'].sha256,'native32px action icon is the exact existing main-UI mark');
 });

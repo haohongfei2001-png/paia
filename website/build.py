@@ -41,7 +41,7 @@ def build(lang):
         url=BASE+link(page)
         zhurl=BASE+'/zh/'+('' if page=='index.html' else page)
         enurl=BASE+'/'+('' if page=='index.html' else page)
-        product_css = '<link rel="stylesheet" href="/assets/website/product-experience.css?v=20261009a">\n' if page in ('index.html','demo.html') else ''
+        product_css = '<link rel="stylesheet" href="/assets/website/product-experience.css?v=20261021brand">\n' if page in ('index.html','demo.html') else ''
         if page == 'demo.html':
             product_css += '<script src="/assets/website/home-core-v2.js?v=20261009a" defer></script>\n'
         if page == 'index.html':
@@ -75,9 +75,10 @@ def build(lang):
 <meta name="twitter:title" content="{escape(title,quote=True)}">
 <meta name="twitter:description" content="{escape(desc,quote=True)}">
 <meta name="twitter:image" content="{BASE}/assets/website/og-{lang}.png">
-<link rel="icon" href="/assets/website/brand/paia-icon-v1.png" type="image/png">
-<link rel="apple-touch-icon" href="/assets/website/brand/paia-icon-v1.png">
-<link rel="stylesheet" href="/assets/website/site.css?v=20261009b">
+<link rel="icon" href="/assets/website/brand/paia-favicon-soft-blue-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/assets/website/brand/paia-favicon-soft-blue.svg" type="image/svg+xml" sizes="any">
+<link rel="apple-touch-icon" href="/assets/website/brand/paia-app-soft-blue-180.png" sizes="180x180">
+<link rel="stylesheet" href="/assets/website/site.css?v=20261021brand">
 <link rel="stylesheet" href="/assets/website/interior.css?v=20261009a">
 {product_css}
 <link rel="stylesheet" href="/assets/website/launch.css?v=20261013a">
@@ -91,7 +92,7 @@ def build(lang):
         nav=a('index.html',t('产品','Product'))+a('use-cases.html',t('使用场景','Use cases'))+a('how-it-works.html',t('如何使用','How it works'))+a('help.html',t('帮助','Help'))
         nav=nav.replace(f'href="{link(page)}"', f'href="{link(page)}" aria-current="page"')
         return f'''<header class="site-header"><div class="header-inner">
-<div class="brand-lockup"><a class="wordmark" href="{prefix}" aria-label="{t('PAIA 首页','PAIA home')}">PAIA</a></div>
+<div class="brand-lockup"><a class="wordmark" href="{prefix}" aria-label="{t('PAIA 首页','PAIA home')}"><img class="header-brand-mark" src="/assets/website/brand/paia-symbol-soft-blue.svg" width="32" height="32" alt="" aria-hidden="true">PAIA</a></div>
 <nav class="desktop-nav" aria-label="{t('主导航','Main navigation')}">{nav}</nav>
 <div class="header-actions"><a class="language" href="{other}" lang="{'zh-CN' if en else 'en'}" hreflang="{'zh-Hans' if en else 'en'}">{t('EN','中文')}</a>{button('beta.html',t('申请内测','Request beta'),'button button-small')}</div>
 <details class="mobile-menu"><summary aria-label="{t('打开导航菜单','Open navigation menu')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg></summary><nav aria-label="{t('移动端导航','Mobile navigation')}">{nav}{a('demo.html',t('体验示例','Explore an example'))}{a('status.html',t('当前状态','Current status'))}</nav></details>

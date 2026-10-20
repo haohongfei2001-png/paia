@@ -351,6 +351,15 @@ section[id] {
 .wordmark:hover {
   color:var(--ink)
 }
+.site-header .wordmark {
+  gap:.2em
+}
+.site-header .header-brand-mark {
+  display:block;
+  width:1em;
+  height:1em;
+  flex:none
+}
 .small-wordmark {
   font-size:1.5rem
 }

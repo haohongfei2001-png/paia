@@ -1,11 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-labelledby="title desc">
-<title id="title">PAIA — the mailbox remains</title><desc id="desc">Faithful manually cleaned vector reconstruction of the user-provided PAIA mailbox. Editable paths. micro optical size. No embedded raster.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="128 128 768 768" role="img" aria-labelledby="title desc">
+  <title id="title">PAIA — soft blue P</title>
+  <desc id="desc">PAIA brand mark adopted on 2026-10-21. Existing floating controls and the website closing story retain their previous artwork.</desc>
 
-<rect id="paper" width="1024" height="1024" fill="#FBFAF8"/>
-<g id="micro-optical" transform="translate(512 520) scale(1.17) translate(-512 -520)" stroke-linecap="round" stroke-linejoin="round">
-         <path id="micro-post" d="M535 458 Q534 639 521 826" fill="none" stroke="#443835" stroke-width="48"/>
-         <path id="micro-pole-core" d="M535 486 Q531 636 522 807" fill="none" stroke="#AD827C" stroke-width="16"/>
-         <path id="micro-box" d="M389 347 Q417 300 601 226 Q615 221 615 239 L621 460 Q596 466 574 453 Q549 439 532 453 L426 474 L426 360" fill="#AD827C" stroke="#443835" stroke-width="29"/>
-         <path id="micro-slot" d="M400 365 Q472 344 542 308" fill="none" stroke="#443835" stroke-width="25"/>
-         </g>
+  <path id="paia-mark" fill="#6284CD" d="M 192.32 851.44 L 192.32 449.68 C 192.32 337.36 257.12 259.475 365.12 230.539 L 611.36 164.56 C 736.64 130.989 831.68 203.44 831.68 328.72 L 831.68 518.8 C 831.68 678.64 728 778 568.16 778 L 486.08 778 Q 477.44 778 477.44 769.36 L 477.44 648.4 Q 477.44 639.76 486.08 639.76 L 550.88 639.76 C 641.6 639.76 693.44 587.92 693.44 505.84 L 693.44 371.92 C 693.44 315.76 658.88 288.911 607.04 302.8 L 421.28 352.575 C 360.8 368.779 334.88 410.8 334.88 475.6 L 334.88 851.44 Q 334.88 860.08 326.24 860.08 L 200.96 860.08 Q 192.32 860.08 192.32 851.44 Z"/>
 </svg>
