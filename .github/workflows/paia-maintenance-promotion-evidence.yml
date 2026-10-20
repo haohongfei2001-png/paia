@@ -4,7 +4,7 @@ name: PAIA Maintenance Promotion Evidence
 # remains mandatory and unchanged; a partial or timed-out shard is not a pass.
 on:
   push:
-    branches: ['codex/maintenance-promotion-current-20261019', 'main']
+    branches: ['codex/maintenance-promotion-current-20261019', 'codex/context-back-sync-capacity-20261020', 'main']
     paths:
       - 'extension/core/**'
       - 'extension/background/**'
@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   original-source-clients:
-    if: github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && (github.ref == 'refs/heads/codex/maintenance-promotion-current-20261019' || github.ref == 'refs/heads/main')
+    if: github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && (github.ref == 'refs/heads/codex/maintenance-promotion-current-20261019' || github.ref == 'refs/heads/codex/context-back-sync-capacity-20261020' || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 12
     strategy:
@@ -58,7 +58,7 @@ jobs:
         run: node services/ai-gateway/scripts/run-maintenance-source-evidence.mjs ${{ matrix.shard }}
 
   original-native-maintenance:
-    if: github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && (github.ref == 'refs/heads/codex/maintenance-promotion-current-20261019' || github.ref == 'refs/heads/main')
+    if: github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && (github.ref == 'refs/heads/codex/maintenance-promotion-current-20261019' || github.ref == 'refs/heads/codex/context-back-sync-capacity-20261020' || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 12
     defaults:

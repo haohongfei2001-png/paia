@@ -26,7 +26,7 @@ The original two Node logs move to one seven-day preflight artifact with a small
 
 ## Local checks and limits
 
-The common eight-source-file execution tree contains 1,849 materialized source/test/dependency files. Every before/after mapping entry is byte-identical; this is an explicit execution domain, not a claim of a full Git checkout. The public receipt is added after execution in the nine-path publication set.
+The common eight-source-file execution tree contains 1,849 materialized source/test/dependency files. Every before/after mapping entry is byte-identical; this is an explicit execution domain, not a claim of a full Git checkout. The public receipt is added after execution in the ten-path publication set.
 
 - Exact baseline nine controls: 7 pass / 2 fail, no skip/cancel.
 - Common five Node test files: 113/113, no skip/cancel, 2087.010279 ms.
@@ -37,3 +37,7 @@ The common eight-source-file execution tree contains 1,849 materialized source/t
 The Sync contract reverses only the declared workflow changes and recovers the exact original full workflow SHA256 `166fcd607396799510cc3ac947ab06d23496090d5a04939716d2302b0e982a78`. It also executes the actual aggregate shell for failure/cancel/skip combinations, validates the same-head closed evidence and refuses missing, malformed, symlinked or substituted logs. These local contracts do not replace a real successful CI job.
 
 Required next gate: exact new candidate Full and original supplemental source/native checks, including real ANS-01 and both Sync jobs, followed by independent review and actual main results. No B purpose-source, Organize capacity or pending-read performance changes are included.
+
+## Exact development-branch supplement admission
+
+The original supplemental workflow admits `codex/context-back-sync-capacity-20261020` in its push filter and both existing job conditions. These are the only three expression changes: removing that exact branch recovers original workflow SHA256 `1cbec8da356f35ecbc28c8baa3378b3f24017ab9cb36687e893f40db879b88b3`. All 52 source roots, four partitions, the full original 170-case Source/release native file, twelve-minute limits, permissions and log policy remain byte-identical. This enables the required same-head supplemental evidence; it does not replace Full or assert any new run has passed.
