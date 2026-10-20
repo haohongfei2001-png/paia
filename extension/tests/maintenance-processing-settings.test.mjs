@@ -22,9 +22,27 @@ test('lost enable ACK rereads actual durable preference without replaying a writ
 test('failed OFF is shown separately from saved ON and remains retryable',async()=>{let failed=false;const s=new SettingsMaintenanceState({send:async type=>{if(type===WRITE){failed=true;throw Error('not saved');}return snapshot({enabled:!failed,savedEnabled:true,phase:failed?'off_unconfirmed':'on'});}});await s.load();assert.equal(await s.configure(false),false);assert.equal(s.value.enabled,false);assert.equal(s.value.savedEnabled,true);assert.equal(s.feedback,'off-unconfirmed');await s.load();assert.equal(s.feedback,'off-unconfirmed');assert.equal(s.editable,true);});
 test('old status cannot overwrite newer confirmed preference',async()=>{const held=deferred();let n=0;const s=new SettingsMaintenanceState({send:async type=>type===WRITE?snapshot({enabled:true,savedEnabled:true,phase:'on',generation:'g2'}):++n===1?snapshot():held.promise});await s.load();const reading=s.load();await s.configure(true);held.resolve(snapshot());await reading;assert.equal(s.value.enabled,true);});
 
-class Element extends PresentationNode {constructor(tag){super(tag);this.open=false;this.tabIndex=['button','input','select','textarea'].includes(tag)?0:-1;}showModal(){this.open=true;}close(){this.open=false;this.listeners.get('close')?.();}getClientRects(){return this.hidden?[]:[{}];}querySelectorAll(){return descendants(this).slice(1).filter(node=>['BUTTON','INPUT','SELECT','TEXTAREA'].includes(node.tagName));}}
+// Opt-in queued close delivery models the native split: hiding and returning
+// focus are synchronous; close listeners run in a later task. Attribute
+// mutations run at a microtask checkpoint, independently of that close task.
+class DialogAttributeObserver {
+ constructor(callback){this.callback=callback;this.records=[];this.queued=false;}
+ observe(node){node.attributeObserver=this;}
+ takeRecords(){return this.records.splice(0);}
+ record(node,oldValue){this.records.push({type:'attributes',target:node,attributeName:'open',oldValue});if(this.queued)return;this.queued=true;queueMicrotask(()=>{this.queued=false;const records=this.takeRecords();if(records.length)this.callback(records,this);});}
+}
+class Element extends PresentationNode {
+ constructor(tag,closeTasks=null){super(tag);this._open=false;this.closeTasks=closeTasks;this.tabIndex=['button','input','select','textarea'].includes(tag)?0:-1;}
+ get open(){return this._open;}
+ set open(value){const old=this._open;this._open=!!value;if(old!==this._open)this.attributeObserver?.record(this,old?'':null);}
+ showModal(){this.priorFocus=document.activeElement;this.open=true;if(this.closeTasks)document.modal=this;}
+ close(){if(!this.open)return;this.open=false;if(this.closeTasks){document.modal=null;this.priorFocus?.focus();this.closeTasks.push(()=>this.listeners.get('close')?.());}else this.listeners.get('close')?.();}
+ focus(){if(document.modal&&!document.modal.contains(this))return;super.focus();}
+ getClientRects(){return this.hidden?[]:[{}];}
+ querySelectorAll(){return descendants(this).slice(1).filter(node=>['BUTTON','INPUT','SELECT','TEXTAREA'].includes(node.tagName));}
+}
 const descendants=node=>[node,...node.children.flatMap(descendants)];
-function ui(t,send,{visible=true}={}){const old=Object.getOwnPropertyDescriptor(globalThis,'document'),body=new Element('body');globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag)};t.after(()=>{if(old)Object.defineProperty(globalThis,'document',old);else delete globalThis.document;});let current=visible,notify;const owner=mountSettingsMaintenance(body,{send,language:()=> 'en',runtime:{onMessage:{addListener(fn){notify=fn;}}},isCurrent:()=>current}),find=id=>descendants(body).find(n=>n.id===id);return {owner,find,notify:message=>notify(message),setCurrent:v=>{current=v;owner.sync();}};}
+function ui(t,send,{visible=true,queuedClose=false}={}){const old=Object.getOwnPropertyDescriptor(globalThis,'document'),oldObserver=Object.getOwnPropertyDescriptor(globalThis,'MutationObserver'),closeTasks=queuedClose?[]:null,body=new Element('body',closeTasks);globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag,closeTasks)};globalThis.MutationObserver=DialogAttributeObserver;t.after(()=>{if(old)Object.defineProperty(globalThis,'document',old);else delete globalThis.document;if(oldObserver)Object.defineProperty(globalThis,'MutationObserver',oldObserver);else delete globalThis.MutationObserver;});let current=visible,notify;const owner=mountSettingsMaintenance(body,{send,language:()=> 'en',runtime:{onMessage:{addListener(fn){notify=fn;}}},isCurrent:()=>current}),find=id=>descendants(body).find(n=>n.id===id);return {owner,host:body,closeTasks,find,notify:message=>notify(message),setCurrent:v=>{current=v;owner.sync();}};}
 const fire=(node,type,trusted=true)=>node.listeners.get(type)?.({isTrusted:trusted});
 test('actual row opens explicit remote-purpose dialog; only trusted confirm writes and cancel does not',async t=>{const calls=[],f=ui(t,async(type,fields)=>{calls.push({type,fields});return type===READ?snapshot():snapshot({enabled:true,savedEnabled:true,phase:'on',generation:'g2'});});await tick();const toggle=f.find('settings-maintenance-enabled');toggle.checked=true;fire(toggle,'change');assert.equal(f.find('settings-maintenance-consent').open,true);assert.equal(calls.length,1);assert.match(f.find('settings-maintenance-consent-explanation').textContent,/remote AI|AI service and model provider/);fire(f.find('settings-maintenance-confirm'),'click',false);assert.equal(calls.length,1);fire(f.find('settings-maintenance-cancel'),'click');assert.equal(calls.length,1);toggle.checked=true;fire(toggle,'change');fire(f.find('settings-maintenance-confirm'),'click');await tick();assert.equal(calls.length,2);assert.equal(toggle.checked,true);});
 test('synthetic change and hidden Settings cannot confirm; changed generation requires a new dialog',async t=>{let value=snapshot();const calls=[],f=ui(t,async(type,fields)=>{calls.push({type,fields});return value;});await tick();const toggle=f.find('settings-maintenance-enabled');toggle.checked=true;fire(toggle,'change',false);assert.equal(f.find('settings-maintenance-consent').open,false);toggle.checked=true;fire(toggle,'change');f.setCurrent(false);fire(f.find('settings-maintenance-confirm'),'click');assert.equal(calls.filter(c=>c.type===WRITE).length,0);f.setCurrent(true);toggle.checked=true;fire(toggle,'change');value=snapshot({generation:'changed'});await f.owner.state.load();fire(f.find('settings-maintenance-confirm'),'click');await tick();assert.equal(calls.filter(c=>c.type===WRITE).length,0);});
@@ -115,3 +133,74 @@ test('hide and reshow cannot adopt the old held status retry response',async t=>
 test('a burst of superseded status refusals gives only the final epoch one bounded retry',async()=>{
  const calls=[];const s=new SettingsMaintenanceState({send:async type=>{calls.push(type);if(calls.length<=8)throw Object.assign(Error('FORBIDDEN'),{code:'FORBIDDEN'});return snapshot();}});const loads=Array.from({length:8},()=>s.load());const outcomes=await Promise.all(loads);assert.deepEqual(outcomes,[false,false,false,false,false,false,false,true]);assert.deepEqual(calls,Array(9).fill(READ));assert.equal(s.error,false);
 });
+
+
+async function queuedDialog(t){
+ const calls=[];let value=snapshot();const f=ui(t,async(type,fields)=>{calls.push({type,fields});if(type===WRITE)value=snapshot({enabled:true,savedEnabled:true,phase:'on',generation:'committed'});return value;},{queuedClose:true});await tick();
+ const toggle=f.find('settings-maintenance-enabled'),dialog=f.find('settings-maintenance-consent'),cancel=f.find('settings-maintenance-cancel'),confirm=f.find('settings-maintenance-confirm');
+ const open=()=>{toggle.focus();toggle.checked=true;fire(toggle,'change');assert.equal(dialog.open,true);assert.equal(document.activeElement,cancel);};
+ const dismiss=kind=>{if(kind==='cancel')fire(cancel,'click');else if(kind==='escape'){let prevented=false;dialog.listeners.get('cancel')?.({isTrusted:true,preventDefault(){prevented=true;}});assert.equal(prevented,false,'native Escape cancellation remains browser-owned');dialog.close();}else dialog.close();assert.equal(dialog.open,false);assert.equal(document.activeElement,toggle);};
+ return {...f,calls,toggle,dialog,cancel,confirm,open,dismiss,setValue:v=>{value=v;}};
+}
+for(const kind of ['cancel','escape'])test(`queued ${kind} close cannot retire a newer trusted Maintenance dialog`,async t=>{
+ const f=await queuedDialog(t);f.open();f.dismiss(kind);assert.equal(f.closeTasks.length,1);f.open();f.confirm.focus();f.closeTasks.shift()();await Promise.resolve();
+ assert.equal(f.dialog.open,true);assert.equal(document.activeElement,f.confirm,'an old close cannot take focus from the newer modal');assert.equal(f.owner.state.editable,true);fire(f.confirm,'click');await tick();
+ assert.equal(f.calls.filter(c=>c.type===WRITE).length,1);assert.deepEqual(f.calls.find(c=>c.type===WRITE).fields,{enabled:true,expectedGeneration:'g1',consentVersion:1,confirmed:true});assert.equal(f.toggle.checked,true);
+});
+for(const kind of ['cancel','escape'])test(`${kind} retires Maintenance intent before a script-only reopen or queued close event`,async t=>{
+ const f=await queuedDialog(t);f.open();f.dismiss(kind);f.dialog.showModal();f.confirm.focus();fire(f.confirm,'click');await Promise.resolve();f.closeTasks.shift()();fire(f.confirm,'click');await tick();
+ assert.equal(f.calls.filter(c=>c.type===WRITE).length,0,'a script-only reopen cannot reuse cancelled authority');assert.equal(f.owner.state.value.enabled,false);
+});
+test('programmatic close and reopen retires old Maintenance intent at the native mutation checkpoint',async t=>{
+ const f=await queuedDialog(t);f.open();f.dismiss('programmatic');f.dialog.showModal();await Promise.resolve();f.confirm.focus();fire(f.confirm,'click');await tick();
+ assert.equal(f.calls.filter(c=>c.type===WRITE).length,0);assert.equal(f.owner.state.value.enabled,false);f.closeTasks.shift()();
+});
+test('fresh trusted opener drains older close mutations without retiring its own Maintenance intent',async t=>{
+ const f=await queuedDialog(t);f.open();f.dismiss('programmatic');f.open();await Promise.resolve();f.closeTasks.shift()();fire(f.confirm,'click');await tick();assert.equal(f.calls.filter(c=>c.type===WRITE).length,1);
+});
+test('queued close protection retains exact stale-generation denial and original reread',async t=>{
+ const f=await queuedDialog(t);f.open();f.dismiss('cancel');f.open();f.closeTasks.shift()();await Promise.resolve();f.setValue(snapshot({generation:'changed'}));await f.owner.state.load();const reads=f.calls.filter(c=>c.type===READ).length;fire(f.confirm,'click');await tick();
+ assert.equal(f.calls.filter(c=>c.type===WRITE).length,0);assert.equal(f.calls.filter(c=>c.type===READ).length,reads+1);assert.equal(f.dialog.open,false);
+});
+for(const kind of ['hidden','detached'])test(`${kind} Maintenance presenter retires consent before reappearance and script-only reopening`,async t=>{
+ const f=await queuedDialog(t);f.open();if(kind==='hidden')f.setCurrent(false);else{Object.defineProperty(f.host,'isConnected',{configurable:true,value:false});f.owner.sync();}
+ assert.equal(f.dialog.open,false);if(kind==='hidden')f.setCurrent(true);else delete f.host.isConnected;f.dialog.showModal();fire(f.confirm,'click');await Promise.resolve();while(f.closeTasks.length)f.closeTasks.shift()();fire(f.confirm,'click');await tick();assert.equal(f.calls.filter(c=>c.type===WRITE).length,0);
+});
+test('consumed Maintenance confirmation cannot write twice before its queued close is delivered',async t=>{
+ const f=await queuedDialog(t);f.open();fire(f.confirm,'click');fire(f.confirm,'click');await tick();fire(f.confirm,'click');assert.equal(f.calls.filter(c=>c.type===WRITE).length,1);assert.equal(f.closeTasks.length,1);f.closeTasks.shift()();assert.equal(f.owner.state.value.enabled,true);
+});
+test('queued Maintenance lifecycle never upgrades synthetic activation into consent',async t=>{
+ const f=await queuedDialog(t);f.toggle.checked=true;fire(f.toggle,'change',false);assert.equal(f.dialog.open,false);f.dialog.showModal();fire(f.confirm,'click',false);fire(f.confirm,'click');await tick();assert.equal(f.calls.filter(c=>c.type===WRITE).length,0);f.dialog.close();await Promise.resolve();f.closeTasks.shift()();f.open();fire(f.confirm,'click',false);await tick();assert.equal(f.calls.filter(c=>c.type===WRITE).length,0);fire(f.confirm,'click');await tick();assert.equal(f.calls.filter(c=>c.type===WRITE).length,1);
+});
+
+test('same-turn direct close and reopen cannot reuse Maintenance intent before mutation delivery',async t=>{
+ const f=await queuedDialog(t);f.open();f.dismiss('programmatic');f.dialog.showModal();f.confirm.focus();fire(f.confirm,'click');await tick();assert.equal(f.calls.filter(c=>c.type===WRITE).length,0);assert.equal(f.owner.state.value.enabled,false);
+});
+
+// Execute the exact passive native observer in isolation; no browser or owner
+// result is substituted, and these controls cannot capture user text.
+{
+const {readFile}=await import('node:fs/promises');
+const {runInNewContext}=await import('node:vm');
+const native=await readFile(new URL('./settings-maintenance-chrome-e2e.test.mjs',import.meta.url),'utf8');
+const source=native.match(/^async function installTransportObserver\(page\) \{[\s\S]*?^\}\n/m)?.[0];assert.ok(source);
+const READ='PAIA_MAINTENANCE_PROCESSING_STATUS',WRITE='PAIA_MAINTENANCE_PROCESSING_CONFIGURE',INPUT='#settings-maintenance-enabled',DIALOG='#settings-maintenance-consent';
+async function fixture(){
+ const listeners=new Map(),calls=[],input={id:INPUT.slice(1),checked:false,disabled:false,dataset:{loaded:'true'},getAttribute:k=>k==='aria-busy'?'false':null,matches:selector=>selector===INPUT},dialog={id:DIALOG.slice(1),open:true},cancel={id:'settings-maintenance-cancel',matches:()=>false},confirm={id:'settings-maintenance-confirm',matches:()=>false},section={isConnected:true,getClientRects:()=>[{}]};dialog.matches=()=>false;
+ const nodes=new Map([[input.id,input],[dialog.id,dialog],[cancel.id,cancel],[confirm.id,confirm],['settings-maintenance',section]]),document={activeElement:confirm,getElementById:id=>nodes.get(id),addEventListener(type,fn,options){const list=listeners.get(type)||[];list.push({fn,options});listeners.set(type,list);},removeEventListener(type,fn,capture){listeners.set(type,(listeners.get(type)||[]).filter(x=>x.fn!==fn||!!(x.options===true||x.options?.capture)!==!!capture));}};
+ const reply={ok:true,data:{enabled:false,savedEnabled:false,phase:'off',generation:'synthetic',serviceAvailable:false}},originalPromise=Promise.resolve(reply);
+ const original=function(...args){calls.push({receiver:this,args});return originalPromise;};const runtime={};Object.defineProperty(runtime,'sendMessage',{configurable:true,enumerable:false,writable:true,value:original});
+ const descriptor=Object.getOwnPropertyDescriptor(runtime,'sendMessage');const scope={READ,WRITE,INPUT,DIALOG,document,chrome:{runtime}};
+ const install=runInNewContext(source+'\ninstallTransportObserver',scope);const page={async evaluate(fn,args){return fn(args);}};await install(page);
+ const fire=(type,target=dialog,key)=>{const event={type,target,key,isTrusted:true,preventDefault(){throw Error('observer cannot prevent native events');}};for(const{fn}of listeners.get(type)||[])fn(event);return event;};
+ return {probe:scope.__maintenanceSettingsProbe,listeners,calls,runtime,original,descriptor,originalPromise,input,dialog,cancel,confirm,section,document,fire};
+}
+test('exact original observer is passive and records queued close on a reopened dialog without any RPC or DOM change',async()=>{const f=await fixture();f.fire('close');const row=JSON.parse(JSON.stringify(f.probe.lifecycle[0]));assert.deepEqual(row,{order:1,type:'close',id:DIALOG.slice(1),trusted:true,key:null,dialogOpen:true,active:'settings-maintenance-confirm',checked:false,disabled:false,busy:false,loaded:'true',connected:true,visible:true});assert.equal(f.dialog.open,true);assert.equal(f.document.activeElement,f.confirm);assert.equal(f.calls.length,0);assert.deepEqual(Array.from(f.probe.events),[]);for(const[type,entries]of f.listeners)for(const e of entries)if(type!=='click'&&type!=='change')assert.deepEqual(JSON.parse(JSON.stringify(e.options)),{capture:true,passive:true});});
+test('original trustedActivation event shape remains exact while lifecycle observes cancel and keyboard separately',async()=>{const f=await fixture();f.fire('click',f.confirm);f.fire('click',f.cancel);f.fire('change',f.input);f.fire('cancel',f.dialog);f.fire('keydown',f.confirm,'Enter');f.fire('keyup',f.input,' ');assert.deepEqual(JSON.parse(JSON.stringify(f.probe.events)),[{type:'click',trusted:true,id:f.confirm.id},{type:'change',trusted:true,id:f.input.id}]);assert.deepEqual(Array.from(f.probe.lifecycle,row=>row.type),['click','click','change','cancel','keydown','keyup']);assert.equal(f.probe.lifecycle.at(-1).key,'Space');assert.equal(f.calls.length,0);});
+test('input text, arbitrary identifiers and nonallowlisted keys cannot enter lifecycle diagnostics',async()=>{const f=await fixture();f.input.value='SENSITIVE_BODY_SENTINEL';f.fire('keydown',f.input,'SENSITIVE_KEY_SENTINEL');f.fire('close',{id:'SENSITIVE_ID_SENTINEL'});f.document.activeElement={id:'SENSITIVE_ACTIVE_SENTINEL'};f.input.dataset.loaded='SENSITIVE_DATASET_SENTINEL';f.fire('close');assert.equal(f.probe.lifecycle.length,1);const s=JSON.stringify(f.probe.lifecycle);assert.doesNotMatch(s,/SENSITIVE|value|textContent|innerText/);assert.equal(f.probe.lifecycle[0].active,'other');assert.equal(f.probe.lifecycle[0].loaded,'other');});
+test('synthetic lifecycle facts are bounded to latest128 records, never unbounded event amplification',async()=>{const f=await fixture();for(let i=0;i<200;i++)f.fire('close');assert.equal(f.probe.lifecycle.length,128);assert.equal(f.probe.lifecycle[0].order,73);assert.equal(f.probe.lifecycle.at(-1).order,200);assert.equal(f.calls.length,0);});
+test('ordinary READ and WRITE observation invokes native once with original receiver/arguments and returns exact native Promise',async()=>{const f=await fixture();for(const type of [READ,WRITE,'UNCHANGED_ORDINARY']){const message={type,enabled:false};const result=f.runtime.sendMessage(message);assert.equal(result,f.originalPromise);assert.equal(f.calls.at(-1).receiver,f.runtime);assert.equal(f.calls.at(-1).args[0],message);await result;}await new Promise(resolve=>setImmediate(resolve));assert.equal(f.calls.length,3);assert.equal(f.probe.reads.length,1);assert.equal(f.probe.writes.length,1);assert.equal(f.probe.pending,0);assert.deepEqual(Array.from(f.probe.unexpected),[]);});
+test('restore recovers exact native descriptor and removes all original/lifecycle listeners',async()=>{const f=await fixture();f.probe.restore();assert.deepEqual(Object.getOwnPropertyDescriptor(f.runtime,'sendMessage'),f.descriptor);assert.equal([...f.listeners.values()].flat().length,0);f.fire('close');assert.equal(f.probe.lifecycle.length,0);});
+test('observer failure is recorded as gate-failing diagnostic and cannot throw into the owner event',async()=>{const f=await fixture();f.document.getElementById=()=>{throw Error('synthetic observation failure');};assert.doesNotThrow(()=>{for(let i=0;i<200;i++)f.fire('close');});assert.deepEqual(Array.from(f.probe.unexpected),['lifecycle-observer-failed']);assert.equal(f.calls.length,0);});
+test('success and failure reports contain only bounded existing-observer rows, no extra status or native event injection',()=>{assert.match(native,/MAINTENANCE_SETTINGS_MODAL_LIFECYCLE/);assert.match(native,/lifecycle:probe\?\.lifecycle\.slice\(-128\)/);assert.match(source,/if \(probe\.lifecycle\.length > 128\) probe\.lifecycle\.shift\(\)/);assert.doesNotMatch(source,/dispatchEvent|setTimeout|keyboard\.press|\.click\(|\.focus\(|textContent|innerText|input\.value/);});
+}

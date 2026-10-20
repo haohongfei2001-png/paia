@@ -51,13 +51,13 @@ async function openSettings(page) {
 }
 
 async function installTransportObserver(page) {
-  await page.evaluate(({READ, WRITE, INPUT}) => {
+  await page.evaluate(({READ, WRITE, INPUT, DIALOG}) => {
     const descriptor = Object.getOwnPropertyDescriptor(chrome.runtime, 'sendMessage');
     if (!descriptor || !Object.hasOwn(descriptor, 'value') || typeof descriptor.value !== 'function') {
       throw Error('Original Chrome sendMessage data descriptor required');
     }
     const native = descriptor.value;
-    const probe = {writes:[], reads:[], events:[], unexpected:[], pending:0, dropNextSuccess:false, drops:0};
+    const probe = {writes:[], reads:[], events:[], lifecycle:[], unexpected:[], pending:0, dropNextSuccess:false, drops:0};
     const observe = event => {
       if (event.target.matches?.(INPUT) || event.target.id === 'settings-maintenance-confirm') {
         probe.events.push({type:event.type, trusted:event.isTrusted, id:event.target.id});
@@ -65,6 +65,29 @@ async function installTransportObserver(page) {
     };
     document.addEventListener('change', observe, true);
     document.addEventListener('click', observe, true);
+    // Passive, bounded synthetic control lifecycle facts only. Never record
+    // input text, send another RPC, prevent events, or substitute owner results.
+    const ids = new Set([INPUT.slice(1), DIALOG.slice(1), 'settings-maintenance-cancel', 'settings-maintenance-confirm']);
+    const lifecycleTypes = ['click','change','keydown','keyup','cancel','close'];
+    let lifecycleOrder = 0;
+    const lifecycle = event => {
+      try {
+      const id = event.target?.id;
+      if (!ids.has(id)) return;
+      const key = event.key === ' ' ? 'Space' : event.key;
+      if ((event.type === 'keydown' || event.type === 'keyup') && !['Tab','Escape','Enter','Space'].includes(key)) return;
+      const dialog = document.getElementById(DIALOG.slice(1)), input = document.getElementById(INPUT.slice(1));
+      const section = document.getElementById('settings-maintenance'), active = document.activeElement?.id;
+      const loaded = input?.dataset.loaded;
+      probe.lifecycle.push({order:++lifecycleOrder,type:event.type,id,trusted:event.isTrusted,
+        key:['Tab','Escape','Enter','Space'].includes(key)?key:null,dialogOpen:dialog?.open===true,
+        active:ids.has(active)?active:'other',checked:input?.checked===true,disabled:input?.disabled!==false,
+        busy:input?.getAttribute('aria-busy')==='true',loaded:['true','false','error'].includes(loaded)?loaded:'other',
+        connected:section?.isConnected===true,visible:!!section?.getClientRects().length});
+      if (probe.lifecycle.length > 128) probe.lifecycle.shift();
+      } catch { if (!probe.unexpected.includes('lifecycle-observer-failed')) probe.unexpected.push('lifecycle-observer-failed'); }
+    };
+    for (const type of lifecycleTypes) document.addEventListener(type,lifecycle,{capture:true,passive:true});
     const observed = function (message, ...args) {
       if (message?.type !== READ && message?.type !== WRITE) return native.call(this, message, ...args);
       const row = {type:message.type};
@@ -121,9 +144,10 @@ async function installTransportObserver(page) {
       Object.defineProperty(chrome.runtime, 'sendMessage', descriptor);
       document.removeEventListener('change', observe, true);
       document.removeEventListener('click', observe, true);
+      for (const type of lifecycleTypes) document.removeEventListener(type,lifecycle,true);
     };
     globalThis.__maintenanceSettingsProbe = probe;
-  }, {READ, WRITE, INPUT});
+  }, {READ, WRITE, INPUT, DIALOG});
 }
 
 const writes = page => page.evaluate(() => __maintenanceSettingsProbe.writes);
@@ -456,7 +480,8 @@ async function withFixture(variant, scenario, run) {
         return {url:location.href, readyState:document.readyState,
           tab:tab ? Object.fromEntries(['id','windowId','url','pendingUrl','status','incognito'].filter(k => Object.hasOwn(tab,k)).map(k => [k,tab[k]])) : null,
           contexts:contexts.slice(0,8).map(c => Object.fromEntries(['contextType','tabId','windowId','frameId','documentId','documentUrl','incognito'].map(k => [k,c[k]]))),
-          pending:probe?.pending ?? null, reads:probe?.reads.slice(-20) ?? [], writes:probe?.writes.slice(-10) ?? []};
+          pending:probe?.pending ?? null, reads:probe?.reads.slice(-20) ?? [], writes:probe?.writes.slice(-10) ?? [],
+          lifecycle:probe?.lifecycle.slice(-128) ?? []};
       }))); } catch (probeError) { console.log('MAINTENANCE_SETTINGS_FAILURE_PROBE_UNAVAILABLE', String(probeError)); }
       try {
         const worker=h.context.serviceWorkers().find(w => w.url() === `chrome-extension://${h.extensionId}/background/service-worker.js`);
@@ -676,6 +701,7 @@ for (const variant of ['source', 'release']) {
           await settled(page, false);
           const calls = (await writes(page)).slice(before);
           assert.deepEqual(calls.map(row => [row.enabled, row.ok]), [[true, true], [false, true]]);
+          console.log('MAINTENANCE_SETTINGS_MODAL_LIFECYCLE',JSON.stringify({variant,language,events:await page.evaluate(() => __maintenanceSettingsProbe.lifecycle)}));
           const coverage=await captureSettingsViewportFrames(page,directory,language);
           note('native-compact-keyboard', {language, geometry, writes:calls.map(row => row.enabled),coverage});
         } finally {
