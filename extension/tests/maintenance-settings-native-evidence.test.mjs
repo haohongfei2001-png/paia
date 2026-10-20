@@ -6,6 +6,7 @@ import {join, dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
+import {runInNewContext} from 'node:vm';
 import {validateTap, validateRecord, validateRecordShape, validateEnvironment, collectEvidence, artifactPaths,
   scenarios, variants, sourceFiles} from '../scripts/check-maintenance-settings-native-evidence.mjs';
 import {partitionSourceRoots, inspectSourceRoots} from '../../services/ai-gateway/scripts/run-maintenance-source-evidence.mjs';
@@ -291,4 +292,45 @@ test('workflow contexts: original setup exports exactly two runner-temp paths fo
  const output=join(runner,'paia-maintenance-settings-artifacts'),staging=join(runner,'paia-maintenance-settings-upload');
  assert.equal(result.stdout,`${output}\n${staging}\n`);
  assert.equal(await readFile(envFile,'utf8'),`PAIA_SETTINGS_MAINTENANCE_OUTPUT=${output}\nPAIA_SETTINGS_MAINTENANCE_STAGING=${staging}\n`);
+});
+
+
+// Execute the original production response dispatcher and local-tool classifier.
+// A purpose STATUS must not publish ARCHIVE_CHANGED: the real Settings consumer
+// rereads STATUS on that notification, so generic mutation routing self-loops.
+async function dispatchPurposeRequest(type) {
+ const worker=await readFile(new URL('../background/service-worker.js',import.meta.url),'utf8');
+ const classifier=worker.match(/^const localToolRequest=.*;$/m)?.[0];
+ const start=worker.indexOf('chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {');
+ const end=worker.indexOf('\n\ninstallToolbarEntry',start);
+ assert.ok(classifier&&start>=0&&end>start,'execute the exact production classifier and dispatcher');
+ const effects={filters:0,archiveChanges:0,replies:[]},data={purpose:'unchanged-response'};
+ let listener;
+ const context={
+  chrome:{runtime:{onMessage:{addListener(fn){listener=fn;}}}},
+  handle:async()=>data,maintenanceMutation:()=>false,isAIStyleOnlyRequest:()=>false,
+  scheduleFilter(){effects.filters++;return Promise.resolve();},
+  notifyArchiveChanged(){effects.archiveChanges++;return Promise.resolve();},
+ };
+ runInNewContext(classifier+'\n'+worker.slice(start,end),context,{timeout:1000});
+ assert.equal(listener({type},{},reply=>effects.replies.push(reply)),true);
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(effects.replies.length,1,'the original response callback fires exactly once');
+ assert.equal(effects.replies[0].ok,true);
+ assert.equal(effects.replies[0].data,data,'classification does not replace the owner response');
+ return effects;
+}
+for(const type of ['PAIA_MAINTENANCE_PROCESSING_STATUS','PAIA_MAINTENANCE_PROCESSING_CONFIGURE'])
+ test('worker purpose routing: '+type+' never enters generic Filter or Archive mutation notification',async()=>{
+  const effects=await dispatchPurposeRequest(type);
+  assert.equal(effects.filters,0,'purpose reads/writes do not wake the unrelated Filter runner');
+  assert.equal(effects.archiveChanges,0,'purpose reads/writes cannot trigger their own Settings reread');
+ });
+test('worker purpose routing: original ordinary mutation still schedules Filter and Archive notification',async()=>{
+ const effects=await dispatchPurposeRequest('SET_ENABLED');
+ assert.equal(effects.filters,1);assert.equal(effects.archiveChanges,1);
+});
+test('worker purpose routing: unknown purpose-like names do not gain the local-tool exemption',async()=>{
+ const effects=await dispatchPurposeRequest('PAIA_MAINTENANCE_PROCESSING_UNKNOWN');
+ assert.equal(effects.filters,1);assert.equal(effects.archiveChanges,1);
 });
