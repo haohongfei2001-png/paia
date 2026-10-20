@@ -242,8 +242,12 @@ jobs:
             ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/failure.png
             ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/zh-CN-dialog-320-text200.png
             ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/zh-CN-settings-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/zh-CN-settings-middle-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/zh-CN-settings-bottom-320-text200.png
             ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/en-dialog-320-text200.png
             ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/en-settings-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/en-settings-middle-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/en-settings-bottom-320-text200.png
             ${{ runner.temp }}/paia-maintenance-settings-upload/release/trusted-confirmation-and-peers/evidence.json
             ${{ runner.temp }}/paia-maintenance-settings-upload/release/trusted-confirmation-and-peers/failure.png
             ${{ runner.temp }}/paia-maintenance-settings-upload/release/native-write-failure-and-lost-reply/evidence.json
@@ -254,5 +258,9 @@ jobs:
             ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/failure.png
             ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/zh-CN-dialog-320-text200.png
             ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/zh-CN-settings-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/zh-CN-settings-middle-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/zh-CN-settings-bottom-320-text200.png
             ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/en-dialog-320-text200.png
             ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/en-settings-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/en-settings-middle-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/en-settings-bottom-320-text200.png

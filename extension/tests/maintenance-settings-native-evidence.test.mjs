@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp, mkdir, readFile, writeFile, readdir, rm, symlink} from 'node:fs/promises';
+import {mkdtemp, mkdir, readFile, writeFile, readdir, rm, symlink, truncate} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join, dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {runInNewContext} from 'node:vm';
-import {validateTap, validateRecord, validateRecordShape, validateEnvironment, collectEvidence, artifactPaths,
+import {validateTap, validateRecord, validateRecordShape, validateEnvironment, collectEvidence, artifactPaths, planSettingsViewportFrames,
   scenarios, variants, sourceFiles} from '../scripts/check-maintenance-settings-native-evidence.mjs';
 import {partitionSourceRoots, inspectSourceRoots} from '../../services/ai-gateway/scripts/run-maintenance-source-evidence.mjs';
 
@@ -24,6 +24,11 @@ const environment = () => ({head,node:'v22.20.0',chrome:'Google Chrome 155.0.805
   glyphPreflight:'HOSTED_CHROME_LAUNCH_PASS 155.0.8059.39',
   fonts:[{name:'fonts-wqy-zenhei',version:'0.9.45-8'},{name:'fonts-noto-cjk',version:'1:20220127+repack1-1'}],
   families:['Noto Serif CJK SC','Noto Sans CJK SC','WenQuanYi Zen Hei'].map(requested=>({requested,matched:requested}))});
+const coverage = (pageHeight = 2135, contentWidth = 305, originalScrollY = 90) => ({
+  viewportWidth:320, viewportHeight:900, contentWidth, gutterWidth:320-contentWidth,
+  pageHeight, dpr:1, scale:1, originalScrollY, restoredScrollY:originalScrollY,
+  frames:planSettingsViewportFrames(pageHeight,900).map(frame=>({...frame,pngWidth:320,pngHeight:900})),
+});
 function record(variant, scenario, root = source) {
   const stages = [{stage:'fresh-default-off', state:state(false)}];
   if (scenario === scenarios[0]) stages.push(
@@ -38,7 +43,7 @@ function record(variant, scenario, root = source) {
     {stage:'off-failure-warning-before-worker-loss'}, {stage:'unpersisted-off-boundary-observed', state:state(true)},
     {stage:'actual-browser-process-reopened-off', state:state(false)});
   if (scenario === scenarios[3]) for (const language of ['zh-CN','en']) stages.push({stage:'native-compact-keyboard',
-    language, writes:[true,false], geometry:{x:8, right:312, width:304, overflow:0, pageOverflow:0}});
+    language, writes:[true,false], geometry:{x:8, right:312, width:304, overflow:0, pageOverflow:0}, coverage:coverage()});
   return {variant, scenario, extensionPath:variant === 'source' ? root : '/synthetic/paia-maintenance-settings-release-original',
     sourceRoot:root, node:'v22.20.0', requestedHead:head, stages, scenarioCompleted:true,
     browser:'synthetic-browser-version', manifestSha256:variant === 'source' ? hash(manifest) : 'b'.repeat(64), manifestVersion:version};
@@ -71,11 +76,43 @@ async function fixture(t) {
   await put(join(input, 'environment.json'), JSON.stringify(environment()));
   for (const variant of variants) for (const scenario of scenarios) {
     await put(join(attempt, variant, scenario, 'evidence.json'), JSON.stringify(record(variant, scenario, source)));
-    if (scenario === scenarios[3]) for (const language of ['zh-CN','en']) for (const kind of ['dialog','settings'])
+    if (scenario === scenarios[3]) for (const language of ['zh-CN','en']) for (const kind of ['dialog','settings','settings-middle','settings-bottom'])
       await put(join(attempt, variant, scenario, `${language}-${kind}-320-text200.png`), png);
   }
   return {root, input, staging, source, head, attempt};
 }
+
+test('production viewport planner covers exact one/two/three-frame boundaries with the fixed 128px overlap', () => {
+  for (const pageHeight of [1,899,900]) assert.deepEqual(planSettingsViewportFrames(pageHeight,900),[{kind:'settings',scrollY:0}]);
+  assert.deepEqual(planSettingsViewportFrames(1589,900),[{kind:'settings',scrollY:0},{kind:'settings-bottom',scrollY:689}]);
+  assert.deepEqual(planSettingsViewportFrames(1672,900),[{kind:'settings',scrollY:0},{kind:'settings-bottom',scrollY:772}]);
+  assert.deepEqual(planSettingsViewportFrames(1673,900),[{kind:'settings',scrollY:0},{kind:'settings-middle',scrollY:772},{kind:'settings-bottom',scrollY:773}]);
+  assert.deepEqual(planSettingsViewportFrames(2135,900),[{kind:'settings',scrollY:0},{kind:'settings-middle',scrollY:772},{kind:'settings-bottom',scrollY:1235}]);
+  assert.deepEqual(planSettingsViewportFrames(2444,900),[{kind:'settings',scrollY:0},{kind:'settings-middle',scrollY:772},{kind:'settings-bottom',scrollY:1544}]);
+  assert.deepEqual(planSettingsViewportFrames(32768,32768),[{kind:'settings',scrollY:0}]);
+  assert.deepEqual(planSettingsViewportFrames(131,129),[{kind:'settings',scrollY:0},{kind:'settings-middle',scrollY:1},{kind:'settings-bottom',scrollY:2}]);
+});
+for (const invalid of [0,-1,1.5,NaN,Infinity,-Infinity,Number.MAX_SAFE_INTEGER+1,'900',null,undefined]) {
+  test('production viewport planner rejects invalid page height '+String(invalid), () => assert.throws(()=>planSettingsViewportFrames(invalid,900),/INVALID_SETTINGS_VIEWPORT_HEIGHTS/));
+  test('production viewport planner rejects invalid viewport height '+String(invalid), () => assert.throws(()=>planSettingsViewportFrames(900,invalid),/INVALID_SETTINGS_VIEWPORT_HEIGHTS/));
+}
+test('production viewport planner refuses over-limit heights and over-capacity coverage, never a partial bottom', () => {
+  for (const height of [1,128]) assert.throws(()=>planSettingsViewportFrames(900,height),/INVALID_SETTINGS_VIEWPORT_HEIGHTS/);
+  assert.throws(()=>planSettingsViewportFrames(32769,900),/INVALID_SETTINGS_VIEWPORT_HEIGHTS/);
+  for (const height of [2445,32768]) assert.throws(()=>planSettingsViewportFrames(height,900),/SETTINGS_VIEWPORT_FRAME_CAPACITY/);
+  assert.throws(()=>planSettingsViewportFrames(132,129),/SETTINGS_VIEWPORT_FRAME_CAPACITY/);
+});
+test('production viewport planner always covers every bounded compact page with at least 128px overlap', () => {
+  for (let height=1;height<=2444;height++) {
+    const frames=planSettingsViewportFrames(height,900);
+    assert.equal(frames[0].scrollY,0); assert.ok(frames.length<=3);
+    assert.equal(frames.at(-1).scrollY,Math.max(0,height-900));
+    for (let i=1;i<frames.length;i++) {
+      assert.ok(frames[i].scrollY>frames[i-1].scrollY);
+      assert.ok(frames[i-1].scrollY+900-frames[i].scrollY>=128);
+    }
+  }
+});
 
 test('strict TAP accepts all eight actual identities and zero terminal skips', () => assert.equal(validateTap(tap, '0\n'), true));
 test('environment requires actual original glyph preflight and both installed font identities', () => {
@@ -127,24 +164,96 @@ test('actual reconstruction and keyboard sequences are mandatory', () => {
   r = record('source',scenarios[3]); r.stages[1].geometry.right = 321;
   assert.throws(() => validateRecord(r,options('source',scenarios[3])), /LAYOUT/);
 });
+test('compact coverage accepts actual classic or overlay gutters and exact restored scroll boundaries', () => {
+  for (const [height,width,scrollY] of [[900,320,0],[1589,305,689],[2135,305,0],[2444,320,1544]]) {
+    const r=record('source',scenarios[3]);
+    for (const stage of r.stages.slice(1)) stage.coverage=coverage(height,width,scrollY);
+    assert.equal(validateRecord(r,options('source',scenarios[3])),true);
+  }
+});
+test('successful compact records require coverage for each language; incomplete failures stay diagnostic', () => {
+  for (const index of [1,2]) {
+    const r=record('source',scenarios[3]); delete r.stages[index].coverage;
+    assert.equal(validateRecordShape(r),true,'an interrupted capture may omit the uncompleted coverage');
+    assert.throws(()=>validateRecord(r,options('source',scenarios[3])),/UNEXPECTED_EVIDENCE_FIELDS/);
+    r.scenarioCompleted=false; r.failure={name:'Error',message:'synthetic interrupted capture'};
+    assert.equal(validateRecordShape(r),true);
+  }
+});
+for (const pageHeight of [500,899]) test(`successful compact record refuses page height ${pageHeight} below its actual viewport`,()=>{
+  const r=record('source',scenarios[3]); r.stages[1].coverage=coverage(pageHeight,305,0);
+  assert.throws(()=>validateRecordShape(r),/INVALID_SETTINGS_PAGE_HEIGHT/);
+  assert.throws(()=>validateRecord(r,options('source',scenarios[3])),/INVALID_SETTINGS_PAGE_HEIGHT/);
+});
+for (const [name,change] of [
+  ['null coverage',r=>{r.stages[1].coverage=null;}],
+  ['partial coverage',r=>{delete r.stages[1].coverage.restoredScrollY;}],
+  ['unknown coverage field',r=>{r.stages[1].coverage.content='excluded';}],
+  ['coverage on unrelated stage',r=>{r.stages[0].coverage=coverage();}],
+  ['resized viewport width',r=>{r.stages[1].coverage.viewportWidth=321;}],
+  ['resized viewport height',r=>{r.stages[1].coverage.viewportHeight=899;}],
+  ['zero content width',r=>{r.stages[1].coverage.contentWidth=0;}],
+  ['oversize content width',r=>{r.stages[1].coverage.contentWidth=321;}],
+  ['nonfinite content width',r=>{r.stages[1].coverage.contentWidth=Infinity;}],
+  ['string content width',r=>{r.stages[1].coverage.contentWidth='305';}],
+  ['fake gutter',r=>{r.stages[1].coverage.gutterWidth=0;}],
+  ['negative gutter',r=>{r.stages[1].coverage.gutterWidth=-15;}],
+  ['nonfinite gutter',r=>{r.stages[1].coverage.gutterWidth=NaN;}],
+  ['device pixel ratio change',r=>{r.stages[1].coverage.dpr=2;}],
+  ['visual viewport scale change',r=>{r.stages[1].coverage.scale=1.25;}],
+  ['zero page height',r=>{r.stages[1].coverage.pageHeight=0;}],
+  ['fractional page height',r=>{r.stages[1].coverage.pageHeight=2135.5;}],
+  ['unsafe page height',r=>{r.stages[1].coverage.pageHeight=Number.MAX_SAFE_INTEGER+1;}],
+  ['over-limit page height',r=>{r.stages[1].coverage.pageHeight=32769;}],
+  ['over-capacity page height',r=>{r.stages[1].coverage.pageHeight=2445;}],
+  ['original scroll below zero',r=>{r.stages[1].coverage.originalScrollY=-1;}],
+  ['original scroll past bottom',r=>{r.stages[1].coverage.originalScrollY=1236;}],
+  ['nonfinite original scroll',r=>{r.stages[1].coverage.originalScrollY=Infinity;}],
+  ['nonfinite restored scroll',r=>{r.stages[1].coverage.restoredScrollY=NaN;}],
+  ['restored scroll below zero',r=>{r.stages[1].coverage.restoredScrollY=-1;}],
+  ['restored scroll past bottom',r=>{r.stages[1].coverage.restoredScrollY=1236;}],
+  ['fake restore',r=>{r.stages[1].coverage.restoredScrollY=91;}],
+  ['matching but impossible restored scroll',r=>{r.stages[1].coverage.originalScrollY=r.stages[1].coverage.restoredScrollY=1236;}],
+  ['missing frames',r=>{delete r.stages[1].coverage.frames;}],
+  ['nonarray frames',r=>{r.stages[1].coverage.frames={};}],
+  ['empty frames',r=>{r.stages[1].coverage.frames=[];}],
+  ['missing bottom',r=>{r.stages[1].coverage.frames.pop();}],
+  ['missing middle',r=>{r.stages[1].coverage.frames.splice(1,1);}],
+  ['fourth extra frame',r=>{r.stages[1].coverage.frames.push({...r.stages[1].coverage.frames.at(-1)});}],
+  ['unknown frame field',r=>{r.stages[1].coverage.frames[1].path='../excluded.png';}],
+  ['partial frame',r=>{delete r.stages[1].coverage.frames[1].pngHeight;}],
+  ['wrong frame order',r=>{r.stages[1].coverage.frames.reverse();}],
+  ['wrong frame kind',r=>{r.stages[1].coverage.frames[1].kind='settings-bottom';}],
+  ['wrong first offset',r=>{r.stages[1].coverage.frames[0].scrollY=1;}],
+  ['gapped middle',r=>{r.stages[1].coverage.frames[1].scrollY=901;}],
+  ['insufficient overlap',r=>{r.stages[1].coverage.frames[1].scrollY=773;}],
+  ['wrong bottom offset',r=>{r.stages[1].coverage.frames[2].scrollY=1234;}],
+  ['string frame offset',r=>{r.stages[1].coverage.frames[1].scrollY='772';}],
+  ['resized PNG width',r=>{r.stages[1].coverage.frames[1].pngWidth=640;}],
+  ['fullpage PNG height',r=>{r.stages[1].coverage.frames[1].pngHeight=2135;}],
+]) test('strict coverage rejects '+name+' in both record shape and successful proof',()=>{
+  const r=record('source',scenarios[3]); change(r);
+  assert.throws(()=>validateRecordShape(r));
+  assert.throws(()=>validateRecord(r,options('source',scenarios[3])));
+});
 test('failure records are safe to stage but never successful evidence', () => {
   const r = record('source',scenarios[0]); r.stages = []; r.scenarioCompleted = false;
   r.failure = {name:'Error',message:'synthetic browser startup failure'};
   assert.equal(validateRecordShape(r),true);
   assert.throws(() => validateRecord(r,options('source',scenarios[0])), /RECORD_FAILED/);
 });
-test('collector copies only explicit eight JSON/eight PNG, hashes every artifact, and ignores profile trees', async t => {
+test('collector copies only explicit eight JSON/at most sixteen viewport PNGs, hashes every artifact, and ignores profile trees', async t => {
   const f = await fixture(t);
   await put(join(f.attempt,'profile','IndexedDB','private-database'), 'excluded');
   await put(join(f.attempt,'source',scenarios[0],'arbitrary.json'), '{}');
   const result = await collectEvidence(f); assert.equal(result.ok,true,JSON.stringify(result.errors));
   const actual = await files(f.staging);
-  assert.equal(actual.length,20); assert.equal(actual.filter(p=>p.endsWith('.png')).length,8);
+  assert.equal(actual.length,28); assert.equal(actual.filter(p=>p.endsWith('.png')).length,16);
   assert.ok(actual.every(path=>artifactPaths().includes(path)));
   const identity = JSON.parse(await readFile(join(f.staging,'identity.json')));
   assert.equal(identity.validatedRecords,8); assert.equal(identity.head,head); assert.equal(identity.sourceIdentity.length,sourceFiles.length);
   const sums = (await readFile(join(f.staging,'SHA256SUMS.txt'),'utf8')).trim().split('\n');
-  assert.equal(sums.length,19);
+  assert.equal(sums.length,27);
   for (const line of sums) { const [expected,path] = line.split('  '); assert.equal(hash(await readFile(join(f.staging,path))),expected); }
 });
 test('collector keeps failed TAP/exit, incomplete safe JSON and optional failure PNG but fails the gate', async t => {
@@ -157,6 +266,86 @@ test('collector keeps failed TAP/exit, incomplete safe JSON and optional failure
   assert.ok(result.errors.includes('NATIVE_PROCESS_NOT_SUCCESSFUL'));
   assert.equal((await readFile(join(f.staging,'native.exit'),'utf8')).trim(),'1');
   assert.ok((await files(f.staging)).includes(`source/${scenarios[0]}/failure.png`));
+});
+async function setFixtureCoverage(f, language, pageHeight, removeUnused=true) {
+  for (const variant of variants) {
+    const folder=join(f.attempt,variant,scenarios[3]);
+    const r=JSON.parse(await readFile(join(folder,'evidence.json')));
+    const view=r.stages.find(stage=>stage.language===language); view.coverage=coverage(pageHeight,305,0);
+    await writeFile(join(folder,'evidence.json'),JSON.stringify(r));
+    if (removeUnused) for (const kind of ['settings-middle','settings-bottom']) {
+      if (!view.coverage.frames.some(frame=>frame.kind===kind)) await rm(join(folder,`${language}-${kind}-320-text200.png`));
+    }
+  }
+}
+test('collector accepts actual two-frame Chinese/three-frame English coverage with fourteen PNGs and absent unused slots',async t=>{
+  const f=await fixture(t); await setFixtureCoverage(f,'zh-CN',1589);
+  const result=await collectEvidence(f); assert.equal(result.ok,true,JSON.stringify(result.errors));
+  const actual=await files(f.staging); assert.equal(actual.filter(path=>path.endsWith('.png')).length,14);
+  assert.ok(!actual.some(path=>path.endsWith('zh-CN-settings-middle-320-text200.png')));
+  assert.equal(JSON.parse(await readFile(join(f.staging,'identity.json'))).successful,true);
+});
+test('collector accepts one-frame pages without either unused additional slot, retaining all original eight PNGs',async t=>{
+  const f=await fixture(t); for (const language of ['zh-CN','en']) await setFixtureCoverage(f,language,900);
+  const result=await collectEvidence(f); assert.equal(result.ok,true,JSON.stringify(result.errors));
+  assert.equal((await files(f.staging)).filter(path=>path.endsWith('.png')).length,8);
+});
+test('collector preserves but rejects present stale middle frames unused by real two-frame coverage',async t=>{
+  const f=await fixture(t); await setFixtureCoverage(f,'zh-CN',1589,false);
+  const result=await collectEvidence(f); assert.equal(result.ok,false);
+  assert.equal(result.errors.filter(error=>error.includes('UNUSED_SETTINGS_VIEWPORT_FRAME')).length,2);
+  assert.ok((await files(f.staging)).includes(`source/${scenarios[3]}/zh-CN-settings-middle-320-text200.png`));
+});
+test('collector rejects all unused extra slots even when their count remains within the sixteen PNG cap',async t=>{
+  const f=await fixture(t); for (const language of ['zh-CN','en']) await setFixtureCoverage(f,language,900,false);
+  const result=await collectEvidence(f); assert.equal(result.ok,false);
+  assert.equal(result.errors.filter(error=>error.includes('UNUSED_SETTINGS_VIEWPORT_FRAME')).length,8);
+});
+for (const variant of variants) for (const language of ['zh-CN','en']) for (const kind of ['settings-middle','settings-bottom'])
+  test(`collector requires planned ${variant}/${language}/${kind} frame`,async t=>{
+    const f=await fixture(t), path=`${variant}/${scenarios[3]}/${language}-${kind}-320-text200.png`;
+    await rm(join(f.attempt,path)); const result=await collectEvidence(f);
+    assert.equal(result.ok,false); assert.ok(result.errors.some(error=>error.startsWith(path+':')));
+  });
+for (const [name,width,height] of [['short viewport',320,899],['tall viewport',320,901],['full page',320,2135],
+  ['narrow content crop',305,900],['double scale',640,1800],['zero height',320,0],['over-limit height',320,32769]])
+  test('collector rejects '+name+' bytes even when metadata claims exact viewport geometry',async t=>{
+    const f=await fixture(t), path=`source/${scenarios[3]}/en-settings-middle-320-text200.png`, wrong=Buffer.from(png);
+    wrong.writeUInt32BE(width,16); wrong.writeUInt32BE(height,20); await writeFile(join(f.attempt,path),wrong);
+    const result=await collectEvidence(f); assert.equal(result.ok,false);
+    assert.ok(result.errors.includes(path+':INVALID_PNG')); assert.ok(!(await files(f.staging)).includes(path));
+  });
+test('collector cannot substitute a bounded diagnostic failure PNG for missing required viewport bytes',async t=>{
+  const f=await fixture(t), folder=join(f.attempt,'source',scenarios[3]), diagnostic=Buffer.from(png);
+  diagnostic.writeUInt32BE(1280,16); diagnostic.writeUInt32BE(32768,20);
+  await writeFile(join(folder,'failure.png'),diagnostic); await rm(join(folder,'en-settings-bottom-320-text200.png'));
+  const result=await collectEvidence(f); assert.equal(result.ok,false);
+  assert.ok((await files(f.staging)).includes(`source/${scenarios[3]}/failure.png`));
+  assert.ok(result.errors.some(error=>error.includes('en-settings-bottom-320-text200.png:')));
+});
+test('collector rejects oversize viewport files before reading/staging and retains bounded sibling evidence',async t=>{
+  const f=await fixture(t), path=`source/${scenarios[3]}/en-settings-bottom-320-text200.png`;
+  await truncate(join(f.attempt,path),20*1024*1024+1);
+  const result=await collectEvidence(f); assert.equal(result.ok,false);
+  assert.ok(result.errors.includes(path+':NON_REGULAR_OR_OVERSIZE_EVIDENCE'));
+  const actual=await files(f.staging); assert.ok(!actual.includes(path));
+  assert.ok(actual.includes(`source/${scenarios[3]}/en-settings-320-text200.png`));
+});
+test('collector refuses unknown or over-capacity coverage before JSON staging while preserving other safe evidence',async t=>{
+  const f=await fixture(t), path=`source/${scenarios[3]}/evidence.json`;
+  const r=record('source',scenarios[3],f.source); r.stages[1].coverage.pageHeight=2445;
+  await writeFile(join(f.attempt,path),JSON.stringify(r)); const result=await collectEvidence(f);
+  assert.equal(result.ok,false); assert.ok(result.errors.some(error=>error.includes('SETTINGS_VIEWPORT_FRAME_CAPACITY')));
+  const actual=await files(f.staging); assert.ok(!actual.includes(path)); assert.ok(actual.includes('native.tap'));
+  assert.ok(actual.includes(`release/${scenarios[3]}/evidence.json`));
+});
+for (const pageHeight of [500,899]) test(`collector refuses tampered page height ${pageHeight} below the viewport before JSON staging`,async t=>{
+  const f=await fixture(t), path=`source/${scenarios[3]}/evidence.json`;
+  const r=record('source',scenarios[3],f.source); r.stages[1].coverage=coverage(pageHeight,305,0);
+  await writeFile(join(f.attempt,path),JSON.stringify(r)); const result=await collectEvidence(f);
+  assert.equal(result.ok,false); assert.ok(result.errors.includes(path.replace('/evidence.json','')+':INVALID_SETTINGS_PAGE_HEIGHT'));
+  const actual=await files(f.staging); assert.ok(!actual.includes(path));
+  assert.ok(actual.includes(`release/${scenarios[3]}/evidence.json`));
 });
 for (const [name, change] of [
   ['missing successful PNG', async f => rm(join(f.attempt,'source',scenarios[3],'en-dialog-320-text200.png'))],
@@ -216,7 +405,8 @@ test('supplement preserves both original jobs and uses bounded explicit eight-sc
   assert.doesNotMatch(job,/sources\.list|chrome-for-testing|curl |wget |apt-key/);
   assert.doesNotMatch(job,/continue-on-error|test-name-pattern|npm ci|services\/ai-gateway/);
   const uploaded=[...job.matchAll(/^            \$\{\{ runner\.temp \}\}\/paia-maintenance-settings-upload\/(.+)$/gm)].map(m=>m[1]);
-  assert.deepEqual(uploaded,artifactPaths()); assert.equal(uploaded.length,28);
+  assert.deepEqual(uploaded,artifactPaths()); assert.equal(uploaded.length,36);
+  assert.equal(uploaded.filter(path=>path.endsWith('-320-text200.png')).length,16);
   assert.ok(uploaded.every(path=>!path.includes('*')&&!path.includes('..')));
 });
 
@@ -333,4 +523,70 @@ test('worker purpose routing: original ordinary mutation still schedules Filter 
 test('worker purpose routing: unknown purpose-like names do not gain the local-tool exemption',async()=>{
  const effects=await dispatchPurposeRequest('PAIA_MAINTENANCE_PROCESSING_UNKNOWN');
  assert.equal(effects.filters,1);assert.equal(effects.archiveChanges,1);
+});
+
+
+// Execute the actual native viewport helper in a deterministic VM. These
+// synthetic PNG headers check capture/control contracts only, never image
+// decoding, browser execution, or production visual qualification.
+const viewportHelperText=await readFile(new URL('./settings-maintenance-chrome-e2e.test.mjs',import.meta.url),'utf8');
+const viewportHelperSource=viewportHelperText.match(/^async function captureSettingsViewportFrames\(page,directory,language\) \{[\s\S]*?^\}\n/m)?.[0];
+assert.ok(viewportHelperSource,'execute the exact current native capture helper, not a parallel capture implementation');
+const viewportHelperClone=x=>structuredClone(x);
+function viewportHelperPng(width=320,height=900){const b=Buffer.alloc(33);Buffer.from([137,80,78,71,13,10,26,10]).copy(b);b.writeUInt32BE(13,8);b.write('IHDR',12);b.writeUInt32BE(width,16);b.writeUInt32BE(height,20);return b;}
+function viewportHelperFixture(o={}){
+ const height=o.height??2135, width=o.width??305, initial=o.scroll??618;
+ const scope={Buffer,assert,join,console:{log(){}},planSettingsViewportFrames,innerWidth:320,innerHeight:900,
+ devicePixelRatio:1,visualViewport:{scale:1},scrollX:0,scrollY:initial,requestAnimationFrame(resolve){resolve();},...o.scope};
+ const node=(root)=>({clientWidth:width,scrollWidth:width,offsetWidth:width,clientHeight:root?900:height,
+ scrollHeight:height,offsetHeight:height,getBoundingClientRect(){return {x:0,y:-scope.scrollY,width,height};}});
+ scope.document={fonts:{ready:Promise.resolve()},documentElement:node(true),body:node(false)};
+ o.mutate?.(scope);
+ const calls=[],screens=[],scrolls=[];let detached=0,attached=0,evaluations=0;
+ const metrics=o.metrics??{cssContentSize:{x:0,y:0,width,height},cssVisualViewport:{scale:1}};
+ const session={async send(method,params){calls.push({method,params});assert.equal(method,'Page.getLayoutMetrics','no beyondViewport capture or emulation is allowed');if(o.metricsError)throw Error('metrics failed');return metrics;},async detach(){detached++;if(o.detachError)throw Error('detach failed');}};
+ scope.scrollTo=(x,y)=>{scrolls.push([x,y]);if(o.restoreError&&screens.length&&y===initial)throw Error('restore failed');scope.scrollX=x;const reached=Math.max(0,Math.min(y,Math.max(0,height-900)+(o.maxScrollExtra??0)));scope.scrollY=o.clamp?Math.max(0,reached-1):reached;o.onScroll?.(scope,y,screens.length);};
+ const capture=runInNewContext(viewportHelperSource+'\ncaptureSettingsViewportFrames',scope);
+ const page={async evaluate(fn,arg){evaluations++;return fn(arg);},context(){return {async newCDPSession(received){assert.equal(received,page);attached++;return session;}};},
+ async screenshot(options){screens.push({options:viewportHelperClone(options),scrollY:scope.scrollY});o.afterScreenshot?.(scope,screens.length);if(o.screenshotError)throw Error('native screenshot failed');return o.png??viewportHelperPng();},
+ setViewportSize(){throw Error('viewport mutation forbidden');},addStyleTag(){throw Error('style mutation forbidden');}};
+ return {capture:()=>capture(page,'expected-directory','en'),calls,screens,scrolls,scope,counts:()=>({attached,detached,evaluations})};
+}
+for(const [name,height,scroll] of [['one',900,0],['two',1589,618],['three',2135,918]])test('exact native viewport helper: exact helper captures '+name+' raw original320x900 frame(s), actual complete plan, and restores scroll',async()=>{
+ const f=viewportHelperFixture({height,scroll});const coverage=await f.capture(), plan=planSettingsViewportFrames(height,900);
+ assert.deepEqual(JSON.parse(JSON.stringify(coverage)),{viewportWidth:320,viewportHeight:900,contentWidth:305,gutterWidth:15,pageHeight:height,dpr:1,scale:1,originalScrollY:scroll,restoredScrollY:scroll,frames:plan.map(x=>({...x,pngWidth:320,pngHeight:900}))});
+ assert.deepEqual(f.calls,[{method:'Page.getLayoutMetrics',params:undefined}]);assert.equal(f.counts().attached,1);assert.equal(f.counts().detached,1);
+ assert.deepEqual(f.screens,plan.map(frame=>({options:{path:join('expected-directory','en-'+frame.kind+'-320-text200.png'),fullPage:false,caret:'initial'},scrollY:frame.scrollY})));
+ assert.deepEqual(f.scrolls,[...plan.map((x,i)=>[0,i===plan.length-1?height+900:x.scrollY]),[0,scroll]]);assert.equal(f.scope.scrollY,scroll);
+});
+test('exact native viewport helper: overlay scrollbar uses actual320 content width and zero gutter without a fabricated15px bar',async()=>{const f=viewportHelperFixture({width:320});const c=await f.capture();assert.equal(c.contentWidth,320);assert.equal(c.gutterWidth,0);});
+for(const [name,o] of [
+ ['wrong320 viewport',{scope:{innerWidth:305}}],['wrong900 viewport',{scope:{innerHeight:899}}],['DPR resize',{scope:{devicePixelRatio:2}}],
+ ['visual scale',{scope:{visualViewport:{scale:1.2}}}],['horizontal scroll',{scope:{scrollX:1}}],['nonfinite viewport',{scope:{scrollY:NaN}}],['negative scroll',{scroll:-1}],
+ ['root overflow',{mutate:s=>s.document.documentElement.scrollWidth=321}],['body overflow',{mutate:s=>s.document.body.getBoundingClientRect=()=>({x:0,y:0,width:321,height:2135})}],
+ ['negative content',{mutate:s=>s.document.body.scrollHeight=-1}],['nonfinite content',{mutate:s=>s.document.body.getBoundingClientRect=()=>({x:0,y:0,width:305,height:NaN})}],
+])test('exact native viewport helper: refuses '+name+' before attaching or changing scroll',async()=>{const f=viewportHelperFixture(o);await assert.rejects(f.capture());assert.equal(f.calls.length,0);assert.equal(f.screens.length,0);assert.equal(f.scrolls.length,0);assert.equal(f.counts().attached,0);});
+for(const [name,o] of [
+ ['unboundedheight',{height:32769}],['overcapacity',{height:2445}],['fractionalheight',{height:2135.5}],['old scroll outside content',{scroll:1236}],
+ ['native mismatch',{metrics:{cssContentSize:{x:0,y:0,width:306,height:2135},cssVisualViewport:{scale:1}}}],
+ ['native offset',{metrics:{cssContentSize:{x:1,y:0,width:305,height:2135},cssVisualViewport:{scale:1}}}],
+ ['missing native height',{metrics:{cssContentSize:{x:0,y:0,width:305},cssVisualViewport:{scale:1}}}],
+ ['zero nativeheight',{metrics:{cssContentSize:{x:0,y:0,width:305,height:0},cssVisualViewport:{scale:1}}}],
+ ['negative nativeheight',{metrics:{cssContentSize:{x:0,y:0,width:305,height:-1},cssVisualViewport:{scale:1}}}],
+ ['fractional lower nativeheight',{metrics:{cssContentSize:{x:0,y:0,width:305,height:2000.5},cssVisualViewport:{scale:1}}}],
+ ['native visualscale',{metrics:{cssContentSize:{x:0,y:0,width:305,height:2135},cssVisualViewport:{scale:2}}}],
+ ['missing native metrics',{metrics:{cssVisualViewport:{scale:1}}}],
+ ['metrics failure',{metricsError:true}],['detach failure',{detachError:true}],
+])test('exact native viewport helper: refuses '+name+' before capturing and detaches original session',async()=>{const f=viewportHelperFixture(o);await assert.rejects(f.capture());assert.equal(f.screens.length,0);assert.equal(f.scrolls.length,0);assert.equal(f.counts().detached,1);});
+for(const [name,o] of [
+ ['305px output',{png:viewportHelperPng(305)}],['truncated height',{png:viewportHelperPng(320,899)}],['bad signature',{png:Buffer.alloc(33)}],['short header',{png:Buffer.alloc(23)}],
+ ['actual scroll mismatch',{clamp:true}],['actual reachable bottom mismatch',{maxScrollExtra:1}],['scroll layout drift',{onScroll:(s,y)=>{if(y===0)s.document.body.clientWidth=304;}}],
+ ['capture scroll drift',{afterScreenshot:s=>s.scrollY++}],['capture viewport drift',{afterScreenshot:s=>s.innerWidth=321}],
+ ['capture scrollbar drift',{afterScreenshot:s=>s.document.documentElement.clientWidth=320}],['native capture rejection',{screenshotError:true}],
+])test('exact native viewport helper: refuses '+name+' and attempts original scroll restoration without later frame',async()=>{const f=viewportHelperFixture(o);await assert.rejects(f.capture());assert.equal(f.screens.length<=(o.maxScrollExtra?2:1),true);assert.deepEqual(f.scrolls.at(-1),[0,618]);assert.equal(f.counts().detached,1);});
+test('exact native viewport helper: restore failure rejects otherwise complete capture and cannot produce successful coverage',async()=>{const f=viewportHelperFixture({restoreError:true});await assert.rejects(f.capture(),/restore failed/);assert.equal(f.screens.length,3);assert.deepEqual(f.scrolls.at(-1),[0,618]);});
+test('exact native viewport helper: restore failure after capture failure does not hide the primary failing capture',async()=>{const f=viewportHelperFixture({restoreError:true,screenshotError:true});await assert.rejects(f.capture(),/native screenshot failed/);assert.equal(f.screens.length,1);assert.deepEqual(f.scrolls.at(-1),[0,618]);});
+test('exact native viewport helper: native helper never requests whole-document capture, emulation, cropping, padding, resizing or style changes',()=>{
+ for(const forbidden of ['Page.captureScreenshot','captureBeyondViewport','setDeviceMetricsOverride','setViewportSize','addStyleTag','clip:','fullPage:true','writeFile('])assert.equal(viewportHelperSource.includes(forbidden),false,forbidden);
+ assert.match(viewportHelperSource,/fullPage:false,caret:'initial'/);assert.match(viewportHelperSource,/assert\.deepEqual\(after,first/);assert.match(viewportHelperSource,/assert\.deepEqual\(restored,before/);
 });

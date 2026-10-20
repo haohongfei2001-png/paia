@@ -8,6 +8,7 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {FakeChatGPT, eventually} from './harness/fake-chatgpt.mjs';
 import {chooseConsumerGroup} from './harness/settings-consumer-presentation.mjs';
+import {planSettingsViewportFrames} from '../scripts/check-maintenance-settings-native-evidence.mjs';
 
 // Eight explicit native leaves: four scenarios for each actual source/release
 // extension. This file never installs a processing/financial issuer or provider.
@@ -250,58 +251,84 @@ async function preparePage(h, {fresh = false} = {}) {
   return page;
 }
 
-// Capture the complete original 320px page through Chrome's native boundary.
-// Do not resize/reflow the viewport or crop/scale/rewrite returned PNG bytes.
-async function captureCompactSettings(page, path) {
-  const measure = () => page.evaluate(async () => {
+// Separate native viewport frames preserve the real layout and scrollbar.
+// Shared planning fails before capture if the fixed allowlist cannot cover it.
+async function captureSettingsViewportFrames(page,directory,language) {
+  const measure=()=>page.evaluate(async()=>{
     await document.fonts.ready;
-    await new Promise(resolve => requestAnimationFrame(resolve));
-    const d=document.documentElement,b=document.body;
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     const rect=node=>{const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,
       clientWidth:node.clientWidth,scrollWidth:node.scrollWidth,offsetWidth:node.offsetWidth,
       clientHeight:node.clientHeight,scrollHeight:node.scrollHeight,offsetHeight:node.offsetHeight};};
     return {viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio,
-      scale:visualViewport?.scale??1,scrollX,scrollY},document:rect(d),body:rect(b)};
+      scale:visualViewport?.scale??1,scrollX,scrollY},document:rect(document.documentElement),body:rect(document.body)};
   });
+  const stable=value=>({viewport:{...value.viewport,scrollY:0},
+    document:{...value.document,y:value.document.y+value.viewport.scrollY},
+    body:{...value.body,y:value.body.y+value.viewport.scrollY}});
   const before=await measure(),v=before.viewport;
-  assert.equal(v.width,320,'native capture retains the original 320px viewport');
-  assert.equal(v.dpr,1,'native capture uses the original one-to-one CSS pixels');
-  assert.equal(v.scale,1,'native capture never rescales the visual viewport');
-  assert.equal(v.scrollX,0,'native full-page capture does not conceal horizontal scrolling');
-  assert.ok(Object.values(v).every(Number.isFinite)&&v.height>0&&v.scrollY>=0,'finite original viewport');
+  assert.equal(v.width,320,'real original viewport stays 320px');
+  assert.equal(v.height,900,'real original viewport height stays 900px');
+  assert.equal(v.dpr,1,'native one-to-one CSS pixels are not rescaled');
+  assert.equal(v.scale,1,'visual viewport scale is unchanged');
+  assert.equal(v.scrollX,0,'horizontal scrolling cannot conceal overflow');
+  assert.ok(Object.values(v).every(Number.isFinite)&&v.scrollY>=0,'finite original viewport');
   for(const r of [before.document,before.body]){
     assert.ok(Object.values(r).every(Number.isFinite)&&r.height>0
       &&['clientWidth','scrollWidth','offsetWidth','clientHeight','scrollHeight','offsetHeight'].every(key=>r[key]>=0),
-    'finite complete-page geometry');
-    assert.ok(r.x>=0&&r.x+r.width<=320&&r.width>0&&r.scrollWidth<=320&&r.offsetWidth<=320
-      &&r.clientWidth<=320,'complete page content fits the original viewport without cropping');
+    'finite original content geometry');
+    assert.ok(r.x>=0&&r.width>0&&r.x+r.width<=320&&r.clientWidth<=320&&r.scrollWidth<=320&&r.offsetWidth<=320,
+      'all real content fits without horizontal cropping');
   }
-  const domHeight=Math.max(v.height,...[before.document,before.body].flatMap(r=>
-    [r.clientHeight,r.scrollHeight,r.offsetHeight,r.y+v.scrollY+r.height]));
-  assert.ok(domHeight>0&&domHeight<=32768,'bounded complete original page height');
   const session=await page.context().newCDPSession(page);
+  let content;
   try{
-    const metrics=await session.send('Page.getLayoutMetrics'),content=metrics.cssContentSize;
+    const metrics=await session.send('Page.getLayoutMetrics');content=metrics.cssContentSize;
     assert.ok(content&&Object.values(content).every(Number.isFinite)&&content.x===0&&content.y===0
-      &&content.width>0&&content.width<=320&&content.height>0&&content.height<=32768,
-    'native complete-content bounds do not omit overflow');
-    assert.equal(metrics.cssVisualViewport?.scale,1,'native metrics retain original visual scale');
-    const height=Math.ceil(Math.max(domHeight,content.height));
-    assert.ok(Number.isSafeInteger(height)&&height>0&&height<=32768,'bounded native full-page height');
-    const result=await session.send('Page.captureScreenshot',{format:'png',fromSurface:true,captureBeyondViewport:true,
-      clip:{x:0,y:0,width:320,height,scale:1}});
-    const bytes=Buffer.from(result.data,'base64'),after=await measure();
-    console.log('MAINTENANCE_SETTINGS_CAPTURE_NATIVE',JSON.stringify({before,content,height,after,
-      pngSize:bytes.length>=24?{width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20)}:null}));
-    assert.deepEqual(after,before,'native full-page capture leaves viewport, layout and scroll unchanged');
-    assert.ok(bytes.length>=33&&bytes.length<=20*1024*1024
-      &&bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))
-      &&bytes.readUInt32BE(8)===13&&bytes.toString('ascii',12,16)==='IHDR','original complete native PNG');
-    assert.equal(bytes.readUInt32BE(16),320,'native output contains the complete original viewport width');
-    assert.equal(bytes.readUInt32BE(20),height,'native output contains the complete original page height');
-    await writeFile(path,bytes);
-    return bytes;
+      &&content.width>0&&content.width===before.document.clientWidth&&content.width===before.document.scrollWidth
+      &&Number.isSafeInteger(content.height)&&content.height>0&&content.height<=32768,
+    'native complete content and actual scrollbar gutter agree');
+    assert.equal(metrics.cssVisualViewport?.scale,1,'native visual scale remains one');
   }finally{await session.detach();}
+  const pageHeight=Math.max(v.height,before.document.scrollHeight,before.body.scrollHeight,content.height);
+  const plan=planSettingsViewportFrames(pageHeight,v.height);
+  assert.ok(v.scrollY<=Math.max(0,pageHeight-v.height),'original scroll lies inside the actual document');
+  const coverage={viewportWidth:v.width,viewportHeight:v.height,contentWidth:content.width,
+    gutterWidth:v.width-content.width,pageHeight,dpr:v.dpr,scale:v.scale,
+    originalScrollY:v.scrollY,restoredScrollY:null,frames:[]};
+  let primary;
+  try{
+    for(const frame of plan){
+      // The final frame probes the browser's actual reachable bottom, not a
+      // rounded DOM assumption; Chrome must clamp it to the exact shared plan.
+      await page.evaluate(top=>scrollTo(0,top),frame===plan.at(-1)?pageHeight+v.height:frame.scrollY);
+      const first=await measure();
+      assert.equal(first.viewport.scrollY,frame.scrollY,'actual native scroll matches the complete coverage plan');
+      assert.deepEqual(stable(first),stable(before),'scrolling does not change original layout or scrollbar');
+      const bytes=await page.screenshot({path:join(directory,language+'-'+frame.kind+'-320-text200.png'),
+        fullPage:false,caret:'initial'});
+      const after=await measure();
+      console.log('MAINTENANCE_SETTINGS_VIEWPORT_FRAME',JSON.stringify({language,kind:frame.kind,before:first,after,
+        pngSize:bytes.length>=24?{width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20)}:null}));
+      assert.deepEqual(after,first,'each native viewport capture preserves layout, scrollbar and scroll');
+      assert.ok(bytes.length>=33&&bytes.length<=20*1024*1024
+        &&bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))
+        &&bytes.readUInt32BE(8)===13&&bytes.toString('ascii',12,16)==='IHDR','original native PNG bytes');
+      const pngWidth=bytes.readUInt32BE(16),pngHeight=bytes.readUInt32BE(20);
+      assert.equal(pngWidth,320,'every actual viewport PNG remains 320px');
+      assert.equal(pngHeight,v.height,'every actual viewport PNG retains its original height');
+      coverage.frames.push({kind:frame.kind,scrollY:first.viewport.scrollY,pngWidth,pngHeight});
+    }
+  }catch(error){primary=error;throw error;}
+  finally{
+    try{
+      await page.evaluate(top=>scrollTo(0,top),v.scrollY);
+      const restored=await measure();
+      assert.deepEqual(restored,before,'complete original geometry and scroll are restored');
+      coverage.restoredScrollY=restored.viewport.scrollY;
+    }catch(error){console.log('MAINTENANCE_SETTINGS_VIEWPORT_RESTORE_FAILED',String(error).slice(0,8192));if(!primary)throw error;}
+  }
+  return coverage;
 }
 
 async function installReloadAuthenticationObserver(h, page) {
@@ -375,6 +402,7 @@ async function withFixture(variant, scenario, run) {
       launchThroughPort:true, onboarding:!fresh});
     trace.browser = h.context.browser().version();
     const page = await preparePage(h, {fresh});
+    if(scenario===scenarios[2])await installReloadAuthenticationObserver(h,page);
     assert.deepEqual(await writes(page), [], 'startup and real reconstruction never toggle Maintenance purpose');
     return page;
   };
@@ -434,7 +462,7 @@ async function withFixture(variant, scenario, run) {
         const worker=h.context.serviceWorkers().find(w => w.url() === `chrome-extension://${h.extensionId}/background/service-worker.js`);
         if(worker)console.log('MAINTENANCE_SETTINGS_RELOAD_AUTH',JSON.stringify(await worker.evaluate(() => globalThis.__maintenanceReloadAuthProbe?.rows ?? [])));
       } catch(probeError) { console.log('MAINTENANCE_SETTINGS_RELOAD_AUTH_UNAVAILABLE',String(probeError)); }
-      try { await h.archive.screenshot({path:join(directory, 'failure.png'), fullPage:true}); }
+      try { await h.archive.screenshot({path:join(directory, 'failure.png'), fullPage:false,caret:'initial'}); }
       catch (screenshotError) { trace.screenshotError = String(screenshotError); }
     }
   } finally {
@@ -648,27 +676,8 @@ for (const variant of ['source', 'release']) {
           await settled(page, false);
           const calls = (await writes(page)).slice(before);
           assert.deepEqual(calls.map(row => [row.enabled, row.ok]), [[true, true], [false, true]]);
-          const settingsPng = await captureCompactSettings(page,join(directory,language+'-settings-320-text200.png'));
-          const pngSize = settingsPng.length >= 24 ? {width:settingsPng.readUInt32BE(16), height:settingsPng.readUInt32BE(20)} : null;
-          // Synthetic numeric capture diagnostics only. Preserve rejected bytes
-          // under the existing failure allowlist, never crop or resize proof.
-          console.log('MAINTENANCE_SETTINGS_CAPTURE', JSON.stringify({variant, language, pngSize,
-            layout:await page.evaluate(() => {
-              const rect = node => { if(!node)return null; const r=node.getBoundingClientRect();
-                return {x:r.x, right:r.right, y:r.y, bottom:r.bottom, width:r.width, height:r.height,
-                  clientWidth:node.clientWidth, scrollWidth:node.scrollWidth, clientHeight:node.clientHeight, scrollHeight:node.scrollHeight}; };
-              return {innerWidth, innerHeight, scrollX, scrollY, devicePixelRatio,
-                document:rect(document.documentElement), body:rect(document.body),
-                settings:rect(document.getElementById('settings-panel')),
-                maintenance:rect(document.getElementById('settings-maintenance')),
-                control:rect(document.getElementById('settings-maintenance-enabled')),
-                overflow:[...document.querySelectorAll('body *')].slice(0,2048).filter(node => {
-                  const r=node.getBoundingClientRect();return r.width>0&&r.height>0&&(r.x<0||r.right>innerWidth);
-                }).slice(0,16).map(node => ({tag:node.tagName,
-                  id:/^[a-zA-Z0-9_-]{1,80}$/.test(node.id)?node.id:null, rect:rect(node)}))};
-            })}));
-          if(pngSize?.width !== 320)await writeFile(join(directory,'failure.png'),settingsPng);
-          note('native-compact-keyboard', {language, geometry, writes:calls.map(row => row.enabled)});
+          const coverage=await captureSettingsViewportFrames(page,directory,language);
+          note('native-compact-keyboard', {language, geometry, writes:calls.map(row => row.enabled),coverage});
         } finally {
           await page.evaluate(() => {
             const dialog = document.getElementById('settings-maintenance-consent');

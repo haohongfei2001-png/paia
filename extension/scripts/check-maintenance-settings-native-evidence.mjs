@@ -7,6 +7,7 @@ export const scenarios = Object.freeze(['trusted-confirmation-and-peers', 'nativ
   'actual-worker-and-browser-reconstruction', 'compact-bilingual-keyboard']);
 export const variants = Object.freeze(['source', 'release']);
 const languages = ['zh-CN', 'en'];
+const compactImageKinds = ['dialog', 'settings', 'settings-middle', 'settings-bottom'];
 const states = ['on', 'off', 'off_unconfirmed', 'save_unknown', 'saving', 'unavailable'];
 const stages = [
   ['fresh-default-off', 'one-trusted-on-ack', 'peer-off-ack', 'stale-dialog-denied', 'actual-page-reload-retains-on'],
@@ -31,6 +32,42 @@ function plain(value) { return value !== null && typeof value === 'object' && !A
 function keys(value, allowed, required = allowed) {
   if (!plain(value) || Object.keys(value).some(key => !allowed.includes(key))
     || required.some(key => !Object.hasOwn(value, key))) fail('UNEXPECTED_EVIDENCE_FIELDS');
+}
+
+// Raw viewport frames preserve the real scrollbar/layout. Plan before capture
+// and fail closed if the fixed three-frame budget cannot include the bottom.
+export function planSettingsViewportFrames(pageHeight, viewportHeight) {
+  if (!Number.isSafeInteger(pageHeight) || pageHeight <= 0 || pageHeight > 32768
+    || !Number.isSafeInteger(viewportHeight) || viewportHeight <= 128) fail('INVALID_SETTINGS_VIEWPORT_HEIGHTS');
+  const offsets = [0], overlap = 128, maxFrames = 3;
+  while (offsets.at(-1) + viewportHeight < pageHeight) {
+    if (offsets.length === maxFrames) fail('SETTINGS_VIEWPORT_FRAME_CAPACITY');
+    offsets.push(Math.min(offsets.at(-1) + viewportHeight - overlap, Math.max(0, pageHeight - viewportHeight)));
+  }
+  return offsets.map((scrollY, index) => ({
+    kind:index === 0 ? 'settings' : index === offsets.length - 1 ? 'settings-bottom' : 'settings-middle', scrollY,
+  }));
+}
+
+function validateCoverage(value) {
+  keys(value, ['viewportWidth','viewportHeight','contentWidth','gutterWidth','pageHeight','dpr','scale',
+    'originalScrollY','restoredScrollY','frames']);
+  if (value.viewportWidth !== 320 || value.viewportHeight !== 900 || value.dpr !== 1 || value.scale !== 1
+    || !Number.isFinite(value.contentWidth) || value.contentWidth <= 0 || value.contentWidth > 320
+    || !Number.isFinite(value.gutterWidth) || value.gutterWidth !== 320 - value.contentWidth) fail('INVALID_SETTINGS_VIEWPORT_GEOMETRY');
+  const plan = planSettingsViewportFrames(value.pageHeight, value.viewportHeight);
+  if (value.pageHeight < value.viewportHeight) fail('INVALID_SETTINGS_PAGE_HEIGHT');
+  const maxScroll = Math.max(0, value.pageHeight - value.viewportHeight);
+  if (!Number.isFinite(value.originalScrollY) || value.originalScrollY < 0 || value.originalScrollY > maxScroll
+    || !Number.isFinite(value.restoredScrollY) || value.restoredScrollY < 0 || value.restoredScrollY > maxScroll
+    || value.originalScrollY !== value.restoredScrollY) fail('SETTINGS_VIEWPORT_SCROLL_NOT_RESTORED');
+  if (!Array.isArray(value.frames) || value.frames.length !== plan.length) fail('INCOMPLETE_SETTINGS_VIEWPORT_FRAMES');
+  for (const frame of value.frames) {
+    keys(frame, ['kind','scrollY','pngWidth','pngHeight']);
+    if (frame.pngWidth !== 320 || frame.pngHeight !== 900) fail('INVALID_SETTINGS_VIEWPORT_PNG_GEOMETRY');
+  }
+  exact(value.frames.map(({kind,scrollY}) => ({kind,scrollY})), plan, 'SETTINGS_VIEWPORT_FRAME_PLAN_MISMATCH');
+  return true;
 }
 
 export function validateEnvironment(value, head) {
@@ -89,7 +126,7 @@ export function validateRecordShape(value) {
     for (const text of Object.values(value.failure)) if (typeof text !== 'string' || text.length > 32768) fail('INVALID_FAILURE_RECORD');
   }
   for (const entry of value.stages) {
-    keys(entry, ['stage','state','language','geometry','writes'], ['stage']);
+    keys(entry, ['stage','state','language','geometry','writes','coverage'], ['stage']);
     if (typeof entry.stage !== 'string' || !stages.flat().includes(entry.stage)) fail('INVALID_STAGE');
     if (entry.state !== undefined) {
       keys(entry.state, ['enabled','savedEnabled','generation','phase','serviceAvailable']);
@@ -104,6 +141,10 @@ export function validateRecordShape(value) {
     }
     if (entry.writes !== undefined && (!Array.isArray(entry.writes) || entry.writes.length > 2
       || entry.writes.some(item => typeof item !== 'boolean'))) fail('INVALID_WRITE_OBSERVATION');
+    if (entry.coverage !== undefined) {
+      if (entry.stage !== 'native-compact-keyboard') fail('UNEXPECTED_SETTINGS_VIEWPORT_COVERAGE');
+      validateCoverage(entry.coverage);
+    }
   }
   return true;
 }
@@ -143,6 +184,7 @@ export function validateRecord(value, {variant, scenario, source, head, manifest
       exact(view.writes, [true,false], 'NATIVE_KEYBOARD_WRITE_SEQUENCE');
       const g = view.geometry;
       if (!g || g.x < 0 || g.right > 320 || g.width <= 0 || g.overflow > 2 || g.pageOverflow > 2) fail('NATIVE_LAYOUT_OVERFLOW');
+      validateCoverage(view.coverage);
     }
   }
   return true;
@@ -152,7 +194,7 @@ export function artifactPaths() {
   return ['native.tap','native.exit','identity.json','SHA256SUMS.txt',
     ...variants.flatMap(variant => scenarios.flatMap(scenario => [
       `${variant}/${scenario}/evidence.json`, `${variant}/${scenario}/failure.png`,
-      ...(scenario === scenarios[3] ? languages.flatMap(language => ['dialog','settings'].map(kind =>
+      ...(scenario === scenarios[3] ? languages.flatMap(language => compactImageKinds.map(kind =>
         `${variant}/${scenario}/${language}-${kind}-320-text200.png`)) : []),
     ]))];
 }
@@ -210,15 +252,22 @@ export async function collectEvidence({input, staging, source, head}) {
       await directory(join(input, attempts[0].name, variant));
       await directory(folder);
     } catch (error) { errors.push(`${variant}/${scenario}:${error.message}`); continue; }
+    let record;
     try {
       const bytes = await regular(join(folder, 'evidence.json'), 128 * 1024), value = JSON.parse(bytes);
       validateRecordShape(value);
       await save(`${variant}/${scenario}/evidence.json`, bytes);
+      record = value;
       validateRecord(value, {variant, scenario, source, head, manifestHash, version});
       records.push(value);
     } catch (error) { errors.push(`${variant}/${scenario}:${error.message}`); }
-    const pngs = scenario === scenarios[3] ? languages.flatMap(language => ['dialog','settings'].map(kind =>
+    const pngs = scenario === scenarios[3] ? languages.flatMap(language => compactImageKinds.map(kind =>
       `${language}-${kind}-320-text200.png`)) : [];
+    const requiredPngs = new Set(scenario === scenarios[3] ? languages.flatMap(language => [
+      `${language}-dialog-320-text200.png`, `${language}-settings-320-text200.png`,
+      ...(record?.stages.find(entry => entry.stage === 'native-compact-keyboard' && entry.language === language)
+        ?.coverage?.frames || []).map(frame => `${language}-${frame.kind}-320-text200.png`),
+    ]) : []);
     for (const name of [...pngs, 'failure.png']) {
       try {
         const bytes = await regular(join(folder, name), 20 * 1024 * 1024);
@@ -228,9 +277,10 @@ export async function collectEvidence({input, staging, source, head}) {
           || bytes.readUInt32BE(8) !== 13 || bytes.toString('ascii',12,16) !== 'IHDR'
           || bytes.readUInt32BE(16) < 1 || bytes.readUInt32BE(16) > 32768
           || bytes.readUInt32BE(20) < 1 || bytes.readUInt32BE(20) > 32768
-          || (name !== 'failure.png' && bytes.readUInt32BE(16) !== 320)) fail('INVALID_PNG');
+          || (name !== 'failure.png' && (bytes.readUInt32BE(16) !== 320 || bytes.readUInt32BE(20) !== 900))) fail('INVALID_PNG');
         await save(`${variant}/${scenario}/${name}`, bytes);
-      } catch (error) { if (name !== 'failure.png' || error.code !== 'ENOENT') errors.push(`${variant}/${scenario}/${name}:${error.message}`); }
+        if (name !== 'failure.png' && !requiredPngs.has(name)) errors.push(`${variant}/${scenario}/${name}:UNUSED_SETTINGS_VIEWPORT_FRAME`);
+      } catch (error) { if (requiredPngs.has(name) || error.code !== 'ENOENT') errors.push(`${variant}/${scenario}/${name}:${error.message}`); }
     }
   }
   const releaseHashes = new Set(records.filter(record => record.variant === 'release').map(record => record.manifestSha256));
