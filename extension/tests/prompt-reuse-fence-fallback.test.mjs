@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {IDBFactory,IDBObjectStore} from './vendor/fake-indexeddb/build/esm/index.js';
+import {IDBFactory,IDBObjectStore,IDBDatabase,IDBIndex} from './vendor/fake-indexeddb/build/esm/index.js';
 import {local} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
@@ -10,7 +10,14 @@ import {PromptSurfaceCommands} from '../background/prompt-surface.js';
 import {NextPromptCommands} from '../background/prompt-next.js';
 import {NextFamilyView} from '../core/next-family-view.js';
 import {SafetyRunner} from '../core/thought-runner.js';
-import {observeRepositoryWriteFence,requireRepositoryWriteFence} from '../core/idb-repository.js';
+import {LibraryRunner} from '../core/library-runner.js';
+import {FilterRunner} from '../core/filter-runner.js';
+import {purgeBatch} from '../core/thought-maintenance.js';
+import {layoutBatch} from '../core/library-layout.js';
+import {rebuildBatch} from '../core/library-search.js';
+import {originalFoundationPromptQueueOwner} from '../core/thought-store.js';
+import {CONSUMER_PUBLICATION_PENDING_ID} from '../core/browser-native-sync/consumer-publication-state.js';
+import {observeRepositoryWriteFence,requireRepositoryWriteFence,originalRepositoryTransactionOwner} from '../core/idb-repository.js';
 import {STORAGE_KEY,ArchiveError} from '../core/constants.js';
 const text='Explain sorting',clock=()=>1800000000000;
 const deferred=()=>{let resolve;const promise=new Promise(r=>{resolve=r;});return {promise,resolve};};
@@ -35,7 +42,10 @@ function reads(t,onGet=()=>{}){
  IDBObjectStore.prototype.get=function(...args){const request=original.apply(this,args);if(this.name==='records')state.records++;onGet(this,args,request,state);return request;};
  const restore=()=>{IDBObjectStore.prototype.get=original;};t.after(restore);return {state,restore};
 }
-async function emptyDrain(f){const status=await f.s.status();assert.equal(status.consented,true);await f.safety.wake();assert.equal(f.safety.failed,false);}
+// These fallback controls require genuine write pressure, not an idle owner.
+// Keep the real SafetyRunner wake, then admit an original repository no-op write
+// explicitly. The separate composed-drain controls below require zero writes.
+async function emptyDrain(f){const status=await f.s.status();assert.equal(status.consented,true);await f.safety.wake();assert.equal(f.safety.failed,false);await f.s.repository.transaction(true,async()=>{});}
 function success(f,values){for(const value of values)assert.equal(value.status,'fulfilled',value.reason?.code);assert.deepEqual(values[0].value,f.single);assert.deepEqual(values[1].value,{id:f.family.id,text,generation:f.single.generation});}
 function refused(values){for(const value of values){assert.equal(value.status,'rejected');assert.equal(value.reason.code,'MEMORY_STALE');}}
 function pair(f){return Promise.allSettled([f.service.query(),f.service.resolve(f.family)]);}
@@ -44,7 +54,7 @@ test('quiet original constructor pair remains one scan and exact independent res
  const f=await fixture(t),probe=reads(t),values=await pair(f);success(f,values);assert.equal(probe.state.records,4);
  for(const key of ['db','factory','name']){const d=Object.getOwnPropertyDescriptor(f.s.repository,key);assert.ok(d&&Object.hasOwn(d,'value'));}
 });
-for(const mode of ['single','shared'])test('actual empty status SafetyRunner interruption recovers '+mode+' with explicit bounded scan cost',{timeout:15000},async t=>{
+for(const mode of ['single','shared'])test('real empty write after quiet SafetyRunner interruption recovers '+mode+' with explicit bounded scan cost',{timeout:15000},async t=>{
  const f=await fixture(t,501),before=await f.durable(),fence=observeRepositoryWriteFence(f.s.repository);let work=null,requestedAt=null,completedAt=null;
  const probe=reads(t,(store,args,request,state)=>{if(store.name==='records'&&state.records===201){requestedAt=state.records;work=emptyDrain(f).then(()=>{completedAt=state.records;});}});
  const values=await bounded(Promise.allSettled(mode==='single'?[f.service.query()]:[f.service.query(),f.service.resolve(f.family)]));await bounded(work);
@@ -222,4 +232,119 @@ for(const phase of ['original-same-value','original-throws','fresh-second-write'
    success(f,values);assert.equal(probe.state.records,606);
   }else{refused(values);assert.ok(probe.state.records<=606,'no recursive body scan after the actual original failure or second write');}
  }finally{f.hooks.get=null;Object.defineProperty(f.s.repository,'db',descriptor);gate?.release();await Promise.allSettled([pending,...(write?[write]:[])]);}
+});
+
+
+// Real idle-owner controls do not call emptyDrain: there is no synthetic writer.
+async function idleFixture(t){
+ const f=await fixture(t),library=new LibraryRunner(f.s),filter=new FilterRunner(f.s),runners=[f.safety,library,filter];
+ const drain=async()=>{await Promise.all(runners.map(r=>r.wake()));assert.ok(runners.every(r=>!r.failed));};
+ await drain();const single=await f.service.query(),family=single.items.find(x=>x.text===text);return {...f,single,family,library,filter,runners,drain};
+}
+function admissions(t,s,onTransaction=()=>{}){
+ const original=IDBDatabase.prototype.transaction,state={writes:0,readonly:0};
+ IDBDatabase.prototype.transaction=function(...args){const tx=original.apply(this,args);if(this===s.repository.db){if(args[1]==='readwrite')state.writes++;else state.readonly++;onTransaction(tx,args,state);}return tx;};
+ t.after(()=>{IDBDatabase.prototype.transaction=original;});return state;
+}
+const allDurable=s=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(s.repository.stores.map(async name=>[name,await t.all(name)]))));
+const row=(s,name,id)=>s.repository.transaction(false,t=>t.get(name,id),[name]);
+const idleOwners={purge:s=>purgeBatch(s),ensure:s=>s.ensureLibrarySearch(),layout:s=>layoutBatch(s),rebuild:s=>rebuildBatch(s)};
+for(const kind of Object.keys(idleOwners))test('idle '+kind+' owner uses fresh bounded reads without a write admission',async t=>{
+ const f=await idleFixture(t),before=await allDurable(f.s),fence=observeRepositoryWriteFence(f.s.repository),counts=admissions(t,f.s);
+ assert.equal(originalFoundationPromptQueueOwner(f.s),true);assert.equal(originalRepositoryTransactionOwner(f.s.repository),true);
+ assert.deepEqual(await idleOwners[kind](f.s),kind==='purge'?{processed:0,pending:false}:kind==='ensure'?undefined:{pending:false});
+ assert.equal(counts.writes,0);assert.ok(counts.readonly>0);assert.equal(requireRepositoryWriteFence(f.s.repository,fence),true);assert.deepEqual(await allDurable(f.s),before);
+});
+for(const releaseAt of ['after-drains','first-maintenance-settled'])test('real composed idle runners preserve one shared scan: '+releaseAt,{timeout:15000},async t=>{
+ const f=await idleFixture(t),before=await allDurable(f.s),control=(await f.storage.get(STORAGE_KEY))[STORAGE_KEY],fence=observeRepositoryWriteFence(f.s.repository),gate=projectionGate(t),probe=reads(t);let released=false;
+ const counts=admissions(t,f.s,(tx,args)=>{if(releaseAt==='first-maintenance-settled'&&!released&&(args[1]==='readwrite'||args[0].length===2&&args[0].includes('organizerJobs'))){released=true;tx.addEventListener('complete',gate.release,{once:true});}});
+ assert.equal(originalFoundationPromptQueueOwner(f.s),true);assert.equal(originalRepositoryTransactionOwner(f.s.repository),true);
+ const pending=Promise.allSettled([f.service.query(),f.service.query()]);
+ try{await bounded(gate.entered);await bounded(f.drain());if(releaseAt==='after-drains')gate.release();const values=await bounded(pending);
+  assert.equal(counts.writes,0);assert.equal(probe.state.records,4);for(const value of values){assert.equal(value.status,'fulfilled',value.reason?.code);assert.deepEqual(value.value,f.single);}
+  assert.equal(requireRepositoryWriteFence(f.s.repository,fence),true);assert.deepEqual(await allDurable(f.s),before);assert.deepEqual((await f.storage.get(STORAGE_KEY))[STORAGE_KEY],control);
+  t.diagnostic(JSON.stringify({releaseAt,writes:counts.writes,sourceReads:probe.state.records,durableEqual:true}));
+ }finally{gate.release();await pending;}
+});
+for(const change of ['source','consent'])test('real composed idle runners cannot conceal genuine '+change+' modification',async t=>{
+ const f=await idleFixture(t),gate=projectionGate(t),pending=pair(f);
+ try{await bounded(gate.entered);await f.drain();if(change==='consent')await revoke(f);else await f.s.capture({epoch:(await f.s.status()).epoch,adapterVersion:'0.3.0',chat:{id:'fence-fallback',url:'https://chatgpt.com/c/fence-fallback',title:'Synthetic fence fallback'},messages:[{sourceMessageId:'input-0',pageOrder:1,originalText:'Changed synthetic source text'}]});gate.release();refused(await bounded(pending));}
+ finally{gate.release();await pending;}
+});
+// Inject concurrent committed work only at real IDB completion. No owner method,
+// original repository method, or sharing authority is wrapped or substituted.
+function afterPreflight(t,s,kind,change){
+ const get=IDBObjectStore.prototype.get,cursor=IDBIndex.prototype.openCursor,state={seen:0,change:null};
+ const arm=(tx,request)=>{if(tx.db!==s.repository.db||tx.mode!=='readonly'||state.seen)return;state.seen++;request.addEventListener('success',()=>tx.addEventListener('complete',()=>{state.change=s.repository.transaction(true,change);},{once:true}),{once:true});};
+ IDBObjectStore.prototype.get=function(...args){const r=get.apply(this,args);if(['ensure','rebuild'].includes(kind)&&this.name==='meta'&&args[0]==='library-search-rebuild')arm(this.transaction,r);return r;};
+ IDBIndex.prototype.openCursor=function(...args){const r=cursor.apply(this,args);if(this.objectStore.name==='organizerJobs'&&this.name==='byMaintenance'&&args[0]?.lower?.[0]===(kind==='purge'?'purge_cleanup':kind==='layout'?'library_layout':null))arm(this.objectStore.transaction,r);return r;};
+ t.after(()=>{IDBObjectStore.prototype.get=get;IDBIndex.prototype.openCursor=cursor;});return state;
+}
+const cleanup=()=>({id:'synthetic-cleanup',kind:'purge_cleanup',state:'queued',stateKey:0,sequence:1,nextAttemptAt:0,priority:0,sourceRecordIds:['synthetic-source'],stage:0,cursor:null});
+async function queueOwner(s,kind){
+ if(kind==='purge'){const job=cleanup();await s.repository.transaction(true,t=>t.put('organizerJobs',job));return job.id;}
+ if(kind==='ensure'){await s.repository.transaction(true,t=>t.delete('meta','library-search-rebuild'));return 'library-search-rebuild';}
+ if(kind==='rebuild'){await s.rebuildLibrarySearch();return 'library-search-rebuild';}
+ const a=await s.createTopic({name:'Synthetic source',operationId:crypto.randomUUID()}),b=await s.createTopic({name:'Synthetic target',operationId:crypto.randomUUID()});
+ return (await s.startLayout({kind:'topic_merge',topicId:a.id,survivorId:b.id,expectedTopicRevision:0,expectedSurvivorRevision:0,operationId:crypto.randomUUID()})).jobId;
+}
+for(const kind of Object.keys(idleOwners))test('positive '+kind+' preflight does not replace the original writer recheck',async t=>{
+ const f=await idleFixture(t),id=await queueOwner(f.s,kind),marker={id:'library-search-rebuild',phase:3,cursor:null,complete:true,syntheticRace:true};
+ const race=afterPreflight(t,f.s,kind,tx=>kind==='purge'||kind==='layout'?tx.delete('organizerJobs',id):tx.put('meta',marker));
+ const result=await idleOwners[kind](f.s);assert.equal(race.seen,1);await race.change;
+ assert.deepEqual(result,kind==='purge'?{processed:0,pending:false}:kind==='ensure'?undefined:{pending:false});
+ if(kind==='ensure'||kind==='rebuild')assert.deepEqual(await row(f.s,'meta',id),marker);else assert.equal(await row(f.s,'organizerJobs',id),undefined);
+});
+for(const kind of ['purge','layout','rebuild'])test('positive '+kind+' preflight reselects changed live work, not its earlier row',async t=>{
+ const f=await idleFixture(t),id=await queueOwner(f.s,kind),race=afterPreflight(t,f.s,kind,async tx=>{
+  if(kind==='purge'){const job=await tx.get('organizerJobs',id);job.stage=99;await tx.put('organizerJobs',job);}
+  if(kind==='layout'){const job=await tx.get('organizerJobs',id),source=await tx.get('topics',job.sourceId);source.organizationRevision++;await tx.put('topics',source);}
+  if(kind==='rebuild')await tx.put('meta',{id,phase:1,cursor:null,complete:false});
+ });
+ if(kind==='layout')await assert.rejects(idleOwners[kind](f.s),{code:'INVALID_REQUEST'});else assert.deepEqual(await idleOwners[kind](f.s),kind==='purge'?{processed:0,pending:true}:{pending:true});
+ assert.equal(race.seen,1);await race.change;const current=await row(f.s,kind==='rebuild'?'meta':'organizerJobs',id);
+ if(kind==='purge'){assert.equal(current.stage,99);assert.equal(current.stateKey,1);assert.equal(Object.hasOwn(current,'sourceRecordIds'),false);}
+ if(kind==='rebuild')assert.equal(current.phase,2);if(kind==='layout')assert.equal(current.phase,'target_sections');
+});
+test('idle purge retains pending publication and volatile-error semantics before and after a positive peek',async t=>{
+ const f=await idleFixture(t),put=tx=>tx.put('meta',{id:CONSUMER_PUBLICATION_PENDING_ID,synthetic:true});
+ await f.s.repository.transaction(true,put);const counts=admissions(t,f.s);
+ await assert.rejects(purgeBatch(f.s),{code:'BNS_CONSUMER_PUBLICATION_PENDING'});assert.equal(f.s.volatileError.code,'BNS_CONSUMER_PUBLICATION_PENDING');assert.equal(counts.writes,0);
+ await f.s.repository.transaction(true,tx=>tx.delete('meta',CONSUMER_PUBLICATION_PENDING_ID));assert.deepEqual(await purgeBatch(f.s),{processed:0,pending:false});assert.equal(f.s.volatileError,null);
+ await queueOwner(f.s,'purge');const race=afterPreflight(t,f.s,'purge',put);await assert.rejects(purgeBatch(f.s),{code:'BNS_CONSUMER_PUBLICATION_PENDING'});assert.equal(race.seen,1);await race.change;assert.equal(f.s.volatileError.code,'BNS_CONSUMER_PUBLICATION_PENDING');assert.equal((await row(f.s,'organizerJobs','synthetic-cleanup')).stage,0);
+});
+test('idle purge preserves validation before probes and readonly failure reporting',async t=>{
+ const f=await idleFixture(t),counts=admissions(t,f.s);await assert.rejects(purgeBatch(f.s,0),{code:'INVALID_REQUEST'});assert.deepEqual(counts,{writes:0,readonly:0});
+ const cursor=IDBIndex.prototype.openCursor;IDBIndex.prototype.openCursor=function(...args){if(this.objectStore.transaction.db===f.s.repository.db&&this.objectStore.name==='organizerJobs'&&this.name==='byMaintenance')throw Error('synthetic read failure');return cursor.apply(this,args);};t.after(()=>{IDBIndex.prototype.openCursor=cursor;});
+ await assert.rejects(purgeBatch(f.s),{code:'STORAGE_FAILED'});assert.equal(f.s.volatileError.code,'STORAGE_FAILED');assert.equal(counts.writes,0);
+});
+for(const kind of Object.keys(idleOwners))test('cold '+kind+' owner still initializes its original foundation',async t=>{
+ const s=new OrganizerStore(local(),{indexedDB:new IDBFactory()});t.after(()=>s.repository.close());await idleOwners[kind](s);assert.equal(s.foundationLoaded,true);assert.equal(s.documentsLoaded,true);assert.equal(s.bindingsLoaded,true);
+ if(kind==='ensure')assert.equal((await row(s,'meta','library-search-rebuild')).complete,false);
+});
+test('late work after an empty purge observation remains discoverable by the original requested wake',async t=>{
+ const f=await idleFixture(t);let requestedWhileRunning=false;
+ const race=afterPreflight(t,f.s,'purge',async tx=>{await tx.put('organizerJobs',cleanup());requestedWhileRunning=!!f.safety.running;void f.safety.wake();});
+ await f.safety.wake();await race.change;assert.equal(requestedWhileRunning,true);while(f.safety.running)await f.safety.running;
+ assert.equal(f.safety.failed,false);const job=await row(f.s,'organizerJobs','synthetic-cleanup');assert.equal(job.stateKey,1);assert.equal(Object.hasOwn(job,'sourceRecordIds'),false);
+});
+test('real purge and search jobs retain bounded positive batches and eventual progress',async t=>{
+ const f=await idleFixture(t),job={...cleanup(),stage:1};
+ await f.s.repository.transaction(true,async tx=>{await tx.put('organizerJobs',job);for(let i=0;i<105;i++)await tx.put('thoughts',{id:'synthetic-purge-'+String(i).padStart(3,'0'),storageSchema:2,sourceRecordIds:['synthetic-source'],lifecycle:'active'});});
+ assert.deepEqual(await purgeBatch(f.s),{processed:100,pending:true});assert.equal((await row(f.s,'organizerJobs',job.id)).stage,1);assert.equal((await f.s.repository.transaction(false,tx=>tx.all('thoughts'))).length,5);
+ assert.deepEqual(await purgeBatch(f.s),{processed:5,pending:true});assert.equal((await row(f.s,'organizerJobs',job.id)).stage,2);await f.safety.wake();assert.equal(f.safety.failed,false);
+ await f.s.repository.transaction(true,async tx=>{for(let i=0;i<105;i++)await tx.put('thoughts',{id:'synthetic-search-'+String(i).padStart(3,'0'),storageSchema:2,sourceRecordIds:[],thoughtText:'Synthetic indexable body',title:'Synthetic',type:'normal',contentRevision:0,fieldRevisions:{type:0},lifecycle:'active'});});
+ await f.s.rebuildLibrarySearch();assert.deepEqual(await rebuildBatch(f.s),{pending:true});const first=await row(f.s,'meta','library-search-rebuild');assert.equal(first.phase,0);assert.ok(first.cursor);assert.equal((await f.s.repository.transaction(false,tx=>tx.all('libraryMigrationItems'))).filter(x=>x.entityKind==='search').length,100);
+ await f.library.wake();assert.equal(f.library.failed,false);assert.equal((await row(f.s,'meta','library-search-rebuild')).complete,true);assert.equal((await f.s.repository.transaction(false,tx=>tx.all('libraryMigrationItems'))).filter(x=>x.entityKind==='search').length,0);assert.ok((await f.s.repository.transaction(false,tx=>tx.all('librarySearchTerms'))).length>0);
+});
+test('real layout work retains its 100-row staged budget and activates only after completion',async t=>{
+ const f=await idleFixture(t),id=await queueOwner(f.s,'layout'),job=await row(f.s,'organizerJobs',id),target=await row(f.s,'topics',job.targetId),base=await row(f.s,'sections',JSON.stringify([target.id,target.activeLayoutGeneration,target.defaultSectionId]));
+ await f.s.repository.transaction(true,async tx=>{for(let i=0;i<103;i++){const sectionId='synthetic-section-'+i;await tx.put('sections',{...base,id:JSON.stringify([target.id,target.activeLayoutGeneration,sectionId]),sectionId,isDefault:false,rank:String(2048+i).padStart(12,'0')});}});
+ assert.equal((await layoutBatch(f.s)).pending,true);assert.equal((await row(f.s,'organizerJobs',id)).phase,'target_sections');assert.equal((await row(f.s,'topics',target.id)).activeLayoutGeneration,target.activeLayoutGeneration);
+ const sections=await f.s.repository.transaction(false,tx=>tx.all('sections'));assert.equal(sections.filter(x=>x.topicId===target.id&&x.layoutGeneration===job.newGeneration).length,100);
+ await f.library.wake();assert.equal(f.library.failed,false);assert.equal((await row(f.s,'organizerJobs',id)).state,'complete');assert.equal((await row(f.s,'topics',target.id)).activeLayoutGeneration,job.newGeneration);
+});
+
+for(const kind of Object.keys(idleOwners))test('failed '+kind+' foundation is not mistaken for an idle queue',async t=>{
+ const s=new OrganizerStore(local(),{indexedDB:new IDBFactory()});s.foundationFailure=true;t.after(()=>s.repository.close());await assert.rejects(idleOwners[kind](s),{code:'STORAGE_FAILED'});assert.equal(s.documentsLoaded,undefined);
 });

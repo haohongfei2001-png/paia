@@ -23,7 +23,10 @@ export async function startLayout(store,r,operationRequest=r){
  });
 }
 export async function layoutBatch(store){
- await store.finishFoundation();return store.libraryMaintenanceWrite(async t=>{
+ await store.finishFoundation();
+ const work=await store.run(()=>store.repository.transaction(false,async t=>!!await t.edge('organizerJobs','byMaintenance',prefix(['library_layout',0])),['organizerJobs']));
+ if(!work)return {pending:false};
+ return store.libraryMaintenanceWrite(async t=>{
   const job=await t.edge('organizerJobs','byMaintenance',prefix(['library_layout',0]));if(!job)return {pending:false};
   const source=await t.get('topics',job.sourceId),target=await t.get('topics',job.targetId);
   if(source?.layoutJobId!==job.id||target?.layoutJobId!==job.id||source.organizationRevision!==job.sourceRevision||target.organizationRevision!==job.targetRevision)fail();
