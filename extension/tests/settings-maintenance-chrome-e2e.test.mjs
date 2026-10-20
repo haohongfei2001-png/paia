@@ -250,6 +250,63 @@ async function preparePage(h, {fresh = false} = {}) {
   return page;
 }
 
+async function installReloadAuthenticationObserver(h, page) {
+  const tabId = await page.evaluate(async () => (await chrome.tabs.getCurrent()).id);
+  const worker = h.context.serviceWorkers().find(w =>
+    w.url() === `chrome-extension://${h.extensionId}/background/service-worker.js`);
+  assert.ok(worker, 'the original worker owns the reload authentication observer');
+  await worker.evaluate(async ({tabId, READ}) => {
+    const rows = [], restorers = [];
+    let order = 0;
+    const pick = (value, keys) => ({present:keys.filter(key => value && Object.hasOwn(value,key)),
+      values:Object.fromEntries(keys.filter(key => value && Object.hasOwn(value,key)).map(key => [key,value[key]]))});
+    const tab = value => pick(value, ['id','windowId','url','pendingUrl','status','incognito']);
+    const context = value => ({...pick(value, ['contextType','tabId','windowId','frameId','documentId','documentUrl','incognito']),
+      plain:value!==null && typeof value==='object' && [Object.prototype,null].includes(Object.getPrototypeOf(value)),
+      dataFields:['contextType','tabId','windowId','frameId','documentId','documentUrl','incognito'].filter(key => value && Object.hasOwn(Object.getOwnPropertyDescriptor(value,key)||{},'value'))});
+    const note = (kind, value) => { rows.push({order:++order,kind,...value}); if(rows.length>80)rows.shift(); };
+    const errorCode = error => typeof error?.code === 'string' && /^[A-Z][A-Z0-9_]{1,63}$/.test(error.code) ? error.code : null;
+    const observe = (object, key, started, completed) => {
+      const descriptor = Object.getOwnPropertyDescriptor(object,key);
+      if(!descriptor || !Object.hasOwn(descriptor,'value') || typeof descriptor.value !== 'function') throw Error('Original worker data descriptor required: '+key);
+      const native = descriptor.value;
+      const observed = function (...args) {
+        const originalArgs = args;
+        let token = null;
+        try { token = started(args); } catch { note('observer-failed',{method:key,stage:'start'}); }
+        const complete = (value,error) => { try { completed(token,value,error); } catch { note('observer-failed',{method:key,stage:'complete'}); } };
+        let result;
+        try { result = native.apply(this,originalArgs); }
+        catch(error) { if(token!==null)complete(null,error); throw error; }
+        // Invoke exactly once and return the exact original Promise/result.
+        // The side observer performs no native read, retry or result substitution.
+        if(token!==null)Promise.resolve(result).then(value => complete(value,null), error => complete(null,error));
+        return result;
+      };
+      Object.defineProperty(object,key,{...descriptor,value:observed});
+      restorers.push(() => { if(Object.getOwnPropertyDescriptor(object,key)?.value === observed)Object.defineProperty(object,key,descriptor); });
+    };
+    // A passive native listener captures the actual sender without importing
+    // modules into the MV3 worker, replying, or invoking the original handler.
+    const received = (request,sender) => {
+      if(request?.type === READ)note('message-received',{type:READ,
+        sender:pick(sender,['id','url','origin','frameId','documentId','documentLifecycle']),tab:tab(sender?.tab)});
+    };
+    chrome.runtime.onMessage.addListener(received);
+    restorers.push(() => chrome.runtime.onMessage.removeListener(received));
+    observe(chrome.tabs,'get',args => {note('tabs-get-start',{tabId:args[0]});return args[0];},
+      (id,value,error) => note('tabs-get-completed',{tabId:id,tab:tab(value),error:errorCode(error)}));
+    observe(chrome.runtime,'getContexts',args => {const filter=pick(args[0],['contextTypes','tabIds','documentIds','documentUrls']);note('contexts-start',{filter});return filter;},
+      (filter,value,error) => note('contexts-completed',{filter,array:Array.isArray(value),count:Array.isArray(value)?value.length:null,contexts:Array.isArray(value)?value.slice(0,8).map(context):null,error:errorCode(error)}));
+    const updated = (id,change,value) => { if(id===tabId)note('tab-updated',{tabId:id,change:pick(change,['url','status']),tab:tab(value)}); };
+    const removed = id => { if(id===tabId)note('tab-removed',{tabId:id}); };
+    chrome.tabs.onUpdated.addListener(updated);chrome.tabs.onRemoved.addListener(removed);
+    restorers.push(() => {chrome.tabs.onUpdated.removeListener(updated);chrome.tabs.onRemoved.removeListener(removed);});
+    note('installed',{targetTabId:tabId,expectedRuntimeId:chrome.runtime.id,expectedBase:chrome.runtime.getURL('ui/archive.html')});
+    globalThis.__maintenanceReloadAuthProbe={rows,restore(){for(const restore of restorers.reverse())restore();}};
+  }, {tabId, READ});
+}
+
 async function withFixture(variant, scenario, run) {
   const directory = await outputDirectory(variant, scenario);
   const profile = await mkdtemp(join(tmpdir(), 'paia-maintenance-settings-profile-'));
@@ -277,6 +334,9 @@ async function withFixture(variant, scenario, run) {
       try { await page.evaluate(() => globalThis.__maintenanceSettingsProbe?.restore()); }
       catch (error) { observationError ||= error; }
     }
+    const worker = old.context.serviceWorkers().find(w => w.url() === `chrome-extension://${old.extensionId}/background/service-worker.js`);
+    if(worker)try { await worker.evaluate(() => globalThis.__maintenanceReloadAuthProbe?.restore()); }
+    catch(error) { observationError ||= error; }
     await old.close();
     const child = old.externalChrome?.processHandle;
     if (child) assert.ok(child.exitCode !== null || child.signalCode !== null,
@@ -316,6 +376,10 @@ async function withFixture(variant, scenario, run) {
           contexts:contexts.slice(0,8).map(c => Object.fromEntries(['contextType','tabId','windowId','frameId','documentId','documentUrl','incognito'].map(k => [k,c[k]]))),
           pending:probe?.pending ?? null, reads:probe?.reads.slice(-20) ?? [], writes:probe?.writes.slice(-10) ?? []};
       }))); } catch (probeError) { console.log('MAINTENANCE_SETTINGS_FAILURE_PROBE_UNAVAILABLE', String(probeError)); }
+      try {
+        const worker=h.context.serviceWorkers().find(w => w.url() === `chrome-extension://${h.extensionId}/background/service-worker.js`);
+        if(worker)console.log('MAINTENANCE_SETTINGS_RELOAD_AUTH',JSON.stringify(await worker.evaluate(() => globalThis.__maintenanceReloadAuthProbe?.rows ?? [])));
+      } catch(probeError) { console.log('MAINTENANCE_SETTINGS_RELOAD_AUTH_UNAVAILABLE',String(probeError)); }
       try { await h.archive.screenshot({path:join(directory, 'failure.png'), fullPage:true}); }
       catch (screenshotError) { trace.screenshotError = String(screenshotError); }
     }
@@ -386,6 +450,7 @@ for (const variant of ['source', 'release']) {
       assert.equal((await writes(page)).length, before, 'a stale modal cannot mint a new-generation enable');
       note('stale-dialog-denied');
       await enable(page);
+      await installReloadAuthenticationObserver(h, page);
       await page.reload();
       await installTransportObserver(page);
       await openSettings(page);
