@@ -386,14 +386,35 @@ test('CLI emits actual success and nonzero failure with no native/browser execut
   await writeFile(join(f.input,'native.exit'),'1\n'); result=run(join(f.root,'failed-staging'));
   assert.equal(result.status,1,result.stderr); assert.equal(JSON.parse(result.stdout).ok,false);
 });
-test('supplement preserves both original jobs and uses bounded explicit eight-scenario evidence', async () => {
-  const workflow=await readFile(new URL('../../.github/workflows/paia-maintenance-promotion-evidence.yml',import.meta.url),'utf8');
+const maintenanceUnionBranches = ['codex/maintenance-promotion-current-20261019',
+  'codex/context-back-sync-capacity-20261020','codex/maintenance-purpose-settings-20261020','main'];
+const maintenanceUnionGuard = branches => "github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && ("
+  + branches.map(branch=>`github.ref == 'refs/heads/${branch}'`).join(' || ') + ')';
+function assertMaintenanceWorkflowUnion(workflow) {
   const start=workflow.indexOf('  original-source-clients:');
   const end=workflow.indexOf('\n\n  # Required supplemental Settings gate.');
   assert.ok(start>0 && end>start);
-  assert.equal(hash(workflow.slice(start,end).replaceAll(" || github.ref == 'refs/heads/codex/maintenance-purpose-settings-20261020'",'').replace('Validate all 53 roots','Validate all 52 roots')),'8989b881be1c2839b8fb5a501fcf4541a2df15ae61250446036c6a87e2b4ba88');
+  // Normalize only the two explicitly approved branch additions, and only in
+  // the original two jobs. Every other original job byte keeps its old hash.
+  const originalJobs=workflow.slice(start,end)
+    .replaceAll(" || github.ref == 'refs/heads/codex/context-back-sync-capacity-20261020'",'')
+    .replaceAll(" || github.ref == 'refs/heads/codex/maintenance-purpose-settings-20261020'",'')
+    .replace('Validate all 53 roots','Validate all 52 roots');
+  assert.equal(hash(originalJobs),'8989b881be1c2839b8fb5a501fcf4541a2df15ae61250446036c6a87e2b4ba88');
+  const pushBranches="["+maintenanceUnionBranches.map(branch=>`'${branch}'`).join(', ')+"]";
+  assert.deepEqual([...workflow.matchAll(/^    branches: (.+)$/gm)].map(match=>match[1]),[pushBranches]);
+  assert.ok(workflow.includes('on:\n  push:\n    branches: '+pushBranches+'\n'),'exact four-branch push union');
+  assert.deepEqual([...workflow.matchAll(/^    if: (.+)$/gm)].map(match=>match[1]),[
+    maintenanceUnionGuard(maintenanceUnionBranches),maintenanceUnionGuard(maintenanceUnionBranches),
+    maintenanceUnionGuard(maintenanceUnionBranches.filter(branch=>branch!=='codex/context-back-sync-capacity-20261020')),
+  ],'only the original two jobs gain Nav; the Settings third-job guard remains unchanged');
+  assert.equal((workflow.match(/github\.ref == 'refs\/heads\/codex\/context-back-sync-capacity-20261020'/g)||[]).length,2);
   assert.equal((workflow.match(/github\.ref == 'refs\/heads\/codex\/maintenance-purpose-settings-20261020'/g)||[]).length,3);
-  assert.match(workflow,/branches: \[.*'codex\/maintenance-purpose-settings-20261020'/);
+  return {start,end};
+}
+test('supplement preserves both original jobs and uses bounded explicit eight-scenario evidence', async () => {
+  const workflow=await readFile(new URL('../../.github/workflows/paia-maintenance-promotion-evidence.yml',import.meta.url),'utf8');
+  const {end}=assertMaintenanceWorkflowUnion(workflow);
   const job=workflow.slice(end);
   assert.match(job,/timeout-minutes: 12\n/); assert.match(job,/node-version: '22'/);
   assert.match(job,/github\.event\.repository\.private == false/);
@@ -408,6 +429,30 @@ test('supplement preserves both original jobs and uses bounded explicit eight-sc
   assert.deepEqual(uploaded,artifactPaths()); assert.equal(uploaded.length,36);
   assert.equal(uploaded.filter(path=>path.endsWith('-320-text200.png')).length,16);
   assert.ok(uploaded.every(path=>!path.includes('*')&&!path.includes('..')));
+});
+for (const [name,alter] of [
+  ...['codex/context-back-sync-capacity-20261020','codex/maintenance-purpose-settings-20261020'].flatMap(branch=>[
+    [`missing ${branch} push branch`,workflow=>workflow.replace(`'${branch}', `,'')],
+    [`missing ${branch} original-job guard`,workflow=>workflow.replace(` || github.ref == 'refs/heads/${branch}'`,'')],
+    [`missing all ${branch} guards`,workflow=>workflow.replaceAll(` || github.ref == 'refs/heads/${branch}'`,'')],
+  ]),
+  ['unknown extra push branch',workflow=>workflow.replace("'main']","'unapproved-branch', 'main']")],
+  ['duplicate approved push branch',workflow=>workflow.replace("'main']","'main', 'main']")],
+  ['unknown original-job OR',workflow=>workflow.replace(" || github.ref == 'refs/heads/main')"," || github.ref == 'refs/heads/unapproved-branch' || github.ref == 'refs/heads/main')")],
+  ['duplicate approved original-job OR',workflow=>workflow.replace(" || github.ref == 'refs/heads/main')"," || github.ref == 'refs/heads/codex/context-back-sync-capacity-20261020' || github.ref == 'refs/heads/main')")],
+  ['original repository guard weakened to OR',workflow=>workflow.replace("/paia' && github.event.repository.private", "/paia' || github.event.repository.private")],
+  ['original private-repository guard inverted',workflow=>workflow.replace('github.event.repository.private == false','github.event.repository.private == true')],
+  ['original branch guard weakened to OR',workflow=>workflow.replace("private == false && (github.ref", "private == false || (github.ref")],
+  ['original source-job time limit changed',workflow=>workflow.replace('timeout-minutes: 12','timeout-minutes: 13')],
+  ['original native-job time limit changed',workflow=>workflow.replace(/(  original-native-maintenance:[\s\S]*?timeout-minutes: )12/,(_,prefix)=>prefix+'13')],
+  ['Settings guard loses its own branch',workflow=>workflow.replace(/(  native-maintenance-purpose-settings:[\s\S]*?) \|\| github.ref == 'refs\/heads\/codex\/maintenance-purpose-settings-20261020'/,'$1')],
+  ['Settings guard gains the Nav branch',workflow=>workflow.replace(/(  native-maintenance-purpose-settings:[\s\S]*?)( \|\| github.ref == 'refs\/heads\/main')/,
+    "$1 || github.ref == 'refs/heads/codex/context-back-sync-capacity-20261020'$2")],
+  ['Settings guard weakens repository privacy',workflow=>workflow.replace(/(  native-maintenance-purpose-settings:[\s\S]*?)github.event.repository.private == false/,'$1github.event.repository.private != true')],
+]) test('precise maintenance workflow union rejects '+name,async()=>{
+  const workflow=await readFile(new URL('../../.github/workflows/paia-maintenance-promotion-evidence.yml',import.meta.url),'utf8');
+  const altered=alter(workflow); assert.notEqual(altered,workflow,'negative fixture must actually change the workflow');
+  assert.throws(()=>assertMaintenanceWorkflowUnion(altered));
 });
 
 const roots=JSON.parse(await readFile(new URL('../../services/ai-gateway/scripts/maintenance-source-roots.json',import.meta.url),'utf8'));

@@ -2,7 +2,7 @@ import {openRetainedSearchComponent} from './harness/retained-search-component.m
 import {settleContextCapture,assertContextUnavailable,contextSafetySnapshot,observeContextEffects,assertNoContextEffects,assertNoContextSession} from './current-context-scope-helper.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {openArchiveWindow,waitArchiveWindow} from './harness/archive-navigator.mjs';
 
@@ -198,11 +198,29 @@ test('ANS-01 Topic menus keep small and 201-item libraries intact with every Tra
     // local Context visit, then explicit Back to the exact retained Reader.
     const retainedTopic=await p.evaluate(()=>history.state?.paiaReader?.topicId);
     assert.ok(retainedTopic);
+    // Hold only the real home snapshot delivery. The accepted Context route is
+    // already visible, so a real early Back must retain the departure Topic.
+    await p.evaluate(()=>{
+      const descriptor=Object.getOwnPropertyDescriptor(chrome.runtime,'sendMessage'),original=chrome.runtime.sendMessage;
+      let release;const gate=new Promise(resolve=>{release=resolve;});
+      const hold={entered:0,replyObserved:false,released:false,pending:null,release:()=>{hold.released=true;release();},restore:()=>{if(descriptor)Object.defineProperty(chrome.runtime,'sendMessage',descriptor);else delete chrome.runtime.sendMessage;}};
+      chrome.runtime.sendMessage=function(message,...args){
+        const result=Reflect.apply(original,this,[message,...args]);
+        if(message?.type!=='PAIA_CONTEXT_CARDS_SNAPSHOT'||message.mode!=='home'||hold.entered)return result;
+        hold.entered++;hold.pending=Promise.resolve(result).then(async response=>{hold.replyObserved=true;await gate;return response;});return hold.pending;
+      };
+      window.__ans01ContextHold=hold;
+    });
     await p.locator('#primary-nav [data-view="memory"]').click();
     await eventually(()=>p.locator('#thought-panel').isHidden(),'actual Context visit leaves Topic Reader');
+    await eventually(()=>p.evaluate(()=>window.__ans01ContextHold?.entered===1&&window.__ans01ContextHold.replyObserved&&!window.__ans01ContextHold.released),'original Context snapshot is held after the visible route');
     await p.goBack();
     await eventually(async()=>await p.locator('#topic-menu summary').isVisible()&&await p.locator('#original-reading-body [data-entry-id]').count()>0,'return from Context to the preserved Topic Reader');
     assert.equal(await p.evaluate(()=>history.state?.paiaReader?.topicId),retainedTopic,'Back restores the exact same Topic');
+    await p.evaluate(async()=>{const hold=window.__ans01ContextHold;hold.release();hold.restore();await Promise.allSettled([hold.pending]);});
+    assert.equal(await p.evaluate(()=>history.state?.paiaReader?.topicId),retainedTopic,'late Context snapshot cannot overwrite the returned Topic');
+    assert.equal(await p.locator('#topic-menu summary').isVisible(),true);
+    assert.equal(await p.locator('#memory-panel').isVisible(),false);
     await p.locator('#back').click();
     await eventually(()=>p.locator('.personal-topic-link[data-topic-id]').filter({hasText:'ANS01 大主题'}).isVisible(),'Thought home returns');
     await p.locator('.personal-topic-link[data-topic-id]').filter({hasText:'ANS01 大主题'}).click();
@@ -211,7 +229,15 @@ test('ANS-01 Topic menus keep small and 201-item libraries intact with every Tra
     assert.equal(await p.locator('#topic-menu button').filter({hasText:'选择本主题材料'}).count(),0,'large Topic cannot reopen a Tray or truncate a selection');
     await assertNoContextSession(p);assert.deepEqual(await contextSafetySnapshot(p,snapshotOptions),before,'removed launcher preserves all 203 Thoughts and Source data');
     await assertNoContextEffects(p,h);
+    assert.equal(await p.evaluate(()=>history.state?.paiaReader?.topicId),big.id,'late Context continuation remains retired after the original UI round trip');
+    assert.equal(await p.locator('#memory-panel').isVisible(),false);
 
     assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
-  }finally{await h.close();}
+  }catch(error){
+    const route=await h.archive.evaluate(()=>({history:{view:history.state?.paiaReader?.view??null,topicId:history.state?.paiaReader?.topicId??null,contextCard:history.state?.paiaReader?.contextCard??null,search:history.state?.paiaSearch===true,length:history.length},surface:{space:document.body.dataset.paiaSpace??null,thoughtHidden:document.getElementById('thought-panel')?.hidden,memoryHidden:document.getElementById('memory-panel')?.hidden},hold:window.__ans01ContextHold?{entered:window.__ans01ContextHold.entered,replyObserved:window.__ans01ContextHold.replyObserved,released:window.__ans01ContextHold.released}:null})).catch(()=>null);
+    await mkdir('work/ans-01',{recursive:true});await writeFile('work/ans-01/topic-navigation-failure.json',JSON.stringify({schema:1,result:'FAIL',route,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,providerRequests:h.deepSeekRequests.length},null,2)+'\n');throw error;
+  }finally{
+    await h.archive.evaluate(async()=>{const hold=window.__ans01ContextHold;if(!hold)return;hold.release();hold.restore();if(hold.replyObserved)await Promise.allSettled([hold.pending]);delete window.__ans01ContextHold;}).catch(()=>{});
+    await h.close();
+  }
 });
