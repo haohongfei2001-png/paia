@@ -12,7 +12,7 @@ import {relativeImports} from './native-sync/retention-native-proof.mjs';
 // Only unrelated Git metadata is stubbed; inventory bytes come from this tree.
 const root=fileURLToPath(new URL('..',import.meta.url));
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
-const background='background/ai-filter-consent.js';
+const backgrounds=['background/ai-filter-consent.js','background/maintenance-processing-consent.js'];
 const core='core/library-documents-store.js';
 const pairs=[
  ['human-current-checkpoint-recovery-native.test.mjs','current-human-checkpoint-recovery-native-fixture.mjs'],
@@ -52,17 +52,17 @@ async function closure(fixture){
 for(const [name,fixture] of pairs){
  test(name+': original before snapshot covers complete independently collected fixture closure',async()=>{
   const proof=await collector(name),before=await proof.snapshot(),imports=await closure(fixture);
-  assert.deepEqual([...imports.keys()].filter(p=>p!==('tests/native-sync/'+fixture)&&!p.startsWith('core/')).sort(),[background]);
+  assert.deepEqual([...imports.keys()].filter(p=>p!==('tests/native-sync/'+fixture)&&!p.startsWith('core/')).sort(),backgrounds);
   for(const [path,hash]of imports)assert.equal(before.hashes[path],hash,'independent fixture dependency: '+path);
  });
  test(name+': unchanged original core and background served bytes are both re-read',async()=>{
-  const proof=await collector(name),before=await proof.snapshot(),paths=[core,background],reads=[];
+  const proof=await collector(name),before=await proof.snapshot(),paths=[core,...backgrounds],reads=[];
   await proof.verify(before,await Promise.all(paths.map(async p=>[p,digest(await readFile(join(root,p)))])),root,async path=>{
    reads.push(path);return readFile(path);
   });
   assert.deepEqual(reads,paths.map(p=>join(root,p)));
  });
- for(const variant of ['source','release'])test(name+': '+variant+' background change after serving is refused by original runtime recheck',async()=>{
+ for(const background of backgrounds)for(const variant of ['source','release'])test(name+': '+variant+' '+background+' change after serving is refused by original runtime recheck',async()=>{
   const proof=await collector(name),bytes=await readFile(join(root,background)),hash=digest(bytes);
   // Supply the independent first hash to isolate the second runtime check.
   // Release reads are exercised at the real release path without claiming a build.
@@ -77,7 +77,7 @@ for(const [name,fixture] of pairs){
   await assert.rejects(proof.verify(before,[['background/unlisted.js','not-an-inventoried-hash']],root,async()=>{reads++;throw Error('unexpected read');}),/exact imported source or fixture bytes/);
   assert.equal(reads,0);
  });
- test(name+': original after snapshot observes a changed background file',async()=>{
+ for(const background of backgrounds)test(name+': original after snapshot observes a changed '+background,async()=>{
   const proof=await collector(name),before=await proof.snapshot();let reads=0;
   const after=await proof.snapshot(async path=>{
    const bytes=await readFile(path);if(path===join(root,background)){reads++;return Buffer.concat([bytes,Buffer.from('\n// changed before after snapshot')]);}return bytes;

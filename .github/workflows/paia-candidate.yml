@@ -28,9 +28,13 @@ env:
 jobs:
   unit:
     if: github.event.pull_request.draft == true
-    name: Candidate unit smoke
+    name: Candidate unit smoke ${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/4','2/4','3/4','4/4']
     defaults:
       run:
         working-directory: extension
@@ -52,6 +56,7 @@ jobs:
         env:
           # Keep the10k history owner inside its unchanged240s deadline without competing unit workers.
           PAIA_TEST_CONCURRENCY: '1'
+          PAIA_TEST_SHARD: ${{ matrix.shard }}
           EVENT_ACTION: ${{ github.event.action }}
           PREVIOUS_HEAD: ${{ github.event.before }}
           CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha }}

@@ -594,7 +594,26 @@ for (const variant of ['source', 'release']) {
           await settled(page, false);
           const calls = (await writes(page)).slice(before);
           assert.deepEqual(calls.map(row => [row.enabled, row.ok]), [[true, true], [false, true]]);
-          await page.screenshot({path:join(directory, language + '-settings-320-text200.png'), fullPage:true});
+          const settingsPng = await page.screenshot({path:join(directory, language + '-settings-320-text200.png'), fullPage:true});
+          const pngSize = settingsPng.length >= 24 ? {width:settingsPng.readUInt32BE(16), height:settingsPng.readUInt32BE(20)} : null;
+          // Synthetic numeric capture diagnostics only. Preserve rejected bytes
+          // under the existing failure allowlist, never crop or resize proof.
+          console.log('MAINTENANCE_SETTINGS_CAPTURE', JSON.stringify({variant, language, pngSize,
+            layout:await page.evaluate(() => {
+              const rect = node => { if(!node)return null; const r=node.getBoundingClientRect();
+                return {x:r.x, right:r.right, y:r.y, bottom:r.bottom, width:r.width, height:r.height,
+                  clientWidth:node.clientWidth, scrollWidth:node.scrollWidth, clientHeight:node.clientHeight, scrollHeight:node.scrollHeight}; };
+              return {innerWidth, innerHeight, scrollX, scrollY, devicePixelRatio,
+                document:rect(document.documentElement), body:rect(document.body),
+                settings:rect(document.getElementById('settings-panel')),
+                maintenance:rect(document.getElementById('settings-maintenance')),
+                control:rect(document.getElementById('settings-maintenance-enabled')),
+                overflow:[...document.querySelectorAll('body *')].slice(0,2048).filter(node => {
+                  const r=node.getBoundingClientRect();return r.width>0&&r.height>0&&(r.x<0||r.right>innerWidth);
+                }).slice(0,16).map(node => ({tag:node.tagName,
+                  id:/^[a-zA-Z0-9_-]{1,80}$/.test(node.id)?node.id:null, rect:rect(node)}))};
+            })}));
+          if(pngSize?.width !== 320)await writeFile(join(directory,'failure.png'),settingsPng);
           note('native-compact-keyboard', {language, geometry, writes:calls.map(row => row.enabled)});
         } finally {
           await page.evaluate(() => {
