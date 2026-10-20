@@ -208,6 +208,9 @@ async function navigate(next,id=null,contextId=null,options={}){if(!options.keep
  if(!id&&['library','archive'].includes(next)){$('document-title').textContent='';$('document-subtitle').textContent='';$('document-body').replaceChildren();}
  const saved=originSnapshot||routeStates.get(next+':'+(next==='memory'?contextCards.card||'home':id||'')),freshArchiveSearch=!id&&options.resetArchiveSearch===true;pageCursor=!id&&!freshArchiveSearch?saved?.cursor??null:null;pageHistory=!id&&!freshArchiveSearch?saved?.pages||[]:[];query=id?queries.get(view)??'':options.searchQuery??saved?.query??queries.get(view)??'';if(!documentId)scopeSearch.input.value=query;for(const id of ['search-date-start','search-date-end'])$(id).disabled=!query.trim();
  const arrivalReadBefore=options.requireFreshArrival?serial:null;
+ // An accepted Context destination owns history before its asynchronous read.
+ // Back from the visible loading page must restore the departure Reader.
+ if(next==='memory')routes.commit({replace:options.replaceHistory===true});
  notify('');$('context-menu').hidden=true;const loaded=beginLoading(document.querySelector('.workspace'),'正在读取本机内容…');try{const openedThought=view==='thoughts'&&options.topicId!==undefined;if(openedThought)await thoughts.open(options.topicId);if(!openedThought)await refresh();if(view==='revisit')await revisitPage.show();}finally{loaded();}
  if(intent!==navigationIntent)return false;
  if(options.requireFreshArrival&&(!lastSuccessfulRefresh||lastSuccessfulRefresh.serial<=arrivalReadBefore||lastSuccessfulRefresh.state!==state||lastSuccessfulRefresh.view!==view||lastSuccessfulRefresh.documentId!==documentId||lastSuccessfulRefresh.query!==query))return 'arrival_unavailable';
