@@ -28,9 +28,13 @@ env:
 jobs:
   unit:
     if: github.event.pull_request.draft == true
-    name: Candidate unit smoke
+    name: Candidate unit smoke ${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/4','2/4','3/4','4/4']
     defaults:
       run:
         working-directory: extension
@@ -45,10 +49,14 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
+      - name: Install locked offline service test imports
+        working-directory: services/ai-gateway
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Run owning unit contracts or complete unit suite
         env:
           # Keep the10k history owner inside its unchanged240s deadline without competing unit workers.
           PAIA_TEST_CONCURRENCY: '1'
+          PAIA_TEST_SHARD: ${{ matrix.shard }}
           EVENT_ACTION: ${{ github.event.action }}
           PREVIOUS_HEAD: ${{ github.event.before }}
           CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha }}
@@ -1872,3 +1880,4 @@ jobs:
           if [ "$AUDIT_BOUNDARIES_SELECTED" = true ]; then test "$AUDIT_BOUNDARIES" = success; elif [ "$AUDIT_BOUNDARIES" != skipped ]; then test "$AUDIT_BOUNDARIES" = success; fi
           if [ "$SCALE_PROBE" != skipped ]; then test "$SCALE_PROBE" = success; fi
           if [ "$MACOS_RELOAD_DIAGNOSTIC" != skipped ]; then test "$MACOS_RELOAD_DIAGNOSTIC" = success; fi
+

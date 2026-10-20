@@ -7,15 +7,78 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { FakeChatGPT, conversation, eventually } from './harness/fake-chatgpt.mjs';
+import { sanitizeDiagnostics } from '../core/diagnostics.js';
+import { STATUS_CODES } from '../core/constants.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
+
+// Reuse only existing snapshot metadata. Never retain records, source identities,
+// URLs, titles, originalText, editedText or response bodies in the diagnostic.
+function updateCaptureState(snapshot) {
+  const records = Array.isArray(snapshot?.records) ? snapshot.records : [];
+  return {
+    recordCount: records.length,
+    beforeUpdateRecords: records.filter(row => row.chatId === 'cpv1-before-update').length,
+    afterUpdateRecords: records.filter(row => row.chatId === 'cpv1-after-update').length,
+    diagnostics: sanitizeDiagnostics(snapshot?.diagnostics),
+  };
+}
+
+// Runs only in this temporary synthetic worker. This extra listener observes
+// requests, not responses: undefined return, no callback and no message mutation.
+// Its lifetime ends with the original browser cleanup; it cannot initiate work.
+function observeUpdateCapture({ codes }) {
+  const key = '__paiaSyntheticUpdateCaptureDiagnostic';
+  if (globalThis[key]) return { observerAlreadyPresent: true };
+  const trace = { events: [], dropped: 0, requests: 0 };
+  const started = Date.now();
+  const kinds = new Set(['GET_STATUS', 'CAPTURE', 'DIAGNOSTIC', 'ENRICH_SOURCE_METADATA', 'OBSERVE_SOURCE_STRUCTURE']);
+  const allowedCodes = new Set(codes);
+  const count = value => Number.isSafeInteger(value) && value >= 0 && value <= 1000000 ? value : null;
+  const listener = (request, sender) => {
+    try {
+      if ((sender?.tab?.url ?? sender?.url) !== 'https://chatgpt.com/c/cpv1-after-update' ||
+          sender.frameId !== 0 || sender.tab?.incognito || !kinds.has(request?.type)) return;
+      const row = { elapsedMs: Date.now() - started, type: request.type };
+      if (request.type === 'GET_STATUS' || request.type === 'CAPTURE' || request.type === 'ENRICH_SOURCE_METADATA' || request.type === 'OBSERVE_SOURCE_STRUCTURE') {
+        row.contentVersionMatches = request.contentVersion === chrome.runtime.getManifest().version;
+        row.contentVersionPresent = typeof request.contentVersion === 'string';
+      }
+      if (request.type !== 'GET_STATUS') row.epoch = Number.isSafeInteger(request.epoch) && request.epoch >= 0 ? request.epoch : null;
+      if (request.type === 'CAPTURE' || request.type === 'ENRICH_SOURCE_METADATA') row.messageCount = count(request.messages?.length);
+      if (request.type === 'OBSERVE_SOURCE_STRUCTURE') row.observationCount = count(request.observations?.length);
+      if (request.type === 'DIAGNOSTIC') {
+        row.code = allowedCodes.has(request.code) ? request.code : 'OTHER';
+        row.scanned = count(request.scanned);
+        row.structure = globalThis.ArchiveDiagnostics?.sanitizeStructure(request.structure) ?? null;
+        row.captureHealth = globalThis.ArchiveDiagnostics?.sanitizeCaptureHealth(request.captureHealth) ?? null;
+      }
+      if(trace.requests<1000000)trace.requests++;else trace.countsSaturated=true;
+      if (trace.events.length === 64) { trace.events.shift(); if(trace.dropped<1000000)trace.dropped++;else trace.countsSaturated=true; }
+      trace.events.push(row);
+    } catch { trace.observationUnavailable = true; }
+  };
+  chrome.runtime.onMessage.addListener(listener);
+  globalThis[key] = trace;
+  return { observerInstalled: true };
+}
 
 test('CPV1-01.2: a newly opened tab after a version update retains the same archive', { timeout: 120000 }, async t => {
   const release = await mkdtemp(join(tmpdir(), 'paia-cpv1-updated-release-'));
   const profile = await mkdtemp(join(tmpdir(), 'paia-cpv1-update-profile-'));
   let h,freshPage,stage='build fixture release';const started=Date.now(),events=[];
+  const captureSamples=[];let captureSamplesDropped=0,lastCaptureSample='',captureObserver,captureObserverStatus;
+  const sampleCapture=snapshot=>{
+    try {
+      const state=updateCaptureState(snapshot),key=JSON.stringify(state);
+      if(key===lastCaptureSample)return;
+      lastCaptureSample=key;
+      if(captureSamples.length===32){captureSamples.shift();captureSamplesDropped++;}
+      captureSamples.push({elapsedMs:Date.now()-started,...state});
+    } catch { /* Observation cannot change the original assertion result. */ }
+  };
   const output=join(root,'work/qa-mac-update-stage');
-  const record=(kind,state={})=>{events.push({kind,stage,elapsedMs:Date.now()-started,...state});assert.ok(events.length<=64);mkdirSync(output,{recursive:true});writeFileSync(join(output,'update.json'),JSON.stringify({schema:1,claim:'SYNTHETIC_READ_ONLY_UPDATE_PHASE_DIAGNOSTIC',testedCommit:/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA:null,events},null,2)+'\n');};
+  const record=(kind,state={})=>{events.push({kind,stage,elapsedMs:Date.now()-started,...state});assert.ok(events.length<=64);mkdirSync(output,{recursive:true});writeFileSync(join(output,'update.json'),JSON.stringify({schema:1,claim:'SYNTHETIC_READ_ONLY_UPDATE_PHASE_DIAGNOSTIC',testedCommit:/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA:null,events,captureSamples,captureSamplesDropped,captureObserverStatus},null,2)+'\n');};
   const mark=value=>{stage=value;record('stage');};
   const aborted=()=>{let state;try{state={connected:h?.context?.browser()?.isConnected()??false,archiveClosed:h?.archive?.isClosed()??true};}catch{state={observationUnavailable:true};}record('abort',state);};
   t.signal.addEventListener('abort',aborted,{once:true});
@@ -50,12 +113,21 @@ test('CPV1-01.2: a newly opened tab after a version update retains the same arch
     mark('verify retained identity and archive');
     assert.equal(h.extensionId, extensionId, 'version update preserves extension identity');
     assert.equal((await h.state()).records.length, 3, 'the existing archive remains after update');
+    let observerTimer;
+    try {
+      captureObserver=h.context.serviceWorkers().find(worker=>worker.url()===`chrome-extension://${h.extensionId}/background/service-worker.js`);
+      captureObserverStatus=captureObserver?await Promise.race([
+        captureObserver.evaluate(observeUpdateCapture,{codes:[...STATUS_CODES]}),
+        new Promise(resolve=>{observerTimer=setTimeout(()=>resolve({observerSetupTimedOut:true}),2500);}),
+      ]):{observerWorkerMissing:true};
+    } catch { captureObserverStatus={observerSetupUnavailable:true}; }
+    finally { clearTimeout(observerTimer); }
     mark('open updated conversation');
     const fresh = await h.open(conversation('cpv1-after-update')); freshPage=fresh;
     mark('wait for updated capture bridge');
     await h.ready(fresh);
     mark('confirm six records after update');
-    await eventually(async () => (await h.state()).records.length === 6, 'new tab captures after update');
+    await eventually(async () => {const snapshot=await h.state();sampleCapture(snapshot);return snapshot.records.length === 6;}, 'new tab captures after update');
     mark('verify no reconnect notice');
     assert.equal(await fresh.locator('#paia-reconnect-notice').count(), 0);
   } catch (error) {
@@ -89,6 +161,14 @@ test('CPV1-01.2: a newly opened tab after a version update retains the same arch
       },null,{timeout:1500}));}catch{state.captureProbeUnavailable=true;}
     }
     state.fixtureHistoryRequests=Number.isSafeInteger(h?.historyRequests)?h.historyRequests:null;state.pageErrorCount=Array.isArray(h?.errors)?h.errors.length:null;
+    let observerTimer;
+    try {
+      state.captureRequests=captureObserver?await Promise.race([
+        captureObserver.evaluate(()=>globalThis.__paiaSyntheticUpdateCaptureDiagnostic??{observerMissing:true}),
+        new Promise(resolve=>{observerTimer=setTimeout(()=>resolve({observerReadTimedOut:true}),2500);}),
+      ]):{observerWorkerMissing:true};
+    } catch { state.captureRequests={observerReadUnavailable:true}; }
+    finally { clearTimeout(observerTimer); }
     record('failure',state);
     throw new Error(`new-tab update lifecycle failed at ${stage}; state=${JSON.stringify(state)}`, { cause: error });
   } finally {
