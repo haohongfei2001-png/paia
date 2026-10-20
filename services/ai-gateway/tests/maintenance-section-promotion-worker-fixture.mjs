@@ -26,7 +26,7 @@ async function files(root,relative=''){
 // Chrome below only registers listeners and provides synthetic local storage.
 // The production store uses fake-indexeddb, and signed handlers use synthetic
 // SQL/HTTPS adapters. This is not native Chrome, PostgreSQL or live-Qwen proof.
-export async function maintenanceSectionPromotionWorker(t,f,{configured=true}={}){
+export async function maintenanceSectionPromotionWorker(t,f,{configured=true,processingSource=false}={}){
  const root=await mkdtemp(join(tmpdir(),'paia-maintenance-worker-rpc-'));
  t.after(()=>rm(root,{recursive:true,force:true}));
  await Promise.all(['core','background'].map(path=>cp(join(source,path),join(root,path),{recursive:true})));
@@ -36,7 +36,7 @@ export async function maintenanceSectionPromotionWorker(t,f,{configured=true}={}
  const key=`SYNTHETIC-maintenance-worker-${crypto.randomUUID()}`;let workerStore,coldAtConstruction=false,identityChannel=null;
  if(configured){
   const channel=identityChannel=identityChannelFixture({authority:f.server});t.after(()=>channel.close());
-  Object.defineProperty(globalThis,key,{value:store=>{workerStore=store;coldAtConstruction=store.repository.db===undefined;const c=f.configuration,p=c.processing,v=c.service.context.processingVerifier;return {...c,fetch:request=>new URL(request.url).pathname==='/api/identity-currentness'?channel.handler(request):c.fetch(request),processing:{resolve:async(t,scope)=>({...await p.resolve(t,scope),store}),isCurrent:r=>p.isCurrent({...r,store:f.s},f.s)},service:{...c.service,context:{...c.service.context,processingVerifier:{verify:async(caller,_store,scope)=>({...await v.verify(caller,f.s,scope),store}),isCurrent:(caller,r)=>v.isCurrent(caller,{...r,store:f.s},f.s)}}}};},configurable:true});
+  Object.defineProperty(globalThis,key,{value:store=>{workerStore=store;coldAtConstruction=store.repository.db===undefined;const c=f.configuration,p=c.processing,v=c.service.context.processingVerifier;return {...c,fetch:request=>new URL(request.url).pathname==='/api/identity-currentness'?channel.handler(request):c.fetch(request),processing:processingSource?null:{resolve:async(t,scope)=>({...await p.resolve(t,scope),store}),isCurrent:r=>p.isCurrent({...r,store:f.s},f.s)},service:{...c.service,context:{...c.service.context,processingVerifier:{verify:async(caller,_store,scope)=>({...await v.verify(caller,f.s,scope),store}),isCurrent:(caller,r)=>v.isCurrent(caller,{...r,store:f.s},f.s)}}}};},configurable:true});
   t.after(()=>delete globalThis[key]);
   await writeFile(join(root,identityRegistry),`// Synthetic test-only source endpoint; never shipped.\nexport function readMaintenanceIdentityCurrentnessEndpoint(){return ${JSON.stringify(f.configuration.origin+'/api/identity-currentness')};}\n`);
   await writeFile(join(root,registry),`// Synthetic test-only registry; never shipped.\nexport function readMaintenanceServiceConfiguration(store){return globalThis[${JSON.stringify(key)}](store);}\n`);

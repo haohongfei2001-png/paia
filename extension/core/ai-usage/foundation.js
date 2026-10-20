@@ -1,4 +1,7 @@
-import {observeRepositoryWriteFence,requireRepositoryWriteFence,requireRepositoryTransactionScope,requireRepositoryTransactionSucceeded} from '../idb-repository.js';
+import {sourcePresent} from '../thought-source-presence.js';
+import {readMaintenanceQualifiedSourcePresence} from './maintenance-qualification.js';
+import {needsMaintenanceProcessingContext} from './maintenance-processing-source-denial.js';
+import {observeRepositoryWriteFence,requireRepositoryWriteFence,requireRepositoryTransactionScope,requireRepositoryTransactionSucceeded,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
 import {qwenFoundationProviderData,qwenFoundationResponse,qwenReservationDenial} from './qwen-qualified-request.js';
 import {clientDeclarationRequestData} from './client-declaration.js';
 import {clientOperationStatusTransportOrigin,observedClientOperationStatus} from './client-operation-status-transport.js';
@@ -59,10 +62,10 @@ async function historicalExecution(provider,request,{signal,timeoutMs}){
 // Only constructor-injected domain owners can commit. The explicit Qwen service
 // path has no default endpoint, identity, registry or automatic paid retry.
 export class AIUsageFoundation {
- #createdMaintenancePlans=new WeakMap();
+ #createdMaintenancePlans=new WeakMap();#maintenanceSourceContext=null;
  #serverProviders=new Map();#resultReports=new Map();#historicalRecovery=new WeakMap();#assistRecovery=new WeakMap();#organizeRecovery=new WeakMap();#maintenanceRecovery=new WeakMap();
  #qualifyMaintenanceEntries;#qualifyMaintenancePlacements;#qualifyMaintenanceStructures;#qualifyMaintenanceContextEdits;
- constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null,qualifyMaintenanceEntries=null,qualifyMaintenancePlacements=null,qualifyMaintenanceStructures=null,qualifyMaintenanceContextEdits=null}={}){if(qualifyMaintenanceEntries!==null&&typeof qualifyMaintenanceEntries!=='function')fail();if(qualifyMaintenancePlacements!==null&&typeof qualifyMaintenancePlacements!=='function')fail();if(qualifyMaintenanceStructures!==null&&typeof qualifyMaintenanceStructures!=='function')fail();if(qualifyMaintenanceContextEdits!==null&&typeof qualifyMaintenanceContextEdits!=='function')fail();this.#qualifyMaintenanceContextEdits=qualifyMaintenanceContextEdits;this.#qualifyMaintenanceStructures=qualifyMaintenanceStructures;this.#qualifyMaintenancePlacements=qualifyMaintenancePlacements;this.#qualifyMaintenanceEntries=qualifyMaintenanceEntries;this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
+ constructor(store,{maintenanceSourceContext=null,resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null,qualifyMaintenanceEntries=null,qualifyMaintenancePlacements=null,qualifyMaintenanceStructures=null,qualifyMaintenanceContextEdits=null}={}){if(maintenanceSourceContext!==null&&!needsMaintenanceProcessingContext(maintenanceSourceContext))fail('UNAVAILABLE');this.#maintenanceSourceContext=maintenanceSourceContext;if(qualifyMaintenanceEntries!==null&&typeof qualifyMaintenanceEntries!=='function')fail();if(qualifyMaintenancePlacements!==null&&typeof qualifyMaintenancePlacements!=='function')fail();if(qualifyMaintenanceStructures!==null&&typeof qualifyMaintenanceStructures!=='function')fail();if(qualifyMaintenanceContextEdits!==null&&typeof qualifyMaintenanceContextEdits!=='function')fail();this.#qualifyMaintenanceContextEdits=qualifyMaintenanceContextEdits;this.#qualifyMaintenanceStructures=qualifyMaintenanceStructures;this.#qualifyMaintenancePlacements=qualifyMaintenancePlacements;this.#qualifyMaintenanceEntries=qualifyMaintenanceEntries;this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
  async read(fn){await this.s.finishFoundation();return this.s.run(()=>this.s.repository.transaction(false,fn));}
  async write(fn){return this.s.foundationWrite(fn);}
  async authority(t,type,scope,signal=null){
@@ -96,6 +99,7 @@ export class AIUsageFoundation {
   return this.write(async t=>{
    if(reconsiderEntries){const abort=()=>{try{t.tx.abort();}catch{}};owner.signal.addEventListener('abort',abort,{once:true});const cleanup=()=>owner.signal.removeEventListener('abort',abort);t.tx.addEventListener('complete',cleanup,{once:true});t.tx.addEventListener('abort',cleanup,{once:true});}assertOwner();
    const page=await t.primaryRangePage('organizerWorkItems',{prefix:'aiu:defer:',after:cursor,limit});let archived=0,reconsidered=0;
+   if(reconsiderEntries&&this.#maintenanceSourceContext!==null&&page.rows.length)fail('UNAVAILABLE');
    for(const {value:row}of page.rows){
     let job;
     try{
@@ -151,13 +155,27 @@ export class AIUsageFoundation {
  }
  async counters(){return this.read(async t=>await t.get('meta',COUNTERS)||{id:COUNTERS,skippedNoDelta:0,localResolved:0,cacheIntent:0,physicalAttempt:0});}
  async cacheIntent(){await this.write(t=>count(t,'cacheIntent'));}
+ // Original metadata-only Maintenance source existence check. The lineage
+ // only removes body reads; no public Reader/callback is accepted as authority.
+ async #maintenanceSourcePresent(t,ids){
+  const data=(value,key)=>{const d=Object.getOwnPropertyDescriptor(value,key);if(!d||!Object.hasOwn(d,'value'))fail('UNAVAILABLE');return d.value;},repository=data(this.s,'repository');let identity;try{identity=requireRepositoryTransactionScope(repository,t);}catch{return readMaintenanceQualifiedSourcePresence(t,this.s,ids);}
+  const check=()=>{if(data(this.s,'repository')!==repository||data(repository,'db')!==identity.database||requireRepositoryTransactionScope(repository,t)!==identity)fail('STALE_BASE');requireRepositoryTransactionDataMethods(repository,t);};check();
+  if(!Array.isArray(ids)||ids.length>128||!ids.every(id=>typeof id==='string'))fail('UNAVAILABLE');const selected=[...ids],indexed=new Set(),tombstones=new Set();
+  const reader=Object.freeze({get:async(table,key)=>{check();let value;
+   if(table==='recordIndex'){if(!selected.includes(key))fail('UNAVAILABLE');const row=await t.get(table,key);if(row){const sourceKey=data(row,'sourceKey'),dedupeKey=data(row,'dedupeKey');if(typeof sourceKey!=='string'||typeof dedupeKey!=='string')fail('UNAVAILABLE');indexed.add(key);tombstones.add('source:'+sourceKey);tombstones.add('snapshot:'+dedupeKey);value=Object.freeze({sourceKey,dedupeKey});}}
+   else if(table==='records'){if(!indexed.has(key))fail('UNAVAILABLE');value=await t.has('records',key)?Object.freeze({id:key}):undefined;}
+   else if(table==='tombstones'){if(!tombstones.has(key))fail('UNAVAILABLE');value=await t.get(table,key);}else fail('UNAVAILABLE');check();return value;}});
+  const present=await sourcePresent(reader,selected);check();return present;
+ }
  async current(t,job,{allowCancelled=false}={}){
   if(!validOrganizeRequestKey(job)||!validMaintenanceRequestKey(job))fail('RESULT_BINDING_MISMATCH');
   await assertAssistIntent(this,t,job);
   await assertOrganizeStyle(this.s,t,job);
   if(!equal(await this.authority(t,job.type,job),job.authority)||!allowCancelled&&job.cancelEpoch!==0)fail('CANCELLED');
+  const sourceOnly=job.type==='AI_MAINTENANCE'&&this.#maintenanceSourceContext!==null;
+  if(sourceOnly&&job.items.some(item=>item.descriptor.kind!=='input'))fail('UNAVAILABLE');
   for(const item of job.items){const known=await t.get('meta',KNOWN_PREFIX+item.key);if(!known||known.signature!==item.signature||known.descriptor.removed)fail('STALE_BASE');
-   if(!await this.s.sourcePresent(t,item.descriptor.sourceRecordIds))fail('STALE_BASE');
+   if(!(sourceOnly?await this.#maintenanceSourcePresent(t,item.descriptor.sourceRecordIds):await this.s.sourcePresent(t,item.descriptor.sourceRecordIds)))fail('STALE_BASE');
    if(item.descriptor.kind==='input'){const live=await t.get('inputStates',item.descriptor.entityId);if(!live||deltaSignature(deltaDescription('inputStates',live))!==item.signature)fail('STALE_BASE');}
    else if(item.descriptor.kind==='context_item'){const row=await t.get('meta','context-cards:v1'),live=row?.items?.find(x=>x.id===item.descriptor.entityId);if(!live||live.lifecycle!=='active'||live.revision!==item.descriptor.revision)fail('STALE_BASE');}
    else {const table={library_entry:'thoughts',topic:'topics',section:'sections',placement:'placements'}[item.descriptor.kind],live=table&&await t.get(table,item.descriptor.recordId||item.descriptor.entityId);if(!live||['removed','invalidated','quarantined'].includes(live.lifecycle))fail('STALE_BASE');}

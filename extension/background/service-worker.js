@@ -1,3 +1,4 @@
+import {MaintenanceProcessingCommands,configureMaintenanceProcessingSource} from './maintenance-processing-commands.js';
 import {createAIFilterRuntime} from './ai-filter-commands.js';
 import {readAIFilterPolicyConfiguration} from './ai-filter-policy-configuration.js';
 import {readMaintenanceServiceConfiguration} from '../core/ai-usage/maintenance-service-configuration.js';
@@ -56,7 +57,8 @@ import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
 const aiFilterRuntime=createAIFilterRuntime(chrome,{getStore:()=>store,policy:readAIFilterPolicyConfiguration()});
 const store = new IndexedArchiveStore(chrome.storage.local,{aiFilterAuthority:aiFilterRuntime.authority});
-const maintenanceConfiguration=aiFilterRuntime.configureService(readMaintenanceServiceConfiguration(store),readMaintenanceIdentityCurrentnessEndpoint());
+const maintenanceProcessing=new MaintenanceProcessingCommands(store,chrome);
+const maintenanceConfiguration=aiFilterRuntime.configureService(configureMaintenanceProcessingSource(maintenanceProcessing,store,readMaintenanceServiceConfiguration(store)),readMaintenanceIdentityCurrentnessEndpoint());
 const maintenanceRunner=createMaintenanceRunner(store,maintenanceConfiguration);
 const contextConnections=new ContextConnections(store,chrome);
 const localScopePreviewCapability=Object.freeze({});
@@ -179,6 +181,7 @@ function isChatGPTContent(sender) {
 async function handle(request, sender) {
   await ready;
   if (!request || typeof request.type !== 'string') throw new ArchiveError('INVALID_REQUEST');
+  if(request.type.startsWith('PAIA_MAINTENANCE_PROCESSING_'))return maintenanceProcessing.handle(request,sender);
   if(request.type.startsWith('PAIA_ARCHIVE_ARRIVAL_'))return archiveArrival.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_ASSIST_'))return promptAssist.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_NEXT_'))return promptNext.handle(request,sender);

@@ -1,3 +1,4 @@
+import {createMaintenanceProcessingDenyCell,retireMaintenanceProcessingDenyCell,assertMaintenanceProcessingDenyCellFacts} from './maintenance-processing-denial.js';
 import {isSectionPromotionRecoveryAuthorityOwner,sectionPromotionRecoveryAuthorityMatches,openSectionPromotionRecoveryAuthority,closeSectionPromotionRecoveryAuthority,readSectionPromotionRecoveryAuthority,assertSectionPromotionRecoveryAuthorityFacts} from './section-promotion-recovery-authority.js';
 import {readMaintenanceSectionPromotionTask,assertMaintenanceSectionPromotionTaskFacts} from './maintenance-section-promotion-session.js';
 import {readMaintenanceSectionPromotionPermission,assertMaintenanceSectionPromotionPermissionFacts} from './maintenance-section-promotion-permission.js';
@@ -40,13 +41,15 @@ const lifecycleOwn=(value,key)=>{const descriptor=Object.getOwnPropertyDescripto
 function lifecycleFacts(cap,client,store){
  const held=lifecycleCaps.get(cap),state=lifecycleClients.get(client);
  if(!held||held.state!==state||held.client!==client||held.store!==store)fail('UNAVAILABLE');
- try{if(!held.active||state.disposed||state.generation!==held.generation||nativeAborted.call(state.signal)||lifecycleOwn(store,'repository')!==held.repository||lifecycleOwn(held.repository,'db')!==held.database)fail('UNAVAILABLE');return true;}catch(error){held.active=false;throw error;}
+ try{assertMaintenanceProcessingDenyCellFacts(held.denial);if(!held.active||state.disposed||state.generation!==held.generation||nativeAborted.call(state.signal)||lifecycleOwn(store,'repository')!==held.repository||lifecycleOwn(held.repository,'db')!==held.database)fail('UNAVAILABLE');return true;}catch(error){held.active=false;retireMaintenanceProcessingDenyCell(held.denial);fail('UNAVAILABLE');}
 }
 // A deny-only snapshot of this original client lifetime. It grants no identity,
 // fields, ACK authority, or network access. Capture once before the operation;
 // delivery must check the same opaque token rather than capturing a new one.
 export function captureMaintenanceServiceLifecycle(client,store){const state=lifecycleClients.get(client);if(!state)fail('UNAVAILABLE');return state.capture(store);}
 export function assertMaintenanceServiceLifecycleFacts(cap,client,store){return lifecycleFacts(cap,client,store);}
+export function readMaintenanceServiceProcessingDenial(cap,client,store){lifecycleFacts(cap,client,store);return lifecycleCaps.get(cap).denial;}
+export function readMaintenanceServiceProcessingPlan(client,store){const state=lifecycleClients.get(client);if(!state)fail('UNAVAILABLE');return state.processingPlan(store);}
 const recoveries=new WeakMap(),clients=new WeakSet(),FLIGHT='aiu:maintenance-service-preflight:v1';
 const terminal=new Set(['COMMITTED','REJECTED','EXPIRED_UNCOMMITTED','CANCELLED_BEFORE_DISPATCH']);
 const callbacks=['clock','resolveAuthority','isCurrent','onInvalidate','readProfile','currentProfile','tokenize','isCurrentTokenizer','readProofs'];
@@ -227,7 +230,8 @@ function createMaintenanceServiceClientOwned(configuration){
   dispose(){if(disposed)return;disposed=true;lifecycleState.disposed=true;invalidateLifecycle();const remove=lifecycleRemove;lifecycleRemove=null;try{remove?.();}finally{if(!lifecycleDispatching)lifecycleListeners.clear();}/* In-flight finally retains cancellation proofs until its original cleanup. */}
  };
  releaseIdentity=claimMaintenanceIdentityChannel(c.filterIdentity);if(releaseIdentity===false)return null;
- lifecycleState.capture=store=>{const repository=lifecycleOwn(store,'repository'),database=lifecycleOwn(repository,'db');if(!database)fail('UNAVAILABLE');subscribeLifecycle();current();const cap=Object.freeze(Object.create(null));lifecycleCaps.set(cap,{client,state:lifecycleState,store,repository,database,generation:lifecycleState.generation,active:true});lifecycleFacts(cap,client,store);return cap;};
+ lifecycleState.processingPlan=store=>{const repository=lifecycleOwn(store,'repository'),database=lifecycleOwn(repository,'db');if(!database)fail('UNAVAILABLE');current();if(lifecycleOwn(store,'repository')!==repository||lifecycleOwn(repository,'db')!==database)fail('UNAVAILABLE');return Object.freeze({processing:c.processing,context:service.context,scope:c.scope,contractVersion:c.contractVersion,routeVersion:c.routeVersion,caller:lifecycleOwn(service.context,'caller'),resolve:lifecycleOwn(c.processing,'resolve'),isCurrent:lifecycleOwn(c.processing,'isCurrent')});};
+ lifecycleState.capture=store=>{const repository=lifecycleOwn(store,'repository'),database=lifecycleOwn(repository,'db');if(!database)fail('UNAVAILABLE');subscribeLifecycle();current();const cap=Object.freeze(Object.create(null));const denial=createMaintenanceProcessingDenyCell({store,repository,database,signals:[controller.signal]});lifecycleCaps.set(cap,{client,state:lifecycleState,store,repository,database,generation:lifecycleState.generation,active:true,denial});lifecycleFacts(cap,client,store);return cap;};
  lifecycleClients.set(client,lifecycleState);
  recoveryRoutes.set(client,recoveryRoute);clients.add(client);return Object.freeze(client);
 }
