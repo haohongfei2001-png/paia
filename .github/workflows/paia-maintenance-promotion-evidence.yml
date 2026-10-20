@@ -139,8 +139,6 @@ jobs:
       PLAYWRIGHT_MODULE: playwright
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
       PAIA_TESTED_HEAD: ${{ github.sha }}
-      PAIA_SETTINGS_MAINTENANCE_OUTPUT: ${{ runner.temp }}/paia-maintenance-settings-artifacts
-      PAIA_SETTINGS_MAINTENANCE_STAGING: ${{ runner.temp }}/paia-maintenance-settings-upload
     steps:
       - uses: actions/checkout@v4
         with:
@@ -155,6 +153,11 @@ jobs:
       - name: Require the actual test and existing Chrome at the exact candidate
         run: |
           set -euo pipefail
+          test -n "${RUNNER_TEMP:-}"
+          PAIA_SETTINGS_MAINTENANCE_OUTPUT="$RUNNER_TEMP/paia-maintenance-settings-artifacts"
+          PAIA_SETTINGS_MAINTENANCE_STAGING="$RUNNER_TEMP/paia-maintenance-settings-upload"
+          export PAIA_SETTINGS_MAINTENANCE_OUTPUT PAIA_SETTINGS_MAINTENANCE_STAGING
+          printf 'PAIA_SETTINGS_MAINTENANCE_OUTPUT=%s\nPAIA_SETTINGS_MAINTENANCE_STAGING=%s\n' "$PAIA_SETTINGS_MAINTENANCE_OUTPUT" "$PAIA_SETTINGS_MAINTENANCE_STAGING" >> "$GITHUB_ENV"
           test -f tests/settings-maintenance-chrome-e2e.test.mjs
           test -f scripts/check-maintenance-settings-native-evidence.mjs
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"

@@ -246,3 +246,49 @@ test('an original source-root symlink is rejected even when its target is readab
  for(const p of roots)await put(join(root,p),'// fixture\n');await rm(join(root,roots[0]));
  await symlink(join(root,roots[1]),join(root,roots[0]));await assert.rejects(inspectSourceRoots(root,roots),/not a regular source root/);
 });
+
+
+// GitHub validates expression contexts before assigning any runner. A YAML
+// parser accepting the file does not validate job-level context availability.
+const jobEnvironmentContexts = new Set(['github','needs','strategy','matrix','vars','secrets','inputs']);
+function assertJobEnvironmentContexts(workflow) {
+  const jobs=workflow.match(/^jobs:\n([\s\S]*)$/m);assert.ok(jobs,'jobs mapping must be present');
+  const blocks=[...jobs[1].matchAll(/^  ([a-zA-Z0-9_-]+):\n([\s\S]*?)(?=^  [a-zA-Z0-9_-]+:\n|$(?![\s\S]))/gm)];
+  assert.ok(blocks.length>0,'job blocks must actually be inspected');
+  for(const [,id,block] of blocks) {
+    const beforeSteps=block.split(/^    steps:\s*$/m)[0];
+    const env=beforeSteps.match(/^    env:\n((?:^      [^\n]*\n)+)/m)?.[1]??'';
+    for(const [,expression] of env.matchAll(/\$\{\{([\s\S]*?)\}\}/g)) {
+      // Ignore quoted property/literal strings, but retain the root before [.
+      const code=expression.replace(/'(?:[^']|'')*'|"(?:[^"\\]|\\.)*"/g,'');
+      for(const [,root] of code.matchAll(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:\.|\[)/g))
+        assert.ok(jobEnvironmentContexts.has(root.toLowerCase()),`unsupported job env context ${id}:${root}`);
+    }
+  }
+  return true;
+}
+test('workflow contexts: actual job environments use only GitHub-supported pre-runner contexts',async()=>{
+ const workflow=await readFile(new URL('../../.github/workflows/paia-maintenance-promotion-evidence.yml',import.meta.url),'utf8');
+ assert.equal(assertJobEnvironmentContexts(workflow),true);
+});
+test('workflow contexts: runner dot/index and steps contexts are rejected at job env only',()=>{
+ for(const expression of ['runner.temp',"runner['temp']",'RUNNER.temp','steps.ready.outputs.path'])
+  assert.throws(()=>assertJobEnvironmentContexts(`jobs:\n  native:\n    env:\n      OUTPUT: \${{ ${expression} }}\n    steps:\n      - run: true\n`),/unsupported job env context/);
+ assert.equal(assertJobEnvironmentContexts("jobs:\n  native:\n    env:\n      HEAD: ${{ github.sha }}\n    steps:\n      - name: legal runner contexts after assignment\n        env:\n          OUTPUT: ${{ runner.temp }}\n        run: echo ${{ runner.temp }}\n        with:\n          path: ${{ runner.temp }}/fixed/file\n"),true);
+});
+test('workflow contexts: original setup exports exactly two runner-temp paths for its step and later steps',async t=>{
+ const workflow=await readFile(new URL('../../.github/workflows/paia-maintenance-promotion-evidence.yml',import.meta.url),'utf8');
+ const job=workflow.slice(workflow.indexOf('  native-maintenance-purpose-settings:'));
+ const setup=job.slice(job.indexOf('      - name: Require the actual test and existing Chrome at the exact candidate'),job.indexOf('      - name: Check strict evidence and original source-manifest contracts'));
+ const init=setup.match(/          test -n "\$\{RUNNER_TEMP:-\}"\n([\s\S]*?)          test -f tests\/settings-maintenance-chrome-e2e\.test\.mjs\n/);
+ assert.ok(init,'runner-temp initialization must execute in the original setup step');
+ const snippet=('test -n "${RUNNER_TEMP:-}"\n'+init[1].replace(/^          /gm,''));
+ assert.match(snippet,/export PAIA_SETTINGS_MAINTENANCE_OUTPUT PAIA_SETTINGS_MAINTENANCE_STAGING/);
+ const root=await mkdtemp(join(tmpdir(),'paia-job-context-'));t.after(()=>rm(root,{recursive:true,force:true}));
+ const runner=join(root,'runner temp with spaces'),envFile=join(root,'github-env');await mkdir(runner);await writeFile(envFile,'');
+ const result=spawnSync('bash',['-eu','-o','pipefail','-c',snippet+'\nprintf "%s\\n%s\\n" "$PAIA_SETTINGS_MAINTENANCE_OUTPUT" "$PAIA_SETTINGS_MAINTENANCE_STAGING"'],{encoding:'utf8',timeout:5000,env:{...process.env,RUNNER_TEMP:runner,GITHUB_ENV:envFile}});
+ assert.equal(result.status,0,result.stderr);
+ const output=join(runner,'paia-maintenance-settings-artifacts'),staging=join(runner,'paia-maintenance-settings-upload');
+ assert.equal(result.stdout,`${output}\n${staging}\n`);
+ assert.equal(await readFile(envFile,'utf8'),`PAIA_SETTINGS_MAINTENANCE_OUTPUT=${output}\nPAIA_SETTINGS_MAINTENANCE_STAGING=${staging}\n`);
+});
