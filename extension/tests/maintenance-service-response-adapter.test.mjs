@@ -136,3 +136,16 @@ test('same display ref c0 in another physical child cannot target the first chil
  const a=await existingFixture({id:'synthetic-child-a'}),b=await existingFixture({id:'synthetic-child-b'});assert.equal(a.payload.material.existingContextItems[0].itemRef,b.payload.material.existingContextItems[0].itemRef);assert.notEqual(a.item.id,b.item.id);
  a.owner.registerChild(b.foundation,b.payload,()=>true);b.group.itemId=a.item.id;asOutcome(b,'NO_CHANGE');const deferred=await catchDefer(()=>a.owner.adapter.context(b.response,b.metadata,b.binding));assert.equal(deferred.groups.length,0);assert.deepEqual(clone(deferred.units),b.payload.coverage);assert.equal((await a.decode()).value[0].change.itemId,a.item.id);assert.doesNotThrow(()=>a.owner.registerChild(b.foundation,b.payload,()=>true));
 });
+
+for(const mismatch of ['missing','duplicate','unselected'])test('only Filter semantic '+mismatch+' IDs create original bounded private DEFER while the sibling remains valid',async()=>{
+ const f=fixture({facets:['topic','filter']});if(mismatch==='missing')f.response.value.filter.decisions=[];else if(mismatch==='duplicate')f.response.value.filter.decisions.push(clone(f.response.value.filter.decisions[0]));else f.response.value.filter.decisions[0].inputId='synthetic-unselected';
+ let error;try{await f.owner.adapter.filter(f.response,{units:[unit('filter')],inputIds:['synthetic-input']},f.binding);}catch(e){error=e;}
+ const deferred=readMaintenanceResponseDefer(error);assert.deepEqual(clone(deferred),{binding:f.binding,facet:'filter',units:[unit('filter')],retryCondition:'FILTER_OWNER_UNAVAILABLE',groups:[]});assert.equal(readMaintenanceResponseDefer({...error}),null);assert.equal(readMaintenanceResponseDefer(structuredClone(error)),null);
+ assert.deepEqual(clone((await f.decode()).value),assessment(f.view));assert.doesNotThrow(()=>f.owner.registerChild(f.foundation,f.payload,()=>true));
+});
+for(const invalid of ['metadata inputs','metadata units','common currentness'])test('semantic Filter mismatch cannot convert invalid '+invalid+' into DEFER',async()=>{
+ const f=fixture({facets:['topic','filter']}),metadata={units:[unit('filter')],inputIds:['synthetic-input']};f.response.value.filter.decisions[0].inputId='synthetic-unselected';
+ if(invalid==='metadata inputs')metadata.inputIds=['synthetic-unselected'];else if(invalid==='metadata units')metadata.units[0]={...unit('filter'),key:JSON.stringify(['input','synthetic-unselected'])};else f.state.current=false;
+ let error;try{await f.owner.adapter.filter(f.response,metadata,f.binding);}catch(e){error=e;}
+ assert.ok(error);assert.equal(readMaintenanceResponseDefer(error),null);await assert.rejects(f.decode(),{code:'UNAVAILABLE'});assert.doesNotThrow(()=>f.owner.registerChild(f.foundation,f.payload,()=>true));
+});

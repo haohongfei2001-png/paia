@@ -4,7 +4,7 @@ import {ArchiveError} from '../core/constants.js';
 import {TopicController} from '../ui/topic-workspace.js';
 import {promoteTopicSection} from '../ui/topic-section-promotion.js';
 import {TopicSectionPromotionCommands} from '../background/topic-section-promotion-commands.js';
-import {promotionFixture,rows,op} from './harness/topic-04.mjs';
+import {promotionFixture,promotionService,decide,rows,op} from './harness/topic-04.mjs';
 import {PresentationNode} from './harness/presentation-dom.mjs';
 class Node extends PresentationNode{close(){this.open=false;}showModal(){this.open=true;}}
 async function fixture(t,run){
@@ -82,4 +82,40 @@ test('manual Section UI retains a visible failed outcome after genuine Working i
  f.w.refresh=async()=>{f.nodes.get('error').hidden=true;f.w.onStatus('');return f.s.topic(f.parent.id);};await f.submit();await pending;
  assert.deepEqual(await whole(),before);assert.equal(f.calls.filter(row=>row.command==='confirm').length,1);assert.equal(f.w.sectionActionPending,false);const draft=[...f.w.sectionPromotionAttempts.values()][0];assert.equal(draft.uncertain,false);assert.equal(draft.token,null);assert.equal(draft.name,'SYNTHETIC retained failed name');
  const notice=f.nodes.get('notice');assert.equal(notice.hidden,false);assert.equal(notice.dataset.state,'failed');assert.match(notice.textContent,/Confirmation did not write/);assert.equal(notice.children.filter(n=>n.tagName==='BUTTON').length,0,'known failure never claims committed or invents an unknown retry');
+}));
+
+test('the original eight uncertain Section attempts remain bounded without any website storage access',t=>fixture(t,async f=>{
+ const prior=Object.getOwnPropertyDescriptor(globalThis,'sessionStorage');let touched=0;Object.defineProperty(globalThis,'sessionStorage',{configurable:true,get(){touched++;throw Error('website storage is forbidden');}});
+ try{f.w.sectionPromotionAttempts=new Map(Array.from({length:8},(_,i)=>['old-'+i,{kind:'manual',operationId:op(),uncertain:true,token:null}]));const before=[...f.w.sectionPromotionAttempts];await promoteTopicSection(f.w,f.section);assert.equal(f.w.sectionPromotionAttempts.size,8);assert.deepEqual([...f.w.sectionPromotionAttempts],before);assert.deepEqual(f.calls,[]);assert.equal(f.w.sectionActionPending,false);assert.equal(touched,0);}finally{if(prior)Object.defineProperty(globalThis,'sessionStorage',prior);else delete globalThis.sessionStorage;}
+}));
+
+
+// UI rendering controls use a genuine original domain preview. They do not
+// stand in for the separate paid-result/ACK gateway integration tests.
+async function originalAIPreview(f){const service=promotionService(f,async(view,reader)=>{for(let i=0;i<reader.pageCount;i++)await reader.readPage(i);return {...decide(view),selection:{kind:'whole_section',count:view.manifest.count,manifestDigest:view.manifest.digest,necessary:'all_selected_placements'}};}),operationId=op(),preview=await service.prepare({scope:f.scope,topicId:f.parent.id,sectionId:f.section.sectionId,selection:'whole_section',operationId});return {service,operationId,preview,token:op()};}
+test('AI preview rendering reuses the whole original confirmation with fixed reason and no name-entry or generation step',t=>fixture(t,async f=>{
+ const original=await originalAIPreview(f),commands=[],before=await rows(f.s,'topics');chrome.runtime.sendMessage=async request=>{if(request.type==='PAIA_LIBRARY_SECTION_PROMOTION'){commands.push(request);if(request.command==='proposal')return {ok:true,data:{state:'prepared',token:original.token,operationId:original.operationId,preview:original.preview}};if(request.command==='cancel'){assert.equal(request.token,original.token);original.service.cancel(original.preview);return {ok:true,data:{state:'cancelled'}};}throw Error('unexpected generation or mutation');}return f.rpc(request);};
+ const pending=promoteTopicSection(f.w,f.section);await f.wait(()=>f.nodes.get('library-dialog-title').textContent==='Confirm Section promotion');assert.equal(f.nodes.get('library-form').children.length,1);assert.equal(f.nodes.get('library-form').children[0].type,'submit');const content=f.nodes.get('library-dialog-content');assert.match(content.textContent,/AI proposal. Nothing moves until you confirm/);assert.match(content.textContent,/Existing content contains an independent goal/);assert.match(content.textContent,/Independent synthetic planning/);assert.equal(content.children.find(n=>n.tagName==='OL').children.length,f.entryIds.length);assert.deepEqual(commands.map(x=>x.command),['proposal']);f.w.closeDialog();await pending;assert.deepEqual(commands.map(x=>x.command),['proposal','cancel']);assert.deepEqual(await rows(f.s,'topics'),before);assert.equal(f.w.sectionPromotionAttempts.size,0);
+}));
+test('AI preview rendering refuses an unknown reason before opening a confirmation and releases the original token',t=>fixture(t,async f=>{
+ const original=await originalAIPreview(f),commands=[];chrome.runtime.sendMessage=async request=>{commands.push(request.command);if(request.command==='proposal')return {ok:true,data:{state:'prepared',token:original.token,operationId:original.operationId,preview:{...original.preview,reason:'invented'}}};if(request.command==='cancel'){assert.equal(request.token,original.token);original.service.cancel(original.preview);return {ok:true,data:{state:'cancelled'}};}return f.rpc(request);};await promoteTopicSection(f.w,f.section);assert.deepEqual(commands,['proposal','cancel']);assert.ok(!f.nodes.get('library-dialog').open);assert.equal(f.w.sectionPromotionAttempts.size,0);assert.equal(f.w.sectionActionPending,false);
+}));
+
+
+test('an explicit retry of checkpoint persistence keeps the exact already-confirmed token and never creates another preview or operation',t=>fixture(t,async f=>{
+ const operationId=op(),token='existing-original-confirmation-token',key=f.parent.id+':'+f.section.sectionId,draft={kind:'ai',name:'Original accepted name',operationId,uncertain:true,checkpointPending:true,token};f.w.sectionPromotionAttempts=new Map([[key,draft]]);const sent=[];
+ chrome.runtime.sendMessage=async request=>{sent.push(structuredClone(request));return {ok:false,error:'STORAGE_FAILED',phase:'promotion_checkpoint_pending'};};await promoteTopicSection(f.w,f.section);assert.deepEqual(sent.map(r=>r.command),['confirm']);assert.equal(sent[0].token,token);assert.equal(draft.operationId,operationId);assert.equal(draft.checkpointPending,true);
+ chrome.runtime.sendMessage=async request=>{sent.push(structuredClone(request));return {ok:false,error:'OUTCOME_UNKNOWN'};};await promoteTopicSection(f.w,f.section);assert.equal(sent.at(-1).command,'confirm');assert.equal(sent.at(-1).token,token);assert.equal(draft.checkpointPending,false);assert.equal(draft.uncertain,true);
+ await promoteTopicSection(f.w,f.section);assert.equal(sent.at(-1).command,'proposal_result');assert.equal(sent.at(-1).operationId,operationId);assert.equal(sent.filter(r=>r.command==='confirm').length,2);assert.equal((await rows(f.s,'topics')).length,1);
+}));
+
+for(const ack of ['success','lost return'])test('explicit original Section UI consumes a known unwritten history with '+ack+' without confirming again',t=>fixture(t,async f=>{
+ const operationId=op(),key=f.parent.id+':'+f.section.sectionId,commands=[];f.w.sectionPromotionAttempts=new Map([[key,{kind:'ai',name:'',operationId,uncertain:true,token:null}]]);const before=await rows(f.s,'topics');
+ chrome.runtime.sendMessage=async request=>{commands.push(request);if(request.command==='proposal_result')return {ok:true,data:{state:'unwritten',operationId,sourceTopicId:f.parent.id,sourceSectionId:f.section.sectionId,checkpointToken:'original-private-delivery-token'}};if(request.command==='acknowledge'){assert.equal(request.token,'original-private-delivery-token');if(ack==='lost return')throw Error('ACK return lost');return {ok:true,data:{state:'acknowledged'}};}throw Error('unexpected confirmation or generation');};
+ await promoteTopicSection(f.w,f.section);assert.deepEqual(commands.map(x=>x.command),['proposal_result','acknowledge']);assert.equal(f.w.sectionPromotionAttempts.size,0);assert.equal(f.w.sectionActionPending,false);assert.deepEqual(await rows(f.s,'topics'),before);assert.match(f.nodes.get('notice').textContent,/original request was checked/);assert.equal(f.nodes.get('notice').children.filter(n=>n.tagName==='BUTTON').length,0);assert.deepEqual(f.navigation,[]);
+}));
+test('an unwritten result for a different Section never consumes the original UI obligation or acknowledges it',t=>fixture(t,async f=>{
+ const operationId=op(),key=f.parent.id+':'+f.section.sectionId,commands=[];f.w.sectionPromotionAttempts=new Map([[key,{kind:'ai',name:'',operationId,uncertain:true,token:null}]]);
+ chrome.runtime.sendMessage=async request=>{commands.push(request);return {ok:true,data:{state:'unwritten',operationId,sourceTopicId:f.parent.id,sourceSectionId:'different-original-section',checkpointToken:'other-private-delivery-token'}};};
+ await promoteTopicSection(f.w,f.section);assert.deepEqual(commands.map(x=>x.command),['proposal_result']);assert.equal(f.w.sectionPromotionAttempts.size,1);assert.equal(f.w.sectionPromotionAttempts.get(key).uncertain,true);assert.equal(f.w.sectionActionPending,false);
 }));

@@ -1,3 +1,9 @@
+import {readMaintenanceSectionPromotionPermission} from './maintenance-section-promotion-permission.js';
+import {takeMaintenancePaidResponse} from './foundation.js';
+import {qwenFoundationProviderData} from './qwen-qualified-request.js';
+import {SECTION_PROMOTION_RESPONSE_SCHEMA,SECTION_PROMOTION_RESPONSE_INSTRUCTIONS} from './topic-promotion-response.js';
+import * as promotionTasks from './maintenance-section-promotion-session.js';
+import {canonical} from './contracts.js';
 import {snapshot,freeze,boundedSchema} from './qwen-request-data.js';
 import {equal,fail,unitKey} from './contracts.js';
 import {hashText} from '../dedupe.js';
@@ -18,12 +24,12 @@ const choice=values=>str(Math.max(...values.map(x=>x.length)),Math.min(...values
 const number=(max=Number.MAX_SAFE_INTEGER,min=0)=>({type:'integer',minimum:min,maximum:max});
 const object=properties=>({type:'object',properties,required:Object.keys(properties),additionalProperties:false});
 const array=(items,max,min=0)=>({type:'array',items,minItems:min,maxItems:max});
-const citation=()=>object({inputId:str(200,1),field:choice(['body']),start:number(131072),end:number(131072,1)});
+const citation=()=>object({inputId:str(200,1),field:choice(['body','note']),start:number(131072),end:number(131072,1)});
 const citations=()=>array(number(99),100);
 const claim=values=>object({reason:choice(values),citations:citations()});
 const returnReasons=['reading','thinking','decision','reuse','none'];
 const topicSchema=object({
- status:choice(['ASSESS','DEFER','NONE']),reason:str(160),version:number(1,1),kind:choice(['object','subject','unresolved']),name:str(300),boundaryKey:str(64),
+ status:choice(['ASSESS','DEFER','NONE']),reason:str(160),version:number(1,1),kind:choice(['object','subject','unresolved']),name:str(300),boundaryKey:str(64),candidateRef:str(80),
  substance:claim(['substantive','incidental','empty']),boundary:claim(['independent_object','sustained_subject','internal_aspect','incidental','unknown']),returnValue:claim(returnReasons),continuity:claim(['ongoing_work','recurring_subject','incidental','unknown']),evidence:citations(),
  relations:array(object({topicId:str(200,1),relation:choice(['same','distinct','internal_aspect','ambiguous']),citations:citations()}),100),
  section:object({kind:choice(['default','existing','named']),sectionId:str(),name:str(300),aspectReason:choice(['recurring_internal_aspect','incidental','unknown']),aspectCitations:citations(),returnReason:choice(returnReasons),returnCitations:citations(),relations:array(object({sectionId:str(200,1),relation:choice(['same','distinct','ambiguous']),citations:citations()}),100)}),
@@ -34,7 +40,19 @@ const temporalSchema=object({present:{type:'boolean'},temporalScope:str(512),unc
 const schema=object({version:number(1,1),logicalJobId:str(200,1),childOperationId:str(200,1),citations:array(citation(),100),topic:topicSchema,context:object({status:choice(['APPLY','DEFER','NONE']),reason:str(160),groups:array(object({operation:choice(['ADD','UPDATE','NO_CHANGE','REMOVE_CANDIDATE','DEFER']),reason:str(160),unitKeys:array(str(450,1),50,1),topicId:str(),itemId:str(),expectedRevision:number(),card:choice(['info','rules','now']),body:str(8192),section:str(80),temporal:temporalSchema}),50)}),filter:object({status:choice(['DECIDE','DEFER','NONE']),reason:str(160),decisions:array(object({inputId:str(200,1),decision:choice(['FILTER','KEEP','INSUFFICIENT'])}),20)})});
 export const MAINTENANCE_SERVICE_RESPONSE_SCHEMA=freeze(snapshot(JSON.parse(JSON.stringify(schema))));
 boundedSchema(MAINTENANCE_SERVICE_RESPONSE_SCHEMA);
-export const MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS='Return exactly the qualified Maintenance response schema. Copy logicalJobId and childOperationId from this request. Use only the sent material and exact coverage keys. ASSESS preserves original Topic evidence and relations; all Topic citations and entry spans are indexes into the top-level citations table, whose exact sent Input body offsets are never inferred. Unused Topic fields use unresolved, empty name/boundaryKey, empty evidence/relations/entries, empty/unknown/none claims and default empty section. NONE is only for absent facets. DEFER requires a nonempty reason and empty results. Context groups must cover each context coverage key exactly once. ADD uses empty itemId and expectedRevision 0. Existing UPDATE, NO_CHANGE and REMOVE_CANDIDATE must use the exact sent existingContextItems itemId, revision and card, with empty topicId; itemRef is only a display label and never replaces itemId. UPDATE requires a new body and section; absent temporal clears any old deadline. NO_CHANGE and REMOVE_CANDIDATE use empty body/section and absent temporal. NO_CHANGE checks only its exact selected prior-evidence subset; REMOVE_CANDIDATE requires the complete original lineage. Selected contextItems corrections retain their separate UPDATE path. Never invent existing Context Item state or use a same-name match. Use topicId "$result" only for the sole Topic created/reused by this same child; otherwise use an exact sent Topic ID. Existing authored, bound, placement and structural evidence stays in its sent Topic. Explicit DEFER groups use empty topicId/itemId/body/section, expectedRevision 0, card info and absent temporal. Absent temporal uses present false and all empty strings. Section default uses empty sectionId/name/citations/relations, aspectReason unknown and returnReason none; existing uses only sectionId. Additional Entry Topic placements use topic.additional with the exact entryIndex. No unselected fields, permission, authority or financial claims are valid.';
+export const MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS='Return exactly the qualified Maintenance response schema. Copy logicalJobId and childOperationId from this request. Use only the sent material and exact coverage keys. ASSESS preserves original Topic evidence and relations; all Topic citations and entry spans are indexes into the top-level citations table, whose exact sent Input field offsets are never inferred. topicCandidateSummary describes only a bounded discovery page; omitted candidates are unresolved and may not be marked completed. Historical topicCandidateInputs are Topic evidence only; preserve their sent roles. candidateRef is empty for a new boundary or exactly one sent topicCandidates ref for continuation. A selected candidate uses empty boundaryKey. Entries may use only current material.inputs, never historical candidate Inputs. Historical note citations require that exact field in the sent candidate Input. Unused Topic fields use unresolved, empty name/boundaryKey/candidateRef, empty evidence/relations/entries, empty/unknown/none claims and default empty section. NONE is only for absent facets. DEFER requires a nonempty reason and empty results. Context groups must cover each context coverage key exactly once. ADD uses empty itemId and expectedRevision 0. Existing UPDATE, NO_CHANGE and REMOVE_CANDIDATE must use the exact sent existingContextItems itemId, revision and card, with empty topicId; itemRef is only a display label and never replaces itemId. UPDATE requires a new body and section; absent temporal clears any old deadline. NO_CHANGE and REMOVE_CANDIDATE use empty body/section and absent temporal. NO_CHANGE checks only its exact selected prior-evidence subset; REMOVE_CANDIDATE requires the complete original lineage. Selected contextItems corrections retain their separate UPDATE path. Never invent existing Context Item state or use a same-name match. Use topicId "$result" only for the sole Topic created/reused by this same child; otherwise use an exact sent Topic ID. Existing authored, bound, placement and structural evidence stays in its sent Topic. Explicit DEFER groups use empty topicId/itemId/body/section, expectedRevision 0, card info and absent temporal. Absent temporal uses present false and all empty strings. Section default uses empty sectionId/name/citations/relations, aspectReason unknown and returnReason none; existing uses only sectionId. Additional Entry Topic placements use topic.additional with the exact entryIndex. No unselected fields, permission, authority or financial claims are valid.';
+// Only an actual original whole-Section capture selects this wider contract.
+// Ordinary children retain the exact historical closed schema and instructions.
+export const MAINTENANCE_SECTION_PROMOTION_RESPONSE_SCHEMA=freeze({...snapshot(MAINTENANCE_SERVICE_RESPONSE_SCHEMA),properties:{...snapshot(MAINTENANCE_SERVICE_RESPONSE_SCHEMA.properties),sectionProposal:snapshot(SECTION_PROMOTION_RESPONSE_SCHEMA)},required:[...MAINTENANCE_SERVICE_RESPONSE_SCHEMA.required,'sectionProposal']});
+boundedSchema(MAINTENANCE_SECTION_PROMOTION_RESPONSE_SCHEMA);
+export const MAINTENANCE_SECTION_PROMOTION_RESPONSE_INSTRUCTIONS=MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS+' Return the sectionProposal field using its separate exact captured Section DTO. '+SECTION_PROMOTION_RESPONSE_INSTRUCTIONS;
+export function maintenanceServiceResponseContract(payload,store,task=null){
+ if(task===null){requireFact(!Object.hasOwn(payload?.material||{},'sectionPromotion'),'UNAVAILABLE');return Object.freeze({schema:MAINTENANCE_SERVICE_RESPONSE_SCHEMA,instructions:MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS});}
+ const prepared=promotionTasks.readMaintenanceSectionPromotionTask(task,store);
+ readMaintenanceSectionPromotionPermission(prepared.permission,store,prepared.plan,prepared.binding);
+ requireFact(prepared&&prepared.binding.logicalJobId===payload.logicalJobId&&prepared.binding.childOperationId===payload.childOperationId&&equal(prepared.payload,payload.material?.sectionPromotion),'STALE_BASE');
+ return Object.freeze({schema:MAINTENANCE_SECTION_PROMOTION_RESPONSE_SCHEMA,instructions:MAINTENANCE_SECTION_PROMOTION_RESPONSE_INSTRUCTIONS});
+}
 const deferred=new WeakMap(),conditions={topic:'TOPIC_MAPPING_UNAVAILABLE',context:'CONTEXT_MAPPING_UNAVAILABLE',filter:'FILTER_OWNER_UNAVAILABLE'};
 export const readMaintenanceResponseDefer=value=>deferred.get(value)??null;
 function defer(binding,facet,units,groups=[]){const error=Object.freeze({code:'MAINTENANCE_RESPONSE_DEFER'});deferred.set(error,freeze(snapshot({binding,facet,units,retryCondition:conditions[facet],groups})));throw error;}
@@ -51,13 +69,16 @@ function schemaValue(s,v){
 const sorted=xs=>[...xs].sort();
 const sameIds=(a,b)=>equal(sorted(a),sorted(b))&&new Set(a).size===a.length;
 const blankSection=s=>s.sectionId===''&&s.name===''&&s.aspectReason==='unknown'&&!s.aspectCitations.length&&s.returnReason==='none'&&!s.returnCitations.length&&!s.relations.length;
-const blankTopic=t=>t.version===1&&t.kind==='unresolved'&&t.name===''&&t.boundaryKey===''&&t.substance.reason==='empty'&&!t.substance.citations.length&&t.boundary.reason==='unknown'&&!t.boundary.citations.length&&t.returnValue.reason==='none'&&!t.returnValue.citations.length&&t.continuity.reason==='unknown'&&!t.continuity.citations.length&&!t.evidence.length&&!t.relations.length&&!t.entries.length&&!t.additional.length&&t.section.kind==='default'&&blankSection(t.section);
+const blankTopic=t=>t.version===1&&t.kind==='unresolved'&&t.name===''&&t.boundaryKey===''&&t.candidateRef===''&&t.substance.reason==='empty'&&!t.substance.citations.length&&t.boundary.reason==='unknown'&&!t.boundary.citations.length&&t.returnValue.reason==='none'&&!t.returnValue.citations.length&&t.continuity.reason==='unknown'&&!t.continuity.citations.length&&!t.evidence.length&&!t.relations.length&&!t.entries.length&&!t.additional.length&&t.section.kind==='default'&&blankSection(t.section);
 const temporal=t=>{if(!t.present){requireFact(t.temporalScope===''&&t.uncertainty===''&&t.validUntil==='');return {};}requireFact(!!t.temporalScope||!!t.uncertainty||!!t.validUntil);return {temporal:{temporalScope:t.temporalScope||null,uncertainty:t.uncertainty||null,validUntil:t.validUntil||null}};};
+const sentTopicInputs=material=>[...material.inputs.map(i=>({id:i.inputId,role:'primary',revision:i.revision,fields:{body:i.body}})),...(material.topicCandidateInputs||[]).map(i=>({id:i.inputId,role:i.role,revision:i.revision,fields:i.fields}))];
+function checkTopicCitation(material,c){const input=sentTopicInputs(material).find(i=>i.id===c.inputId),text=input?.fields?.[c.field];requireFact(typeof text==='string'&&c.end>c.start&&c.end<=text.length&&text.slice(c.start,c.end).trim());}
 function validateWire(raw,payload,binding){
  const response=snapshot(raw,{maxBytes:262144,maxKeys:16000,maxDepth:16,maxString:65536});
  requireFact(response.accepted===true&&response.operationReceiptId===binding.operationReceiptId&&Object.keys(response).length===3&&Object.hasOwn(response,'value'));
- const v=response.value;requireFact(schemaValue(MAINTENANCE_SERVICE_RESPONSE_SCHEMA,v));
- for(const c of v.citations){const input=payload.material.inputs.find(i=>i.inputId===c.inputId);requireFact(input&&c.end>c.start&&c.end<=input.body.length&&input.body.slice(c.start,c.end).trim());}
+ const v=response.value;requireFact(schemaValue(Object.hasOwn(payload.material,'sectionPromotion')?MAINTENANCE_SECTION_PROMOTION_RESPONSE_SCHEMA:MAINTENANCE_SERVICE_RESPONSE_SCHEMA,v));
+ for(const c of v.citations)checkTopicCitation(payload.material,c);
+ requireFact(v.topic.candidateRef===''||v.topic.status==='ASSESS'&&v.topic.boundaryKey===''&&(payload.material.topicCandidates||[]).some(c=>c.candidateRef===v.topic.candidateRef));
  requireFact(v.logicalJobId===payload.logicalJobId&&v.childOperationId===payload.childOperationId&&v.logicalJobId===binding.logicalJobId&&v.childOperationId===binding.childOperationId,'STALE_BASE');
  for(const [facet,active]of [['topic','ASSESS'],['context','APPLY'],['filter','DECIDE']]){
   const part=v[facet],present=payload.coverage.some(u=>u.facet===facet);
@@ -77,18 +98,18 @@ function topicValue(t,material,view,citations){
  for(const key of ['identities','sections','constraints'])requireFact(equal(view[key],material[key]),'STALE_BASE');
  const sentEntries=material.entries||[],currentEntries=view.entries.map(e=>({entryId:e.id,revision:e.revision,body:e.body,bodyBinding:e.bodyBinding,workingInputId:e.workingInputId}));
  requireFact(equal(currentEntries,sentEntries),'STALE_BASE');
- requireFact(sameIds(view.inputs.map(i=>i.id),material.inputs.map(i=>i.inputId)),'STALE_BASE');
- for(const i of view.inputs){const sent=material.inputs.find(x=>x.inputId===i.id);requireFact(i.revision===sent.revision&&equal(i.fields,{body:sent.body}),'STALE_BASE');}
+ const sentInputs=sentTopicInputs(material);requireFact(sameIds(view.inputs.map(i=>i.id),sentInputs.map(i=>i.id)),'STALE_BASE');
+ for(const i of view.inputs){const sent=sentInputs.find(x=>x.id===i.id);requireFact(i.revision===sent.revision&&i.role===sent.role&&equal(i.fields,sent.fields),'STALE_BASE');}
  const topics=new Set(material.identities.map(i=>i.canonicalId)),sections=new Set(material.sections.map(s=>s.sectionId)),entries=new Map((material.entries||[]).map(e=>[e.entryId,e]));
  requireFact(sameIds(t.relations.map(r=>r.topicId),[...topics]));
- const checkCitations=xs=>{for(const c of xs){const input=material.inputs.find(i=>i.inputId===c.inputId);requireFact(input&&c.end>c.start&&c.end<=input.body.length&&input.body.slice(c.start,c.end).trim());}};
+ const checkCitations=xs=>{for(const c of xs)checkTopicCitation(material,c);};
  for(const c of [t.substance,t.boundary,t.returnValue,t.continuity])checkCitations(c.citations);checkCitations(t.evidence);for(const r of t.relations)checkCitations(r.citations);
  requireFact(t.boundaryKey===''||/^[a-f0-9]{64}$/.test(t.boundaryKey));
  const s=t.section;let section;
  if(s.kind==='default'){requireFact(blankSection(s));section={kind:'default'};}
  else if(s.kind==='existing'){requireFact(sections.has(s.sectionId)&&blankSection({...s,sectionId:''}));section={kind:'existing',sectionId:s.sectionId};}
  else{requireFact(s.sectionId===''&&s.name.trim());checkCitations(s.aspectCitations);checkCitations(s.returnCitations);for(const r of s.relations){requireFact(sections.has(r.sectionId));checkCitations(r.citations);}section={kind:'named',name:s.name,aspect:{reason:s.aspectReason,citations:s.aspectCitations},returnValue:{reason:s.returnReason,citations:s.returnCitations},relations:s.relations};}
- const mapped=t.entries.map(e=>{checkCitations([e.span]);if(e.entryId){const sent=entries.get(e.entryId);requireFact(sent&&sent.workingInputId===e.span.inputId);}for(const a of e.additional){requireFact(topics.has(a.topicId));checkCitations(a.returnCitations);}return {span:e.span,type:e.type,...(e.entryId?{entryId:e.entryId}:{}),additional:e.additional.map(a=>({topicId:a.topicId,returnValue:{reason:a.returnReason,citations:a.returnCitations}}))};});
+ const mapped=t.entries.map(e=>{checkCitations([e.span]);requireFact(material.inputs.some(i=>i.inputId===e.span.inputId));if(e.entryId){const sent=entries.get(e.entryId);requireFact(sent&&sent.workingInputId===e.span.inputId);}for(const a of e.additional){requireFact(topics.has(a.topicId));checkCitations(a.returnCitations);}return {span:e.span,type:e.type,...(e.entryId?{entryId:e.entryId}:{}),additional:e.additional.map(a=>({topicId:a.topicId,returnValue:{reason:a.returnReason,citations:a.returnCitations}}))};});
  return {version:1,kind:t.kind,name:t.name||null,...(t.boundaryKey?{boundaryKey:t.boundaryKey}:{}),substance:t.substance,boundary:t.boundary,returnValue:t.returnValue,continuity:t.continuity,evidence:t.evidence,relations:t.relations,section,entries:mapped};
 }
 const without=(value,keys)=>Object.fromEntries(Object.entries(value).filter(([k])=>!keys.includes(k)));
@@ -158,9 +179,16 @@ function existingContextGroup(held,g,selected,metadata){
 
 // Each registration is an exact already-qualified physical child, private to
 // this client. No body is persisted and no repository-wide discovery occurs.
+const candidateSelections=new WeakMap(),sectionProposalResults=new WeakMap();
+export function takeMaintenanceSectionPromotionResponse(token,store){
+ const held=sectionProposalResults.get(token);requireFact(held&&held.store===store,'UNAVAILABLE');held.check();sectionProposalResults.delete(token);held.registration.proposals.delete(token);return Object.freeze({binding:held.binding,proposal:held.proposal,sourceAuthority:held.sourceAuthority,financialBinding:held.financialBinding});
+}
+// A source-owned known-reference attestation is consumed once by the local
+// candidate owner. It cannot be reconstructed from response or provider data.
+export function takeMaintenanceTopicCandidateResponse(token,store){const data=candidateSelections.get(token);requireFact(data&&data.store===store,'UNAVAILABLE');data.check();candidateSelections.delete(token);data.held.selections.delete(token);return {binding:structuredClone(data.binding),candidateRef:data.candidateRef,inputs:structuredClone(data.inputs),candidates:structuredClone(data.candidates)};}
 export function createMaintenanceServiceResponseAdapter(){
  const children=new Map();let disposed=false;
- const releaseChild=id=>{const held=children.get(id);if(held){children.delete(id);held.signal?.removeEventListener('abort',held.abort);held.payload=null;held.foundation=null;held.store=null;}};
+ const releaseChild=id=>{const held=children.get(id);if(held){children.delete(id);held.signal?.removeEventListener('abort',held.abort);for(const token of held.selections)candidateSelections.delete(token);held.selections.clear();for(const token of held.proposals)sectionProposalResults.delete(token);held.proposals.clear();held.promotion=null;held.payload=null;held.foundation=null;held.store=null;}};
  const current=held=>{let live=false;try{live=!disposed&&!!held.payload&&children.get(held.payload.childOperationId)===held&&held.isCurrent()===true;}catch{/* A throwing currentness owner is denial, never a retained body lease. */}if(!live){if(held.payload)releaseChild(held.payload.childOperationId);fail('UNAVAILABLE');}};
  const consumed=(held,facet)=>{held.decoded.add(facet);if(held.facets.every(f=>held.decoded.has(f)))releaseChild(held.payload.childOperationId);};
  async function decode(facet,raw,metadata,binding,qualification=null){
@@ -173,13 +201,45 @@ export function createMaintenanceServiceResponseAdapter(){
   let value;
   if(facet==='topic')value=topicValue(v.topic,payload.material,m,v.citations);
   else if(facet==='filter'){
-   requireFact(sameIds(v.filter.decisions.map(d=>d.inputId),m.inputIds));for(const d of v.filter.decisions)requireFact(payload.material.inputs.some(i=>i.inputId===d.inputId));value=v.filter.decisions;
+   const selected=units.map(u=>{const key=JSON.parse(u.key);requireFact(key[0]==='input');return key[1];});
+   requireFact(sameIds(m.inputIds,selected),'STALE_BASE');for(const id of selected)requireFact(payload.material.inputs.some(i=>i.inputId===id));
+   // Only the Filter semantic ID set can defer after the complete same-child
+   // wire, receipt, coverage and original caller metadata have passed. Keep
+   // the original private DEFER path; no shared validation error is converted.
+   if(!sameIds(v.filter.decisions.map(d=>d.inputId),selected))defer(correlation,'filter',units);
+   value=v.filter.decisions;
   }else value=await contextValue(held,v.context,m,correlation,units,current,qualification);
   current(held);consumed(held,facet);return {binding:correlation,value};
   }catch(error){if(readMaintenanceResponseDefer(error)){current(held);consumed(held,facet);}else if(!['STORAGE_FAILED','STORAGE_FULL'].includes(error?.code))releaseChild(correlation.childOperationId);throw error;}
  }
- return Object.freeze({adapter:Object.freeze(Object.fromEntries(['topic','context','filter'].map(facet=>[facet,(raw,metadata,binding,qualification)=>decode(facet,raw,metadata,binding,qualification)]))),
-  registerChild(foundation,payload,isCurrent,signal=null){requireFact(!disposed&&typeof isCurrent==='function'&&foundation?.s&&(!signal||signal instanceof AbortSignal&&!signal.aborted),'UNAVAILABLE');const copied=freeze(snapshot(payload));requireFact(!children.has(copied.childOperationId)&&children.size<16,'UNAVAILABLE');const abort=()=>releaseChild(copied.childOperationId);children.set(copied.childOperationId,{foundation,store:foundation.s,payload:copied,isCurrent,receipt:null,facets:[...new Set(copied.coverage.map(u=>u.facet))],decoded:new Set(),signal,abort});signal?.addEventListener('abort',abort,{once:true});current(children.get(copied.childOperationId));},
+ const topicCandidate=(raw,binding)=>{const correlation=snapshot(binding);requireFact(Object.keys(correlation).length===3&&['logicalJobId','childOperationId','operationReceiptId'].every(k=>typeof correlation[k]==='string'&&correlation[k].length>0));const held=children.get(correlation.childOperationId);requireFact(held,'UNAVAILABLE');current(held);try{const v=validateWire(raw,held.payload,correlation);requireFact(!held.receipt||held.receipt===correlation.operationReceiptId,'STALE_BASE');if(v.topic.status==='DEFER')defer(correlation,'topic',held.payload.coverage.filter(u=>u.facet==='topic'));requireFact(v.topic.status==='ASSESS'&&(held.payload.material.topicCandidates||[]).length);held.receipt=correlation.operationReceiptId;const token=Object.freeze({});candidateSelections.set(token,{store:held.store,held,check:()=>current(held),binding:correlation,candidateRef:v.topic.candidateRef,inputs:sentTopicInputs(held.payload.material),candidates:held.payload.material.topicCandidates});held.selections.add(token);return token;}catch(error){if(!readMaintenanceResponseDefer(error))releaseChild(correlation.childOperationId);throw error;}};
+ const register=(foundation,payload,isCurrent,signal,promotion=null)=>{
+  requireFact(!disposed&&typeof isCurrent==='function'&&foundation?.s&&(!signal||signal instanceof AbortSignal&&!signal.aborted),'UNAVAILABLE');const copied=freeze(snapshot(payload));requireFact(!children.has(copied.childOperationId)&&children.size<16,'UNAVAILABLE');const abort=()=>releaseChild(copied.childOperationId);children.set(copied.childOperationId,{foundation,store:foundation.s,payload:copied,isCurrent,receipt:null,facets:[...new Set(copied.coverage.map(u=>u.facet))],decoded:new Set(),selections:new Set(),proposals:new Set(),promotion,signal,abort});signal?.addEventListener('abort',abort,{once:true});current(children.get(copied.childOperationId));
+ };
+ const sectionPromotion=async(result,binding)=>{
+  const correlation=freeze(snapshot(binding));requireFact(Object.keys(correlation).length===3&&['logicalJobId','childOperationId','operationReceiptId'].every(k=>typeof correlation[k]==='string'&&correlation[k].length>0));const held=children.get(correlation.childOperationId);requireFact(held?.promotion,'UNAVAILABLE');current(held);
+  try{
+   const original=takeMaintenancePaidResponse(result,held.foundation,held.promotion.provider);current(held);
+   requireFact(equal(original.binding,correlation)&&original.origin===held.promotion.origin&&equal(original.request,held.promotion.request)&&original.payloadDigest===held.promotion.payloadDigest,'STALE_BASE');
+   maintenanceServiceResponseContract(held.payload,held.store,held.promotion.task);const value=validateWire(original.response,held.payload,correlation),sent=held.payload.material.sectionPromotion;
+   requireFact(['logicalJobId','childOperationId','proposalOperationId','sectionRef'].every(k=>value.sectionProposal[k]===sent[k]),'STALE_BASE');
+   if(value.context.status==='APPLY')requireFact(sameIds(value.context.groups.flatMap(g=>g.unitKeys),held.payload.coverage.filter(u=>u.facet==='context').map(u=>u.key)));
+   if(value.filter.status==='DECIDE')requireFact(sameIds(value.filter.decisions.map(d=>d.inputId),held.payload.coverage.filter(u=>u.facet==='filter').map(u=>{const key=JSON.parse(u.key);requireFact(key[0]==='input');return key[1];})));
+   const financialText=canonical(original.request);promotionTasks.chargeMaintenanceSectionPromotionTaskHash(held.promotion.task,held.store,financialText);const requestHash=await hashText(financialText);current(held);maintenanceServiceResponseContract(held.payload,held.store,held.promotion.task);current(held);
+   const financialBinding=Object.freeze({origin:original.origin,requestHash}),token=Object.freeze({});sectionProposalResults.set(token,{store:held.store,registration:held,binding:correlation,proposal:freeze(value.sectionProposal),sourceAuthority:held.promotion.sourceAuthority,financialBinding,check:()=>current(held)});held.proposals.add(token);return token;
+  }catch(error){releaseChild(correlation.childOperationId);throw error;}
+ };
+ return Object.freeze({adapter:Object.freeze({...Object.fromEntries(['topic','context','filter'].map(facet=>[facet,(raw,metadata,binding,qualification)=>decode(facet,raw,metadata,binding,qualification)])),topicCandidate,sectionPromotion}),
+  registerChild(foundation,payload,isCurrent,signal=null){maintenanceServiceResponseContract(payload,foundation?.s);register(foundation,payload,isCurrent,signal);},
+  async registerPromotionChild(foundation,payload,isCurrent,signal=null,{task,provider}={}){
+   maintenanceServiceResponseContract(payload,foundation?.s,task);const original=qwenFoundationProviderData(provider);requireFact(original&&original.request.jobType==='AI_MAINTENANCE'&&original.request.jobId===payload.logicalJobId&&original.request.operationId===payload.childOperationId,'UNAVAILABLE');original.current();
+   const copied=freeze(snapshot(payload)),text=canonical(copied);requireFact(typeof promotionTasks.chargeMaintenanceSectionPromotionTaskHash==='function','UNAVAILABLE');promotionTasks.chargeMaintenanceSectionPromotionTaskHash(task,foundation.s,text);const payloadDigest=await hashText(text);
+   original.current();maintenanceServiceResponseContract(copied,foundation.s,task);requireFact(payloadDigest===original.payloadDigest,'STALE_BASE');
+   const prepared=promotionTasks.readMaintenanceSectionPromotionTask(task,foundation.s),granted=readMaintenanceSectionPromotionPermission(prepared.permission,foundation.s,prepared.plan,prepared.binding),root=JSON.parse(granted.scope.rootAuthority);
+   requireFact(Array.isArray(root)&&root.length===7,'STALE_BASE');const sourceAuthority=freeze(snapshot({principalId:granted.scope.principalId,libraryId:granted.scope.libraryId,restoreEpoch:root[4]},{maxBytes:2048,maxKeys:3,maxDepth:1,maxString:200}));
+   requireFact(typeof sourceAuthority.principalId==='string'&&typeof sourceAuthority.libraryId==='string'&&(sourceAuthority.restoreEpoch===null||['string','number'].includes(typeof sourceAuthority.restoreEpoch)),'UNAVAILABLE');original.current();maintenanceServiceResponseContract(copied,foundation.s,task);
+   register(foundation,copied,isCurrent,signal,{task,provider,payloadDigest,origin:original.origin,request:original.request,sourceAuthority});
+  },
   releaseChild,
   releaseJob(jobId){for(const [id,held]of children)if(held.payload.logicalJobId===jobId)releaseChild(id);},
   dispose(){disposed=true;for(const id of children.keys())releaseChild(id);}

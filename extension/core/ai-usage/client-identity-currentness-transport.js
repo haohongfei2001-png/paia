@@ -15,7 +15,7 @@ const fields=['version','principalId','libraryId','operationId','jobType','tier'
 const flags=['financialAuthority','dispatchAllowed','retryAllowed'];
 export const clientIdentityCurrentnessTransportDrained=t=>transports.get(t)?.drained()===true;
 export const clientIdentityCurrentnessTransportOrigin=t=>transports.get(t)?.origin??null;
-export const readClientIdentityCurrentnessConnection=(value,transport)=>{const m=connections.get(value);return m?.transport===transport&&value.isCurrent()?m:null;};
+export const readClientIdentityCurrentnessConnection=(value,transport)=>{const m=connections.get(value);return m?.transport===transport&&m.profile==='financial'&&value.isCurrent()?m:null;};
 export function createClientIdentityCurrentnessTransport(options){
  let endpoint,origin,send,clock;
  try{
@@ -72,7 +72,7 @@ export function createClientIdentityCurrentnessTransport(options){
        const i=v.identity;if(!exact(i,fields)||i.version!==1||!['principalId','libraryId','operationId','jobType'].every(k=>i[k]===request[k])||!['free','pro'].includes(i.tier)||!['principalGeneration','entitlementGeneration','authorityGeneration'].every(k=>opaque(i[k]))||i.requestHash!==requestHash||!integer(i.observedAt)||!integer(i.verifiedUntil)||i.observedAt>at||i.verifiedUntil<=at||i.verifiedUntil-i.observedAt>60000)throw Error();
        identity=freeze(i);lastPulse=at;ready=true;
        connection=Object.freeze({isCurrent:live,onInvalidate(fn){if(typeof fn!=='function')return null;if(closed){fn();return ()=>{};}listeners.add(fn);return ()=>listeners.delete(fn);},close});
-       connections.set(connection,freeze({transport,origin,request,identity}));connectionFacts.set(connection,at=>!disposed&&!closed&&ready&&!abort.signal.aborted&&active.has(close)&&occupied.has(close)&&integer(at)&&at>=last&&at>=identity.observedAt&&at<identity.verifiedUntil&&at-lastPulse<3000);resolveReady(connection);
+       connections.set(connection,freeze({transport,origin,request,identity,profile:'financial'}));connectionFacts.set(connection,at=>!disposed&&!closed&&ready&&!abort.signal.aborted&&active.has(close)&&occupied.has(close)&&integer(at)&&at>=last&&at>=identity.observedAt&&at<identity.verifiedUntil&&at-lastPulse<3000);resolveReady(connection);
       }else if(!exact(v,['version','type','sequence'])||v.type!=='pulse'||!live())throw Error();
       lastPulse=at;arm(Math.min(3000,identity.verifiedUntil-at));
      }
@@ -95,4 +95,7 @@ function matchesIdentity(m,identity){
 
 export function identityMatchesCurrentnessConnection(connection,transport,identity){return matchesIdentity(readClientIdentityCurrentnessConnection(connection,transport),identity);}
 // Tail-only local facts; full original clock/pulse qualification runs first.
-export function identityMatchesCurrentnessConnectionFacts(connection,transport,identity,at){const m=connections.get(connection);return m?.transport===transport&&connectionFacts.get(connection)?.(at)===true&&matchesIdentity(m,identity);}
+export function identityMatchesCurrentnessConnectionFacts(connection,transport,identity,at){const m=connections.get(connection);return m?.transport===transport&&m.profile==='financial'&&connectionFacts.get(connection)?.(at)===true&&matchesIdentity(m,identity);}
+
+// Fixed original financial connection facts; the current owner samples its clock first.
+export const readClientIdentityCurrentnessConnectionFacts=(value,transport,at)=>{const m=connections.get(value);return m?.transport===transport&&m.profile==='financial'&&connectionFacts.get(value)?.(at)===true?m:null;};

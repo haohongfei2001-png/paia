@@ -1,3 +1,5 @@
+import {requireTopicProcessingFinalFacts} from './topic-processing.js';
+import {sampleSectionPromotionRecoveryFinalFacts,requireSectionPromotionRecoveryFinalFacts} from './ai-usage/section-promotion-recovery-authority.js';
 import {syncArchiveYearIndex,clearArchiveYearIndex} from './archive-year-index.js';
 import {trackSemanticWrite,trackSemanticClear,flushSemanticWrites} from './ai-usage/delta.js';
 import {trackNavigationWrite,flushNavigationWrites} from './archive-navigation-invalidation.js';
@@ -101,16 +103,22 @@ function synchronousTrue(record,check){
 // The plan is a synchronous generator: only Repository performs the yielded
 // IDB reads. Async generators/checkers and arbitrary awaited work cannot enter
 // the strict final segment. A second registration never replaces prior facts.
-export function registerRepositoryFinalReadFence(repository,scope,{plan,isCurrent,compatibilityRecheck=null}={}){
+export function registerRepositoryFinalReadFence(repository,scope,{plan,isCurrent,compatibilityRecheck=null,authority=null,promotionRecoveryAuthority=null}={}){
  const record=scopeRecord(repository,scope);requireRepositoryTransactionScope(repository,scope);
  if(record.identity.mode!=='readwrite'||record.phase!=='callback'||record.terminalFailed)refuseTerminal(record);
  if(typeof plan!=='function'||typeof isCurrent!=='function'||compatibilityRecheck!==null&&typeof compatibilityRecheck!=='function')refuseTerminal(record);
- synchronousTrue(record,isCurrent);record.finalReadFences.push(Object.freeze({plan,isCurrent,compatibilityRecheck}));
+ synchronousTrue(record,isCurrent);if(authority!==null)synchronousTrue(record,()=>requireTopicProcessingFinalFacts(authority,repository,scope));if(promotionRecoveryAuthority!==null)synchronousTrue(record,()=>requireSectionPromotionRecoveryFinalFacts(promotionRecoveryAuthority,repository,scope));record.finalReadFences.push(Object.freeze({plan,isCurrent,compatibilityRecheck,authority,promotionRecoveryAuthority}));
 }
+function sampleFinalAuthorities(record,fences){for(const fence of fences)if(fence.promotionRecoveryAuthority!==null)synchronousTrue(record,()=>sampleSectionPromotionRecoveryFinalFacts(fence.promotionRecoveryAuthority,record.repository,record.scope));}
+function finalAuthorityFacts(record,fences){for(const fence of fences){if(fence.authority!==null)synchronousTrue(record,()=>requireTopicProcessingFinalFacts(fence.authority,record.repository,record.scope));if(fence.promotionRecoveryAuthority!==null)synchronousTrue(record,()=>requireSectionPromotionRecoveryFinalFacts(fence.promotionRecoveryAuthority,record.repository,record.scope));}}
+function currentFinalAuthorities(record,fences){for(const fence of fences)synchronousTrue(record,fence.isCurrent);sampleFinalAuthorities(record,fences);finalAuthorityFacts(record,fences);}
 async function runFinalReadFences(scope,record){
  if(!record.finalReadFences.length)return;
  record.phase='terminal-compatibility';const fences=Object.freeze([...record.finalReadFences]);
- const current=()=>{for(const f of fences)synchronousTrue(record,f.isCurrent);};
+ // Every original issuer runs before the fixed recovery owner's clock sample.
+ // Sampling can itself revoke another owner, so the final sweep remains entirely
+ // private facts for all registered groups. No public facts callback is accepted.
+ const current=()=>currentFinalAuthorities(record,fences);
  // Legacy processing resolvers predate synchronous opaque qualification. This
  // compatibility recheck is deliberately OUTSIDE the closed read-plan segment;
  // delayed non-IDB legacy resolvers have no native atomic-revocation guarantee.
@@ -376,7 +384,7 @@ export class ArchiveRepository {
   });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{const result=await fn(scope);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);for(const fence of record.finalReadFences)synchronousTrue(record,fence.isCurrent);}await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
+  try{const result=await fn(scope);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
   }finally{if(write)writeState.active--;}
  }
  async initialize(){

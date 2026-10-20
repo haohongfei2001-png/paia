@@ -1,4 +1,4 @@
-import {createClientIdentityCurrentnessTransport,clientIdentityCurrentnessTransportOrigin,clientIdentityCurrentnessTransportDrained,reserveClientIdentityCurrentnessTransport,releaseClientIdentityCurrentnessTransport,openReservedClientIdentityCurrentnessTransport,readClientIdentityCurrentnessConnection} from './client-identity-currentness-transport.js';
+import {createClientIdentityCurrentnessTransport,clientIdentityCurrentnessTransportOrigin,clientIdentityCurrentnessTransportDrained,reserveClientIdentityCurrentnessTransport,releaseClientIdentityCurrentnessTransport,openReservedClientIdentityCurrentnessTransport,readClientIdentityCurrentnessConnection,readClientIdentityCurrentnessConnectionFacts} from './client-identity-currentness-transport.js';
 import {createSharedMaintenanceIdentityChannelCurrentness} from './maintenance-identity-currentness.js';
 const hubs=new WeakMap(),tickets=new WeakMap();
 // One worker-owned transport budget spans BOTH paid clients and read-only
@@ -21,3 +21,5 @@ export async function openHubIdentityObservation(hub,ticket,bundle){
  const connection=await openReservedClientIdentityCurrentnessTransport(h.transport,r.slot,bundle);if(!h.current()){connection?.close();return null;}return connection;
 }
 export const readHubIdentityObservation=(hub,connection)=>{const h=hubs.get(hub);return h?.current()?readClientIdentityCurrentnessConnection(connection,h.transport):null;};
+
+export const readHubIdentityObservationFacts=(hub,connection,at)=>{const h=hubs.get(hub);return h?.current()?readClientIdentityCurrentnessConnectionFacts(connection,h.transport,at):null;};

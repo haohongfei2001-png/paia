@@ -180,7 +180,7 @@ export function testShard(file,position,total,category){
   // Full39007610360: Context alone took~696s after Archive; adding all four
   // new owners exhausted10's unchanged18m budget. Only these new whole files
   // use measured6/8 spare capacity; all96 previous routes remain frozen.
-  if(total===10)return ['nib-approved-fixed-chrome-e2e.test.mjs','topic-selected-section-chrome-e2e.test.mjs'].includes(currentName)?6:8;
+  if(total===10)return currentName==='archive-year-chrome-e2e.test.mjs'?2:['nib-approved-fixed-chrome-e2e.test.mjs','topic-selected-section-chrome-e2e.test.mjs'].includes(currentName)?6:8;
   if(total===9)return 9;if([4,5,6,7].includes(total))return 4;
  }
  // Freeze the original96 sorted positions, rather than subtracting insertions
@@ -209,7 +209,18 @@ export function testShard(file,position,total,category){
  // measured Working Revision187.8s and Reader77.7s: move the complete files
  // 10-to1 and1-to3, keeping Context alone on10. Historical measured bounds
  // are planning evidence, not a promised fit; retain18m and every native case.
- if(category==='browser E2E'&&total===10){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_TEN_UNADMITTED:'+name);return name==='context-cards-chrome-e2e.test.mjs'?10:name==='cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'?1:name==='cpv1-02-4-reader-chrome-e2e.test.mjs'?3:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?4:shard;}
+ // Full39331033553 reached the unchanged18m boundary after59 PASS on4;
+ // the last whole UIS02 file had not completed. Move only whole saved-AI
+ // presentation from4 to8 (142s interval observed;8 finished in858s).
+ // These are planning observations, not a runtime guarantee. Keep all100
+ // files, historical routes, Source/release cases and18m/10-job limits.
+ // Full39341955147 exhausted8 after48 PASS. All10 logs show shared
+ // pressure on1/5/8/9, so rebalance four complete files: Archive Year8-to2,
+ // Settings entry1-to7, Section writing5-to7, Reader surfaces9-to4. Keep
+ // saved-AI presentation on8 and the full Context root alone on10. The
+ // observed intervals plus doubled missing-tail allowance and15s closeout
+ // project about1007s, not a guarantee; no deadline or test is relaxed.
+ if(category==='browser E2E'&&total===10){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_TEN_UNADMITTED:'+name);return name==='context-cards-chrome-e2e.test.mjs'?10:name==='cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'?1:name==='cpv1-02-4-reader-chrome-e2e.test.mjs'?3:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?8:name==='nib-v4-settings-entry-chrome-e2e.test.mjs'||name==='topic-section-writing-chrome-e2e.test.mjs'?7:name==='ans-01-reader-surfaces-chrome-e2e.test.mjs'?4:shard;}
  if(category==='browser E2E'&&total===9){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_NINE_UNADMITTED:'+name);return shard;}
  // Full37830791787: shard1 cancelled at18m with two tail files unreported.
  // Reader/Revisit costs257s; shard6 native636s leaves measured capacity.

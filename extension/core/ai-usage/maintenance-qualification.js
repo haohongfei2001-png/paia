@@ -1,9 +1,14 @@
+import {readTopicExactReuseSelection,assertTopicExactReuseSelectionFacts,readTopicExactReuseMutation,assertTopicExactReuseOwnRow,releaseTopicExactReuseSelection} from '../topic-formation.js';
+import {captureTopicExactReuseMetadata,topicExactReuseEntryMetadata} from '../topic-exact-reuse-metadata.js';
+import {readPromotionQualifiedMutation,assertPromotionQualifiedOwnRow} from '../topic-promotion-commit.js';
+import {captureMaintenanceProcessingReceipt,assertMaintenanceProcessingReceipt,assertMaintenanceProcessingReceiptFacts} from './maintenance-processing-receipt.js';
 import {rootReadAuthority} from '../organizer/root-read.js';
-import {createContextScopeWorkBudget,contextScopeTransactionReader,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
+import {createContextScopeWorkBudget,forkContextScopeWorkBudget,contextScopeTransactionReader,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
 import {prefix,idOK,revisionOK} from '../thought-model.js';
 import {canonical,digest,equal,exact,fail,opaque} from './contracts.js';
 const freeze=value=>{if(value&&typeof value==='object'){for(const x of Object.values(value))freeze(x);Object.freeze(value);}return value;};
 const size=x=>new TextEncoder().encode(JSON.stringify(x)).length;
+const signalAborted=Object.getOwnPropertyDescriptor(AbortSignal.prototype,'aborted').get;
 const need=(x,code='UNAVAILABLE')=>{if(!x)fail(code);};
 const ENTRY_FIELDS=['body','title','note'],capabilities=new WeakMap(),requestIdentities=new WeakMap(),qualificationReaders=new WeakMap();
 const own=(row,key)=>{const d=Object.getOwnPropertyDescriptor(row||{},key);need(!d||Object.hasOwn(d,'value'));return d?.value;};
@@ -38,7 +43,7 @@ const placementMetadata=row=>pick(row,['id','topicId','layoutGeneration','entryI
 const dependencyMetadata=row=>pick(row,['id','inputId','inputList','thoughtId','targetKind','targetId','eligibilityEpochAtUse','basedOnContentRevision','selectedFields','fieldDigests','validatedAgainstContentRevision','status','roles','sourceRecordIds','scopeToken','versionToken']);
 const provenanceMetadata=row=>pick(row,['id','ownerKind','ownerId','generationId','inputId','basedOnContentRevision','actualVersion','role','contributionType','formation','generatedAt','generator','inputAuthorshipAtUse','entryFieldAuthorshipAtCommit','sourceRecordIds','sourceIdentityTokens','scopeToken','versionToken','availability','contributionKey','span']);
 const sorted=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));
-const textFields={thoughts:['thoughtText','title','note'],topics:['name','nameKey'],sections:['title'],blocks:['libraryText','note'],records:['originalText','note','editedText','chatTitle']};
+const textFields={thoughts:['thoughtText','title','note'],topics:['name','nameKey','summary'],sections:['title'],blocks:['libraryText','note'],records:['originalText','note','editedText','chatTitle']};
 
 // A separately granted, current-session local closure. It is never sent as
 // model evidence and never adds coverage. Only unchanged source-free human
@@ -81,13 +86,14 @@ async function metadataClosure(store,t,request,selection={}){
   if(d.kind==='placement'){const row=await t.get('placements',d.recordId||d.entityId);if(row?.id===d.entityId&&idOK(row.entryId)){await addEntry(row.entryId);historyEntries.add(row.entryId);}}
   if(['topic','section'].includes(d.kind)){
    const table=d.kind==='topic'?'topics':'sections',row=await t.get(table,d.recordId||d.entityId);if(!row)continue;
-   structures.set(JSON.stringify([table,row.id]),{table,metadata:structureMetadata(row),selectedFields:[d.kind==='topic'?'name':'title']});
+   const fields=d.kind==='topic'?['name','summary']:['title'];
+   structures.set(JSON.stringify([table,row.id]),{table,metadata:structureMetadata(row),selectedFields:fields});
    const range=d.kind==='topic'?prefix([row.id,row.activeLayoutGeneration,0]):prefix([row.topicId,row.layoutGeneration,row.sectionId,0]),index=d.kind==='topic'?'byTopicOrder':'bySectionOrder',count=await t.count('placements',index,range);
    need(Number.isSafeInteger(count)&&count>=0,'BUDGET_EXCEEDED');
    // The unchanged original structural validator rejects an oversized count
    // before reading any Entry. Do not grant or acquire a truncated subset.
    if(count<=Math.min(16,store.organizerBudget.limits.maxInputs))for(const p of await t.all('placements',index,range))if(p.lifecycle==='active'&&!p.excludedByUser)await addEntry(p.entryId);
-   const j=await t.get('revisions',d.journalId);if(j){const metadata=journalMetadata(j);need(metadata.kind===d.kind&&metadata.entityId===d.entityId);journals.set(j.id,{metadata,selectedFields:[d.kind==='topic'?'name':'title']});}
+   const j=await t.get('revisions',d.journalId);if(j){const metadata=journalMetadata(j);need(metadata.kind===d.kind&&metadata.entityId===d.entityId);journals.set(j.id,{metadata,selectedFields:fields});}
   }
  }
  // Only exact Topics already selected by an original mapping or authenticated
@@ -148,18 +154,56 @@ function textGuard(object,fields,allowed,current){
   Object.defineProperty(object,field,{enumerable:d.enumerable,configurable:true,get(){current();need(allowed(field));const value=Object.hasOwn(d,'value')?d.value:d.get?.call(object);current();return value;}});
  }return object;
 }
-function qualifiedReader(t,held,current,{topicLabels=false,metadataReader=t}={}){
- const wrap=(table,row)=>{current();if(!row)return row;
-  if(table==='thoughts'){const expected=held.entries.get(row.id);if(expected)need(equal(entryMetadata(row),expected),'STALE_BASE');row=textGuard(row,textFields.thoughts,()=>!!expected,current);}
-  else if((table==='topics'||table==='sections')&&!topicLabels){const expected=held.structures.get(JSON.stringify([table,row.id]));if(expected)need(equal(structureMetadata(row),expected.metadata),'STALE_BASE');row=textGuard(row,textFields[table],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),current);}
-  else if(table==='revisions'){const expected=held.journals.get(row.id);if(expected)need(equal(journalMetadata(row),expected.metadata),'STALE_BASE');row={...row};for(const side of ['before','after'])row[side]=textGuard(row[side],['body','title','note','name','nameKey'],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),current);}
+// Strict identity consumers have a separately granted label universe. Keep
+// only the original identity metadata schema; unknown semantic objects cannot
+// be acquired by identityMetadata() or the original Source sanitizer clone.
+function strictTopicIdentityRow(row){
+ const projected=pick(row,['id','revision','organizationRevision','activeLayoutGeneration','defaultSectionId','lifecycle','redirectTo','layoutJobId','sourceRecordIds','createdAt','createdBy','updatedAt','pinKey','pinRank']);
+ if(Object.hasOwn(row,'protections'))projected.protections=named(own(row,'protections'),['name','title','keep','lifecycle','organization'],v=>named(v,['locked','reason','operationId','at']));
+ if(Object.hasOwn(row,'identity')){
+  const identity=own(row,'identity');need(identity&&typeof identity==='object'&&!Array.isArray(identity));need(own(identity,'scope')===null);
+  projected.identity=named(identity,['version','revision','origin','scope','legacy','noRecreation','nameToken','aliases','lifecycleIntent'],(value,key)=>key==='aliases'?list(value,v=>named(v,['token','actor','revision','operationId','at'])):key==='lifecycleIntent'?named(value,['actor','operationId','at','previous','to']):scalar(value));
+ }
+ for(const field of ['name','nameKey']){const descriptor=Object.getOwnPropertyDescriptor(row,field);if(descriptor)Object.defineProperty(projected,field,{...descriptor,configurable:true});}
+ return projected;
+}
+// The original Promotion writer alone can attest a same-transaction metadata
+// advance. Its pre-put before must match this held grant, and its unchanged
+// semantic data must still match the actual row before any text getter runs.
+function ownMetadata(t,table,row,expected,project,fields,{ownMutation,store,qualification},current){
+ current();const actual=project(row),publication=ownMutation===null||ownMutation===undefined?null:readPromotionQualifiedMutation(ownMutation,store,t,qualification),intent=publication?.rows.find(x=>x.table===table&&x.key===own(row,'id'));
+ if(!intent){need(equal(actual,expected),'STALE_BASE');return false;}
+ need(equal(project(intent.before),expected)&&equal(project(intent.after),actual),'STALE_BASE');
+ // The issuer may run code. Recheck the complete row projection and all
+ // selected data descriptors together after the last callback, without
+ // calling an issuer between fields or acquiring any semantic getter.
+ current();need(equal(project(row),project(intent.after)),'STALE_BASE');
+ for(const field of fields){const a=Object.getOwnPropertyDescriptor(intent.before,field),b=Object.getOwnPropertyDescriptor(intent.after,field),c=Object.getOwnPropertyDescriptor(row,field);need((!a&&!b&&!c)||(a&&b&&c&&Object.hasOwn(a,'value')&&Object.hasOwn(b,'value')&&Object.hasOwn(c,'value')&&Object.is(a.value,b.value)&&Object.is(b.value,c.value)),'STALE_BASE');}
+ assertPromotionQualifiedOwnRow(ownMutation,store,t,qualification,table,row);return true;
+}
+const exactQualifiedRows=new WeakMap();
+function originalExactRow(row,qualification){const proof=exactQualifiedRows.get(row);if(!proof)return row;need(proof.qualification===qualification);const descriptors=Object.getOwnPropertyDescriptors(row),keys=Reflect.ownKeys(descriptors);need(keys.length===Reflect.ownKeys(proof.descriptors).length);for(const key of keys){const a=descriptors[key],b=proof.descriptors[key];need(b&&['value','get','set','writable','enumerable','configurable'].every(field=>Object.hasOwn(a,field)===Object.hasOwn(b,field)&&Object.is(a[field],b[field])));}return proof.original;}
+function exactReuseMetadata(t,row,held,current,{ownMutation,store,qualification}){
+ const expected=held.exactReuse.entries.find(x=>x.id===own(row,'id'));if(!expected)return false;
+ current();const actual=topicExactReuseEntryMetadata(row);
+ const publication=ownMutation===null?null:readTopicExactReuseMutation(ownMutation,store,t,qualification),intent=publication?.rows.find(x=>x.key===actual.id);
+ if(!intent){need(equal(actual,expected),'STALE_BASE');return false;}
+ need(equal(topicExactReuseEntryMetadata(intent.before),expected)&&equal(topicExactReuseEntryMetadata(intent.after),actual),'STALE_BASE');
+ current();assertTopicExactReuseOwnRow(ownMutation,store,t,qualification,row);return true;
+}
+function qualifiedReader(t,held,current,{topicLabels=false,strictTopicIdentity=false,metadataReader=t,ownMutation=null,store,qualification}={}){
+ const context={ownMutation,store,qualification};
+ const wrap=(table,row)=>{current();if(!row)return row;if(table==='thoughts'&&held.exactReuse)row=originalExactRow(row,qualification);const original=row;let fieldCurrent=current;const isExact=table==='thoughts'&&held.exactReuse?.entries.some(x=>x.id===own(original,'id'));const mutationCurrent=()=>{current();if(isExact)assertTopicExactReuseOwnRow(ownMutation,store,t,qualification,original);else assertPromotionQualifiedOwnRow(ownMutation,store,t,qualification,table,original);};if(strictTopicIdentity&&table==='topics')row=strictTopicIdentityRow(row);
+  if(table==='thoughts'){const expected=held.entries.get(row.id);if(expected&&(isExact?exactReuseMetadata(t,original,held,current,context):ownMetadata(t,table,original,expected,entryMetadata,textFields.thoughts,context,current)))fieldCurrent=mutationCurrent;row=textGuard(row,textFields.thoughts,()=>!!expected,fieldCurrent);}
+  else if((table==='topics'||table==='sections')&&!topicLabels){const expected=held.structures.get(JSON.stringify([table,row.id]));if(expected&&ownMetadata(t,table,original,expected.metadata,structureMetadata,expected.selectedFields.flatMap(f=>f==='name'?['name','nameKey']:[f]),context,current))fieldCurrent=mutationCurrent;row=textGuard(row,textFields[table],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),fieldCurrent);}
+  else if(table==='revisions'){const expected=held.journals.get(row.id);if(expected)need(equal(journalMetadata(row),expected.metadata),'STALE_BASE');row={...row};for(const side of ['before','after'])row[side]=textGuard(row[side],['body','title','note','name','nameKey','summary'],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),current);}
   else if(table==='blocks'||table==='records'){const selected=table==='blocks'?held.inputs.has(row.id):held.sources.has(row.id);row={...row,value:textGuard(row.value,textFields[table],field=>selected&&(table==='blocks'?['libraryText','note'].includes(field):field==='originalText'),current)};}
   else if(table==='inputStates'&&held.inputs.has(row.id))need(equal(pick(row,['id','contentRevision','lastRemovalSequence','sourceRecordIds','removalState','sourcePurged']),held.inputs.get(row.id)),'STALE_BASE');
-  current();return row;
+  fieldCurrent();if(isExact)exactQualifiedRows.set(row,{qualification,original,descriptors:Object.getOwnPropertyDescriptors(row)});return row;
  };
  const checked=async table=>{current();if(['thoughts','blocks','records','revisions'].includes(table))await assertLocalClosures(metadataReader,held);current();};
  const reader=Object.create(t);reader.get=async(...args)=>{current();const row=await t.get(...args);await checked(args[0]);return wrap(args[0],row);};reader.edge=async(...args)=>{current();const row=await t.edge(...args);await checked(args[0]);return wrap(args[0],row);};
- reader.all=async(...args)=>{current();const rows=await t.all(...args);await checked(args[0]);return rows.map(row=>wrap(args[0],row));};reader.rangePage=async(...args)=>{current();const page=await t.rangePage(...args);await checked(args[0]);for(const row of page.rows)row.value=wrap(args[0],row.value);return page;};
+ reader.all=async(...args)=>{current();const rows=await t.all(...args);await checked(args[0]);return rows.map(row=>wrap(args[0],row));};for(const method of ['rangePage','page','primaryRangePage','indexPrimaryPage'])reader[method]=async(...args)=>{current();const page=await t[method](...args);await checked(args[0]);for(const row of page.rows)row.value=wrap(args[0],row.value);return page;};
  return reader;
 }
 // Mint outside a transaction. The digest binds the complete original metadata
@@ -176,20 +220,24 @@ function requestFingerprint(request,identity){
  const indexes=(values,original)=>{const out=values.map(x=>original.indexOf(canonical(x)));need(out.every(x=>x>=0)&&new Set(out).size===out.length,'STALE_BASE');return out.sort((a,b)=>a-b);};
  return canonical({batch:held.fingerprint,items:indexes(request.items,held.items),coverage:indexes(request.coverage,held.coverage)});
 }
-export async function createMaintenanceQualification(store,transaction,request,{processing,caller,binding,isCurrent,signal=null,selection={},phase='prejob',parent=null,workBudget=null,requestIdentity=null}={}){
+export async function createMaintenanceQualification(store,transaction,request,options={}){return createQualification(store,transaction,request,options);}
+async function createQualification(store,transaction,request,{processing,caller,binding,isCurrent,signal=null,selection={},phase='prejob',parent=null,workBudget=null,requestIdentity=null}={},acquisition=null){
  need(typeof isCurrent==='function');const database=store.repository.db,check=()=>{need(store.repository.db===database&&!signal?.aborted&&isCurrent()===true);};check();
  need(typeof processing?.resolve==='function'&&typeof processing?.isCurrent==='function');
- const budget=workBudget??createContextScopeWorkBudget({database,signal});need(budget.database===database);const t=contextScopeTransactionReader(store,transaction,budget),authority=await rootReadAuthority(t),restore=(await t.get('meta','recovery-restore-epoch'))?.value??'initial',held=await metadataClosure(store,t,request,selection);
+ const budget=workBudget??createContextScopeWorkBudget({database,signal});need(budget.database===database);const t=acquisition?acquisition.reader(transaction,budget):contextScopeTransactionReader(store,transaction,budget),authority=await rootReadAuthority(t),restore=(await t.get('meta','recovery-restore-epoch'))?.value??'initial',held=await metadataClosure(store,t,request,selection);
  const scope=freeze({purpose:'ai-maintenance-qualification',phase,binding:structuredClone(binding),batchFingerprint:requestFingerprint(request,requestIdentity),restoreEpoch:restore,rootAuthority:authority,...held.scope});need(size(scope)<=32768,'BUDGET_EXCEEDED');check();
- const raw=await processing.resolve(t,scope);check();exact(raw,['version','store','caller','scope','epoch','processing','expiresAt','revocationSignal']);
+ const raw=await (acquisition?acquisition.resolve(processing,t,scope,budget):processing.resolve(t,scope));acquisition?.check();check();exact(raw,['version','store','caller','scope','epoch','processing','expiresAt','revocationSignal']);
  need(Reflect.ownKeys(raw).every(k=>Object.hasOwn(Object.getOwnPropertyDescriptor(raw,k),'value'))&&raw.version===1&&raw.store===store&&raw.caller===caller&&Object.isFrozen(caller)&&opaque(raw.epoch)&&raw.processing===true&&Number.isSafeInteger(raw.expiresAt)&&raw.expiresAt>Date.now()&&raw.revocationSignal instanceof AbortSignal&&!raw.revocationSignal.aborted&&equal(scopeData(raw.scope),scope));
- if(parent)need(parent.store===store&&parent.caller===caller&&parent.epoch===raw.epoch&&parent.revocationSignal===raw.revocationSignal&&parent.expiresAt>=raw.expiresAt);
- const receipt=Object.freeze({...raw,scope}),record={store,database,held,receipt,workBudget:budget,released:false,current:null};
- record.current=()=>{check();need(!record.released&&!receipt.revocationSignal.aborted&&Date.now()<receipt.expiresAt&&processing.isCurrent(receipt,store)===true);};record.current();need(await rootReadAuthority(t)===authority,'STALE_BASE');record.current();
+ if(parent){assertMaintenanceProcessingReceipt(parent,processing,store);need(parent.store===store&&parent.caller===caller&&parent.epoch===raw.epoch&&parent.revocationSignal===raw.revocationSignal&&parent.expiresAt>=raw.expiresAt);}
+ const receipt=captureMaintenanceProcessingReceipt(raw,{processing,store,caller,scope}),record={store,repository:store.repository,database,requestSignal:signal,held,receipt,workBudget:budget,released:false,current:null};
+ record.current=()=>{check();need(!record.released);assertMaintenanceProcessingReceipt(receipt,processing,store);};record.current();need(await rootReadAuthority(t)===authority,'STALE_BASE');record.current();
  const token=Object.freeze({});capabilities.set(token,record);return token;
 }
 function qualified(token,store){const record=capabilities.get(token);need(record&&record.store===store&&record.database===store.repository.db);record.current();return record;}
 export function assertMaintenanceQualification(token,store=null){const r=capabilities.get(token);need(r);qualified(token,store??r.store);return true;}
+// Only the originally captured facts, with no host/issuer callback. A caller
+// must first perform the normal active qualification/identity checks.
+export function assertMaintenanceQualificationFacts(token,store=null){const r=capabilities.get(token);need(r&&!r.released&&(store===null||r.store===store)&&r.store.repository===r.repository&&r.repository.db===r.database&&(r.requestSignal===null||r.requestSignal instanceof AbortSignal&&!signalAborted.call(r.requestSignal)));assertMaintenanceProcessingReceiptFacts(r.receipt,r.store);for(const component of r.components||[])assertMaintenanceQualificationFacts(component,r.store);if(r.exactSelection)assertTopicExactReuseSelectionFacts(r.exactSelection,r.store,r.baseQualification);return true;}
 export function maintenanceQualificationReceipt(token,store){return qualified(token,store).receipt;}
 export function maintenanceQualificationReader(token,store,t,{account=true,...options}={}){
  const r=qualified(token,store);need(r.workBudget.reads<CONTEXT_TOPIC_SCOPE_LIMITS.reads&&r.workBudget.hashBytes<CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes&&r.workBudget.hashFields<CONTEXT_TOPIC_SCOPE_LIMITS.hashFields,'BUDGET_EXCEEDED');
@@ -197,7 +245,7 @@ export function maintenanceQualificationReader(token,store,t,{account=true,...op
  // owner accounts its own point read. Reuse only this exact branded reader's
  // underlying metadata facade, preventing recursive qualification wrappers.
  let ancestor=t,metadataReader=null;for(let depth=0;ancestor&&depth<16;depth++,ancestor=Object.getPrototypeOf(ancestor)){const held=qualificationReaders.get(ancestor);if(held?.record===r){metadataReader=held.metadataReader;break;}}
- metadataReader??=contextScopeTransactionReader(store,t,r.workBudget);const reader=qualifiedReader(account?contextScopeTransactionReader(store,t,r.workBudget):t,r.held,r.current,{...options,metadataReader});qualificationReaders.set(reader,{record:r,metadataReader});return reader;
+ metadataReader??=contextScopeTransactionReader(store,t,r.workBudget);const reader=qualifiedReader(account?contextScopeTransactionReader(store,t,r.workBudget):t,r.held,r.current,{...options,metadataReader,store,qualification:token});qualificationReaders.set(reader,{record:r,metadataReader});return reader;
 }
 export function maintenanceQualificationWorkBudget(token,store){return qualified(token,store).workBudget;}
 export function chargeMaintenanceQualificationHash(token,store,text){const r=qualified(token,store);need(typeof text==='string');const bytes=new TextEncoder().encode(text).length;need(r.workBudget.hashBytes+bytes<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes&&r.workBudget.hashFields+1<=CONTEXT_TOPIC_SCOPE_LIMITS.hashFields,'BUDGET_EXCEEDED');r.workBudget.hashBytes+=bytes;r.workBudget.hashFields++;r.current();return true;}
@@ -208,14 +256,66 @@ export async function maintenanceQualificationFacts(token,store,transaction,reta
  need(typeof retain==='function');const r=qualified(token,store),t=maintenanceQualificationReader(token,store,transaction),facts=[];
  const add=value=>facts.push(retain(value));
  await assertLocalClosures(contextScopeTransactionReader(store,transaction,r.workBudget),r.held);for(const closure of r.held.localClosures.values())add({localQualificationTopic:closure});for(const mirror of r.held.inputMirrors.values())add({inputMirrorQualification:mirror});
- for(const selected of r.receipt.scope.entries){const row=await t.get('thoughts',selected.entryId);need(row);add({table:'thoughts',id:selected.entryId,metadata:entryMetadata(row),fields:Object.fromEntries(selected.selectedFields.map(field=>[field,row[field==='body'?'thoughtText':field]]))});}
- for(const selected of r.receipt.scope.inputs){const row=await t.get('blocks',selected.inputId),state=await t.get('inputStates',selected.inputId);need(row&&state);add({table:'blocks',id:selected.inputId,state:pick(state,['id','contentRevision','lastRemovalSequence','sourceRecordIds','removalState','sourcePurged']),fields:Object.fromEntries(selected.selectedFields.map(field=>[field,row.value?.[field==='body'?'libraryText':field]]))});}
- for(const selected of r.receipt.scope.sources){const row=await t.get('records',selected.sourceRecordId);need(row);add({table:'records',id:selected.sourceRecordId,fields:{originalText:row.value?.originalText}});}
- for(const selected of r.receipt.scope.structures){const row=await t.get(selected.store,selected.recordId);need(row);add({table:selected.store,id:selected.recordId,metadata:structureMetadata(row),fields:Object.fromEntries(selected.selectedFields.map(field=>[field,row[field]]))});}
- for(const selected of r.receipt.scope.journals){const row=await t.get('revisions',selected.journalId);need(row);add({table:'revisions',id:selected.journalId,metadata:journalMetadata(row),fields:Object.fromEntries(selected.selectedFields.map(field=>{const [side,key]=field.split('.');return [field,row[side]?.[key]];}))});}
+ for(const selected of qualificationScopes(r).flatMap(x=>x.entries)){const row=await t.get('thoughts',selected.entryId);need(row);add({table:'thoughts',id:selected.entryId,metadata:entryMetadata(row),fields:Object.fromEntries(selected.selectedFields.map(field=>[field,row[field==='body'?'thoughtText':field]]))});}
+ for(const selected of qualificationScopes(r).flatMap(x=>x.inputs)){const row=await t.get('blocks',selected.inputId),state=await t.get('inputStates',selected.inputId);need(row&&state);add({table:'blocks',id:selected.inputId,state:pick(state,['id','contentRevision','lastRemovalSequence','sourceRecordIds','removalState','sourcePurged']),fields:Object.fromEntries(selected.selectedFields.map(field=>[field,row.value?.[field==='body'?'libraryText':field]]))});}
+ for(const selected of qualificationScopes(r).flatMap(x=>x.sources)){const row=await t.get('records',selected.sourceRecordId);need(row);add({table:'records',id:selected.sourceRecordId,fields:{originalText:row.value?.originalText}});}
+ for(const selected of qualificationScopes(r).flatMap(x=>x.structures)){const row=await t.get(selected.store,selected.recordId);need(row);add({table:selected.store,id:selected.recordId,metadata:structureMetadata(row),fields:Object.fromEntries(selected.selectedFields.map(field=>[field,row[field]]))});}
+ for(const selected of qualificationScopes(r).flatMap(x=>x.journals)){const row=await t.get('revisions',selected.journalId);need(row);add({table:'revisions',id:selected.journalId,metadata:journalMetadata(row),fields:Object.fromEntries(selected.selectedFields.map(field=>{const [side,key]=field.split('.');return [field,row[side]?.[key]];}))});}
  r.current();return facts;
 }
-export function releaseMaintenanceQualification(token){const r=capabilities.get(token);if(!r)return;r.released=true;for(const key of ['entries','structures','journals','inputs','sources','localClosures','inputMirrors','originalEntries'])r.held[key].clear();capabilities.delete(token);}
+function qualificationScopes(record){return [record.receipt.scope,...(record.extraQualification?[capabilities.get(record.extraQualification).receipt.scope]:[])];}
+// Only this original exact-reuse producer can reserve an acquisition. Aborting
+// its caller releases the Store queue, but a real pending issuer continues to
+// occupy its same-store slot until that original Promise actually settles.
+const exactAcquisitions=new WeakMap();
+function exactAcquisition(store,original,signal,parent){
+ const pending=exactAcquisitions.get(store)||new Set();need(pending.size<8,'BUDGET_EXCEEDED');
+ const timeout=store.organizerBudget.limits.timeoutMs;need(Number.isSafeInteger(timeout)&&timeout>0,'BUDGET_EXCEEDED');
+ const expiresAt=Math.min(original.receipt.expiresAt,parent.expiresAt),deadline=performance.now()+timeout;
+ const signals=[...new Set([signal,original.receipt.revocationSignal,parent.revocationSignal].filter(Boolean))];
+ need(signals.every(s=>s instanceof AbortSignal&&!signalAborted.call(s))&&expiresAt>Date.now());
+ const slot=Object.freeze({}),controller=new AbortController(),forks=new WeakMap();let issued=false,closed=false,timer=null,rejectStop;
+ const stopped=new Promise((_,reject)=>{rejectStop=reject;});stopped.catch(()=>{});
+ const stop=()=>{if(!signalAborted.call(controller.signal)){controller.abort();try{fail('UNAVAILABLE');}catch(error){rejectStop(error);}}};
+ const facts=()=>{need(signals.every(s=>!signalAborted.call(s))&&Date.now()<expiresAt&&performance.now()<deadline);};
+ const check=()=>{if(closed||signals.some(s=>signalAborted.call(s))||Date.now()>=expiresAt||performance.now()>=deadline)stop();need(!signalAborted.call(controller.signal));};
+ const expire=()=>{if(closed)return;const remaining=Math.min(expiresAt-Date.now(),deadline-performance.now());if(remaining<=0)stop();else{timer=setTimeout(expire,Math.min(remaining,2147483647));timer?.unref?.();}};
+ const release=()=>{pending.delete(slot);if(!pending.size&&exactAcquisitions.get(store)===pending)exactAcquisitions.delete(store);};
+ exactAcquisitions.set(store,pending);pending.add(slot);for(const s of signals)EventTarget.prototype.addEventListener.call(s,'abort',stop,{once:true});expire();
+ const reader=(transaction,budget)=>{check();let fork=forks.get(budget);if(!fork){fork=forkContextScopeWorkBudget(budget,{signal:controller.signal,isCurrent:()=>{check();return true;}});forks.set(budget,fork);}const guarded=contextScopeTransactionReader(store,transaction,fork);check();return guarded;};
+ return {check,facts,reader,async resolve(processing,t,scope,budget){
+  check();need(!issued);const guarded=reader(t,budget);check();issued=true;
+  // A private await preserves native Promise semantics: an issuer's own
+  // mutable .then can neither counterfeit actual settlement nor leak a slot.
+  const raw=(async()=>await processing.resolve(guarded,scope))();
+  // Neither branch reads, captures, or validates a late returned receipt.
+  raw.then(release,release);const receipt=await Promise.race([raw,stopped]);check();return receipt;
+ },close(){if(closed)return;closed=true;clearTimeout(timer);for(const s of signals)EventTarget.prototype.removeEventListener.call(s,'abort',stop);if(!issued)release();stop();}};
+}
+// Separate local grant for the exact original byExact selection. A caller DTO
+// cannot replace that selection, either receipt, or the original shared ledger.
+export async function createMaintenanceTopicExactReuseQualification(store,transaction,selection,{base,processing,caller,parent,isCurrent,signal=null}={}){
+ const original=qualified(base,store),selected=readTopicExactReuseSelection(selection,store,base),budget=original.workBudget;
+ need(original.receipt.caller===caller&&original.receipt.scope.phase!=='topic-exact-reuse');
+ assertMaintenanceProcessingReceipt(parent,processing,store);assertMaintenanceQualificationFacts(base,store);
+ const acquisition=exactAcquisition(store,original,signal,parent);let extra=null,token=null;try{acquisition.check();
+ const t=acquisition.reader(transaction,budget),capture=()=>captureTopicExactReuseMetadata(t,{matches:selected.matches,sentInputIds:selected.sentInputIds,maxInputs:Math.min(20,store.organizerBudget.limits.maxInputs),charge:text=>chargeMaintenanceQualificationHash(base,store,text)});
+ need(equal(await capture(),selected.metadata)&&await rootReadAuthority(t)===selected.authority,'STALE_BASE');
+ acquisition.check();
+  extra=await createQualification(store,transaction,{items:[],coverage:[]},{processing,caller,parent,isCurrent,signal,workBudget:budget,phase:'topic-exact-reuse',binding:{...original.receipt.scope.binding,exactReuseOperationId:selected.operationId,exactReuseSelection:selected.metadata},selection:{entryIds:selected.metadata.entries.map(x=>x.id),inputIds:selected.metadata.inputs.map(x=>x.id)}},acquisition);
+  acquisition.check();need(equal(await capture(),selected.metadata)&&await rootReadAuthority(t)===selected.authority,'STALE_BASE');
+  const additional=qualified(extra,store),held={};
+  for(const key of ['entries','structures','journals','inputs','localClosures','inputMirrors']){held[key]=new Map(original.held[key]);for(const [id,value]of additional.held[key]){if(held[key].has(id))need(equal(held[key].get(id),value),'STALE_BASE');else held[key].set(id,value);}}
+  for(const key of ['sources','originalEntries'])held[key]=new Set([...original.held[key],...additional.held[key]]);
+  need(held.inputs.size<=Math.min(20,store.organizerBudget.limits.maxInputs),'BUDGET_EXCEEDED');held.exactReuse=selected.metadata;
+  const record={store,repository:original.repository,database:original.database,requestSignal:signal,held,receipt:original.receipt,workBudget:budget,released:false,components:[base,extra],baseQualification:base,extraQualification:extra,exactSelection:selection,current:null};
+  record.current=()=>{need(!record.released);assertMaintenanceQualification(base,store);assertMaintenanceQualification(extra,store);assertMaintenanceQualificationFacts(base,store);assertMaintenanceQualificationFacts(extra,store);assertTopicExactReuseSelectionFacts(selection,store,base);};record.current();
+  token=Object.freeze({});capabilities.set(token,record);const release=()=>releaseMaintenanceQualification(token),signals=[signal,original.receipt.revocationSignal,additional.receipt.revocationSignal].filter(Boolean);for(const s of new Set(signals))s.addEventListener('abort',release,{once:true});record.removeExact=()=>{for(const s of new Set(signals))s.removeEventListener('abort',release);};
+  const expiresAt=Math.min(original.receipt.expiresAt,additional.receipt.expiresAt),expire=()=>{if(Date.now()>=expiresAt){release();return;}record.exactTimer=setTimeout(expire,Math.min(expiresAt-Date.now(),2147483647));record.exactTimer?.unref?.();};expire();record.current();acquisition.check();acquisition.close();record.current();acquisition.facts();assertMaintenanceQualificationFacts(token,store);return token;
+ }catch(error){if(token)releaseMaintenanceQualification(token);else if(extra)releaseMaintenanceQualification(extra);throw error;}finally{acquisition.close();}
+}
+export function readMaintenanceTopicExactReuseQualification(token,store,selection,base){const record=qualified(token,store);need(record.exactSelection===selection&&record.baseQualification===base&&record.extraQualification);return {metadata:record.held.exactReuse,qualification:token};}
+export function releaseMaintenanceQualification(token){const r=capabilities.get(token);if(!r)return;r.released=true;r.removeExact?.();clearTimeout(r.exactTimer);if(r.extraQualification)releaseMaintenanceQualification(r.extraQualification);if(r.exactSelection)releaseTopicExactReuseSelection(r.exactSelection);for(const key of ['entries','structures','journals','inputs','sources','localClosures','inputMirrors','originalEntries'])r.held[key].clear();capabilities.delete(token);}
 export async function withMaintenanceQualification(store,transaction,request,options,fn){
  need(typeof fn==='function');if(!request.items.some(x=>['library_entry','placement','topic','section'].includes(x.descriptor.kind)))return fn(transaction);
  const token=await createMaintenanceQualification(store,transaction,request,options);try{const result=await fn(maintenanceQualificationReader(token,store,transaction));assertMaintenanceQualification(token,store);need(await rootReadAuthority(transaction)===maintenanceQualificationReceipt(token,store).scope.rootAuthority,'STALE_BASE');assertMaintenanceQualification(token,store);return result;}finally{releaseMaintenanceQualification(token);}
