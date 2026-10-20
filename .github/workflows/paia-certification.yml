@@ -464,9 +464,60 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  sync_native_storage:
+  sync_node_preflight:
     needs: mode
     if: needs.mode.outputs.full == 'true'
+    name: Sync owning Node preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact preflight checkout
+        env:
+          PAIA_TESTED_HEAD: ${{ github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
+      - run: mkdir -p work/qa-bns-native-storage
+      - run: npm install --no-audit --no-fund --package-lock=false
+      - name: Verify whole owning Node files and fixture preflight
+        id: sync_node_tests
+        run: |
+          trap 'status=$?; printf "%s\n" "$status" > work/qa-bns-native-storage/node-step-exit.txt' EXIT
+          set -o pipefail
+          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs tests/native-sync/input-working-receive-receipt.test.mjs tests/native-sync/source-bootstrap-fixture.test.mjs tests/native-sync/source-bootstrap-receipt.test.mjs tests/native-sync/source-append-fixture.test.mjs tests/native-sync/source-append-receipt.test.mjs tests/native-sync/group-checkpoint-receipt.test.mjs tests/native-sync/group-checkpoint-fixture.test.mjs tests/native-sync/input-working-receive-fixture.test.mjs tests/native-sync/human-library-receipt.test.mjs tests/human-branch-semantic-witness.test.mjs tests/native-sync/human-branch-witness-fixture.test.mjs tests/native-sync/human-branch-witness-receipt.test.mjs tests/human-retention-nonnative-refusal.test.mjs tests/native-sync/retention-assert-contract.test.mjs tests/native-sync/retention-fixture-contract.test.mjs tests/native-sync/retention-receipt-contract.test.mjs tests/native-sync/retention-dispatch-contract.test.mjs tests/native-sync/retention-observer-contract.test.mjs tests/library-documents-owner.test.mjs tests/manual-prompt-current-shape.test.mjs tests/manual-context-current-shape.test.mjs tests/manual-context-current-snapshot.test.mjs tests/context-current-transition-interface.test.mjs tests/completed-group-restore-control.test.mjs tests/human-qualification-budget.test.mjs tests/human-current-projection-native-refusal.test.mjs tests/source-working-*.test.mjs tests/mixed-current-fixed-plan.test.mjs tests/mixed-current-index-schema.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
+          node --test tests/consumer-preference-group-restore.test.mjs tests/consumer-preference-sync-owner.test.mjs tests/local-control-publication-owner.test.mjs tests/preference-control-durability.test.mjs tests/prompt-correction-binding.test.mjs tests/prompt-correction-sync-owner.test.mjs tests/topic-desired-sync-owner.test.mjs tests/mixed-configuration-owner.test.mjs 2>&1 | tee work/qa-bns-native-storage/configuration-node.log
+      - name: Record exact-head preflight identity and log hashes
+        if: always()
+        env:
+          PAIA_TESTED_HEAD: ${{ github.sha }}
+          PAIA_RUN_ID: ${{ github.run_id }}
+          PAIA_RUN_ATTEMPT: ${{ github.run_attempt }}
+          PAIA_NODE_OUTCOME: ${{ steps.sync_node_tests.outcome }}
+        run: node scripts/check-sync-node-preflight.mjs
+      - name: Upload original owning Node logs and identity
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bns-node-preflight-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            extension/work/qa-bns-native-storage/node.log
+            extension/work/qa-bns-native-storage/configuration-node.log
+            extension/work/qa-bns-native-storage/node-preflight.json
+            extension/work/qa-bns-native-storage/node-step-exit.txt
+          if-no-files-found: error
+          retention-days: 7
+
+  sync_native_storage:
+    needs: [mode, sync_node_preflight]
+    if: needs.mode.outputs.full == 'true' && needs.sync_node_preflight.result == 'success'
     name: Sync native storage partial Core
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -507,11 +558,6 @@ jobs:
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version | tee work/qa-bns-native-storage/chrome-version.txt
-      - name: Verify whole owning Node files and fixture preflight
-        run: |
-          set -o pipefail
-          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs tests/native-sync/input-working-receive-receipt.test.mjs tests/native-sync/source-bootstrap-fixture.test.mjs tests/native-sync/source-bootstrap-receipt.test.mjs tests/native-sync/source-append-fixture.test.mjs tests/native-sync/source-append-receipt.test.mjs tests/native-sync/group-checkpoint-receipt.test.mjs tests/native-sync/group-checkpoint-fixture.test.mjs tests/native-sync/input-working-receive-fixture.test.mjs tests/native-sync/human-library-receipt.test.mjs tests/human-branch-semantic-witness.test.mjs tests/native-sync/human-branch-witness-fixture.test.mjs tests/native-sync/human-branch-witness-receipt.test.mjs tests/human-retention-nonnative-refusal.test.mjs tests/native-sync/retention-assert-contract.test.mjs tests/native-sync/retention-fixture-contract.test.mjs tests/native-sync/retention-receipt-contract.test.mjs tests/native-sync/retention-dispatch-contract.test.mjs tests/native-sync/retention-observer-contract.test.mjs tests/library-documents-owner.test.mjs tests/manual-prompt-current-shape.test.mjs tests/manual-context-current-shape.test.mjs tests/manual-context-current-snapshot.test.mjs tests/context-current-transition-interface.test.mjs tests/completed-group-restore-control.test.mjs tests/human-qualification-budget.test.mjs tests/human-current-projection-native-refusal.test.mjs tests/source-working-*.test.mjs tests/mixed-current-fixed-plan.test.mjs tests/mixed-current-index-schema.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
-          node --test tests/consumer-preference-group-restore.test.mjs tests/consumer-preference-sync-owner.test.mjs tests/local-control-publication-owner.test.mjs tests/preference-control-durability.test.mjs tests/prompt-correction-binding.test.mjs tests/prompt-correction-sync-owner.test.mjs tests/topic-desired-sync-owner.test.mjs tests/mixed-configuration-owner.test.mjs 2>&1 | tee work/qa-bns-native-storage/configuration-node.log
       - name: Prove source and release native IndexedDB and worker durability
         env:
           CI: '1'
@@ -829,7 +875,7 @@ jobs:
     name: Integration / certification gate
     runs-on: ubuntu-latest
     if: always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
-    needs: [mode, unit, contracts, current_browser, full_suite, macos_secure_store, macos_discard_lifecycle, release, sync_native_storage]
+    needs: [mode, unit, contracts, current_browser, full_suite, macos_secure_store, macos_discard_lifecycle, release, sync_node_preflight, sync_native_storage]
     steps:
       - name: Require selected verification depth
         env:
@@ -838,6 +884,7 @@ jobs:
           CONTRACTS: ${{ needs.contracts.result }}
           CURRENT_BROWSER: ${{ needs.current_browser.result }}
           FULL_SUITE: ${{ needs.full_suite.result }}
+          SYNC_NODE_PREFLIGHT: ${{ needs.sync_node_preflight.result }}
           SYNC_NATIVE_STORAGE: ${{ needs.sync_native_storage.result }}
           MACOS_SECURE_STORE: ${{ needs.macos_secure_store.result }}
           MACOS_DISCARD: ${{ needs.macos_discard_lifecycle.result }}
@@ -851,6 +898,7 @@ jobs:
           if [ "$FULL" = true ]; then
             test "$CURRENT_BROWSER" = success
             test "$FULL_SUITE" = success
+            test "$SYNC_NODE_PREFLIGHT" = success
             test "$SYNC_NATIVE_STORAGE" = success
             test "$MACOS_SECURE_STORE" = success
             test "$MACOS_DISCARD" = success

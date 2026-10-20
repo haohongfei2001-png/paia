@@ -4,9 +4,37 @@ import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {assertNetworkLedger} from './native-sync/proof-oracles.mjs';
+import {originalNodeCommands} from '../scripts/check-sync-node-preflight.mjs';
 const workflow=readFileSync(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8');
 const job=workflow.match(/^  sync_native_storage:\n([\s\S]*?)(?=^  \w+:)/m)?.[1];
 const aggregate=workflow.slice(workflow.indexOf('  candidate:'));
+// Full certification moves only the two original complete Node commands.
+// Native proof requirements still inspect the actual native job, never a
+// union of jobs. Only exact hash-verified Node operands use its prerequisite.
+const certification=readFileSync(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8');
+const originalNodePaths=new Set(originalNodeCommands(certification).flatMap(command=>command.split(' ').filter(value=>value.startsWith('tests/'))));
+function splitSyncOwners(full){
+ const section=name=>full.split('\n  '+name+':\n')[1]?.split(/\n  [a-z_]+:/)[0];
+ assert.equal((full.match(/^  sync_node_preflight:$/gm)||[]).length,1);
+ const preflight=section('sync_node_preflight'),native=section('sync_native_storage');
+ assert.ok(preflight&&native);
+ assert.match(preflight,/needs: mode\n    if: needs.mode.outputs.full == 'true'/);
+ assert.match(preflight,/runs-on: ubuntu-latest\n    timeout-minutes: 5/);
+ assert.match(native,/needs: \[mode, sync_node_preflight\]\n    if: needs.mode.outputs.full == 'true' && needs.sync_node_preflight.result == 'success'/);
+ assert.match(preflight,/ref: \$\{\{ github.sha \}\}\n          persist-credentials: false/);
+ assert.match(preflight,/test "\$\(git rev-parse HEAD\)" = "\$PAIA_TESTED_HEAD"/);
+ assert.doesNotMatch(preflight,/continue-on-error|test-name-pattern|test-skip-pattern|permissions:|secrets\./);
+ const commands=originalNodeCommands(full);
+ for(const command of commands){assert.ok(preflight.includes(command));assert.equal(native.includes(command),false,'the original Node command has one execution owner');}
+ return {preflight,native};
+}
+function assertNativeRequirement(full,native,required){
+ if(!originalNodePaths.has(required)||full===workflow||native===job){assert.ok(native.includes(required),required);return;}
+ const owners=splitSyncOwners(full);
+ assert.ok(owners.preflight.includes(required),'original Node operand in mandatory preflight: '+required);
+ assert.equal(native.includes(required),false,'moved Node operand is not duplicated in native: '+required);
+}
+
 
 test('Sync native proof stays an exact-head opt-in draft job with complete owners and bounded evidence',()=>{
  assert.ok(job);assert.equal((workflow.match(/^  sync_native_storage:/gm)||[]).length,1);
@@ -47,7 +75,7 @@ test('publication candidate retains exact-head source/release journal evidence',
 test('full certification explicitly runs all nested native Sync files on tested merge or main SHA',()=>{
  const full=readFileSync(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8');
  const native=full.split('  sync_native_storage:\n')[1].split('  certified:')[0];
- assert.match(native,/needs: mode\n    if: needs.mode.outputs.full == 'true'/);
+ splitSyncOwners(full);
  assert.match(native,/ref: \$\{\{ github.sha \}\}\n          persist-credentials: false/);
  assert.equal((native.match(/PAIA_TESTED_HEAD: \$\{\{ github.sha \}\}/g)||[]).length,2);
  assert.doesNotMatch(native,/pull_request.head.sha|test-name-pattern|continue-on-error|test-skip-pattern/);
@@ -57,12 +85,13 @@ test('full certification explicitly runs all nested native Sync files on tested 
  const receiptBlock=value=>value.split("          node --input-type=module <<'JS'\n")[1].split('          JS')[0];
  assert.equal(receiptBlock(native),receiptBlock(job));
  const gate=full.split('  certified:')[1];
- assert.match(gate,/needs: \[mode, unit, contracts, current_browser, full_suite, macos_secure_store, macos_discard_lifecycle, release, sync_native_storage\]/);
+ assert.match(gate,/needs: \[mode, unit, contracts, current_browser, full_suite, macos_secure_store, macos_discard_lifecycle, release, sync_node_preflight, sync_native_storage\]/);
  assert.ok(gate.includes('SYNC_NATIVE_STORAGE: ${{ needs.sync_native_storage.result }}'));
+ assert.ok(gate.includes('SYNC_NODE_PREFLIGHT: ${{ needs.sync_node_preflight.result }}'));
  const script=gate.split('        run: |\n')[1];
- for(const state of ['success','failure','cancelled','skipped','']){
-  const result=spawnSync('bash',['-e','-c',script],{env:{...process.env,FULL:'true',UNIT:'success',CONTRACTS:'success',RELEASE:'success',CURRENT_BROWSER:'success',FULL_SUITE:'success',MACOS_SECURE_STORE:'success',MACOS_DISCARD:'success',SYNC_NATIVE_STORAGE:state}});
-  assert.equal(result.status===0,state==='success',state);
+ for(const preflight of ['success','failure','cancelled','skipped',''])for(const state of ['success','failure','cancelled','skipped','']){
+  const result=spawnSync('bash',['-e','-c',script],{env:{...process.env,FULL:'true',UNIT:'success',CONTRACTS:'success',RELEASE:'success',CURRENT_BROWSER:'success',FULL_SUITE:'success',MACOS_SECURE_STORE:'success',MACOS_DISCARD:'success',SYNC_NODE_PREFLIGHT:preflight,SYNC_NATIVE_STORAGE:state}});
+  assert.equal(result.status===0,preflight==='success'&&state==='success',preflight+':'+state);
  }
 });
 
@@ -94,7 +123,7 @@ test('complete Working receive retains all original files plus the full-job conf
   const section=workflow.slice(workflow.indexOf('  sync_native_storage:')).split(/\n  [a-z_]+:/)[0];
   const command=section.split('\n').find(line=>line.includes('xvfb-run -a node --test'));
   assert.deepEqual([...command.matchAll(/tests\/native-sync\/([a-z-]+\.test\.mjs)/g)].map(match=>match[1]),['storage-chrome.test.mjs','publication-chrome.test.mjs','retirement-chrome.test.mjs','context-info-chrome.test.mjs','input-working-chrome.test.mjs','input-working-receive-chrome.test.mjs','source-bootstrap-chrome.test.mjs','source-append-chrome.test.mjs','group-checkpoint-chrome.test.mjs','human-library-chrome.test.mjs','human-branch-witness-chrome.test.mjs','human-retention-native.test.mjs','human-current-scope-checkpoint-native.test.mjs','human-current-checkpoint-recovery-native.test.mjs','human-current-worker-native.test.mjs','human-current-cold-readback-native.test.mjs','manual-prompt-shape-native.test.mjs','human-manual-prompt-current-native.test.mjs','human-manual-context-current-native.test.mjs','human-restored-successor-native.test.mjs','source-working-current-capture-native.test.mjs','source-working-current-checkpoint-native.test.mjs','source-working-native-cleanup-fault-native.test.mjs','source-working-restored-successor-native.test.mjs','mixed-allocation-owner-native.test.mjs','mixed-current-index-native.test.mjs',...(path.endsWith('paia-certification.yml')?['mixed-configuration-native.test.mjs']:[])]);
-  for(const required of ['tests/native-sync/input-working-receive-fixture.test.mjs','tests/native-sync/input-working-receive-receipt.test.mjs','assertInputWorkingReceiveReceipt','head:process.env.PAIA_TESTED_HEAD,tree,variant','assert.deepEqual(received[0].cases,received[1].cases)','assert.deepEqual(received[0].hashes,received[1].hashes)',"createHash('sha256').update(readFileSync(path)).digest('hex')",'for(const receipt of received)assert.deepEqual(receipt.hashes,receiveHashes)','INPUT_WORKING_INBOX_PATHS','assert.deepEqual(received[0].inboxCases,received[1].inboxCases)','assert.deepEqual(received[0].inboxHashes,received[1].inboxHashes)','for(const receipt of received)assert.deepEqual(receipt.inboxHashes,inboxHashes)','extension/work/qa-bns-input-working-receive/'])assert.ok(section.includes(required),required);
+  for(const required of ['tests/native-sync/input-working-receive-fixture.test.mjs','tests/native-sync/input-working-receive-receipt.test.mjs','assertInputWorkingReceiveReceipt','head:process.env.PAIA_TESTED_HEAD,tree,variant','assert.deepEqual(received[0].cases,received[1].cases)','assert.deepEqual(received[0].hashes,received[1].hashes)',"createHash('sha256').update(readFileSync(path)).digest('hex')",'for(const receipt of received)assert.deepEqual(receipt.hashes,receiveHashes)','INPUT_WORKING_INBOX_PATHS','assert.deepEqual(received[0].inboxCases,received[1].inboxCases)','assert.deepEqual(received[0].inboxHashes,received[1].inboxHashes)','for(const receipt of received)assert.deepEqual(receipt.inboxHashes,inboxHashes)','extension/work/qa-bns-input-working-receive/'])assertNativeRequirement(workflow,section,required);
   assert.ok(section.indexOf('          python3 scripts/build_current_release.py\n')>0,'native job builds its own exact release');assert.ok(section.indexOf('          python3 scripts/build_current_release.py\n')<section.indexOf(command),'native release build precedes every native variant');
   assert.doesNotMatch(command,/test-name-pattern|test-skip-pattern/);assert.match(section,/timeout-minutes: 12/);assert.doesNotMatch(section,/continue-on-error/);
  }
@@ -105,7 +134,7 @@ test('Source bootstrap whole native file is selected with strict current-tree re
  for(const path of ['../../.github/workflows/paia-candidate.yml','../../.github/workflows/paia-certification.yml']){
   const workflow=readFileSync(new URL(path,import.meta.url),'utf8');
   const section=workflow.slice(workflow.indexOf('  sync_native_storage:')).split(/\n  [a-z_]+:/)[0];
-  for(const required of ['tests/native-sync/source-bootstrap-chrome.test.mjs','tests/native-sync/source-bootstrap-fixture.test.mjs','tests/native-sync/source-bootstrap-receipt.test.mjs','assertSourceBootstrapReceipt(JSON.parse','work/qa-bns-source-bootstrap/${variant}.json','SOURCE_BOOTSTRAP_PATHS','assert.deepEqual(bootstrap[0].cases,bootstrap[1].cases)','assert.deepEqual(bootstrap[0].hashes,bootstrap[1].hashes)','assert.equal(bootstrap[0].browserVersion,bootstrap[1].browserVersion)','for(const receipt of bootstrap)assert.deepEqual(receipt.hashes,bootstrapHashes)','extension/work/qa-bns-source-bootstrap/'])assert.ok(section.includes(required),required);
+  for(const required of ['tests/native-sync/source-bootstrap-chrome.test.mjs','tests/native-sync/source-bootstrap-fixture.test.mjs','tests/native-sync/source-bootstrap-receipt.test.mjs','assertSourceBootstrapReceipt(JSON.parse','work/qa-bns-source-bootstrap/${variant}.json','SOURCE_BOOTSTRAP_PATHS','assert.deepEqual(bootstrap[0].cases,bootstrap[1].cases)','assert.deepEqual(bootstrap[0].hashes,bootstrap[1].hashes)','assert.equal(bootstrap[0].browserVersion,bootstrap[1].browserVersion)','for(const receipt of bootstrap)assert.deepEqual(receipt.hashes,bootstrapHashes)','extension/work/qa-bns-source-bootstrap/'])assertNativeRequirement(workflow,section,required);
   assert.ok(section.indexOf('for(const receipt of bootstrap)assert.deepEqual')<section.indexOf("console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS"));
  }
 });
@@ -115,7 +144,7 @@ test('Source append whole native file is selected with strict current-tree recei
  for(const path of ['../../.github/workflows/paia-candidate.yml','../../.github/workflows/paia-certification.yml']){
   const workflow=readFileSync(new URL(path,import.meta.url),'utf8');
   const section=workflow.slice(workflow.indexOf('  sync_native_storage:')).split(/\n  [a-z_]+:/)[0];
-  for(const required of ['tests/native-sync/source-append-chrome.test.mjs','tests/native-sync/source-append-fixture.test.mjs','tests/native-sync/source-append-receipt.test.mjs','assertSourceAppendReceipt(JSON.parse','work/qa-bns-source-append/${variant}.json','SOURCE_APPEND_PATHS','assert.deepEqual(appended[0].cases,appended[1].cases)','assert.deepEqual(appended[0].hashes,appended[1].hashes)','assert.equal(appended[0].browserVersion,appended[1].browserVersion)','for(const receipt of appended)assert.deepEqual(receipt.hashes,appendedHashes)','extension/work/qa-bns-source-append/'])assert.ok(section.includes(required),required);
+  for(const required of ['tests/native-sync/source-append-chrome.test.mjs','tests/native-sync/source-append-fixture.test.mjs','tests/native-sync/source-append-receipt.test.mjs','assertSourceAppendReceipt(JSON.parse','work/qa-bns-source-append/${variant}.json','SOURCE_APPEND_PATHS','assert.deepEqual(appended[0].cases,appended[1].cases)','assert.deepEqual(appended[0].hashes,appended[1].hashes)','assert.equal(appended[0].browserVersion,appended[1].browserVersion)','for(const receipt of appended)assert.deepEqual(receipt.hashes,appendedHashes)','extension/work/qa-bns-source-append/'])assertNativeRequirement(workflow,section,required);
   assert.ok(section.indexOf('for(const receipt of appended)assert.deepEqual')<section.indexOf("console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS"));
  }
 });
@@ -124,7 +153,7 @@ test('grouped checkpoint whole native file retains strict local scope and curren
  for(const name of ['paia-candidate.yml','paia-certification.yml']){
   const text=readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8');
   const section=text.slice(text.indexOf('  sync_native_storage:')).split(/\n  [a-z_]+:/)[0];
-  for(const required of ['tests/native-sync/group-checkpoint-chrome.test.mjs','tests/native-sync/group-checkpoint-fixture.test.mjs','tests/native-sync/group-checkpoint-receipt.test.mjs','assertGroupCheckpointReceipt(JSON.parse','work/qa-bns-group-checkpoint/${variant}.json','GROUP_CHECKPOINT_PATHS','assert.deepEqual(grouped[0].cases,grouped[1].cases)','assert.deepEqual(grouped[0].hashes,grouped[1].hashes)','assert.equal(grouped[0].browserVersion,grouped[1].browserVersion)','for(const receipt of grouped)assert.deepEqual(receipt.hashes,groupedHashes)','extension/work/qa-bns-group-checkpoint/'])assert.ok(section.includes(required),required);
+  for(const required of ['tests/native-sync/group-checkpoint-chrome.test.mjs','tests/native-sync/group-checkpoint-fixture.test.mjs','tests/native-sync/group-checkpoint-receipt.test.mjs','assertGroupCheckpointReceipt(JSON.parse','work/qa-bns-group-checkpoint/${variant}.json','GROUP_CHECKPOINT_PATHS','assert.deepEqual(grouped[0].cases,grouped[1].cases)','assert.deepEqual(grouped[0].hashes,grouped[1].hashes)','assert.equal(grouped[0].browserVersion,grouped[1].browserVersion)','for(const receipt of grouped)assert.deepEqual(receipt.hashes,groupedHashes)','extension/work/qa-bns-group-checkpoint/'])assertNativeRequirement(text,section,required);
   assert.ok(section.indexOf('for(const receipt of grouped)assert.deepEqual')<section.indexOf("console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS"));
  }
 });
@@ -133,7 +162,7 @@ test('grouped checkpoint whole native file retains strict local scope and curren
 test('private Human entire native file and strict current-byte receipts are required in both existing jobs without enlarging authority or budget',()=>{
  for(const name of ['paia-candidate.yml','paia-certification.yml']){
   const text=readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8'),section=text.slice(text.indexOf('  sync_native_storage:')).split(/\n  [a-z_]+:/)[0];
-  for(const required of ['tests/native-sync/human-library-chrome.test.mjs','tests/native-sync/human-library-receipt.test.mjs','assertHumanLibraryReceipt(JSON.parse','work/qa-bns-human-library/${variant}.json','HUMAN_LIBRARY_PATHS',"createHash('sha256').update(readFileSync(path)).digest('hex')",'expectedHashes:humanHashes','assert.deepEqual(human[0].cases,human[1].cases)','assert.deepEqual(human[0].hashes,human[1].hashes)','assert.equal(human[0].browserVersion,human[1].browserVersion)','extension/work/qa-bns-human-library/'])assert.ok(section.includes(required),required);
+  for(const required of ['tests/native-sync/human-library-chrome.test.mjs','tests/native-sync/human-library-receipt.test.mjs','assertHumanLibraryReceipt(JSON.parse','work/qa-bns-human-library/${variant}.json','HUMAN_LIBRARY_PATHS',"createHash('sha256').update(readFileSync(path)).digest('hex')",'expectedHashes:humanHashes','assert.deepEqual(human[0].cases,human[1].cases)','assert.deepEqual(human[0].hashes,human[1].hashes)','assert.equal(human[0].browserVersion,human[1].browserVersion)','extension/work/qa-bns-human-library/'])assertNativeRequirement(text,section,required);
   assert.match(section,/timeout-minutes: 12/);assert.doesNotMatch(section,/test-name-pattern|test-skip-pattern|continue-on-error|permissions:|secrets\./);
   assert.ok(section.indexOf('const humanHashes=')<section.indexOf('const human='));assert.ok(section.indexOf('const human=')<section.indexOf("console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS"));
  }
@@ -143,7 +172,7 @@ test('private Human entire native file and strict current-byte receipts are requ
 test('readonly Human witness runs both whole native variants with complete current runtime and proof dependencies without replacing prior families',()=>{
  for(const name of ['paia-candidate.yml','paia-certification.yml']){
   const text=readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8'),section=text.slice(text.indexOf('  sync_native_storage:')).split(/\n  [a-z_]+:/)[0];
-  for(const required of ['tests/human-branch-semantic-witness.test.mjs','tests/native-sync/human-branch-witness-fixture.test.mjs','tests/native-sync/human-branch-witness-receipt.test.mjs','tests/native-sync/human-branch-witness-chrome.test.mjs','assertHumanBranchWitnessReceipt(JSON.parse','work/qa-bns-human-branch-witness/${variant}.json','HUMAN_WITNESS_PATHS','HUMAN_WITNESS_PROOF_PATHS','head:process.env.PAIA_TESTED_HEAD,tree,variant,expectedHashes:witnessHashes,expectedProofHashes:witnessProofHashes','assert.deepEqual(witnesses[0].hashes,witnesses[1].hashes)','assert.deepEqual(witnesses[0].proofHashes,witnesses[1].proofHashes)','assert.equal(witnesses[0].browserVersion,witnesses[1].browserVersion)','extension/work/qa-bns-human-branch-witness/'])assert.ok(section.includes(required),required);
+  for(const required of ['tests/human-branch-semantic-witness.test.mjs','tests/native-sync/human-branch-witness-fixture.test.mjs','tests/native-sync/human-branch-witness-receipt.test.mjs','tests/native-sync/human-branch-witness-chrome.test.mjs','assertHumanBranchWitnessReceipt(JSON.parse','work/qa-bns-human-branch-witness/${variant}.json','HUMAN_WITNESS_PATHS','HUMAN_WITNESS_PROOF_PATHS','head:process.env.PAIA_TESTED_HEAD,tree,variant,expectedHashes:witnessHashes,expectedProofHashes:witnessProofHashes','assert.deepEqual(witnesses[0].hashes,witnesses[1].hashes)','assert.deepEqual(witnesses[0].proofHashes,witnesses[1].proofHashes)','assert.equal(witnesses[0].browserVersion,witnesses[1].browserVersion)','extension/work/qa-bns-human-branch-witness/'])assertNativeRequirement(text,section,required);
   assert.ok(section.indexOf('const witnessHashes=')<section.indexOf('const witnesses='));assert.ok(section.indexOf('const witnessProofHashes=')<section.indexOf('const witnesses='));assert.ok(section.indexOf('const witnesses=')<section.indexOf("console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS"));
   assert.match(section,/timeout-minutes: 12/);assert.doesNotMatch(section,/test-name-pattern|test-skip-pattern|continue-on-error|permissions:|secrets\./);
  }
@@ -154,7 +183,7 @@ test('private Human retention adds the twelfth whole native family with fresh co
  const certification=readFileSync(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8');
  for(const file of [workflow,certification]){
   const section=file.slice(file.indexOf('  sync_native_storage:'),file.indexOf('  candidate:',file.indexOf('  sync_native_storage:'))===-1?undefined:file.indexOf('  candidate:',file.indexOf('  sync_native_storage:')));
-  for(const required of ['tests/human-retention-nonnative-refusal.test.mjs','tests/native-sync/retention-assert-contract.test.mjs','tests/native-sync/retention-fixture-contract.test.mjs','tests/native-sync/retention-receipt-contract.test.mjs','tests/native-sync/retention-dispatch-contract.test.mjs','tests/native-sync/retention-observer-contract.test.mjs','tests/native-sync/human-retention-native.test.mjs','assertRetentionNativeReceipt(JSON.parse','work/qa-retention-native/${variant}.json','await snapshotProof(process.cwd(),process.cwd(),{requireClean:true})','RETENTION_RUNTIME_PATHS','RETENTION_PROOF_PATHS','assert.equal(retentionExpected.head,process.env.PAIA_TESTED_HEAD)','assert.equal(retentionExpected.tree,tree)','await generatedBytes(process.cwd())','retentionReleaseFixtures','retentionCases(retained[0])','retained[0].runtimeHashes,retained[1].runtimeHashes','retained[0].proofHashes,retained[1].proofHashes','retained[0].browserVersion,retained[1].browserVersion','retentionCommonFixtures(retained[0])','extension/work/qa-retention-native/'])assert.ok(section.includes(required),required);
+  for(const required of ['tests/human-retention-nonnative-refusal.test.mjs','tests/native-sync/retention-assert-contract.test.mjs','tests/native-sync/retention-fixture-contract.test.mjs','tests/native-sync/retention-receipt-contract.test.mjs','tests/native-sync/retention-dispatch-contract.test.mjs','tests/native-sync/retention-observer-contract.test.mjs','tests/native-sync/human-retention-native.test.mjs','assertRetentionNativeReceipt(JSON.parse','work/qa-retention-native/${variant}.json','await snapshotProof(process.cwd(),process.cwd(),{requireClean:true})','RETENTION_RUNTIME_PATHS','RETENTION_PROOF_PATHS','assert.equal(retentionExpected.head,process.env.PAIA_TESTED_HEAD)','assert.equal(retentionExpected.tree,tree)','await generatedBytes(process.cwd())','retentionReleaseFixtures','retentionCases(retained[0])','retained[0].runtimeHashes,retained[1].runtimeHashes','retained[0].proofHashes,retained[1].proofHashes','retained[0].browserVersion,retained[1].browserVersion','retentionCommonFixtures(retained[0])','extension/work/qa-retention-native/'])assertNativeRequirement(file,section,required);
   assert.equal((section.match(/tests\/native-sync\/human-retention-native.test.mjs/g)||[]).length,1);
   assert.ok(!section.includes('tests/human-sibling-retention.test.mjs'));
   assert.ok(!section.includes('tests/human-retention-repository-owner.test.mjs'));
@@ -176,7 +205,7 @@ test('both native jobs append complete manual Prompt files and exact generated c
   const command=native.split('\n').find(line=>line.includes('xvfb-run -a node --test'));
   const files=[...command.matchAll(/tests\/native-sync\/[\w-]+\.test\.mjs/g)].map(match=>match[0]);const expectedCount=native===job?26:27;assert.equal(files.length,expectedCount);assert.equal(new Set(files).size,expectedCount);assert.equal(files.slice(0,24).length,24);assert.deepEqual(files.slice(24),['tests/native-sync/mixed-allocation-owner-native.test.mjs','tests/native-sync/mixed-current-index-native.test.mjs',...(native===job?[]:['tests/native-sync/mixed-configuration-native.test.mjs'])]);
   assert.deepEqual(files.slice(0,24).slice(-9,-4),['tests/native-sync/human-current-cold-readback-native.test.mjs','tests/native-sync/manual-prompt-shape-native.test.mjs','tests/native-sync/human-manual-prompt-current-native.test.mjs','tests/native-sync/human-manual-context-current-native.test.mjs','tests/native-sync/human-restored-successor-native.test.mjs']);
-  for(const text of ['tests/manual-prompt-current-shape.test.mjs','tests/human-qualification-budget.test.mjs','tests/human-current-projection-native-refusal.test.mjs',"walk('core');walk('background')","process.env.PAIA_TESTED_HEAD+':extension/'+path",'assert.deepEqual(r.hashes,expected.hashes)','assert.deepEqual(r.runtimeHashes,expected.runtimeHashes)','assert.equal(r.generatedSha256,manualDigest(generated))','assertNetworkLedger(r.isolation.networkLedger,[])',"assert.equal(r.cases.cases.length,19)","assert.equal(r.cases.assertions,221)","assert.equal(r.cases.actualPromptOperationCount,5)","assert.equal(r.cases.lateCutPromptOperationCount,6)","assert.equal(r.cases.promptOnlyScopeRefused,true)","assert.equal(r.cases.fullCanonicalReady,false)",'assert.deepEqual(paired[0].cases,paired[1].cases)','extension/work/qa-manual-prompt-shape/','extension/work/qa-human-manual-prompt-current/'])assert.ok(native.includes(text),text);
+  for(const text of ['tests/manual-prompt-current-shape.test.mjs','tests/human-qualification-budget.test.mjs','tests/human-current-projection-native-refusal.test.mjs',"walk('core');walk('background')","process.env.PAIA_TESTED_HEAD+':extension/'+path",'assert.deepEqual(r.hashes,expected.hashes)','assert.deepEqual(r.runtimeHashes,expected.runtimeHashes)','assert.equal(r.generatedSha256,manualDigest(generated))','assertNetworkLedger(r.isolation.networkLedger,[])',"assert.equal(r.cases.cases.length,19)","assert.equal(r.cases.assertions,221)","assert.equal(r.cases.actualPromptOperationCount,5)","assert.equal(r.cases.lateCutPromptOperationCount,6)","assert.equal(r.cases.promptOnlyScopeRefused,true)","assert.equal(r.cases.fullCanonicalReady,false)",'assert.deepEqual(paired[0].cases,paired[1].cases)','extension/work/qa-manual-prompt-shape/','extension/work/qa-human-manual-prompt-current/'])assertNativeRequirement(full,native,text);
   assert.match(native,/timeout-minutes: 12/);assert.doesNotMatch(native,/test-name-pattern|test-skip-pattern|continue-on-error/);
  }
 });
@@ -202,7 +231,7 @@ test('native dependency setup preserves the full clean-worktree proof in both jo
 test('both native jobs include complete Context current proof and original exact-byte and lifetime guards',()=>{
  const full=readFileSync(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8');
  for(const native of [job,full.split('  sync_native_storage:\n')[1].split('  certified:')[0]]){
-  for(const text of ['tests/manual-context-current-shape.test.mjs','tests/manual-context-current-snapshot.test.mjs','tests/context-current-transition-interface.test.mjs','tests/native-sync/human-manual-context-current-native.test.mjs',"mode==='human-manual-context-current'",'runHumanManualContextCurrentNativeCases',"assert.equal(r.cases.cases.length,24)","assert.equal(r.cases.assertions,218)","assert.equal(r.cases.actualContextOperationCount,12)","assert.equal(r.cases.lateCutContextOperationCount,13)",'extension/work/qa-human-manual-context-current/'])assert.ok(native.includes(text),text);
+  for(const text of ['tests/manual-context-current-shape.test.mjs','tests/manual-context-current-snapshot.test.mjs','tests/context-current-transition-interface.test.mjs','tests/native-sync/human-manual-context-current-native.test.mjs',"mode==='human-manual-context-current'",'runHumanManualContextCurrentNativeCases',"assert.equal(r.cases.cases.length,24)","assert.equal(r.cases.assertions,218)","assert.equal(r.cases.actualContextOperationCount,12)","assert.equal(r.cases.lateCutContextOperationCount,13)",'extension/work/qa-human-manual-context-current/'])assertNativeRequirement(full,native,text);
   assert.match(native,/timeout-minutes: 12/);assert.doesNotMatch(native,/test-name-pattern|test-skip-pattern|continue-on-error|permissions:|secrets\./);
  }
 });
@@ -210,7 +239,7 @@ test('both native jobs include complete Context current proof and original exact
 test('both native jobs retain complete cleaned-successor history, exact bytes and honest recovery flags',()=>{
  const full=readFileSync(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8');
  for(const native of [job,full.split('  sync_native_storage:\n')[1].split('  certified:')[0]]){
-  for(const text of ['tests/completed-group-restore-control.test.mjs','tests/native-sync/human-restored-successor-native.test.mjs',"mode==='human-restored-successor'",'runHumanRestoredSuccessorNativeCases',"assert.equal(r.cases.assertions,224)","assert.equal(r.cases.editedContextOperationCount,14)","assert.equal(r.cases.lateCutContextOperationCount,15)","assert.equal(r.cases.successorRestore,true)","assert.equal(r.cases.postRestoreJournalEdit,true)","assert.equal(Object.hasOwn(r.cases,'nativeDBReopen'),false)",'extension/work/qa-human-restored-successor/'])assert.ok(native.includes(text),text);
+  for(const text of ['tests/completed-group-restore-control.test.mjs','tests/native-sync/human-restored-successor-native.test.mjs',"mode==='human-restored-successor'",'runHumanRestoredSuccessorNativeCases',"assert.equal(r.cases.assertions,224)","assert.equal(r.cases.editedContextOperationCount,14)","assert.equal(r.cases.lateCutContextOperationCount,15)","assert.equal(r.cases.successorRestore,true)","assert.equal(r.cases.postRestoreJournalEdit,true)","assert.equal(Object.hasOwn(r.cases,'nativeDBReopen'),false)",'extension/work/qa-human-restored-successor/'])assertNativeRequirement(full,native,text);
   assert.match(native,/timeout-minutes: 12/);assert.doesNotMatch(native,/test-name-pattern|test-skip-pattern|continue-on-error|permissions:|secrets\./);
  }
 });
@@ -222,7 +251,7 @@ test('both native jobs append complete Source captures checkpoint recovery and d
   const line=native.split('\n').find(line=>line.includes('xvfb-run -a node --test'));
   const files=[...line.matchAll(/tests\/native-sync\/[\w-]+\.test\.mjs/g)].map(match=>match[0]);
   assert.deepEqual(files.slice(0,24).slice(-4),['tests/native-sync/source-working-current-capture-native.test.mjs','tests/native-sync/source-working-current-checkpoint-native.test.mjs','tests/native-sync/source-working-native-cleanup-fault-native.test.mjs','tests/native-sync/source-working-restored-successor-native.test.mjs']);
-  for(const text of ["['source-working-current-capture','runSourceWorkingCurrentCaptureNativeCases',5,23]","['source-working-current-checkpoint','runSourceWorkingCurrentCheckpointNativeCases',8,50]","['source-working-native-cleanup-fault','runSourceWorkingNativeCleanupFault',1,10]",'tests/source-working-*.test.mjs','source-working-native-cleanup-fault-prelude.mjs','assert.equal(r.cases.listenerCleanupFaultCalls,4)','assert.equal(r.cases.automaticCleanupSucceeded,false)','assert.equal(r.cases.retainedBorrowedFrameHeld,true)','assert.equal(r.cases.workQuarantineHeld,true)','extension/work/qa-source-working-current-capture/','extension/work/qa-source-working-current-checkpoint/','extension/work/qa-source-working-native-cleanup-fault/'])assert.ok(native.includes(text),text);
+  for(const text of ["['source-working-current-capture','runSourceWorkingCurrentCaptureNativeCases',5,23]","['source-working-current-checkpoint','runSourceWorkingCurrentCheckpointNativeCases',8,50]","['source-working-native-cleanup-fault','runSourceWorkingNativeCleanupFault',1,10]",'tests/source-working-*.test.mjs','source-working-native-cleanup-fault-prelude.mjs','assert.equal(r.cases.listenerCleanupFaultCalls,4)','assert.equal(r.cases.automaticCleanupSucceeded,false)','assert.equal(r.cases.retainedBorrowedFrameHeld,true)','assert.equal(r.cases.workQuarantineHeld,true)','extension/work/qa-source-working-current-capture/','extension/work/qa-source-working-current-checkpoint/','extension/work/qa-source-working-native-cleanup-fault/'])assertNativeRequirement(full,native,text);
   assert.match(native,/timeout-minutes: 12/);assert.doesNotMatch(native,/test-name-pattern|test-skip-pattern|continue-on-error/);
  }
 });
@@ -296,4 +325,21 @@ test('actual added configuration receipt gate refuses wrong version, missing own
   }
   for(const mutate of [r=>r.cases.cases[1].name=r.cases.cases[0].name,r=>r.cases.cases[0].name='Synthetic replacement case']){const receipts=structuredClone([source,release]);receipts.forEach(mutate);assert.throws(()=>run(receipts),'matching paired receipts cannot disguise duplicate or replaced cases');}
  }
+});
+
+
+
+test('split Sync ownership refuses missing prerequisites, altered original commands and unrelated-job donors',()=>{
+ splitSyncOwners(certification);
+ for(const mutate of [
+  value=>value.replace('needs: [mode, sync_node_preflight]','needs: mode'),
+  value=>value.replace(" && needs.sync_node_preflight.result == 'success'",''),
+  value=>value.replace('tests/native-sync/source-bootstrap-fixture.test.mjs','tests/native-sync/substitute.test.mjs'),
+  value=>value.replace('  sync_node_preflight:\n','  substituted_node_job:\n'),
+  value=>value.replace('    timeout-minutes: 5','    timeout-minutes: 6'),
+  value=>value.replace('  sync_native_storage:\n','  unrelated_donor:\n')
+ ])assert.throws(()=>splitSyncOwners(mutate(certification)));
+ const commands=originalNodeCommands(certification);
+ const donor=certification.replace(commands[0],':')+'\n  unrelated_donor:\n    steps:\n      - run: '+commands[0]+'\n';
+ assert.throws(()=>splitSyncOwners(donor),'an unrelated job cannot supply missing original owning files');
 });
