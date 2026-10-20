@@ -7,7 +7,7 @@ import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-
 const publicationSettled=async t=>{try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')throw new ArchiveError(e.code);throw e;}};
 import {readPromptReuseMaterial,observedPromptReuseMaterial,promptMaterialReadIsStatic} from './manual-materials.js';
 import {originalFoundationPromptQueueOwner} from './thought-store.js';
-import {observeOriginalControlPublication,requireOriginalControlObservation,originalControlIdentityFailure} from './indexed-store.js';
+import {observeOriginalPromptControlPublication,requireOriginalPromptControlObservation,originalControlIdentityFailure} from './indexed-store.js';
 import {originalRepositoryTransactionOwner,observeRepositoryWriteFence,requireRepositoryWriteFence,requireRepositoryTransactionDataMethods,requireRepositoryTransactionSucceeded} from './idb-repository.js';
 import {controlPublicationEncoding} from './local-control-publication.js';
 import {memoryRange,validateMemoryRow} from './memory/model.js';
@@ -91,7 +91,7 @@ export class PromptReuseService{
    const returned=await store.run(async()=>{
     if(!owns())return null;
     stage='fence';const writeFence=observeRepositoryWriteFence(repository);
-    stage='observer';const control=await observeOriginalControlPublication(store);
+    stage='observer';const control=await observeOriginalPromptControlPublication(store);
     stage='owner';if(!owns())return null;
     stage='transaction';const value=await repository.transaction(false,async t=>{
      scope=t;stage='data-methods';requireRepositoryTransactionDataMethods(repository,t);
@@ -107,7 +107,7 @@ export class PromptReuseService{
      return binding;
     },['meta']);
     stage='return';if(!owns()||value!==binding){if(observation)observation.refused=true;return null;}
-    stage='observer';requireOriginalControlObservation(store,control.token);
+    stage='observer';requireOriginalPromptControlObservation(store,control.token);
     stage='fence';requireRepositoryWriteFence(repository,writeFence);return binding;
    });
    stage='return';if(!owns()||!binding||returned!==binding||this.s!==store||store.repository!==repository||store.local!==local||this.clock!==clock){if(observation)observation.refused=true;return null;}

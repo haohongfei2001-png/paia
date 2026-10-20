@@ -99,7 +99,7 @@ test('observed restore-epoch ABA stays refused while the other original caller r
  const a=f.service.query(),b=f.service.resolve(f.family),pending=Promise.allSettled([a,b]),first=Promise.race([a,b].map(p=>p.then(()=>({status:'fulfilled'}),reason=>({status:'rejected',reason}))));
  try{
   await bounded(gate.entered);await f.s.repository.transaction(true,t=>t.put('meta',{id:'recovery-restore-epoch',value:'synthetic-observed-drift'}));
-  f.hooks.get=async stack=>{if(stack.includes('observeOriginalControlPublication')&&++observing===2){late.resolve();await release.promise;}};
+  f.hooks.get=async stack=>{if(/observeOriginal(?:Prompt)?ControlPublication/.test(stack)&&++observing===2){late.resolve();await release.promise;}};
   gate.release();await bounded(late.promise);const rejected=await bounded(first);assert.equal(rejected.status,'rejected');assert.equal(rejected.reason.code,'MEMORY_STALE');
   await f.s.repository.transaction(true,t=>oldEpoch?t.put('meta',oldEpoch):t.delete('meta','recovery-restore-epoch'));
   f.hooks.get=null;release.resolve();refused(await bounded(pending));assert.deepEqual(await f.durable(),before);assert.equal(probe.state.records,4);
@@ -119,13 +119,13 @@ for(const duringFresh of [false,true])test('unknown original observer exception 
  try{
   await bounded(initial.entered);await emptyDrain(f);
   if(duringFresh){initial.release();await bounded(freshEntered.promise);}
-  f.hooks.get=stack=>{if(stack.includes('observeOriginalControlPublication')&&injected++===0)throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');};
+  f.hooks.get=stack=>{if(/observeOriginal(?:Prompt)?ControlPublication/.test(stack)&&injected++===0)throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');};
   initial.release();freshRelease.resolve();refused(await bounded(pending));assert.ok(injected>=1);assert.equal(probe.state.records,duringFresh?12:4);
  }finally{f.hooks.get=null;initial.release();freshRelease.resolve();await pending;}
 });
 test('original observer metadata retry remains available when no fence changed',{timeout:15000},async t=>{
  const f=await fixture(t),gate=projectionGate(t),probe=reads(t),pending=pair(f);let injected=0;
- try{await bounded(gate.entered);f.hooks.get=stack=>{if(stack.includes('observeOriginalControlPublication')&&injected++===0)throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');};gate.release();success(f,await bounded(pending));assert.ok(injected>=1);assert.equal(probe.state.records,4);}
+ try{await bounded(gate.entered);f.hooks.get=stack=>{if(/observeOriginal(?:Prompt)?ControlPublication/.test(stack)&&injected++===0)throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');};gate.release();success(f,await bounded(pending));assert.ok(injected>=1);assert.equal(probe.state.records,4);}
  finally{f.hooks.get=null;gate.release();await pending;}
 });
 test('a real final metadata request exception is sticky even when the next caller can read successfully',{timeout:15000},async t=>{
@@ -206,7 +206,7 @@ for(const boundary of ['one-use','navigation','reply-generation'])test('real Sur
 for(const phase of ['original-same-value','original-throws','fresh-second-write'])test('original run prelude records its own db accessor boundary: '+phase,{timeout:15000},async t=>{
  const f=await fixture(t,101),descriptor=Object.getOwnPropertyDescriptor(f.s.repository,'db'),before=await f.durable(),gate=phase==='fresh-second-write'?projectionGate(t):null,probe=reads(t);
  let installed=false,getters=0,stack=null,write=null,installedAt=null;
- f.hooks.get=caller=>{if(!installed&&!caller.includes('observeOriginalControlPublication')&&probe.state.records===(phase==='fresh-second-write'?402:200)){
+ f.hooks.get=caller=>{if(!installed&&!/observeOriginal(?:Prompt)?ControlPublication/.test(caller)&&probe.state.records===(phase==='fresh-second-write'?402:200)){
   installed=true;installedAt=probe.state.records;Object.defineProperty(f.s.repository,'db',{configurable:true,enumerable:descriptor.enumerable,get(){getters++;stack=new Error().stack;Object.defineProperty(f.s.repository,'db',descriptor);write=f.s.repository.transaction(true,async()=>{});if(phase==='original-throws')throw new ArchiveError('MEMORY_STALE');return descriptor.value;}});
  }};
  const pending=pair(f);

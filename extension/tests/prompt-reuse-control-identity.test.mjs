@@ -4,8 +4,10 @@ import {IDBFactory,IDBKeyRange,IDBObjectStore} from './vendor/fake-indexeddb/bui
 import {local} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
-import {originalIndexedPromptReadOwner,observeOriginalControlPublication,requireOriginalControlObservation,originalControlIdentityFailure} from '../core/indexed-store.js';
+import {originalIndexedPromptReadOwner,observeOriginalControlPublication,requireOriginalControlObservation,observeOriginalPromptControlPublication,requireOriginalPromptControlObservation,originalControlIdentityFailure} from '../core/indexed-store.js';
 import {ArchiveError} from '../core/constants.js';
+import {STORAGE_KEY} from '../core/constants.js';
+import {observeRepositoryWriteFence,requireRepositoryWriteFence} from '../core/idb-repository.js';
 globalThis.IDBKeyRange=IDBKeyRange;
 const text='Explain sorting',clock=()=>1800000000000;
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
@@ -83,4 +85,109 @@ test('an already qualified waiter cannot deliver after another waiter observes r
  t.diagnostic(JSON.stringify({phase:'after-first-final-binding-before-delivery-transaction',gets,observed,restored,status:settled.map(x=>x.status),third:third[0].status}));
  assert.ok(observed&&restored);assert.equal(settled[0].status,'fulfilled');for(const result of settled.slice(1)){assert.equal(result.status,'rejected');assert.equal(result.reason.code,'MEMORY_STALE');}
  f.hooks.get=null;assert.deepEqual(await f.service.query(),f.query);
+});
+
+test('manual-only shared queries survive original readonly work queued during their control observation',{timeout:10000},async t=>{
+ const backing=local(),hooks={get:null},storage={async get(key){const value=await backing.get(key);await new Promise(setImmediate);await hooks.get?.(new Error().stack);return value;},set:backing.set};
+ const s=new OrganizerStore(storage,{indexedDB:new IDBFactory()});await s.consent(true);await s.finishFoundation();t.after(()=>s.repository.close());
+ const service=new PromptReuseService(s,{clock}),first=await service.query();let revision=first.revision;
+ for(const text of ['first independent manual sample','second independent manual sample'])revision=(await service.change({action:'create',revision,text})).revision;
+ const expected=await service.query();assert.equal(expected.items.length,2);assert.equal(await s.repository.transaction(false,t=>t.count('inputStates')),0);
+ const durable=async()=>({control:(await backing.get(STORAGE_KEY))[STORAGE_KEY],meta:await s.repository.transaction(false,t=>t.all('meta'),['meta']),jobs:await s.repository.transaction(false,t=>t.all('organizerJobs'),['organizerJobs'])});
+ const before=await durable(),fence=observeRepositoryWriteFence(s.repository),queued=[];let observations=0;
+ hooks.get=stack=>{if(/observeOriginal(?:Prompt)?ControlPublication/.test(stack)&&++observations>=3)queued.push(s.status());};
+ let values;try{values=await Promise.allSettled([service.query(),service.query()]);}finally{hooks.get=null;await Promise.allSettled(queued);}
+ assert.ok(observations>=3);assert.ok(queued.length>0,'genuine original readonly status work was queued');
+ requireRepositoryWriteFence(s.repository,fence);assert.deepEqual(await durable(),before,'neither readonly work nor sharing may change durable authority');
+ t.diagnostic(JSON.stringify({observations,queuedStatusCalls:queued.length,statuses:values.map(x=>x.status),codes:values.map(x=>x.reason?.code??null)}));
+ for(const value of values){assert.equal(value.status,'fulfilled',value.reason?.stack);assert.deepEqual(value.value,expected);}
+});
+
+test('Prompt execution tokens are queue-scoped, non-native, and do not classify queued work by its label',async t=>{
+ const f=await fixture(t);let token,queued;
+ await f.s.run(async()=>{
+  const observed=await observeOriginalPromptControlPublication(f.s),native=await observeOriginalControlPublication(f.s);token=observed.token;
+  assert.throws(()=>requireOriginalControlObservation(f.s,token),{code:'CONTROL_PUBLICATION_CHANGED'});
+  assert.throws(()=>requireOriginalPromptControlObservation(f.s,native.token),{code:'CONTROL_PUBLICATION_CHANGED'});
+  assert.throws(()=>requireOriginalPromptControlObservation(f.s,{}),{code:'CONTROL_PUBLICATION_CHANGED'});
+  // This is a genuine original write, not a status-shaped stand-in. Merely
+  // queueing it cannot have executed its callback inside the occupied run.
+  let entered=false;queued=f.s.write(async()=>{entered=true;});
+  assert.equal(entered,false);assert.equal(requireOriginalPromptControlObservation(f.s,token),true);
+  assert.throws(()=>requireOriginalControlObservation(f.s,native.token),{code:'CONTROL_PUBLICATION_CHANGED'});
+ });
+ await queued;assert.throws(()=>requireOriginalPromptControlObservation(f.s,token),{code:'CONTROL_PUBLICATION_CHANGED'});
+ await assert.rejects(()=>observeOriginalPromptControlPublication(f.s),{code:'CONTROL_PUBLICATION_REQUIRED'});
+});
+for(const outcome of ['resolve','reject'])test('Prompt execution token retires when original callback '+outcome+'s',async t=>{
+ const f=await fixture(t),reason=new Error('synthetic callback rejection');let token;
+ const work=f.s.run(async()=>{token=(await observeOriginalPromptControlPublication(f.s)).token;assert.equal(requireOriginalPromptControlObservation(f.s,token),true);if(outcome==='reject')throw reason;return 'original-result';});
+ if(outcome==='reject')await assert.rejects(work,error=>error===reason);else assert.equal(await work,'original-result');
+ assert.throws(()=>requireOriginalPromptControlObservation(f.s,token),{code:'CONTROL_PUBLICATION_CHANGED'});
+ await f.s.run(async()=>{assert.throws(()=>requireOriginalPromptControlObservation(f.s,token),{code:'CONTROL_PUBLICATION_CHANGED'});const current=await observeOriginalPromptControlPublication(f.s);assert.equal(requireOriginalPromptControlObservation(f.s,current.token),true);});
+});
+test('a public-tail alias cannot restore an older Prompt execution after a newer genuine run completes',{timeout:3000},async t=>{
+ const f=await fixture(t),entered=deferred(),release=deferred();let token,reason;
+ t.after(()=>release.resolve());
+ const older=f.s.run(async()=>{token=(await observeOriginalPromptControlPublication(f.s)).token;entered.resolve();await release.promise;try{requireOriginalPromptControlObservation(f.s,token);}catch(error){reason=error;}});
+ await entered.promise;f.s.tail=Promise.resolve();await f.s.run(async()=>{await assert.rejects(()=>observeOriginalPromptControlPublication(f.s),{code:'CONTROL_PUBLICATION_REQUIRED'});});
+ release.resolve();await older;assert.equal(reason?.code,'CONTROL_PUBLICATION_CHANGED');assert.equal(originalControlIdentityFailure(f.s,reason),false);
+ assert.throws(()=>requireOriginalPromptControlObservation(f.s,token),{code:'CONTROL_PUBLICATION_CHANGED'});
+});
+test('overlap during the original run prelude cannot remint a superseded Prompt execution',{timeout:3000},async t=>{
+ const f=await fixture(t),entered=deferred(),release=deferred();let gets=0,called=false,reason;
+ f.hooks.get=async()=>{if(++gets===1){entered.resolve();await release.promise;}};t.after(()=>{release.resolve();f.hooks.get=null;});
+ const older=f.s.run(async()=>{called=true;try{await observeOriginalPromptControlPublication(f.s);}catch(error){reason=error;}});
+ await entered.promise;f.s.tail=Promise.resolve();await f.s.run(async()=>{await assert.rejects(()=>observeOriginalPromptControlPublication(f.s),{code:'CONTROL_PUBLICATION_REQUIRED'});});
+ release.resolve();await older;assert.equal(called,true);assert.equal(reason?.code,'CONTROL_PUBLICATION_REQUIRED');assert.equal(originalControlIdentityFailure(f.s,reason),false);f.hooks.get=null;
+ await f.s.run(async()=>assert.equal(requireOriginalPromptControlObservation(f.s,(await observeOriginalPromptControlPublication(f.s)).token),true));
+});
+for(const key of ['local','get','set'])test('Prompt witness rejects '+key+' descriptor loss through the original adapter identity check',async t=>{
+ const f=await fixture(t);let calls=0,reason;
+ await f.s.run(async()=>{
+  const observed=await observeOriginalPromptControlPublication(f.s),owner=key==='local'?f.s:f.storage,descriptor=Object.getOwnPropertyDescriptor(owner,key);
+  Object.defineProperty(owner,key,{configurable:true,enumerable:descriptor.enumerable,get(){calls++;return descriptor.value;}});
+  try{requireOriginalPromptControlObservation(f.s,observed.token);}catch(error){reason=error;}finally{Object.defineProperty(owner,key,descriptor);}
+  assert.equal(calls,1,'the actual original adapter check precedes descriptor qualification');assert.equal(reason?.code,'CONTROL_PUBLICATION_CHANGED');assert.equal(originalControlIdentityFailure(f.s,reason),true);
+ });
+});
+test('manual-only shared queries refuse an original queued consent revocation before final delivery',{timeout:10000},async t=>{
+ const backing=local(),hooks={get:null},storage={async get(key){const value=await backing.get(key);await new Promise(setImmediate);await hooks.get?.(new Error().stack);return value;},set:backing.set};
+ const s=new OrganizerStore(storage,{indexedDB:new IDBFactory()});await s.consent(true);await s.finishFoundation();t.after(()=>s.repository.close());
+ const service=new PromptReuseService(s,{clock}),initial=await service.query();await service.change({action:'create',revision:initial.revision,text:'manual body must not survive revoked authority'});
+ const expected=await service.query();assert.equal(expected.items.length,1);assert.equal(await s.repository.transaction(false,t=>t.count('inputStates')),0);
+ let observations=0,queued=null,admitted=false;
+ hooks.get=stack=>{if(/observeOriginal(?:Prompt)?ControlPublication/.test(stack)&&++observations===3){queued=s.write(async t=>{admitted=true;const control=await s.control(t);control.settings.consentVersion=0;control.settings.enabled=false;control.settings.epoch++;await s.saveControl(t,control);});assert.equal(admitted,false,'real write callback remains behind the current original run');}};
+ let values;try{values=await Promise.allSettled([service.query(),service.query()]);}finally{hooks.get=null;if(queued)await queued;}
+ assert.ok(queued);assert.equal(admitted,true);t.diagnostic(JSON.stringify({observations,statuses:values.map(x=>x.status),codes:values.map(x=>x.reason?.code??null)}));
+ for(const value of values){assert.equal(value.status,'rejected','a currentness refresh cannot deliver the old manual body');assert.equal(value.reason.code,'MEMORY_STALE');}
+ assert.equal((await backing.get(STORAGE_KEY))[STORAGE_KEY].settings.consentVersion,0);
+});
+
+test('a resumed older callback cannot adopt a newer still-active original Prompt execution',{timeout:3000},async t=>{
+ const f=await fixture(t),olderEntered=deferred(),resumeOlder=deferred(),newerEntered=deferred(),releaseNewer=deferred();let olderReason;
+ t.after(()=>{resumeOlder.resolve();releaseNewer.resolve();});
+ const older=f.s.run(async()=>{olderEntered.resolve();await resumeOlder.promise;try{await observeOriginalPromptControlPublication(f.s);}catch(error){olderReason=error;}});
+ await olderEntered.promise;f.s.tail=Promise.resolve();const newer=f.s.run(async()=>{newerEntered.resolve();await releaseNewer.promise;await assert.rejects(()=>observeOriginalPromptControlPublication(f.s),{code:'CONTROL_PUBLICATION_REQUIRED'});});
+ await newerEntered.promise;resumeOlder.resolve();await older;assert.equal(olderReason?.code,'CONTROL_PUBLICATION_REQUIRED');assert.equal(originalControlIdentityFailure(f.s,olderReason),false);
+ releaseNewer.resolve();await newer;
+ await f.s.run(async()=>{const fresh=await observeOriginalPromptControlPublication(f.s);assert.equal(requireOriginalPromptControlObservation(f.s,fresh.token),true);});
+});
+
+test('an issued older Prompt token is invalid while a newer original callback is still active',{timeout:3000},async t=>{
+ const f=await fixture(t),olderEntered=deferred(),resumeOlder=deferred(),newerEntered=deferred(),releaseNewer=deferred();let token,reason;
+ t.after(()=>{resumeOlder.resolve();releaseNewer.resolve();});
+ const older=f.s.run(async()=>{token=(await observeOriginalPromptControlPublication(f.s)).token;olderEntered.resolve();await resumeOlder.promise;try{requireOriginalPromptControlObservation(f.s,token);}catch(error){reason=error;}});
+ await olderEntered.promise;f.s.tail=Promise.resolve();const newer=f.s.run(async()=>{newerEntered.resolve();await releaseNewer.promise;});
+ await newerEntered.promise;resumeOlder.resolve();await older;assert.equal(reason?.code,'CONTROL_PUBLICATION_CHANGED');assert.equal(originalControlIdentityFailure(f.s,reason),false);
+ releaseNewer.resolve();await newer;
+});
+test('a third genuine run cannot hide an older still-active execution after the newer callback ended',{timeout:3000},async t=>{
+ const f=await fixture(t),olderEntered=deferred(),releaseOlder=deferred();let olderReason;
+ t.after(()=>releaseOlder.resolve());
+ const older=f.s.run(async()=>{olderEntered.resolve();await releaseOlder.promise;try{await observeOriginalPromptControlPublication(f.s);}catch(error){olderReason=error;}});
+ await olderEntered.promise;f.s.tail=Promise.resolve();await f.s.run(()=>Promise.resolve());
+ await f.s.run(async()=>{await assert.rejects(()=>observeOriginalPromptControlPublication(f.s),{code:'CONTROL_PUBLICATION_REQUIRED'});});
+ releaseOlder.resolve();await older;assert.equal(olderReason?.code,'CONTROL_PUBLICATION_REQUIRED');
+ await f.s.run(async()=>{const fresh=await observeOriginalPromptControlPublication(f.s);assert.equal(requireOriginalPromptControlObservation(f.s,fresh.token),true);});
 });

@@ -40,6 +40,7 @@ const publicationEqual=(a,b)=>{
 const error=code=>{throw new ArchiveError(code);};
 const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(!c.settings.enabled)error('PAUSED');if(epoch!==c.settings.epoch)error('STALE_CAPTURE');};
 const localPublicationOwners=new WeakMap(),originalLocalControls=new WeakMap(),nativeControlObservations=new WeakMap(),originalControlIdentityFailures=new WeakMap();
+const promptControlExecutions=new WeakMap(),promptActiveExecutions=new WeakMap(),promptControlObservations=new WeakMap();
 // This records only an existing original rejection. It cannot qualify a read
 // or turn an adapter's own error into native evidence.
 export function originalControlIdentityFailure(store,reason){return originalControlIdentityFailures.has(reason)&&originalControlIdentityFailures.get(reason)===store;}
@@ -60,6 +61,26 @@ export async function observeOriginalControlPublication(store,token=null){
  return {token,row,kind:p.bound.kind};
 }
 
+
+// Prompt observes a control row only while its exact original run callback is
+// still executing. Merely enqueueing later work changes the public tail but
+// cannot execute that work inside this scope. The public/native observer above
+// deliberately keeps its original tail contract and cannot accept these tokens.
+export function requireOriginalPromptControlObservation(store,token){
+ const p=promptControlObservations.get(token),bound=originalLocalControls.get(store),execution=promptControlExecutions.get(store);
+ if(!p||p.store!==store||!bound||p.bound!==bound)error('CONTROL_PUBLICATION_CHANGED');
+ if(store.local!==bound.local||bound.local.get!==bound.get||bound.local.set!==bound.set||!promptDataIdentity(store,'local',bound.local)||!promptDataIdentity(bound.local,'get',bound.get)||!promptDataIdentity(bound.local,'set',bound.set)){const reason=new ArchiveError('CONTROL_PUBLICATION_CHANGED');originalControlIdentityFailures.set(reason,store);throw reason;}
+ if(!execution||execution!==p.execution||!execution.active||execution.interfered||execution.owner!==p.owner||localPublicationOwners.get(store)!==p.owner||store.repository.db!==p.db||store.databaseId!==p.databaseId||store.controlCache!==p.control||store.pendingControl||p.owner.loadedStamp!==p.stamp)error('CONTROL_PUBLICATION_CHANGED');
+ return true;
+}
+export async function observeOriginalPromptControlPublication(store,token=null){
+ if(token===null){const bound=originalLocalControls.get(store),owner=localPublicationOwners.get(store),execution=promptControlExecutions.get(store);if(!bound||!owner||!execution?.active||execution.interfered||execution.owner!==owner||!store.repository.db||store.pendingControl)error('CONTROL_PUBLICATION_REQUIRED');token=Object.freeze({});promptControlObservations.set(token,{store,bound,owner,execution,db:store.repository.db,databaseId:store.databaseId,control:store.controlCache,stamp:owner.loadedStamp});}
+ requireOriginalPromptControlObservation(store,token);const p=promptControlObservations.get(token),row=(await p.bound.get.call(p.bound.local,STORAGE_KEY))[STORAGE_KEY];requireOriginalPromptControlObservation(store,token);
+ if(Object.hasOwn(row,'controlPublication'))validateControlPublicationStamp(row.controlPublication);
+ if(!publicationEqual(row,{schemaVersion:6,databaseId:p.databaseId,...p.control,...(p.stamp?{controlPublication:p.stamp}:{})}))error('CONTROL_PUBLICATION_CHANGED');
+ return {token,row,kind:p.bound.kind};
+}
+
 // Body-free evidence from the original publisher, never a caller ACK flag.
 export function requireOriginalConsumerPublicationEvidence(store,reservation,kind){
  const owner=localPublicationOwners.get(store),evidence=owner?.consumerEvidence;
@@ -68,7 +89,26 @@ export function requireOriginalConsumerPublicationEvidence(store,reservation,kin
 export class IndexedArchiveStore {
  #preferencePublication=null;
  constructor(local,options={}){originalLocalControls.set(this,{local,get:local.get,set:local.set,kind:local===globalThis.chrome?.storage?.local?'chrome-sdk':'original-injected-adapter'});this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;this.consumerPreferenceJournal=options.consumerPreferenceJournal??null;this.localPublicationTerminal=local===globalThis.chrome?.storage?.local||options.localPublicationTerminal===true;}
- run(fn){const task=this.tail.then(async()=>{if(!this.loaded){await this.repository.initialize();this.loaded=true;}const before=await this.repository.transaction(false,readControlPublicationFence,['meta']),local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY],after=await this.repository.transaction(false,readControlPublicationFence,['meta']);if(!controlPublicationEqual(before,after))error('CONTROL_PUBLICATION_CHANGED');if(Object.hasOwn(local,'controlPublication'))validateControlPublicationStamp(local.controlPublication);localPublicationOwners.set(this,{before,beforeDigest:await controlPublicationDigest(local),loadedStamp:local.controlPublication?structuredClone(local.controlPublication):null,nonce:crypto.randomUUID(),reservation:null,fences:null});this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;if(#preferencePublication in this)this.#preferencePublication=null;this.changedSources=new Set();return fn();});this.tail=task.catch(()=>{});return task;}
+ run(fn){const task=this.tail.then(async()=>{
+  // Install before any prelude await. An overlapping genuine run permanently
+  // supersedes this opaque execution; neither completion nor this prelude may
+  // restore an older execution after a public-tail alias. Any overlap also
+  // permanently disqualifies both callbacks, so an older resumed callback
+  // cannot adopt the newer callback's still-active control scope.
+  const execution={active:true,owner:null,interfered:false};let active=promptActiveExecutions.get(this);
+  if(!active){active=new Set();promptActiveExecutions.set(this,active);}
+  if(active.size){execution.interfered=true;for(const prior of active)prior.interfered=true;}
+  active.add(execution);promptControlExecutions.set(this,execution);
+  try{
+   if(!this.loaded){await this.repository.initialize();this.loaded=true;}
+   const before=await this.repository.transaction(false,readControlPublicationFence,['meta']),local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY],after=await this.repository.transaction(false,readControlPublicationFence,['meta']);
+   if(!controlPublicationEqual(before,after))error('CONTROL_PUBLICATION_CHANGED');if(Object.hasOwn(local,'controlPublication'))validateControlPublicationStamp(local.controlPublication);
+   const owner={before,beforeDigest:await controlPublicationDigest(local),loadedStamp:local.controlPublication?structuredClone(local.controlPublication):null,nonce:crypto.randomUUID(),reservation:null,fences:null};
+   localPublicationOwners.set(this,owner);execution.owner=owner;
+   this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;if(#preferencePublication in this)this.#preferencePublication=null;this.changedSources=new Set();
+   return await fn();
+  }finally{execution.active=false;active.delete(execution);if(!active.size)promptActiveExecutions.delete(this);if(promptControlExecutions.get(this)===execution)promptControlExecutions.delete(this);}
+ });this.tail=task.catch(()=>{});return task;}
  // Explicit startup repair of an original local publication, never a replay.
  // Prepared but unobserved SDK writes remain held: a restart is not an ACK.
  recoverControlPublication(){const task=this.tail.then(async()=>{
