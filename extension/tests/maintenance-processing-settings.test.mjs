@@ -69,3 +69,49 @@ test('native modal keyboard boundaries wrap inside without confirming or changin
  dialog.listeners.get('keydown')({key:'Escape',preventDefault(){throw Error('Escape must remain native');}});
  assert.equal(dialog.open,true);assert.equal(calls.filter(c=>c.type===WRITE).length,0);
 });
+
+
+test('one current-epoch navigation refusal retries only original status and never configures purpose',async()=>{
+ const calls=[];const s=new SettingsMaintenanceState({send:async type=>{calls.push(type);if(calls.length===1)throw Object.assign(Error('FORBIDDEN'),{code:'FORBIDDEN'});return snapshot({enabled:true,savedEnabled:true,phase:'on',generation:'current-document'});}});
+ assert.equal(await s.load(),true);assert.deepEqual(calls,[READ,READ]);assert.equal(s.value.generation,'current-document');assert.equal(s.value.enabled,true);assert.equal(s.error,false);
+});
+test('permanent navigation refusal remains unavailable after exactly one status retry',async()=>{
+ const calls=[];const s=new SettingsMaintenanceState({send:async type=>{calls.push(type);throw Object.assign(Error('FORBIDDEN'),{code:'FORBIDDEN'});}});
+ assert.equal(await s.load(),false);assert.deepEqual(calls,[READ,READ]);assert.equal(s.value,null);assert.equal(s.editable,false);assert.equal(s.error,true);
+});
+test('superseded navigation refusal cannot issue a late retry or overwrite the newer owner view',async()=>{
+ let reject;const old=new Promise((_,r)=>reject=r),calls=[];const s=new SettingsMaintenanceState({send:async type=>{calls.push(type);return calls.length===1?old:snapshot({generation:'newer'});}});
+ const prior=s.load();assert.equal(await s.load(),true);reject(Object.assign(Error('FORBIDDEN'),{code:'FORBIDDEN'}));assert.equal(await prior,false);assert.deepEqual(calls,[READ,READ]);assert.equal(s.value.generation,'newer');assert.equal(s.error,false);
+});
+test('status retry never masks other owner denials or a malformed successful response',async()=>{
+ for(const code of ['CONSENT_REQUIRED','RESOURCE_LIMIT','UNAVAILABLE',null]){const calls=[];const s=new SettingsMaintenanceState({send:async type=>{calls.push(type);if(code)throw Object.assign(Error(code),{code});return {enabled:true};}});assert.equal(await s.load(),false);assert.deepEqual(calls,[READ]);assert.equal(s.editable,false);}
+});
+
+
+test('retired hidden status load cannot retry after a later show without a fresh load epoch',async()=>{
+ let active=true,reject;const held=new Promise((_,r)=>reject=r),calls=[];const s=new SettingsMaintenanceState({isCurrent:()=>active,send:async type=>{calls.push(type);return held;}});
+ const reading=s.load();active=false;s.retireRead();active=true;reject(Object.assign(Error('FORBIDDEN'),{code:'FORBIDDEN'}));assert.equal(await reading,false);assert.deepEqual(calls,[READ]);assert.equal(s.value,null);assert.equal(s.error,false);
+});
+test('hidden or detached status lifetime cannot begin or retry a read',async()=>{
+ let active=false,reject;const held=new Promise((_,r)=>reject=r),calls=[];const s=new SettingsMaintenanceState({isCurrent:()=>active,send:async type=>{calls.push(type);return held;}});
+ assert.equal(await s.load(),false);assert.deepEqual(calls,[]);active=true;const reading=s.load();active=false;reject(Object.assign(Error('FORBIDDEN'),{code:'FORBIDDEN'}));assert.equal(await reading,false);assert.deepEqual(calls,[READ]);assert.equal(s.value,null);
+});
+test('newer explicit configure retires a held retry result without replaying or overwriting its ACK',async()=>{
+ const held=deferred(),calls=[];let reads=0;const s=new SettingsMaintenanceState({send:async(type,fields)=>{calls.push({type,fields});if(type===WRITE)return snapshot({enabled:true,savedEnabled:true,phase:'on',generation:'configured'});if(++reads===1)return snapshot();if(reads===2)throw Object.assign(Error('FORBIDDEN'),{code:'FORBIDDEN'});return held.promise;}});
+ await s.load();const reading=s.load();await tick();assert.equal(reads,3);assert.equal(await s.configure(true),true);held.resolve(snapshot({generation:'old-retry'}));assert.equal(await reading,false);assert.equal(s.value.generation,'configured');assert.equal(s.value.enabled,true);assert.equal(calls.filter(x=>x.type===WRITE).length,1);
+});
+test('real Maintenance presenter retires an outstanding status across hidden and re-shown navigation',async t=>{
+ let reject;const held=new Promise((_,r)=>reject=r),calls=[],f=ui(t,async type=>{calls.push(type);return held;});await tick();f.setCurrent(false);f.setCurrent(true);reject(Object.assign(Error('FORBIDDEN'),{code:'FORBIDDEN'}));await tick();assert.deepEqual(calls,[READ]);assert.equal(f.owner.state.value,null);assert.equal(f.owner.state.error,false);
+});
+
+
+test('real detached Maintenance host cannot retry a late first refusal',async t=>{
+ let reject;const held=new Promise((_,r)=>reject=r),calls=[],f=ui(t,async type=>{calls.push(type);return calls.length===1?held:snapshot({generation:'reattached'});});await tick();
+ const host=f.find('settings-maintenance').parentElement;Object.defineProperty(host,'isConnected',{configurable:true,value:false});reject(Object.assign(Error('FORBIDDEN'),{code:'FORBIDDEN'}));await tick();assert.deepEqual(calls,[READ]);assert.equal(f.owner.state.value,null);delete host.isConnected;assert.equal(await f.owner.refresh(),true);assert.equal(f.owner.state.value.generation,'reattached');
+});
+test('hide and reshow cannot adopt the old held status retry response',async t=>{
+ const held=deferred(),calls=[],f=ui(t,async type=>{calls.push(type);if(calls.length===1)throw Object.assign(Error('FORBIDDEN'),{code:'FORBIDDEN'});return calls.length===2?held.promise:snapshot({generation:'fresh-show'});});await tick();assert.deepEqual(calls,[READ,READ]);f.setCurrent(false);f.setCurrent(true);held.resolve(snapshot({enabled:true,savedEnabled:true,phase:'on',generation:'retired-retry'}));await tick();assert.equal(f.owner.state.value,null);assert.equal(f.owner.state.error,false);assert.deepEqual(calls,[READ,READ]);assert.equal(await f.owner.refresh(),true);assert.equal(f.owner.state.value.generation,'fresh-show');
+});
+test('a burst of superseded status refusals gives only the final epoch one bounded retry',async()=>{
+ const calls=[];const s=new SettingsMaintenanceState({send:async type=>{calls.push(type);if(calls.length<=8)throw Object.assign(Error('FORBIDDEN'),{code:'FORBIDDEN'});return snapshot();}});const loads=Array.from({length:8},()=>s.load());const outcomes=await Promise.all(loads);assert.deepEqual(outcomes,[false,false,false,false,false,false,false,true]);assert.deepEqual(calls,Array(9).fill(READ));assert.equal(s.error,false);
+});
