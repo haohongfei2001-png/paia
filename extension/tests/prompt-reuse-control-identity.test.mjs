@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange,IDBObjectStore} from './vendor/fake-indexeddb/build/esm/index.js';
 import {local} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
-import {PromptReuseService} from '../core/prompt-reuse-service.js';
+import {PromptReuseService,readPromptReuseRefusalEvidence} from '../core/prompt-reuse-service.js';
 import {originalIndexedPromptReadOwner,observeOriginalControlPublication,requireOriginalControlObservation,observeOriginalPromptControlPublication,requireOriginalPromptControlObservation,originalControlIdentityFailure} from '../core/indexed-store.js';
 import {ArchiveError} from '../core/constants.js';
 import {STORAGE_KEY} from '../core/constants.js';
@@ -190,4 +190,25 @@ test('a third genuine run cannot hide an older still-active execution after the 
  await f.s.run(async()=>{await assert.rejects(()=>observeOriginalPromptControlPublication(f.s),{code:'CONTROL_PUBLICATION_REQUIRED'});});
  releaseOlder.resolve();await older;assert.equal(olderReason?.code,'CONTROL_PUBLICATION_REQUIRED');
  await f.s.run(async()=>{const fresh=await observeOriginalPromptControlPublication(f.s);assert.equal(requireOriginalPromptControlObservation(f.s,fresh.token),true);});
+});
+
+
+test('body-free refusal evidence is bounded, copied and cannot invoke an adapter error accessor',async t=>{
+ const f=await fixture(t),secret='PRIVATE_REFUSAL_BODY_MUST_NOT_BE_RECORDED';let codeReads=0;
+ for(let i=0;i<20;i++){
+  const reason=new Error(secret);Object.defineProperty(reason,'code',{get(){codeReads++;return secret;}});
+  f.hooks.get=()=>{f.hooks.get=null;throw reason;};assert.deepEqual(await f.service.query(),f.query);
+ }
+ assert.equal(codeReads,0);const rows=readPromptReuseRefusalEvidence();assert.equal(rows.length,16);assert.ok(!JSON.stringify(rows).includes(secret));
+ for(const row of rows){assert.match(row.phase,/^[a-z-]+$/);assert.ok(['MEMORY_STALE','STALE_BASE','CONTROL_PUBLICATION_CHANGED','CONTROL_PUBLICATION_REQUIRED','BNS_CONSUMER_PUBLICATION_PENDING','CONSENT_REQUIRED','STORAGE_FAILED','OTHER'].includes(row.code));for(const [key,value]of Object.entries(row))if(!['phase','code'].includes(key))assert.equal(typeof value,'boolean');}
+ rows[0].phase='caller-mutation';rows.length=0;const fresh=readPromptReuseRefusalEvidence();assert.equal(fresh.length,16);assert.notEqual(fresh[0].phase,'caller-mutation');
+});
+
+
+test('body-free diagnostics never reflect on arbitrary adapter-thrown Proxy objects',async t=>{
+ const f=await fixture(t),original=f.storage.get;let traps=0;
+ const disturb=()=>{traps++;f.storage.get=()=>{throw Error('DIAGNOSTIC_PROXY_SIDE_EFFECT');};};
+ const reason=new Proxy({}, {get(){disturb();return null;},getPrototypeOf(){disturb();return Object.prototype;},getOwnPropertyDescriptor(){disturb();return undefined;},ownKeys(){disturb();return [];}});
+ try{f.hooks.get=()=>{f.hooks.get=null;throw reason;};assert.deepEqual(await f.service.query(),f.query);assert.equal(traps,0);}
+ finally{f.hooks.get=null;f.storage.get=original;}
 });

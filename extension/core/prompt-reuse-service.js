@@ -18,6 +18,22 @@ const changed=()=>{throw new ArchiveError('MEMORY_STALE');};
 // Only this module's completed static-read guard can issue this denial. Public
 // error codes and original snapshot failures never authorize a replacement read.
 const fenceOnlyFailures=new WeakMap();
+// Bounded body-free refusal evidence for the existing isolated owner test.
+// No result/body/ID/epoch/hash, persistence, network or public RPC is added.
+const promptReadRefusals=[];
+const refusalCodes=new Set(['MEMORY_STALE','STALE_BASE','CONTROL_PUBLICATION_CHANGED','CONTROL_PUBLICATION_REQUIRED','BNS_CONSUMER_PUBLICATION_PENDING','CONSENT_REQUIRED','STORAGE_FAILED']);
+const recordPromptRefusal=(phase,reason,read=null,proof=null)=>{
+ // Evidence must never invoke an adapter error's accessor or change refusal.
+ try{
+  // Do not reflect on arbitrary adapter-thrown objects, including Proxies.
+  const code=typeof reason==='string'?reason:null;
+  const row={phase,code:refusalCodes.has(code)?code:'OTHER',active:read?.active===true,static:read?.static===true,joined:read?.joined===true,ownerChanged:read?.ownerChanged===true,refused:read?.refused===true,noFresh:read?.noFresh===true};
+  if(proof)for(const [key,value]of Object.entries(proof))if(typeof value==='boolean')row[key]=value;
+  promptReadRefusals.push(Object.freeze(row));if(promptReadRefusals.length>16)promptReadRefusals.shift();
+ }catch{/* Diagnostics cannot replace an original result or rejection. */}
+};
+export function readPromptReuseRefusalEvidence(){return promptReadRefusals.map(row=>({...row}));}
+
 const repositoryShape=repository=>{
  const shape=[];
  for(const name of ['db','factory','name']){const d=Object.getOwnPropertyDescriptor(repository,name);if(!d||!Object.hasOwn(d,'value'))return null;shape.push(Object.freeze({...d}));}
@@ -42,7 +58,7 @@ export class PromptReuseService{
    let pageScope=null,originalPage=null;const pageRepository=this.s.repository;
    const page=await this.s.run(()=>this.s.repository.transaction(false,async t=>{
     if(observation&&!observation.unshareable){this.#requireReadShape(observation);pageScope=t;try{requireRepositoryTransactionDataMethods(pageRepository,t);}catch{declineRead(observation);}}
-    const current=await generation(t);if(base!==undefined&&base!==current)changed();
+    const current=await generation(t);if(base!==undefined&&base!==current){recordPromptRefusal('snapshot-page-generation','MEMORY_STALE',observation);changed();}
     const prefs=await readPromptPreferences(t),rows=await t.all('meta',null,memoryRange());
     if(rows.some(x=>!validateMemoryRow(x)))fail();
     const memory={s:this.s,state:async()=>({rows})},filter=await t.get('meta','smart-filter');
@@ -64,7 +80,7 @@ export class PromptReuseService{
    base=page.current;preferences=page.prefs;inputs.push(...page.items);after=page.next??undefined;
   }while(after!==undefined);
   const families=await projectPromptFamilies(inputs,preferences,this.clock());
-  await this.s.run(()=>this.s.repository.transaction(false,async t=>{if(base!==await generation(t))changed();},['meta']));
+  await this.s.run(()=>this.s.repository.transaction(false,async t=>{if(base!==await generation(t)){recordPromptRefusal('snapshot-final-generation','MEMORY_STALE',observation);changed();}},['meta']));
   if(observation){
    if(!observation.unshareable)this.#requireReadShape(observation);
    observation.static=!observation.unshareable&&observation.expected===observation.receipts.length&&observation.receipts.every(token=>promptMaterialReadIsStatic(this.s,token,true));
@@ -82,7 +98,7 @@ export class PromptReuseService{
   const owns=()=>{
    const sameShape=sameRepositoryShape(shape,repositoryShape(repository))&&(!observation||sameRepositoryShape(shape,observation.binding.shape));
    const current=sameShape&&this.#originalReadOwner();
-   if(!current&&observation){observation.ownerChanged=true;observation.refused=true;}
+   if(!current&&observation){recordPromptRefusal('binding-owner-loss','MEMORY_STALE',observation,{sameShape});observation.ownerChanged=true;observation.refused=true;}
    return current;
   };
   if(!owns())return null;
@@ -90,7 +106,7 @@ export class PromptReuseService{
   try{
    const returned=await store.run(async()=>{
     if(!owns())return null;
-    stage='fence';const writeFence=observeRepositoryWriteFence(repository);
+    stage='fence-admission';const writeFence=observeRepositoryWriteFence(repository);
     stage='observer';const control=await observeOriginalPromptControlPublication(store);
     stage='owner';if(!owns())return null;
     stage='transaction';const value=await repository.transaction(false,async t=>{
@@ -108,12 +124,13 @@ export class PromptReuseService{
     },['meta']);
     stage='return';if(!owns()||value!==binding){if(observation)observation.refused=true;return null;}
     stage='observer';requireOriginalPromptControlObservation(store,control.token);
-    stage='fence';requireRepositoryWriteFence(repository,writeFence);return binding;
+    stage='fence-in-run';requireRepositoryWriteFence(repository,writeFence);return binding;
    });
    stage='return';if(!owns()||!binding||returned!==binding||this.s!==store||store.repository!==repository||store.local!==local||this.clock!==clock){if(observation)observation.refused=true;return null;}
    stage='settlement';requireRepositoryTransactionSucceeded(repository,scope);
-   stage='fence';requireRepositoryWriteFence(repository,binding.writeFence);return binding;
+   stage='fence-after-settlement';requireRepositoryWriteFence(repository,binding.writeFence);return binding;
   }catch(error){
+   recordPromptRefusal('binding-'+stage,error,observation,{bindingPresent:!!binding,scopePresent:!!scope,identityFailure:originalControlIdentityFailure(store,error)});
    if(observation){
     if(originalControlIdentityFailure(store,error))observation.ownerChanged=true;
     // Unknown observer failure may still use the existing metadata retry,
@@ -124,7 +141,7 @@ export class PromptReuseService{
   }
  }
  #requireReadShape(read){
-  if(read.ownerChanged||read.refused)changed();
+  if(read.ownerChanged||read.refused){recordPromptRefusal('shape-sticky','MEMORY_STALE',read);changed();}
   const first=read.binding;
   if(this.s!==first.store||this.s.repository!==first.repository||!sameRepositoryShape(first.shape,repositoryShape(first.repository))){read.ownerChanged=true;read.refused=true;changed();}
  }
@@ -138,18 +155,19 @@ export class PromptReuseService{
   try{requireRepositoryWriteFence(a.repository,a.writeFence);requireRepositoryWriteFence(b.repository,b.writeFence);return true;}catch{return false;}
  }
  #requireReadAuthority(bindings,read,strictShape=false){
-  if(read.ownerChanged||read.refused)changed();
+  if(read.ownerChanged||read.refused){recordPromptRefusal('authority-sticky','MEMORY_STALE',read);changed();}
   const first=bindings[0];
-  if(strictShape&&(!first||!sameRepositoryShape(first.shape,repositoryShape(first.repository))||bindings.some(binding=>!binding||!sameRepositoryShape(first.shape,binding.shape)))){read.ownerChanged=true;read.refused=true;changed();}
-  if(bindings.some(binding=>!this.#sameReadAuthority(binding,first,read))){read.refused=true;changed();}
+  if(strictShape&&(!first||!sameRepositoryShape(first.shape,repositoryShape(first.repository))||bindings.some(binding=>!binding||!sameRepositoryShape(first.shape,binding.shape)))){recordPromptRefusal('authority-shape-mismatch','MEMORY_STALE',read);read.ownerChanged=true;read.refused=true;changed();}
+  if(bindings.some(binding=>!this.#sameReadAuthority(binding,first,read))){recordPromptRefusal('authority-mismatch','MEMORY_STALE',read,{bindingsPresent:bindings.every(Boolean),keysEqual:bindings.every(binding=>!!binding&&!!first&&binding.key===first.key)});read.refused=true;changed();}
 
  }
  #requireReadBindings(caller,first,current,read,allowFenceOnly,oldAnchors=[]){
-  if(oldAnchors.length&&read.noFresh){read.refused=true;changed();}
+  if(oldAnchors.length&&read.noFresh){recordPromptRefusal('replacement-uncertain-observer','MEMORY_STALE',read);read.refused=true;changed();}
   const eligible=allowFenceOnly&&!read.active&&read.static&&!read.unshareable;
   this.#requireReadAuthority([current,caller,first,...oldAnchors],read,eligible||oldAnchors.length>0);
   try{for(const binding of [current,caller,first])requireRepositoryWriteFence(binding.repository,binding.writeFence);}
   catch{
+   recordPromptRefusal('guard-write-fence','STALE_BASE',read,{eligible,oldAnchors:oldAnchors.length>0});
    if(eligible&&!read.noFresh){const error=new ArchiveError('MEMORY_STALE');fenceOnlyFailures.set(error,{read,caller,first});throw error;}
    read.refused=true;changed();
   }
@@ -157,7 +175,7 @@ export class PromptReuseService{
  async #readStillCurrent(caller,first,read,allowFenceOnly=false,oldAnchors=[]){
   // Observed authority/source loss belongs to the shared read, including its
   // independent replacements. A later restoration cannot revive that read.
-  if(read.ownerChanged||read.refused)changed();let current=await this.#readBinding(read);
+  if(read.ownerChanged||read.refused){recordPromptRefusal('current-sticky','MEMORY_STALE',read);changed();}let current=await this.#readBinding(read);
   // Preserve the original single metadata retry for ordinary readonly tail
   // changes. Neither a new anchor nor another retry can wash away old facts.
   if(!current&&!read.ownerChanged&&!read.refused&&this.#sameReadBinding(caller,first,read))current=await this.#readBinding(read);
@@ -170,11 +188,11 @@ export class PromptReuseService{
     scope=t;requireRepositoryTransactionDataMethods(repository,t);await publicationSettled(t);this.#requireReadBindings(caller,first,current,read,allowFenceOnly,oldAnchors);
     const publication=await store.qualifyControlPublicationRead(t),generationValue=await generation(t);this.#requireReadBindings(caller,first,current,read,allowFenceOnly,oldAnchors);
     const control=store.controlPublicationLoadedRow();
-    if(controlPublicationEncoding({control,publication,generation:generationValue})!==caller.deliveryKey){read.refused=true;changed();}
+    if(controlPublicationEncoding({control,publication,generation:generationValue})!==caller.deliveryKey){recordPromptRefusal('delivery-key-mismatch','MEMORY_STALE',read);read.refused=true;changed();}
     return delivery;
    },['meta']);});
    if(result!==delivery)changed();requireRepositoryTransactionSucceeded(repository,scope);
-  }catch(error){if(fenceOnlyFailures.get(error)?.read===read)throw error;read.refused=true;changed();}
+  }catch(error){if(fenceOnlyFailures.get(error)?.read===read)throw error;recordPromptRefusal('delivery-original-failure',error,read);read.refused=true;changed();}
   // Keep the final durable validation and synchronous shared sticky check.
   this.#requireReadBindings(caller,first,current,read,allowFenceOnly,oldAnchors);
  }
@@ -320,7 +338,7 @@ export class PromptReuseService{
  async assertSelectionCurrent(selected){
   const current=await this.resolveSelection(selected.ref,selected.range);if(current.text!==selected.text)changed();return current;
  }
- async assertCurrent(expected){return this.s.run(()=>this.s.repository.transaction(false,async t=>{if(expected!==await generation(t))changed();},['meta']));}
+ async assertCurrent(expected){return this.s.run(()=>this.s.repository.transaction(false,async t=>{if(expected!==await generation(t)){recordPromptRefusal('final-generation-mismatch','MEMORY_STALE');changed();}},['meta']));}
  async change(change){return this.#change(change);}
  async createFromHistory(ref,text,revision){
   if(!validPromptSelectionRef(ref)||ref.kind!=='history_input')fail();
