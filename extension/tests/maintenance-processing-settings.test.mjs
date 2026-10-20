@@ -22,7 +22,7 @@ test('lost enable ACK rereads actual durable preference without replaying a writ
 test('failed OFF is shown separately from saved ON and remains retryable',async()=>{let failed=false;const s=new SettingsMaintenanceState({send:async type=>{if(type===WRITE){failed=true;throw Error('not saved');}return snapshot({enabled:!failed,savedEnabled:true,phase:failed?'off_unconfirmed':'on'});}});await s.load();assert.equal(await s.configure(false),false);assert.equal(s.value.enabled,false);assert.equal(s.value.savedEnabled,true);assert.equal(s.feedback,'off-unconfirmed');await s.load();assert.equal(s.feedback,'off-unconfirmed');assert.equal(s.editable,true);});
 test('old status cannot overwrite newer confirmed preference',async()=>{const held=deferred();let n=0;const s=new SettingsMaintenanceState({send:async type=>type===WRITE?snapshot({enabled:true,savedEnabled:true,phase:'on',generation:'g2'}):++n===1?snapshot():held.promise});await s.load();const reading=s.load();await s.configure(true);held.resolve(snapshot());await reading;assert.equal(s.value.enabled,true);});
 
-class Element extends PresentationNode {constructor(tag){super(tag);this.open=false;}showModal(){this.open=true;}close(){this.open=false;this.listeners.get('close')?.();}}
+class Element extends PresentationNode {constructor(tag){super(tag);this.open=false;this.tabIndex=['button','input','select','textarea'].includes(tag)?0:-1;}showModal(){this.open=true;}close(){this.open=false;this.listeners.get('close')?.();}getClientRects(){return this.hidden?[]:[{}];}querySelectorAll(){return descendants(this).slice(1).filter(node=>['BUTTON','INPUT','SELECT','TEXTAREA'].includes(node.tagName));}}
 const descendants=node=>[node,...node.children.flatMap(descendants)];
 function ui(t,send,{visible=true}={}){const old=Object.getOwnPropertyDescriptor(globalThis,'document'),body=new Element('body');globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag)};t.after(()=>{if(old)Object.defineProperty(globalThis,'document',old);else delete globalThis.document;});let current=visible,notify;const owner=mountSettingsMaintenance(body,{send,language:()=> 'en',runtime:{onMessage:{addListener(fn){notify=fn;}}},isCurrent:()=>current}),find=id=>descendants(body).find(n=>n.id===id);return {owner,find,notify:message=>notify(message),setCurrent:v=>{current=v;owner.sync();}};}
 const fire=(node,type,trusted=true)=>node.listeners.get(type)?.({isTrusted:trusted});
@@ -45,3 +45,27 @@ test('original ON commit followed by document-return failure remains an honestly
 test('accessor request type is rejected before invocation or document work',async t=>{const f=await fixture(t);let touches=0,documents=0;f.api.tabs.get=async()=>{documents++;throw Error('no entry');};await assert.rejects(f.commands.handle(Object.defineProperty({},'type',{get(){touches++;return READ;}}),f.sender));assert.equal(touches,0);assert.equal(documents,0);});
 
 test('hidden Settings AI group sends no new metadata request until actual visible refresh',async t=>{const calls=[],f=ui(t,async type=>{calls.push(type);return snapshot();},{visible:false});await tick();assert.deepEqual(calls,[]);f.notify({type:'ARCHIVE_CHANGED'});f.notify({type:'PAIA_MAINTENANCE_PROCESSING_CHANGED'});await f.owner.refresh();assert.deepEqual(calls,[]);f.setCurrent(true);await f.owner.refresh();assert.deepEqual(calls,[READ]);f.setCurrent(false);f.notify({type:'ARCHIVE_CHANGED'});await tick();assert.deepEqual(calls,[READ]);});
+
+
+test('explicit OFF retry stays busy across its fresh read and one original configure acknowledgement',async()=>{
+ const read=deferred(),ack=deferred(),calls=[];let reads=0;
+ const state=new SettingsMaintenanceState({send:async(type,fields)=>{calls.push({type,fields});return type===READ?(++reads===1?snapshot({savedEnabled:true,phase:'off_unconfirmed'}):read.promise):ack.promise;}});
+ await state.load();const retry=state.configure(false,{reread:true});
+ assert.equal(state.busy,true);assert.equal(state.editable,false);assert.equal(state.value.phase,'off_unconfirmed');
+ read.resolve(snapshot({savedEnabled:true,phase:'off_unconfirmed',generation:'fresh'}));await tick();
+ assert.equal(state.busy,true,'fresh status cannot expose a false settled gap before the write');
+ assert.equal(state.editable,false);assert.equal(calls.filter(c=>c.type===WRITE).length,1);
+ assert.equal(calls.at(-1).fields.expectedGeneration,'fresh');
+ ack.resolve(snapshot({generation:'committed'}));assert.equal(await retry,true);
+ assert.equal(state.busy,false);assert.equal(state.value.phase,'off');
+});
+test('native modal keyboard boundaries wrap inside without confirming or changing Escape behavior',async t=>{
+ const calls=[],f=ui(t,async(type,fields)=>{calls.push({type,fields});return snapshot();});await tick();
+ const toggle=f.find('settings-maintenance-enabled');toggle.checked=true;fire(toggle,'change');
+ const dialog=f.find('settings-maintenance-consent'),cancel=f.find('settings-maintenance-cancel'),confirm=f.find('settings-maintenance-confirm');
+ let prevented=0;confirm.focus();dialog.listeners.get('keydown')({key:'Tab',shiftKey:false,preventDefault(){prevented++;}});
+ assert.equal(document.activeElement,cancel);cancel.focus();dialog.listeners.get('keydown')({key:'Tab',shiftKey:true,preventDefault(){prevented++;}});
+ assert.equal(document.activeElement,confirm);assert.equal(prevented,2);
+ dialog.listeners.get('keydown')({key:'Escape',preventDefault(){throw Error('Escape must remain native');}});
+ assert.equal(dialog.open,true);assert.equal(calls.filter(c=>c.type===WRITE).length,0);
+});

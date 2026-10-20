@@ -81,6 +81,7 @@ async function installTransportObserver(page) {
       const completed = reply => {
         try {
           row.ok = reply?.ok === true;
+          if (!row.ok && typeof reply?.error === 'string' && /^[A-Z][A-Z0-9_]{1,63}$/.test(reply.error)) row.error = reply.error;
           if (!reply || typeof reply.ok !== 'boolean') probe.unexpected.push('invalid-reply-envelope');
           if (row.ok) {
             const value = reply.data;
@@ -305,6 +306,16 @@ async function withFixture(variant, scenario, run) {
     failure = error;
     trace.failure = {name:error.name, message:error.message, stack:error.stack};
     if (h?.archive && !h.archive.isClosed()) {
+      // Bounded synthetic identity/error metadata only, never archive bodies.
+      try { console.log('MAINTENANCE_SETTINGS_FAILURE_PROBE', JSON.stringify(await h.archive.evaluate(async () => {
+        const probe = globalThis.__maintenanceSettingsProbe;
+        const tab = await chrome.tabs.getCurrent();
+        const contexts = await chrome.runtime.getContexts({contextTypes:['TAB'], documentUrls:[location.href]});
+        return {url:location.href, readyState:document.readyState,
+          tab:tab ? Object.fromEntries(['id','windowId','url','pendingUrl','status','incognito'].filter(k => Object.hasOwn(tab,k)).map(k => [k,tab[k]])) : null,
+          contexts:contexts.slice(0,8).map(c => Object.fromEntries(['contextType','tabId','windowId','frameId','documentId','documentUrl','incognito'].map(k => [k,c[k]]))),
+          pending:probe?.pending ?? null, reads:probe?.reads.slice(-20) ?? [], writes:probe?.writes.slice(-10) ?? []};
+      }))); } catch (probeError) { console.log('MAINTENANCE_SETTINGS_FAILURE_PROBE_UNAVAILABLE', String(probeError)); }
       try { await h.archive.screenshot({path:join(directory, 'failure.png'), fullPage:true}); }
       catch (screenshotError) { trace.screenshotError = String(screenshotError); }
     }

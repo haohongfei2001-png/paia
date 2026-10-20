@@ -1,3 +1,4 @@
+import {installSettingsDialogKeyboard} from './settings-details.js';
 import {SettingsMaintenanceState} from './settings-maintenance-state.js';
 import {withSettingsControlFocus} from './settings-local-state.js';
 const owners=new WeakMap();
@@ -20,8 +21,8 @@ export function mountSettingsMaintenance(host,{send,language,runtime,isCurrent=(
  }
  toggle.addEventListener('change',event=>{const enabled=toggle.checked;sync();if(!event.isTrusted||!isCurrent()||!state.editable)return;if(enabled){pending=state.value.generation;sync();dialog.showModal();cancel.focus();}else void withSettingsControlFocus(toggle,()=>state.configure(false));});
  confirm.addEventListener('click',event=>{if(!event.isTrusted||!isCurrent()||!pending||!state.editable)return;const valid=pending===state.value.generation;dialog.close();if(valid)void withSettingsControlFocus(toggle,()=>state.configure(true));else void state.load();});
- cancel.addEventListener('click',()=>dialog.close());dialog.addEventListener('close',()=>{pending=null;if(isCurrent())toggle.focus({preventScroll:true});});
- retry.addEventListener('click',event=>{if(!event.isTrusted||!isCurrent()||state.busy)return;const retryOff=state.feedback==='off-unconfirmed';void withSettingsControlFocus(retry,async()=>{if(!await state.load())return;if(retryOff&&state.editable)await state.configure(false);});});
+ cancel.addEventListener('click',()=>dialog.close());installSettingsDialogKeyboard(dialog);dialog.addEventListener('close',()=>{pending=null;if(isCurrent())toggle.focus({preventScroll:true});});
+ retry.addEventListener('click',event=>{if(!event.isTrusted||!isCurrent()||state.busy)return;const retryOff=state.feedback==='off-unconfirmed';void withSettingsControlFocus(retry,()=>retryOff?state.configure(false,{reread:true}):state.load());});
  const refresh=()=>isCurrent()?state.load():Promise.resolve(false);
  runtime?.onMessage?.addListener(message=>{if(message?.type==='PAIA_MAINTENANCE_PROCESSING_CHANGED'||message?.type==='ARCHIVE_CHANGED')void refresh();});
  const owner={state,sync,refresh};owners.set(host,owner);sync();void refresh();return owner;
