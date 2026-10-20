@@ -3,6 +3,8 @@ import {inputProjection} from './thought-evidence.js';
 import {prefix} from './thought-model.js';
 import {safeOffset} from './reader-state.js';
 import {AI_FIELDS,isStoredAIPresentation} from './organizer/ai-contract.js';
+import {observedPromptFilterRead,promptFilterReadIsStatic,originalPromptFilterOwner} from './smart-filter-store.js';
+import {requireRepositoryTransactionDataMethods,requireRepositoryTransactionScope,requireRepositoryTransactionSucceeded} from './idb-repository.js';
 const fail=(code,restriction)=>{const error=new ArchiveError(code||'MEMORY_INVALID');if(restriction)error.restriction=restriction;throw error;};
 export const own=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
 const idOK=v=>typeof v==='string'&&v.length>0&&v.length<=200;
@@ -49,9 +51,31 @@ export async function materialRead(memory,t,ref,{checkRevision=true}={}){
 
 // Local Prompt projection consumes the original material restrictions once in
 // its exact readonly page. No body/projection is cached or supplied by callers.
-export async function readPromptReuseMaterial(memory,t,inputId,filter){
+export function readPromptReuseMaterial(memory,t,inputId,filter){return promptReuseMaterial(memory,t,inputId,filter);}
+const promptMaterialReads=new WeakMap();
+export async function observedPromptReuseMaterial(memory,t,inputId,filter){
+ const store=memory.s,repository=store.repository,db=repository.db;let filterToken=null,qualified=false;
+ try{requireRepositoryTransactionDataMethods(repository,t);qualified=originalPromptFilterOwner(store);}catch{}
+ const item=await promptReuseMaterial(memory,t,inputId,filter,async block=>{
+  const read=await observedPromptFilterRead(store,t,block,filter);filterToken=read.token;return read.filtered;
+ });
+ // Every original return, including an early skip before Filter, gets a
+ // private completed receipt. Exceptions never mint one. No body is retained.
+ const token=Object.freeze({});promptMaterialReads.set(token,{store,repository,db,t,filterToken,qualified});
+ return {item,token};
+}
+export function promptMaterialReadIsStatic(store,token,settled=false){
+ const read=promptMaterialReads.get(token);
+ if(!read||!read.qualified||read.store!==store||read.repository!==store.repository||read.db!==store.repository.db||!originalPromptFilterOwner(store))return false;
+ try{
+  if(settled)requireRepositoryTransactionSucceeded(read.repository,read.t);
+  else{requireRepositoryTransactionScope(read.repository,read.t);requireRepositoryTransactionDataMethods(read.repository,read.t);}
+  return read.filterToken===null||promptFilterReadIsStatic(store,read.t,read.filterToken);
+ }catch{return false;}
+}
+async function promptReuseMaterial(memory,t,inputId,filter,filterRead=null){
  const s=memory.s,p=await inputProjection(s,t,inputId);
- if(!p||!p.sourceRecordIds.length||await s.isFiltered(t,p.block,filter))return null;
+ if(!p||!p.sourceRecordIds.length||await (filterRead?filterRead(p.block):s.isFiltered(t,p.block,filter)))return null;
  let allowed=true,conversation=null,at=null;
  // Preserve the original Source/role vetoes. Exceptions from this pre-material
  // stage still reject the whole query rather than becoming a material skip.

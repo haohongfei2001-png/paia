@@ -39,12 +39,17 @@ const publicationEqual=(a,b)=>{
 };
 const error=code=>{throw new ArchiveError(code);};
 const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(!c.settings.enabled)error('PAUSED');if(epoch!==c.settings.epoch)error('STALE_CAPTURE');};
-const localPublicationOwners=new WeakMap(),originalLocalControls=new WeakMap(),nativeControlObservations=new WeakMap();
+const localPublicationOwners=new WeakMap(),originalLocalControls=new WeakMap(),nativeControlObservations=new WeakMap(),originalControlIdentityFailures=new WeakMap();
+// This records only an existing original rejection. It cannot qualify a read
+// or turn an adapter's own error into native evidence.
+export function originalControlIdentityFailure(store,reason){return originalControlIdentityFailures.has(reason)&&originalControlIdentityFailures.get(reason)===store;}
 // Read-only constructor-bound observation. It grants no write, ACK or native
 // cut authority; the original native owner meters and compares the result.
 export function requireOriginalControlObservation(store,token){
  const p=nativeControlObservations.get(token),bound=originalLocalControls.get(store);
- if(!p||p.store!==store||!bound||p.bound!==bound||store.local!==bound.local||bound.local.get!==bound.get||bound.local.set!==bound.set||localPublicationOwners.get(store)!==p.owner||store.repository.db!==p.db||store.databaseId!==p.databaseId||store.tail!==p.tail||store.controlCache!==p.control||store.pendingControl||p.owner.loadedStamp!==p.stamp)error('CONTROL_PUBLICATION_CHANGED');
+ if(!p||p.store!==store||!bound||p.bound!==bound)error('CONTROL_PUBLICATION_CHANGED');
+ if(store.local!==bound.local||bound.local.get!==bound.get||bound.local.set!==bound.set){const reason=new ArchiveError('CONTROL_PUBLICATION_CHANGED');originalControlIdentityFailures.set(reason,store);throw reason;}
+ if(localPublicationOwners.get(store)!==p.owner||store.repository.db!==p.db||store.databaseId!==p.databaseId||store.tail!==p.tail||store.controlCache!==p.control||store.pendingControl||p.owner.loadedStamp!==p.stamp)error('CONTROL_PUBLICATION_CHANGED');
  return true;
 }
 export async function observeOriginalControlPublication(store,token=null){
@@ -339,4 +344,25 @@ export class IndexedArchiveStore {
  recoverMigration(){const task=this.tail.then(async()=>{await this.repository.recoverMigration();this.loaded=false;return {ok:true};});this.tail=task.catch(()=>{});return task;}
  snapshot(){return this.run(async()=>{if(await this.repository.transaction(false,t=>t.count('records'))>1000)error('INVALID_REQUEST');const s=await this.repository.materialize();const total=s.records.filter(r=>!r.deletedAt).length;return {...s,schemaVersion:6,stats:{total,hidden:s.records.filter(r=>r.hidden&&!r.deletedAt).length,trash:s.records.filter(r=>r.deletedAt).length,bytes:0,quotaBytes:0},diagnostics:this.volatileError?{...s.diagnostics,lastError:this.volatileError}:s.diagnostics,adapterVersion:ADAPTER_VERSION};});}
  page(options={}){return this.run(()=>this.repository.transaction(false,async t=>queryPage(t,await this.control(t),options)));}
+}
+
+// Read-only source identity for optional Prompt work reuse. These descriptors
+// are fixed by this declaration module, never accepted from a caller/service.
+const promptQueuePrototype=IndexedArchiveStore.prototype,promptQueueParent=Object.getPrototypeOf(promptQueuePrototype);
+const promptQueueMethods=['run','control','qualifyControlPublicationRead','controlPublicationLoadedRow'].map(name=>[name,Object.getOwnPropertyDescriptor(promptQueuePrototype,name)]);
+const promptQueueDescriptor=(actual,expected)=>!!actual&&['value','get','set','writable','enumerable','configurable'].every(key=>actual[key]===expected[key]);
+const promptDataIdentity=(object,name,value)=>{
+ for(let owner=object;owner;owner=Object.getPrototypeOf(owner)){const descriptor=Object.getOwnPropertyDescriptor(owner,name);if(descriptor)return Object.hasOwn(descriptor,'value')&&descriptor.value===value;}
+ return false;
+};
+export function originalIndexedPromptReadOwner(store){
+ const bound=originalLocalControls.get(store);
+ if(!bound||!promptDataIdentity(store,'local',bound.local)||!promptDataIdentity(bound.local,'get',bound.get)||!promptDataIdentity(bound.local,'set',bound.set)||Object.getPrototypeOf(promptQueuePrototype)!==promptQueueParent)return false;
+ for(const [name,expected] of promptQueueMethods){
+  if(!promptQueueDescriptor(Object.getOwnPropertyDescriptor(promptQueuePrototype,name),expected))return false;
+  if(name==='run')continue;
+  let found=false;for(let owner=store;owner;owner=Object.getPrototypeOf(owner)){const descriptor=Object.getOwnPropertyDescriptor(owner,name);if(descriptor){found=promptQueueDescriptor(descriptor,expected);break;}}
+  if(!found)return false;
+ }
+ return true;
 }
