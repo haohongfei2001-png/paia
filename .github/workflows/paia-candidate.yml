@@ -1172,7 +1172,7 @@ jobs:
           if(process.env.NATIVE_BROWSER_FRAME_SELECTED==='true'){
             const frame=evidence.nativeBrowserFrame;assert.equal(frame?.status,'captured');assert.equal(frame.headSha,evidence.headSha);assert.equal(frame.kind,'synthetic-hosted-browser-window');assert.equal(frame.viewportEmulation,null);
             const png=await readFile(root+frame.file);assert.ok(png.length>24&&png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));assert.equal(png.readUInt32BE(16),frame.display.width);assert.equal(png.readUInt32BE(20),frame.display.height);
-            for(const size of [16,32,48,128])assert.equal(frame.display.icons[size],`icons/icon${size}.png`);
+            for(const size of [16,32,48,128])assert.equal(frame.display.icons[size],`icons/action${size}.png`);
           }
           console.log('NATIVE_POPUP_EVIDENCE_PASS '+evidence.headSha+' states='+expected.length);
           JS

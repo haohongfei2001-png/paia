@@ -76,5 +76,29 @@
     "sha256": "0b9c942e33fdfd946b91feaff873d47461a091e3a629daa8a7d94cb736b7264b",
     "role": "Self-hosted homepage editorial headings; existing PAIA wordmark font and all graphic brand assets unchanged.",
     "conversion": "TTF to WOFF2, full glyph set, fontTools 4.66.0; no outline or name edits."
+  },
+  "assets/website/brand/paia-symbol-soft-blue.svg": {
+    "source": "design/brand/soft-blue-p-20261021/source/symbol.svg",
+    "authority": "design/brand/soft-blue-p-20261021/manifest.json",
+    "sha256": "1b1faffcd81ecd2a522f0d571c7532cc15a6f2d3f7d205c8edf8e0769c5394c6",
+    "role": "Adopted soft-blue P for the website header and compact product-preview rail; original canvas, transparent background."
+  },
+  "assets/website/brand/paia-favicon-soft-blue.svg": {
+    "source": "design/brand/soft-blue-p-20261021/source/ui-symbol.svg",
+    "authority": "design/brand/soft-blue-p-20261021/manifest.json",
+    "sha256": "8d1a718090f26e5ca3502aafa313b834fe496301df0314feede3f3c1e52b2da6",
+    "role": "Preferred browser favicon; identical P path with a compact viewBox and transparent background."
+  },
+  "assets/website/brand/paia-favicon-soft-blue-32.png": {
+    "source": "design/brand/soft-blue-p-20261021/png/ui-symbol-32.png",
+    "authority": "design/brand/soft-blue-p-20261021/manifest.json",
+    "sha256": "b6c86e6de3ce336e98f2d9dd963380c2d71831e9208762cb0170c25fee74d509",
+    "role": "32-pixel PNG fallback for the compact browser favicon."
+  },
+  "assets/website/brand/paia-app-soft-blue-180.png": {
+    "source": "design/brand/soft-blue-p-20261021/png/app-icon-180.png",
+    "authority": "design/brand/soft-blue-p-20261021/manifest.json",
+    "sha256": "2c6932af278fa9103bedaa70b809deececa53c40ff7a6be0d6807cf26407b284",
+    "role": "180-pixel Apple touch icon with the adopted P on opaque white."
   }
 }

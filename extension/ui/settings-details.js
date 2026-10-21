@@ -4,13 +4,8 @@ import {createIcon} from './icons.js';
 import {refreshStorage,subscribeStorageEstimate,storageSummaryText} from './r6-settings.js';
 import {SettingsRemovedComposite,REMOVED_KINDS} from './settings-removed-composite.js';
 
-export function mountSettingsDetail({id,title,dialogTitle=()=>title,content,value=()=>'',language=()=>document.documentElement.lang,onOpen=()=>{},beforeClose=null}){
- const row=document.createElement('button');row.type='button';row.id=id;row.className='ux-setting-row ux-settings-destination';row.setAttribute('aria-haspopup','dialog');
- const label=document.createElement('span');label.className='ux-setting-name';const summary=document.createElement('span');summary.className='ux-setting-destination-value';row.append(label,summary,createIcon('chevron-right'));
- const dialog=document.createElement('dialog');dialog.id=id+'-dialog';dialog.className='ux-settings-detail-dialog';const header=document.createElement('header'),heading=document.createElement('h2'),close=document.createElement('button');heading.id=id+'-title';dialog.setAttribute('aria-labelledby',heading.id);row.setAttribute('aria-controls',dialog.id);close.type='button';close.className='ux-settings-detail-close';header.append(heading,close);dialog.append(header,content);document.body.append(dialog);
- const sync=()=>{const chinese=language()==='zh-CN';label.textContent=title[chinese?0:1];heading.textContent=dialogTitle()[chinese?0:1];summary.textContent=value(chinese);close.textContent=chinese?'关闭':'Close';close.setAttribute('aria-label',(chinese?'关闭':'Close ')+heading.textContent);};
- // Keep sequential keyboard navigation inside the open modal. Native dialog
- // Escape/close and return focus remain browser-owned.
+// Shared original Settings modal focus containment; native Escape stays untouched.
+export function installSettingsDialogKeyboard(dialog){
  dialog.addEventListener('keydown',event=>{
   if(event.key!=='Tab'||event.altKey||event.ctrlKey||event.metaKey)return;
   const visible=[...dialog.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].filter(node=>!node.disabled&&node.tabIndex>=0&&node.getClientRects().length);
@@ -19,6 +14,16 @@ export function mountSettingsDetail({id,title,dialogTitle=()=>title,content,valu
   if(!first)return;
   if(event.shiftKey?(active===first||!dialog.contains(active)):(active===last||!dialog.contains(active))){event.preventDefault();(event.shiftKey?last:first).focus();}
  });
+}
+
+export function mountSettingsDetail({id,title,dialogTitle=()=>title,content,value=()=>'',language=()=>document.documentElement.lang,onOpen=()=>{},beforeClose=null}){
+ const row=document.createElement('button');row.type='button';row.id=id;row.className='ux-setting-row ux-settings-destination';row.setAttribute('aria-haspopup','dialog');
+ const label=document.createElement('span');label.className='ux-setting-name';const summary=document.createElement('span');summary.className='ux-setting-destination-value';row.append(label,summary,createIcon('chevron-right'));
+ const dialog=document.createElement('dialog');dialog.id=id+'-dialog';dialog.className='ux-settings-detail-dialog';const header=document.createElement('header'),heading=document.createElement('h2'),close=document.createElement('button');heading.id=id+'-title';dialog.setAttribute('aria-labelledby',heading.id);row.setAttribute('aria-controls',dialog.id);close.type='button';close.className='ux-settings-detail-close';header.append(heading,close);dialog.append(header,content);document.body.append(dialog);
+ const sync=()=>{const chinese=language()==='zh-CN';label.textContent=title[chinese?0:1];heading.textContent=dialogTitle()[chinese?0:1];summary.textContent=value(chinese);close.textContent=chinese?'关闭':'Close';close.setAttribute('aria-label',(chinese?'关闭':'Close ')+heading.textContent);};
+ // Keep sequential keyboard navigation inside the open modal. Native dialog
+ // Escape/close and return focus remain browser-owned.
+ installSettingsDialogKeyboard(dialog);
  let closing=false;
  const requestClose=()=>{
   if(!beforeClose){dialog.close();return;}

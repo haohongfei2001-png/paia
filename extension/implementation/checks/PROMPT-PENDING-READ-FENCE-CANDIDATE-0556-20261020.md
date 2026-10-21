@@ -1,3 +1,17 @@
+# Prompt 0.55.7 — integration onto actual Settings and brand main
+
+This is the normal two-parent PR309 integration candidate prepared after Settings PR307 actually merged as main 4d3753a939e1659f111704d6101e81a7a6293194, tree9b2c083dfabf305fbafc7deb8e4ecc7dba6e309e, version0.55.6. The intended parents are the preserved Prompt head51a5685d99300c02f744426706ae49a7a62a9aab and that actual main. No force update or history replacement is intended. The product version is now0.55.7, not the earlier provisional0.55.6.
+
+Every unrelated Settings/brand blob is retained, including action16/32/48/128 icons, the two corrected brand-role oracles and four existing browser-routing/admission changes. Only the original twenty Prompt paths differ from fresh main. The two shared runtime files are genuine three-way merges against e651: complete Settings Repository final-purpose/native-identity and thought Source-presence changes remain, plus the exact original Prompt identity helpers/import. Their merged bytes equal the independently reviewed local preparation; this introduces no additional runtime behavior, guard relaxation, retry, TTL, scan, serial, permission, schema or dependency change. Manifest/package are exact fresh-main bytes except synchronized version literals.
+
+Historical exact Prompt head51a passed Candidate39499191831, Foundation39499191757 including original Source/release Surface42/42, and Full39507364714 on the old e651-based tree92ee. Normal ready-event Codex comment6303066842 reported no findings for that exact old head. Those results are historical, not certification of this new Settings/brand combination. Settings candidate Full39556134491 and supplement39556127939 passed before its merge, but likewise do not qualify the new Prompt head; main4d375 certification was still running when preparation began.
+
+A separate clearly speculative local preflight previously passed147 owner/fence,55 original Repository,560 Prompt and426 Settings tests plus617-file packaging. Its first six missing-pg subprocess failures remain preserved; only locked existing dependencies were supplied before that affected job passed. That preview preceded the final two Settings brand oracles/four routing changes and is not reused as current-combination acceptance. Current final-input checks, independent aggregate review, actual changed-head original browser/Full and subsequent exact-main gates are required before integration is accepted.
+
+The original genuine-write fallback still has an explicit three-scan cost at501 synthetic Inputs (single QUERY1002 Source reads; discarded shared QUERY+resolve plus one fresh original scan per caller3006 reads). Quiet reads retain one scan. No A/B latency, physical120Hz, human visual, real-provider, installed-version or whole-program acceptance is claimed. No paid/live AI, account, credential, wider permission or deployment is enabled. All preceding failed/cancelled results and original behavioral assertions are preserved below with their historical provenance.
+
+## Preserved original 0.55.6 candidate and regression history
+
 # Pending-read fence recovery candidate 0.55.6 — 2026-10-20
 
 ## Idle-maintenance owner successor, local-only qualification — 2026-10-20

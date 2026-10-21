@@ -1,3 +1,4 @@
+import {sourcePresent} from './thought-source-presence.js';
 import {beginHumanOperation,finishHumanOperation,releaseHumanOperation,humanOperationError} from './browser-native-sync/human-library-plan.js';
 import {humanClock,humanUuid} from './browser-native-sync/human-library-allocation.js';
 import {assertMemoryPlacementChangeAllowed} from './memory/organization-guard.js';
@@ -93,7 +94,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
   if(!idOK(request?.operationId)||request.operationId.length<8)fail();const digest=await hashText(JSON.stringify(request));
   return this.run(()=>this.repository.transaction(false,t=>receipt(t,request,digest),['operationReceipts']));
  }
- async sourcePresent(t,ids) {for(const id of ids||[]){const r=await t.get('recordIndex',id);if(!r||!await t.get('records',id)||await t.get('tombstones','source:'+r.sourceKey)||await t.get('tombstones','snapshot:'+r.dedupeKey))return false;}return true;}
+ sourcePresent(t,ids) {return sourcePresent(t,ids);}
  async readableEntry(t,id) {
   const row=await t.get('thoughts',id);if(!row||row.storageSchema!==2||row.lifecycle==='quarantined')fail();
   if(!await this.sourcePresent(t,row.sourceRecordIds)) {

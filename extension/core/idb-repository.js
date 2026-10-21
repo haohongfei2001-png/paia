@@ -1,3 +1,4 @@
+import {requireMaintenanceProcessingPurposeFinalFacts} from '../background/maintenance-processing-consent.js';
 import {requireTopicProcessingFinalFacts} from './topic-processing.js';
 import {sampleSectionPromotionRecoveryFinalFacts,requireSectionPromotionRecoveryFinalFacts} from './ai-usage/section-promotion-recovery-authority.js';
 import {syncArchiveYearIndex,clearArchiveYearIndex} from './archive-year-index.js';
@@ -103,14 +104,20 @@ function synchronousTrue(record,check){
 // The plan is a synchronous generator: only Repository performs the yielded
 // IDB reads. Async generators/checkers and arbitrary awaited work cannot enter
 // the strict final segment. A second registration never replaces prior facts.
-export function registerRepositoryFinalReadFence(repository,scope,{plan,isCurrent,compatibilityRecheck=null,authority=null,promotionRecoveryAuthority=null}={}){
+export function registerRepositoryFinalReadFence(repository,scope,{plan,isCurrent,compatibilityRecheck=null,authority=null,promotionRecoveryAuthority=null,maintenanceProcessingPurpose=null}={}){
  const record=scopeRecord(repository,scope);requireRepositoryTransactionScope(repository,scope);
  if(record.identity.mode!=='readwrite'||record.phase!=='callback'||record.terminalFailed)refuseTerminal(record);
  if(typeof plan!=='function'||typeof isCurrent!=='function'||compatibilityRecheck!==null&&typeof compatibilityRecheck!=='function')refuseTerminal(record);
- synchronousTrue(record,isCurrent);if(authority!==null)synchronousTrue(record,()=>requireTopicProcessingFinalFacts(authority,repository,scope));if(promotionRecoveryAuthority!==null)synchronousTrue(record,()=>requireSectionPromotionRecoveryFinalFacts(promotionRecoveryAuthority,repository,scope));record.finalReadFences.push(Object.freeze({plan,isCurrent,compatibilityRecheck,authority,promotionRecoveryAuthority}));
+ synchronousTrue(record,isCurrent);if(authority!==null)synchronousTrue(record,()=>requireTopicProcessingFinalFacts(authority,repository,scope));if(promotionRecoveryAuthority!==null)synchronousTrue(record,()=>requireSectionPromotionRecoveryFinalFacts(promotionRecoveryAuthority,repository,scope));if(maintenanceProcessingPurpose!==null)synchronousTrue(record,()=>requireMaintenanceProcessingPurposeFinalFacts(maintenanceProcessingPurpose,repository,scope));record.finalReadFences.push(Object.freeze({plan,isCurrent,compatibilityRecheck,authority,promotionRecoveryAuthority,maintenanceProcessingPurpose}));
 }
 function sampleFinalAuthorities(record,fences){for(const fence of fences)if(fence.promotionRecoveryAuthority!==null)synchronousTrue(record,()=>sampleSectionPromotionRecoveryFinalFacts(fence.promotionRecoveryAuthority,record.repository,record.scope));}
-function finalAuthorityFacts(record,fences){for(const fence of fences){if(fence.authority!==null)synchronousTrue(record,()=>requireTopicProcessingFinalFacts(fence.authority,record.repository,record.scope));if(fence.promotionRecoveryAuthority!==null)synchronousTrue(record,()=>requireSectionPromotionRecoveryFinalFacts(fence.promotionRecoveryAuthority,record.repository,record.scope));}}
+function finalAuthorityFacts(record,fences){
+ for(const fence of fences){if(fence.authority!==null)synchronousTrue(record,()=>requireTopicProcessingFinalFacts(fence.authority,record.repository,record.scope));if(fence.promotionRecoveryAuthority!==null)synchronousTrue(record,()=>requireSectionPromotionRecoveryFinalFacts(fence.promotionRecoveryAuthority,record.repository,record.scope));}
+ // Existing Topic receipt facts still sample their original Date contract.
+ // A later such sample can retire an earlier purpose: sweep every fixed
+ // purpose token only after the entire original collection has finished.
+ for(const fence of fences)if(fence.maintenanceProcessingPurpose!==null)synchronousTrue(record,()=>requireMaintenanceProcessingPurposeFinalFacts(fence.maintenanceProcessingPurpose,record.repository,record.scope));
+}
 function currentFinalAuthorities(record,fences){for(const fence of fences)synchronousTrue(record,fence.isCurrent);sampleFinalAuthorities(record,fences);finalAuthorityFacts(record,fences);}
 async function runFinalReadFences(scope,record){
  if(!record.finalReadFences.length)return;
@@ -326,7 +333,7 @@ class Transaction {
 // bounded profile is a refusal check, not proof of native request/data effects.
 const originalDataPrototype=Transaction.prototype;
 const originalDataPrototypeParent=originalPrototypeOf(originalDataPrototype);
-const originalDataMethods=Object.freeze(['get','put','count','rangePage','primaryRangePage','delete'].map(name=>Object.freeze([name,Object.freeze(originalOwnDescriptor(originalDataPrototype,name))])));
+const originalDataMethods=Object.freeze(['get','has','put','count','rangePage','primaryRangePage','delete'].map(name=>Object.freeze([name,Object.freeze(originalOwnDescriptor(originalDataPrototype,name))])));
 
 export class ArchiveRepository {
  constructor(local,{indexedDB=globalThis.indexedDB,name=DATABASE_NAME,checkpoint=async()=>{},ia=false,smartFilter=false,thoughtLibrary=false}={}){this.local=local;this.ia=ia;this.smartFilter=smartFilter;this.thoughtLibrary=thoughtLibrary;this.stores=[...STORES,...(ia?IA_STORES:[]),...(smartFilter?FILTER_STORES:[]),...(thoughtLibrary?LIBRARY_STORES:[])];this.factory=indexedDB;this.name=name;this.checkpoint=checkpoint;this.metrics={reads:0,writes:0,scans:0};repositoryWrites.set(this,{generation:Object.freeze({}),active:0});}

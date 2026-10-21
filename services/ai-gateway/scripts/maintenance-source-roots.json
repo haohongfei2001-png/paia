@@ -34,6 +34,7 @@
   "services/ai-gateway/tests/maintenance-section-promotion-lifecycle.test.mjs",
   "services/ai-gateway/tests/maintenance-section-promotion-runner.test.mjs",
   "services/ai-gateway/tests/maintenance-section-promotion-source.test.mjs",
+  "services/ai-gateway/tests/maintenance-source-processing.test.mjs",
   "services/ai-gateway/tests/maintenance-source-response-path.test.mjs",
   "services/ai-gateway/tests/maintenance-topic-candidate-path.test.mjs",
   "services/ai-gateway/tests/maintenance-topic-exact-reuse-boundary.test.mjs",

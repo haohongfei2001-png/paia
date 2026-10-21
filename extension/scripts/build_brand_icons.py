@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Verify or restore the owner-approved mailbox icons without resampling.
+"""Verify or restore the owner-approved soft-blue P icons without resampling.
 
-The final package has distinct optical sizes. Copy their exact bytes rather than
-shrinking one Desktop image or upscaling a 64px source. --check writes nothing.
+App canvases, compact toolbar symbols and application UI marks have distinct
+approved sources. Copy exact bytes for each role and size. --check writes nothing.
 This is maintenance tooling, never an extension runtime dependency.
 """
 import argparse
@@ -14,10 +14,10 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 PROVENANCE = ROOT / 'extension/icons/brand-icons-provenance.json'
-SOURCE_ROOT = 'design/brand/mailbox-final-20261018'
+SOURCE_ROOT = 'design/brand/soft-blue-p-20261021'
 SIZES = (16, 32, 48, 128)
-SOURCE_SIZES = (16, 32, 48, 64, 128)
-BRAND_ID = 'PAIA-MAILBOX-FINAL-20261018'
+SOURCE_ROLES = {'app-icon': SIZES, 'ui-symbol': SIZES, 'symbol': (32, 64)}
+BRAND_ID = 'PAIA-OPEN-P-SOFT-BLUE-20261021'
 
 
 def validate_png(data, expected, label):
@@ -35,18 +35,18 @@ def main():
     args = parser.parse_args()
     record = json.loads(PROVENANCE.read_text(encoding='utf-8'))
     authority_path = SOURCE_ROOT + '/manifest.json'
-    if record['schema_version'] != 2 or record['brand_id'] != BRAND_ID or record['authority_manifest'] != authority_path:
-        raise ValueError('Unexpected mailbox adoption authority')
+    if record['schema_version'] != 3 or record['brand_id'] != BRAND_ID or record['authority_manifest'] != authority_path:
+        raise ValueError('Unexpected soft-blue P adoption authority')
     authority = json.loads((ROOT / authority_path).read_text(encoding='utf-8'))
-    if authority['brand_id'] != BRAND_ID:
-        raise ValueError('Mailbox authority identity differs')
+    if authority['schema_version'] != 3 or authority['brand_id'] != BRAND_ID:
+        raise ValueError('Soft-blue P authority identity differs')
     sources = record['sources']
-    expected_sources = {f'{SOURCE_ROOT}/png/paia-{s}.png' for s in SOURCE_SIZES}
-    if set(sources) != expected_sources:
-        raise ValueError('Exactly the five approved optical sources are required')
+    expected_sources = {f'{SOURCE_ROOT}/png/{role}-{size}.png': size
+                        for role, sizes in SOURCE_ROLES.items() for size in sizes}
+    if set(sources) != set(expected_sources):
+        raise ValueError('Exactly ten approved sources across the three roles are required')
     source_bytes = {}
-    for size in SOURCE_SIZES:
-        path = f'{SOURCE_ROOT}/png/paia-{size}.png'
+    for path, size in expected_sources.items():
         entry = sources[path]
         if entry != authority['sources'][path] or entry['dimensions'] != [size, size]:
             raise ValueError(f'{path}: source differs from the independent adoption record')
@@ -54,31 +54,36 @@ def main():
         validate_png(data, entry, path)
         source_bytes[path] = data
 
-    expected_icons = {f'extension/icons/icon{s}.png': s for s in SIZES}
-    expected_ui = {f'extension/ui/assets/paia-logo-{s}.png': s for s in (32, 64)}
-    if set(record['outputs']) != set(expected_icons) or set(record['ui_outputs']) != set(expected_ui):
-        raise ValueError('Exactly four action icons and two existing UI marks are required')
+    expected_groups = {
+        'outputs': {f'extension/icons/icon{s}.png': ('app-icon', s) for s in SIZES},
+        'action_outputs': {f'extension/icons/action{s}.png': ('ui-symbol', s) for s in SIZES},
+        'ui_outputs': {f'extension/ui/assets/paia-logo-{s}.png': ('symbol', s) for s in (32, 64)},
+    }
+    for group, expected in expected_groups.items():
+        if set(record[group]) != set(expected):
+            raise ValueError('Exactly four app icons, four toolbar icons and two UI marks are required')
     outputs = {}
-    for path, size in {**expected_icons, **expected_ui}.items():
-        entry = {**record['outputs'], **record['ui_outputs']}[path]
-        expected_source = f'{SOURCE_ROOT}/png/paia-{size}.png'
-        approved = authority['targets'][path]
-        if entry['source'] != expected_source or entry['dimensions'] != [size, size]:
-            raise ValueError(f'{path}: incorrect optical source or dimensions')
-        if any(entry[k] != approved[k] for k in ('source', 'dimensions', 'sha256')):
-            raise ValueError(f'{path}: output differs from the adoption record')
-        data = source_bytes[expected_source]
-        validate_png(data, entry, path)
-        if args.check:
-            validate_png((ROOT / path).read_bytes(), entry, path)
-        outputs[path] = data
+    for group, expected in expected_groups.items():
+        for path, (role, size) in expected.items():
+            entry = record[group][path]
+            expected_source = f'{SOURCE_ROOT}/png/{role}-{size}.png'
+            approved = authority['targets'][path]
+            if entry['source'] != expected_source or entry['dimensions'] != [size, size]:
+                raise ValueError(f'{path}: incorrect role, source or dimensions')
+            if any(entry[k] != approved[k] for k in ('source', 'dimensions', 'sha256')):
+                raise ValueError(f'{path}: output differs from the adoption record')
+            data = source_bytes[expected_source]
+            validate_png(data, entry, path)
+            if args.check:
+                validate_png((ROOT / path).read_bytes(), entry, path)
+            outputs[path] = data
 
     # Every source and output is validated before any write is attempted.
     if not args.check:
         for path, data in outputs.items():
             (ROOT / path).write_bytes(data)
-    print('PASS: five approved optical sources, four action icons and two UI marks match.' if args.check else
-          'Restored all six runtime brand images from exact approved optical sources.')
+    print('PASS: ten approved sources, four app icons, four toolbar icons and two UI marks match.' if args.check else
+          'Restored all ten runtime brand images from exact approved role and size sources.')
 
 
 if __name__ == '__main__':

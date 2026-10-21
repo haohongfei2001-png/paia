@@ -1,16 +1,19 @@
+import {sourcePresent} from '../thought-source-presence.js';
+import {assertMaintenanceProcessingConsentReceiptSnapshot} from '../../background/maintenance-processing-consent.js';
+import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
 import {readTopicExactReuseSelection,assertTopicExactReuseSelectionFacts,readTopicExactReuseMutation,assertTopicExactReuseOwnRow,releaseTopicExactReuseSelection} from '../topic-formation.js';
 import {captureTopicExactReuseMetadata,topicExactReuseEntryMetadata} from '../topic-exact-reuse-metadata.js';
 import {readPromotionQualifiedMutation,assertPromotionQualifiedOwnRow} from '../topic-promotion-commit.js';
-import {captureMaintenanceProcessingReceipt,assertMaintenanceProcessingReceipt,assertMaintenanceProcessingReceiptFacts} from './maintenance-processing-receipt.js';
+import {captureMaintenanceProcessingReceipt,assertMaintenanceProcessingReceipt,assertMaintenanceProcessingReceiptFacts,assertMaintenanceProcessingReceiptCapturedFacts} from './maintenance-processing-receipt.js';
 import {rootReadAuthority} from '../organizer/root-read.js';
-import {createContextScopeWorkBudget,forkContextScopeWorkBudget,contextScopeTransactionReader,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
+import {createContextScopeWorkBudget,forkContextScopeWorkBudget,contextScopeTransactionReader,readContextScopeSourcePresence,assertContextScopeSourcePresenceFacts,assertContextScopeTransactionIdentity,assertContextScopeWorkBudgetCapturedFacts,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
 import {prefix,idOK,revisionOK} from '../thought-model.js';
 import {canonical,digest,equal,exact,fail,opaque} from './contracts.js';
 const freeze=value=>{if(value&&typeof value==='object'){for(const x of Object.values(value))freeze(x);Object.freeze(value);}return value;};
 const size=x=>new TextEncoder().encode(JSON.stringify(x)).length;
 const signalAborted=Object.getOwnPropertyDescriptor(AbortSignal.prototype,'aborted').get;
 const need=(x,code='UNAVAILABLE')=>{if(!x)fail(code);};
-const ENTRY_FIELDS=['body','title','note'],capabilities=new WeakMap(),requestIdentities=new WeakMap(),qualificationReaders=new WeakMap();
+const ENTRY_FIELDS=['body','title','note'],capabilities=new WeakMap(),requestIdentities=new WeakMap(),qualificationReaders=new WeakMap(),requestPermits=new WeakMap();
 const own=(row,key)=>{const d=Object.getOwnPropertyDescriptor(row||{},key);need(!d||Object.hasOwn(d,'value'));return d?.value;};
 // Positive metadata schemas only: future semantic properties never become
 // free metadata, including properties nested in an otherwise known object.
@@ -191,7 +194,7 @@ function exactReuseMetadata(t,row,held,current,{ownMutation,store,qualification}
  need(equal(topicExactReuseEntryMetadata(intent.before),expected)&&equal(topicExactReuseEntryMetadata(intent.after),actual),'STALE_BASE');
  current();assertTopicExactReuseOwnRow(ownMutation,store,t,qualification,row);return true;
 }
-function qualifiedReader(t,held,current,{topicLabels=false,strictTopicIdentity=false,metadataReader=t,ownMutation=null,store,qualification}={}){
+function qualifiedReader(t,held,current,{topicLabels=false,strictTopicIdentity=false,metadataReader=t,ownMutation=null,store,qualification,purposeSnapshot=null}={}){
  const context={ownMutation,store,qualification};
  const wrap=(table,row)=>{current();if(!row)return row;if(table==='thoughts'&&held.exactReuse)row=originalExactRow(row,qualification);const original=row;let fieldCurrent=current;const isExact=table==='thoughts'&&held.exactReuse?.entries.some(x=>x.id===own(original,'id'));const mutationCurrent=()=>{current();if(isExact)assertTopicExactReuseOwnRow(ownMutation,store,t,qualification,original);else assertPromotionQualifiedOwnRow(ownMutation,store,t,qualification,table,original);};if(strictTopicIdentity&&table==='topics')row=strictTopicIdentityRow(row);
   if(table==='thoughts'){const expected=held.entries.get(row.id);if(expected&&(isExact?exactReuseMetadata(t,original,held,current,context):ownMetadata(t,table,original,expected,entryMetadata,textFields.thoughts,context,current)))fieldCurrent=mutationCurrent;row=textGuard(row,textFields.thoughts,()=>!!expected,fieldCurrent);}
@@ -201,9 +204,10 @@ function qualifiedReader(t,held,current,{topicLabels=false,strictTopicIdentity=f
   else if(table==='inputStates'&&held.inputs.has(row.id))need(equal(pick(row,['id','contentRevision','lastRemovalSequence','sourceRecordIds','removalState','sourcePurged']),held.inputs.get(row.id)),'STALE_BASE');
   fieldCurrent();if(isExact)exactQualifiedRows.set(row,{qualification,original,descriptors:Object.getOwnPropertyDescriptors(row)});return row;
  };
+ const before=async()=>{current();if(purposeSnapshot)await purposeSnapshot();current();};
  const checked=async table=>{current();if(['thoughts','blocks','records','revisions'].includes(table))await assertLocalClosures(metadataReader,held);current();};
- const reader=Object.create(t);reader.get=async(...args)=>{current();const row=await t.get(...args);await checked(args[0]);return wrap(args[0],row);};reader.edge=async(...args)=>{current();const row=await t.edge(...args);await checked(args[0]);return wrap(args[0],row);};
- reader.all=async(...args)=>{current();const rows=await t.all(...args);await checked(args[0]);return rows.map(row=>wrap(args[0],row));};for(const method of ['rangePage','page','primaryRangePage','indexPrimaryPage'])reader[method]=async(...args)=>{current();const page=await t[method](...args);await checked(args[0]);for(const row of page.rows)row.value=wrap(args[0],row.value);return page;};
+ const reader=Object.create(t);reader.get=async(...args)=>{await before();const row=await t.get(...args);await checked(args[0]);return wrap(args[0],row);};reader.edge=async(...args)=>{await before();const row=await t.edge(...args);await checked(args[0]);return wrap(args[0],row);};
+ reader.all=async(...args)=>{await before();const rows=await t.all(...args);await checked(args[0]);return rows.map(row=>wrap(args[0],row));};for(const method of ['rangePage','page','primaryRangePage','indexPrimaryPage'])reader[method]=async(...args)=>{await before();const page=await t[method](...args);await checked(args[0]);for(const row of page.rows)row.value=wrap(args[0],row.value);return page;};
  return reader;
 }
 // Mint outside a transaction. The digest binds the complete original metadata
@@ -220,13 +224,22 @@ function requestFingerprint(request,identity){
  const indexes=(values,original)=>{const out=values.map(x=>original.indexOf(canonical(x)));need(out.every(x=>x>=0)&&new Set(out).size===out.length,'STALE_BASE');return out.sort((a,b)=>a-b);};
  return canonical({batch:held.fingerprint,items:indexes(request.items,held.items),coverage:indexes(request.coverage,held.coverage)});
 }
+const qualificationReaderParent=Object.getPrototypeOf,qualificationReaderDescriptor=Object.getOwnPropertyDescriptor;
+function qualificationOriginalScope(store,transaction){assertContextScopeTransactionIdentity(transaction,store);const repository=own(store,'repository');let t=transaction;for(let depth=0;t&&depth<16;depth++,t=qualificationReaderParent(t)){try{requireRepositoryTransactionScope(repository,t);return t;}catch{}}need(false);}
+export function readMaintenanceQualificationRequestPermit(permit,store,transaction,processing){
+ const r=requestPermits.get(permit);if(!r)return null;
+ need(r.store===store&&r.processing.resolve===processing?.resolve&&r.processing.isCurrent===processing?.isCurrent);
+ need(qualificationOriginalScope(store,transaction)===qualificationOriginalScope(store,r.transaction));
+ return Object.freeze({...r});
+}
 export async function createMaintenanceQualification(store,transaction,request,options={}){return createQualification(store,transaction,request,options);}
-async function createQualification(store,transaction,request,{processing,caller,binding,isCurrent,signal=null,selection={},phase='prejob',parent=null,workBudget=null,requestIdentity=null}={},acquisition=null){
+async function createQualification(store,transaction,request,{processing,caller,binding,isCurrent,signal=null,selection={},phase='prejob',parent=null,workBudget=null,requestIdentity=null,processingPermit=null}={},acquisition=null){
  need(typeof isCurrent==='function');const database=store.repository.db,check=()=>{need(store.repository.db===database&&!signal?.aborted&&isCurrent()===true);};check();
  need(typeof processing?.resolve==='function'&&typeof processing?.isCurrent==='function');
  const budget=workBudget??createContextScopeWorkBudget({database,signal});need(budget.database===database);const t=acquisition?acquisition.reader(transaction,budget):contextScopeTransactionReader(store,transaction,budget),authority=await rootReadAuthority(t),restore=(await t.get('meta','recovery-restore-epoch'))?.value??'initial',held=await metadataClosure(store,t,request,selection);
  const scope=freeze({purpose:'ai-maintenance-qualification',phase,binding:structuredClone(binding),batchFingerprint:requestFingerprint(request,requestIdentity),restoreEpoch:restore,rootAuthority:authority,...held.scope});need(size(scope)<=32768,'BUDGET_EXCEEDED');check();
- const raw=await (acquisition?acquisition.resolve(processing,t,scope,budget):processing.resolve(t,scope));acquisition?.check();check();exact(raw,['version','store','caller','scope','epoch','processing','expiresAt','revocationSignal']);
+ let permit=null;if(processingPermit!==null){permit=Object.freeze({});requestPermits.set(permit,{selectorPermit:processingPermit,store,transaction,processing,scope,request,selectionSpec:selection,phase,binding,parent,budget});}
+ const raw=await (acquisition?acquisition.resolve(processing,t,scope,budget):processing.resolve(t,scope,permit));acquisition?.check();check();exact(raw,['version','store','caller','scope','epoch','processing','expiresAt','revocationSignal']);
  need(Reflect.ownKeys(raw).every(k=>Object.hasOwn(Object.getOwnPropertyDescriptor(raw,k),'value'))&&raw.version===1&&raw.store===store&&raw.caller===caller&&Object.isFrozen(caller)&&opaque(raw.epoch)&&raw.processing===true&&Number.isSafeInteger(raw.expiresAt)&&raw.expiresAt>Date.now()&&raw.revocationSignal instanceof AbortSignal&&!raw.revocationSignal.aborted&&equal(scopeData(raw.scope),scope));
  if(parent){assertMaintenanceProcessingReceipt(parent,processing,store);need(parent.store===store&&parent.caller===caller&&parent.epoch===raw.epoch&&parent.revocationSignal===raw.revocationSignal&&parent.expiresAt>=raw.expiresAt);}
  const receipt=captureMaintenanceProcessingReceipt(raw,{processing,store,caller,scope}),record={store,repository:store.repository,database,requestSignal:signal,held,receipt,workBudget:budget,released:false,current:null};
@@ -238,6 +251,13 @@ export function assertMaintenanceQualification(token,store=null){const r=capabil
 // Only the originally captured facts, with no host/issuer callback. A caller
 // must first perform the normal active qualification/identity checks.
 export function assertMaintenanceQualificationFacts(token,store=null){const r=capabilities.get(token);need(r&&!r.released&&(store===null||r.store===store)&&r.store.repository===r.repository&&r.repository.db===r.database&&(r.requestSignal===null||r.requestSignal instanceof AbortSignal&&!signalAborted.call(r.requestSignal)));assertMaintenanceProcessingReceiptFacts(r.receipt,r.store);for(const component of r.components||[])assertMaintenanceQualificationFacts(component,r.store);if(r.exactSelection)assertTopicExactReuseSelectionFacts(r.exactSelection,r.store,r.baseQualification);return true;}
+// Post-current closing facts for the supported source-presence qualification.
+// Independent exact-reuse remains outside this Input-only source operation.
+export function assertMaintenanceQualificationCapturedFacts(token,store=null){
+ const r=capabilities.get(token);need(r&&!r.released&&(store===null||store===r.store)&&!r.exactSelection);
+ need(own(r.store,'repository')===r.repository&&own(r.repository,'db')===r.database&&(r.requestSignal===null||r.requestSignal instanceof AbortSignal&&!signalAborted.call(r.requestSignal)));
+ assertMaintenanceProcessingReceiptCapturedFacts(r.receipt,r.store);for(const component of r.components||[])assertMaintenanceQualificationCapturedFacts(component,r.store);need(!r.released);return true;
+}
 export function maintenanceQualificationReceipt(token,store){return qualified(token,store).receipt;}
 export function maintenanceQualificationReader(token,store,t,{account=true,...options}={}){
  const r=qualified(token,store);need(r.workBudget.reads<CONTEXT_TOPIC_SCOPE_LIMITS.reads&&r.workBudget.hashBytes<CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes&&r.workBudget.hashFields<CONTEXT_TOPIC_SCOPE_LIMITS.hashFields,'BUDGET_EXCEEDED');
@@ -245,7 +265,53 @@ export function maintenanceQualificationReader(token,store,t,{account=true,...op
  // owner accounts its own point read. Reuse only this exact branded reader's
  // underlying metadata facade, preventing recursive qualification wrappers.
  let ancestor=t,metadataReader=null;for(let depth=0;ancestor&&depth<16;depth++,ancestor=Object.getPrototypeOf(ancestor)){const held=qualificationReaders.get(ancestor);if(held?.record===r){metadataReader=held.metadataReader;break;}}
- metadataReader??=contextScopeTransactionReader(store,t,r.workBudget);const reader=qualifiedReader(account?contextScopeTransactionReader(store,t,r.workBudget):t,r.held,r.current,{...options,metadataReader,store,qualification:token});qualificationReaders.set(reader,{record:r,metadataReader});return reader;
+ metadataReader??=contextScopeTransactionReader(store,t,r.workBudget);const reader=qualifiedReader(account?contextScopeTransactionReader(store,t,r.workBudget):t,r.held,r.current,{...options,metadataReader,store,qualification:token,purposeSnapshot:()=>assertMaintenanceProcessingConsentReceiptSnapshot(r.receipt,store,t,r.workBudget)});qualificationReaders.set(reader,{record:r,token,metadataReader,transaction:t,parent:qualificationReaderParent(reader),failed:false,get:Object.getOwnPropertyDescriptor(reader,'get'),identityMethods:Object.fromEntries(['get','has'].map(k=>[k,qualificationReaderDescriptor(reader,k)]))});return reader;
+}
+// Fixed identity-only counterpart for the original private context-reader chain.
+export function assertMaintenanceQualificationTransactionIdentity(reader,store,depth=0){
+ need(Number.isSafeInteger(depth)&&depth>=0&&depth<16);const held=qualificationReaders.get(reader);
+ if(held){
+  need(held.record.store===store);if(held.failed)need(false);
+  try{
+   const r=held.record;need(!r.released&&own(store,'repository')===r.repository&&own(r.repository,'db')===r.database&&qualificationReaderParent(reader)===held.parent);
+   for(const [key,old]of Object.entries(held.identityMethods)){const v=qualificationReaderDescriptor(reader,key);need(old===undefined?v===undefined:!!v&&Object.hasOwn(v,'value')&&v.value===old.value&&v.writable===old.writable&&v.enumerable===old.enumerable&&v.configurable===old.configurable);}
+   assertContextScopeTransactionIdentity(held.parent,store,depth+1);assertMaintenanceQualificationCapturedFacts(held.token,store);return true;
+  }catch(error){held.failed=true;throw error;}
+ }
+ const repository=own(store,'repository'),database=own(repository,'db'),identity=requireRepositoryTransactionScope(repository,reader);
+ need(identity.database===database);requireRepositoryTransactionDataMethods(repository,reader);need(own(store,'repository')===repository&&own(repository,'db')===database);return true;
+}
+// Exact original qualified reader only. Neither this operation nor the
+// context reader producer exposes its underlying transaction or private ledger.
+function sourcePresenceReader(reader,store){
+ const held=qualificationReaders.get(reader);need(held&&held.record.store===store&&!held.failed);
+ try{const d=Object.getOwnPropertyDescriptor(reader,'get'),old=held.get;need(d&&Object.hasOwn(d,'value')&&d.value===old.value&&d.enumerable===old.enumerable&&d.writable===old.writable&&d.configurable===old.configurable);return held;}catch(error){held.failed=true;throw error;}
+}
+export async function readMaintenanceQualifiedSourcePresence(reader,store,ids){
+ const held=sourcePresenceReader(reader,store),selected=list(ids);need(selected.every(id=>held.record.held.sources.has(id)));
+ try{const result=await readContextScopeSourcePresence(held.transaction,store,selected,held.token,held.record.workBudget);sourcePresenceReader(reader,store);assertContextScopeSourcePresenceFacts(held.transaction,store,held.token,held.record.workBudget);return result;}catch(error){held.failed=true;throw error;}
+}
+// Invoked by the original private context-reader chain. Unknown wrappers never
+// pass the native scope brand, and a real reader for another cap cannot replace it.
+export async function readMaintenanceQualificationSourcePresenceAtTransaction(token,store,transaction,ids,workBudget,depth=0){
+ need(Number.isSafeInteger(depth)&&depth>=0&&depth<16);const r=capabilities.get(token);need(r&&r.store===store&&r.workBudget===workBudget);
+ if(qualificationReaders.has(transaction)){const held=sourcePresenceReader(transaction,store);need(held.record===r);try{const result=await readContextScopeSourcePresence(held.transaction,store,ids,token,workBudget,depth+1);sourcePresenceReader(transaction,store);assertContextScopeSourcePresenceFacts(held.transaction,store,token,workBudget,depth+1);return result;}catch(error){held.failed=true;throw error;}}
+ const scope=transaction,identity=requireRepositoryTransactionScope(r.repository,scope),selected=list(ids);need(identity.database===r.database&&selected.every(id=>r.held.sources.has(id)));
+ const binding=()=>{need(!r.released&&own(store,'repository')===r.repository&&own(r.repository,'db')===r.database&&requireRepositoryTransactionScope(r.repository,scope)===identity);requireRepositoryTransactionDataMethods(r.repository,scope);};
+ const check=()=>{binding();r.current();binding();assertMaintenanceProcessingReceiptFacts(r.receipt,store);binding();};check();
+ await assertMaintenanceProcessingConsentReceiptSnapshot(r.receipt,store,scope,r.workBudget);check();
+ const metadata=contextScopeTransactionReader(store,scope,r.workBudget),indexed=new Set(),tombstones=new Set();
+ const facade=Object.freeze({get:async(table,key)=>{check();let value;
+  if(table==='recordIndex'){need(selected.includes(key));const row=await metadata.get(table,key);if(row){const sourceKey=own(row,'sourceKey'),dedupeKey=own(row,'dedupeKey');need(typeof sourceKey==='string'&&typeof dedupeKey==='string');indexed.add(key);tombstones.add('source:'+sourceKey);tombstones.add('snapshot:'+dedupeKey);value=Object.freeze({sourceKey,dedupeKey});}}
+  else if(table==='records'){need(indexed.has(key));value=await metadata.has(table,key)?Object.freeze({id:key}):undefined;}
+  else if(table==='tombstones'){need(tombstones.has(key));value=await metadata.get(table,key);}
+  else fail('UNAVAILABLE');check();return value;}});
+ const present=await sourcePresent(facade,selected);check();assertMaintenanceQualificationSourcePresenceAtTransactionFacts(token,store,scope,workBudget,depth);return present;
+}
+export function assertMaintenanceQualificationSourcePresenceAtTransactionFacts(token,store,transaction,workBudget,depth=0){
+ need(Number.isSafeInteger(depth)&&depth>=0&&depth<16);const r=capabilities.get(token);need(r&&r.store===store&&r.workBudget===workBudget);
+ if(qualificationReaders.has(transaction)){const held=qualificationReaders.get(transaction);need(held.record===r);try{sourcePresenceReader(transaction,store);assertMaintenanceQualificationCapturedFacts(token,store);return assertContextScopeSourcePresenceFacts(held.transaction,store,token,workBudget,depth+1);}catch(error){held.failed=true;throw error;}}
+ assertMaintenanceQualificationCapturedFacts(token,store);need(own(store,'repository')===r.repository&&own(r.repository,'db')===r.database);const identity=requireRepositoryTransactionScope(r.repository,transaction);need(identity.database===r.database);requireRepositoryTransactionDataMethods(r.repository,transaction);assertContextScopeWorkBudgetCapturedFacts(workBudget,{database:r.database});assertMaintenanceQualificationCapturedFacts(token,store);return true;
 }
 export function maintenanceQualificationWorkBudget(token,store){return qualified(token,store).workBudget;}
 export function chargeMaintenanceQualificationHash(token,store,text){const r=qualified(token,store);need(typeof text==='string');const bytes=new TextEncoder().encode(text).length;need(r.workBudget.hashBytes+bytes<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes&&r.workBudget.hashFields+1<=CONTEXT_TOPIC_SCOPE_LIMITS.hashFields,'BUDGET_EXCEEDED');r.workBudget.hashBytes+=bytes;r.workBudget.hashFields++;r.current();return true;}
