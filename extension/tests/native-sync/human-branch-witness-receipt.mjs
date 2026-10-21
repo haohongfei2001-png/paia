@@ -37,6 +37,7 @@ export const HUMAN_WITNESS_INVOCATIONS=Object.freeze([
 // Complete static/literal module closure of the actual Store/Core/journal/plan roots.
 export const HUMAN_WITNESS_PATHS=Object.freeze([
   'background/ai-filter-consent.js',
+  'background/maintenance-processing-consent.js',
   'core/ai-organize-style-preference.js',
   'core/ai-usage/admission-policy.js',
   'core/ai-usage/ai-filter-owner.js',
@@ -61,7 +62,9 @@ export const HUMAN_WITNESS_PATHS=Object.freeze([
   'core/ai-usage/maintenance-existing-context.js',
   'core/ai-usage/maintenance-identity-currentness.js',
   'core/ai-usage/maintenance-payload.js',
+  'core/ai-usage/maintenance-processing-denial.js',
   'core/ai-usage/maintenance-processing-receipt.js',
+  'core/ai-usage/maintenance-processing-source-denial.js',
   'core/ai-usage/maintenance-qualification.js',
   'core/ai-usage/maintenance-section-promotion-permission.js',
   'core/ai-usage/maintenance-section-promotion-session.js',
@@ -239,6 +242,7 @@ export const HUMAN_WITNESS_PATHS=Object.freeze([
   'core/thought-organization.js',
   'core/thought-read-index.js',
   'core/thought-schema.js',
+  'core/thought-source-presence.js',
   'core/thought-source-scope.js',
   'core/thought-store.js',
   'core/topic-actions.js',

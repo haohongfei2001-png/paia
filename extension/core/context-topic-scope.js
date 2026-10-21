@@ -1,4 +1,4 @@
-import {assertMaintenanceQualification,assertMaintenanceQualificationFacts,maintenanceQualificationReader} from './ai-usage/maintenance-qualification.js';
+import {assertMaintenanceQualification,assertMaintenanceQualificationFacts,assertMaintenanceQualificationCapturedFacts,maintenanceQualificationReader,readMaintenanceQualificationSourcePresenceAtTransaction,assertMaintenanceQualificationSourcePresenceAtTransactionFacts,assertMaintenanceQualificationTransactionIdentity} from './ai-usage/maintenance-qualification.js';
 import {readAuthoredEntryContext} from './context-authored-entry.js';
 import {ContextCardsService} from './context-cards.js';
 import {hashText} from './dedupe.js';
@@ -35,7 +35,7 @@ export function forkContextScopeWorkBudget(parent,{signal=parent?.signal??null,d
 }
 // Callback-free terminal facts of this exact branded ledger and all forks.
 // Active owner/issuer callbacks are checked separately before this last pass.
-export function assertContextScopeWorkBudgetFacts(budget,{database}={}){
+function workBudgetFacts(budget,{database}={},captured=false){
  const visit=value=>{
   const held=workFacts.get(value);requireFact(workBudgets.has(value)&&held,'scope_budget');
   const data=key=>{const d=Object.getOwnPropertyDescriptor(value,key);requireFact(d&&Object.hasOwn(d,'value')&&d.enumerable&&d.configurable&&d.writable,'scope_budget');return d.value;};
@@ -46,10 +46,13 @@ export function assertContextScopeWorkBudgetFacts(budget,{database}={}){
    if(held.counters){const d=Object.getOwnPropertyDescriptor(value,key),old=held.counters[key];requireFact(d&&d.get===old.get&&d.set===old.set&&d.enumerable===old.enumerable&&d.configurable===old.configurable&&!Object.hasOwn(d,'value'),'scope_budget');}
    else{const n=data(key);requireFact(Number.isSafeInteger(n)&&n>=0&&n<=limit,'scope_budget');}
   }
-  const qualification=workQualification.get(value);if(qualification)assertMaintenanceQualificationFacts(qualification);
+  const qualification=workQualification.get(value);if(qualification)(captured?assertMaintenanceQualificationCapturedFacts:assertMaintenanceQualificationFacts)(qualification);
  };
  visit(budget);return true;
 }
+export function assertContextScopeWorkBudgetFacts(budget,options={}){return workBudgetFacts(budget,options);}
+// Fixed post-current denial pass. No callbacks or public clock sampling.
+export function assertContextScopeWorkBudgetCapturedFacts(budget,options={}){return workBudgetFacts(budget,options,true);}
 const budgetValid=x=>workBudgets.has(x)&&Number.isSafeInteger(x.reads)&&x.reads>=0&&x.reads<=MAX_READS&&Number.isSafeInteger(x.hashBytes)&&x.hashBytes>=0&&x.hashBytes<=MAX_HASH_BYTES&&Number.isSafeInteger(x.hashFields)&&x.hashFields>=0&&x.hashFields<=MAX_HASH_FIELDS;
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const stamp=x=>typeof x==='string'&&x.length<=64&&Number.isFinite(Date.parse(x));
@@ -71,7 +74,38 @@ function bounded(value){requireFact(Array.isArray(value));if(value.length>MAX_RE
 // transaction facade so their exact eligibility semantics remain the authority
 // without allowing an unbounded getAll. It retains no body cache. All pages and
 // point reads count against real per-store and total-work limits; no truncation.
-const budgetReaders=new WeakMap();
+const budgetReaders=new WeakMap(),sourcePresenceReaders=new WeakMap();
+const processingReaderParent=Object.getPrototypeOf,processingReaderDescriptor=Object.getOwnPropertyDescriptor;
+const processingReaderValue=(o,k)=>{const d=o&&processingReaderDescriptor(o,k);return d&&Object.hasOwn(d,'value')?d.value:null;};
+// Identity-only boolean. No transaction, ledger or field authority is exported.
+export function assertContextScopeTransactionIdentity(reader,store,depth=0){
+ requireFact(Number.isSafeInteger(depth)&&depth>=0&&depth<16,'stale_authority');const held=sourcePresenceReaders.get(reader);
+ if(!held)return assertMaintenanceQualificationTransactionIdentity(reader,store,depth+1);
+ requireFact(held.store===store,'stale_authority');if(held.failed)refuse('stale_authority');
+ try{
+  requireFact(held.repository!==null&&processingReaderValue(store,'repository')===held.repository&&processingReaderValue(held.repository,'db')===held.database&&processingReaderParent(reader)===held.transaction,'stale_authority');
+  for(const [key,old]of Object.entries(held.methods)){const v=processingReaderDescriptor(reader,key);requireFact(v&&Object.hasOwn(v,'value')&&v.value===old.value&&v.writable===old.writable&&v.enumerable===old.enumerable&&v.configurable===old.configurable,'stale_authority');}
+  assertContextScopeTransactionIdentity(held.transaction,store,depth+1);return true;
+ }catch(error){held.failed=true;throw error;}
+}
+// Fixed boolean operation only. Private producer links are never returned to
+// callers; arbitrary prototype ancestry is not a registered transaction path.
+export async function readContextScopeSourcePresence(reader,store,ids,qualification,workBudget,depth=0){
+ requireFact(Number.isSafeInteger(depth)&&depth>=0&&depth<16,'stale_authority');
+ const held=sourcePresenceReaders.get(reader);
+ if(!held)return readMaintenanceQualificationSourcePresenceAtTransaction(qualification,store,reader,ids,workBudget,depth+1);
+ const check=()=>{if(held.failed)refuse('stale_authority');try{requireFact(held.store===store&&(workRoots.get(held.budget)||held.budget)===(workRoots.get(workBudget)||workBudget),'stale_authority');for(const [key,old]of Object.entries(held.methods)){const d=Object.getOwnPropertyDescriptor(reader,key);requireFact(d&&d.value===old.value&&d.writable===old.writable&&d.enumerable===old.enumerable&&d.configurable===old.configurable&&Object.hasOwn(d,'value'),'stale_authority');}currentWork(held.budget);}catch(error){held.failed=true;throw error;}};
+ check();try{const result=await readContextScopeSourcePresence(held.transaction,store,ids,qualification,workBudget,depth+1);check();assertContextScopeSourcePresenceFacts(reader,store,qualification,workBudget,depth);return result;}catch(error){held.failed=true;throw error;}
+}
+export function assertContextScopeSourcePresenceFacts(reader,store,qualification,workBudget,depth=0){
+ requireFact(Number.isSafeInteger(depth)&&depth>=0&&depth<16,'stale_authority');const held=sourcePresenceReaders.get(reader);
+ if(!held)return assertMaintenanceQualificationSourcePresenceAtTransactionFacts(qualification,store,reader,workBudget,depth+1);
+ if(held.failed)refuse('stale_authority');try{
+  requireFact(held.store===store&&(workRoots.get(held.budget)||held.budget)===(workRoots.get(workBudget)||workBudget),'stale_authority');
+  for(const [key,old]of Object.entries(held.methods)){const d=Object.getOwnPropertyDescriptor(reader,key);requireFact(d&&Object.hasOwn(d,'value')&&d.value===old.value&&d.writable===old.writable&&d.enumerable===old.enumerable&&d.configurable===old.configurable,'stale_authority');}
+  assertContextScopeWorkBudgetCapturedFacts(held.budget);assertContextScopeSourcePresenceFacts(held.transaction,store,qualification,workBudget,depth+1);return true;
+ }catch(error){held.failed=true;throw error;}
+}
 export function contextScopeTransactionReader(store,transaction,budget){
  requireFact(budgetValid(budget),'scope_budget');currentWork(budget);
  return budgetReaders.get(transaction)===budget?transaction:reader(transaction,store.repository.factory.cmp.bind(store.repository.factory),budget,store);
@@ -114,7 +148,7 @@ function reader(transaction,compare,budget,store){
  t.scanPrimary=(store,keyPrefix,consume)=>scan(store,null,IDBKeyRange.bound(keyPrefix,keyPrefix+'\uffff',false,true),after=>transaction.primaryRangePage(store,{prefix:keyPrefix,after,limit:PAGE}),consume);
  t.scanRange=(store,index,range,consume)=>scan(store,index,range,after=>transaction.rangePage(store,index,range,after,PAGE),consume);
  t.all=async(store,index,range)=>{const rows=[];await t.scanRange(store,index,range,row=>rows.push(row));return rows;};
- budgetReaders.set(t,budget);return t;
+ budgetReaders.set(t,budget);sourcePresenceReaders.set(t,{store,transaction,budget,repository:processingReaderValue(store,'repository'),database:processingReaderValue(processingReaderValue(store,'repository'),'db'),failed:false,methods:Object.fromEntries(['get','has'].map(key=>[key,Object.getOwnPropertyDescriptor(t,key)]))});return t;
 }
 function topicProjection(row){
  requireFact(plain(row)&&idOK(row.id)&&stamp(row.createdAt)&&revisionOK(row.revision)&&revisionOK(row.organizationRevision)&&revisionOK(row.activeLayoutGeneration)&&row.activeLayoutGeneration>0&&['candidate','active','dormant','merged','removed'].includes(row.lifecycle),'topic_unavailable');

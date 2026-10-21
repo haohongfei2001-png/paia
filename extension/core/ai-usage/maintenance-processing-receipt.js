@@ -1,3 +1,4 @@
+import {assertMaintenanceProcessingRawDenialFacts} from './maintenance-processing-denial.js';
 import {equal,fail,opaque} from './contracts.js';
 const captures=new WeakMap(),keys=['version','store','caller','scope','epoch','processing','expiresAt','revocationSignal'];
 const signalAborted=Object.getOwnPropertyDescriptor(AbortSignal.prototype,'aborted').get;
@@ -22,12 +23,18 @@ function captureScope(scope){
  };
  return {snapshot:walk(scope,0),nodes};
 }
-function unchanged(record){
+function capturedFacts(record){
+ try{assertMaintenanceProcessingRawDenialFacts(record.raw,record.store);}catch{fail('UNAVAILABLE');}
  if(!record.immutable){need(Object.getPrototypeOf(record.raw)===record.prototype);const names=Reflect.ownKeys(record.raw);need(names.length===keys.length&&names.every(k=>keys.includes(k)));
  for(const expected of record.fields){const d=descriptor(record.raw,expected.key);need(Object.is(d.value,expected.value)&&sameFlags(flags(d),expected.flags));}}
  for(const node of record.nodes){if(node.immutable)continue;need(Object.getPrototypeOf(node.value)===node.prototype);const names=Reflect.ownKeys(node.value);need(names.length===node.names.length&&names.every((k,index)=>k===node.names[index]));for(const expected of node.entries){const d=descriptor(node.value,expected.key);need(Object.is(d.value,expected.value)&&sameFlags(flags(d),expected.flags));}}
- need(record.store.repository===record.repository&&record.repository.db===record.database&&!signalAborted.call(record.signal)&&Date.now()<record.expiresAt);
+ need(descriptor(record.store,'repository').value===record.repository&&descriptor(record.repository,'db').value===record.database&&!signalAborted.call(record.signal));
 }
+// Denial-only closing comparison for an already sampled original receipt.
+// No issuer or public clock is sampled here. This never grants permission or
+// replaces the original currentness/expiry checks performed before a tail sweep.
+export function assertMaintenanceProcessingReceiptCapturedFacts(raw,store){const record=captures.get(raw);need(record&&record.store===store);capturedFacts(record);try{assertMaintenanceProcessingRawDenialFacts(record.raw,record.store);}catch{fail('UNAVAILABLE');}return true;}
+function unchanged(record){capturedFacts(record);need(Date.now()<record.expiresAt);try{assertMaintenanceProcessingRawDenialFacts(record.raw,record.store);}catch{fail('UNAVAILABLE');}}
 // Terminal comparison only. The original issuer check must already have run;
 // this cannot grant permission or call an issuer while checking another cap.
 export function assertMaintenanceProcessingReceiptFacts(raw,store){const record=captures.get(raw);need(record&&record.store===store);unchanged(record);return true;}
@@ -48,6 +55,6 @@ export function captureMaintenanceProcessingReceipt(raw,{processing,store,caller
  const prior=captures.get(raw);if(prior){assertMaintenanceProcessingReceipt(raw,processing,store);need(prior.caller===caller&&equal(prior.scope,scope));return raw;}
  const names=Reflect.ownKeys(raw);need(names.length===keys.length&&names.every(k=>keys.includes(k)));const fields=keys.map(key=>{const d=descriptor(raw,key);return {key,value:d.value,flags:flags(d)};}),values=Object.fromEntries(fields.map(x=>[x.key,x.value]));
  need(values.version===1&&values.store===store&&values.caller===caller&&Object.isFrozen(caller)&&opaque(values.epoch)&&values.processing===true&&Number.isSafeInteger(values.expiresAt)&&values.expiresAt>Date.now()&&values.revocationSignal instanceof AbortSignal&&!signalAborted.call(values.revocationSignal));
- const captured=captureScope(values.scope);need(equal(captured.snapshot,scope));const record={raw,immutable:Object.isFrozen(raw),prototype:Object.getPrototypeOf(raw),fields,nodes:captured.nodes,scope:captured.snapshot,store,caller,repository:store.repository,database:store.repository.db,signal:values.revocationSignal,expiresAt:values.expiresAt,resolve:processing.resolve,isCurrent:processing.isCurrent};captures.set(raw,record);
+ const captured=captureScope(values.scope);need(equal(captured.snapshot,scope));const record={raw,immutable:Object.isFrozen(raw),prototype:Object.getPrototypeOf(raw),fields,nodes:captured.nodes,scope:captured.snapshot,store,caller,repository:descriptor(store,'repository').value,database:descriptor(descriptor(store,'repository').value,'db').value,signal:values.revocationSignal,expiresAt:values.expiresAt,resolve:processing.resolve,isCurrent:processing.isCurrent};captures.set(raw,record);
  try{assertMaintenanceProcessingReceipt(raw,processing,store);}catch(error){captures.delete(raw);throw error;}return raw;
 }

@@ -1,3 +1,4 @@
+import {MaintenanceProcessingCommands,configureMaintenanceProcessingSource} from './maintenance-processing-commands.js';
 import {createAIFilterRuntime} from './ai-filter-commands.js';
 import {readAIFilterPolicyConfiguration} from './ai-filter-policy-configuration.js';
 import {readMaintenanceServiceConfiguration} from '../core/ai-usage/maintenance-service-configuration.js';
@@ -56,7 +57,8 @@ import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
 const aiFilterRuntime=createAIFilterRuntime(chrome,{getStore:()=>store,policy:readAIFilterPolicyConfiguration()});
 const store = new IndexedArchiveStore(chrome.storage.local,{aiFilterAuthority:aiFilterRuntime.authority});
-const maintenanceConfiguration=aiFilterRuntime.configureService(readMaintenanceServiceConfiguration(store),readMaintenanceIdentityCurrentnessEndpoint());
+const maintenanceProcessing=new MaintenanceProcessingCommands(store,chrome);
+const maintenanceConfiguration=aiFilterRuntime.configureService(configureMaintenanceProcessingSource(maintenanceProcessing,store,readMaintenanceServiceConfiguration(store)),readMaintenanceIdentityCurrentnessEndpoint());
 const maintenanceRunner=createMaintenanceRunner(store,maintenanceConfiguration);
 const contextConnections=new ContextConnections(store,chrome);
 const localScopePreviewCapability=Object.freeze({});
@@ -179,6 +181,7 @@ function isChatGPTContent(sender) {
 async function handle(request, sender) {
   await ready;
   if (!request || typeof request.type !== 'string') throw new ArchiveError('INVALID_REQUEST');
+  if(request.type.startsWith('PAIA_MAINTENANCE_PROCESSING_'))return maintenanceProcessing.handle(request,sender);
   if(request.type.startsWith('PAIA_ARCHIVE_ARRIVAL_'))return archiveArrival.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_ASSIST_'))return promptAssist.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_NEXT_'))return promptNext.handle(request,sender);
@@ -560,7 +563,7 @@ const scheduleMaintenance=(local=ready.then(()=>scheduleFilter()))=>{
  void task.finally(()=>{if(maintenanceOpportunity===task)maintenanceOpportunity=null;});
  return task;
 };
-const localToolRequest=type=>type==='PAIA_LIBRARY_SECTION_PROMOTION'||['PAIA_SETTINGS_AI_STYLE','PAIA_SETTINGS_UPDATE_STATUS','GET_LIBRARY_ROOT_PROJECTION','GET_LIBRARY_ROOT_PREVIEWS','GET_LIBRARY_SECTION_PROJECTION','GET_LIBRARY_SECTION_READING','GET_LIBRARY_TOPIC_READING_METADATA'].includes(type)||type.startsWith('PAIA_PROMPT_')||type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
+const localToolRequest=type=>['PAIA_MAINTENANCE_PROCESSING_STATUS','PAIA_MAINTENANCE_PROCESSING_CONFIGURE'].includes(type)||type==='PAIA_LIBRARY_SECTION_PROMOTION'||['PAIA_SETTINGS_AI_STYLE','PAIA_SETTINGS_UPDATE_STATUS','GET_LIBRARY_ROOT_PROJECTION','GET_LIBRARY_ROOT_PREVIEWS','GET_LIBRARY_SECTION_PROJECTION','GET_LIBRARY_SECTION_READING','GET_LIBRARY_TOPIC_READING_METADATA'].includes(type)||type.startsWith('PAIA_PROMPT_')||type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
 const startupMaintenance=()=>{void scheduleMaintenance();};
 runtime.onStartup?.addListener(startupMaintenance);
 runtime.onInstalled?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});

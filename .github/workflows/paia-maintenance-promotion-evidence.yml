@@ -4,10 +4,13 @@ name: PAIA Maintenance Promotion Evidence
 # remains mandatory and unchanged; a partial or timed-out shard is not a pass.
 on:
   push:
-    branches: ['codex/maintenance-promotion-current-20261019', 'codex/context-back-sync-capacity-20261020', 'main']
+    branches: ['codex/maintenance-promotion-current-20261019', 'codex/context-back-sync-capacity-20261020', 'codex/maintenance-purpose-settings-20261020', 'main']
     paths:
       - 'extension/core/**'
       - 'extension/background/**'
+      - 'extension/ui/settings-maintenance.js'
+      - 'extension/ui/settings-maintenance-state.js'
+      - 'extension/ui/settings-preferences.js'
       - 'extension/tests/**'
       - 'extension/scripts/**'
       - 'extension/package.json'
@@ -25,7 +28,7 @@ concurrency:
 
 jobs:
   original-source-clients:
-    if: github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && (github.ref == 'refs/heads/codex/maintenance-promotion-current-20261019' || github.ref == 'refs/heads/codex/context-back-sync-capacity-20261020' || github.ref == 'refs/heads/main')
+    if: github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && (github.ref == 'refs/heads/codex/maintenance-promotion-current-20261019' || github.ref == 'refs/heads/codex/context-back-sync-capacity-20261020' || github.ref == 'refs/heads/codex/maintenance-purpose-settings-20261020' || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 12
     strategy:
@@ -54,11 +57,11 @@ jobs:
           node --version
           npm --prefix services/ai-gateway ls --all
           sha256sum services/ai-gateway/scripts/maintenance-source-roots.json services/ai-gateway/scripts/run-maintenance-source-evidence.mjs
-      - name: Validate all 52 roots and run the complete original shard
+      - name: Validate all 53 roots and run the complete original shard
         run: node services/ai-gateway/scripts/run-maintenance-source-evidence.mjs ${{ matrix.shard }}
 
   original-native-maintenance:
-    if: github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && (github.ref == 'refs/heads/codex/maintenance-promotion-current-20261019' || github.ref == 'refs/heads/codex/context-back-sync-capacity-20261020' || github.ref == 'refs/heads/main')
+    if: github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && (github.ref == 'refs/heads/codex/maintenance-promotion-current-20261019' || github.ref == 'refs/heads/codex/context-back-sync-capacity-20261020' || github.ref == 'refs/heads/codex/maintenance-purpose-settings-20261020' || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 12
     defaults:
@@ -119,3 +122,145 @@ jobs:
           }
           JS
       # No artifact/cache upload, service container, secrets or deployment.
+
+
+  # Required supplemental Settings gate. Keep the original Full ten shards and
+  # both original jobs above unchanged. Missing/partial evidence fails normally.
+  native-maintenance-purpose-settings:
+    if: github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && (github.ref == 'refs/heads/codex/maintenance-promotion-current-20261019' || github.ref == 'refs/heads/codex/maintenance-purpose-settings-20261020' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      PAIA_TESTED_HEAD: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install original direct extension versions without scripts or a new lock
+        # The existing extension has no tracked lock; record actual transitive
+        # resolution. No gateway/database/provider is used by this native file.
+        run: npm install --registry=https://registry.npmjs.org --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Require the actual test and existing Chrome at the exact candidate
+        run: |
+          set -euo pipefail
+          test -n "${RUNNER_TEMP:-}"
+          PAIA_SETTINGS_MAINTENANCE_OUTPUT="$RUNNER_TEMP/paia-maintenance-settings-artifacts"
+          PAIA_SETTINGS_MAINTENANCE_STAGING="$RUNNER_TEMP/paia-maintenance-settings-upload"
+          export PAIA_SETTINGS_MAINTENANCE_OUTPUT PAIA_SETTINGS_MAINTENANCE_STAGING
+          printf 'PAIA_SETTINGS_MAINTENANCE_OUTPUT=%s\nPAIA_SETTINGS_MAINTENANCE_STAGING=%s\n' "$PAIA_SETTINGS_MAINTENANCE_OUTPUT" "$PAIA_SETTINGS_MAINTENANCE_STAGING" >> "$GITHUB_ENV"
+          test -f tests/settings-maintenance-chrome-e2e.test.mjs
+          test -f scripts/check-maintenance-settings-native-evidence.mjs
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code
+          test ! -e package-lock.json
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+          node --version
+          npm ls --all
+          printf 'head=%s\ntree=%s\n' "$GITHUB_SHA" "$(git rev-parse HEAD^{tree})"
+          sha256sum tests/settings-maintenance-chrome-e2e.test.mjs tests/harness/fake-chatgpt.mjs tests/harness/settings-consumer-presentation.mjs scripts/check-maintenance-settings-native-evidence.mjs scripts/build_current_release.py background/maintenance-processing-consent.js background/maintenance-processing-commands.js
+          mkdir "$PAIA_SETTINGS_MAINTENANCE_OUTPUT"
+      - name: Check strict evidence and original source-manifest contracts
+        run: node --test --test-concurrency=1 --test-reporter=tap tests/maintenance-settings-native-evidence.test.mjs
+      - name: Provide original Chinese fonts and verify real Chrome glyph coverage
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk
+          test -n "$(fc-list :lang=zh)"
+          PAIA_GLYPH_PREFLIGHT="$(xvfb-run -a node scripts/check-hosted-chrome.mjs)"
+          export PAIA_GLYPH_PREFLIGHT
+          printf '%s\n' "$PAIA_GLYPH_PREFLIGHT"
+          node --input-type=module <<'JS'
+          import {execFileSync} from 'node:child_process';
+          import {writeFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          const run = (file,args) => execFileSync(file,args,{encoding:'utf8'}).trim();
+          const fonts = ['fonts-wqy-zenhei','fonts-noto-cjk'].map(name => ({name,
+            version:run('dpkg-query',['-W','-f=${Version}',name])}));
+          const families = ['Noto Serif CJK SC','Noto Sans CJK SC','WenQuanYi Zen Hei'].map(requested => ({requested,
+            matched:run('fc-match',['--format','%{family}',requested])}));
+          const record = {head:process.env.GITHUB_SHA,node:process.version,
+            chrome:run(process.env.CHROME_PATH,['--version']),glyphPreflight:process.env.PAIA_GLYPH_PREFLIGHT,fonts,families};
+          console.log(JSON.stringify(record));
+          writeFileSync(join(process.env.PAIA_SETTINGS_MAINTENANCE_OUTPUT,'environment.json'),JSON.stringify(record)+'\n');
+          JS
+      - name: Run all eight actual Source and independently built release scenarios
+        run: |
+          set -euo pipefail
+          set +e
+          node --test --test-concurrency=1 --test-reporter=tap tests/settings-maintenance-chrome-e2e.test.mjs > "$PAIA_SETTINGS_MAINTENANCE_OUTPUT/native.tap" 2>&1
+          code=$?
+          set -e
+          printf '%s\n' "$code" > "$PAIA_SETTINGS_MAINTENANCE_OUTPUT/native.exit"
+          cat "$PAIA_SETTINGS_MAINTENANCE_OUTPUT/native.tap"
+          exit "$code"
+      - name: Validate exact eight leaves and records and stage only approved synthetic evidence
+        if: always()
+        run: node scripts/check-maintenance-settings-native-evidence.mjs "$PAIA_SETTINGS_MAINTENANCE_OUTPUT" "$PAIA_SETTINGS_MAINTENANCE_STAGING" "$GITHUB_WORKSPACE/extension" "$GITHUB_SHA"
+      - name: Verify original tracked input remained unchanged
+        if: always()
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code
+          test ! -e package-lock.json
+      - name: Preserve only explicit synthetic evidence, including failed attempts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maintenance-purpose-settings-${{ github.sha }}-attempt-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          # No directory/glob uploads: profiles, databases and release trees are
+          # never eligible. Failure screenshots are optional; success PNGs are
+          # all required by the validator. Upload cannot make a failed gate pass.
+          path: |
+            ${{ runner.temp }}/paia-maintenance-settings-upload/native.tap
+            ${{ runner.temp }}/paia-maintenance-settings-upload/native.exit
+            ${{ runner.temp }}/paia-maintenance-settings-upload/identity.json
+            ${{ runner.temp }}/paia-maintenance-settings-upload/SHA256SUMS.txt
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/trusted-confirmation-and-peers/evidence.json
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/trusted-confirmation-and-peers/failure.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/native-write-failure-and-lost-reply/evidence.json
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/native-write-failure-and-lost-reply/failure.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/actual-worker-and-browser-reconstruction/evidence.json
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/actual-worker-and-browser-reconstruction/failure.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/evidence.json
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/failure.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/zh-CN-dialog-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/zh-CN-settings-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/zh-CN-settings-middle-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/zh-CN-settings-bottom-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/en-dialog-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/en-settings-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/en-settings-middle-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/source/compact-bilingual-keyboard/en-settings-bottom-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/trusted-confirmation-and-peers/evidence.json
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/trusted-confirmation-and-peers/failure.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/native-write-failure-and-lost-reply/evidence.json
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/native-write-failure-and-lost-reply/failure.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/actual-worker-and-browser-reconstruction/evidence.json
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/actual-worker-and-browser-reconstruction/failure.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/evidence.json
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/failure.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/zh-CN-dialog-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/zh-CN-settings-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/zh-CN-settings-middle-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/zh-CN-settings-bottom-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/en-dialog-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/en-settings-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/en-settings-middle-320-text200.png
+            ${{ runner.temp }}/paia-maintenance-settings-upload/release/compact-bilingual-keyboard/en-settings-bottom-320-text200.png
