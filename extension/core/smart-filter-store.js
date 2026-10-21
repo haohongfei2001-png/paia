@@ -4,7 +4,7 @@ import {inputProjection} from './thought-evidence.js';
 import {qualifiedInputSearch,prepareInputSearchArrival,matchesInputSearchArrival} from './qualified-input-search.js';
 import {searchRank,rankSearchPage} from './search-ranking.js';
 import {buildInputSearchCache,lookupInputSearchCache,matchesSourceDate,validSearchDate} from './input-search-cache.js';
-import {IAStore} from './ia-store.js';
+import {IAStore,originalIAPromptQueueOwner} from './ia-store.js';
 import {ArchiveError} from './constants.js';
 import {validProvider} from './read-projection-keys.js';
 import {conversationMetaId,projectMetaId,projectRef as canonicalProjectRef} from './source-structure-model.js';
@@ -17,13 +17,36 @@ const prefix=p=>IDBKeyRange.bound(p,[...p,[]],false,true);
 const idOK=id=>typeof id==='string'&&id.length>0&&id.length<=200;
 const sourceKeys=async(t,b)=>{const keys=[];for(const p of b.provenance){const r=await t.get('recordIndex',p.sourceRecordId);if(r)keys.push(r.sourceKey||'legacy:'+r.id);}return keys;};
 const authored=(b,m)=>b.libraryText!==null||!!b.note||b.editedAt!==null||m?.contentRevision>0||b.provenance.length!==1||b.mergedSourceIds?.length>1;
+// Body-free observations of this exact original read, never a caller's static
+// flag or a visibility grant. Missing observations conservatively refuse reuse.
+const promptFilterOwners=new WeakSet(),promptFilterReads=new WeakMap();
+export function originalPromptFilterOwner(store){
+ if(!promptFilterOwners.has(store))return false;
+ for(let owner=store;owner;owner=Object.getPrototypeOf(owner)){const descriptor=Object.getOwnPropertyDescriptor(owner,'isFiltered');if(descriptor)return Object.hasOwn(descriptor,'value')&&descriptor.value===originalPromptFilterMethod;}
+ return false;
+}
+export async function observedPromptFilterRead(store,t,block,state){
+ const token=Object.freeze({}),method=store.isFiltered;
+ const read={store,t,repository:store.repository,db:store.repository.db,method,id:block.id,observed:false,complete:false,static:false};promptFilterReads.set(token,read);
+ const filtered=await method.call(store,t,block,state,undefined,token);read.complete=true;
+ return {filtered,token};
+}
+function observePromptFilterBranch(store,t,block,token,isStatic){
+ const read=promptFilterReads.get(token);
+ if(!read||read.store!==store||read.t!==t||read.id!==block.id||read.repository!==store.repository||read.db!==store.repository.db||read.method!==originalPromptFilterMethod||!originalPromptFilterOwner(store))return;
+ read.observed=true;read.static=isStatic;
+}
+export function promptFilterReadIsStatic(store,t,token){
+ const read=promptFilterReads.get(token);
+ return !!read&&read.store===store&&read.t===t&&read.repository===store.repository&&read.db===store.repository.db&&read.method===originalPromptFilterMethod&&originalPromptFilterOwner(store)&&read.observed&&read.complete&&read.static;
+}
 // Original default constructor only; no filter decision, native cut or write
 // authority. Bounded sync consumers use the authentic creation owner values.
 export function planInitialFilter(b,m,legacy=false){return {id:b.id,documentId:b.documentId,authorship:legacy?'legacy_unknown':authored(b,m)?'user_edited':'untouched',userEdited:authored(b,m),filterOverride:authored(b,m)?'keep':'none',presence:null,evaluationRevision:0,pendingKey:0,decision:'uncertain',reasonCode:'metadata_unknown',...FILTER_VERSIONS,basedOnContentRevision:m?.contentRevision??0};}
 
 export class SmartFilterStore extends IAStore {
  #aiFilter;
- constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;this.#aiFilter=new AIMaintenanceFilterOwner(this,options.aiFilterAuthority??null);}
+ constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;this.#aiFilter=new AIMaintenanceFilterOwner(this,options.aiFilterAuthority??null);promptFilterOwners.add(this);}
  write(fn,onCommitted=null,prepare=null){this.filterMutation++;return super.write(fn,onCommitted,prepare).finally(()=>{this.filterMutation++;});}
  run(fn){return super.run(async()=>{if(!this.filterLoaded){await this.initializeFilter();this.filterLoaded=true;}return fn();});}
  async initializeFilter(){
@@ -175,10 +198,13 @@ export class SmartFilterStore extends IAStore {
   await super.beforeSourcePurge(t,records,blocks);
   for(const [id]of blocks)await t.delete('filterInputs',id);for(const r of records)await t.delete('filterIntents',r.sourceKey||'legacy:'+r.id);
  }
- async isFiltered(t,b,state,snapshot){
-  if(b.excluded||b.branchStatus)return false;
-  if((snapshot?.mode??state.mode)!=='light')return false;
+ async isFiltered(t,b,state,snapshot,observation){
+  if(b.excluded||b.branchStatus){observePromptFilterBranch(this,t,b,observation,true);return false;}
+  if((snapshot?.mode??state.mode)!=='light'){observePromptFilterBranch(this,t,b,observation,true);return false;}
   const row=await t.get('filterInputs',b.id),meta=await t.get('inputStates',b.id);
+  // Even a currently ineffective AI decision can depend on instantaneous
+  // visibility authority. Its mere presence prevents sharing this read.
+  observePromptFilterBranch(this,t,b,observation,!row||!('aiDecision' in row));
   if(!validFilterDecision(row,meta))return this.#aiFilter.hidden(t,b,row,meta,snapshot);
   if(snapshot&&row.decisionSequence>snapshot.sequence)return false;
   for(const key of await sourceKeys(t,b))if(await t.get('filterIntents',key))return false;
@@ -290,4 +316,11 @@ export class SmartFilterStore extends IAStore {
   if(contextOnly){if(!idOK(anchorId)||anchorId===id)return {eligible:false};const anchor=(await t.get('blocks',anchorId))?.value;if(!anchor||anchor.excluded||anchor.branchStatus||anchor.documentId!==b.documentId||await this.isFiltered(t,anchor,state))return {eligible:false};const a=await t.get('blockIndex',anchorId),x=await t.get('blockIndex',id);const cmp=this.repository.factory.cmp(a.listKey,x.listKey),range=IDBKeyRange.bound(cmp<0?a.listKey:x.listKey,cmp<0?x.listKey:a.listKey);if(await t.count('blockIndex','byList',range)>3)return {eligible:false};}
   return {eligible:!filtered||contextOnly,role:contextOnly?'context_only':'primary',contentRevision:(await t.get('inputStates',id))?.contentRevision};
  }));}
+}
+const originalPromptFilterMethod=SmartFilterStore.prototype.isFiltered;
+
+const promptQueuePrototype=SmartFilterStore.prototype,promptQueueParent=Object.getPrototypeOf(promptQueuePrototype),promptQueueMethod=Object.getOwnPropertyDescriptor(promptQueuePrototype,'run');
+const promptQueueDescriptor=(actual,expected)=>!!actual&&['value','get','set','writable','enumerable','configurable'].every(key=>actual[key]===expected[key]);
+export function originalFilterPromptQueueOwner(store){
+ return originalPromptFilterOwner(store)&&originalIAPromptQueueOwner(store)&&Object.getPrototypeOf(promptQueuePrototype)===promptQueueParent&&promptQueueDescriptor(Object.getOwnPropertyDescriptor(promptQueuePrototype,'run'),promptQueueMethod);
 }

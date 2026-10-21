@@ -475,3 +475,12 @@ export function sourceCount(docId,key,records,blocks,chatId){
   if(!selected.length)continue;row.views.push(JSON.stringify([docId,view]));const times=selected.map(r=>r.sourceSentAt).filter(Boolean).sort();row[view+'First']=[docId,times.length?0:1,times[0]||'',id];row[view+'Last']=[docId,times.length?0:1,times.at(-1)||'',id];
  }return row;
 }
+
+// Source identity only: no transaction, row read, write or permission grant.
+const promptTransactionPrototype=ArchiveRepository.prototype,promptTransactionParent=originalPrototypeOf(promptTransactionPrototype),promptTransactionMethod=originalOwnDescriptor(promptTransactionPrototype,'transaction');
+const promptTransactionDescriptor=(actual,expected)=>!!actual&&['value','get','set','writable','enumerable','configurable'].every(key=>actual[key]===expected[key]);
+export function originalRepositoryTransactionOwner(repository){
+ if(!repositoryWrites.has(repository)||originalPrototypeOf(promptTransactionPrototype)!==promptTransactionParent||!promptTransactionDescriptor(originalOwnDescriptor(promptTransactionPrototype,'transaction'),promptTransactionMethod))return false;
+ for(let owner=repository;owner;owner=originalPrototypeOf(owner)){const descriptor=originalOwnDescriptor(owner,'transaction');if(descriptor)return promptTransactionDescriptor(descriptor,promptTransactionMethod);}
+ return false;
+}

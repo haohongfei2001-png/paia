@@ -1,4 +1,6 @@
 import {hashText} from './dedupe.js';
+import {ArchiveError} from './constants.js';
+import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
 import {fail,prefix,refreshEntryIndex,keyedHash,markHuman} from './thought-model.js';
 import {nextSequence} from './thought-journal.js';
 import {inputProjection} from './thought-evidence.js';
@@ -61,6 +63,18 @@ export async function invalidationBatch(store,limit=100) {
 const CLEANUP_STORES=['unknownQuarantine','thoughts','revisions','provenance','dependencies','organizerSuggestions','organizerWorkItems','librarySearchTerms','entryRelations','libraryMigrationItems','organizerJobs'];
 export async function purgeBatch(store,limit=100) {
  if(!Number.isInteger(limit)||limit<1||limit>100)fail();
+ await store.finishFoundation();
+ // An idle drain must not admit a writer. Preserve the original write wrapper's
+ // publication/error contract even when this bounded read finds no cleanup job.
+ const work=await store.run(async()=>{try{
+  const pending=await store.repository.transaction(false,async t=>{
+   try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')throw new ArchiveError(e.code);throw e;}
+   return !!await t.edge('organizerJobs','byMaintenance',prefix(['purge_cleanup',0]));
+  },['meta','organizerJobs']);
+  if(!pending){store.volatileError=null;await store.publish();}return pending;
+ }catch(e){store.volatileError={code:e.code||'STORAGE_FAILED',at:store.clock()};throw e;}});
+ if(!work)return {processed:0,pending:false};
+ // The preflight grants no write authority; reselect current work below.
  return store.foundationWrite(async t=>{
   const job=await t.edge('organizerJobs','byMaintenance',prefix(['purge_cleanup',0]));if(!job)return {processed:0,pending:false};
   const name=CLEANUP_STORES[job.stage];if(!name){job.state='completed';job.stateKey=1;delete job.sourceRecordIds;await t.put('organizerJobs',job);return {processed:0,pending:true};}

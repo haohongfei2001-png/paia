@@ -7,7 +7,7 @@ import {newOrganizationIntents,recordMembershipIntent,fixMembershipSet,moveMembe
 import {BINDING_ROW,applyBinding,classifyBinding,thoughtLayout,bindingRead,migrateBindings,reverseSetting,prepareBodyEdit} from './thought-binding.js';
 import {IndexedArchiveStore} from './indexed-store.js';
 import {editSection,checkRestore,restoreOrganization} from './thought-organization.js';
-import {SmartFilterStore} from './smart-filter-store.js';
+import {SmartFilterStore,originalFilterPromptQueueOwner} from './smart-filter-store.js';
 import {hashText} from './dedupe.js';
 import {ArchiveError} from './constants.js';
 import {migrateThoughtLibrary} from './thought-migration.js';
@@ -295,4 +295,12 @@ export class LibraryFoundationStore extends SmartFilterStore {
    Object.assign(e,planned.entry);Object.assign(topic,planned.topic);await t.put('thoughts',e);await t.put('topics',topic);await t.put('placements',planned.placement);
    await journal(this,t,{kind:'placement',entityId:id,documentId:topic.id,before:old||null,after:row,fieldMask:['membership','section','order'],actor:'user',reason:request.restoreRevisionId?'restore':request.remove?'remove':'place',important:true,operationId:request.operationId,sourceRecordIds:e.sourceRecordIds});return {id:e.id,revision:e.revision,placementRevision:row.revision,topicRevision:topic.organizationRevision};
  }
+}
+
+const promptQueuePrototype=LibraryFoundationStore.prototype,promptQueueParent=Object.getPrototypeOf(promptQueuePrototype),promptQueueMethod=Object.getOwnPropertyDescriptor(promptQueuePrototype,'run');
+const promptQueueDescriptor=(actual,expected)=>!!actual&&['value','get','set','writable','enumerable','configurable'].every(key=>actual[key]===expected[key]);
+export function originalFoundationPromptQueueOwner(store){
+ if(!originalFilterPromptQueueOwner(store)||Object.getPrototypeOf(promptQueuePrototype)!==promptQueueParent||!promptQueueDescriptor(Object.getOwnPropertyDescriptor(promptQueuePrototype,'run'),promptQueueMethod))return false;
+ for(let owner=store;owner;owner=Object.getPrototypeOf(owner)){const descriptor=Object.getOwnPropertyDescriptor(owner,'run');if(descriptor)return promptQueueDescriptor(descriptor,promptQueueMethod);}
+ return false;
 }

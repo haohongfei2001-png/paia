@@ -42,6 +42,9 @@ export async function searchBatch(store){
  });
 }
 export async function rebuildBatch(store){
+ await store.finishFoundation();
+ const work=await store.run(()=>store.repository.transaction(false,async t=>{const m=await t.get('meta','library-search-rebuild');return !!m&&!m.complete;},['meta']));
+ if(!work)return {pending:false};
  return store.libraryMaintenanceWrite(async t=>{const m=await t.get('meta','library-search-rebuild');if(!m||m.complete)return {pending:false};const kind=['entry','topic','section'][m.phase],page=await t.page(ownerStore(kind),{after:m.cursor??undefined,limit:100});for(const {value:r}of page.rows){if(kind==='entry'&&r.storageSchema!==2)continue;delete r.searchVersion;await queueSearch(t,kind,r,{derivedOnly:true});}m.cursor=page.next;if(!page.next){m.phase++;m.cursor=null;}if(m.phase===3)m.complete=true;await t.put('meta',m);return {pending:true};});
 }
 export async function searchLibrary(store,{query='',cursor=null,limit=40,ranked=false}={}){

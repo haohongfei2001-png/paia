@@ -148,7 +148,11 @@ export function originalLibraryDocumentsConstructor(){
  async restoreRevision(r){const saved=await this.run(()=>this.repository.transaction(false,t=>t.get('revisions',r.id)));return ['library_entry','topic','section','placement'].includes(saved?.kind)?restoreLibraryRevision(this,r):super.restoreRevision(r);}
  async unplacedEntries({cursor=null,limit=40}={}){const page=await this.entryPage({cursor,limit}),items=[];for(const e of page.items)if(!(await this.entryPaths(e.id)).length)items.push({id:e.id,title:e.title,snippet:e.body.slice(0,180),revision:e.revision});return {items,nextCursor:page.nextCursor};}
  async removedEntries({cursor=null,limit=40}={}){if(!limitOK(limit))fail();await this.finishFoundation();const page=await this.run(()=>this.repository.transaction(false,t=>t.rangePage('thoughts','byLifecycle',prefix([1]),cursor,limit)));const items=[];for(const {value:r}of page.rows){try{const e=await this.entry(r.id);if(e.lifecycle==='removed')items.push({id:e.id,title:e.title,body:e.body.slice(0,180),revision:e.revision,lifecycle:e.lifecycle});}catch{}}return {items,nextCursor:page.next};}
- async ensureLibrarySearch(){await this.finishFoundation();return this.run(()=>this.repository.transaction(true,async t=>{if(!await t.get('meta','library-search-rebuild'))await t.put('meta',{id:'library-search-rebuild',phase:0,cursor:null,complete:false});},['meta']));}
+ async ensureLibrarySearch(){
+  await this.finishFoundation();
+  if(await this.run(()=>this.repository.transaction(false,async t=>!!await t.get('meta','library-search-rebuild'),['meta'])))return;
+  return this.run(()=>this.repository.transaction(true,async t=>{if(!await t.get('meta','library-search-rebuild'))await t.put('meta',{id:'library-search-rebuild',phase:0,cursor:null,complete:false});},['meta']));
+ }
  async rebuildLibrarySearch(){await this.finishFoundation();return this.foundationWrite(t=>t.put('meta',{id:'library-search-rebuild',phase:0,cursor:null,complete:false}));}
  searchLibrary(o){return searchLibrary(this,o);}
  startLayout(r){return startLayout(this,r);}
