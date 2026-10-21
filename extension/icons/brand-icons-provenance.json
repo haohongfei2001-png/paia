@@ -1,101 +1,170 @@
 {
-  "schema_version": 2,
-  "brand_id": "PAIA-MAILBOX-FINAL-20261018",
-  "authority_manifest": "design/brand/mailbox-final-20261018/manifest.json",
+  "schema_version": 3,
+  "brand_id": "PAIA-OPEN-P-SOFT-BLUE-20261021",
+  "authority_manifest": "design/brand/soft-blue-p-20261021/manifest.json",
   "sources": {
-    "design/brand/mailbox-final-20261018/png/paia-16.png": {
+    "design/brand/soft-blue-p-20261021/png/app-icon-16.png": {
       "dimensions": [
         16,
         16
       ],
-      "sha256": "23e1928b2a02c5bf9aa801109f686f7a375bd30a95d7c7807d487b30f7c64aa5"
+      "sha256": "44746b2ce726df968671d35c8656c7dfdacc16cd76a6917aaea0a49abbab69bb"
     },
-    "design/brand/mailbox-final-20261018/png/paia-32.png": {
+    "design/brand/soft-blue-p-20261021/png/app-icon-32.png": {
       "dimensions": [
         32,
         32
       ],
-      "sha256": "7a46a1a3c67b2a193f159ea6295be219ee8aa45be725b058ac0ecfffcf76c649"
+      "sha256": "4a24c2666f56e30354852bcb3d98e74508228d9bff6db1d71efa6d7f1ff17768"
     },
-    "design/brand/mailbox-final-20261018/png/paia-48.png": {
+    "design/brand/soft-blue-p-20261021/png/app-icon-48.png": {
       "dimensions": [
         48,
         48
       ],
-      "sha256": "dfdd32ccfd012eddcb19a8e0761f475e8cfd4bb0030b7bd342f11f78f28d260b"
+      "sha256": "af9cf1eba4065294abc3df1286335fd3fa4a6d100cd4130beb4a868c6772787a"
     },
-    "design/brand/mailbox-final-20261018/png/paia-64.png": {
-      "dimensions": [
-        64,
-        64
-      ],
-      "sha256": "c60ae70b7347285ee1e841fbd07aa9d5e84b4eb3847f26dedf922626f7cae9ac"
-    },
-    "design/brand/mailbox-final-20261018/png/paia-128.png": {
+    "design/brand/soft-blue-p-20261021/png/app-icon-128.png": {
       "dimensions": [
         128,
         128
       ],
-      "sha256": "c4f880e066cf483f0b06737e4fde1739740e98481dbef5cf62c2e7c39ad43f7d"
+      "sha256": "e1cc293d27173a8760982f3e163ad5d0ac95e0e2e07cfa858e3e10213fb80092"
+    },
+    "design/brand/soft-blue-p-20261021/png/ui-symbol-16.png": {
+      "dimensions": [
+        16,
+        16
+      ],
+      "sha256": "2e975d55af7f88b20645daafd49600d4abf6dc9ecd648f3a48969bde97bcb235"
+    },
+    "design/brand/soft-blue-p-20261021/png/ui-symbol-32.png": {
+      "dimensions": [
+        32,
+        32
+      ],
+      "sha256": "b6c86e6de3ce336e98f2d9dd963380c2d71831e9208762cb0170c25fee74d509"
+    },
+    "design/brand/soft-blue-p-20261021/png/ui-symbol-48.png": {
+      "dimensions": [
+        48,
+        48
+      ],
+      "sha256": "f83df176291d072cab163528f02f7e144a957312a9e8d64ff22d9cb6a3ddc5ae"
+    },
+    "design/brand/soft-blue-p-20261021/png/ui-symbol-128.png": {
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "c4a90b2733f0665c761255ed1884ae2953ddd436d70c5d9eb2e3399a460aea65"
+    },
+    "design/brand/soft-blue-p-20261021/png/symbol-32.png": {
+      "dimensions": [
+        32,
+        32
+      ],
+      "sha256": "bcb0338bbe8d3c95fc6e08a6bf9db14be8d4aad307df50da0ad4f2518374b632"
+    },
+    "design/brand/soft-blue-p-20261021/png/symbol-64.png": {
+      "dimensions": [
+        64,
+        64
+      ],
+      "sha256": "aed5ef16d483a7d0be6cd20541909ca059301f101abb66a6acdb0f538e536fa0"
     }
   },
-  "source_description": "Exact approved optical PNGs from the final editable mailbox package; no raster upscale or redraw. Historical Desktop artwork is preserved as history, not current brand authority.",
-  "previous_desktop_asset_manifest": "extension/docs/consumer-product-v1/desktop-vnext/assets/manifest.json",
+  "source_description": "Approved soft-blue P. White standard app canvas, compact transparent toolbar/favicon symbol, and standard transparent UI mark have distinct roles. No path changes.",
+  "previous_authority_manifest": "design/brand/mailbox-final-20261018/manifest.json",
   "generation": {
     "script": "extension/scripts/build_brand_icons.py",
-    "operation": "Validate all approved source bytes, dimensions and independent authority; copy the exact matching size to each existing runtime path. No Pillow or raster renderer needed.",
+    "operation": "Validate every approved source, dimensions and authority entry before copying exact bytes to the matching role.",
     "runtime_dependency": false
   },
   "outputs": {
     "extension/icons/icon16.png": {
-      "source": "design/brand/mailbox-final-20261018/png/paia-16.png",
+      "source": "design/brand/soft-blue-p-20261021/png/app-icon-16.png",
       "dimensions": [
         16,
         16
       ],
-      "sha256": "23e1928b2a02c5bf9aa801109f686f7a375bd30a95d7c7807d487b30f7c64aa5"
+      "sha256": "44746b2ce726df968671d35c8656c7dfdacc16cd76a6917aaea0a49abbab69bb"
     },
     "extension/icons/icon32.png": {
-      "source": "design/brand/mailbox-final-20261018/png/paia-32.png",
+      "source": "design/brand/soft-blue-p-20261021/png/app-icon-32.png",
       "dimensions": [
         32,
         32
       ],
-      "sha256": "7a46a1a3c67b2a193f159ea6295be219ee8aa45be725b058ac0ecfffcf76c649"
+      "sha256": "4a24c2666f56e30354852bcb3d98e74508228d9bff6db1d71efa6d7f1ff17768"
     },
     "extension/icons/icon48.png": {
-      "source": "design/brand/mailbox-final-20261018/png/paia-48.png",
+      "source": "design/brand/soft-blue-p-20261021/png/app-icon-48.png",
       "dimensions": [
         48,
         48
       ],
-      "sha256": "dfdd32ccfd012eddcb19a8e0761f475e8cfd4bb0030b7bd342f11f78f28d260b"
+      "sha256": "af9cf1eba4065294abc3df1286335fd3fa4a6d100cd4130beb4a868c6772787a"
     },
     "extension/icons/icon128.png": {
-      "source": "design/brand/mailbox-final-20261018/png/paia-128.png",
+      "source": "design/brand/soft-blue-p-20261021/png/app-icon-128.png",
       "dimensions": [
         128,
         128
       ],
-      "sha256": "c4f880e066cf483f0b06737e4fde1739740e98481dbef5cf62c2e7c39ad43f7d"
+      "sha256": "e1cc293d27173a8760982f3e163ad5d0ac95e0e2e07cfa858e3e10213fb80092"
     }
   },
-  "ui_outputs": {
-    "extension/ui/assets/paia-logo-32.png": {
-      "source": "design/brand/mailbox-final-20261018/png/paia-32.png",
+  "action_outputs": {
+    "extension/icons/action16.png": {
+      "source": "design/brand/soft-blue-p-20261021/png/ui-symbol-16.png",
+      "dimensions": [
+        16,
+        16
+      ],
+      "sha256": "2e975d55af7f88b20645daafd49600d4abf6dc9ecd648f3a48969bde97bcb235"
+    },
+    "extension/icons/action32.png": {
+      "source": "design/brand/soft-blue-p-20261021/png/ui-symbol-32.png",
       "dimensions": [
         32,
         32
       ],
-      "sha256": "7a46a1a3c67b2a193f159ea6295be219ee8aa45be725b058ac0ecfffcf76c649"
+      "sha256": "b6c86e6de3ce336e98f2d9dd963380c2d71831e9208762cb0170c25fee74d509"
+    },
+    "extension/icons/action48.png": {
+      "source": "design/brand/soft-blue-p-20261021/png/ui-symbol-48.png",
+      "dimensions": [
+        48,
+        48
+      ],
+      "sha256": "f83df176291d072cab163528f02f7e144a957312a9e8d64ff22d9cb6a3ddc5ae"
+    },
+    "extension/icons/action128.png": {
+      "source": "design/brand/soft-blue-p-20261021/png/ui-symbol-128.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "c4a90b2733f0665c761255ed1884ae2953ddd436d70c5d9eb2e3399a460aea65"
+    }
+  },
+  "ui_outputs": {
+    "extension/ui/assets/paia-logo-32.png": {
+      "source": "design/brand/soft-blue-p-20261021/png/symbol-32.png",
+      "dimensions": [
+        32,
+        32
+      ],
+      "sha256": "bcb0338bbe8d3c95fc6e08a6bf9db14be8d4aad307df50da0ad4f2518374b632"
     },
     "extension/ui/assets/paia-logo-64.png": {
-      "source": "design/brand/mailbox-final-20261018/png/paia-64.png",
+      "source": "design/brand/soft-blue-p-20261021/png/symbol-64.png",
       "dimensions": [
         64,
         64
       ],
-      "sha256": "c60ae70b7347285ee1e841fbd07aa9d5e84b4eb3847f26dedf922626f7cae9ac"
+      "sha256": "aed5ef16d483a7d0be6cd20541909ca059301f101abb66a6acdb0f538e536fa0"
     }
   }
 }
