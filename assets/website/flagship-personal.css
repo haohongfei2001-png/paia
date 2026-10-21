@@ -1,0 +1,83 @@
+/* Detail editing and management remain outside the fixed prompt surface. */
+.personal-dialog{margin:auto;max-height:calc(100dvh - 48px);overflow:auto;overscroll-behavior:contain;background:#fff;color:var(--ink,#292632)}
+.personal-dialog::backdrop{background:#29213645;backdrop-filter:blur(4px)}
+.personal-dialog [hidden]{display:none!important}
+.personal-dialog .dialog-heading{align-items:flex-start;margin-bottom:16px}
+.personal-dialog .dialog-heading h3{font-size:24px;line-height:1.5;letter-spacing:-.025em;font-weight:550;padding-top:4px}
+.personal-dialog .dialog-heading>.icon-button{flex:0 0 40px;min-width:40px;min-height:40px;border-radius:50%}
+.personal-dialog :is(button,textarea):focus-visible{outline:2px solid #786590;outline-offset:4px}
+.personal-dialog .fine{font-size:12px;line-height:1.8;color:#716a7c;margin-top:20px}
+.personal-dialog-intro{margin-top:0!important;margin-bottom:22px}
+.personal-feedback{font-size:12px;line-height:1.7;color:#6b6276;min-height:0;margin-top:16px}
+.personal-feedback:empty{display:none}
+.context-field-label{display:block;font-size:12px;font-weight:550;line-height:1.7;color:#6b6276;margin-bottom:9px}
+.context-edit-field,.prompt-manager-field{display:block;width:100%;min-height:126px;resize:vertical;border:1px solid #d9d2e3;border-radius:12px;background:#fbf9fd;color:#292632;font-family:inherit;font-size:16px;line-height:1.9;padding:15px 17px;max-height:340px}
+.context-edit-entry>.personal-remove{margin-top:12px;min-height:40px;font-size:12px;padding-inline:0}
+.personal-remove{color:#846b75}
+.personal-remove:hover{color:#694251}
+.context-empty{padding:28px 23px;border:1px dashed #d9d2e3;border-radius:12px;background:#fcfbfd}
+.context-empty>p{font-size:15px;line-height:1.9;margin:0;color:#716a7c}
+.context-empty>.quiet-button{margin-top:14px;min-height:40px}
+.context-detail-intro{font-size:14px!important;color:#716a7c;line-height:1.9!important;margin-bottom:20px}
+.topic-permission{gap:22px;padding:18px 20px}
+.topic-reference-copy{min-width:0;display:flex;flex-direction:column;gap:7px}
+.topic-reference-copy>strong{font-size:14px;font-weight:500;line-height:1.7}
+.topic-reference-copy>span{font-size:11px;color:#716a7c;line-height:1.7}
+.topic-permission>.switch{flex:none}
+
+.prompt-anchor{height:48px;max-width:336px}
+.prompt-toggle{width:48px;height:48px}
+.prompt-capsule{width:272px;height:48px;min-height:48px}
+.prompt-board{width:336px;height:328px;padding:14px 10px 0;box-sizing:border-box}
+.prompt-list{height:264px;overflow:hidden}
+.prompt-list>[data-prompt-pick]{height:44px;min-height:44px;max-height:44px;line-height:1.5;position:relative}
+.prompt-list>[data-prompt-pick][data-pinned=true]{padding-left:23px}
+.prompt-list>[data-prompt-pick][data-pinned=true]::before{content:"";position:absolute;left:10px;top:20px;width:4px;height:4px;border-radius:50%;background:#8a719d}
+.prompt-toolbar{height:48px;padding:4px 48px 4px 6px;gap:4px;box-sizing:border-box}
+.prompt-toolbar>label{flex:1;min-width:0;gap:6px}
+.prompt-toolbar input{min-width:0;font-size:11px}
+.prompt-toolbar .prompt-manage-button{position:relative;display:grid;place-items:center;flex:0 0 30px;min-width:30px;height:34px;padding:0;background:transparent;border:0;border-radius:8px;color:#716a7c}
+.prompt-manage-button::after{content:"";position:absolute;inset:-5px -2px}
+.prompt-toolbar .prompt-manage-button>.icon{width:15px;height:15px}
+.prompt-manage-button:hover{background:#e9e0f0;color:#403349}
+.prompt-manager{width:calc(100% - 40px);max-width:560px;padding:25px 28px 22px;border:1px solid #ded7e5;border-radius:22px;box-shadow:0 30px 100px #20132a30}
+.prompt-manager-list{border-top:1px solid #e7e1ed}
+.prompt-manager-row{padding:15px 0;border-bottom:1px solid #e7e1ed}
+.prompt-manager-expression{display:block;width:100%;text-align:left;padding:4px 0 8px;border:0;background:none;font-size:15px;line-height:1.8;color:#39313f;white-space:normal;overflow-wrap:anywhere}
+.prompt-manager-expression:hover{color:#705a83}
+.prompt-manager-actions{display:flex;align-items:center;gap:5px;margin-top:6px}
+.prompt-manager-actions>.quiet-button{font-size:11px;min-height:36px;padding:5px 10px;line-height:1.5;white-space:nowrap}
+.prompt-manager-actions>[data-prompt-pin]{margin-right:auto;padding-left:0;color:#776483}
+.prompt-manager-actions>[data-prompt-pin][aria-pressed=true]{color:#4e3c5d;font-weight:600}
+.prompt-manager-actions>.prompt-order-button{min-width:34px;min-height:36px;font-size:17px;padding:4px 9px}
+.prompt-manager-actions>.quiet-button:disabled{opacity:.35;cursor:default}
+.prompt-manager-field{min-height:105px;font-size:15px;line-height:1.8;max-height:260px}
+.prompt-editor-actions{display:flex;gap:12px;align-items:center;margin-top:12px}
+.prompt-editor-actions .button-small{font-size:12px;min-height:37px;padding:8px 15px}
+.prompt-editor-actions .quiet-button{font-size:12px;min-height:37px}
+.prompt-manager-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-top:15px;min-height:44px}
+.prompt-manager-footer>.personal-feedback{margin:0;font-size:11px}
+.prompt-manager-footer>[data-prompt-undo]{flex:none;font-size:11px;min-height:36px}
+.prompt-manager-empty{font-size:14px;color:#716a7c;line-height:1.9;padding:25px 0;margin:0}
+@media(max-width:600px){
+ .personal-dialog{max-height:calc(100dvh - 28px)}
+ .context-dialog.personal-dialog,.prompt-manager{width:calc(100% - 28px);padding:22px 20px 20px;border-radius:18px}
+ .personal-dialog .dialog-heading h3{font-size:22px}
+ .personal-dialog .fine{font-size:11px;line-height:1.9}
+ .context-edit-field,.prompt-manager-field{font-size:16px;padding:13px 15px}
+ .topic-permission{padding:16px 14px;gap:20px}
+ .topic-reference-copy>strong{font-size:13px}
+ .topic-reference-copy>span{font-size:10px}
+ .prompt-manager-row{padding-block:14px}
+ .prompt-manager-expression{font-size:14px;padding-bottom:8px}
+ .prompt-manager-actions>.quiet-button{min-height:40px;font-size:11px}
+ .prompt-manager-actions>.prompt-order-button{min-width:39px;min-height:40px}
+ .prompt-manager-footer{gap:14px}
+ .prompt-manager-footer>[data-prompt-undo]{min-height:40px}
+ .prompt-list>[data-prompt-pick]{font-size:11px}
+ .prompt-toolbar input{font-size:11px}
+ .prompt-toolbar{padding-left:4px;gap:2px}
+ .prompt-toolbar .prompt-manage-button{flex-basis:28px;min-width:28px}
+}
+@media(prefers-reduced-motion:reduce){.personal-dialog *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+@media(forced-colors:active){.personal-dialog,.context-edit-field,.prompt-manager-field{border:1px solid CanvasText}.prompt-list>[data-prompt-pick][data-pinned=true]::before{background:CanvasText}}

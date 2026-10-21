@@ -3,6 +3,14 @@ Default: real local HTTP server. --offline-render: load the SAME generated HTML,
 CSS and JS into about:blank when a managed browser blocks local navigation.
 The fallback is explicitly recorded and never certifies HTTP/deployment behavior.
 """
+# The 2026-10-21 full-site authorization replaces the prior visual freeze.
+# Preserve the historical suite below for its generation; the current site uses
+# an explicit contract suite, never a skipped-success or refreshed pixel SHA.
+from pathlib import Path as _GenerationPath
+if 'data-design="flagship-20261021"' in (_GenerationPath(__file__).resolve().parents[1] / 'index.html').read_text():
+    from flagship_tests import main as _run_flagship_contracts
+    raise SystemExit(_run_flagship_contracts())
+
 from pathlib import Path
 from html.parser import HTMLParser
 from urllib.parse import urlparse, unquote
