@@ -1,4 +1,4 @@
-# Flagship website verification — 21 October 2026
+# Flagship website verification — revision 2, 21 October 2026
 
 ## Why the entry point changes
 
@@ -38,7 +38,8 @@ change does not execute that job, deploy the site or relax exact-byte checks.
 | No private-data access | Website demonstrations have no network/storage API; browser observations refuse unexpected remote requests; transient edits and grants reset on reload |
 | Usable on small/large screens | All canonical routes at 1440, 768, 390 and 320 CSS px; 200% text at 320; actual browser image loading and no script errors |
 | Accessibility and ordinary scrolling | Keyboard tabs, mobile Escape/focus, semantic switches, forced colors, reduced motion, native disclosure and no-JS reading/contact/download paths |
-| Original versus working text | Full Unicode/multiline edit, source unchanged, dirty navigation refusal, same-page return, current-text search and explicit no-result |
+| Homepage continuation | Exact Unicode/multiline working edit and same-page Topic echo; original unchanged; save/cancel/Escape focus restoration; blank rejection; unrelated permissions and prompt draft unchanged; reload reset |
+| Full Demo original versus working text | Full Unicode/multiline edit, source unchanged, dirty navigation refusal, same-page return, current-text search and explicit no-result |
 | Topic reading | Explicit section opening, no sibling-content contamination, return to directory |
 | Context boundaries | Four distinct product permissions; four default-off Context cards; inspection separate from authorization; child cannot open parent; paused global access retains card and Topic choices; no fake connection |
 | User-managed Context | Direct editing, explicit deletion, same-text undo, close/reopen persistence; these actions leave access unchanged; My Inputs references existing Topics rather than copying archive bodies |
@@ -52,6 +53,27 @@ The browser fixtures are synthetic. They do not open an installer, submit a
 message, access a personal archive, activate external AI, test an installed
 extension or qualify production deployment. Network requests are intercepted
 before leaving the local server.
+
+## Revision 2 homepage contract
+
+The homepage no longer embeds the full three-space workspace. Its language-matched,
+keyboard-reachable Demo link still opens the actual product example. This keeps
+Archive, Thought and Context journeys covered on their complete demonstration
+route instead of making the homepage repeat that workspace.
+
+`exercise_home_story()` covers the smaller homepage interaction separately. It
+starts from the current working expression, preserves exact Unicode, newlines
+and surrounding whitespace when saving, and requires the same accepted text in
+the Topic reading. The original is a separate source and must remain unchanged.
+Cancel and Escape preserve the last accepted edit and restore focus; blank input
+stays in the editor with feedback. Reopening starts from accepted text. The edit
+must not change the prompt draft, enable Context access or write browser storage,
+and reload restores the fictional example.
+
+These are behavior contracts, not frozen sentences, hero geometry or visual
+approval. Coverage being present in the suite is distinct from a successful run
+at a particular commit. [FLAGSHIP_REVIEW.md](FLAGSHIP_REVIEW.md) separates the
+first revision's recorded CI result from revision 2's executed and pending checks.
 
 ## Execution and evidence
 

@@ -13,7 +13,7 @@ from html.parser import HTMLParser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
-from urllib.parse import unquote, urlsplit
+from urllib.parse import unquote, urljoin, urlsplit
 import json
 import os
 import re
@@ -154,11 +154,18 @@ def static_contracts():
         check(all(name in principles for name in permission_names), prefix + ': capture processing external reading and sync remain four separate permissions')
         for page in ('index.html', 'demo.html'):
             doc = docs[prefix + page]
-            check([a['data-space'] for a in doc.with_attr('data-space')] == ['archive', 'thought', 'context'], prefix + page + ': three main product spaces')
-            check(doc.with_attr('data-archive-search') and not doc.with_attr('data-thought-search'), prefix + page + ': archive discovery search remains available')
+            if page == 'demo.html':
+                check([a['data-space'] for a in doc.with_attr('data-space')] == ['archive', 'thought', 'context'], prefix + page + ': full demo retains three main product spaces')
+                check(doc.with_attr('data-archive-search') and not doc.with_attr('data-thought-search'), prefix + page + ': archive discovery search remains available in the full demo')
+            else:
+                targets = [urlsplit(urljoin('https://inputarchive.com/' + prefix + page, a.get('href', ''))) for a in doc.all('a')]
+                check(any(target.scheme == 'https' and target.netloc == 'inputarchive.com' and target.path == '/' + prefix + 'demo.html' for target in targets), prefix + page + ': homepage links directly to its language-matched full demo')
             contexts = doc.with_attr('data-context')
-            check(len(doc.with_attr('data-context-scope')) == 4 * len(contexts), prefix + page + ': four independent context scopes')
+            check(bool(contexts), prefix + page + ': an actual interactive Context example remains available')
+            scopes = Counter(a['data-context-scope'] for a in doc.with_attr('data-context-scope'))
+            check(scopes == Counter({key: len(contexts) for key in ('info', 'rules', 'now', 'inputs')}) and len(doc.with_attr('data-context-global')) == len(contexts), prefix + page + ': every Context example retains four independent scopes and main access')
             check(all(a.get('aria-checked') == 'false' and a.get('role') == 'switch' for a in doc.with_attr('data-context-scope') + doc.with_attr('data-context-global')), prefix + page + ': fresh permissions are closed')
+            check(bool(doc.with_attr('data-prompt-demo')) and bool(doc.with_attr('data-prompt-pick')), prefix + page + ': actual personal prompt reuse remains available')
             check(all('type' in a and a['type'] == 'button' for a in doc.with_attr('data-prompt-pick')), prefix + page + ': prompt selection cannot submit a form')
             check(len(doc.with_attr('data-prompt-manage')) == len(doc.with_attr('data-prompt-demo')) == len(doc.with_attr('data-prompt-manager')), prefix + page + ': prompt management has a dedicated accessible entry')
             check(all('title' not in a for _, a in doc.tags if any(key.startswith('data-prompt-') for key in a)), prefix + page + ': prompt surface has no native hover hints')
@@ -184,6 +191,25 @@ def static_contracts():
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
+
+
+def homepage_demo_entries(page, prefix):
+    """Find real keyboard-accessible Demo links without imposing a hero layout."""
+    links = page.locator('header a[href], main a[href]')
+    indices = links.evaluate_all('''(links, expected) => links.flatMap((link, index) => {
+      const target = new URL(link.href, location.href);
+      const rect = link.getBoundingClientRect();
+      const style = getComputedStyle(link);
+      const labelled = (link.getAttribute('aria-labelledby') || '').split(/\\s+/)
+        .map(id => document.getElementById(id)?.textContent || '').join(' ');
+      const name = link.getAttribute('aria-label') || labelled.trim() || link.innerText.trim()
+        || [...link.querySelectorAll('img[alt]')].map(img => img.alt).join(' ').trim();
+      return target.origin === location.origin && target.pathname === expected
+        && rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden'
+        && link.tabIndex >= 0 && link.getAttribute('aria-hidden') !== 'true' && name
+        ? [index] : [];
+    })''', '/' + prefix + 'demo.html')
+    return links, indices
 
 
 def browser_contracts():
@@ -223,6 +249,9 @@ def browser_contracts():
                         check(page.evaluate('Array.from(document.images).every(i=>i.complete&&i.naturalWidth>0||i.loading==="lazy")'), tag + ': image assets load')
                         check(not errors, tag + ': no JavaScript errors')
                         check(not external, tag + ': no unsolicited external requests')
+                        if route == 'index.html':
+                            _, demo_entries = homepage_demo_entries(page, prefix)
+                            check(bool(demo_entries), tag + ': a visible named Demo link is keyboard-reachable from the homepage')
                         if width == 320:
                             page.add_style_tag(content='html{font-size:200%!important}')
                             check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), tag + ': 200% text reflows')
@@ -250,8 +279,17 @@ def browser_contracts():
                 page.emulate_media(forced_colors='active', reduced_motion='reduce')
                 check(page.locator('h1').evaluate("e=>{const s=getComputedStyle(e);return s.color!==s.backgroundColor&&!['transparent','rgba(0, 0, 0, 0)'].includes(s.webkitTextFillColor)}"), prefix + ': title remains readable in forced colors')
                 page.emulate_media(forced_colors='none', reduced_motion='no-preference')
+                links, demo_entries = homepage_demo_entries(page, prefix)
+                check(bool(demo_entries), prefix + ': the full demo remains reachable without an embedded homepage workspace')
+                entry = links.nth(demo_entries[0])
+                entry.focus()
+                check(entry.evaluate('e=>e===document.activeElement'), prefix + ': the Demo entry receives keyboard focus')
+                entry.press('Enter')
+                page.wait_for_function('(expected)=>location.pathname===expected', arg='/' + prefix + 'demo.html')
+                check(page.locator('[data-workspace]').is_visible(), prefix + ': homepage Demo activation opens the actual interactive product workspace')
                 for width in (1280, 390):
                     page.set_viewport_size({'width': width, 'height': 900})
+                    exercise_home_story(page, origin, prefix)
                     exercise_demo(page, origin, prefix)
                 exercise_contact(browser, origin, prefix)
             check(not external, 'complete page-local journeys make no external requests')
@@ -281,6 +319,62 @@ def browser_contracts():
             return version
     finally:
         server.shutdown()
+
+
+def exercise_home_story(page, origin, prefix):
+    """Continue a thought through real controls without rewriting its source."""
+    label = prefix + 'home-continuation/' + str(page.viewport_size['width'])
+    page.goto(origin + '/' + prefix + 'index.html', wait_until='load')
+    story = page.locator('[data-continuation]')
+    original = story.locator('[data-continuation-original]')
+    working = story.locator('[data-continuation-working]')
+    echo = story.locator('[data-continuation-echo]')
+    editor = story.locator('[data-continuation-text]')
+    opener = story.locator('[data-continuation-edit]')
+    status = story.locator('[data-continuation-status]')
+    original_words = original.text_content()
+    initial_working = working.text_content()
+    composer = story.locator('[data-composer]')
+    initial_composer = composer.input_value()
+    check(bool(original_words.strip()) and bool(initial_working.strip()) and echo.text_content() == initial_working, label + ': the continued reading begins with the current working expression')
+
+    revised = ('  我想从仍然记得的声音写起。\n保留没想清楚的部分 — Keep the uncertainty. 👩🏽\u200d💻  '
+               if prefix else '  I want to begin with a sound I still remember.\nKeep the hesitation — 留住还没确定的部分。 👩🏽\u200d💻  ')
+    opener.focus()
+    opener.press('Enter')
+    check(editor.is_visible() and editor.input_value() == initial_working and editor.evaluate('e=>e===document.activeElement'), label + ': keyboard editing starts from the actual current expression')
+    editor.fill(revised)
+    story.locator('[data-continuation-save]').click()
+    check(working.is_visible() and working.text_content() == revised and echo.text_content() == revised, label + ': a kept edit appears exactly in working text and subsequent topic reading')
+    check(original.text_content() == original_words, label + ': continuing the thought leaves its original source intact')
+    check(not editor.is_visible() and opener.evaluate('e=>e===document.activeElement'), label + ': saving ends the edit and restores its keyboard entry')
+    accepted_status = status.inner_text()
+    check(status.get_attribute('role') == 'status' and bool(accepted_status.strip()), label + ': keeping an expression has accessible feedback')
+    check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), label + ': the edited expression and its reading copy remain within the page')
+
+    opener.click()
+    editor.fill('A different draft that I choose not to keep. 不保留这次修改。')
+    story.locator('[data-continuation-cancel]').click()
+    check(not editor.is_visible() and working.text_content() == revised and echo.text_content() == revised and original.text_content() == original_words, label + ': cancelling leaves both the accepted expression and source untouched')
+    check(opener.evaluate('e=>e===document.activeElement'), label + ': cancelling restores the edit entry')
+
+    opener.click()
+    check(editor.input_value() == revised, label + ': reopening does not resurrect a cancelled draft')
+    editor.fill(' \n\t ')
+    story.locator('[data-continuation-save]').click()
+    check(editor.is_visible() and editor.input_value() == ' \n\t ' and editor.evaluate('e=>e===document.activeElement'), label + ': an empty expression stays editable instead of replacing saved words')
+    check(working.text_content() == revised and echo.text_content() == revised and original.text_content() == original_words, label + ': rejected blank input changes neither current reading nor source')
+    check(bool(status.inner_text().strip()) and status.inner_text() != accepted_status, label + ': a rejected empty edit has distinct readable feedback')
+    editor.fill('Unfinished words that Escape should discard. 尚未保留。')
+    editor.press('Escape')
+    check(not editor.is_visible() and working.is_visible() and working.text_content() == revised and echo.text_content() == revised and original.text_content() == original_words, label + ': Escape preserves the last accepted expression and original')
+    check(opener.evaluate('e=>e===document.activeElement'), label + ': Escape restores the edit entry')
+    check(story.locator('[data-context] [role=switch][aria-checked=true]').count() == 0 and composer.input_value() == initial_composer, label + ': editing the expression does not grant Context access or change the prompt draft')
+    check(page.evaluate('localStorage.length===0&&sessionStorage.length===0'), label + ': the continued expression is not written to browser storage')
+
+    page.reload(wait_until='load')
+    check(working.text_content() == initial_working and echo.text_content() == initial_working and original.text_content() == original_words, label + ': reload restores the fictional example instead of retaining personal edits')
+    check(not editor.is_visible(), label + ': reload does not restore an unfinished editor')
 
 
 def exercise_demo(page, origin, prefix):

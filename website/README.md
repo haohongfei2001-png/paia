@@ -1,14 +1,14 @@
-# PAIA flagship website — independent design review
+# PAIA flagship website — revision 2 design review
 
 This branch rebuilds the public website around a simple proposition: **your words remain yours, and your thinking can continue**. It is a website-only design implementation for review. The current authorization permits an independent branch and Draft PR; it does **not** authorize merging or deploying to production. Earlier receipts describe earlier work and do not grant permission for this branch.
 
 ## Visual and narrative direction
 
-The site gives human expression the largest readable product surface. White space, dark plum text and a restrained mineral-violet field form the shared visual system. Translucency belongs mainly to navigation and the small prompt companion. The latest soft-blue PAIA symbol is retained; the creator's original girl-and-mailbox drawing is used unchanged in the story and home-page close.
+The current design centers a person's expression across time. Cool white, ink-blue text, blue-gray accents, thin rules and reading margins form the shared system. Translucency is concentrated in navigation and the small prompt companion. A self-hosted Chinese sans-serif provides consistent Chinese typography alongside Manrope. The latest soft-blue PAIA symbol and the creator's original girl-and-mailbox drawing are retained.
 
-The opening is a working product example, followed by the relation between original words and working edits, the continuity of a personal topic, a small prompt composer, and explicit context choices. The final invitation sits with the original artwork. About, use cases, explanatory pages and articles use different reading structures within the same system.
+The homepage begins with one fictional expression about writing, its unchanged original and its current working text. Visitors can edit the working text locally; the same accepted edit appears in the Topic reading below. This is a visible continuation of the person's expression, with no AI generation or inferred permission. The full three-space product workspace remains available through a direct link to the separate Demo route. Prompt Reuse and independent Context choices also remain interactive on the homepage.
 
-Internal direction review considered a nostalgic editorial treatment and a dark technology-led treatment. Neither suited an active personal workspace as well as the selected bright, readable direction. These were art-direction judgments, not claims that separate polished concepts were shipped.
+How it works follows the same writing example. Use cases cover writing, an ongoing question and a personal choice. About leads with the original drawing and the story's three unresolved facts: the girl approaches, passes and leaves; we do not know whether she posted anything; only the mailbox remains. Principles and articles use a shared reading structure, with their own content hierarchy. The implemented pages and interactions are the design review material; test counts do not determine aesthetic acceptance.
 
 Five actual upstream skills informed separate stages of the work:
 
@@ -22,6 +22,7 @@ These sources inform the work; the current owner brief and current PAIA contract
 
 ## Product boundaries
 
+- **Homepage continuation** edits only the fictional working expression. Saving updates the same-page Topic reading while preserving the original source; cancel and Escape retain the last accepted edit. Blank input stays editable, focus returns to the entry when editing ends, and reloading restores the initial example. It does not change Context permissions or the prompt draft.
 - **Input Archive** contains synthetic examples of sent user text. Discovery search filters the conversation choices. Working edits do not overwrite the retained source. Each conversation has its own project, date and earlier expression.
 - **Thought Library** opens existing Topics and their plain Section links. A section reads its own material. There is no root search, generic topic creation, invented opinion generation or fake AI processing.
 - **AI Context** has My Information, My Rules, My Now and My Inputs. The global, card and topic choices all begin off. Lower choices do not enable parents. Pausing a parent retains the lower choices. Opening, editing, deleting or restoring content never changes permission bits. My Inputs references existing Topics only.
@@ -36,17 +37,20 @@ The existing contact recipient, FormSubmit endpoint, unchecked required forwardi
 | File | Responsibility |
 |---|---|
 | `build.py` | Stable command-line entry point |
-| `flagship_site.py` | Shared head, navigation, footer, route generation, home and demo |
+| `flagship_site.py` | Shared head, navigation, footer, route generation and full Demo |
+| `flagship_home.py` | Homepage expression, working-text editor and continued Topic reading |
 | `flagship_shared.py` | Language selection, route helpers and line icons |
 | `flagship_ui.py` | Archive and Thought Library example markup |
 | `flagship_personal_ui.py` | Context and Prompt Reuse example markup |
 | `flagship_content.py` | How, use cases, About, principles, notes and articles |
 | `flagship_legal.json` | Retained legal wording; obsolete visual-update stamps removed |
 | `launch_pages.py`, `launch_manifest.json` | Retained installation, help and contact contracts |
-| `assets/website/flagship.css` | Shared system, home, demo, forms and legal layout |
+| `assets/website/flagship.css` | Shared component foundations, Demo, forms and legal layout |
+| `assets/website/flagship-design.css` | Current art direction, self-hosted Chinese font, homepage and responsive refinements |
 | `assets/website/flagship-pages.css` | Distinct inner-page compositions |
 | `assets/website/flagship-personal.css` | Personal-content editors and prompt manager |
-| `assets/website/flagship.js` | Navigation, source-safe Archive edits and Topic reading |
+| `assets/website/flagship.js` | Navigation, source-safe Archive edits and Topic reading in the full Demo |
+| `assets/website/flagship-home.js` | Page-local homepage edits, original retention, Topic echo and focus restoration |
 | `assets/website/flagship-personal.js` | Independent context choices and safe prompt reuse |
 | `assets/website/flagship-contact.js` | Isolated inherited contact controller |
 | `flagship_tests.py` | New-generation contract and browser regression tests |
@@ -73,7 +77,7 @@ python -m playwright install chromium
 python website/test.py
 ```
 
-The browser suite uses actual generated files over local HTTP, synthetic inputs and intercepted contact responses. It never submits a real contact request. It checks routes and layout, source retention, permissions, prompt editing/insertion, keyboard access, media preferences, no-JS fallbacks and contact outcomes. Static checks are not represented as browser passes. See `FLAGSHIP_TEST_MIGRATION.md` and the review receipt for the actual executed scope.
+The browser suite uses actual generated files over local HTTP, synthetic inputs and intercepted contact responses. It never submits a real contact request. It checks routes and layout, homepage continuation, source retention, permissions, prompt editing/insertion, keyboard access, media preferences, no-JS fallbacks and contact outcomes. Static checks are not browser passes, and browser checks are not aesthetic approval. See [FLAGSHIP_TEST_MIGRATION.md](FLAGSHIP_TEST_MIGRATION.md) for the contracts and [FLAGSHIP_REVIEW.md](FLAGSHIP_REVIEW.md) for the actual executed scope and commit-specific evidence.
 
 For the standalone deliverable, run `python website/package_flagship.py --help` and follow `OFFLINE_PREVIEW.md`. The single HTML embeds all visitor assets, supports the full site and both languages, and intentionally prevents contact submission. The normal generated website keeps the real contact flow.
 

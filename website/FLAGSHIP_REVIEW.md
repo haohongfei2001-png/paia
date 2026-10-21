@@ -1,76 +1,90 @@
-# PAIA flagship website — review receipt
+# PAIA flagship website — revision 2 review receipt
 
-Date: 21 October 2026. This receipt records completed static checks and the
-lead agent's CUA browser observations. **It does not record a Playwright CI
-pass, a production deployment, or owner design acceptance.**
+Date: 21 October 2026. This receipt separates checks executed on the second
+revision from the first revision's historical evidence. **Revision 2's full CI
+run is still pending. No production deployment or owner design acceptance is
+claimed.**
 
-## Review basis and scope
+## Scope and revision
 
 - Base commit: `5d46cb2578ce76a3442dd056386868dc37c19827`.
 - Independent branch: `design/paia-website-flagship-20261021`.
-- Scope: website source, generated bilingual pages, presentation assets,
-  page-local examples and website verification. The maintained Python source
-  generates 57 HTML routes, `sitemap.xml` and `robots.txt`.
-- No extension, product database, production permission model or product
-  runtime changes. Website examples use fictional material and transient state.
+- Website-only source, generated pages, assets, fictional page-local examples
+  and verification. No extension, product database or product permission-model
+  changes.
+- **57 HTML files:** 19 English root pages, 19 Chinese pages and 19 identical
+  `/en/` aliases. The generator also owns `sitemap.xml` and `robots.txt`.
 - No merge, production deployment or replacement of the public website.
 
-The existing distribution manifest, legal content and native contact route
-remain. An unavailable installer stays disabled. The creator's original
-illustration is byte-preserved. The contact controller was extracted in full
-from the existing implementation; its destination restrictions, field whitelist,
-consent, pending lock, duplicate protection and truthful outcome handling were
-retained.
+Revision 2 follows one expression about writing across the homepage. Its working
+text can be edited locally; the original stays separate and the same edit appears
+in the Topic reading below. The full Demo remains a separate route. How it works
+uses the same example; use cases cover writing, an ongoing question and a
+personal choice. About gives the unchanged original drawing more space and
+retains the story's unresolved facts. Cool white, blue-gray and a self-hosted
+Chinese typeface replace the first revision's violet presentation.
 
-## Executed verification
+The existing distribution manifest, legal wording and contact destination are
+retained. An unavailable installer stays disabled. Website examples do not read
+personal chats, call AI, grant real access or persist edits across reloads.
 
-| Evidence | Completed result |
+## Executed on revision 2
+
+| Evidence | Recorded result |
 | --- | --- |
-| Source generation | `python website/build.py --check` found no generated drift. |
-| Static contracts | `python website/test.py --static-only`: **3,792 checks, zero failures**. |
-| JavaScript syntax | `node --check` passed for `flagship.js`, `flagship-personal.js` and `flagship-contact.js`. |
-| Verification code syntax | Python parsing passed for `flagship_tests.py`, `flagship_live.py`, `test.py` and `verify_live.py`. |
-| Future live asset inventory | Local dependency collection found 73 reviewed files, including the actual fonts and new scripts. No public readback was executed. |
-| CUA layout inspection | The lead agent verified **88 layouts: 11 routes × 2 languages × 4 viewport widths**, at 320, 390, 768 and 1440 CSS px. |
-| CUA Archive / Thought | Archive and Thought browsing and editing interactions were exercised. |
-| CUA AI Context | Independent closed defaults, content edit/delete/undo, and global pause retaining child scope choices were exercised. |
-| CUA Prompt Reuse | Edit, pin, hide/undo, unfinished draft preservation, rejection of a 151-character sample, and insertion at the selection end while preserving selected draft text were exercised. |
+| Generated-source consistency | `python website/build.py --check`: **59 generated files checked**, comprising 57 HTML files, sitemap and robots. |
+| Static contracts | `python website/test.py --static-only`: **3,870 checks, zero failures**. Its browser result is `NOT_RUN`. |
+| JavaScript syntax | `node --check` passed for the homepage and personal-interaction scripts. |
+| Source whitespace | `git diff --check` passed. |
+| Chinese font coverage | **776 required code points, zero missing**; the reviewed self-hosted font is 236,264 bytes. |
+| Responsive CUA inspection | **88 layouts: 11 routes × 2 languages × 4 viewport widths**, at 320, 390, 768 and 1440 CSS px. No horizontal overflow was observed. |
+| Homepage CUA interaction | Edit and save were exercised. Original text remained unchanged, Topic reading reflected the working edit, and focus returned to the edit control. |
+| Context and Prompt CUA interaction | Viewing and editing My Now left all five visible access switches off. Prompt insertion preserved the entire selected draft, inserted at the selection end and returned focus to the composer. |
+| Mobile navigation | The menu opened and Escape closed it in the 390 px review viewport. |
+| Revision 2 packaged preview | The exact generated HTML was served over local HTTP. Homepage save, blank rejection and Escape cancellation; About navigation; language switching and browser Back; Demo Thought selection; and valid/invalid offline contact checks were exercised. |
 
-The local machine-readable report is
-`website-test-artifacts/report.json`: `evidence: STATIC_ONLY`,
-`browser: NOT_RUN`, no private data and no contact submission. **`NOT_RUN`
-describes the automated Playwright suite; it does not erase the separate CUA
-browser observations above.** Responsive browser viewports are not physical
-device or screen-reader qualification.
+The static report's `browser: NOT_RUN` describes the automated Playwright suite;
+it does not describe or invalidate the separate CUA observations. Browser
+viewport checks are not physical-device or screen-reader qualification.
+The packaged contact confirmation responds to mouse and keyboard interaction.
+Its local validation clears a previous valid result when the email becomes
+invalid. No contact message was sent. A direct `file:` protocol check remains
+unavailable in the managed browser; the delivered single HTML is self-contained.
 
-## Written checks awaiting actual CI execution
+## Historical evidence — revision 1 only
 
-The unchanged GitHub website workflow still invokes `website/test.py`. The new
-generation selects `flagship_tests.py`; the prior modules and visual baselines
-remain as historical evidence. The owner's full-site design authorization
-supersedes their old visual freeze. Functional requirements were migrated rather
-than converted to unconditional passes; see
-[FLAGSHIP_TEST_MIGRATION.md](FLAGSHIP_TEST_MIGRATION.md).
+Commit **`33806eb`** passed the complete website CI run
+[39523076190](https://github.com/haohongfei2001-png/paia/actions/runs/39523076190),
+with **5,417 checks**. That result belongs to that commit and is not a revision 2
+CI pass.
 
-The full Playwright suite is written but **has not yet run**. It includes actual
-local HTTP route journeys, four viewport widths, 200% text, keyboard behavior,
-reduced motion, forced colors, no-JS paths, original/working text separation,
-Context authorization boundaries, editable prompt management, exact 150/151
-compound-grapheme limits, IME handling and draft-safe insertion.
+Revision 1's separate CUA observations covered Archive and Thought browsing and
+editing; Context closed defaults, editing, deletion/undo and pause with retained
+child choices; and Prompt management, unfinished draft preservation, length
+rejection and selection-end insertion with selected draft text preserved.
 
-Its contact scenarios use a synthetic intercepted transport: accepted and
-unconfirmed outcomes, pending locks, duplicates, explicit retry, malformed
-responses, network errors and the actual 15-second timeout. These browser
-scenarios are **pending**, not inferred to pass from the unchanged controller
-or the static result. No real message is submitted by the suite.
+Its packaged preview was also exercised over local HTTP: About navigation,
+language switching, browser Back, Demo tabs, mobile-menu open/Escape, and valid
+and invalid offline contact validation. The managed browser did not provide a
+direct `file:` protocol check. These package observations are historical and do
+not certify a freshly generated revision 2 package.
 
-`verify_live.py` similarly selects the new `flagship_live.py` after a future
-authorized deployment. Exact public byte comparison and public browser checks
-remain unexecuted. The subsequent Draft PR's actual run, at its recorded commit,
-must supply CI evidence; this receipt makes no CI or live-site pass claim.
+## Remaining revision 2 verification
 
-## Final packaged-preview check
+The full CI suite must run against the revision 2 commit after submission. The
+existing workflow invokes `website/test.py`, which selects `flagship_tests.py`.
+It covers local HTTP routes, keyboard and media preferences, no-JS paths,
+original/working-text separation, Context boundaries, prompt management,
+150/151-grapheme limits, IME handling, draft-safe insertion and intercepted
+contact outcomes. The homepage continuation checks must be evaluated in that
+run as well. See [FLAGSHIP_TEST_MIGRATION.md](FLAGSHIP_TEST_MIGRATION.md).
 
-The generated single-file HTML was served through the local preview server and opened in Chrome. Internal About navigation, same-page language switching, browser Back, Demo tab selection, and contact validation were exercised. The contact preview uses a normal button to validate locally; a valid email plus explicit acknowledgement shows a local-only result, and an invalid email clears that result. The iframe does not allow form submission and the package CSP denies network connections and form actions.
+Contact browser scenarios use synthetic intercepted responses; they do not send
+a real message. The offline package separately prevents contact submission and
+only checks form validity locally. The revision 2 package observations are
+recorded above; [OFFLINE_PREVIEW.md](OFFLINE_PREVIEW.md) documents rebuilding.
+Static package checks are not a replacement for browser execution.
 
-The responsive review also verified the mobile menu opens and Escape closes it. Screenshots were captured from the implemented pages. A direct file-protocol browser check was unavailable in the managed browser; the exact packaged HTML was verified over local HTTP. No external contact request was sent.
+No production readback has been run for this revision. `verify_live.py` remains
+available for a separately authorized future deployment. Any later CI or package
+result should be recorded with its actual commit and execution scope.

@@ -36,13 +36,14 @@
   };
 
   for (const root of $$('[data-context]')) {
+    const writingExample = root.dataset.persona === 'writing';
     // Editing/removing content never mutates these independent permission bits.
     const state = {global:false, info:false, rules:false, now:false, inputs:false, product:false, writing:false};
     const titles = {info:t('我的信息','My Information'),rules:t('我的规则','My Rules'),now:t('我的现在','My Now'),inputs:t('我的输入','My Inputs')};
     const items = {
-      info:{text:t('我正在探索一个个人软件产品。','I am exploring an idea for a personal software product.'), removed:false},
+      info:{text:writingExample ? t('我习惯用写作，慢慢想清楚自己的经历。','I use writing to make sense of my experiences.') : t('我正在探索一个个人软件产品。','I am exploring an idea for a personal software product.'), removed:false},
       rules:{text:t('先检查我的前提。保留不确定性。用具体的例子说明。','Check my assumptions. Keep the uncertainty. Use concrete examples.'), removed:false},
-      now:{text:t('这周先把核心体验做清楚，再决定增加哪些功能。','This week, clarify the core experience before deciding what to add.'), removed:false},
+      now:{text:writingExample ? t('我正在写一篇关于离开家的随笔，想从搬家那天的细节开始。','I am writing a piece about leaving home, starting with details from moving day.') : t('这周先把核心体验做清楚，再决定增加哪些功能。','This week, clarify the core experience before deciding what to add.'), removed:false},
     };
     // References to the two existing sample topics. No copied or generated body.
     const topics = [
