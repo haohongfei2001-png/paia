@@ -46,7 +46,7 @@
       },
     ];
     for (const entry of entries) entry.working = entry.original;
-    let selected = 0;
+    let selected = root.dataset.initialEntry === '1' ? 1 : 0;
     const tabs = $$('[data-space]', root);
     const panels = $$('[data-space-panel]', root);
     const setSpace = (space, focus = false) => {
@@ -88,6 +88,8 @@
       $('[data-reader-date]', root).dateTime = entry.date;
       $('[data-reader-date]', root).textContent = entry.dateLabel;
       $('[data-reader-source]', root).textContent = 'ChatGPT · '+entry.date;
+      const sourceDate = $('[data-reader-source-date]', root);
+      if (sourceDate) sourceDate.textContent = entry.date.split('-').reverse().join('.');
       $('[data-earlier-date]', root).dateTime = entry.earlierDate;
       $('[data-earlier-date]', root).textContent = entry.earlierLabel;
       $('[data-earlier-text]', root).textContent = entry.earlier;
@@ -163,6 +165,7 @@
       $('[data-thought-reader]', root).hidden = true;
       $('[data-section]', root).focus({preventScroll:true});
     });
+    if (selected !== 0) renderEntry();
     if (document.body.dataset.page === 'demo.html') {
       const initial = location.hash.slice(1);
       if (['archive', 'thought', 'context'].includes(initial)) setSpace(initial);

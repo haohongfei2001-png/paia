@@ -24,5 +24,6 @@ def icon(name, cls='icon'):
         'now': '<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',
         'return': '<path d="M8 6 3 11l5 5M3 11h11a6 6 0 0 1 6 6v2"/>',
         'play': '<path d="m9 5 11 7-11 7z"/>',
+        'chevron': '<path d="m7 10 5 5 5-5"/>',
     }
     return f'<svg class="{cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{paths[name]}</svg>'

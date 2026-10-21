@@ -3,11 +3,11 @@ from html import escape
 from flagship_shared import text, href, icon
 from flagship_personal_ui import context_cards, prompts
 
-def workspace(lang, uid='main', full=False):
+def workspace(lang, uid='main', full=False, compact=False):
     t = lambda z,e: text(lang,z,e)
     original=t('我想做的，也许不是一个让人写得更多的工具。\n而是让已经说过的话，在下一次需要时，还找得到。','Maybe the tool I want to make is not one that helps people write more.\nIt is one that helps them find what they have already said, when they need it again.')
     next_text=t('先把“找回来”做好，再决定要不要生成更多。','Make finding things work first. Then decide whether to generate more.')
-    return f'''<div class="workspace {'workspace-full' if full else ''}" data-workspace data-active-space="archive">
+    markup = f'''<div class="workspace {'workspace-full' if full else ''}" data-workspace data-active-space="archive">
       <div class="workspace-top"><span class="workspace-identity"><img src="/assets/website/brand/paia-symbol-soft-blue.svg" width="25" height="25" alt="">{t('自己的空间','Your own space')}</span><div class="workspace-tabs" role="tablist" aria-label="{t('PAIA 的三个空间','PAIA’s three spaces')}">{''.join(f'<button type="button" role="tab" id="{uid}-tab-{key}" aria-controls="{uid}-panel-{key}" aria-selected="{str(i==0).lower()}" tabindex="{0 if i==0 else -1}" data-space="{key}">{icon(ic)}<span>{label}</span></button>' for i,(key,ic,label) in enumerate([('archive','archive',t('输入档案','Input Archive')),('thought','thought',t('思想库','Thought Library')),('context','context','AI Context')]))}</div><span class="sample-tag">{t('示例资料','Sample material')}</span></div>
       <section class="workspace-panel archive-panel" role="tabpanel" id="{uid}-panel-archive" aria-labelledby="{uid}-tab-archive" data-space-panel="archive">
         <aside class="archive-nav"><label class="archive-search">{icon('search')}<input type="search" data-archive-search placeholder="{t('搜索我的表达','Find my words')}" aria-label="{t('搜索示例档案','Search the sample archive')}"></label><p class="nav-caption">ChatGPT</p><div data-archive-results><button class="archive-entry is-selected" type="button" data-entry="0" aria-pressed="true"><span>{t('一个产品的起点','Where a product begins')}</span><small>{t('产品探索','Product exploration')}</small></button><button class="archive-entry" type="button" data-entry="1" aria-pressed="false"><span>{t('把想法说清楚','Finding my own words')}</span><small>{t('写作练习','Writing practice')}</small></button><button class="archive-entry" type="button" data-entry="2" aria-pressed="false"><span>{t('我真正想要什么','What matters to me')}</span><small>{t('选择与决定','Choices and decisions')}</small></button></div><p class="archive-empty" data-search-empty hidden>{t('没有找到。试试“产品”或清除搜索。','Nothing found. Try “product” or clear the search.')}</p><span class="archive-local">{t('已发送的用户文字','Your sent words')}</span></aside>
@@ -17,3 +17,25 @@ def workspace(lang, uid='main', full=False):
       <section class="workspace-panel context-panel" role="tabpanel" id="{uid}-panel-context" aria-labelledby="{uid}-tab-context" data-space-panel="context" hidden>{context_cards(lang,uid)}</section>
       <div class="workspace-bottom"><span>{t('留在自己这里。需要时，再继续。','Keep it here. Come back when it matters.')}</span><span>{t('网页演示，不连接个人档案','Website example, not your personal archive')}</span></div>
     </div>'''
+
+    if compact:
+        # The home object starts at a fictional writing expression. The complete
+        # demo retains its full directory; these controls expose it on request.
+        markup = markup.replace('data-active-space="archive"', 'data-active-space="archive" data-initial-entry="1"')
+        markup = markup.replace('<span>' + t('你写下的', 'Written by you') + '</span>', '<span>' + t('工作文字', 'Working text') + '</span>')
+        markup = markup.replace('<aside class="archive-nav">', '<details class="hero-records"><summary>' + icon('archive') + '<span>' + t('找回另一段表达', 'Find another expression') + '</span>' + icon('chevron') + '</summary><aside class="archive-nav">', 1)
+        markup = markup.replace('</aside>', '</aside></details>', 1)
+        replacements = [
+            (t('第一版，究竟留下什么？', 'What belongs in the first version?'), t('用自己的语言，再说一次。', 'Say it again, in my own words.')),
+            (original, t('我不想让文字听起来更像“一个正确的答案”。\n有些犹豫，也是我真正想说的一部分。', 'I do not want my writing to sound more like “the right answer.”\nSome of the hesitation is part of what I actually mean.')),
+            (next_text, t('我想先找到自己的说法，再考虑怎样写得更流畅。', 'I want to find my own way of saying it before making it more fluent.')),
+        ]
+        for before, after in replacements:
+            markup = markup.replace(escape(before).replace(chr(10), '<br>'), escape(after).replace(chr(10), '<br>'))
+        markup = markup.replace('<span data-reader-project>' + t('产品探索', 'Product exploration'), '<span data-reader-project>' + t('写作练习', 'Writing practice'))
+        markup = markup.replace('<span data-reader-crumb>' + t('一个产品的起点', 'Where a product begins'), '<span data-reader-crumb>' + t('把想法说清楚', 'Finding my own words'))
+        markup = markup.replace('2026-10-12', '2026-10-10').replace(t('2026 年 10 月 12 日', '12 October 2026'), t('2026 年 10 月 10 日', '10 October 2026'))
+        markup = markup.replace('2026-10-08', '2026-10-03').replace(t('10 月 8 日', '8 October'), t('10 月 3 日', '3 October'))
+        markup = markup.replace('class="archive-entry is-selected" type="button" data-entry="0" aria-pressed="true"', 'class="archive-entry" type="button" data-entry="0" aria-pressed="false"')
+        markup = markup.replace('class="archive-entry" type="button" data-entry="1" aria-pressed="false"', 'class="archive-entry is-selected" type="button" data-entry="1" aria-pressed="true"')
+    return markup

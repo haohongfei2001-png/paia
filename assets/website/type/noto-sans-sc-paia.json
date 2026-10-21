@@ -7,8 +7,8 @@
   "upstream_bytes": 17772300,
   "license": "NOTO-SANS-SC-OFL.txt",
   "license_embedded_in_name_table": true,
-  "subset_sha256": "ccb1583cfc08bd92e51c14fd36ea8ecafde4e0150a1a2e8ffd6eb35aee516a4a",
-  "subset_bytes": 236264,
+  "subset_sha256": "238b550ec0afbf09419974c8a1f7443d854446993ced955c07adccd2a7e04cc8",
+  "subset_bytes": 237536,
   "fonttools_version": "4.61.1",
   "axes": [
     {
@@ -85,9 +85,9 @@
     "zh/thanks.html",
     "zh/use-cases.html"
   ],
-  "required_codepoints": 776,
-  "subset_codepoints": 776,
-  "han_codepoints": 659,
+  "required_codepoints": 777,
+  "subset_codepoints": 777,
+  "han_codepoints": 662,
   "unsupported_codepoints": [],
   "fallback_note": "User-entered characters outside this content subset use the CSS system-font fallback."
 }

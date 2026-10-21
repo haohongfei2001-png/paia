@@ -24,7 +24,7 @@ def route_content(page,lang):
     t=lambda z,e:text(lang,z,e)
     def a(p,label,cls='',anchor=''): return f'<a class="{cls}" href="{href(lang,p)}{anchor}">{label}</a>'
     def button(p,label,cls='button',anchor=''): return a(p,label,cls,anchor)
-    if page=='index.html': return ('PAIA — '+t('你说过的，还有下文。','Your words. Still becoming.'),t('把你对 AI 的表达留成自己的积累。找回原话、继续思考、复用自己的提示词，并自主决定 AI 的读取范围。','Keep your side of the conversation. Find your words, develop your ideas, reuse your prompts, and choose what AI can read.'),home(lang))
+    if page=='index.html': return ('PAIA — '+t('写给 AI 的，也留给自己。','Your side of the conversation.'),t('把你对 AI 的表达留成自己的积累。找回原话、继续思考、复用自己的提示词，并自主决定 AI 的读取范围。','Keep your side of the conversation. Find your words, develop your ideas, reuse your prompts, and choose what AI can read.'),home(lang))
     if page=='demo.html': return ('PAIA — '+t('交互演示','Interactive demo'),t('使用虚构资料，体验 PAIA 的三个空间与提示词复用。','Try PAIA’s three spaces and prompt reuse with fictional material.'),demo(lang))
     if page in ('download.html','beta.html'): return (t('获取 PAIA','Get PAIA'),t('查看真实的安装开放状态与使用方式。','Check actual installation availability and how to begin.'),download(t,a,button))
     if page in ('help.html','status.html'): return ('PAIA — '+t('帮助','Help'),t('安装、保存、复用与权限的清楚答案。','Clear answers about installation, capture, reuse and permissions.'),help_page(t,a,button))
