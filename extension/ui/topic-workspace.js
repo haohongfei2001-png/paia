@@ -1858,8 +1858,8 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    const result=await request('UPDATE_AI_PRESENTATION',{topicId,userActionId:op(),scopeBinding:scope.scopeBinding});
    if(!current())return false;
    if(result?.error){notice(statusLabel(result.error));return false;}
-   if(result?.completed!==true||result.topicId!==topicId){notice('本次整理结果尚未确认，已有内容保留。');return false;}
-   notice(result.noDelta?'当前主题没有需要更新的整理内容。':result.cached?'已读取当前有效的整理。':result.candidateCreated?'新的整理候选已保存，可查看后再决定是否采用。':'本次整理结果已保存。','ready');return true;
+   if(result?.completed!==true||result.topicId!==topicId||!(result.noDelta===true||result.cached===true||result.currentPublished===true&&Number.isSafeInteger(result.revision)&&result.revision>0)){notice('本次整理结果尚未确认，已有内容保留。');return false;}
+   notice(result.noDelta?'当前主题没有需要更新的整理内容。':result.cached?'已读取当前有效的整理。':result.currentPublished?'本次整理已更新当前阅读内容。':'本次整理结果尚未确认，已有内容保留。','ready');return true;
   }catch(error){notice(statusLabel(error?.code||'UNAVAILABLE'));return false;}
   finally{
    if(this.aiOrganizeActions.get(topicId)===action)this.aiOrganizeActions.delete(topicId);

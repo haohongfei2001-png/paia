@@ -1,4 +1,4 @@
-import {readOriginalOrganizeCandidateWriteIntent,sameOriginalOrganizeCandidateWrite} from '../core/organizer/ai-presentation.js';
+import {readOriginalOrganizeCandidateWriteIntent,sameOriginalOrganizeCandidateWrite,originalOrganizeWriteShape} from '../core/organizer/ai-presentation.js';
 import {readOriginalOrganizeScope,hasOriginalOrganizeEmptyRelationship,requireOriginalOrganizeActionScope,requireOriginalOrganizeCommitScope,registerOriginalOrganizeCommitSelectionFence,registerOriginalOrganizeCommitSelectionWrite} from '../core/organizer/organize-processing-scope.js';
 import {readOriginalControlSettings,assertOriginalControlSettingsFacts,readOriginalOrganizeControls,assertOriginalOrganizeControlsFacts} from '../core/indexed-store.js';
 import {requireRepositoryTransactionScope,registerRepositoryFinalReadFence} from '../core/idb-repository.js';
@@ -362,6 +362,6 @@ function registerCommitMaterialFence(cap,store,transaction){
 export function requireOriginalOrganizeCommitScopeReader(cap,store,transaction){const r=materialReaderFacts(cap,store,transaction);need(r.materialState.commit&&commitMaterialScopes.get(transaction)===cap);return readOriginalOrganizeScopeReader(cap,store,transaction);}
 export function registerOriginalOrganizeCandidateWrite(cap,store,transaction,intent){
  const view=requireOriginalOrganizeCommitScopeReader(cap,store,transaction),r=materialReaders.get(cap),state=r.materialState;need(state.writeIntent===null);
- const writes=readOriginalOrganizeCandidateWriteIntent(intent,store,transaction,cap).writes;need(writes.length===2&&writes[0].table==='meta'&&writes[0].key==='aiPresentation:'+view.topicId&&writes[1].table==='libraryMigrationItems'&&writes[1].key==='ai-presentation-candidate-fence:'+view.topicId);
+ const writeView=readOriginalOrganizeCandidateWriteIntent(intent,store,transaction,cap);need(originalOrganizeWriteShape(writeView,view.topicId));
  state.writeIntent=intent;registerOriginalOrganizeCommitSelectionWrite(r.record.selectionProof,store,transaction,cap,intent);requireOriginalOrganizeCommitScopeReader(cap,store,transaction);return true;
 }

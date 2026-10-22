@@ -10,7 +10,7 @@ async function fixture(run){
  const body=new Node('body'),nodes=new Map(['ai-topic-status','ai-presentation-toggle','thought-list','error'].map(id=>[id,new Node()]));for(const node of nodes.values())body.append(node);
  globalThis.document={body,documentElement:{lang:'zh-CN'},activeElement:null,createElement:tag=>new Node(tag),getElementById:id=>nodes.get(id)};
  const topic={topicId:'synthetic-topic',pending:true,presentation:null},state={serviceAvailable:true,topics:[topic],runtime:null},scope={topicId:topic.topicId,available:true,scopeBinding:'a'.repeat(64),blockedReason:null,complete:true,eligibleCount:2,batchCount:2,remainingCount:0};
- const calls=[],messages=[];let scopeRead=()=>scope,update=()=>({completed:true,topicId:'synthetic-topic',candidateCreated:true});
+ const calls=[],messages=[];let scopeRead=()=>scope,update=()=>({completed:true,topicId:'synthetic-topic',currentPublished:true,revision:1});
  globalThis.chrome={runtime:{sendMessage:async message=>{calls.push(structuredClone(message));const data=message.type==='GET_AI_PRESENTATION_SCOPE'?await scopeRead():message.type==='UPDATE_AI_PRESENTATION'?await update():message.type==='GET_AI_PRESENTATION_STATUS'?state:message.type==='GET_ORGANIZER_CONTROLS'?{}:message.type==='STOP_AI_PRESENTATION'?{stopped:true}:assert.fail('unexpected RPC '+message.type);return {ok:true,data:structuredClone(data)};}}};
  const owner=Object.assign(Object.create(TopicController.prototype),{id:topic.topicId,view:'ai',openIntent:1,presentationIntent:1,activeSectionId:'synthetic-section',statusEpoch:0,statusReadSerial:0,statusUnavailable:[],preferencesLoaded:true,aiState:state,aiTopics:new Map([[topic.topicId,topic]]),onStatus:(...args)=>messages.push(args),refreshes:0,async refresh(){this.refreshes++;await this.updateViewStatus();}});
  const host=nodes.get('ai-topic-status'),buttons=()=>host.children.filter(node=>node.tagName==='BUTTON'),click=async()=>{const button=buttons().find(node=>!node.disabled);assert.ok(button,'configured original Topic status exposes a deliberate action');button.listeners.get('click')();await tick();};
@@ -32,7 +32,7 @@ test('configured original Topic status only sends fresh scope and one action aft
 
 test('held update is visibly pending and repeated clicks cannot send a second request',()=>fixture(async f=>{
  const held=deferred();f.update(()=>held.promise);f.owner.renderAITopicStatus(f.state,f.topic);const first=f.buttons()[0];first.listeners.get('click')();first.listeners.get('click')();await tick();
- assert.equal(f.calls.filter(row=>row.type==='UPDATE_AI_PRESENTATION').length,1);assert.match(f.host.textContent,/正在整理/);assert.equal(f.owner.refreshes,0);held.resolve({completed:true,topicId:'synthetic-topic',candidateCreated:true});await tick();assert.equal(f.owner.refreshes,1);
+ assert.equal(f.calls.filter(row=>row.type==='UPDATE_AI_PRESENTATION').length,1);assert.match(f.host.textContent,/正在整理/);assert.equal(f.owner.refreshes,0);held.resolve({completed:true,topicId:'synthetic-topic',currentPublished:true,revision:1});await tick();assert.equal(f.owner.refreshes,1);
 }));
 
 test('original failed-save and IME guards prevent even scope preparation',()=>fixture(async f=>{
@@ -51,7 +51,7 @@ test('scope denial retains saved reading without generation or raw provider diag
 }));
 
 test('late completed update cannot refresh or paint another selected Topic',()=>fixture(async f=>{
- const held=deferred();f.update(()=>held.promise);f.owner.renderAITopicStatus(f.state,f.topic);await f.click();assert.equal(f.calls.filter(row=>row.type==='UPDATE_AI_PRESENTATION').length,1);f.owner.id='other-topic';f.owner.openIntent++;f.host.textContent='SYNTHETIC current topic status';held.resolve({completed:true,topicId:'synthetic-topic',candidateCreated:true});await tick();assert.equal(f.host.textContent,'SYNTHETIC current topic status');assert.equal(f.owner.refreshes,0);
+ const held=deferred();f.update(()=>held.promise);f.owner.renderAITopicStatus(f.state,f.topic);await f.click();assert.equal(f.calls.filter(row=>row.type==='UPDATE_AI_PRESENTATION').length,1);f.owner.id='other-topic';f.owner.openIntent++;f.host.textContent='SYNTHETIC current topic status';held.resolve({completed:true,topicId:'synthetic-topic',currentPublished:true,revision:1});await tick();assert.equal(f.host.textContent,'SYNTHETIC current topic status');assert.equal(f.owner.refreshes,0);
 }));
 
 test('cached reads and status refreshes never prepare or dispatch an Organize request',()=>fixture(async f=>{
@@ -79,7 +79,7 @@ test('unknown outcome is shown without any automatic retry or success claim',()=
 }));
 
 test('new human edits during provider work retain their live editor and defer result repaint',()=>fixture(async f=>{
- const held=deferred();f.update(()=>held.promise);f.owner.renderAITopicStatus(f.state,f.topic);await f.click();const editor={dirty:()=>true,local:{body:'SYNTHETIC new unsaved text'}};f.owner.editor=editor;held.resolve({completed:true,topicId:'synthetic-topic',candidateCreated:true});await tick();assert.equal(f.owner.refreshes,0);assert.equal(f.owner.editor,editor);assert.equal(editor.local.body,'SYNTHETIC new unsaved text');assert.match(f.host.textContent,/候选已保存/);
+ const held=deferred();f.update(()=>held.promise);f.owner.renderAITopicStatus(f.state,f.topic);await f.click();const editor={dirty:()=>true,local:{body:'SYNTHETIC new unsaved text'}};f.owner.editor=editor;held.resolve({completed:true,topicId:'synthetic-topic',currentPublished:true,revision:1});await tick();assert.equal(f.owner.refreshes,0);assert.equal(f.owner.editor,editor);assert.equal(editor.local.body,'SYNTHETIC new unsaved text');assert.match(f.host.textContent,/已更新当前阅读内容/);
 }));
 
 test('pending original-topic Stop sends once and never refreshes or retries generation',()=>fixture(async f=>{
@@ -89,3 +89,9 @@ test('pending original-topic Stop sends once and never refreshes or retries gene
 test('reopened Topic shows original running status and Stop without starting another operation',()=>fixture(async f=>{
  f.state.runtime={topicId:f.topic.topicId,phase:'running',state:'running',requestCount:1};await f.owner.updateViewStatus();assert.match(f.host.textContent,/正在整理/);assert.equal(f.buttons().find(node=>node.dataset.aiOrganizeRefresh).disabled,true);const stop=f.buttons().find(node=>node.textContent==='停止本次整理');assert.ok(stop);stop.listeners.get('click')();await tick();assert.equal(f.calls.filter(row=>row.type==='STOP_AI_PRESENTATION').length,1);assert.equal(f.calls.filter(row=>row.type==='UPDATE_AI_PRESENTATION').length,0);assert.equal(f.calls.filter(row=>row.type==='GET_AI_PRESENTATION_SCOPE').length,0);
 }));
+
+test('legacy candidate or missing revision is not a confirmed Current publication',async()=>{
+ for(const value of [{candidateCreated:true},{currentPublished:true},{currentPublished:true,revision:0},{}])await fixture(async f=>{
+  f.update(()=>({completed:true,topicId:f.topic.topicId,...value}));f.owner.renderAITopicStatus(f.state,f.topic);await f.click();await tick();assert.match(f.host.textContent,/结果尚未确认/);assert.doesNotMatch(f.host.textContent,/已更新当前阅读内容/);assert.equal(f.calls.filter(c=>c.type==='UPDATE_AI_PRESENTATION').length,1);
+ });
+});

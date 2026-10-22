@@ -59,7 +59,7 @@ export function nativeTestConfiguration(store){
   const authority=new TopicProcessingAuthority(store,{processing,caller,binding:{operationId:crypto.randomUUID()},workBudget:budget}),guard=new TopicProcessingGuard(store,{resolveProcessing:(tx,request)=>authority.authorize(tx,request)}),repository=store.repository,transaction=repository.transaction;
   repository.transaction=function(write,fn,...rest){return transaction.call(this,write,async tx=>{const out=await fn(tx);
    if(write&&!state.attached&&out?.type==='AI_ORGANIZE'&&out.state==='COMMITTED'){
-    if(!(await tx.get('meta','aiPresentation:'+topicId))?.candidate)throw Error('Missing original candidate transaction');state.attached++;
+    const current=await tx.get('meta','aiPresentation:'+topicId);if(current?.revision!==1||current.candidate)throw Error('Missing original Current transaction');state.attached++;
     for(const kind of ['complete','abort'])tx.tx.addEventListener(kind,event=>state.events.push({kind,trusted:event.isTrusted}),{once:true});
     await guard.processing(tx,[],[topicId]);guard.registerProcessingFinalFence(tx);enabled=true;
    }return out;},...rest);};
@@ -111,7 +111,7 @@ export function nativeTestConfiguration(store){
  const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC native organize',operationId:crypto.randomUUID()}}),entries=[];
  for(let i=0;i<count;i++)entries.push(await rpc(p,'CONTINUE_THINKING',{thought:{topicId:topic.id,body:'SYNTHETIC original native entry '+i,operationId:crypto.randomUUID()}}));
  await openTopic(p,topic);
- const snapshot=()=>workerContext.evaluate(async topicId=>{const {store}=globalThis.__organizeNative;return store.repository.transaction(false,async tx=>({jobs:await tx.all('organizerJobs'),usage:await tx.all('organizerUsage'),work:await tx.all('organizerWorkItems'),candidate:await tx.get('meta','aiPresentation:'+topicId),marker:await tx.get('libraryMigrationItems','ai-presentation-candidate-fence:'+topicId),entries:await tx.all('thoughts')}));},topic.id);
+ const snapshot=()=>workerContext.evaluate(async topicId=>{const {store}=globalThis.__organizeNative;return store.repository.transaction(false,async tx=>({jobs:await tx.all('organizerJobs'),usage:await tx.all('organizerUsage'),work:await tx.all('organizerWorkItems'),candidate:await tx.get('meta','aiPresentation:'+topicId),marker:await tx.get('libraryMigrationItems','ai-presentation-fence:'+topicId),revisions:await tx.all('revisions'),receipts:await tx.all('operationReceipts'),entries:await tx.all('thoughts')}));},topic.id);
  const select=()=>rpc(p,'GET_AI_PRESENTATION_SCOPE',{options:{topicId:topic.id}});
  const request=scope=>({type:'UPDATE_AI_PRESENTATION',topicId:topic.id,scopeBinding:scope.scopeBinding,userActionId:crypto.randomUUID()});
  const run=async()=>{const message=request(await select());return rpc(p,message.type,Object.fromEntries(Object.entries(message).filter(([key])=>key!=='type')));};

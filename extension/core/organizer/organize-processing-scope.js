@@ -1,4 +1,4 @@
-import {readOriginalOrganizeCandidateWriteIntent} from './ai-presentation.js';
+import {readOriginalOrganizeCandidateWriteIntent,originalOrganizeWriteShape} from './ai-presentation.js';
 import {assertOriginalOrganizeActionCurrent,assertOriginalOrganizeActionFacts,chargeOriginalOrganizeActionWork,readOriginalOrganizeAction,assertOriginalOrganizePaidMetadataFacts,retireOriginalOrganizeMetadataAction} from '../../background/organize-action-source.js';
 import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods,registerRepositoryFinalReadFence} from '../idb-repository.js';
 import {snapshot,freeze} from '../ai-usage/qwen-request-data.js';
@@ -250,8 +250,8 @@ export function registerOriginalOrganizeCommitSelectionFence(handle,store,t){
 }
 
 export function registerOriginalOrganizeCommitSelectionWrite(handle,store,t,cap,intent){
- const r=selectionAuthority(handle,own(store,'repository'),t);need(r.store===store&&r.writeIntent===null);const writes=readOriginalOrganizeCandidateWriteIntent(intent,store,t,cap).writes;
- need(writes.length===2&&writes[0].table==='meta'&&writes[0].key==='aiPresentation:'+r.facts.topic.id&&writes[1].table==='libraryMigrationItems'&&writes[1].key==='ai-presentation-candidate-fence:'+r.facts.topic.id);r.writeIntent=intent;r.writeCap=cap;return true;
+ const r=selectionAuthority(handle,own(store,'repository'),t);need(r.store===store&&r.writeIntent===null);const writeView=readOriginalOrganizeCandidateWriteIntent(intent,store,t,cap);
+ need(originalOrganizeWriteShape(writeView,r.facts.topic.id));r.writeIntent=intent;r.writeCap=cap;return true;
 }
 
 // This registrar does not return the baseline. Its two private owners must
