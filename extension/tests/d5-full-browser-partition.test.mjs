@@ -11,6 +11,7 @@ const next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
 const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const iah='iah11-result-presentation-chrome-e2e.test.mjs',selected='iah11-selected-acceptance-chrome-e2e.test.mjs';
 import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import test from 'node:test';import assert from 'node:assert/strict';import {readdir,readFile} from 'node:fs/promises';import {isPreviousCurrentBrowser,group,testShard as routedShard} from '../scripts/test-groups.mjs';
 // Historical assertions retain their exact76-file baseline; owning guards cover the current union.
 const ai='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
@@ -19,9 +20,21 @@ const testShard=(file,position,total,category)=>routedShard(file,position+(categ
 const root='cpv1-topic-05-2-root-chrome-e2e.test.mjs';
 const section='cpv1-topic-05-4-section-chrome-e2e.test.mjs';
 const maintenance='cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs';
+const approvedFontChain="      - name: Resolve browser fonts from fresh signed indexes\n        run: |\n          # Private per-job state; no Actions cache restore or save is enabled.\n          PAIA_FONT_STATE=\"$RUNNER_TEMP/paia-browser-fonts-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.index }}\"\n          echo \"PAIA_FONT_STATE=$PAIA_FONT_STATE\" >> \"$GITHUB_ENV\"\n          python3 scripts/prepare-browser-fonts.py plan --state \"$PAIA_FONT_STATE\"\n      - name: Provide Chinese glyph coverage for actual visual evidence\n        env:\n          PAIA_FONT_CACHE_MATCHED_KEY: ''\n        run: |\n          python3 scripts/prepare-browser-fonts.py install --state \"$PAIA_FONT_STATE\" --cache \"$PAIA_FONT_STATE/private/debs\"\n";
+function assertBrowserFonts(browser,helper){
+ assert.equal(browser.split(approvedFontChain).length,2,'one exact plan/env/install chain');
+ assert.match(browser,/runs-on: ubuntu-24\.04/);
+ assert.doesNotMatch(browser,/actions\/cache|restore-keys|continue-on-error/);
+ // Pin the audited helper, including signed metadata, byte verification and fatal install.
+ assert.equal(createHash('sha256').update(helper).digest('hex'),'3713f58ed8d3e48f12c72c2aae1a08d119180c50c34a5e5cf7afd61ee4e2d510');
+ assert.match(helper,/^PACKAGES = \['fonts-wqy-zenhei', 'fonts-noto-cjk'\]$/m);
+ assert.equal((helper.match(/'--no-install-recommends', 'install', \*PACKAGES/g)||[]).length,3);
+ for(const command of ["'--print-uris', '--download-only', '-y'","*apt_options(state), '--download-only', '-y'","*apt_options(state), '--no-download', '-y'"])assert.ok(helper.includes(command),command);
+}
 test('full visual jobs retain the same CJK font packages as the owning Root and retained candidates',async()=>{
  const full=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),candidate=await readFile(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8'),browser=full.split('  current_browser:')[1].split('  full_suite:')[0];
- for(const job of [browser,candidate.split('  topic05_root:')[1].split('  topic_retained:')[0],candidate.split('  topic_retained:')[1].split('  topic_retained_results:')[0]])assert.match(job,/apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk/);
+ assertBrowserFonts(browser,await readFile(new URL('../scripts/prepare-browser-fonts.py',import.meta.url),'utf8'));
+ for(const job of [candidate.split('  topic05_root:')[1].split('  topic_retained:')[0],candidate.split('  topic_retained:')[1].split('  topic_retained_results:')[0]])assert.match(job,/apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk/);
  assert.match(browser,/fc-match --format/);assert.match(browser,/Noto Serif CJK SC/);assert.match(browser,/Noto Sans CJK SC/);assert.match(browser,/WenQuanYi Zen Hei/);assert.match(browser,/tee work\/current-browser-fonts\.txt/);assert.match(browser,/path: extension\/work\n/);assert.match(browser,/timeout-minutes: 18/);
 });
 test('D5 full browser partition preserves the original whole-file isolation and requires every current job',async()=>{
@@ -122,4 +135,11 @@ test('seven browser jobs preserve all76 files and retain the reviewed whole-file
  assert.match(job,/name: Current Browser \$\{\{ matrix.index \}\}\/10/);assert.deepEqual([...job.matchAll(/index: (\d+)/g)].map(row=>Number(row[1])),[1,2,3,4,5,6,7,8,9,10]);assert.deepEqual([...job.matchAll(/shard: '(\d+\/10)'/g)].map(row=>row[1]),Array.from({length:10},(_,i)=>`${i+1}/10`));
  assert.match(job,/timeout-minutes: 18/);assert.match(job,/fail-fast: false/);assert.match(job,/PAIA_TEST_CONCURRENCY: '1'/);assert.match(job,/npm run test:browser/);assert.doesNotMatch(job,/continue-on-error|test-name-pattern|test-skip-pattern/);assert.match(aggregate,/needs: \[mode, unit, contracts, current_browser\]/);assert.match(aggregate,/CURRENT_BROWSER: \$\{\{ needs\.current_browser\.result \}\}/);
  const receipt=await readFile(new URL('../scripts/write_ci_certification_receipt.mjs',import.meta.url),'utf8');assert.match(receipt,/testConcurrency:'SHARDED_UNIT_4_BROWSER_10'/);assert.match(receipt,/process.env\[name\]!=='success'/);
+});
+
+test('D5 font chain rejects changed packages, calls, state, cache and swallowed install failures',async()=>{
+ const full=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),browser=full.split('  current_browser:')[1].split('  full_suite:')[0],helper=await readFile(new URL('../scripts/prepare-browser-fonts.py',import.meta.url),'utf8');
+ for(const [from,to]of [['fonts-noto-cjk','fonts-noto-color-emoji'],["'fonts-wqy-zenhei', ",''],["'--no-install-recommends', ",'']]){assert.ok(helper.includes(from));assert.throws(()=>assertBrowserFonts(browser,helper.replace(from,to)),from);}
+ for(const [from,to]of [['prepare-browser-fonts.py plan','true # removed plan'],['--state "$PAIA_FONT_STATE"','--state "$RUNNER_TEMP/other"'],['private/debs','shared/debs'],["PAIA_FONT_CACHE_MATCHED_KEY: ''","PAIA_FONT_CACHE_MATCHED_KEY: foreign"],['--cache "$PAIA_FONT_STATE/private/debs"','--cache "$PAIA_FONT_STATE/private/debs" || true']]){assert.ok(browser.includes(from));assert.throws(()=>assertBrowserFonts(browser.replace(from,to),helper),from);}
+ assert.throws(()=>assertBrowserFonts(browser+'\n      - uses: actions/cache@v4\n',helper));
 });
