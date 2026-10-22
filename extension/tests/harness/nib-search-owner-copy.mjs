@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {finishNIBSearch} from './nib-search-cleanup.mjs';
 import {cp,mkdtemp,readFile,writeFile,rm,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {tmpdir} from 'node:os';
@@ -26,5 +27,5 @@ export async function createNIBSearchOwnerCopy(extensionPath){
   assert.deepEqual(await files(path),paths);const hashes={};
   for(const p of paths){const base=original.get(p),copy=await readFile(join(path,p));assert.deepEqual(await readFile(join(extensionPath,p)),base);assert.deepEqual(copy,p===worker?instrumented:base);hashes[p]={base:sha(base),copy:sha(copy)};}
   return {path,binding:{fixtureOnly:true,soleRuntimeDifference:worker,originalWorker:sha(original.get(worker)),instrumentedWorker:sha(instrumented),bridge:sha(bridge),files:hashes},close:()=>rm(temporary,{recursive:true,force:true})};
- }catch(error){await rm(temporary,{recursive:true,force:true});throw error;}
+ }catch(error){await finishNIBSearch(error,[['incomplete-owner-copy',()=>rm(temporary,{recursive:true,force:true})]]);}
 }
