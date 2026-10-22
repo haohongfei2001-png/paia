@@ -70,7 +70,7 @@ import {writeFile as writeSettingsRestoreDiagnostic} from 'node:fs/promises';
 function installSettingsRestoreGeometryProbe(){
  const phases=new Set(['reload','history']),points=new Set(['before-release','loading-removed','after-commit-two-frames']);
  const ids=new Set(['ux-language','ux-settings-reading-link','ux-settings-ai-link','ux-settings-reading-title','ux-settings-ai-title','ux-settings-group-back','ux-settings-back']);
- const groups=new Set(['index','content','reading','ai','privacy','data','about']),samples=[],calls=[],patches=[],lastBoxes=new WeakMap();let phase='reload',closed=false;
+ const groups=new Set(['index','content','reading','ai','privacy','data','about']),samples=[],calls=[],patches=[],lastBoxes=new WeakMap();let phase='reload',closed=false,callsTruncated=false;
  const number=value=>typeof value==='number'&&Number.isFinite(value)?value:null;
  const id=node=>ids.has(node?.id)?node.id:null;
  const group=()=>{const value=document.querySelector('.ux-settings-group:not([hidden])')?.dataset.group;return groups.has(value)?value:null;};
@@ -81,13 +81,13 @@ function installSettingsRestoreGeometryProbe(){
   samples.push({phase,point,scroll:number(scrollY),maxScroll:number(Math.max(0,document.documentElement.scrollHeight-innerHeight)),documentHeight:number(document.documentElement.scrollHeight),viewportHeight:number(innerHeight),viewportWidth:number(innerWidth),placeholder:box,removedPlaceholder:removed?{lastConnected:lastBoxes.get(removed)||null,detached:rect(removed)}:null,reading:rect(document.getElementById('ux-settings-reading-group')),language:rect(document.getElementById('ux-language')),focus:id(document.activeElement),group:group(),held:globalThis.__settingsRestoreRead?.current?.entered===true&&globalThis.__settingsRestoreRead?.current?.released!==true});
  });
  const wrap=(host,name,kind)=>{const descriptor=Object.getOwnPropertyDescriptor(host,name),original=host[name];patches.push(()=>{if(descriptor)Object.defineProperty(host,name,descriptor);else delete host[name];});host[name]=function(...args){
-  const before=safe(()=>({scroll:number(scrollY),focus:id(document.activeElement)}));const record=ok=>safe(()=>{if(!closed&&calls.length<48)calls.push({phase,kind,id:kind==='focus'?id(this):null,args:kind==='scrollTo'?args.slice(0,2).map(number):[],before,after:{scroll:number(scrollY),focus:id(document.activeElement)},ok});});
+  const released=globalThis.__settingsRestoreRead?.current?.released===true,before=safe(()=>({scroll:number(scrollY),focus:id(document.activeElement)}));const record=ok=>safe(()=>{if(closed)return;if(calls.length>=48){callsTruncated=true;return;}calls.push({phase,released,kind,id:kind==='focus'?id(this):null,args:kind==='scrollTo'?args.slice(0,2).map(number):[],before,after:{scroll:number(scrollY),focus:id(document.activeElement)},ok});});
   try{const result=Reflect.apply(original,this,args);record(true);return result;}catch(error){record(false);throw error;}
  };};
  wrap(window,'scrollTo','scrollTo');wrap(HTMLElement.prototype,'focus','focus');
  const observer=new MutationObserver(records=>{if(closed||globalThis.__settingsRestoreRead?.current?.entered!==true)return;for(const record of records)for(const node of record.removedNodes)if(node.nodeType===1&&node.classList.contains('loading-placeholder'))capture('loading-removed',node);});
  observer.observe(document,{childList:true,subtree:true});
- globalThis.__settingsRestoreGeometry={capture,start(value){if(phases.has(value))phase=value;},snapshot(){return {instrumented:true,sampleLimit:12,callLimit:48,samples:structuredClone(samples),calls:structuredClone(calls)};},restore(){if(closed)return;closed=true;observer.disconnect();for(const restore of patches.reverse())restore();}};
+ globalThis.__settingsRestoreGeometry={capture,start(value){if(phases.has(value))phase=value;},snapshot(){return {instrumented:true,sampleLimit:12,callLimit:48,callsTruncated,samples:structuredClone(samples),calls:structuredClone(calls)};},restore(){if(closed)return;closed=true;observer.disconnect();for(const restore of patches.reverse())restore();}};
 }
 
 // Hold the existing migration response, not a substitute Settings renderer or
@@ -99,7 +99,17 @@ function installSettingsRestoreReadGate(){
  for(const name of ['pushState','replaceState']){const original=history[name];writes.set(name,original);history[name]=function(state,...args){const result=original.call(this,state,...args),gate=owner.current;if(gate?.released&&state?.paiaReader?.view==='settings')gate.commits.push(structuredClone(state.paiaReader));return result;};}
  globalThis.__settingsRestoreRead=owner;owner.arm();
 }
-async function admitReadingDuringSettingsRestore(page){
+// Removing the in-flow loading notice changes document scroll while native scroll
+// anchoring preserves the admitted Reading viewport. Do not mistake that for a restore.
+function assertSettingsRestoreViewport(before,after,expectedPhase){
+ assert.deepEqual({focus:after.focus,group:after.group,returnOwner:after.returnOwner},{focus:'ux-language',group:'reading',returnOwner:before.returnOwner});
+ const geometry=after.geometry,end=geometry.samples.at(-1);assert.ok(end&&end.point==='after-commit-two-frames'&&['reload','history'].includes(expectedPhase)&&end.phase===expectedPhase);
+ const start=geometry.samples.find(sample=>sample.phase===expectedPhase&&sample.point==='before-release');assert.ok(start);
+ for(const anchor of ['reading','language'])for(const axis of ['left','top']){const initial=start[anchor]?.viewport[axis],final=end[anchor]?.viewport[axis];assert.ok(Number.isFinite(initial)&&Number.isFinite(final)&&Math.abs(final-initial)<=1,anchor+' viewport '+axis+' retains admitted position within1 CSS pixel');}
+ assert.equal(geometry.callsTruncated,false,'bounded call evidence must be complete');
+ assert.deepEqual(geometry.calls.filter(call=>call.phase===end.phase&&call.released&&call.kind==='scrollTo'),[],'stale saved-position restoration must not issue a post-release scrollTo');
+}
+async function admitReadingDuringSettingsRestore(page,expectedPhase){
  await eventually(()=>page.evaluate(()=>__settingsRestoreRead.current?.entered===true),'the original migration response is held');
  await chooseConsumerGroup(page,'ai');await chooseConsumerGroup(page,'reading');
  const language=page.locator('#ux-language');await eventually(()=>language.isEnabled());await language.selectOption('en');
@@ -113,7 +123,7 @@ async function admitReadingDuringSettingsRestore(page){
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await page.evaluate(()=>__settingsRestoreGeometry.capture('after-commit-two-frames'));
  assert.equal(await page.locator('[data-group="reading"]').isVisible(),true);assert.equal(await page.locator('[data-group="ai"]').isVisible(),false);
- assert.deepEqual(await page.evaluate(()=>({scroll:scrollY,focus:document.activeElement.id,group:history.state.paiaReader.settingsGroup,returnOwner:history.state.paiaReader.settingsReturn})),{scroll:before.scroll,focus:'ux-language',group:'reading',returnOwner:before.returnOwner});
+ assertSettingsRestoreViewport(before,await page.evaluate(()=>({focus:document.activeElement.id,group:history.state.paiaReader.settingsGroup,returnOwner:history.state.paiaReader.settingsReturn,geometry:__settingsRestoreGeometry.snapshot()})),expectedPhase);
  await language.selectOption('zh-CN');await eventually(()=>page.locator('html').getAttribute('lang').then(value=>value==='zh-CN'));
  const commits=await page.evaluate(()=>__settingsRestoreRead.current.commits);assert.ok(commits.length>=1);for(const commit of commits){assert.equal(commit.settingsGroup,'reading','every original completion/checkpoint keeps Reading');assert.deepEqual(commit.settingsReturn,before.returnOwner,'every original completion/checkpoint retains exact return ownership');}
  await page.evaluate(()=>__settingsRestoreRead.disarm());
@@ -126,10 +136,10 @@ for(const variant of ['source','release'])test('SET2 restore intent '+variant+' 
   await page.locator('.sidebar [data-view="memory"]').click();await eventually(()=>page.evaluate(()=>history.state?.paiaReader?.view==='memory'));
   await open(page);await eventually(()=>page.evaluate(()=>history.state?.paiaReader?.settingsGroup==='ai'));await page.setViewportSize({width:1440,height:400});
   assert.equal(await page.evaluate(()=>history.state.paiaReader.settingsReturn.view),'memory');
-  await page.addInitScript(installSettingsRestoreGeometryProbe);await page.addInitScript(installSettingsRestoreReadGate);await page.reload();await admitReadingDuringSettingsRestore(page);
+  await page.addInitScript(installSettingsRestoreGeometryProbe);await page.addInitScript(installSettingsRestoreReadGate);await page.reload();await admitReadingDuringSettingsRestore(page,'reload');
   await chooseConsumerGroup(page,'ai');await eventually(()=>page.evaluate(()=>history.state.paiaReader.settingsGroup==='ai'));
   await page.locator('#ux-settings-back').click();await eventually(()=>page.evaluate(()=>history.state.paiaReader.view==='memory'));
-  await page.evaluate(()=>{__settingsRestoreGeometry.start('history');__settingsRestoreRead.arm();});await page.goBack();await admitReadingDuringSettingsRestore(page);
+  await page.evaluate(()=>{__settingsRestoreGeometry.start('history');__settingsRestoreRead.arm();});await page.goBack();await admitReadingDuringSettingsRestore(page,'history');
   await page.locator('#ux-settings-back').click();await eventually(()=>page.evaluate(()=>history.state.paiaReader.view==='memory'));
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{
