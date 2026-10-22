@@ -17,7 +17,7 @@ import subprocess
 from urllib.parse import unquote, urlsplit
 
 PACKAGES = ['fonts-wqy-zenhei', 'fonts-noto-cjk']
-POLICY = 'paia-browser-font-debs-v3'
+POLICY = 'paia-browser-font-debs-v4'
 
 
 def run(args):
@@ -46,15 +46,27 @@ def apt_options(state):
         'Acquire::ForceHash=SHA256', 'Acquire::Check-Date=true',
         'Acquire::Check-Valid-Until=true',
         'Acquire::Retries=0',
+        *[key+'='+value for key, value in KEY_REQUIREMENTS.items()],
     ] for part in ['-o', option]]
 
 
-# Reviewed native defaults: APT 2.8.1 pkgInitConfig, Ubuntu24 runner source.
-# Unknown algorithm policies stay unsupported; no generic APT::Key permission.
+# Task requirements retain the reviewed APT2.8.1 strength. Ubuntu24 APT2.8.3
+# defaults to rsa1024; impose these exact constraints per process, never globally.
+# Unknown/effectively weaker policies still refuse.
 KEY_DEFAULTS = {
     'apt::key::assert-pubkey-algo': '>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512,brainpoolP256r1,brainpoolP320r1,brainpoolP384r1,brainpoolP512r1,secp256k1',
     'apt::key::assert-pubkey-algo::next': '>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512',
     'apt::key::assert-pubkey-algo::future': '>=rsa3072,ed25519,ed448',
+}
+KEY_REQUIREMENTS = {key.replace('apt::key::assert-pubkey-algo', 'APT::Key::Assert-Pubkey-Algo')
+                    .replace('::next', '::Next').replace('::future', '::Future'): value
+                    for key, value in KEY_DEFAULTS.items()}
+# Exact official fragments independently matched the hosted preflight fingerprints.
+# These only customize the apt CLI, which this helper never runs. No generic
+# Binary exception: another path, changed byte or another fragment still refuses.
+APT_CLI_FRAGMENTS = {
+    '/etc/apt/apt.conf.d/20apt-esm-hook.conf': 'f7ab45bab1355711fcd031d78299cc3c7767654e7bf3f66a716ee3f2eae93733',
+    '/etc/apt/apt.conf.d/20snapd.conf': '4f1a710936d83d53caa575af269db4311d7b461bdb1bb94ced5b1d331b0886ac',
 }
 MIRROR_PATH = '/etc/apt/apt-mirrors.txt'
 MIRROR_URI = 'mirror+file:'+MIRROR_PATH
@@ -162,6 +174,8 @@ def checked_configuration(dump, sources):
             raise ValueError('Unsupported APT source/trust configuration path')
     if values.get('rootdir', '') not in ['', '/']:
         raise ValueError('Unsupported APT RootDir')
+    if any(values.get(key) != value for key, value in KEY_DEFAULTS.items()):
+        raise ValueError('Required process-local algorithm constraints missing or changed')
     deny_true = {'trusted', 'allow-insecure', 'allow-weak', 'allow-downgrade-to-insecure',
                  'allowunauthenticated', 'allowinsecurerepositories', 'allowweakrepositories',
                  'allowdowngradetoinsecurerepositories'}
@@ -262,12 +276,16 @@ def configuration_files():
 
 
 def checked_fragments(fragments):
-    for content in fragments.values():
+    for path, content in fragments.items():
+        if APT_CLI_FRAGMENTS.get(path) == hashlib.sha256(content.encode('utf-8')).hexdigest():
+            continue
         # Preserve quoted tokens while ignoring native C/C++ comments. A word
         # such as "binary" in a comment must not reject an otherwise safe host.
-        tokens = re.findall(r'"(?:[^"\\]|\\.)*"|/\*.*?\*/|//[^\n]*|[^\s{};"/]+|/', content, re.DOTALL)
+        tokens = re.findall(r'"(?:[^"\\]|\\.)*"|/\*.*?\*/|//[^\n]*|#[^\n]*|[^\s{};"/#]+|/', content, re.DOTALL)
         active = [token.strip('"').lower() for token in tokens
-                  if not token.startswith(('//', '/*'))]
+                  if not token.startswith(('//', '/*'))
+                  and not (token.startswith('#') and not token.lower().startswith(
+                      ('#include', '#clear', '#x-apt-configure-index')))]
         if any('\\' in token or token == 'binary' or token.startswith('binary::')
                or token.startswith('#') for token in active):
             raise ValueError('Unsupported command-specific APT fragment or include')
@@ -289,6 +307,10 @@ def configuration(state):
     if user != root:
         raise ValueError('APT user/root configuration differs')
     digest = checked_configuration(root, source_files())
+    # APT2.8.3 apt-key can silently omit the assertion on legacy gpgv. Refuse
+    # that capability gap before update/download/install; no crypto fallback.
+    if '--assert-pubkey-algo' not in run(['sudo', 'gpgv', '--dump-options']).splitlines():
+        raise ValueError('Native gpgv lacks required algorithm assertion')
     if checked_fragments(configuration_files()) != fragments:
         raise ValueError('APT fragments changed during audit')
     return hashlib.sha256(json.dumps([digest, fragments], sort_keys=True).encode()).hexdigest()
@@ -305,7 +327,16 @@ def identity():
     if not all(image.values()):
         raise ValueError('Hosted image identity missing')
     return {**image, 'os': Path('/etc/os-release').read_text(),
-            'architecture': run(['dpkg', '--print-architecture']).strip()}
+            'architecture': run(['dpkg', '--print-architecture']).strip(),
+            'aptVersion': run(['dpkg-query', '-W', '-f=${Version}', 'apt']).strip()}
+
+
+def supported_host(host):
+    os_fields = dict(line.split('=', 1) for line in host['os'].splitlines() if '=' in line)
+    if (host.get('ImageOS') != 'ubuntu24' or host.get('architecture') != 'amd64'
+            or host.get('aptVersion') != '2.8.3' or os_fields.get('ID', '').strip('"') != 'ubuntu'
+            or os_fields.get('VERSION_ID', '').strip('"') != '24.04'):
+        raise ValueError('Unsupported font preparation platform or APT version')
 
 
 def resolve_archives(uris, available, architecture, sources=None):
@@ -361,13 +392,16 @@ def plan(state):
     state.mkdir(parents=True, exist_ok=False)
     for name in ['lists', 'archives']:
         (state/name).mkdir()
+    host = identity()
+    supported_host(host)
     options = apt_options(state)
     config = configuration(state)
     print(run(['sudo', 'apt-get', *options, 'update']), end='')
     uris = run(['sudo', 'apt-get', *options, '--print-uris', '--download-only', '-y',
                 '--no-install-recommends', 'install', *PACKAGES])
     available = run(['sudo', 'apt-cache', *options, 'dumpavail'])
-    host = identity()
+    if identity() != host:
+        raise ValueError('Hosted platform changed while resolving')
     if configuration(state) != config:
         raise ValueError('APT configuration changed while resolving')
     value = {'policy': POLICY, 'requested': PACKAGES, 'host': host, 'configuration': config,
@@ -412,6 +446,7 @@ def copy_archives(source, target, archives):
 def install(state, cache, matched_key):
     checked_state(state)
     value = json.loads((state/'plan.json').read_text())
+    supported_host(value['host'])
     if (value['policy'] != POLICY or value['requested'] != PACKAGES or value['host'] != identity()
             or value['configuration'] != configuration(state)):
         raise ValueError('Prepared image or policy changed')

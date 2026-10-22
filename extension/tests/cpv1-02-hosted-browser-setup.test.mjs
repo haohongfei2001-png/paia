@@ -35,7 +35,9 @@ import importlib.util, json, sys, tempfile, hashlib, subprocess, copy, os
 from pathlib import Path
 spec=importlib.util.spec_from_file_location('fonts',sys.argv[1]); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 scenario=sys.argv[2]; calls=[]; outputs={}
-host={'ImageOS':'ubuntu24','ImageVersion':'20261022.1','os':'ID=ubuntu\nVERSION_ID=24.04\n','architecture':'amd64'}
+host={'ImageOS':'ubuntu24','ImageVersion':'20261022.1','os':'ID=ubuntu\nVERSION_ID=24.04\n','architecture':'amd64','aptVersion':'2.8.3'}
+if scenario=='unsupported-apt':host['aptVersion']='2.8.4'
+if scenario=='unsupported-os':host['os']='ID=debian\nVERSION_ID=12\n'
 rows=[]; blobs={}
 for package,version,arch in [('fonts-wqy-zenhei','0.9.45-8','all'),('fonts-noto-cjk','1:20230817+repack1-3','all'),('synthetic-native-dependency','2.0','amd64')]:
  name=package+'_'+version.replace(':','%3a')+'_'+arch+'.deb'
@@ -57,10 +59,15 @@ with tempfile.TemporaryDirectory() as temporary:
  if scenario=='apt-config-env':os.environ['APT_CONFIG']='/unsupported'
  def command(args):
   calls.append(args)
+  if any(cmd in args for cmd in ['apt-get','apt-cache','apt-config']):
+   assert 'APT::Key::Assert-Pubkey-Algo=>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512,brainpoolP256r1,brainpoolP320r1,brainpoolP384r1,brainpoolP512r1,secp256k1' in args
+   assert 'APT::Key::Assert-Pubkey-Algo::Next=>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512' in args
+   assert 'APT::Key::Assert-Pubkey-Algo::Future=>=rsa3072,ed25519,ed448' in args
   if 'apt-config' in args:
    config={'Dir':'/','Dir::Etc':'etc/apt','Dir::Etc::sourcelist':'sources.list','Dir::Etc::sourceparts':'sources.list.d','Dir::Etc::trusted':'trusted.gpg','Dir::Etc::trustedparts':'trusted.gpg.d','Dir::Etc::main':'apt.conf','Dir::Etc::parts':'apt.conf.d'}
    if scenario.startswith('hosted-mirror'):
     config.update({'APT::Key':'','APT::Key::Assert-Pubkey-Algo':'>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512,brainpoolP256r1,brainpoolP320r1,brainpoolP384r1,brainpoolP512r1,secp256k1','APT::Key::Assert-Pubkey-Algo::Next':'>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512','APT::Key::Assert-Pubkey-Algo::Future':'>=rsa3072,ed25519,ed448'})
+   config['APT::Key::Assert-Pubkey-Algo']='>=rsa1024,ed25519,ed448,nistp256,nistp384,nistp512,brainpoolP256r1,brainpoolP320r1,brainpoolP384r1,brainpoolP512r1,secp256k1'
    for i,arg in enumerate(args):
     if arg=='-o':k,v=args[i+1].split('=',1);config[k]=v
    if scenario=='config-insecure':config['Acquire::https::AllowInsecureRepositories']='true'
@@ -72,6 +79,7 @@ with tempfile.TemporaryDirectory() as temporary:
    if scenario=='config-path':config['Dir::Etc::sourceparts']='other'
    if scenario=='config-root-user' and args[0]=='sudo':config['Acquire::Retries']='1'
    return '\n'.join(k+' "'+v.replace('%','%25').replace('\"','%22').replace('\n','%0a')+'";' for k,v in config.items())+'\nDPkg::Post-Invoke:: "true";\nDPkg::Post-Invoke:: "true";'
+  if args==['sudo','gpgv','--dump-options']:return '--version\n'+('' if scenario=='unsupported-gpgv' else '--assert-pubkey-algo\n')
   if 'update' in args:
    if scenario=='signed-index-failure': raise subprocess.CalledProcessError(100,args)
    return 'fresh signed index\n'
@@ -95,13 +103,18 @@ with tempfile.TemporaryDirectory() as temporary:
    return 'native dependency-check and configuration\n'
   raise AssertionError(args)
  m.run=command; m.identity=lambda:copy.deepcopy(host);m.output=lambda **kwargs:outputs.update(kwargs)
+ if scenario in ['unsupported-apt','unsupported-os']:
+  try:m.plan(state);raise AssertionError('unsupported host admitted')
+  except ValueError:pass
+  assert calls==[]
+  sys.exit(0)
  if scenario=='stale-lists':
   (state/'lists').mkdir(parents=True);(state/'lists'/'old').write_text('must not reuse')
   try:m.plan(state);raise AssertionError('old lists admitted')
   except FileExistsError:pass
   assert not calls
   sys.exit(0)
- if scenario in ['signed-index-failure','missing-signed-metadata','weak-resolver-hash','resolver-hash-mismatch','source-trusted','source-insecure','source-expired','apt-config-env','config-insecure','config-date','config-validity','config-validity-label','config-signature','config-binary','config-path','config-root-user']:
+ if scenario in ['unsupported-gpgv','signed-index-failure','missing-signed-metadata','weak-resolver-hash','resolver-hash-mismatch','source-trusted','source-insecure','source-expired','apt-config-env','config-insecure','config-date','config-validity','config-validity-label','config-signature','config-binary','config-path','config-root-user']:
   try:m.plan(state);raise AssertionError('invalid index admitted')
   except (subprocess.CalledProcessError,ValueError):pass
   assert not (state/'plan.json').exists()
@@ -112,11 +125,12 @@ with tempfile.TemporaryDirectory() as temporary:
  assert len(plan['archives'])==3,'native dependency closure, not just requested fonts'
  assert outputs['key']==m.key_for(plan)
  for c in calls:
+  if c==['sudo','gpgv','--dump-options']:continue
   assert 'Dir::State::lists='+str(state/'lists') in c
   assert 'APT::Update::Error-Mode=any' in c
   assert 'APT::Get::AllowUnauthenticated=false' in c
  assert next(c for c in calls if 'apt-get' in c)[-1]=='update'
- assert all('Acquire::ForceHash=SHA256' in c for c in calls)
+ assert all('Acquire::ForceHash=SHA256' in c for c in calls if c!=['sudo','gpgv','--dump-options'])
  assert next(c for c in calls if 'dumpavail' in c)[:2]==['sudo','apt-cache']
  if scenario=='key-invalidation':
   for path,value in [('ImageOS','ubuntu-next'),('ImageVersion','new'),('architecture','arm64')]:
@@ -179,7 +193,7 @@ with tempfile.TemporaryDirectory() as temporary:
   assert outputs['cache_hit']==str(scenario in ['hit','hosted-mirror-hit']).lower()
  print(json.dumps({'scenario':scenario,'nativeDownloadAttempts':len(downloads),'nativeInstallAttempts':len(installs),'output':outputs}))
 `;
-for(const scenario of ['hit','cold-miss','restore-timeout','corrupt','wrong-size','missing','extra','nested-path','symlink','hardlink','parent-symlink','bad-version','bad-architecture','key-mismatch','key-invalidation','image-changed-after-plan','signed-index-failure','missing-signed-metadata','stale-lists','original-source-failure','install-failure','weak-resolver-hash','resolver-hash-mismatch','staged-copy-corrupt','staged-copy-throws','source-trusted','source-insecure','source-expired','apt-config-env','config-insecure','config-date','config-validity','config-validity-label','config-signature','config-binary','config-path','config-root-user','config-changed-after-plan','hosted-mirror-hit','hosted-mirror-cold','hosted-mirror-changed-after-plan','fragments-changed-after-plan'])test('font archive control: '+scenario,()=>{
+for(const scenario of ['unsupported-apt','unsupported-os','unsupported-gpgv','hit','cold-miss','restore-timeout','corrupt','wrong-size','missing','extra','nested-path','symlink','hardlink','parent-symlink','bad-version','bad-architecture','key-mismatch','key-invalidation','image-changed-after-plan','signed-index-failure','missing-signed-metadata','stale-lists','original-source-failure','install-failure','weak-resolver-hash','resolver-hash-mismatch','staged-copy-corrupt','staged-copy-throws','source-trusted','source-insecure','source-expired','apt-config-env','config-insecure','config-date','config-validity','config-validity-label','config-signature','config-binary','config-path','config-root-user','config-changed-after-plan','hosted-mirror-hit','hosted-mirror-cold','hosted-mirror-changed-after-plan','fragments-changed-after-plan'])test('font archive control: '+scenario,()=>{
  execFileSync(process.env.PYTHON||'python3',['-c',fontControl,fileURLToPath(new URL('../scripts/prepare-browser-fonts.py',import.meta.url)),scenario],{encoding:'utf8',stdio:'pipe'});
 });
 
@@ -255,4 +269,45 @@ print('CONTROLLED Ubuntu24/APT2.8.1 '+case+' PASS; hosted NOT_RUN')
 `;
 for(const scenario of ['native-defaults','native-root','weak-key','unknown-key','empty-key','weak-future-key','rootdir','config-parts','config-binary-visible','config-hidden-subtree','config-adjacent-comment','config-comments','config-include','config-clear','mirror-label','mirror-user','mirror-scheme','mirror-empty','mirror-path','mirror-missing','mirror-fingerprint','continuation-legal','continuation-scheme','continuation-user','continuation-signed-by','continuation-orphan','archive-legal','archive-path','archive-traversal','archive-missing-manifest','archive-weak','file-regular','file-symlink','file-parent-symlink','file-fifo','file-hardlink'])test('hosted font compatibility: '+scenario,()=>{
  execFileSync(process.env.PYTHON||'python3',['-c',compatibilityControl,fileURLToPath(new URL('../scripts/prepare-browser-fonts.py',import.meta.url)),scenario],{encoding:'utf8',stdio:'pipe',timeout:5000});
+});
+
+// Actual Ubuntu24 run39788048944 rejected these exact six files. Official
+// distribution bytes match its sanitized hashes; no host APT runs in this test.
+const observedControl=String.raw`
+import importlib.util,sys,hashlib,json
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('fonts',sys.argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+directory=Path(sys.argv[2]);case=sys.argv[3];expected=json.loads((directory/'provenance.json').read_text())['files']
+fragments={r['installedPath']:(directory/name).read_bytes().decode('utf-8') for name,r in expected.items()}
+for name,r in expected.items():assert hashlib.sha256((directory/name).read_bytes()).hexdigest()==r['sha256']
+def deny(fn):
+ try:fn()
+ except ValueError:return
+ raise AssertionError('unsafe fragment admitted: '+case)
+if case in expected:
+ path=expected[case]['installedPath'];assert m.checked_fragments({path:fragments[path]})=={path:fragments[path]}
+elif case=='all-six':assert m.checked_fragments(fragments)==fragments
+elif case=='hash-inline':assert m.checked_fragments({'a':'APT::Install-Recommends "0"; # ordinary comment\n# kernels\n# (out-of-tree) modules\n'})
+elif case=='quoted-hash':assert m.checked_fragments({'a':'DPkg::Post-Invoke { "echo #literal"; };'})
+elif case=='include':deny(lambda:m.checked_fragments({'a':'#include "/other";'}))
+elif case=='clear':deny(lambda:m.checked_fragments({'a':'#clear Binary;'}))
+elif case=='configure-index':deny(lambda:m.checked_fragments({'a':'#x-apt-configure-index "other";'}))
+elif case=='after-comment':deny(lambda:m.checked_fragments({'a':'# ordinary\nBinary::apt-config::Dir::Etc "other";'}))
+elif case=='adjacent-comment':deny(lambda:m.checked_fragments({'a':'# comment\nBinary/*comment*/::apt-get::Acquire::Check-Date "false";'}))
+elif case=='changed-cli':
+ path='/etc/apt/apt.conf.d/20snapd.conf';deny(lambda:m.checked_fragments({path:fragments[path]+'\nBinary::apt-get::Acquire::Check-Date "false";'}))
+elif case=='renamed-cli':deny(lambda:m.checked_fragments({'/etc/apt/apt.conf.d/other':fragments['/etc/apt/apt.conf.d/20snapd.conf']}))
+elif case=='additional-binary':deny(lambda:m.checked_fragments({**fragments,'/etc/apt/apt.conf.d/other':'Binary::apt-config::Dir::Etc "other";'}))
+elif case=='cli-byte-change':
+ path='/etc/apt/apt.conf.d/20apt-esm-hook.conf';deny(lambda:m.checked_fragments({path:fragments[path]+'\n'}))
+elif case=='process-policy':
+ opts=m.apt_options(Path('/tmp/state'));pairs=dict(opts[i+1].split('=',1) for i,v in enumerate(opts) if v=='-o')
+ assert pairs['APT::Key::Assert-Pubkey-Algo']=='>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512,brainpoolP256r1,brainpoolP320r1,brainpoolP384r1,brainpoolP512r1,secp256k1'
+ assert pairs['APT::Key::Assert-Pubkey-Algo::Next']=='>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512'
+ assert pairs['APT::Key::Assert-Pubkey-Algo::Future']=='>=rsa3072,ed25519,ed448'
+else:raise AssertionError(case)
+print('CONTROLLED observed Ubuntu24/APT2.8.3 '+case+' PASS; corrected hosted NOT_RUN')
+`;
+for(const scenario of ['01autoremove','20apt-esm-hook.conf','20snapd.conf','50appstream','50command-not-found','99needrestart','all-six','hash-inline','quoted-hash','include','clear','configure-index','after-comment','adjacent-comment','changed-cli','renamed-cli','additional-binary','cli-byte-change','process-policy'])test('observed Ubuntu inputs: '+scenario,()=>{
+ execFileSync(process.env.PYTHON||'python3',['-c',observedControl,fileURLToPath(new URL('../scripts/prepare-browser-fonts.py',import.meta.url)),fileURLToPath(new URL('./fixtures/apt-ubuntu24-observed/',import.meta.url)),scenario],{encoding:'utf8',stdio:'pipe',timeout:5000});
 });
