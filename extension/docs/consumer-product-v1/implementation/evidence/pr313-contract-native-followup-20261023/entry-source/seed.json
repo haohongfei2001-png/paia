@@ -1,0 +1,87 @@
+{
+  "phase": "final-topic",
+  "seedAttempts": 1,
+  "consent": {
+    "dispatched": 1,
+    "settled": 1,
+    "acknowledged": 1
+  },
+  "runs": [
+    {
+      "phase": "foundation",
+      "number": 1,
+      "entered": true
+    },
+    {
+      "phase": "foundation",
+      "number": 2,
+      "entered": true
+    },
+    {
+      "phase": "foundation",
+      "number": 3,
+      "entered": true
+    },
+    {
+      "phase": "topic",
+      "number": 4,
+      "entered": true
+    },
+    {
+      "phase": "topic",
+      "number": 5,
+      "entered": true
+    },
+    {
+      "phase": "topic",
+      "number": 6,
+      "entered": true
+    },
+    {
+      "phase": "section",
+      "number": 7,
+      "entered": true
+    },
+    {
+      "phase": "section",
+      "number": 8,
+      "entered": true
+    },
+    {
+      "phase": "entry",
+      "number": 9,
+      "entered": true
+    },
+    {
+      "phase": "entry",
+      "number": 10,
+      "entered": true
+    },
+    {
+      "phase": "entry",
+      "number": 11,
+      "entered": true
+    },
+    {
+      "phase": "entry",
+      "number": 12,
+      "entered": true
+    },
+    {
+      "phase": "entry",
+      "number": 13,
+      "entered": true
+    },
+    {
+      "phase": "final-topic",
+      "number": 14,
+      "entered": true
+    }
+  ],
+  "runCount": 14,
+  "committedWrites": 6,
+  "foundationCompleted": true,
+  "topicCompleted": true,
+  "sectionCompleted": true,
+  "entryCompleted": true
+}

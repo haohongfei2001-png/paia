@@ -1,0 +1,21 @@
+{
+  "phase": "foundation",
+  "seedAttempts": 1,
+  "consent": {
+    "dispatched": 1,
+    "settled": 1,
+    "acknowledged": 1
+  },
+  "runs": [
+    {
+      "phase": "foundation",
+      "number": 1,
+      "entered": false,
+      "error": "CONTROL_PUBLICATION_CHANGED"
+    }
+  ],
+  "runCount": 1,
+  "committedWrites": 0,
+  "firstFenceRead": true,
+  "error": "CONTROL_PUBLICATION_CHANGED"
+}

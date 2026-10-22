@@ -1,0 +1,54 @@
+✖ AI-COST-01 source genuine fresh-action ACK rollback, replay and dispose control (2486.585125ms)
+ℹ {"variant":"source","phase":"dispose-observation","disposeHits":1,"actualCode":"STORAGE_FAILED","expectedLegacyCode":"STALE_BASE","rollback":true,"sizes":[2,1,1],"physical":3,"failure":{"code":"STORAGE_FAILED","stack":"Error: STORAGE_FAILED\n    at fail (chrome-extension://nmggdecdhlhlilcmlkpkdgcdgnoeklgh/core/idb-repository.js:22:40)\n    at ArchiveRepository.transaction (chrome-extension://nmggdecdhlhlilcmlkpkdgcdgnoeklgh/core/idb-repository.js:427:823)\n    at async chrome-extension://nmggdecdhlhlilcmlkpkdgcdgnoeklgh/core/indexed-store.js:279:123\n    at async chrome-extension://nmggdecdhlhlilcmlkpkdgcdgnoeklgh/core/indexed-store.js:192:11"}}
+✖ AI-COST-01 release genuine fresh-action ACK rollback, replay and dispose control (3906.9595ms)
+ℹ {"variant":"release","phase":"dispose-observation","disposeHits":1,"actualCode":"STORAGE_FAILED","expectedLegacyCode":"STALE_BASE","rollback":true,"sizes":[2,1,1],"physical":3,"failure":{"code":"STORAGE_FAILED","stack":"Error: STORAGE_FAILED\n    at fail (chrome-extension://johagbefippcmehnadedkijnckdicfce/core/idb-repository.js:22:40)\n    at ArchiveRepository.transaction (chrome-extension://johagbefippcmehnadedkijnckdicfce/core/idb-repository.js:427:823)\n    at async chrome-extension://johagbefippcmehnadedkijnckdicfce/core/indexed-store.js:279:123\n    at async chrome-extension://johagbefippcmehnadedkijnckdicfce/core/indexed-store.js:192:11"}}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6673.183167
+
+✖ failing tests:
+
+test at extension/docs/consumer-product-v1/implementation/evidence/pr313-contract-native-followup-20261023/fresh-action-control.mjs:6:43
+✖ AI-COST-01 source genuine fresh-action ACK rollback, replay and dispose control (2486.585125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'STORAGE_FAILED'
+  - 'STALE_BASE'
+       ^
+  
+      at TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/docs/consumer-product-v1/implementation/evidence/pr313-contract-native-followup-20261023/fresh-action-control.mjs:23:177)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'STORAGE_FAILED',
+    expected: 'STALE_BASE',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/docs/consumer-product-v1/implementation/evidence/pr313-contract-native-followup-20261023/fresh-action-control.mjs:6:43
+✖ AI-COST-01 release genuine fresh-action ACK rollback, replay and dispose control (3906.9595ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'STORAGE_FAILED'
+  - 'STALE_BASE'
+       ^
+  
+      at TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/docs/consumer-product-v1/implementation/evidence/pr313-contract-native-followup-20261023/fresh-action-control.mjs:23:177)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'STORAGE_FAILED',
+    expected: 'STALE_BASE',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,30 @@
+✔ full browser gate verifies installed Chrome with the exact shard set and unchanged budgets (10.975708ms)
+
+Interrupted while running:
+
+⚠ extension/tests/cpv1-02-hosted-browser-setup.test.mjs (extension/tests/cpv1-02-hosted-browser-setup.test.mjs:1:1)
+✖ extension/tests/cpv1-02-hosted-browser-setup.test.mjs (267650.247084ms)
+✖ extension/tests/d5-full-browser-partition.test.mjs
+✖ extension/tests/sync-node-preflight-ci.test.mjs
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 3
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 267654.034334
+
+✖ failing tests:
+
+test at extension/tests/cpv1-02-hosted-browser-setup.test.mjs:1:1
+✖ extension/tests/cpv1-02-hosted-browser-setup.test.mjs (267650.247084ms)
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at extension/tests/d5-full-browser-partition.test.mjs:1:1
+✖ extension/tests/d5-full-browser-partition.test.mjs
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at extension/tests/sync-node-preflight-ci.test.mjs:1:1
+✖ extension/tests/sync-node-preflight-ci.test.mjs
+  'Promise resolution is still pending but the event loop has already resolved'

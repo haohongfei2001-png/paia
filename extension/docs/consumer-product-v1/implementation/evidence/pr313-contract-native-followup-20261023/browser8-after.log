@@ -1,0 +1,12 @@
+✔ whole Entry move and existing restore source (6255.244334ms)
+✔ whole Entry move and existing restore release (7506.986041ms)
+✔ Entry seed original publication rejects unadmitted source without replay (1113.569167ms)
+✔ Entry seed original publication rejects unadmitted release without replay (2516.105292ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17539.806
