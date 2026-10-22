@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "scope": "original Sync owning Node preflight only",
+  "head": "c80110db807248ff997aecc5094234c92439fc20",
+  "tree": "5a32d74a5480fa052481d8887975284debe6f9f0",
+  "runId": "39735101169",
+  "runAttempt": "1",
+  "node": "v22.23.3",
+  "outcome": "failure",
+  "shellExit": 1,
+  "commandSha256": [
+    "f56cbad710aa19bc82bbe9e7f12536ec663dad7b53c9b38d488c92844203cc8d",
+    "2660d3166a5bff0d252345fc8b86f72fd28c2f6317c8fbfd1453d8bc2b7991ea"
+  ],
+  "logs": [
+    {
+      "path": "work/qa-bns-native-storage/node.log",
+      "bytes": 284892,
+      "sha256": "2619e8d856b39da66e12847bd36e7ffd852b632570953a89a66b29a51fef274b"
+    },
+    {
+      "path": "work/qa-bns-native-storage/configuration-node.log",
+      "bytes": null,
+      "sha256": null
+    }
+  ],
+  "result": "INCOMPLETE"
+}

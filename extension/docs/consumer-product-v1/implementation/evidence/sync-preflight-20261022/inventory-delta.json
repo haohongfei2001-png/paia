@@ -1,0 +1,70 @@
+[
+  {
+    "path": "tests/native-sync/human-branch-witness-receipt.mjs",
+    "name": "HUMAN_WITNESS_PATHS",
+    "before": 233,
+    "after": 260,
+    "added": [
+      "background/organize-action-source.js",
+      "background/organize-processing-policy.js",
+      "core/browser-native-sync/context-desired-journal-owner.js",
+      "core/dual-view.js",
+      "core/ia-store-owner.js",
+      "core/import/library-integration.js",
+      "core/manual-materials.js",
+      "core/organizer/ai-draft.js",
+      "core/organizer/ai-presentation-migration.js",
+      "core/organizer/ai-presentation.js",
+      "core/organizer/bounded-workflow.js",
+      "core/organizer/budget.js",
+      "core/organizer/commit.js",
+      "core/organizer/controls.js",
+      "core/organizer/deepseek.js",
+      "core/organizer/organize-plan-source.js",
+      "core/organizer/organize-presentation-fields.js",
+      "core/organizer/organize-processing-scope.js",
+      "core/organizer/original-batch.js",
+      "core/organizer/original.js",
+      "core/organizer/policy.js",
+      "core/organizer/source-summary.js",
+      "core/organizer/store-owner.js",
+      "core/organizer/topic-excerpt.js",
+      "core/organizer/topic-timeline.js",
+      "core/search-material-page.js",
+      "core/smart-filter-store-owner.js",
+      "core/thought-root-source-scope.js",
+      "core/thought-store-owner.js",
+      "core/topic-root-target.js",
+      "core/universal-search.js"
+    ],
+    "removed": [
+      "core/browser-native-sync/context-desired-journal.js",
+      "core/ia-store.js",
+      "core/smart-filter-store.js",
+      "core/thought-store.js"
+    ]
+  },
+  {
+    "path": "tests/native-sync/retention-native-paths.mjs",
+    "name": "RETENTION_RUNTIME_PATHS",
+    "before": 341,
+    "after": 348,
+    "added": [
+      "background/organize-action-source.js",
+      "background/organize-processing-policy.js",
+      "core/browser-native-sync/context-desired-journal-owner.js",
+      "core/ia-store-owner.js",
+      "core/organizer/organize-plan-source.js",
+      "core/organizer/organize-presentation-fields.js",
+      "core/organizer/organize-processing-scope.js",
+      "core/organizer/store-owner.js",
+      "core/smart-filter-store-owner.js",
+      "core/thought-store-owner.js"
+    ],
+    "removed": [
+      "core/browser-native-sync/context-desired-journal.js",
+      "core/ia-store.js",
+      "core/smart-filter-store.js"
+    ]
+  }
+]

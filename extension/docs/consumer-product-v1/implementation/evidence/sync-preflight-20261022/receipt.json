@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "scope": "Sync owning Node preflight repair only; not native or Full certification",
+  "baseline": "b492a7df57cc89cb538fb28376a991785828c157",
+  "pr313Head": "22bd30f19b3d5ecb8074b334d7e3ae019f6bbb7e",
+  "fix": "9c7175b5732b58ca630024d0e3ca09a0a71c17bb",
+  "fixTree": "40cfd0f8144b92a453e20b12a3719df559ac6888",
+  "branch": "codex/sync-preflight-followup-20261022",
+  "cloud": {
+    "run": 39735101169,
+    "attempt": 1,
+    "job": 119679193202,
+    "artifact": 12407161109,
+    "testedMerge": "c80110db807248ff997aecc5094234c92439fc20",
+    "tree": "5a32d74a5480fa052481d8887975284debe6f9f0",
+    "node": "22.23.3",
+    "tests": 735,
+    "pass": 727,
+    "fail": 8,
+    "configurationCommandRan": false,
+    "nativeSync": "skipped due to failed preflight"
+  },
+  "local": {
+    "node": "22.23.4",
+    "targetedBefore": {
+      "tests": 18,
+      "pass": 10,
+      "fail": 8
+    },
+    "targetedAfter": {
+      "tests": 18,
+      "pass": 18,
+      "fail": 0
+    },
+    "originalOwningCommand": {
+      "tests": 735,
+      "pass": 735,
+      "fail": 0
+    },
+    "originalConfigurationCommand": {
+      "tests": 132,
+      "pass": 132,
+      "fail": 0
+    },
+    "receiptContracts": {
+      "tests": 11,
+      "pass": 11,
+      "fail": 0
+    },
+    "skipped": 0,
+    "productionRuntimeChanged": false,
+    "workflowsChanged": false,
+    "fullSuiteRun": false,
+    "nativeBrowserRun": false,
+    "independentReview": "pending dot",
+    "CI": "not dispatched"
+  },
+  "logs": {
+    "cloud-original-receipt.json": {
+      "originalSha256": "31e5d92c3076df663151b4835f645786e8ce59c5503b742c728da71aa1f9a7f9",
+      "publishedSha256": "31e5d92c3076df663151b4835f645786e8ce59c5503b742c728da71aa1f9a7f9",
+      "publishedBytes": 797,
+      "normalization": "none"
+    },
+    "targeted-before.tap": {
+      "originalSha256": "d8f74727b31d0ce73fad10015fddb52985b86eca97c645e2511ce0b4e0f687b8",
+      "publishedSha256": "1bc4be248b01fe6e5008e518a555134fbfc46444efb97648025446d8ef8abc46",
+      "publishedBytes": 108001,
+      "normalization": "local absolute extension directory replaced by extension/; trailing line whitespace removed from published TAP only"
+    },
+    "targeted-after.tap": {
+      "originalSha256": "06b8ece0ff9241176f6ba9c840632dafd5a76dcf295b1a2bd86f09130821a52a",
+      "publishedSha256": "06b8ece0ff9241176f6ba9c840632dafd5a76dcf295b1a2bd86f09130821a52a",
+      "publishedBytes": 4827,
+      "normalization": "none"
+    },
+    "owning-node-after.tap": {
+      "originalSha256": "efc44e4e370063faf6698a6cbc3deb36a410bfe23567d8900a6e490301099073",
+      "publishedSha256": "efc44e4e370063faf6698a6cbc3deb36a410bfe23567d8900a6e490301099073",
+      "publishedBytes": 180927,
+      "normalization": "none"
+    },
+    "configuration-node-after.tap": {
+      "originalSha256": "fab2cc2f51e59351590e54824fa90183dcc9335ba75a3b6aebf4f8a56945d950",
+      "publishedSha256": "fab2cc2f51e59351590e54824fa90183dcc9335ba75a3b6aebf4f8a56945d950",
+      "publishedBytes": 36263,
+      "normalization": "none"
+    },
+    "receipt-contract-after.tap": {
+      "originalSha256": "f8ac2d3a2f5795e6a686ced921546a0811f71c98a9f502ea4698be5bb71bc867",
+      "publishedSha256": "f8ac2d3a2f5795e6a686ced921546a0811f71c98a9f502ea4698be5bb71bc867",
+      "publishedBytes": 2452,
+      "normalization": "none"
+    },
+    "commands.json": {
+      "originalSha256": "10d702b2b68ba39be3af51f1118290327bfda9cad21f0660fb72501fd5012918",
+      "publishedSha256": "10d702b2b68ba39be3af51f1118290327bfda9cad21f0660fb72501fd5012918",
+      "publishedBytes": 2447,
+      "normalization": "none"
+    },
+    "inventory-delta.json": {
+      "originalSha256": "f6efcc9003822f619d8f22c375d9a1c1b87163aaf412d68be45aeb7b8d3f0e0d",
+      "publishedSha256": "f6efcc9003822f619d8f22c375d9a1c1b87163aaf412d68be45aeb7b8d3f0e0d",
+      "publishedBytes": 2406,
+      "normalization": "none"
+    },
+    "cloud-original-node.tap.gz": {
+      "originalSha256": "2619e8d856b39da66e12847bd36e7ffd852b632570953a89a66b29a51fef274b",
+      "publishedSha256": "adfc80dcf5ed4f1c3727b33cc042d39f1f1b2422ca89241614fc451d4d9c44d6",
+      "publishedBytes": 46092,
+      "normalization": "gzip transport only; decompressed bytes exactly match original cloud node.log and receipt"
+    }
+  }
+}

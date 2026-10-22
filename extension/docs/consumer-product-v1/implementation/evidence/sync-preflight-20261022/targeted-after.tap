@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: native witness compiler preserves all fourteen original case bytes and replaces only Node and physical constructor seams
+ok 1 - native witness compiler preserves all fourteen original case bytes and replaces only Node and physical constructor seams
+  ---
+  duration_ms: 27.478583
+  type: 'test'
+  ...
+# Subtest: native witness compiler rejects changed original case or constructor/import seams
+ok 2 - native witness compiler rejects changed original case or constructor/import seams
+  ---
+  duration_ms: 0.209916
+  type: 'test'
+  ...
+# Subtest: native receipt runtime inventory is the actual complete static/literal Store Core journal and plan closure
+ok 3 - native receipt runtime inventory is the actual complete static/literal Store Core journal and plan closure
+  ---
+  duration_ms: 31.756667
+  type: 'test'
+  ...
+# Subtest: native witness outer test keeps separate complete variants and original time and isolation limits
+ok 4 - native witness outer test keeps separate complete variants and original time and isolation limits
+  ---
+  duration_ms: 0.5375
+  type: 'test'
+  ...
+# Subtest: native proof inventory includes the actual harness dynamic imports and copied worker dependency closure
+ok 5 - native proof inventory includes the actual harness dynamic imports and copied worker dependency closure
+  ---
+  duration_ms: 1.710459
+  type: 'test'
+  ...
+# Subtest: native failed-case diagnostics retain bounded error and native counters without request body or DB references
+ok 6 - native failed-case diagnostics retain bounded error and native counters without request body or DB references
+  ---
+  duration_ms: 0.325375
+  type: 'test'
+  ...
+# Subtest: readonly witness reports the actual separately implemented private retention method without invoking it
+ok 7 - readonly witness reports the actual separately implemented private retention method without invoking it
+  ---
+  duration_ms: 0.174083
+  type: 'test'
+  ...
+# Subtest: dispatch barrier is lazy, starts only after terminal+unwind, and all waiters share one task
+ok 8 - dispatch barrier is lazy, starts only after terminal+unwind, and all waiters share one task
+  ---
+  duration_ms: 1.382459
+  type: 'test'
+  ...
+# Subtest: ordinary non-native cleanup does not allocate a dispatch task
+ok 9 - ordinary non-native cleanup does not allocate a dispatch task
+  ---
+  duration_ms: 0.440458
+  type: 'test'
+  ...
+# Subtest: every channel setup or cleanup failure rejects, closes reachable ports, and cannot retry a record
+ok 10 - every channel setup or cleanup failure rejects, closes reachable ports, and cannot retry a record
+  ---
+  duration_ms: 2.150833
+  type: 'test'
+  ...
+# Subtest: original Core finally keeps the original error when dispatch cleanup also fails
+ok 11 - original Core finally keeps the original error when dispatch cleanup also fails
+  ---
+  duration_ms: 1.347083
+  type: 'test'
+  ...
+# Subtest: current Core performs the real cap assertion after finalizer resolution and leaves no awaited success window
+ok 12 - current Core performs the real cap assertion after finalizer resolution and leaves no awaited success window
+  ---
+  duration_ms: 4.167042
+  type: 'test'
+  ...
+# Subtest: native retention bridge preserves both complete original fixtures and all 27 names
+ok 13 - native retention bridge preserves both complete original fixtures and all 27 names
+  ---
+  duration_ms: 3.878333
+  type: 'test'
+  ...
+# Subtest: original fixture physical paths are excluded from Node discovery while imports retain original origins
+ok 14 - original fixture physical paths are excluded from Node discovery while imports retain original origins
+  ---
+  duration_ms: 2.276625
+  type: 'test'
+  ...
+# Subtest: runtime and proof inventories are the current complete static/literal imported closures
+ok 15 - runtime and proof inventories are the current complete static/literal imported closures
+  ---
+  duration_ms: 55.730125
+  type: 'test'
+  ...
+# Subtest: retention receipt rejects missing, duplicated, skipped, non-native or body-bearing rows
+ok 16 - retention receipt rejects missing, duplicated, skipped, non-native or body-bearing rows
+  ---
+  duration_ms: 8.077167
+  type: 'test'
+  ...
+# Subtest: original review counterexamples reject top-level body, empty ledger and non-hash git identity
+ok 17 - original review counterexamples reject top-level body, empty ledger and non-hash git identity
+  ---
+  duration_ms: 0.749667
+  type: 'test'
+  ...
+# Subtest: receipt requires complete fresh runtime/proof/generated hashes and real two-point denied-network ledger
+ok 18 - receipt requires complete fresh runtime/proof/generated hashes and real two-point denied-network ledger
+  ---
+  duration_ms: 2.99525
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 131.181875
