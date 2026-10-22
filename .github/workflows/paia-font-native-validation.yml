@@ -1,0 +1,29 @@
+name: PAIA isolated native font validation
+on:
+  push:
+    branches: [audit/font-native-validation-20261022]
+permissions:
+  contents: read
+jobs:
+  font-native-once:
+    if: github.repository == 'haohongfei2001-png/paia' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - name: Checkout exact isolated input
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Validate original signed font preparation once
+        run: python3 extension/scripts/validate-font-native-once.py
+      - name: Preserve bounded sanitized outcome
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: font-native-validation-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/paia-font-native-validation/summary.json
+          if-no-files-found: error
+          retention-days: 7
+
