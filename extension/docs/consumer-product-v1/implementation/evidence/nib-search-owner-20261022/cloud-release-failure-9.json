@@ -1,0 +1,220 @@
+{
+  "name": "late or owner-refused representative members cannot reappear after genuine Working invalidation",
+  "state": {
+    "mode": "candidates",
+    "layoutPending": false,
+    "focused": {
+      "tag": "BODY",
+      "id": ""
+    },
+    "rows": 0,
+    "checkVisible": false,
+    "refreshDisabled": false,
+    "status": "Content changed. Please refresh.",
+    "listScroll": 0,
+    "rpcResults": [
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 3177
+      },
+      {
+        "type": "PAIA_PROMPT_SELECTION_READ",
+        "ok": true,
+        "at": 3450
+      },
+      {
+        "type": "PAIA_PROMPT_SELECTION_READ",
+        "ok": true,
+        "at": 3603.79999999993
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 3860.5999999999767
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 3967.5999999999767
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 3979.5
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 4053.5999999999767
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 4069.6999999999534
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 4098.399999999907
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 4127.099999999977
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_SAVE",
+        "ok": true,
+        "at": 4566.5
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 4594
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 4647.699999999953
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 4653.199999999953
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 4661.599999999977
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 4673.699999999953
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 4698.399999999907
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 4910.29999999993
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 5217.29999999993
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 5443.79999999993
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 5444.399999999907
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 5477.29999999993
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 5594
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 5602.099999999977
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 5618
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 5658.599999999977
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 5677
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 6116.699999999953
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 6128.199999999953
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 6144.79999999993
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 6324.5
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 6345.899999999907
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 6357.099999999977
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 6391
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 6410.599999999977
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 6704.199999999953
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 12606.599999999977
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 12630.399999999907
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": false,
+        "error": "MEMORY_STALE",
+        "at": 12726.399999999907
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 12752.099999999977
+      }
+    ]
+  },
+  "error": "Cannot read properties of undefined (reading 'members')"
+}

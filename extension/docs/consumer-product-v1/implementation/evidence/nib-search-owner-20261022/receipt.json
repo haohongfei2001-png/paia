@@ -1,0 +1,125 @@
+{
+  "base": "9c712f716b105c449c264cdb0c87c4c7d6187e32",
+  "commit": "22fb59c7aed65c91bf39de72d1e4ba4a8b426543",
+  "tree": "a441c659fa8c696de4b404bd118dbb6ae59ba02e",
+  "cloudRun": 39748755471,
+  "cloudJob": 119723745774,
+  "artifactId": 12412724728,
+  "artifactBytes": 26480544,
+  "artifactSha256": "2cec4f9ea9b58bd75e0e0f7fb6ac9cf7f36dcd401bfffc7b4195d8c8da7c3813",
+  "cloudCause": "UNKNOWN",
+  "runtimeChanges": false,
+  "casesUnchanged": true,
+  "results": {
+    "diagnosticsDisabled": "34/34",
+    "firstWorkerProbe": "FAILED: MV3 forbids import()",
+    "firstStaticCopy": "33/34; INVALID qualification because test source was edited during execution; original identity assertion retained",
+    "finalStaticCopy": "34/34, 76003.293667ms; both same-owner probes available",
+    "ownerNode": "25/25"
+  },
+  "runtime": {
+    "node": "22.23.4",
+    "python": "3.12.14",
+    "chrome": "155.0.8059.85",
+    "playwright": "1.63.0",
+    "headless": true
+  },
+  "changedFiles": [
+    {
+      "path": "extension/tests/harness/nib-search-owner-copy.mjs",
+      "sha256": "998602e2b21f1758cf0b8f8c3df9a2bede73682cc27af135ffc12a6b034865f1"
+    },
+    {
+      "path": "extension/tests/nib-v4-search-chrome-e2e.test.mjs",
+      "sha256": "944798c4e5da7806c8965320ab043c6b96d612460f75709cacfa37159c350dbb"
+    }
+  ],
+  "evidence": [
+    {
+      "file": "original-browser9.log.gz",
+      "rawBytes": 94673,
+      "rawSha256": "4600cb8b9969cc51092d261777644dfda0b9e09e0cc61cf59c256532a7f2082f",
+      "publicSha256": "4600cb8b9969cc51092d261777644dfda0b9e09e0cc61cf59c256532a7f2082f"
+    },
+    {
+      "file": "diagnostic-native.tap.gz",
+      "rawBytes": 9701,
+      "rawSha256": "2b55ac3a27bcc2fe5d1e70bdd9586c3ea48504ddf3725ac8a60e20dad5a5e4f8",
+      "publicSha256": "2b55ac3a27bcc2fe5d1e70bdd9586c3ea48504ddf3725ac8a60e20dad5a5e4f8"
+    },
+    {
+      "file": "probe.log.gz",
+      "rawBytes": 560,
+      "rawSha256": "2b4df1c9b3f3c31522ca55c803d388f7b97a0212fd96e1548320c96254162526",
+      "publicSha256": "42dd09d790633eef4bef54ba3741d08d89060e316222eb10e12ce2e2a6562cf4"
+    },
+    {
+      "file": "static-owner-native.tap.gz",
+      "rawBytes": 149282,
+      "rawSha256": "0f30222d07c8fa669d34043550b56d4bb5395bf1bf34cc8442f8a8cbd7a8ffd5",
+      "publicSha256": "e40223659cebd62ca475f8f358ecc4d218464871387c02687636b49ec8beeabc"
+    },
+    {
+      "file": "final-static-owner-native.tap.gz",
+      "rawBytes": 9702,
+      "rawSha256": "490f5d31832e119affe92e69bf3cdb3f0be67c9678dbde23928eb24040db6483",
+      "publicSha256": "490f5d31832e119affe92e69bf3cdb3f0be67c9678dbde23928eb24040db6483"
+    },
+    {
+      "file": "owner-node.tap.gz",
+      "rawBytes": 6669,
+      "rawSha256": "f1924743301e9a54ff723dc9709b62d7bb08a504949e0931d45ce043828a53ea",
+      "publicSha256": "f1924743301e9a54ff723dc9709b62d7bb08a504949e0931d45ce043828a53ea"
+    },
+    {
+      "file": "package.txt",
+      "rawBytes": 153,
+      "rawSha256": "44fd3561b4d5ceb43d70e30e244e243dc17084a672e79837ff202dec7e703263",
+      "publicSha256": "44fd3561b4d5ceb43d70e30e244e243dc17084a672e79837ff202dec7e703263"
+    },
+    {
+      "file": "local-source.json.gz",
+      "rawBytes": 152920,
+      "rawSha256": "0398f74f4a4a82b64447f3d974c2f83812613bfb6c75ecf5444e2bd52d317c3b",
+      "publicSha256": "0398f74f4a4a82b64447f3d974c2f83812613bfb6c75ecf5444e2bd52d317c3b"
+    },
+    {
+      "file": "local-release.json.gz",
+      "rawBytes": 283924,
+      "rawSha256": "e7ec1ff36d23517fd2aaf144e827a64ec7f6e4451ab68ca88930dfd21a137fde",
+      "publicSha256": "e7ec1ff36d23517fd2aaf144e827a64ec7f6e4451ab68ca88930dfd21a137fde"
+    },
+    {
+      "file": "final-source.json.gz",
+      "rawBytes": 152920,
+      "rawSha256": "412a4647b0b6281eab35599e96a77296e79d68fb3fc8b2badd00f101956b932c",
+      "publicSha256": "412a4647b0b6281eab35599e96a77296e79d68fb3fc8b2badd00f101956b932c"
+    },
+    {
+      "file": "final-release.json.gz",
+      "rawBytes": 283924,
+      "rawSha256": "f7f03e3de889f7a26a9574a153f294d3124dd368682ea2e00cd85ee93ada6f5c",
+      "publicSha256": "f7f03e3de889f7a26a9574a153f294d3124dd368682ea2e00cd85ee93ada6f5c"
+    },
+    {
+      "file": "final-source-owner-diagnostic.json.gz",
+      "rawBytes": 430914,
+      "rawSha256": "a8fe866de9872d63b17b5dc500f6dbfce794c88c102e6c8788ea5195b30fb5ed",
+      "publicSha256": "a8fe866de9872d63b17b5dc500f6dbfce794c88c102e6c8788ea5195b30fb5ed"
+    },
+    {
+      "file": "final-release-owner-diagnostic.json.gz",
+      "rawBytes": 136478,
+      "rawSha256": "8fb9fdda47ff16e38e9293b44fc0db2f38352ad2304a94d4287596eaa6859369",
+      "publicSha256": "8fb9fdda47ff16e38e9293b44fc0db2f38352ad2304a94d4287596eaa6859369"
+    },
+    {
+      "file": "cloud-release-failure-8.json",
+      "rawSha256": "e6974de1bab1be6eda926eee1c42a91c335f96819133368b8ca9ad944f0491b9"
+    },
+    {
+      "file": "cloud-release-failure-9.json",
+      "rawSha256": "9e4a1e4e63bb097b4134e4fcb927d9ff5806ee5aace3e02905549c52a3e0c663"
+    }
+  ]
+}
