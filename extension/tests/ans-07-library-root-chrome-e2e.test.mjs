@@ -1,7 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {testANS07SeedAdmission} from './harness/ans07-seed-admission-native.mjs';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+
+const seedObserver=(await readFile(new URL('./harness/ans07-seed-evidence.mjs',import.meta.url),'utf8')).replaceAll('export function','function');
+const publicationObserver=(await readFile(new URL('./harness/historical-publication-evidence.mjs',import.meta.url),'utf8')).replaceAll('export function','function');
 
 const op=()=>crypto.randomUUID();
 const rootBlocks='#thought-list article.personal-topic-block';
@@ -17,29 +21,41 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
  const h=await FakeChatGPT.start(),page=h.archive;
  try{
   await page.setViewportSize({width:1280,height:720});
+  await page.evaluate(`(()=>{${seedObserver}\n${publicationObserver}\n globalThis.__ans07ObserveConsent=observeANS07Consent;globalThis.__ans07ObserveSeed=observeANS07Seed;globalThis.__ans07ObservePublication=observeHistoricalPublication;})()`);
+  await page.evaluate(()=>{
+   globalThis.__ans07SeedTrace={phase:'consent',consent:{dispatched:0,settled:0,acknowledged:0},completed:{topics:0,entries:0,placements:0}};
+   Object.defineProperty(__ans07SeedTrace,'stage',{enumerable:true,get:()=>__ans07SeedTrace.phase});
+   globalThis.__ans07Consent=__ans07ObserveConsent(chrome.runtime,__ans07SeedTrace);
+  });
   await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();
+  try{await page.evaluate(()=>__ans07Consent.complete());}finally{await page.evaluate(()=>__ans07Consent.stop());}
   const seed=await page.evaluate(async()=>{
    const {LibraryDocumentsStore}=await import('../core/library-documents-store.js');
+   const trace=__ans07SeedTrace;trace.consentAtSeedStart={...trace.consent};
    const s=new LibraryDocumentsStore(chrome.storage.local),topics=[];
-   for(let i=0;i<299;i++){const t=await s.createTopic({name:'ANS07_ROOT_'+String(i).padStart(3,'0'),operationId:crypto.randomUUID()});topics.push(t.id);}
+   trace.phase='construct';const stopPublication=__ans07ObservePublication(s,chrome.storage,'personalAIArchive',trace),stopSeed=__ans07ObserveSeed(s,trace);let primary;
+   try{
+   for(let i=0;i<299;i++){trace.phase='topic-'+i;const t=await s.createTopic({name:'ANS07_ROOT_'+String(i).padStart(3,'0'),operationId:crypto.randomUUID()});topics.push(t.id);trace.completed.topics++;}
    await new Promise(resolve=>setTimeout(resolve,12));
-   const target=await s.createTopic({name:'ANS07_DEEP_SEARCH_TARGET',operationId:crypto.randomUUID()});topics.push(target.id);
+   trace.phase='target-topic';const target=await s.createTopic({name:'ANS07_DEEP_SEARCH_TARGET',operationId:crypto.randomUUID()});topics.push(target.id);trace.completed.topics++;
    // Current Root enumerates stable IDs, not creation recency. Keep the same
    // 300 Topics and swap only synthetic names so the target is truly beyond
    // the first 40-ID projection page on every run.
-   const deepId=[...topics].sort().at(-1);
+   trace.phase='swap-target-names';const deepId=[...topics].sort().at(-1);
    if(deepId!==target.id){const previous=await s.topic(target.id),deep=await s.topic(deepId);await s.editTopic({id:previous.id,expectedRevision:previous.revision,changes:{name:deep.name},operationId:crypto.randomUUID()});await s.editTopic({id:deep.id,expectedRevision:deep.revision,changes:{name:'ANS07_DEEP_SEARCH_TARGET'},operationId:crypto.randomUUID()});}
    const entries=[];
-   for(let i=0;i<130;i++){const e=await s.createEntry({actor:'user',operationId:crypto.randomUUID(),body:'ANS07 entry '+String(i).padStart(3,'0'),type:'idea',formation:'explicit',evidence:[]});entries.push(e);}
+   for(let i=0;i<130;i++){trace.phase='entry-'+i;const e=await s.createEntry({actor:'user',operationId:crypto.randomUUID(),body:'ANS07 entry '+String(i).padStart(3,'0'),type:'idea',formation:'explicit',evidence:[]});entries.push(e);trace.completed.entries++;}
    entries.sort((a,b)=>a.id.localeCompare(b.id));
-   for(const e of entries.slice(0,45)){
+   for(const e of entries.slice(0,45)){trace.phase='placement-'+trace.completed.placements;
     const t=await s.topic(topics[0]);
-    await s.placeEntry({topicId:topics[0],entryId:e.id,expectedEntryRevision:e.revision,expectedTopicRevision:t.organizationRevision,operationId:crypto.randomUUID()});
+    await s.placeEntry({topicId:topics[0],entryId:e.id,expectedEntryRevision:e.revision,expectedTopicRevision:t.organizationRevision,operationId:crypto.randomUUID()});trace.completed.placements++;
    }
    const independent=entries.slice(45).map(e=>e.id);
-   await s.drainLibraryMaintenance();
+   trace.phase='drain-library';await s.drainLibraryMaintenance();trace.phase='complete';
    return {targetId:deepId,topics,independent,topicCount:topics.length};
-  });
+   }catch(error){primary=error;trace.failed=true;try{trace.persisted=await s.repository.transaction(false,async t=>({topics:await t.count('topics'),entries:await t.count('thoughts')}),['topics','thoughts']);}catch{trace.persisted='UNAVAILABLE';}throw error;}finally{try{stopSeed();stopPublication();}catch(error){if(!primary)throw error;}}
+  }).catch(async error=>{try{console.error('ANS07_SEED_FAILURE',JSON.stringify(await page.evaluate(()=>__ans07SeedTrace)));}catch(diagnosticError){console.error('ANS07_SEED_DIAGNOSTIC_FAILED',diagnosticError.name);}throw error;});
+  console.log('ANS07_SEED_COMPLETE',JSON.stringify(await page.evaluate(()=>__ans07SeedTrace)));
   const firstUnplaced=await rpc(page,'GET_LIBRARY_UNPLACED',{options:{limit:40}});
   assert.equal(firstUnplaced.items.length,0,'first unplaced source page is intentionally empty');
   assert.ok(firstUnplaced.nextCursor,'empty unplaced page is not terminal');
@@ -156,3 +172,6 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
   console.log('ANS07_BROWSER_EVIDENCE '+JSON.stringify(evidence));
  }finally{await h.close();}
 });
+
+// Keep the controlled admission regressions in the existing Browser8 owner.
+testANS07SeedAdmission(test);
