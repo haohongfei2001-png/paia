@@ -1,0 +1,380 @@
+{
+  "run": 39740927351,
+  "head": "ecf1feeb09673d94d855176639501275cf6e8e38",
+  "jobs": [
+    {
+      "id": 119697718197,
+      "name": "Current Browser 10/10",
+      "conclusion": "cancelled",
+      "started_at": "2026-10-22T07:30:21Z",
+      "completed_at": "2026-10-22T07:49:26Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-22T07:30:22Z",
+          "completed_at": "2026-10-22T07:30:23Z",
+          "durationSeconds": 1.0
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-22T07:30:23Z",
+          "completed_at": "2026-10-22T07:30:29Z",
+          "durationSeconds": 6.0
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-22T07:30:29Z",
+          "completed_at": "2026-10-22T07:30:32Z",
+          "durationSeconds": 3.0
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-22T07:30:32Z",
+          "completed_at": "2026-10-22T07:30:32Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Run npm install --no-audit --no-fund --package-lock=false",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-22T07:30:32Z",
+          "completed_at": "2026-10-22T07:30:36Z",
+          "durationSeconds": 4.0
+        },
+        {
+          "name": "Prepare portable Chrome test environment",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-22T07:30:36Z",
+          "completed_at": "2026-10-22T07:30:38Z",
+          "durationSeconds": 2.0
+        },
+        {
+          "name": "Use signed Ubuntu archive over HTTPS before browser font dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-22T07:30:38Z",
+          "completed_at": "2026-10-22T07:30:38Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Provide Chinese glyph coverage for actual visual evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-22T07:30:38Z",
+          "completed_at": "2026-10-22T07:40:55Z",
+          "durationSeconds": 617.0
+        },
+        {
+          "name": "Pin verified full Chrome for Settings native evidence",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9,
+          "started_at": "2026-10-22T07:40:55Z",
+          "completed_at": "2026-10-22T07:40:55Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Verify the installed Chrome actually launches",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-22T07:40:55Z",
+          "completed_at": "2026-10-22T07:41:06Z",
+          "durationSeconds": 11.0
+        },
+        {
+          "name": "Verify current browser coverage contract",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 11,
+          "started_at": "2026-10-22T07:41:06Z",
+          "completed_at": "2026-10-22T07:41:06Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Run current browser shard",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 12,
+          "started_at": "2026-10-22T07:41:06Z",
+          "completed_at": "2026-10-22T07:49:20Z",
+          "durationSeconds": 494.0
+        },
+        {
+          "name": "Upload current browser shard evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-22T07:49:20Z",
+          "completed_at": "2026-10-22T07:49:22Z",
+          "durationSeconds": 2.0
+        },
+        {
+          "name": "Upload focused synthetic text-size evidence",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 14,
+          "started_at": "2026-10-22T07:49:22Z",
+          "completed_at": "2026-10-22T07:49:22Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Upload focused Context source and release evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-22T07:49:22Z",
+          "completed_at": "2026-10-22T07:49:24Z",
+          "durationSeconds": 2.0
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 28,
+          "started_at": "2026-10-22T07:49:24Z",
+          "completed_at": "2026-10-22T07:49:24Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 29,
+          "started_at": "2026-10-22T07:49:24Z",
+          "completed_at": "2026-10-22T07:49:24Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 30,
+          "started_at": "2026-10-22T07:49:24Z",
+          "completed_at": "2026-10-22T07:49:24Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-10-22T07:49:24Z",
+          "completed_at": "2026-10-22T07:49:24Z",
+          "durationSeconds": 0.0
+        }
+      ]
+    },
+    {
+      "id": 119697718294,
+      "name": "Current Browser 9/10",
+      "conclusion": "success",
+      "started_at": "2026-10-22T07:30:21Z",
+      "completed_at": "2026-10-22T07:46:07Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-22T07:30:22Z",
+          "completed_at": "2026-10-22T07:30:22Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-22T07:30:22Z",
+          "completed_at": "2026-10-22T07:30:28Z",
+          "durationSeconds": 6.0
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-22T07:30:28Z",
+          "completed_at": "2026-10-22T07:30:31Z",
+          "durationSeconds": 3.0
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-22T07:30:31Z",
+          "completed_at": "2026-10-22T07:30:31Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Run npm install --no-audit --no-fund --package-lock=false",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-22T07:30:31Z",
+          "completed_at": "2026-10-22T07:30:34Z",
+          "durationSeconds": 3.0
+        },
+        {
+          "name": "Prepare portable Chrome test environment",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-22T07:30:34Z",
+          "completed_at": "2026-10-22T07:30:36Z",
+          "durationSeconds": 2.0
+        },
+        {
+          "name": "Use signed Ubuntu archive over HTTPS before browser font dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-22T07:30:36Z",
+          "completed_at": "2026-10-22T07:30:36Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Provide Chinese glyph coverage for actual visual evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-22T07:30:36Z",
+          "completed_at": "2026-10-22T07:30:55Z",
+          "durationSeconds": 19.0
+        },
+        {
+          "name": "Pin verified full Chrome for Settings native evidence",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9,
+          "started_at": "2026-10-22T07:30:55Z",
+          "completed_at": "2026-10-22T07:30:55Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Verify the installed Chrome actually launches",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-22T07:30:55Z",
+          "completed_at": "2026-10-22T07:31:03Z",
+          "durationSeconds": 8.0
+        },
+        {
+          "name": "Verify current browser coverage contract",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 11,
+          "started_at": "2026-10-22T07:31:03Z",
+          "completed_at": "2026-10-22T07:31:03Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Run current browser shard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-22T07:31:03Z",
+          "completed_at": "2026-10-22T07:46:02Z",
+          "durationSeconds": 899.0
+        },
+        {
+          "name": "Upload current browser shard evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-22T07:46:02Z",
+          "completed_at": "2026-10-22T07:46:05Z",
+          "durationSeconds": 3.0
+        },
+        {
+          "name": "Upload focused synthetic text-size evidence",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 14,
+          "started_at": "2026-10-22T07:46:05Z",
+          "completed_at": "2026-10-22T07:46:05Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Upload focused Context source and release evidence",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 15,
+          "started_at": "2026-10-22T07:46:05Z",
+          "completed_at": "2026-10-22T07:46:05Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28,
+          "started_at": "2026-10-22T07:46:05Z",
+          "completed_at": "2026-10-22T07:46:05Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29,
+          "started_at": "2026-10-22T07:46:05Z",
+          "completed_at": "2026-10-22T07:46:05Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 30,
+          "started_at": "2026-10-22T07:46:05Z",
+          "completed_at": "2026-10-22T07:46:05Z",
+          "durationSeconds": 0.0
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-10-22T07:46:05Z",
+          "completed_at": "2026-10-22T07:46:05Z",
+          "durationSeconds": 0.0
+        }
+      ]
+    }
+  ],
+  "logs": [
+    {
+      "job": 119697718197,
+      "file": "119697718197.log.gz",
+      "rawBytes": 90964,
+      "sha256": "ca1bcb32bb7ea1d7947a0991e2b5707908759703ee71a69895c5738b763d2b4f"
+    },
+    {
+      "job": 119697718294,
+      "file": "119697718294.log.gz",
+      "rawBytes": 91221,
+      "sha256": "3e43e64cfae89a6a757e13b6d9dd707cf79a4b0c90cc54c749206ca1afc252e1"
+    }
+  ]
+}
