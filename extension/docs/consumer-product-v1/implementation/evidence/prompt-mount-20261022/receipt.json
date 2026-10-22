@@ -1,0 +1,80 @@
+{
+  "base": "607f453c8d999fe170d4199f93c6a8cf92071ef7",
+  "fix": "8ccfe526b74cef96f225dfcd5ad45bedb90c754a",
+  "tree": "dd6c499d20143ee788c4b13b18d4d0da8192b671",
+  "branch": "codex/prompt-mount-hidden-followup-20261022",
+  "failedRun": 39738727099,
+  "failedJob": 119690545260,
+  "failedTestedMerge": "15d9680a7eb74a0f9950c5743b83a832be9b98df",
+  "failedHead": "d5874a4478e78ba43b900d646d0e638aa1621554",
+  "currentPR313HeadRead": "ecf1feeb09673d94d855176639501275cf6e8e38",
+  "runtimeMatchesAllThreeBaselines": true,
+  "exactRuntimeDelta": "host.hidden=true immediately after creation",
+  "files": {
+    "original-cloud.log.gz": {
+      "rawSha256": "7de4e437c9ef7165bd34fcf3917d831b13ce7ffd0981f65691d09123492d872a",
+      "rawBytes": 100405,
+      "publicSha256": "58d9b601c4f4663a6477bca23511c229b06c6f9c7b681b9bda631e9ec828815d",
+      "gzip": true,
+      "localPathsReplaced": false
+    },
+    "before.tap.gz": {
+      "rawSha256": "206d8326e0d298eb5e6718966014efd8ea5d2c13a532d6a24d325513f3e3702d",
+      "rawBytes": 2369,
+      "publicSha256": "41145c65b27558d6631fc4ae481c52d4574c603609665d124b19744af2be90b1",
+      "gzip": true,
+      "localPathsReplaced": true
+    },
+    "after-node.tap.gz": {
+      "rawSha256": "d2ca33f688c4e4a4f6b49a31245edcf3ebc16fffa00080f73c1c8caec9d917e2",
+      "rawBytes": 7574,
+      "publicSha256": "cfad04e04dce3407686cc797baec6af23f0f81d0e8d2187eff27bdc71f6f6cd9",
+      "gzip": true,
+      "localPathsReplaced": true
+    },
+    "after-native.tap.gz": {
+      "rawSha256": "bf7a3af0eba38ae586f27dd9decdce294d25dba3e6025f8f149ae2248ee1fe83",
+      "rawBytes": 6496,
+      "publicSha256": "cb83f217d35bbcc841a190c8df464b4854bbb5431713fff6b677a94b429642e6",
+      "gzip": true,
+      "localPathsReplaced": true
+    },
+    "package.txt": {
+      "rawSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "rawBytes": 153,
+      "publicSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "gzip": false,
+      "localPathsReplaced": false
+    },
+    "source.json": {
+      "rawSha256": "9c4bdc182c92d3170af169d05fdfb371b82ef0bcbc218ab1eec9fcfcd14cfcdc",
+      "rawBytes": 4117,
+      "publicSha256": "9c4bdc182c92d3170af169d05fdfb371b82ef0bcbc218ab1eec9fcfcd14cfcdc",
+      "gzip": false,
+      "localPathsReplaced": true
+    },
+    "release.json": {
+      "rawSha256": "5d467f43c05ff5a8a619fdb4f8594898f20fd52f233169c28d5a3f263fb3b89a",
+      "rawBytes": 4118,
+      "publicSha256": "5d467f43c05ff5a8a619fdb4f8594898f20fd52f233169c28d5a3f263fb3b89a",
+      "gzip": false,
+      "localPathsReplaced": true
+    }
+  },
+  "testedFiles": {
+    "extension/content/prompt-surface.js": "6d0844f79e43648c7a643d7fa54623ac21b9e7681b613d46935da01dfbe23969",
+    "extension/tests/cpv1-09-prompt-surface.test.mjs": "3df5ddd1d154714caff2beb11d6b1d7cee544388e760744e99fc3e814754c816"
+  },
+  "results": {
+    "before": "0/2",
+    "owningNode": "29/29",
+    "unchangedSourceAndReleaseNative": "25/25",
+    "package": "21218 / 607 PASS"
+  },
+  "notRun": [
+    "Full",
+    "installed profile",
+    "historical failure-point DOM"
+  ],
+  "historicalCloudUniqueCause": "UNKNOWN"
+}

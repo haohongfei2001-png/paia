@@ -1,0 +1,235 @@
+{
+  "variant": "release",
+  "head": "607f453c8d999fe170d4199f93c6a8cf92071ef7",
+  "browser": "155.0.8059.85",
+  "measurements": [
+    {
+      "viewport": 1680,
+      "box": {
+        "x": 1324,
+        "y": 439,
+        "width": 336,
+        "height": 328,
+        "top": 439,
+        "right": 1660,
+        "bottom": 767,
+        "left": 1324
+      },
+      "top": 60,
+      "form": 779
+    },
+    {
+      "viewport": 1280,
+      "box": {
+        "x": 924,
+        "y": 439,
+        "width": 336,
+        "height": 328,
+        "top": 439,
+        "right": 1260,
+        "bottom": 767,
+        "left": 924
+      },
+      "top": 60,
+      "form": 779
+    },
+    {
+      "viewport": 1024,
+      "box": {
+        "x": 668,
+        "y": 439,
+        "width": 336,
+        "height": 328,
+        "top": 439,
+        "right": 1004,
+        "bottom": 767,
+        "left": 668
+      },
+      "top": 60,
+      "form": 779
+    },
+    {
+      "viewport": 401,
+      "box": {
+        "x": 49,
+        "y": 439,
+        "width": 336,
+        "height": 328,
+        "top": 439,
+        "right": 385,
+        "bottom": 767,
+        "left": 49
+      },
+      "top": 60,
+      "form": 779
+    },
+    {
+      "viewport": 400,
+      "box": {
+        "x": 48,
+        "y": 439,
+        "width": 336,
+        "height": 328,
+        "top": 439,
+        "right": 384,
+        "bottom": 767,
+        "left": 48
+      },
+      "top": 60,
+      "form": 779
+    },
+    {
+      "viewport": 390,
+      "box": {
+        "x": 48,
+        "y": 439,
+        "width": 336,
+        "height": 328,
+        "top": 439,
+        "right": 384,
+        "bottom": 767,
+        "left": 48
+      },
+      "top": 60,
+      "form": 779
+    },
+    {
+      "viewport": 320,
+      "box": {
+        "x": 16,
+        "y": 439,
+        "width": 288,
+        "height": 328,
+        "top": 439,
+        "right": 304,
+        "bottom": 767,
+        "left": 16
+      },
+      "top": 60,
+      "form": 779
+    },
+    {
+      "viewport": 1280,
+      "box": {
+        "x": 924,
+        "y": 439,
+        "width": 336,
+        "height": 328,
+        "top": 439,
+        "right": 1260,
+        "bottom": 767,
+        "left": 924
+      },
+      "top": 60,
+      "form": 779
+    },
+    {
+      "viewport": 1280,
+      "box": {
+        "x": 924,
+        "y": 439,
+        "width": 336,
+        "height": 328,
+        "top": 439,
+        "right": 1260,
+        "bottom": 767,
+        "left": 924
+      },
+      "top": 60,
+      "form": 779
+    },
+    {
+      "viewport": 1280,
+      "box": {
+        "x": 924,
+        "y": 439,
+        "width": 336,
+        "height": 328,
+        "top": 439,
+        "right": 1260,
+        "bottom": 767,
+        "left": 924
+      },
+      "top": 60,
+      "form": 779
+    },
+    {
+      "viewport": 1280,
+      "box": {
+        "x": 924,
+        "y": 399,
+        "width": 336,
+        "height": 328,
+        "top": 399,
+        "right": 1260,
+        "bottom": 727,
+        "left": 924
+      },
+      "top": 60,
+      "form": 739
+    },
+    {
+      "viewport": 1024,
+      "box": {
+        "x": 668,
+        "y": 399,
+        "width": 336,
+        "height": 328,
+        "top": 399,
+        "right": 1004,
+        "bottom": 727,
+        "left": 668
+      },
+      "top": 60,
+      "form": 739
+    },
+    {
+      "viewport": 1024,
+      "box": {
+        "x": 668,
+        "y": 399,
+        "width": 336,
+        "height": 328,
+        "top": 399,
+        "right": 1004,
+        "bottom": 727,
+        "left": 668
+      },
+      "top": 60,
+      "form": 739
+    },
+    {
+      "viewport": 1024,
+      "box": {
+        "x": 668,
+        "y": 399,
+        "width": 336,
+        "height": 328,
+        "top": 399,
+        "right": 1004,
+        "bottom": 727,
+        "left": 668
+      },
+      "top": 60,
+      "form": 739
+    },
+    {
+      "viewport": 1024,
+      "box": {
+        "x": 668,
+        "y": 399,
+        "width": 336,
+        "height": 328,
+        "top": 399,
+        "right": 1004,
+        "bottom": 727,
+        "left": 668
+      },
+      "top": 60,
+      "form": 739
+    }
+  ],
+  "provider": 0,
+  "network": 0,
+  "status": "PASS"
+}
