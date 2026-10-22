@@ -21,5 +21,15 @@
     "extension/scripts/test-groups.mjs": "95b120207c29e6afd10c144e3f6bd3620155d3f573866b0353785804ee44bd13",
     ".github/workflows/paia-certification.yml": "1fa6332cf925b104a7863e686337fadf88f3204f9b1490dfd2bbcced6e236e40",
     ".github/workflows/paia-prompt-visual.yml": "addae32d74b9dcc55a3c696984adc0a3c14bd36a550eb0daeebcd22bbf96e061"
+  },
+  "public_excerpts": {
+    "full-selected-evidence.log.gz": {
+      "raw_bytes": 15743,
+      "raw_sha256": "b4e72f63b0edd4d5f7efe448819323af2f70f873196a88cf389c281336b65654"
+    },
+    "visual-selected-evidence.log.gz": {
+      "raw_bytes": 638,
+      "raw_sha256": "738552c74720fe2b5963e7ccb49a19bf978596fc2e248b769875b8ff14a55c04"
+    }
   }
 }
