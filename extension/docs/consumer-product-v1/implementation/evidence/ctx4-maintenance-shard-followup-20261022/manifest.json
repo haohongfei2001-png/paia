@@ -1,0 +1,27 @@
+{
+  "base": "0d6b88464c9b248674337b666b19b15b00a7da7e",
+  "implementation": "073eb0efdc32c1df32bf79bb0bc0da96a0e0835c",
+  "node": "22.23.4",
+  "original_updated_contracts_old_router": "3/6",
+  "final_owning_contracts": "6/6",
+  "logs": {
+    "original-routing-negative.log": {
+      "published_raw_sha256": "dcf7e91aa61368439b83e9d27a15493a94be4c2ae1ff9bdee19246ceb00d3d52",
+      "original_local_sha256": "e2eb001e3abfe1f175df379a9b45865f860dc887d4804e72226e727558dfff8c"
+    },
+    "targeted-final.log": {
+      "published_raw_sha256": "f112a8ec5024f0b8c30b1fd92307874b2af7b36e442fa9e8a60e0c85efab8ed6",
+      "original_local_sha256": "f112a8ec5024f0b8c30b1fd92307874b2af7b36e442fa9e8a60e0c85efab8ed6"
+    },
+    "routing-audit.log": {
+      "published_raw_sha256": "30ba905e34dbcce4cfb8c0ab58d2fbb6b409f063be251bb80b1faf4f31577236",
+      "original_local_sha256": "30ba905e34dbcce4cfb8c0ab58d2fbb6b409f063be251bb80b1faf4f31577236"
+    }
+  },
+  "files": {
+    "extension/scripts/test-groups.mjs": "1871ffdc576c14a8b7de99957cf49bd18808fe7bca69ff0183cbf4fa9471aaad",
+    "extension/scripts/check-ui-refresh-ci.mjs": "ba2758d8455726efa3cb389e4d967bc8d78015503cc1ea6d11b0705921c3f75b",
+    "extension/tests/current-browser-nine-partition.test.mjs": "8ae4db7edb0ee3398874f920a85ca9380a87b76a6f2a140ecd583505666f0fac",
+    "extension/tests/approved-ui-current-browser-admission.test.mjs": "05e026a4b4372b83692cc4f3803d215c423a9a0c1da0036bb1a08a56135a99cd"
+  }
+}
