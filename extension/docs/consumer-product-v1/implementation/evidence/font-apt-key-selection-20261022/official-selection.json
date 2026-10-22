@@ -1,0 +1,8 @@
+{
+  "source": "https://archive.ubuntu.com/ubuntu/pool/main/a/apt/apt_2.8.3_amd64.deb",
+  "package_sha256": "c9ace99efc7726fe0035f921a9acf262a9723bbf35b861aab4f9075a0be67442",
+  "aptKeyMember": "./usr/bin/apt-key",
+  "aptKeySha256": "45ec8c948cb0f17b38f27b4d8235596b17ece3b7eea5afcbb3be8b1ee5a98c77",
+  "aptKeyBytes": 28664,
+  "executed": false
+}
