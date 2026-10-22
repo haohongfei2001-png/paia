@@ -23,7 +23,7 @@ export async function nativeFixture(t,{variant='source',count=1,holdProviderResp
  else await cp(root,staged,{recursive:true,filter:p=>!['node_modules','work','tests','docs','spikes','.git'].includes(p.slice(root.length).split('/')[0])});
  const data={origin:backend.configuration.origin,profile:backend.configuration.profile,routeVersion:backend.configuration.routeVersion,manifest:backend.server.manifest,now:backend.server.now};
  await writeFile(join(staged,'background/organize-native-test-only.js'),`
-${observeActionBudget?"import {captureOriginalOrganizeScope,releaseOriginalOrganizeScope} from '../core/organizer/organize-processing-scope.js';\nimport {assertOriginalOrganizeActionFacts} from './organize-action-source.js';":''}
+${observeActionBudget?"import {captureOriginalOrganizeScope,releaseOriginalOrganizeScope} from '../core/organizer/organize-processing-scope.js';\nimport {assertOriginalOrganizeActionFacts} from './organize-action-source.js';\nimport {captureOrganizeProcessingGrant,organizeProcessingReader,releaseOrganizeProcessingGrant} from './organize-processing-policy.js';":''}
 import {TopicProcessingAuthority} from '../core/topic-processing-authority.js';
 import {TopicProcessingGuard} from '../core/topic-processing.js';
 import {createContextScopeWorkBudget} from '../core/context-topic-scope.js';
@@ -49,7 +49,7 @@ export function nativeTestConfiguration(store){
   onInvalidate:fn=>{listener=fn;return ()=>{};},readProfile:async()=>structuredClone(manifest),currentProfile:()=>structuredClone(manifest),
   tokenize:async q=>({profileId:q.profileId,tokenizerProfileId:q.tokenizerProfileId,qualificationRef:q.qualificationRef,requestDigest:q.requestDigest,contentTokens:80,protocolOverheadTokens:20,inputTokens:100,expiresAt:data.now+50000}),isCurrentTokenizer:()=>live,
   readProofs:async request=>{const response=await transport(new Request(data.origin+'/test/proofs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request)}));if(!response.ok)throw Error('SYNTHETIC proof bridge refused');return response.json();},fetch:transport};
- globalThis.__organizeNative={${observeActionBudget?'budget:{captureOriginalOrganizeScope,releaseOriginalOrganizeScope,assertOriginalOrganizeActionFacts},':''}store,source,senders:[],results:[],revoke(){live=false;listener?.();}};
+ globalThis.__organizeNative={${observeActionBudget?'budget:{captureOriginalOrganizeScope,releaseOriginalOrganizeScope,assertOriginalOrganizeActionFacts,captureOrganizeProcessingGrant,organizeProcessingReader,releaseOrganizeProcessingGrant},':''}store,source,senders:[],results:[],revoke(){live=false;listener?.();}};
  globalThis.__organizeNative.installTerminal=(mode,topicId)=>{
   const state={attached:0,hit:0,events:[]},caller=Object.freeze({}),controller=new AbortController(),budget=createContextScopeWorkBudget({database:store.repository.db});let enabled=false;
   const processing={resolve:async(_tx,scope)=>Object.freeze({version:1,store,caller,scope,epoch:'synthetic-native-terminal',processing:true,expiresAt:Date.now()+30000,revocationSignal:controller.signal}),isCurrent:()=>{
