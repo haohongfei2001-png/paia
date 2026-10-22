@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {organizeServiceFixture} from '../../services/ai-gateway/tests/organize-client-fixture.mjs';
+import {AI_FIELDS,AI_LIST_FIELDS} from '../core/organizer/ai-contract.js';
 import {rows} from './harness/original-complete.mjs';
 import {createOrganizeActionSource} from '../background/organize-action-source.js';
 import {createConfiguredOrganizeRunner} from '../core/organizer/configured-organize-runner.js';
@@ -44,4 +45,13 @@ for(const mutation of ['edit','source'])test('concurrent '+mutation+' wins over 
 
 test('twelve fresh Current commits retire active jobs without duplicate requests, revisions or charge',async t=>{
  const f=await fixture(t);for(let i=0;i<12;i++){if(i)await add(f);const result=await f.run();assert.equal(result.currentPublished,true,JSON.stringify({i,result}));assert.equal(result.revision,i+1);assert.equal(f.physical(),i+1);}const jobs=await rows(f.s,'organizerJobs');assert.equal(jobs.length,12);assert.ok(jobs.every(j=>j.state==='COMMITTED'));assert.equal((await journal(f)).filter(r=>r.actor==='ai').length,12);const usage=await rows(f.s,'organizerUsage');assert.equal(usage.length,12);assert.ok(usage.every(r=>r.attemptCount===1&&r.financialSettlement.settledSpendMicros===120));const before=await current(f);const again=await f.run();assert.equal(again.completed,true,JSON.stringify(again));assert.ok(again.noDelta||again.cached,JSON.stringify(again));assert.deepEqual(await current(f),before);assert.equal(f.physical(),12);
+});
+
+for(const pending of [false,true])test('fully protected Current distinguishes '+(pending?'pending material':'genuine no-delta')+' without new writes or spending',async t=>{
+ const f=await fixture(t,{responseFields:AI_FIELDS});assert.equal((await f.run()).currentPublished,true);
+ for(const field of AI_FIELDS){const before=await current(f);await f.s.editAIPresentation({topicId:f.topic.id,expectedRevision:before.revision,field,value:AI_LIST_FIELDS.includes(field)?[{text:'Human '+field,evidenceEntryIds:[f.entries[0].id]}]:'Human '+field,operationId:crypto.randomUUID()});}
+ if(pending)await add(f);await f.s.finishFoundation();
+ const tables=['meta','revisions','organizerJobs','organizerUsage','operationReceipts','organizerWorkItems'],before=Object.fromEntries(await Promise.all(tables.map(async name=>[name,await rows(f.s,name)]))),calls=f.physical();
+ const result=await f.run();assert.equal(result.completed,!pending,JSON.stringify(result));assert.equal(result.noDelta,!pending,JSON.stringify(result));assert.equal(result.blockedReason,pending?'PROTECTED_FIELDS':undefined);assert.equal(result.requestCount,0);assert.equal(f.physical(),calls);
+ for(const name of tables)assert.deepEqual(await rows(f.s,name),before[name],name+' must preserve pending coverage and human content');
 });

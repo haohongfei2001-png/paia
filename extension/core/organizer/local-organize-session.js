@@ -145,7 +145,7 @@ export class LocalOrganizeSession {
   if(this.#generation!==generation)fail('UNAVAILABLE');
   this.#assertAction(sourceAction);
   if(this.#source===null&&scopeBinding!==null&&scopeBinding!==await digest([data.prepared.proof,this.#profile,this.#route]))fail('STALE_BASE');
-  const coverage=data.coverage;if(data.prepared.incremental&&!coverage.length)return Object.freeze({state:'NO_DELTA',jobId:null});
+  const coverage=data.coverage;if(data.prepared.incremental&&!coverage.length)return Object.freeze({state:'NO_DELTA',jobId:null,...(data.prepared.incremental.blockedReason?{blockedReason:data.prepared.incremental.blockedReason}:{})});
   if(data.cacheAuthority){if(!this.#controlsCurrent(data.prepared))fail('STALE_BASE');if(this.#jobs.size+this.#cached.size>=8&&!this.#cached.has(topicId))fail('UNAVAILABLE');const prior=this.#cached.get(topicId);if(prior)this.#handles.delete(prior.handle);const handle=Object.freeze({state:'CACHED',jobId:null}),state={...data,handle,cached:true,running:false};this.#handles.set(handle,state);this.#cached.set(topicId,state);return handle;}
   if(this.#service){
    // A fresh explicit click may retry only an already validated local CAS.

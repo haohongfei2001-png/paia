@@ -31,6 +31,7 @@ export function createConfiguredOrganizeRunner(store,configuration=readOrganizeS
     if(actionSource!==null){requireOriginalOrganizeActionSource(actionSource,store);state.sourceAction=await actionSource.consume(sender,{topicId,scopeBinding,userActionId});assertOriginalOrganizeActionFacts(actionSource,state.sourceAction,store);}
     if(!state.handle)state.handle=await session.prepare({topicId,children:'auto',scopeBinding,sourceAction:state.sourceAction??null});
     if(state.stopped){if(state.handle.jobId)await session.stop(state.handle);fail('CANCELLED');}
+    if(state.handle.blockedReason==='PROTECTED_FIELDS'){state.state='PROTECTED_FIELDS';state.phase='completed';return {completed:false,noDelta:false,blockedReason:'PROTECTED_FIELDS',topicId,requestCount:0};}
     if(['NO_DELTA','DEFER'].includes(state.handle.state)){state.state=state.handle.state;state.phase='completed';return {completed:state.state==='NO_DELTA',noDelta:state.state==='NO_DELTA',topicId,requestCount:0,...(state.state==='DEFER'?{error:'UNAVAILABLE'}:{})};}
     state.phase='running';state.state='running';const result=await session.run(state.handle),status=await session.status(state.handle);state.state=result.state;state.requestCount=(status.attempts??[]).reduce((n,r)=>n+r.attemptCount,0);
     if(!['COMMITTED','CACHED'].includes(result.state)){state.error=result.state==='OUTCOME_UNKNOWN'?'OUTCOME_UNKNOWN':'UNAVAILABLE';state.phase='stopped';return {error:state.error,phase:state.phase,requestCount:state.requestCount};}

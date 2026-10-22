@@ -53,7 +53,7 @@ export function planIncrementalV3(topic,style,profile,control,{refreshStyle=fals
    if(b.support.some(r=>topic.versions[r.id]!==r.version||topic.incrementalVersions[r.id]!==r.scope))reject('STALE_BASE');
    retained.push({...copy(b),text:incrementalBlockText(saved,b)});
   }else replace.push(b.id);}
-  return {version:3,control,replace,retained,selected:AI_FIELDS.every(f=>saved?.protections?.[f])?[]:topic.entries,complete:true,baseRevision:saved?.revision||0,refreshStyle:true};
+  return {version:3,control,replace,retained,selected:AI_FIELDS.every(f=>saved?.protections?.[f])?[]:topic.entries,complete:true,baseRevision:saved?.revision||0,refreshStyle:true,...(AI_FIELDS.every(f=>saved?.protections?.[f])?{blockedReason:'PROTECTED_FIELDS'}:{})};
  }
  const base=isIncrementalV3(saved)?asIncrementalV2(saved):saved;if(base&&isIncrementalV3(saved))base.manifest={...base.manifest,style:style.value,profile:copy(profile),control};const plan=planIncrementalV2({...topic,stored:base},style,profile,control,{retainProtected:true}),byId=new Map(saved?.manifest.blocks.map(b=>[b.id,b])||[]);
  return {...plan,version:3,retained:plan.retained.map(b=>({...b,...(isIncrementalV3(saved)?{generation:byId.get(b.id).generation}:{})})),refreshStyle:false};

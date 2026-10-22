@@ -95,3 +95,13 @@ test('legacy candidate or missing revision is not a confirmed Current publicatio
   f.update(()=>({completed:true,topicId:f.topic.topicId,...value}));f.owner.renderAITopicStatus(f.state,f.topic);await f.click();await tick();assert.match(f.host.textContent,/结果尚未确认/);assert.doesNotMatch(f.host.textContent,/已更新当前阅读内容/);assert.equal(f.calls.filter(c=>c.type==='UPDATE_AI_PRESENTATION').length,1);
  });
 });
+
+for(const protectedPending of [false,true])test('completion distinguishes '+(protectedPending?'protected pending material':'genuine no-delta')+' on the existing screen',()=>fixture(async f=>{
+ f.topic.presentation={revision:4,currentView:'SYNTHETIC human content'};
+ f.update(()=>({completed:!protectedPending,noDelta:!protectedPending,topicId:f.topic.topicId,requestCount:0,...(protectedPending?{blockedReason:'PROTECTED_FIELDS'}:{})}));
+ f.owner.renderAITopicStatus(f.state,f.topic);await f.click();await tick();
+ assert.match(f.host.textContent,protectedPending?/人工保护.*本次未更新/:/没有需要更新/);
+ if(protectedPending)assert.doesNotMatch(f.host.textContent,/没有需要更新|已更新当前阅读内容/);
+ assert.equal(f.topic.presentation.currentView,'SYNTHETIC human content');assert.equal(f.topic.pending,true);assert.equal(f.calls.filter(c=>c.type==='UPDATE_AI_PRESENTATION').length,1);
+ assert.equal(f.buttons().length,1);assert.equal(f.buttons()[0].textContent,'更新 AI整理');
+}));

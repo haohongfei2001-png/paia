@@ -65,7 +65,7 @@ export function planIncrementalV2(topic,style,profile,control,{retainProtected=f
  for(const e of topic.entries)if(!covered.has(e.id))affected.add(e.id);
  // Closed independent blocks need no model neighbor. Scope/order is decided by
  // the owner; a provider cannot request arbitrary unchanged text as context.
- const selected=retainProtected&&AI_FIELDS.every(f=>saved?.protections?.[f])?[]:topic.entries.filter(e=>affected.has(e.id));return {version:2,control,replace,retained,selected,complete:true,baseRevision:saved?.revision||0};
+ const protectedFields=retainProtected&&AI_FIELDS.every(f=>saved?.protections?.[f]),selected=protectedFields?[]:topic.entries.filter(e=>affected.has(e.id));return {version:2,control,replace,retained,selected,complete:true,baseRevision:saved?.revision||0,...(protectedFields&&affected.size?{blockedReason:'PROTECTED_FIELDS'}:{})};
 }
 export function validateIncrementalChild(response,request,prepared){
  if(!exact(response,['version','blocks'])||response.version!==2||!Array.isArray(response.blocks)||!response.blocks.length||response.blocks.length>1024)reject('INVALID_OUTPUT');
