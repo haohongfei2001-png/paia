@@ -1,0 +1,29 @@
+TAP version 13
+# Subtest: stage rollback preserves the exact original signed work for a fresh independently granted retry
+not ok 1 - stage rollback preserves the exact original signed work for a fresh independently granted retry
+  ---
+  duration_ms: 288.930791
+  type: 'test'
+  location: 'extension/work/section-promotion-stale-diagnostic/clock-rollback.mjs:67:1'
+  failureType: 'testCodeFailure'
+  error: 'STALE_BASE'
+  code: 'STALE_BASE'
+  stack: |-
+    refuseTerminal (file://extension/core/idb-repository.js:93:8)
+    synchronousTrue (file://extension/core/idb-repository.js:103:37)
+    currentFinalAuthorities (file://extension/core/idb-repository.js:144:28)
+    current (file://extension/core/idb-repository.js:161:20)
+    runFinalReadFences (file://extension/core/idb-repository.js:169:3)
+    ArchiveRepository.transaction (file://extension/core/idb-repository.js:427:410)
+    async file://extension/core/indexed-store.js:279:123
+    async file://extension/core/indexed-store.js:192:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 428.199625

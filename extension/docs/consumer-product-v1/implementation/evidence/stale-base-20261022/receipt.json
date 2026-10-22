@@ -1,0 +1,51 @@
+{
+  "base": "22bd30f19b3d5ecb8074b334d7e3ae019f6bbb7e",
+  "branch": "codex/organize-stale-base-followup-20261022",
+  "runtimeChanged": false,
+  "node": "22.23.4",
+  "nativeBrowserRun": false,
+  "fullTestsRun": false,
+  "originalFailureStillUnresolved": true,
+  "runs": [
+    {
+      "mode": "observe",
+      "originalCaseOutcome": "PASS",
+      "exitCode": 0,
+      "interpretation": "instrumented observation only; not historical failure reproduction"
+    },
+    {
+      "mode": "clock-rollback-attempt1",
+      "originalCaseOutcome": "PASS",
+      "exitCode": 0,
+      "injected": false,
+      "interpretation": "invalid negative control: stack depth hid trigger; retained, not fault proof"
+    },
+    {
+      "mode": "clock-rollback",
+      "originalCaseOutcome": "FAIL",
+      "exitCode": 1,
+      "injected": true,
+      "interpretation": "intentional original rejection; guard preserved, not regression or historical causal proof"
+    }
+  ],
+  "sha256": {
+    "observe.json": "7d234c02f5c7fd7c38645ff6a0489d2c7ec291514edcd2c8bf3976055b3f9432",
+    "observe.tap": "2257545869e9585d198cc138ea05d96211242679fde6231c5ef7c801394b1661",
+    "clock-rollback-attempt1.json": "6bc172aeac929ef43fb3ced970e5bc57595712b8ef3302e386a1076239264fbf",
+    "clock-rollback-attempt1.tap": "b17a7e765f184395e21fb7f51c98e5c66f44bd1da67d403ee9b23b9d98677117",
+    "clock-rollback.json": "f44a5b2b7879d4b1ddfe816e657abdfcc83f1012267a33c6e6a61f2f6e654f90",
+    "clock-rollback.tap": "f0f2e21b294aa243c6678fc199f4f0e66d4063e8d753e19fa79cf90f0fca8359"
+  },
+  "diagnosticSha256": "30e0216ad7e8549aa9c1224648e38d1c307c9626d60c5417256d625ce00ee4d9",
+  "generatedProbeSha256": {
+    "observe.mjs": "f302cab34eff3e43579c9a27fddef57aad4f062a38350f8ec6eff9dcd711d029",
+    "clock-rollback.mjs": "286608768dc3fd37dcc5fe1272776f29a5baf683beb9e25f12db5f11b76200de"
+  },
+  "originalFailureSha256": "e31dce74be7fd0a1c1d8a3b9f172f33308b63c5f6c6eb3678da8222cbe08c994",
+  "limitations": [
+    "Observe used the first observer revision; final diagnostic only moves the opt-in injection trigger and refuses an unreached trigger. No repeated green control was run.",
+    "Original full-run inner cause, failing service phase and clock samples were not recorded.",
+    "Controlled failure occurs at terminal entry line169; original failure occurred after an IDB read at line180. Same refusal family does not prove same cause.",
+    "Fake IndexedDB original mechanism fixture; no new native Chrome evidence or CI claim."
+  ]
+}

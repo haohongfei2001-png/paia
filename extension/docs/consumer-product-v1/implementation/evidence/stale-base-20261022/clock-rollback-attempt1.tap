@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: stage rollback preserves the exact original signed work for a fresh independently granted retry
+ok 1 - stage rollback preserves the exact original signed work for a fresh independently granted retry
+  ---
+  duration_ms: 575.004167
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 682.231625

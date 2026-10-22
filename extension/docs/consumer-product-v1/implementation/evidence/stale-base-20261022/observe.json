@@ -1,0 +1,109 @@
+{
+  "mode": "observe",
+  "sourceSha256": "c4d6f313cbb4bb8823388477b19488580f9d74dcf18a5ae15a62dd212d74c535",
+  "caseSha256": "48767ce4e4e48a7e86f132b2f2e0ab918f7d48136aa76040471a42e2ff6a4528",
+  "node": "v22.23.4",
+  "phases": [
+    {
+      "phase": "owner1.prepare",
+      "status": "fulfilled",
+      "wallStarted": 1792651418373,
+      "elapsedMs": 78.93737499999997,
+      "budget": {
+        "reads": 1121,
+        "hashBytes": 21820,
+        "hashFields": 20
+      },
+      "grantRemainingMs": 599910,
+      "aborted": {
+        "request": false,
+        "fields": false,
+        "identity": false
+      }
+    },
+    {
+      "phase": "owner1.confirm",
+      "status": "fulfilled",
+      "wallStarted": 1792651418452,
+      "elapsedMs": 68.604917,
+      "budget": {
+        "reads": 1408,
+        "hashBytes": 23273,
+        "hashFields": 21
+      },
+      "grantRemainingMs": 599841,
+      "aborted": {
+        "request": false,
+        "fields": false,
+        "identity": false
+      }
+    },
+    {
+      "phase": "owner1.stage",
+      "status": "rejected",
+      "wallStarted": 1792651418521,
+      "stack": [
+        "Error: INVALID_REQUEST",
+        "    at fail (file://extension/core/thought-model.js:6:30)",
+        "    at registerPromotionWorkTerminal (file://extension/core/topic-promotion-commit.js:137:41)",
+        "    at #registerWork (file://extension/core/topic-promotion.js:213:3)",
+        "    at file://extension/core/topic-promotion.js:253:273",
+        "    at async ArchiveRepository.transaction (file://extension/core/idb-repository.js:427:20)",
+        "    at async file://extension/core/indexed-store.js:279:123",
+        "    at async file://extension/core/indexed-store.js:192:11"
+      ],
+      "elapsedMs": 39.01566700000001,
+      "budget": {
+        "reads": 2037,
+        "hashBytes": 41059,
+        "hashFields": 29
+      },
+      "grantRemainingMs": 599802,
+      "aborted": {
+        "request": false,
+        "fields": false,
+        "identity": false
+      }
+    },
+    {
+      "phase": "owner2.stage",
+      "status": "fulfilled",
+      "wallStarted": 1792651418563,
+      "elapsedMs": 86.26833299999998,
+      "budget": {
+        "reads": 740,
+        "hashBytes": 17786,
+        "hashFields": 8
+      },
+      "grantRemainingMs": 599913,
+      "aborted": {
+        "request": false,
+        "fields": false,
+        "identity": false
+      }
+    },
+    {
+      "phase": "owner2.activate",
+      "status": "fulfilled",
+      "wallStarted": 1792651418649,
+      "elapsedMs": 236.75066699999996,
+      "budget": {
+        "reads": 1693,
+        "hashBytes": 35983,
+        "hashFields": 17
+      },
+      "grantRemainingMs": 599676,
+      "aborted": {
+        "request": false,
+        "fields": false,
+        "identity": false
+      }
+    }
+  ],
+  "clock": {
+    "samples": 239777,
+    "backsteps": 0,
+    "maxBackstepMs": 0
+  },
+  "injected": false
+}
