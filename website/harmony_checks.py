@@ -79,6 +79,9 @@ def verify_harmony(page, check, label='site'):
          'shared surface hierarchy is loaded with the original stylesheet')
     if page_name != 'index.html':
         return
+    if page.locator('body').get_attribute('data-site-revision') == 'continuity-v2':
+        from continuity_checks import verify_visual
+        return verify_visual(page,check,label)
     forced = page.evaluate("matchMedia('(forced-colors:active)').matches")
     backing = page.locator('.hero-stack i').evaluate_all("es=>es.filter(e=>getComputedStyle(e).display!=='none').length")
     test(backing <= 1, 'opening has at most one supporting plane')

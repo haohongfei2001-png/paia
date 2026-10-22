@@ -1,3 +1,25 @@
+# Continuity v2 publication scope
+
+Three new case histories are explicitly fictional. No personal conversation,
+private Drive design text or actual user's study/career data is republished.
+Their thematic grouping is preset. Search, view switching and draft insertion
+operate only on the sample HTML, with no model, archive, storage or send API.
+Cases preserve questions, conditions, rejected scope and unresolved hypotheses
+rather than inventing lasting user beliefs or automatic identity profiles.
+
+The homepage quote button explicitly inserts a historical expression into its
+own example draft. It is a website explanation of reuse, not a claim that a new
+product-wide cross-app quote action has shipped. Likewise, conversation/topic
+presentation is not a screenshot or certification of the installed product.
+
+The original full Demo controller changes only its declared fictional sample
+literals. Independent source/working text, Topic references, Context scopes,
+permission inheritance, safe insertion and draft/IME semantics are unchanged.
+All installation, cloud sync and real external AI availability boundaries from
+the previous publication still apply. No runtime product or service is enabled.
+
+---
+
 # Publication clarification — 22 October 2026
 
 The refined homepage uses a clearly labelled, fictional moving-home thread.

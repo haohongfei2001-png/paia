@@ -1,3 +1,45 @@
+# Current website: continuity v2
+
+The owner rejected the moving-home example and asked to implement the preceding
+review. This revision starts from published main
+`1f3c826c0c49f9d8fd60156182883866971bb8c3`, not a rejected design branch.
+
+The active homepage is `continuity.py`, with scoped `continuity.css` and
+`continuity.js`. `continuity_data.py` owns three entirely fictional cases:
+a quoting-tool project, interpreting a focus/reminder study, and a career
+decision. Each contains six dated expressions from six conversations over more
+than six months. These are illustrations, not real user data or success claims.
+
+The opening switches the same original expressions between conversation and
+topic presentation. Sample search really searches the six project expressions.
+The main reader moves the same original DOM nodes between thematic and date
+order; native chapter disclosures shorten the initial phone view without
+clipping or discarding text. Switching cases never edits the draft. Safe,
+explicit quoting and prompt insertion keep the existing selection/draft/IME and
+length refusal rules; nothing is sent or persisted.
+
+Use cases and How follow the same examples. The full standalone Demo retains
+its original runtime and data/permission owners: only declared sample literals
+and dates change. `continuity_runtime_copy.json` restores those literals before
+comparison with the exact prior runtime digest. The full core test file is
+also checked after restoring only its expected fictional Topic title. Original
+form consent, source immutability, permission hierarchy and keyboard/IME tests
+remain active. No product code, provider, release manifest or workflow changes.
+
+The original navigation material, identity assets, orb and four-card directory
+remain. The entire closing HTML, including the creator's drawing, is checked
+against the preceding deployed source. The old moving-home module remains
+historical source and is not delivered as the active narrative.
+
+`CONTINUITY_V2_DESIGN.md` records the choices. The existing build, full-browser
+and production readback commands remain the entry points. Current tests are
+selected explicitly by `data-site-revision="continuity-v2"`; historical home
+composition tests are not silently relabelled as applicable to this revision.
+
+---
+
+## Previous website revisions
+
 # Current website refinement — 22 October 2026
 
 The owner asked to modify the **deployed website** after reviewing its product

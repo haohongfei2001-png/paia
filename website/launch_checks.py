@@ -34,7 +34,10 @@ def find(nodes,selector):
 def verify_static_publication(root,check):
     original=json.loads((root/'website/launch_invariants.json').read_text())
     from value_story_checks import active, verify_static
-    if active(root):
+    from continuity_checks import active as continuity_active, verify_static as continuity_static, restored_runtime
+    if continuity_active(root):
+        continuity_static(root,check)
+    elif active(root):
         verify_static(root,check)
     else:
         for relative,entries in original['home'].items():
@@ -47,6 +50,8 @@ def verify_static_publication(root,check):
                 check(actual==expected,relative+': original expressions/value statement retained '+selector)
     for relative,sha in original['unmodified_runtime'].items():
         data=(root/relative).read_bytes()
+        if relative == 'assets/website/home-core-v2.js' and continuity_active(root):
+            data=restored_runtime(root)
         if relative == 'assets/website/product-experience.css':
             from brand_adoption_checks import restore_approved_brand
             data=restore_approved_brand(relative,data)
@@ -124,9 +129,10 @@ if __name__=='__main__':
                             check(page.locator('h1').is_visible(),tag+'visible heading')
                             check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),tag+'normal text stays in viewport')
                             if route=='index.html':
-                                refined = page.locator('body').get_attribute('data-site-revision') == '20261022'
+                                refined = page.locator('body').get_attribute('data-site-revision') in ('20261022','continuity-v2')
                                 check(page.locator('.hero-actions a').first.get_attribute('href')=='/'+prefix+('demo.html' if refined else 'download.html'),tag+'primary CTA leads to an available experience')
-                                check(page.locator('.hero-actions a').last.get_attribute('href')=='/'+prefix+('download.html' if refined else 'demo.html'),tag+'secondary CTA names its destination')
+                                secondary='#thought-library' if page.locator('body').get_attribute('data-site-revision')=='continuity-v2' else '/'+prefix+('download.html' if refined else 'demo.html')
+                                check(page.locator('.hero-actions a').last.get_attribute('href')==secondary,tag+'secondary CTA names its destination')
                                 check(not page.locator('.pc-prompt-caption').is_visible(),tag+'removed caption stays removed')
                             if route in ('download.html','beta.html'):
                                 check(page.locator('.release-install').is_disabled(),tag+'unavailable release is not clickable')

@@ -5,6 +5,8 @@ import sys
 sys.dont_write_bytecode = True
 from home import render as render_home
 from launch_copy import product_copy
+from continuity_data import sample_mapping
+from continuity import render_cases, render_how
 from launch_pages import download as render_download, help_page as render_help, contact as render_contact, installation
 from pages import render_pages
 from product_pages import render_demo, render_trust, render_status, render_about
@@ -24,7 +26,12 @@ EMAIL='haohongfei2001@gmail.com'
 def build(lang):
     en=lang=='en'
     prefix='/' if en else '/zh/'
-    def t(zh,eng): return product_copy(zh,eng,en)
+    example_copy = sample_mapping(lang)
+    def t(zh,eng):
+        value = product_copy(zh,eng,en)
+        for old,new in sorted(example_copy.items(),key=lambda pair:-len(pair[0])):
+            value = value.replace(old,new)
+        return value
     def link(page='index.html',anchor=''):
         page = {'beta.html':'download.html', 'status.html':'help.html'}.get(page,page)
         return prefix + ('' if page=='index.html' else page) + anchor
@@ -45,10 +52,10 @@ def build(lang):
         enurl=BASE+'/'+('' if page=='index.html' else page)
         product_css = '<link rel="stylesheet" href="/assets/website/product-experience.css?v=20261021brand">\n' if page in ('index.html','demo.html') else ''
         if page == 'demo.html':
-            product_css += '<script src="/assets/website/home-core-v2.js?v=20261009a" defer></script>\n'
+            product_css += '<script src="/assets/website/home-core-v2.js?v=continuity-v2" defer></script>\n'
         if page == 'index.html':
-            product_css += '<link rel="stylesheet" href="/assets/website/home-art.css?v=20261013b"><link rel="stylesheet" href="/assets/website/scroll-story.css?v=20261013b">\n'
-        presentation_assets = '\n<link rel="stylesheet" href="/assets/website/home-presentation.css?v=20261013a"><link rel="stylesheet" href="/assets/website/value-story.css?v=20261022a"><script src="/assets/website/value-story.js?v=20261022a" defer></script>' if page == 'index.html' else ''
+            product_css += '<link rel="stylesheet" href="/assets/website/home-art.css?v=20261013b">\n'
+        presentation_assets = '\n<link rel="stylesheet" href="/assets/website/home-presentation.css?v=20261013a"><link rel="stylesheet" href="/assets/website/continuity.css?v=continuity-v2"><script src="/assets/website/continuity.js?v=continuity-v2" defer></script>' if page == 'index.html' else ('\n<link rel="stylesheet" href="/assets/website/continuity.css?v=continuity-v2">' if page in ('use-cases.html','how-it-works.html') else '')
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>
@@ -86,7 +93,7 @@ def build(lang):
 <link rel="stylesheet" href="/assets/website/launch.css?v=20261013a">
 <script src="/assets/website/site.js?v={"20261022a" if page=="index.html" else "20261022a"}" defer></script>{presentation_assets}
 </head>
-<body data-page="{page}" data-language="{lang}" data-install-available="{str(bool(installation()['chrome_store_url'])).lower()}"{' data-home-mode="presentation" data-site-revision="20261022"' if page=='index.html' else ''}>
+<body data-page="{page}" data-language="{lang}" data-install-available="{str(bool(installation()['chrome_store_url'])).lower()}"{' data-home-mode="presentation" data-site-revision="continuity-v2"' if page=='index.html' else ''}>
 <a class="skip-link" href="#main">{t('跳到正文','Skip to content')}</a>'''
     def header(page):
         canonical_page = {'beta.html':'download.html', 'status.html':'help.html'}.get(page,page)
@@ -118,6 +125,8 @@ def build(lang):
     shell('index.html',t('PAIA — 个人 AI 输入档案','PAIA — Personal AI input archive'),t('保存、找回和编辑你对 AI 说过的话。用个人主题组织思考，复用自己的提示词，并自主控制 AI 的访问范围。','Keep, find and edit what you tell AI. Organize ongoing ideas around your topics, reuse your own prompts, and control what AI may access.'),home)
 
     for route,title,description,body in render_pages(t,a,button,invitation):
+        if route == 'use-cases.html': body = render_cases(t,a,button,invitation)
+        if route == 'how-it-works.html': body = render_how(t,a,button,invitation)
         shell(route,title,description,body)
 
     demo=render_demo(t,a,button)

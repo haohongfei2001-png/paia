@@ -1,3 +1,11 @@
+> **Current request — continuity v2:** the owner rejected the moving-home
+> example and requested the previous visual/product critique be implemented.
+> Show substantial long-term cases, actual search/view controls, a continuous
+> reader and a clear reuse outcome. Preserve the accepted navigation, identity,
+> orb, four-card composition and original close. This supersedes the old home
+> example and dead-preview structure, not the underlying product contracts.
+> Active source and verification are documented in `website/README.md`.
+
 > **Current scoped owner request — 22 October 2026:** refine the deployed
 > website using the review in the current conversation. Keep the translucent
 > navigation, blue/white material basis, Context four-card composition, original

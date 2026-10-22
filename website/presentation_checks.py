@@ -10,6 +10,8 @@ ROOT=Path(__file__).resolve().parents[1]
 
 
 def verify_static_presentation(root,check):
+    from continuity_checks import active as continuity_active, verify_static as continuity_static
+    if continuity_active(root): return continuity_static(root,check)
     from value_story_checks import active, verify_static
     if active(root): return verify_static(root,check)
     from art_direction import Fragments
@@ -43,6 +45,9 @@ def verify_static_presentation(root,check):
 
 
 def verify_home_hero(page,check,en=True,motion=False):
+    if page.locator("body").get_attribute("data-site-revision") == "continuity-v2":
+        from continuity_checks import verify_hero
+        return verify_hero(page,check,en,motion)
     if page.locator("body").get_attribute("data-site-revision") == "20261022":
         from value_story_checks import verify_hero
         return verify_hero(page,check,en,motion)
@@ -73,6 +78,9 @@ def verify_home_hero(page,check,en=True,motion=False):
 
 
 def verify_presentation(page,check,label='home',motion=False):
+    if page.locator("body").get_attribute("data-site-revision") == "continuity-v2":
+        from continuity_checks import verify_home
+        return verify_home(page,check,label,motion)
     if page.locator("body").get_attribute("data-site-revision") == "20261022":
         from value_story_checks import verify_home
         return verify_home(page,check,label,motion)
@@ -141,6 +149,8 @@ def verify_presentation(page,check,label='home',motion=False):
 
 
 def main():
+    from continuity_checks import active as continuity_active, main as continuity_main
+    if continuity_active(ROOT): return continuity_main()
     from value_story_checks import active, main as value_story_main
     if active(ROOT): return value_story_main()
     from playwright.sync_api import sync_playwright
