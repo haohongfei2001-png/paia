@@ -1,0 +1,1003 @@
+{
+  "base": "7afb39930d53d3478062a3202b369f99f2aaa0ca",
+  "candidateTree": "41e992921fa6cbf27246c5c6f21cc92107d2abf5",
+  "baseTree": "8561ae7b46dea52782dd20a200e8ed24ed05c639",
+  "implementationPaths": [
+    {
+      "path": ".github/workflows/paia-certification.yml",
+      "baseBlob": "6871522ac1fb0cf93cf5913339f3b137cf7ba6db",
+      "candidateBlob": "6871522ac1fb0cf93cf5913339f3b137cf7ba6db",
+      "resultBlob": "773ee9f533585b67afbc79674c88124d43065a9d",
+      "sha256": "c169f7bd685f0e71485490c5d7cdd51bfa255941fd900bb4b576fd9bd38ff283"
+    },
+    {
+      "path": "extension/scripts/check-ui-refresh-ci.mjs",
+      "baseBlob": "4c5a3274925b2103aa4b0057340f39c14d955e35",
+      "candidateBlob": "4c5a3274925b2103aa4b0057340f39c14d955e35",
+      "resultBlob": "fa648ea9c9b7ba9b314f171eb969cdd616f888c5",
+      "sha256": "498fbc585eac28bfcf0f556e6acc49c7c55c694897d701971ea266dbdf4f7a13"
+    },
+    {
+      "path": "extension/scripts/prepare-browser-fonts.py",
+      "baseBlob": null,
+      "candidateBlob": null,
+      "resultBlob": "d87fe3716d994cca76a889c291ee6ef94a4e08db",
+      "sha256": "3713f58ed8d3e48f12c72c2aae1a08d119180c50c34a5e5cf7afd61ee4e2d510"
+    },
+    {
+      "path": "extension/scripts/test-groups.mjs",
+      "baseBlob": "b43efbcbad5a5411ae3891fa6382afef7136abdb",
+      "candidateBlob": "b43efbcbad5a5411ae3891fa6382afef7136abdb",
+      "resultBlob": "8fd75a12d8b10ff1f9bdfc81071c4047d1f3bc73",
+      "sha256": "8be98bf35cdd77812aaf9f749f664da1961791c28c60f263885fc799aa60ca32"
+    },
+    {
+      "path": "extension/tests/approved-ui-current-browser-admission.test.mjs",
+      "baseBlob": "090c34e2bb73967af516700f5cc9adbb359e9a35",
+      "candidateBlob": "090c34e2bb73967af516700f5cc9adbb359e9a35",
+      "resultBlob": "9d3af925a13686aded996724deb3ac855a5cefbc",
+      "sha256": "ebb1a955f46f5bae4dd46827f09cd7a005fb8454dfe2bdb7958999a558bd9454"
+    },
+    {
+      "path": "extension/tests/cpv1-02-hosted-browser-setup.test.mjs",
+      "baseBlob": "a72f7dfd639a3ccb3457362fc1c00379cf820d95",
+      "candidateBlob": "a72f7dfd639a3ccb3457362fc1c00379cf820d95",
+      "resultBlob": "dc269ea06c59d5cf99dd463298d1634a2dcecb09",
+      "sha256": "32256cdc5db06d20f58cfe7792d745183862c42a6ecdb71402b29fb176ef0556"
+    },
+    {
+      "path": "extension/tests/current-browser-nine-partition.test.mjs",
+      "baseBlob": "9eff14ca3d73cb2e651454bd934099beac2dc7e6",
+      "candidateBlob": "9eff14ca3d73cb2e651454bd934099beac2dc7e6",
+      "resultBlob": "400154a9ffdfc62c78c65cd9ea3399af14cb85d3",
+      "sha256": "87eb17eb166144c4e224eec40910bc770a24d9a1882a6e8755410d55170f9582"
+    },
+    {
+      "path": "extension/tests/fixtures/apt-ubuntu24-observed/01autoremove",
+      "baseBlob": null,
+      "candidateBlob": null,
+      "resultBlob": "10438e848511d0b23cb5acd2cbc2db8d1e1ae6d1",
+      "sha256": "35b4360d9126e5e5efc1ce42cea8a957ba42921de749ad8502922d536c9f385c"
+    },
+    {
+      "path": "extension/tests/fixtures/apt-ubuntu24-observed/20apt-esm-hook.conf",
+      "baseBlob": null,
+      "candidateBlob": null,
+      "resultBlob": "8e6ddf46c4cc9b41b917d98d19f73d9aed31f4eb",
+      "sha256": "f7ab45bab1355711fcd031d78299cc3c7767654e7bf3f66a716ee3f2eae93733"
+    },
+    {
+      "path": "extension/tests/fixtures/apt-ubuntu24-observed/20snapd.conf",
+      "baseBlob": null,
+      "candidateBlob": null,
+      "resultBlob": "b9ee1d45d2ebcdb32c2a24a3371ddec3f29fc11d",
+      "sha256": "4f1a710936d83d53caa575af269db4311d7b461bdb1bb94ced5b1d331b0886ac"
+    },
+    {
+      "path": "extension/tests/fixtures/apt-ubuntu24-observed/50appstream",
+      "baseBlob": null,
+      "candidateBlob": null,
+      "resultBlob": "d266fcef0162ed2e6bc0b12c813f336943d255d1",
+      "sha256": "8e89df0e4cfa24c7db4a165e776f40af7e0477f0d290bea4334edf6655db72bd"
+    },
+    {
+      "path": "extension/tests/fixtures/apt-ubuntu24-observed/50command-not-found",
+      "baseBlob": null,
+      "candidateBlob": null,
+      "resultBlob": "320662bdff09f1616e21d7bfd9f6df92341f7e68",
+      "sha256": "3a6f9f5244e49bee66ce65101fb73e16ba90f7a6cbd19befeefdf2c63209e2f1"
+    },
+    {
+      "path": "extension/tests/fixtures/apt-ubuntu24-observed/99needrestart",
+      "baseBlob": null,
+      "candidateBlob": null,
+      "resultBlob": "1ba2148df58ac852c3423cffca12539652dac3a2",
+      "sha256": "d453d945957bf2fb33a26cb74eacd38244291919715a1bb1d6179d0290c95c52"
+    },
+    {
+      "path": "extension/tests/fixtures/apt-ubuntu24-observed/README.md",
+      "baseBlob": null,
+      "candidateBlob": null,
+      "resultBlob": "0acdb65672fb0433d9d7764168dc3a1aa27ce5f4",
+      "sha256": "0656224234963149c5d5a308d459cfaf01a8ab80896515cd8bc16c3ba6af2e50"
+    },
+    {
+      "path": "extension/tests/fixtures/apt-ubuntu24-observed/provenance.json",
+      "baseBlob": null,
+      "candidateBlob": null,
+      "resultBlob": "9b229edfc9333c46073fad240ab620414dc9fc00",
+      "sha256": "5203e3f4701e3765e36b6da5241e31e341e2857ef57ab6c76346ebf61d8e7bf2"
+    }
+  ],
+  "frozen32Paths": [
+    "extension/background/organize-processing-policy.js",
+    "extension/core/ai-usage/foundation.js",
+    "extension/core/organizer/ai-incremental-v2.js",
+    "extension/core/organizer/ai-incremental-v3.js",
+    "extension/core/organizer/ai-presentation.js",
+    "extension/core/organizer/configured-organize-runner.js",
+    "extension/core/organizer/local-organize-session.js",
+    "extension/core/organizer/organize-processing-scope.js",
+    "extension/manifest.json",
+    "extension/package.json",
+    "extension/tests/ai-organize-lifecycle.test.mjs",
+    "extension/tests/ai-organize-style-v3.test.mjs",
+    "extension/tests/harness/promotion-search-settlement.mjs",
+    "extension/tests/organize-fresh-current.test.mjs",
+    "extension/tests/organize-fresh-protection.test.mjs",
+    "extension/tests/organize-main-filter-boundary.test.mjs",
+    "extension/tests/topic-organize-service-action.test.mjs",
+    "extension/tests/topic-promotion-search-settlement.test.mjs",
+    "extension/tests/topic-section-promotion-chrome-e2e.test.mjs",
+    "extension/ui/common.js",
+    "extension/ui/topic-workspace.js",
+    "services/ai-gateway/tests/organize-client-fixture.mjs",
+    "services/ai-gateway/tests/organize-fresh-current-native.test.mjs",
+    "services/ai-gateway/tests/organize-native-fixture.mjs",
+    "services/ai-gateway/tests/organize-original-action-client-path.test.mjs",
+    "services/ai-gateway/tests/organize-source-bounded-two-child.test.mjs",
+    "services/ai-gateway/tests/organize-source-large-bounded-response.test.mjs",
+    "services/ai-gateway/tests/organize-source-native.test.mjs",
+    "services/ai-gateway/tests/organize-source-single-wire-boundaries.test.mjs",
+    "services/ai-gateway/tests/organize-source-terminal-abort.test.mjs",
+    "services/ai-gateway/tests/organize-worker-rpc.test.mjs",
+    "services/ai-gateway/tests/organize-worker-ui-native.test.mjs"
+  ],
+  "overlap": [],
+  "candidateOverlay": "All 32 frozen paths unchanged by this disjoint patch; branch does not contain candidate or its versions",
+  "exactPriorHelperAndFixtures": [
+    "extension/scripts/prepare-browser-fonts.py",
+    "extension/tests/fixtures/apt-ubuntu24-observed/01autoremove",
+    "extension/tests/fixtures/apt-ubuntu24-observed/20apt-esm-hook.conf",
+    "extension/tests/fixtures/apt-ubuntu24-observed/20snapd.conf",
+    "extension/tests/fixtures/apt-ubuntu24-observed/50appstream",
+    "extension/tests/fixtures/apt-ubuntu24-observed/50command-not-found",
+    "extension/tests/fixtures/apt-ubuntu24-observed/99needrestart",
+    "extension/tests/fixtures/apt-ubuntu24-observed/README.md",
+    "extension/tests/fixtures/apt-ubuntu24-observed/provenance.json"
+  ],
+  "priorSyntheticFontTests": "byte-identical from const fontControl onward",
+  "routeComparisons": 1818,
+  "widths": [
+    4,
+    5,
+    6,
+    7,
+    9,
+    10
+  ],
+  "routeDifferences": [
+    {
+      "width": 10,
+      "path": "cpv1-01-2-reconnect-chrome-e2e.test.mjs",
+      "before": 3,
+      "after": 4
+    },
+    {
+      "width": 10,
+      "path": "tests/cpv1-01-2-reconnect-chrome-e2e.test.mjs",
+      "before": 3,
+      "after": 4
+    },
+    {
+      "width": 10,
+      "path": "tests\\cpv1-01-2-reconnect-chrome-e2e.test.mjs",
+      "before": 3,
+      "after": 4
+    },
+    {
+      "width": 10,
+      "path": "cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",
+      "before": 4,
+      "after": 3
+    },
+    {
+      "width": 10,
+      "path": "tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",
+      "before": 4,
+      "after": 3
+    },
+    {
+      "width": 10,
+      "path": "tests\\cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",
+      "before": 4,
+      "after": 3
+    }
+  ],
+  "bins": [
+    [
+      "cpr-02-project-lifecycle-chrome-e2e.test.mjs",
+      "cpv1-01-4-degraded-chrome-e2e.test.mjs",
+      "cpv1-01-save-recovery-chrome-e2e.test.mjs",
+      "cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs",
+      "cpv1-02-dvn-purge-chrome-e2e.test.mjs",
+      "cpv1-02-dvn-working-revision-chrome-e2e.test.mjs",
+      "cpv1-09-prompt-insertion-chrome-e2e.test.mjs",
+      "release-certification-round48-chrome-e2e.test.mjs",
+      "release-certification-round49-chrome-e2e.test.mjs",
+      "uis-04-cleanup-chrome-e2e.test.mjs",
+      "ux-r6-release-chrome-e2e.test.mjs"
+    ],
+    [
+      "ans-08-topic-continuous-chrome-e2e.test.mjs",
+      "archive-year-chrome-e2e.test.mjs",
+      "capture-foundation-chrome-e2e.test.mjs",
+      "consumer-cleanup-chrome-e2e.test.mjs",
+      "cpr-00-project-discovery-chrome-e2e.test.mjs",
+      "cpr-01-project-recognition-chrome-e2e.test.mjs",
+      "cpv1-02-3-navigator-chrome-e2e.test.mjs",
+      "cpv1-02-dvn-search-chrome-e2e.test.mjs",
+      "cpv1-05-dvn-organize-chrome-e2e.test.mjs",
+      "desktop-vnext-context-chrome-e2e.test.mjs",
+      "nib-v4-surface-chrome-e2e.test.mjs",
+      "topic-section-return-position-chrome-e2e.test.mjs",
+      "ux-r1-shell-chrome-e2e.test.mjs",
+      "ux-r4-search-reuse-chrome-e2e.test.mjs"
+    ],
+    [
+      "ans-04-navigation-query-chrome-e2e.test.mjs",
+      "ans-05-navigator-workspace-chrome-e2e.test.mjs",
+      "ans-08-topic-edit-preservation-chrome-e2e.test.mjs",
+      "cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs",
+      "cpv1-02-4-reader-chrome-e2e.test.mjs",
+      "cpv1-07-historical-comparison-chrome-e2e.test.mjs",
+      "cpv1-09-prompt-compatibility-chrome-e2e.test.mjs",
+      "cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",
+      "iah11-result-presentation-chrome-e2e.test.mjs",
+      "uis-01-archive-actions-chrome-e2e.test.mjs"
+    ],
+    [
+      "ans-01-reader-surfaces-chrome-e2e.test.mjs",
+      "ans-03-source-observation-chrome-e2e.test.mjs",
+      "cpv1-01-2-reconnect-chrome-e2e.test.mjs",
+      "cpv1-01-audit-boundaries-chrome-e2e.test.mjs",
+      "cpv1-01-capture-recovery-chrome-e2e.test.mjs",
+      "cpv1-02-dvn-removal-chrome-e2e.test.mjs",
+      "cpv1-02-dvn-save-outcome-chrome-e2e.test.mjs",
+      "cpv1-04-conflict-chrome-e2e.test.mjs",
+      "cpv1-topic-05-2-root-chrome-e2e.test.mjs",
+      "nib-v4-settings-entry-chrome-e2e.test.mjs",
+      "settings-data-destinations-chrome-e2e.test.mjs",
+      "settings-removed-placement-chrome-e2e.test.mjs",
+      "topic-section-promotion-chrome-e2e.test.mjs",
+      "topic-section-writing-chrome-e2e.test.mjs",
+      "uir-03-preview-mask-chrome-e2e.test.mjs",
+      "uis-02-page-scoped-search-chrome-e2e.test.mjs"
+    ],
+    [
+      "ans-04-navigation-release-chrome-e2e.test.mjs",
+      "ans-09-integration-chrome-e2e.test.mjs",
+      "cpv1-01-recovery-chrome-e2e.test.mjs",
+      "cpv1-02-6-accessibility-chrome-e2e.test.mjs",
+      "cpv1-02-dvn-original-chrome-e2e.test.mjs",
+      "cpv1-02-dvn-topic-content-chrome-e2e.test.mjs",
+      "cpv1-topic-02-lifecycle-chrome-e2e.test.mjs",
+      "cpv1-topic-05-4-section-chrome-e2e.test.mjs",
+      "settings-next-chrome-e2e.test.mjs"
+    ],
+    [
+      "ans-02-source-foundation-chrome-e2e.test.mjs",
+      "cpv1-01-3-update-chrome-e2e.test.mjs",
+      "cpv1-02-1-shell-chrome-e2e.test.mjs",
+      "cpv1-09-prompt-surface-chrome-e2e.test.mjs",
+      "cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs",
+      "iah11-selected-acceptance-chrome-e2e.test.mjs",
+      "nib-approved-fixed-chrome-e2e.test.mjs",
+      "nib-v4-historical-candidates-chrome-e2e.test.mjs",
+      "topic-selected-section-chrome-e2e.test.mjs",
+      "uir-03-thought-original-chrome-e2e.test.mjs",
+      "uir-04-settings-chrome-e2e.test.mjs",
+      "ux-r5-ai-organize-chrome-e2e.test.mjs",
+      "ux-r5-ai-update-chrome-e2e.test.mjs"
+    ],
+    [
+      "nib-v4-toolbar-entry-chrome-e2e.test.mjs",
+      "settings-preference-publication-chrome-e2e.test.mjs",
+      "uir-04-pending-history-chrome-e2e.test.mjs",
+      "ux-r3-thought-chrome-e2e.test.mjs"
+    ],
+    [
+      "ans-07-library-root-chrome-e2e.test.mjs",
+      "cpv1-01-6-lifecycle-chrome-e2e.test.mjs",
+      "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "topic-entry-section-move-chrome-e2e.test.mjs",
+      "topic-year-chrome-e2e.test.mjs",
+      "uir-03-ai-candidate-chrome-e2e.test.mjs",
+      "uir-03-ai-presentation-chrome-e2e.test.mjs",
+      "uir-04-context-chrome-e2e.test.mjs",
+      "uir-04-data-chrome-e2e.test.mjs",
+      "ux-r2-reader-revisit-chrome-e2e.test.mjs",
+      "ux-r3-history-preemption-chrome-e2e.test.mjs",
+      "ux-r5-certification-chrome-e2e.test.mjs"
+    ],
+    [
+      "activation-return-round410-chrome-e2e.test.mjs",
+      "ans-06-source-order-settings-chrome-e2e.test.mjs",
+      "cpv1-01-5-backup-chrome-e2e.test.mjs",
+      "cpv1-02-dvn-topic-years-chrome-e2e.test.mjs",
+      "cpv1-03-backup-segments-chrome-e2e.test.mjs",
+      "cpv1-12-next-prompt-chrome-e2e.test.mjs",
+      "nib-v4-arrival-chrome-e2e.test.mjs",
+      "nib-v4-search-chrome-e2e.test.mjs",
+      "uir-01-shell-chrome-e2e.test.mjs",
+      "uir-02-archive-search-reader-chrome-e2e.test.mjs",
+      "uir-04-popup-local-tools-chrome-e2e.test.mjs"
+    ],
+    [
+      "context-cards-chrome-e2e.test.mjs"
+    ]
+  ],
+  "browserHashes": [
+    {
+      "path": "extension/tests/activation-return-round410-chrome-e2e.test.mjs",
+      "branchBlob": "0c16eaa97eb2f30bf9d4818e5eec06c436a74c9a",
+      "candidateBlob": "0c16eaa97eb2f30bf9d4818e5eec06c436a74c9a"
+    },
+    {
+      "path": "extension/tests/ans-01-reader-surfaces-chrome-e2e.test.mjs",
+      "branchBlob": "411cc2bf422027de8adf40921a2877e377efffac",
+      "candidateBlob": "411cc2bf422027de8adf40921a2877e377efffac"
+    },
+    {
+      "path": "extension/tests/ans-02-source-foundation-chrome-e2e.test.mjs",
+      "branchBlob": "385727ba1e88af982b146ad5a267ab5b9125f3ba",
+      "candidateBlob": "385727ba1e88af982b146ad5a267ab5b9125f3ba"
+    },
+    {
+      "path": "extension/tests/ans-03-source-observation-chrome-e2e.test.mjs",
+      "branchBlob": "ccb07b2472e87ba548ef085ded73e21312c9401b",
+      "candidateBlob": "ccb07b2472e87ba548ef085ded73e21312c9401b"
+    },
+    {
+      "path": "extension/tests/ans-04-navigation-query-chrome-e2e.test.mjs",
+      "branchBlob": "242e08b8d563dfcdf78ecba821d107d0810347eb",
+      "candidateBlob": "242e08b8d563dfcdf78ecba821d107d0810347eb"
+    },
+    {
+      "path": "extension/tests/ans-04-navigation-release-chrome-e2e.test.mjs",
+      "branchBlob": "3991077aa4983868eb532e361c61b1ae3e5edaea",
+      "candidateBlob": "3991077aa4983868eb532e361c61b1ae3e5edaea"
+    },
+    {
+      "path": "extension/tests/ans-05-navigator-workspace-chrome-e2e.test.mjs",
+      "branchBlob": "f190c7865a15a31d15c2d66c931da66693fdc496",
+      "candidateBlob": "f190c7865a15a31d15c2d66c931da66693fdc496"
+    },
+    {
+      "path": "extension/tests/ans-06-source-order-settings-chrome-e2e.test.mjs",
+      "branchBlob": "716f0ae1c6a9ac488a7bce38236edbe8e870604f",
+      "candidateBlob": "716f0ae1c6a9ac488a7bce38236edbe8e870604f"
+    },
+    {
+      "path": "extension/tests/ans-07-library-root-chrome-e2e.test.mjs",
+      "branchBlob": "b3a224515b9106c769fa98be23a38c3e6499cab7",
+      "candidateBlob": "b3a224515b9106c769fa98be23a38c3e6499cab7"
+    },
+    {
+      "path": "extension/tests/ans-08-topic-continuous-chrome-e2e.test.mjs",
+      "branchBlob": "c3c925b1749191d812d3e0c1f8e409836ea6f6bc",
+      "candidateBlob": "c3c925b1749191d812d3e0c1f8e409836ea6f6bc"
+    },
+    {
+      "path": "extension/tests/ans-08-topic-edit-preservation-chrome-e2e.test.mjs",
+      "branchBlob": "55df67b19761ff8a4b04daf5b3dc9ee5d383d8a8",
+      "candidateBlob": "55df67b19761ff8a4b04daf5b3dc9ee5d383d8a8"
+    },
+    {
+      "path": "extension/tests/ans-09-integration-chrome-e2e.test.mjs",
+      "branchBlob": "8a201bd4f90fa6d01424edef35fbeb93616ce1d9",
+      "candidateBlob": "8a201bd4f90fa6d01424edef35fbeb93616ce1d9"
+    },
+    {
+      "path": "extension/tests/archive-year-chrome-e2e.test.mjs",
+      "branchBlob": "146ae6698d21b321cf264fba67da3cc79fbb8c61",
+      "candidateBlob": "146ae6698d21b321cf264fba67da3cc79fbb8c61"
+    },
+    {
+      "path": "extension/tests/capture-foundation-chrome-e2e.test.mjs",
+      "branchBlob": "bb53c4628a0cece449a2c5a5a2146622ae09a6eb",
+      "candidateBlob": "bb53c4628a0cece449a2c5a5a2146622ae09a6eb"
+    },
+    {
+      "path": "extension/tests/consumer-cleanup-chrome-e2e.test.mjs",
+      "branchBlob": "1296015055d194348cf3de91bd3eb2d8259ee211",
+      "candidateBlob": "1296015055d194348cf3de91bd3eb2d8259ee211"
+    },
+    {
+      "path": "extension/tests/context-cards-chrome-e2e.test.mjs",
+      "branchBlob": "4d76cc2210f4c1fdde571b730abff45b4b9f1180",
+      "candidateBlob": "4d76cc2210f4c1fdde571b730abff45b4b9f1180"
+    },
+    {
+      "path": "extension/tests/cpr-00-project-discovery-chrome-e2e.test.mjs",
+      "branchBlob": "aa64c98b73576f32e6309f0159bbc682bd3cce7b",
+      "candidateBlob": "aa64c98b73576f32e6309f0159bbc682bd3cce7b"
+    },
+    {
+      "path": "extension/tests/cpr-01-project-recognition-chrome-e2e.test.mjs",
+      "branchBlob": "ec9de43de8d397b8c0db217329dc1fc47932bb76",
+      "candidateBlob": "ec9de43de8d397b8c0db217329dc1fc47932bb76"
+    },
+    {
+      "path": "extension/tests/cpr-02-project-lifecycle-chrome-e2e.test.mjs",
+      "branchBlob": "048513c06cae3296e381a7f749389a0995c8ca63",
+      "candidateBlob": "048513c06cae3296e381a7f749389a0995c8ca63"
+    },
+    {
+      "path": "extension/tests/cpv1-01-2-reconnect-chrome-e2e.test.mjs",
+      "branchBlob": "b6839d00e3d338c205a79bfdcde9dec49bc36df9",
+      "candidateBlob": "b6839d00e3d338c205a79bfdcde9dec49bc36df9"
+    },
+    {
+      "path": "extension/tests/cpv1-01-3-update-chrome-e2e.test.mjs",
+      "branchBlob": "464e8aaba32dc607650a49744d5ca5b068b49050",
+      "candidateBlob": "464e8aaba32dc607650a49744d5ca5b068b49050"
+    },
+    {
+      "path": "extension/tests/cpv1-01-4-degraded-chrome-e2e.test.mjs",
+      "branchBlob": "186aa49e4fd208d7ed9f9a05fb826049146613de",
+      "candidateBlob": "186aa49e4fd208d7ed9f9a05fb826049146613de"
+    },
+    {
+      "path": "extension/tests/cpv1-01-5-backup-chrome-e2e.test.mjs",
+      "branchBlob": "35f1bdc3b20502a6c964586cc04b992e498bc6c7",
+      "candidateBlob": "35f1bdc3b20502a6c964586cc04b992e498bc6c7"
+    },
+    {
+      "path": "extension/tests/cpv1-01-6-lifecycle-chrome-e2e.test.mjs",
+      "branchBlob": "36f166e45ce4ba68901684eb8bd70ea370f42c1d",
+      "candidateBlob": "36f166e45ce4ba68901684eb8bd70ea370f42c1d"
+    },
+    {
+      "path": "extension/tests/cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs",
+      "branchBlob": "501ea7f76040ce29987376d800bad0eb98ab36b4",
+      "candidateBlob": "501ea7f76040ce29987376d800bad0eb98ab36b4"
+    },
+    {
+      "path": "extension/tests/cpv1-01-audit-boundaries-chrome-e2e.test.mjs",
+      "branchBlob": "f5278733492fb5068d4082b32b86ef9f86305ea9",
+      "candidateBlob": "f5278733492fb5068d4082b32b86ef9f86305ea9"
+    },
+    {
+      "path": "extension/tests/cpv1-01-capture-recovery-chrome-e2e.test.mjs",
+      "branchBlob": "b9c4f6f046f213cb74afd51a073ac8a142f11852",
+      "candidateBlob": "b9c4f6f046f213cb74afd51a073ac8a142f11852"
+    },
+    {
+      "path": "extension/tests/cpv1-01-recovery-chrome-e2e.test.mjs",
+      "branchBlob": "276b9fbb5504d400faaa22d1ef214605b13ef5e3",
+      "candidateBlob": "276b9fbb5504d400faaa22d1ef214605b13ef5e3"
+    },
+    {
+      "path": "extension/tests/cpv1-01-save-recovery-chrome-e2e.test.mjs",
+      "branchBlob": "a7a93254bfd4204f2b85e3f8e2d64a1feed5f8b8",
+      "candidateBlob": "a7a93254bfd4204f2b85e3f8e2d64a1feed5f8b8"
+    },
+    {
+      "path": "extension/tests/cpv1-02-1-shell-chrome-e2e.test.mjs",
+      "branchBlob": "e01f9c97fde020881ca9685a335ac44c63655910",
+      "candidateBlob": "e01f9c97fde020881ca9685a335ac44c63655910"
+    },
+    {
+      "path": "extension/tests/cpv1-02-3-navigator-chrome-e2e.test.mjs",
+      "branchBlob": "7524da209ee9b9ac2711e299375e79c52a83a206",
+      "candidateBlob": "7524da209ee9b9ac2711e299375e79c52a83a206"
+    },
+    {
+      "path": "extension/tests/cpv1-02-4-reader-chrome-e2e.test.mjs",
+      "branchBlob": "f21d76396ad603368c1669730c2adc28e6b8bd98",
+      "candidateBlob": "f21d76396ad603368c1669730c2adc28e6b8bd98"
+    },
+    {
+      "path": "extension/tests/cpv1-02-6-accessibility-chrome-e2e.test.mjs",
+      "branchBlob": "4cfbad53a7a3f2bbd3c85c0d58132e3e55456b6a",
+      "candidateBlob": "4cfbad53a7a3f2bbd3c85c0d58132e3e55456b6a"
+    },
+    {
+      "path": "extension/tests/cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs",
+      "branchBlob": "7b0b128e5ef4766cb428db391fa40acddf9e9634",
+      "candidateBlob": "7b0b128e5ef4766cb428db391fa40acddf9e9634"
+    },
+    {
+      "path": "extension/tests/cpv1-02-dvn-original-chrome-e2e.test.mjs",
+      "branchBlob": "b54f40f116ee1e2557fe2f07d02ae0f7c505ec78",
+      "candidateBlob": "b54f40f116ee1e2557fe2f07d02ae0f7c505ec78"
+    },
+    {
+      "path": "extension/tests/cpv1-02-dvn-purge-chrome-e2e.test.mjs",
+      "branchBlob": "07401c09802050246558f5d9d0bdc9502983d05e",
+      "candidateBlob": "07401c09802050246558f5d9d0bdc9502983d05e"
+    },
+    {
+      "path": "extension/tests/cpv1-02-dvn-removal-chrome-e2e.test.mjs",
+      "branchBlob": "cee082258c448726b52ad534bb9ca03c03fbcf4c",
+      "candidateBlob": "cee082258c448726b52ad534bb9ca03c03fbcf4c"
+    },
+    {
+      "path": "extension/tests/cpv1-02-dvn-save-outcome-chrome-e2e.test.mjs",
+      "branchBlob": "30f85d3fe1f83fb33cde18a9682670b54797711d",
+      "candidateBlob": "30f85d3fe1f83fb33cde18a9682670b54797711d"
+    },
+    {
+      "path": "extension/tests/cpv1-02-dvn-search-chrome-e2e.test.mjs",
+      "branchBlob": "82b248a01716a60605269fb6616e5692e3f8928b",
+      "candidateBlob": "82b248a01716a60605269fb6616e5692e3f8928b"
+    },
+    {
+      "path": "extension/tests/cpv1-02-dvn-topic-content-chrome-e2e.test.mjs",
+      "branchBlob": "dc2f91600130499fe78e596943d25b2eeb308fd1",
+      "candidateBlob": "dc2f91600130499fe78e596943d25b2eeb308fd1"
+    },
+    {
+      "path": "extension/tests/cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "branchBlob": "779e243e7f8e7525e8db1ec48ca107712c12c22c",
+      "candidateBlob": "779e243e7f8e7525e8db1ec48ca107712c12c22c"
+    },
+    {
+      "path": "extension/tests/cpv1-02-dvn-topic-years-chrome-e2e.test.mjs",
+      "branchBlob": "71665a48ddcb8d18a32bbb6267cbae9cdf96944c",
+      "candidateBlob": "71665a48ddcb8d18a32bbb6267cbae9cdf96944c"
+    },
+    {
+      "path": "extension/tests/cpv1-02-dvn-working-revision-chrome-e2e.test.mjs",
+      "branchBlob": "c610b76dfe7ea36885de9a3c7d95f81adeb988ff",
+      "candidateBlob": "c610b76dfe7ea36885de9a3c7d95f81adeb988ff"
+    },
+    {
+      "path": "extension/tests/cpv1-03-backup-segments-chrome-e2e.test.mjs",
+      "branchBlob": "a03334e4cec9d440167f136d19bb94db6737ca1e",
+      "candidateBlob": "a03334e4cec9d440167f136d19bb94db6737ca1e"
+    },
+    {
+      "path": "extension/tests/cpv1-04-conflict-chrome-e2e.test.mjs",
+      "branchBlob": "4c6f32a3c80aa5f934110007c7d847a1df98e1b7",
+      "candidateBlob": "4c6f32a3c80aa5f934110007c7d847a1df98e1b7"
+    },
+    {
+      "path": "extension/tests/cpv1-05-dvn-organize-chrome-e2e.test.mjs",
+      "branchBlob": "4e8116be0b651b4758486712b4fe97977839bdea",
+      "candidateBlob": "4e8116be0b651b4758486712b4fe97977839bdea"
+    },
+    {
+      "path": "extension/tests/cpv1-07-historical-comparison-chrome-e2e.test.mjs",
+      "branchBlob": "eae92e5ef1ed2534b154f8b51f1376cadd4d9cae",
+      "candidateBlob": "eae92e5ef1ed2534b154f8b51f1376cadd4d9cae"
+    },
+    {
+      "path": "extension/tests/cpv1-09-prompt-compatibility-chrome-e2e.test.mjs",
+      "branchBlob": "8a11f4af7862fd689c3a82ffe8640fcb05b97142",
+      "candidateBlob": "8a11f4af7862fd689c3a82ffe8640fcb05b97142"
+    },
+    {
+      "path": "extension/tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs",
+      "branchBlob": "2f96fd8a1001f5f729ad0eb4f10ea51f135245f0",
+      "candidateBlob": "2f96fd8a1001f5f729ad0eb4f10ea51f135245f0"
+    },
+    {
+      "path": "extension/tests/cpv1-09-prompt-surface-chrome-e2e.test.mjs",
+      "branchBlob": "1df80855fe4dbfd0c0308c820d65e521c6b45124",
+      "candidateBlob": "1df80855fe4dbfd0c0308c820d65e521c6b45124"
+    },
+    {
+      "path": "extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs",
+      "branchBlob": "7934536f9c16ab51e6a4fad1ec44e9bf2af401d2",
+      "candidateBlob": "7934536f9c16ab51e6a4fad1ec44e9bf2af401d2"
+    },
+    {
+      "path": "extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",
+      "branchBlob": "65fdbee679b85a88dba721e92ab0300dd28eda9f",
+      "candidateBlob": "65fdbee679b85a88dba721e92ab0300dd28eda9f"
+    },
+    {
+      "path": "extension/tests/cpv1-topic-02-lifecycle-chrome-e2e.test.mjs",
+      "branchBlob": "f70e0aa8975b1ddf1b9636d334c91afc836dc20c",
+      "candidateBlob": "f70e0aa8975b1ddf1b9636d334c91afc836dc20c"
+    },
+    {
+      "path": "extension/tests/cpv1-topic-05-2-root-chrome-e2e.test.mjs",
+      "branchBlob": "df6ad1d2731167e86ce83451ba6540f79221290c",
+      "candidateBlob": "df6ad1d2731167e86ce83451ba6540f79221290c"
+    },
+    {
+      "path": "extension/tests/cpv1-topic-05-4-section-chrome-e2e.test.mjs",
+      "branchBlob": "25e522d60f56043b7192f7ff8a462fc1694828da",
+      "candidateBlob": "25e522d60f56043b7192f7ff8a462fc1694828da"
+    },
+    {
+      "path": "extension/tests/cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs",
+      "branchBlob": "ec3370a547f9260d1c69468bbb587db331b066b3",
+      "candidateBlob": "ec3370a547f9260d1c69468bbb587db331b066b3"
+    },
+    {
+      "path": "extension/tests/desktop-vnext-context-chrome-e2e.test.mjs",
+      "branchBlob": "c9fe8f7151da12931028e24796eb7a44f1142644",
+      "candidateBlob": "c9fe8f7151da12931028e24796eb7a44f1142644"
+    },
+    {
+      "path": "extension/tests/iah11-result-presentation-chrome-e2e.test.mjs",
+      "branchBlob": "351b6508f69d4df90ef5bdd218415f5ae4730a22",
+      "candidateBlob": "351b6508f69d4df90ef5bdd218415f5ae4730a22"
+    },
+    {
+      "path": "extension/tests/iah11-selected-acceptance-chrome-e2e.test.mjs",
+      "branchBlob": "7cf8ae3e26c8ca16b12fb48e602e0ffe02fc206d",
+      "candidateBlob": "7cf8ae3e26c8ca16b12fb48e602e0ffe02fc206d"
+    },
+    {
+      "path": "extension/tests/nib-approved-fixed-chrome-e2e.test.mjs",
+      "branchBlob": "53cca432c24f1a0b1e42c3e23a58f309e5af33be",
+      "candidateBlob": "53cca432c24f1a0b1e42c3e23a58f309e5af33be"
+    },
+    {
+      "path": "extension/tests/nib-v4-arrival-chrome-e2e.test.mjs",
+      "branchBlob": "67de71ce12ecc368d051355f6bd737a2ba1864a9",
+      "candidateBlob": "67de71ce12ecc368d051355f6bd737a2ba1864a9"
+    },
+    {
+      "path": "extension/tests/nib-v4-historical-candidates-chrome-e2e.test.mjs",
+      "branchBlob": "c54cfcd82d68358487cbad36c77a799f6b7a3205",
+      "candidateBlob": "c54cfcd82d68358487cbad36c77a799f6b7a3205"
+    },
+    {
+      "path": "extension/tests/nib-v4-search-chrome-e2e.test.mjs",
+      "branchBlob": "042ba429dd4dd1b80a49ce04434b4f0e4aeaecd9",
+      "candidateBlob": "042ba429dd4dd1b80a49ce04434b4f0e4aeaecd9"
+    },
+    {
+      "path": "extension/tests/nib-v4-settings-entry-chrome-e2e.test.mjs",
+      "branchBlob": "53f28df6ba7e29f7c034d5f14fc4724678471bb8",
+      "candidateBlob": "53f28df6ba7e29f7c034d5f14fc4724678471bb8"
+    },
+    {
+      "path": "extension/tests/nib-v4-surface-chrome-e2e.test.mjs",
+      "branchBlob": "7ce676639e7ac6eb7005e9e2cb062446032f128d",
+      "candidateBlob": "7ce676639e7ac6eb7005e9e2cb062446032f128d"
+    },
+    {
+      "path": "extension/tests/nib-v4-toolbar-entry-chrome-e2e.test.mjs",
+      "branchBlob": "2356314da221e26959e619720af602eabf813c4a",
+      "candidateBlob": "2356314da221e26959e619720af602eabf813c4a"
+    },
+    {
+      "path": "extension/tests/release-certification-round48-chrome-e2e.test.mjs",
+      "branchBlob": "3b2905641bdc560bc7590ba31c03eb32991ebce2",
+      "candidateBlob": "3b2905641bdc560bc7590ba31c03eb32991ebce2"
+    },
+    {
+      "path": "extension/tests/release-certification-round49-chrome-e2e.test.mjs",
+      "branchBlob": "27202a1561c89720c629fbc07c01a2e2ce3be48c",
+      "candidateBlob": "27202a1561c89720c629fbc07c01a2e2ce3be48c"
+    },
+    {
+      "path": "extension/tests/settings-data-destinations-chrome-e2e.test.mjs",
+      "branchBlob": "89b66cb5e78447af0e99f03d3240dd05cb2aa2d3",
+      "candidateBlob": "89b66cb5e78447af0e99f03d3240dd05cb2aa2d3"
+    },
+    {
+      "path": "extension/tests/settings-next-chrome-e2e.test.mjs",
+      "branchBlob": "c27b0af3009bd3038bd5ebe9eccf466fffcc0566",
+      "candidateBlob": "c27b0af3009bd3038bd5ebe9eccf466fffcc0566"
+    },
+    {
+      "path": "extension/tests/settings-preference-publication-chrome-e2e.test.mjs",
+      "branchBlob": "007ed6484bdcc9c07b46e9183974c2a2216b86ec",
+      "candidateBlob": "007ed6484bdcc9c07b46e9183974c2a2216b86ec"
+    },
+    {
+      "path": "extension/tests/settings-removed-placement-chrome-e2e.test.mjs",
+      "branchBlob": "936e308259bf0a1e976908242b3c0a4c0478ce9b",
+      "candidateBlob": "936e308259bf0a1e976908242b3c0a4c0478ce9b"
+    },
+    {
+      "path": "extension/tests/topic-entry-section-move-chrome-e2e.test.mjs",
+      "branchBlob": "3288820cba17dd5b0ad122ca7352cb4326948963",
+      "candidateBlob": "3288820cba17dd5b0ad122ca7352cb4326948963"
+    },
+    {
+      "path": "extension/tests/topic-section-promotion-chrome-e2e.test.mjs",
+      "branchBlob": "5ba7c1432084641bc58cdf65b51fe9eca139ba14",
+      "candidateBlob": "4572ba75f5a4736035d0ba2a100c54922cf7a9f4"
+    },
+    {
+      "path": "extension/tests/topic-section-return-position-chrome-e2e.test.mjs",
+      "branchBlob": "53860e4ee706feea7ec75f8f18534d24d7a48423",
+      "candidateBlob": "53860e4ee706feea7ec75f8f18534d24d7a48423"
+    },
+    {
+      "path": "extension/tests/topic-section-writing-chrome-e2e.test.mjs",
+      "branchBlob": "782c7f04b3daddf0607d42d4dfd97f6f6b5962c1",
+      "candidateBlob": "782c7f04b3daddf0607d42d4dfd97f6f6b5962c1"
+    },
+    {
+      "path": "extension/tests/topic-selected-section-chrome-e2e.test.mjs",
+      "branchBlob": "aafc4858f7802664efecb189ab5710b813bc7cb6",
+      "candidateBlob": "aafc4858f7802664efecb189ab5710b813bc7cb6"
+    },
+    {
+      "path": "extension/tests/topic-year-chrome-e2e.test.mjs",
+      "branchBlob": "dc909a4b0d49c5a9d99a4c73558a982ac6860916",
+      "candidateBlob": "dc909a4b0d49c5a9d99a4c73558a982ac6860916"
+    },
+    {
+      "path": "extension/tests/uir-01-shell-chrome-e2e.test.mjs",
+      "branchBlob": "0e17bf83863b8a4509b2eaf76ff866133857ef88",
+      "candidateBlob": "0e17bf83863b8a4509b2eaf76ff866133857ef88"
+    },
+    {
+      "path": "extension/tests/uir-02-archive-search-reader-chrome-e2e.test.mjs",
+      "branchBlob": "cba48046e256c1b094c3478171fdfc07b288e422",
+      "candidateBlob": "cba48046e256c1b094c3478171fdfc07b288e422"
+    },
+    {
+      "path": "extension/tests/uir-03-ai-candidate-chrome-e2e.test.mjs",
+      "branchBlob": "5ec4ab903c0cdd63f9785e69760f64a0b08c3482",
+      "candidateBlob": "5ec4ab903c0cdd63f9785e69760f64a0b08c3482"
+    },
+    {
+      "path": "extension/tests/uir-03-ai-presentation-chrome-e2e.test.mjs",
+      "branchBlob": "35d8b47890f0f282e3872da34de94eb14af570d1",
+      "candidateBlob": "35d8b47890f0f282e3872da34de94eb14af570d1"
+    },
+    {
+      "path": "extension/tests/uir-03-preview-mask-chrome-e2e.test.mjs",
+      "branchBlob": "d3dd7f54ccf632dda68a0d721a80edebba86a941",
+      "candidateBlob": "d3dd7f54ccf632dda68a0d721a80edebba86a941"
+    },
+    {
+      "path": "extension/tests/uir-03-thought-original-chrome-e2e.test.mjs",
+      "branchBlob": "eae6012f3125ec854d3d97e18b8c06091d28ee15",
+      "candidateBlob": "eae6012f3125ec854d3d97e18b8c06091d28ee15"
+    },
+    {
+      "path": "extension/tests/uir-04-context-chrome-e2e.test.mjs",
+      "branchBlob": "f4088a01484bbd380553484b4ba79eadee32cdcc",
+      "candidateBlob": "f4088a01484bbd380553484b4ba79eadee32cdcc"
+    },
+    {
+      "path": "extension/tests/uir-04-data-chrome-e2e.test.mjs",
+      "branchBlob": "50f745c409df7020aa9aa05e34fd1324f7123832",
+      "candidateBlob": "50f745c409df7020aa9aa05e34fd1324f7123832"
+    },
+    {
+      "path": "extension/tests/uir-04-pending-history-chrome-e2e.test.mjs",
+      "branchBlob": "e5e9d7a8d4273d09005bc170dd21bc5f2b278398",
+      "candidateBlob": "e5e9d7a8d4273d09005bc170dd21bc5f2b278398"
+    },
+    {
+      "path": "extension/tests/uir-04-popup-local-tools-chrome-e2e.test.mjs",
+      "branchBlob": "4132c3a4c818f886a73ac7648745d8fdd1b25d01",
+      "candidateBlob": "4132c3a4c818f886a73ac7648745d8fdd1b25d01"
+    },
+    {
+      "path": "extension/tests/uir-04-settings-chrome-e2e.test.mjs",
+      "branchBlob": "8dc4e6ec5e40c346699ae5914eb0ae43126da4c0",
+      "candidateBlob": "8dc4e6ec5e40c346699ae5914eb0ae43126da4c0"
+    },
+    {
+      "path": "extension/tests/uis-01-archive-actions-chrome-e2e.test.mjs",
+      "branchBlob": "9ff1d8b310ef34b46d6d6fc173bacf2d722b847b",
+      "candidateBlob": "9ff1d8b310ef34b46d6d6fc173bacf2d722b847b"
+    },
+    {
+      "path": "extension/tests/uis-02-page-scoped-search-chrome-e2e.test.mjs",
+      "branchBlob": "9056dab34a189a94926900672e5819fc4c22c53c",
+      "candidateBlob": "9056dab34a189a94926900672e5819fc4c22c53c"
+    },
+    {
+      "path": "extension/tests/uis-04-cleanup-chrome-e2e.test.mjs",
+      "branchBlob": "0abe0a734d87c3e1ad04e20228024772e948c7dc",
+      "candidateBlob": "0abe0a734d87c3e1ad04e20228024772e948c7dc"
+    },
+    {
+      "path": "extension/tests/ux-r1-shell-chrome-e2e.test.mjs",
+      "branchBlob": "69b2dbf264a35714375a02c1dcb5e7a533fab389",
+      "candidateBlob": "69b2dbf264a35714375a02c1dcb5e7a533fab389"
+    },
+    {
+      "path": "extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs",
+      "branchBlob": "5f95760908e00fa0f5ab94a0f21ee05fb17ee442",
+      "candidateBlob": "5f95760908e00fa0f5ab94a0f21ee05fb17ee442"
+    },
+    {
+      "path": "extension/tests/ux-r3-history-preemption-chrome-e2e.test.mjs",
+      "branchBlob": "727c4c55564254a18173f54e93267f5971196292",
+      "candidateBlob": "727c4c55564254a18173f54e93267f5971196292"
+    },
+    {
+      "path": "extension/tests/ux-r3-thought-chrome-e2e.test.mjs",
+      "branchBlob": "e1456e09b12ed391efa4f6979c6394092cd40f4a",
+      "candidateBlob": "e1456e09b12ed391efa4f6979c6394092cd40f4a"
+    },
+    {
+      "path": "extension/tests/ux-r4-search-reuse-chrome-e2e.test.mjs",
+      "branchBlob": "e8ddac83344e0e53cf03389f1d8215ecad4c8364",
+      "candidateBlob": "e8ddac83344e0e53cf03389f1d8215ecad4c8364"
+    },
+    {
+      "path": "extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs",
+      "branchBlob": "7ed5168181e5fc80abe9802b98cca4968cf57d03",
+      "candidateBlob": "7ed5168181e5fc80abe9802b98cca4968cf57d03"
+    },
+    {
+      "path": "extension/tests/ux-r5-ai-update-chrome-e2e.test.mjs",
+      "branchBlob": "d94d3dff199efd87dc7e21008263bb6a4a51f17f",
+      "candidateBlob": "d94d3dff199efd87dc7e21008263bb6a4a51f17f"
+    },
+    {
+      "path": "extension/tests/ux-r5-certification-chrome-e2e.test.mjs",
+      "branchBlob": "df3cb06ff5e27e34d509a8a9a2a8bb1ffd6b4880",
+      "candidateBlob": "df3cb06ff5e27e34d509a8a9a2a8bb1ffd6b4880"
+    },
+    {
+      "path": "extension/tests/ux-r6-release-chrome-e2e.test.mjs",
+      "branchBlob": "5b82622a813766b3b20ae901369211700a149cc9",
+      "candidateBlob": "5b82622a813766b3b20ae901369211700a149cc9"
+    }
+  ],
+  "workflowOutsideCurrentBrowserUnchanged": true,
+  "runnerAuditsVersionsAndFrozenFixtureUnchanged": true,
+  "nativeAPTFontsBrowserFull": "NOT_RUN",
+  "capacityGuarantee": false,
+  "frozen32Vectors": [
+    {
+      "path": "extension/background/organize-processing-policy.js",
+      "base": "56da89368dbc1a1c3fe1c71bc55f2e337787c98b",
+      "candidate": "ef28aeeb796cc503bfb29750bf4e9f27107252d8"
+    },
+    {
+      "path": "extension/core/ai-usage/foundation.js",
+      "base": "a5b2a90ae77fd7805225523e7b5de1371df7dd0a",
+      "candidate": "caa53dc3daa3207a88e831369f17764799bf1a9e"
+    },
+    {
+      "path": "extension/core/organizer/ai-incremental-v2.js",
+      "base": "57338c3bd036f1c821a4e6e2adb1f104498836b1",
+      "candidate": "d5d64317a1995e420806b029c162c8f175f4bbb2"
+    },
+    {
+      "path": "extension/core/organizer/ai-incremental-v3.js",
+      "base": "f3de0a113abe025fab0a1e8aa7ee973dd236167a",
+      "candidate": "7bb33973ef10a470182353c05bf88c5382234c4b"
+    },
+    {
+      "path": "extension/core/organizer/ai-presentation.js",
+      "base": "dd4db0d6425880c98544cd2506ac026155674340",
+      "candidate": "844a65ec8841d630ac9c60360c2cb5e964575bee"
+    },
+    {
+      "path": "extension/core/organizer/configured-organize-runner.js",
+      "base": "8d08f3dda2d411c4455c9044607379b4936c56d6",
+      "candidate": "9164741b628cd7aae2c54056af999b31f2f180e2"
+    },
+    {
+      "path": "extension/core/organizer/local-organize-session.js",
+      "base": "99ac3c5985e81570cd8516a54fdfc33eb5614ea1",
+      "candidate": "002088cb48cc42c5bd6c5dd13337798e0868fbe0"
+    },
+    {
+      "path": "extension/core/organizer/organize-processing-scope.js",
+      "base": "a003e8add990f45961c6acf615bba342c5d6b69d",
+      "candidate": "de0f381120cb2d6da1d4d739c1f7f8af9b85d512"
+    },
+    {
+      "path": "extension/manifest.json",
+      "base": "9aea73c7a072e6bb215439641b5c281d76a1feed",
+      "candidate": "87dd70b1c0a90d4ac87c990d7b2a5018bd2fa1ba"
+    },
+    {
+      "path": "extension/package.json",
+      "base": "283c61d0c86070dfd7579d6d96005b5294f635c8",
+      "candidate": "4940d5e08731868753952fd89ac1a7aef96000b4"
+    },
+    {
+      "path": "extension/tests/ai-organize-lifecycle.test.mjs",
+      "base": "ace7d39f1d848caa8d196cb8d0ea4ce167bf0912",
+      "candidate": "db0e8423002cfdbd8eacd51cfbb98821e630c068"
+    },
+    {
+      "path": "extension/tests/ai-organize-style-v3.test.mjs",
+      "base": "d4d7a2724277ff5151fc021d1dce98884a04c4e3",
+      "candidate": "22ff383e5bfa29f06df3165b0190c119a3c5831a"
+    },
+    {
+      "path": "extension/tests/harness/promotion-search-settlement.mjs",
+      "base": null,
+      "candidate": "7cfaee34319412f3ffa81b0ad31ded95eac17377"
+    },
+    {
+      "path": "extension/tests/organize-fresh-current.test.mjs",
+      "base": null,
+      "candidate": "97e6cb9db10317d74837053e4b2afb4818f09f34"
+    },
+    {
+      "path": "extension/tests/organize-fresh-protection.test.mjs",
+      "base": null,
+      "candidate": "1b090a4e87e40bf155f09de1b9315a02411d42d7"
+    },
+    {
+      "path": "extension/tests/organize-main-filter-boundary.test.mjs",
+      "base": "34272666e8d907cfdf8a721aee00498e91a36e0b",
+      "candidate": "8fd6aead9b886c3a3042847a11f1c3d9cbfa1f9f"
+    },
+    {
+      "path": "extension/tests/topic-organize-service-action.test.mjs",
+      "base": "f1cdf86b099f9e2e80f1c7dc875be72d8df04274",
+      "candidate": "8b9523f3b758284691014dbde958d28ca4b1aa65"
+    },
+    {
+      "path": "extension/tests/topic-promotion-search-settlement.test.mjs",
+      "base": null,
+      "candidate": "d7aa05ef8dfa0741accaa17c6dedea880bb8452a"
+    },
+    {
+      "path": "extension/tests/topic-section-promotion-chrome-e2e.test.mjs",
+      "base": "5ba7c1432084641bc58cdf65b51fe9eca139ba14",
+      "candidate": "4572ba75f5a4736035d0ba2a100c54922cf7a9f4"
+    },
+    {
+      "path": "extension/ui/common.js",
+      "base": "a3447ce46b211c2ea7975dacb85ed19d8fa3d0da",
+      "candidate": "94e1c5021c2fd8ec733503f0b390628280d32466"
+    },
+    {
+      "path": "extension/ui/topic-workspace.js",
+      "base": "05af6f447bd40ecb9357f956d005fe04b61b6a21",
+      "candidate": "011748b323e2c8d504f2c32f7a74314fcab93714"
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-client-fixture.mjs",
+      "base": "519be4abebc9686523eeaad6ddb19f679268529f",
+      "candidate": "4512a2f5284b682c7ae609d4a3211b1d7c93ca45"
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-fresh-current-native.test.mjs",
+      "base": null,
+      "candidate": "836db9f701853a2c123c3f0536a4bc11da8c783c"
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-native-fixture.mjs",
+      "base": "5eed7dc84d528afc15a63c764e4772ff64affde3",
+      "candidate": "d46b29cdd6b4a91b465a24295168794c2ddc0361"
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-original-action-client-path.test.mjs",
+      "base": "7194bdd718a78546dcef21c082911f41f97e6d01",
+      "candidate": "7a4cd85704e5a57b8ed162c08744f50b3c574108"
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-source-bounded-two-child.test.mjs",
+      "base": "81fc1f9660f23b5582752c177b917accca53ce79",
+      "candidate": "72bb16a59272e464a17c69dba2f967a697552d69"
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-source-large-bounded-response.test.mjs",
+      "base": "162043efaf8bb7c7c64322c21a084a7f2e12d45c",
+      "candidate": "425d1c75eda506d36fe574a2f8ae27e4a80b31a7"
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-source-native.test.mjs",
+      "base": "bca37cbd239ad6980f02eae6bd6bff68356e8fb9",
+      "candidate": "b1d11b4647b08e8147528299cc46d00c78a86dbc"
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-source-single-wire-boundaries.test.mjs",
+      "base": "49f58bb90ed3a68647dc578e05a8664b5ded6afc",
+      "candidate": "546e5a4685adca068c9b544d45587d1d9b345bab"
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-source-terminal-abort.test.mjs",
+      "base": "0cb48d26934a344f1fdd3d55ce22660bd1c99a75",
+      "candidate": "03a7e233911fb938aeeca82496e4094de48975ed"
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-worker-rpc.test.mjs",
+      "base": "bfd902fa43eab9d3537a825ce0528e799942636c",
+      "candidate": "5d12304489f05f5231b97d65ae03f41a431fe6b1"
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-worker-ui-native.test.mjs",
+      "base": "dca94d9a47fe8d6c710e1886c336fdbf34b211cc",
+      "candidate": "cba9b43a4bb863a8d1dce8c575fbbe613b2c1697"
+    }
+  ]
+}
