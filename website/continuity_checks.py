@@ -210,6 +210,7 @@ def main():
                         check(not requests,lang+'/'+str(width)+': no service or submission requests')
                         page.goto(origin+'/'+prefix+'?case=research#thought-library',wait_until='load');page.wait_for_selector('body.ct-ready')
                         check(page.locator('[data-case-panel=research]').is_visible(),lang+'/'+str(width)+': deep link selects its case')
+                        check('case=research' in page.locator('.header-actions .language').get_attribute('href'),lang+'/'+str(width)+': language link preserves a directly opened case')
                         page.reload(wait_until='load');page.wait_for_selector('body.ct-ready')
                         check(page.locator('#ct-draft').input_value()==('我在做一款报价工具。有人建议加项目看板。' if lang=='zh' else 'I am building a quoting tool. Someone suggested adding a project board.'),lang+'/'+str(width)+': reload clears the example draft')
                         page.close()

@@ -79,7 +79,7 @@
     });
   });
   const initialCase = new URL(window.location.href).searchParams.get('case');
-  if (validCases.has(initialCase)) chooseCase(initialCase,false,false);
+  if (validCases.has(initialCase)) chooseCase(initialCase,false,true);
   panels.forEach(panel => {
     const grouped=panel.querySelector('[data-grouped]'),chronological=panel.querySelector('[data-chronological]');
     const entries=[...panel.querySelectorAll('[data-record-id]')];
