@@ -235,7 +235,11 @@ export function testShard(file,position,total,category){
  // and Section writing (~53–54s) from7 to4 (875/764s measured job totals).
  // Preserve all100 roots, every Source/release case, ten jobs, concurrency1,
  // historical4–9 routes and18m. These timings plan capacity, not a PASS.
- if(category==='browser E2E'&&total===10){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_TEN_UNADMITTED:'+name);return name==='context-cards-chrome-e2e.test.mjs'?10:name==='cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'?1:name==='cpv1-02-4-reader-chrome-e2e.test.mjs'?3:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?8:name==='nib-v4-settings-entry-chrome-e2e.test.mjs'||name==='topic-section-writing-chrome-e2e.test.mjs'?4:name==='ans-01-reader-surfaces-chrome-e2e.test.mjs'?4:shard;}
+ // PR313 approved scope: move whole Maintenance4->3 and Reconnect3->4.
+ // Prior 149.56s/28.33s spans guide balance, not a timing guarantee; the
+ // larger Maintenance and Topic lifecycle remain complete and unmeasured here.
+ // Keep 101 roots, Context alone on10, historical4-9 routes, ten jobs and18m.
+ if(category==='browser E2E'&&total===10){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_TEN_UNADMITTED:'+name);return name==='cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs'?3:name==='cpv1-01-2-reconnect-chrome-e2e.test.mjs'?4:name==='context-cards-chrome-e2e.test.mjs'?10:name==='cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'?1:name==='cpv1-02-4-reader-chrome-e2e.test.mjs'?3:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?8:name==='nib-v4-settings-entry-chrome-e2e.test.mjs'||name==='topic-section-writing-chrome-e2e.test.mjs'?4:name==='ans-01-reader-surfaces-chrome-e2e.test.mjs'?4:shard;}
  if(category==='browser E2E'&&total===9){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_NINE_UNADMITTED:'+name);return shard;}
  // Full37830791787: shard1 cancelled at18m with two tail files unreported.
  // Reader/Revisit costs257s; shard6 native636s leaves measured capacity.
