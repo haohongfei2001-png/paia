@@ -58,7 +58,11 @@ for(const variant of ['source','release'])test('Section fragment reload survives
  try{
   if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
   h=await FakeChatGPT.start({extensionPath:release||resolve('.'),headless:true,launchThroughPort:true});const p=h.archive;await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();
-  const seed=await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();const topic=await s.createTopic({name:'SYNTHETIC fragment target',operationId:crypto.randomUUID()}),section=await s.createSection({topicId:topic.id,expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,title:'SYNTHETIC explicit Section',operationId:crypto.randomUUID()});return {topicId:topic.id,sectionId:section.sectionId,rows:await s.repository.transaction(false,t=>t.all('thoughts'))};});
+  // Seed through the existing worker owner instead of racing its consent publication.
+  const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC fragment target',operationId:crypto.randomUUID()}}),section=await rpc(p,'CREATE_LIBRARY_SECTION',{section:{topicId:topic.id,expectedTopicRevision:(await rpc(p,'GET_LIBRARY_TOPIC',{id:topic.id})).organizationRevision,title:'SYNTHETIC explicit Section',operationId:crypto.randomUUID()}});
+  // Preserve the complete unfiltered Thought-table oracle without a second Store prelude.
+  const readThoughts=()=>p.evaluate(async()=>{const {ArchiveRepository}=await import('../core/idb-repository.js'),repository=new ArchiveRepository(chrome.storage.local,{ia:true,smartFilter:true,thoughtLibrary:true});try{return await repository.transaction(false,t=>t.all('thoughts'),['thoughts']);}finally{await repository.close();}});
+  const seed={topicId:topic.id,sectionId:section.sectionId,rows:await readThoughts()};
   for(const pending of [true,false]){
    const neutral=new URL(p.url());neutral.hash='';await p.goto(neutral.href);await thoughtPrimary(p,'library');await eventually(()=>p.evaluate(()=>history.state?.paiaReader?.view==='library'),'neutral Archive committed before native fragment');
    if(pending)await p.evaluate(()=>{const original=chrome.runtime.sendMessage;chrome.runtime.sendMessage=async function(message,...rest){const result=await original.call(this,message,...rest);if(message.type==='GET_LIBRARY_SECTION_PROJECTION'){globalThis.fragmentQualificationHeld=true;await new Promise(()=>{});}return result;};});
@@ -66,7 +70,7 @@ for(const variant of ['source','release'])test('Section fragment reload survives
    if(pending){await eventually(()=>p.evaluate(()=>globalThis.fragmentQualificationHeld===true),'actual original Section qualification held before reload');assert.equal(await p.evaluate(()=>history.state),null,'pending native history remains genuinely stateless');}
    else await eventually(()=>p.evaluate(id=>history.state?.paiaReader?.view==='thoughts'&&history.state.paiaReader.topicId===id,seed.topicId),'completed native fragment commits its exact Topic before reload');
    await p.reload();await eventually(()=>p.evaluate(id=>document.activeElement?.closest('.topic-section')?.dataset.sectionId===id,seed.sectionId),'pending/completed native fragment reload qualifies exact Section');
-   assert.deepEqual(await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();return s.repository.transaction(false,t=>t.all('thoughts'));}),seed.rows,'navigation never manufactures an Entry');
+   assert.deepEqual(await readThoughts(),seed.rows,'navigation never manufactures an Entry');
   }
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{await h?.close();if(release)await rm(release,{recursive:true,force:true});}
