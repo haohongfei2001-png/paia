@@ -1,0 +1,17 @@
+[
+  {
+    "path": "extension/tests/prompt-surface-capsule-display.test.mjs",
+    "sha256": "5dabbc3ca7bf406d3c7214d2cd4bd9868babd38ceb6bf09369b0433eed32db0d",
+    "equalsFailedMerge": true
+  },
+  {
+    "path": "extension/tests/cpv1-09-prompt-surface.test.mjs",
+    "sha256": "3df5ddd1d154714caff2beb11d6b1d7cee544388e760744e99fc3e814754c816",
+    "equalsFailedMerge": true
+  },
+  {
+    "path": "extension/content/prompt-surface.js",
+    "sha256": "6d0844f79e43648c7a643d7fa54623ac21b9e7681b613d46935da01dfbe23969",
+    "equalsFailedMerge": true
+  }
+]

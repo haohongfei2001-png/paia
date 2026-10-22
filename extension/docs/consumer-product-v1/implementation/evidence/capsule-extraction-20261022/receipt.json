@@ -1,0 +1,93 @@
+{
+  "base": "0b1fc8596ae611b5a76120af8a823cf2482b2505",
+  "fix": "6cc8dd3722dc4e9296508b833953a83feea9e759",
+  "tree": "f94c615f7e854d688b604f53cbd16c5648a71188",
+  "cloudRun": 39748755471,
+  "cloudJob": 119723745213,
+  "cloudHead": "86fbeed40d64a0fc4f84a869db1195bae6960b28",
+  "testedMerge": "9c712f716b105c449c264cdb0c87c4c7d6187e32",
+  "node": "22.23.4",
+  "before": {
+    "total": 39,
+    "pass": 36,
+    "fail": 3
+  },
+  "after": {
+    "total": 39,
+    "pass": 39,
+    "fail": 0
+  },
+  "sameRegisteredCases": [
+    "surface frames require exact origin, nonce, current host, positive frame and consent",
+    "host gets only geometry; frame insertion is forcibly bound to its own tab and cannot query arbitrary capabilities",
+    "position is bounded device-only metadata, with no website or archive body storage",
+    "safe geometry clamps orb and card, excludes native composer controls at 320px and expanded scale",
+    "surface publishes only one static extension frame, no host library bridge or new privileged host",
+    "popup diagnostic is consent-only, exact-view authorized and returns bounded metadata",
+    "open geometry uses one visible anchor, projects the attached card into safe bands and restores without drift",
+    "SPA geometry save binds the initial sender URL to the exact live document, without authorizing stale navigation",
+    "open surface preserves legacy metadata without moving the common composer anchor",
+    "saved open anchor remains viewport-bounded when scrolling moves the composer outside the viewport",
+    "initial host mount stays hidden until held first geometry frame: composer top 8",
+    "initial host mount stays hidden until held first geometry frame: composer top 700",
+    "disposing the host cancels its pending presentation timer and removes composer activity listeners",
+    "open orb requests the private card close policy instead of only focusing or destroying its frame",
+    "orb drag click suppression ends with its gesture and keyboard activation still requests closure",
+    "orb drag temporarily excludes the iframe from hit testing and every terminal path releases capture once",
+    "host close request is nonce-only and bound to the exact active top document, consent and live card",
+    "host close request rejects navigation or consent changes during its live probe; SPA uses the live document",
+    "approved double-card presentation uses one persistent circle and accessible owner",
+    "authenticated measure is geometry-only, bounded, exact-shaped and nonce-bound",
+    "host measurement accepts only current private nonce and preserves the frame",
+    "measure acknowledgements follow layout and cannot authorize a superseded nonce or generation",
+    "surface exposes only normalized display preferences through the original read-only meta owner",
+    "private query exposes only a strict automatic-presentation boolean and never host suggestion bodies",
+    "first collapsed host reads only display choices and cannot persist them as geometry",
+    "display-only activation never reinitializes an open private editor; consent activation retains its guard",
+    "initial connected orb already has the saved accessible language and theme before its first animation frame",
+    "only an authenticated private frame selects a strict device-local collapsed form",
+    "private close relays only the original nonce-bound host form, never a child-selected or stale form",
+    "a hidden R3 card still publishes the capsule system appearance and language without measuring hidden geometry",
+    "a system appearance change in an existing capsule reaches the original host through the original measure message",
+    "a retired frame cannot impose its light appearance or language on the next dark system capsule",
+    "capsule explicit preferences override system changes, retain exact field-only messages and deduplicate unchanged display",
+    "a hidden capsule preserves the last visible accessibility envelope and does not touch its hidden rows",
+    "a live pointer defers the capsule display message until the original gesture boundary",
+    "display changes during an in-flight original measure publish only after its ACK with the latest display",
+    "a disposed capsule or an unmeasurable non-capsule never starts a display message",
+    "a failed original measure clears both dimensions before a later hidden capsule retries its bounded envelope",
+    "the original host rejects late retired-nonce and foreign-source display messages without changing the new capsule"
+  ],
+  "files": [
+    {
+      "file": "original-unit4.log.gz",
+      "rawBytes": 548156,
+      "rawSha256": "45995ebd0f9486b2f1d1ac9523d254172ed4df3770835a494a85f199b17157a6",
+      "publicSha256": "45995ebd0f9486b2f1d1ac9523d254172ed4df3770835a494a85f199b17157a6"
+    },
+    {
+      "file": "before.tap.gz",
+      "rawBytes": 13721,
+      "rawSha256": "b94ea6383a3e3f1658f53320dde00f08db5235c71f7494a014dae2728713f32f",
+      "publicSha256": "0584fd7c267c5c0768506d94735553eb34197b707c19f135a18e739c1c6fe911"
+    },
+    {
+      "file": "after.tap.gz",
+      "rawBytes": 10343,
+      "rawSha256": "5f7bace8916d19d7e23d87362fb64417c81dfae8bac04a9a18fc9e45b7d5fbed",
+      "publicSha256": "5f7bace8916d19d7e23d87362fb64417c81dfae8bac04a9a18fc9e45b7d5fbed"
+    },
+    {
+      "file": "package.txt",
+      "rawBytes": 153,
+      "rawSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "publicSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b"
+    },
+    {
+      "file": "baseline.json",
+      "rawBytes": 551,
+      "rawSha256": "51af971f01e6268346661cc47d79a28352d55f2de7180c99bc560392e98011cf",
+      "publicSha256": "51af971f01e6268346661cc47d79a28352d55f2de7180c99bc560392e98011cf"
+    }
+  ]
+}
