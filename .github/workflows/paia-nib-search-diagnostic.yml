@@ -1,0 +1,101 @@
+name: PAIA Isolated NIB Search Diagnostic
+# One approved synthetic diagnostic, not Full certification or a PR gate.
+on:
+  push:
+    branches: ['evidence/nib-search-linux-once-20261022']
+    paths:
+      - '.github/workflows/paia-nib-search-diagnostic.yml'
+permissions:
+  contents: read
+concurrency:
+  group: paia-nib-search-diagnostic-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  CI: '1'
+  PLAYWRIGHT_MODULE: 'playwright'
+jobs:
+  search:
+    name: Original Search Source and Release diagnostic once
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund --package-lock=false
+      - name: Prepare portable Chrome test environment
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Use signed Ubuntu archive over HTTPS before browser font dependencies
+        run: |
+          # Run37687078617 stalled in font setup; prior37685485859 exhausted its adapter budget on this mirror.
+          # Change only that mirror URI; preserve suites, packages and signing keys.
+          sudo python3 - <<'PYAPT'
+          from pathlib import Path
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt').glob('*mirrors*.txt'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          for path in paths:
+              if path.is_file():
+                  text = path.read_text()
+                  updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')
+                  if updated != text:
+                      path.write_text(updated)
+          PYAPT
+      - name: Provide Chinese glyph coverage for actual visual evidence
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk
+          fc-list :lang=zh | grep -q .
+          mkdir -p work
+          for family in 'Noto Serif CJK SC' 'Noto Sans CJK SC' 'WenQuanYi Zen Hei'; do
+            fc-match --format '%{family}: %{file}\n' "$family"
+          done | tee work/current-browser-fonts.txt
+      - name: Verify the installed Chrome actually launches
+        run: xvfb-run -a node scripts/check-hosted-chrome.mjs
+      - name: Freeze diagnostic source identity
+        env:
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          mkdir -p work/nib-v4-s1-search
+          {
+            printf 'scope=ISOLATED_DIAGNOSTIC_NOT_FULL\n'
+            printf 'run_id=%s\nattempt=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
+            git rev-parse HEAD 'HEAD^{tree}'
+            node --version
+            python3 --version
+            "$CHROME_PATH" --version
+            sha256sum tests/nib-v4-search-chrome-e2e.test.mjs tests/nib-search-cleanup.test.mjs tests/harness/nib-search-owner-copy.mjs tests/harness/nib-search-cleanup.mjs ../.github/workflows/paia-nib-search-diagnostic.yml
+          } > work/nib-v4-s1-search/linux-identity.txt
+          cp work/current-browser-fonts.txt work/nib-v4-s1-search/linux-fonts.txt
+      - name: Run the unchanged whole original Search journey once per variant
+        env:
+          NIB_SEARCH_OWNER_DIAGNOSTICS: '1'
+          NIB_SEARCH_VARIANTS: 'source,release'
+          PAIA_TEST_CONCURRENCY: '1'
+        run: |
+          set -euo pipefail
+          trap 'status=$?; printf "%s\n" "$status" > work/nib-v4-s1-search/linux-exit.txt' EXIT
+          xvfb-run -a node --test --test-concurrency=1 --test-reporter=tap tests/nib-v4-search-chrome-e2e.test.mjs 2>&1 | tee work/nib-v4-s1-search/linux-search.tap
+      - name: Retain only synthetic Search evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nib-search-diagnostic-${{ github.sha }}-${{ github.run_attempt }}
+          path: extension/work/nib-v4-s1-search/
+          if-no-files-found: warn
+          retention-days: 14
