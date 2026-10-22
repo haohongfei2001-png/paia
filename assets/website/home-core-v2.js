@@ -308,8 +308,8 @@
     const changed = all('[data-working]').some(field => field.value !== originals.get(field.dataset.working));
     const wording = {
       original: t('保留上方原话。整理只改变阅读呈现，不覆盖你的文字或主题组织。', 'Keep the words above. Organization changes the reading view, never your words or topic structure.'),
-      balanced: t('最初比较素材找回和内容生成，判断创作者更需要什么。随后把第一版缩到一个反复发生的问题，暂缓协作。最新保留的决定是先做素材找回，是否增加生成待后续判断；仍以能否接上下一次任务作为标准。', 'The early question compared material retrieval with generation. The scope then narrowed to one recurring problem, with collaboration deferred. The latest retained decision is to start with retrieval and decide later whether to add generation. Success still means helping the next task build on existing work.'),
-      concise: t('当前决定：先验证素材找回，暂缓协作；是否增加生成以后再判断，标准是下一次任务能否接上积累。', 'Current decision: validate retrieval first and defer collaboration. Decide later whether to add generation, judging it by whether the next task builds on existing work.')
+      balanced: t('这组表达把第一版限制在交付物、时间和修改次数，明确不做客户或项目管理。修改次数并非越少越好，关键是双方提前理解范围。后来的验证仍围绕哪些修改算额外工作，而不是因为有人提出看板就扩大产品。', 'These expressions limit the first release to deliverables, timing and revision limits, excluding client and project management. Fewer revisions are not the goal: mutual understanding of the scope is. The later test still concerns changes that cost extra, rather than adding a board just because someone requests it.'),
+      concise: t('先让双方说清报价与修改范围。不做客户管理、项目看板、进度或开票；是否增加功能，不能只看有没有人提出。', 'Clarify the quote and revision scope. Do not add client management, boards, progress tracking or invoicing simply because someone asks.')
     };
     const output = $('[data-reading-output]');
     output.replaceChildren();
@@ -345,11 +345,11 @@
       });
       if (isOn($('[data-card-allow="inputs"]'))) {
         if (isOn($('[data-topic-allow="product"]'))) {
-          scope.push({label: t('我的输入 / 产品的第一步', 'My Inputs / A product’s first step'),
+          scope.push({label: t('我的输入 / 做一个报价工具', 'My Inputs / Building a quoting tool'),
             value: all('[data-topic-reader="product"] [data-thought-text]').map(field => field.textContent).join('\n\n')});
         }
         if (isOn($('[data-topic-allow="writing"]'))) {
-          scope.push({label: t('我的输入 / 写作习惯', 'My Inputs / Writing practice'),
+          scope.push({label: t('我的输入 / 提醒，真的让人更专注吗？', 'My Inputs / Do reminders actually help people focus?'),
             value: all('[data-topic-reader="writing"] .pc-reader-prose').map(item => item.textContent).join('\n\n')});
         }
       }

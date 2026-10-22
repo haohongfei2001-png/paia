@@ -41,7 +41,12 @@ def verify_editorial(page, check, label='site'):
         test(page.locator('[data-context-overview] textarea,[data-context-overview] input').count() == 0, 'no personal field in the directory')
         test(page.locator('[data-context-overview] [data-context-text]').count() == 0, 'editable personal bodies belong only to explicit details')
         test(page.locator('[data-context-overview] [data-thought-text],[data-context-overview] .ad-story-entry').count() == 0, 'no topic contents are repurposed as Context cards')
-    if route == 'index.html' and page.locator('body').get_attribute('data-site-revision') == '20261022':
+    if route == 'index.html' and page.locator('body').get_attribute('data-site-revision') == 'continuity-v2':
+        from continuity_checks import verify_hero
+        verify_hero(page,check,en=not zh)
+        test(page.locator('.ed-desktop-link').count()==0,'no handoff to an unavailable installer')
+        test(page.locator('.hero-actions .button').is_visible(),'main usable action visible at every width')
+    elif route == 'index.html' and page.locator('body').get_attribute('data-site-revision') == '20261022':
         from value_story_checks import verify_hero
         verify_hero(page,check,en=not zh)
         if page.locator('body').get_attribute('data-install-available') == 'false':
