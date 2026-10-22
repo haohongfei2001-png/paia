@@ -19,7 +19,7 @@ async function inputFixture(t){
  return {...f,inputId,entry,...await sourceRunner(t,f)};
 }
 test('current-main deterministic Input-backed Entry follows the complete original signed action path',async t=>{
- const f=await inputFixture(t),result=await f.run();assert.equal(result.completed,true,JSON.stringify(result));assert.equal(result.candidateCreated,true);assert.equal(f.physical(),1);
+ const f=await inputFixture(t),result=await f.run();assert.equal(result.completed,true,JSON.stringify(result));assert.equal(result.currentPublished,true);assert.equal(result.revision,1);assert.equal(f.physical(),1);
  assert.deepEqual(f.payload().inputs.map(x=>x.ref),[f.entry.id]);const jobs=await rows(f.s,'organizerJobs');assert.equal(jobs.length,1);assert.equal(jobs[0].state,'COMMITTED');assert.deepEqual(jobs[0].coverage,[{key:JSON.stringify(['input',f.inputId]),facet:'organize',scope:f.topic.id}]);
 });
 for(const mode of ['history','human-keep','history-after-keep'])test('current-main original Filter boundary preserves '+mode,async t=>{
@@ -36,9 +36,9 @@ for(const mode of ['history','human-keep','history-after-keep'])test('current-ma
 // the independent original 40-positive service assertion is never weakened.
 test('current-main original 40-Entry source action commits exact coverage under unchanged guards',async t=>{
  const f=await organizeServiceFixture(t,{count:40}),r=await sourceRunner(t,f),result=await r.run(),jobs=await rows(f.s,'organizerJobs'),usage=await rows(f.s,'organizerUsage'),acks=(await rows(f.s,'organizerWorkItems')).filter(x=>x.state==='ACKNOWLEDGED');
- assert.equal(result.completed,true,JSON.stringify(result));assert.equal(result.candidateCreated,true);assert.equal(f.physical(),2);
+ assert.equal(result.completed,true,JSON.stringify(result));assert.equal(result.currentPublished,true);assert.equal(result.revision,1);assert.equal(f.physical(),2);
  assert.equal(jobs.length,1);assert.equal(jobs[0].state,'COMMITTED');assert.equal(jobs[0].childIds.length,2);
  const expected=new Set(f.entries.map(x=>JSON.stringify(['library_entry',x.id])));assert.equal(jobs[0].coverage.length,40);assert.deepEqual(new Set(jobs[0].coverage.map(x=>x.key)),expected);assert.equal(jobs[0].childCoverage.flat().length,40);assert.deepEqual(new Set(jobs[0].childCoverage.flat().map(x=>x.key)),expected);
  assert.equal(acks.length,40);assert.equal(usage.length,2);assert.ok(usage.every(x=>x.attemptCount===1&&x.financialSettlement.settledSpendMicros===120));assert.equal(f.calls.filter(x=>x.path==='/api/results').length,1);
- const candidate=(await r.runner.status({topicId:f.topic.id})).topics[0].candidate;assert.ok(candidate);assert.equal(candidate.stale,false);
+ const topic=(await r.runner.status({topicId:f.topic.id})).topics[0];assert.equal(topic.candidate,null);assert.equal(topic.presentation.revision,1);assert.equal(topic.presentation.stale,false);assert.ok(topic.presentation.currentView.includes('SYNTHETIC organize evidence'));const revisions=(await rows(f.s,'revisions')).filter(x=>x.kind==='ai_presentation');assert.equal(revisions.length,1);assert.equal(revisions[0].actor,'ai');assert.equal(revisions[0].operationId,jobs[0].id);
 });

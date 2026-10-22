@@ -15,7 +15,7 @@ import {KNOWN_PREFIX} from '../ai-usage/delta.js';
 import {validOrganizeCacheProfile} from './organize-cache-qualification.js';
 import {readLocalOrganizeCurrentInTransaction,readLocalOrganizeScopeInTransaction,commitLocalOrganizeCandidateInTransaction,confirmLocalOrganizeCacheProof,releaseLocalOrganizeCacheProof,localOrganizeProofFullyAdopted,confirmLocalOrganizeLifecycle,releaseLocalOrganizeLifecycle,assertLocalOrganizeCacheControls,localOrganizeCacheControlsCurrent} from './ai-presentation.js';
 import {bytes} from './contracts.js';
-import {validateLocalOrganizeResponse} from './ai-contract.js';
+import {AI_FIELDS,validateLocalOrganizeResponse} from './ai-contract.js';
 // Immutable original job identity only; execution state and spend stay owned by Foundation.
 const serviceJobBinding=job=>canonical(Object.fromEntries(['id','kind','version','type','commitMode','organizeRequestKey','organizeStyle','organizeSemanticKey','items','coverage','childCoverage','childIds','scopeFingerprint','contractVersion','routeVersion','authority','flightId','sourceRecordIds'].filter(k=>Object.hasOwn(job,k)).map(k=>[k,job[k]])));
 // The configured original worker uses this same local adoption owner. Handles
@@ -28,12 +28,12 @@ export class LocalOrganizeSession {
   this.#store=store;this.#source=actionSource;if(actionSource!==null&&!this.#service)fail('UNAVAILABLE');this.#profile=structuredClone(profile);this.#route=routeVersion;
   this.#foundation=new AIUsageFoundation(store,{resolveAuthority,organizeClosure:async(t,r)=>{
    const state=this.#jobs.get(r.logicalJobId);if(!state?.multi||!state.validated||canonical(r.childIds)!==canonical(state.job.childIds)||canonical(r.units)!==canonical(state.coverage)||state.outputs.size!==r.childIds.length)fail('STALE_BASE');
-   await this.#assertProvenance(t,state);releaseLocalOrganizeCacheProof(store,state.cacheProof);const validated=state.validated,committed=await this.#commitMaterial(t,state,{prepared:state.prepared,result:validated,candidateId:r.logicalJobId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration,qualification:{variant:'atomic-v3',jobId:r.logicalJobId,childIds:r.childIds,childCoverage:r.children,coverage:r.units,items:state.items,children:r.childIds.map(id=>state.provenance.get(id)),profile:this.#profile,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&state.validated===validated&&state.outputs.size===r.childIds.length}});state.cacheProof=committed.cacheProof;state.lifecycleToken=committed.lifecycleToken;state.lifecycleKey=committed.lifecycleKey;state.candidateCreated=committed.candidateCreated===true;
-   if(this.#jobs.get(r.logicalJobId)!==state)fail('UNAVAILABLE');return {committed:true,coverage:r.units,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&state.outputs.size===r.childIds.length};
+   await this.#assertProvenance(t,state);releaseLocalOrganizeCacheProof(store,state.cacheProof);const validated=state.validated,committed=await this.#commitMaterial(t,state,{prepared:state.prepared,result:validated,candidateId:r.logicalJobId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration,qualification:{variant:'atomic-v3',jobId:r.logicalJobId,childIds:r.childIds,childCoverage:r.children,coverage:r.units,items:state.items,children:r.childIds.map(id=>state.provenance.get(id)),profile:this.#profile,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&state.validated===validated&&state.outputs.size===r.childIds.length}});state.cacheProof=committed.cacheProof;state.lifecycleToken=committed.lifecycleToken;state.lifecycleKey=committed.lifecycleKey;state.candidateCreated=committed.candidateCreated===true;state.currentPublication=committed.currentPublished!==undefined?{currentPublished:committed.currentPublished,changed:committed.changed,revision:committed.revision,jobId:committed.jobId}:null;
+   if(this.#jobs.get(r.logicalJobId)!==state)fail('UNAVAILABLE');return {committed:true,coverage:r.units,...(state.currentPublication?{outcome:state.currentPublication.changed?'COMMITTED':'NO_CHANGE'}:{}),isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&state.outputs.size===r.childIds.length};
   },committers:{organize:async(t,r)=>{
    const state=this.#jobs.get(r.logicalJobId);if(!state?.validated||state.job.childIds[0]!==r.childOperationId||canonical(r.units)!==canonical(state.coverage))fail('STALE_BASE');
-   await this.#assertProvenance(t,state);releaseLocalOrganizeCacheProof(store,state.cacheProof);const committed=await this.#commitMaterial(t,state,{prepared:state.prepared,result:state.validated,candidateId:r.childOperationId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration,qualification:{jobId:r.logicalJobId,childId:r.childOperationId,coverage:r.units,profile:this.#profile}});state.cacheProof=committed.cacheProof;state.lifecycleToken=committed.lifecycleToken;state.lifecycleKey=committed.lifecycleKey;state.candidateCreated=committed.candidateCreated===true;
-   return {committed:true,coverage:r.units,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&!!state.validated};
+   await this.#assertProvenance(t,state);releaseLocalOrganizeCacheProof(store,state.cacheProof);const committed=await this.#commitMaterial(t,state,{prepared:state.prepared,result:state.validated,candidateId:r.childOperationId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration,qualification:{jobId:r.logicalJobId,childId:r.childOperationId,coverage:r.units,profile:this.#profile}});state.cacheProof=committed.cacheProof;state.lifecycleToken=committed.lifecycleToken;state.lifecycleKey=committed.lifecycleKey;state.candidateCreated=committed.candidateCreated===true;state.currentPublication=committed.currentPublished!==undefined?{currentPublished:committed.currentPublished,changed:committed.changed,revision:committed.revision,jobId:committed.jobId}:null;
+   return {committed:true,coverage:r.units,...(state.currentPublication?{outcome:state.currentPublication.changed?'COMMITTED':'NO_CHANGE'}:{}),isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&!!state.validated};
   }}});
  }
  #assertAction(action){
@@ -105,9 +105,9 @@ export class LocalOrganizeSession {
  #state(handle){const state=this.#handles.get(handle);if(!state)fail('UNAVAILABLE');return state;}
  async #retireAdopted(){
   const generation=this.#generation;
-  for(const [id,state]of [...this.#jobs])if(!state.running&&localOrganizeProofFullyAdopted(this.#store,state.lifecycleToken,id)){
+  for(const [id,state]of [...this.#jobs])if(!state.running&&(state.completed&&state.currentPublication||localOrganizeProofFullyAdopted(this.#store,state.lifecycleToken,id))){
    const job=await this.#foundation.status(id);if(generation!==this.#generation)fail('UNAVAILABLE');if(state.running||this.#jobs.get(id)!==state||job.state!=='COMMITTED')continue;
-   this.#handles.set(state.handle,{retired:true,jobId:id,generation:this.#generation});this.#jobs.delete(id);
+   this.#handles.set(state.handle,{retired:true,jobId:id,generation:this.#generation,completed:true,currentPublication:state.currentPublication});this.#jobs.delete(id);
    releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);releaseLocalOrganizeLifecycle(this.#store,state.lifecycleToken);
   }
  }
@@ -145,7 +145,7 @@ export class LocalOrganizeSession {
   if(this.#generation!==generation)fail('UNAVAILABLE');
   this.#assertAction(sourceAction);
   if(this.#source===null&&scopeBinding!==null&&scopeBinding!==await digest([data.prepared.proof,this.#profile,this.#route]))fail('STALE_BASE');
-  const coverage=data.coverage;if(data.prepared.incremental&&!coverage.length)return Object.freeze({state:'NO_DELTA',jobId:null});
+  const coverage=data.coverage;if(data.prepared.incremental&&!coverage.length)return Object.freeze({state:'NO_DELTA',jobId:null,...(data.prepared.incremental.blockedReason?{blockedReason:data.prepared.incremental.blockedReason}:{})});
   if(data.cacheAuthority){if(!this.#controlsCurrent(data.prepared))fail('STALE_BASE');if(this.#jobs.size+this.#cached.size>=8&&!this.#cached.has(topicId))fail('UNAVAILABLE');const prior=this.#cached.get(topicId);if(prior)this.#handles.delete(prior.handle);const handle=Object.freeze({state:'CACHED',jobId:null}),state={...data,handle,cached:true,running:false};this.#handles.set(handle,state);this.#cached.set(topicId,state);return handle;}
   if(this.#service){
    // A fresh explicit click may retry only an already validated local CAS.
@@ -198,7 +198,7 @@ export class LocalOrganizeSession {
    const current=await this.#material(t,state.prepared.topic.id,state.prepared.physicalChildren,state.prepared.refreshStyle,state.sourceAction);
    if(current.proof!==state.prepared.proof||(!state.multi&&job.childIds.length!==1)||job.committedCoverage.length||job.childIds[index]!==state.job.childIds[index])fail('STALE_BASE');
    const inputs=state.multi?state.partitions[index].inputs:current.inputs,usage=this.#foundation.childRequest(job,index);
-   const request={topicId:current.topic.id,style:current.style,inputs,profile:this.#profile,...(current.incremental?{responseVersion:2}: {})};
+   const request={topicId:current.topic.id,style:current.style,inputs,profile:this.#profile,...(current.incremental?{responseVersion:2}: {}),writableFields:AI_FIELDS.filter(field=>!state.prepared.topic.stored?.protections?.[field])};
    if(bytes(request)>this.#store.organizerBudget.limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
    const payload=structuredClone({...request,usage});if(bytes(payload)>this.#store.organizerBudget.limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
    const facts=this.#preparedReaderFacts.get(current);if(!facts||!this.#controlsCurrent(state.prepared))fail('STALE_BASE');
@@ -335,7 +335,7 @@ export class LocalOrganizeSession {
   const result=await this.#completed(state,await commit());await report();return result;
  }
  async stop(handle){const state=this.#state(handle);state.controller?.abort();if(state.job?.id)return this.#service?this.#foundation.cancelServer(state.job.id):this.#foundation.cancel(state.job.id);}
- async status(handle){const state=this.#state(handle),result=state.job?.id?await this.#foundation.status(state.job.id):{state:state.cached?'CACHED':'NO_DELTA',attempts:[]};return this.#source===null?result:{...result,candidateCreated:result.state==='COMMITTED'&&state.completed===true&&state.candidateCreated===true};}
+ async status(handle){const state=this.#state(handle),jobId=state.job?.id??state.jobId,result=jobId?await this.#foundation.status(jobId):{state:state.cached?'CACHED':'NO_DELTA',attempts:[]};return this.#source===null?result:{...result,candidateCreated:result.state==='COMMITTED'&&state.completed===true&&state.candidateCreated===true,...(result.state==='COMMITTED'&&state.completed===true&&state.currentPublication?state.currentPublication:{})};}
  // Stop only the physical provider await; Foundation owns durable UNKNOWN
  // accounting. A late response has no path back into validation or adoption.
  async #executeBounded(state,provider,payload){

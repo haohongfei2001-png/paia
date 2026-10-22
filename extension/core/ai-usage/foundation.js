@@ -1022,7 +1022,8 @@ export class AIUsageFoundation {
    if(result?.committed!==true||!equal((result.coverage||[]).map(unitKey).sort(),job.coverage.map(unitKey).sort()))fail('STALE_BASE');
    await this.current(t,job);
    if(typeof result.isCurrent!=='function'||result.isCurrent()!==true)fail('STALE_BASE');
-   for(let i=0;i<job.childIds.length;i++)await this.settleFacet(t,job,i,job.childCoverage[i],{outcome:'COMMITTED'});
+   if(Object.hasOwn(result,'outcome')&&!['COMMITTED','NO_CHANGE'].includes(result.outcome))fail('STALE_BASE');
+   for(let i=0;i<job.childIds.length;i++)await this.settleFacet(t,job,i,job.childCoverage[i],{outcome:result.outcome??'COMMITTED'});
    if(result.isCurrent()!==true)fail('STALE_BASE');
    return safeJob(job);
   });
@@ -1041,6 +1042,7 @@ export class AIUsageFoundation {
    // Optional private owner fence. It is supplied only by a trusted committer,
    // never a request/provider DTO; promises and nonfunctions fail closed.
    const assertOwner=()=>{if(Object.hasOwn(result,'isCurrent')&&(typeof result.isCurrent!=='function'||result.isCurrent()!==true))fail('STALE_BASE');};
+   if(Object.hasOwn(result,'outcome')){if(job.type!=='AI_ORGANIZE'||facet!=='organize'||!['COMMITTED','NO_CHANGE'].includes(result.outcome))fail('STALE_BASE');outcome=result.outcome;}
    assertOwner();const settled=await this.settleFacet(t,job,index,remaining,{outcome,local});assertOwner();
    // Trusted owner only, never serialized or accepted from a request/provider.
    // This fence follows every settlement write, including NO_CHANGE counters;

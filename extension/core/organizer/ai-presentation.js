@@ -21,7 +21,7 @@ import {aiCandidateKey,createAIPresentationCandidate,publicAIPresentationCandida
 import {AI_FIELDS,AI_LIST_FIELDS,AI_SCHEMA_VERSION,isStoredAIPresentation,presentationContent,validateAIPresentation} from './ai-contract.js';
 import {validateDeepSeekRequest,DEEPSEEK_MODEL} from './deepseek.js';
 import {hashText} from '../dedupe.js';
-import {journal,receipt,saveReceipt} from '../thought-journal.js';
+import {journal,receipt,saveReceipt,planJournalRevision} from '../thought-journal.js';
 export {validateAIPresentation};
 // AI generation and adoption target only this derivative metadata family.
 // Adoption never grants write-back authority over Source, Working Input or
@@ -301,6 +301,7 @@ export const localOrganizeCacheControlsCurrent=(s,prepared)=>cacheControlMatches
 export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,result,candidateId,qualification=null,manifestDigest=null,baseGeneration=null,scopeReader=null}){
  const qualified=scopeReader===null?null:{cap:scopeReader,transaction:t};if(qualified){requireOriginalOrganizeCommitScopeReader(scopeReader,s,t);if(prepared.incrementalVersion!==3)reject('UNAVAILABLE');}
  const current=await readLocalOrganizeScopeInTransaction(s,t,prepared.topic.id,prepared.profile,prepared.incrementalVersion,prepared.physicalChildren,prepared.refreshStyle,scopeReader);if(current.proof!==prepared.proof)reject('STALE_BASE');
+ if(qualified&&qualification?.jobId)return commitFreshOrganizeCurrent(s,t,{prepared,result,current,qualification,manifestDigest,scopeReader});
  const topic=current.topic,old=topic.stored,cp=current.checkpoint,candidate=createAIPresentationCandidate(topic.presentation,result,{createdAt:s.clock(),materialVersions:prepared.incrementalVersion>=2?topic.incrementalVersions:topic.scopeVersions,sourceBinding:await candidateBinding(s,qualified?requireOriginalOrganizeCommitScopeReader(scopeReader,s,t).reader:t,topic,topic,current.gateEpoch,prepared.incrementalVersion>=2,qualified),candidateId,manifestDigest,baseGeneration});
  if(candidate){const base=topic.presentation?old:{id:ROW+topic.id,topicId:topic.id,envelopeVersion:1,currentState:'none',revision:0,recoveryGeneration:isBaseNoneEnvelope(old)?old.recoveryGeneration:candidateId,...(isBaseNoneEnvelope(old)&&old.recoveryPurgeRevision!==undefined?{recoveryPurgeRevision:old.recoveryPurgeRevision}:{}),basedOnCheckpoint:old?.basedOnCheckpoint||{entryVersions:{}}};if(qualified){
    const reader=requireOriginalOrganizeCommitScopeReader(scopeReader,s,t).reader,after={...base,candidate,needsUpdate:false,stale:false},fence={id:'ai-presentation-candidate-fence:'+topic.id,entityKind:'organizer_metadata',ownerKind:'ai_presentation_candidate',ownerId:topic.id,statusKey:1,sourceRecordIds:await sourceIdsForEntries(reader,candidate.proposal?.evidenceEntryIds)};
@@ -327,6 +328,45 @@ export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,re
  let lifecycleToken=null;
  if(candidate&&qualification?.jobId){lifecycleToken=Object.freeze({});if(localLifecycleProofs.size>=32)localLifecycleProofs.delete(localLifecycleProofs.keys().next().value);localLifecycleProofs.set(lifecycleToken,{store:s,jobId:qualification.jobId,topicId:topic.id,confirmed:false});}
  return {candidateCreated:!!candidate,cacheProof,lifecycleToken,lifecycleKey:candidate?aiCandidateKey(candidate):null};
+}
+
+// Only the genuine action/processing cap enters this owner. Historical
+// candidate adoption remains a separate user-decision operation above.
+async function commitFreshOrganizeCurrent(s,t,{prepared,result,current,qualification,manifestDigest,scopeReader}){
+ const {topic,checkpoint:cp}=current,old=topic.stored,reader=requireOriginalOrganizeCommitScopeReader(scopeReader,s,t).reader;
+ const job=await t.get('organizerJobs',qualification.jobId),generations=Object.values(result?.manifest?.generations||{}),fresh=generations.filter(g=>g.kind==='local-committed-v1'&&g.jobId===qualification.jobId);
+ if(prepared.incrementalVersion!==3||!isIncrementalV3(result)||!isStoredAIPresentation(result,new Set(topic.entries.map(e=>e.id)))||job?.type!=='AI_ORGANIZE'||job.state==='COMMITTED'||job.cancelEpoch!==0||fresh.length!==1||!equal(fresh[0].children.map(c=>c.childId),job.childIds)||!equal(result.protections,old?.protections||{})||!equal(fresh[0].profile,prepared.profile)||fresh[0].control!==prepared.incremental.control||!new RegExp('^[a-f0-9]{64}$').test(manifestDigest||''))reject('STALE_BASE');
+ for(const child of fresh[0].children){const attempt=await t.get('organizerUsage','aiu:attempt:'+child.childId);if(attempt?.jobId!==job.id||attempt.state!=='RESPONSE_RECORDED'||attempt.operationReceiptId!==child.operationReceiptId)reject('STALE_BASE');}
+ for(const field of AI_FIELDS)if(old?.protections?.[field]&&(!equal(old.projection[field],result.projection[field])||!equal(old.manifest.blocks.filter(b=>b.field===field),result.manifest.blocks.filter(b=>b.field===field))||!equal(old.manifest.fields?.[field],result.manifest.fields[field])))reject('STALE_BASE');
+ const comparable=row=>row&&({projection:row.projection,protections:row.protections,fields:Object.fromEntries(AI_FIELDS.map(f=>[f,row.manifest.fields[f].style])),blocks:row.manifest.blocks.map(({id,generation,...block})=>block)});
+ const changed=!old||!isIncrementalV3(old)||!equal(comparable(old),comparable(result)),revision=(old?.revision||0)+(changed?1:0),at=s.clock(),receiptId='ai-presentation-current:'+job.id;
+ if(await t.get('operationReceipts',receiptId))reject('STALE_BASE');
+ const receiptRow={id:receiptId,namespace:'ai-presentation',ownerId:topic.id,operationSequence:0,createdAt:at,digest:manifestDigest,result:{jobId:job.id,topicId:topic.id,currentPublished:changed,changed,revision}};
+ const writes=[];let next=old;
+ if(changed){
+  next={...old,...structuredClone(result),id:ROW+topic.id,revision,recoveryGeneration:old?.recoveryGeneration||job.id,basedOnCheckpoint:{entryVersions:structuredClone(topic.versions)},needsUpdate:false,stale:false,updatedAt:at};
+  delete next.envelopeVersion;delete next.currentState;delete next.cacheBinding;
+  // Exact validated Current, never candidate presence, may establish a cache.
+  // Human-owned/mixed results deliberately remain non-reusable.
+  if(!Object.values(next.protections).some(Boolean))next.cacheBinding={version:1,topicId:topic.id,presentationRevision:revision,profile:structuredClone(prepared.profile),style:{value:prepared.style.value,policyVersion:prepared.style.policyVersion},evidenceVersion:prepared.evidenceVersion};
+  const evidenceEntryIds=[...new Set([...(old?.evidenceEntryIds||[]),...next.evidenceEntryIds])],sourceRecordIds=await sourceIdsForEntries(reader,evidenceEntryIds),sequenceBefore=await t.get('meta','revision-sequence'),sequence=(sequenceBefore?.value||0)+1,id=s.uuid();
+  if(!Number.isSafeInteger(sequence)||sequence<1)reject('STALE_BASE');
+  const snapshot=row=>row?{presentationVersion:row.presentationVersion,projection:row.projection,manifest:row.manifest}:null;
+  const journalPlan=planJournalRevision({kind:'ai_presentation',entityId:topic.id,documentId:topic.id,before:snapshot(topic.presentation),after:snapshot(next),fieldMask:AI_FIELDS,actor:'ai',reason:'ai_update',important:true,operationId:job.id,baseRevision:old?.revision||0,afterRevision:revision,sourceRecordIds,evidenceEntryIds},null,at),journalRow={...journalPlan.row,id,sequence,listKey:[journalPlan.entityKey,sequence],documentList:[topic.id,sequence]};
+  const fence={id:'ai-presentation-fence:'+topic.id,entityKind:'organizer_metadata',ownerKind:'ai_presentation',ownerId:topic.id,statusKey:1,sourceRecordIds};
+  writes.push({table:'meta',key:next.id,before:old,after:next},{table:'libraryMigrationItems',key:fence.id,after:fence},{table:'meta',key:'revision-sequence',before:sequenceBefore,after:{id:'revision-sequence',value:sequence}},{table:'revisions',key:id,after:journalRow});
+ }
+ // This Topic's checkpoint only. Do not traverse other Topics or acknowledge
+ // their Input work through the legacy cross-Topic adoption helper.
+ const checkpointBefore=await reader.get('meta',CHECKPOINT),checkpointAfter={...cp,topicVersions:{...cp.topicVersions,[topic.id]:structuredClone(topic.versions)}};
+ if(!equal(checkpointBefore,checkpointAfter))writes.push({table:'meta',key:CHECKPOINT,before:checkpointBefore,after:checkpointAfter});
+ writes.push({table:'operationReceipts',key:receiptId,after:receiptRow});
+ const intent=Object.freeze({}),view=freezeCandidateWrite({kind:'fresh-current',topicId:topic.id,jobId:job.id,changed,writes}),record={store:s,transaction:t,scopeReader,view,applied:false};
+ originalCandidateWriteIntents.set(intent,record);registerOriginalOrganizeCandidateWrite(scopeReader,s,t,intent);
+ for(const write of writes)await t.put(write.table,write.after);
+ if(changed)await s.pruneEntity(t,'ai_presentation:'+topic.id);
+ record.applied=true;requireOriginalOrganizeCommitScopeReader(scopeReader,s,t);
+ return {...receiptRow.result,candidateCreated:false,cacheProof:null,lifecycleToken:null,lifecycleKey:null};
 }
 
 // Process-local capabilities only: globally bounded, never exported in DTOs or
@@ -393,6 +433,17 @@ async function verifyAtomicCacheProof(s,t,token,p,job,row){
 
 // Exact planned writes minted only by the original candidate committer.
 const originalCandidateWriteIntents=new WeakMap();
+export function originalOrganizeWriteShape(view,topicId){
+ const writes=view?.writes;if(!Array.isArray(writes))return false;
+ if(view.kind!=='fresh-current')return writes.length===2&&writes[0].table==='meta'&&writes[0].key===ROW+topicId&&writes[1].table==='libraryMigrationItems'&&writes[1].key==='ai-presentation-candidate-fence:'+topicId;
+ if(view.topicId!==topicId||typeof view.jobId!=='string'||typeof view.changed!=='boolean'||new Set(writes.map(w=>JSON.stringify([w.table,w.key]))).size!==writes.length)return false;
+ const fixed=view.changed?4:0;if(writes.length!==fixed+1&&writes.length!==fixed+2)return false;
+ if(view.changed){const [current,fence,sequence,revision]=writes;
+  if(current.table!=='meta'||current.key!==ROW+topicId||fence.table!=='libraryMigrationItems'||fence.key!=='ai-presentation-fence:'+topicId||sequence.table!=='meta'||sequence.key!=='revision-sequence'||revision.table!=='revisions'||revision.key!==revision.after.id||revision.after.kind!=='ai_presentation'||revision.after.entityId!==topicId||revision.after.actor!=='ai'||revision.after.operationId!==view.jobId||revision.after.afterRevision!==current.after.revision)return false;
+ }
+ if(writes.length===fixed+2&&(writes[fixed].table!=='meta'||writes[fixed].key!==CHECKPOINT))return false;
+ const last=writes.at(-1);return last.table==='operationReceipts'&&last.key==='ai-presentation-current:'+view.jobId&&last.after.namespace==='ai-presentation'&&last.after.ownerId===topicId&&last.after.result.jobId===view.jobId&&last.after.result.changed===view.changed;
+}
 const freezeCandidateWrite=value=>{if(value&&typeof value==='object'){for(const key of Object.keys(value))freezeCandidateWrite(value[key]);Object.freeze(value);}return value;};
 export function readOriginalOrganizeCandidateWriteIntent(intent,store,transaction,scopeReader,requireApplied=false){
  const r=originalCandidateWriteIntents.get(intent);if(!r||r.store!==store||r.transaction!==transaction||r.scopeReader!==scopeReader||requireApplied&&!r.applied)reject('STALE_BASE');return r.view;
