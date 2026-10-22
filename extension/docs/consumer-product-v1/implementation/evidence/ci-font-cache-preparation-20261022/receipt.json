@@ -1,0 +1,31 @@
+{
+  "base": "8715c310c9dbd8a366defe3e4f360c56908edc26",
+  "implementation": "f5abbb8d6c8bc441870cc525be9e5a4fe04376e0",
+  "node": "22.23.4",
+  "python": "3.12.14",
+  "targeted": "22/22",
+  "package": "21218/607",
+  "currentBrowserFileCoverage": 101,
+  "realAPT": "NOT_RUN",
+  "realCacheTransfer": "NOT_RUN",
+  "cloudCI": "NOT_RUN",
+  "enabled": false,
+  "files": {
+    "targeted-1.log": {
+      "rawSha256": "c39e1fadc83a88454238e8a6234883da238ab44e256b4202abdbc45616c9f40c",
+      "publicSha256": "c39e1fadc83a88454238e8a6234883da238ab44e256b4202abdbc45616c9f40c"
+    },
+    "package.log": {
+      "rawSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "publicSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b"
+    },
+    "ci-contract.log": {
+      "rawSha256": "b3732028c529ca79c0e5c5a45e3a0a7d0494d705c2101909746b2cc15763a8a5",
+      "publicSha256": "b3732028c529ca79c0e5c5a45e3a0a7d0494d705c2101909746b2cc15763a8a5"
+    },
+    "scope-proof.log": {
+      "rawSha256": "1139d597a58ffa1ba8340ed8f23ff7885495ffbf3d7a03af0772ffe33772e97a",
+      "publicSha256": "1139d597a58ffa1ba8340ed8f23ff7885495ffbf3d7a03af0772ffe33772e97a"
+    }
+  }
+}
