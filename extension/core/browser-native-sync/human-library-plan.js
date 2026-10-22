@@ -36,9 +36,9 @@ import {changeTopicContainer,changeTopicContainerInTransaction,planHumanTopicMem
 import {assertMemoryTopicTransitionAllowed} from '../memory/organization-guard.js';
 import {assertMemoryPlacementChangeAllowed} from '../memory/organization-guard.js';
 import {THOUGHT_TOPIC_INDEX_VERSION,planThoughtTopicInvalidation} from '../thought-read-index.js';
-import {revisionShouldPrune,REVISION_POLICY} from '../ia-store.js';
+import {revisionShouldPrune,REVISION_POLICY} from '../ia-store-owner.js';
 import {ownerVersion} from '../library-search.js';
-import {planHumanTopicCreation,planHumanPlacement,planHumanPlacementRow,humanPlacementRank,humanSectionRank,planHumanSectionCreation,planHumanEntryCreation,planHumanEntryRemoval,planHumanEntryRestoration,planHumanTopicTouch,planHumanEntryFields,finishHumanEntryFields} from '../thought-store.js';
+import {planHumanTopicCreation,planHumanPlacement,planHumanPlacementRow,humanPlacementRank,humanSectionRank,planHumanSectionCreation,planHumanEntryCreation,planHumanEntryRemoval,planHumanEntryRestoration,planHumanTopicTouch,planHumanEntryFields,finishHumanEntryFields} from '../thought-store-owner.js';
 import {planJournalRevision} from '../thought-journal.js';
 import {prepareTopicName,prepareTopicIdentityName,prepareTopicNameFromBase,prepareTopicIdentityFromSnapshot,planTopicNameRegistration,planHumanTopicRename,planHumanTopicField,assertTopicIdentityBase,keepTopicIdentitiesSeparate,keepTopicIdentitiesSeparateInTransaction,planHumanKeepSeparate,topicPairKey} from '../topic-identity.js';
 import {keys,idOK,revisionOK,normalizeRank,rankBetween,prefix,keyedHash,validateFields,entrySnapshot,ENTRY_FIELDS} from '../thought-model.js';

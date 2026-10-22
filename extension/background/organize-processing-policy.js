@@ -29,12 +29,9 @@ function copyReadTemplate(value,privateCopy=false,depth=0,budget={keys:0}){
 }
 const nativeAborted=Object.getOwnPropertyDescriptor(AbortSignal.prototype,'aborted').get,nativeWall=Date.now,nativeMono=performance.now.bind(performance);
 const grants=new WeakMap(),need=x=>{if(!x)fail('UNAVAILABLE');};
-// Start the fixed original-owner module dependency once, outside every IDB and
-// capture path. A static reverse import enters the legacy Store/Memory cycle.
-// No caller supplies the source; admission remains closed until it is ready.
-let originalMaterialMethodOwner=null;
-void import('../core/organizer/store.js').then(module=>{if(typeof module.requireOriginalOrganizeMaterialMethods==='function')originalMaterialMethodOwner=module.requireOriginalOrganizeMaterialMethods;},()=>{});
-const requireOriginalOrganizeMaterialMethods=store=>{need(originalMaterialMethodOwner!==null);return originalMaterialMethodOwner(store);};
+// A static live function binding also works in extension module workers,
+// where dynamic import is unavailable. It is called only at scope admission.
+import {requireOriginalOrganizeMaterialMethods} from '../core/organizer/store-owner.js';
 const own=(row,key)=>{const d=Object.getOwnPropertyDescriptor(row??{},key);need(d&&Object.hasOwn(d,'value'));return d.value;};
 const optional=(row,key)=>Object.hasOwn(row??{},key)?own(row,key):undefined;
 function permit(metadata){

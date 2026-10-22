@@ -42,7 +42,12 @@ const randomBinding=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),x=
 // GET alone has no processing meaning; UPDATE consumes one original ticket.
 export function createOrganizeActionSource(store,api){
  originalClockFacts();const repositoryDescriptor=dataDescriptor(store,'repository'),repository=repositoryDescriptor.value;need(repository&&api?.runtime&&api?.tabs);
- let databaseDescriptor=dataDescriptor(repository,'db'),database=databaseDescriptor.value,disposed=false,generation=0,bindingRetired=false;
+ // ArchiveRepository does not own db until its first open. Observe absence
+ // without evaluating accessors; the first real use still pins the original
+ // repository and its exact own database descriptor in base().
+ let databaseDescriptor=Object.getOwnPropertyDescriptor(repository,'db');
+ need(databaseDescriptor?Object.hasOwn(databaseDescriptor,'value'):!('db' in repository));
+ let database=databaseDescriptor?.value??null,disposed=false,generation=0,bindingRetired=false;
  const tickets=new Map(),live=new Set(),pending=new Set();let lastWall=wall(),lastMono=mono(),lastNativeWall=nativeWall(),lastNativeMono=nativeMono();
  const marked=new Set();
  // A terminal facts check never dispatches abort listeners. Deny first; the

@@ -9,7 +9,7 @@ import {compareReadingTopics,recordRead} from './topic-reading-order.js';
 import {libraryRevisions,restoreLibraryRevision} from './library-revisions.js';
 import {countBatch} from './library-counts.js';
 import {editLibraryBatch} from './library-edit.js';
-import {LibraryFoundationStore,planHumanTopicTouch} from './thought-store.js';
+import {originalFoundationConstructor,planHumanTopicTouch} from './thought-store-owner.js';
 import {fail,keys,idOK,revisionOK,prefix,markHuman,entryDTO,rankBetween} from './thought-model.js';
 import {repairTopicCompatibility,validTopicGeneration} from './topic-compatibility.js';
 import {journal,nextSequence} from './thought-journal.js';
@@ -43,7 +43,7 @@ let originalConstructor;
 export function originalLibraryDocumentsConstructor(){
  if(arguments.length)fail();
  if(originalConstructor)return originalConstructor;
- originalConstructor=class LibraryDocumentsStore extends LibraryFoundationStore {
+ originalConstructor=class LibraryDocumentsStore extends originalFoundationConstructor() {
  constructor(local,options={}){super(local,options);originalLibraryDocumentsStores.add(this);this.libraryDocumentMode=true;this.compatibilityStatus=null;}
  async finishFoundation(){
   await super.finishFoundation();if(this.documentsLoaded)return;

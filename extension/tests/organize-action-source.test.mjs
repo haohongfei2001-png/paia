@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {setup} from './harness/thought-m1.mjs';
+import {setup,local} from './harness/thought-m1.mjs';
+import {IDBFactory} from './vendor/fake-indexeddb/build/esm/index.js';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {createOrganizeActionSource,readOriginalOrganizeAction} from '../background/organize-action-source.js';
 import {captureOriginalOrganizeScope,releaseOriginalOrganizeScope} from '../core/organizer/organize-processing-scope.js';
@@ -70,4 +71,24 @@ test('a live original action still requires the exact transaction selection afte
 
 test('dispose unregisters source events and no old ticket survives',async t=>{
  const f=await fixture(t),scope=await f.select();assert.equal(f.onUpdated.size,1);assert.equal(f.onRemoved.size,1);f.source.dispose();assert.equal(f.onUpdated.size,0);assert.equal(f.onRemoved.size,0);await assert.rejects(f.source.consume(f.sender,f.request(scope)));await assert.rejects(f.select());
+});
+
+
+test('worker may construct the original action source before Repository first opens, then pins that database',async t=>{
+ const s=new OrganizerStore(local(),{indexedDB:new IDBFactory()}),onUpdated=event(),onRemoved=event();
+ const sender={id:'synthetic-extension',frameId:0,documentId:'first-document',url:'chrome-extension://synthetic-extension/ui/archive.html',tab:{id:7,windowId:9,incognito:false}};
+ const api={runtime:{id:sender.id,getURL:p=>'chrome-extension://synthetic-extension/'+p,async getContexts(){return [{contextType:'TAB',documentId:sender.documentId,documentUrl:sender.url,tabId:7,windowId:9,frameId:0,incognito:false}];}},tabs:{onUpdated,onRemoved,async get(){return {...sender.tab,url:sender.url};}}};
+ assert.equal(Object.hasOwn(s.repository,'db'),false);
+ const source=createOrganizeActionSource(s,api);t.after(()=>{source.dispose();s.repository.db?.close();});
+ assert.equal(Object.hasOwn(s.repository,'db'),false,'constructing an intent source cannot open or fabricate a database');
+ await s.consent(true);const topic=await s.createTopic({name:'SYNTHETIC first open',operationId:crypto.randomUUID()}),scope=await source.select(sender,{topicId:topic.id});
+ assert.equal(scope.complete,true);const db=s.repository.db;
+ try{s.repository.db={};await assert.rejects(source.select(sender,{topicId:topic.id}));}finally{s.repository.db=db;}
+ await assert.rejects(source.select(sender,{topicId:topic.id}),'restoring a replaced database never revives the source');
+});
+for(const inherited of [false,true])test('unopened source refuses '+(inherited?'inherited':'own')+' database accessors without evaluating them',()=>{
+ const s=new OrganizerStore(local(),{indexedDB:new IDBFactory()});let touched=0;
+ const descriptor={configurable:true,get(){touched++;return null;}},prior=Object.getPrototypeOf(s.repository);
+ if(inherited)Object.setPrototypeOf(s.repository,Object.create(prior,{db:descriptor}));else Object.defineProperty(s.repository,'db',descriptor);
+ assert.throws(()=>createOrganizeActionSource(s,{runtime:{},tabs:{}}));assert.equal(touched,0);
 });
