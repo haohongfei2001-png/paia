@@ -1,0 +1,28 @@
+{
+  "command": [
+    "/Users/hhf/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "tests/cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs"
+  ],
+  "cwd": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension",
+  "environment": {
+    "PATH": "/opt/homebrew/opt/python@3.12/bin:/Users/hhf/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/hhf/.codex/tmp/arg0-macos/codex-arg00AQYBK:/Users/hhf/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/hhf/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources:/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS",
+    "PYTHON": "/opt/homebrew/opt/python@3.12/bin/python3.12",
+    "PAIA_HEADLESS": "1",
+    "PAIA_TEST_CONCURRENCY": "1"
+  },
+  "startedUTC": "2026-10-22T23:15:33.742999+00:00",
+  "elapsedSeconds": 71.032949924469,
+  "exit": 0,
+  "phaseFiles": [
+    "ai-cost-foundation-phases-source-81992-1792710953575.jsonl",
+    "ai-cost-foundation-phases-release-81992-1792710978412.jsonl",
+    "ai-cost-session-phases-source-81992-1792710933894.jsonl",
+    "ai-cost-session-phases-release-81992-1792710943026.jsonl"
+  ],
+  "nameFilter": false,
+  "actualPlaywright": "1.62.1",
+  "actualReleaseBuilderPython": "3.14.7",
+  "qualification": "wrong local invocation environment; retained, not designated closure"
+}

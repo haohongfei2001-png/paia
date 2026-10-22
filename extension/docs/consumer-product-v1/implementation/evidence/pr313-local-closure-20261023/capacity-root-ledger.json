@@ -1,0 +1,729 @@
+{
+  "run": 39860568299,
+  "attempt": 1,
+  "testedMerge": "0ed6516f82f6c095883566c069b4403efff2e9aa",
+  "routerUnchanged": true,
+  "total": 101,
+  "counts": [
+    11,
+    14,
+    10,
+    16,
+    9,
+    13,
+    4,
+    12,
+    11,
+    1
+  ],
+  "limits": "File selection is direct static proof. Execution classifications cite retained PR313 6352528630; full raw 27-log census is owned by dot and not re-downloaded. No missing event is classified as not started.",
+  "rows": [
+    {
+      "file": "extension/tests/activation-return-round410-chrome-e2e.test.mjs",
+      "shard": 9,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ans-01-reader-surfaces-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ans-02-source-foundation-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ans-03-source-observation-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ans-04-navigation-query-chrome-e2e.test.mjs",
+      "shard": 3,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ans-04-navigation-release-chrome-e2e.test.mjs",
+      "shard": 5,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ans-05-navigator-workspace-chrome-e2e.test.mjs",
+      "shard": 3,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ans-06-source-order-settings-chrome-e2e.test.mjs",
+      "shard": 9,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ans-07-library-root-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ans-08-topic-continuous-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ans-08-topic-edit-preservation-chrome-e2e.test.mjs",
+      "shard": 3,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ans-09-integration-chrome-e2e.test.mjs",
+      "shard": 5,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/archive-year-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/capture-foundation-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/consumer-cleanup-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/context-cards-chrome-e2e.test.mjs",
+      "shard": 10,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpr-00-project-discovery-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpr-01-project-recognition-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpr-02-project-lifecycle-chrome-e2e.test.mjs",
+      "shard": 1,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-01-2-reconnect-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-01-3-update-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-01-4-degraded-chrome-e2e.test.mjs",
+      "shard": 1,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-01-5-backup-chrome-e2e.test.mjs",
+      "shard": 9,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-01-6-lifecycle-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs",
+      "shard": 3,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "TWO_MAIN_CASES_FAILED_STYLE_V3_LATER_PHASES_NOT_REACHED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-01-audit-boundaries-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-01-capture-recovery-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-01-recovery-chrome-e2e.test.mjs",
+      "shard": 5,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-01-save-recovery-chrome-e2e.test.mjs",
+      "shard": 1,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-1-shell-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-3-navigator-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-4-reader-chrome-e2e.test.mjs",
+      "shard": 3,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-6-accessibility-chrome-e2e.test.mjs",
+      "shard": 5,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs",
+      "shard": 1,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-dvn-original-chrome-e2e.test.mjs",
+      "shard": 5,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-dvn-purge-chrome-e2e.test.mjs",
+      "shard": 1,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-dvn-removal-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-dvn-save-outcome-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-dvn-search-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-dvn-topic-content-chrome-e2e.test.mjs",
+      "shard": 5,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-dvn-topic-years-chrome-e2e.test.mjs",
+      "shard": 9,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-02-dvn-working-revision-chrome-e2e.test.mjs",
+      "shard": 1,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-03-backup-segments-chrome-e2e.test.mjs",
+      "shard": 9,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-04-conflict-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-05-dvn-organize-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-07-historical-comparison-chrome-e2e.test.mjs",
+      "shard": 3,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-09-prompt-compatibility-chrome-e2e.test.mjs",
+      "shard": 3,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs",
+      "shard": 1,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-09-prompt-surface-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs",
+      "shard": 9,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",
+      "shard": 3,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-topic-02-lifecycle-chrome-e2e.test.mjs",
+      "shard": 5,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-topic-05-2-root-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-topic-05-4-section-chrome-e2e.test.mjs",
+      "shard": 5,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/desktop-vnext-context-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/iah11-result-presentation-chrome-e2e.test.mjs",
+      "shard": 3,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/iah11-selected-acceptance-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/nib-approved-fixed-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/nib-v4-arrival-chrome-e2e.test.mjs",
+      "shard": 9,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/nib-v4-historical-candidates-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/nib-v4-search-chrome-e2e.test.mjs",
+      "shard": 9,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/nib-v4-settings-entry-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/nib-v4-surface-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/nib-v4-toolbar-entry-chrome-e2e.test.mjs",
+      "shard": 7,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/release-certification-round48-chrome-e2e.test.mjs",
+      "shard": 1,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/release-certification-round49-chrome-e2e.test.mjs",
+      "shard": 1,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/settings-data-destinations-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/settings-next-chrome-e2e.test.mjs",
+      "shard": 5,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/settings-preference-publication-chrome-e2e.test.mjs",
+      "shard": 7,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/settings-removed-placement-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/topic-entry-section-move-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/topic-section-promotion-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/topic-section-return-position-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/topic-section-writing-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/topic-selected-section-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/topic-year-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uir-01-shell-chrome-e2e.test.mjs",
+      "shard": 9,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uir-02-archive-search-reader-chrome-e2e.test.mjs",
+      "shard": 9,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uir-03-ai-candidate-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uir-03-ai-presentation-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uir-03-preview-mask-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uir-03-thought-original-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uir-04-context-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uir-04-data-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uir-04-pending-history-chrome-e2e.test.mjs",
+      "shard": 7,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uir-04-popup-local-tools-chrome-e2e.test.mjs",
+      "shard": 9,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uir-04-settings-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uis-01-archive-actions-chrome-e2e.test.mjs",
+      "shard": 3,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uis-02-page-scoped-search-chrome-e2e.test.mjs",
+      "shard": 4,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/uis-04-cleanup-chrome-e2e.test.mjs",
+      "shard": 1,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ux-r1-shell-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ux-r3-history-preemption-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ux-r3-thought-chrome-e2e.test.mjs",
+      "shard": 7,
+      "cloudJobConclusion": "success",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ux-r4-search-reuse-chrome-e2e.test.mjs",
+      "shard": 2,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ux-r5-ai-organize-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ux-r5-ai-update-chrome-e2e.test.mjs",
+      "shard": 6,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ux-r5-certification-chrome-e2e.test.mjs",
+      "shard": 8,
+      "cloudJobConclusion": "failure",
+      "fileExecutionEvidence": "COMPLETE_SHARD_SUMMARY_REPORTED_FILE_DETAIL_NOT_REEXTRACTED",
+      "notStartedProven": false
+    },
+    {
+      "file": "extension/tests/ux-r6-release-chrome-e2e.test.mjs",
+      "shard": 1,
+      "cloudJobConclusion": "cancelled",
+      "fileExecutionEvidence": "UNKNOWN_NO_PER_FILE_CLOUD_START_END_EVIDENCE_AVAILABLE",
+      "notStartedProven": false
+    }
+  ]
+}

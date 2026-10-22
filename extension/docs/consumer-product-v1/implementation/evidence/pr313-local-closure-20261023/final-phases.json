@@ -1,0 +1,1394 @@
+[
+  {
+    "file": "ai-cost-foundation-phases-source-82307-1792711059004.jsonl",
+    "phases": [
+      {
+        "variant": "source",
+        "phase": "build",
+        "status": "start",
+        "elapsedMs": 0,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "build",
+        "status": "end",
+        "elapsedMs": 0,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "browser-start",
+        "status": "start",
+        "elapsedMs": 0,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "browser-start",
+        "status": "end",
+        "elapsedMs": 750,
+        "phaseMs": 750
+      },
+      {
+        "variant": "source",
+        "phase": "attach",
+        "status": "start",
+        "elapsedMs": 750,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "attach",
+        "status": "end",
+        "elapsedMs": 765,
+        "phaseMs": 15
+      },
+      {
+        "variant": "source",
+        "phase": "initial",
+        "status": "start",
+        "elapsedMs": 765,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "initial",
+        "status": "end",
+        "elapsedMs": 1625,
+        "phaseMs": 860
+      },
+      {
+        "variant": "source",
+        "phase": "reload-attach",
+        "status": "start",
+        "elapsedMs": 1626,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "reload-attach",
+        "status": "end",
+        "elapsedMs": 1796,
+        "phaseMs": 170
+      },
+      {
+        "variant": "source",
+        "phase": "after",
+        "status": "start",
+        "elapsedMs": 1796,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "after",
+        "status": "end",
+        "elapsedMs": 1813,
+        "phaseMs": 17
+      },
+      {
+        "variant": "source",
+        "phase": "invalidation",
+        "status": "start",
+        "elapsedMs": 1813,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "invalidation",
+        "status": "end",
+        "elapsedMs": 1968,
+        "phaseMs": 155
+      },
+      {
+        "variant": "source",
+        "phase": "boundedCost",
+        "status": "start",
+        "elapsedMs": 1968,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "boundedCost",
+        "status": "end",
+        "elapsedMs": 5827,
+        "phaseMs": 3859
+      },
+      {
+        "variant": "source",
+        "phase": "deferredHistory",
+        "status": "start",
+        "elapsedMs": 5827,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "deferredHistory",
+        "status": "end",
+        "elapsedMs": 6706,
+        "phaseMs": 879
+      },
+      {
+        "variant": "source",
+        "phase": "styles",
+        "status": "start",
+        "elapsedMs": 6706,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "styles",
+        "status": "end",
+        "elapsedMs": 6764,
+        "phaseMs": 58
+      },
+      {
+        "variant": "source",
+        "phase": "assist",
+        "status": "start",
+        "elapsedMs": 6764,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "assist",
+        "status": "end",
+        "elapsedMs": 6797,
+        "phaseMs": 33
+      },
+      {
+        "variant": "source",
+        "phase": "childScope",
+        "status": "start",
+        "elapsedMs": 6797,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "childScope",
+        "status": "end",
+        "elapsedMs": 7229,
+        "phaseMs": 432
+      },
+      {
+        "variant": "source",
+        "phase": "localOrganize",
+        "status": "start",
+        "elapsedMs": 7229,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "localOrganize",
+        "status": "end",
+        "elapsedMs": 7868,
+        "phaseMs": 639
+      },
+      {
+        "variant": "source",
+        "phase": "incremental",
+        "status": "start",
+        "elapsedMs": 7869,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "incremental",
+        "status": "end",
+        "elapsedMs": 13784,
+        "phaseMs": 5916
+      },
+      {
+        "variant": "source",
+        "phase": "multi",
+        "status": "start",
+        "elapsedMs": 13784,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "multi",
+        "status": "end",
+        "elapsedMs": 16257,
+        "phaseMs": 2472
+      },
+      {
+        "variant": "source",
+        "phase": "styleV3",
+        "status": "start",
+        "elapsedMs": 16257,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "styleV3",
+        "status": "end",
+        "elapsedMs": 16379,
+        "phaseMs": 122
+      },
+      {
+        "variant": "source",
+        "phase": "legacyOwnerControls",
+        "status": "start",
+        "elapsedMs": 16379,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "legacyOwnerControls",
+        "status": "end",
+        "elapsedMs": 16732,
+        "phaseMs": 354
+      },
+      {
+        "variant": "source",
+        "phase": "exactMultiCache",
+        "status": "start",
+        "elapsedMs": 16732,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "exactMultiCache",
+        "status": "end",
+        "elapsedMs": 24805,
+        "phaseMs": 8072
+      },
+      {
+        "variant": "source",
+        "phase": "network-invariants",
+        "status": "start",
+        "elapsedMs": 24805,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "network-invariants",
+        "status": "end",
+        "elapsedMs": 24805,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "body",
+        "status": "verified",
+        "elapsedMs": 24805,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "cleanup",
+        "status": "start",
+        "elapsedMs": 24805,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "cleanup",
+        "status": "end",
+        "elapsedMs": 24954,
+        "phaseMs": 149
+      }
+    ]
+  },
+  {
+    "file": "ai-cost-foundation-phases-release-82307-1792711083958.jsonl",
+    "phases": [
+      {
+        "variant": "release",
+        "phase": "build",
+        "status": "start",
+        "elapsedMs": 0,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "build",
+        "status": "end",
+        "elapsedMs": 1551,
+        "phaseMs": 1551
+      },
+      {
+        "variant": "release",
+        "phase": "browser-start",
+        "status": "start",
+        "elapsedMs": 1551,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "browser-start",
+        "status": "end",
+        "elapsedMs": 2298,
+        "phaseMs": 747
+      },
+      {
+        "variant": "release",
+        "phase": "attach",
+        "status": "start",
+        "elapsedMs": 2298,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "attach",
+        "status": "end",
+        "elapsedMs": 2312,
+        "phaseMs": 14
+      },
+      {
+        "variant": "release",
+        "phase": "initial",
+        "status": "start",
+        "elapsedMs": 2312,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "initial",
+        "status": "end",
+        "elapsedMs": 3187,
+        "phaseMs": 875
+      },
+      {
+        "variant": "release",
+        "phase": "reload-attach",
+        "status": "start",
+        "elapsedMs": 3187,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "reload-attach",
+        "status": "end",
+        "elapsedMs": 3353,
+        "phaseMs": 166
+      },
+      {
+        "variant": "release",
+        "phase": "after",
+        "status": "start",
+        "elapsedMs": 3353,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "after",
+        "status": "end",
+        "elapsedMs": 3367,
+        "phaseMs": 14
+      },
+      {
+        "variant": "release",
+        "phase": "invalidation",
+        "status": "start",
+        "elapsedMs": 3367,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "invalidation",
+        "status": "end",
+        "elapsedMs": 3521,
+        "phaseMs": 154
+      },
+      {
+        "variant": "release",
+        "phase": "boundedCost",
+        "status": "start",
+        "elapsedMs": 3521,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "boundedCost",
+        "status": "end",
+        "elapsedMs": 7386,
+        "phaseMs": 3865
+      },
+      {
+        "variant": "release",
+        "phase": "deferredHistory",
+        "status": "start",
+        "elapsedMs": 7386,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "deferredHistory",
+        "status": "end",
+        "elapsedMs": 8269,
+        "phaseMs": 883
+      },
+      {
+        "variant": "release",
+        "phase": "styles",
+        "status": "start",
+        "elapsedMs": 8269,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "styles",
+        "status": "end",
+        "elapsedMs": 8326,
+        "phaseMs": 57
+      },
+      {
+        "variant": "release",
+        "phase": "assist",
+        "status": "start",
+        "elapsedMs": 8326,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "assist",
+        "status": "end",
+        "elapsedMs": 8360,
+        "phaseMs": 34
+      },
+      {
+        "variant": "release",
+        "phase": "childScope",
+        "status": "start",
+        "elapsedMs": 8360,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "childScope",
+        "status": "end",
+        "elapsedMs": 8788,
+        "phaseMs": 428
+      },
+      {
+        "variant": "release",
+        "phase": "localOrganize",
+        "status": "start",
+        "elapsedMs": 8788,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "localOrganize",
+        "status": "end",
+        "elapsedMs": 9424,
+        "phaseMs": 636
+      },
+      {
+        "variant": "release",
+        "phase": "incremental",
+        "status": "start",
+        "elapsedMs": 9424,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "incremental",
+        "status": "end",
+        "elapsedMs": 15363,
+        "phaseMs": 5938
+      },
+      {
+        "variant": "release",
+        "phase": "multi",
+        "status": "start",
+        "elapsedMs": 15363,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "multi",
+        "status": "end",
+        "elapsedMs": 17841,
+        "phaseMs": 2478
+      },
+      {
+        "variant": "release",
+        "phase": "styleV3",
+        "status": "start",
+        "elapsedMs": 17841,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "styleV3",
+        "status": "end",
+        "elapsedMs": 17958,
+        "phaseMs": 117
+      },
+      {
+        "variant": "release",
+        "phase": "legacyOwnerControls",
+        "status": "start",
+        "elapsedMs": 17958,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "legacyOwnerControls",
+        "status": "end",
+        "elapsedMs": 18320,
+        "phaseMs": 362
+      },
+      {
+        "variant": "release",
+        "phase": "exactMultiCache",
+        "status": "start",
+        "elapsedMs": 18320,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "exactMultiCache",
+        "status": "end",
+        "elapsedMs": 26401,
+        "phaseMs": 8082
+      },
+      {
+        "variant": "release",
+        "phase": "network-invariants",
+        "status": "start",
+        "elapsedMs": 26402,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "network-invariants",
+        "status": "end",
+        "elapsedMs": 26402,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "body",
+        "status": "verified",
+        "elapsedMs": 26402,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "cleanup",
+        "status": "start",
+        "elapsedMs": 26402,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "cleanup",
+        "status": "end",
+        "elapsedMs": 26572,
+        "phaseMs": 171
+      }
+    ]
+  },
+  {
+    "file": "ai-cost-session-phases-release-82307-1792711048563.jsonl",
+    "phases": [
+      {
+        "variant": "release",
+        "phase": "build",
+        "status": "start",
+        "elapsedMs": 0,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "build",
+        "status": "end",
+        "elapsedMs": 1543,
+        "phaseMs": 1543
+      },
+      {
+        "variant": "release",
+        "phase": "browser-start",
+        "status": "start",
+        "elapsedMs": 1544,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "browser-start",
+        "status": "end",
+        "elapsedMs": 2220,
+        "phaseMs": 677
+      },
+      {
+        "variant": "release",
+        "phase": "organize-lifecycle",
+        "status": "start",
+        "elapsedMs": 2220,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "organize-lifecycle",
+        "status": "end",
+        "elapsedMs": 4968,
+        "phaseMs": 2747
+      },
+      {
+        "variant": "release",
+        "phase": "organize-provider",
+        "status": "start",
+        "elapsedMs": 4968,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "organize-provider",
+        "status": "end",
+        "elapsedMs": 8010,
+        "phaseMs": 3042
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist",
+        "status": "start",
+        "elapsedMs": 8010,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist",
+        "status": "end",
+        "elapsedMs": 8010,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:setup",
+        "status": "start",
+        "elapsedMs": 8010,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:setup",
+        "status": "end",
+        "elapsedMs": 8722,
+        "phaseMs": 712
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:pipeline",
+        "status": "start",
+        "elapsedMs": 8722,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:pipeline",
+        "status": "end",
+        "elapsedMs": 8885,
+        "phaseMs": 163
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:before-provider-deadline",
+        "status": "start",
+        "elapsedMs": 8885,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:before-provider-deadline",
+        "status": "end",
+        "elapsedMs": 9074,
+        "phaseMs": 189
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-timeout-resolve-qualifying",
+        "status": "start",
+        "elapsedMs": 9074,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-timeout-resolve-qualifying",
+        "status": "end",
+        "elapsedMs": 9133,
+        "phaseMs": 59
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-timeout-resolve-entered",
+        "status": "start",
+        "elapsedMs": 9134,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-timeout-resolve-entered",
+        "status": "end",
+        "elapsedMs": 9305,
+        "phaseMs": 172
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-timeout-reject-qualifying",
+        "status": "start",
+        "elapsedMs": 9306,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-timeout-reject-qualifying",
+        "status": "end",
+        "elapsedMs": 9366,
+        "phaseMs": 60
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-timeout-reject-entered",
+        "status": "start",
+        "elapsedMs": 9366,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-timeout-reject-entered",
+        "status": "end",
+        "elapsedMs": 9574,
+        "phaseMs": 208
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dispose-resolve-qualifying",
+        "status": "start",
+        "elapsedMs": 9574,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dispose-resolve-qualifying",
+        "status": "end",
+        "elapsedMs": 9637,
+        "phaseMs": 62
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dispose-resolve-entered",
+        "status": "start",
+        "elapsedMs": 9637,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dispose-resolve-entered",
+        "status": "end",
+        "elapsedMs": 9639,
+        "phaseMs": 2
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dispose-reject-qualifying",
+        "status": "start",
+        "elapsedMs": 9639,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dispose-reject-qualifying",
+        "status": "end",
+        "elapsedMs": 9694,
+        "phaseMs": 55
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dispose-reject-entered",
+        "status": "start",
+        "elapsedMs": 9694,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dispose-reject-entered",
+        "status": "end",
+        "elapsedMs": 9697,
+        "phaseMs": 2
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dismiss-resolve-qualifying",
+        "status": "start",
+        "elapsedMs": 9697,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dismiss-resolve-qualifying",
+        "status": "end",
+        "elapsedMs": 9749,
+        "phaseMs": 53
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dismiss-resolve-entered",
+        "status": "start",
+        "elapsedMs": 9749,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dismiss-resolve-entered",
+        "status": "end",
+        "elapsedMs": 9752,
+        "phaseMs": 2
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dismiss-reject-qualifying",
+        "status": "start",
+        "elapsedMs": 9752,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dismiss-reject-qualifying",
+        "status": "end",
+        "elapsedMs": 9804,
+        "phaseMs": 53
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dismiss-reject-entered",
+        "status": "start",
+        "elapsedMs": 9804,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-dismiss-reject-entered",
+        "status": "end",
+        "elapsedMs": 9807,
+        "phaseMs": 2
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-revoke-resolve-qualifying",
+        "status": "start",
+        "elapsedMs": 9807,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-revoke-resolve-qualifying",
+        "status": "end",
+        "elapsedMs": 9866,
+        "phaseMs": 59
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-revoke-resolve-entered",
+        "status": "start",
+        "elapsedMs": 9866,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-revoke-resolve-entered",
+        "status": "end",
+        "elapsedMs": 9869,
+        "phaseMs": 3
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-revoke-reject-qualifying",
+        "status": "start",
+        "elapsedMs": 9869,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-revoke-reject-qualifying",
+        "status": "end",
+        "elapsedMs": 9922,
+        "phaseMs": 54
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-revoke-reject-entered",
+        "status": "start",
+        "elapsedMs": 9922,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:provider-revoke-reject-entered",
+        "status": "end",
+        "elapsedMs": 9926,
+        "phaseMs": 3
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:insertion",
+        "status": "start",
+        "elapsedMs": 9926,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:insertion",
+        "status": "end",
+        "elapsedMs": 10075,
+        "phaseMs": 150
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:insertion-authority",
+        "status": "start",
+        "elapsedMs": 10076,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "private-assist:insertion-authority",
+        "status": "end",
+        "elapsedMs": 10280,
+        "phaseMs": 205
+      },
+      {
+        "variant": "release",
+        "phase": "network-invariants",
+        "status": "start",
+        "elapsedMs": 10280,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "network-invariants",
+        "status": "end",
+        "elapsedMs": 10280,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "body",
+        "status": "verified",
+        "elapsedMs": 10280,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "cleanup",
+        "status": "start",
+        "elapsedMs": 10280,
+        "phaseMs": 0
+      },
+      {
+        "variant": "release",
+        "phase": "cleanup",
+        "status": "end",
+        "elapsedMs": 10440,
+        "phaseMs": 160
+      }
+    ]
+  },
+  {
+    "file": "ai-cost-session-phases-source-82307-1792711039626.jsonl",
+    "phases": [
+      {
+        "variant": "source",
+        "phase": "build",
+        "status": "start",
+        "elapsedMs": 0,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "build",
+        "status": "end",
+        "elapsedMs": 0,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "browser-start",
+        "status": "start",
+        "elapsedMs": 0,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "browser-start",
+        "status": "end",
+        "elapsedMs": 816,
+        "phaseMs": 816
+      },
+      {
+        "variant": "source",
+        "phase": "organize-lifecycle",
+        "status": "start",
+        "elapsedMs": 816,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "organize-lifecycle",
+        "status": "end",
+        "elapsedMs": 3519,
+        "phaseMs": 2703
+      },
+      {
+        "variant": "source",
+        "phase": "organize-provider",
+        "status": "start",
+        "elapsedMs": 3519,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "organize-provider",
+        "status": "end",
+        "elapsedMs": 6537,
+        "phaseMs": 3018
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist",
+        "status": "start",
+        "elapsedMs": 6537,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist",
+        "status": "end",
+        "elapsedMs": 6538,
+        "phaseMs": 1
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:setup",
+        "status": "start",
+        "elapsedMs": 6538,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:setup",
+        "status": "end",
+        "elapsedMs": 7265,
+        "phaseMs": 727
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:pipeline",
+        "status": "start",
+        "elapsedMs": 7266,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:pipeline",
+        "status": "end",
+        "elapsedMs": 7422,
+        "phaseMs": 157
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:before-provider-deadline",
+        "status": "start",
+        "elapsedMs": 7423,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:before-provider-deadline",
+        "status": "end",
+        "elapsedMs": 7611,
+        "phaseMs": 189
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-timeout-resolve-qualifying",
+        "status": "start",
+        "elapsedMs": 7612,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-timeout-resolve-qualifying",
+        "status": "end",
+        "elapsedMs": 7669,
+        "phaseMs": 57
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-timeout-resolve-entered",
+        "status": "start",
+        "elapsedMs": 7669,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-timeout-resolve-entered",
+        "status": "end",
+        "elapsedMs": 7880,
+        "phaseMs": 211
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-timeout-reject-qualifying",
+        "status": "start",
+        "elapsedMs": 7880,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-timeout-reject-qualifying",
+        "status": "end",
+        "elapsedMs": 7940,
+        "phaseMs": 60
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-timeout-reject-entered",
+        "status": "start",
+        "elapsedMs": 7940,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-timeout-reject-entered",
+        "status": "end",
+        "elapsedMs": 8108,
+        "phaseMs": 168
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dispose-resolve-qualifying",
+        "status": "start",
+        "elapsedMs": 8109,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dispose-resolve-qualifying",
+        "status": "end",
+        "elapsedMs": 8167,
+        "phaseMs": 58
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dispose-resolve-entered",
+        "status": "start",
+        "elapsedMs": 8167,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dispose-resolve-entered",
+        "status": "end",
+        "elapsedMs": 8169,
+        "phaseMs": 2
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dispose-reject-qualifying",
+        "status": "start",
+        "elapsedMs": 8169,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dispose-reject-qualifying",
+        "status": "end",
+        "elapsedMs": 8220,
+        "phaseMs": 51
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dispose-reject-entered",
+        "status": "start",
+        "elapsedMs": 8220,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dispose-reject-entered",
+        "status": "end",
+        "elapsedMs": 8223,
+        "phaseMs": 2
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dismiss-resolve-qualifying",
+        "status": "start",
+        "elapsedMs": 8223,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dismiss-resolve-qualifying",
+        "status": "end",
+        "elapsedMs": 8273,
+        "phaseMs": 50
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dismiss-resolve-entered",
+        "status": "start",
+        "elapsedMs": 8273,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dismiss-resolve-entered",
+        "status": "end",
+        "elapsedMs": 8275,
+        "phaseMs": 3
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dismiss-reject-qualifying",
+        "status": "start",
+        "elapsedMs": 8275,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dismiss-reject-qualifying",
+        "status": "end",
+        "elapsedMs": 8325,
+        "phaseMs": 50
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dismiss-reject-entered",
+        "status": "start",
+        "elapsedMs": 8326,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-dismiss-reject-entered",
+        "status": "end",
+        "elapsedMs": 8328,
+        "phaseMs": 2
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-revoke-resolve-qualifying",
+        "status": "start",
+        "elapsedMs": 8328,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-revoke-resolve-qualifying",
+        "status": "end",
+        "elapsedMs": 8380,
+        "phaseMs": 52
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-revoke-resolve-entered",
+        "status": "start",
+        "elapsedMs": 8380,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-revoke-resolve-entered",
+        "status": "end",
+        "elapsedMs": 8383,
+        "phaseMs": 3
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-revoke-reject-qualifying",
+        "status": "start",
+        "elapsedMs": 8383,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-revoke-reject-qualifying",
+        "status": "end",
+        "elapsedMs": 8437,
+        "phaseMs": 54
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-revoke-reject-entered",
+        "status": "start",
+        "elapsedMs": 8437,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:provider-revoke-reject-entered",
+        "status": "end",
+        "elapsedMs": 8440,
+        "phaseMs": 3
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:insertion",
+        "status": "start",
+        "elapsedMs": 8440,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:insertion",
+        "status": "end",
+        "elapsedMs": 8593,
+        "phaseMs": 152
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:insertion-authority",
+        "status": "start",
+        "elapsedMs": 8593,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "private-assist:insertion-authority",
+        "status": "end",
+        "elapsedMs": 8787,
+        "phaseMs": 194
+      },
+      {
+        "variant": "source",
+        "phase": "network-invariants",
+        "status": "start",
+        "elapsedMs": 8787,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "network-invariants",
+        "status": "end",
+        "elapsedMs": 8787,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "body",
+        "status": "verified",
+        "elapsedMs": 8787,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "cleanup",
+        "status": "start",
+        "elapsedMs": 8787,
+        "phaseMs": 0
+      },
+      {
+        "variant": "source",
+        "phase": "cleanup",
+        "status": "end",
+        "elapsedMs": 8936,
+        "phaseMs": 149
+      }
+    ]
+  }
+]

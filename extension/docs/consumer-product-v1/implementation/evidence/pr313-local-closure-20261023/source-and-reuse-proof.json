@@ -1,0 +1,82 @@
+{
+  "testedSourceHead": "3541ed0ebfdef985b66d9d0f1f1ab23f9538ba0c",
+  "unchanged": [
+    {
+      "path": "extension/tests/cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs",
+      "sha256": "a021305857cd6ce5e6e7b462d1964df31b34d686b69594556eb1219ec592a943",
+      "blob": "079b601d25c45af0b8117534377760fb50cbeba6",
+      "afterSHA256": "a021305857cd6ce5e6e7b462d1964df31b34d686b69594556eb1219ec592a943",
+      "same": true
+    },
+    {
+      "path": "extension/tests/topic-entry-section-move-chrome-e2e.test.mjs",
+      "sha256": "ee9e0d163e5d00d0c1c061be19477ff271495f8abaa49ba3a6c34bb8c1bdac98",
+      "blob": "0b4b7536f683c083752a8667c0921a9ec9166230",
+      "afterSHA256": "ee9e0d163e5d00d0c1c061be19477ff271495f8abaa49ba3a6c34bb8c1bdac98",
+      "same": true
+    },
+    {
+      "path": "extension/tests/sync-node-preflight-ci.test.mjs",
+      "sha256": "dc39f4ab5413f9d6efb335380e61c86e85c81195a5b9dd658506ae4d549ebc8e",
+      "blob": "a25b9af2262303e9f818c9bb950469f3d33c58ff",
+      "afterSHA256": "dc39f4ab5413f9d6efb335380e61c86e85c81195a5b9dd658506ae4d549ebc8e",
+      "same": true
+    },
+    {
+      "path": "extension/tests/d5-full-browser-partition.test.mjs",
+      "sha256": "254e76849020410eefbe0c88db515998fdef7a0c81ce91053f8f67a5933fc340",
+      "blob": "c17aac51cbce0f1d376202c2dc3ef16d0a3ded92",
+      "afterSHA256": "254e76849020410eefbe0c88db515998fdef7a0c81ce91053f8f67a5933fc340",
+      "same": true
+    },
+    {
+      "path": "extension/tests/cpv1-02-hosted-browser-setup.test.mjs",
+      "sha256": "32256cdc5db06d20f58cfe7792d745183862c42a6ecdb71402b29fb176ef0556",
+      "blob": "dc269ea06c59d5cf99dd463298d1634a2dcecb09",
+      "afterSHA256": "32256cdc5db06d20f58cfe7792d745183862c42a6ecdb71402b29fb176ef0556",
+      "same": true
+    },
+    {
+      "path": "extension/tests/harness/fake-chatgpt.mjs",
+      "sha256": "cac14aed256e89609e25fb146978e142071fd9b528446439a61414b73a8bbc8f",
+      "blob": "c154487d0b71fdde299acaa488a0b4cc0974aaa5",
+      "afterSHA256": "cac14aed256e89609e25fb146978e142071fd9b528446439a61414b73a8bbc8f",
+      "same": true
+    },
+    {
+      "path": "extension/tests/harness/ai-cost-session-lifecycle-cases.mjs",
+      "sha256": "e228bc4a97fe271a12b0151f3db0c37db9a59001efde922303cecef18fab6175",
+      "blob": "7a4603ef9f28a60db8451813a798d2249e631a86",
+      "afterSHA256": "e228bc4a97fe271a12b0151f3db0c37db9a59001efde922303cecef18fab6175",
+      "same": true
+    },
+    {
+      "path": ".github/workflows/paia-certification.yml",
+      "sha256": "c169f7bd685f0e71485490c5d7cdd51bfa255941fd900bb4b576fd9bd38ff283",
+      "blob": "773ee9f533585b67afbc79674c88124d43065a9d",
+      "afterSHA256": "c169f7bd685f0e71485490c5d7cdd51bfa255941fd900bb4b576fd9bd38ff283",
+      "same": true
+    },
+    {
+      "path": "extension/scripts/test-groups.mjs",
+      "sha256": "8be98bf35cdd77812aaf9f749f664da1961791c28c60f263885fc799aa60ca32",
+      "blob": "8fd75a12d8b10ff1f9bdfc81071c4047d1f3bc73",
+      "afterSHA256": "8be98bf35cdd77812aaf9f749f664da1961791c28c60f263885fc799aa60ca32",
+      "same": true
+    },
+    {
+      "path": "extension/scripts/test.mjs",
+      "sha256": "c072aeae532c78d8350fab3069a63cdfe10654f45fe55d1bedd6ad3856009d2c",
+      "blob": "c7e10f44a8cfd219818d151e0437638f8cb346cb",
+      "afterSHA256": "c072aeae532c78d8350fab3069a63cdfe10654f45fe55d1bedd6ad3856009d2c",
+      "same": true
+    }
+  ],
+  "entryReuse": {
+    "sha256": "ee9e0d163e5d00d0c1c061be19477ff271495f8abaa49ba3a6c34bb8c1bdac98",
+    "log": "extension/docs/consumer-product-v1/implementation/evidence/pr313-contract-native-followup-20261023/browser8-after.log",
+    "logSHA256": "a72c4fcfaa72dfeacad7acf0593c61fe4ab6d83e1b1ee93f2eed0a170bc55e21",
+    "result": "4/4 all four original final cases; reuse, no execution this turn",
+    "priorEvidenceHead": "44803422fe77aa7a0a3dae7c0ae466ae5daea082"
+  }
+}

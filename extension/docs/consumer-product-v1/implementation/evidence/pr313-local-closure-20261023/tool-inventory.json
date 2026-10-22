@@ -1,0 +1,41 @@
+{
+  "platform": "darwin",
+  "arch": "arm64",
+  "installedNode": [
+    {
+      "path": "/opt/homebrew/bin/node",
+      "version": "26.8.2",
+      "npm": "11.19.1"
+    },
+    {
+      "path": "/Users/hhf/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "version": "24.19.0",
+      "npm": "not bundled in bin"
+    }
+  ],
+  "requested": {
+    "node": "22.23.3",
+    "npm": "10.9.9",
+    "found": false
+  },
+  "searched": [
+    "PATH which -a",
+    "Homebrew Cellar and opt",
+    "bundled codex runtime",
+    "nvm",
+    "fnm",
+    "volta",
+    "asdf",
+    "nodenv",
+    "mise",
+    "usr/local/bin",
+    "opt/local/bin",
+    "tmp top-level names"
+  ],
+  "conclusion": "Requested pair not found in inspected installed tool locations. No install/system change and no Node contract execution. This is a bounded inventory, not a whole-disk absence proof.",
+  "pythonExplicit": "3.12.14",
+  "pythonDefault": "3.14.7",
+  "playwrightLocal": "1.63.0",
+  "playwrightBundled": "1.62.1",
+  "chrome": "155.0.8059.85"
+}
