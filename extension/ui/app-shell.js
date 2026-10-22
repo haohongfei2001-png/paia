@@ -1,7 +1,7 @@
 import {presentAppShell} from './app-shell-state.js';
 import {mountIcon,setIconLabel} from './icons.js';
 import {installReaderNavigation} from './reader-navigation.js';
-import {installSettingsPreferences,presentSettingsPreferences,captureSettingsView,restoreSettingsView} from './settings-preferences.js';
+import {installSettingsPreferences,presentSettingsPreferences,captureSettingsView,restoreSettingsView,captureSettingsRestoreIntent} from './settings-preferences.js';
 import {installUniversalSearch} from './universal-search.js';
 import {installRevisit} from './revisit.js';
 
@@ -17,12 +17,12 @@ export class AppShellController {
  connect(options){
   if(this.routes)throw Error('APP_SHELL_ALREADY_CONNECTED');
   this.navigate=options.navigate;
-  this.routes=installReaderNavigation({...options,captureSettings:()=>this.captureSettingsRoute(),restoreSettings:route=>this.restoreSettingsRoute(route),present:(route,settings)=>this.present(route,settings)});
+  this.routes=installReaderNavigation({...options,captureSettings:()=>this.captureSettingsRoute(),captureSettingsRestoreIntent,restoreSettings:(route,intent)=>this.restoreSettingsRoute(route,intent),present:(route,settings)=>this.present(route,settings)});
   return this.routes;
  }
  rememberSettingsOrigin(route){this.settingsReturn=route;this.settingsReturnPrepared=true;}
  captureSettingsRoute(){return {...captureSettingsView(),settingsReturn:this.settingsReturn};}
- restoreSettingsRoute(route){if(route.settingsReturn)this.settingsReturn=route.settingsReturn;restoreSettingsView(route);}
+ restoreSettingsRoute(route,intent){if(route.settingsReturn)this.settingsReturn=route.settingsReturn;restoreSettingsView(route,intent);}
  mount(){
   if(this.mounted)return;this.mounted=true;
   const main=document.querySelector('.workspace');main.id='paia-main';main.tabIndex=-1;
