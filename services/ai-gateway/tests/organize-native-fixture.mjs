@@ -1,5 +1,5 @@
-// Test-only wiring of the existing signed-service fixture into the original
-// worker. Never written to source/release runtime, manifests, or user profiles.
+// Test-only configuration/observation of the existing signed-service fixture.
+// The original worker constructs its own action source and forwards the sender.
 import assert from 'node:assert/strict';
 import {after} from 'node:test';
 import {cp,mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
@@ -23,13 +23,12 @@ export async function nativeFixture(t,{variant='source',count=1,holdProviderResp
  else await cp(root,staged,{recursive:true,filter:p=>!['node_modules','work','tests','docs','spikes','.git'].includes(p.slice(root.length).split('/')[0])});
  const data={origin:backend.configuration.origin,profile:backend.configuration.profile,routeVersion:backend.configuration.routeVersion,manifest:backend.server.manifest,now:backend.server.now};
  await writeFile(join(staged,'background/organize-native-test-only.js'),`
-import {createOrganizeActionSource} from './organize-action-source.js';
 import {TopicProcessingAuthority} from '../core/topic-processing-authority.js';
 import {TopicProcessingGuard} from '../core/topic-processing.js';
 import {createContextScopeWorkBudget} from '../core/context-topic-scope.js';
 export function nativeTestConfiguration(store){
  const data=${JSON.stringify(data)},manifest=data.manifest;let live=true,listener;
- const source=createOrganizeActionSource(store,chrome);
+ let source;
  const transport=async request=>{
   if(request.signal.aborted)throw new DOMException('Aborted','AbortError');
   const id=crypto.randomUUID(),body=Array.from(new Uint8Array(await request.clone().arrayBuffer()));
@@ -70,13 +69,14 @@ export function nativeTestConfiguration(store){
   IDBObjectStore.prototype.put=function(row,...args){if(!fired&&this.name==='organizerWorkItems'&&row.state==='ACKNOWLEDGED'){fired=true;IDBObjectStore.prototype.put=original;throw Error('SYNTHETIC original CAS failure');}return Reflect.apply(original,this,[row,...args]);};
   globalThis.__organizeNative.failedACK=()=>fired;
  };
- return {configuration,source};
+ return {configuration,observeActionSource(value){source=value;globalThis.__organizeNative.source=value;}};
 }
 `);
  const workerPath=join(staged,'background/service-worker.js');let worker=await readFile(workerPath,'utf8');
  worker="import {nativeTestConfiguration} from './organize-native-test-only.js';\n"+worker;
- worker=replaceOnce(worker,'const aiOrganizer=createConfiguredOrganizeRunner(store);','const nativeTest=nativeTestConfiguration(store);\nconst aiOrganizer=createConfiguredOrganizeRunner(store,nativeTest.configuration,{actionSource:nativeTest.source});\nglobalThis.__organizeNative.runner=aiOrganizer;');
- for(const type of ['GET_AI_PRESENTATION_SCOPE','UPDATE_AI_PRESENTATION'])worker=replaceOnce(worker,`case '${type}': return aiOrganizer.handle(request);`,`case '${type}': {globalThis.__organizeNative.lastSender=sender;globalThis.__organizeNative.senders.push({type:request.type,id:sender.id,documentId:sender.documentId,frameId:sender.frameId,url:sender.url,tabId:sender.tab?.id});const result=await aiOrganizer.handle(request,sender);globalThis.__organizeNative.results.push({type:request.type,result});return result;}`);
+ worker=replaceOnce(worker,'const organizeConfiguration=readOrganizeServiceConfiguration();','const nativeTest=nativeTestConfiguration(store);\nconst organizeConfiguration=nativeTest.configuration;');
+ worker=replaceOnce(worker,'const aiOrganizer=createConfiguredOrganizeRunner(store,organizeConfiguration,{actionSource:organizeActionSource});','nativeTest.observeActionSource(organizeActionSource);\nconst aiOrganizer=createConfiguredOrganizeRunner(store,organizeConfiguration,{actionSource:organizeActionSource});\nglobalThis.__organizeNative.runner=aiOrganizer;');
+ for(const type of ['GET_AI_PRESENTATION_SCOPE','UPDATE_AI_PRESENTATION'])worker=replaceOnce(worker,`case '${type}': return aiOrganizer.handle(request,sender);`,`case '${type}': {globalThis.__organizeNative.lastSender=sender;globalThis.__organizeNative.senders.push({type:request.type,id:sender.id,documentId:sender.documentId,frameId:sender.frameId,url:sender.url,tabId:sender.tab?.id});const result=await aiOrganizer.handle(request,sender);globalThis.__organizeNative.results.push({type:request.type,result});return result;}`);
  await writeFile(workerPath,worker);
  const runnerPath=join(staged,'core/organizer/configured-organize-runner.js');const runnerSource=await readFile(runnerPath,'utf8');const observedRunner=replaceOnce(runnerSource,'state.sourceAction=await actionSource.consume(sender,{topicId,scopeBinding,userActionId});','state.sourceAction=await actionSource.consume(sender,{topicId,scopeBinding,userActionId});globalThis.__organizeNative.lastAction=state.sourceAction;');await writeFile(runnerPath,replaceOnce(observedRunner,'}catch(error){state.error=',"}catch(error){globalThis.__organizeNative.failure={code:error.code,stack:error.stack};state.error="));
  await writeFile(join(staged,'ui/organize-native-bridge.html'),'<!doctype html><title>Synthetic test transport</title>');
