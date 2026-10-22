@@ -1,0 +1,159 @@
+{
+  "base": "607f453c8d999fe170d4199f93c6a8cf92071ef7",
+  "fix": "483a94b33097dc9a7735f933c3cd2e22852bc37f",
+  "fixTree": "8c6b9b5625419be453d5d944c372a5fcf40d00b9",
+  "branch": "codex/ans07-seed-admission-followup-20261022",
+  "cloud": {
+    "run": 39740927351,
+    "job": 119697718295,
+    "head": "ecf1feeb09673d94d855176639501275cf6e8e38",
+    "testedMerge": "6598714aedecfce33f5c7e63a8a45ed5cfbcd18a",
+    "result": "FAILED",
+    "exactHistoricalCause": "UNKNOWN"
+  },
+  "local": {
+    "node": "22.23.4",
+    "python": "3.12.14",
+    "chrome": "155.0.8059.85",
+    "playwright": "1.63.0",
+    "platform": "macOS",
+    "headless": true,
+    "fullRun": false,
+    "externalRequests": 0,
+    "providerRequests": 0
+  },
+  "results": {
+    "originalNativeFileBeforeChange": "1/1 PASS, does not supersede cloud RED",
+    "diagnosticsOnlyNative": "1/1 PASS",
+    "initialControlledDiagnostic": "0/2, diagnostic queried nonexistent entries table; preserved",
+    "correctedControlledNative": "2/2; rejected old-admission run and successful ACK-gated run",
+    "finalNativeOwner": "3/3 PASS, original journey + two admission controls",
+    "node": "4/4 PASS",
+    "package": "21218 checks, 607 runtime resources"
+  },
+  "files": [
+    {
+      "file": "original-cloud.log.gz",
+      "originalBytes": 96785,
+      "originalSha256": "b1785f6205e34656c828f6e4362db7dd3776e66511151e36c055464dea963fa8",
+      "publicBytes": 96785,
+      "publicSha256": "b1785f6205e34656c828f6e4362db7dd3776e66511151e36c055464dea963fa8",
+      "compressedSha256": "18905f9bc40eeab378977a29e344c6fc70e35695208ba952a9491db5564f7c50",
+      "sanitized": false
+    },
+    {
+      "file": "unchanged-native.tap.gz",
+      "originalBytes": 838,
+      "originalSha256": "bde7524eb5ba4a7588b7382441346e2be19a9cf95a5462a31267618fe2e5e752",
+      "publicBytes": 838,
+      "publicSha256": "bde7524eb5ba4a7588b7382441346e2be19a9cf95a5462a31267618fe2e5e752",
+      "compressedSha256": "a4a4c8b2af1ec13856cd7fc5f5f04593d697efd6d43a42ce521dc8164e1845f4",
+      "sanitized": false
+    },
+    {
+      "file": "diagnostic-native.tap.gz",
+      "originalBytes": 4898,
+      "originalSha256": "efb7de0d9d2fc4424d674b45957bed095fbbbf803f4fb50b9c133d0c09ce7569",
+      "publicBytes": 4898,
+      "publicSha256": "efb7de0d9d2fc4424d674b45957bed095fbbbf803f4fb50b9c133d0c09ce7569",
+      "compressedSha256": "3e0a43b0555c9546317654cb6e61be79b29b5928f99d02acb9697a26b2c28713",
+      "sanitized": false
+    },
+    {
+      "file": "controlled-native.tap.gz",
+      "originalBytes": 2749,
+      "originalSha256": "c9f80615590d10ad5bcc13d3ef95a85381c5df19bb6bf6ecf1148caf56fa5c21",
+      "publicBytes": 2549,
+      "publicSha256": "64cb1981f6ca6d3d25bc8a97926d15aed3d148252fa07684d2f503d546e4a89c",
+      "compressedSha256": "3fbf5a51d858971e66435f5e4be6b542aa7132a9146c0c59a26d0b18bfb0a6ab",
+      "sanitized": true
+    },
+    {
+      "file": "controlled-native-fixed-diagnostic.tap.gz",
+      "originalBytes": 4242,
+      "originalSha256": "73bc5cc9a11311746f35d107c020f91f7f9f5afe241fa3648a00ba72ca364e34",
+      "publicBytes": 4242,
+      "publicSha256": "73bc5cc9a11311746f35d107c020f91f7f9f5afe241fa3648a00ba72ca364e34",
+      "compressedSha256": "528f9de7a2721f950936c6d7f1be1152b2f0da6190d09cd065f22b3183047f60",
+      "sanitized": false
+    },
+    {
+      "file": "after-node.tap.gz",
+      "originalBytes": 1130,
+      "originalSha256": "a9e7a8009fa5429aaf70a954b98bb652f74cb9503a1c0671ed7e2f7e02178300",
+      "publicBytes": 1130,
+      "publicSha256": "a9e7a8009fa5429aaf70a954b98bb652f74cb9503a1c0671ed7e2f7e02178300",
+      "compressedSha256": "3137bfeda9c7e887c49e111df7b9220d713ef8bac8b09903ccd08638e0f17f8d",
+      "sanitized": false
+    },
+    {
+      "file": "after-native.tap.gz",
+      "originalBytes": 9903,
+      "originalSha256": "0362ce69308e48dcdbc608bcffc6b14755147943201560a28a3c28f3bcb7be4b",
+      "publicBytes": 9903,
+      "publicSha256": "0362ce69308e48dcdbc608bcffc6b14755147943201560a28a3c28f3bcb7be4b",
+      "compressedSha256": "675cb1946cc2fa5da7ffbe74b35344dc633010e5b6d6d78afa9a869c64b14db4",
+      "sanitized": false
+    },
+    {
+      "file": "package.txt",
+      "originalBytes": 153,
+      "originalSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "publicBytes": 153,
+      "publicSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "compressedSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "sanitized": false
+    },
+    {
+      "file": "baseline-identity.json",
+      "originalBytes": 715,
+      "originalSha256": "09fbe37b46ba09c492878668528d1884e0fdbc21f511d35a79d3bcf067d55f8b",
+      "publicBytes": 715,
+      "publicSha256": "09fbe37b46ba09c492878668528d1884e0fdbc21f511d35a79d3bcf067d55f8b",
+      "compressedSha256": "09fbe37b46ba09c492878668528d1884e0fdbc21f511d35a79d3bcf067d55f8b",
+      "sanitized": false
+    }
+  ],
+  "testedFiles": [
+    {
+      "path": "extension/tests/ans-07-library-root-chrome-e2e.test.mjs",
+      "sha256": "89bfcc4ed86eee3eddda35637f2b0b9e4942b30f629df0a4b5142b521277eceb"
+    },
+    {
+      "path": "extension/tests/ans07-seed-evidence.test.mjs",
+      "sha256": "d7915744e2952c1f0359eaf49d454485457cd551d455cc42ab489aee416cc241"
+    },
+    {
+      "path": "extension/tests/harness/ans07-seed-admission-native.mjs",
+      "sha256": "59870e1ac11896874339f955dbb75a3e73a21aebe8f892168034864a6fe772e8"
+    },
+    {
+      "path": "extension/tests/harness/ans07-seed-evidence.mjs",
+      "sha256": "97351151706d26b2af16822ee223323d4bb175dbf3b7446aaa0f53bac6f7e236"
+    },
+    {
+      "path": "extension/tests/harness/historical-publication-evidence.mjs",
+      "sha256": "05542f8ad8f40671ee8d3582ef00208a7659e07ba472be9721a8de7d546b864b"
+    },
+    {
+      "path": "extension/tests/harness/fake-chatgpt.mjs",
+      "sha256": "cac14aed256e89609e25fb146978e142071fd9b528446439a61414b73a8bbc8f"
+    },
+    {
+      "path": "extension/core/indexed-store.js",
+      "sha256": "f22dc7055141fdd1e5837b73a669cc9358c509d1fd250619651853236cc15a94"
+    },
+    {
+      "path": "extension/core/library-documents-owner.js",
+      "sha256": "c80822e8ba87ebe566cb6782e6c299bacd034eaff373dc771e23bf79dd14c129"
+    },
+    {
+      "path": "extension/ui/onboarding.js",
+      "sha256": "6c41c5df2091b50eec9d431c6db4840a57943d82ae0ec873bdd8d73bd462c912"
+    },
+    {
+      "path": "extension/ui/settings-local-state.js",
+      "sha256": "150cbe2fc98ad621b25c755c33ba170bc5e7c0043cbf28388dff171957a34e23"
+    }
+  ]
+}

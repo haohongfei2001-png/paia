@@ -1,0 +1,22 @@
+[
+  {
+    "path": "extension/core/indexed-store.js",
+    "sha256": "f22dc7055141fdd1e5837b73a669cc9358c509d1fd250619651853236cc15a94",
+    "failedMergeEqualsBase": true
+  },
+  {
+    "path": "extension/ui/onboarding.js",
+    "sha256": "6c41c5df2091b50eec9d431c6db4840a57943d82ae0ec873bdd8d73bd462c912",
+    "failedMergeEqualsBase": true
+  },
+  {
+    "path": "extension/ui/settings-local-state.js",
+    "sha256": "150cbe2fc98ad621b25c755c33ba170bc5e7c0043cbf28388dff171957a34e23",
+    "failedMergeEqualsBase": true
+  },
+  {
+    "path": "extension/tests/ans-07-library-root-chrome-e2e.test.mjs",
+    "sha256": "1a35b9c87d1cda9dbddadcb836a94866c13c1222070edfa5eb892504269b610b",
+    "failedMergeEqualsBase": true
+  }
+]
