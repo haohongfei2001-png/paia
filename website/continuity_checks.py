@@ -45,6 +45,11 @@ def verify_static(root,check):
         check(MARKER in source,path+': explicit active revision')
         check('换个住处' not in source and 'Finding a place to live' not in source,path+': rejected moving-home example removed')
         check(len(find(parsed,'[data-case-panel]'))==3,path+': three substantive cases')
+        if lang=='en':
+            lead=Text(parsed.outer(parsed.one('ct-lead'))).value()
+            check('to. The' in lead and 'revise. Keep' in lead,path+': English sentences stay separated when mobile hides a line break')
+            intro=Text(parsed.outer(parsed.one('ct-library-intro'))).value()
+            check('aside. Read' in intro,path+': English reader introduction preserves its sentence space')
         fragments=[Text(parsed.outer(e)).value() for e in find(parsed,'.ct-fragment p')]
         topic=[Text(parsed.outer(e)).value() for e in find(parsed,'.ct-hero-chapter p')]
         check(fragments==topic and len(topic)==2,path+': opening switches the same two complete original expressions')
