@@ -1,0 +1,11 @@
+{
+  "base": "a4be06d621a1a97b78d39ccb31c5794447d93958",
+  "fix": "aa29499caba53ef996f032ce5da28e8b9345c26a",
+  "node": "22.23.4",
+  "files": {
+    "original-controlled.log": "3b7bd9ab9e438197cb29968736dcd819611315a49d91e626e52c60ef5758ebc4",
+    "targeted.log": "14b4c5215f2f0e2897dce96c34180ec38ab7d562c94f8def3817ca2f9b511cda"
+  },
+  "native": "NOT_RUN: cleanup-only review fix, prior native evidence retains original identity",
+  "full": "NOT_RUN"
+}
