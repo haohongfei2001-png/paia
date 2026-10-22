@@ -123,3 +123,6 @@ body[data-site-revision="20261022"]{--vs-ink:#1c304a;--vs-secondary:#536b87;--vs
 
 /* Short space labels remain readable at the narrowest supported viewport. */
 @media(max-width:360px){[data-site-revision] .pv-tabs .hp-space-label{min-width:0;padding:9px 3px;gap:0;justify-content:center;white-space:normal;line-height:1.4}[data-site-revision] .pv-tabs .hp-space-label .mini-icon{display:none}[data-site-revision] .pv-tabs .hp-space-label>span{min-width:0;text-align:center;white-space:normal}}
+/* Explicit system paint is required: WebKit text fill does not always inherit
+   the forced-color-adjusted value through currentColor. */
+@media(forced-colors:active){[data-site-revision] .vs-hero h1>span{background:none!important;color:CanvasText!important;-webkit-text-fill-color:CanvasText!important}}
