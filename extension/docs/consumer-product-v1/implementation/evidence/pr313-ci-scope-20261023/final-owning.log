@@ -1,0 +1,766 @@
+TAP version 13
+# Subtest: actual current execution census admits all four approved whole files in addition to frozen96
+ok 1 - actual current execution census admits all four approved whole files in addition to frozen96
+  ---
+  duration_ms: 3.118125
+  type: 'test'
+  ...
+# Subtest: all100 execute exactly once with derived frozen routes and eight explicit current-ten whole-file relocations
+ok 2 - all100 execute exactly once with derived frozen routes and eight explicit current-ten whole-file relocations
+  ---
+  duration_ms: 12.79325
+  type: 'test'
+  ...
+# Subtest: the production runner uses the full current group, never the historical census helper
+ok 3 - the production runner uses the full current group, never the historical census helper
+  ---
+  duration_ms: 0.898208
+  type: 'test'
+  ...
+# Subtest: coverage checker validates actual100 separately from historical96 without weakening former oracles
+ok 4 - coverage checker validates actual100 separately from historical96 without weakening former oracles
+  ---
+  duration_ms: 55.025834
+  type: 'test'
+  ...
+# Subtest: Topic lifecycle native root is current and preserves all 600 prior whole-file routes
+ok 5 - Topic lifecycle native root is current and preserves all 600 prior whole-file routes
+  ---
+  duration_ms: 66.561666
+  type: 'test'
+  ...
+# Subtest: full browser gate verifies installed Chrome with the exact shard set and unchanged budgets
+ok 6 - full browser gate verifies installed Chrome with the exact shard set and unchanged budgets
+  ---
+  duration_ms: 6.392166
+  type: 'test'
+  ...
+# Subtest: workflow shell passes fresh direct-child font state between plan and install
+ok 7 - workflow shell passes fresh direct-child font state between plan and install
+  ---
+  duration_ms: 93.777459
+  type: 'test'
+  ...
+# Subtest: font archive control: unsupported-apt
+ok 8 - font archive control: unsupported-apt
+  ---
+  duration_ms: 32.359125
+  type: 'test'
+  ...
+# Subtest: font archive control: unsupported-os
+ok 9 - font archive control: unsupported-os
+  ---
+  duration_ms: 30.265791
+  type: 'test'
+  ...
+# Subtest: font archive control: unsupported-gpgv
+ok 10 - font archive control: unsupported-gpgv
+  ---
+  duration_ms: 30.270167
+  type: 'test'
+  ...
+# Subtest: font archive control: hit
+ok 11 - font archive control: hit
+  ---
+  duration_ms: 32.11925
+  type: 'test'
+  ...
+# Subtest: font archive control: cold-miss
+ok 12 - font archive control: cold-miss
+  ---
+  duration_ms: 32.55925
+  type: 'test'
+  ...
+# Subtest: font archive control: restore-timeout
+ok 13 - font archive control: restore-timeout
+  ---
+  duration_ms: 33.081167
+  type: 'test'
+  ...
+# Subtest: font archive control: corrupt
+ok 14 - font archive control: corrupt
+  ---
+  duration_ms: 32.77625
+  type: 'test'
+  ...
+# Subtest: font archive control: wrong-size
+ok 15 - font archive control: wrong-size
+  ---
+  duration_ms: 31.982958
+  type: 'test'
+  ...
+# Subtest: font archive control: missing
+ok 16 - font archive control: missing
+  ---
+  duration_ms: 32.078625
+  type: 'test'
+  ...
+# Subtest: font archive control: extra
+ok 17 - font archive control: extra
+  ---
+  duration_ms: 32.31975
+  type: 'test'
+  ...
+# Subtest: font archive control: nested-path
+ok 18 - font archive control: nested-path
+  ---
+  duration_ms: 33.024209
+  type: 'test'
+  ...
+# Subtest: font archive control: symlink
+ok 19 - font archive control: symlink
+  ---
+  duration_ms: 31.756875
+  type: 'test'
+  ...
+# Subtest: font archive control: hardlink
+ok 20 - font archive control: hardlink
+  ---
+  duration_ms: 32.599167
+  type: 'test'
+  ...
+# Subtest: font archive control: parent-symlink
+ok 21 - font archive control: parent-symlink
+  ---
+  duration_ms: 31.382708
+  type: 'test'
+  ...
+# Subtest: font archive control: bad-version
+ok 22 - font archive control: bad-version
+  ---
+  duration_ms: 31.997166
+  type: 'test'
+  ...
+# Subtest: font archive control: bad-architecture
+ok 23 - font archive control: bad-architecture
+  ---
+  duration_ms: 31.803541
+  type: 'test'
+  ...
+# Subtest: font archive control: key-mismatch
+ok 24 - font archive control: key-mismatch
+  ---
+  duration_ms: 32.624083
+  type: 'test'
+  ...
+# Subtest: font archive control: key-invalidation
+ok 25 - font archive control: key-invalidation
+  ---
+  duration_ms: 30.964083
+  type: 'test'
+  ...
+# Subtest: font archive control: image-changed-after-plan
+ok 26 - font archive control: image-changed-after-plan
+  ---
+  duration_ms: 31.276208
+  type: 'test'
+  ...
+# Subtest: font archive control: signed-index-failure
+ok 27 - font archive control: signed-index-failure
+  ---
+  duration_ms: 29.923667
+  type: 'test'
+  ...
+# Subtest: font archive control: missing-signed-metadata
+ok 28 - font archive control: missing-signed-metadata
+  ---
+  duration_ms: 30.148416
+  type: 'test'
+  ...
+# Subtest: font archive control: stale-lists
+ok 29 - font archive control: stale-lists
+  ---
+  duration_ms: 29.606875
+  type: 'test'
+  ...
+# Subtest: font archive control: original-source-failure
+ok 30 - font archive control: original-source-failure
+  ---
+  duration_ms: 30.76875
+  type: 'test'
+  ...
+# Subtest: font archive control: install-failure
+ok 31 - font archive control: install-failure
+  ---
+  duration_ms: 31.216833
+  type: 'test'
+  ...
+# Subtest: font archive control: weak-resolver-hash
+ok 32 - font archive control: weak-resolver-hash
+  ---
+  duration_ms: 29.749833
+  type: 'test'
+  ...
+# Subtest: font archive control: resolver-hash-mismatch
+ok 33 - font archive control: resolver-hash-mismatch
+  ---
+  duration_ms: 29.529833
+  type: 'test'
+  ...
+# Subtest: font archive control: staged-copy-corrupt
+ok 34 - font archive control: staged-copy-corrupt
+  ---
+  duration_ms: 32.704625
+  type: 'test'
+  ...
+# Subtest: font archive control: staged-copy-throws
+ok 35 - font archive control: staged-copy-throws
+  ---
+  duration_ms: 32.363375
+  type: 'test'
+  ...
+# Subtest: font archive control: source-trusted
+ok 36 - font archive control: source-trusted
+  ---
+  duration_ms: 28.987125
+  type: 'test'
+  ...
+# Subtest: font archive control: source-insecure
+ok 37 - font archive control: source-insecure
+  ---
+  duration_ms: 30.444917
+  type: 'test'
+  ...
+# Subtest: font archive control: source-expired
+ok 38 - font archive control: source-expired
+  ---
+  duration_ms: 29.866125
+  type: 'test'
+  ...
+# Subtest: font archive control: apt-config-env
+ok 39 - font archive control: apt-config-env
+  ---
+  duration_ms: 30.492542
+  type: 'test'
+  ...
+# Subtest: font archive control: config-insecure
+ok 40 - font archive control: config-insecure
+  ---
+  duration_ms: 29.623292
+  type: 'test'
+  ...
+# Subtest: font archive control: config-date
+ok 41 - font archive control: config-date
+  ---
+  duration_ms: 29.65575
+  type: 'test'
+  ...
+# Subtest: font archive control: config-validity
+ok 42 - font archive control: config-validity
+  ---
+  duration_ms: 29.557875
+  type: 'test'
+  ...
+# Subtest: font archive control: config-validity-label
+ok 43 - font archive control: config-validity-label
+  ---
+  duration_ms: 29.338458
+  type: 'test'
+  ...
+# Subtest: font archive control: config-signature
+ok 44 - font archive control: config-signature
+  ---
+  duration_ms: 29.828166
+  type: 'test'
+  ...
+# Subtest: font archive control: config-binary
+ok 45 - font archive control: config-binary
+  ---
+  duration_ms: 29.762542
+  type: 'test'
+  ...
+# Subtest: font archive control: config-path
+ok 46 - font archive control: config-path
+  ---
+  duration_ms: 29.309708
+  type: 'test'
+  ...
+# Subtest: font archive control: config-root-user
+ok 47 - font archive control: config-root-user
+  ---
+  duration_ms: 29.242416
+  type: 'test'
+  ...
+# Subtest: font archive control: config-changed-after-plan
+ok 48 - font archive control: config-changed-after-plan
+  ---
+  duration_ms: 29.976708
+  type: 'test'
+  ...
+# Subtest: font archive control: hosted-mirror-hit
+ok 49 - font archive control: hosted-mirror-hit
+  ---
+  duration_ms: 30.730417
+  type: 'test'
+  ...
+# Subtest: font archive control: hosted-mirror-cold
+ok 50 - font archive control: hosted-mirror-cold
+  ---
+  duration_ms: 31.725667
+  type: 'test'
+  ...
+# Subtest: font archive control: hosted-mirror-changed-after-plan
+ok 51 - font archive control: hosted-mirror-changed-after-plan
+  ---
+  duration_ms: 29.952208
+  type: 'test'
+  ...
+# Subtest: font archive control: fragments-changed-after-plan
+ok 52 - font archive control: fragments-changed-after-plan
+  ---
+  duration_ms: 29.867208
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: method-default
+ok 53 - hosted font compatibility: method-default
+  ---
+  duration_ms: 27.586375
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: method-directory
+ok 54 - hosted font compatibility: method-directory
+  ---
+  duration_ms: 26.078167
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: method-relative
+ok 55 - hosted font compatibility: method-relative
+  ---
+  duration_ms: 26.346458
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: method-missing
+ok 56 - hosted font compatibility: method-missing
+  ---
+  duration_ms: 26.56425
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: method-gpgv
+ok 57 - hosted font compatibility: method-gpgv
+  ---
+  duration_ms: 27.315125
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: method-http
+ok 58 - hosted font compatibility: method-http
+  ---
+  duration_ms: 27.647958
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: method-explicit-official
+ok 59 - hosted font compatibility: method-explicit-official
+  ---
+  duration_ms: 27.681875
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: method-empty
+ok 60 - hosted font compatibility: method-empty
+  ---
+  duration_ms: 27.530458
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: method-list
+ok 61 - hosted font compatibility: method-list
+  ---
+  duration_ms: 27.665208
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: apt-key-default
+ok 62 - hosted font compatibility: apt-key-default
+  ---
+  duration_ms: 27.882625
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: apt-key-explicit
+ok 63 - hosted font compatibility: apt-key-explicit
+  ---
+  duration_ms: 27.444542
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: apt-key-empty
+ok 64 - hosted font compatibility: apt-key-empty
+  ---
+  duration_ms: 26.862458
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: apt-key-wrapper
+ok 65 - hosted font compatibility: apt-key-wrapper
+  ---
+  duration_ms: 26.513208
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: apt-key-relative
+ok 66 - hosted font compatibility: apt-key-relative
+  ---
+  duration_ms: 26.450875
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: apt-key-traversal
+ok 67 - hosted font compatibility: apt-key-traversal
+  ---
+  duration_ms: 26.863583
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: apt-key-parent
+ok 68 - hosted font compatibility: apt-key-parent
+  ---
+  duration_ms: 26.600042
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: apt-key-parent-with-official
+ok 69 - hosted font compatibility: apt-key-parent-with-official
+  ---
+  duration_ms: 26.553583
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: native-defaults
+ok 70 - hosted font compatibility: native-defaults
+  ---
+  duration_ms: 26.910917
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: native-root
+ok 71 - hosted font compatibility: native-root
+  ---
+  duration_ms: 26.51025
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: weak-key
+ok 72 - hosted font compatibility: weak-key
+  ---
+  duration_ms: 27.229459
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: unknown-key
+ok 73 - hosted font compatibility: unknown-key
+  ---
+  duration_ms: 27.463833
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: empty-key
+ok 74 - hosted font compatibility: empty-key
+  ---
+  duration_ms: 26.870583
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: weak-future-key
+ok 75 - hosted font compatibility: weak-future-key
+  ---
+  duration_ms: 27.169375
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: rootdir
+ok 76 - hosted font compatibility: rootdir
+  ---
+  duration_ms: 27.289834
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: config-parts
+ok 77 - hosted font compatibility: config-parts
+  ---
+  duration_ms: 27.72175
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: config-binary-visible
+ok 78 - hosted font compatibility: config-binary-visible
+  ---
+  duration_ms: 27.844625
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: config-hidden-subtree
+ok 79 - hosted font compatibility: config-hidden-subtree
+  ---
+  duration_ms: 27.457041
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: config-adjacent-comment
+ok 80 - hosted font compatibility: config-adjacent-comment
+  ---
+  duration_ms: 27.369167
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: config-comments
+ok 81 - hosted font compatibility: config-comments
+  ---
+  duration_ms: 28.284875
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: config-include
+ok 82 - hosted font compatibility: config-include
+  ---
+  duration_ms: 27.130792
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: config-clear
+ok 83 - hosted font compatibility: config-clear
+  ---
+  duration_ms: 26.93325
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: mirror-label
+ok 84 - hosted font compatibility: mirror-label
+  ---
+  duration_ms: 26.426917
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: mirror-user
+ok 85 - hosted font compatibility: mirror-user
+  ---
+  duration_ms: 26.50075
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: mirror-scheme
+ok 86 - hosted font compatibility: mirror-scheme
+  ---
+  duration_ms: 26.727834
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: mirror-empty
+ok 87 - hosted font compatibility: mirror-empty
+  ---
+  duration_ms: 26.495292
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: mirror-path
+ok 88 - hosted font compatibility: mirror-path
+  ---
+  duration_ms: 26.741959
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: mirror-missing
+ok 89 - hosted font compatibility: mirror-missing
+  ---
+  duration_ms: 26.832541
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: mirror-fingerprint
+ok 90 - hosted font compatibility: mirror-fingerprint
+  ---
+  duration_ms: 26.851959
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: continuation-legal
+ok 91 - hosted font compatibility: continuation-legal
+  ---
+  duration_ms: 28.72975
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: continuation-scheme
+ok 92 - hosted font compatibility: continuation-scheme
+  ---
+  duration_ms: 26.6345
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: continuation-user
+ok 93 - hosted font compatibility: continuation-user
+  ---
+  duration_ms: 26.865833
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: continuation-signed-by
+ok 94 - hosted font compatibility: continuation-signed-by
+  ---
+  duration_ms: 27.433375
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: continuation-orphan
+ok 95 - hosted font compatibility: continuation-orphan
+  ---
+  duration_ms: 27.567667
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: archive-legal
+ok 96 - hosted font compatibility: archive-legal
+  ---
+  duration_ms: 27.962458
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: archive-path
+ok 97 - hosted font compatibility: archive-path
+  ---
+  duration_ms: 28.109667
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: archive-traversal
+ok 98 - hosted font compatibility: archive-traversal
+  ---
+  duration_ms: 27.613209
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: archive-missing-manifest
+ok 99 - hosted font compatibility: archive-missing-manifest
+  ---
+  duration_ms: 27.8515
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: archive-weak
+ok 100 - hosted font compatibility: archive-weak
+  ---
+  duration_ms: 27.927292
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: file-regular
+ok 101 - hosted font compatibility: file-regular
+  ---
+  duration_ms: 27.332167
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: file-symlink
+ok 102 - hosted font compatibility: file-symlink
+  ---
+  duration_ms: 27.595917
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: file-parent-symlink
+ok 103 - hosted font compatibility: file-parent-symlink
+  ---
+  duration_ms: 27.614416
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: file-fifo
+ok 104 - hosted font compatibility: file-fifo
+  ---
+  duration_ms: 27.484625
+  type: 'test'
+  ...
+# Subtest: hosted font compatibility: file-hardlink
+ok 105 - hosted font compatibility: file-hardlink
+  ---
+  duration_ms: 27.656209
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: 01autoremove
+ok 106 - observed Ubuntu inputs: 01autoremove
+  ---
+  duration_ms: 25.6855
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: 20apt-esm-hook.conf
+ok 107 - observed Ubuntu inputs: 20apt-esm-hook.conf
+  ---
+  duration_ms: 25.178042
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: 20snapd.conf
+ok 108 - observed Ubuntu inputs: 20snapd.conf
+  ---
+  duration_ms: 25.043083
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: 50appstream
+ok 109 - observed Ubuntu inputs: 50appstream
+  ---
+  duration_ms: 25.861958
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: 50command-not-found
+ok 110 - observed Ubuntu inputs: 50command-not-found
+  ---
+  duration_ms: 25.234541
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: 99needrestart
+ok 111 - observed Ubuntu inputs: 99needrestart
+  ---
+  duration_ms: 25.471792
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: all-six
+ok 112 - observed Ubuntu inputs: all-six
+  ---
+  duration_ms: 25.249167
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: hash-inline
+ok 113 - observed Ubuntu inputs: hash-inline
+  ---
+  duration_ms: 25.971458
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: quoted-hash
+ok 114 - observed Ubuntu inputs: quoted-hash
+  ---
+  duration_ms: 25.778167
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: include
+ok 115 - observed Ubuntu inputs: include
+  ---
+  duration_ms: 25.97
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: clear
+ok 116 - observed Ubuntu inputs: clear
+  ---
+  duration_ms: 25.816084
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: configure-index
+ok 117 - observed Ubuntu inputs: configure-index
+  ---
+  duration_ms: 26.263583
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: after-comment
+ok 118 - observed Ubuntu inputs: after-comment
+  ---
+  duration_ms: 25.834042
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: adjacent-comment
+ok 119 - observed Ubuntu inputs: adjacent-comment
+  ---
+  duration_ms: 26.032417
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: changed-cli
+ok 120 - observed Ubuntu inputs: changed-cli
+  ---
+  duration_ms: 25.326291
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: renamed-cli
+ok 121 - observed Ubuntu inputs: renamed-cli
+  ---
+  duration_ms: 25.375583
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: additional-binary
+ok 122 - observed Ubuntu inputs: additional-binary
+  ---
+  duration_ms: 25.156
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: cli-byte-change
+ok 123 - observed Ubuntu inputs: cli-byte-change
+  ---
+  duration_ms: 24.901667
+  type: 'test'
+  ...
+# Subtest: observed Ubuntu inputs: process-policy
+ok 124 - observed Ubuntu inputs: process-policy
+  ---
+  duration_ms: 24.823083
+  type: 'test'
+  ...
+# Subtest: nine measured whole-file jobs preserve every legacy route and exact current coverage
+ok 125 - nine measured whole-file jobs preserve every legacy route and exact current coverage
+  ---
+  duration_ms: 7.919208
+  type: 'test'
+  ...
+# Subtest: ten current jobs retain Context artifact ownership and measured whole-file capacity without losing or duplicating coverage
+ok 126 - ten current jobs retain Context artifact ownership and measured whole-file capacity without losing or duplicating coverage
+  ---
+  duration_ms: 2.53825
+  type: 'test'
+  ...
+1..126
+# tests 126
+# suites 0
+# pass 126
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3465.489083

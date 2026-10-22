@@ -1,0 +1,342 @@
+TAP version 13
+# Subtest: all100 execute exactly once with derived frozen routes and eight explicit current-ten whole-file relocations
+not ok 1 - all100 execute exactly once with derived frozen routes and eight explicit current-ten whole-file relocations
+  ---
+  duration_ms: 14.618292
+  type: 'test'
+  location: '<WORKTREE>/extension/tests/approved-ui-current-browser-admission.test.mjs:12:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    10:cpv1-01-2-reconnect-chrome-e2e.test.mjs
+
+    3 !== 4
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://<WORKTREE>/extension/tests/approved-ui-current-browser-admission.test.mjs:12:1401)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: full browser gate verifies installed Chrome with the exact shard set and unchanged budgets
+not ok 2 - full browser gate verifies installed Chrome with the exact shard set and unchanged budgets
+  ---
+  duration_ms: 2.762625
+  type: 'test'
+  location: '<WORKTREE>/extension/tests/cpv1-02-hosted-browser-setup.test.mjs:6:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /prepare-browser-fonts.py install/. Input:
+
+    '\n' +
+      '    needs: mode\n' +
+      "    if: needs.mode.outputs.full == 'true'\n" +
+      '    name: Current Browser ${{ matrix.index }}/10\n' +
+      '    runs-on: ubuntu-latest\n' +
+      '    timeout-minutes: 18\n' +
+      '    strategy:\n' +
+      '      fail-fast: false\n' +
+      '      matrix:\n' +
+      '        include:\n' +
+      '          - index: 1\n' +
+      "            shard: '1/10'\n" +
+      '          - index: 2\n' +
+      "            shard: '2/10'\n" +
+      '          - index: 3\n' +
+      "            shard: '3/10'\n" +
+      '          - index: 4\n' +
+      "            shard: '4/10'\n" +
+      '          - index: 5\n' +
+      "            shard: '5/10'\n" +
+      '          - index: 6\n' +
+      "            shard: '6/10'\n" +
+      '          - index: 7\n' +
+      "            shard: '7/10'\n" +
+      '          - index: 8\n' +
+      "            shard: '8/10'\n" +
+      '          - index: 9\n' +
+      "            shard: '9/10'\n" +
+      '          - index: 10\n' +
+      "            shard: '10/10'\n" +
+      '    defaults:\n' +
+      '      run:\n' +
+      '        working-directory: extension\n' +
+      '    steps:\n' +
+      '      - uses: actions/checkout@v4\n' +
+      '        with:\n' +
+      '          fetch-depth: 0\n' +
+      '      - uses: actions/setup-node@v4\n' +
+      '        with:\n' +
+      "          node-version: '22'\n" +
+      '      - uses: actions/setup-python@v5\n' +
+      '        with:\n' +
+      "          python-version: '3.12'\n" +
+      '      - run: npm install --no-audit --no-fund --package-lock=false\n' +
+      '      - name: Prepare portable Chrome test environment\n' +
+      '        run: |\n' +
+      '          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"\n' +
+      '          test -n "$CHROME_BIN"\n' +
+      '          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"\n' +
+      '          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"\n' +
+      '          "$CHROME_BIN" --version\n' +
+      '      - name: Use signed Ubuntu archive over HTTPS before browser font dependencies\n' +
+      '        run: |\n' +
+      '          # Run37687078617 stalled in font setup; prior37685485859 exhausted its adapter budget on this mirror.\n' +
+      '          # Change only that mirror URI; preserve suites, packages and signing keys.\n' +
+      "          sudo python3 - <<'PYAPT'\n" +
+      '          from pathlib import Path\n' +
+      "          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt').glob('*mirrors*.txt'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]\n" +
+      '          for path in paths:\n' +
+      '              if path.is_file():\n' +
+      '                  text = path.read_text()\n' +
+      "                  updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')\n" +
+      '                  if updated != text:\n' +
+      '                      path.write_text(updated)\n' +
+      '          PYAPT\n' +
+      '      - name: Provide Chinese glyph coverage for actual visual evidence\n' +
+      '        run: |\n' +
+      '          sudo apt-get update\n' +
+      '          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk\n' +
+      '          fc-list :lang=zh | grep -q .\n' +
+      '          mkdir -p work\n' +
+      "          for family in 'Noto Serif CJK SC' 'Noto Sans CJK SC' 'WenQuanYi Zen Hei'; do\n" +
+      `            fc-match --format '%{family}: %{file}\\n' "$family"\n` +
+      '          done | tee work/current-browser-fonts.txt\n' +
+      '      - name: Pin verified full Chrome for Settings native evidence\n' +
+      '        if: matrix.index == 6\n' +
+      '        run: |\n' +
+      '          set -euo pipefail\n' +
+      '          PAIA_DIAGNOSTIC_ZIP="$RUNNER_TEMP/settings-chrome-155.0.8059.39.zip"\n' +
+      '          PAIA_DIAGNOSTIC_CHROME="$RUNNER_TEMP/settings-chrome-155.0.8059.39"\n' +
+      `          curl --fail --location --proto '=https' --tlsv1.2 --max-time 120 --output "$PAIA_DIAGNOSTIC_ZIP" 'https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/linux64/chrome-linux64.zip'\n` +
+      '          echo "55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea  $PAIA_DIAGNOSTIC_ZIP" | sha256sum --check --status\n' +
+      '          unzip -q "$PAIA_DIAGNOSTIC_ZIP" -d "$PAIA_DIAGNOSTIC_CHROME"\n' +
+      `          test "$("$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" --version | awk '{print $NF}')" = '155.0.8059.39'\n` +
+      '          echo "PAIA_CHROME=$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" >> "$GITHUB_ENV"\n' +
+      '          echo "CHROME_PATH=$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" >> "$GITHUB_ENV"\n' +
+      `          echo 'PAIA_DIAGNOSTIC_BROWSER_VERSION=155.0.8059.39' >> "$GITHUB_ENV"\n` +
+      `          echo "PAIA_DIAGNOSTIC_BROWSER_SHA256=$(sha256sum "$PAIA_DIAGNOSTIC_ZIP" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"\n` +
+      '      - name: Verify the installed Chrome actually launches\n' +
+      '        run: xvfb-run -a node scripts/check-hosted-chrome.mjs\n' +
+      '      - name: Verify current browser coverage contract\n' +
+      '        if: matrix.index == 1\n' +
+      '        run: node scripts/check-ui-refresh-ci.mjs\n' +
+      '      - name: Run current browser shard\n' +
+      '        env:\n' +
+      '          PAIA_TEST_SHARD: ${{ matrix.shard }}\n' +
+      "          PAIA_TEST_CONCURRENCY: '1'\n" +
+      '        run: xvfb-run -a npm run test:browser\n' +
+      '      - name: Upload current browser shard evidence\n' +
+      '        if: always()\n' +
+      '        uses: actions/upload-artifact@v4\n' +
+      '        with:\n' +
+      '          name: current-browser-evidence-${{ github.sha }}-${{ matrix.index }}\n' +
+      '          path: extension/work\n' +
+      '          if-no-files-found: warn\n' +
+      '          retention-days: 14\n' +
+      '      - name: Upload focused synthetic text-size evidence\n' +
+      '        if: always() && matrix.index == 5\n' +
+      '        uses: actions/upload-artifact@v4\n' +
+      '        with:\n' +
+      '          name: current-text-size-evidence-${{ github.sha }}\n' +
+      '          path: |\n' +
+      '            extension/work/qa-dvn-topic-content/d7/source.json\n' +
+      '            extension/work/qa-dvn-topic-content/d7/release.json\n' +
+      '            extension/work/qa-dvn-topic-content/d7/*-header-*.png\n' +
+      '            extension/work/qa-dvn-topic-content/d7/*-1440-light-top-production.png\n' +
+      '            extension/work/qa-dvn-topic-content/d7/*-768-light-top-production.png\n' +
+      '            extension/work/qa-dvn-topic-content/d7/*-320-light-top-production.png\n' +
+      '            extension/work/qa-dvn-topic-content/*-return-diagnostic.json\n' +
+      '            extension/work/qa-dvn-topic-content/*-return-paths.json\n' +
+      '            extension/work/qa-dvn-topic-content/*-return-failure.png\n' +
+      '          if-no-files-found: warn\n' +
+      '          retention-days: 14\n' +
+      '\n' +
+      '      - name: Upload focused Context source and release evidence\n' +
+      '        if: always() && matrix.index == 10\n' +
+      '        uses: actions/upload-artifact@v4\n' +
+      '        with:\n' +
+      '          name: context-cards-evidence-${{ github.sha }}\n' +
+      '          path: extension/work/ctx4-01/\n' +
+      '          if-no-files-found: error\n' +
+      '          retention-days: 14\n' +
+      '\n'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+
+        needs: mode
+        if: needs.mode.outputs.full == 'true'
+        name: Current Browser ${{ matrix.index }}/10
+        runs-on: ubuntu-latest
+        timeout-minutes: 18
+        strategy:
+          fail-fast: false
+          matrix:
+            include:
+              - index: 1
+                shard: '1/10'
+              - index: 2
+                shard: '2/10'
+              - index: 3
+                shard: '3/10'
+              - index: 4
+                shard: '4/10'
+              - index: 5
+                shard: '5/10'
+              - index: 6
+                shard: '6/10'
+              - index: 7
+                shard: '7/10'
+              - index: 8
+                shard: '8/10'
+              - index: 9
+                shard: '9/10'
+              - index: 10
+                shard: '10/10'
+        defaults:
+          run:
+            working-directory: extension
+        steps:
+          - uses: actions/checkout@v4
+            with:
+              fetch-depth: 0
+          - uses: actions/setup-node@v4
+            with:
+              node-version: '22'
+          - uses: actions/setup-python@v5
+            with:
+              python-version: '3.12'
+          - run: npm install --no-audit --no-fund --package-lock=false
+          - name: Prepare portable Chrome test environment
+            run: |
+              CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+              test -n "$CHROME_BIN"
+              echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+              echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+              "$CHROME_BIN" --version
+          - name: Use signed Ubuntu archive over HTTPS before browser font dependencies
+            run: |
+              # Run37687078617 stalled in font setup; prior37685485859 exhausted its adapter budget on this mirror.
+              # Change only that mirror URI; preserve suites, packages and signing keys.
+              sudo python3 - <<'PYAPT'
+              from pathlib import Path
+              paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt').glob('*mirrors*.txt'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+              for path in paths:
+                  if path.is_file():
+                      text = path.read_text()
+                      updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')
+                      if updated != text:
+                          path.write_text(updated)
+              PYAPT
+          - name: Provide Chinese glyph coverage for actual visual evidence
+            run: |
+              sudo apt-get update
+              sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk
+              fc-list :lang=zh | grep -q .
+              mkdir -p work
+              for family in 'Noto Serif CJK SC' 'Noto Sans CJK SC' 'WenQuanYi Zen Hei'; do
+                fc-match --format '%{family}: %{file}\n' "$family"
+              done | tee work/current-browser-fonts.txt
+          - name: Pin verified full Chrome for Settings native evidence
+            if: matrix.index == 6
+            run: |
+              set -euo pipefail
+              PAIA_DIAGNOSTIC_ZIP="$RUNNER_TEMP/settings-chrome-155.0.8059.39.zip"
+              PAIA_DIAGNOSTIC_CHROME="$RUNNER_TEMP/settings-chrome-155.0.8059.39"
+              curl --fail --location --proto '=https' --tlsv1.2 --max-time 120 --output "$PAIA_DIAGNOSTIC_ZIP" 'https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/linux64/chrome-linux64.zip'
+              echo "55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea  $PAIA_DIAGNOSTIC_ZIP" | sha256sum --check --status
+              unzip -q "$PAIA_DIAGNOSTIC_ZIP" -d "$PAIA_DIAGNOSTIC_CHROME"
+              test "$("$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" --version | awk '{print $NF}')" = '155.0.8059.39'
+              echo "PAIA_CHROME=$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" >> "$GITHUB_ENV"
+              echo "CHROME_PATH=$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" >> "$GITHUB_ENV"
+              echo 'PAIA_DIAGNOSTIC_BROWSER_VERSION=155.0.8059.39' >> "$GITHUB_ENV"
+              echo "PAIA_DIAGNOSTIC_BROWSER_SHA256=$(sha256sum "$PAIA_DIAGNOSTIC_ZIP" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
+          - name: Verify the installed Chrome actually launches
+            run: xvfb-run -a node scripts/check-hosted-chrome.mjs
+          - name: Verify current browser coverage contract
+            if: matrix.index == 1
+            run: node scripts/check-ui-refresh-ci.mjs
+          - name: Run current browser shard
+            env:
+              PAIA_TEST_SHARD: ${{ matrix.shard }}
+              PAIA_TEST_CONCURRENCY: '1'
+            run: xvfb-run -a npm run test:browser
+          - name: Upload current browser shard evidence
+            if: always()
+            uses: actions/upload-artifact@v4
+            with:
+              name: current-browser-evidence-${{ github.sha }}-${{ matrix.index }}
+              path: extension/work
+              if-no-files-found: warn
+              retention-days: 14
+          - name: Upload focused synthetic text-size evidence
+            if: always() && matrix.index == 5
+            uses: actions/upload-artifact@v4
+            with:
+              name: current-text-size-evidence-${{ github.sha }}
+              path: |
+                extension/work/qa-dvn-topic-content/d7/source.json
+                extension/work/qa-dvn-topic-content/d7/release.json
+                extension/work/qa-dvn-topic-content/d7/*-header-*.png
+                extension/work/qa-dvn-topic-content/d7/*-1440-light-top-production.png
+                extension/work/qa-dvn-topic-content/d7/*-768-light-top-production.png
+                extension/work/qa-dvn-topic-content/d7/*-320-light-top-production.png
+                extension/work/qa-dvn-topic-content/*-return-diagnostic.json
+                extension/work/qa-dvn-topic-content/*-return-paths.json
+                extension/work/qa-dvn-topic-content/*-return-failure.png
+              if-no-files-found: warn
+              retention-days: 14
+
+          - name: Upload focused Context source and release evidence
+            if: always() && matrix.index == 10
+            uses: actions/upload-artifact@v4
+            with:
+              name: context-cards-evidence-${{ github.sha }}
+              path: extension/work/ctx4-01/
+              if-no-files-found: error
+              retention-days: 14
+
+
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file://<WORKTREE>/extension/tests/cpv1-02-hosted-browser-setup.test.mjs:11:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: ten current jobs retain Context artifact ownership and measured whole-file capacity without losing or duplicating coverage
+not ok 3 - ten current jobs retain Context artifact ownership and measured whole-file capacity without losing or duplicating coverage
+  ---
+  duration_ms: 4.739917
+  type: 'test'
+  location: '<WORKTREE>/extension/tests/current-browser-nine-partition.test.mjs:27:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    cpv1-01-2-reconnect-chrome-e2e.test.mjs
+
+    3 !== 4
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://<WORKTREE>/extension/tests/current-browser-nine-partition.test.mjs:30:92)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 0
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 61.82875
