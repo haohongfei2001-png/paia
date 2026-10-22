@@ -1,3 +1,26 @@
+# Publication clarification — 22 October 2026
+
+The refined homepage uses a clearly labelled, fictional moving-home thread.
+The exact same sent expressions illustrate retrieval and chronological Thought
+reading. This is a product illustration, not a live model result or installed
+extension screenshot. The small home Prompt example edits only a transient
+on-page draft; it has no provider, archive, storage or send API. The existing
+full Demo remains separate.
+
+The public installation target is still null. Primary actions now open the web
+demo; the installation-state page does not invent a store destination. Public
+cloud sync and external Context connections are explicitly unavailable in home,
+download/help and relevant secondary copy. Four Context directories on home
+show closed access and remain illustrative; they grant nothing. The release
+manifest, original permission defaults, product/source ownership, cloud account
+contracts and service activation requirements are unchanged.
+
+The original closing illustration, current application mark and floating-orb
+asset are preserved. No private Drive material is republished. Earlier rows
+below remain product traceability history, not proof of a live service.
+
+---
+
 # PAIA website product consistency — 9 October 2026
 
 This is a traceability record for the website implementation, not a new product

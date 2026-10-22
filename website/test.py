@@ -108,8 +108,9 @@ from launch_checks import verify_static_publication
 verify_static_publication(ROOT,check)
 
 
-# Keep the current production copy/hero and all unrelated generated pages frozen.
-# This uses a committed exact baseline, not an editable candidate snapshot.
+# Select the explicitly authorized homepage generation. The 22 October value
+# story preserves original demo/source owners and replaces only old home/CTA
+# expectations; the historical frozen suite remains available for older pages.
 import subprocess
 art_env = dict(os.environ, WEBSITE_ART_OUTPUT=str(OUT / 'art-direction-static'))
 art_args = ['--static-only'] if '--static-only' in sys.argv else []
@@ -223,7 +224,8 @@ def capture_scenes(page, name, width):
         page.wait_for_selector('body.hp-static')
         page.screenshot(path=str(OUT / f'{prefix}-hero.png'), animations='disabled')
         page.screenshot(path=str(OUT / f'{prefix}.png'), full_page=True, animations='disabled')
-        for key, selector in [('archive','.pc-editor-stage'),('thought','.ad-reading-spread'),('prompt','.pc-prompt-scene'),('context','.pc-context-stage')]:
+        selectors = [('archive','.vs-retrieval'),('thought','.vs-thought-stage'),('prompt','.vs-host'),('context','.pc-context-stage')] if page.locator('body').get_attribute('data-site-revision') == '20261022' else [('archive','.pc-editor-stage'),('thought','.ad-reading-spread'),('prompt','.pc-prompt-scene'),('context','.pc-context-stage')]
+        for key, selector in selectors:
             page.locator(selector).screenshot(path=str(OUT / f'{prefix}-{key}.png'),animations='disabled')
         return
     settle_capture_top(page)
@@ -441,7 +443,7 @@ try:
             load(page, locale + 'index.html', scripts=False)
             check(page.locator('h1').is_visible() and page.locator('#input-library').is_visible() and page.locator('#personal-context').is_visible(), f'{locale}: static core content without JS')
             check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-hero-glass]').is_visible(), f'{locale}: product-led first view works without JavaScript')
-            check(page.locator('[data-story-organized]').is_visible(), f'{locale}: complete topic presentation without JavaScript')
+            check(page.locator('.vs-thought-lines' if page.locator('body').get_attribute('data-site-revision') == '20261022' else '[data-story-organized]').is_visible(), f'{locale}: complete topic presentation without JavaScript')
             page.close()
             context.close()
         browser.close()

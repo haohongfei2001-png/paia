@@ -32,7 +32,8 @@ def verify_editorial(page, check, label='site'):
     if route == 'how-it-works.html':
         test(page.locator('.ed-start').count() == 1, 'one short first-use guide')
         test(page.locator('.ed-start li').count() == 3, 'install, consented capture, source verification')
-        test(page.locator('.ed-start a').evaluate_all('es=>es.map(e=>e.getAttribute("href"))') == [prefix+'download.html', '#capture', '#archive'], 'guide links use existing entry and section owners')
+        expected_steps = [prefix+'demo.html',prefix+'demo.html#input-library',prefix+'download.html'] if page.locator('body').get_attribute('data-install-available') == 'false' else [prefix+'download.html','#capture','#archive']
+        test(page.locator('.ed-start a').evaluate_all('es=>es.map(e=>e.getAttribute("href"))') == expected_steps, 'first-use guide respects actual installation availability')
     if route in ('index.html', 'demo.html'):
         # Never inspect private values to generate a card preview. Only assert
         # that the existing overview remains the four-directory UI.
@@ -40,7 +41,16 @@ def verify_editorial(page, check, label='site'):
         test(page.locator('[data-context-overview] textarea,[data-context-overview] input').count() == 0, 'no personal field in the directory')
         test(page.locator('[data-context-overview] [data-context-text]').count() == 0, 'editable personal bodies belong only to explicit details')
         test(page.locator('[data-context-overview] [data-thought-text],[data-context-overview] .ad-story-entry').count() == 0, 'no topic contents are repurposed as Context cards')
-    if route == 'index.html':
+    if route == 'index.html' and page.locator('body').get_attribute('data-site-revision') == '20261022':
+        from value_story_checks import verify_hero
+        verify_hero(page,check,en=not zh)
+        if page.locator('body').get_attribute('data-install-available') == 'false':
+            test(page.locator('.ed-desktop-link').count()==0,'no handoff to an unavailable installer')
+        test(page.locator('.hero-actions .button').is_visible(),'main usable action visible on every viewport')
+        if zh:
+            spacing=page.locator('#hero-title').evaluate('e=>parseFloat(getComputedStyle(e).letterSpacing)/parseFloat(getComputedStyle(e).fontSize)')
+            test(-.06<=spacing<=0,'Chinese title spacing remains readable')
+    elif route == 'index.html':
         test(page.locator('.ed-desktop-link').count() == 1, 'single explicit copy-link handoff')
         test(page.locator('.hero-actions a').evaluate_all('es=>es.map(e=>e.getAttribute("href"))') == [prefix+'download.html',prefix+'demo.html'], 'original desktop hero destinations stay exact')
         test(page.locator('.pv-context-card textarea,.pv-context-card input').count() == 0, 'hero Context preview is directory-only too')
@@ -119,7 +129,7 @@ if __name__ == '__main__':
                             # The unchanged demo retains explicit edit/return tests.
                             check(page.locator('[data-context-text],[data-card-detail]').count()==0,label+': no hidden personal bodies in homepage')
                             check(page.locator('[data-context-overview]').count()==1,label+': safe directory retained')
-                            if width<=640:
+                            if width<=640 and page.locator('.ed-desktop-link').count():
                                 page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async u=>{window.edCopied=u}}})")
                                 page.locator('.ed-desktop-link').click()
                                 check(page.evaluate('edCopied')=='https://inputarchive.com/'+prefix+'download.html',label+': explicit copy contains only canonical public link')
