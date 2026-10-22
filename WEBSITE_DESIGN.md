@@ -1,3 +1,12 @@
+> **Current scoped owner request — 22 October 2026:** refine the deployed
+> website using the review in the current conversation. Keep the translucent
+> navigation, blue/white material basis, Context four-card composition, original
+> floating-orb artwork and closing illustration. Improve the product-led story
+> and immediately visible Thought/Prompt outcomes; make entry actions truthful.
+> This supersedes old homepage copy/no-widget freezes only where changed by this
+> work. It does not authorize adopting rejected PR #310 or changing the product.
+> The active implementation is documented in `website/README.md`.
+
 > **Current visual direction — Owner correction, 8 October 2026:** the website
 > now follows current PAIA product mockups and the D6.2 / PT1 / Context4 material
 > language, with a modern frosted-glass presentation and richer motion. The

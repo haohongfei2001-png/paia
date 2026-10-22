@@ -1,0 +1,25 @@
+{
+  "baseline": "4349189451821db1e408a669cee5b64b140844f6",
+  "unchanged": {
+    "website/core.py": "33c784ef0371b433021105cf820108c5cc7d10260b3901fd3e79a49cb2ebe9c3",
+    "website/core_checks.py": "c2d932387b50b4dcb44f016dca447a01a6a78db57cf7d1711b1269d9486f49ce",
+    "website/topic_preview.py": "5d94fefc1ab76ee826eff168284dac1427c8c3f57e83627945efe079edd16f18",
+    "website/prompt_preview.py": "65b3ab9be426af1ae993f0a34ce2c4013ef0aa1b56f01956917e62ef4489c967",
+    "website/product_sections.py": "5766693a703ed5bdc196dc1328f98666fd829c75aa3a74b1cd8387188f6ca18d",
+    "website/product_hero.py": "df95a7b3cfa3a3d0aacea88626c92b331335115b2c815a20d1efac34c5d4d536",
+    "website/presentation_home.py": "e7b56e7f31904c96d6bb09ac0d5b06a74ade21e55aaba23da59ed1dd58243544",
+    "website/launch_manifest.json": "000da498a194e4f22d986e4e4949e1484b7682c50ebcd5977d3a0346454ef169",
+    "assets/website/home-core-v2.js": "6caf50fce2651c5649fc06ca830db73fd79935bedb3ca223a10bcb3c46090524",
+    "assets/website/product-experience.css": "e3f14c2a92470293d87c090e8cfc48d14325c712060a8289a2086ffdc0f884b8",
+    "assets/website/home-presentation.css": "8c81226a019d5dd57a6a3f232c551409d48ae0b97c940bff0970ca36aeb41cc0",
+    "assets/website/site.css": "ec4778913f7040408d14ac53079d8187bb4e84984539ba7198222dbb5684812a",
+    "assets/website/interior.css": "5009ac6df1e4015117faabfdfccc19d599971d44b833ee5465bb8e04f7262635",
+    "assets/website/launch.css": "4cbb8512aebfa433d64747eed8abe8796bbc5c23062fe7e6ca9a55c2ee0b036a",
+    "assets/website/brand/paia-logo-v1.webp": "e94ce73c20a46d40aa60d33eb87065906f256527da4948062c9ff30f6923a137",
+    "assets/website/brand/paia-symbol-soft-blue.svg": "1b1faffcd81ecd2a522f0d571c7532cc15a6f2d3f7d205c8edf8e0769c5394c6"
+  },
+  "close": {
+    "en": "39a24a2e6cacc3df04ab5218384b731667948ee78f07aaa31ce6c4fecf2f70cf",
+    "zh": "bd92454c6b5e4301e189c0246c66a37e49a465f5e29ba1e23549d9ca30ca3af6"
+  }
+}

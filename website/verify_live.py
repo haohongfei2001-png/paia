@@ -18,6 +18,7 @@ paths += ['assets/website/product-experience.css', 'assets/website/interior.css'
 paths += ['assets/website/refinement.css', 'assets/website/refinement.js', 'assets/website/launch.css', 'assets/website/home-art.css', 'assets/website/home-art.js', 'assets/website/scroll-story.css', 'assets/website/scroll-story.js']
 paths += ['assets/website/home-presentation.css', 'assets/website/home-presentation.js']
 paths += ['assets/website/asset-lock.json'] + list(json.loads((ROOT/'assets/website/asset-lock.json').read_text()))
+paths += ['assets/website/value-story.css', 'assets/website/value-story.js']
 paths = list(dict.fromkeys(paths))
 checks = []
 try:

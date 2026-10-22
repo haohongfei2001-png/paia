@@ -5,7 +5,7 @@ import sys
 sys.dont_write_bytecode = True
 from home import render as render_home
 from launch_copy import product_copy
-from launch_pages import download as render_download, help_page as render_help, contact as render_contact
+from launch_pages import download as render_download, help_page as render_help, contact as render_contact, installation
 from pages import render_pages
 from product_pages import render_demo, render_trust, render_status, render_about
 ROOT=Path(__file__).resolve().parents[1]
@@ -33,6 +33,8 @@ def build(lang):
             page, label = 'demo.html', t('查看演示','View demo') + ' <span aria-hidden="true">↗</span>'
         return f'<a class="{cls}" href="{link(page,anchor)}">{label}</a>'
     def button(page,label,cls='button',anchor=''):
+        if page in ('beta.html','download.html') and not installation()['chrome_store_url']:
+            page, label = 'demo.html', (t('查看演示','View demo') if 'button-small' in cls else t('体验交互演示','Try the interactive demo'))
         if label in ('体验 PAIA', 'Explore PAIA'):
             page, label = 'download.html', t('添加到 Chrome','Add to Chrome')
         return a(page,label+' <span aria-hidden="true">→</span>',cls,anchor)
@@ -46,7 +48,7 @@ def build(lang):
             product_css += '<script src="/assets/website/home-core-v2.js?v=20261009a" defer></script>\n'
         if page == 'index.html':
             product_css += '<link rel="stylesheet" href="/assets/website/home-art.css?v=20261013b"><link rel="stylesheet" href="/assets/website/scroll-story.css?v=20261013b">\n'
-        presentation_assets = '\n<link rel="stylesheet" href="/assets/website/home-presentation.css?v=20261013a"><script src="/assets/website/home-presentation.js?v=20261013a" defer></script>' if page == 'index.html' else ''
+        presentation_assets = '\n<link rel="stylesheet" href="/assets/website/home-presentation.css?v=20261013a"><link rel="stylesheet" href="/assets/website/value-story.css?v=20261022a"><script src="/assets/website/value-story.js?v=20261022a" defer></script>' if page == 'index.html' else ''
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>
@@ -82,9 +84,9 @@ def build(lang):
 <link rel="stylesheet" href="/assets/website/interior.css?v=20261009a">
 {product_css}
 <link rel="stylesheet" href="/assets/website/launch.css?v=20261013a">
-<script src="/assets/website/site.js?v={"20261013p" if page=="index.html" else "20261013c"}" defer></script>{presentation_assets}
+<script src="/assets/website/site.js?v={"20261022a" if page=="index.html" else "20261022a"}" defer></script>{presentation_assets}
 </head>
-<body data-page="{page}" data-language="{lang}"{' data-home-mode="presentation"' if page=='index.html' else ''}>
+<body data-page="{page}" data-language="{lang}" data-install-available="{str(bool(installation()['chrome_store_url'])).lower()}"{' data-home-mode="presentation" data-site-revision="20261022"' if page=='index.html' else ''}>
 <a class="skip-link" href="#main">{t('跳到正文','Skip to content')}</a>'''
     def header(page):
         canonical_page = {'beta.html':'download.html', 'status.html':'help.html'}.get(page,page)
@@ -95,7 +97,7 @@ def build(lang):
 <div class="brand-lockup"><a class="wordmark" href="{prefix}" aria-label="{t('PAIA 首页','PAIA home')}"><img class="header-brand-mark" src="/assets/website/brand/paia-symbol-soft-blue.svg" width="32" height="32" alt="" aria-hidden="true">PAIA</a></div>
 <nav class="desktop-nav" aria-label="{t('主导航','Main navigation')}">{nav}</nav>
 <div class="header-actions"><a class="language" href="{other}" lang="{'zh-CN' if en else 'en'}" hreflang="{'zh-Hans' if en else 'en'}">{t('EN','中文')}</a>{button('beta.html',t('申请内测','Request beta'),'button button-small')}</div>
-<details class="mobile-menu"><summary aria-label="{t('打开导航菜单','Open navigation menu')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg></summary><nav aria-label="{t('移动端导航','Mobile navigation')}">{nav}{a('demo.html',t('体验示例','Explore an example'))}{a('status.html',t('当前状态','Current status'))}</nav></details>
+<details class="mobile-menu"><summary aria-label="{t('打开导航菜单','Open navigation menu')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg></summary><nav aria-label="{t('移动端导航','Mobile navigation')}">{nav}{a('demo.html',t('体验示例','Explore an example'))}</nav></details>
 </div></header>'''
     def footer():
         return f'''<footer class="site-footer wrap"><div class="footer-main"><div class="footer-brand"><a class="wordmark" href="{prefix}">PAIA</a><p>{t('把每一次表达，留成自己的积累。', 'A place for your words to become your own body of work.')}</p></div><nav aria-label="{t('页脚导航','Footer navigation')}"><div><strong>{t('产品','PRODUCT')}</strong>{a('how-it-works.html',t('如何使用','How it works'))}{a('use-cases.html',t('使用场景','Use cases'))}{a('demo.html',t('交互演示','Interactive demo'))}{a('download.html',t('获取 PAIA','Get PAIA'))}</div><div><strong>{t('了解更多','RESOURCES')}</strong>{a('help.html',t('帮助中心','Help'))}{a('about.html',t('关于 PAIA','About PAIA'))}{a('blog.html',t('产品文章','Product notes'))}{a('contact.html',t('联系','Contact'))}</div><div><strong>{t('你的数据','YOUR DATA')}</strong>{a('principles.html',t('数据与权限','Data & permissions'))}{a('privacy-policy.html',t('隐私政策','Privacy policy'))}{a('terms.html',t('使用条款','Terms'))}</div></nav></div><div class="footer-bottom"><span class="copyright">© 2026 PAIA</span><span>{t('你的输入，始终属于你。','Your inputs stay yours.')}</span></div></footer>'''
