@@ -17,7 +17,7 @@ import subprocess
 from urllib.parse import unquote, urlsplit
 
 PACKAGES = ['fonts-wqy-zenhei', 'fonts-noto-cjk']
-POLICY = 'paia-browser-font-debs-v1'
+POLICY = 'paia-browser-font-debs-v2'
 
 
 def run(args):
@@ -41,9 +41,104 @@ def apt_options(state):
         'Dir::Cache::pkgcache=', 'Dir::Cache::srcpkgcache=',
         'APT::Update::Error-Mode=any', 'APT::Get::AllowUnauthenticated=false',
         'Acquire::AllowInsecureRepositories=false',
+        'Acquire::AllowWeakRepositories=false',
         'Acquire::AllowDowngradeToInsecureRepositories=false',
+        'Acquire::ForceHash=SHA256', 'Acquire::Check-Date=true',
+        'Acquire::Check-Valid-Until=true',
         'Acquire::Retries=0',
     ] for part in ['-o', option]]
+
+
+def checked_configuration(dump, sources):
+    """Reject unsupported inherited trust overrides; never repair host config."""
+    values, entries = {}, []
+    for line in dump.splitlines():
+        match = re.fullmatch(r'([^\s]+) "(.*)";', line)
+        if not match or match[1] in values and not match[1].endswith('::'):
+            raise ValueError('Unsupported APT configuration encoding')
+        values[match[1]] = match[2]
+        entries.append((match[1], match[2]))
+    defaults = {'Dir': '/', 'Dir::Etc': 'etc/apt',
+                'Dir::Etc::sourcelist': 'sources.list', 'Dir::Etc::sourceparts': 'sources.list.d',
+                'Dir::Etc::trusted': 'trusted.gpg', 'Dir::Etc::trustedparts': 'trusted.gpg.d'}
+    for key, value in defaults.items():
+        if values.get(key) != value:
+            raise ValueError('Unsupported APT source/trust configuration path')
+    deny_true = {'trusted', 'allow-insecure', 'allow-weak', 'allow-downgrade-to-insecure',
+                 'allowunauthenticated', 'allowinsecurerepositories', 'allowweakrepositories',
+                 'allowdowngradetoinsecurerepositories'}
+    require_true = {'check-date', 'check-valid-until', 'verify-peer', 'verify-host'}
+    for key, value in entries:
+        lower, segments = key.lower(), set(key.lower().split('::'))
+        if lower.startswith(('binary::apt-get::', 'binary::apt-cache::', 'apt::key::', 'apt::gpgv::', 'gpgv::', 'acquire::gpgv::')):
+            raise ValueError('Unsupported command-specific or signature override')
+        if not lower.startswith('dir::') and segments & deny_true and value.lower() not in ['false', 'no', '0', '']:
+            raise ValueError('Insecure APT trust override')
+        if segments & require_true and value.lower() not in ['true', 'yes', '1', '']:
+            raise ValueError('Disabled APT validity verification')
+        if 'forcehash' in segments and value not in ['SHA256', '']:
+            raise ValueError('Weak APT hash override')
+        if ('min-validtime' in segments and value not in ['0', '']) or ('max-futuretime' in segments and value not in ['0', '10', '']):
+            raise ValueError('Unsupported APT validity extension')
+    for name, content in sources.items():
+        if name.endswith('.list'):
+            for line in content.splitlines():
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                match = re.fullmatch(r'deb(?:-src)?\s+(?:\[([^\]]*)\]\s+)?(\S+)\s+.+', line)
+                if not match:
+                    raise ValueError('Unsupported one-line APT source')
+                for option in (match[1] or '').split():
+                    key, sep, value = option.partition('=')
+                    if not sep or not value or key not in ['arch', 'arch+', 'arch-', 'signed-by']:
+                        raise ValueError('Unsupported APT source option')
+                if urlsplit(match[2]).scheme not in ['http', 'https'] or urlsplit(match[2]).username:
+                    raise ValueError('Unsupported APT source URI')
+        else:
+            # Deb822 continuation lines (including inline Signed-By keys) cannot
+            # introduce another field. Unknown fields are refused, not ignored.
+            allowed = {'Types', 'URIs', 'Suites', 'Components', 'Architectures',
+                       'Architectures-Add', 'Architectures-Remove', 'Signed-By', 'Enabled'}
+            for block in content.strip().split('\n\n'):
+                seen = set()
+                for line in block.splitlines():
+                    if not line or line.startswith('#') or line[0].isspace():
+                        continue
+                    key, sep, value = line.partition(':')
+                    if not sep or key not in allowed or key in seen:
+                        raise ValueError('Unsupported Deb822 source field')
+                    seen.add(key)
+                    if key == 'URIs' and any(urlsplit(uri).scheme not in ['http', 'https'] or urlsplit(uri).username for uri in value.split()):
+                        raise ValueError('Unsupported APT source URI')
+    return hashlib.sha256(json.dumps({'config': entries, 'sources': sources}, sort_keys=True).encode()).hexdigest()
+
+
+def source_files():
+    directory = Path('/etc/apt')
+    files = [directory/'sources.list', *(directory/'sources.list.d').glob('*.list'),
+             *(directory/'sources.list.d').glob('*.sources')]
+    sources = {str(path): path.read_text() for path in files if path.exists()}
+    if not sources:
+        raise ValueError('No supported APT sources')
+    return sources
+
+
+def configuration(state):
+    if os.environ.get('APT_CONFIG'):
+        raise ValueError('APT_CONFIG override is unsupported')
+    options = apt_options(state)
+    user = run(['apt-config', *options, 'dump'])
+    root = run(['sudo', 'apt-config', *options, 'dump'])
+    if user != root:
+        raise ValueError('APT user/root configuration differs')
+    return checked_configuration(root, source_files())
+
+
+def checked_state(state):
+    root = Path(os.environ['RUNNER_TEMP']).resolve(strict=True)
+    if state.is_symlink() or state.parent.resolve(strict=True) != root:
+        raise ValueError('Font state must be a direct job-temp child')
 
 
 def identity():
@@ -63,7 +158,9 @@ def resolve_archives(uris, available, architecture):
         parts = shlex.split(line)
         if len(parts) != 4:
             raise ValueError('Unexpected native APT URI record')
-        uri, filename, size, _native_hash = parts
+        uri, filename, size, native_hash = parts
+        if not re.fullmatch(r'SHA256:[a-fA-F0-9]{64}', native_hash):
+            raise ValueError('Native resolver lacks strong SHA256')
         if (not re.fullmatch(r'[A-Za-z0-9%+._:~-]+\.deb', filename)
                 or filename.startswith('.') or urlsplit(uri).scheme not in ['https', 'http']):
             raise ValueError('Unsafe native archive locator')
@@ -77,7 +174,8 @@ def resolve_archives(uris, available, architecture):
             raise ValueError('Native archive lacks unique current signed metadata')
         row = matches[0]
         if (row['Architecture'] not in [architecture, 'all'] or not row['Package'] or not row['Version']
-                or row['Size'] != size or not re.fullmatch(r'[a-fA-F0-9]{64}', row['SHA256'] or '')):
+                or row['Size'] != size or not re.fullmatch(r'[a-fA-F0-9]{64}', row['SHA256'] or '')
+                or row['SHA256'].lower() != native_hash[7:].lower()):
             raise ValueError('Invalid signed archive metadata')
         result.append({'filename': filename, 'uri': uri, **row, 'Size': int(size)})
     if len({row['filename'] for row in result}) != len(result):
@@ -99,16 +197,20 @@ def output(**values):
 
 def plan(state):
     # Never reuse stale lists or cache-generated metadata, including after failure.
+    checked_state(state)
     state.mkdir(parents=True, exist_ok=False)
     for name in ['lists', 'archives']:
         (state/name).mkdir()
     options = apt_options(state)
+    config = configuration(state)
     print(run(['sudo', 'apt-get', *options, 'update']), end='')
     uris = run(['sudo', 'apt-get', *options, '--print-uris', '--download-only', '-y',
                 '--no-install-recommends', 'install', *PACKAGES])
-    available = run(['apt-cache', *options, 'dumpavail'])
+    available = run(['sudo', 'apt-cache', *options, 'dumpavail'])
     host = identity()
-    value = {'policy': POLICY, 'requested': PACKAGES, 'host': host,
+    if configuration(state) != config:
+        raise ValueError('APT configuration changed while resolving')
+    value = {'policy': POLICY, 'requested': PACKAGES, 'host': host, 'configuration': config,
              'archives': resolve_archives(uris, available, host['architecture'])}
     (state/'plan.json').write_text(json.dumps(value, indent=2)+'\n')
     (state/'resolver.txt').write_text(uris)
@@ -148,8 +250,10 @@ def copy_archives(source, target, archives):
 
 
 def install(state, cache, matched_key):
+    checked_state(state)
     value = json.loads((state/'plan.json').read_text())
-    if value['policy'] != POLICY or value['requested'] != PACKAGES or value['host'] != identity():
+    if (value['policy'] != POLICY or value['requested'] != PACKAGES or value['host'] != identity()
+            or value['configuration'] != configuration(state)):
         raise ValueError('Prepared image or policy changed')
     archives, staging = value['archives'], state/'archives'
     hit, cache_ready = False, False
@@ -163,6 +267,12 @@ def install(state, cache, matched_key):
         except (OSError, ValueError, subprocess.SubprocessError) as error:
             print('Font byte cache miss:', error)
     if archives and not hit:
+        # APT may reuse same-size files. Preserve any rejected job-local staging
+        # bytes and acquire into a new directory; never touch system archives.
+        if staging.is_symlink() or not staging.is_dir() or state.is_symlink():
+            raise ValueError('Unsafe job-local APT staging')
+        staging.rename(state/'rejected-archives')
+        staging.mkdir()
         # Exactly one original signed acquisition; failures are fatal, no loop.
         print(run(['sudo', 'apt-get', *apt_options(state), '--download-only', '-y',
                    '--no-install-recommends', 'install', *PACKAGES]), end='')

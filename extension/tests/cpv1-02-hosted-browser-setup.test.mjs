@@ -31,7 +31,7 @@ test('full browser gate verifies installed Chrome with the exact shard set and u
 // Execute the actual acquisition script with synthetic native-command results.
 // No sudo, APT, network, cache service or production install runs on this host.
 const fontControl=String.raw`
-import importlib.util, json, sys, tempfile, hashlib, subprocess, copy
+import importlib.util, json, sys, tempfile, hashlib, subprocess, copy, os
 from pathlib import Path
 spec=importlib.util.spec_from_file_location('fonts',sys.argv[1]); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 scenario=sys.argv[2]; calls=[]; outputs={}
@@ -44,13 +44,33 @@ for package,version,arch in [('fonts-wqy-zenhei','0.9.45-8','all'),('fonts-noto-
  rows.append(row); blobs[name]=data
 with tempfile.TemporaryDirectory() as temporary:
  root=Path(temporary); state=root/'state'; cache=root/'cache'/'debs'
+ os.environ['RUNNER_TEMP']=str(root);os.environ.pop('APT_CONFIG',None)
+ sources={'/etc/apt/sources.list':'deb [arch=amd64 signed-by=/usr/share/keyrings/ubuntu.gpg] https://archive.ubuntu.com/ubuntu noble main', '/etc/apt/sources.list.d/base.sources':'Types: deb\nURIs: https://archive.ubuntu.com/ubuntu\nSuites: noble-updates\nComponents: main\nSigned-By: /usr/share/keyrings/ubuntu.gpg'}
+ m.source_files=lambda:copy.deepcopy(sources)
+ if scenario=='source-trusted':sources['/etc/apt/sources.list']=sources['/etc/apt/sources.list'].replace('arch=amd64','trusted=yes')
+ if scenario=='source-insecure':sources['/etc/apt/sources.list']=sources['/etc/apt/sources.list'].replace('arch=amd64','allow-insecure=yes')
+ if scenario=='source-expired':sources['/etc/apt/sources.list.d/base.sources']+='\nCheck-Valid-Until: no'
+ if scenario=='apt-config-env':os.environ['APT_CONFIG']='/unsupported'
  def command(args):
   calls.append(args)
+  if 'apt-config' in args:
+   config={'Dir':'/','Dir::Etc':'etc/apt','Dir::Etc::sourcelist':'sources.list','Dir::Etc::sourceparts':'sources.list.d','Dir::Etc::trusted':'trusted.gpg','Dir::Etc::trustedparts':'trusted.gpg.d'}
+   for i,arg in enumerate(args):
+    if arg=='-o':k,v=args[i+1].split('=',1);config[k]=v
+   if scenario=='config-insecure':config['Acquire::https::AllowInsecureRepositories']='true'
+   if scenario=='config-date':config['Acquire::https::Check-Date']='false'
+   if scenario=='config-validity-label':config['Acquire::Min-ValidTime::Ubuntu']='999999'
+   if scenario=='config-validity':config['Acquire::https::Check-Valid-Until']='false'
+   if scenario=='config-signature':config['Acquire::gpgv::Options::']='--ignore-time-conflict'
+   if scenario=='config-binary':config['Binary::apt-get::Acquire::Check-Date']='false'
+   if scenario=='config-path':config['Dir::Etc::sourceparts']='other'
+   if scenario=='config-root-user' and args[0]=='sudo':config['Acquire::Retries']='1'
+   return '\n'.join(k+' "'+v+'";' for k,v in config.items())+'\nDPkg::Post-Invoke:: "true";\nDPkg::Post-Invoke:: "true";'
   if 'update' in args:
    if scenario=='signed-index-failure': raise subprocess.CalledProcessError(100,args)
    return 'fresh signed index\n'
   if '--print-uris' in args:
-   return '\n'.join("'https://archive.ubuntu.com/ubuntu/"+r['Filename'].replace(':','%3a')+"' "+n+' '+r['Size']+' MD5Sum:unused' for n,r in zip(blobs,rows))
+   return '\n'.join("'https://archive.ubuntu.com/ubuntu/"+r['Filename'].replace(':','%3a')+"' "+n+' '+r['Size']+' '+('MD5Sum:unused' if scenario=='weak-resolver-hash' else 'SHA256:'+('a'*64 if scenario=='resolver-hash-mismatch' else r['SHA256'])) for n,r in zip(blobs,rows))
   if 'dumpavail' in args:
    return '\n\n'.join('\n'.join(k+': '+v for k,v in r.items()) for r in (rows[:-1] if scenario=='missing-signed-metadata' else rows))
   if args[0]=='dpkg-deb':
@@ -60,7 +80,9 @@ with tempfile.TemporaryDirectory() as temporary:
    return '\n'.join(k+': '+v for k,v in control.items())
   if '--download-only' in args:
    if scenario=='original-source-failure': raise subprocess.CalledProcessError(100,args)
-   for name,data in blobs.items(): (state/'archives'/name).write_bytes(data)
+   for name,data in blobs.items():
+    target=state/'archives'/name
+    if not target.exists() or target.stat().st_size!=len(data):target.write_bytes(data)
    return 'original signed download once\n'
   if '--no-download' in args:
    if scenario=='install-failure': raise subprocess.CalledProcessError(100,args)
@@ -73,10 +95,11 @@ with tempfile.TemporaryDirectory() as temporary:
   except FileExistsError:pass
   assert not calls
   sys.exit(0)
- if scenario in ['signed-index-failure','missing-signed-metadata']:
+ if scenario in ['signed-index-failure','missing-signed-metadata','weak-resolver-hash','resolver-hash-mismatch','source-trusted','source-insecure','source-expired','apt-config-env','config-insecure','config-date','config-validity','config-validity-label','config-signature','config-binary','config-path','config-root-user']:
   try:m.plan(state);raise AssertionError('invalid index admitted')
   except (subprocess.CalledProcessError,ValueError):pass
   assert not (state/'plan.json').exists()
+  if scenario not in ['signed-index-failure','missing-signed-metadata','weak-resolver-hash','resolver-hash-mismatch']:assert not any('apt-get' in c for c in calls)
   assert not any('--no-download' in c or '--download-only' in c and '--print-uris' not in c for c in calls)
   sys.exit(0)
  plan=m.plan(state)
@@ -86,7 +109,9 @@ with tempfile.TemporaryDirectory() as temporary:
   assert 'Dir::State::lists='+str(state/'lists') in c
   assert 'APT::Update::Error-Mode=any' in c
   assert 'APT::Get::AllowUnauthenticated=false' in c
- assert calls[0][-1]=='update'
+ assert next(c for c in calls if 'apt-get' in c)[-1]=='update'
+ assert all('Acquire::ForceHash=SHA256' in c for c in calls)
+ assert next(c for c in calls if 'dumpavail' in c)[:2]==['sudo','apt-cache']
  if scenario=='key-invalidation':
   for path,value in [('ImageOS','ubuntu-next'),('ImageVersion','new'),('architecture','arm64')]:
    other=copy.deepcopy(plan);other['host'][path]=value;assert m.key_for(other)!=m.key_for(plan)
@@ -108,11 +133,20 @@ with tempfile.TemporaryDirectory() as temporary:
   (cache/first).unlink();(root/'outside.deb').write_bytes(blobs[first]);(cache/first).hardlink_to(root/'outside.deb')
  if scenario=='parent-symlink':
   cache.parent.rename(root/'outside');cache.parent.symlink_to(root/'outside',target_is_directory=True)
- if scenario=='image-changed-after-plan':
-  host['ImageVersion']='new'
+ if scenario in ['image-changed-after-plan','config-changed-after-plan']:
+  if scenario=='config-changed-after-plan':sources['/etc/apt/sources.list']+='\n# changed'
+  if scenario=='image-changed-after-plan':host['ImageVersion']='new'
   try:m.install(state,cache,m.key_for(plan));raise AssertionError('changed image admitted')
   except ValueError:pass
   assert not any('--no-download' in c for c in calls);sys.exit(0)
+ if scenario in ['staged-copy-corrupt','staged-copy-throws']:
+  original=m.copy_archives
+  def broken_copy(source,target,archives):
+   original(source,target,archives)
+   if target==state/'archives':
+    (target/first).write_bytes(b'x'*len(blobs[first]))
+    if scenario=='staged-copy-throws':raise OSError('injected interrupted copy')
+  m.copy_archives=broken_copy
  matched='' if scenario in ['restore-timeout','cold-miss','original-source-failure'] else m.key_for(plan)+'-partial' if scenario=='key-mismatch' else m.key_for(plan)
  if scenario in ['original-source-failure','install-failure']:
   try:m.install(state,cache,matched);raise AssertionError('fatal APT failure swallowed')
@@ -127,6 +161,9 @@ with tempfile.TemporaryDirectory() as temporary:
  for c in downloads+installs:
   assert c[-2:]==m.PACKAGES and '--no-install-recommends' in c
   assert c[:2]==['sudo','apt-get'] and 'Dir::Cache::archives='+str(state/'archives') in c
+ if scenario in ['staged-copy-corrupt','staged-copy-throws']:
+  assert (state/'rejected-archives'/first).read_bytes()==b'x'*len(blobs[first])
+  assert (state/'archives'/first).read_bytes()==blobs[first]
  if scenario=='parent-symlink':
   assert cache.parent.is_symlink() and outputs['cache_ready']=='false'
   assert (root/'outside'/'debs'/first).read_bytes()==blobs[first]
@@ -134,6 +171,6 @@ with tempfile.TemporaryDirectory() as temporary:
   assert outputs['cache_hit']==str(scenario=='hit').lower()
  print(json.dumps({'scenario':scenario,'nativeDownloadAttempts':len(downloads),'nativeInstallAttempts':len(installs),'output':outputs}))
 `;
-for(const scenario of ['hit','cold-miss','restore-timeout','corrupt','wrong-size','missing','extra','nested-path','symlink','hardlink','parent-symlink','bad-version','bad-architecture','key-mismatch','key-invalidation','image-changed-after-plan','signed-index-failure','missing-signed-metadata','stale-lists','original-source-failure','install-failure'])test('font archive control: '+scenario,()=>{
+for(const scenario of ['hit','cold-miss','restore-timeout','corrupt','wrong-size','missing','extra','nested-path','symlink','hardlink','parent-symlink','bad-version','bad-architecture','key-mismatch','key-invalidation','image-changed-after-plan','signed-index-failure','missing-signed-metadata','stale-lists','original-source-failure','install-failure','weak-resolver-hash','resolver-hash-mismatch','staged-copy-corrupt','staged-copy-throws','source-trusted','source-insecure','source-expired','apt-config-env','config-insecure','config-date','config-validity','config-validity-label','config-signature','config-binary','config-path','config-root-user','config-changed-after-plan'])test('font archive control: '+scenario,()=>{
  execFileSync(process.env.PYTHON||'python3',['-c',fontControl,fileURLToPath(new URL('../scripts/prepare-browser-fonts.py',import.meta.url)),scenario],{encoding:'utf8',stdio:'pipe'});
 });
