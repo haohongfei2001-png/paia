@@ -1,3 +1,39 @@
+# Current website refinement — 22 October 2026
+
+The owner asked to modify the **deployed website** after reviewing its product
+story, default presentation and misleading installation entry. The implementation
+starts at main `4349189451821db1e408a669cee5b64b140844f6`; it does not adopt the
+rejected, unmerged flagship PR #310 or change the extension.
+
+`value_story.py` now owns homepage composition. It inherits the existing hero,
+four-card Context visual and original closing, then connects source retrieval,
+chronological Thought reading and a default-open saved-phrase demonstration.
+The three moving-home expressions are fictional and remain exact throughout.
+`value-story.css` is homepage-scoped; `value-story.js` only inserts text into its
+own sample draft, preserves selections and IME, and never sends or persists it.
+The independent `demo.html` retains the original core controller and full suite.
+
+The real release manifest still controls installation. Until it has a verified
+store URL, primary navigation and page actions open the usable web demo instead
+of promising installation. Download, Help, first-use guidance and public sync /
+Context descriptions state their actual availability. No account, notification
+service, installer, cloud sync or AI connection is created by this work.
+
+The earlier homepage-only no-widget and exact-copy freezes are superseded for
+this expressly requested refinement, not silently reset. `value_story_checks.py`
+replaces their specific composition/CTA assertions, while
+`value_story_preserved.json` hashes inherited product/demo/brand owners against
+the exact preceding main commit. Full original demo data, permission, IME,
+keyboard, form-consent, asset and all-route reflow checks remain in `test.py`.
+`verify_live.py` also reads back both new active assets byte-for-byte.
+
+Build and test commands are unchanged. See
+[the implementation receipt](receipts/WEBSITE_VALUE_STORY_20261022.md).
+
+---
+
+## Preserved implementation history
+
 # PAIA website — full-site refoundation · 9 October 2026
 
 The Owner authorized a complete redesign, implementation, website-only PR,

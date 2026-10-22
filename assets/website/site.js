@@ -160,11 +160,16 @@
       const section = document.createElement('section');
       section.className = 'ed-start'; section.setAttribute('aria-labelledby', 'ed-start-title');
       const heading = document.createElement('h2'); heading.id = 'ed-start-title';
-      heading.textContent = t('第一次使用', 'Your first use');
-      const steps = [
+      const installAvailable = body.dataset.installAvailable === 'true';
+      heading.textContent = installAvailable ? t('第一次使用', 'Your first use') : t('先用一个示例认识 PAIA', 'Start with an example');
+      const steps = installAvailable ? [
         [t('1. 添加到浏览器', '1. Add to your browser'), local('download.html'), t('从获取页进入官方安装地址，核对浏览器与所需权限。', 'Use Get PAIA for the official installation address. Check the browser and required permissions.')],
         [t('2. 主动开启保存', '2. Turn on capture'), '#capture', t('在 ChatGPT 中开启保存后，再发送一条非私人内容。未发送的草稿不会被保存。', 'Turn on capture in ChatGPT, then send a non-private example. Unsent drafts are not captured.')],
         [t('3. 回到档案核对', '3. Check your archive'), '#archive', t('打开档案，找到刚才的表达，查看原话、时间与来源。', 'Find that expression in your archive. Check its original text, time and source.')]
+      ] : [
+        [t('1. 体验网页演示', '1. Open the web demo'), local('demo.html'), t('无需安装或注册，使用示例资料了解 PAIA。', 'No installation or account. Explore PAIA using sample material.')],
+        [t('2. 找回和复用原话', '2. Find and reuse words'), local('demo.html') + '#input-library', t('试试查找、编辑与提示词填入；所有操作只留在演示页面。', 'Try finding, editing and prompt insertion. Changes stay on the demo page.')],
+        [t('3. 查看安装状态', '3. Check installation status'), local('download.html'), t('公开安装尚未开放。获取页会显示经过核实的官方入口。', 'Public installation is not open yet. Get PAIA will show the verified official entry when available.')]
       ];
       const list = document.createElement('ol');
       for (const [label, href, detail] of steps) {
@@ -185,7 +190,7 @@
     demo.href = local('demo.html'); demo.textContent = t('查看演示', 'View demo');
     header.append(demo);
   }
-  if (page === 'index.html') {
+  if (page === 'index.html' && body.dataset.installAvailable === 'true') {
     const actions = document.querySelector('.hero-actions');
     if (actions) {
       const button = document.createElement('button'); button.type = 'button';

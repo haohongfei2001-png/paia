@@ -238,8 +238,8 @@
     {
       "source_zh": "AI 服务、真实连接与云同步仍在开发。",
       "source_en": "AI services, real connections and cloud sync are still in development.",
-      "zh": "保存、处理、读取与同步，分别由你决定。",
-      "en": "Decide separately what is kept, processed, read and synced."
+      "zh": "网页展示不代表 AI 服务、外部连接或云同步已经开放。",
+      "en": "A website illustration does not mean AI services, external connections or cloud sync are available."
     },
     {
       "source_zh": "本地优先不等于材料永不离开设备。计划中的 AI 整理与自动维护，在得到相应处理许可后使用必要材料；外部 AI 连接另有读取许可。",
@@ -250,8 +250,8 @@
     {
       "source_zh": "可选同步的正式方向是自己的浏览器云账号。主动开启后，可在同一生态的新设备恢复已成功同步的数据；真实传输和恢复仍在开发，不会自动跨生态互通。无需建立 PAIA 内容云账号。",
       "source_en": "Optional sync is planned through your own browser cloud account. Once enabled, a new device in the same ecosystem can restore successfully synced data. Live transfer and recovery remain in development. There is no automatic cross-ecosystem sync or required PAIA content-cloud account.",
-      "zh": "按需同步到自己的浏览器云账号，在同一生态的设备间接续已同步资料。不自动跨生态互通，也无需建立 PAIA 内容云账号。具体支持环境在安装入口中说明。",
-      "en": "Use your own browser cloud account to continue with synced material across devices in the same ecosystem. No automatic cross-ecosystem sync or PAIA content-cloud account. Supported environments are described at the installation entry."
+      "zh": "跨设备云同步与新设备恢复尚未提供。预期方向是使用自己的浏览器云账号，而非建立 PAIA 内容云；不会自动跨生态互通。",
+      "en": "Cross-device cloud sync and new-device recovery are not available yet. The intended direction is to use your own browser cloud account, not a PAIA content cloud, without automatic cross-ecosystem sync."
     },
     {
       "source_zh": "官方历史文件导入、已有备份文件恢复和故障恢复保留在正式计划中。生成内容导出、生成新备份和 Context 打包分享已不属于当前产品方向。同步也不等于无限期备份。",
@@ -358,8 +358,8 @@
     {
       "source_zh": "四张独立卡片 · 真实外部 AI 连接仍在开发",
       "source_en": "Four independent cards · Live external AI connections are in development",
-      "zh": "四张独立卡片 · 读取范围由你决定",
-      "en": "Four independent cards · You control what can be read"
+      "zh": "四张独立卡片 · 外部 AI 连接尚未开放",
+      "en": "Four independent cards · External AI connections not available yet"
     },
     {
       "source_zh": "以下情景均为虚构示例。",
@@ -424,26 +424,26 @@
     {
       "source_zh": "AI 连接尚未开放。本页不连接、不发送内容。",
       "source_en": "Real connections are not available yet. This page never connects or sends.",
-      "zh": "允许范围随时可改，暂停后不再读取新的内容。",
-      "en": "Change the scope at any time. Pausing stops new reads."
+      "zh": "AI 连接尚未开放。本页只演示权限，不连接、不发送内容。",
+      "en": "External AI connections are not available yet. This page illustrates permissions; it never connects or sends."
     },
     {
       "source_zh": "本地优先 · 同步规划",
       "source_en": "LOCAL FIRST · SYNC PLANNED",
-      "zh": "本地优先 · 按需同步",
-      "en": "LOCAL FIRST · SYNC BY CHOICE"
+      "zh": "本地优先 · 同步尚未开放",
+      "en": "LOCAL FIRST · SYNC NOT AVAILABLE YET"
     },
     {
       "source_zh": "日常保存、查找、编辑和提示词复用在本地完成。计划中的可选同步会使用你自己的浏览器云账号，让同一生态的新设备恢复已成功同步的资料。",
       "source_en": "Everyday capture, search, editing and prompt reuse work locally. Planned optional sync will use your own browser cloud account to restore successfully synced material on a new device in the same ecosystem.",
-      "zh": "日常保存、查找、编辑与提示词复用，在本地完成。按需使用自己的浏览器云账号，在同一生态的设备间接续已同步的资料。",
-      "en": "Everyday capture, search, editing and prompt reuse work locally. Use your own browser cloud account to continue with synced material across devices in the same ecosystem."
+      "zh": "日常保存、查找、编辑与提示词复用从本地开始。跨设备云同步尚未提供，下方为预期的浏览器生态对应关系。",
+      "en": "Everyday capture, search, editing and prompt reuse start locally. Cross-device cloud sync is not available; the browser ecosystem mapping below describes the intended direction."
     },
     {
       "source_zh": "由你主动开启；真实云同步仍在开发。不同浏览器生态之间不会自动互通。",
       "source_en": "You choose whether to enable it. Cloud sync is still in development; different browser ecosystems will not sync with one another automatically.",
-      "zh": "同步由你主动开启，不同浏览器生态之间不会自动互通。",
-      "en": "Sync is your choice. Different browser ecosystems do not sync with one another automatically."
+      "zh": "云同步尚未开放。未来启用需要单独允许，不同浏览器生态也不会自动互通。",
+      "en": "Cloud sync is not available yet. Future activation will require separate permission; browser ecosystems will not sync with one another automatically."
     },
     {
       "source_zh": "修改只保留在本页。计划中的自动维护会尊重你的修改和删除。",
@@ -466,8 +466,8 @@
     {
       "source_zh": "用四张卡片管理背景、规则、近况和允许读取的主题。真实连接可用后，获准的 AI 可以按需读取。",
       "source_en": "Use four cards for your background, rules, current context and allowed topics. Once live connections are available, authorized AI can read when needed.",
-      "zh": "用四张卡片管理背景、规则、近况与主题。只让获准的 AI 读取需要的内容。",
-      "en": "Use four cards for your background, rules, current context and topics. Let authorized AI read only what it needs."
+      "zh": "用四张卡片管理背景、规则、近况与主题。外部 AI 连接尚未开放；界面展示的是独立的读取范围。",
+      "en": "Use four cards for your background, rules, current work and topics. External AI connections are not available yet; the interface illustrates separate reading scopes."
     },
     {
       "source_zh": "示例用户已授权 · 本页没有真实 AI 连接",
