@@ -85,16 +85,20 @@ async function failedLocalContinuation(f){
  return {handle,before,transaction};
 }
 
-for(const action of ['retry-before-expiry','expiry-next-access','idle-revoke','idle-dispose'])test('retained storage continuation lifecycle: '+action,async t=>{
+for(const action of ['retry-before-expiry','expiry-next-access','clock-rollback','idle-revoke','idle-dispose'])test('retained storage continuation lifecycle: '+action,async t=>{
+ let monotonic=0;if(action==='clock-rollback')t.mock.method(performance,'now',()=>monotonic);
  const start=Date.parse('2026-10-18T00:00:00Z');t.mock.timers.enable({apis:['Date','setTimeout'],now:start});
  const f=await fixture();try{
   const {handle,before,transaction}=await failedLocalContinuation(f),priorCalls=f.calls.length,priorDecodes=f.filterState.decoded;
   if(action==='retry-before-expiry'){
    t.mock.timers.tick(60000);assert.equal(f.filterState.released.length,0);
-   const result=await f.session.run(handle);assert.equal(result.state,'COMMITTED');assert.equal((await filterAck(f)).length,1);assert.equal(await visible(f),false);assert.equal(f.filterState.released.length,1);
+   const result=await f.session.run(handle);assert.equal(result.state,'COMMITTED');assert.equal((await filterAck(f)).length,1);assert.equal(await visible(f),false);assert.equal(f.filterState.released.length,1);const committed=await snapshot(f.s);t.mock.timers.tick(600001);assert.deepEqual(await snapshot(f.s),committed);assert.equal(f.filterState.released.length,1,'completed jobs cancel idle expiry cleanup');
   }else{
-   t.mock.timers.tick(600001);await Promise.resolve();
-   assert.equal(Date.now(),start+600001);assert.equal(f.filterState.released.length,0,'clock passage alone currently does not eagerly retire a retained rollback handle');
+   const expires=action==='expiry-next-access';
+   t.mock.timers.tick(expires?599999:60000);await Promise.resolve();
+   assert.equal(f.filterState.released.length,0,'valid retained storage continuation remains available before expiry');
+   if(action==='clock-rollback'){t.mock.method(Date,'now',()=>start-600000);monotonic=600000;t.mock.timers.tick(540000);assert.ok(Date.now()<start);assert.equal(f.filterState.released.length,1,'wall-clock rollback cannot extend the captured monotonic lifetime');}
+   if(expires){t.mock.timers.tick(1);await Promise.resolve();assert.equal(Date.now(),start+600000);assert.equal(f.filterState.released.length,1,'processing expiry must retire the retained rollback handle while idle, before another owner read');}
    assert.equal(f.calls.length,priorCalls);assert.equal(f.filterState.decoded,priorDecodes);assert.deepEqual(await snapshot(f.s),before);
    if(action==='idle-revoke'){f.contextAbort.abort();assert.equal(f.filterState.released.length,1,'host revocation retires the handle synchronously without another run');}
    if(action==='idle-dispose'){f.session.dispose();assert.equal(f.filterState.released.length,1,'host disposal retires the handle synchronously without another run');}
@@ -104,7 +108,7 @@ for(const action of ['retry-before-expiry','expiry-next-access','idle-revoke','i
    },stores);
    try{assert.equal((await f.session.run(handle)).state,'UNAVAILABLE');}finally{f.s.repository.transaction=transaction;}
    assert.equal(bodyReads,0,'expired continuation cannot acquire Input, Source or Entry body rows');assert.equal(f.filterState.released.length,1);assert.equal((await filterAck(f)).length,0);assert.deepEqual(await snapshot(f.s),before);assert.equal(await visible(f),true);
-   f.contextAbort.abort();f.session.dispose();assert.equal(f.filterState.released.length,1,'late cleanup is idempotent');
+   f.contextAbort.abort();f.session.dispose();t.mock.timers.tick(600001);assert.equal(f.filterState.released.length,1,'expiry and late cleanup are idempotent');
   }
   assert.equal(f.calls.length,priorCalls,'no second physical request');assert.equal(f.filterState.decoded,priorDecodes,'no second response decode');
  }finally{f.session.dispose();await f.s.repository.close();t.mock.timers.reset();}

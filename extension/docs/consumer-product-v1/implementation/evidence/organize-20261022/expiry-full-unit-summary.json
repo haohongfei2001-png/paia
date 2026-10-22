@@ -1,0 +1,4085 @@
+{
+  "total": 11670,
+  "pass": 11669,
+  "fail": 1,
+  "skipped": 0,
+  "groups": {
+    "unit": {
+      "pass": 11669,
+      "fail": 1,
+      "skipped": 0
+    }
+  },
+  "files": {
+    "action-feedback-v091.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-assist-automatic-consent.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-assist-automatic-local.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-assist-automatic-surface.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-assist-automatic-worker.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-assist-context-selector.test.mjs": {
+      "pass": 128,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-assist-native-deadline-fixture.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-assist-native-loader.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-assist-private-session.test.mjs": {
+      "pass": 51,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-assist-section-relevance-source.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-assist-section-relevance.test.mjs": {
+      "pass": 84,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-context-correction-local.test.mjs": {
+      "pass": 68,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-context-edit-mapping.test.mjs": {
+      "pass": 162,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-contract-v080.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-02-admission-policy.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-02-atomic-reservation.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-02-budget-window-reservation.test.mjs": {
+      "pass": 34,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-02-client-domain-result.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-02-domain-commit-evidence.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-02-ratebook.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-02-result-finalization.test.mjs": {
+      "pass": 36,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-02-settlement.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-02-usage-normalization.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-03-authored-context.test.mjs": {
+      "pass": 97,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-03-authored-fields.test.mjs": {
+      "pass": 32,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-03-bound-entry-fields.test.mjs": {
+      "pass": 80,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-03-bound-entry-session.test.mjs": {
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-03-maintenance-batch.test.mjs": {
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-03-maintenance-session.test.mjs": {
+      "pass": 175,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-03-section-topic-reconciliation.test.mjs": {
+      "pass": 119,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-03-structural-context.test.mjs": {
+      "pass": 72,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-03-structural-topic-reconciliation.test.mjs": {
+      "pass": 49,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-03-topic-context.test.mjs": {
+      "pass": 84,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-05-style-binding.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-06-assist-intent.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-current-browser-admission.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-cost-semantic-invalidation.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-draft-v081.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-filter-command-ui.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-filter-consent-scope.test.mjs": {
+      "pass": 17,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-filter-field-grant.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-filter-maintenance-session.test.mjs": {
+      "pass": 54,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-filter-positive-owner.test.mjs": {
+      "pass": 50,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-filter-settlement-facts.test.mjs": {
+      "pass": 44,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-filter-visibility-publication.test.mjs": {
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-filter-worker-assembly.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-history-lifecycle.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-human-delta.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-correction-qualified-fields.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-exact-reuse-acquisition.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-exact-reuse-metadata.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-existing-context-session.test.mjs": {
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-existing-context.test.mjs": {
+      "pass": 53,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-local-qualification-closure.test.mjs": {
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-mixed-delta.test.mjs": {
+      "pass": 45,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-mixed-phases.test.mjs": {
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-mixed-qualification.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-no-change-session.test.mjs": {
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-owner-integration.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-payload.test.mjs": {
+      "pass": 37,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-post-topic-qualification.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-processing-receipt.test.mjs": {
+      "pass": 41,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-promotion-own-mutation-reader.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-qualification-capability.test.mjs": {
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-qualification-session.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-qualified-fields.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-section-promotion-permission.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-section-promotion.test.mjs": {
+      "pass": 38,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-session-expiry-lifecycle.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-source-field-projection.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-strict-topic-identity.test.mjs": {
+      "pass": 16,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-structural-summary-qualification.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-terminal-facts.test.mjs": {
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-topic-candidate-capability.test.mjs": {
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-topic-candidate-capture.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-topic-candidate-operation.test.mjs": {
+      "pass": 36,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-topic-candidate-payload.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-topic-candidate-settlement.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-topic-candidates.test.mjs": {
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-topic-settlement-fence.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-maintenance-topic-summary-qualification.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-migration-round4.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-organize-adoption-cache.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-organize-incremental-v2.test.mjs": {
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-organize-lifecycle.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-organize-local-session.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-organize-multichild-cache.test.mjs": {
+      "pass": 17,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-organize-multichild.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-organize-provider-lifecycle.test.mjs": {
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-organize-style-v3.test.mjs": {
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-presentation-v072c.test.mjs": {
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-product-v080.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-reading-flush-owner.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-reading-publication-save.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-save-hardening-v092.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-section-promotion-detached-proposal.test.mjs": {
+      "pass": 88,
+      "fail": 1,
+      "skipped": 0
+    },
+    "ai-section-promotion-finalizer.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-section-promotion-qualified-terminal.test.mjs": {
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-service-identity.test.mjs": {
+      "pass": 54,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-topic-formation-membership-publication.test.mjs": {
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-topic-formation-terminal.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-topic-promotion-response.test.mjs": {
+      "pass": 75,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-topic-promotion-scope.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-usage-semantic-receipt.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ai-withdrawn-human-recovery.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ambiguous-filter-preflight.test.mjs": {
+      "pass": 33,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-02-source-backup.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-02-source-structure.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-03-source-contract.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-03-source-privacy.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-04-navigation-concurrency.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-04-navigation-migration.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-04-navigation-query.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-04-navigation-worker.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-05-navigator-state.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-06-source-ordering.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-07-library-continuous.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-08-diagnostic-boundary.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-08-topic-projection.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-08-undo-save-lifecycle.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ans-09-migration.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "app-shell-state.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "approved-ui-current-browser-admission.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "architecture-round45.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-date-view.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-order-refresh.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-removal-undo.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-search-owners.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-shell-presentation.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-source-initialization-race.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-topic-open-refresh-lifecycle.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-white-reference.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-year-index-projection.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-year-partial-purge.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-year-reading.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-year-requalification.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-year-restoration-owner.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "archive-year-ui.test.mjs": {
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    "assist-consent.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "assist-content-bridge.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "assist-service-configuration.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "assist-service-response.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "audit-ci-wiring.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "audit-recovery-boundary.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "audit-recovery-floor.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "audit-ui-boundaries.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "backfill-bridge.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "backup-current-version.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "backup-hardening-v092.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "backup-v081.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "bounded-basic-experience.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "bounded-popup-ci-wiring.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "bounded-v081.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-canonical-readiness.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-checkpoints.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-ci.test.mjs": {
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-compaction.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-context-coexist.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-context-desired.test.mjs": {
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-context-info.test.mjs": {
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-context-manual.test.mjs": {
+      "pass": 34,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-core.test.mjs": {
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-filter-intent.test.mjs": {
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-group-checkpoint-audit.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-group-checkpoint-old-reader.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-group-checkpoint-plan.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-group-checkpoint-restore.test.mjs": {
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-human-library-derived-refusal.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-human-library-group.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-human-library-indexed-journal.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-human-library-journal.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-human-library-search-proof.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-input-working-inbox.test.mjs": {
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-input-working-receive.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-input-working.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-manual-owners.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-prompt-conflict-owner.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-publications.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-restore-epoch.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-restore-proof.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-segments.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-source-append.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browser-native-sync-source-bootstrap.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "build-current-release.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "candidate-unit-shards.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "capture-assist-development-contract.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "capture-bridge-lifecycle.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "capture-foundation.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "capture-recovery-ci-wiring.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "capture-recovery.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "capture.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "claude-import-round5a.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "client-operation-status-transport.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "compat-package.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "completed-group-restore-control.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "consumer-ai-fixture-cleanup.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "consumer-audit-retention.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "consumer-passport-revocation.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "consumer-preference-group-restore.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "consumer-preference-sync-owner.test.mjs": {
+      "pass": 36,
+      "fail": 0,
+      "skipped": 0
+    },
+    "consumer-recovery-visibility.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "content-fixture-consent.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-access-v0101.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-bridge-package-guard.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-cards-compatibility.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-cards-local-ui.test.mjs": {
+      "pass": 81,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-cards-local.test.mjs": {
+      "pass": 54,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-cards-owner-admission-counter.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-cards-white-home.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-cards-worker.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-cards.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-connection-policy.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-connections-ui.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-connections.test.mjs": {
+      "pass": 43,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-current-transition-interface.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-draft-discard.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-drawer-structure.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-edit-lifecycle.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-home-search.test.mjs": {
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-input-round8.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-item-basis-ui.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-item-basis.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-item-receive-revision.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-limits-cold-entry.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-maintenance-invalidation.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-maintenance-no-change.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-navigation-history-owner.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-navigation-lifecycle.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-passport-round45.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-quality-v0101.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-read-publication.test.mjs": {
+      "pass": 16,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-receipt-portability.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-scope-native-signal.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-scope-preview-entry.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-scope-preview-ui.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-scope-preview.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-search-touch-cascade.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-service-assembly.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-snapshot-current-poll.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-temporal-currentness.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-temporal-status.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-topic-search.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-topic-viewer.test.mjs": {
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-white-reference-contract.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "context-workspace-presentation.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "core-experience-round6.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpr-01-project-recognition.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpr-02-project-lifecycle.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-01-3-update-preflight.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-01-4-recovery-guidance.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-01-5-backup.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-01-recovery-draft.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-02-2-source-scope.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-02-6-input-search-cache.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-02-dvn-selection.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-02-hosted-browser-setup.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-03-backup-segments.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-05-fidelity.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-05-independent-thought.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-06-authorized-supplements.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-06-container-selection.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-06-context-manifest.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-06-output-packages.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-06-readable-review.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-06-security-closure.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-07-historical-comparison.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-07-history-time.test.mjs": {
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-07-revisit-selection.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-09-prompt-family.test.mjs": {
+      "pass": 34,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-09-prompt-security.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-09-prompt-service.test.mjs": {
+      "pass": 16,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-09-prompt-surface.test.mjs": {
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-12-next-detector.test.mjs": {
+      "pass": 94,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-12-next-family-match.test.mjs": {
+      "pass": 35,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-12-next-family-owner.test.mjs": {
+      "pass": 38,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-12-next-family-view.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-12-next-lifecycle.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-12-next-security.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-ai-cost-01-foundation.test.mjs": {
+      "pass": 50,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-ctx4-03-home-summary.test.mjs": {
+      "pass": 40,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-ctx4-03-topic-access-policy.test.mjs": {
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-ctx4-03-topic-access.test.mjs": {
+      "pass": 75,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-ctx4-03-topic-keyboard-guard.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-ctx4-03-topic-scope.test.mjs": {
+      "pass": 100,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-ctx4-03-topic-ui.test.mjs": {
+      "pass": 58,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-ctx4-03-topic-worker.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-ctx4-04-read.test.mjs": {
+      "pass": 108,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-ctx4-05-maintenance.test.mjs": {
+      "pass": 100,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-ctx4-05-recovery-worker.test.mjs": {
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-01-access.test.mjs": {
+      "pass": 36,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-01-identity.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-01-restore.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-02-candidates.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-02-lifecycle.test.mjs": {
+      "pass": 57,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-02-retrieval.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-02-unassigned.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-03-adversarial.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-03-atomic.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-03-formation.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-03-lineage.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-03-organization.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-04-access.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-04-history.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-04-large-selection.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-04-manual.test.mjs": {
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-04-promotion.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-04-recovery.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-1-read-model.test.mjs": {
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-2-root-intent.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-2-root-routing.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-2-root-search.test.mjs": {
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-2-root-section-anchor.test.mjs": {
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-2-root-slots.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-2-root-target.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-2-root-worker.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-4-expanded-entry.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-4-invisible-progress.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-4-section-reader.test.mjs": {
+      "pass": 120,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-4-section-reading.test.mjs": {
+      "pass": 36,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-4-section-worker.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "cpv1-topic-05-5-section-actions.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "current-browser-nine-partition.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d5-context-presentation-ci.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d5-direct-edit-matrix.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d5-full-browser-partition.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d5-organize-notice-ci.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d5-original-presentation.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d5-scope-order-ci.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d5-settings-presentation-ci.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d5-topic-header-ci.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d5-topic-title-geometry.test.mjs": {
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d7-archive-reader-ci.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d7-keyboard-package-guard.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d7-navigator-context.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d7-reader-dialogs-ci.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d7-settings-system-presentation.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "d7-title-visibility.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "deepseek-provider-v072a.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "deepseek-settings-v072a1.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "desktop-appearance-ci.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "desktop-appearance-entry.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "desktop-vnext-context-review.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "desktop-vnext-organize-review.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "desktop-vnext-organize-stage.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "development-reload.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "document-title-collection.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dual-view-v071.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-complete-removal.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-direct-edit.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-expression-time.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-ime-invalidation.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-operation-outcome.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-operation-worker.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-original-sequence.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-root-window.test.mjs": {
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-source-purge.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-topic-content.test.mjs": {
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-topic-note-recovery.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-topic-years.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-view-session.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "dvn-working-revision.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "editable-text.test.mjs": {
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "editor-primitives.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "enrichment.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "evolution-round7.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "export-probe.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "export.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "feature-retirement-worker.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "frozen-capture.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "frozen-v040.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "full-input-replacement.test.mjs": {
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0
+    },
+    "gateway-unit-install-contract.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "git-blob-snapshot.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "governance-v081.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "historical-publication-evidence.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "historical-publication-settled.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "historical-service-configuration.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "historical-service-write-fence.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "history-adapter-v090.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "history-detector-v090.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "history-integration-v090.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "history-long-term-v090.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "history-observer.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "history-performance-v090.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "history-staleness-v090.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "history-store.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-branch-semantic-witness.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-conflict-graph-qualification.test.mjs": {
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-current-native-source-inventory.test.mjs": {
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-current-projection-native-refusal.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-entry-edit-compute-original-owner.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-allocation-portability.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-edit-owner-seams.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-future-read-set.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-history-prune.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-identity.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-index-transition.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-keep-plan.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-move-plan.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-named-transaction.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-owner-planning.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-placed-edit-plan.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-request-order.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-same-transaction.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-section-edit-plan.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-topic-edit-plan.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-topic-lifecycle-plan.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-graph-topic-plan.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-projection-descriptor-sharing.test.mjs": {
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-projection-expression-sharing.test.mjs": {
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-qualification-budget.test.mjs": {
+      "pass": 16,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-raw-meter.test.mjs": {
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-retention-nonnative-refusal.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-search-field-inventory.test.mjs": {
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-search-owner-inventory.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "human-unindexed-search-sharing.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ia-foundation.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "iah-device-evidence.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "iah11-current-browser-admission.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "iah11-filter-reveal.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "iah11-find-return.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "iah11-fresh-entry.test.mjs": {
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    "iah11-origin-metadata.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "iah11-project-search.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "iah11-result-presentation.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "iah11-search-history-marker.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "iah11-search-identity.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "iah11-source-path.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "import-coordinator.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "import-ledger.test.mjs": {
+      "pass": 17,
+      "fail": 0,
+      "skipped": 0
+    },
+    "import-reader.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "import-upgrade.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "input-recovery-presentation.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "input-search-v090.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "installation-update-check.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "integrity-v092.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "intelligence-backup-v0110.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "intelligence-v0110.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "legacy-usage-retirement.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "library-documents-owner.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "library-entry-composition-lifecycle.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "library-entry-conflict-vs04.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "library-search-constructors.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "library.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "light-coverage.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "local-control-publication-owner.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "local-control-publication-recovery.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "local-worker-drains-harness.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "long-term-v081.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-identity-channel-configuration.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-processing-consent.test.mjs": {
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-processing-denial.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-processing-owner-generation.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-processing-purpose-snapshot.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-processing-restore.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-processing-settings.test.mjs": {
+      "pass": 52,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-processing-source-cold.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-processing-source-scope-alias.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-processing-source-terminal.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-runner-session-capability.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-service-response-adapter.test.mjs": {
+      "pass": 60,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-settings-native-evidence.test.mjs": {
+      "pass": 218,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintenance-source-presence-reader.test.mjs": {
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0
+    },
+    "manual-context-current-shape.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "manual-context-current-snapshot.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "manual-prompt-current-shape.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "memory-ranking-v0100.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "memory-safety-v0100.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "memory-v0100.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "mixed-configuration-owner.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "mixed-current-fixed-plan.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "mixed-current-index-schema.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "native-line-break.test.mjs": {
+      "pass": 73,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-approved-activation-key.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-approved-keyboard-package-guard.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-approved-quick-length.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-host-fixture-lifecycle.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-juban-anchor.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-manual-selection-qualification.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-r3-fused-surface.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-archive-arrival.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-family-controls.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-historical-candidates-owner.test.mjs": {
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-history-disclosure.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-layout.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-reference-ui.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-search-copy.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-search-display.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-search-owner.test.mjs": {
+      "pass": 16,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-search-session.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-toolbar-entry.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "nib-v4-toolbar-package-guard.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "onboarding-v090.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "optional-idle-round7.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "optional-library-status-v0111.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-action-consume-budget.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-action-native-clock.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-action-native-deadline.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-action-proof-comparison.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-action-source-facts.test.mjs": {
+      "pass": 16,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-action-source.test.mjs": {
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-action-stop-request.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-action-work-budget.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-cache-qualification.test.mjs": {
+      "pass": 17,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-cold-module-entry.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-commit-selection-fence.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-consumed-metadata-budget.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-control-continuity.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-current-path-equivalence.test.mjs": {
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-current-reader-retention.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-empty-relationship-scope.test.mjs": {
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-exact-material-fingerprint.test.mjs": {
+      "pass": 34,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-final-transaction-abort.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-main-filter-boundary.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-material-action-facts.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-material-method-origin.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-material-preload-origin.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-material-sha256.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-material-template-retention-cost.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-original-plan-source.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-paid-metadata-boundaries.test.mjs": {
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-paid-metadata-cost.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-paid-metadata-lifecycle.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-paid-metadata-reuse.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-presentation-fields.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-processing-policy.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-processing-scope.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-qualified-commit-scope.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-qualified-material-scope.test.mjs": {
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-readonly-template.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-scope-workspace.test.mjs": {
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organize-service-configuration.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organizer-controls-v080.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "organizer-m3.test.mjs": {
+      "pass": 70,
+      "fail": 0,
+      "skipped": 0
+    },
+    "original-complete-v072b.test.mjs": {
+      "pass": 40,
+      "fail": 0,
+      "skipped": 0
+    },
+    "original-copy-lifetime.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "original-cost-safe-v072b.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "original-organizer-v072b.test.mjs": {
+      "pass": 17,
+      "fail": 0,
+      "skipped": 0
+    },
+    "original-prepare-rescue-v072b.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "original-protection-refresh.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "original-rescue-e2e.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "original-simple-v072b.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "original-trace-rescue-v072b.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "passport-round4.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "personal-topic-previews.test.mjs": {
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0
+    },
+    "popup-next-state.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prd02-live-canary.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "pre-dispatch-read-retry.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "pre-gate-purge-acquisition.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "preference-control-durability.test.mjs": {
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    "privacy-context-bridge.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "product-signals-round3.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-assist-presenter.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-assist-state.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-canonical-coverage.test.mjs": {
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-convergence-authority.test.mjs": {
+      "pass": 41,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-correction-binding.test.mjs": {
+      "pass": 17,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-correction-sync-owner.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-direct-coverage.test.mjs": {
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-foundation-unit-partition.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-next-availability.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-next-r3-lifecycle.test.mjs": {
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-next-reopen-boundary.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-query-maintenance-generation.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-reuse-concurrent-read.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-reuse-control-identity.test.mjs": {
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-reuse-fence-fallback.test.mjs": {
+      "pass": 61,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-reuse-material-read.test.mjs": {
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-reuse-pending-lifetime.test.mjs": {
+      "pass": 33,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-reuse-preload-owner.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-stage3a-route-admission.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-status-clearance.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-surface-cancel-close.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-surface-capsule-display.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-surface-pending-feedback.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "prompt-surface-rail-settling.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-bpe-counter.test.mjs": {
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-client-declaration.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-controls-phase-split.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-foundation-service-result.test.mjs": {
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-json-usage.test.mjs": {
+      "pass": 38,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-prepared-wire.test.mjs": {
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-qualified-request.test.mjs": {
+      "pass": 33,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-request-profile.test.mjs": {
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-source-profile.test.mjs": {
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-source-retirement-signal.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-sse-usage.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-usage-parser.test.mjs": {
+      "pass": 53,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qwen-wire-counter.test.mjs": {
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    "raw-generation-observer.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "raw-settings-navigation.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "raw-source-original.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "reader-timestamp.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "reading-cold-legacy-v0111.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "reading-copy-lifetime.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "reading-race-round7.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "reading-v081.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "readonly-diagnostic-round3.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "real-verification-gate.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "rendered-typography-sample.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "repository-final-read-fence.test.mjs": {
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    "response-time.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "retention-causal-heads.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "retention-data-method-provenance.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "retention-expected-effects.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "retention-native-preparation.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "retention-physical-snapshot.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "revisit-preference-owner.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "revisit-round47.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "root-fixture-acquisition.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "root-read-authority-sharing.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "root-selection-viewport.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "saved-ai-evidence.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "scope-search-composition.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "scope-search-editor-boundary.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "search-arrival-current.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "search-hardening-v092.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "search-original-ranges.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "search-owner-fields.test.mjs": {
+      "pass": 45,
+      "fail": 0,
+      "skipped": 0
+    },
+    "search-rebalance-ci.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "search-service-round2.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-about-focus.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-about-package-guard.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-about.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-ai-style-backup.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-ai-style-content-preservation.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-ai-style-owner.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-ai-style-presenter.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-ai-style-recovery.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-ai-style-restart.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-ai-style-state.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-ai-style-worker.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-assist-state.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-backup-locale.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-backup-session.test.mjs": {
+      "pass": 17,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-capture-recovery.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-capture-toggle-evidence.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-consumer-local.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-details.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-directory-focus-frame.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-feedback.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-history-locale.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-input-recovery.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-next-owner.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-next-state.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-pending-actions.test.mjs": {
+      "pass": 16,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-pending-input-dialog.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-preview-mount.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-preview-reconcile.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-prompt-position-presenter.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-prompt-position-reset.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-prompt-position-state.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-reader-return.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-removed-composite.test.mjs": {
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-removed-entry-labels.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-removed-list.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-removed-locale.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-removed-placement-admission.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-removed-placement.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-removed-topic-pagination.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-return-boundaries.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-storage-estimate.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-supported-sites.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-thought-reverse-optout.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-touch-device-options.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-update-status.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "settings-update-worker.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "shared-white-role-contract.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "shared-working-content-round8.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "smart-filter-benchmark.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "smart-filter-diagnostics.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "smart-filter-store.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "smart-filter.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-count-refresh.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-time-resolver.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-time.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-working-binding.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-working-canonical.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-working-current-selection.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-working-default-meta.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-working-derived.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-working-fixed-preparation.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-working-index-schema.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-working-owner-identity.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-working-physical.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-working-qualification-cost.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source-working-restored-successor.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "storage-foundation.test.mjs": {
+      "pass": 17,
+      "fail": 0,
+      "skipped": 0
+    },
+    "store.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "sync-contract-round5b.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "sync-key-management-round5d.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "sync-node-preflight-ci.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "sync-remote-round5c.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "sync-secure-persistence-round5f.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "sync-secure-service-round5e.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "test-reporter-failure.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "thought-compose-presentation.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "thought-control-copy.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "thought-home-shell-owner.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "thought-m1.test.mjs": {
+      "pass": 46,
+      "fail": 0,
+      "skipped": 0
+    },
+    "thought-m2.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "thought-projection-constructors.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "thought-projection-metadata.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "thought-runner.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "thought-writing-workspace.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "timeline.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-ai-editor-retention.test.mjs": {
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-ai-evidence-reflow.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-ai-label-locale.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-ai-paint-ownership.test.mjs": {
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-ai-reading-reflow.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-ai-section-draft-handoff.test.mjs": {
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-ai-section-ime-handoff.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-ai-section-prose.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-chronology-v080.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-compose-copy-lifetime.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-container-action-route.test.mjs": {
+      "pass": 43,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-continuation-live-anchor.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-continuation-presentation.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-create-session.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-desired-sync-owner.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-durable-section-resume.test.mjs": {
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-entry-comparison-owner.test.mjs": {
+      "pass": 20,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-entry-draft-copy.test.mjs": {
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-entry-focus-refresh-owner.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-entry-removal-undo.test.mjs": {
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-entry-reorder-session.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-entry-section-move.test.mjs": {
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-exact-repeat-reading.test.mjs": {
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-fragment-history.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-handoff-native-owner.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-handoff-publication.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-handoff-qualification.test.mjs": {
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-initial-arrival-guard.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-inline-compose.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-leave-ownership.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-meaningful-activity.test.mjs": {
+      "pass": 7,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-merge-route.test.mjs": {
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-note-copy-lifetime.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-organize-service-action.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-pending-position-index.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-placement-undo.test.mjs": {
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-processing-authority.test.mjs": {
+      "pass": 62,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-processing-guard-authority.test.mjs": {
+      "pass": 44,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-publication-explicit-action.test.mjs": {
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-quality-round5.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-quality-v080.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-reading-order-v0111.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-reading-position-lifecycle.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-reading-sort-publication.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-retained-ci.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-retained-header-receipt.test.mjs": {
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-return-completion-observer.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-return-position-ci.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-root-continuation-observer.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-root-indexing-anchor.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-root-previews.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-root-read-recovery.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-root-white-reference.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-scoped-prose-presentation.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-action-route.test.mjs": {
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-actions-ci.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-ai.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-arrival.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-create.test.mjs": {
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-directory-order.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-management-presentation.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-original-owner-seed.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-pending-publication.test.mjs": {
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-promotion-owner.test.mjs": {
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-promotion-ui.test.mjs": {
+      "pass": 17,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-writer-retirement.test.mjs": {
+      "pass": 13,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-writing.test.mjs": {
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-section-years.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-selected-section.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-stale-publication.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-text-anchor.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-title-selection-visibility.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-view-focus-ownership.test.mjs": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-workspace-presentation.test.mjs": {
+      "pass": 29,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-writing-ci.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-year-continuous.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-year-extent-purge-owner.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-year-extent-requalification.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-year-large-descriptor.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-year-previous-endpoint.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-year-previous-opened-boundary.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-year-requalification.test.mjs": {
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    },
+    "topic-year-transition-window-owner.test.mjs": {
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ui-icons.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "uir-03-committed-expression-owner.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "uir03-worker-copy.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "uir03-worker-fixture.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "uir03-worker-readiness.test.mjs": {
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0
+    },
+    "uis-04-cleanup.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "universal-search-round46.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r1-shell.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r2-reader-revisit.test.mjs": {
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r3-relation-projection-oracle.test.mjs": {
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r3-thought-binding.test.mjs": {
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r3-topic-actions.test.mjs": {
+      "pass": 23,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r4-context-authorization.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r4-search-history.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r4-selection-preview.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r5-ai-candidates.test.mjs": {
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r5-ai-result-contract.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r5-ai-states.test.mjs": {
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r5-on01.test.mjs": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r6-backup-export.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-r6-settings-compatibility.test.mjs": {
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    "ux-review-v091.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "white-refinement-reference.test.mjs": {
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    },
+    "workspace.test.mjs": {
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    "writing-history-refusal.test.mjs": {
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    }
+  }
+}

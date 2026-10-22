@@ -614,7 +614,17 @@ export class LocalMaintenanceSession {
   this.#processingCurrent(state,receipt);const prior=state.processing.get(metadata.childOperationId);
   if(prior)this.#assertProcessing(prior);
   if(prior&&(prior.epoch!==receipt.epoch||prior.expiresAt!==receipt.expiresAt||prior.revocationSignal!==receipt.revocationSignal||!equal(prior.scope,receipt.scope)))fail('UNAVAILABLE');
-  if(!prior){const abort=()=>{this.#releaseFilters(state);state.controller.abort();state.outputs.clear();this.#remote?.releaseResponseJob(state.job.id);state.topicResults.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();state.deferredUnits.clear();state.authoredMaterial.clear();state.boundMaterial.clear();state.structuralMaterial.clear();state.structuralInputs.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();this.#releaseContextEdits(state);this.#releaseExistingContext(state);this.#releaseTopicCandidates(state);};const signal=receipt.revocationSignal;signal.addEventListener('abort',abort,{once:true});state.processingCleanup.add(()=>signal.removeEventListener('abort',abort));}
+  if(!prior){
+   const signal=receipt.revocationSignal,stopped=state.controller.signal,deadline=performance.now()+Math.max(0,receipt.expiresAt-Date.now());let timer=null,closed=false,removed=false;
+   const stopTimer=()=>{closed=true;clearTimeout(timer);};
+   const cleanup=()=>{stopTimer();if(removed)return;removed=true;try{signal.removeEventListener('abort',abort);}finally{stopped.removeEventListener('abort',stopTimer);state.processingCleanup.delete(cleanup);}};
+   const abort=()=>{try{cleanup();}catch{/* Host listener cleanup cannot retain expired private material. */}this.#releaseFilters(state);state.controller.abort();state.outputs.clear();this.#remote?.releaseResponseJob(state.job.id);state.topicResults.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();state.deferredUnits.clear();state.authoredMaterial.clear();state.boundMaterial.clear();state.structuralMaterial.clear();state.structuralInputs.clear();this.#releaseContextEdits(state);this.#releaseExistingContext(state);this.#releaseTopicCandidates(state);for(const map of [state.qualifications,state.postTopicQualifications]){for(const token of map.values())releaseMaintenanceQualification(token);map.clear();}};
+   // An idle storage rollback must not retain private material beyond the
+   // original processing receipt. Clock rollback cannot extend its lifetime.
+   // Keep the body-free job/attempt identity: expiry never admits a new call.
+   const expire=()=>{if(closed)return;const remaining=Math.min(receipt.expiresAt-Date.now(),deadline-performance.now());if(remaining<=0)abort();else{timer=setTimeout(expire,Math.min(remaining,2147483647));timer?.unref?.();}};
+   signal.addEventListener('abort',abort,{once:true});stopped.addEventListener('abort',stopTimer,{once:true});state.processingCleanup.add(cleanup);expire();
+  }
   state.processing.set(metadata.childOperationId,receipt);return receipt;
  }
  async #qualifyExactReuse(selection,base){

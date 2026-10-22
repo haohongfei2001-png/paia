@@ -853,6 +853,30 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
     return {passed:true,nativeFactory:indexedDB instanceof IDBFactory,phase:phase??'complete',rolledBack,contextUnchanged:true,physicalAttempts:1};
    }finally{f.s.repository.transaction=original;f.session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('cleanup'));r.onblocked=()=>reject(Error('blocked cleanup'));});}
   };
+  globalThis.__maintenanceIdleExpiryNative=async()=>{
+   assert.ok(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'native IndexedDB');
+   const f=await maintenanceFixture(),original=f.s.repository.transaction.bind(f.s.repository),grant=new AbortController(),listeners=new Set();let expiresAt=null,reached=false;
+   // Observe the original private processing listener's removal without asking
+   // the session to read, retry or check currentness after time has elapsed.
+   const add=grant.signal.addEventListener.bind(grant.signal),remove=grant.signal.removeEventListener.bind(grant.signal);
+   grant.signal.addEventListener=(type,fn,...rest)=>{if(type==='abort')listeners.add(fn);return add(type,fn,...rest);};
+   grant.signal.removeEventListener=(type,fn,...rest)=>{if(type==='abort')listeners.delete(fn);return remove(type,fn,...rest);};
+   f.session.dispose();const resolve=f.constructor.processing.resolve;
+   f.session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:{...f.constructor.processing,resolve:async(t,scope)=>({...await resolve(t,scope),expiresAt:expiresAt??=Date.now()+3000,revocationSignal:grant.signal})}});
+   try{
+    const handle=await f.session.prepare(options);
+    f.s.repository.transaction=(write,fn,stores)=>original(write,async tx=>{if(write){const put=tx.put.bind(tx);tx.put=async(table,row,...rest)=>{const result=await put(table,row,...rest);if(!reached&&table==='meta'&&row.id===CONTEXT_CARDS_ROW&&row.items.length){reached=true;throw Error('Synthetic native retained Context rollback');}return result;};}return fn(tx);},stores);
+    const first=await f.session.run(handle);f.s.repository.transaction=original;
+    assert.equal(first.state,'PARTIAL');assert.ok(reached);assert.equal(f.calls.length,1);assert.ok(Date.now()<expiresAt,'rollback occurred before its original receipt expiry');assert.ok(listeners.size>0,'original processing listener is still live');
+    const before=await snapshot(f.s),decoded=f.decoded.length;
+    assert.equal(before.organizerWorkItems.filter(row=>row.state==='ACKNOWLEDGED'&&row.unit.facet==='topic').length,1);assert.equal(before.organizerWorkItems.filter(row=>row.state==='ACKNOWLEDGED'&&row.unit.facet==='context').length,0);
+    await new Promise(resolve=>setTimeout(resolve,Math.max(0,expiresAt-Date.now())+50));
+    assert.equal(listeners.size,0,'real idle expiry removes the original listener before any owner read');assert.equal(grant.signal.aborted,false,'the session cannot revoke the external issuer');assert.equal(f.calls.length,1);assert.equal(f.decoded.length,decoded);
+    assert.deepEqual(await snapshot(f.s),before,'expiry preserves every durable domain and financial row');
+    assert.equal((await f.session.run(handle)).state,'UNAVAILABLE');assert.equal(f.calls.length,1);assert.equal(f.decoded.length,decoded);assert.deepEqual(await snapshot(f.s),before);
+    return {passed:true,nativeFactory:true,realExpiry:true,idleListenerReleased:true,physicalAttempts:1,topicAcks:1,contextAcks:0,durableUnchanged:true};
+   }finally{f.s.repository.transaction=original;f.session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('fixture cleanup'));r.onblocked=()=>reject(Error('fixture cleanup blocked'));});}
+  };
   globalThis.__maintenanceNative=async ({phase,mode='storage',adapterMode='valid',denied=false})=>{
    assert.ok(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'native IndexedDB');
    const f=await maintenanceFixture({adapterMode}),original=f.s.repository.transaction.bind(f.s.repository);let reached=false,rolledBack=false,transactionCompleted=false;
@@ -985,6 +1009,7 @@ for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dorma
    const report=await page.evaluate(scenario=>globalThis.__maintenanceNative(scenario),scenario);assert.equal(report.passed,true);
    await writeFile(join(output,'maintenance-'+(scenario.denied?'denied':scenario.phase||scenario.adapterMode||'complete')+'-'+(scenario.mode||'storage')+'.json'),JSON.stringify(report,null,2));
   });
+  await t.test('unified-maintenance-idle-processing-expiry',{timeout:20000},async()=>{const report=await page.evaluate(()=>globalThis.__maintenanceIdleExpiryNative());assert.equal(report.passed,true);await writeFile(join(output,'maintenance-idle-processing-expiry.json'),JSON.stringify(report,null,2));});
   await installRepositoryTerminal(page);
   for(const mode of ['complete','finalizer-source','finalizer-revoke','finalizer-expiry','caught-terminal-write','non-idb-promise','second-fence-revoke','native-auto-complete-control'])await t.test('repository-terminal-'+mode,{timeout:20000},async()=>{const report=await page.evaluate(mode=>globalThis.__repositoryTerminalNative(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'repository-terminal-'+mode+'.json'),JSON.stringify(report,null,2));});
   for(const mode of ['complete','last-owner-revoke'])await t.test('repository-collections-'+mode,{timeout:20000},async()=>{const report=await page.evaluate(mode=>globalThis.__repositoryCollectionsNative(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'repository-collections-'+mode+'.json'),JSON.stringify(report,null,2));});

@@ -1,0 +1,12 @@
+FAIL ai-section-promotion-detached-proposal.test.mjs: stage rollback preserves the exact original signed work for a fresh independently granted retry
+Error [ERR_TEST_FAILURE]: STALE_BASE
+Caused by: Error: STALE_BASE
+    at refuseTerminal (file://extension/core/idb-repository.js:93:8)
+    at synchronousTrue (file://extension/core/idb-repository.js:103:37)
+    at currentFinalAuthorities (file://extension/core/idb-repository.js:144:28)
+    at current (file://extension/core/idb-repository.js:161:20)
+    at runFinalReadFences (file://extension/core/idb-repository.js:180:4)
+    at ArchiveRepository.transaction (file://extension/core/idb-repository.js:427:410)
+    at async file://extension/core/indexed-store.js:279:123
+    at async file://extension/core/indexed-store.js:192:11
+FAILURE_METADATA {"failureType":"testCodeFailure"}

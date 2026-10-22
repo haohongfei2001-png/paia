@@ -51,3 +51,7 @@ Branch: `codex/organize-handoff-validation-20261022`. Continue from its current 
 Next independent audit is the current Maintenance/Context semantic-disposition and bounded existing-state chain, under current STATUS and AI Usage sections 4–5. Compare current original consumers and owning tests with the plan before selecting any implementation. Historical missing Topic-candidate, promotion and Context-status wiring has already been supplied and must not be rewritten. Report only a reproduced, authorized gap; do not add a scheduler, broader retrieval or new feature merely to continue.
 
 Use targeted reproduction, minimal owner repair, affected native tests and independent review per meaningful item. Batch required full regression at a changed/high-risk checkpoint. Keep progress and blockers on the same PR; candidate CI and pending external review do not require reopening completed work or waiting for each merge before independent work continues.
+
+## Successor saved after the continued audit
+
+The [idle processing expiry successor](MAINTENANCE-IDLE-EXPIRY-20261022.md) implements the first reproduced remaining gap and records its exact evidence, including 172/172 real native tests, the unresolved 11669/11670 local Unit failure, the 89/89 targeted follow-up and the independent-review quota block. Its remaining-contract questions supersede the exploratory next-audit paragraph above. Prior successful runs retain their original trees and are not promoted to successor acceptance.
