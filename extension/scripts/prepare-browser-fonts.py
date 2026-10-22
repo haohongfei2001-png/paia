@@ -17,7 +17,7 @@ import subprocess
 from urllib.parse import unquote, urlsplit
 
 PACKAGES = ['fonts-wqy-zenhei', 'fonts-noto-cjk']
-POLICY = 'paia-browser-font-debs-v2'
+POLICY = 'paia-browser-font-debs-v3'
 
 
 def run(args):
@@ -49,30 +49,137 @@ def apt_options(state):
     ] for part in ['-o', option]]
 
 
+# Reviewed native defaults: APT 2.8.1 pkgInitConfig, Ubuntu24 runner source.
+# Unknown algorithm policies stay unsupported; no generic APT::Key permission.
+KEY_DEFAULTS = {
+    'apt::key::assert-pubkey-algo': '>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512,brainpoolP256r1,brainpoolP320r1,brainpoolP384r1,brainpoolP512r1,secp256k1',
+    'apt::key::assert-pubkey-algo::next': '>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512',
+    'apt::key::assert-pubkey-algo::future': '>=rsa3072,ed25519,ed448',
+}
+MIRROR_PATH = '/etc/apt/apt-mirrors.txt'
+MIRROR_URI = 'mirror+file:'+MIRROR_PATH
+
+
+def remote_uri(uri):
+    parsed = urlsplit(uri)
+    if (parsed.scheme not in ['http', 'https'] or not parsed.hostname
+            or parsed.username is not None or parsed.password is not None
+            or '%' in parsed.netloc or parsed.fragment or parsed.query or '\\' in uri
+            or any(c.isspace() or ord(c) < 32 for c in uri)):
+        raise ValueError('Unsupported APT source URI')
+    return parsed
+
+
+def checked_mirror(content):
+    found = False
+    for raw in content.splitlines():
+        line = raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        # Native mirror files separate optional tags with whitespace. Only the
+        # runner's existing priority tag is supported, never a new route.
+        uri, *tags = line.split()
+        remote_uri(uri)
+        if len(tags) > 1 or any(not re.fullmatch(r'priority:[1-9][0-9]{0,9}', tag)
+                               or int(tag.split(':')[1]) > 4294967295 for tag in tags):
+            raise ValueError('Unsupported mirror label')
+        found = True
+    if not found:
+        raise ValueError('Empty mirror manifest')
+
+
+def checked_uri(uri, sources, *, archive=False):
+    if any(c.isspace() or ord(c) < 32 for c in uri):
+        raise ValueError('Invalid URI whitespace')
+    if urlsplit(uri).scheme != 'mirror+file':
+        return remote_uri(uri)
+    suffix = uri[len(MIRROR_URI):] if uri.startswith(MIRROR_URI) else None
+    if suffix is None or (suffix != '' and not archive):
+        raise ValueError('Unsupported mirror manifest path')
+    if archive and (not suffix or not suffix.startswith('/')
+                    or any(part in ['', '.', '..'] for part in unquote(suffix)[1:].split('/'))
+                    or '?' in uri or '#' in uri or '\\' in uri):
+        raise ValueError('Unsafe mirror archive path')
+    if MIRROR_PATH not in sources:
+        raise ValueError('Mirror manifest was not audited')
+    checked_mirror(sources[MIRROR_PATH])
+    return urlsplit(uri)
+
+
+def deb822(text):
+    fields, key = {}, None
+    for raw in [*text.splitlines(), '']:
+        if not raw.strip():
+            if fields:
+                yield fields
+            fields, key = {}, None
+        elif raw.lstrip().startswith('#'):
+            continue
+        elif raw[0].isspace():
+            if key is None:
+                raise ValueError('Orphan Deb822 continuation')
+            fields[key] += '\n'+raw.strip()
+        else:
+            key, sep, value = raw.partition(':')
+            key = key.lower()
+            if not sep or key in fields:
+                raise ValueError('Unsupported Deb822 source field')
+            fields[key] = value.strip()
+
+
+def signed_by(value):
+    # APT performs key authentication. Here validate complete field syntax;
+    # never skip continuation bytes that could carry another effective token.
+    lines = value.splitlines()
+    if lines and lines[0] == '-----BEGIN PGP PUBLIC KEY BLOCK-----':
+        if len(lines) < 3 or lines[-1] != '-----END PGP PUBLIC KEY BLOCK-----' or any(
+                not re.fullmatch(r'[A-Za-z0-9+/=]+|\.', line) for line in lines[1:-1]):
+            raise ValueError('Unsupported inline signing key')
+    elif not value.split() or any(not (re.fullmatch(r'/[A-Za-z0-9_./+-]+', token)
+                                      and '..' not in token.split('/')
+                                      or re.fullmatch(r'[a-fA-F0-9]{40}!?', token)) for token in value.split()):
+        raise ValueError('Unsupported Signed-By token')
+
+
 def checked_configuration(dump, sources):
     """Reject unsupported inherited trust overrides; never repair host config."""
     values, entries = {}, []
     for line in dump.splitlines():
         match = re.fullmatch(r'([^\s]+) "(.*)";', line)
-        if not match or match[1] in values and not match[1].endswith('::'):
+        if not match:
             raise ValueError('Unsupported APT configuration encoding')
-        values[match[1]] = match[2]
-        entries.append((match[1], match[2]))
-    defaults = {'Dir': '/', 'Dir::Etc': 'etc/apt',
-                'Dir::Etc::sourcelist': 'sources.list', 'Dir::Etc::sourceparts': 'sources.list.d',
-                'Dir::Etc::trusted': 'trusted.gpg', 'Dir::Etc::trustedparts': 'trusted.gpg.d'}
+        key, value = unquote(match[1]).lower(), unquote(match[2])
+        if key in values and not key.endswith('::'):
+            raise ValueError('Duplicate APT configuration key')
+        values[key] = value
+        entries.append((key, value))
+    defaults = {'dir': '/', 'dir::etc': 'etc/apt',
+                'dir::etc::sourcelist': 'sources.list', 'dir::etc::sourceparts': 'sources.list.d',
+                'dir::etc::trusted': 'trusted.gpg', 'dir::etc::trustedparts': 'trusted.gpg.d',
+                'dir::etc::main': 'apt.conf', 'dir::etc::parts': 'apt.conf.d'}
     for key, value in defaults.items():
         if values.get(key) != value:
             raise ValueError('Unsupported APT source/trust configuration path')
+    if values.get('rootdir', '') not in ['', '/']:
+        raise ValueError('Unsupported APT RootDir')
     deny_true = {'trusted', 'allow-insecure', 'allow-weak', 'allow-downgrade-to-insecure',
                  'allowunauthenticated', 'allowinsecurerepositories', 'allowweakrepositories',
                  'allowdowngradetoinsecurerepositories'}
     require_true = {'check-date', 'check-valid-until', 'verify-peer', 'verify-host'}
     for key, value in entries:
-        lower, segments = key.lower(), set(key.lower().split('::'))
-        if lower.startswith(('binary::apt-get::', 'binary::apt-cache::', 'apt::key::', 'apt::gpgv::', 'gpgv::', 'acquire::gpgv::')):
+        segments = set(key.split('::'))
+        if key in KEY_DEFAULTS:
+            if value != KEY_DEFAULTS[key]:
+                raise ValueError('Unsupported public-key algorithm policy')
+            continue
+        if key == 'apt::key':
+            if value != '':
+                raise ValueError('Unsupported key namespace value')
+            continue
+        if key.startswith(('binary::apt-get::', 'binary::apt-cache::', 'binary::apt-config::',
+                           'apt::key::', 'apt::gpgv::', 'gpgv::', 'acquire::gpgv::')):
             raise ValueError('Unsupported command-specific or signature override')
-        if not lower.startswith('dir::') and segments & deny_true and value.lower() not in ['false', 'no', '0', '']:
+        if not key.startswith('dir::') and segments & deny_true and value.lower() not in ['false', 'no', '0', '']:
             raise ValueError('Insecure APT trust override')
         if segments & require_true and value.lower() not in ['true', 'yes', '1', '']:
             raise ValueError('Disabled APT validity verification')
@@ -81,7 +188,9 @@ def checked_configuration(dump, sources):
         if ('min-validtime' in segments and value not in ['0', '']) or ('max-futuretime' in segments and value not in ['0', '10', '']):
             raise ValueError('Unsupported APT validity extension')
     for name, content in sources.items():
-        if name.endswith('.list'):
+        if name == MIRROR_PATH:
+            checked_mirror(content)
+        elif name.endswith('.list'):
             for line in content.splitlines():
                 line = line.strip()
                 if not line or line.startswith('#'):
@@ -93,46 +202,96 @@ def checked_configuration(dump, sources):
                     key, sep, value = option.partition('=')
                     if not sep or not value or key not in ['arch', 'arch+', 'arch-', 'signed-by']:
                         raise ValueError('Unsupported APT source option')
-                if urlsplit(match[2]).scheme not in ['http', 'https'] or urlsplit(match[2]).username:
-                    raise ValueError('Unsupported APT source URI')
+                    if key == 'signed-by':
+                        signed_by(value.replace(',', ' '))
+                checked_uri(match[2], sources)
+        elif name.endswith('.sources'):
+            allowed = {'types', 'uris', 'suites', 'components', 'architectures',
+                       'architectures-add', 'architectures-remove', 'signed-by', 'enabled'}
+            for fields in deb822(content):
+                if not fields.keys() <= allowed or not {'types', 'uris', 'suites'} <= fields.keys():
+                    raise ValueError('Unsupported Deb822 source field')
+                if not fields['uris'].split():
+                    raise ValueError('Empty Deb822 URIs')
+                for uri in fields['uris'].split():
+                    checked_uri(uri, sources)
+                if 'signed-by' in fields:
+                    signed_by(fields['signed-by'])
         else:
-            # Deb822 continuation lines (including inline Signed-By keys) cannot
-            # introduce another field. Unknown fields are refused, not ignored.
-            allowed = {'Types', 'URIs', 'Suites', 'Components', 'Architectures',
-                       'Architectures-Add', 'Architectures-Remove', 'Signed-By', 'Enabled'}
-            for block in content.strip().split('\n\n'):
-                seen = set()
-                for line in block.splitlines():
-                    if not line or line.startswith('#') or line[0].isspace():
-                        continue
-                    key, sep, value = line.partition(':')
-                    if not sep or key not in allowed or key in seen:
-                        raise ValueError('Unsupported Deb822 source field')
-                    seen.add(key)
-                    if key == 'URIs' and any(urlsplit(uri).scheme not in ['http', 'https'] or urlsplit(uri).username for uri in value.split()):
-                        raise ValueError('Unsupported APT source URI')
+            raise ValueError('Unsupported source file')
     return hashlib.sha256(json.dumps({'config': entries, 'sources': sources}, sort_keys=True).encode()).hexdigest()
+
+
+def read_regular(path):
+    # Fixed root-owned paths only. Refuse links at every component, including
+    # parent escapes, and validate the opened descriptor rather than stat alone.
+    if not path.is_absolute() or path.resolve(strict=True) != path:
+        raise ValueError('Symbolic or escaped APT configuration file')
+    before = path.lstat()
+    if not stat.S_ISREG(before.st_mode):
+        raise ValueError('Unsupported APT configuration file type')
+    with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as handle:
+        info = os.fstat(handle.fileno())
+        if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                or (info.st_dev, info.st_ino) != (before.st_dev, before.st_ino)):
+            raise ValueError('Unsupported APT configuration file type')
+        return handle.read().decode('utf-8')
 
 
 def source_files():
     directory = Path('/etc/apt')
     files = [directory/'sources.list', *(directory/'sources.list.d').glob('*.list'),
              *(directory/'sources.list.d').glob('*.sources')]
-    sources = {str(path): path.read_text() for path in files if path.exists()}
+    sources = {str(path): read_regular(path) for path in sorted(files) if path.exists() or path.is_symlink()}
     if not sources:
         raise ValueError('No supported APT sources')
+    if any('mirror+file:' in content for content in sources.values()):
+        sources[MIRROR_PATH] = read_regular(Path(MIRROR_PATH))
     return sources
+
+
+def configuration_files():
+    directory = Path('/etc/apt')
+    parts = directory/'apt.conf.d'
+    if parts.resolve(strict=True) != parts:
+        raise ValueError('Symbolic APT configuration directory')
+    paths = [directory/'apt.conf', *sorted(parts.iterdir())]
+    # Audit the complete fixed directory conservatively, including ignored
+    # fragments. Unknown includes/clears or command overrides are unsupported.
+    return {str(path): read_regular(path) for path in paths if path.exists() or path.is_symlink()}
+
+
+def checked_fragments(fragments):
+    for content in fragments.values():
+        # Preserve quoted tokens while ignoring native C/C++ comments. A word
+        # such as "binary" in a comment must not reject an otherwise safe host.
+        tokens = re.findall(r'"(?:[^"\\]|\\.)*"|/\*.*?\*/|//[^\n]*|[^\s{};"/]+|/', content, re.DOTALL)
+        active = [token.strip('"').lower() for token in tokens
+                  if not token.startswith(('//', '/*'))]
+        if any('\\' in token or token == 'binary' or token.startswith('binary::')
+               or token.startswith('#') for token in active):
+            raise ValueError('Unsupported command-specific APT fragment or include')
+    return fragments
 
 
 def configuration(state):
     if os.environ.get('APT_CONFIG'):
         raise ValueError('APT_CONFIG override is unsupported')
+    fragments = checked_fragments(configuration_files())
     options = apt_options(state)
-    user = run(['apt-config', *options, 'dump'])
-    root = run(['sudo', 'apt-config', *options, 'dump'])
+    # Force full dump formatting: inherited apt-config formatting cannot hide
+    # command-specific keys. Original fragments above guard the apt-config
+    # subtree that native BinarySpecificConfiguration moves before dumping.
+    dump_options = ['-o', 'APT::Config::Dump::EmptyValue=true', '-o',
+                    'APT::Config::Dump::Format=%F "%V";%n']
+    user = run(['apt-config', *options, *dump_options, 'dump'])
+    root = run(['sudo', 'apt-config', *options, *dump_options, 'dump'])
     if user != root:
         raise ValueError('APT user/root configuration differs')
-    return checked_configuration(root, source_files())
+    digest = checked_configuration(root, source_files())
+    if checked_fragments(configuration_files()) != fragments:
+        raise ValueError('APT fragments changed during audit')
+    return hashlib.sha256(json.dumps([digest, fragments], sort_keys=True).encode()).hexdigest()
 
 
 def checked_state(state):
@@ -149,7 +308,7 @@ def identity():
             'architecture': run(['dpkg', '--print-architecture']).strip()}
 
 
-def resolve_archives(uris, available, architecture):
+def resolve_archives(uris, available, architecture, sources=None):
     metadata = list(records(available))
     result = []
     for line in uris.splitlines():
@@ -162,8 +321,9 @@ def resolve_archives(uris, available, architecture):
         if not re.fullmatch(r'SHA256:[a-fA-F0-9]{64}', native_hash):
             raise ValueError('Native resolver lacks strong SHA256')
         if (not re.fullmatch(r'[A-Za-z0-9%+._:~-]+\.deb', filename)
-                or filename.startswith('.') or urlsplit(uri).scheme not in ['https', 'http']):
+                or filename.startswith('.')):
             raise ValueError('Unsafe native archive locator')
+        checked_uri(uri, sources or {}, archive=True)
         matches = []
         for row in metadata:
             if row.get('Filename') and unquote(urlsplit(uri).path).endswith('/'+unquote(row['Filename'])):
@@ -211,7 +371,7 @@ def plan(state):
     if configuration(state) != config:
         raise ValueError('APT configuration changed while resolving')
     value = {'policy': POLICY, 'requested': PACKAGES, 'host': host, 'configuration': config,
-             'archives': resolve_archives(uris, available, host['architecture'])}
+             'archives': resolve_archives(uris, available, host['architecture'], source_files())}
     (state/'plan.json').write_text(json.dumps(value, indent=2)+'\n')
     (state/'resolver.txt').write_text(uris)
     output(key=key_for(value), count=len(value['archives']))
