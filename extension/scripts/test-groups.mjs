@@ -225,7 +225,11 @@ export function testShard(file,position,total,category){
  // and Section writing (~53–54s) from7 to4 (875/764s measured job totals).
  // Preserve all100 roots, every Source/release case, ten jobs, concurrency1,
  // historical4–9 routes and18m. These timings plan capacity, not a PASS.
- if(category==='browser E2E'&&total===10){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_TEN_UNADMITTED:'+name);return name==='context-cards-chrome-e2e.test.mjs'?10:name==='cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'?1:name==='cpv1-02-4-reader-chrome-e2e.test.mjs'?3:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?8:name==='nib-v4-settings-entry-chrome-e2e.test.mjs'||name==='topic-section-writing-chrome-e2e.test.mjs'?4:name==='ans-01-reader-surfaces-chrome-e2e.test.mjs'?4:shard;}
+ // Full39789515257: Browser4 completed260 assertions but hit the original
+ // 18m job limit before successful step exit. Move only whole CTX4-05
+ // maintenance (~149.56s observed interval) to3's measured reserve. This is
+ // a capacity estimate, not a timing guarantee; retain all cases and audits.
+ if(category==='browser E2E'&&total===10){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_TEN_UNADMITTED:'+name);return name==='context-cards-chrome-e2e.test.mjs'?10:name==='cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'?1:name==='cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs'?3:name==='cpv1-02-4-reader-chrome-e2e.test.mjs'?3:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?8:name==='nib-v4-settings-entry-chrome-e2e.test.mjs'||name==='topic-section-writing-chrome-e2e.test.mjs'?4:name==='ans-01-reader-surfaces-chrome-e2e.test.mjs'?4:shard;}
  if(category==='browser E2E'&&total===9){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_NINE_UNADMITTED:'+name);return shard;}
  // Full37830791787: shard1 cancelled at18m with two tail files unreported.
  // Reader/Revisit costs257s; shard6 native636s leaves measured capacity.
