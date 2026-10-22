@@ -53,25 +53,26 @@ export function sameRetainedControl(saved,current,style){
  const prior=retainedControl(saved.manifest.control),next=retainedControl(current);
  return !!prior&&!!next&&saved.manifest.style===prior.style.value&&same(next.style,style)&&prior.style.value===next.style.value&&prior.gate===next.gate&&prior.restore===next.restore&&prior.policyText===next.policyText;
 }
-export function planIncrementalV2(topic,style,profile,control){
+export function planIncrementalV2(topic,style,profile,control,{retainProtected=false}={}){
  const saved=topic.stored,isV2=isIncrementalV2(saved),entries=new Map(topic.entries.map(e=>[e.id,e]));
  if(saved&&!isV2)reject('STALE_BASE');if(entries.size>1000||isV2&&!validIncrementalV2(saved,new Set(entries.keys())))reject('STALE_BASE');
  if(isV2&&(!sameRetainedControl(saved,control,style)||saved.manifest.style!==style.value||!same(saved.manifest.profile,profile)))reject('STALE_BASE');
  // An actual human field edit is indivisible. This first local slice does not
  // generate around it or reinterpret it as unprotected incremental fragments.
- if(saved?.manifest.blocks.some(b=>b.manual))reject('STALE_BASE');
+ if(!retainProtected&&saved?.manifest.blocks.some(b=>b.manual))reject('STALE_BASE');
  const covered=new Set(),affected=new Set(),retained=[],replace=[];
  for(const b of saved?.manifest.blocks||[]){for(const r of b.support)covered.add(r.id);const changed=b.support.some(r=>topic.versions[r.id]!==r.version||topic.incrementalVersions[r.id]!==r.scope);if(changed){if(saved.protections?.[b.field]||b.manual)reject('STALE_BASE');replace.push(b.id);for(const r of b.support)if(entries.has(r.id))affected.add(r.id);}else retained.push({...clone(b),text:incrementalBlockText(saved,b)});}
  for(const e of topic.entries)if(!covered.has(e.id))affected.add(e.id);
  // Closed independent blocks need no model neighbor. Scope/order is decided by
  // the owner; a provider cannot request arbitrary unchanged text as context.
- const selected=topic.entries.filter(e=>affected.has(e.id));return {version:2,control,replace,retained,selected,complete:true,baseRevision:saved?.revision||0};
+ const selected=retainProtected&&AI_FIELDS.every(f=>saved?.protections?.[f])?[]:topic.entries.filter(e=>affected.has(e.id));return {version:2,control,replace,retained,selected,complete:true,baseRevision:saved?.revision||0};
 }
 export function validateIncrementalChild(response,request,prepared){
  if(!exact(response,['version','blocks'])||response.version!==2||!Array.isArray(response.blocks)||!response.blocks.length||response.blocks.length>1024)reject('INVALID_OUTPUT');
  const allowed=new Map(request.inputs.map(i=>[i.ref,i])),seen=new Set(),represented=new Set(),newBlocks=[],bounds=text=>new Set([0,text.length,...[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(text)].map(s=>s.index)]);
  for(const [index,b]of response.blocks.entries()){
   if(!exact(b,['field','text','evidenceEntryIds','sourceSpans'])||!AI_FIELDS.includes(b.field)||typeof b.text!=='string'||!b.text.trim()||!Array.isArray(b.evidenceEntryIds)||!b.evidenceEntryIds.length||b.evidenceEntryIds.length>100||new Set(b.evidenceEntryIds).size!==b.evidenceEntryIds.length||b.evidenceEntryIds.some(r=>!allowed.has(r))||!Array.isArray(b.sourceSpans)||b.sourceSpans.length>100)reject('INVALID_OUTPUT');
+  if(prepared.incremental?.version===3&&prepared.topic.stored?.protections?.[b.field])reject('INVALID_OUTPUT');
   const support=b.evidenceEntryIds.map(r=>{represented.add(r);return {id:r,version:prepared.topic.versions[r],scope:prepared.topic.incrementalVersions[r]};});
   for(const span of b.sourceSpans){const input=allowed.get(span.entryId);if(!exact(span,['entryId','revision','start','end'])||!input||!b.evidenceEntryIds.includes(span.entryId)||span.revision!==input.revision||!bounds(input.text).has(span.start)||!bounds(input.text).has(span.end)||span.end<=span.start)reject('INVALID_OUTPUT');}
   if(b.evidenceEntryIds.some(id=>!b.sourceSpans.some(s=>s.entryId===id)))reject('INVALID_OUTPUT');

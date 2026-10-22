@@ -1,5 +1,5 @@
 import {AI_FIELDS} from './ai-contract.js';
-import {isIncrementalV2,validIncrementalV2,planIncrementalV2,mergeIncrementalChildren,editIncrementalField,adoptIncrementalFields,sameRetainedControl} from './ai-incremental-v2.js';
+import {isIncrementalV2,validIncrementalV2,planIncrementalV2,mergeIncrementalChildren,editIncrementalField,adoptIncrementalFields,sameRetainedControl,incrementalBlockText} from './ai-incremental-v2.js';
 import {validOrganizeCacheProfile} from './organize-cache-qualification.js';
 import {canonical,digest} from '../ai-usage/contracts.js';
 import {bytes,reject} from './contracts.js';
@@ -42,19 +42,28 @@ export function planIncrementalV3(topic,style,profile,control,{refreshStyle=fals
  const saved=topic.stored;if(saved&&!isIncrementalV3(saved)&&!isIncrementalV2(saved))reject('STALE_BASE');
  if(saved&&!((isIncrementalV3(saved)?validIncrementalV3:validIncrementalV2)(saved,new Set(topic.entries.map(e=>e.id)))))reject('STALE_BASE');
  if(isIncrementalV2(saved)&&(!refreshStyle||saved.manifest.style===style.value))reject('STALE_BASE');
- if(saved?.manifest.blocks.some(b=>b.manual))reject('STALE_BASE');
  const gens=isIncrementalV3(saved)?Object.values(saved.manifest.generations):saved?[saved.manifest]:[];
  // Explicit recomputation can change style only, never gate/restore/policy/profile.
- for(const g of gens){const old=JSON.parse(g.control),now=JSON.parse(control);if(refreshStyle){const priorStyle=old[2];if(!sameRetainedControl({manifest:g},g.control,priorStyle)||!sameRetainedControl({manifest:{...g,style:style.value,control:JSON.stringify([old[0],old[1],now[2],old[3]])}},control,style)||!same(g.profile,profile))reject('STALE_BASE');}else if(!sameRetainedControl({manifest:g},control,style)||!same(g.profile,profile))reject('STALE_BASE');}
- if(refreshStyle)return {version:3,control,replace:saved?.manifest.blocks.map(b=>b.id)||[],retained:[],selected:topic.entries,complete:true,baseRevision:saved?.revision||0,refreshStyle:true};
- const base=isIncrementalV3(saved)?asIncrementalV2(saved):saved,plan=planIncrementalV2({...topic,stored:base},style,profile,control),byId=new Map(saved?.manifest.blocks.map(b=>[b.id,b])||[]);
+ for(const g of gens){const protectedOnly=isIncrementalV3(saved)&&AI_FIELDS.filter(f=>saved.manifest.fields[f].generations.includes(generationId(g))).every(f=>saved.protections?.[f]),old=JSON.parse(g.control),now=JSON.parse(control);if(refreshStyle||protectedOnly){const priorStyle=old[2];if(!sameRetainedControl({manifest:g},g.control,priorStyle)||!sameRetainedControl({manifest:{...g,style:style.value,control:JSON.stringify([old[0],old[1],now[2],old[3]])}},control,style)||!same(g.profile,profile))reject('STALE_BASE');}else if(!sameRetainedControl({manifest:g},control,style)||!same(g.profile,profile))reject('STALE_BASE');}
+ if(refreshStyle){
+  const retained=[],replace=[];
+  for(const b of saved?.manifest.blocks||[]){if(saved.protections?.[b.field]){
+   // Retention is not renewed evidence authority. Changed/revoked support must
+   // still refuse; never relabel human bytes as freshly generated material.
+   if(b.support.some(r=>topic.versions[r.id]!==r.version||topic.incrementalVersions[r.id]!==r.scope))reject('STALE_BASE');
+   retained.push({...copy(b),text:incrementalBlockText(saved,b)});
+  }else replace.push(b.id);}
+  return {version:3,control,replace,retained,selected:AI_FIELDS.every(f=>saved?.protections?.[f])?[]:topic.entries,complete:true,baseRevision:saved?.revision||0,refreshStyle:true};
+ }
+ const base=isIncrementalV3(saved)?asIncrementalV2(saved):saved;if(base&&isIncrementalV3(saved))base.manifest={...base.manifest,style:style.value,profile:copy(profile),control};const plan=planIncrementalV2({...topic,stored:base},style,profile,control,{retainProtected:true}),byId=new Map(saved?.manifest.blocks.map(b=>[b.id,b])||[]);
  return {...plan,version:3,retained:plan.retained.map(b=>({...b,...(isIncrementalV3(saved)?{generation:byId.get(b.id).generation}:{})})),refreshStyle:false};
 }
 export function mergeIncrementalV3(newBlocks,request,prepared,generation,legacyGeneration=null){
  const key=generationId(generation),saved=prepared.topic.stored,prior=isIncrementalV3(saved)?saved:isIncrementalV2(saved)?promoteIncrementalV2(saved,legacyGeneration):null;
  const output=mergeIncrementalChildren(newBlocks,request,{...prepared,incremental:{...prepared.incremental,retained:prepared.incremental.retained.map(cleanBlock)}}),retainedIds=new Set(prepared.incremental.retained.map(b=>b.id)),byId=new Map(prior?.manifest.blocks.map(b=>[b.id,b])||[]);
+ if(newBlocks.some(b=>saved?.protections?.[b.field]))reject('INVALID_OUTPUT');
  const blocks=output.manifest.blocks.map(b=>({...b,generation:retainedIds.has(b.id)?byId.get(b.id).generation:key})),generations={...prior?.manifest.generations,[key]:generation},fields={};
- for(const f of AI_FIELDS){const ids=[...new Set(blocks.filter(b=>b.field===f).map(b=>b.generation).filter(Boolean))];fields[f]=!ids.length&&prior&&!prepared.incremental.refreshStyle?copy(prior.manifest.fields[f]):{style:request.style.value,generations:ids.length?ids:[key]};}
+ for(const f of AI_FIELDS){const ids=[...new Set(blocks.filter(b=>b.field===f).map(b=>b.generation).filter(Boolean))];fields[f]=prior&&(saved.protections?.[f]||!ids.length&&!prepared.incremental.refreshStyle)?copy(prior.manifest.fields[f]):{style:request.style.value,generations:ids.length?ids:[key]};}
  return finish(output,fields,generations,blocks);
 }
 export function adoptIncrementalV3(row,proposal,adopted,kept,legacyGeneration=null){
