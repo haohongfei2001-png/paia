@@ -196,15 +196,39 @@ jobs:
                   if updated != text:
                       path.write_text(updated)
           PYAPT
+      - name: Resolve browser fonts from fresh signed indexes
+        id: font-plan
+        run: python3 scripts/prepare-browser-fonts.py plan --state "$RUNNER_TEMP/paia-font-state"
+      - name: Restore optional browser font bytes
+        id: font-restore
+        if: steps.font-plan.outputs.count != '0'
+        uses: actions/cache/restore@v4
+        timeout-minutes: 1
+        continue-on-error: true
+        env:
+          SEGMENT_DOWNLOAD_TIMEOUT_MINS: '1'
+        with:
+          path: ${{ runner.temp }}/paia-font-cache/debs
+          key: ${{ steps.font-plan.outputs.key }}
       - name: Provide Chinese glyph coverage for actual visual evidence
+        id: font-install
+        env:
+          PAIA_FONT_CACHE_MATCHED_KEY: ${{ steps.font-restore.outputs.cache-matched-key }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk
+          python3 scripts/prepare-browser-fonts.py install --state "$RUNNER_TEMP/paia-font-state" --cache "$RUNNER_TEMP/paia-font-cache/debs"
           fc-list :lang=zh | grep -q .
           mkdir -p work
           for family in 'Noto Serif CJK SC' 'Noto Sans CJK SC' 'WenQuanYi Zen Hei'; do
             fc-match --format '%{family}: %{file}\n' "$family"
           done | tee work/current-browser-fonts.txt
+      - name: Save verified browser font bytes on trusted main only
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.font-install.outputs.cache_ready == 'true' && steps.font-install.outputs.cache_hit != 'true'
+        uses: actions/cache/save@v4
+        timeout-minutes: 1
+        continue-on-error: true
+        with:
+          path: ${{ runner.temp }}/paia-font-cache/debs
+          key: ${{ steps.font-plan.outputs.key }}
       - name: Pin verified full Chrome for Settings native evidence
         if: matrix.index == 6
         run: |
