@@ -415,3 +415,100 @@ test('retired My Inputs content search stays inert, clears legacy query state an
  inputs.query='private';assert.equal(await inputs.searchContent('private'),false);assert.equal(inputs.query,'');assert.equal(inputs.search,null);assert.equal(inputs.field.hidden,false);assert.deepEqual(inputs.visibleIds(),order);assert.equal(inputs.root.querySelector('input'),null);assert.equal(calls.length,reads);
  assert.equal(inputs.filter(false,''),true);inputs.suspend();assert.equal(inputs.search,null);assert.deepEqual(await protectedRows(s),before);assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),choices);assert.equal(calls.some(x=>x.type==='GET_LIBRARY_ROOT_SEARCH'||x.type==='PAIA_CONTEXT_TOPICS_CHANGE'),false);assert.equal(inputs.host.textContent.includes('SYNTHETIC_PRIVATE'),false);
 }));
+
+// This adapter calls the actual owner's local key handler. It does not simulate
+// native disabled-button blur or browser activation; the Source/release case
+// below the owning native suite supplies that separate evidence.
+const directoryKey=(inputs,key,target=document.activeElement)=>{let prevented=false;inputs.move({target,key,preventDefault(){prevented=true;}});return prevented;};
+const holdDirectory=(transport,dispatch,{before=false}={})=>{
+ const entered=deferred(),release=deferred();let armed=true;
+ transport.dispatch=async message=>{if(message.type!=='PAIA_CONTEXT_TOPICS_PAGE'||!armed)return dispatch(message);armed=false;if(before){entered.resolve();await release.promise;return dispatch(message);}const page=await dispatch(message);entered.resolve();await release.promise;return page;};
+ return {entered:entered.promise,release:()=>release.resolve()};
+};
+
+test('CTX4-03 held real readonly directory consumes one End and never activates retained controls',()=>fixture(async({makeInputs,transport,dispatch,calls,s})=>{
+ const inputs=await makeInputs();await inputs.refresh();const ids=[...inputs.order],first=inputs.nodes.get(ids[0]),last=inputs.nodes.get(ids.at(-1)),before=await protectedRows(s),saved=await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW);first.focus();
+ const hold=holdDirectory(transport,dispatch),reading=inputs.refresh();await hold.entered;
+ try{
+  assert.equal(inputs.loading,true);assert.equal(inputs.root.getAttribute('aria-busy'),'true');assert.equal(document.activeElement,first);
+  for(const nodes of [inputs.nodes,inputs.openNodes]){assert.ok([...nodes.values()].every(node=>!node.disabled&&node.getAttribute('aria-disabled')==='true'));assert.equal([...nodes.values()].filter(node=>node.tabIndex===0).length,1);}
+  assert.equal(directoryKey(inputs,'End'),true);assert.equal(document.activeElement,last);assert.equal(inputs.focusIntent.topicId,ids.at(-1));
+  const requestCount=calls.length;
+  for(const key of [' ','Enter']){assert.equal(directoryKey(inputs,key),false);last.onclick();inputs.openNodes.get(ids.at(-1)).onclick();}
+  last.onclick();assert.equal(await inputs.toggle(ids.at(-1)),false);assert.equal(await inputs.openTopic(ids.at(-1)),false);assert.equal(await inputs.save(choice(inputs.rows.get(ids.at(-1)),inputs.epoch)),false);await tick();
+  assert.equal(calls.length,requestCount,'activation cannot even dispatch while read authority is pending');assert.equal(inputs.viewer,null);assert.equal(inputs.commit.pending,null);assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),saved);assert.deepEqual(await protectedRows(s),before);
+ }finally{hold.release();}
+ assert.equal(await reading,true);assert.equal(document.activeElement,last);assert.equal(inputs.nodes.get(ids.at(-1)),last);assert.equal(last.tabIndex,0);assert.equal(last.getAttribute('aria-disabled'),'false');assert.equal(inputs.focusIntent,null);assert.equal(inputs.root.getAttribute('aria-busy'),'false');assert.equal(calls.filter(call=>call.type==='PAIA_CONTEXT_TOPICS_CHANGE').length,0);
+},{count:144}));
+
+test('CTX4-03 retained local reading navigation keeps its latest role across superseding reads',()=>fixture(async({makeInputs,transport,dispatch})=>{
+ const inputs=await makeInputs();await inputs.refresh();const ids=[...inputs.order],opens=ids.map(id=>inputs.openNodes.get(id));opens[0].focus();
+ const first=holdDirectory(transport,dispatch),old=inputs.refresh();await first.entered;
+ try{
+  assert.equal(directoryKey(inputs,'End'),true);assert.equal(document.activeElement,opens[2]);
+  const second=holdDirectory(transport,dispatch),newer=inputs.refresh();await second.entered;
+  try{assert.equal(directoryKey(inputs,'Home'),true);assert.equal(directoryKey(inputs,'ArrowDown'),true);assert.equal(document.activeElement,opens[1]);assert.equal(inputs.focusIntent.reading,true);first.release();assert.equal(await old,false);assert.equal(inputs.loading,true);assert.equal(document.activeElement,opens[1]);}
+  finally{second.release();}
+  assert.equal(await newer,true);assert.equal(document.activeElement,opens[1]);assert.equal(inputs.openFocusId,ids[1]);assert.equal(inputs.openNodes.get(ids[1]),opens[1]);assert.equal(inputs.viewer,null);assert.equal(inputs.focusIntent,null);
+ }finally{first.release();}
+ const third=holdDirectory(transport,dispatch),repeated=inputs.refresh();await third.entered;opens[0].focus();assert.equal(inputs.focusIntent.topicId,ids[0]);assert.equal(inputs.focusIntent.reading,true);inputs.nodes.get(ids[0]).focus();assert.equal(inputs.focusIntent.reading,false);opens[0].focus();assert.equal(inputs.focusIntent.reading,true);third.release();assert.equal(await repeated,true);assert.equal(document.activeElement,opens[0]);
+}));
+
+for(const variant of ['reorder','shrink','disappeared'])test(`CTX4-03 held latest focus follows real refreshed ${variant} directory`,()=>fixture(async({makeInputs,transport,dispatch,s})=>{
+ const inputs=await makeInputs();await inputs.refresh();const ids=[...inputs.order],last=inputs.nodes.get(ids[2]);inputs.nodes.get(ids[0]).focus();const hold=holdDirectory(transport,dispatch,{before:true}),reading=inputs.refresh();await hold.entered;
+ try{
+  assert.equal(directoryKey(inputs,'End'),true);assert.equal(document.activeElement,last);
+  if(variant==='reorder')await s.repository.transaction(true,async t=>{const topic=await t.get('topics',ids[2]);await t.put('topics',{...topic,createdAt:'2000-01-01T00:00:00.000Z'});});
+  else{const removed=variant==='shrink'?ids[0]:ids[2];await s.removeTopic({id:removed,expectedRevision:(await raw(s,'topics',removed)).revision,operationId:op()});}
+ }finally{hold.release();}
+ assert.equal(await reading,true);assert.equal(inputs.focusIntent,null);
+ if(variant==='disappeared'){assert.equal(last.isConnected,false);assert.equal(document.activeElement,inputs.nodes.get(ids[1]));assert.equal(inputs.focusId,ids[1]);}
+ else{assert.equal(document.activeElement,last);assert.equal(inputs.nodes.get(ids[2]),last);assert.equal(inputs.focusId,ids[2]);if(variant==='reorder')assert.equal(inputs.order[0],ids[2]);else assert.equal(inputs.order.length,2);}
+}));
+
+test('CTX4-03 real authority refusal clears latest focus and failed-read retry stays inert',()=>fixture(async({makeInputs,transport,dispatch,s,calls})=>{
+ const inputs=await makeInputs();await inputs.refresh();const first=inputs.nodes.get(inputs.order[0]);first.focus();const hold=holdDirectory(transport,dispatch,{before:true}),reading=inputs.refresh();await hold.entered;
+ assert.equal(directoryKey(inputs,'End'),true);const foundation=await raw(s,'meta','thought-library');await s.repository.transaction(true,t=>t.put('meta',{...foundation,sealed:1}));hold.release();assert.equal(await reading,false);assert.equal(inputs.failedRead,true);assert.equal(inputs.focusIntent,null);assert.equal(document.activeElement,inputs.status.querySelector('button'));assert.ok([...inputs.nodes.values()].every(node=>node.disabled));assert.equal(await inputs.save(choice(inputs.rows.get(inputs.order[0]),inputs.epoch)),false);
+ const retryHold=holdDirectory(transport,dispatch,{before:true}),retry=inputs.refresh();await retryHold.entered;
+ const newestHold=holdDirectory(transport,dispatch,{before:true}),newest=inputs.refresh();await newestHold.entered;
+ try{assert.equal(inputs.readNavigation,false);assert.ok([...inputs.nodes.values()].every(node=>node.disabled));assert.equal(directoryKey(inputs,'End',first),false);assert.equal(await inputs.toggle(inputs.order[0]),false);assert.equal(await inputs.openTopic(inputs.order[0]),false);assert.equal(await inputs.save(choice(inputs.rows.get(inputs.order[0]),inputs.epoch)),false);retryHold.release();assert.equal(await retry,false);assert.ok([...inputs.nodes.values()].every(node=>node.disabled));await s.repository.transaction(true,t=>t.put('meta',foundation));}
+ finally{retryHold.release();newestHold.release();}
+ assert.equal(await newest,true);assert.equal(calls.filter(call=>call.type==='PAIA_CONTEXT_TOPICS_CHANGE').length,0);assert.ok([...inputs.nodes.values()].every(node=>!node.disabled));
+}));
+
+test('CTX4-03 initial read and saving never borrow retained readonly navigation',()=>fixture(async({makeInputs,transport,dispatch,calls})=>{
+ const inputs=await makeInputs(),hold=holdDirectory(transport,dispatch),reading=inputs.refresh();await hold.entered;
+ try{assert.equal(inputs.nodes.size,0);assert.equal(inputs.readNavigation,false);assert.equal(await inputs.save({topicId:'not-admitted'}),false);assert.equal(calls.filter(call=>call.type==='PAIA_CONTEXT_TOPICS_CHANGE').length,0);}
+ finally{hold.release();}assert.equal(await reading,true);
+ const first=inputs.nodes.get(inputs.order[0]),entered=deferred(),release=deferred();first.focus();transport.dispatch=async message=>{if(message.type==='PAIA_CONTEXT_TOPICS_CHANGE'){entered.resolve();await release.promise;}return dispatch(message);};const saving=inputs.toggle(inputs.order[0]);await entered.promise;
+ try{assert.equal(inputs.busy,true);assert.equal(first.disabled,true);assert.ok([...inputs.openNodes.values()].every(node=>node.disabled));assert.equal(directoryKey(inputs,'End',first),false);assert.equal(await inputs.refresh(),false);assert.equal(await inputs.openTopic(inputs.order[0]),false);assert.equal(await inputs.save(inputs.lastAttempt),false);}
+ finally{release.resolve();}assert.equal(await saving,true);assert.equal(calls.filter(call=>call.type==='PAIA_CONTEXT_TOPICS_CHANGE').length,1);
+}));
+
+for(const destination of ['other_control','departure'])test(`CTX4-03 held navigation cannot restore focus after ${destination}`,()=>fixture(async({makePage,transport,dispatch})=>{
+ const page=makePage();await page.open('inputs');const inputs=page.inputs;inputs.nodes.get(inputs.order[0]).focus();const hold=holdDirectory(transport,dispatch),reading=inputs.refresh();await hold.entered;assert.equal(directoryKey(inputs,'End'),true);
+ const back=page.host.querySelector('.context-back');back.focus();assert.equal(inputs.focusIntent,null);if(destination==='departure'){assert.equal(await page.leave(),true);assert.equal(inputs.focusIntent,null);}
+ hold.release();assert.equal(await reading,destination==='other_control');assert.equal(document.activeElement,back);assert.equal(inputs.focusIntent,null);
+}));
+
+test('CTX4-03 a selected reading target hidden by the fresh choice list falls back to a visible reading control',()=>fixture(async({makeInputs,transport,dispatch,access})=>{
+ const inputs=await makeInputs();await inputs.refresh();const ids=[...inputs.order];for(const id of ids.slice(0,2))assert.equal(await inputs.toggle(id),true);inputs.filter(true,'');inputs.openNodes.get(ids[0]).focus();const hold=holdDirectory(transport,dispatch,{before:true}),reading=inputs.refresh();await hold.entered;
+ try{assert.equal(directoryKey(inputs,'End'),true);assert.equal(document.activeElement,inputs.openNodes.get(ids[1]));assert.equal((await access.change(choice(inputs.rows.get(ids[1]),inputs.epoch))).ok,true);}
+ finally{hold.release();}assert.equal(await reading,true);assert.equal(inputs.rowNodes.get(ids[1]).hidden,true);assert.equal(inputs.openNodes.get(ids[1]).hidden,true);assert.equal(document.activeElement,inputs.openNodes.get(ids[0]));assert.equal(inputs.focusIntent,null);
+}));
+
+test('CTX4-03 known terminal authority invalidation never enables navigation during its held replacement read',()=>fixture(async({makeInputs,transport,dispatch,s})=>{
+ const inputs=await makeInputs();await inputs.refresh();const id=inputs.order[0],first=inputs.nodes.get(id),entered=deferred();let replacement;
+ transport.dispatch=async message=>{if(message.type==='PAIA_CONTEXT_TOPICS_CHANGE'){await s.write(t=>t.put('meta',{id:'recovery-restore-epoch',value:op()}));replacement=holdDirectory(transport,dispatch,{before:true});entered.resolve();}return dispatch(message);};
+ first.focus();const saving=inputs.toggle(id);await entered.promise;await replacement.entered;
+ try{assert.equal(inputs.busy,false);assert.equal(inputs.loading,true);assert.equal(inputs.readNavigation,false);assert.equal(first.disabled,true);assert.equal(directoryKey(inputs,'End',first),false);assert.equal(await inputs.save(inputs.lastAttempt),false);}
+ finally{replacement.release();}assert.equal(await saving,false);assert.equal(inputs.failedRead,false);assert.equal(inputs.commit.pending,null);
+}));
+
+test('CTX4-03 failed-read Retry stays inert through departure and same-owner reentry',()=>fixture(async({makePage,transport,dispatch})=>{
+ const page=makePage();await page.open('inputs');const inputs=page.inputs;transport.dispatch=message=>{if(message.type==='PAIA_CONTEXT_TOPICS_PAGE')throw Error('SYNTHETIC unavailable read');return dispatch(message);};assert.equal(await inputs.refresh(),false);
+ const oldHold=holdDirectory(transport,dispatch,{before:true}),retry=inputs.refresh();await oldHold.entered;assert.equal(inputs.readNavigation,false);assert.equal(await page.leave(),true);assert.equal(inputs.failedRead,true);assert.equal(inputs.focusIntent,null);
+ const newHold=holdDirectory(transport,dispatch,{before:true}),reopening=page.open('inputs');await newHold.entered;
+ try{assert.equal(page.inputs,inputs);assert.equal(inputs.loading,true);assert.equal(inputs.readNavigation,false);assert.ok([...inputs.nodes.values()].every(node=>node.disabled));assert.equal(directoryKey(inputs,'End',inputs.nodes.get(inputs.order[0])),false);oldHold.release();assert.equal(await retry,false);assert.ok([...inputs.nodes.values()].every(node=>node.disabled));}
+ finally{oldHold.release();newHold.release();}await reopening;assert.equal(inputs.failedRead,false);assert.equal(inputs.loading,false);assert.ok([...inputs.nodes.values()].every(node=>!node.disabled));
+}));
