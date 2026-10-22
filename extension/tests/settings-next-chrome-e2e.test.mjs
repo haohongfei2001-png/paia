@@ -64,6 +64,32 @@ async function approvedNextConsentSheet(page,variant){
  await page.locator('#settings-next-close').click();await dialog.waitFor({state:'hidden'});assert.equal((await read(page)).enabled,false);assert.equal(await page.evaluate(()=>document.activeElement.id),'settings-next-enabled','new approved close uses the same original return owner');
 }
 
+import {writeFile as writeSettingsRestoreDiagnostic} from 'node:fs/promises';
+// Bounded, body-free native geometry evidence only. Layout reads/observation can
+// affect timing; this instrumented run is not uninstrumented acceptance or perf.
+function installSettingsRestoreGeometryProbe(){
+ const phases=new Set(['reload','history']),points=new Set(['before-release','loading-removed','after-commit-two-frames']);
+ const ids=new Set(['ux-language','ux-settings-reading-link','ux-settings-ai-link','ux-settings-reading-title','ux-settings-ai-title','ux-settings-group-back','ux-settings-back']);
+ const groups=new Set(['index','content','reading','ai','privacy','data','about']),samples=[],calls=[],patches=[],lastBoxes=new WeakMap();let phase='reload',closed=false;
+ const number=value=>typeof value==='number'&&Number.isFinite(value)?value:null;
+ const id=node=>ids.has(node?.id)?node.id:null;
+ const group=()=>{const value=document.querySelector('.ux-settings-group:not([hidden])')?.dataset.group;return groups.has(value)?value:null;};
+ const rect=node=>{if(!node)return null;const r=node.getBoundingClientRect(),style=getComputedStyle(node),marginTop=number(parseFloat(style.marginTop)),marginBottom=number(parseFloat(style.marginBottom));return {connected:node.isConnected===true,viewport:{left:number(r.left),top:number(r.top),right:number(r.right),bottom:number(r.bottom),width:number(r.width),height:number(r.height)},document:{left:number(r.left+scrollX),top:number(r.top+scrollY),right:number(r.right+scrollX),bottom:number(r.bottom+scrollY)},marginTop,marginBottom,outerHeight:number(r.height+(marginTop||0)+(marginBottom||0))};};
+ const safe=run=>{try{return run();}catch{return null;}};
+ const capture=(point,removed=null)=>safe(()=>{
+  if(closed||samples.length>=12||!points.has(point))return;const placeholder=document.querySelector('.workspace .loading-placeholder'),box=rect(placeholder);if(placeholder?.isConnected)lastBoxes.set(placeholder,box);
+  samples.push({phase,point,scroll:number(scrollY),maxScroll:number(Math.max(0,document.documentElement.scrollHeight-innerHeight)),documentHeight:number(document.documentElement.scrollHeight),viewportHeight:number(innerHeight),viewportWidth:number(innerWidth),placeholder:box,removedPlaceholder:removed?{lastConnected:lastBoxes.get(removed)||null,detached:rect(removed)}:null,reading:rect(document.getElementById('ux-settings-reading-group')),language:rect(document.getElementById('ux-language')),focus:id(document.activeElement),group:group(),held:globalThis.__settingsRestoreRead?.current?.entered===true&&globalThis.__settingsRestoreRead?.current?.released!==true});
+ });
+ const wrap=(host,name,kind)=>{const descriptor=Object.getOwnPropertyDescriptor(host,name),original=host[name];patches.push(()=>{if(descriptor)Object.defineProperty(host,name,descriptor);else delete host[name];});host[name]=function(...args){
+  const before=safe(()=>({scroll:number(scrollY),focus:id(document.activeElement)}));const record=ok=>safe(()=>{if(!closed&&calls.length<48)calls.push({phase,kind,id:kind==='focus'?id(this):null,args:kind==='scrollTo'?args.slice(0,2).map(number):[],before,after:{scroll:number(scrollY),focus:id(document.activeElement)},ok});});
+  try{const result=Reflect.apply(original,this,args);record(true);return result;}catch(error){record(false);throw error;}
+ };};
+ wrap(window,'scrollTo','scrollTo');wrap(HTMLElement.prototype,'focus','focus');
+ const observer=new MutationObserver(records=>{if(closed||globalThis.__settingsRestoreRead?.current?.entered!==true)return;for(const record of records)for(const node of record.removedNodes)if(node.nodeType===1&&node.classList.contains('loading-placeholder'))capture('loading-removed',node);});
+ observer.observe(document,{childList:true,subtree:true});
+ globalThis.__settingsRestoreGeometry={capture,start(value){if(phases.has(value))phase=value;},snapshot(){return {instrumented:true,sampleLimit:12,callLimit:48,samples:structuredClone(samples),calls:structuredClone(calls)};},restore(){if(closed)return;closed=true;observer.disconnect();for(const restore of patches.reverse())restore();}};
+}
+
 // Hold the existing migration response, not a substitute Settings renderer or
 // readiness fixture. The original installed group click remains freely usable.
 function installSettingsRestoreReadGate(){
@@ -80,10 +106,12 @@ async function admitReadingDuringSettingsRestore(page){
  await eventually(async()=>await language.isEnabled()&&await language.inputValue()==='en'&&await page.locator('html').getAttribute('lang')==='en','original preference write is acknowledged while migration remains held');
  assert.equal(await page.evaluate(()=>__settingsRestoreRead.current.entered&&!__settingsRestoreRead.current.released),true);await language.focus();
  const before=await page.evaluate(()=>{window.scrollTo(0,Math.min(120,document.documentElement.scrollHeight-innerHeight));return {scroll:scrollY,focus:document.activeElement.id,historyGroup:history.state.paiaReader.settingsGroup,returnOwner:structuredClone(history.state.paiaReader.settingsReturn)};});
+ await page.evaluate(()=>__settingsRestoreGeometry.capture('before-release'));
  assert.equal(before.historyGroup,'ai','intermediate click remains inside the original applying interval');assert.equal(before.focus,'ux-language');assert.equal(before.returnOwner.view,'memory');
  await page.evaluate(()=>__settingsRestoreRead.current.release());
  await eventually(()=>page.evaluate(()=>__settingsRestoreRead.current.commits.length>=1),'original restore reaches its final history commit');
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ await page.evaluate(()=>__settingsRestoreGeometry.capture('after-commit-two-frames'));
  assert.equal(await page.locator('[data-group="reading"]').isVisible(),true);assert.equal(await page.locator('[data-group="ai"]').isVisible(),false);
  assert.deepEqual(await page.evaluate(()=>({scroll:scrollY,focus:document.activeElement.id,group:history.state.paiaReader.settingsGroup,returnOwner:history.state.paiaReader.settingsReturn})),{scroll:before.scroll,focus:'ux-language',group:'reading',returnOwner:before.returnOwner});
  await language.selectOption('zh-CN');await eventually(()=>page.locator('html').getAttribute('lang').then(value=>value==='zh-CN'));
@@ -98,11 +126,13 @@ for(const variant of ['source','release'])test('SET2 restore intent '+variant+' 
   await page.locator('.sidebar [data-view="memory"]').click();await eventually(()=>page.evaluate(()=>history.state?.paiaReader?.view==='memory'));
   await open(page);await eventually(()=>page.evaluate(()=>history.state?.paiaReader?.settingsGroup==='ai'));await page.setViewportSize({width:1440,height:400});
   assert.equal(await page.evaluate(()=>history.state.paiaReader.settingsReturn.view),'memory');
-  await page.addInitScript(installSettingsRestoreReadGate);await page.reload();await admitReadingDuringSettingsRestore(page);
+  await page.addInitScript(installSettingsRestoreGeometryProbe);await page.addInitScript(installSettingsRestoreReadGate);await page.reload();await admitReadingDuringSettingsRestore(page);
   await chooseConsumerGroup(page,'ai');await eventually(()=>page.evaluate(()=>history.state.paiaReader.settingsGroup==='ai'));
   await page.locator('#ux-settings-back').click();await eventually(()=>page.evaluate(()=>history.state.paiaReader.view==='memory'));
-  await page.evaluate(()=>__settingsRestoreRead.arm());await page.goBack();await admitReadingDuringSettingsRestore(page);
+  await page.evaluate(()=>{__settingsRestoreGeometry.start('history');__settingsRestoreRead.arm();});await page.goBack();await admitReadingDuringSettingsRestore(page);
   await page.locator('#ux-settings-back').click();await eventually(()=>page.evaluate(()=>history.state.paiaReader.view==='memory'));
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
- }finally{if(h){await h.archive.evaluate(()=>globalThis.__settingsRestoreRead?.restore()).catch(()=>{});await h.close();}if(release)await rm(release,{recursive:true,force:true});}
+ }finally{
+  try{const geometry=await h?.archive.evaluate(()=>globalThis.__settingsRestoreGeometry?.snapshot()||null);await mkdir(out,{recursive:true});await writeSettingsRestoreDiagnostic(join(out,variant+'-restore-layout-diagnostic.json'),JSON.stringify({variant,instrumented:true,geometry},null,2)+'\n');}catch{console.error('SET2_RESTORE_GEOMETRY_WRITE_FAILED');}
+  if(h){await h.archive.evaluate(()=>{try{globalThis.__settingsRestoreGeometry?.restore();}finally{globalThis.__settingsRestoreRead?.restore();}}).catch(()=>{});await h.close();}if(release)await rm(release,{recursive:true,force:true});}
 });
