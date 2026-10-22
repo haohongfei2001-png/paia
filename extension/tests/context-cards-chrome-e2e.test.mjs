@@ -348,7 +348,36 @@ for(const variant of ['source','release'])test('CTX4-03 real Topic choices, comp
  await retainUiTrace('before_reload');const beforeReloadHeader=await retainHeaderTrace('before_reload');assert.ok(beforeReloadHeader.events?.some(event=>event.event==='click'&&event.target==='back'),'header evidence is retained before document replacement');assert.ok(beforeReloadHeader.events.length<=32);await p.reload();await installContextInputsTrace(p);await installHeaderTrace();await ready(20);assert.equal((await selected(order[3])).enabled,true);await h.restartWorker();assert.equal((await selected(order[3])).enabled,true);assert.deepEqual(await protectedSnapshot(p),before);
  await phase('home selected-name summary and 50/144 real Topics');
  await home();const preview=(await read(p)).topicChoices;assert.equal(preview.selectedCount,4);assert.equal(preview.selectedNames.length,4);assert.equal(preview.remainingSelectedCount,0);assert.equal(await p.locator('.input-summary').textContent(),preview.selectedNames.join(' · '));await capture(p,`${dir}/01-home-topic-summary.png`);await p.setViewportSize({width:390,height:900});assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await capture(p,`${dir}/home-topic-summary-390.png`);await p.setViewportSize({width:1440,height:900});await seed(50);before=await protectedSnapshot(p);await open(50);await assertVerticalDirectory(50);await capture(p,`${dir}/09-inputs-50.png`);assert.deepEqual(await protectedSnapshot(p),before);await home();await seed(144);before=await protectedSnapshot(p);await open(144);await assertVerticalDirectory(144);assert.equal((await list()).length,144);await capture(p,`${dir}/10-inputs-144.png`);
- const allIds=await p.locator('.topic-access').evaluateAll(nodes=>nodes.map(node=>node.dataset.topicId));assert.equal(new Set(allIds).size,144);await node(allIds[0]).focus();await p.keyboard.press('End');assert.equal(await p.evaluate(()=>document.activeElement.dataset.topicId),allIds.at(-1),'End reaches the actual 144th Topic');await p.keyboard.press('Space');await eventually(async()=>(await selected(allIds.at(-1),{poll:true}))?.enabled);await ready(144);assert.deepEqual(await p.locator('.topic-access').evaluateAll(nodes=>nodes.map(node=>node.dataset.topicId)),allIds);
+ const allIds=await p.locator('.topic-access').evaluateAll(nodes=>nodes.map(node=>node.dataset.topicId));assert.equal(new Set(allIds).size,144);
+ const heldChoiceBefore=await list(),heldAckBefore=await p.evaluate(()=>window.__ctx403Acks?.length||0);
+ await p.locator('.context-back').focus();
+ // Bind the already mounted original owner through the existing test import.
+ // Hold only delivery of real native IndexedDB replies, never manufacture a
+ // directory, skip a refresh, or replay the one native End gesture below.
+ await p.evaluate(async()=>{
+  const {ContextTopicInputs}=await import(chrome.runtime.getURL('ui/context-topics.js')),paint=ContextTopicInputs.prototype.paint;
+  const held={owner:null,released:false,delivered:0,activationRequests:0};globalThis.__ctx403HeldNavigation=held;
+  ContextTopicInputs.prototype.paint=function(...args){if(this.root===document.querySelector('.context-inputs'))held.owner=this;return paint.apply(this,args);};
+  held.restoreBinding=()=>{ContextTopicInputs.prototype.paint=paint;};
+ });
+ try{
+  await node(allIds[0]).focus();
+  await p.evaluate(()=>{
+   const held=__ctx403HeldNavigation;held.restoreBinding();if(!held.owner)throw Error('Original Inputs owner was not bound');
+   const send=held.owner.send,commitSend=held.owner.commit.send,gate=new Promise(resolve=>{held.release=()=>{held.released=true;resolve();};});held.restore=()=>{held.owner.send=send;held.owner.commit.send=commitSend;};
+   held.owner.commit.send=function(...args){held.activationRequests++;return commitSend.apply(this,args);};
+   held.owner.send=async function(type,...fields){if(type!=='PAIA_CONTEXT_TOPICS_PAGE')held.activationRequests++;const result=await send.call(this,type,...fields);if(type==='PAIA_CONTEXT_TOPICS_PAGE'&&!held.released){held.delivered++;await gate;}return result;};
+   held.read=held.owner.refresh();
+  });
+  await eventually(()=>p.evaluate(()=>__ctx403HeldNavigation.delivered>0),'original readonly directory has a held real reply');
+  assert.equal(await p.evaluate(()=>{const held=__ctx403HeldNavigation,nodes=[...held.owner.nodes.values()];return held.owner.loading&&held.owner.root.getAttribute('aria-busy')==='true'&&nodes.length===144&&nodes.every(node=>!node.disabled&&node.getAttribute('aria-disabled')==='true')&&nodes.filter(node=>node.tabIndex===0).length===1&&document.activeElement===nodes[0];}),true,'retained directory keeps native focus without granting activation');
+  await p.keyboard.press('End');assert.equal(await p.evaluate(()=>document.activeElement.dataset.topicId),allIds.at(-1),'End reaches the actual 144th Topic');
+  await p.keyboard.press('Space');await p.keyboard.press('Enter');await node(allIds.at(-1)).click({force:true});
+  assert.deepEqual(await p.evaluate(async id=>{const owner=__ctx403HeldNavigation.owner;owner.openNodes.get(id).click();const row=owner.rows.get(id);return [await owner.toggle(id),await owner.openTopic(id),await owner.save({topicId:id,enabled:!row.enabled,expectedRevision:row.revision,expectedBinding:row.enabled?row.binding:row.expectedBinding,epoch:owner.epoch,operationId:crypto.randomUUID()})];},allIds.at(-1)),[false,false,false]);
+  assert.equal(await p.locator('.context-topic-viewer').count(),0);assert.equal(await p.evaluate(()=>__ctx403HeldNavigation.activationRequests),0,'native and programmatic activation cannot dispatch under pending read authority');assert.equal(await p.evaluate(()=>window.__ctx403Acks?.length||0),heldAckBefore);assert.deepEqual(await list(),heldChoiceBefore);assert.deepEqual(await protectedSnapshot(p),before);
+  assert.equal(await p.evaluate(()=>document.activeElement.dataset.topicId),allIds.at(-1));await p.evaluate(async()=>{__ctx403HeldNavigation.release();await __ctx403HeldNavigation.read;});await ready(144);assert.equal(await p.evaluate(()=>document.activeElement.dataset.topicId),allIds.at(-1),'latest native End target survives the completed readonly read');assert.equal(await node(allIds.at(-1)).evaluate(el=>el===document.activeElement&&el.tabIndex===0&&el.getAttribute('aria-disabled')==='false'),true);
+ }finally{await p.evaluate(()=>{const held=globalThis.__ctx403HeldNavigation;held?.release?.();held?.restore?.();held?.restoreBinding?.();});}
+ await p.keyboard.press('Space');await eventually(async()=>(await selected(allIds.at(-1),{poll:true}))?.enabled);await ready(144);assert.deepEqual(await p.locator('.topic-access').evaluateAll(nodes=>nodes.map(node=>node.dataset.topicId)),allIds);
  await phase('complete-directory without search and selected filter');
  const filters=p.locator('.context-inputs-toolbar'),choiceBefore=await list();
  assert.equal(await p.locator('.context-page input[type=search]').count(),0,'Inputs has no search surface');assert.equal(await p.locator('.topic-access:visible').count(),144);
