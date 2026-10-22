@@ -343,11 +343,11 @@ export class LocalMaintenanceSession {
   if(!token){const processing=state.processing.get(metadata.childOperationId),request=maintenanceTopicCandidateQualificationRequest(handle);this.#processingCurrent(state,processing);token=await this.#foundation.read(t=>createMaintenanceQualification(this.#store,t,request.request,{...request,processing:this.#processing,caller:this.#service.context.caller,parent:processing,workBudget:state.qualificationBudget,signal:state.controller.signal,isCurrent:()=>{if(state.generation!==this.#generation||this.#jobs.get(state.job.id)!==state||state.controller.signal.aborted||state.grant.revocationSignal.aborted)return false;this.#assertProcessing(processing);return this.#window.isCurrent(state.grant)===true;}}));this.#current(state);state.candidateQualifications.set(metadata.childOperationId,token);}
   await captureMaintenanceTopicCandidates(this.#store,handle,{qualification:token,publications:state.publications.slice(state.candidatePublicationStart.get(metadata.childOperationId))});this.#current(state);return token;
  }
- async #checkExistingContext(state,childId,t,phase='settlement',expected=null,publication=null){
+ async #checkExistingContext(state,childId,t,phase='settlement',expected=null,publication=null,topicPublication=null){
   const handle=state.existingContext.get(childId);if(!handle)return;
   const settled=new Map(state.existingSettled.get(childId)||[]);
   if(expected&&maintenanceExistingContextScope(handle).some(item=>item.itemId===expected.itemId))settled.set(expected.itemId,expected);
-  await assertMaintenanceExistingContext(this.#store,t,handle,{phase,settledItems:[...settled.values()],publications:[...state.publications.slice(state.existingPublicationStart.get(childId)||0),...(publication?[publication]:[])]});
+  await assertMaintenanceExistingContext(this.#store,t,handle,{phase,settledItems:[...settled.values()],publications:[...state.publications.slice(state.existingPublicationStart.get(childId)||0),...(publication?[publication]:[])],topicPublication});
  }
  #releaseConsumedChild(state,childId,{filterContinuation=false}={}){
   // A fully ACKed/DEFERred child can retain body-free job accounting, but no
@@ -919,7 +919,7 @@ export class LocalMaintenanceSession {
    // usage, job and NO_CHANGE counter writes. Revalidate full structural scope
    // and current authority here, never on a guessed last table write.
    await this.#foundation.current(t,await this.#foundation.job(t,a.state.job.id));
-   await this.#checkStructuralMapping(a.state,a.units,t);await this.#checkContextMapping(a.state,a.units,t);if(['topic','context'].includes(facet))await this.#checkExistingContext(a.state,a.childId,t,'settlement',a.expectedTarget?.(),a.publication?.());if(['topic','context'].includes(facet))await this.#checkTopicCandidates(a.state,a.childId,t,a.publication?.());if(a.finalFence&&await a.finalFence(t)!==true)fail('STALE_BASE');check();return true;
+   await this.#checkStructuralMapping(a.state,a.units,t);await this.#checkContextMapping(a.state,a.units,t);if(['topic','context'].includes(facet))await this.#checkExistingContext(a.state,a.childId,t,'settlement',a.expectedTarget?.(),a.publication?.(),facet==='topic'?a.publication?.():null);if(['topic','context'].includes(facet))await this.#checkTopicCandidates(a.state,a.childId,t,a.publication?.());if(a.finalFence&&await a.finalFence(t)!==true)fail('STALE_BASE');check();return true;
   }}:{}),isCurrent:()=>{try{check();return this.#active===a;}catch{return false;}}};
  }
  async #invoke(state,childId,receipt,facet,units,work,outcome='COMMITTED',expectedDisposition=null,contextChange=null){
