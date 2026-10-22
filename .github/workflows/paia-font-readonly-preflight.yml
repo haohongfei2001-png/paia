@@ -1,0 +1,34 @@
+name: PAIA Font Read-only Ubuntu Preflight
+on:
+  push:
+    branches: ['audit/font-readonly-preflight-20261022']
+    paths:
+      - '.github/workflows/paia-font-readonly-preflight.yml'
+      - 'extension/scripts/inspect-font-apt-preflight.py'
+permissions:
+  contents: read
+jobs:
+  observe:
+    if: github.repository == 'haohongfei2001-png/paia' && github.ref == 'refs/heads/audit/font-readonly-preflight-20261022' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - name: Checkout exact observation commit without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Observe native configuration without changing the system
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 extension/scripts/inspect-font-apt-preflight.py
+      - name: Retain only the bounded sanitized summary
+        if: always() && !cancelled()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: font-readonly-preflight-${{ github.sha }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/paia-font-readonly-preflight/summary.json
+          if-no-files-found: error
+          retention-days: 7
+
