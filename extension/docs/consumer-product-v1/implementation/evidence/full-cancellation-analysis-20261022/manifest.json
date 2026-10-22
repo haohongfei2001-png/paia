@@ -1,0 +1,25 @@
+{
+  "run": 39789515257,
+  "head": "aae4407daec0bdf97ff3598787b66dd332896a31",
+  "tested_merge": "0d6b88464c9b248674337b666b19b15b00a7da7e",
+  "tree": "630be5e2da76a6cb1b07808005a9a725da33966e",
+  "raw_logs": {
+    "full-original.log": {
+      "bytes": 5666542,
+      "sha256": "b494c53f4a07ff9dfab93abb3c5849eacc770c17cd7670c6eee892d9c83c1ffc",
+      "publication": "filtered excerpts only; original retained locally"
+    },
+    "visual-original.log": {
+      "bytes": 94425,
+      "sha256": "fbc1afcc398e76a7e5ea13dd5b76bc205df4bf7162080d38f809bf7853fee3b2",
+      "publication": "filtered excerpts only; original retained locally"
+    }
+  },
+  "source_hashes": {
+    "extension/scripts/test.mjs": "c072aeae532c78d8350fab3069a63cdfe10654f45fe55d1bedd6ad3856009d2c",
+    "extension/scripts/test-report.mjs": "6d50b8409748bb65a4019f09acc5a5a0c6c33bea2cb59a19044d409ad9a470aa",
+    "extension/scripts/test-groups.mjs": "95b120207c29e6afd10c144e3f6bd3620155d3f573866b0353785804ee44bd13",
+    ".github/workflows/paia-certification.yml": "1fa6332cf925b104a7863e686337fadf88f3204f9b1490dfd2bbcced6e236e40",
+    ".github/workflows/paia-prompt-visual.yml": "addae32d74b9dcc55a3c696984adc0a3c14bd36a550eb0daeebcd22bbf96e061"
+  }
+}
