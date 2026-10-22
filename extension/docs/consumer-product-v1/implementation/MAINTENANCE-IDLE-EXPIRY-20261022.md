@@ -30,3 +30,11 @@ Cross-source existing-Item retrieval remains unimplemented: `selectMaintenanceEx
 The partial-excerpt case still preserves its explicit original contract: an ungranted new Entry rolls back the joined Topic transaction and all current-child ACKs. The older plan also lists separate facet progress as an open goal. The pending owner question asks whether independent Topic commit with Context refusal is the intended successor contract; current refusal assertions remain intact.
 
 The three previously identified decisions remain: candidate-to-current-reading entry/replacement semantics; automatic Topic lifecycle trigger/policy/issuer; real service identity, qualified route and quota resources. Do not activate models, credentials or production while resolving these. Full certification/exact-main, 2MiB native end-to-end stress, human visual/device acceptance and real provider/SQL qualification remain unclaimed. Dot owns PR312, version/release and merging.
+
+## Original Organize native read-bound successor
+
+Maintenance runtime checkpoint is `aee34ec213c8b06baea3f3adeff48beb21d8e5e7`. The following separate test-only checkpoint adds `services/ai-gateway/tests/organize-source-native-budget.test.mjs` and an opt-in static observation import in the existing native fixture. Production resources are unchanged.
+
+[Final actual native TAP](evidence/organize-20261022/native-budget-final.tap): Source/release 2/2. Each variant consumes a selection bound to the genuine Chrome sender, performs 4096 real metadata IndexedDB requests through the original action/scope owners, refuses the next request with BUDGET_EXCEEDED, and proves sticky action invalidation, zero jobs/candidate/ACK and zero provider/network requests. This is a direct original-owner budget check, not another full UI generation journey. The preceding 22-case native UI/worker evidence remains separate.
+
+The exploratory 20-Entry probe also reached the read bound before the byte bound. It is not evidence of a 2MiB extreme test. Initial probe setup attempts had a relative import error and a Chrome-disallowed dynamic worker import; the checked-in fixture uses static observation imports only. No production import mechanism, safety parameter or limit was changed.
