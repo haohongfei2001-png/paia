@@ -1,0 +1,36 @@
+{
+  "base": "e9f2ac646b2caa2835fb87dc21ca815aafb51994",
+  "implementation": "4d7037209867e260e26429bc594f27e7915969b9",
+  "implementationTree": "5bedd15cdcfb6c26ddd5cc4a16543668c020ca0a",
+  "node": "22.23.4",
+  "python": "3.12.14",
+  "logs": [
+    {
+      "file": "original-adversarial.log.gz",
+      "sanitizedLogSha256": "1a0829d01ed3e45100086474e252215236ff58993eb90417bede82c82119e3e8",
+      "gzipSha256": "a23c02b0297de7fa3fb193c7c61705002edf1f93b46306211b2a423ef583ceb7"
+    },
+    {
+      "file": "fixed-controls.log.gz",
+      "sanitizedLogSha256": "6363d7f1f5f532015ecee4b669be8eaa94b27632ee2d68c32e733dc162d84533",
+      "gzipSha256": "583bf57c51b20ebdd0db1d13770b3da48e77cde960e95667efbd30a184e929db"
+    },
+    {
+      "file": "fixed-controls-2.log.gz",
+      "sanitizedLogSha256": "cbc4810c0bdec4769c8f614eed0709823705be35ed09e6149622ccb2ac99c44b",
+      "gzipSha256": "ea3a76ba20fa5f1f389a28aeafc5c364afbebb31da2509b2e0bc94d10d4ac4bb"
+    },
+    {
+      "file": "final-controls.log.gz",
+      "sanitizedLogSha256": "a61ba7492668c681d5f27cb5a3d768116eafe065925a850620cec571ecda4ae2",
+      "gzipSha256": "4e63ba35b673698b533f4c6bcbc16ac2b9a5b2d2c96e752ddb6807ae2cb80107"
+    }
+  ],
+  "sha256": {
+    "extension/scripts/prepare-browser-fonts.py": "ca4b87b982aabdbc36692236a17b7ca0b67288530a4dd3fd3f6294cc86728fe4",
+    "extension/tests/cpv1-02-hosted-browser-setup.test.mjs": "9fa69780b848c91f2ecf42e0e10f199c99ce9f157c814a24f54b2112e04af907",
+    ".github/workflows/paia-certification.yml": "20947afb8f9eeb465026056b7b5bfd6ad22e672ce6a93967a7e0a763ce7c172a"
+  },
+  "externalAPTOrCache": false,
+  "CI": false
+}
