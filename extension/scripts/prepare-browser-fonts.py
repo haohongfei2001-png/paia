@@ -174,6 +174,12 @@ def checked_configuration(dump, sources):
             raise ValueError('Unsupported APT source/trust configuration path')
     if values.get('rootdir', '') not in ['', '/']:
         raise ValueError('Unsupported APT RootDir')
+    if (values.get('dir::bin', '') != ''
+            or values.get('dir::bin::apt-key', '') not in ['', '/usr/bin/apt-key']):
+        raise ValueError('Unsupported APT signature wrapper selection')
+    if (values.get('dir::bin::methods') != '/usr/lib/apt/methods'
+            or any(key.startswith('dir::bin::methods::') for key in values)):
+        raise ValueError('Unsupported APT access method selection')
     if any(values.get(key) != value for key, value in KEY_DEFAULTS.items()):
         raise ValueError('Required process-local algorithm constraints missing or changed')
     deny_true = {'trusted', 'allow-insecure', 'allow-weak', 'allow-downgrade-to-insecure',

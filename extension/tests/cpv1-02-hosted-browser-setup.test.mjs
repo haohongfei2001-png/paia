@@ -64,7 +64,7 @@ with tempfile.TemporaryDirectory() as temporary:
    assert 'APT::Key::Assert-Pubkey-Algo::Next=>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512' in args
    assert 'APT::Key::Assert-Pubkey-Algo::Future=>=rsa3072,ed25519,ed448' in args
   if 'apt-config' in args:
-   config={'Dir':'/','Dir::Etc':'etc/apt','Dir::Etc::sourcelist':'sources.list','Dir::Etc::sourceparts':'sources.list.d','Dir::Etc::trusted':'trusted.gpg','Dir::Etc::trustedparts':'trusted.gpg.d','Dir::Etc::main':'apt.conf','Dir::Etc::parts':'apt.conf.d'}
+   config={'Dir':'/','Dir::Etc':'etc/apt','Dir::Etc::sourcelist':'sources.list','Dir::Etc::sourceparts':'sources.list.d','Dir::Etc::trusted':'trusted.gpg','Dir::Etc::trustedparts':'trusted.gpg.d','Dir::Etc::main':'apt.conf','Dir::Etc::parts':'apt.conf.d','Dir::Bin':'','Dir::Bin::Methods':'/usr/lib/apt/methods'}
    if scenario.startswith('hosted-mirror'):
     config.update({'APT::Key':'','APT::Key::Assert-Pubkey-Algo':'>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512,brainpoolP256r1,brainpoolP320r1,brainpoolP384r1,brainpoolP512r1,secp256k1','APT::Key::Assert-Pubkey-Algo::Next':'>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512','APT::Key::Assert-Pubkey-Algo::Future':'>=rsa3072,ed25519,ed448'})
    config['APT::Key::Assert-Pubkey-Algo']='>=rsa1024,ed25519,ed448,nistp256,nistp384,nistp512,brainpoolP256r1,brainpoolP320r1,brainpoolP384r1,brainpoolP512r1,secp256k1'
@@ -205,7 +205,7 @@ from pathlib import Path
 from urllib.parse import quote
 spec=importlib.util.spec_from_file_location('fonts',sys.argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 case=sys.argv[2]
-config={'APT':'','APT::Key':'','APT::Key::Assert-Pubkey-Algo':'>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512,brainpoolP256r1,brainpoolP320r1,brainpoolP384r1,brainpoolP512r1,secp256k1','APT::Key::Assert-Pubkey-Algo::Next':'>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512','APT::Key::Assert-Pubkey-Algo::Future':'>=rsa3072,ed25519,ed448','Dir':'/','Dir::Etc':'etc/apt','Dir::Etc::sourcelist':'sources.list','Dir::Etc::sourceparts':'sources.list.d','Dir::Etc::trusted':'trusted.gpg','Dir::Etc::trustedparts':'trusted.gpg.d','Dir::Etc::main':'apt.conf','Dir::Etc::parts':'apt.conf.d','Binary':'apt-config','Binary::apt':'','Binary::apt::APT::Color':'1','Binary::apt::APT::Cache::Show::Version':'2','Acquire::Check-Date':'true','Acquire::Check-Valid-Until':'true','Acquire::ForceHash':'SHA256'}
+config={'APT':'','APT::Key':'','APT::Key::Assert-Pubkey-Algo':'>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512,brainpoolP256r1,brainpoolP320r1,brainpoolP384r1,brainpoolP512r1,secp256k1','APT::Key::Assert-Pubkey-Algo::Next':'>=rsa2048,ed25519,ed448,nistp256,nistp384,nistp512','APT::Key::Assert-Pubkey-Algo::Future':'>=rsa3072,ed25519,ed448','Dir':'/','Dir::Etc':'etc/apt','Dir::Etc::sourcelist':'sources.list','Dir::Etc::sourceparts':'sources.list.d','Dir::Etc::trusted':'trusted.gpg','Dir::Etc::trustedparts':'trusted.gpg.d','Dir::Etc::main':'apt.conf','Dir::Etc::parts':'apt.conf.d','Dir::Bin':'','Dir::Bin::Methods':'/usr/lib/apt/methods','Binary':'apt-config','Binary::apt':'','Binary::apt::APT::Color':'1','Binary::apt::APT::Cache::Show::Version':'2','Acquire::Check-Date':'true','Acquire::Check-Valid-Until':'true','Acquire::ForceHash':'SHA256'}
 source='/etc/apt/sources.list.d/ubuntu.sources';mirror='/etc/apt/apt-mirrors.txt'
 sources={source:'Types: deb\nURIs: mirror+file:/etc/apt/apt-mirrors.txt\nSuites: noble noble-updates noble-backports\nComponents: main universe restricted multiverse\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg',mirror:'http://azure.archive.ubuntu.com/ubuntu/\tpriority:1\nhttps://archive.ubuntu.com/ubuntu/\tpriority:2\nhttps://security.ubuntu.com/ubuntu/\tpriority:3\n'}
 def dump(c):return '\n'.join(quote(k,safe=':')+' "'+quote(v,safe='/:,>-._')+'";' for k,v in c.items())
@@ -216,6 +216,23 @@ def denied(fn):
  raise AssertionError('unsafe configuration admitted: '+case)
 if case=='native-defaults':assert len(audit())==64
 elif case=='native-root':config['RootDir']='/';assert len(audit())==64
+elif case=='apt-key-default':config['Dir::Bin']='';assert len(audit())==64
+elif case=='apt-key-explicit':config['Dir::Bin']='';config['Dir::Bin::apt-key']='/usr/bin/apt-key';assert len(audit())==64
+elif case=='apt-key-empty':config['Dir::Bin']='';config['Dir::Bin::apt-key']='';assert len(audit())==64
+elif case=='apt-key-wrapper':config['Dir::Bin::apt-key']='/tmp/other-wrapper';denied(audit)
+elif case=='apt-key-relative':config['Dir::Bin::apt-key']='apt-key';denied(audit)
+elif case=='apt-key-traversal':config['Dir::Bin::apt-key']='/usr/bin/../bin/apt-key';denied(audit)
+elif case=='apt-key-parent':config['Dir::Bin']='/tmp/other';denied(audit)
+elif case=='apt-key-parent-with-official':config['Dir::Bin']='/tmp/other';config['Dir::Bin::apt-key']='/usr/bin/apt-key';denied(audit)
+elif case=='method-default':assert len(audit())==64
+elif case=='method-directory':config['Dir::Bin::Methods']='/tmp/methods';denied(audit)
+elif case=='method-relative':config['Dir::Bin::Methods']='usr/lib/apt/methods';denied(audit)
+elif case=='method-missing':del config['Dir::Bin::Methods'];denied(audit)
+elif case=='method-gpgv':config['Dir::Bin::Methods::gpgv']='/tmp/gpgv';denied(audit)
+elif case=='method-http':config['Dir::Bin::Methods::http']='/tmp/http';denied(audit)
+elif case=='method-explicit-official':config['Dir::Bin::Methods::gpgv']='/usr/lib/apt/methods/gpgv';denied(audit)
+elif case=='method-empty':config['Dir::Bin::Methods::gpgv']='';denied(audit)
+elif case=='method-list':config['Dir::Bin::Methods::']='anything';denied(audit)
 elif case=='weak-key':config['APT::Key::Assert-Pubkey-Algo']='>=rsa1024';denied(audit)
 elif case=='unknown-key':config['APT::Key::Custom']='yes';denied(audit)
 elif case=='empty-key':config['APT::Key::Assert-Pubkey-Algo']='';denied(audit)
@@ -267,7 +284,7 @@ elif case.startswith('file-'):
 else:raise AssertionError(case)
 print('CONTROLLED Ubuntu24/APT2.8.1 '+case+' PASS; hosted NOT_RUN')
 `;
-for(const scenario of ['native-defaults','native-root','weak-key','unknown-key','empty-key','weak-future-key','rootdir','config-parts','config-binary-visible','config-hidden-subtree','config-adjacent-comment','config-comments','config-include','config-clear','mirror-label','mirror-user','mirror-scheme','mirror-empty','mirror-path','mirror-missing','mirror-fingerprint','continuation-legal','continuation-scheme','continuation-user','continuation-signed-by','continuation-orphan','archive-legal','archive-path','archive-traversal','archive-missing-manifest','archive-weak','file-regular','file-symlink','file-parent-symlink','file-fifo','file-hardlink'])test('hosted font compatibility: '+scenario,()=>{
+for(const scenario of ['method-default','method-directory','method-relative','method-missing','method-gpgv','method-http','method-explicit-official','method-empty','method-list','apt-key-default','apt-key-explicit','apt-key-empty','apt-key-wrapper','apt-key-relative','apt-key-traversal','apt-key-parent','apt-key-parent-with-official','native-defaults','native-root','weak-key','unknown-key','empty-key','weak-future-key','rootdir','config-parts','config-binary-visible','config-hidden-subtree','config-adjacent-comment','config-comments','config-include','config-clear','mirror-label','mirror-user','mirror-scheme','mirror-empty','mirror-path','mirror-missing','mirror-fingerprint','continuation-legal','continuation-scheme','continuation-user','continuation-signed-by','continuation-orphan','archive-legal','archive-path','archive-traversal','archive-missing-manifest','archive-weak','file-regular','file-symlink','file-parent-symlink','file-fifo','file-hardlink'])test('hosted font compatibility: '+scenario,()=>{
  execFileSync(process.env.PYTHON||'python3',['-c',compatibilityControl,fileURLToPath(new URL('../scripts/prepare-browser-fonts.py',import.meta.url)),scenario],{encoding:'utf8',stdio:'pipe',timeout:5000});
 });
 
