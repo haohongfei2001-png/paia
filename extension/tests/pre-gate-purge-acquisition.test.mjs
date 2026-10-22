@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {samplePreGateFilter,admitPreGatePurgeBrowserFixture} from './harness/pre-gate-purge-browser-fixture.mjs';
+import {samplePreGateFilter,admitPreGatePurgeBrowserFixture,observePreGateMaintenance} from './harness/pre-gate-purge-browser-fixture.mjs';
+import {FilterRunner} from '../core/filter-runner.js';
 import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs';
 import {completeFixture,rows} from './harness/original-complete.mjs';
 import {CONTROL_PUBLICATION_REVISION} from '../core/local-control-publication.js';
@@ -33,5 +34,32 @@ test('pending after seven stable comparisons resets all prior progress and reads
 test('original100-sample budget admits only a full new stable sequence at boundary',async()=>{const x=await settle(n=>n<=91);assert.equal(await x.result,true);assert.equal(x.calls,100);assert.equal(x.reads,18);assert.equal(x.delays,99);});
 test('one later pending sample cannot fabricate stability at original100-sample boundary',async()=>{const x=await settle(n=>n<=92);await assert.rejects(x.result,/HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED/);assert.equal(x.calls,100);assert.equal(x.reads,16);assert.equal(x.delays,100);});
 test('all100 unavailable samples never read partial metadata or admit purge',async()=>{const x=await settle(()=>true);await assert.rejects(x.result,/HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED/);assert.equal(x.calls,100);assert.equal(x.reads,0);assert.equal(x.delays,100);});
+
+for(const finishFirst of [false,true])test('real held filter batch '+(finishFirst?'completes before mode off':'cannot complete after premature mode off'),{timeout:3000},async()=>{
+ const f=await completeFixture({texts:['SYNTHETIC immutable source one','SYNTHETIC immutable source two']}),s=f.s,before=await rows(s,'records');
+ let release,entered;const held=new Promise(resolve=>{release=resolve;}),reached=new Promise(resolve=>{entered=resolve;});
+ const checkpoint=s.repository.checkpoint;s.repository.checkpoint=async name=>{if(name==='filter-evaluated'){entered();await held;}return checkpoint(name);};
+ const runner=new FilterRunner(s),running=runner.wake();
+ try{
+  await reached;assert.equal((await s.filterStatus()).pending,2);assert.notEqual(runner.running,null);
+  if(finishFirst){release();await running;assert.equal(runner.running,null);await s.setFilterMode('off');}
+  else{await s.setFilterMode('off');release();await running;}
+  const filter=await s.filterStatus();assert.equal(filter.mode,'off');assert.equal(filter.taskState,'idle');assert.equal(filter.pending,finishFirst?0:2);
+  // Only navigation is controlled as already complete. The filter sample is
+  // the real original owner above; the unchanged gate must still reject off
+  // with pending work, within its original100 samples and25ms cadence.
+  let calls=0,delays=0;const store={repository:{transaction:async()=>[{id:'ans:index-state:v1:catalog',phase:'complete',pending:false}]}};
+  const result=runLoop(store,async()=>{calls++;return {pending:false,filter:await s.filterStatus()};},null,null,[],{runtime:{sendMessage:async()=>({ok:true,data:{coverage:{state:'complete',archiveComplete:true}}})}},(fn,ms)=>{assert.equal(ms,25);delays++;fn();});
+  if(finishFirst){assert.equal(await result,true);assert.equal(calls,9);assert.equal(delays,8);}
+  else{await assert.rejects(result,/HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED/);assert.equal(calls,100);assert.equal(delays,100);}
+  assert.deepEqual(await rows(s,'records'),before);assert.equal(f.requests.length,0);assert.equal(runner.failed,false);
+ }finally{release();await running;s.repository.checkpoint=checkpoint;await s.repository.close();}
+});
+
+test('maintenance observation distinguishes blocked work and metadata churn without copying row data',()=>{
+ const secret='SYNTHETIC_DO_NOT_COPY',catalog={id:'ans:index-state:v1:catalog',phase:'complete',pending:false,revision:4},settled=[catalog,{id:'ans:index-state:v1:scope:'+secret,scope:[secret],revision:2,activeRevision:1,shadow:{}},{id:'ans:index-state:v1:dirty:'+secret},{id:'ans:index-state:v1:gc:'+secret},{id:secret,body:secret}],prior=JSON.stringify([catalog,{id:'removed-'+secret}]),before=JSON.stringify(settled);
+ const result=observePreGateMaintenance({iteration:7,filter:{mode:'off',pending:2,taskState:'idle',body:secret},catalog,settled,prior,complete:false,stable:0});
+ assert.deepEqual(result,{iteration:7,filter:{mode:'off',pending:2,taskState:'idle'},catalog:{phase:'complete',pending:false,revision:4},navigation:{scopes:1,unfinishedScopes:1,dirty:1,gc:1},changes:{navigation:3,other:1,removed:1},complete:false,stableBefore:0});assert.equal(JSON.stringify(result).includes(secret),false);assert.equal(JSON.stringify(settled),before);
+});
 
 test('serialized browser fixture remains valid and failed diagnostic read preserves original failure',async()=>{const original=Error('SYNTHETIC original browser failure'),page={evaluate:async source=>{assert.doesNotThrow(()=>Function('return '+source));throw original;},locator:()=>({evaluate:async()=>{throw Error('SYNTHETIC detached diagnostic');}})};await assert.rejects(admitPreGatePurgeBrowserFixture(page,'synthetic-source-id'),error=>error===original);});

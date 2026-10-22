@@ -18,7 +18,9 @@ function setup(failAt=null){
  class MessagePort extends EventTarget{start(){controls.starts++;if(controls.failAt==='start')throw Error('start');}postMessage(value){assert.equal(value,0);controls.posts++;if(controls.failAt==='post')throw Error('post');controls.queue.push(()=>this.peer.listeners?.get('message')?.(new Event(this.peer)));}close(){controls.closeAttempts++;if(controls.failAt==='close')throw Error('close');controls.closed++;}}
  class MessageChannel{constructor(){controls.channels++;if(controls.failAt==='construct')throw Error('construct');this.port1=new MessagePort();this.port2=new MessagePort();this.port1.peer=this.port2;this.port2.peer=this.port1;}}
  class IDBTransaction{get db(){return {};}get mode(){return 'readwrite';}}
- const context={ArchiveError,Event,EventTarget,MessagePort,MessageChannel,IDBTransaction,console};
+ // The original Repository now captures AbortSignal's platform accessor at
+ // module load. Supply the real constructor, not a permissive getter stub.
+ const context={ArchiveError,Event,EventTarget,MessagePort,MessageChannel,IDBTransaction,AbortSignal,console};
  const api=runInNewContext(helper+`;({add(repository,scope,record){repositoryScopes.set(scope,record);},wait:awaitRepositoryTransactionSettled,helperContext:globalThis})`,context);
  return {api,controls,context};
 }
