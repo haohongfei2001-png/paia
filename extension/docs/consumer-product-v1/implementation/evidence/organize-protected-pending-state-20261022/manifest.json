@@ -1,0 +1,54 @@
+{
+  "base": "13f75eba8085b3ef422ecb8cb9f51b0e4bbb781b",
+  "implementation": "37dbd6b65d20c56c139f4e5d2f761e2c07f74dd5",
+  "versions": {
+    "node": "v22.23.4",
+    "python": "Python 3.12.14",
+    "playwright": "1.63.0",
+    "chrome": "155.0.8059.85"
+  },
+  "files": {
+    "extension/core/organizer/ai-incremental-v2.js": "b438dd7efb6be28627e0cec5e49a530d84711b69771c0b3682c2c71e80b55fa2",
+    "extension/core/organizer/ai-incremental-v3.js": "de8ba0ee9f9b610e0abc4d073c640f55197552ec9f5d04371753dc27e82c5fb1",
+    "extension/core/organizer/configured-organize-runner.js": "e077ba4d083316cccd135e0d15815a2bda8451b3e5da6d9a1e9ebd4c35d3b298",
+    "extension/core/organizer/local-organize-session.js": "6788b8b8986ced8407f6e495b7677d16695c00b76c6250cb5fe56d3181b80663",
+    "extension/tests/organize-fresh-current.test.mjs": "b2fd4c83fae289dbff93003a151d2a7a42e5e095b5aed0ef89ef6458c3c1d02e",
+    "extension/tests/topic-organize-service-action.test.mjs": "3d567d83cc73118bd5bbea77a59597d398b2c8aab5637b8d0d83981130e22d21",
+    "extension/ui/common.js": "18924138062d23a48bddeb1249e6c7ff672e98bf49bea0ee78146b0d91c0d546",
+    "extension/ui/topic-workspace.js": "e1458220267fd51454c5a05186d7e329057b4bbe4ab59e1c430475e79d267d75",
+    "services/ai-gateway/tests/organize-client-fixture.mjs": "e866466f1c47480dc393440605fa04dd78c5f91b5b9fb6fce7088a7d611685cd",
+    "services/ai-gateway/tests/organize-fresh-current-native.test.mjs": "54749682b83de5e1ffac0887f0e2c9ef223e0eaad27ede76d76f758609767bc1"
+  },
+  "logs": [
+    {
+      "file": "affected-planners.log.gz",
+      "raw_sha256": "99d715bd18a985c15080a7ebdd93027bc14414e2c703f0ac4753c6de7035b38a",
+      "gzip_sha256": "7daf480a2a0d2c5d7548b1b1256830515d50c37e1eb98fb5b1153725660ab446"
+    },
+    {
+      "file": "native-paired.log.gz",
+      "raw_sha256": "2891dbac92cc1c878f59d8db17bca8836e6dbc52a5dd77988c0ff4afb98dd381",
+      "gzip_sha256": "8cc70559a415dfa8c37c1cf9b68388d9a2b5ca929a5960c71eb204bf173809e2"
+    },
+    {
+      "file": "original-corrected-fixture.log.gz",
+      "raw_sha256": "22712a496fa3f9a09f41b41b9fa6368c0d7bf236a6b0233e8c6c206724103b02",
+      "gzip_sha256": "0184c1d7d47f63e61a810f1ca96da48a6106578063740d1a91c63911c74a2caf"
+    },
+    {
+      "file": "original-negative.log.gz",
+      "raw_sha256": "95e9df5ba763d2841c108b61a0d47b6e02517dea57e3164016fbe67aed63a44a",
+      "gzip_sha256": "8d5a107450795a4c8f0f8d22117da108984454eeea63f41dbba131b0ac665af9"
+    },
+    {
+      "file": "package.log.gz",
+      "raw_sha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "gzip_sha256": "c941c2e76e968d9737a514b32df707c44f348a2e7daeb58d5b599caf1096f06c"
+    },
+    {
+      "file": "targeted.log.gz",
+      "raw_sha256": "e7ccea667ff33909bb2f7bd4f8d5924d1470e5396dda1422fe591129a6f062f4",
+      "gzip_sha256": "41a3e71eb31dc55ca0bc99be0849fac2d81b62a3faf8371f75b2fcb64da41046"
+    }
+  ]
+}
