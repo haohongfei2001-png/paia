@@ -1,0 +1,209 @@
+{
+  "baseline": "8715c310c9dbd8a366defe3e4f360c56908edc26",
+  "fixCommit": "6df133da3e132482f696ffe09aa49fff0d8ab9ed",
+  "fixTree": "0da6f20cabcf0bd339aaefbcf30f2dd4fbff8553",
+  "originalFull": 39752524162,
+  "originalJob": 119736387662,
+  "originalArtifact": {
+    "id": 12415491290,
+    "bytes": 18972282,
+    "sha256": "8606ecefe9a43aed98e0e89786b7b5a4f0721d2db4756da901f4f1f8dc211c6c"
+  },
+  "environment": {
+    "node": "22.23.4",
+    "python": "3.12.14",
+    "playwright": "1.63.0",
+    "chrome": "155.0.8059.85",
+    "headless": true
+  },
+  "native": {
+    "source": {
+      "cases": [
+        {
+          "name": "whole actual owner preview and cancellation leave all37/SDK exact",
+          "status": "PASS"
+        },
+        {
+          "name": "explicit native confirm creates one independent user Topic without copying body or redirecting parent",
+          "status": "PASS"
+        },
+        {
+          "name": "native result link is explicit and original compound undo restores placements, never body",
+          "status": "PASS"
+        },
+        {
+          "name": "real Source-backed Working change invalidates preview, keeps whole baseline, and unblocks controls",
+          "status": "PASS"
+        },
+        {
+          "name": "actual API-absent worker consumes its original WindowClient port and cancels without writes",
+          "status": "PASS"
+        },
+        {
+          "name": "body-free private challenge is not a caller-minted authority",
+          "status": "PASS"
+        }
+      ],
+      "searchSettlement": [
+        {
+          "pendingInvalidations": 1,
+          "pendingCleanupJobs": 0,
+          "pendingSearch": 5,
+          "rebuildComplete": true
+        },
+        {
+          "pendingInvalidations": 0,
+          "pendingCleanupJobs": 0,
+          "pendingSearch": 0,
+          "rebuildComplete": true
+        }
+      ],
+      "trackedVectorMatchesFixCommit": true,
+      "externalRequests": 0,
+      "extensionNetwork": 0
+    },
+    "release": {
+      "cases": [
+        {
+          "name": "whole actual owner preview and cancellation leave all37/SDK exact",
+          "status": "PASS"
+        },
+        {
+          "name": "explicit native confirm creates one independent user Topic without copying body or redirecting parent",
+          "status": "PASS"
+        },
+        {
+          "name": "native result link is explicit and original compound undo restores placements, never body",
+          "status": "PASS"
+        },
+        {
+          "name": "real Source-backed Working change invalidates preview, keeps whole baseline, and unblocks controls",
+          "status": "PASS"
+        },
+        {
+          "name": "actual API-absent worker consumes its original WindowClient port and cancels without writes",
+          "status": "PASS"
+        },
+        {
+          "name": "body-free private challenge is not a caller-minted authority",
+          "status": "PASS"
+        }
+      ],
+      "searchSettlement": [
+        {
+          "pendingInvalidations": 1,
+          "pendingCleanupJobs": 0,
+          "pendingSearch": 5,
+          "rebuildComplete": true
+        },
+        {
+          "pendingInvalidations": 0,
+          "pendingCleanupJobs": 0,
+          "pendingSearch": 0,
+          "rebuildComplete": true
+        }
+      ],
+      "trackedVectorMatchesFixCommit": true,
+      "externalRequests": 0,
+      "extensionNetwork": 0
+    }
+  },
+  "files": [
+    {
+      "file": "original.log",
+      "rawBytes": 135864,
+      "rawSha256": "7f402f0b13d8ab7e202efcaae6768d0525275b96131dd9d90b2a2b6831349ea9",
+      "publicSha256": "7f402f0b13d8ab7e202efcaae6768d0525275b96131dd9d90b2a2b6831349ea9"
+    },
+    {
+      "file": "source-failure-1.json",
+      "rawBytes": 787,
+      "rawSha256": "9e0bddc848cbbb1f50e2517ecfb589bc11e372739a4fd4f7cd7213c2e97aecf2",
+      "publicSha256": "9e0bddc848cbbb1f50e2517ecfb589bc11e372739a4fd4f7cd7213c2e97aecf2"
+    },
+    {
+      "file": "release-failure-1.json",
+      "rawBytes": 787,
+      "rawSha256": "0bdc332ade2d6257930d1558ae164d0010d7b9c7469f9187437bd87b0b0bce23",
+      "publicSha256": "0bdc332ade2d6257930d1558ae164d0010d7b9c7469f9187437bd87b0b0bce23"
+    },
+    {
+      "file": "source.json",
+      "rawBytes": 470969,
+      "rawSha256": "8a5181e9133bdbe26eebb659ce702ea58c2766276150740961cf6a4abd6f8aa5",
+      "publicSha256": "8a5181e9133bdbe26eebb659ce702ea58c2766276150740961cf6a4abd6f8aa5"
+    },
+    {
+      "file": "release.json",
+      "rawBytes": 537504,
+      "rawSha256": "ea043da44fcab9a11828601a01a3951a31cbbf9c8737a0e64ca12638ce7309a1",
+      "publicSha256": "ea043da44fcab9a11828601a01a3951a31cbbf9c8737a0e64ca12638ce7309a1"
+    },
+    {
+      "file": "owner-regression.log",
+      "rawBytes": 381,
+      "rawSha256": "4a2e5423b035f0abb8b9bf315a84b230a6b61db9eef371788da6d4d8e4439f6f",
+      "publicSha256": "4a2e5423b035f0abb8b9bf315a84b230a6b61db9eef371788da6d4d8e4439f6f"
+    },
+    {
+      "file": "targeted-node.log",
+      "rawBytes": 4991,
+      "rawSha256": "d40ae718b9ba0acf87e1b27b4f32d8f004666b098b2cf36dffa0e912ad68dd6a",
+      "publicSha256": "d40ae718b9ba0acf87e1b27b4f32d8f004666b098b2cf36dffa0e912ad68dd6a"
+    },
+    {
+      "file": "owner-final.log",
+      "rawBytes": 1431,
+      "rawSha256": "c256a7feb75a7c7997d5f6b09aeaac6e216886ea53080c005b1cdb3daef17364",
+      "publicSha256": "46f19d808df5c9dbe7414a70e6db037601d8f72897f8cacf3728fb61a998c037"
+    },
+    {
+      "file": "owner-final-v2.log",
+      "rawBytes": 592,
+      "rawSha256": "08b1d1b51e8344b268c27b401214b53fd6e2cf605308038513da1c133deb0322",
+      "publicSha256": "08b1d1b51e8344b268c27b401214b53fd6e2cf605308038513da1c133deb0322"
+    },
+    {
+      "file": "native.log",
+      "rawBytes": 3700,
+      "rawSha256": "6ce6db7b65be19ce78d70c2cb9cbacbc742d89d7616f0952edff35be1687f181",
+      "publicSha256": "6ce6db7b65be19ce78d70c2cb9cbacbc742d89d7616f0952edff35be1687f181"
+    },
+    {
+      "file": "native-final.log",
+      "rawBytes": 3701,
+      "rawSha256": "2748a04f164b1127ac060a32e99a56483d8eedd17367efc901325bb99c0d14c3",
+      "publicSha256": "2748a04f164b1127ac060a32e99a56483d8eedd17367efc901325bb99c0d14c3"
+    },
+    {
+      "file": "package.log",
+      "rawBytes": 153,
+      "rawSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "publicSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b"
+    },
+    {
+      "file": "source-native.json",
+      "rawBytes": 471972,
+      "rawSha256": "9e7217e6f13938cbfb03dada090779e91b148ac6e5665c7bc155d5760623e946",
+      "publicSha256": "9e7217e6f13938cbfb03dada090779e91b148ac6e5665c7bc155d5760623e946"
+    },
+    {
+      "file": "release-native.json",
+      "rawBytes": 538507,
+      "rawSha256": "d374d9e68db174780b4e2315810d518b6e40a6af5eccfa54550f12248551d707",
+      "publicSha256": "d374d9e68db174780b4e2315810d518b6e40a6af5eccfa54550f12248551d707"
+    },
+    {
+      "file": "source-native-final.json",
+      "rawBytes": 472217,
+      "rawSha256": "b4c2037cb219df9b50513327341275d9f731516c13de6e088dc63faafb7a1004",
+      "publicSha256": "b4c2037cb219df9b50513327341275d9f731516c13de6e088dc63faafb7a1004"
+    },
+    {
+      "file": "release-native-final.json",
+      "rawBytes": 538752,
+      "rawSha256": "bc193e35711669a86325fd89de54212c4847c71f693179f851ab1f6ef191f01c",
+      "publicSha256": "bc193e35711669a86325fd89de54212c4847c71f693179f851ab1f6ef191f01c"
+    }
+  ]
+}
