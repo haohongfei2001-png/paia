@@ -12,14 +12,29 @@ const preflight=workflow.split('\n  sync_node_preflight:\n')[1].split('\n  sync_
 const commands=originalNodeCommands(workflow);
 const expected={head:'1'.repeat(40),tree:'2'.repeat(40),runId:'123',runAttempt:'1'};
 async function fixture(){const root=await mkdtemp(join(tmpdir(),'paia-node-preflight-'));await mkdir(join(root,'work/qa-bns-native-storage'),{recursive:true});for(const path of LOG_PATHS)await writeFile(join(root,path),'TAP version 13\n1..1\n# tests 1\n# pass 1\n# fail 0\n');await writeFile(join(root,'work/qa-bns-native-storage/node-step-exit.txt'),'0\n');return{root,read:overrides=>collectPreflightReceipt(root,{...expected,node:process.version,outcome:'success',commandSha256:COMMAND_HASHES,...overrides}),close:()=>rm(root,{recursive:true,force:true})};}
-test('only the two complete original owning Node commands move, with all other workflow bytes retained',()=>{
+// Only the reviewed current_browser runner/font delta may be reversed.
+const approvedFontStep = "      - name: Resolve browser fonts from fresh signed indexes\n        run: |\n          # Private per-job state; no Actions cache restore or save is enabled.\n          PAIA_FONT_STATE=\"$RUNNER_TEMP/paia-browser-fonts-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.index }}\"\n          echo \"PAIA_FONT_STATE=$PAIA_FONT_STATE\" >> \"$GITHUB_ENV\"\n          python3 scripts/prepare-browser-fonts.py plan --state \"$PAIA_FONT_STATE\"\n      - name: Provide Chinese glyph coverage for actual visual evidence\n        env:\n          PAIA_FONT_CACHE_MATCHED_KEY: ''\n        run: |\n          python3 scripts/prepare-browser-fonts.py install --state \"$PAIA_FONT_STATE\" --cache \"$PAIA_FONT_STATE/private/debs\"\n";
+const originalFontStep = "      - name: Provide Chinese glyph coverage for actual visual evidence\n        run: |\n          sudo apt-get update\n          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk\n";
+function restoreApprovedFonts(text){
+ const start='\n  current_browser:\n',end='\n  full_suite:\n';
+ assert.equal(text.split(start).length,2);assert.equal(text.split(end).length,2);
+ const before=text.slice(0,text.indexOf(start)+start.length),tail=text.slice(before.length),at=tail.indexOf(end),job=tail.slice(0,at);
+ assert.equal(job.split('    runs-on: ubuntu-24.04\n').length,2);
+ assert.equal(job.split(approvedFontStep).length,2);
+ return before+job.replace('    runs-on: ubuntu-24.04\n','    runs-on: ubuntu-latest\n').replace(approvedFontStep,originalFontStep)+tail.slice(at);
+}
+function restoredWorkflowHash(text){
+ const commands=originalNodeCommands(text),preflight=text.split('\n  sync_node_preflight:\n')[1].split('\n  sync_native_storage:\n')[0];
  assert.deepEqual(commands.map(sha),COMMAND_HASHES);
  const originalStep='      - name: Verify whole owning Node files and fixture preflight\n        run: |\n          set -o pipefail\n'+commands.map(command=>'          '+command+'\n').join('');
- let restored=workflow.replace('\n  sync_node_preflight:\n'+preflight,'');
+ let restored=restoreApprovedFonts(text).replace('\n  sync_node_preflight:\n'+preflight,'');
  restored=restored.replace("    needs: [mode, sync_node_preflight]\n    if: needs.mode.outputs.full == 'true' && needs.sync_node_preflight.result == 'success'","    needs: mode\n    if: needs.mode.outputs.full == 'true'");
  restored=restored.replace('      - name: Prove source and release native IndexedDB and worker durability\n',originalStep+'      - name: Prove source and release native IndexedDB and worker durability\n');
  restored=restored.replace('release, sync_node_preflight, sync_native_storage]','release, sync_native_storage]').replace('          SYNC_NODE_PREFLIGHT: ${{ needs.sync_node_preflight.result }}\n','').replace('            test "$SYNC_NODE_PREFLIGHT" = success\n','');
  assert.equal(sha(restored),'166fcd607396799510cc3ac947ab06d23496090d5a04939716d2302b0e982a78');
+}
+test('original Sync command move and exact approved font delta preserve every other workflow byte',()=>{
+ restoredWorkflowHash(workflow);
  assert.match(preflight,/timeout-minutes: 5/);assert.match(preflight,/runs-on: ubuntu-latest/);assert.match(preflight,/persist-credentials: false/);assert.match(preflight,/node-version: '22'/);
  assert.match(preflight,/test "\$\(git rev-parse HEAD\)" = "\$PAIA_TESTED_HEAD"/);
  assert.match(preflight,/trap 'status=\$\?; printf "%s\\n" "\$status" > work\/qa-bns-native-storage\/node-step-exit.txt' EXIT/);
@@ -45,3 +60,16 @@ test('unknown receipt fields, changed commands, paths and malformed log hashes f
 test('cancelled, skipped or failed shell execution remains incomplete even with both logs',async()=>{const f=await fixture();try{for(const outcome of ['cancelled','skipped','failure']){const r=await f.read({outcome});assert.equal(r.result,'INCOMPLETE');assert.throws(()=>validatePreflightReceipt(r,expected));}await writeFile(join(f.root,'work/qa-bns-native-storage/node-step-exit.txt'),'1\n');const r=await f.read();assert.equal(r.result,'INCOMPLETE');assert.throws(()=>validatePreflightReceipt(r,expected));}finally{await f.close();}});
 test('missing logs or a missing original shell exit cannot become a successful receipt',async()=>{const f=await fixture();try{await rm(join(f.root,LOG_PATHS[1]));let r=await f.read();assert.equal(r.result,'INCOMPLETE');assert.equal(r.logs[1].sha256,null);assert.throws(()=>validatePreflightReceipt(r,expected));await rm(join(f.root,'work/qa-bns-native-storage/node-step-exit.txt'));r=await f.read();assert.equal(r.shellExit,null);assert.equal(r.result,'INCOMPLETE');}finally{await f.close();}});
 test('symlink and directory substitutions are rejected rather than hashed or uploaded as log evidence',async()=>{const f=await fixture();try{await rm(join(f.root,LOG_PATHS[0]));await symlink(join(f.root,LOG_PATHS[1]),join(f.root,LOG_PATHS[0]));await assert.rejects(f.read());await rm(join(f.root,LOG_PATHS[0]));await mkdir(join(f.root,LOG_PATHS[0]));await assert.rejects(f.read());}finally{await f.close();}});
+
+test('font normalization rejects unauthorized workflow mutations instead of masking them',()=>{
+ const changes=[
+  ['prepare-browser-fonts.py plan','prepare-browser-fonts.py plan --unsafe'],
+  ['private/debs','shared/debs'],["PAIA_FONT_CACHE_MATCHED_KEY: ''","PAIA_FONT_CACHE_MATCHED_KEY: foreign"],
+  [approvedFontStep,approvedFontStep+approvedFontStep],['    runs-on: ubuntu-24.04','    runs-on: ubuntu-latest'],
+  ['timeout-minutes: 18','timeout-minutes: 19'],["PAIA_TEST_CONCURRENCY: '1'","PAIA_TEST_CONCURRENCY: '2'"],
+  ['npm run test:browser','npm run test:browser -- --test-name-pattern=skip'],
+  ['test "$CURRENT_BROWSER" = success','test "$CURRENT_BROWSER" != failure'],
+  [commands[0],commands[0]+' --test-name-pattern=skip'],[commands[1],commands[1]+' --test-name-pattern=skip']
+ ];
+ for(const [from,to]of changes){assert.ok(workflow.includes(from),from);assert.throws(()=>restoredWorkflowHash(workflow.replace(from,to)),from);}
+});
