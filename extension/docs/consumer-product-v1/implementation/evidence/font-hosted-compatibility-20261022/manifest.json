@@ -1,0 +1,55 @@
+{
+  "base": "bdfa720e24050e9edf4d6244b7a06076b9c37905",
+  "implementation": "af5ed6b529886250526a12665f7d4530e5b42bfa",
+  "files": {
+    "extension/scripts/prepare-browser-fonts.py": "8a8390e2a6e1a4d80c219a2cfc22f296e5e5fe92ab77c7c08b8b542b8c9034b8",
+    "extension/tests/cpv1-02-hosted-browser-setup.test.mjs": "3d80dbeafa27d2d41bf1c3c057981ab2a17670933d7666b1aa05b3f8702783d8"
+  },
+  "logs": [
+    {
+      "file": "compatibility-final-bound.log.gz",
+      "raw_sha256": "3959de14233dc30113d4fb42eee409b8c9ab822161757c115bda5c4288a2aa58",
+      "gzip_sha256": "c7cb1eb4ef73cbe0723c7e0c9b8b00dd869e99659d2e8c1f87ed4b7ffa375805"
+    },
+    {
+      "file": "compatibility-final.log.gz",
+      "raw_sha256": "f376cc0d7a66f9ed4f6d2a37d85d993d041f8562a3eb38f58bd63edb02ffa479",
+      "gzip_sha256": "f2b1a4c09dbf5c0974580bb30736087e4fa942bd915b15f51fb8593822d24ba3"
+    },
+    {
+      "file": "compatibility-first.log.gz",
+      "raw_sha256": "e72f8a8427cb2839ecd58ec61da4115bc5013294ad3697300c5512566da39c8d",
+      "gzip_sha256": "b8af15e092956525419a0bbaad6c58dd776e8ee52e71eb347631f29a5f7913cc"
+    },
+    {
+      "file": "compatibility-reviewed.log.gz",
+      "raw_sha256": "c604adf1ec228b6452a6f8e042e8f994c80af856e750cc9f0d212fae16d94abc",
+      "gzip_sha256": "b078c34e3d6b29db02f738f5fa32b8d3d5800fb83e7ce72b78a7b52296106865"
+    },
+    {
+      "file": "existing-corrected.log.gz",
+      "raw_sha256": "b9c6e4114ab3f2b0553d3248217887ac279808ac26b739c1454fd3b28b01a24a",
+      "gzip_sha256": "d7c3da6de6008a8475e1ed948d1dfca243a294a66342ec9677277c4bc4913bfd"
+    },
+    {
+      "file": "existing-first.log.gz",
+      "raw_sha256": "017be410ce1a2fe0ffc715affaeb6edaba29839db9132881d9693ea21573639d",
+      "gzip_sha256": "31ce99da43a5ad6e0ef2c7866e1e012f11b04a428d744a20bd545f45f02cd759"
+    },
+    {
+      "file": "original-negative-controls.log.gz",
+      "raw_sha256": "bd43eca61f3babfd415821f51a46e72de701c4fbee1e35355b45dbdabf3205db",
+      "gzip_sha256": "1afe0cbf4c4c1758ff8625be15b34780d996cf84f9ecd99a67098d68c2019282"
+    },
+    {
+      "file": "package.log.gz",
+      "raw_sha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "gzip_sha256": "c941c2e76e968d9737a514b32df707c44f348a2e7daeb58d5b599caf1096f06c"
+    },
+    {
+      "file": "repaired-negative-controls.log.gz",
+      "raw_sha256": "2b56dbd35deeef3fb105b55ab945387796a8cb486120c0e97149653026c74dc4",
+      "gzip_sha256": "8dde6e037c1ffcefb2c4072d199194c02507777f6154059f527a9d31690dc299"
+    }
+  ]
+}
