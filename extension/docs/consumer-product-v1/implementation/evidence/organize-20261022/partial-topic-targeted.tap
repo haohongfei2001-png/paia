@@ -1,0 +1,86 @@
+TAP version 13
+# Subtest: same-child ungranted partial-excerpt commits only independently authorized Topic before refusing Context UPDATE
+ok 1 - same-child ungranted partial-excerpt commits only independently authorized Topic before refusing Context UPDATE
+  ---
+  duration_ms: 915.820875
+  type: 'test'
+  ...
+# Subtest: same-child ungranted partial-excerpt commits only independently authorized Topic before refusing Context NO_CHANGE
+ok 2 - same-child ungranted partial-excerpt commits only independently authorized Topic before refusing Context NO_CHANGE
+  ---
+  duration_ms: 771.523542
+  type: 'test'
+  ...
+# Subtest: partial-excerpt Topic final source still rolls back original mutation and ACK
+not ok 3 - partial-excerpt Topic final source still rolls back original mutation and ACK
+  ---
+  duration_ms: 773.070917
+  type: 'test'
+  location: '<worktree>/services/ai-gateway/tests/maintenance-source-response-path.test.mjs:201:72'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    1 !== 0
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://<worktree>/services/ai-gateway/tests/maintenance-source-response-path.test.mjs:216:251)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: partial-excerpt Topic final protected still rolls back original mutation and ACK
+ok 4 - partial-excerpt Topic final protected still rolls back original mutation and ACK
+  ---
+  duration_ms: 748.172959
+  type: 'test'
+  ...
+# Subtest: partial-excerpt Topic final revoke still rolls back original mutation and ACK
+not ok 5 - partial-excerpt Topic final revoke still rolls back original mutation and ACK
+  ---
+  duration_ms: 847.466541
+  type: 'test'
+  location: '<worktree>/services/ai-gateway/tests/maintenance-source-response-path.test.mjs:201:72'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"UNAVAILABLE","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:eafd347c1db44df308b688597d1c50568e0495a5ebaa16785c3272507ed29755","facets":[]}
+    + actual - expected
+
+    + 'UNAVAILABLE'
+    - 'PARTIAL'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'PARTIAL'
+  actual: 'UNAVAILABLE'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://<worktree>/services/ai-gateway/tests/maintenance-source-response-path.test.mjs:213:36)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: partial-excerpt Topic final graph still rolls back original mutation and ACK
+ok 6 - partial-excerpt Topic final graph still rolls back original mutation and ACK
+  ---
+  duration_ms: 747.920375
+  type: 'test'
+  ...
+# Subtest: partial-excerpt Topic final ack-abort still rolls back original mutation and ACK
+ok 7 - partial-excerpt Topic final ack-abort still rolls back original mutation and ACK
+  ---
+  duration_ms: 783.970667
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 5
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5800.80725
