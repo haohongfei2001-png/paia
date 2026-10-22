@@ -130,7 +130,7 @@ for(const count of [1,21,40])test(`single-wire original ${count}: exact selected
  }});
  const current=observeCurrent(t,f),parses=observeProviderParse(t),beforeEntries=await rows(f.s,'thoughts'),beforeSources=await rows(f.s,'records');
  assert.equal(DEFAULT_LIMITS.sessionBytes,2097152);assert.equal(DEFAULT_LIMITS.timeoutMs,30000);assert.equal(ENVELOPES.AI_ORGANIZE.children,4);
- const result=await f.run();assert.equal(result.completed,true,JSON.stringify(result));assert.equal(result.candidateCreated,true);
+ const result=await f.run();assert.equal(result.completed,true,JSON.stringify(result));assert.equal(result.currentPublished,true);
  const children=Math.ceil(count/20),jobs=await rows(f.s,'organizerJobs'),usage=await rows(f.s,'organizerUsage');
  assert.equal(jobs.length,1);assert.equal(jobs[0].state,'COMMITTED');assert.equal(jobs[0].childIds.length,children);
  assert.equal(measured.length,children);assert.equal(sent.length,children);assert.equal(f.physical(),children);assert.equal(parses(),2*children);
@@ -143,10 +143,10 @@ for(const count of [1,21,40])test(`single-wire original ${count}: exact selected
  assert.equal(jobs[0].coverage.length,count);assert.equal(jobs[0].childCoverage.flat().length,count);
  assert.deepEqual(new Set(jobs[0].childCoverage.flat().map(canonical)),new Set(jobs[0].coverage.map(canonical)));
  assert.deepEqual(new Set(jobs[0].coverage.map(unit=>unit.key)),new Set(f.entries.map(entry=>JSON.stringify(['library_entry',entry.id]))));
- const candidate=(await f.runner.status({topicId:f.topic.id})).topics[0].candidate;
+ const candidate=(await f.runner.status({topicId:f.topic.id})).topics[0].presentation;
  assert.ok(candidate);assert.equal(candidate.stale,false);
- const savedCandidate=await f.s.repository.transaction(false,async t=>(await t.get('meta','aiPresentation:'+f.topic.id)).candidate,['meta']);
- const generations=Object.values(savedCandidate.proposal.manifest.generations);assert.equal(generations.length,1);
+ const savedCandidate=await f.s.repository.transaction(false,async t=>(await t.get('meta','aiPresentation:'+f.topic.id)),['meta']);
+ const generations=Object.values(savedCandidate.manifest.generations);assert.equal(generations.length,1);
  for(const transmission of sent){
   const childId=transmission.childIdentity.childOperationId,measurement=measured.find(m=>JSON.parse(JSON.parse(m.query.envelope.body).messages[1].content).usage.childOperationId===childId);
   assert.ok(measurement);assert.deepEqual(JSON.parse(JSON.parse(measurement.query.envelope.body).messages[1].content),transmission.payload);

@@ -67,7 +67,7 @@ async function worker(t,f,{configured=true}={}){
  return {send,read,notices,close:()=>{for(const fn of onRemoved)fn(ui.tab.id);}};
 }
 
-for(const count of [1,40])test(`actual worker RPC (${count} entries): signed service, candidate CAS, original adoption and settled spend`,async t=>{
+for(const count of [1,40])test(`actual worker RPC (${count} entries): signed service, Current publication, original edit CAS and settled spend`,async t=>{
  const f=await organizeServiceFixture(t,{count}),w=await worker(t,f);
  // The original worker may maintain the derived search-index watermark.
  const humanEntry=({indexedSearchVersion,...entry})=>entry;
@@ -91,7 +91,7 @@ for(const count of [1,40])test(`actual worker RPC (${count} entries): signed ser
  const injected=await w.send({...request,configuration:{origin:'https://untrusted.invalid'}});
  assert.equal(injected.ok,false);assert.equal(injected.error,'INVALID_REQUEST');assert.equal(f.calls.length,0);
  const result=await w.send(request);
- assert.equal(result.ok,true,JSON.stringify(result));assert.equal(result.data.completed,true,JSON.stringify(result));assert.equal(result.data.candidateCreated,true);
+ assert.equal(result.ok,true,JSON.stringify(result));assert.equal(result.data.completed,true,JSON.stringify(result));assert.equal(result.data.currentPublished,true);
  assert.equal(f.physical(),Math.ceil(count/20));assert.equal(result.data.requestCount,f.physical());
  const jobs=await rows(f.s,'organizerJobs'),usage=await rows(f.s,'organizerUsage');
  assert.equal(jobs.length,1);assert.equal(jobs[0].state,'COMMITTED');assert.equal(jobs[0].routeVersion,f.configuration.routeVersion);
@@ -107,18 +107,17 @@ for(const count of [1,40])test(`actual worker RPC (${count} entries): signed ser
  assert.doesNotMatch(JSON.stringify({jobs,usage}),/SYNTHETIC organize evidence|principalToken|entitlementToken/);
  assert.doesNotMatch(JSON.stringify(calls('/api/results')),/SYNTHETIC organize evidence/);
 
- const before=await w.read(),candidate=before.data.topics[0].candidate;
- assert.ok(candidate);assert.equal(candidate.stale,false);assert.equal(before.data.topics[0].presentation,null);
- const edit={topicId:f.topic.id,expectedRevision:candidate.expectedRevision,expectedCandidateKey:aiCandidateKey(candidate),candidateDecisions:Object.fromEntries(candidate.changedFields.map(field=>[field,'adopt'])),operationId:crypto.randomUUID()};
- const stale=await w.send({type:'EDIT_AI_PRESENTATION',edit:{...edit,expectedCandidateKey:edit.expectedCandidateKey+'SYNTHETIC-stale'}});
- assert.equal(stale.ok,false);assert.equal(stale.error,'STALE_BASE');
- assert.deepEqual((await w.read()).data.topics[0].candidate,candidate);assert.equal((await w.read()).data.topics[0].presentation,null);
- const adopted=await w.send({type:'EDIT_AI_PRESENTATION',edit});
- assert.equal(adopted.ok,true,JSON.stringify(adopted));assert.equal(adopted.data.hasCurrent,true);assert.deepEqual(adopted.data.adopted,candidate.changedFields);assert.equal(adopted.data.revision,candidate.expectedRevision+1);
+ const before=await w.read(),current=before.data.topics[0].presentation;
+ assert.ok(current);assert.equal(current.stale,false);assert.equal(current.revision,1);assert.equal(before.data.topics[0].candidate,null);
+ const revisions=(await rows(f.s,'revisions')).filter(r=>r.kind==='ai_presentation');assert.equal(revisions.length,1);assert.equal(revisions[0].actor,'ai');
+ const edit={topicId:f.topic.id,expectedRevision:current.revision,field:'currentView',value:current.currentView+'\nSYNTHETIC human addition',operationId:crypto.randomUUID()};
+ const stale=await w.send({type:'EDIT_AI_PRESENTATION',edit:{...edit,expectedRevision:0}});
+ assert.equal(stale.ok,false);assert.equal(stale.error,'STALE_BASE');assert.deepEqual((await w.read()).data.topics[0].presentation,current);
+ const edited=await w.send({type:'EDIT_AI_PRESENTATION',edit});assert.equal(edited.ok,true,JSON.stringify(edited));assert.equal(edited.data.revision,2);assert.deepEqual(await w.send({type:'EDIT_AI_PRESENTATION',edit}),edited);
  const after=await w.read();assert.equal(after.data.serviceAvailable,true);assert.equal(after.data.topics[0].candidate,null);
  for(const entry of entriesBefore)assert.ok(after.data.topics[0].presentation.currentView.includes(entry.body));
- assert.deepEqual((await Promise.all(f.entries.map(e=>f.s.entry(e.id)))).map(humanEntry),entriesBefore,'derivative adoption cannot edit human Entry bodies or revisions');
- assert.equal(f.physical(),Math.ceil(count/20),'status, rejected CAS and original adoption never dispatch another provider');
+ assert.deepEqual((await Promise.all(f.entries.map(e=>f.s.entry(e.id)))).map(humanEntry),entriesBefore,'derivative publication cannot edit human Entry bodies or revisions');
+ assert.equal(f.physical(),Math.ceil(count/20),'status, rejected CAS and original edit never dispatch another provider');
  assert.equal(calls('/api/results').length,1);assert.ok(w.notices.some(message=>message.type==='ARCHIVE_CHANGED'&&message.cause==='EDIT_AI_PRESENTATION'));
 });
 

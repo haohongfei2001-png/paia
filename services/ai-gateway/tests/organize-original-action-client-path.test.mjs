@@ -15,11 +15,11 @@ async function fixture(t,options={}){
  const request=scope=>({type:'UPDATE_AI_PRESENTATION',topicId:f.topic.id,userActionId:crypto.randomUUID(),scopeBinding:scope.scopeBinding});
  const run=async()=>rpc(request(await select()));t.after(()=>source.dispose());return {...f,source,runner,rpc,select,request,run,sender,api};
 }
-for(const count of [1,40])test(`source-owned explicit Organize ${count} entries reaches original signed paid child and atomic candidate`,{timeout:30000},async t=>{
- const f=await fixture(t,{count}),result=await f.run();assert.equal(result.completed,true,JSON.stringify(result));assert.equal(result.candidateCreated,true);
+for(const count of [1,40])test(`source-owned explicit Organize ${count} entries reaches original signed paid child and atomic Current`,{timeout:30000},async t=>{
+ const f=await fixture(t,{count}),result=await f.run();assert.equal(result.completed,true,JSON.stringify(result));assert.equal(result.currentPublished,true);
  assert.equal(f.physical(),Math.ceil(count/20));const jobs=await rows(f.s,'organizerJobs'),usage=await rows(f.s,'organizerUsage');
  assert.equal(jobs.length,1);assert.equal(jobs[0].state,'COMMITTED');assert.equal(jobs[0].coverage.length,count);assert.deepEqual(new Set(jobs[0].coverage.map(u=>u.key)),new Set(f.entries.map(e=>JSON.stringify(['library_entry',e.id]))));const childUnits=jobs[0].childCoverage.flat();assert.equal(childUnits.length,count);assert.equal(new Set(childUnits.map(u=>JSON.stringify(u))).size,count);assert.deepEqual(new Set(childUnits.map(u=>JSON.stringify(u))),new Set(jobs[0].coverage.map(u=>JSON.stringify(u))));assert.equal(usage.length,f.physical());assert.ok(usage.every(r=>r.attemptCount===1&&r.financialSettlement.settledSpendMicros===120));
- assert.equal(f.calls.filter(x=>x.path==='/api/results').length,1);assert.equal((await f.runner.status({topicId:f.topic.id})).topics[0].candidate!==null,true);
+ assert.equal(f.calls.filter(x=>x.path==='/api/results').length,1);assert.equal((await f.runner.status({topicId:f.topic.id})).topics[0].candidate,null);assert.equal((await f.runner.status({topicId:f.topic.id})).topics[0].presentation.revision,1);
 });
 test('metadata selection alone and a foreign Archive document never start an original job',{timeout:10000},async t=>{
  const f=await fixture(t),scope=await f.select();assert.equal(scope.eligibleCount,1);assert.equal(f.physical(),0);assert.equal(f.calls.length,0);assert.equal((await rows(f.s,'organizerJobs')).length,0);

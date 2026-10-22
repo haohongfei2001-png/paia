@@ -28,7 +28,7 @@ for(const count of [1,21])for(const mode of ['control','synchronous','queued'])t
  repository.transaction=function(write,fn,...rest){return transaction.call(this,write,async tx=>{
   const out=await fn(tx);
   if(write&&!attached&&out?.type==='AI_ORGANIZE'&&out.state==='COMMITTED'){
-   const candidate=await tx.get('meta','aiPresentation:'+f.topic.id);assert.ok(candidate?.candidate,'attach only to the real original candidate/domain+ACK transaction');attached++;
+   const candidate=await tx.get('meta','aiPresentation:'+f.topic.id);assert.equal(candidate?.revision,1,'attach only to the real original Current/domain+ACK transaction');assert.equal(candidate.candidate,undefined);attached++;
    tx.tx.addEventListener('complete',()=>events.push('commit-complete'),{once:true});tx.tx.addEventListener('abort',()=>events.push('commit-abort'),{once:true});
    await guard.processing(tx,[],[f.topic.id]);guard.registerProcessingFinalFence(tx);enabled=true;
   }
@@ -36,14 +36,14 @@ for(const count of [1,21])for(const mode of ['control','synchronous','queued'])t
  },...rest);};
  let result,error=null;try{result=await f.run();}catch(e){error=e;}
  repository.transaction=transaction;
- const jobs=await rows(f.s,'organizerJobs'),usage=await rows(f.s,'organizerUsage'),work=await rows(f.s,'organizerWorkItems'),candidate=await repository.transaction(false,tx=>tx.get('meta','aiPresentation:'+f.topic.id)),marker=await repository.transaction(false,tx=>tx.get('libraryMigrationItems','ai-presentation-candidate-fence:'+f.topic.id));
- const observed={count,mode,attached,hit,events,result,error:error?.code??null,physical:f.physical(),jobStates:jobs.map(x=>x.state),usageStates:usage.map(x=>x.state),acks:work.filter(x=>x.state==='ACKNOWLEDGED').length,candidate:!!candidate?.candidate,marker:!!marker,resultCalls:f.calls.filter(x=>x.path==='/api/results').length};t.diagnostic(JSON.stringify(observed));
+ const jobs=await rows(f.s,'organizerJobs'),usage=await rows(f.s,'organizerUsage'),work=await rows(f.s,'organizerWorkItems'),candidate=await repository.transaction(false,tx=>tx.get('meta','aiPresentation:'+f.topic.id)),marker=await repository.transaction(false,tx=>tx.get('libraryMigrationItems','ai-presentation-fence:'+f.topic.id));
+ const observed={count,mode,attached,hit,events,result,error:error?.code??null,physical:f.physical(),jobStates:jobs.map(x=>x.state),usageStates:usage.map(x=>x.state),acks:work.filter(x=>x.state==='ACKNOWLEDGED').length,current:!!candidate?.projection,candidate:!!candidate?.candidate,marker:!!marker,resultCalls:f.calls.filter(x=>x.path==='/api/results').length};t.diagnostic(JSON.stringify(observed));
  assert.equal(attached,1);assert.equal(f.physical(),Math.ceil(count/20));
  if(mode==='control'){
-  assert.equal(hit,0);assert.equal(result.completed,true);assert.equal(observed.candidate,true);assert.equal(observed.marker,true);assert.equal(observed.acks,count);assert.equal(observed.resultCalls,1);
+  assert.equal(hit,0);assert.equal(result.completed,true);assert.equal(observed.candidate,false);assert.equal(observed.current,true);assert.equal(observed.marker,true);assert.equal(observed.acks,count);assert.equal(observed.resultCalls,1);
   assert.deepEqual(observed.events,['commit-complete']);assert.deepEqual(observed.jobStates,['COMMITTED']);assert.deepEqual(observed.usageStates,Array(Math.ceil(count/20)).fill('COMMITTED'));
  }else{
-  assert.equal(hit,1);assert.equal(observed.candidate,false,'retired original action must not publish candidate');assert.equal(observed.marker,false);assert.equal(observed.acks,0);assert.equal(observed.resultCalls,0);
+  assert.equal(hit,1);assert.equal(observed.candidate,false,'retired original action must not publish candidate');assert.equal(observed.current,false);assert.equal(observed.marker,false);assert.equal(observed.acks,0);assert.equal(observed.resultCalls,0);
   assert.deepEqual(observed.events,['source-invalidated','commit-abort'],'original withdrawal precedes the actual writer abort, never a completion');
   assert.deepEqual(observed.jobStates,['RESPONSE_RECORDED']);assert.deepEqual(observed.usageStates,Array(Math.ceil(count/20)).fill('RESPONSE_RECORDED'),'paid responses remain recorded, without an adoption ACK or result finalization');
  }
