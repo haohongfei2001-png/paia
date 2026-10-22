@@ -83,7 +83,10 @@ function row(zh,en,noteZh,noteEn,control){const row=node('div','ux-setting-row')
 function detail(zh,en,children){const el=node('details','ux-settings-detail');el.append(copyNode('summary','',zh,en),...children.filter(Boolean));return el;}
 function rememberPosition(){if(!settingsVisible||group===null)return;const focus=document.activeElement,host=groups.get(group);positions.set(group,{scrollTop:Math.max(0,Math.min(1000000,globalThis.scrollY||0)),focus:focus?.id&&host?.contains(focus)?focus.id.slice(0,100):null});}
 export function captureSettingsView(){return {settingsGroup:group||'index',settingsPosition:positions.get(group)||{scrollTop:0,focus:null}};}
-export function restoreSettingsView(value={}){const key=value.settingsGroup==='index'?'index':SETTINGS_LABELS[value.settingsGroup]?value.settingsGroup:null;if(key===null)return;restoring=true;try{if(value.settingsPosition)positions.set(key,value.settingsPosition);activateGroup(key,{history:false,focus:true});}finally{restoring=false;}}
+// Local intent is never persisted in route history. A newer admitted group action
+// retires only the old group/position restoration, not navigation or its return owner.
+export function captureSettingsRestoreIntent(){return groupFocusSerial;}
+export function restoreSettingsView(value={},intent=groupFocusSerial){if(intent!==groupFocusSerial)return;const key=value.settingsGroup==='index'?'index':SETTINGS_LABELS[value.settingsGroup]?value.settingsGroup:null;if(key===null)return;restoring=true;try{if(value.settingsPosition)positions.set(key,value.settingsPosition);activateGroup(key,{history:false,focus:true});}finally{restoring=false;}}
 function activateGroup(key,{history=true,focus=false}={}){
  if(key!=='about'&&about?.feedback?.dialog.open){const expected=groupFocusSerial,visible=settingsVisible;void about.leave().then(ok=>{if(ok&&groupFocusSerial===expected&&settingsVisible===visible)activateGroup(key,{history,focus});});return;}
  if(key!=='index'&&!groups.has(key))return;const serial=++groupFocusSerial;if(history)rememberPosition();const changed=group!==key;group=key;const index=key==='index';$('ux-settings-shell').dataset.settingsIndex=String(index);
