@@ -1,6 +1,6 @@
 # PR313 native abort and Browser3 oracle follow-up — 2026-10-23
 
-Base: `44803422fe77aa7a0a3dae7c0ae466ae5daea082`; branch `codex/pr313-native-oracle-followup-20261023`; implementation `1a16d25e`. Acceptance remains `02144bccf5e0e0b6842aaa4e7c6958cedecdfde1`; main remains `1f3c826c0c49f9d8fd60156182883866971bb8c3`. These remote identities were read back during this work.
+Base: `44803422fe77aa7a0a3dae7c0ae466ae5daea082`; branch `codex/pr313-native-oracle-followup-20261023`; implementation `1a16d25e`. Acceptance remains `02144bccf5e0e0b6842aaa4e7c6958cedecdfde1`. Main was `1f3c826c0c49f9d8fd60156182883866971bb8c3` at the earlier read; the final post-push read found an external advance to `ebb25414d18f3b27270d67326bfcbd9cc46431e6`. This independent candidate was not rebased or integrated with that new main; its test evidence remains bound to the stated base. This line does not claim qualification against the newly advanced main.
 
 This completes the A/B test-only follow-up coordinated by dot within the previously verified human authorization for original test repairs and controlled local reproduction. Only the original Browser3 test and an explicitly invoked evidence control implement changes. Production, shared harness, service fixture, workflow/router, versions, acceptance branch and main remain unchanged. Node/Entry repairs were neither changed nor rerun. No automation configuration was changed.
 
