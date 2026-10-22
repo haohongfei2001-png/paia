@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: Now current B-02 refusal and historical Source purge retire the timer and reject an older actual snapshot source
+not ok 1 - Now current B-02 refusal and historical Source purge retire the timer and reject an older actual snapshot source
+  ---
+  duration_ms: 7712.803625
+  type: 'test'
+  location: '<WORKTREE>/extension/work/browser10-followup-20261022/controlled-off-before-capture.mjs:158:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    page.evaluate: Error: HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED
+        at eval (eval at evaluate (:311:30), <anonymous>:51:22)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    eval (eval at evaluate (:311:30), <anonymous>:51:22)
+    async <anonymous>:337:30
+    admitPreGatePurgeBrowserFixture (<WORKTREE>/extension/tests/harness/pre-gate-purge-browser-fixture.mjs:18:24)
+    TestContext.<anonymous> (<WORKTREE>/extension/work/browser10-followup-20261022/controlled-off-before-capture.mjs:173:21)
+  ...
+# Subtest: Now current B-02 refusal and historical Source purge retire the timer and reject an older actual snapshot release
+not ok 2 - Now current B-02 refusal and historical Source purge retire the timer and reject an older actual snapshot release
+  ---
+  duration_ms: 9114.274166
+  type: 'test'
+  location: '<WORKTREE>/extension/work/browser10-followup-20261022/controlled-off-before-capture.mjs:158:2'
+  failureType: 'testCodeFailure'
+  error: |-
+    page.evaluate: Error: HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED
+        at eval (eval at evaluate (:311:30), <anonymous>:51:22)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    eval (eval at evaluate (:311:30), <anonymous>:51:22)
+    async <anonymous>:337:30
+    admitPreGatePurgeBrowserFixture (<WORKTREE>/extension/tests/harness/pre-gate-purge-browser-fixture.mjs:18:24)
+    TestContext.<anonymous> (<WORKTREE>/extension/work/browser10-followup-20261022/controlled-off-before-capture.mjs:173:21)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 22013.974375

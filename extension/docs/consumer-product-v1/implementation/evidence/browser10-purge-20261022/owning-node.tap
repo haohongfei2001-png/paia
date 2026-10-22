@@ -1,0 +1,155 @@
+TAP version 13
+# Subtest: pre-dispatch reader returns the original first result without a second attempt
+ok 1 - pre-dispatch reader returns the original first result without a second attempt
+  ---
+  duration_ms: 0.454083
+  type: 'test'
+  ...
+# Subtest: one exact pre-dispatch publication change restarts only the original reader
+ok 2 - one exact pre-dispatch publication change restarts only the original reader
+  ---
+  duration_ms: 0.168667
+  type: 'test'
+  ...
+# Subtest: a second pre-dispatch conflict is thrown unchanged without a third attempt
+ok 3 - a second pre-dispatch conflict is thrown unchanged without a third attempt
+  ---
+  duration_ms: 0.201042
+  type: 'test'
+  ...
+# Subtest: an synchronous entered callback conflict is never retried
+ok 4 - an synchronous entered callback conflict is never retried
+  ---
+  duration_ms: 0.067333
+  type: 'test'
+  ...
+# Subtest: an asynchronous entered callback conflict is never retried
+ok 5 - an asynchronous entered callback conflict is never retried
+  ---
+  duration_ms: 0.091125
+  type: 'test'
+  ...
+# Subtest: CONTROL_PUBLICATION_PENDING never retries before callback entry
+ok 6 - CONTROL_PUBLICATION_PENDING never retries before callback entry
+  ---
+  duration_ms: 0.050958
+  type: 'test'
+  ...
+# Subtest: BNS_CONSUMER_PUBLICATION_PENDING never retries before callback entry
+ok 7 - BNS_CONSUMER_PUBLICATION_PENDING never retries before callback entry
+  ---
+  duration_ms: 0.06275
+  type: 'test'
+  ...
+# Subtest: STORAGE_FAILED never retries before callback entry
+ok 8 - STORAGE_FAILED never retries before callback entry
+  ---
+  duration_ms: 0.031625
+  type: 'test'
+  ...
+# Subtest: actual initialized independent reader retries a genuine same-DB writer before entry and reads the settled original control
+ok 9 - actual initialized independent reader retries a genuine same-DB writer before entry and reads the settled original control
+  ---
+  duration_ms: 68.279584
+  type: 'test'
+  ...
+# Subtest: an entered original reader with a completed transaction is not replayed after a later conflict
+ok 10 - an entered original reader with a completed transaction is not replayed after a later conflict
+  ---
+  duration_ms: 45.558333
+  type: 'test'
+  ...
+# Subtest: old two-attempt acquisition rejects two actual same-database publications before read callback
+ok 11 - old two-attempt acquisition rejects two actual same-database publications before read callback
+  ---
+  duration_ms: 36.012542
+  type: 'test'
+  ...
+# Subtest: two exact unentered attempts mean missing filter snapshot, then a new real sample succeeds
+ok 12 - two exact unentered attempts mean missing filter snapshot, then a new real sample succeeds
+  ---
+  duration_ms: 25.694417
+  type: 'test'
+  ...
+# Subtest: filter sampling does not hide entered
+ok 13 - filter sampling does not hide entered
+  ---
+  duration_ms: 0.160875
+  type: 'test'
+  ...
+# Subtest: filter sampling does not hide other-code
+ok 14 - filter sampling does not hide other-code
+  ---
+  duration_ms: 0.042416
+  type: 'test'
+  ...
+# Subtest: filter sampling does not hide not-initialized
+ok 15 - filter sampling does not hide not-initialized
+  ---
+  duration_ms: 0.133208
+  type: 'test'
+  ...
+# Subtest: filter sampling does not hide partial-multiple-calls
+ok 16 - filter sampling does not hide partial-multiple-calls
+  ---
+  duration_ms: 0.096583
+  type: 'test'
+  ...
+# Subtest: pending after seven stable comparisons resets all prior progress and reads no partial metadata
+ok 17 - pending after seven stable comparisons resets all prior progress and reads no partial metadata
+  ---
+  duration_ms: 0.338333
+  type: 'test'
+  ...
+# Subtest: original100-sample budget admits only a full new stable sequence at boundary
+ok 18 - original100-sample budget admits only a full new stable sequence at boundary
+  ---
+  duration_ms: 0.215416
+  type: 'test'
+  ...
+# Subtest: one later pending sample cannot fabricate stability at original100-sample boundary
+ok 19 - one later pending sample cannot fabricate stability at original100-sample boundary
+  ---
+  duration_ms: 0.283166
+  type: 'test'
+  ...
+# Subtest: all100 unavailable samples never read partial metadata or admit purge
+ok 20 - all100 unavailable samples never read partial metadata or admit purge
+  ---
+  duration_ms: 0.297833
+  type: 'test'
+  ...
+# Subtest: real held filter batch cannot complete after premature mode off
+ok 21 - real held filter batch cannot complete after premature mode off
+  ---
+  duration_ms: 88.434166
+  type: 'test'
+  ...
+# PRE_GATE_DIAGNOSTIC_UNAVAILABLE Error
+# Subtest: real held filter batch completes before mode off
+ok 22 - real held filter batch completes before mode off
+  ---
+  duration_ms: 24.544667
+  type: 'test'
+  ...
+# Subtest: maintenance observation distinguishes blocked work and metadata churn without copying row data
+ok 23 - maintenance observation distinguishes blocked work and metadata churn without copying row data
+  ---
+  duration_ms: 0.257291
+  type: 'test'
+  ...
+# Subtest: serialized browser fixture remains valid and failed diagnostic read preserves original failure
+ok 24 - serialized browser fixture remains valid and failed diagnostic read preserves original failure
+  ---
+  duration_ms: 0.637791
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 311.580458

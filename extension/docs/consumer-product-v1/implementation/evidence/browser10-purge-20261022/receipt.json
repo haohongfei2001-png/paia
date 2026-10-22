@@ -1,0 +1,214 @@
+{
+  "baseline": "d3aa9805c4adcfd9d252f4dd2305d1f24b3ffb5f",
+  "fix": "a59b2ec17a491779600e1223cc46cca52429be31",
+  "tree": "dbfda808d33682258c89c3e1e2ef0649128df9d6",
+  "branch": "codex/browser10-purge-followup-20261022",
+  "frozenPR313Head": "22bd30f19b3d5ecb8074b334d7e3ae019f6bbb7e",
+  "originalFull": {
+    "run": 39735101169,
+    "attempt": 1,
+    "job": 119679193359,
+    "testedMerge": "c80110db807248ff997aecc5094234c92439fc20",
+    "tree": "5a32d74a5480fa052481d8887975284debe6f9f0",
+    "result": "FAILED: 25/26",
+    "artifactId": 12407229275,
+    "artifactSha256": "275d0b808acef216e32bf202d77e2c978f2ef6e99c092800c66bd0015ae6c01b",
+    "versions": {
+      "platform": "Ubuntu 24.04",
+      "node": "22.23.3",
+      "python": "3.12.15",
+      "chrome": "155.0.8059.84"
+    }
+  },
+  "versions": {
+    "node": "v22.23.4",
+    "python": "Python 3.12.14",
+    "chrome": "155.0.8059.85",
+    "platform": "macOS",
+    "dependencies": {
+      "playwright": "1.63.0",
+      "prosemirror-model": "1.25.12",
+      "prosemirror-state": "1.4.4",
+      "prosemirror-view": "1.42.6"
+    },
+    "dependencyAuthority": "exact versions in extension/package.json; no tracked package-lock.json"
+  },
+  "changedFiles": {
+    "extension/tests/harness/context-now-currentness-native.mjs": "34b47f25c907d67bd4a5484233bebd1be4a1bc8794e9ecb66145b35f8fd15646",
+    "extension/tests/harness/pre-gate-purge-browser-fixture.mjs": "2634bfb1deaa0519c81828088bd9952a7538fb763121d6cb58c6e64dae95c48f",
+    "extension/tests/pre-gate-purge-acquisition.test.mjs": "4b97d10c02e6c6e54cdfd719d2316c38f93db9d65b38435f0152dfd6bb615028"
+  },
+  "results": {
+    "diagnosticOnlyOriginalOrdering": "2/2 pass; does not disprove cloud failure",
+    "controlledPrematureOff": "0/2 pass, both original HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED",
+    "firstIntegration": "0/2 pass, obsolete mandatory onboarding-start; corrected to original optional-start handshake",
+    "owningNode": "24/24 pass; 14-case earlier subset overlaps",
+    "fixedNative": "2/2 pass",
+    "staticPackage": "21218 guardrails / 607 runtime resources pass"
+  },
+  "native": [
+    {
+      "variant": "source",
+      "sourceRequests": 8,
+      "maintenanceSamples": 10,
+      "finalFilter": {
+        "mode": "off",
+        "pending": 0,
+        "taskState": "idle"
+      },
+      "network": {
+        "external": 0,
+        "provider": 0,
+        "extension": 0
+      },
+      "evidenceClass": "CURRENT_B02_REFUSAL_PLUS_HISTORICAL_COMPATIBILITY",
+      "fixtureOnlyWorkerObservation": true
+    },
+    {
+      "variant": "release",
+      "sourceRequests": 8,
+      "maintenanceSamples": 10,
+      "finalFilter": {
+        "mode": "off",
+        "pending": 0,
+        "taskState": "idle"
+      },
+      "network": {
+        "external": 0,
+        "provider": 0,
+        "extension": 0
+      },
+      "evidenceClass": "CURRENT_B02_REFUSAL_PLUS_HISTORICAL_COMPATIBILITY",
+      "fixtureOnlyWorkerObservation": true
+    }
+  ],
+  "notRun": [
+    "Full",
+    "updated acceptance merge candidate",
+    "entire Browser10 shard",
+    "other unchanged Now cases",
+    "real service/provider/credentials"
+  ],
+  "diagnosisLimit": "Proven premature-off fixture race; missing queue/maintenance facts in original cloud trace prevent attributing that exact occurrence with certainty. Cloud failure remains open pending dot review and next selected acceptance candidate.",
+  "files": {
+    "original-job.log.gz": {
+      "rawSha256": "3580096114441b9c645825ad41156d3f71250e0832e35fe07d627c225de8cd63",
+      "rawBytes": 93515,
+      "publicSha256": "1ea0e915927a9bbaa26b4135e338ba45925931c291a7105e2925c94f1ba01226",
+      "publicBytes": 18155,
+      "gzip": true,
+      "localPathsReplaced": false
+    },
+    "original-acquisition.json": {
+      "rawSha256": "87e900be61b7875c98fac05b4c85235e55ea5f105538f02e3f9ac920267a010f",
+      "rawBytes": 9731,
+      "publicSha256": "87e900be61b7875c98fac05b4c85235e55ea5f105538f02e3f9ac920267a010f",
+      "publicBytes": 9731,
+      "gzip": false,
+      "localPathsReplaced": false
+    },
+    "diagnostic-native.tap": {
+      "rawSha256": "ff46d7f9e64af7dbe4d2c92978be35e1e0bb7f4623e6c7eb7225995eb6b3e31f",
+      "rawBytes": 719,
+      "publicSha256": "ff46d7f9e64af7dbe4d2c92978be35e1e0bb7f4623e6c7eb7225995eb6b3e31f",
+      "publicBytes": 719,
+      "gzip": false,
+      "localPathsReplaced": true
+    },
+    "controlled-off-before-capture.tap": {
+      "rawSha256": "871ed984e4bae860acc5b0a8c86e7644ecc561925a8e3ae2e82a0035b4a3eb7e",
+      "rawBytes": 2399,
+      "publicSha256": "19c868287b51f8d3a863e2d6b9530272d1e8943626118bdd9a1c15dc8b2e925b",
+      "publicBytes": 2099,
+      "gzip": false,
+      "localPathsReplaced": true
+    },
+    "fixed-native.tap": {
+      "rawSha256": "36b7428fa94079f3b64e354773389c4f0e748db5d17f45237cb22d4774ee9306",
+      "rawBytes": 718,
+      "publicSha256": "36b7428fa94079f3b64e354773389c4f0e748db5d17f45237cb22d4774ee9306",
+      "publicBytes": 718,
+      "gzip": false,
+      "localPathsReplaced": true
+    },
+    "targeted-node.tap": {
+      "rawSha256": "fb32c68155c13ba75da0024ada4cd2a0a7bc6c82fb0d66fe07dc331d258a6cac",
+      "rawBytes": 3113,
+      "publicSha256": "fb32c68155c13ba75da0024ada4cd2a0a7bc6c82fb0d66fe07dc331d258a6cac",
+      "publicBytes": 3113,
+      "gzip": false,
+      "localPathsReplaced": true
+    },
+    "owning-node.tap": {
+      "rawSha256": "cd72fed8dfb6b0d052d5903f3cdcbb7f0c6ab6930e3a8acb7af6e16d448e2b26",
+      "rawBytes": 5320,
+      "publicSha256": "cd72fed8dfb6b0d052d5903f3cdcbb7f0c6ab6930e3a8acb7af6e16d448e2b26",
+      "publicBytes": 5320,
+      "gzip": false,
+      "localPathsReplaced": true
+    },
+    "verified-baseline-files.json": {
+      "rawSha256": "96e6d685fb68e8bead110d98d42aa1942bdc7494735a45e3905d5af77312b4fa",
+      "rawBytes": 807,
+      "publicSha256": "96e6d685fb68e8bead110d98d42aa1942bdc7494735a45e3905d5af77312b4fa",
+      "publicBytes": 807,
+      "gzip": false,
+      "localPathsReplaced": false
+    },
+    "controlled-failure-counts.json": {
+      "rawSha256": "70b5fe1d4a645e1b58bfeb431fc3a0b2b8d6fa609181a419450acf4b7f8139a2",
+      "rawBytes": 80179,
+      "publicSha256": "70b5fe1d4a645e1b58bfeb431fc3a0b2b8d6fa609181a419450acf4b7f8139a2",
+      "publicBytes": 80179,
+      "gzip": false,
+      "localPathsReplaced": false
+    },
+    "fixed-source.json.gz": {
+      "rawSha256": "4bdb20acda8a25d471cf85a15e3acddcb913121af3e5b0d17d93569c0796bb27",
+      "rawBytes": 831512,
+      "publicSha256": "4f7ef3a1577da54d54bf5261ff58123fba638c643c66c68ffb6f134fba24472e",
+      "publicBytes": 161059,
+      "gzip": true,
+      "localPathsReplaced": true
+    },
+    "fixed-release.json.gz": {
+      "rawSha256": "c9782cedb2294c117aeb077d306b5429d1d865377e9b455dfe958b2cfae0de5b",
+      "rawBytes": 366477,
+      "publicSha256": "74e8659caa83c144502cfcb965a808616302c93ef2e0bbe62d162e4342f60c7e",
+      "publicBytes": 77052,
+      "gzip": true,
+      "localPathsReplaced": true
+    },
+    "controlled-ordering.patch": {
+      "rawSha256": "1be56c136b0c0b342b7fe8e7d1a65dbc4be3178348d3efadfba8bec39e369ebd",
+      "rawBytes": 772,
+      "publicSha256": "1be56c136b0c0b342b7fe8e7d1a65dbc4be3178348d3efadfba8bec39e369ebd",
+      "publicBytes": 772,
+      "gzip": false,
+      "localPathsReplaced": false
+    },
+    "first-integration-onboarding-failure.tap.gz": {
+      "rawSha256": "d43a46a04b927939a813fb434b258b99dd886545c4704b819668d75be25ea5b6",
+      "rawBytes": 2073,
+      "publicSha256": "bc3a45cbcd61ec710691a3a4806da707ceb8fac6750762590821cd5cd48fe70a",
+      "publicBytes": 519,
+      "gzip": true,
+      "localPathsReplaced": true
+    },
+    "package-check.txt": {
+      "rawSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "rawBytes": 153,
+      "publicSha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "publicBytes": 153,
+      "gzip": false,
+      "localPathsReplaced": true
+    }
+  },
+  "handoff": {
+    "startComment": 6334907329,
+    "completionComment": 6334965186,
+    "PR313HeadReadBack": "22bd30f19b3d5ecb8074b334d7e3ae019f6bbb7e",
+    "integration": "exact fix cherry-pick only; no whole successor branch merge",
+    "independentBrowser10Review": "pending dot"
+  }
+}

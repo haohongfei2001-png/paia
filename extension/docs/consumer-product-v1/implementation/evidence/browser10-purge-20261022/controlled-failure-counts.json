@@ -1,0 +1,3416 @@
+[
+  {
+    "rawFile": "acquisition-1792653025961.json",
+    "rawSha256": "d5fc4edc3f8811534ca3f65c73eb9fb0855c4166c40a9a8ae97a15bc63a1fffb",
+    "rawRetainedLocally": true,
+    "samples": [
+      {
+        "iteration": 0,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 1,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 52,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 1,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 2,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 2,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 3,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 4,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 5,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 6,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 7,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 8,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 9,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 10,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 11,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 12,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 13,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 14,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 15,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 16,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 17,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 18,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 19,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 20,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 21,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 22,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 23,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 24,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 25,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 26,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 27,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 28,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 29,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 30,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 31,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 32,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 33,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 34,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 35,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 36,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 37,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 38,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 39,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 40,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 41,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 42,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 43,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 44,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 45,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 46,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 47,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 48,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 49,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 50,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 51,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 52,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 53,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 54,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 55,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 56,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 57,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 58,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 59,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 60,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 61,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 62,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 63,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 64,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 65,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 66,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 67,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 68,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 69,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 70,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 71,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 72,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 73,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 74,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 75,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 76,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 77,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 78,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 79,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 80,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 81,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 82,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 83,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 84,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 85,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 86,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 87,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 88,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 89,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 90,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 91,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 92,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 93,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 94,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 95,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 96,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 97,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 98,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 99,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      }
+    ]
+  },
+  {
+    "rawFile": "acquisition-1792653035093.json",
+    "rawSha256": "8cc9dfc206b3aa64af456fb327e39f0087570ada0ee322a4f431d24874240c1b",
+    "rawRetainedLocally": true,
+    "samples": [
+      {
+        "iteration": 0,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 2,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 51,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 1,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 4,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 2,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 3,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 4,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 5,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 6,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 7,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 8,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 9,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 10,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 11,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 12,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 13,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 14,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 15,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 16,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 17,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 18,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 19,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 20,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 21,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 22,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 23,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 24,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 25,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 26,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 27,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 28,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 29,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 30,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 31,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 32,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 33,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 34,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 35,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 36,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 37,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 38,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 39,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 40,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 41,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 42,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 43,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 44,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 45,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 46,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 47,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 48,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 49,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 50,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 51,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 52,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 53,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 54,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 55,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 56,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 57,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 58,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 59,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 60,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 61,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 62,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 63,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 64,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 65,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 66,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 67,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 68,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 69,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 70,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 71,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 72,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 73,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 74,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 75,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 76,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 77,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 78,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 79,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 80,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 81,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 82,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 83,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 84,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 85,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 86,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 87,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 88,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 89,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 90,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 91,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 92,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 93,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 94,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 95,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 96,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 97,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 98,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      },
+      {
+        "iteration": 99,
+        "filter": {
+          "pending": 2,
+          "taskState": "idle"
+        },
+        "catalog": {
+          "phase": "complete",
+          "pending": false,
+          "revision": 1
+        },
+        "unfinishedScopes": 0,
+        "pendingNavigationMarkers": 0,
+        "changedMetadataRows": 0,
+        "complete": false,
+        "stableBefore": 0
+      }
+    ]
+  }
+]

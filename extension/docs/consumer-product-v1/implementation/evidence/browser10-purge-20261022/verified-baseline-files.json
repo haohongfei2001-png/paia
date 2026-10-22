@@ -1,0 +1,27 @@
+[
+  {
+    "path": "extension/tests/harness/context-now-currentness-native.mjs",
+    "blob": "adf40cd9f9c70a3889dbb1414ae7f5dda6c2174f",
+    "matchesFailedMerge": true
+  },
+  {
+    "path": "extension/tests/harness/pre-gate-purge-browser-fixture.mjs",
+    "blob": "882ae16e072fb214f2ff4f1643866c909d675cc5",
+    "matchesFailedMerge": true
+  },
+  {
+    "path": "extension/tests/harness/navigator-source-completion.mjs",
+    "blob": "e88badd1394c35e40b173976a78a8e889c534228",
+    "matchesFailedMerge": true
+  },
+  {
+    "path": "extension/core/smart-filter-store-owner.js",
+    "blob": "add0e855578363a428b6d55aeace59e246a6b165",
+    "matchesFailedMerge": true
+  },
+  {
+    "path": "extension/core/filter-runner.js",
+    "blob": "ea7b976a5e124226b9f4ed71230bea920964d7dc",
+    "matchesFailedMerge": true
+  }
+]

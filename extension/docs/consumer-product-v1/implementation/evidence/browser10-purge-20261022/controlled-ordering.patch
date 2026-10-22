@@ -1,0 +1,10 @@
+--- a/extension/tests/harness/context-now-currentness-native.mjs
++++ b/extension/tests/harness/context-now-currentness-native.mjs
+@@ -46,6 +46,7 @@
+  await p.setViewportSize({width:1280,height:900});await p.locator('#enable-consent').click();
+  await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true,'actual explicit consent settles');
+  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
++ await rpc(p,'FILTER_MODE',{mode:'off'});
+  const capture=await h.open({id:'synthetic-now-native',title:'SYNTHETIC Now evidence only',base:1609459200,messages:[
+   {id:'now-qualified-user',text:'SYNTHETIC immutable user Source 👩🏽‍💻\n不采集 assistant。'},
+   {id:'now-unrelated-user',text:'SYNTHETIC unrelated user Source remains exact.'}

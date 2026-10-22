@@ -1,0 +1,95 @@
+TAP version 13
+# Subtest: old two-attempt acquisition rejects two actual same-database publications before read callback
+ok 1 - old two-attempt acquisition rejects two actual same-database publications before read callback
+  ---
+  duration_ms: 35.7215
+  type: 'test'
+  ...
+# Subtest: two exact unentered attempts mean missing filter snapshot, then a new real sample succeeds
+ok 2 - two exact unentered attempts mean missing filter snapshot, then a new real sample succeeds
+  ---
+  duration_ms: 17.693917
+  type: 'test'
+  ...
+# Subtest: filter sampling does not hide entered
+ok 3 - filter sampling does not hide entered
+  ---
+  duration_ms: 0.120792
+  type: 'test'
+  ...
+# Subtest: filter sampling does not hide other-code
+ok 4 - filter sampling does not hide other-code
+  ---
+  duration_ms: 0.03725
+  type: 'test'
+  ...
+# Subtest: filter sampling does not hide not-initialized
+ok 5 - filter sampling does not hide not-initialized
+  ---
+  duration_ms: 0.092542
+  type: 'test'
+  ...
+# Subtest: filter sampling does not hide partial-multiple-calls
+ok 6 - filter sampling does not hide partial-multiple-calls
+  ---
+  duration_ms: 0.07375
+  type: 'test'
+  ...
+# Subtest: pending after seven stable comparisons resets all prior progress and reads no partial metadata
+ok 7 - pending after seven stable comparisons resets all prior progress and reads no partial metadata
+  ---
+  duration_ms: 0.302292
+  type: 'test'
+  ...
+# Subtest: original100-sample budget admits only a full new stable sequence at boundary
+ok 8 - original100-sample budget admits only a full new stable sequence at boundary
+  ---
+  duration_ms: 0.1865
+  type: 'test'
+  ...
+# Subtest: one later pending sample cannot fabricate stability at original100-sample boundary
+ok 9 - one later pending sample cannot fabricate stability at original100-sample boundary
+  ---
+  duration_ms: 0.256375
+  type: 'test'
+  ...
+# Subtest: all100 unavailable samples never read partial metadata or admit purge
+ok 10 - all100 unavailable samples never read partial metadata or admit purge
+  ---
+  duration_ms: 0.277875
+  type: 'test'
+  ...
+# Subtest: real held filter batch cannot complete after premature mode off
+ok 11 - real held filter batch cannot complete after premature mode off
+  ---
+  duration_ms: 63.9865
+  type: 'test'
+  ...
+# PRE_GATE_DIAGNOSTIC_UNAVAILABLE Error
+# Subtest: real held filter batch completes before mode off
+ok 12 - real held filter batch completes before mode off
+  ---
+  duration_ms: 21.699625
+  type: 'test'
+  ...
+# Subtest: maintenance observation distinguishes blocked work and metadata churn without copying row data
+ok 13 - maintenance observation distinguishes blocked work and metadata churn without copying row data
+  ---
+  duration_ms: 0.232958
+  type: 'test'
+  ...
+# Subtest: serialized browser fixture remains valid and failed diagnostic read preserves original failure
+ok 14 - serialized browser fixture remains valid and failed diagnostic read preserves original failure
+  ---
+  duration_ms: 0.542542
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 303.154875
