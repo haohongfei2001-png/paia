@@ -1,0 +1,544 @@
+TAP version 13
+# Subtest: detached original proposal survives child cleanup only through new independent qualification and exact old sent digests
+ok 1 - detached original proposal survives child cleanup only through new independent qualification and exact old sent digests
+  ---
+  duration_ms: 623.942167
+  type: 'test'
+  ...
+# Subtest: detached private proposal rejects copy before reusing old text
+ok 2 - detached private proposal rejects copy before reusing old text
+  ---
+  duration_ms: 114.23325
+  type: 'test'
+  ...
+# Subtest: detached private proposal rejects foreign store before reusing old text
+ok 3 - detached private proposal rejects foreign store before reusing old text
+  ---
+  duration_ms: 113.762167
+  type: 'test'
+  ...
+# Subtest: detached private proposal rejects changed database before reusing old text
+ok 4 - detached private proposal rejects changed database before reusing old text
+  ---
+  duration_ms: 106.056833
+  type: 'test'
+  ...
+# Subtest: detached private proposal rejects released before reusing old text
+ok 5 - detached private proposal rejects released before reusing old text
+  ---
+  duration_ms: 108.482417
+  type: 'test'
+  ...
+# Subtest: detached private proposal rejects expired before reusing old text
+ok 6 - detached private proposal rejects expired before reusing old text
+  ---
+  duration_ms: 106.437458
+  type: 'test'
+  ...
+# Subtest: detached private proposal rejects clock rollback before reusing old text
+ok 7 - detached private proposal rejects clock rollback before reusing old text
+  ---
+  duration_ms: 105.51225
+  type: 'test'
+  ...
+# Subtest: fresh confirmation does not refresh old body baseline
+ok 8 - fresh confirmation does not refresh old body baseline
+  ---
+  duration_ms: 128.470916
+  type: 'test'
+  ...
+# Subtest: fresh confirmation does not refresh old summary baseline
+ok 9 - fresh confirmation does not refresh old summary baseline
+  ---
+  duration_ms: 124.062125
+  type: 'test'
+  ...
+# Subtest: fresh confirmation does not refresh old identity name baseline
+ok 10 - fresh confirmation does not refresh old identity name baseline
+  ---
+  duration_ms: 123.9525
+  type: 'test'
+  ...
+# Subtest: fresh confirmation does not refresh old constraint baseline
+ok 11 - fresh confirmation does not refresh old constraint baseline
+  ---
+  duration_ms: 102.12475
+  type: 'test'
+  ...
+# Subtest: fresh confirmation does not refresh old restore baseline
+ok 12 - fresh confirmation does not refresh old restore baseline
+  ---
+  duration_ms: 87.821875
+  type: 'test'
+  ...
+# Subtest: fresh confirmation does not refresh old unproved root baseline
+ok 13 - fresh confirmation does not refresh old unproved root baseline
+  ---
+  duration_ms: 85.918042
+  type: 'test'
+  ...
+# Subtest: a pending fresh identity grant cannot create two confirmation handles or survive request cancellation
+ok 14 - a pending fresh identity grant cannot create two confirmation handles or survive request cancellation
+  ---
+  duration_ms: 82.369625
+  type: 'test'
+  ...
+# Subtest: fresh fields denial never falls back to the detached original receipt
+ok 15 - fresh fields denial never falls back to the detached original receipt
+  ---
+  duration_ms: 83.309166
+  type: 'test'
+  ...
+# Subtest: fresh identity denial never falls back to the detached original receipt
+ok 16 - fresh identity denial never falls back to the detached original receipt
+  ---
+  duration_ms: 83.072583
+  type: 'test'
+  ...
+# Subtest: source detached metadata recapture preserves the exact complete identity and Section set before a new field request
+ok 17 - source detached metadata recapture preserves the exact complete identity and Section set before a new field request
+  ---
+  duration_ms: 144.184208
+  type: 'test'
+  ...
+# Subtest: detached source metadata rejects identity alias before any newly requested body or label
+ok 18 - detached source metadata rejects identity alias before any newly requested body or label
+  ---
+  duration_ms: 89.5695
+  type: 'test'
+  ...
+# Subtest: detached source metadata rejects restriction row before any newly requested body or label
+ok 19 - detached source metadata rejects restriction row before any newly requested body or label
+  ---
+  duration_ms: 86.445166
+  type: 'test'
+  ...
+# Subtest: detached source metadata rejects entry revision before any newly requested body or label
+ok 20 - detached source metadata rejects entry revision before any newly requested body or label
+  ---
+  duration_ms: 84.173708
+  type: 'test'
+  ...
+# Subtest: original child prepare waits outside the Store queue and captures only the granted complete Section
+ok 21 - original child prepare waits outside the Store queue and captures only the granted complete Section
+  ---
+  duration_ms: 79.185292
+  type: 'test'
+  ...
+# Subtest: waiting original child clears proposal on request cancellation
+ok 22 - waiting original child clears proposal on request cancellation
+  ---
+  duration_ms: 85.813833
+  type: 'test'
+  ...
+# Subtest: waiting original child clears proposal on field receipt cancellation
+ok 23 - waiting original child clears proposal on field receipt cancellation
+  ---
+  duration_ms: 78.209292
+  type: 'test'
+  ...
+# Subtest: waiting original child clears proposal on source owner cancellation
+ok 24 - waiting original child clears proposal on source owner cancellation
+  ---
+  duration_ms: 77.983
+  type: 'test'
+  ...
+# Subtest: paid task requires original synchronous identity capability and refuses legacy allowed DTO
+ok 25 - paid task requires original synchronous identity capability and refuses legacy allowed DTO
+  ---
+  duration_ms: 25.031459
+  type: 'test'
+  ...
+# Subtest: copied task and unbranded response cannot issue an original proposal
+ok 26 - copied task and unbranded response cannot issue an original proposal
+  ---
+  duration_ms: 79.269625
+  type: 'test'
+  ...
+# Subtest: strict confirm rejects Source changed after its original work put
+ok 27 - strict confirm rejects Source changed after its original work put
+  ---
+  duration_ms: 95.026584
+  type: 'test'
+  ...
+# Subtest: strict confirm rejects identity changed after its original work put
+ok 28 - strict confirm rejects identity changed after its original work put
+  ---
+  duration_ms: 95.542542
+  type: 'test'
+  ...
+# Subtest: strict stage rejects Source changed after its original work put
+ok 29 - strict stage rejects Source changed after its original work put
+  ---
+  duration_ms: 181.650542
+  type: 'test'
+  ...
+# Subtest: strict stage rejects identity changed after its original work put
+ok 30 - strict stage rejects identity changed after its original work put
+  ---
+  duration_ms: 188.656459
+  type: 'test'
+  ...
+# Subtest: fresh prepared confirmation cannot outlive the original detached proposal deadline
+ok 31 - fresh prepared confirmation cannot outlive the original detached proposal deadline
+  ---
+  duration_ms: 139.5365
+  type: 'test'
+  ...
+# Subtest: a real field capability for a different child cannot authorize the new paid task
+ok 32 - a real field capability for a different child cannot authorize the new paid task
+  ---
+  duration_ms: 25.586125
+  type: 'test'
+  ...
+# Subtest: durable confirm with lost return resumes only the original signed work with the current independently authorized epoch
+ok 33 - durable confirm with lost return resumes only the original signed work with the current independently authorized epoch
+  ---
+  duration_ms: 489.001583
+  type: 'test'
+  ...
+# Subtest: durable confirm with lost return resumes only the original signed work with a new independently authorized epoch
+ok 34 - durable confirm with lost return resumes only the original signed work with a new independently authorized epoch
+  ---
+  duration_ms: 492.759416
+  type: 'test'
+  ...
+# Subtest: stage rollback preserves the exact original signed work for a fresh independently granted retry
+ok 35 - stage rollback preserves the exact original signed work for a fresh independently granted retry
+  ---
+  duration_ms: 463.740667
+  type: 'test'
+  ...
+# Subtest: strict confirm terminal rejects Source after the original callback without a generation marker
+ok 36 - strict confirm terminal rejects Source after the original callback without a generation marker
+  ---
+  duration_ms: 120.5925
+  type: 'test'
+  ...
+# Subtest: strict confirm terminal rejects work intent after the original callback without a generation marker
+ok 37 - strict confirm terminal rejects work intent after the original callback without a generation marker
+  ---
+  duration_ms: 120.237709
+  type: 'test'
+  ...
+# Subtest: strict confirm terminal rejects identity after the original callback without a generation marker
+ok 38 - strict confirm terminal rejects identity after the original callback without a generation marker
+  ---
+  duration_ms: 112.601208
+  type: 'test'
+  ...
+# Subtest: strict stage terminal rejects Source after the original callback without a generation marker
+ok 39 - strict stage terminal rejects Source after the original callback without a generation marker
+  ---
+  duration_ms: 196.511791
+  type: 'test'
+  ...
+# Subtest: strict stage terminal rejects work intent after the original callback without a generation marker
+ok 40 - strict stage terminal rejects work intent after the original callback without a generation marker
+  ---
+  duration_ms: 189.670542
+  type: 'test'
+  ...
+# Subtest: strict stage terminal rejects identity after the original callback without a generation marker
+ok 41 - strict stage terminal rejects identity after the original callback without a generation marker
+  ---
+  duration_ms: 175.999792
+  type: 'test'
+  ...
+# Subtest: fresh strict work recovery never treats a legacy allowed DTO as a new identity epoch
+ok 42 - fresh strict work recovery never treats a legacy allowed DTO as a new identity epoch
+  ---
+  duration_ms: 145.56
+  type: 'test'
+  ...
+# Subtest: fresh confirmation source owner acquires independent exact fields and identity without another assessment
+ok 43 - fresh confirmation source owner acquires independent exact fields and identity without another assessment
+  ---
+  duration_ms: 512.314416
+  type: 'test'
+  ...
+# Subtest: fresh confirmation source owner refuses fields denial before reading any current content
+ok 44 - fresh confirmation source owner refuses fields denial before reading any current content
+  ---
+  duration_ms: 89.66625
+  type: 'test'
+  ...
+# Subtest: fresh confirmation source owner refuses identity denial before reading any current content
+ok 45 - fresh confirmation source owner refuses identity denial before reading any current content
+  ---
+  duration_ms: 89.582625
+  type: 'test'
+  ...
+# Subtest: fresh confirmation source refuses missing issuer without converting it to a user-created Topic
+ok 46 - fresh confirmation source refuses missing issuer without converting it to a user-created Topic
+  ---
+  duration_ms: 108.928916
+  type: 'test'
+  ...
+# Subtest: fresh confirmation source refuses copied proposal without converting it to a user-created Topic
+ok 47 - fresh confirmation source refuses copied proposal without converting it to a user-created Topic
+  ---
+  duration_ms: 119.743417
+  type: 'test'
+  ...
+# Subtest: fresh confirmation source refuses foreign store without converting it to a user-created Topic
+ok 48 - fresh confirmation source refuses foreign store without converting it to a user-created Topic
+  ---
+  duration_ms: 108.125959
+  type: 'test'
+  ...
+# Subtest: fresh confirmation source refuses overlong grant without converting it to a user-created Topic
+ok 49 - fresh confirmation source refuses overlong grant without converting it to a user-created Topic
+  ---
+  duration_ms: 109.877875
+  type: 'test'
+  ...
+# Subtest: held fresh field issuer releases the Store queue on cancellation and ignores its late receipt
+ok 50 - held fresh field issuer releases the Store queue on cancellation and ignores its late receipt
+  ---
+  duration_ms: 95.550541
+  type: 'test'
+  ...
+# Subtest: held fresh identity issuer releases the Store queue on cancellation and ignores its late receipt
+ok 51 - held fresh identity issuer releases the Store queue on cancellation and ignores its late receipt
+  ---
+  duration_ms: 89.324792
+  type: 'test'
+  ...
+# Subtest: only the exact waiting original task capability can select the promotion response contract
+ok 52 - only the exact waiting original task capability can select the promotion response contract
+  ---
+  duration_ms: 101.077292
+  type: 'test'
+  ...
+# Subtest: a new confirmation source owner resumes only the original signed work after confirm return loss
+ok 53 - a new confirmation source owner resumes only the original signed work after confirm return loss
+  ---
+  duration_ms: 520.438542
+  type: 'test'
+  ...
+# Subtest: original signed-work recovery rejects unsigned work before any field grant or semantic row read
+ok 54 - original signed-work recovery rejects unsigned work before any field grant or semantic row read
+  ---
+  duration_ms: 166.166375
+  type: 'test'
+  ...
+# Subtest: original signed-work recovery rejects changed restore before any field grant or semantic row read
+ok 55 - original signed-work recovery rejects changed restore before any field grant or semantic row read
+  ---
+  duration_ms: 175.012917
+  type: 'test'
+  ...
+# Subtest: original signed-work recovery rejects expired work before any field grant or semantic row read
+ok 56 - original signed-work recovery rejects expired work before any field grant or semantic row read
+  ---
+  duration_ms: 163.072042
+  type: 'test'
+  ...
+# Subtest: original signed-work recovery rejects copied capability before any field grant or semantic row read
+ok 57 - original signed-work recovery rejects copied capability before any field grant or semantic row read
+  ---
+  duration_ms: 163.263458
+  type: 'test'
+  ...
+# Subtest: original signed-work recovery rejects foreign store before any field grant or semantic row read
+ok 58 - original signed-work recovery rejects foreign store before any field grant or semantic row read
+  ---
+  duration_ms: 164.059833
+  type: 'test'
+  ...
+# Subtest: original signed-work recovery rejects request revoked before any field grant or semantic row read
+ok 59 - original signed-work recovery rejects request revoked before any field grant or semantic row read
+  ---
+  duration_ms: 166.802167
+  type: 'test'
+  ...
+# Subtest: a new source owner reads one actual activation receipt after return loss without another mutation or assessment
+ok 60 - a new source owner reads one actual activation receipt after return loss without another mutation or assessment
+  ---
+  duration_ms: 525.314584
+  type: 'test'
+  ...
+# Subtest: durable AI promotion result still requires current independent fields processing
+ok 61 - durable AI promotion result still requires current independent fields processing
+  ---
+  duration_ms: 505.552
+  type: 'test'
+  ...
+# Subtest: durable AI promotion result still requires current independent identity processing
+ok 62 - durable AI promotion result still requires current independent identity processing
+  ---
+  duration_ms: 503.562791
+  type: 'test'
+  ...
+# Subtest: source task full-request hashing charges the same original ledger and never resets an exhausted allowance
+ok 63 - source task full-request hashing charges the same original ledger and never resets an exhausted allowance
+  ---
+  duration_ms: 79.722584
+  type: 'test'
+  ...
+# Subtest: signed-work recovery rejects root while its original HMAC is outside the transaction
+ok 64 - signed-work recovery rejects root while its original HMAC is outside the transaction
+  ---
+  duration_ms: 140.937709
+  type: 'test'
+  ...
+# Subtest: signed-work recovery rejects signed work while its original HMAC is outside the transaction
+ok 65 - signed-work recovery rejects signed work while its original HMAC is outside the transaction
+  ---
+  duration_ms: 142.488417
+  type: 'test'
+  ...
+# Subtest: signed-work recovery rejects request revoke while its original HMAC is outside the transaction
+ok 66 - signed-work recovery rejects request revoke while its original HMAC is outside the transaction
+  ---
+  duration_ms: 141.353917
+  type: 'test'
+  ...
+# Subtest: signed-work recovery rejects an own name accessor before dereferencing the local envelope
+ok 67 - signed-work recovery rejects an own name accessor before dereferencing the local envelope
+  ---
+  duration_ms: 138.650709
+  type: 'test'
+  ...
+# Subtest: signed-work recovery rejects an own confirmed accessor before dereferencing the local envelope
+ok 68 - signed-work recovery rejects an own confirmed accessor before dereferencing the local envelope
+  ---
+  duration_ms: 147.618
+  type: 'test'
+  ...
+# Subtest: signed-work recovery rejects an own unknownSemantic accessor before dereferencing the local envelope
+ok 69 - signed-work recovery rejects an own unknownSemantic accessor before dereferencing the local envelope
+  ---
+  duration_ms: 150.622667
+  type: 'test'
+  ...
+# Subtest: detached source freezes a genuine Context publication only once and requalifies without retaining its token
+ok 70 - detached source freezes a genuine Context publication only once and requalifies without retaining its token
+  ---
+  duration_ms: 515.013333
+  type: 'test'
+  ...
+# Subtest: detached source publication projection refuses copied token without refreshing the old root
+ok 71 - detached source publication projection refuses copied token without refreshing the old root
+  ---
+  duration_ms: 115.97725
+  type: 'test'
+  ...
+# Subtest: detached source publication projection refuses reverse chain without refreshing the old root
+ok 72 - detached source publication projection refuses reverse chain without refreshing the old root
+  ---
+  duration_ms: 124.659833
+  type: 'test'
+  ...
+# Subtest: detached source publication projection refuses missing first token without refreshing the old root
+ok 73 - detached source publication projection refuses missing first token without refreshing the old root
+  ---
+  duration_ms: 116.024459
+  type: 'test'
+  ...
+# Subtest: waiting task pre-send evidence check rejects silent Entry body drift without refreshing its DTO
+ok 74 - waiting task pre-send evidence check rejects silent Entry body drift without refreshing its DTO
+  ---
+  duration_ms: 83.908583
+  type: 'test'
+  ...
+# Subtest: waiting task pre-send evidence check rejects silent Entry title drift without refreshing its DTO
+ok 75 - waiting task pre-send evidence check rejects silent Entry title drift without refreshing its DTO
+  ---
+  duration_ms: 84.053375
+  type: 'test'
+  ...
+# Subtest: waiting task pre-send evidence check rejects silent Entry note drift without refreshing its DTO
+ok 76 - waiting task pre-send evidence check rejects silent Entry note drift without refreshing its DTO
+  ---
+  duration_ms: 82.79675
+  type: 'test'
+  ...
+# Subtest: waiting task pre-send evidence check rejects silent Section title drift without refreshing its DTO
+ok 77 - waiting task pre-send evidence check rejects silent Section title drift without refreshing its DTO
+  ---
+  duration_ms: 81.997291
+  type: 'test'
+  ...
+# Subtest: waiting task pre-send evidence check rejects silent parent summary drift without refreshing its DTO
+ok 78 - waiting task pre-send evidence check rejects silent parent summary drift without refreshing its DTO
+  ---
+  duration_ms: 89.231375
+  type: 'test'
+  ...
+# Subtest: waiting task pre-send evidence check rejects silent Source drift without refreshing its DTO
+ok 79 - waiting task pre-send evidence check rejects silent Source drift without refreshing its DTO
+  ---
+  duration_ms: 89.587208
+  type: 'test'
+  ...
+# Subtest: waiting task rechecks its original complete snapshot with the same ledger and immutable paid DTO
+ok 80 - waiting task rechecks its original complete snapshot with the same ledger and immutable paid DTO
+  ---
+  duration_ms: 99.697458
+  type: 'test'
+  ...
+# Subtest: waiting task pre-send checks every originally sent identity name without a new lookup
+ok 81 - waiting task pre-send checks every originally sent identity name without a new lookup
+  ---
+  duration_ms: 91.842333
+  type: 'test'
+  ...
+# Subtest: fresh confirm releases its held identity wait when the already granted fields are revoked
+ok 82 - fresh confirm releases its held identity wait when the already granted fields are revoked
+  ---
+  duration_ms: 91.828208
+  type: 'test'
+  ...
+# Subtest: fresh confirm releases its held identity wait when the already granted fields are expired
+ok 83 - fresh confirm releases its held identity wait when the already granted fields are expired
+  ---
+  duration_ms: 605.249458
+  type: 'test'
+  ...
+# Subtest: fresh resume releases its held identity wait when the already granted fields are revoked
+ok 84 - fresh resume releases its held identity wait when the already granted fields are revoked
+  ---
+  duration_ms: 192.9955
+  type: 'test'
+  ...
+# Subtest: fresh resume releases its held identity wait when the already granted fields are expired
+ok 85 - fresh resume releases its held identity wait when the already granted fields are expired
+  ---
+  duration_ms: 659.190209
+  type: 'test'
+  ...
+# Subtest: fresh result releases its held identity wait when the already granted fields are revoked
+ok 86 - fresh result releases its held identity wait when the already granted fields are revoked
+  ---
+  duration_ms: 460.21475
+  type: 'test'
+  ...
+# Subtest: fresh result releases its held identity wait when the already granted fields are expired
+ok 87 - fresh result releases its held identity wait when the already granted fields are expired
+  ---
+  duration_ms: 941.268667
+  type: 'test'
+  ...
+# Subtest: waiting task final facts reject a late field issuer revoking the just-checked original identity
+ok 88 - waiting task final facts reject a late field issuer revoking the just-checked original identity
+  ---
+  duration_ms: 115.128958
+  type: 'test'
+  ...
+# Subtest: cancelled fresh confirmation acquisitions retain eight real pending issuer slots until those promises settle
+ok 89 - cancelled fresh confirmation acquisitions retain eight real pending issuer slots until those promises settle
+  ---
+  duration_ms: 473.41875
+  type: 'test'
+  ...
+1..89
+# tests 89
+# suites 0
+# pass 89
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16960.015833

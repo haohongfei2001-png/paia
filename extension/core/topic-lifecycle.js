@@ -12,9 +12,14 @@ export class TopicLifecycleService {
  async change(request){
   keys(request,['id','to','expectedRevision','operationId','scope'],['id','to','expectedRevision','operationId','scope']);
   if(!idOK(request.id)||!['active','dormant'].includes(request.to)||!revisionOK(request.expectedRevision))fail();
-  const prepared=await this.guard.prepare(request.scope);
+  const prepared=await this.guard.prepareWithProcessingMode(request.scope);
   return this.store.operation(request,async t=>{
-   await this.guard.check(t,prepared);if(await this.guard.processing(t,prepared.evidence,[request.id])!==prepared.authority.processingEpoch)fail();const row=await resolveTopicIdentity(t,request.id);
+   await this.guard.check(t,prepared);if(await this.guard.processing(t,prepared.evidence,[request.id])!==prepared.authority.processingEpoch)fail();
+   // Require one privately tracked mode across both preparation reads and all
+   // write admissions. Genuine uses are frozen before any success or mutation
+   // and fenced after receipt/search/backup finalizers, without renewed grants.
+   this.guard.registerPreparedProcessingFinalFence(t,prepared,{qualification:this.guard.qualification()});
+   const row=await resolveTopicIdentity(t,request.id);
    if(row.id!==request.id||row.layoutJobId||!['active','dormant'].includes(row.lifecycle)||!await this.store.sourcePresent(t,row.sourceRecordIds))fail();
    if(row.revision!==request.expectedRevision)return {conflict:true};
    if(row.lifecycle===request.to)return {id:row.id,revision:row.revision,lifecycle:row.lifecycle};

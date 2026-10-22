@@ -1,3 +1,5 @@
+import {sampleOriginalOrganizeMaterialFinalFacts,requireOriginalOrganizeMaterialFinalFacts} from '../background/organize-processing-policy.js';
+import {sampleOriginalOrganizeSelectionFinalFacts,requireOriginalOrganizeSelectionFinalFacts,readOriginalOrganizeSelectionAbortSignal} from './organizer/organize-processing-scope.js';
 import {requireMaintenanceProcessingPurposeFinalFacts} from '../background/maintenance-processing-consent.js';
 import {requireTopicProcessingFinalFacts} from './topic-processing.js';
 import {sampleSectionPromotionRecoveryFinalFacts,requireSectionPromotionRecoveryFinalFacts} from './ai-usage/section-promotion-recovery-authority.js';
@@ -52,6 +54,8 @@ function bindSemanticWriteReceipt(repository,result){
 // Capture original platform accessors once. Calling them requires native IDB
 // internal slots; public factory fields, names and tags cannot establish them.
 const NativeIDBTransaction=globalThis.IDBTransaction;
+const nativeTransactionAbort=NativeIDBTransaction?.prototype.abort;
+const nativeAbortSignalAborted=Object.getOwnPropertyDescriptor(globalThis.AbortSignal.prototype,'aborted').get;
 const nativeTransactionDb=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'db')?.get;
 const nativeTransactionMode=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'mode')?.get;
 const nativeTransactionError=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'error')?.get;
@@ -100,15 +104,33 @@ function synchronousTrue(record,check){
  if(value!==true){try{if(value instanceof Promise)value.catch(()=>{});}catch{}refuseTerminal(record);}
  if(record.terminalFailed||record.nativeSettled||!sameScope(record))refuseTerminal(record);
 }
+// Original Organize withdrawal remains able to abort the same in-flight write
+// after the final synchronous facts sweep, until the original transaction has
+// actually settled. No microtask drain, keepalive, new read or new grant.
+function bindOriginalOrganizeSelectionAbort(record,authority){
+ const signal=readOriginalOrganizeSelectionAbortSignal(authority,record.repository,record.scope);
+ try{if(nativeAbortSignalAborted.call(signal))refuseTerminal(record);}catch{refuseTerminal(record);}
+ const bindings=record.organizeAbortBindings??=new Map();if(bindings.has(signal))return;
+ const abort=()=>{if(record.nativeSettled)return;try{record.transactionAbort.call(record.transaction);record.terminalFailed=true;}catch{}};
+ try{
+  if(typeof record.transactionAbort!=='function')refuseTerminal(record);
+  nativeAddEventListener.call(signal,'abort',abort,{once:true});bindings.set(signal,abort);
+  if(nativeAbortSignalAborted.call(signal)){abort();refuseTerminal(record);}
+ }catch(error){try{nativeRemoveEventListener.call(signal,'abort',abort);}catch{}bindings.delete(signal);refuseTerminal(record);}
+}
+function clearOriginalOrganizeSelectionAborts(record){
+ for(const [signal,abort]of record.organizeAbortBindings??[])nativeRemoveEventListener.call(signal,'abort',abort);
+ record.organizeAbortBindings?.clear();record.organizeAbortBindings=null;
+}
 // Original-owner terminal read plans, bound to this exact live write scope.
 // The plan is a synchronous generator: only Repository performs the yielded
 // IDB reads. Async generators/checkers and arbitrary awaited work cannot enter
 // the strict final segment. A second registration never replaces prior facts.
-export function registerRepositoryFinalReadFence(repository,scope,{plan,isCurrent,compatibilityRecheck=null,authority=null,promotionRecoveryAuthority=null,maintenanceProcessingPurpose=null}={}){
+export function registerRepositoryFinalReadFence(repository,scope,{plan,isCurrent,compatibilityRecheck=null,authority=null,promotionRecoveryAuthority=null,maintenanceProcessingPurpose=null,organizeSelectionAuthority=null,organizeMaterialAuthority=null}={}){
  const record=scopeRecord(repository,scope);requireRepositoryTransactionScope(repository,scope);
  if(record.identity.mode!=='readwrite'||record.phase!=='callback'||record.terminalFailed)refuseTerminal(record);
  if(typeof plan!=='function'||typeof isCurrent!=='function'||compatibilityRecheck!==null&&typeof compatibilityRecheck!=='function')refuseTerminal(record);
- synchronousTrue(record,isCurrent);if(authority!==null)synchronousTrue(record,()=>requireTopicProcessingFinalFacts(authority,repository,scope));if(promotionRecoveryAuthority!==null)synchronousTrue(record,()=>requireSectionPromotionRecoveryFinalFacts(promotionRecoveryAuthority,repository,scope));if(maintenanceProcessingPurpose!==null)synchronousTrue(record,()=>requireMaintenanceProcessingPurposeFinalFacts(maintenanceProcessingPurpose,repository,scope));record.finalReadFences.push(Object.freeze({plan,isCurrent,compatibilityRecheck,authority,promotionRecoveryAuthority,maintenanceProcessingPurpose}));
+ synchronousTrue(record,isCurrent);if(authority!==null)synchronousTrue(record,()=>requireTopicProcessingFinalFacts(authority,repository,scope));if(promotionRecoveryAuthority!==null)synchronousTrue(record,()=>requireSectionPromotionRecoveryFinalFacts(promotionRecoveryAuthority,repository,scope));if(maintenanceProcessingPurpose!==null)synchronousTrue(record,()=>requireMaintenanceProcessingPurposeFinalFacts(maintenanceProcessingPurpose,repository,scope));if(organizeSelectionAuthority!==null)synchronousTrue(record,()=>requireOriginalOrganizeSelectionFinalFacts(organizeSelectionAuthority,repository,scope));if(organizeMaterialAuthority!==null)synchronousTrue(record,()=>requireOriginalOrganizeMaterialFinalFacts(organizeMaterialAuthority,repository,scope));if(organizeSelectionAuthority!==null)bindOriginalOrganizeSelectionAbort(record,organizeSelectionAuthority);record.finalReadFences.push(Object.freeze({plan,isCurrent,compatibilityRecheck,authority,promotionRecoveryAuthority,maintenanceProcessingPurpose,organizeSelectionAuthority,organizeMaterialAuthority}));
 }
 function sampleFinalAuthorities(record,fences){for(const fence of fences)if(fence.promotionRecoveryAuthority!==null)synchronousTrue(record,()=>sampleSectionPromotionRecoveryFinalFacts(fence.promotionRecoveryAuthority,record.repository,record.scope));}
 function finalAuthorityFacts(record,fences){
@@ -118,7 +140,18 @@ function finalAuthorityFacts(record,fences){
  // purpose token only after the entire original collection has finished.
  for(const fence of fences)if(fence.maintenanceProcessingPurpose!==null)synchronousTrue(record,()=>requireMaintenanceProcessingPurposeFinalFacts(fence.maintenanceProcessingPurpose,record.repository,record.scope));
 }
-function currentFinalAuthorities(record,fences){for(const fence of fences)synchronousTrue(record,fence.isCurrent);sampleFinalAuthorities(record,fences);finalAuthorityFacts(record,fences);}
+function currentFinalAuthorities(record,fences){
+ for(const fence of fences)synchronousTrue(record,fence.isCurrent);
+ sampleFinalAuthorities(record,fences);
+ for(const fence of fences)if(fence.organizeMaterialAuthority!==null)synchronousTrue(record,()=>sampleOriginalOrganizeMaterialFinalFacts(fence.organizeMaterialAuthority,record.repository,record.scope));
+ for(const fence of fences)if(fence.organizeSelectionAuthority!==null)synchronousTrue(record,()=>sampleOriginalOrganizeSelectionFinalFacts(fence.organizeSelectionAuthority,record.repository,record.scope));
+ // Preserve all existing Topic/recovery/Maintenance checks and their ordering.
+ // Topic retains its original Date contract; no Organize issuer is sampled
+ // after it. The added tail reads only fixed private original-owner facts.
+ finalAuthorityFacts(record,fences);
+ for(const fence of fences)if(fence.organizeMaterialAuthority!==null)synchronousTrue(record,()=>requireOriginalOrganizeMaterialFinalFacts(fence.organizeMaterialAuthority,record.repository,record.scope));
+ for(const fence of fences)if(fence.organizeSelectionAuthority!==null)synchronousTrue(record,()=>requireOriginalOrganizeSelectionFinalFacts(fence.organizeSelectionAuthority,record.repository,record.scope));
+}
 async function runFinalReadFences(scope,record){
  if(!record.finalReadFences.length)return;
  record.phase='terminal-compatibility';const fences=Object.freeze([...record.finalReadFences]);
@@ -369,7 +402,7 @@ export class ArchiveRepository {
   await this.open();if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
   const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
   const native=nativeTransactionEvidence(tx);
-  let release;const record={scope,phase:'callback',terminalFailed:false,finalReadFences:[],repository:this,transaction:tx,dataPrototype:originalPrototypeOf(scope),nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
+  let release;const record={scope,phase:'callback',terminalFailed:false,finalReadFences:[],organizeAbortBindings:null,repository:this,transaction:tx,transactionAbort:native?nativeTransactionAbort:tx.abort,dataPrototype:originalPrototypeOf(scope),nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
   repositoryScopes.set(scope,record);repositoryNativeScopes.set(tx,record);
   const maybeRelease=()=>{if(record.nativeSettled&&record.unwound)release();};
   const done=new Promise((resolve,reject)=>{
@@ -391,7 +424,7 @@ export class ArchiveRepository {
   });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{const result=await fn(scope);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
+  try{const result=await fn(scope);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
   }finally{if(write)writeState.active--;}
  }
  async initialize(){

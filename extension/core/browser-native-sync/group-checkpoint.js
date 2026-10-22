@@ -3,7 +3,7 @@ import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-work
 import {prepareHumanGroupApplication,requireHumanGroupApplication,applyHumanGroupStep} from './human-library-group.js';
 import {FilterIntentSyncJournal,prepareRestoredFilterSources,prepareFilterApplication} from './filter-intent-journal.js';
 import {manualSyncOwners} from './manual-owners.js';
-import {contextDesiredMaterializer} from './context-desired-journal.js';
+import {contextDesiredMaterializer} from './context-desired-journal-owner.js';
 import {BrowserNativeSyncCore,acceptSequence,CORE_LIMITS} from './core.js';
 import {buildCheckpoint,checkpointItems} from './checkpoints.js';
 import {protocolObject,readObject,SEGMENT_PROFILE} from './segments.js';

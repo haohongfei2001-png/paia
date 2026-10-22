@@ -3,7 +3,7 @@ import {validateCapture} from '../validation.js';
 import {identify} from '../dedupe.js';
 import {initialSourceRecord,initialSourceObjects} from '../source-initial.js';
 import {applySourceTime} from '../record-time.js';
-import {planInputRevision} from '../ia-store.js';
+import {planInputRevision} from '../ia-store-owner.js';
 import {CONSENT_VERSION,ADAPTER_VERSION} from '../constants.js';
 import {captureIsExcluded} from '../reader-state.js';
 import {JournalRestoreFence} from './prompt-journal.js';

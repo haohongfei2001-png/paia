@@ -12,7 +12,7 @@ import {aiCandidateKey} from '../../../extension/core/organizer/ai-candidate.js'
 const source=fileURLToPath(new URL('../../../extension/',import.meta.url));
 const registry='core/ai-usage/organize-service-configuration.js';
 const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin=`chrome-extension://${id}/`;
-const ui={id,url:origin+'ui/archive.html'};
+const ui={id,url:origin+'ui/archive.html',frameId:0,documentId:'SYNTHETIC-original-document',tab:{id:7,windowId:9,incognito:false}};
 
 async function files(root,relative=''){
  const result=[];
@@ -54,13 +54,17 @@ async function worker(t,f,{configured=true}={}){
  const storage={...f.storage,setAccessLevel:async options=>isolation.push(options),getBytesInUse:async()=>0};
  globalThis.chrome={runtime:{id,getURL:path=>origin+path,getManifest:()=>({version:'0.55.0'}),sendMessage:async message=>notices.push(message),onMessage:{addListener:fn=>{assert.equal(listener,undefined,'one original worker RPC listener');listener=fn;}}},storage:{local:storage,session:{setAccessLevel:async()=>{},get:async()=>({}),set:async()=>{},remove:async()=>{}}}};
  toolbarRegistrationFixture(globalThis.chrome);
+ const onUpdated=new Set(),onRemoved=new Set();
+ const event=listeners=>({addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)});
+ globalThis.chrome.tabs={get:async tabId=>{assert.equal(tabId,ui.tab.id);return {...ui.tab,url:ui.url};},onUpdated:event(onUpdated),onRemoved:event(onRemoved)};
+ globalThis.chrome.runtime.getContexts=async()=>[{contextType:'TAB',documentId:ui.documentId,documentUrl:ui.url,tabId:ui.tab.id,windowId:ui.tab.windowId,frameId:0,incognito:false}];
  await import(pathToFileURL(join(root,'background/service-worker.js')).href);
  assert.equal(typeof listener,'function');
  const send=(request,sender=ui)=>new Promise(resolve=>assert.equal(listener(request,sender,resolve),true,'original asynchronous runtime.onMessage contract'));
  const read=()=>send({type:'GET_AI_PRESENTATION_STATUS',options:{topicId:f.topic.id}});
  const initial=await read();assert.equal(initial.ok,true,JSON.stringify(initial));
  assert.deepEqual(isolation,[{accessLevel:'TRUSTED_CONTEXTS'}]);
- return {send,read,notices};
+ return {send,read,notices,close:()=>{for(const fn of onRemoved)fn(ui.tab.id);}};
 }
 
 for(const count of [1,40])test(`actual worker RPC (${count} entries): signed service, candidate CAS, original adoption and settled spend`,async t=>{
@@ -127,5 +131,15 @@ test('untouched packaged worker registry remains unavailable and public messages
   const update=await w.send({type:'UPDATE_AI_PRESENTATION',topicId:f.topic.id,userActionId:crypto.randomUUID(),scopeBinding:'a'.repeat(64),...supplied});
   assert.deepEqual(update,{ok:false,phase:'message_handler',error:'AI_SERVICE_UNAVAILABLE'});
  }
+ assert.equal(f.calls.length,0);assert.equal(f.physical(),0);assert.deepEqual(await rows(f.s,'organizerUsage'),[]);assert.deepEqual(await rows(f.s,'organizerJobs'),[]);
+});
+
+for(const kind of ['document','frame','closed'])test('configured original worker refuses a '+kind+' scope ticket before dispatch',async t=>{
+ const f=await organizeServiceFixture(t),w=await worker(t,f);
+ const scoped=await w.send({type:'GET_AI_PRESENTATION_SCOPE',options:{topicId:f.topic.id}});
+ assert.equal(scoped.ok,true,JSON.stringify(scoped));
+ const sender=structuredClone(ui);if(kind==='document')sender.documentId='SYNTHETIC-other-document';if(kind==='frame')sender.frameId=2;if(kind==='closed')w.close();
+ const result=await w.send({type:'UPDATE_AI_PRESENTATION',topicId:f.topic.id,userActionId:crypto.randomUUID(),scopeBinding:scoped.data.scopeBinding},sender);
+ assert.equal(result.ok,true,JSON.stringify(result));assert.equal(result.data.error,'UNAVAILABLE');
  assert.equal(f.calls.length,0);assert.equal(f.physical(),0);assert.deepEqual(await rows(f.s,'organizerUsage'),[]);assert.deepEqual(await rows(f.s,'organizerJobs'),[]);
 });

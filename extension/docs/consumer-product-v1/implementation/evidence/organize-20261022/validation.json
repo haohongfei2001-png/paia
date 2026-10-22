@@ -1,0 +1,136 @@
+{
+  "date": "2026-10-22",
+  "base": "6be0cc3db19ce9d7d12afbd61be0c93e0dceb5dc",
+  "remoteMainObserved": "4349189451821db1e408a669cee5b64b140844f6",
+  "runtimeCommit": "5dcfe50926c723d9119f00c5bd13a886a39f3539",
+  "runtimeTree": "8abf049c0cd9256ca455c53e14b1c35f104e90b7",
+  "nativeTestedTree": "d08a26b3719dd7a3f40d619a43b1ab35dba4d329",
+  "onlyChangeAfterNative": "extension/tests/organize-service-configuration.test.mjs",
+  "versions": {
+    "node": "v22.23.4",
+    "python": "Python 3.12.14",
+    "playwright": "1.63.0",
+    "prosemirrorModel": "1.25.12",
+    "prosemirrorState": "1.4.4",
+    "prosemirrorView": "1.42.6",
+    "pg": "8.23.1",
+    "chromePlist": "155.0.8059.85"
+  },
+  "results": {
+    "targeted": {
+      "tests": 55,
+      "pass": 55,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "exitCode": 0
+    },
+    "staticWiring": {
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "exitCode": 0
+    },
+    "native": {
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "exitCode": 0
+    },
+    "contracts": {
+      "tests": 161,
+      "pass": 161,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "exitCode": 0
+    },
+    "unit": {
+      "total": 11669,
+      "pass": 11669,
+      "fail": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "fullSuiteCertification": false
+    },
+    "release": {
+      "files": 627,
+      "guardrails": 21154,
+      "exitCode": 0
+    }
+  },
+  "previousAffectedNative": {
+    "pass": 72,
+    "tree": "c58b2fed4219285494d5f936c856b1cef302b329"
+  },
+  "failures": [
+    {
+      "scope": "first wiring full Unit",
+      "pass": 11668,
+      "fail": 1,
+      "cause": "old static assertions required worker call without sender; updated to require original config/source/sender, then full Unit passed"
+    },
+    {
+      "scope": "new UI stop observation first run",
+      "pass": 2,
+      "fail": 2,
+      "cause": "test called nonexistent runner.state; corrected observation to require original action retirement, all no-candidate/ACK/redispatch assertions retained"
+    }
+  ],
+  "originalLocalLogDigests": {
+    "handoff/history/affected-native-final.tap": {
+      "sha256": "e6f3efac5efcc60386dc758394f0cd0234cd1629b98bdf23e88738823e6a3054",
+      "bytes": 25702
+    },
+    "handoff/history/organize-native-final.tap": {
+      "sha256": "5a151daa3ce893d095e29e6b892641e613ac89c304376c71691defd4fbe888fb",
+      "bytes": 5870
+    },
+    "handoff/history/full-unit-final.log": {
+      "sha256": "9e4a3e85f78f3dd8ec4d81e85279b2cc2ba03fd62d59acfd1924fad6879af210",
+      "bytes": 1535148
+    },
+    "wiring/logs/native-final.tap": {
+      "sha256": "add01d34d0ebfe0f91cabd9805ac31f075924534c0c455d56fb427fc6cc6210e",
+      "bytes": 7437
+    },
+    "wiring/logs/full-unit-final.log": {
+      "sha256": "a3d5c9f116d6acfdb3ce8f282bf81afade9e0f7f76b3f25422e937a5593aba0a",
+      "bytes": 1535148
+    },
+    "wiring/logs/full-unit-before-static-fix.log": {
+      "sha256": "d7dc1a97a59bf8ec2775ba5b66f806b0de27127052aa21ff7187cefdab1e09d3",
+      "bytes": 1557645
+    },
+    "wiring/logs/contracts-final.tap": {
+      "sha256": "0c97ada3256a588f33b813fa5ca13aced9c6dd3ccced58f0fce4bc2fbc8ef848",
+      "bytes": 37131
+    },
+    "wiring/logs/native-ui-complete.tap": {
+      "sha256": "087c31851b57c96818273d9a54b55567dee48b3f295fc742dbd8a31567770a74",
+      "bytes": 3398
+    },
+    "wiring/logs/targeted-final.tap": {
+      "sha256": "89de19d218d08e6fe802c257b922a6658d5f106201c97da71df93d9d92d6090e",
+      "bytes": 12629
+    },
+    "wiring/logs/static-wiring-final.tap": {
+      "sha256": "7917d58f0513e2115ec520a84c91b636bba85688d5db0fd018c7471b20566591",
+      "bytes": 639
+    }
+  },
+  "publishedNativeLog": {
+    "file": "native-final.tap",
+    "sha256": "add01d34d0ebfe0f91cabd9805ac31f075924534c0c455d56fb427fc6cc6210e",
+    "transformation": "strip local absolute repository prefix only"
+  },
+  "fullCICertification": false,
+  "liveProvider": false,
+  "realPostgres": false,
+  "paidCalls": 0,
+  "independentReview": "PENDING"
+}

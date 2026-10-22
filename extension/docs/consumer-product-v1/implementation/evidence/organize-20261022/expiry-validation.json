@@ -1,0 +1,64 @@
+{
+  "parentCommit": "39a090f20c833f86be53c75ad94bd69a2dddd346",
+  "runtimeSha256": "9c8f6d3b0306b209f2b05379c3c4dc719e124118a29243a51d0ab0db563661a4",
+  "node": "22.23.4",
+  "python": "3.12.14",
+  "playwright": "1.63.0",
+  "chrome": "155.0.8059.85",
+  "native": {
+    "passed": 172,
+    "failed": 0,
+    "skipped": 0,
+    "variants": [
+      "source",
+      "release"
+    ],
+    "newIdleCases": 2,
+    "networkRequests": 0,
+    "provider": "synthetic"
+  },
+  "targeted": {
+    "first": {
+      "passed": 303,
+      "failed": 1,
+      "cause": "new abort-listener cleanup threw; repaired without changing disposal assertions"
+    },
+    "second": {
+      "passed": 304,
+      "failed": 1,
+      "cause": "new clock rollback test moved the mock timer wheel as well as wall time; corrected only Date.now mock"
+    },
+    "finalChangedLifecycleFile": {
+      "passed": 5,
+      "failed": 0
+    }
+  },
+  "fullUnit": {
+    "passed": 11669,
+    "failed": 1,
+    "total": 11670,
+    "skipped": 0,
+    "status": "FAILED_NOT_RELABELED",
+    "remainingFailure": "ai-section-promotion-detached-proposal.test.mjs: stage rollback preserves the exact original signed work for a fresh independently granted retry / STALE_BASE",
+    "followupFile": {
+      "passed": 89,
+      "failed": 0,
+      "rootCause": "NOT_ESTABLISHED"
+    }
+  },
+  "independentReview": {
+    "status": "BLOCKED_QUOTA",
+    "url": "https://github.com/haohongfei2001-png/paia/pull/313#issuecomment-6333477394"
+  },
+  "localRawLogSHA256": {
+    "expiry-before.tap": "4fd00090bda0fd5c81877369f33302ce82c86a6cb89b93f595f31f73e04a5e5a",
+    "expiry-targeted.tap": "59dcf0aee669dad4a090d9b39741227c9003100b7a3b65a277e84c243d86edd9",
+    "expiry-targeted-final.tap": "382014cae5cadcf99091a0f1774f4e8123dbec71e93af495f8be0e8c0388853b",
+    "expiry-clock-final.tap": "e960c69812b6daa91671881be04e149c231356bec6e6745a612e06f05eacc9d3",
+    "expiry-native.tap": "5d6f9f6bd07ad836a4f742976299cff9530372244fef567f598ebe95845b8938",
+    "expiry-full-unit.log": "7e454aa03574dd0077ee174299fff6531a47f73efc9307b0691bb3af249f4e21",
+    "expiry-full-unit-summary.json": "21a5225addb1a4b55b4a30c6b4d6984b4206cbaa13559ee9e1ca0a50ce222a93",
+    "expiry-full-failure-targeted.tap": "f36e831a8701e5bb27e8094ded58b79b790954d76eb919c23cb46ca12838e2ed",
+    "maintenance-idle-expiry.patch": "f17ad45aa82f26687eaf800c0484b463837127396856a9293e95f094e6449b7d"
+  }
+}

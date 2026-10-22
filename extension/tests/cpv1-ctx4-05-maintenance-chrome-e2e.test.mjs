@@ -853,6 +853,67 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
     return {passed:true,nativeFactory:indexedDB instanceof IDBFactory,phase:phase??'complete',rolledBack,contextUnchanged:true,physicalAttempts:1};
    }finally{f.s.repository.transaction=original;f.session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('cleanup'));r.onblocked=()=>reject(Error('blocked cleanup'));});}
   };
+  globalThis.__maintenancePartialExcerptNative=async mode=>{
+   assert.ok(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'native IndexedDB');
+   const f=await maintenanceFixture(),transaction=f.s.repository.transaction.bind(f.s.repository),commit=TopicFormationService.prototype.commit;let reached=false,rolledBack=false,afterTopic=false,textReads=0,decoded=0;
+   try{
+    assert.equal((await f.session.run(await f.session.prepare(options))).state,'COMMITTED');f.session.dispose();f.calls.length=0;f.responses.length=0;
+    const oldItem=(await read(f.s,'meta',CONTEXT_CARDS_ROW)).items[0],topic=(await read(f.s,'topics'))[0],input=(await f.s.snapshot()).library.blocks[0],current=await f.s.input(input.id),body='SYNTHETIC changed selected evidence with a separately created partial excerpt';
+    await f.s.editDocument({operationId:op(),documentId:current.documentId,blocks:[{id:current.id,expectedRevision:current.revision,libraryText:body,note:current.note,excluded:current.excluded}]});
+    const before=await snapshot(f.s),oldEntries=new Set(before.thoughts.map(e=>e.id)),execute=f.provider.execute.bind(f.provider);
+    f.provider.execute=async request=>{assert.equal(request.material.existingContextItems[0].itemId,oldItem.id);const response=await execute(request),value=response.fixture.topicAssessment,relation=value.relations.find(r=>r.topicId===topic.id);assert.ok(relation);relation.relation='same';value.entries=[{span:{inputId:input.id,field:'body',start:0,end:16},type:'idea',additional:[]}];return response;};
+    let grant;const window={acquire:async r=>grant??=Object.freeze({version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-excerpt',reservationId:'synthetic-excerpt',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal}),isCurrent:r=>r===grant};
+    const service={...f.service,responseAdapter:{...f.service.responseAdapter,context:()=>{decoded++;throw Error('Context must refuse before decoding ungranted Entry fields');}}};
+    f.session=new LocalMaintenanceSession(f.s,{...f.constructor,window,service});const handle=await f.session.prepare(options);
+    TopicFormationService.prototype.commit=async function(...args){const result=await commit.apply(this,args);if(this.store===f.s)afterTopic=true;return result;};
+    f.s.repository.transaction=async(write,fn,...args)=>{const baseline=write?await snapshot(f.s):null;let selected=false;try{return await transaction(write,async tx=>{
+     const get=tx.get.bind(tx);tx.get=async(n,id)=>{const row=await get(n,id);if(afterTopic&&n==='thoughts'&&row&&!oldEntries.has(id))for(const key of ['thoughtText','title','note']){const d=Object.getOwnPropertyDescriptor(row,key);if(d)Object.defineProperty(row,key,{enumerable:d.enumerable,configurable:true,get(){textReads++;return d.value;}});}return row;};
+     if(write){const put=tx.put.bind(tx);tx.put=async(n,row,...rest)=>{const result=await put(n,row,...rest);if(!reached&&mode!=='complete'&&n==='organizerWorkItems'&&row.state==='ACKNOWLEDGED'&&row.unit?.facet==='topic'){
+      reached=selected=true;if(mode==='ack-abort')throw Error('SYNTHETIC excerpt ACK storage abort');
+      if(mode==='revoke')f.contextAbort.abort();
+      if(mode==='source'){const block=await get('blocks',input.id),source=await get('records',block.value.originalTextReference);source.value.originalText='SYNTHETIC staged Source drift';await put('records',source);}
+      if(mode==='protected'){const row=await get('meta',CONTEXT_CARDS_ROW);row.items.find(i=>i.id===oldItem.id).protected=true;await put('meta',row);}
+      if(mode==='graph'){const e=before.thoughts[0],p=before.placements[0],id=op();await put('thoughts',{...e,id});await put('placements',{...p,id:JSON.stringify([p.topicId,p.layoutGeneration,id]),entryId:id,rank:'999999999999'});}
+     }return result;};}return fn(tx);
+    },...args);}catch(error){if(selected){assert.deepEqual(await snapshot(f.s),baseline,'all native transaction tables roll back');rolledBack=true;}throw error;}};
+    const result=await f.session.run(handle);f.s.repository.transaction=transaction;
+    const acks=async()=>(await read(f.s,'organizerWorkItems')).filter(r=>r.jobId===result.jobId&&r.state==='ACKNOWLEDGED');
+    assert.equal(f.calls.length,1);assert.equal(textReads,0);assert.equal(decoded,0);assert.equal(result.state,mode==='revoke'?'UNAVAILABLE':'PARTIAL',JSON.stringify(result));
+    assert.deepEqual((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.find(i=>i.id===oldItem.id),oldItem);
+    if(mode==='complete'){
+     assert.equal(afterTopic,true);assert.deepEqual((await acks()).map(a=>a.unit.facet),['topic']);const created=(await read(f.s,'thoughts')).filter(e=>!oldEntries.has(e.id));assert.equal(created.length,1);assert.equal(created[0].thoughtText,body.slice(0,16));assert.ok(created[0].bodyBinding!=='input');
+    }else {assert.ok(reached&&rolledBack);assert.equal(afterTopic,false);assert.equal((await acks()).length,0);for(const n of ['thoughts','placements','dependencies','provenance','operationReceipts','records','blocks','inputStates'])assert.deepEqual(await read(f.s,n),before[n]);}
+    if(mode==='ack-abort'){await f.session.run(handle);assert.deepEqual((await acks()).map(a=>a.unit.facet),['topic']);}
+    else if(mode==='source'){assert.ok(result.facets.some(f=>f.facet==='topic'&&f.reason==='STALE_BASE'),'original native Source fence retires the stale child: '+JSON.stringify(result));const next=await f.session.run(handle);assert.equal(next.state,'PARTIAL');assert.equal((await acks()).length,0,'a retired native child cannot replay');}
+    else if(mode==='complete'){const saved=await snapshot(f.s);await f.session.run(handle);assert.deepEqual(await snapshot(f.s),saved);}
+    assert.equal(f.calls.length,1);assert.equal(decoded,0);
+    return {passed:true,mode,nativeFactory:true,rolledBack,contextFieldReads:textReads,contextDecoded:decoded,physicalAttempts:1,topicAcks:(await acks()).filter(a=>a.unit.facet==='topic').length,contextAcks:0};
+   }finally{TopicFormationService.prototype.commit=commit;f.s.repository.transaction=transaction;f.session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('cleanup'));r.onblocked=()=>reject(Error('blocked cleanup'));});}
+  };
+  globalThis.__maintenanceIdleExpiryNative=async()=>{
+   assert.ok(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'native IndexedDB');
+   const f=await maintenanceFixture(),original=f.s.repository.transaction.bind(f.s.repository),grant=new AbortController(),listeners=new Set();let expiresAt=null,reached=false;
+   // Observe the original private processing listener's removal without asking
+   // the session to read, retry or check currentness after time has elapsed.
+   const add=grant.signal.addEventListener.bind(grant.signal),remove=grant.signal.removeEventListener.bind(grant.signal);
+   grant.signal.addEventListener=(type,fn,...rest)=>{if(type==='abort')listeners.add(fn);return add(type,fn,...rest);};
+   grant.signal.removeEventListener=(type,fn,...rest)=>{if(type==='abort')listeners.delete(fn);return remove(type,fn,...rest);};
+   f.session.dispose();const resolve=f.constructor.processing.resolve;
+   f.session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:{...f.constructor.processing,resolve:async(t,scope)=>({...await resolve(t,scope),expiresAt:expiresAt??=Date.now()+3000,revocationSignal:grant.signal})}});
+   try{
+    const handle=await f.session.prepare(options);
+    f.s.repository.transaction=(write,fn,stores)=>original(write,async tx=>{if(write){const put=tx.put.bind(tx);tx.put=async(table,row,...rest)=>{const result=await put(table,row,...rest);if(!reached&&table==='meta'&&row.id===CONTEXT_CARDS_ROW&&row.items.length){reached=true;throw Error('Synthetic native retained Context rollback');}return result;};}return fn(tx);},stores);
+    const first=await f.session.run(handle);f.s.repository.transaction=original;
+    assert.equal(first.state,'PARTIAL');assert.ok(reached);assert.equal(f.calls.length,1);assert.ok(Date.now()<expiresAt,'rollback occurred before its original receipt expiry');assert.ok(listeners.size>0,'original processing listener is still live');
+    const before=await snapshot(f.s),decoded=f.decoded.length;
+    assert.equal(before.organizerWorkItems.filter(row=>row.state==='ACKNOWLEDGED'&&row.unit.facet==='topic').length,1);assert.equal(before.organizerWorkItems.filter(row=>row.state==='ACKNOWLEDGED'&&row.unit.facet==='context').length,0);
+    await new Promise(resolve=>setTimeout(resolve,Math.max(0,expiresAt-Date.now())+50));
+    assert.equal(listeners.size,0,'real idle expiry removes the original listener before any owner read');assert.equal(grant.signal.aborted,false,'the session cannot revoke the external issuer');assert.equal(f.calls.length,1);assert.equal(f.decoded.length,decoded);
+    assert.deepEqual(await snapshot(f.s),before,'expiry preserves every durable domain and financial row');
+    assert.equal((await f.session.run(handle)).state,'UNAVAILABLE');assert.equal(f.calls.length,1);assert.equal(f.decoded.length,decoded);assert.deepEqual(await snapshot(f.s),before);
+    return {passed:true,nativeFactory:true,realExpiry:true,idleListenerReleased:true,physicalAttempts:1,topicAcks:1,contextAcks:0,durableUnchanged:true};
+   }finally{f.s.repository.transaction=original;f.session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('fixture cleanup'));r.onblocked=()=>reject(Error('fixture cleanup blocked'));});}
+  };
   globalThis.__maintenanceNative=async ({phase,mode='storage',adapterMode='valid',denied=false})=>{
    assert.ok(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'native IndexedDB');
    const f=await maintenanceFixture({adapterMode}),original=f.s.repository.transaction.bind(f.s.repository);let reached=false,rolledBack=false,transactionCompleted=false;
@@ -985,6 +1046,8 @@ for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dorma
    const report=await page.evaluate(scenario=>globalThis.__maintenanceNative(scenario),scenario);assert.equal(report.passed,true);
    await writeFile(join(output,'maintenance-'+(scenario.denied?'denied':scenario.phase||scenario.adapterMode||'complete')+'-'+(scenario.mode||'storage')+'.json'),JSON.stringify(report,null,2));
   });
+  for(const mode of ['complete','source','protected','revoke','graph','ack-abort'])await t.test('unified-maintenance-partial-excerpt-'+mode,async()=>{const report=await page.evaluate(mode=>globalThis.__maintenancePartialExcerptNative(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-partial-excerpt-'+mode+'.json'),JSON.stringify(report,null,2));});
+  await t.test('unified-maintenance-idle-processing-expiry',{timeout:20000},async()=>{const report=await page.evaluate(()=>globalThis.__maintenanceIdleExpiryNative());assert.equal(report.passed,true);await writeFile(join(output,'maintenance-idle-processing-expiry.json'),JSON.stringify(report,null,2));});
   await installRepositoryTerminal(page);
   for(const mode of ['complete','finalizer-source','finalizer-revoke','finalizer-expiry','caught-terminal-write','non-idb-promise','second-fence-revoke','native-auto-complete-control'])await t.test('repository-terminal-'+mode,{timeout:20000},async()=>{const report=await page.evaluate(mode=>globalThis.__repositoryTerminalNative(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'repository-terminal-'+mode+'.json'),JSON.stringify(report,null,2));});
   for(const mode of ['complete','last-owner-revoke'])await t.test('repository-collections-'+mode,{timeout:20000},async()=>{const report=await page.evaluate(mode=>globalThis.__repositoryCollectionsNative(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'repository-collections-'+mode+'.json'),JSON.stringify(report,null,2));});

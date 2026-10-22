@@ -21,7 +21,7 @@ import {createPostgresOperationStatusService} from '../operation-status-service.
 // Actual signed issuers + actual HTTP parsers/owners/ledger. SQL locking is the
 // existing deterministic protocol simulator, NOT real PostgreSQL evidence.
 // Only the external HTTPS completion is synthetic; no callback makes a receipt.
-export async function organizeServiceFixture(t,{count=1,beforeResponse=null,afterResponse=null,holdProvider=null,loseReservation=false,dropRevocation=false,loseProvider=false,loseResult=false,badIds=false,defer=false}={}){
+export async function organizeServiceFixture(t,{count=1,beforeResponse=null,afterResponse=null,holdProvider=null,loseReservation=false,dropRevocation=false,loseProvider=false,loseResult=false,badIds=false,defer=false,boundedResponse=false}={}){
  const losses={reservation:loseReservation,provider:loseProvider,result:loseResult};
  const local=await setup(OrganizerStore),topic=await local.s.createTopic({name:'SYNTHETIC organize topic',operationId:crypto.randomUUID()});const entries=[];for(let i=0;i<count;i++){const e=await local.s.createEntry({actor:'user',operationId:crypto.randomUUID(),body:'SYNTHETIC organize evidence '+i,type:'idea',formation:'explicit',evidence:[]});await local.s.placeEntry({topicId:topic.id,entryId:e.id,expectedEntryRevision:e.revision,expectedTopicRevision:(await local.s.topic(topic.id)).organizationRevision,operationId:crypto.randomUUID()});entries.push(e);}
  const server=providerFixture(),publication=publicationProtocol(server),calls=[];let live=true,listener=null,physical=0,lastPayload=null;
@@ -38,7 +38,7 @@ export async function organizeServiceFixture(t,{count=1,beforeResponse=null,afte
   request.end=body=>{const payload=JSON.parse(JSON.parse(body).messages[1].content);lastPayload=payload;queueMicrotask(async()=>{try{
    await holdProvider?.(payload);await beforeResponse?.(server);
    if(done)return;done=true;
-   const value={version:2,blocks:payload.inputs.map(i=>({field:'currentView',text:i.text,evidenceEntryIds:[badIds?'SYNTHETIC-unknown':i.ref],sourceSpans:[{entryId:i.ref,revision:i.revision,start:0,end:i.text.length}]}))},data=completion({choices:[{index:0,message:{role:'assistant',content:JSON.stringify(value)},finish_reason:'stop'}]});
+   const value={version:2,blocks:payload.inputs.map(i=>({field:'currentView',text:boundedResponse?'SYNTHETIC bounded summary '+i.ref:i.text,evidenceEntryIds:[badIds?'SYNTHETIC-unknown':i.ref],sourceSpans:[{entryId:i.ref,revision:i.revision,start:0,end:i.text.length}]}))},data=completion({choices:[{index:0,message:{role:'assistant',content:JSON.stringify(value)},finish_reason:'stop'}]});
    const incoming=Readable.from([Buffer.from(JSON.stringify(data))]);incoming.statusCode=200;incoming.headers={'content-type':'application/json'};callback(incoming);incoming.once('close',()=>request.emit('close'));
   }catch(error){request.destroy(error);}});};
   options.signal.addEventListener('abort',()=>request.destroy(Error('SYNTHETIC abort')),{once:true});return request;

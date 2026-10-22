@@ -10,7 +10,7 @@ const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const iah='iah11-result-presentation-chrome-e2e.test.mjs',selected='iah11-selected-acceptance-chrome-e2e.test.mjs';
 import {readdir,readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
-import {group,testShard,isPreviousCurrentBrowser,APPROVED_UI_BROWSER_FILES} from './test-groups.mjs';
+import {group,testShard,isPreviousCurrentBrowser,APPROVED_UI_BROWSER_FILES,TOPIC_LIFECYCLE_BROWSER} from './test-groups.mjs';
 
 process.chdir(fileURLToPath(new URL('../',import.meta.url)));
 const names=new Set((await readdir('tests')).filter(name=>name.endsWith('.test.mjs')));
@@ -185,17 +185,30 @@ if(ten.some(part=>!part.length)||ten.flat().sort().join('|')!==current.join('|')
 for(const [position,name]of current.entries())if(testShard(name,position,10,'browser E2E')!==(name==='context-cards-chrome-e2e.test.mjs'?10:name==='cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'?1:name==='cpv1-02-4-reader-chrome-e2e.test.mjs'?3:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?8:name==='nib-v4-settings-entry-chrome-e2e.test.mjs'||name==='topic-section-writing-chrome-e2e.test.mjs'?4:name==='ans-01-reader-surfaces-chrome-e2e.test.mjs'?4:testShard(name,position,9,'browser E2E')))throw Error('CURRENT_TEN_SHIFTED_UNREVIEWED_ROUTE:'+name);
 console.log('CURRENT_TEN_BASELINE_COVERAGE_PASS total=96 Context artifact preserved; measured saved-AI presentation5-to8, Working Revision3-to1, Reader1-to3, Settings entry1-to4, Section writing5-to4, Reader surfaces9-to4; other previous routes preserved');
 
+// Preserve the original 100-file admission oracle, then verify all 101 below.
+const approvedUICurrent=allCurrent.filter(file=>file!==TOPIC_LIFECYCLE_BROWSER);
 // The actual execution census includes every newly admitted whole file. Never
 // use the frozen historical view to remove a file from current acceptance.
-if(allCurrent.length!==100||new Set(allCurrent).size!==100||APPROVED_UI_BROWSER_FILES.length!==4||new Set(APPROVED_UI_BROWSER_FILES).size!==4)throw Error('APPROVED_UI_CURRENT_CENSUS_INVALID');
+if(approvedUICurrent.length!==100||new Set(approvedUICurrent).size!==100||APPROVED_UI_BROWSER_FILES.length!==4||new Set(APPROVED_UI_BROWSER_FILES).size!==4)throw Error('APPROVED_UI_CURRENT_CENSUS_INVALID');
 const approvedTen=new Map([['archive-year-chrome-e2e.test.mjs',2],['topic-year-chrome-e2e.test.mjs',8],['topic-selected-section-chrome-e2e.test.mjs',6],['nib-approved-fixed-chrome-e2e.test.mjs',6]]);
 for(const file of APPROVED_UI_BROWSER_FILES){
- if(!names.has(file)||group(file)!=='browser E2E'||!allCurrent.includes(file))throw Error('APPROVED_UI_NATIVE_NOT_CURRENT:'+file);
- for(const width of [4,5,6,7,9,10])if(testShard(file,allCurrent.indexOf(file),width,'browser E2E')!==(width===10?approvedTen.get(file):width===9?9:4))throw Error('APPROVED_UI_NATIVE_NOT_ROUTED:'+file);
+ if(!names.has(file)||group(file)!=='browser E2E'||!approvedUICurrent.includes(file))throw Error('APPROVED_UI_NATIVE_NOT_CURRENT:'+file);
+ for(const width of [4,5,6,7,9,10])if(testShard(file,approvedUICurrent.indexOf(file),width,'browser E2E')!==(width===10?approvedTen.get(file):width===9?9:4))throw Error('APPROVED_UI_NATIVE_NOT_ROUTED:'+file);
 }
 for(const width of [4,5,6,7,9,10]){
- const actual=Array.from({length:width},(_,slot)=>allCurrent.filter((file,position)=>testShard('tests/'+file,position,width,'browser E2E')===slot+1)).flat();
- if(actual.length!==100||new Set(actual).size!==100||actual.sort().join('|')!==allCurrent.join('|'))throw Error('APPROVED_UI_CURRENT_PARTITION_INVALID:'+width);
- for(const file of current)if(testShard(file,allCurrent.indexOf(file),width,'browser E2E')!==testShard(file,current.indexOf(file),width,'browser E2E'))throw Error('APPROVED_UI_SHIFTED_PRIOR_ROUTE:'+width+':'+file);
+ const actual=Array.from({length:width},(_,slot)=>approvedUICurrent.filter((file,position)=>testShard('tests/'+file,position,width,'browser E2E')===slot+1)).flat();
+ if(actual.length!==100||new Set(actual).size!==100||actual.sort().join('|')!==approvedUICurrent.join('|'))throw Error('APPROVED_UI_CURRENT_PARTITION_INVALID:'+width);
+ for(const file of current)if(testShard(file,approvedUICurrent.indexOf(file),width,'browser E2E')!==testShard(file,current.indexOf(file),width,'browser E2E'))throw Error('APPROVED_UI_SHIFTED_PRIOR_ROUTE:'+width+':'+file);
 }
 console.log('CURRENT_TEN_COVERAGE_PASS total=100 previous=96 approved-ui=4; all whole files execute exactly once');
+
+// The historical views above are assertions only; production execution uses
+// group(file) directly and includes this complete Source/release root.
+if(!names.has(TOPIC_LIFECYCLE_BROWSER)||group(TOPIC_LIFECYCLE_BROWSER)!=='browser E2E'||allCurrent.length!==101||new Set(allCurrent).size!==101||allCurrent.join('|')!==[...approvedUICurrent,TOPIC_LIFECYCLE_BROWSER].sort().join('|'))throw Error('TOPIC_LIFECYCLE_CURRENT_CENSUS_INVALID');
+for(const width of [4,5,6,7,9,10]){
+ const actual=Array.from({length:width},(_,slot)=>allCurrent.filter((file,position)=>testShard('tests/'+file,position,width,'browser E2E')===slot+1)).flat();
+ if(actual.length!==101||new Set(actual).size!==101||actual.sort().join('|')!==allCurrent.join('|'))throw Error('TOPIC_LIFECYCLE_CURRENT_PARTITION_INVALID:'+width);
+ for(const file of approvedUICurrent)if(testShard(file,allCurrent.indexOf(file),width,'browser E2E')!==testShard(file,approvedUICurrent.indexOf(file),width,'browser E2E'))throw Error('TOPIC_LIFECYCLE_SHIFTED_PRIOR_ROUTE:'+width+':'+file);
+ if(testShard(TOPIC_LIFECYCLE_BROWSER,allCurrent.indexOf(TOPIC_LIFECYCLE_BROWSER),width,'browser E2E')!==(width===10?5:4))throw Error('TOPIC_LIFECYCLE_NATIVE_NOT_ROUTED:'+width);
+}
+console.log('CURRENT_TOPIC_LIFECYCLE_COVERAGE_PASS total=101 previous=100 added=1; all whole files execute exactly once');
