@@ -63,3 +63,46 @@ async function approvedNextConsentSheet(page,variant){
  assert.ok(Math.abs(geometry.width-560)<=1,'desktop consent uses the approved560px sheet instead of a viewport-wide dialog');assert.equal(geometry.titleSize,'22px');assert.equal(geometry.titleWeight,'500');assert.match(geometry.titleFont,/Georgia|Songti|Serif|SimSun|serif/);assert.ok(geometry.close>=44&&geometry.buttons.every(n=>n.height>=44));assert.deepEqual(geometry.order,['settings-next-cancel','settings-next-confirm']);assert.ok(geometry.buttons[0].right<geometry.buttons[1].right&&geometry.buttons[1].right<=geometry.right&&geometry.overflow<=2);await page.screenshot({path:join(out,variant+'-approved-consent-1440.png')});
  await page.locator('#settings-next-close').click();await dialog.waitFor({state:'hidden'});assert.equal((await read(page)).enabled,false);assert.equal(await page.evaluate(()=>document.activeElement.id),'settings-next-enabled','new approved close uses the same original return owner');
 }
+
+// Hold the existing migration response, not a substitute Settings renderer or
+// readiness fixture. The original installed group click remains freely usable.
+function installSettingsRestoreReadGate(){
+ const send=chrome.runtime.sendMessage.bind(chrome.runtime),writes=new Map();
+ const owner={current:null,arm(){this.current={entered:false,released:false,commits:[],release:null};},disarm(){this.current?.release?.();this.current=null;},restore(){this.disarm();chrome.runtime.sendMessage=send;for(const [name,original]of writes)history[name]=original;}};
+ chrome.runtime.sendMessage=async(message,...args)=>{const response=await send(message,...args),gate=owner.current;if(message.type==='GET_MIGRATION_STATUS'&&gate&&!gate.entered){gate.entered=true;await new Promise(resolve=>{gate.release=()=>{gate.released=true;resolve();};});}return response;};
+ for(const name of ['pushState','replaceState']){const original=history[name];writes.set(name,original);history[name]=function(state,...args){const result=original.call(this,state,...args),gate=owner.current;if(gate?.released&&state?.paiaReader?.view==='settings')gate.commits.push(structuredClone(state.paiaReader));return result;};}
+ globalThis.__settingsRestoreRead=owner;owner.arm();
+}
+async function admitReadingDuringSettingsRestore(page){
+ await eventually(()=>page.evaluate(()=>__settingsRestoreRead.current?.entered===true),'the original migration response is held');
+ await chooseConsumerGroup(page,'ai');await chooseConsumerGroup(page,'reading');
+ const language=page.locator('#ux-language');await eventually(()=>language.isEnabled());await language.selectOption('en');
+ await eventually(async()=>await language.isEnabled()&&await language.inputValue()==='en'&&await page.locator('html').getAttribute('lang')==='en','original preference write is acknowledged while migration remains held');
+ assert.equal(await page.evaluate(()=>__settingsRestoreRead.current.entered&&!__settingsRestoreRead.current.released),true);await language.focus();
+ const before=await page.evaluate(()=>{window.scrollTo(0,Math.min(120,document.documentElement.scrollHeight-innerHeight));return {scroll:scrollY,focus:document.activeElement.id,historyGroup:history.state.paiaReader.settingsGroup,returnOwner:structuredClone(history.state.paiaReader.settingsReturn)};});
+ assert.equal(before.historyGroup,'ai','intermediate click remains inside the original applying interval');assert.equal(before.focus,'ux-language');assert.equal(before.returnOwner.view,'memory');
+ await page.evaluate(()=>__settingsRestoreRead.current.release());
+ await eventually(()=>page.evaluate(()=>__settingsRestoreRead.current.commits.length>=1),'original restore reaches its final history commit');
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ assert.equal(await page.locator('[data-group="reading"]').isVisible(),true);assert.equal(await page.locator('[data-group="ai"]').isVisible(),false);
+ assert.deepEqual(await page.evaluate(()=>({scroll:scrollY,focus:document.activeElement.id,group:history.state.paiaReader.settingsGroup,returnOwner:history.state.paiaReader.settingsReturn})),{scroll:before.scroll,focus:'ux-language',group:'reading',returnOwner:before.returnOwner});
+ await language.selectOption('zh-CN');await eventually(()=>page.locator('html').getAttribute('lang').then(value=>value==='zh-CN'));
+ const commits=await page.evaluate(()=>__settingsRestoreRead.current.commits);assert.ok(commits.length>=1);for(const commit of commits){assert.equal(commit.settingsGroup,'reading','every original completion/checkpoint keeps Reading');assert.deepEqual(commit.settingsReturn,before.returnOwner,'every original completion/checkpoint retains exact return ownership');}
+ await page.evaluate(()=>__settingsRestoreRead.disarm());
+}
+for(const variant of ['source','release'])test('SET2 restore intent '+variant+' held original read preserves native Reading selection',{timeout:90000},async()=>{
+ const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-set2-restore-release-')):null;let h;
+ if(release)execFileSync('python3',['scripts/build_current_release.py',release],{cwd:root,stdio:'pipe'});
+ try{
+  h=await FakeChatGPT.start({extensionPath:release||root,headless:true,launchThroughPort:true});const page=h.archive;await page.locator('#enable-consent').click();await page.setViewportSize({width:1440,height:400});
+  await page.locator('.sidebar [data-view="memory"]').click();await eventually(()=>page.evaluate(()=>history.state?.paiaReader?.view==='memory'));
+  await open(page);await eventually(()=>page.evaluate(()=>history.state?.paiaReader?.settingsGroup==='ai'));await page.setViewportSize({width:1440,height:400});
+  assert.equal(await page.evaluate(()=>history.state.paiaReader.settingsReturn.view),'memory');
+  await page.addInitScript(installSettingsRestoreReadGate);await page.reload();await admitReadingDuringSettingsRestore(page);
+  await chooseConsumerGroup(page,'ai');await eventually(()=>page.evaluate(()=>history.state.paiaReader.settingsGroup==='ai'));
+  await page.locator('#ux-settings-back').click();await eventually(()=>page.evaluate(()=>history.state.paiaReader.view==='memory'));
+  await page.evaluate(()=>__settingsRestoreRead.arm());await page.goBack();await admitReadingDuringSettingsRestore(page);
+  await page.locator('#ux-settings-back').click();await eventually(()=>page.evaluate(()=>history.state.paiaReader.view==='memory'));
+  assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
+ }finally{if(h){await h.archive.evaluate(()=>globalThis.__settingsRestoreRead?.restore()).catch(()=>{});await h.close();}if(release)await rm(release,{recursive:true,force:true});}
+});
