@@ -1,0 +1,76 @@
+✖ source original legacy owner style-ACK after genuine unprotected Current (1912.200875ms)
+✖ source original legacy owner legacy-dispose after genuine unprotected Current (1940.6925ms)
+✖ source original legacy owner delta-cache after genuine unprotected Current (1938.868458ms)
+✖ release original legacy owner style-ACK after genuine unprotected Current (3635.133958ms)
+✖ release original legacy owner legacy-dispose after genuine unprotected Current (1889.264083ms)
+✖ release original legacy owner delta-cache after genuine unprotected Current (1894.371417ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13517.789209
+
+✖ failing tests:
+
+test at extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:7:106
+✖ source original legacy owner style-ACK after genuine unprotected Current (1912.200875ms)
+  worker.evaluate: TypeError: import() is disallowed on ServiceWorkerGlobalScope by the HTML specification. See https://github.com/w3c/ServiceWorker/issues/1356.
+      at eval (eval at evaluate (:311:30), <anonymous>:2:60)
+      at UtilityScript.evaluate (<anonymous>:313:16)
+      at UtilityScript.<anonymous> (<anonymous>:1:44)
+      at TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:12:30) {
+    log: []
+  }
+
+test at extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:7:106
+✖ source original legacy owner legacy-dispose after genuine unprotected Current (1940.6925ms)
+  worker.evaluate: TypeError: import() is disallowed on ServiceWorkerGlobalScope by the HTML specification. See https://github.com/w3c/ServiceWorker/issues/1356.
+      at eval (eval at evaluate (:311:30), <anonymous>:2:60)
+      at UtilityScript.evaluate (<anonymous>:313:16)
+      at UtilityScript.<anonymous> (<anonymous>:1:44)
+      at TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:12:30) {
+    log: []
+  }
+
+test at extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:7:106
+✖ source original legacy owner delta-cache after genuine unprotected Current (1938.868458ms)
+  worker.evaluate: TypeError: import() is disallowed on ServiceWorkerGlobalScope by the HTML specification. See https://github.com/w3c/ServiceWorker/issues/1356.
+      at eval (eval at evaluate (:311:30), <anonymous>:2:60)
+      at UtilityScript.evaluate (<anonymous>:313:16)
+      at UtilityScript.<anonymous> (<anonymous>:1:44)
+      at TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:12:30) {
+    log: []
+  }
+
+test at extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:7:106
+✖ release original legacy owner style-ACK after genuine unprotected Current (3635.133958ms)
+  worker.evaluate: TypeError: import() is disallowed on ServiceWorkerGlobalScope by the HTML specification. See https://github.com/w3c/ServiceWorker/issues/1356.
+      at eval (eval at evaluate (:311:30), <anonymous>:2:60)
+      at UtilityScript.evaluate (<anonymous>:313:16)
+      at UtilityScript.<anonymous> (<anonymous>:1:44)
+      at TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:12:30) {
+    log: []
+  }
+
+test at extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:7:106
+✖ release original legacy owner legacy-dispose after genuine unprotected Current (1889.264083ms)
+  worker.evaluate: TypeError: import() is disallowed on ServiceWorkerGlobalScope by the HTML specification. See https://github.com/w3c/ServiceWorker/issues/1356.
+      at eval (eval at evaluate (:311:30), <anonymous>:2:60)
+      at UtilityScript.evaluate (<anonymous>:313:16)
+      at UtilityScript.<anonymous> (<anonymous>:1:44)
+      at TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:12:30) {
+    log: []
+  }
+
+test at extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:7:106
+✖ release original legacy owner delta-cache after genuine unprotected Current (1894.371417ms)
+  worker.evaluate: TypeError: import() is disallowed on ServiceWorkerGlobalScope by the HTML specification. See https://github.com/w3c/ServiceWorker/issues/1356.
+      at eval (eval at evaluate (:311:30), <anonymous>:2:60)
+      at UtilityScript.evaluate (<anonymous>:313:16)
+      at UtilityScript.<anonymous> (<anonymous>:1:44)
+      at TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/legacy-owner-controls.mjs:12:30) {
+    log: []
+  }

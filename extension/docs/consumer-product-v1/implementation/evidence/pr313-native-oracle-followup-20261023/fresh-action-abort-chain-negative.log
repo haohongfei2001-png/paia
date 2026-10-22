@@ -1,0 +1,53 @@
+✖ AI-COST-01 source genuine fresh-action ACK rollback, replay and dispose control (2631.388459ms)
+ℹ {"variant":"source","phase":"native-abort-chain","trace":[{"order":0,"phase":"before-revoke","nativeTransaction":true,"ackHits":1},{"order":1,"phase":"after-revoke"},{"order":2,"phase":"put-throw","name":"TransactionInactiveError","code":0,"dbCategory":null},{"order":3,"phase":"repository-rejection","name":"Error","code":"STORAGE_FAILED","dbCategory":"transaction_inactive"},{"order":4,"phase":"native-abort","trusted":true,"sameTransaction":true,"errorName":null}]}
+ℹ {"variant":"source","phase":"dispose-observation","disposeHits":1,"actualCode":"STORAGE_FAILED","expectedLegacyCode":"STALE_BASE","rollback":true,"sizes":[2,1,1],"physical":3,"failure":{"code":"STORAGE_FAILED","stack":"Error: STORAGE_FAILED\n    at fail (chrome-extension://ofajncjjmfibcbkkljdemajncedenhkn/core/idb-repository.js:22:40)\n    at ArchiveRepository.transaction (chrome-extension://ofajncjjmfibcbkkljdemajncedenhkn/core/idb-repository.js:427:823)\n    at async repository.transaction (eval at evaluate (:311:30), <anonymous>:4:61)\n    at async chrome-extension://ofajncjjmfibcbkkljdemajncedenhkn/core/indexed-store.js:279:123\n    at async chrome-extension://ofajncjjmfibcbkkljdemajncedenhkn/core/indexed-store.js:192:11"}}
+✖ AI-COST-01 release genuine fresh-action ACK rollback, replay and dispose control (3845.918209ms)
+ℹ {"variant":"release","phase":"native-abort-chain","trace":[]}
+ℹ {"variant":"release","phase":"dispose-observation","disposeHits":0,"actualCode":"OUTCOME_UNKNOWN","expectedLegacyCode":"STALE_BASE","rollback":true,"sizes":[2,1],"physical":2,"failure":{"code":"STORAGE_FAILED","stack":"Error: STORAGE_FAILED\n    at fail (chrome-extension://icelcamjfdnbfimlokgcegokfbckklam/core/idb-repository.js:22:40)\n    at ArchiveRepository.transaction (chrome-extension://icelcamjfdnbfimlokgcegokfbckklam/core/idb-repository.js:427:823)\n    at async chrome-extension://icelcamjfdnbfimlokgcegokfbckklam/core/indexed-store.js:279:123\n    at async chrome-extension://icelcamjfdnbfimlokgcegokfbckklam/core/indexed-store.js:192:11"}}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6766.464084
+
+✖ failing tests:
+
+test at extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/fresh-action-abort-chain-negative.mjs:6:43
+✖ AI-COST-01 source genuine fresh-action ACK rollback, replay and dispose control (2631.388459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'STORAGE_FAILED'
+  - 'STALE_BASE'
+       ^
+  
+      at TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/fresh-action-abort-chain-negative.mjs:40:177)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'STORAGE_FAILED',
+    expected: 'STALE_BASE',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/fresh-action-abort-chain-negative.mjs:6:43
+✖ AI-COST-01 release genuine fresh-action ACK rollback, replay and dispose control (3845.918209ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/docs/consumer-product-v1/implementation/evidence/pr313-native-oracle-followup-20261023/fresh-action-abort-chain-negative.mjs:40:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

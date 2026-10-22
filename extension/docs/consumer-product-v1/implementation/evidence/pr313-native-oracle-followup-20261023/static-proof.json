@@ -1,0 +1,87 @@
+{
+  "base": "44803422fe77aa7a0a3dae7c0ae466ae5daea082",
+  "changedExistingPaths": [
+    "extension/tests/cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs"
+  ],
+  "productionAndSharedUnchanged": [
+    {
+      "path": "extension/core/idb-repository.js",
+      "sha256": "7bd3412686a7ea59b7d2fbacfe3fd4588f479aa6c50239ab39d5a4ae268565d1",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/core/organizer/local-organize-session.js",
+      "sha256": "6788b8b8986ced8407f6e495b7677d16695c00b76c6250cb5fe56d3181b80663",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/core/organizer/configured-organize-runner.js",
+      "sha256": "e077ba4d083316cccd135e0d15815a2bda8451b3e5da6d9a1e9ebd4c35d3b298",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/core/organizer/ai-candidate.js",
+      "sha256": "41f0234010625fc7ce9eacadd3744c13ae1735cdf1d76610c8025bb4724e4ec7",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/core/organizer/ai-incremental-v2.js",
+      "sha256": "b438dd7efb6be28627e0cec5e49a530d84711b69771c0b3682c2c71e80b55fa2",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/core/organizer/ai-incremental-v3.js",
+      "sha256": "de8ba0ee9f9b610e0abc4d073c640f55197552ec9f5d04371753dc27e82c5fb1",
+      "sameAsBase": true
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-native-fixture.mjs",
+      "sha256": "a88110e2979399ff98547f8c78795f12673af7e6e9e4ceec326b809131d9bcc9",
+      "sameAsBase": true
+    },
+    {
+      "path": "services/ai-gateway/tests/organize-client-fixture.mjs",
+      "sha256": "e866466f1c47480dc393440605fa04dd78c5f91b5b9fb6fce7088a7d611685cd",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/tests/harness/fake-chatgpt.mjs",
+      "sha256": "cac14aed256e89609e25fb146978e142071fd9b528446439a61414b73a8bbc8f",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/tests/harness/ai-cost-session-lifecycle-cases.mjs",
+      "sha256": "e228bc4a97fe271a12b0151f3db0c37db9a59001efde922303cecef18fab6175",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/tests/sync-node-preflight-ci.test.mjs",
+      "sha256": "dc39f4ab5413f9d6efb335380e61c86e85c81195a5b9dd658506ae4d549ebc8e",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/tests/d5-full-browser-partition.test.mjs",
+      "sha256": "254e76849020410eefbe0c88db515998fdef7a0c81ce91053f8f67a5933fc340",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/tests/topic-entry-section-move-chrome-e2e.test.mjs",
+      "sha256": "ee9e0d163e5d00d0c1c061be19477ff271495f8abaa49ba3a6c34bb8c1bdac98",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/manifest.json",
+      "sha256": "d4d6caeb9ad11b77aa1044a21de2e4585059af7e9d41e7e914e439a8df15e551",
+      "sameAsBase": true
+    },
+    {
+      "path": "extension/package.json",
+      "sha256": "db8762aaaddaf503b780cc88fb764eb61ac1e97ec958d2c645d6902c34f75b7f",
+      "sameAsBase": true
+    }
+  ],
+  "prefixBeforeStyleByteIdentical": true,
+  "exactMultiCacheAndEndingByteIdentical": true,
+  "testSha256": "a021305857cd6ce5e6e7b462d1964df31b34d686b69594556eb1219ec592a943",
+  "noDefaultServiceImport": true
+}
