@@ -44,9 +44,10 @@ export function promptFilterReadIsStatic(store,t,token){
 // authority. Bounded sync consumers use the authentic creation owner values.
 export function planInitialFilter(b,m,legacy=false){return {id:b.id,documentId:b.documentId,authorship:legacy?'legacy_unknown':authored(b,m)?'user_edited':'untouched',userEdited:authored(b,m),filterOverride:authored(b,m)?'keep':'none',presence:null,evaluationRevision:0,pendingKey:0,decision:'uncertain',reasonCode:'metadata_unknown',...FILTER_VERSIONS,basedOnContentRevision:m?.contentRevision??0};}
 
+const originalOrganizeMaterialInstances=new WeakSet();
 export class SmartFilterStore extends IAStore {
  #aiFilter;
- constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;this.#aiFilter=new AIMaintenanceFilterOwner(this,options.aiFilterAuthority??null);promptFilterOwners.add(this);}
+ constructor(local,options={}){super(local,{...options,smartFilter:true});originalOrganizeMaterialInstances.add(this);this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;this.#aiFilter=new AIMaintenanceFilterOwner(this,options.aiFilterAuthority??null);promptFilterOwners.add(this);}
  write(fn,onCommitted=null,prepare=null){this.filterMutation++;return super.write(fn,onCommitted,prepare).finally(()=>{this.filterMutation++;});}
  run(fn){return super.run(async()=>{if(!this.filterLoaded){await this.initializeFilter();this.filterLoaded=true;}return fn();});}
  async initializeFilter(){
@@ -323,4 +324,20 @@ const promptQueuePrototype=SmartFilterStore.prototype,promptQueueParent=Object.g
 const promptQueueDescriptor=(actual,expected)=>!!actual&&['value','get','set','writable','enumerable','configurable'].every(key=>actual[key]===expected[key]);
 export function originalFilterPromptQueueOwner(store){
  return originalPromptFilterOwner(store)&&originalIAPromptQueueOwner(store)&&Object.getPrototypeOf(promptQueuePrototype)===promptQueueParent&&promptQueueDescriptor(Object.getOwnPropertyDescriptor(promptQueuePrototype,'run'),promptQueueMethod);
+}
+
+// This module owns these method declarations. Publish only a deny-only
+// identity predicate; no method or field authority is supplied by its caller.
+const originalOrganizeMaterialOwnerChain=(()=>{const out=[];for(let p=SmartFilterStore.prototype;p!==null;p=Object.getPrototypeOf(p)){if(out.length>=32)throw Error('Original owner chain exceeds bound');out.push(p);}return Object.freeze(out);})();
+const originalOrganizeMaterialOwnerMethods=Object.freeze(["isFiltered"].map(name=>Object.freeze({name,descriptor:Object.freeze(Object.getOwnPropertyDescriptor(SmartFilterStore.prototype,name))})));
+export function originalFilterOrganizeMaterialOwner(store){
+ try{
+  if(!originalOrganizeMaterialInstances.has(store))return false;
+  for(let i=0;i<originalOrganizeMaterialOwnerChain.length;i++)if(Object.getPrototypeOf(originalOrganizeMaterialOwnerChain[i])!==(originalOrganizeMaterialOwnerChain[i+1]??null))return false;
+  for(const {name,descriptor:expected} of originalOrganizeMaterialOwnerMethods){
+   let node=store,depth=0;for(;node!==SmartFilterStore.prototype;node=Object.getPrototypeOf(node)){if(node===null||++depth>32||Object.getOwnPropertyDescriptor(node,name)!==undefined)return false;}
+   const actual=Object.getOwnPropertyDescriptor(node,name);if(!actual||!Object.hasOwn(actual,'value')||actual.value!==expected.value||actual.writable!==expected.writable||actual.enumerable!==expected.enumerable||actual.configurable!==expected.configurable)return false;
+  }
+  return true;
+ }catch{return false;}
 }

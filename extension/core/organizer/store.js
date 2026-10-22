@@ -1,3 +1,5 @@
+import {LibraryFoundationStore,originalFoundationOrganizeMaterialOwner} from '../thought-store.js';
+import {originalFilterOrganizeMaterialOwner} from '../smart-filter-store.js';
 import {validFeedbackDraft} from '../recovery-draft.js';
 import {AIUsageFoundation} from '../ai-usage/foundation.js';
 import {rootReadAuthority,invalidRootRead,validateRootRead,compactTopic,compactSearchResult} from './root-read.js';
@@ -28,8 +30,9 @@ import {ActionPolicy} from './policy.js';
 import {reject} from './contracts.js';
 import {planDelta,dualViewStatus,previewAIDelta,setOriginalAutoUpdate} from '../dual-view.js';
 import {enqueueOriginalWork,planOriginalWork,originalBootstrapStatus} from './original.js';
+const originalOrganizeMaterialStores=new WeakSet();
 export class OrganizerStore extends LibraryDocumentsStore {
- constructor(local,options={}){super(local,options);this.organizerBudget=options.organizerBudget||new BudgetPolicy();this.organizerLedger=new BudgetLedger(this,this.organizerBudget);this.libraryCommit=new LibraryCommitService(this);this.aiUsageFoundation=new AIUsageFoundation(this);}
+ constructor(local,options={}){super(local,options);this.organizerBudget=options.organizerBudget||new BudgetPolicy();this.organizerLedger=new BudgetLedger(this,this.organizerBudget);this.libraryCommit=new LibraryCommitService(this);this.aiUsageFoundation=new AIUsageFoundation(this);originalOrganizeMaterialStores.add(this);}
  safeOrganization(t,kind,row){return safeOrganization(this,t,kind,row);}
  clearDerivedMetadata(t,marker){return clearDerivedMetadata(this,t,marker);}
  async canonicalTopic(t,id){return safeOrganization(this,t,'topic',await super.canonicalTopic(t,id));}
@@ -174,4 +177,24 @@ export class OrganizerStore extends LibraryDocumentsStore {
  async controlOrganizer({id,action}){if(!['cancel','resume'].includes(action)||!idOK(id))reject('INVALID_OUTPUT');return this.foundationWrite(async t=>{const j=await t.get('organizerJobs',id);if(!j||j.kind!=='organize')reject('INVALID_OUTPUT');if(['completed','cancelled'].includes(j.state))return {state:j.state};j.fence++;j.state=action==='cancel'?'cancelled':'queued';j.stateKey=action==='cancel'?1:0;j.nextAttemptAt=0;delete j.owner;await t.put('organizerJobs',j);return {state:j.state};});}
  async suggestionPage({cursor=null,limit=40,status='pending'}={}){if(!Number.isInteger(limit)||limit<1||limit>100||!['pending','accepted','rejected','expired','superseded'].includes(status))reject('INVALID_OUTPUT');await this.finishFoundation();return this.run(()=>this.repository.transaction(false,async t=>{const key={pending:0,accepted:1,rejected:2,expired:3,superseded:4}[status],page=await t.rangePage('organizerSuggestions','byStatus',prefix([key]),cursor,limit),items=[];for(const {value:r}of page.rows){if(!await this.sourcePresent(t,r.sourceRecordIds))continue;let valid=true;for(const e of r.item.evidence){const m=await t.get('inputStates',e.inputId);if(m?.removalState!=='active'||m.sourcePurged)valid=false;}if(valid)items.push({id:r.id,targetId:r.targetId,baseRevision:r.baseRevision,status:r.status,reason:r.reason,body:r.item.candidate.body,type:r.item.candidate.type,createdAt:r.createdAt});}return {items,nextCursor:page.next,count:await t.count('organizerSuggestions','byStatus',prefix([0]))};}));}
  async resolveSuggestion(request){keys(request,['id','action','baseRevision','operationId'],['id','action','baseRevision','operationId']);if(!['accept','reject'].includes(request.action))reject('INVALID_OUTPUT');return this.operation(request,async t=>{const r=await t.get('organizerSuggestions',request.id);if(!r||r.status!=='pending'||r.baseRevision!==request.baseRevision)reject('STALE_BASE');if(request.action==='reject'){r.status='rejected';r.statusKey=2;}else{let valid=true;try{await checkEvidenceInTransaction(this,t,r.item.evidence);}catch{valid=false;}const gate=await t.get('meta','gate'),entry=r.targetKind==='entry'?await t.get('thoughts',r.targetId):null;if(!gate?.enabled||gate.epoch!==r.consentEpoch||r.targetKind==='entry'&&!entry||entry&&(entry.revision!==r.baseRevision||entry.lifecycle!=='active'))valid=false;for(const b of Object.values(r.projection.topicMap)){const topic=await t.get('topics',b.id);if(!topic||topic.redirectTo||topic.layoutJobId||topic.revision!==b.revision||topic.organizationRevision!==b.organizationRevision||topic.activeLayoutGeneration!==b.generation)valid=false;}for(const b of Object.values(r.projection.sectionMap)){const section=await t.get('sections',b.id);if(!section||section.revision!==b.revision||section.lifecycle!=='active'||section.redirectTo)valid=false;}if(r.policyVersion!==1||ActionPolicy.evaluate({candidate:r.item.candidate,entry,actor:'user'}).decision!=='allow')valid=false;if(!valid){r.status='expired';r.statusKey=3;await t.put('organizerSuggestions',r);return {id:r.id,expired:true};}const result=await this.libraryCommit.apply(t,r.item,r.projection,entry,'user',request.operationId);r.acceptedEntryId=result.id;r.status='accepted';r.statusKey=1;}r.resolvedAt=this.clock();await t.put('organizerSuggestions',r);return {id:r.id,status:r.status,...(r.acceptedEntryId?{entryId:r.acceptedEntryId}:{})};});}
+}
+
+// Original owner publication, captured once after this module's class definition.
+// A caller's current methods, a copied Store or a look-alike prototype cannot
+// supply this brand. This deny-only check belongs to the optional material cap.
+const originalOrganizeMaterialMethodNames=Object.freeze(['canonicalTopic']);
+const originalOrganizeMaterialPrototypeChain=(()=>{const out=[];for(let p=OrganizerStore.prototype;p!==null;p=Object.getPrototypeOf(p)){if(out.length>=32)throw Error('Original Store prototype chain exceeds bound');out.push(p);}return Object.freeze(out);})();
+const originalOrganizeMaterialMethodPlan=Object.freeze(originalOrganizeMaterialMethodNames.map(name=>{for(const owner of originalOrganizeMaterialPrototypeChain){const descriptor=Object.getOwnPropertyDescriptor(owner,name);if(descriptor){if(!Object.hasOwn(descriptor,'value')||typeof descriptor.value!=='function')throw Error('Original material method is not own data');return Object.freeze({name,owner,descriptor:Object.freeze(descriptor)});}}throw Error('Missing original material method');}));
+export function requireOriginalOrganizeMaterialMethods(store){
+ if(!originalOrganizeMaterialStores.has(store)||Object.getPrototypeOf(store)!==originalOrganizeMaterialPrototypeChain[0])reject('UNAVAILABLE');
+ for(let i=0;i<originalOrganizeMaterialPrototypeChain.length;i++)if(Object.getPrototypeOf(originalOrganizeMaterialPrototypeChain[i])!==(originalOrganizeMaterialPrototypeChain[i+1]??null))reject('UNAVAILABLE');
+ if(!originalFoundationOrganizeMaterialOwner(store)||!originalFilterOrganizeMaterialOwner(store))reject('UNAVAILABLE');
+ // super.canonicalTopic resolves from this class's original parent, not the
+ // instance override. No intermediate parent may shadow the declaration.
+ for(let node=Object.getPrototypeOf(OrganizerStore.prototype);node!==LibraryFoundationStore.prototype;node=Object.getPrototypeOf(node))if(node===null||Object.getOwnPropertyDescriptor(node,'canonicalTopic')!==undefined)reject('UNAVAILABLE');
+ for(const {name,owner,descriptor:expected} of originalOrganizeMaterialMethodPlan){
+  if(Object.getOwnPropertyDescriptor(store,name)!==undefined)reject('UNAVAILABLE');
+  for(const node of originalOrganizeMaterialPrototypeChain){const descriptor=Object.getOwnPropertyDescriptor(node,name);if(node===owner){if(!descriptor||!Object.hasOwn(descriptor,'value')||descriptor.value!==expected.value||descriptor.enumerable!==expected.enumerable||descriptor.configurable!==expected.configurable||descriptor.writable!==expected.writable)reject('UNAVAILABLE');break;}if(descriptor!==undefined)reject('UNAVAILABLE');}
+ }
+ return true;
 }

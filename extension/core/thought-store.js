@@ -63,8 +63,9 @@ export function humanSectionRank(last,requestedRank){const rank=requestedRank||(
 export function planHumanSectionCreation(request,topic,{sectionId,rank,at}){return {id:JSON.stringify([topic.id,topic.activeLayoutGeneration,sectionId]),topicId:topic.id,layoutGeneration:topic.activeLayoutGeneration,sectionId,title:request.title,rank,revision:0,activeKey:0,lifecycle:'active',protections:protections('user',request.operationId,at)};}
 export function humanPlacementRank(last,old,requestedRank){const rank=requestedRank===undefined?(last?String(Number(last.rank)+1024).padStart(12,'0'):old?.rank||rankBetween()):normalizeRank(requestedRank);return normalizeRank(rank);}
 export function planHumanPlacementRow(topic,entry,old,section,rank,remove){return {id:JSON.stringify([topic.id,topic.activeLayoutGeneration,entry.id]),topicId:topic.id,layoutGeneration:topic.activeLayoutGeneration,entryId:entry.id,sectionId:section.sectionId,rank,sectionRank:section.rank,revision:(old?.revision??-1)+1,activeKey:remove?1:0,lifecycle:remove?'removed':'active',membershipAuthorship:'user',sectionProtection:true,orderProtection:true};}
+const originalOrganizeMaterialInstances=new WeakSet();
 export class LibraryFoundationStore extends SmartFilterStore {
- constructor(local,options={}) {super(local,{...options,thoughtLibrary:true});this.foundationLoaded=false;this.humanLibraryJournal=options.humanLibraryJournal??null;}
+ constructor(local,options={}) {super(local,{...options,thoughtLibrary:true});originalOrganizeMaterialInstances.add(this);this.foundationLoaded=false;this.humanLibraryJournal=options.humanLibraryJournal??null;}
  run(fn) {return super.run(async()=>{if(!this.foundationLoaded&&!this.foundationFailure){try{const marker=await migrateThoughtLibrary(this,{maxBatches:1});this.foundationLoaded=marker.phase==='active';}catch{this.foundationFailure=true;}}return fn();});}
  async finishFoundation(){while(!this.foundationLoaded){await this.run(()=>Promise.resolve());if(this.foundationFailure)throw new ArchiveError('STORAGE_FAILED');if(!this.foundationLoaded)await new Promise(resolve=>setTimeout(resolve,0));}if(!this.bindingsLoaded){await migrateBindings(this);this.bindingsLoaded=true;}}
  async foundationWrite(fn){await this.finishFoundation();return IndexedArchiveStore.prototype.write.call(this,fn);}
@@ -303,4 +304,23 @@ export function originalFoundationPromptQueueOwner(store){
  if(!originalFilterPromptQueueOwner(store)||Object.getPrototypeOf(promptQueuePrototype)!==promptQueueParent||!promptQueueDescriptor(Object.getOwnPropertyDescriptor(promptQueuePrototype,'run'),promptQueueMethod))return false;
  for(let owner=store;owner;owner=Object.getPrototypeOf(owner)){const descriptor=Object.getOwnPropertyDescriptor(owner,'run');if(descriptor)return promptQueueDescriptor(descriptor,promptQueueMethod);}
  return false;
+}
+
+// This module owns these method declarations. Publish only a deny-only
+// identity predicate; no method or field authority is supplied by its caller.
+const originalOrganizeMaterialOwnerChain=(()=>{const out=[];for(let p=LibraryFoundationStore.prototype;p!==null;p=Object.getPrototypeOf(p)){if(out.length>=32)throw Error('Original owner chain exceeds bound');out.push(p);}return Object.freeze(out);})();
+const originalOrganizeMaterialOwnerMethods=Object.freeze(["readableEntry", "sourcePresent"].map(name=>Object.freeze({name,descriptor:Object.freeze(Object.getOwnPropertyDescriptor(LibraryFoundationStore.prototype,name))})));
+const originalOrganizeCanonicalDescriptor=Object.freeze(Object.getOwnPropertyDescriptor(LibraryFoundationStore.prototype,'canonicalTopic'));
+export function originalFoundationOrganizeMaterialOwner(store){
+ try{
+  if(!originalOrganizeMaterialInstances.has(store))return false;
+  const canonical=Object.getOwnPropertyDescriptor(LibraryFoundationStore.prototype,'canonicalTopic'),expectedCanonical=originalOrganizeCanonicalDescriptor;
+  if(!canonical||!Object.hasOwn(canonical,'value')||canonical.value!==expectedCanonical.value||canonical.writable!==expectedCanonical.writable||canonical.enumerable!==expectedCanonical.enumerable||canonical.configurable!==expectedCanonical.configurable)return false;
+  for(let i=0;i<originalOrganizeMaterialOwnerChain.length;i++)if(Object.getPrototypeOf(originalOrganizeMaterialOwnerChain[i])!==(originalOrganizeMaterialOwnerChain[i+1]??null))return false;
+  for(const {name,descriptor:expected} of originalOrganizeMaterialOwnerMethods){
+   let node=store,depth=0;for(;node!==LibraryFoundationStore.prototype;node=Object.getPrototypeOf(node)){if(node===null||++depth>32||Object.getOwnPropertyDescriptor(node,name)!==undefined)return false;}
+   const actual=Object.getOwnPropertyDescriptor(node,name);if(!actual||!Object.hasOwn(actual,'value')||actual.value!==expected.value||actual.writable!==expected.writable||actual.enumerable!==expected.enumerable||actual.configurable!==expected.configurable)return false;
+  }
+  return true;
+ }catch{return false;}
 }

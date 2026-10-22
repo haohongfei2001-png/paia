@@ -1,10 +1,11 @@
 // Four whole files added by the approved UI convergence. Historical route
 // assertions retain their original96-file census separately from actual100.
 export const APPROVED_UI_BROWSER_FILES=Object.freeze(['archive-year-chrome-e2e.test.mjs','topic-year-chrome-e2e.test.mjs','topic-selected-section-chrome-e2e.test.mjs','nib-approved-fixed-chrome-e2e.test.mjs']);
+export const TOPIC_LIFECYCLE_BROWSER='cpv1-topic-02-lifecycle-chrome-e2e.test.mjs';
 const approvedUIBrowser=new Set(APPROVED_UI_BROWSER_FILES);
 const browserName=file=>file.replaceAll('\\','/').split('/').at(-1);
 // Only for frozen historical census assertions, never the execution filter.
-export const isPreviousCurrentBrowser=file=>group(file)==='browser E2E'&&!approvedUIBrowser.has(browserName(file));
+export const isPreviousCurrentBrowser=file=>group(file)==='browser E2E'&&!approvedUIBrowser.has(browserName(file))&&browserName(file)!==TOPIC_LIFECYCLE_BROWSER;
 const promotion='topic-section-promotion-chrome-e2e.test.mjs';
 const NIB_BROWSER=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'];
 const pendingHistory='uir-04-pending-history-chrome-e2e.test.mjs';
@@ -115,7 +116,7 @@ const next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
 const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const IAH_FILES=['iah11-result-presentation-chrome-e2e.test.mjs','iah11-selected-acceptance-chrome-e2e.test.mjs'];
 const AI_BROWSER='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
-const CURRENT_BROWSER=new Set([...APPROVED_UI_BROWSER_FILES,promotion,...NIB_BROWSER,topicReturn,removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,preferencePublication,settingsData,
+const CURRENT_BROWSER=new Set([TOPIC_LIFECYCLE_BROWSER,...APPROVED_UI_BROWSER_FILES,promotion,...NIB_BROWSER,topicReturn,removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,preferencePublication,settingsData,
  'cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs',
  'cpv1-topic-05-4-section-chrome-e2e.test.mjs',
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
@@ -176,6 +177,15 @@ export function group(file) {
 export function testShard(file,position,total,category){
  file=file.replaceAll('\\','/');
  const currentName=browserName(file);
+ // Explicit whole-file admission. The prior 100 current roots keep every
+ // existing 4/5/6/7/9/10 assignment and Context stays alone on shard 10.
+ // Main Full39601938203 shard 5 log span was 804.5s. The new Source/release
+ // parents retain their 120s limits; this is a capacity proposal pending
+ // exact-head native measurement, not a guaranteed fit or accepted evidence.
+ if(category==='browser E2E'&&currentName===TOPIC_LIFECYCLE_BROWSER){
+  if(total===10)return 5;
+  if([4,5,6,7,9].includes(total))return 4;
+ }
  if(category==='browser E2E'&&approvedUIBrowser.has(currentName)){
   // Full39007610360: Context alone took~696s after Archive; adding all four
   // new owners exhausted10's unchanged18m budget. Only these new whole files

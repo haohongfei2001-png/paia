@@ -11,12 +11,21 @@ import {ROUTE_FIELDS} from './ratebook.js';
 import {ENVELOPES} from './admission-policy.js';
 import {hashText} from '../dedupe.js';
 
-const caps=new WeakMap(),manifests=new WeakMap(),sourceMeasurements=new WeakMap(),states=new Map();let lastNow=0,clockFailed=false;
+const caps=new WeakMap(),manifests=new WeakMap(),sourceMeasurements=new WeakMap(),sourceControls=new WeakMap(),states=new Map();let lastNow=0,clockFailed=false;
 const same=(a,b)=>canonical(a)===canonical(b),digest=s=>typeof s==='string'&&/^[a-f0-9]{64}$/.test(s);
 const unavailable=()=>Object.freeze({status:'UNAVAILABLE',reason:'SOURCE_PROFILE_UNAVAILABLE',qualification:'NOT_ESTABLISHED',financialAuthority:false,dispatchAllowed:false});
 const roles=['MODEL_TOKENIZER','FULL_WIRE_BOUND','NORMALIZATION','USAGE_PROFILE','RESPONSE_QUALITY','RATEBOOK'];
+// Deny-only lifecycle of the same privately installed source. Capture native
+// methods so later public prototype/instance callbacks cannot suppress revoke.
+const NativeAbortController=AbortController,nativeAbort=AbortController.prototype.abort,nativeControllerSignal=Object.getOwnPropertyDescriptor(AbortController.prototype,'signal').get,nativeDispatchEvent=EventTarget.prototype.dispatchEvent;
 function now(){const n=Date.now();if(clockFailed||!integer(n)||n<lastNow){clockFailed=true;throw Error('CLOCK');}lastNow=n;return n;}
-function retire(s){if(!s)return;s.retired=true;s.counter?.dispose();for(const owner of s.wires.values())owner.dispose();s.wires.clear();s.compiler?.dispose();}
+function retire(s){
+ if(!s||s.retired)return;s.retired=true;
+ // Mark retired before dispatching native listeners: reentrant reads fail and
+ // retained prepared cells are cleared before any owned mechanism is disposed.
+ nativeAbort.call(s.controller);
+ s.counter?.dispose();for(const owner of s.wires.values())owner.dispose();s.wires.clear();s.compiler?.dispose();
+}
 function current(s){try{const n=now();if(!s||s.retired||!s.ready||n<s.verifiedAt||n>=s.expiresAt||inspectQwenBpeCounter(s.counter)!==s.counterInfo){if(s)retire(s);return false;}return true;}catch{if(s)retire(s);return false;}}
 function sourceEntry(id){
  if(!Array.isArray(QWEN_SOURCE_PROFILE_INSTALLATIONS)||QWEN_SOURCE_PROFILE_INSTALLATIONS.length>16)return null;
@@ -64,15 +73,39 @@ async function load(e,s){let counter=null;try{
 export async function loadInstalledQwenSourceProfile(id){
  if(!token(id))return null;const existing=states.get(id);if(existing){if(existing.promise)return existing.promise;return current(existing)?existing.cap:null;}
  const entry=sourceEntry(id);if(!entry||states.size>=16)return null;
- const s={id,retired:false,ready:false,wires:new Map(),promise:null};states.set(id,s);s.promise=load(entry,s);const cap=await s.promise;s.promise=null;return cap;
+ const controller=new NativeAbortController(),retirementSignal=nativeControllerSignal.call(controller);
+ // Some native implementations dispatch abort through this public method.
+ // Keep that native path immutable without freezing the signal's internal state.
+ Object.defineProperty(retirementSignal,'dispatchEvent',{value:nativeDispatchEvent});
+ const s={id,retired:false,ready:false,wires:new Map(),promise:null,controller,retirementSignal};states.set(id,s);s.promise=load(entry,s);const cap=await s.promise;s.promise=null;return cap;
 }
 export function inspectInstalledQwenSourceProfile(cap){const s=caps.get(cap);return current(s)?Object.freeze({id:s.id,manifestDigest:s.qualification.manifestDigest,qualificationRef:s.qualification.id,revocationVersion:s.qualification.revocationVersion,expiresAt:s.expiresAt}):null;}
+// This signal only withdraws availability. It does not mint a source, admit body
+// reads or qualify any request. The prepared owner retains its original expiry
+// timer; every source currentness check also retires/aborts on expiry or rollback.
+export function installedQwenSourceRetirementSignal(cap){const s=caps.get(cap);return current(s)?s.retirementSignal:null;}
 export function installedQwenSourceManifest(cap){const s=caps.get(cap);return current(s)?s.manifest:null;}
 export function installedQwenManifestCapability(manifest){const cap=manifests.get(manifest);return inspectInstalledQwenSourceProfile(cap)?cap:null;}
 export function isInstalledQwenMeasurement(value,cap){return sourceMeasurements.get(value)===cap&&inspectInstalledQwenSourceProfile(cap)!==null;}
 export function retireInstalledQwenSourceProfile(id){const s=typeof id==='string'&&states.get(id);if(!s)return false;retire(s);return true;}
 export function compileInstalledQwenRequest(cap,options){try{const s=caps.get(cap);if(!current(s))return unavailable();const o=snapshot(options);if(!exact(o,['childIdentity','inputTokens','outputCap','stream']))return unavailable();
  const out=s.compiler.compile({...o,now:now()});return current(s)&&out.status==='COMPILED_PARTIAL'?freeze({...out,sourceKind:'SOURCE_QUALIFIED_PROFILE',qualification:'SOURCE_RECEIPTS_CURRENT',profileSourceCurrent:true}):unavailable();}catch{return unavailable();}}
+// Public controls remain metadata only. Their original compiler handle and exact
+// installed source/counter authority are private, not reconstructible from DTOs.
+export function prepareInstalledQwenControls(cap,options){try{
+ const s=caps.get(cap);if(!current(s))return unavailable();
+ const o=snapshot(options);if(!exact(o,['childIdentity','outputCap','stream']))return unavailable();
+ const original=s.compiler.prepareControls({...o,now:now()});if(!current(s)||original.status!=='CONTROLS_PREPARED')return unavailable();
+ const handle=freeze({...original,sourceKind:'SOURCE_QUALIFIED_PROFILE',qualification:'SOURCE_RECEIPTS_CURRENT',profileSourceCurrent:true});
+ sourceControls.set(handle,{cap,original});return handle;
+ }catch{return unavailable();}}
+export function finishInstalledQwenInputBound(cap,handle,options){try{
+ const s=caps.get(cap),record=sourceControls.get(handle);if(!current(s)||!record||record.cap!==cap)return unavailable();
+ sourceControls.delete(handle);
+ const o=snapshot(options);if(!exact(o,['inputTokens']))return unavailable();
+ const out=s.compiler.finishInputBound(record.original,{inputTokens:o.inputTokens,now:now()});
+ return current(s)&&out.status==='COMPILED_PARTIAL'?freeze({...out,sourceKind:'SOURCE_QUALIFIED_PROFILE',qualification:'SOURCE_RECEIPTS_CURRENT',profileSourceCurrent:true}):unavailable();
+ }catch{return unavailable();}}
 export async function measureInstalledQwenRequest(cap,value){const s=caps.get(cap);if(!current(s))return null;try{
  const o=snapshot(value,{maxBytes:300000,maxKeys:4096,maxDepth:16,maxString:262144});
  if(!exact(o,['profileId','tokenizerProfileId','qualificationRef','requestDigest','envelope'])||o.profileId!==s.id||o.tokenizerProfileId!==s.manifest.tokenizer.profileId||o.qualificationRef!==s.qualification.id||typeof o.envelope?.body!=='string'||o.envelope.body.length>s.counterInfo.maxWireBytes)return null;
