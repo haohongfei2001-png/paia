@@ -512,3 +512,14 @@ test('CTX4-03 failed-read Retry stays inert through departure and same-owner ree
  try{assert.equal(page.inputs,inputs);assert.equal(inputs.loading,true);assert.equal(inputs.readNavigation,false);assert.ok([...inputs.nodes.values()].every(node=>node.disabled));assert.equal(directoryKey(inputs,'End',inputs.nodes.get(inputs.order[0])),false);oldHold.release();assert.equal(await retry,false);assert.ok([...inputs.nodes.values()].every(node=>node.disabled));}
  finally{oldHold.release();newHold.release();}await reopening;assert.equal(inputs.failedRead,false);assert.equal(inputs.loading,false);assert.ok([...inputs.nodes.values()].every(node=>!node.disabled));
 }));
+
+test('CTX4-03 unknown choice keeps advisory button semantics actionable without another choice or receipt request',()=>fixture(async({makePage,transport,dispatch,calls,s})=>{
+ const page=makePage();await page.open('inputs');const inputs=page.inputs,id=inputs.order[0],other=inputs.order[1];
+ transport.dispatch=async message=>{if(message.type==='PAIA_CONTEXT_TOPICS_CHANGE'){await dispatch(message);throw Error('SYNTHETIC lost acknowledgment');}if(message.type==='PAIA_CONTEXT_TOPICS_OUTCOME')throw Error('SYNTHETIC outcome unavailable');return dispatch(message);};
+ assert.equal(await inputs.toggle(id),false);const pending=inputs.commit.pending,node=inputs.nodes.get(other),open=inputs.openNodes.get(other),saved=await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),receipts=await s.repository.transaction(false,t=>t.all('operationReceipts')),requestCount=calls.length;assert.ok(pending);assert.equal(inputs.loading,false);assert.equal(inputs.busy,false);
+ // Check native actionability attributes, not browser dispatch: this adapter
+ // does not implement Playwright's aria-disabled actionability or default clicks.
+ assert.equal(node.disabled,false);assert.equal(node.getAttribute('aria-disabled'),'false');assert.equal(open.disabled,true);assert.equal(open.getAttribute('aria-disabled'),'true');
+ let advisory;const toggle=inputs.toggle.bind(inputs);inputs.toggle=topicId=>{advisory=toggle(topicId);return advisory;};node.onclick();assert.equal(await advisory,false);assert.equal(await inputs.toggle(other),false);assert.equal(await inputs.openTopic(other),false);
+ assert.equal(inputs.commit.pending,pending);assert.equal(inputs.rows.get(other).enabled,false);assert.match(inputs.status.textContent,/unconfirmed/);assert.equal(inputs.status.querySelector('button').textContent,'Check previous operation');assert.equal(calls.length,requestCount,'advisory activation dispatches neither another choice nor receipt lookup');assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),saved);assert.deepEqual(await s.repository.transaction(false,t=>t.all('operationReceipts')),receipts);
+}));

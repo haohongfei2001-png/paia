@@ -79,14 +79,14 @@ test('saved open anchor remains viewport-bounded when scrolling moves the compos
  }
 });
 
-async function hostFixture({displayPreferences,animationFrame=f=>f()}={}){
- const nodes=[],sent=[],listeners=new Map(),windowHandlers=new Map(),documentHandlers=new Map(),timers=new Map();let failHost=false,timerId=0;
- const rect={x:500,y:700,width:44,height:44,left:500,right:544,top:700,bottom:744};
+async function hostFixture({displayPreferences,animationFrame=f=>f(),composerTop=700}={}){
+ const nodes=[],sent=[],listeners=new Map(),windowHandlers=new Map(),documentHandlers=new Map(),timers=new Map(),mountStates=[];let failHost=false,timerId=0,geometryReads=0;
+ const rect={x:500,y:composerTop,width:44,height:44,left:500,right:544,top:composerTop,bottom:composerTop+44};
  const element=tag=>{
   const attrs=new Map(),handlers=new Map(),node={tag,dataset:{},style:{},hidden:false,isConnected:false,handlers,
    setAttribute(k,v){attrs.set(k,v);},getAttribute:k=>attrs.get(k),addEventListener(k,v){handlers.set(k,v);},removeEventListener(){},
-   append(...children){for(const c of children)c.isConnected=true;},attachShadow(){return element('shadow');},remove(){this.isConnected=false;},
-   getBoundingClientRect:()=>({...rect}),setPointerCapture(id){this.pointerId=id;},hasPointerCapture(id){return this.pointerId===id;},releasePointerCapture(id){assert.equal(this.pointerId,id);this.pointerId=null;this.releases=(this.releases||0)+1;handlers.get('lostpointercapture')?.({pointerId:id});},focus(){this.focused=true;},closest(){return this;}};nodes.push(node);return node;
+   append(...children){for(const c of children){if(c.dataset.paiaPromptSurface==='')mountStates.push({hidden:c.hidden,geometryReads});c.isConnected=true;}},attachShadow(){return element('shadow');},remove(){this.isConnected=false;},
+   getBoundingClientRect:()=>{if(tag==='form')geometryReads++;return {...rect};},setPointerCapture(id){this.pointerId=id;},hasPointerCapture(id){return this.pointerId===id;},releasePointerCapture(id){assert.equal(this.pointerId,id);this.pointerId=null;this.releases=(this.releases||0)+1;handlers.get('lostpointercapture')?.({pointerId:id});},focus(){this.focused=true;},closest(){return this;}};nodes.push(node);return node;
  };
  const html=element('html');html.classList={contains:()=>false};
  const document={documentElement:html,createElement:element,createElementNS:(_ns,tag)=>element(tag),addEventListener:(k,f)=>documentHandlers.set(k,f),removeEventListener:k=>documentHandlers.delete(k)};
@@ -97,8 +97,21 @@ async function hostFixture({displayPreferences,animationFrame=f=>f()}={}){
  sandbox.window={addEventListener:(k,f)=>windowHandlers.set(k,f),removeEventListener:k=>windowHandlers.delete(k)};
  vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  vm.runInNewContext(await readFile(new URL('../content/prompt-surface.js',import.meta.url),'utf8'),sandbox);await new Promise(setImmediate);
- const orb=nodes.find(n=>n.tag==='button');return {orb,nodes,sent,sandbox,listeners,windowHandlers,documentHandlers,timers,failHost(){failHost=true;},fire(type,fields={}){orb.handlers.get(type)?.({isTrusted:true,button:0,pointerId:1,clientX:522,clientY:122,preventDefault(){},...fields});}};
+ const orb=nodes.find(n=>n.tag==='button');return {orb,nodes,sent,sandbox,listeners,windowHandlers,documentHandlers,timers,rect,mountStates,get geometryReads(){return geometryReads;},failHost(){failHost=true;},fire(type,fields={}){orb.handlers.get(type)?.({isTrusted:true,button:0,pointerId:1,clientX:522,clientY:122,preventDefault(){},...fields});}};
 }
+
+for(const composerTop of [8,700])test('initial host mount stays hidden until held first geometry frame: composer top '+composerTop,async()=>{
+ const frames=[],f=await hostFixture({composerTop,animationFrame:fn=>frames.push(fn)}),host=f.nodes.find(n=>n.dataset.paiaPromptSurface==='');
+ try{
+  assert.equal(host.isConnected,true);assert.equal(frames.length,1);assert.equal(f.geometryReads,0);
+  assert.deepEqual(f.mountStates,[{hidden:true,geometryReads:0}],'host is hidden before append, not merely after a later callback');
+  assert.equal(host.hidden,true,'unmeasured geometry cannot publish the entry');
+  frames.shift()();assert.equal(f.geometryReads,1);assert.equal(host.hidden,composerTop===8,'original geometry alone admits a safe band');
+  Object.assign(f.rect,{top:700,y:700,bottom:744});f.windowHandlers.get('resize')();frames.shift()();assert.equal(host.hidden,false,'normal geometry still admits the existing entry');
+  Object.assign(f.rect,{top:8,y:8,bottom:52});f.windowHandlers.get('resize')();frames.shift()();assert.equal(host.hidden,true,'later loss of space still withdraws the entry');
+  assert.equal(f.nodes.some(n=>n.tag==='iframe'),false);assert.equal(f.orb.focused,undefined);assert.equal(f.sent.some(r=>r.state||r.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'),false,'layout admission does not open, focus, save or close private content');
+ }finally{f.sandbox.PAIAPromptSurface.dispose();}
+});
 
 test('disposing the host cancels its pending presentation timer and removes composer activity listeners',async()=>{
  const f=await hostFixture(),host=f.nodes.find(n=>n.dataset.paiaPromptSurface==='');
