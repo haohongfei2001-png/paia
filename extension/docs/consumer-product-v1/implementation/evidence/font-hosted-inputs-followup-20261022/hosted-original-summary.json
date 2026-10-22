@@ -1,0 +1,549 @@
+{
+  "checks": {
+    "all-fragments": {
+      "error_class": "ValueError",
+      "helper_line": 273,
+      "status": "REJECT"
+    },
+    "collect-fragments": {
+      "status": "PASS"
+    },
+    "collect-sources": {
+      "status": "PASS"
+    },
+    "command:apt-version": {
+      "status": "PASS"
+    },
+    "command:dpkg-version": {
+      "status": "PASS"
+    },
+    "command:parent": {
+      "status": "PASS"
+    },
+    "command:root-dump": {
+      "status": "PASS"
+    },
+    "command:user-dump": {
+      "status": "PASS"
+    },
+    "deb822:/etc/apt/sources.list.d/ubuntu.sources": {
+      "status": "PASS"
+    },
+    "effective-configuration-and-sources": {
+      "error_class": "ValueError",
+      "helper_line": 173,
+      "status": "REJECT"
+    },
+    "fragment:/etc/apt/apt.conf.d/01-vendor-ubuntu": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/01autoremove": {
+      "error_class": "ValueError",
+      "helper_line": 273,
+      "status": "REJECT"
+    },
+    "fragment:/etc/apt/apt.conf.d/02autoremove-postgresql": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/10apt-autoremove": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/10dpkg-options": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/10periodic": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/15update-stamp": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/20apt-esm-hook.conf": {
+      "error_class": "ValueError",
+      "helper_line": 273,
+      "status": "REJECT"
+    },
+    "fragment:/etc/apt/apt.conf.d/20archive": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/20packagekit": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/20snapd.conf": {
+      "error_class": "ValueError",
+      "helper_line": 273,
+      "status": "REJECT"
+    },
+    "fragment:/etc/apt/apt.conf.d/50appstream": {
+      "error_class": "ValueError",
+      "helper_line": 273,
+      "status": "REJECT"
+    },
+    "fragment:/etc/apt/apt.conf.d/50command-not-found": {
+      "error_class": "ValueError",
+      "helper_line": 273,
+      "status": "REJECT"
+    },
+    "fragment:/etc/apt/apt.conf.d/70debconf": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/80-retries": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/90-index-targets": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/90assumeyes": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/99-phased-updates": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/99bad_proxy": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/99github-actions": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/99needrestart": {
+      "error_class": "ValueError",
+      "helper_line": 273,
+      "status": "REJECT"
+    },
+    "fragment:/etc/apt/apt.conf.d/99update-notifier": {
+      "status": "PASS"
+    },
+    "fragment:/etc/apt/apt.conf.d/zz-retries": {
+      "status": "PASS"
+    },
+    "mirror-manifest": {
+      "status": "PASS"
+    },
+    "native-read-scope": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt-mirrors.txt": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/01-vendor-ubuntu": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/01autoremove": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/02autoremove-postgresql": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/10apt-autoremove": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/10dpkg-options": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/10periodic": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/15update-stamp": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/20apt-esm-hook.conf": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/20archive": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/20packagekit": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/20snapd.conf": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/50appstream": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/50command-not-found": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/70debconf": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/80-retries": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/90-index-targets": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/90assumeyes": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/99-phased-updates": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/99bad_proxy": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/99github-actions": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/99needrestart": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/99update-notifier": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/apt.conf.d/zz-retries": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/sources.list": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/sources.list.d/microsoft-prod.list": {
+      "status": "PASS"
+    },
+    "read:/etc/apt/sources.list.d/ubuntu.sources": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt-mirrors.txt": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/01-vendor-ubuntu": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/01autoremove": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/02autoremove-postgresql": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/10apt-autoremove": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/10dpkg-options": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/10periodic": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/15update-stamp": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/20apt-esm-hook.conf": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/20archive": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/20packagekit": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/20snapd.conf": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/50appstream": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/50command-not-found": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/70debconf": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/80-retries": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/90-index-targets": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/90assumeyes": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/99-phased-updates": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/99bad_proxy": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/99github-actions": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/99needrestart": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/99update-notifier": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/apt.conf.d/zz-retries": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/sources.list": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/sources.list.d/microsoft-prod.list": {
+      "status": "PASS"
+    },
+    "unchanged:/etc/apt/sources.list.d/ubuntu.sources": {
+      "status": "PASS"
+    },
+    "user-root-equality": {
+      "status": "PASS"
+    }
+  },
+  "commands": {
+    "apt-version": {
+      "exit_code": 0,
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 10,
+        "sha256": "06b717734a2abe767fe0472e0f883401895bdb7fdcf8deb3ffc6dba1b1d04bc5"
+      }
+    },
+    "dpkg-version": {
+      "exit_code": 0,
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 188,
+        "sha256": "d744bd56001a1d2be1c647cb069e17cf2da7cc129b782c12f3bc13235ea200e9"
+      }
+    },
+    "parent": {
+      "exit_code": 0,
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 41,
+        "sha256": "ce08c098d846b11ad60288e1ce37daf371806701a88a0114530852987753c3e1"
+      }
+    },
+    "root-dump": {
+      "exit_code": 0,
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 18453,
+        "sha256": "460060ddde444d7a0d46c654fafbdea9253bb2ec66c1187a5a5541a4203adcb9"
+      }
+    },
+    "user-dump": {
+      "exit_code": 0,
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 18453,
+        "sha256": "460060ddde444d7a0d46c654fafbdea9253bb2ec66c1187a5a5541a4203adcb9"
+      }
+    }
+  },
+  "files": [
+    {
+      "bytes": 92,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/01-vendor-ubuntu",
+      "sha256": "364d5eeac5475b7dddfd629899ea88b91ed8d8e8e319c29bb9dbd6772e87ed55"
+    },
+    {
+      "bytes": 399,
+      "ordinary_hash_comment_lines": 2,
+      "path": "/etc/apt/apt.conf.d/01autoremove",
+      "sha256": "35b4360d9126e5e5efc1ce42cea8a957ba42921de749ad8502922d536c9f385c"
+    },
+    {
+      "bytes": 496,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/02autoremove-postgresql",
+      "sha256": "66ba028b70c0ae78940bc1bc3cbec070316550b00180034113aa3d4057e93227"
+    },
+    {
+      "bytes": 61,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/10apt-autoremove",
+      "sha256": "ff5162aa43f48a2b48c0fd995b77a288a7325e8d1cae3eff5e91a4c2811f9217"
+    },
+    {
+      "bytes": 83,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/10dpkg-options",
+      "sha256": "21dd9d6fa9dd4a81c1c21eb3a095c0bdd3943e80806620f4b9f2abffbbfeffaf"
+    },
+    {
+      "bytes": 129,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/10periodic",
+      "sha256": "82d9ce0d3f5d2c66945d8a1267445e9955409d1ef3cb9934107adccb46bf5f6a"
+    },
+    {
+      "bytes": 108,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/15update-stamp",
+      "sha256": "174cdb519fd06372847e23c20db869b2ff4b593252c0d2a6274d770eae2d92c9"
+    },
+    {
+      "bytes": 392,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/20apt-esm-hook.conf",
+      "sha256": "f7ab45bab1355711fcd031d78299cc3c7767654e7bf3f66a716ee3f2eae93733"
+    },
+    {
+      "bytes": 85,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/20archive",
+      "sha256": "4a569793b6a530904ff0dfd160bbc069c8a5b247d72f5756d62e6aeb31eabfdc"
+    },
+    {
+      "bytes": 1037,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/20packagekit",
+      "sha256": "549185db9256e57eaa25406d25ff52c339155cba1e5318148f1893bf728463c3"
+    },
+    {
+      "bytes": 127,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/20snapd.conf",
+      "sha256": "4f1a710936d83d53caa575af269db4311d7b461bdb1bb94ced5b1d331b0886ac"
+    },
+    {
+      "bytes": 2569,
+      "ordinary_hash_comment_lines": 12,
+      "path": "/etc/apt/apt.conf.d/50appstream",
+      "sha256": "8e89df0e4cfa24c7db4a165e776f40af7e0477f0d290bea4334edf6655db72bd"
+    },
+    {
+      "bytes": 625,
+      "ordinary_hash_comment_lines": 4,
+      "path": "/etc/apt/apt.conf.d/50command-not-found",
+      "sha256": "3a6f9f5244e49bee66ce65101fb73e16ba90f7a6cbd19befeefdf2c63209e2f1"
+    },
+    {
+      "bytes": 182,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/70debconf",
+      "sha256": "db749e19baf3b72ca2c157c70c52522cae23d94bc8b2dc5793fd43d427445367"
+    },
+    {
+      "bytes": 83,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/80-retries",
+      "sha256": "cf1542296518fcb4f5cd2a05c2f9765e5d9ba80dd3150dc8f5301a69563106b4"
+    },
+    {
+      "bytes": 60,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/90-index-targets",
+      "sha256": "bed2d7fb221486ac8973f5b42da90c5afcc48b58e390bd7f89bc29b9818e241e"
+    },
+    {
+      "bytes": 29,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/90assumeyes",
+      "sha256": "8f510b179758cb2266d2fca36c0c3d41a52bbb5d4ee35980e686d2d170565ddd"
+    },
+    {
+      "bytes": 48,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/99-phased-updates",
+      "sha256": "5f37721464492e10f8062995cd99c64333216962b9af8e0b3167e894c94a4fe3"
+    },
+    {
+      "bytes": 158,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/99bad_proxy",
+      "sha256": "42fcd394b7afc3a69473145d34266c69f8cba3ebecd573e61f0a9c5f448a6ec7"
+    },
+    {
+      "bytes": 64,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/99github-actions",
+      "sha256": "6c3422d8c28987ca319f9f6bee83e9ce03665a538f26c369571c8352c0431b31"
+    },
+    {
+      "bytes": 343,
+      "ordinary_hash_comment_lines": 6,
+      "path": "/etc/apt/apt.conf.d/99needrestart",
+      "sha256": "d453d945957bf2fb33a26cb74eacd38244291919715a1bb1d6179d0290c95c52"
+    },
+    {
+      "bytes": 305,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/99update-notifier",
+      "sha256": "c01bac21ce3df26d6a5ef0bcd6fae53c924d6915121f20f1d412824367bfe930"
+    },
+    {
+      "bytes": 81,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt.conf.d/zz-retries",
+      "sha256": "0c21b1954807974c2d023e93c6ff62bffb52c55a4e1ad3cd8322e01a9c19f64b"
+    },
+    {
+      "bytes": 270,
+      "ordinary_hash_comment_lines": 4,
+      "path": "/etc/apt/sources.list",
+      "sha256": "8ce6407d5487bed332b5fcb4aab26dacf3f516d811c26792efb0c67f06f1958b"
+    },
+    {
+      "bytes": 138,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/sources.list.d/microsoft-prod.list",
+      "sha256": "b1603241c9619c02611a77a663f55e726608bde079c4f559bcccdf73847a45c8"
+    },
+    {
+      "bytes": 2995,
+      "ordinary_hash_comment_lines": 42,
+      "path": "/etc/apt/sources.list.d/ubuntu.sources",
+      "sha256": "4508181e0dd5578c33d1247db48ab4847910b25da85e0789c8e7b3140d1fb289"
+    },
+    {
+      "bytes": 144,
+      "ordinary_hash_comment_lines": 0,
+      "path": "/etc/apt/apt-mirrors.txt",
+      "sha256": "e0d6b0af979e4662d16357a27ae456cc6f21e26da031540f4df8706ebed1d583"
+    }
+  ],
+  "helper_commit": "af5ed6b529886250526a12665f7d4530e5b42bfa",
+  "helper_sha256": "8a8390e2a6e1a4d80c219a2cfc22f296e5e5fe92ab77c7c08b8b542b8c9034b8",
+  "machine": "x86_64",
+  "native_read_guard_reason": "FIXED_READ_SCOPE_CHECKED",
+  "not_run": [
+    "apt-update",
+    "resolver",
+    "font-download",
+    "install",
+    "cache-service",
+    "browser",
+    "Full",
+    "model"
+  ],
+  "observation_complete": true,
+  "os": {
+    "ID": "ubuntu",
+    "VERSION_CODENAME": "noble",
+    "VERSION_ID": "24.04"
+  },
+  "os_release": {
+    "bytes": 400,
+    "sha256": "87458b3b1f1ca0e5c693ade771de7007c3783bdc692fa6b39eb6414bf2af2763"
+  },
+  "outcome": "OBSERVED_INCOMPATIBLE",
+  "run": {
+    "GITHUB_RUN_ATTEMPT": "1",
+    "GITHUB_RUN_ID": "39788048944",
+    "GITHUB_SHA": "ca55e4de49b1f29be4c4085625d0f18be42f343a",
+    "ImageOS": "ubuntu24",
+    "ImageVersion": "20261012.334.1"
+  },
+  "schema": 1,
+  "versions": {
+    "apt": "apt 2.8.3",
+    "dpkg": "REDACTED",
+    "python": "3.12.3"
+  }
+}

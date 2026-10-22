@@ -1,0 +1,44 @@
+{
+  "base": "cf467098d78ffe0877ff0379df1710b80b5793a2",
+  "implementation": "e3fed3f43e540f4fd660eba0a8515f4829579c5f",
+  "originalHelperSha256": "8a8390e2a6e1a4d80c219a2cfc22f296e5e5fe92ab77c7c08b8b542b8c9034b8",
+  "hostedOriginalArtifact": {
+    "id": 12430675112,
+    "zip_sha256": "6fd8ec5a518768e1ced29fd51aca1c5f65a2e6015851c17ff77a3079f226e9d3",
+    "summary_sha256": "43a4f5d7a57292317dbd4a0eca9c16dffa054ac2a55b246b1f28dd42bb870bca"
+  },
+  "files": {
+    "extension/scripts/prepare-browser-fonts.py": "7dbb8b58b63daf227085c95fe1a8651e41bb25876e0b17c88d81abe2a383ad4a",
+    "extension/tests/cpv1-02-hosted-browser-setup.test.mjs": "697b4c96617a0277be3a2dc1bcb14663562865f43110c9869c6e79070bb68494",
+    "extension/tests/fixtures/apt-ubuntu24-observed/01autoremove": "35b4360d9126e5e5efc1ce42cea8a957ba42921de749ad8502922d536c9f385c",
+    "extension/tests/fixtures/apt-ubuntu24-observed/20apt-esm-hook.conf": "f7ab45bab1355711fcd031d78299cc3c7767654e7bf3f66a716ee3f2eae93733",
+    "extension/tests/fixtures/apt-ubuntu24-observed/20snapd.conf": "4f1a710936d83d53caa575af269db4311d7b461bdb1bb94ced5b1d331b0886ac",
+    "extension/tests/fixtures/apt-ubuntu24-observed/50appstream": "8e89df0e4cfa24c7db4a165e776f40af7e0477f0d290bea4334edf6655db72bd",
+    "extension/tests/fixtures/apt-ubuntu24-observed/50command-not-found": "3a6f9f5244e49bee66ce65101fb73e16ba90f7a6cbd19befeefdf2c63209e2f1",
+    "extension/tests/fixtures/apt-ubuntu24-observed/99needrestart": "d453d945957bf2fb33a26cb74eacd38244291919715a1bb1d6179d0290c95c52",
+    "extension/tests/fixtures/apt-ubuntu24-observed/README.md": "0656224234963149c5d5a308d459cfaf01a8ab80896515cd8bc16c3ba6af2e50",
+    "extension/tests/fixtures/apt-ubuntu24-observed/provenance.json": "5203e3f4701e3765e36b6da5241e31e341e2857ef57ab6c76346ebf61d8e7bf2"
+  },
+  "logs": [
+    {
+      "file": "original-observed-negative.log.gz",
+      "raw_sha256": "b47fd1d936c03aa1183462be17c67ad1319d23843c95385baab258adc5cbc8e8",
+      "gzip_sha256": "c9bf14484b56cc23b1a410e56f044d80f523e5a9e296ec7f4232570d49c29ad7"
+    },
+    {
+      "file": "targeted-first.log.gz",
+      "raw_sha256": "f9bee232f8860e4c0700533a6d09cda88bcc5e0c54d1cd4aa6da8bf4784a5f11",
+      "gzip_sha256": "b5bef595d3ec7ce6b52e4c546e74562571e6bc54b33ee55cfe616a4467df66aa"
+    },
+    {
+      "file": "targeted-final.log.gz",
+      "raw_sha256": "d6ea5fec220f0353eaa870b611f497e03df6869004dd599f4a0e4db8c96c578c",
+      "gzip_sha256": "d9ec7538f78631362fd07656ed1fe8765f32fec8d3869e7470fde94c2190ee63"
+    },
+    {
+      "file": "package.log.gz",
+      "raw_sha256": "c8ee12506c4080ce6022940e8ae447b78808f0cdde674d615b5ad3b577a7b26b",
+      "gzip_sha256": "c941c2e76e968d9737a514b32df707c44f348a2e7daeb58d5b599caf1096f06c"
+    }
+  ]
+}
