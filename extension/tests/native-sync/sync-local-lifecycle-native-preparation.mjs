@@ -21,8 +21,17 @@ export async function runSyncLifecycleNative(h){
  // This uses the visible original Settings modal inside the headless harness,
  // not a parallel Sync page or a direct lifecycle.handle replacement.
  const p=h.archive,worker=()=>h.context.serviceWorkers().find(w=>w.url()===`chrome-extension://${h.extensionId}/background/service-worker.js`),inspect=()=>worker().evaluate(()=>globalThis.__localSyncNative.inspect());
- const consent=await p.evaluate(()=>chrome.runtime.sendMessage({type:'CONSENT',accepted:true}));assert.equal(consent.ok,true);
- await p.reload();await p.locator('.sidebar [data-view=settings]').click();await p.locator('#settings-sync').click();
+ // Match the original Settings owning native fixture: the default small CDP
+ // window uses compact navigation and legitimately hides the desktop sidebar.
+ // Resize the owned headless window/viewport; never force a hidden UI control.
+ const session=await h.context.newCDPSession(p),{windowId}=await session.send('Browser.getWindowForTarget');
+ try{await session.send('Browser.setWindowBounds',{windowId,bounds:{width:1280,height:900}});const {bounds}=await session.send('Browser.getWindowBounds',{windowId});assert.equal(bounds.width,1280);assert.equal(bounds.height,900);}finally{await session.detach();}
+ await p.setViewportSize({width:1280,height:900});
+ // FakeChatGPT's ordinary onboarding entry already advances the welcome page.
+ // Consume the genuine one-click consent path and await its actual readback.
+ await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();
+ await p.waitForFunction(async()=>{const r=await chrome.runtime.sendMessage({type:'GET_STATUS'});return r?.ok===true&&r.data.consented===true;});
+ await p.locator('.sidebar-bottom [data-view=settings]').click();await p.locator('#settings-panel').waitFor({state:'visible'});await p.locator('#settings-sync').click();
  const button=name=>p.locator(`#settings-sync-dialog [data-sync-command=${name}]`);
  await button('RESUME').waitFor({state:'visible'});assert.equal((await inspect()).attempts,0);await button('RESUME').click();await button('NOW').waitFor({state:'visible'});
  const baseline=await inspect();assert.equal(baseline.native,true);assert.equal(baseline.journals,true);assert.equal(baseline.view.wholeArchiveComplete,false);
