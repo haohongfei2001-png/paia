@@ -99,6 +99,13 @@ async function compile(core,items,manifest,store){
  for(const row of frontiers)if(!equal(row,{deviceId:row.deviceId,...expected.get(row.deviceId)}))fail('BNS_CHECKPOINT_FRONTIER');
  return {plan,canonical,frontiers};
 }
+// Read-only consuming discovery check. Reuse the exact original compiler;
+// return only its digest, never a plan, stage, writer or activation capability.
+export async function validateGroupedCheckpointGraph(core,items,manifest,{store}={}){
+ if(store?.repository!==core?.repository||!core?.repository)fail('BNS_GROUP_BINDING');
+ assertGroupedCheckpointManifest(manifest,{core});
+ return (await compile(core,items,manifest,store)).plan.digest;
+}
 // Both protocol namespaces count toward one explicit local admission budget.
 // Reuse the two existing per-batch byte envelopes; never count just wire bodies.
 async function requireStorageBudget(t,stage,replayId){

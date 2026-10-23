@@ -1,4 +1,5 @@
 import {createSettingsSupportedSites} from './settings-supported-sites.js';
+import {mountSettingsSync} from './settings-sync.js';
 import {refreshSettingsRecovery} from './maintenance-recovery.js';
 import {createIcon} from './icons.js';
 import {refreshStorage,subscribeStorageEstimate,storageSummaryText} from './r6-settings.js';
@@ -176,5 +177,6 @@ export function installSettingsDetails({dataGroup,language,backup=null}={}){
  const searchRepair=mountSearchRepair(dataGroup,language);
  const retired=document.createElement('div');retired.hidden=true;retired.append(removed);document.body.append(retired);pending.removeAttribute('data-settings-zh');pending.removeAttribute('data-settings-en');document.getElementById('history-dialog').append(pending);removedWrapper.replaceWith(removedDetail.row);
  subscribeStorageEstimate(state=>{storageState=state;storageDetail.sync();});
- owner={sync:()=>{for(const detail of [storageDetail,siteDetail,importDetail,sourceDetail,restoreDetail,removedDetail,searchRepair])detail.sync();},storage:storageDetail,sites:siteDetail,restore:restoreDetail,removed:removedDetail,searchRepair};return owner;
+ const syncDetail=mountSettingsSync({mountDetail:mountSettingsDetail,language});dataGroup.insertBefore(syncDetail.row,importDetail.row);
+ owner={sync:()=>{for(const detail of [syncDetail,storageDetail,siteDetail,importDetail,sourceDetail,restoreDetail,removedDetail,searchRepair])detail.sync();},syncDetail,storage:storageDetail,sites:siteDetail,restore:restoreDetail,removed:removedDetail,searchRepair};return owner;
 }

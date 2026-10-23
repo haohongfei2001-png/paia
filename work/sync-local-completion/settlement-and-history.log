@@ -1,0 +1,144 @@
+TAP version 13
+# Subtest: local discovery traverses empty pages and restores original Source/Working with sender closed
+ok 1 - local discovery traverses empty pages and restores original Source/Working with sender closed
+  ---
+  duration_ms: 225.391875
+  type: 'test'
+  ...
+# Subtest: missing or corrupt transport bytes never activate; restart resumes original durable stage
+ok 2 - missing or corrupt transport bytes never activate; restart resumes original durable stage
+  ---
+  duration_ms: 135.361375
+  type: 'test'
+  ...
+# Subtest: pause during held transport rejects late completion and preserves original destination
+ok 3 - pause during held transport rejects late completion and preserves original destination
+  ---
+  duration_ms: 132.47525
+  type: 'test'
+  ...
+# Subtest: activation rollback and local edits keep their original exact owner fences
+ok 4 - activation rollback and local edits keep their original exact owner fences
+  ---
+  duration_ms: 153.965375
+  type: 'test'
+  ...
+# Subtest: discovery refuses missing instead of selecting an arbitrary checkpoint
+ok 5 - discovery refuses missing instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 86.190667
+  type: 'test'
+  ...
+# Subtest: discovery refuses multiple instead of selecting an arbitrary checkpoint
+ok 6 - discovery refuses multiple instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 82.333959
+  type: 'test'
+  ...
+# Subtest: discovery refuses cycle instead of selecting an arbitrary checkpoint
+ok 7 - discovery refuses cycle instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 100.169209
+  type: 'test'
+  ...
+# Subtest: discovery refuses malformed instead of selecting an arbitrary checkpoint
+ok 8 - discovery refuses malformed instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 88.858375
+  type: 'test'
+  ...
+# Subtest: historical checkpoints select the authenticated unique causal descendant, not list order
+ok 9 - historical checkpoints select the authenticated unique causal descendant, not list order
+  ---
+  duration_ms: 247.072959
+  type: 'test'
+  ...
+# Subtest: two genuine incomparable checkpoints cannot be silently chosen
+ok 10 - two genuine incomparable checkpoints cannot be silently chosen
+  ---
+  duration_ms: 111.975292
+  type: 'test'
+  ...
+# Subtest: pause after the real activation commit preserves the confirmed restored outcome
+ok 11 - pause after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 142.463042
+  type: 'test'
+  ...
+# Subtest: close after the real activation commit preserves the confirmed restored outcome
+ok 12 - close after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 117.43625
+  type: 'test'
+  ...
+# Subtest: pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+not ok 13 - pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+  ---
+  duration_ms: 115.341084
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-local-recovery.test.mjs:62:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_RECOVERY_INTERRUPTED'
+    -   code: 'STORAGE_FAILED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'STORAGE_FAILED'
+  actual:
+  error: 'BNS_RECOVERY_INTERRUPTED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    #check (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/recovery-session.js:18:83)
+    GroupedCheckpointRestore.checkpoint (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/recovery-session.js:14:150)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint.js:172:4
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:148:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:427:20)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:148:66)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint.js:155:48
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:192:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-local-recovery.test.mjs:64:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lost post-commit response stays settlement-unknown until original durable activation proof is checked
+ok 14 - lost post-commit response stays settlement-unknown until original durable activation proof is checked
+  ---
+  duration_ms: 100.64675
+  type: 'test'
+  ...
+# Subtest: discovery enforces cumulative object budget before fetching or activating
+ok 15 - discovery enforces cumulative object budget before fetching or activating
+  ---
+  duration_ms: 57.019833
+  type: 'test'
+  ...
+# Subtest: Sync is an honest, bilingual read-only Settings destination with original modal semantics
+ok 16 - Sync is an honest, bilingual read-only Settings destination with original modal semantics
+  ---
+  duration_ms: 1.212667
+  type: 'test'
+  ...
+# Subtest: original Data group installs Sync before history import and language refresh includes its owner
+ok 17 - original Data group installs Sync before history import and language refresh includes its owner
+  ---
+  duration_ms: 1.705666
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 16
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2117.343083
