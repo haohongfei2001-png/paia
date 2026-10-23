@@ -1,0 +1,192 @@
+[
+  {
+    "atMs": 1001.0867089999999,
+    "nodeHost": {
+      "rss": 166412288,
+      "heapTotal": 83951616,
+      "heapUsed": 43873912,
+      "external": 3876042,
+      "arrayBuffers": 73621
+    }
+  },
+  {
+    "atMs": 2000.0249589999999,
+    "nodeHost": {
+      "rss": 131563520,
+      "heapTotal": 85622784,
+      "heapUsed": 53119352,
+      "external": 4299429,
+      "arrayBuffers": 493894
+    }
+  },
+  {
+    "atMs": 3000.393375,
+    "nodeHost": {
+      "rss": 148406272,
+      "heapTotal": 86556672,
+      "heapUsed": 52444752,
+      "external": 4642628,
+      "arrayBuffers": 837093
+    }
+  },
+  {
+    "atMs": 4001.628709,
+    "nodeHost": {
+      "rss": 148324352,
+      "heapTotal": 86556672,
+      "heapUsed": 52465608,
+      "external": 4642714,
+      "arrayBuffers": 837179
+    }
+  },
+  {
+    "atMs": 5002.036792,
+    "nodeHost": {
+      "rss": 148324352,
+      "heapTotal": 86556672,
+      "heapUsed": 52466224,
+      "external": 4642714,
+      "arrayBuffers": 837179
+    }
+  },
+  {
+    "atMs": 6003.139166999999,
+    "nodeHost": {
+      "rss": 148324352,
+      "heapTotal": 86556672,
+      "heapUsed": 52466840,
+      "external": 4642714,
+      "arrayBuffers": 837179
+    }
+  },
+  {
+    "atMs": 7003.705542,
+    "nodeHost": {
+      "rss": 148209664,
+      "heapTotal": 86556672,
+      "heapUsed": 52475184,
+      "external": 4642714,
+      "arrayBuffers": 837179
+    }
+  },
+  {
+    "atMs": 8004.934042,
+    "nodeHost": {
+      "rss": 172933120,
+      "heapTotal": 91389952,
+      "heapUsed": 49665424,
+      "external": 4194569,
+      "arrayBuffers": 389034
+    }
+  },
+  {
+    "atMs": 9005.545209,
+    "nodeHost": {
+      "rss": 172933120,
+      "heapTotal": 91389952,
+      "heapUsed": 49666208,
+      "external": 4194569,
+      "arrayBuffers": 389034
+    }
+  },
+  {
+    "atMs": 10005.902624999999,
+    "nodeHost": {
+      "rss": 172933120,
+      "heapTotal": 91389952,
+      "heapUsed": 49667424,
+      "external": 4194569,
+      "arrayBuffers": 389034
+    }
+  },
+  {
+    "atMs": 11006.135959,
+    "nodeHost": {
+      "rss": 172933120,
+      "heapTotal": 91389952,
+      "heapUsed": 49668080,
+      "external": 4194569,
+      "arrayBuffers": 389034
+    }
+  },
+  {
+    "atMs": 12006.753084,
+    "nodeHost": {
+      "rss": 172933120,
+      "heapTotal": 91389952,
+      "heapUsed": 49668920,
+      "external": 4194569,
+      "arrayBuffers": 389034
+    }
+  },
+  {
+    "atMs": 13007.718499999999,
+    "nodeHost": {
+      "rss": 172933120,
+      "heapTotal": 91389952,
+      "heapUsed": 49669568,
+      "external": 4194569,
+      "arrayBuffers": 389034
+    }
+  },
+  {
+    "atMs": 14008.127666999999,
+    "nodeHost": {
+      "rss": 172933120,
+      "heapTotal": 91389952,
+      "heapUsed": 49670216,
+      "external": 4194569,
+      "arrayBuffers": 389034
+    }
+  },
+  {
+    "atMs": 15008.409916999999,
+    "nodeHost": {
+      "rss": 160841728,
+      "heapTotal": 91389952,
+      "heapUsed": 49670864,
+      "external": 4194569,
+      "arrayBuffers": 389034
+    }
+  },
+  {
+    "atMs": 16009.408374999999,
+    "nodeHost": {
+      "rss": 160841728,
+      "heapTotal": 91389952,
+      "heapUsed": 49671512,
+      "external": 4194569,
+      "arrayBuffers": 389034
+    }
+  },
+  {
+    "atMs": 17010.436375,
+    "nodeHost": {
+      "rss": 127451136,
+      "heapTotal": 52068352,
+      "heapUsed": 49611208,
+      "external": 3917983,
+      "arrayBuffers": 112448
+    }
+  },
+  {
+    "atMs": 18011.4575,
+    "nodeHost": {
+      "rss": 127451136,
+      "heapTotal": 52068352,
+      "heapUsed": 49611856,
+      "external": 3917983,
+      "arrayBuffers": 112448
+    }
+  },
+  {
+    "atMs": 19012.148542,
+    "nodeHost": {
+      "rss": 127451136,
+      "heapTotal": 52068352,
+      "heapUsed": 49612864,
+      "external": 3917983,
+      "arrayBuffers": 112448
+    }
+  }
+]

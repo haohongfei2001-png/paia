@@ -1,0 +1,98 @@
+[
+  {
+    "ref": {
+      "id": "e43348b2ec0a3f86d10876e960e04b90e28bf0571df5171812f3372b6177e1e0",
+      "kind": "checkpoint-shard",
+      "codec": "identity",
+      "encodedBytes": 259653,
+      "decodedBytes": 259653,
+      "digest": "e43348b2ec0a3f86d10876e960e04b90e28bf0571df5171812f3372b6177e1e0"
+    },
+    "bytes": 259653,
+    "sha256": "e43348b2ec0a3f86d10876e960e04b90e28bf0571df5171812f3372b6177e1e0"
+  },
+  {
+    "ref": {
+      "id": "5c6952483801a2cbc2bc4802f63ad93ff9cb73a3a90c2a72e84b2ffbee9d8f94",
+      "kind": "checkpoint-shard",
+      "codec": "identity",
+      "encodedBytes": 261065,
+      "decodedBytes": 261065,
+      "digest": "5c6952483801a2cbc2bc4802f63ad93ff9cb73a3a90c2a72e84b2ffbee9d8f94"
+    },
+    "bytes": 261065,
+    "sha256": "5c6952483801a2cbc2bc4802f63ad93ff9cb73a3a90c2a72e84b2ffbee9d8f94"
+  },
+  {
+    "ref": {
+      "id": "14c18b566c16ff508deaf1015ef946b9934888e0c88d3748596769629907a3bc",
+      "kind": "checkpoint-shard",
+      "codec": "identity",
+      "encodedBytes": 257908,
+      "decodedBytes": 257908,
+      "digest": "14c18b566c16ff508deaf1015ef946b9934888e0c88d3748596769629907a3bc"
+    },
+    "bytes": 257908,
+    "sha256": "14c18b566c16ff508deaf1015ef946b9934888e0c88d3748596769629907a3bc"
+  },
+  {
+    "ref": {
+      "id": "4f79f838a24169ce6d163ffae5690d604f467f0f429c10740a3c0af871f2003f",
+      "kind": "checkpoint-shard",
+      "codec": "identity",
+      "encodedBytes": 258067,
+      "decodedBytes": 258067,
+      "digest": "4f79f838a24169ce6d163ffae5690d604f467f0f429c10740a3c0af871f2003f"
+    },
+    "bytes": 258067,
+    "sha256": "4f79f838a24169ce6d163ffae5690d604f467f0f429c10740a3c0af871f2003f"
+  },
+  {
+    "ref": {
+      "id": "743bae11b18f3bd1f6e72cab6b40729bf39109da39c0dadeaa0a6b92af1a7e49",
+      "kind": "checkpoint-shard",
+      "codec": "identity",
+      "encodedBytes": 119451,
+      "decodedBytes": 119451,
+      "digest": "743bae11b18f3bd1f6e72cab6b40729bf39109da39c0dadeaa0a6b92af1a7e49"
+    },
+    "bytes": 119451,
+    "sha256": "743bae11b18f3bd1f6e72cab6b40729bf39109da39c0dadeaa0a6b92af1a7e49"
+  },
+  {
+    "ref": {
+      "id": "d9c099a1674149d2aa94eb6dddf953ac44cd58ec5ae80ccae01927aeebf7e25a",
+      "kind": "checkpoint-shard",
+      "codec": "identity",
+      "encodedBytes": 1289,
+      "decodedBytes": 1289,
+      "digest": "d9c099a1674149d2aa94eb6dddf953ac44cd58ec5ae80ccae01927aeebf7e25a"
+    },
+    "bytes": 1289,
+    "sha256": "d9c099a1674149d2aa94eb6dddf953ac44cd58ec5ae80ccae01927aeebf7e25a"
+  },
+  {
+    "ref": {
+      "id": "8e634dab608eab5a2ac9098770f62fc287d9695b3a0d2e5eb717fe42086b40a8",
+      "kind": "checkpoint-manifest",
+      "codec": "identity",
+      "encodedBytes": 603,
+      "decodedBytes": 603,
+      "digest": "8e634dab608eab5a2ac9098770f62fc287d9695b3a0d2e5eb717fe42086b40a8"
+    },
+    "bytes": 603,
+    "sha256": "8e634dab608eab5a2ac9098770f62fc287d9695b3a0d2e5eb717fe42086b40a8"
+  },
+  {
+    "ref": {
+      "id": "07f6fa26c80c7be8cacc9ebfae057662ce6c4912623c948094ea1ed41e8425ef",
+      "kind": "checkpoint-manifest",
+      "codec": "identity",
+      "encodedBytes": 1969,
+      "decodedBytes": 1969,
+      "digest": "07f6fa26c80c7be8cacc9ebfae057662ce6c4912623c948094ea1ed41e8425ef"
+    },
+    "bytes": 1969,
+    "sha256": "07f6fa26c80c7be8cacc9ebfae057662ce6c4912623c948094ea1ed41e8425ef"
+  }
+]

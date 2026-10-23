@@ -1,0 +1,60 @@
+{
+  "mode": "once",
+  "head": "d1888a346e16c144aae2c1bd690f1c7ecb32726d",
+  "groups": 129,
+  "coldPrefix": 64,
+  "result": "FAIL",
+  "node": "v22.23.3",
+  "platform": "darwin",
+  "arch": "arm64",
+  "fullSyncQualification": false,
+  "cloudExecuted": false,
+  "startedAt": "2026-10-23T12:14:35.644Z",
+  "fixtureSha256": "fd33c831c8f2eba82bb8db1cdecf6dbaa47e28a12d9f1a07d44f752c9eaf8352",
+  "browserVersion": "156.0.8078.47",
+  "error": {
+    "message": "worker.evaluate: ArchiveError: BNS_GROUP_RESOURCE_LIMIT\n    at HumanLibrarySyncJournal.execute (chrome-extension://bgcjplhghmfbioihmfnhidcjaedjgdik/core/browser-native-sync/human-library-journal.js:65:314)\n    at async continuation (chrome-extension://bgcjplhghmfbioihmfnhidcjaedjgdik/background/qualified-recovery-fixture.mjs:66:76)\n    at async <anonymous>:337:30",
+    "stack": "worker.evaluate: ArchiveError: BNS_GROUP_RESOURCE_LIMIT\n    at HumanLibrarySyncJournal.execute (chrome-extension://bgcjplhghmfbioihmfnhidcjaedjgdik/core/browser-native-sync/human-library-journal.js:65:314)\n    at async continuation (chrome-extension://bgcjplhghmfbioihmfnhidcjaedjgdik/background/qualified-recovery-fixture.mjs:66:76)\n    at async <anonymous>:337:30\n    at Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)\n    at async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/qualified-human-recovery-once-20261023/run-qualified.mjs:40:15"
+  },
+  "wallMs": 19512.379834,
+  "memoryScope": "Node orchestration process samples only; browser heap/process peak UNKNOWN",
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive",
+      "paia-native-qualified-129-registry",
+      "paia-native-qualified-129-source",
+      "paia-native-qualified-129-target"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "828f0637-f8d7-4042-a8d6-b93dec9a8628",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "828f0637-f8d7-4042-a8d6-b93dec9a8628",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive",
+            "paia-native-qualified-129-registry",
+            "paia-native-qualified-129-source",
+            "paia-native-qualified-129-target"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  },
+  "sourceStable": true
+}

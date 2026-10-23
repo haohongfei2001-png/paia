@@ -1,3 +1,13 @@
+# Qualified recovery milestone and remaining local work — 2026-10-23
+
+The one authorized 129-group local recovery has executed and **failed overall**, without retry. It completed its 64-group cold reopen, all 129 original owners, complete raw final validation and durable publication. The following ordinary edit was refused with `BNS_GROUP_RESOURCE_LIMIT`. The recovery ledger remained below the approved 64 MiB / 120 s; ordinary budgets remain unchanged. This execution allowance is consumed. [Complete evidence and limitations](../../../work/qualified-human-recovery-once-20261023/ONCE-REPORT.md).
+
+Strict cumulative control accounting and finite mixed positive/negative Source recovery are integrated: 198/198 Node and a separate Source/Release 4/4 native parent batch, 32 + 22 original cases per variant, with one 674-file development build. [Milestone receipt](../../../work/qualified-human-budget-final-20261023/REPORT.md). A separate three-group cold restore/edit passes. These do not supersede the 129 failure.
+
+Local engineering continues on the ordinary editing refusal, safe default-off application startup selection, selected-active mixed recovery and qualified cold copy retirement. No new cloud, real-account, credentials, paid-model, installation or deployment authority. Earlier status sections below are historical where superseded here.
+
+## Preserved preceding checkpoint
+
 # Local mixed recovery continuation — 2026-10-23
 
 Root integration now includes incoming Human creation/editing in existing mixed Saved libraries and selected active Source permanent-ignore/replay protection. Exact local composition423/423, one672-file build, and Source/Release4/4 native parents (34+14 original cases per variant) pass with stable vectors and zero external requests. [Receipt](../../../work/qualified-mixed-integration-20261023/REPORT.md). This finite milestone does not complete arbitrary mixed negative recovery or all Sync stages.

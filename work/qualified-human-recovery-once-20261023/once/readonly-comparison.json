@@ -1,0 +1,10 @@
+{
+  "scope": "Readonly comparison of already captured synthetic evidence; no database, browser or restore execution",
+  "entriesSemanticEqualToOriginal": true,
+  "historySemanticEqualToOriginal": true,
+  "entryCount": 129,
+  "historyCount": 129,
+  "operationReceiptCount": 129,
+  "fullFailedEditRollbackProven": false,
+  "limitation": "No full immediately-before-edit table snapshot. The existing semantic Entry/history assertions passed before edit and recorded terminal values still match original semantic rows; all-table rollback not independently proved."
+}
