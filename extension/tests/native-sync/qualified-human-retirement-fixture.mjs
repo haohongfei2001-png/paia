@@ -3,7 +3,8 @@ export const QUALIFIED_HUMAN_RETIREMENT_CASES=Object.freeze([
   "qualified v2 3 group cold retirement preserves canonical and audit rows and ordinary editing",
   "qualified cold retirement refuses control-debt before deleting any body copy",
   "qualified cold retirement refuses foreign-task before deleting any body copy",
-  "qualified cold retirement terminal fence rolls back deletions after late control ledger mutation"
+  "qualified cold retirement terminal fence rolls back deletions after late control ledger mutation",
+  "qualified three group large body authentication refuses before publication at original budget"
 ]);
 // Prepared only: exact original cold and semantic cases, with no browser execution.
 export function nativeQualifiedHumanRetirementFixture(source,helpers,command){
@@ -44,7 +45,7 @@ const previous=globalThis.__bnsNative;
 globalThis.__bnsNative={...previous,async run(command,...args){
  if(command!==${JSON.stringify(command)})return previous.run(command,...args);
  const passed=[];
- const selected=cases;if(selected.length!==5||new Set(selected.map(x=>x.name)).size!==5||JSON.stringify(selected.map(x=>x.name))!==${JSON.stringify(JSON.stringify(QUALIFIED_HUMAN_RETIREMENT_CASES))}||selected.some(x=>/(?:^|[^0-9])(?:65|129)(?:[^0-9]|$)/.test(x.name)))throw Error('native selected count or allowlist');
+ const selected=cases;if(selected.length!==6||new Set(selected.map(x=>x.name)).size!==6||JSON.stringify(selected.map(x=>x.name))!==${JSON.stringify(JSON.stringify(QUALIFIED_HUMAN_RETIREMENT_CASES))}||selected.some(x=>/(?:^|[^0-9])(?:65|129)(?:[^0-9]|$)/.test(x.name)))throw Error('native selected count or allowlist');
  for(const item of selected){const after=[];let failure;
   try{await item.fn({after(fn){if(typeof fn!=='function')throw Error('native after');after.push(fn);}});passed.push(item.name);}
   catch(error){failure=Error(item.name+': '+error.stack);}

@@ -1,0 +1,59 @@
+TAP version 13
+# Subtest: qualified v2 1 group cold retirement preserves canonical and audit rows and ordinary editing
+ok 1 - qualified v2 1 group cold retirement preserves canonical and audit rows and ordinary editing
+  ---
+  duration_ms: 245.391333
+  type: 'test'
+  ...
+# Subtest: qualified v2 3 group cold retirement preserves canonical and audit rows and ordinary editing
+ok 2 - qualified v2 3 group cold retirement preserves canonical and audit rows and ordinary editing
+  ---
+  duration_ms: 360.387125
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement refuses control-debt before deleting any body copy
+ok 3 - qualified cold retirement refuses control-debt before deleting any body copy
+  ---
+  duration_ms: 153.737
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement refuses foreign-task before deleting any body copy
+ok 4 - qualified cold retirement refuses foreign-task before deleting any body copy
+  ---
+  duration_ms: 153.87425
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement terminal fence rolls back deletions after late control ledger mutation
+ok 5 - qualified cold retirement terminal fence rolls back deletions after late control ledger mutation
+  ---
+  duration_ms: 160.5455
+  type: 'test'
+  ...
+# Subtest: qualified three group large body retirement restores ordinary edit within unchanged budget
+not ok 6 - qualified three group large body retirement restores ordinary edit within unchanged budget
+  ---
+  duration_ms: 236.340292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-cold-retirement.test.mjs:35:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:32:80)
+    phaseCurrent (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:184:126)
+    #stagePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:192:468)
+    async CanonicalGenerationCheckpointStage.stageQualifiedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:168:130)
+    async published (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-cold-retirement.test.mjs:21:100)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-cold-retirement.test.mjs:36:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1480.506792

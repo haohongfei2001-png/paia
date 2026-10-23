@@ -1,0 +1,10 @@
+{
+  "extension/core/idb-repository.js": "bec31f23933f984510d2691272007e901c5f2b1e02ff30e8101c919258f1d00d",
+  "extension/core/browser-native-sync/source-working-physical.js": "849950db460e2f2b14547e72670887a59494a66a402e0f2566cf5a77b10d9e95",
+  "extension/core/browser-native-sync/canonical-generation-copy-retirement.js": "d13b71805bc1f1f88686836bc9c5e52acb43f801ded2a7497dd78f3302ceafb2",
+  "extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js": "e4e502e083cf00aa13ce06e8972d16908f0efeb06f7f837704195305a0cb8200",
+  "extension/core/browser-native-sync/canonical-generation-publication.js": "d8cf4428b83750c2670fc76194fdf344d210b9547a0164757572365d06a34a3f",
+  "extension/tests/qualified-human-cold-retirement.test.mjs": "70505d69892eee4cf6662029cebd8b12d5fdabde5a0a4da2b6582955d7d8bda6",
+  "extension/tests/native-sync/qualified-human-retirement-fixture.mjs": "efc4cc2210604c91c7c931aebae26c719058d99fc3796f0be9af9887e77348a6",
+  "extension/tests/native-sync/qualified-human-retirement-chrome.test.mjs": "19e684e536f65c458f1fc27e5a2bbfac01ed5cca5ee6ef9cce5f151e9aa8f762"
+}

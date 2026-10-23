@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: qualified v2 1 group cold retirement preserves canonical and audit rows and ordinary editing
+ok 1 - qualified v2 1 group cold retirement preserves canonical and audit rows and ordinary editing
+  ---
+  duration_ms: 209.104459
+  type: 'test'
+  ...
+# Subtest: qualified v2 3 group cold retirement preserves canonical and audit rows and ordinary editing
+ok 2 - qualified v2 3 group cold retirement preserves canonical and audit rows and ordinary editing
+  ---
+  duration_ms: 268.901708
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement refuses control-debt before deleting any body copy
+ok 3 - qualified cold retirement refuses control-debt before deleting any body copy
+  ---
+  duration_ms: 132.104833
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement refuses foreign-task before deleting any body copy
+ok 4 - qualified cold retirement refuses foreign-task before deleting any body copy
+  ---
+  duration_ms: 131.963708
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement terminal fence rolls back deletions after late control ledger mutation
+ok 5 - qualified cold retirement terminal fence rolls back deletions after late control ledger mutation
+  ---
+  duration_ms: 139.299625
+  type: 'test'
+  ...
+# Subtest: qualified three group large body authentication refuses before publication at original budget
+ok 6 - qualified three group large body authentication refuses before publication at original budget
+  ---
+  duration_ms: 203.809125
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1243.100875
