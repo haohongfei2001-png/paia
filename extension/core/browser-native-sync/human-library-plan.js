@@ -96,13 +96,21 @@ function computeHumanEntryState(request,before,requestDigest,exactSignature,allo
 }
 export function prepareHumanEntryPlan(store,core,request,entry){return prepareEntryPlan(store,core,request,entry,false);}
 export function prepareHumanSourceEntryPlan(store,core,request,entry){return prepareEntryPlan(store,core,clone(request),entry,true);}
-async function prepareEntryPlan(store,core,request,entry,sourceBound){
+// The source-free replay owns one complete readonly cut. It shares no cache
+// across transactions: commit still re-reads the original base and collisions.
+export async function prepareHumanEntryReplayPlan(store,core,input){
+ const d=clone(input);validateHumanLibraryCommit(d);if(d.kind!=='entry'||d.datasetId!==core.datasetId)fail('BNS_HUMAN_GENERATION_SCOPE');
+ const request=await restoreHumanRequest(d);await store.finishFoundation();if(core.repository!==store.repository)fail('BNS_HUMAN_BINDING');
+ const before=await store.run(()=>core.transaction(false,async t=>({...await base(store,core,t),receipt:await t.get('operationReceipts',request.operationId)??null}))),{receipt,...cut}=before;
+ const entry=bindHumanReplayEntry(cut,d.events,d.allocation);return prepareEntryPlan(store,core,request,entry,false,before);
+}
+async function prepareEntryPlan(store,core,request,entry,sourceBound,capturedBefore=null){
  keys(request,['operationId','actor','title','body','note','type','formation','evidence'],['operationId','actor','body','type','formation','evidence']);
  validateFields({body:request.body,title:request.title??'',note:request.note??'',type:request.type,formation:request.formation});
  if(!idOK(request.operationId)||request.operationId.length<8)fail('BNS_HUMAN_REQUEST');
  if(request.actor!=='user'||request.formation!=='explicit'||!Array.isArray(request.evidence)||(!sourceBound&&request.evidence.length)||!store.libraryDocumentMode||!entry)fail('BNS_HUMAN_UNSUPPORTED');
  if(sourceBound&&request.evidence.length!==1)fail('BNS_HUMAN_UNSUPPORTED');const evidence=sourceBound?await humanSourceEvidence(entry,store,core,request.evidence):[];if(sourceBound&&(evidence.length!==1||evidence[0].role!=='primary'||evidence[0].sourceRecordIds.length!==1||evidence[0].anchorId!==undefined))fail('BNS_HUMAN_UNSUPPORTED');
- const before=humanFutureRead(entry,store,core,'entry',request)??await store.run(()=>core.transaction(false,async t=>({...await base(store,core,t),receipt:await t.get('operationReceipts',request.operationId)??null}))),{receipt,...cut}=before;
+ const before=capturedBefore??humanFutureRead(entry,store,core,'entry',request)??await store.run(()=>core.transaction(false,async t=>({...await base(store,core,t),receipt:await t.get('operationReceipts',request.operationId)??null}))),{receipt,...cut}=before;
  if(!equal(cut,entry)||cut.library?.sealed)fail('BNS_HUMAN_CHANGED');const requestDigest=await hashText(JSON.stringify(request));if(receipt){if(receipt.digest!==requestDigest)fail('BNS_HUMAN_OPERATION_COLLISION');return {duplicate:true,result:clone(receipt.result)};}
  const exactSignature=await keyedHash(before.secret,['body',request.type,request.body]),allocation=prepareHumanAllocation(store,entry),{row,history,provenance,dependencies,result,operationReceipt,revisionSequence,thoughtSequence}=computeHumanEntryState(request,before,requestDigest,exactSignature,allocation,evidence);
  const cap=Object.freeze({});plans.set(cap,{kind:'entry',sourceBound,evidence,provenance,dependencies,store,core,entry:clone(entry),before,request:clone(request),allocation:allocation.seal(),events:allocation.events(),row,history,result,operationReceipt,revisionSequence,thoughtSequence});return cap;

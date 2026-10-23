@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: real bound create/edit/lifecycle owners publish required members through original segments and duplicate ACK adds nothing
+ok 1 - real bound create/edit/lifecycle owners publish required members through original segments and duplicate ACK adds nothing
+  ---
+  duration_ms: 385.06475
+  type: 'test'
+  ...
+# Subtest: actual owner and its outbox roll back together after protocol write failure
+ok 2 - actual owner and its outbox roll back together after protocol write failure
+  ---
+  duration_ms: 54.771583
+  type: 'test'
+  ...
+# Subtest: real bound named Topic/Section/placement/move/fixed/remove/restore/identity consumers remain atomic
+ok 3 - real bound named Topic/Section/placement/move/fixed/remove/restore/identity consumers remain atomic
+  ---
+  duration_ms: 619.590166
+  type: 'test'
+  ...
+# Subtest: private receiver replays actual owners across installation keys and local sequences, preserves coalesced history, duplicate after edit is zero write
+ok 4 - private receiver replays actual owners across installation keys and local sequences, preserves coalesced history, duplicate after edit is zero write
+  ---
+  duration_ms: 331.724917
+  type: 'test'
+  ...
+# Subtest: partial/swapped/semantic tampered/local-counter tampered groups and invalid options refuse with all actual stores unchanged
+ok 5 - partial/swapped/semantic tampered/local-counter tampered groups and invalid options refuse with all actual stores unchanged
+  ---
+  duration_ms: 54.144625
+  type: 'test'
+  ...
+# Subtest: remote actual canonical/domain history/Core/mapping writes all roll back on final ACK failure; prepared owner edit refuses
+ok 6 - remote actual canonical/domain history/Core/mapping writes all roll back on final ACK failure; prepared owner edit refuses
+  ---
+  duration_ms: 72.371916
+  type: 'test'
+  ...
+# Subtest: one global 128-operation ancestry budget includes every parent commit and its member closure before producer writes
+ok 7 - one global 128-operation ancestry budget includes every parent commit and its member closure before producer writes
+  ---
+  duration_ms: 1164.262959
+  type: 'test'
+  ...
+# Subtest: actual receiver can edit and republish to original producer despite different physical sequences
+ok 8 - actual receiver can edit and republish to original producer despite different physical sequences
+  ---
+  duration_ms: 115.652083
+  type: 'test'
+  ...
+# Subtest: current grouped checkpoint refuses an unjournaled human edit before publication with every store unchanged
+ok 9 - current grouped checkpoint refuses an unjournaled human edit before publication with every store unchanged
+  ---
+  duration_ms: 55.229959
+  type: 'test'
+  ...
+# Subtest: private prepared receiver refuses a real intervening canonical owner change and an unbound capability before any ACK
+ok 10 - private prepared receiver refuses a real intervening canonical owner change and an unbound capability before any ACK
+  ---
+  duration_ms: 67.207291
+  type: 'test'
+  ...
+# Subtest: original readonly creation calculation reproduces genuine pre-write owner expectation before and after commit
+ok 11 - original readonly creation calculation reproduces genuine pre-write owner expectation before and after commit
+  ---
+  duration_ms: 98.7785
+  type: 'test'
+  ...
+# Subtest: original readonly creation rejects body drift without writing
+ok 12 - original readonly creation rejects body drift without writing
+  ---
+  duration_ms: 64.132875
+  type: 'test'
+  ...
+# Subtest: original readonly creation rejects allocation drift without writing
+ok 13 - original readonly creation rejects allocation drift without writing
+  ---
+  duration_ms: 67.211166
+  type: 'test'
+  ...
+# Subtest: original readonly creation rejects dataset drift without writing
+ok 14 - original readonly creation rejects dataset drift without writing
+  ---
+  duration_ms: 38.332792
+  type: 'test'
+  ...
+# Subtest: source-free receive captures allocation base once and applies the unchanged original owner
+ok 15 - source-free receive captures allocation base once and applies the unchanged original owner
+  ---
+  duration_ms: 97.34525
+  type: 'test'
+  ...
+# Subtest: single captured preparation still rejects later thought-counter drift atomically
+ok 16 - single captured preparation still rejects later thought-counter drift atomically
+  ---
+  duration_ms: 66.574459
+  type: 'test'
+  ...
+# Subtest: single captured preparation still rejects later revision-counter drift atomically
+ok 17 - single captured preparation still rejects later revision-counter drift atomically
+  ---
+  duration_ms: 69.539875
+  type: 'test'
+  ...
+# Subtest: single captured preparation still rejects later receipt drift atomically
+ok 18 - single captured preparation still rejects later receipt drift atomically
+  ---
+  duration_ms: 40.930542
+  type: 'test'
+  ...
+# Subtest: single captured preparation still rejects later consent drift atomically
+ok 19 - single captured preparation still rejects later consent drift atomically
+  ---
+  duration_ms: 41.052708
+  type: 'test'
+  ...
+# Subtest: single captured preparation still rejects later original-owner drift atomically
+ok 20 - single captured preparation still rejects later original-owner drift atomically
+  ---
+  duration_ms: 50.646833
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3117.8435

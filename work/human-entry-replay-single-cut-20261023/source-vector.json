@@ -1,0 +1,8 @@
+{
+  "extension/core/browser-native-sync/human-library-plan.js": "331c987630e2f35f6eea68b594edb4cfa383608d5615e1e18d3b78ded90d92cb",
+  "extension/core/browser-native-sync/human-library-journal.js": "833e6f7c3e41c3c446f9c5dd62b5321b454fbe1bbf2650737ce57580fdbd656d",
+  "extension/tests/human-entry-replay-single-cut.test.mjs": "06a535f223f3f72ea70051bba521e02e4de56fbb307ab20695db2bd47013f2e8",
+  "extension/tests/canonical-human-cold-expectation.test.mjs": "e8b8f125199dda8088ec62009f840b5bf21b27d5736035e057c9e49000e4844c",
+  "extension/tests/browser-native-sync-human-library-journal.test.mjs": "37defd4282bfea879774a2a53f9adea6a2a12c0beb702f3af05180be7c05897c",
+  "extension/tests/canonical-generation-phased-stage.test.mjs": "00fb78a10affb99a5ea5ca823915825c10ffdbaa22cbc67b1d9f3e6cf8bdd2a4"
+}
