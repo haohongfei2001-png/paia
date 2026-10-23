@@ -1,0 +1,79 @@
+{
+  "node": "v22.23.3",
+  "registrationOnly": true,
+  "browserRun": false,
+  "buildRun": false,
+  "report": [
+    {
+      "file": "canonical-generation-phased-stage.test.mjs",
+      "command": "phased-human-cold-matrix",
+      "totalRegistered": 40,
+      "selected": 18,
+      "owningSha256": "00fb78a10affb99a5ea5ca823915825c10ffdbaa22cbc67b1d9f3e6cf8bdd2a4",
+      "generatedSha256": "dfd50c2b27033f9ccedcc62c6956a8e2a00ed5d234c972d5bc540fd73a2cfe8c",
+      "names": [
+        "fixed phased seal rejects real late semantic-sequence mutation and rolls back the whole publication transaction",
+        "fixed phased seal rejects real late semantic-known mutation and rolls back the whole publication transaction",
+        "fixed phased seal rejects real late semantic-dirty mutation and rolls back the whole publication transaction",
+        "fixed phased seal rejects real late semantic-extra mutation and rolls back the whole publication transaction",
+        "explicit cold rehydration resumes the original two-group cursor and publishes without resetting its ledger",
+        "cold original expectation refuses durable origin drift without publishing",
+        "cold original expectation refuses durable entry drift without publishing",
+        "cold original expectation refuses durable history drift without publishing",
+        "cold original expectation refuses durable receipt drift without publishing",
+        "cold original expectation refuses durable semantic drift without publishing",
+        "cold original expectation refuses durable binding drift without publishing",
+        "cold original expectation refuses durable compatibility drift without publishing",
+        "cold completed readiness never repairs incomplete or damaged binding inside a shadow generation",
+        "cold completed readiness never repairs incomplete or damaged binding-version inside a shadow generation",
+        "cold completed readiness never repairs incomplete or damaged compatibility inside a shadow generation",
+        "cold readonly readiness does not permit later binding drift before the next original owner",
+        "cold readonly readiness does not permit later compatibility drift before the next original owner",
+        "cold publication crash keeps the old prepaid ticket burned and resumes the original completed cursor"
+      ]
+    },
+    {
+      "file": "canonical-generation-phased-copy-retirement.test.mjs",
+      "command": "phased-copy-retirement-matrix",
+      "totalRegistered": 17,
+      "selected": 17,
+      "owningSha256": "6151b4445151c0e62352d9a594ee2995e3cf9071f03d05e03e40e1eab28e8905",
+      "generatedSha256": "2e56178c8c43578053f014d30712d406f226c64f4b2fae6c249d13138c3b2314",
+      "names": [
+        "phased retirement removes only checkpoint body copies and preserves and audit controls",
+        "phased retirement bounded page survives actual store and registry close then preserves original edit",
+        "phased retirement refuses unknown with complete rollback",
+        "phased retirement refuses missing-item with complete rollback",
+        "phased retirement refuses missing-validation with complete rollback",
+        "phased retirement refuses pending-task with complete rollback",
+        "phased retirement refuses foreign-task with complete rollback",
+        "phased retirement refuses validation-chain with complete rollback",
+        "phased retirement refuses receipt-extra with complete rollback",
+        "phased retirement refuses progress with complete rollback",
+        "phased retirement terminal fence refuses late ledger and rolls back deletions",
+        "phased retirement terminal fence refuses late new-copy and rolls back deletions",
+        "phased retirement pins audit controls across cleanup calls",
+        "phased retirement refuses malformed checkpoint storage version before any deletion",
+        "phased retirement refuses malformed checkpoint storage base64 before any deletion",
+        "phased retirement refuses malformed checkpoint storage length before any deletion",
+        "phased retirement refuses malformed checkpoint storage ref-digest before any deletion"
+      ]
+    },
+    {
+      "file": "checkpoint-manifest-storage-cold.test.mjs",
+      "command": "checkpoint-storage-cold-matrix",
+      "totalRegistered": 6,
+      "selected": 6,
+      "owningSha256": "72a71224776992da7c4722b9fc436eca281d6342c9ba0233690b26dc08e813e3",
+      "generatedSha256": "d11725aae3dce9ba7a50cb7d611e1b89ab1515e743aa4865df63086254d23074",
+      "names": [
+        "private checkpoint storage v1 survives real cold owner continuation and copy retirement",
+        "private checkpoint storage v2 survives real cold owner continuation and copy retirement",
+        "private checkpoint cold reader refuses version drift without migration",
+        "private checkpoint cold reader refuses base64 drift without migration",
+        "private checkpoint cold reader refuses length drift without migration",
+        "private checkpoint cold reader refuses hash drift without migration"
+      ]
+    }
+  ]
+}

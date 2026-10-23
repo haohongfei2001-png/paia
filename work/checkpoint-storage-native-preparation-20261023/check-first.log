@@ -1,0 +1,18 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+40 !== 42
+
+    at file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/work/checkpoint-storage-native-preparation-20261023/check.mjs:11:9 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 40,
+  expected: 42,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.3

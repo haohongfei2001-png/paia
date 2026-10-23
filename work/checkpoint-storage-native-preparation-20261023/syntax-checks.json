@@ -1,0 +1,32 @@
+[
+  {
+    "file": "extension/tests/native-sync/phased-human-cold-fixture.mjs",
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "file": "extension/tests/native-sync/phased-copy-retirement-chrome.test.mjs",
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "file": "extension/tests/native-sync/checkpoint-storage-cold-chrome.test.mjs",
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "file": "work/checkpoint-storage-native-preparation-20261023/checkpoint-storage-cold-matrix.mjs",
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "file": "work/checkpoint-storage-native-preparation-20261023/phased-copy-retirement-matrix.mjs",
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "file": "work/checkpoint-storage-native-preparation-20261023/phased-human-cold-matrix.mjs",
+    "exit": 0,
+    "stderr": ""
+  }
+]
