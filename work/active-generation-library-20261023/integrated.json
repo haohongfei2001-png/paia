@@ -1,0 +1,31 @@
+{
+  "before": {
+    "extension/core/browser-native-sync/canonical-generation-publication.js": "c956e05ad8f756589b3c8e4050a2dc86d2e830515efc1d7f569a3e9776c0ea1e",
+    "extension/core/browser-native-sync/canonical-generation-repository-gate.js": "6ba8012730d7ab33ee9041297203a29169a21fdf1db500609ca284a2a00c06f2",
+    "extension/core/browser-native-sync/group-checkpoint.js": "1db8ba7ee989a2c0af4a1fc4a9dcc76105ce8304514db67e7acdf4c7f8681296",
+    "extension/core/browser-native-sync/core.js": "022a487e221f845ac73fb601871380a16f6be22ece76ebd96f59a7f142b448c8",
+    "extension/core/idb-repository.js": "dba49c2b12296d5016e9e3c9fccf0f8e00e0996a9c6b58945f64b2f1c715a5ee",
+    "extension/core/library-documents-owner.js": "0bcc0281bb2739a7799753d07cc6a12d7271c9d37de6f981b4a1e80e7175b8c6"
+  },
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "extension/tests/canonical-generation-active-library.test.mjs",
+    "extension/tests/canonical-generation-protected-group.test.mjs",
+    "extension/tests/browser-native-sync-saved-incremental.test.mjs",
+    "extension/tests/source-working-portfolio.test.mjs"
+  ],
+  "exitCode": 0,
+  "wallMs": 33374.97249999433,
+  "after": {
+    "extension/core/browser-native-sync/canonical-generation-publication.js": "c956e05ad8f756589b3c8e4050a2dc86d2e830515efc1d7f569a3e9776c0ea1e",
+    "extension/core/browser-native-sync/canonical-generation-repository-gate.js": "6ba8012730d7ab33ee9041297203a29169a21fdf1db500609ca284a2a00c06f2",
+    "extension/core/browser-native-sync/group-checkpoint.js": "1db8ba7ee989a2c0af4a1fc4a9dcc76105ce8304514db67e7acdf4c7f8681296",
+    "extension/core/browser-native-sync/core.js": "022a487e221f845ac73fb601871380a16f6be22ece76ebd96f59a7f142b448c8",
+    "extension/core/idb-repository.js": "dba49c2b12296d5016e9e3c9fccf0f8e00e0996a9c6b58945f64b2f1c715a5ee",
+    "extension/core/library-documents-owner.js": "0bcc0281bb2739a7799753d07cc6a12d7271c9d37de6f981b4a1e80e7175b8c6"
+  },
+  "stable": true
+}
