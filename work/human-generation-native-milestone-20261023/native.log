@@ -1,0 +1,134 @@
+TAP version 13
+# Subtest: BNS generation/purge native human-generation source
+ok 1 - BNS generation/purge native human-generation source
+  ---
+  duration_ms: 10245.017541
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native human-generation release
+ok 2 - BNS generation/purge native human-generation release
+  ---
+  duration_ms: 9500.087584
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native saved-incremental source
+ok 3 - BNS generation/purge native saved-incremental source
+  ---
+  duration_ms: 12210.192709
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native saved-incremental release
+ok 4 - BNS generation/purge native saved-incremental release
+  ---
+  duration_ms: 14115.817375
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native repository-gate source
+not ok 5 - BNS generation/purge native repository-gate source
+  ---
+  duration_ms: 2449.363792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/human-generation-chrome.test.mjs:13:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: protected gate is enforced by a cold original repository instance: Error: unexpected rejection STORAGE_FAILED: STORAGE_FAILED
+        at rejected (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-assert.mjs:12:282)
+        at Object.rejects (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-assert.mjs:21:81)
+        at async Object.fn (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-fixture.mjs:44:259)
+        at async Object.run (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-fixture.mjs:70:7)
+        at async <anonymous>:337:30
+        at rejected (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-assert.mjs:12:282)
+        at Object.rejects (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-assert.mjs:21:81)
+        at async Object.fn (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-fixture.mjs:44:259)
+        at async Object.run (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-fixture.mjs:70:7)
+        at async <anonymous>:337:30
+        at Object.run (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-fixture.mjs:71:24)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    rejected (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-assert.mjs:12:282)
+    Object.rejects (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-assert.mjs:21:81)
+    async Object.fn (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-fixture.mjs:44:259)
+    async Object.run (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-fixture.mjs:70:7)
+    async <anonymous>:337:30
+    rejected (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-assert.mjs:12:282)
+    Object.rejects (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-assert.mjs:21:81)
+    async Object.fn (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-fixture.mjs:44:259)
+    async Object.run (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-fixture.mjs:70:7)
+    async <anonymous>:337:30
+    Object.run (chrome-extension://kceiojpejmgbhepecaedfgckooaadhbi/background/generation-purge-fixture.mjs:71:24)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/human-generation-chrome.test.mjs:27:105)
+  ...
+# Subtest: BNS generation/purge native repository-gate release
+not ok 6 - BNS generation/purge native repository-gate release
+  ---
+  duration_ms: 2229.558208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/human-generation-chrome.test.mjs:13:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: protected gate is enforced by a cold original repository instance: Error: unexpected rejection STORAGE_FAILED: STORAGE_FAILED
+        at rejected (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-assert.mjs:12:282)
+        at Object.rejects (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-assert.mjs:21:81)
+        at async Object.fn (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-fixture.mjs:44:259)
+        at async Object.run (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-fixture.mjs:70:7)
+        at async <anonymous>:337:30
+        at rejected (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-assert.mjs:12:282)
+        at Object.rejects (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-assert.mjs:21:81)
+        at async Object.fn (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-fixture.mjs:44:259)
+        at async Object.run (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-fixture.mjs:70:7)
+        at async <anonymous>:337:30
+        at Object.run (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-fixture.mjs:71:24)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    rejected (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-assert.mjs:12:282)
+    Object.rejects (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-assert.mjs:21:81)
+    async Object.fn (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-fixture.mjs:44:259)
+    async Object.run (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-fixture.mjs:70:7)
+    async <anonymous>:337:30
+    rejected (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-assert.mjs:12:282)
+    Object.rejects (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-assert.mjs:21:81)
+    async Object.fn (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-fixture.mjs:44:259)
+    async Object.run (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-fixture.mjs:70:7)
+    async <anonymous>:337:30
+    Object.run (chrome-extension://mdjjppbhgdmlnamlljmpdgmaokdpnfcc/background/generation-purge-fixture.mjs:71:24)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/human-generation-chrome.test.mjs:27:105)
+  ...
+# Subtest: BNS generation/purge native copy-retirement source
+ok 7 - BNS generation/purge native copy-retirement source
+  ---
+  duration_ms: 7034.230958
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native copy-retirement release
+ok 8 - BNS generation/purge native copy-retirement release
+  ---
+  duration_ms: 6922.271875
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native source-portfolio source
+ok 9 - BNS generation/purge native source-portfolio source
+  ---
+  duration_ms: 5739.340459
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native source-portfolio release
+ok 10 - BNS generation/purge native source-portfolio release
+  ---
+  duration_ms: 6482.895542
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 8
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 81913.941375

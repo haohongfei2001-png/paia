@@ -3,7 +3,7 @@ import {ArchiveRepository} from '../core/idb-repository.js';
 
 const cases=[],test=(name,fn)=>{if(typeof name!=='string'||typeof fn!=='function')throw Error('native registration');cases.push({name,fn});};
 let sequence=0;const repositories=[],ownedNames=new Set();
-function nativeOptions(options){if(options?.indexedDB!==indexedDB)throw Error('native factory binding');const name='paia-native-source-portfolio-matrix-'+(++sequence)+'-'+(options.name||'default');ownedNames.add(name);return {...options,name};}
+function nativeOptions(options){if(options?.indexedDB!==indexedDB)throw Error('native factory binding');const name=ownedNames.has(options.name)?options.name:'paia-native-source-portfolio-matrix-'+(++sequence)+'-'+(options.name||'default');ownedNames.add(name);return {...options,name};}
 function nativeStore(storage,options){const store=new LibraryDocumentsStore(storage,nativeOptions(options));repositories.push(store.repository);return store;}
 function nativeRepository(storage,options){const repository=new ArchiveRepository(storage,nativeOptions(options));repositories.push(repository);return repository;}
 

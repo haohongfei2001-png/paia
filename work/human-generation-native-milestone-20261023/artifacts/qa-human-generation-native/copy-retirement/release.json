@@ -1,0 +1,90 @@
+{
+  "variant": "release",
+  "scope": "copy-retirement",
+  "head": "0dd3e92aafc2489f12eb2bcb7b31e0a59b21be19",
+  "result": "PASS",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "0b6d0c3492f6afff5d63626522808277ac74cbef51b220e42d15fb2ccc81b236",
+  "hashes": {
+    "core/browser-native-sync/source-working-canonical.js": "7204baff14915477b91f25bede6d4ec1983cfc723939d8df305d3489f2938a66",
+    "core/browser-native-sync/source-working-default-meta.js": "65138b44ac8e10919aa7681e5dd8dfb2376148f9aac586f544faa33aa4286412",
+    "core/browser-native-sync/source-working-derived.js": "c0bb5f43bc7500d8b63e43695cc7af2dbde7b2e7d17e6f725113e6ea3febdaa3",
+    "core/browser-native-sync/source-working-replay.js": "b25751994d8f57907a7cd797af66dfec2aa0e042e662aa5f77bbe4f123ebbbaf",
+    "core/browser-native-sync/canonical-generation-repository-gate.js": "cf803594909fac81ea98119ddaf28176fd981761be747def1ef9b0dca035b95e",
+    "core/browser-native-sync/canonical-generation-copy-retirement.js": "3671ca4c2d542929fbfe904d34a231e1c6fc7dd12458674d33016b60b1331ea6",
+    "core/browser-native-sync/saved-work-successor-codec.js": "e6e439804e1c83c41296b37281be8966502235c17107eab6e67874bebec14a3a",
+    "core/browser-native-sync/saved-work-journal.js": "157f5f353c80acc6d2947064b5e9397b7a5537cb8e71442ee74bedea89ee7876",
+    "core/browser-native-sync/canonical-generation-human-restore.js": "cc84377922fd4009ed069e12cf6926120868ea528a144cb373fb3ab064565a6c",
+    "core/browser-native-sync/human-library-group.js": "32222df5009911879fd035021b3411e5c4fd6cff9b464fa1d94949538a5388b5",
+    "core/browser-native-sync/human-library-plan.js": "498f8a1f44ea5dae861f61d4676b98f58c50c478f789176b252b8af872cea29b",
+    "core/browser-native-sync/human-library-search-proof.js": "105c65d9b2d9793accb9df6026bb70063822958dabf2fe741953db9eccbb9f76",
+    "core/ia-store-owner.js": "7e687234e1f41a73a73adde30e9445af381b887ee27b3118bbe67e077f0b67c2",
+    "core/library-documents-owner.js": "4603a05b8a945f4cbeb105378af82ce722cd556abdb724eb53b42995ac5ce6a5",
+    "core/browser-native-sync/saved-work-bootstrap.js": "d5b4c18d31693006fd15c2a3e6f745bfeaea50431b3f2d3de7b608a04a4384bb",
+    "core/browser-native-sync/group-checkpoint-plan.js": "c3b4308c50d979742db12b12ddcab2ee187f32373ce4cc5fcfd487eb2aebb6da",
+    "core/browser-native-sync/group-checkpoint-scope.js": "920bca646adcc9fb118cef5d1bd8e6323b4f4de2f99cd45c96c1607221b7ce84",
+    "core/library-documents-store.js": "63f7e9dec5c31e076cfa48e865b1fa7ef1e804ac12ba2d25c3c1d8faff69931a",
+    "core/idb-repository.js": "4b415b98403ccfc49c3cfbecc30fac324bab38dcbf8932e077432fe8dcfce6aa",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/thought-maintenance.js": "35f099480098ac724f3de6a26f50b4991bb027c6eff05340eba5621c318833b6",
+    "core/source-purge-admission.js": "8a526a77ff393739736d19b746319ac5b844192392ecb5f53c7edf67ce294347",
+    "core/browser-native-sync/core.js": "2b1a9a5a307090880082dc8e9cc1884e977c411237a6bc1236390c7e79c33768",
+    "core/browser-native-sync/group-checkpoint.js": "fd5f962c5b4eef075e3f8743c9053c6394931733cb83ae5bdccf6e88c2f1b676",
+    "core/browser-native-sync/canonical-generation-publication.js": "d0c100206e9baec274387878ed6028a1fbfa569340da02630a5bbd0c365b03cd",
+    "core/browser-native-sync/canonical-generation-checkpoint-stage.js": "e9214533537b95678051e064ac90d597f277140634b508fd2c75cad9584449df",
+    "core/browser-native-sync/source-purge-journal.js": "947d434d558e309588e2bf0f4c1f8a4eae8a1d9ffaf21e66525f5a61022fbb49",
+    "core/browser-native-sync/source-purge-codec.js": "bfbe850cb33a941a753e5db7f118a10b681255aa5eead304543c714a602f2360",
+    "core/browser-native-sync/source-purge-checkpoint.js": "a2c4d8c710863ffc465baa33499a2d6b00ee8d4b1c2c933143c9ee1b9aeea5a8"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    "fixed copy retirement preserves original canonical export before and after and cold resumes",
+    "copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies",
+    "copy retirement has no arbitrary public deletion or receipt authority",
+    "copy retirement refuses changed fixed qualification kind",
+    "copy retirement refuses changed fixed qualification identity",
+    "copy retirement refuses changed fixed qualification seal",
+    "copy retirement refuses changed fixed qualification sourceBase",
+    "copy retirement refuses unknown copy without deleting remaining copies",
+    "copy retirement refuses missing copy without deleting remaining copies",
+    "copy retirement refuses foreign marker without deleting remaining copies",
+    "copy retirement refuses missing marker without deleting remaining copies",
+    "copy retirement refuses forged progress without deleting remaining copies",
+    "copy retirement cannot use a generic metadata publication as graph qualification",
+    "retirement cannot execute a caller callback or expand its fixed deletion scope",
+    "copy retirement settles only a bounded page and resumes actual remaining copies on cold reopen"
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "4fd3aab2-abf5-4e26-b31f-75c4663fbdbc",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "4fd3aab2-abf5-4e26-b31f-75c4663fbdbc",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}

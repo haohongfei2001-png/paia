@@ -15,6 +15,7 @@ for(const [name,file,count] of [['generation-owner','canonical-generation-owner-
  assert.throws(()=>nativeGenerationPurgeFixture(original.replace("import test from 'node:test';",''),helpers,name+'-matrix'));
  assert.throws(()=>nativeGenerationPurgeFixture(original+'\nawait import("unexpected");',helpers,name+'-matrix'));
  assert.throws(()=>nativeGenerationPurgeFixture(original,helpers,'unexpected-matrix'));
- results.push({name,originalCases:count,exactAdaptedCaseBodies:true,refusalControls:3});
+ const identity=runInNewContext(plain(generated)+`\n(()=>{const a=nativeOptions({indexedDB,name:'synthetic'}),b=nativeOptions({indexedDB,name:'synthetic'}),cold=nativeOptions({indexedDB,name:a.name});return {distinct:a.name!==b.name,cold:cold.name===a.name};})();`,{indexedDB:{},globalThis:{__bnsNative:{run(){}}}});assert.equal(identity.distinct,true);assert.equal(identity.cold,true);
+ results.push({name,originalCases:count,exactAdaptedCaseBodies:true,refusalControls:3,nativeReopenIdentity:identity});
 }
 writeFileSync('work/generation-purge-native-preparation-20261023/bridge-controls.json',JSON.stringify(results,null,2)+'\n');console.log(JSON.stringify(results));

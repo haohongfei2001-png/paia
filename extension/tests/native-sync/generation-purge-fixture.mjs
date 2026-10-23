@@ -28,7 +28,7 @@ export function nativeGenerationPurgeFixture(source,helpers,command){
 ${extraImport}
 const cases=[],test=(name,fn)=>{if(typeof name!=='string'||typeof fn!=='function')throw Error('native registration');cases.push({name,fn});};
 let sequence=0;const repositories=[],ownedNames=new Set();
-function nativeOptions(options){if(options?.indexedDB!==indexedDB)throw Error('native factory binding');const name='paia-native-${command}-'+(++sequence)+'-'+(options.name||'default');ownedNames.add(name);return {...options,name};}
+function nativeOptions(options){if(options?.indexedDB!==indexedDB)throw Error('native factory binding');const name=ownedNames.has(options.name)?options.name:'paia-native-${command}-'+(++sequence)+'-'+(options.name||'default');ownedNames.add(name);return {...options,name};}
 function nativeStore(storage,options){const store=new ${storeClass}(storage,nativeOptions(options));repositories.push(store.repository);return store;}
 function nativeRepository(storage,options){const repository=new ArchiveRepository(storage,nativeOptions(options));repositories.push(repository);return repository;}
 ${helpers}

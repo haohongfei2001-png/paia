@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: BNS generation/purge native repository-gate source
+ok 1 - BNS generation/purge native repository-gate source
+  ---
+  duration_ms: 5454.387208
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native repository-gate release
+ok 2 - BNS generation/purge native repository-gate release
+  ---
+  duration_ms: 6100.636583
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16515.195709
