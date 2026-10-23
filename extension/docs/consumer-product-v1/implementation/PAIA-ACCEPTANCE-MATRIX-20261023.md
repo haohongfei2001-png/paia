@@ -36,7 +36,7 @@ The [takeover queue](PAIA-TAKEOVER-QUEUE-20261023.md) owns programme sequencing.
 | Semantic read pair | `ai-usage-semantic-receipt.test.mjs`, `ai-cost-semantic-invalidation.test.mjs`, `mixed-current-fixed-plan.test.mjs` | One combined owning batch when integrated owners change. Retain error identity, both-read observation, whole-transaction rollback, no partial receipt and same-key sequencing. Do not run another large seed as a routine check. |
 | Organize protocols | Changed Organize owner/session/protection/budget/configuration tests and service client/recovery tests | Select by actual integration diff. Test current ownership, source/processing fences, exact Current and human fields, ACK/CAS, rollback and unknown outcomes; avoid adding unrelated full suites to each small change. |
 | Browser3 and Entry | Complete `cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs` and `topic-entry-section-move-chrome-e2e.test.mjs`, Source and release | Consolidate once at the integration milestone if their effective source dependencies changed. Prior B3 4/4 and final Entry four leaves remain component evidence; the old mixed invocation remains 6/8, not a green aggregate. |
-| Organize service-native | All four original files through `test:organize:native`, below | New explicit coverage entry; actual native execution pending root scheduling. All 30 explicit leaves, no case filters. This is synthetic client/service integration, not real PostgreSQL or model qualification. |
+| Organize service-native | All four original files through `test:organize:native`, below | All 30 original service-native leaves passed in the recorded 0897127e nine-file batch, with no case filters; the aggregate remains 100/102 due to NIB. This closes the original orchestration gap at that checkpoint, not qualification of every later runtime change. This is synthetic client/service integration, not real PostgreSQL or model qualification. |
 | Other affected browser owners | PR312 Settings restore-intent owners; affected Maintenance, Topic lifecycle, Context and source/working/Sync owners | Derive from exact final integrated diff, preserve whole owning files and Source/release variants. The user resumed local Sync implementation and synthetic verification; real-provider access remains separate. |
 | Full/platform gates | Original unit, adapter/privacy, ten current browser shards, macOS secure-store/discard, Sync native, release, certification and supplementary gates | Deferred to a meaningful frozen milestone. A new cloud execution requires a separately approved bounded allocation. No failed/cancelled/skipped gate may be relabelled by local results. |
 | Visual and interaction | Current R3 floating UI, YEAR-HARMONY application surfaces, latest Context/Settings/Thought/Archive/Reader designs; source/release, supported sizes/themes, keyboard/accessibility and animations | Existing screenshots and structural checks do not constitute full design fidelity or final human visual acceptance. Capture synthetic headless evidence together; do not steal the user's visible browser focus. |
@@ -73,7 +73,7 @@ to make them discoverable.
 On this recorded Mac worktree, the following explicit environment avoids the
 previous bundled-Playwright/Python mismatch. Check the files and versions before
 execution; missing dependencies are a setup failure, not permission to download
-or substitute a runtime. This is a proposed invocation, not an execution record:
+or substitute a runtime. This is the explicit standalone entry recipe, not an additional execution record; the four files were subsequently run together in the recorded nine-file batch:
 
 ```sh
 cd /Users/hhf/.codex/worktrees/organize-handoff-validation/paia/services/ai-gateway
@@ -270,7 +270,7 @@ newline: appending a newline to the after bytes exactly reconstructs the before
 SHA beginning `856e144a`; product runtime bytes are unchanged. This explains the
 identity difference without rewriting the raw flag or making the failed
 invocation a green native suite.
-The other local failures and original cloud failures remain in their own logs.
+The original raw TAP confirms all 30 service-native leaves (top-level cases 1–30) passed in that invocation. The exact nine filenames and no-filter command are in `native-command.json`. This supersedes the initial pending service-native orchestration state; later runtime changes still need impact-based qualification. The other local failures and original cloud failures remain in their own logs.
 
 The Feedback native coverage gap above is being closed in the existing
 `ux-r1-shell-chrome-e2e.test.mjs` owner, without adding a browser root. Two added
