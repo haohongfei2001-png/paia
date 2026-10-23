@@ -2,7 +2,8 @@ import {assertMemoryTopicTransitionAllowed} from './memory/organization-guard.js
 import {fail,keys,idOK,revisionOK} from './thought-model.js';
 import {setTopicLifecycle,resolveTopicIdentity} from './topic-identity.js';
 import {TopicProcessingGuard} from './topic-processing.js';
-import {journal} from './thought-journal.js';
+import {journal,observeOriginalOperationReceipt,originalOperationReceiptResult,releaseOriginalOperationReceipt} from './thought-journal.js';
+import {registerRepositoryFinalReadFence} from './idb-repository.js';
 import {queueSearch} from './library-search.js';
 import {ArchiveError} from './constants.js';
 import {topicLifecyclePolicy,evaluateTopicInactivity} from './topic-lifecycle-policy.js';
@@ -22,7 +23,7 @@ export class TopicLifecycleService {
   keys(request,['id','to','expectedRevision','operationId','scope'],['id','to','expectedRevision','operationId','scope']);
   if(!idOK(request.id)||!['active','dormant'].includes(request.to)||!revisionOK(request.expectedRevision))fail();
   const prepared=await this.guard.prepareWithProcessingMode(request.scope);
-  return this.store.operation(request,async t=>{
+  let receiptObserver=null;try{return await this.store.operation(request,async t=>{
    await this.guard.check(t,prepared);if(await this.guard.processing(t,prepared.evidence,[request.id])!==prepared.authority.processingEpoch)fail();
    // Require one privately tracked mode across both preparation reads and all
    // write admissions. Genuine uses are frozen before any success or mutation
@@ -41,8 +42,12 @@ export class TopicLifecycleService {
    const before=structuredClone(row);setTopicLifecycle(row,request.to,{actor:'ai',operationId:request.operationId,at:this.store.clock()});row.revision++;row.organizationRevision++;
    await t.put('topics',row);await queueSearch(t,'topic',row);
    await journal(this.store,t,{kind:'topic',entityId:row.id,before,after:row,fieldMask:['lifecycle'],actor:'ai',reason:'activity',important:true,operationId:request.operationId,baseRevision:before.revision,afterRevision:row.revision,sourceRecordIds:row.sourceRecordIds||[]},{boundedPrune:!!activity});
-   if(activityCap)sealTopicLifecycleActivity(this,t,activityCap,row);
+   if(activityCap){
+    sealTopicLifecycleActivity(this,t,activityCap,row);
+    receiptObserver=observeOriginalOperationReceipt(this.store,t,request.operationId);const store=this.store,cap=receiptObserver;
+    registerRepositoryFinalReadFence(store.repository,t,{isCurrent:()=>true,plan:function*(){const saved=yield {method:'get',table:'operationReceipts',key:request.operationId};if(JSON.stringify(saved)!==originalOperationReceiptResult(store,t,cap))fail();return true;}});
+   }
    return {id:row.id,revision:row.revision,lifecycle:row.lifecycle};
-  },activity?{workLimit:{}}:undefined);
+  },activity?{workLimit:{}}:undefined);}finally{if(receiptObserver)releaseOriginalOperationReceipt(receiptObserver);}
  }
 }

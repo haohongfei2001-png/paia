@@ -52,6 +52,15 @@ export function readMaintenanceProcessingRequestPermit(token,store,transaction,p
  if(r.store!==store||r.transaction!==processingScope(store,transaction)||selection.plan.resolve!==processing?.resolve||selection.plan.isCurrent!==processing?.isCurrent||canonical({items:r.view.request.items,coverage:r.view.request.coverage})!==r.requestData||canonical(r.view.selectionSpec)!==r.selectionData||canonical(r.view.binding)!==r.bindingData)fail('UNAVAILABLE');
  return r.view;
 }
+// Internal handoff: an original prepared handle selects Topics; no caller DTO
+// can manufacture mappings or use this seam as a processing grant.
+const lifecycleSessions=new WeakMap(),lifecycleSelections=new WeakMap();
+export function captureMaintenanceLifecycleSelection(session,store,handle){
+ const registration=lifecycleSessions.get(session);if(!registration||registration.store!==store)fail('UNAVAILABLE');return registration.capture(handle);
+}
+export function readMaintenanceLifecycleSelection(token,store){
+ const held=lifecycleSelections.get(token);if(!held||held.store!==store)fail('UNAVAILABLE');held.view.assertCurrent();return held.view;
+}
 const promotionSessions=new WeakMap(),promotionHandoffs=new WeakMap(),promotionDeliveries=new WeakMap();
 const deliveryData=(object,key)=>{const d=Object.getOwnPropertyDescriptor(object,key);if(!d||!Object.hasOwn(d,'value'))fail('UNAVAILABLE');return d.value;};
 function promotionSession(session,store){const r=promotionSessions.get(session);if(!r||r.store!==store||r.repository!==store.repository||r.database!==null&&r.database!==store.repository.db)fail('UNAVAILABLE');return r;}
@@ -108,7 +117,7 @@ export class LocalMaintenanceSession {
  #store;#foundation;#provider;#service;#window;#topic;#context;#processing;#sourceSelection=false;#remote;#independentFilter=false;#unsubscribe=null;
  #contextGroupBindings=new WeakMap();
  #localCorrection=null;#materialOwner=null;#promotionOwners=new Set();#promotionRecovery=null;#promotionRecoveryControllers=new Set();#promotionAuthorityPending=new Set();
- #handles=new WeakMap();#passive=new WeakMap();#jobs=new Map();#preparing=null;#active=null;#running=null;#generation=0;
+ #handles=new WeakMap();#passive=new WeakMap();#jobs=new Map();#preparing=null;#active=null;#running=null;#generation=0;#lifecycleRunning=null;
  constructor(store,{provider=null,service=null,window=null,authority=null,processing=null,remote=null}={}){
   this.#remote=remote===null?null:requireMaintenanceServiceClient(remote);if(this.#remote&&provider!==null)fail('UNAVAILABLE');
   this.#sourceSelection=needsMaintenanceProcessingSelection(processing)||needsMaintenanceProcessingContext(service?.context);this.#store=store;this.#provider=provider;this.#service=service===null?null:{...service,topic:{...service.topic},context:{...service.context},...(service.filter?{filter:{...service.filter}}:{}),responseAdapter:service.responseAdapter===null?null:{...service.responseAdapter}};this.#window=window;this.#processing=processing===null?null:Object.freeze({...processing});if(processing!==null){exact(processing,['resolve','isCurrent']);if(typeof processing.resolve!=='function'||typeof processing.isCurrent!=='function')fail();}
@@ -141,8 +150,32 @@ export class LocalMaintenanceSession {
    }},writeTransaction:(fn,finalFence,publication)=>this.#writeDomain(fn,'topic',finalFence,null,publication)});
    this.#context=new ContextMaintenanceService(store,{resolveQualification:()=>this.#ownerQualification(),processingVerifier:service.context.processingVerifier,writeTransaction:(fn,finalFence,expectedTarget,publication)=>this.#writeDomain(fn,'context',finalFence,expectedTarget,publication)});
   }
+  lifecycleSessions.set(this,{store,capture:handle=>this.#captureLifecycleSelection(handle)});
   if(this.#remote)this.#unsubscribe=this.#remote.onInvalidate(()=>this.dispose());
   if(this.#remote)promotionSessions.set(this,{store,repository:store.repository,database:null,captureDelivery:()=>this.#capturePromotionDelivery(),assertAuthority:a=>this.#promotionRecoveryAuthority(a),checkpointResult:c=>this.#promotionRecoveryCheckpoint('result',c),checkpointResume:c=>this.#promotionRecoveryCheckpoint('resume',c),get:r=>this.#promotionOffer(r),result:(id,o)=>this.#promotionRecoveryOperation('result',id,o),resume:(id,o)=>this.#promotionRecoveryOperation('resume',id,o)});
+ }
+ #captureLifecycleSelection(handle){
+  const state=this.#handles.get(handle);this.#current(state);
+  if(state.completed||state.running||this.#running||this.#preparing||this.#lifecycleRunning||!this.#service?.topic)fail('UNAVAILABLE');
+  if(state.lifecycleSelection)return state.lifecycleSelection;
+  const byTopic=new Map(),units=state.request.coverage;
+  const mapped=[...this.#structures(state,units),...this.#placements(state,units),...this.#bound(state,units)];
+  for(const mapping of mapped){
+   const inputIds=mapping.entries?mapping.entries.map(entry=>entry.inputId):[mapping.inputId];
+   if(!opaque(mapping.topicId)||!Number.isSafeInteger(mapping.topicRevision)||!inputIds.length||inputIds.some(id=>!opaque(id)))fail('UNAVAILABLE');
+   let selected=byTopic.get(mapping.topicId);if(!selected){selected={id:mapping.topicId,expectedRevision:mapping.topicRevision,inputIds:new Set()};byTopic.set(mapping.topicId,selected);}
+   if(selected.expectedRevision!==mapping.topicRevision)fail('STALE_BASE');for(const id of inputIds)selected.inputIds.add(id);
+  }
+  if(!byTopic.size)fail('UNAVAILABLE');
+  const selection=frozen([...byTopic.values()].map(row=>({id:row.id,expectedRevision:row.expectedRevision,scope:[...row.inputIds].sort().map(inputId=>({inputId,role:'primary',selectedFields:['body']}))})).sort((a,b)=>a.id.localeCompare(b.id)));
+  const repository=this.#store.repository,database=repository.db,resolver=this.#service.topic.resolveProcessing;
+  const current=()=>{this.#current(state);if(this.#store.repository!==repository||repository.db!==database||state.completed)fail('UNAVAILABLE');return true;};
+  const view=Object.freeze({selection,jobId:state.job.id,workBudget:state.qualificationBudget,signal:state.controller.signal,assertCurrent:current,
+   begin:()=>{current();if(this.#running||this.#preparing||this.#lifecycleRunning)fail('REQUEST_ALREADY_IN_FLIGHT');this.#lifecycleRunning=state;},
+   end:()=>{if(this.#lifecycleRunning===state)this.#lifecycleRunning=null;},
+   resolveProcessing:async(t,request)=>{current();if(this.#lifecycleRunning!==state||request.topicIds.some(id=>!byTopic.has(id))||request.inputIds.some(id=>!(request.topicIds.length?request.topicIds:[...byTopic.keys()]).some(topicId=>byTopic.get(topicId)?.inputIds.has(id))))fail('UNAVAILABLE');const result=await resolver(t,request,Object.freeze({workBudget:state.qualificationBudget}));current();if(requireRepositoryTransactionScope(repository,t).mode==='readwrite')registerRepositoryFinalReadFence(repository,t,{isCurrent:current,plan:function*(){current();return true;}});return result;}
+  });
+  const token=Object.freeze(Object.create(null));lifecycleSelections.set(token,{store:this.#store,view});state.lifecycleSelection=token;return token;
  }
  available(){return this.#remote?.available()===true;}
  async opportunity(){if(!this.available())return outcome('UNAVAILABLE');const retained=this.#jobs.values().next().value;if(retained)return this.run(retained.handle);const handle=await this.prepare(this.#remote.options);return this.run(handle);}
@@ -450,6 +483,7 @@ export class LocalMaintenanceSession {
   }return [...ids].sort();
  }
  async prepare(options){
+  if(this.#lifecycleRunning)fail('REQUEST_ALREADY_IN_FLIGHT');
   const copied=structuredClone(options);exact(copied,['scope','contractVersion','routeVersion','cursor','limit'],['scope','contractVersion','routeVersion']);
   const key=canonical(copied);
   if(this.#preparing){if(this.#preparing.key!==key)fail('REQUEST_ALREADY_IN_FLIGHT');return this.#preparing.promise;}
@@ -1073,6 +1107,7 @@ export class LocalMaintenanceSession {
   return {facet,units:units.length,state:'DEFERRED'};
  }
  run(handle){
+  if(this.#lifecycleRunning)return Promise.resolve(outcome('REQUEST_ALREADY_IN_FLIGHT'));
   const passive=this.#passive.get(handle);if(passive)return Promise.resolve(passive.generation!==this.#generation?outcome('UNAVAILABLE'):outcome(passive.state,{jobId:passive.localResolvedUnits?handle.jobId:null,...(passive.localResolvedUnits?{localResolvedUnits:passive.localResolvedUnits}:{}),...(handle.reason?{reason:handle.reason}:{}),nextCursor:handle.nextCursor,complete:handle.complete,deferredUnits:passive.deferredUnits,blockedUnits:passive.blockedUnits,remainingWork:passive.remainingWork,...(passive.pendingBatchUnits?{pendingBatchUnits:passive.pendingBatchUnits}:{}),...(passive.pendingPlacementUnits?{pendingPlacementUnits:passive.pendingPlacementUnits}:{}),...(passive.pendingAuthoredUnits?{pendingAuthoredUnits:passive.pendingAuthoredUnits}:{}),...(passive.pendingBoundUnits?{pendingBoundUnits:passive.pendingBoundUnits}:{}),...(passive.pendingStructuralUnits?{pendingStructuralUnits:passive.pendingStructuralUnits}:{}),...(passive.processedState?{processedState:passive.processedState}:{})}));
   const state=this.#handles.get(handle);if(!state)return Promise.resolve(outcome('UNAVAILABLE'));
   if(state.completed)return Promise.resolve(state.generation===this.#generation?this.#settled(state):outcome('UNAVAILABLE',{jobId:state.job.id,facets:[]}));

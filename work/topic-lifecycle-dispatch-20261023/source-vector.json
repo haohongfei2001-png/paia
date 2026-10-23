@@ -1,0 +1,24 @@
+{
+  "base": "c99f5b593ebe71b1fc48373471b641e8f845ce15",
+  "node": "22.23.3",
+  "system": "macOS-27.0-arm64-arm-64bit-Mach-O",
+  "files": {
+    "extension/core/ai-usage/local-maintenance-session.js": "08d9bf7242344e09a0aabef943197f4fb05c64a3d8e07db6b1f3ea34448f555e",
+    "extension/core/topic-lifecycle-dispatch.js": "e2a2abba56652b662fb66efebfe1b41c62c8830bb9cda1cee6d794d5a1d1ef95",
+    "extension/core/topic-lifecycle.js": "2e07c20257148fad7a41aa2fe853a5f19916e5ef04ffa57fb2edcaf076bdce33",
+    "extension/core/thought-journal.js": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4",
+    "extension/tests/topic-lifecycle-dispatch.test.mjs": "c471f3a44bc285c785976e34e16ea3c052cae439204829a4611da02a874a26ed",
+    "extension/tests/native-sync/topic-lifecycle-dispatch-chrome.test.mjs": "f1dac77ec2ebe18ce848c2528afb35b08abe45604f0a721b5f2825e2e0f5cf82",
+    "extension/docs/consumer-product-v1/implementation/TOPIC-LIFECYCLE-DISPATCH-20261023.md": "8976d9226d9824d91fec3ab99f77cba39a77abf6bb19cb351a36961a1a8bab93"
+  },
+  "native": "NOT_RUN_SYNTAX_ONLY",
+  "owning": {
+    "tests": 264,
+    "pass": 264,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "tap_ms": 40978.003708
+  }
+}

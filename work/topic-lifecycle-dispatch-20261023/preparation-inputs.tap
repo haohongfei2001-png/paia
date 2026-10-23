@@ -1,0 +1,75 @@
+TAP version 13
+# Subtest: original prepared structural handle dispatches exactly its selected Topic with shared genuine issuer budget
+not ok 1 - original prepared structural handle dispatches exactly its selected Topic with shared genuine issuer budget
+  ---
+  duration_ms: 257.590875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:27:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_RETENTION_REQUIRED'
+  code: 'BNS_HUMAN_RETENTION_REQUIRED'
+  stack: |-
+    requireRepositoryTransactionDataMethods (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:227:291)
+    registerRepositoryWorkLimit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:108:45)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/indexed-store.js:289:244
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:27:443
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:451:26)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/indexed-store.js:289:185
+  ...
+# Subtest: public handle, copied capability and another store cannot mint lifecycle selection
+ok 2 - public handle, copied capability and another store cannot mint lifecycle selection
+  ---
+  duration_ms: 165.612875
+  type: 'test'
+  ...
+# Subtest: stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+ok 3 - stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+  ---
+  duration_ms: 221.086708
+  type: 'test'
+  ...
+# Subtest: original revoke refuses or rolls back with accurate unresolved item
+ok 4 - original revoke refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 174.844042
+  type: 'test'
+  ...
+# Subtest: original dispose refuses or rolls back with accurate unresolved item
+ok 5 - original dispose refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 179.55675
+  type: 'test'
+  ...
+# Subtest: original storage refuses or rolls back with accurate unresolved item
+ok 6 - original storage refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 166.455084
+  type: 'test'
+  ...
+# Subtest: original legacy refuses or rolls back with accurate unresolved item
+ok 7 - original legacy refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 164.059875
+  type: 'test'
+  ...
+# Subtest: same dispatch reentry deduplicates and session model run cannot race local lifecycle
+ok 8 - same dispatch reentry deduplicates and session model run cannot race local lifecycle
+  ---
+  duration_ms: 181.444791
+  type: 'test'
+  ...
+# Subtest: explicit clock regression is deferred, close never starts another original action
+ok 9 - explicit clock regression is deferred, close never starts another original action
+  ---
+  duration_ms: 174.430709
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 8
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1820.995333

@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+ok 1 - stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+  ---
+  duration_ms: 351.57625
+  type: 'test'
+  ...
+# Subtest: late-dispose after original backup finalizer rolls the selected dispatch back
+ok 2 - late-dispose after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 136.26525
+  type: 'test'
+  ...
+# Subtest: late-grant after original backup finalizer rolls the selected dispatch back
+ok 3 - late-grant after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 111.602666
+  type: 'test'
+  ...
+# Subtest: late-receipt after original backup finalizer rolls the selected dispatch back
+ok 4 - late-receipt after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 125.606583
+  type: 'test'
+  ...
+# Subtest: late-source after original backup finalizer rolls the selected dispatch back
+ok 5 - late-source after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 117.683542
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1174.699916

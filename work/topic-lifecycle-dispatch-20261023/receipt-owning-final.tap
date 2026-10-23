@@ -1,0 +1,1594 @@
+TAP version 13
+# Subtest: actual manual placement reconciles same Topic without changing default Section or human owners
+ok 1 - actual manual placement reconciles same Topic without changing default Section or human owners
+  ---
+  duration_ms: 349.970875
+  type: 'test'
+  ...
+# Subtest: actual manual placement reconciles same Topic without changing named Section or human owners
+ok 2 - actual manual placement reconciles same Topic without changing named Section or human owners
+  ---
+  duration_ms: 294.429708
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back name drift and exact ACK
+ok 3 - Placement Topic final receipt fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 227.585458
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back input drift and exact ACK
+ok 4 - Placement Topic final receipt fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 212.707083
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back source drift and exact ACK
+ok 5 - Placement Topic final receipt fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 208.197584
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back membership drift and exact ACK
+ok 6 - Placement Topic final receipt fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 213.122875
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back order drift and exact ACK
+ok 7 - Placement Topic final receipt fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 212.285333
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back section drift and exact ACK
+ok 8 - Placement Topic final receipt fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 205.107709
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back entry-revision drift and exact ACK
+ok 9 - Placement Topic final receipt fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 206.523458
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back input-revision drift and exact ACK
+ok 10 - Placement Topic final receipt fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 201.562625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back section-revision drift and exact ACK
+ok 11 - Placement Topic final receipt fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 210.085125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back topic-revision drift and exact ACK
+ok 12 - Placement Topic final receipt fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 206.402708
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back topic-epoch drift and exact ACK
+ok 13 - Placement Topic final receipt fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 202.558625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back authority-epoch drift and exact ACK
+ok 14 - Placement Topic final receipt fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 203.3275
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back processing drift and exact ACK
+ok 15 - Placement Topic final receipt fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 195.569667
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back abort drift and exact ACK
+ok 16 - Placement Topic final receipt fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 205.066333
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back source-body drift and exact ACK
+ok 17 - Placement Topic final receipt fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 202.629584
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back restore drift and exact ACK
+ok 18 - Placement Topic final receipt fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 204.399167
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back journal drift and exact ACK
+ok 19 - Placement Topic final receipt fence rolls back journal drift and exact ACK
+  ---
+  duration_ms: 205.556792
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back receipt-bytes drift and exact ACK
+ok 20 - Placement Topic final receipt fence rolls back receipt-bytes drift and exact ACK
+  ---
+  duration_ms: 199.079958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back name drift and exact ACK
+ok 21 - Placement Topic final ack fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 211.322
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back input drift and exact ACK
+ok 22 - Placement Topic final ack fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 211.366917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back source drift and exact ACK
+ok 23 - Placement Topic final ack fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 207.256625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back membership drift and exact ACK
+ok 24 - Placement Topic final ack fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 212.148667
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back order drift and exact ACK
+ok 25 - Placement Topic final ack fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 209.840416
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back section drift and exact ACK
+ok 26 - Placement Topic final ack fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 201.513833
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back entry-revision drift and exact ACK
+ok 27 - Placement Topic final ack fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 207.730625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back input-revision drift and exact ACK
+ok 28 - Placement Topic final ack fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 204.135334
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back section-revision drift and exact ACK
+ok 29 - Placement Topic final ack fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 204.864834
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back topic-revision drift and exact ACK
+ok 30 - Placement Topic final ack fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 218.199708
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back topic-epoch drift and exact ACK
+ok 31 - Placement Topic final ack fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 208.381
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back authority-epoch drift and exact ACK
+ok 32 - Placement Topic final ack fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 197.820958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back processing drift and exact ACK
+ok 33 - Placement Topic final ack fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 199.174958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back abort drift and exact ACK
+ok 34 - Placement Topic final ack fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 203.970625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back source-body drift and exact ACK
+ok 35 - Placement Topic final ack fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 216.758792
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back restore drift and exact ACK
+ok 36 - Placement Topic final ack fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 201.694
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back journal drift and exact ACK
+ok 37 - Placement Topic final ack fence rolls back journal drift and exact ACK
+  ---
+  duration_ms: 202.579833
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back receipt-bytes drift and exact ACK
+ok 38 - Placement Topic final ack fence rolls back receipt-bytes drift and exact ACK
+  ---
+  duration_ms: 206.826125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back name drift and exact ACK
+ok 39 - Placement Topic final counter fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 207.161
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back input drift and exact ACK
+ok 40 - Placement Topic final counter fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 210.53725
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back source drift and exact ACK
+ok 41 - Placement Topic final counter fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 215.161708
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back membership drift and exact ACK
+ok 42 - Placement Topic final counter fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 211.011042
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back order drift and exact ACK
+ok 43 - Placement Topic final counter fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 215.788458
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back section drift and exact ACK
+ok 44 - Placement Topic final counter fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 208.009208
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back entry-revision drift and exact ACK
+ok 45 - Placement Topic final counter fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 217.596584
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back input-revision drift and exact ACK
+ok 46 - Placement Topic final counter fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 211.025417
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back section-revision drift and exact ACK
+ok 47 - Placement Topic final counter fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 202.547958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back topic-revision drift and exact ACK
+ok 48 - Placement Topic final counter fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 209.563792
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back topic-epoch drift and exact ACK
+ok 49 - Placement Topic final counter fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 226.905
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back authority-epoch drift and exact ACK
+ok 50 - Placement Topic final counter fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 228.055958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back processing drift and exact ACK
+ok 51 - Placement Topic final counter fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 226.17775
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back abort drift and exact ACK
+ok 52 - Placement Topic final counter fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 223.965917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back source-body drift and exact ACK
+ok 53 - Placement Topic final counter fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 226.861625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back restore drift and exact ACK
+ok 54 - Placement Topic final counter fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 209.200667
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back journal drift and exact ACK
+ok 55 - Placement Topic final counter fence rolls back journal drift and exact ACK
+  ---
+  duration_ms: 204.143791
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back receipt-bytes drift and exact ACK
+ok 56 - Placement Topic final counter fence rolls back receipt-bytes drift and exact ACK
+  ---
+  duration_ms: 207.393625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back name drift and exact ACK
+ok 57 - Placement Topic final backup fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 209.596041
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back input drift and exact ACK
+ok 58 - Placement Topic final backup fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 212.86125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back source drift and exact ACK
+ok 59 - Placement Topic final backup fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 211.678625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back membership drift and exact ACK
+ok 60 - Placement Topic final backup fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 209.363292
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back order drift and exact ACK
+ok 61 - Placement Topic final backup fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 213.824875
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back section drift and exact ACK
+ok 62 - Placement Topic final backup fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 210.313875
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back entry-revision drift and exact ACK
+ok 63 - Placement Topic final backup fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 223.896125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back input-revision drift and exact ACK
+ok 64 - Placement Topic final backup fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 206.709792
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back section-revision drift and exact ACK
+ok 65 - Placement Topic final backup fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 209.562625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back topic-revision drift and exact ACK
+ok 66 - Placement Topic final backup fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 205.094917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back topic-epoch drift and exact ACK
+ok 67 - Placement Topic final backup fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 206.339042
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back authority-epoch drift and exact ACK
+ok 68 - Placement Topic final backup fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 218.968167
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back processing drift and exact ACK
+ok 69 - Placement Topic final backup fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 210.629458
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back abort drift and exact ACK
+ok 70 - Placement Topic final backup fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 209.109292
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back source-body drift and exact ACK
+ok 71 - Placement Topic final backup fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 208.677541
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back restore drift and exact ACK
+ok 72 - Placement Topic final backup fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 206.495667
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back journal drift and exact ACK
+ok 73 - Placement Topic final backup fence rolls back journal drift and exact ACK
+  ---
+  duration_ms: 212.308167
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back receipt-bytes drift and exact ACK
+ok 74 - Placement Topic final backup fence rolls back receipt-bytes drift and exact ACK
+  ---
+  duration_ms: 214.466292
+  type: 'test'
+  ...
+# Subtest: unknown Placement Topic attempt keeps identity and never redispatches
+ok 75 - unknown Placement Topic attempt keeps identity and never redispatches
+  ---
+  duration_ms: 153.248083
+  type: 'test'
+  ...
+# Subtest: Placement Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+ok 76 - Placement Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+  ---
+  duration_ms: 270.770875
+  type: 'test'
+  ...
+# Subtest: prior Context-only route keeps same-route Topic DEFER pending
+ok 77 - prior Context-only route keeps same-route Topic DEFER pending
+  ---
+  duration_ms: 214.322708
+  type: 'test'
+  ...
+# Subtest: prior Context-only route reconsiders Topic on new qualified route only
+ok 78 - prior Context-only route reconsiders Topic on new qualified route only
+  ---
+  duration_ms: 381.741584
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent grant permission before dispatch
+ok 79 - manual placement needs complete independent grant permission before dispatch
+  ---
+  duration_ms: 48.916667
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent facet permission before dispatch
+ok 80 - manual placement needs complete independent facet permission before dispatch
+  ---
+  duration_ms: 49.453
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent placement permission before dispatch
+ok 81 - manual placement needs complete independent placement permission before dispatch
+  ---
+  duration_ms: 49.530791
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent entry permission before dispatch
+ok 82 - manual placement needs complete independent entry permission before dispatch
+  ---
+  duration_ms: 53.708084
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent input permission before dispatch
+ok 83 - manual placement needs complete independent input permission before dispatch
+  ---
+  duration_ms: 51.599791
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses different-name without ACK or human mutation
+ok 84 - placement Topic assessment refuses different-name without ACK or human mutation
+  ---
+  duration_ms: 182.090041
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses distinct without ACK or human mutation
+ok 85 - placement Topic assessment refuses distinct without ACK or human mutation
+  ---
+  duration_ms: 183.096833
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses ambiguous without ACK or human mutation
+ok 86 - placement Topic assessment refuses ambiguous without ACK or human mutation
+  ---
+  duration_ms: 174.808166
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses internal-aspect without ACK or human mutation
+ok 87 - placement Topic assessment refuses internal-aspect without ACK or human mutation
+  ---
+  duration_ms: 173.461458
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-evidence without ACK or human mutation
+ok 88 - placement Topic assessment refuses partial-evidence without ACK or human mutation
+  ---
+  duration_ms: 181.126875
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-relation without ACK or human mutation
+ok 89 - placement Topic assessment refuses partial-relation without ACK or human mutation
+  ---
+  duration_ms: 177.692208
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses wrong-section without ACK or human mutation
+ok 90 - placement Topic assessment refuses wrong-section without ACK or human mutation
+  ---
+  duration_ms: 179.4175
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses new-section without ACK or human mutation
+ok 91 - placement Topic assessment refuses new-section without ACK or human mutation
+  ---
+  duration_ms: 184.875083
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses missing-entry without ACK or human mutation
+ok 92 - placement Topic assessment refuses missing-entry without ACK or human mutation
+  ---
+  duration_ms: 174.215833
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses new-entry without ACK or human mutation
+ok 93 - placement Topic assessment refuses new-entry without ACK or human mutation
+  ---
+  duration_ms: 184.431
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses extra-reference without ACK or human mutation
+ok 94 - placement Topic assessment refuses extra-reference without ACK or human mutation
+  ---
+  duration_ms: 177.311666
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-entry without ACK or human mutation
+ok 95 - placement Topic assessment refuses partial-entry without ACK or human mutation
+  ---
+  duration_ms: 174.769625
+  type: 'test'
+  ...
+# Subtest: original Context placement does not acquire Topic capability false
+ok 96 - original Context placement does not acquire Topic capability false
+  ---
+  duration_ms: 215.4205
+  type: 'test'
+  ...
+# Subtest: original Context placement does not acquire Topic capability undefined
+ok 97 - original Context placement does not acquire Topic capability undefined
+  ---
+  duration_ms: 211.795584
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean "true"
+ok 98 - placement capability rejects non-boolean "true"
+  ---
+  duration_ms: 33.152709
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean 1
+ok 99 - placement capability rejects non-boolean 1
+  ---
+  duration_ms: 31.952667
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean null
+ok 100 - placement capability rejects non-boolean null
+  ---
+  duration_ms: 32.119458
+  type: 'test'
+  ...
+# Subtest: placement genuine independent Topic authority commits with original closed owner
+ok 101 - placement genuine independent Topic authority commits with original closed owner
+  ---
+  duration_ms: 272.755458
+  type: 'test'
+  ...
+# Subtest: placement genuine independent Topic authority revocation at settlement rolls back
+ok 102 - placement genuine independent Topic authority revocation at settlement rolls back
+  ---
+  duration_ms: 217.033583
+  type: 'test'
+  ...
+# Subtest: genuine Section rename executes original Context with exact Section ACK and no human organization writes
+ok 103 - genuine Section rename executes original Context with exact Section ACK and no human organization writes
+  ---
+  duration_ms: 334.122
+  type: 'test'
+  ...
+# Subtest: independent structural processing denied refuses before title hash and dispatch
+ok 104 - independent structural processing denied refuses before title hash and dispatch
+  ---
+  duration_ms: 72.403458
+  type: 'test'
+  ...
+# Subtest: independent structural processing missing-section refuses before title hash and dispatch
+ok 105 - independent structural processing missing-section refuses before title hash and dispatch
+  ---
+  duration_ms: 70.826666
+  type: 'test'
+  ...
+# Subtest: independent structural processing wrong-field refuses before title hash and dispatch
+ok 106 - independent structural processing wrong-field refuses before title hash and dispatch
+  ---
+  duration_ms: 75.155167
+  type: 'test'
+  ...
+# Subtest: independent structural processing wrong-operation refuses before title hash and dispatch
+ok 107 - independent structural processing wrong-operation refuses before title hash and dispatch
+  ---
+  duration_ms: 70.027208
+  type: 'test'
+  ...
+# Subtest: independent structural processing wrong-membership refuses before title hash and dispatch
+ok 108 - independent structural processing wrong-membership refuses before title hash and dispatch
+  ---
+  duration_ms: 68.934791
+  type: 'test'
+  ...
+# Subtest: adapter missing-structure cannot ACK checked structural evidence
+ok 109 - adapter missing-structure cannot ACK checked structural evidence
+  ---
+  duration_ms: 193.981084
+  type: 'test'
+  ...
+# Subtest: adapter wrong-operation cannot ACK checked structural evidence
+ok 110 - adapter wrong-operation cannot ACK checked structural evidence
+  ---
+  duration_ms: 195.188166
+  type: 'test'
+  ...
+# Subtest: adapter wrong-hash cannot ACK checked structural evidence
+ok 111 - adapter wrong-hash cannot ACK checked structural evidence
+  ---
+  duration_ms: 188.958167
+  type: 'test'
+  ...
+# Subtest: adapter missing-body cannot ACK checked structural evidence
+ok 112 - adapter missing-body cannot ACK checked structural evidence
+  ---
+  duration_ms: 188.306416
+  type: 'test'
+  ...
+# Subtest: adapter wrong-topic cannot ACK checked structural evidence
+ok 113 - adapter wrong-topic cannot ACK checked structural evidence
+  ---
+  duration_ms: 189.367291
+  type: 'test'
+  ...
+# Subtest: unsupported derived remains genuine pending with zero dispatch or ACK
+ok 114 - unsupported derived remains genuine pending with zero dispatch or ACK
+  ---
+  duration_ms: 51.689625
+  type: 'test'
+  ...
+# Subtest: unsupported type remains genuine pending with zero dispatch or ACK
+ok 115 - unsupported type remains genuine pending with zero dispatch or ACK
+  ---
+  duration_ms: 49.675458
+  type: 'test'
+  ...
+# Subtest: unsupported formation remains genuine pending with zero dispatch or ACK
+ok 116 - unsupported formation remains genuine pending with zero dispatch or ACK
+  ---
+  duration_ms: 52.332167
+  type: 'test'
+  ...
+# Subtest: unsupported entry-title remains genuine pending with zero dispatch or ACK
+ok 117 - unsupported entry-title remains genuine pending with zero dispatch or ACK
+  ---
+  duration_ms: 49.498042
+  type: 'test'
+  ...
+# Subtest: unsupported entry-note remains genuine pending with zero dispatch or ACK
+ok 118 - unsupported entry-note remains genuine pending with zero dispatch or ACK
+  ---
+  duration_ms: 56.2715
+  type: 'test'
+  ...
+# Subtest: unsupported ai-membership remains genuine pending with zero dispatch or ACK
+ok 119 - unsupported ai-membership remains genuine pending with zero dispatch or ACK
+  ---
+  duration_ms: 48.590625
+  type: 'test'
+  ...
+# Subtest: unsupported missing-journal remains genuine pending with zero dispatch or ACK
+ok 120 - unsupported missing-journal remains genuine pending with zero dispatch or ACK
+  ---
+  duration_ms: 48.225625
+  type: 'test'
+  ...
+# Subtest: unsupported missing-receipt remains genuine pending with zero dispatch or ACK
+ok 121 - unsupported missing-receipt remains genuine pending with zero dispatch or ACK
+  ---
+  duration_ms: 63.074458
+  type: 'test'
+  ...
+# Subtest: unsupported inactive-layout remains genuine pending with zero dispatch or ACK
+ok 122 - unsupported inactive-layout remains genuine pending with zero dispatch or ACK
+  ---
+  duration_ms: 49.738459
+  type: 'test'
+  ...
+# Subtest: unsupported section-rank remains genuine pending with zero dispatch or ACK
+ok 123 - unsupported section-rank remains genuine pending with zero dispatch or ACK
+  ---
+  duration_ms: 49.081916
+  type: 'test'
+  ...
+# Subtest: unsupported cosmetic remains genuine pending with zero dispatch or ACK
+ok 124 - unsupported cosmetic remains genuine pending with zero dispatch or ACK
+  ---
+  duration_ms: 50.273667
+  type: 'test'
+  ...
+# Subtest: Section membership limit is complete and never truncates a larger Section into a paid subset
+ok 125 - Section membership limit is complete and never truncates a larger Section into a paid subset
+  ---
+  duration_ms: 48.262333
+  type: 'test'
+  ...
+# Subtest: structural title-hash drift is refused by the original shared final transaction
+ok 126 - structural title-hash drift is refused by the original shared final transaction
+  ---
+  duration_ms: 97.520958
+  type: 'test'
+  ...
+# Subtest: structural final-input-fence drift is refused by the original shared final transaction
+ok 127 - structural final-input-fence drift is refused by the original shared final transaction
+  ---
+  duration_ms: 177.307375
+  type: 'test'
+  ...
+# Subtest: structural commit-title drift is refused by the original shared final transaction
+ok 128 - structural commit-title drift is refused by the original shared final transaction
+  ---
+  duration_ms: 221.143667
+  type: 'test'
+  ...
+# Subtest: structural commit-input drift is refused by the original shared final transaction
+ok 129 - structural commit-input drift is refused by the original shared final transaction
+  ---
+  duration_ms: 229.042167
+  type: 'test'
+  ...
+# Subtest: structural commit-source drift is refused by the original shared final transaction
+ok 130 - structural commit-source drift is refused by the original shared final transaction
+  ---
+  duration_ms: 233.576708
+  type: 'test'
+  ...
+# Subtest: structural ack-title drift is refused by the original shared final transaction
+ok 131 - structural ack-title drift is refused by the original shared final transaction
+  ---
+  duration_ms: 227.515417
+  type: 'test'
+  ...
+# Subtest: structural ack-input drift is refused by the original shared final transaction
+ok 132 - structural ack-input drift is refused by the original shared final transaction
+  ---
+  duration_ms: 233.749792
+  type: 'test'
+  ...
+# Subtest: structural ack-source drift is refused by the original shared final transaction
+ok 133 - structural ack-source drift is refused by the original shared final transaction
+  ---
+  duration_ms: 233.759958
+  type: 'test'
+  ...
+# Subtest: new structural title is changed interpretation evidence for original Context UPDATE, and old lineage becomes unreadable
+ok 134 - new structural title is changed interpretation evidence for original Context UPDATE, and old lineage becomes unreadable
+  ---
+  duration_ms: 284.573875
+  type: 'test'
+  ...
+# Subtest: historical structural DEFER stays pending on the same route
+ok 135 - historical structural DEFER stays pending on the same route
+  ---
+  duration_ms: 41.098625
+  type: 'test'
+  ...
+# Subtest: historical structural DEFER requalifies only exact Context on a new route
+ok 136 - historical structural DEFER requalifies only exact Context on a new route
+  ---
+  duration_ms: 230.561084
+  type: 'test'
+  ...
+# Subtest: exact structural ACK abort rolls back Context and retry consumes only the original response
+ok 137 - exact structural ACK abort rolls back Context and retry consumes only the original response
+  ---
+  duration_ms: 278.776125
+  type: 'test'
+  ...
+# Subtest: mixed independent Topic then unchanged Section Context uses the original two-child envelope
+ok 138 - mixed independent Topic then unchanged Section Context uses the original two-child envelope
+  ---
+  duration_ms: 608.829709
+  type: 'test'
+  ...
+# Subtest: mixed independent Topic then unchanged Section Context requires a fresh independent title grant
+ok 139 - mixed independent Topic then unchanged Section Context requires a fresh independent title grant
+  ---
+  duration_ms: 441.247916
+  type: 'test'
+  ...
+# Subtest: unrelated manual Topic, baseline Section and Context Item obligations remain pending beside supported Section Context
+ok 140 - unrelated manual Topic, baseline Section and Context Item obligations remain pending beside supported Section Context
+  ---
+  duration_ms: 428.64475
+  type: 'test'
+  ...
+# Subtest: direct original Context maintain fences structural title after its staged receipt
+ok 141 - direct original Context maintain fences structural title after its staged receipt
+  ---
+  duration_ms: 49.82275
+  type: 'test'
+  ...
+# Subtest: direct original Context maintain fences structural input after its staged receipt
+ok 142 - direct original Context maintain fences structural input after its staged receipt
+  ---
+  duration_ms: 50.209792
+  type: 'test'
+  ...
+# Subtest: direct original Context maintain fences structural source after its staged receipt
+ok 143 - direct original Context maintain fences structural source after its staged receipt
+  ---
+  duration_ms: 49.308166
+  type: 'test'
+  ...
+# Subtest: direct original Context noChange fences structural title after its staged receipt
+ok 144 - direct original Context noChange fences structural title after its staged receipt
+  ---
+  duration_ms: 62.556208
+  type: 'test'
+  ...
+# Subtest: direct original Context noChange fences structural input after its staged receipt
+ok 145 - direct original Context noChange fences structural input after its staged receipt
+  ---
+  duration_ms: 60.982542
+  type: 'test'
+  ...
+# Subtest: direct original Context noChange fences structural source after its staged receipt
+ok 146 - direct original Context noChange fences structural source after its staged receipt
+  ---
+  duration_ms: 60.978
+  type: 'test'
+  ...
+# Subtest: direct original Context invalidate fences structural title after its staged receipt
+ok 147 - direct original Context invalidate fences structural title after its staged receipt
+  ---
+  duration_ms: 64.297833
+  type: 'test'
+  ...
+# Subtest: direct original Context invalidate fences structural input after its staged receipt
+ok 148 - direct original Context invalidate fences structural input after its staged receipt
+  ---
+  duration_ms: 61.196042
+  type: 'test'
+  ...
+# Subtest: direct original Context invalidate fences structural source after its staged receipt
+ok 149 - direct original Context invalidate fences structural source after its staged receipt
+  ---
+  duration_ms: 66.017333
+  type: 'test'
+  ...
+# Subtest: original structural NO_CHANGE final settlement preserves a checked-subset positive control
+ok 150 - original structural NO_CHANGE final settlement preserves a checked-subset positive control
+  ---
+  duration_ms: 536.468958
+  type: 'test'
+  ...
+# Subtest: original structural NO_CHANGE final settlement rejects counter-tail title drift
+ok 151 - original structural NO_CHANGE final settlement rejects counter-tail title drift
+  ---
+  duration_ms: 508.563583
+  type: 'test'
+  ...
+# Subtest: original structural NO_CHANGE final settlement rejects counter-tail input drift
+ok 152 - original structural NO_CHANGE final settlement rejects counter-tail input drift
+  ---
+  duration_ms: 552.851708
+  type: 'test'
+  ...
+# Subtest: original structural NO_CHANGE final settlement rejects counter-tail source drift
+ok 153 - original structural NO_CHANGE final settlement rejects counter-tail source drift
+  ---
+  duration_ms: 522.175625
+  type: 'test'
+  ...
+# Subtest: original structural invalidation cannot reactivate on an unselected Topic rename
+ok 154 - original structural invalidation cannot reactivate on an unselected Topic rename
+  ---
+  duration_ms: 80.913625
+  type: 'test'
+  ...
+# Subtest: original structural invalidation can reactivate on genuinely changed selected Section interpretation
+ok 155 - original structural invalidation can reactivate on genuinely changed selected Section interpretation
+  ---
+  duration_ms: 82.621542
+  type: 'test'
+  ...
+# Subtest: structural novelty ignores ambient revisions and layout while retaining selected title and actual membership identity
+ok 156 - structural novelty ignores ambient revisions and layout while retaining selected title and actual membership identity
+  ---
+  duration_ms: 50.209583
+  type: 'test'
+  ...
+# Subtest: complete real-owner Section with 6 Inputs commits with maximum allowed command text reserved
+ok 157 - complete real-owner Section with 6 Inputs commits with maximum allowed command text reserved
+  ---
+  duration_ms: 820.140709
+  type: 'test'
+  ...
+# Subtest: complete real-owner Section with 14 Inputs refuses the complete command envelope before dispatch
+ok 158 - complete real-owner Section with 14 Inputs refuses the complete command envelope before dispatch
+  ---
+  duration_ms: 489.040708
+  type: 'test'
+  ...
+# Subtest: complete real-owner Section with 16 Inputs refuses the complete command envelope before dispatch
+ok 159 - complete real-owner Section with 16 Inputs refuses the complete command envelope before dispatch
+  ---
+  duration_ms: 544.005125
+  type: 'test'
+  ...
+# Subtest: complete mixed structural and 1 authored child executes combined original Context evidence
+ok 160 - complete mixed structural and 1 authored child executes combined original Context evidence
+  ---
+  duration_ms: 699.318042
+  type: 'test'
+  ...
+# Subtest: complete mixed structural and 3 authored child refuses an uncommittable combined envelope before dispatch and permits bounded independent progress
+ok 161 - complete mixed structural and 3 authored child refuses an uncommittable combined envelope before dispatch and permits bounded independent progress
+  ---
+  duration_ms: 528.157375
+  type: 'test'
+  ...
+# Subtest: complete mixed structural and 11 authored child refuses an uncommittable combined envelope before dispatch and permits bounded independent progress
+ok 162 - complete mixed structural and 11 authored child refuses an uncommittable combined envelope before dispatch and permits bounded independent progress
+  ---
+  duration_ms: 1375.464541
+  type: 'test'
+  ...
+# Subtest: original pre-dispatch-only cancellation planned preserves dirty work and sent identity
+ok 163 - original pre-dispatch-only cancellation planned preserves dirty work and sent identity
+  ---
+  duration_ms: 39.089333
+  type: 'test'
+  ...
+# Subtest: original pre-dispatch-only cancellation reserved preserves dirty work and sent identity
+ok 164 - original pre-dispatch-only cancellation reserved preserves dirty work and sent identity
+  ---
+  duration_ms: 38.310583
+  type: 'test'
+  ...
+# Subtest: original pre-dispatch-only cancellation sent preserves dirty work and sent identity
+ok 165 - original pre-dispatch-only cancellation sent preserves dirty work and sent identity
+  ---
+  duration_ms: 42.365042
+  type: 'test'
+  ...
+# Subtest: original pre-dispatch-only cancellation fenced preserves dirty work and sent identity
+ok 166 - original pre-dispatch-only cancellation fenced preserves dirty work and sent identity
+  ---
+  duration_ms: 38.675083
+  type: 'test'
+  ...
+# Subtest: late following structural payload budget refusal preserves received Topic sibling Context and never cancels its sent identity
+ok 167 - late following structural payload budget refusal preserves received Topic sibling Context and never cancels its sent identity
+  ---
+  duration_ms: 493.671666
+  type: 'test'
+  ...
+# Subtest: Section selected interpretation cannot be omitted from original Context maintain
+ok 168 - Section selected interpretation cannot be omitted from original Context maintain
+  ---
+  duration_ms: 59.749583
+  type: 'test'
+  ...
+# Subtest: Section selected interpretation cannot be omitted from original Context invalidate
+ok 169 - Section selected interpretation cannot be omitted from original Context invalidate
+  ---
+  duration_ms: 63.702916
+  type: 'test'
+  ...
+# Subtest: Section selected interpretation cannot be omitted from original Context reactivate
+ok 170 - Section selected interpretation cannot be omitted from original Context reactivate
+  ---
+  duration_ms: 73.5945
+  type: 'test'
+  ...
+# Subtest: Section selected interpretation cannot be replaced by valid Topic qualification while active
+ok 171 - Section selected interpretation cannot be replaced by valid Topic qualification while active
+  ---
+  duration_ms: 80.696042
+  type: 'test'
+  ...
+# Subtest: Section selected interpretation cannot be replaced by valid Topic qualification after invalidation
+ok 172 - Section selected interpretation cannot be replaced by valid Topic qualification after invalidation
+  ---
+  duration_ms: 96.323
+  type: 'test'
+  ...
+# Subtest: Section selected closure permits genuinely changed original Input facts
+ok 173 - Section selected closure permits genuinely changed original Input facts
+  ---
+  duration_ms: 92.4875
+  type: 'test'
+  ...
+# Subtest: Section grounded active Item retains original Input-only NO_CHANGE subset support
+ok 174 - Section grounded active Item retains original Input-only NO_CHANGE subset support
+  ---
+  duration_ms: 68.1575
+  type: 'test'
+  ...
+# Subtest: same-Topic Section move already uses exact original Placement Context route, leaving Topic pending
+ok 175 - same-Topic Section move already uses exact original Placement Context route, leaving Topic pending
+  ---
+  duration_ms: 235.385459
+  type: 'test'
+  ...
+# Subtest: actual original Section title restore commits exact Context while Topic rename capability remains separate
+ok 176 - actual original Section title restore commits exact Context while Topic rename capability remains separate
+  ---
+  duration_ms: 268.675875
+  type: 'test'
+  ...
+# Subtest: Section restore rejects title without semantic dispatch or ACK
+ok 177 - Section restore rejects title without semantic dispatch or ACK
+  ---
+  duration_ms: 58.267458
+  type: 'test'
+  ...
+# Subtest: Section restore rejects before without semantic dispatch or ACK
+ok 178 - Section restore rejects before without semantic dispatch or ACK
+  ---
+  duration_ms: 59.005333
+  type: 'test'
+  ...
+# Subtest: Section restore rejects after without semantic dispatch or ACK
+ok 179 - Section restore rejects after without semantic dispatch or ACK
+  ---
+  duration_ms: 66.190416
+  type: 'test'
+  ...
+# Subtest: Section restore rejects base-revision without semantic dispatch or ACK
+ok 180 - Section restore rejects base-revision without semantic dispatch or ACK
+  ---
+  duration_ms: 50.905375
+  type: 'test'
+  ...
+# Subtest: Section restore rejects after-revision without semantic dispatch or ACK
+ok 181 - Section restore rejects after-revision without semantic dispatch or ACK
+  ---
+  duration_ms: 52.429708
+  type: 'test'
+  ...
+# Subtest: Section restore rejects actor without semantic dispatch or ACK
+ok 182 - Section restore rejects actor without semantic dispatch or ACK
+  ---
+  duration_ms: 51.903125
+  type: 'test'
+  ...
+# Subtest: Section restore rejects mask without semantic dispatch or ACK
+ok 183 - Section restore rejects mask without semantic dispatch or ACK
+  ---
+  duration_ms: 50.275375
+  type: 'test'
+  ...
+# Subtest: Section restore rejects operation without semantic dispatch or ACK
+ok 184 - Section restore rejects operation without semantic dispatch or ACK
+  ---
+  duration_ms: 54.542958
+  type: 'test'
+  ...
+# Subtest: Section restore rejects receipt-namespace without semantic dispatch or ACK
+ok 185 - Section restore rejects receipt-namespace without semantic dispatch or ACK
+  ---
+  duration_ms: 51.396083
+  type: 'test'
+  ...
+# Subtest: Section restore rejects receipt-schema without semantic dispatch or ACK
+ok 186 - Section restore rejects receipt-schema without semantic dispatch or ACK
+  ---
+  duration_ms: 52.184334
+  type: 'test'
+  ...
+# Subtest: Section restore rejects receipt-owner without semantic dispatch or ACK
+ok 187 - Section restore rejects receipt-owner without semantic dispatch or ACK
+  ---
+  duration_ms: 52.719334
+  type: 'test'
+  ...
+# Subtest: Section restore rejects receipt-result without semantic dispatch or ACK
+ok 188 - Section restore rejects receipt-result without semantic dispatch or ACK
+  ---
+  duration_ms: 50.508958
+  type: 'test'
+  ...
+# Subtest: Section restore rejects receipt-digest without semantic dispatch or ACK
+ok 189 - Section restore rejects receipt-digest without semantic dispatch or ACK
+  ---
+  duration_ms: 52.094
+  type: 'test'
+  ...
+# Subtest: Section restore rejects receipt-clock without semantic dispatch or ACK
+ok 190 - Section restore rejects receipt-clock without semantic dispatch or ACK
+  ---
+  duration_ms: 51.854875
+  type: 'test'
+  ...
+# Subtest: Section restore rejects receipt-sequence without semantic dispatch or ACK
+ok 191 - Section restore rejects receipt-sequence without semantic dispatch or ACK
+  ---
+  duration_ms: 57.13325
+  type: 'test'
+  ...
+# Subtest: Section restore rejects protection without semantic dispatch or ACK
+ok 192 - Section restore rejects protection without semantic dispatch or ACK
+  ---
+  duration_ms: 52.743459
+  type: 'test'
+  ...
+# Subtest: Section restore rejects source without semantic dispatch or ACK
+ok 193 - Section restore rejects source without semantic dispatch or ACK
+  ---
+  duration_ms: 52.629208
+  type: 'test'
+  ...
+# Subtest: Section restore grant-denied retains original qualification and rollback boundaries
+ok 194 - Section restore grant-denied retains original qualification and rollback boundaries
+  ---
+  duration_ms: 69.877875
+  type: 'test'
+  ...
+# Subtest: Section restore wrong-fields retains original qualification and rollback boundaries
+ok 195 - Section restore wrong-fields retains original qualification and rollback boundaries
+  ---
+  duration_ms: 67.725
+  type: 'test'
+  ...
+# Subtest: Section restore expired retains original qualification and rollback boundaries
+ok 196 - Section restore expired retains original qualification and rollback boundaries
+  ---
+  duration_ms: 38.406583
+  type: 'test'
+  ...
+# Subtest: Section restore revoke-after-dispatch retains original qualification and rollback boundaries
+ok 197 - Section restore revoke-after-dispatch retains original qualification and rollback boundaries
+  ---
+  duration_ms: 187.271167
+  type: 'test'
+  ...
+# Subtest: Section restore new-title-after-dispatch retains original qualification and rollback boundaries
+ok 198 - Section restore new-title-after-dispatch retains original qualification and rollback boundaries
+  ---
+  duration_ms: 188.471292
+  type: 'test'
+  ...
+# Subtest: Section restore ack-abort retains original qualification and rollback boundaries
+ok 199 - Section restore ack-abort retains original qualification and rollback boundaries
+  ---
+  duration_ms: 294.073083
+  type: 'test'
+  ...
+# Subtest: Topic reconciliation requires original finite rename mapping, never a copy or restored title
+ok 200 - Topic reconciliation requires original finite rename mapping, never a copy or restored title
+  ---
+  duration_ms: 35.548
+  type: 'test'
+  ...
+# Subtest: M1 v3 migration preserves every Source/Input/import/filter field and all stores
+ok 201 - M1 v3 migration preserves every Source/Input/import/filter field and all stores
+  ---
+  duration_ms: 40.007625
+  type: 'test'
+  ...
+# Subtest: M1 v4 migration preserves every Source/Input/import/filter field and all stores
+ok 202 - M1 v4 migration preserves every Source/Input/import/filter field and all stores
+  ---
+  duration_ms: 24.867917
+  type: 'test'
+  ...
+# Subtest: M1 actual version provenance ignores note-only changes when only body was used
+ok 203 - M1 actual version provenance ignores note-only changes when only body was used
+  ---
+  duration_ms: 29.088958
+  type: 'test'
+  ...
+# Subtest: M1 inferred auto create and stale supplied evidence are rejected
+ok 204 - M1 inferred auto create and stale supplied evidence are rejected
+  ---
+  duration_ms: 16.802542
+  type: 'test'
+  ...
+# Subtest: M1 per-field human edit protection survives undo and blocks only matching AI fields
+ok 205 - M1 per-field human edit protection survives undo and blocks only matching AI fields
+  ---
+  duration_ms: 20.875375
+  type: 'test'
+  ...
+# Subtest: M1 suppression has no body and same evidence cannot resurrect deleted result
+ok 206 - M1 suppression has no body and same evidence cannot resurrect deleted result
+  ---
+  duration_ms: 16.11475
+  type: 'test'
+  ...
+# Subtest: M1 removing the last evidence invalidates AI content but preserves authored content
+ok 207 - M1 removing the last evidence invalidates AI content but preserves authored content
+  ---
+  duration_ms: 25.17225
+  type: 'test'
+  ...
+# Subtest: M1 nonempty legacy Thought quarantine preserves payload and old revisions without inventing formation
+ok 208 - M1 nonempty legacy Thought quarantine preserves payload and old revisions without inventing formation
+  ---
+  duration_ms: 20.858375
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after thoughts commit resumes idempotently
+ok 209 - M1 migration crash after thoughts commit resumes idempotently
+  ---
+  duration_ms: 16.1035
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after dependencies commit resumes idempotently
+ok 210 - M1 migration crash after dependencies commit resumes idempotently
+  ---
+  duration_ms: 16.95075
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after verify commit resumes idempotently
+ok 211 - M1 migration crash after verify commit resumes idempotently
+  ---
+  duration_ms: 17.21275
+  type: 'test'
+  ...
+# Subtest: M1 actual note dependency becomes stale while conversation title alone does not
+ok 212 - M1 actual note dependency becomes stale while conversation title alone does not
+  ---
+  duration_ms: 18.1955
+  type: 'test'
+  ...
+# Subtest: M1 context-only cannot form an Entry or bypass removed/filtered source gates
+ok 213 - M1 context-only cannot form an Entry or bypass removed/filtered source gates
+  ---
+  duration_ms: 24.87675
+  type: 'test'
+  ...
+# Subtest: M1 new non-context evidence only allows a future candidate, not resurrection
+ok 214 - M1 new non-context evidence only allows a future candidate, not resurrection
+  ---
+  duration_ms: 23.972375
+  type: 'test'
+  ...
+# Subtest: M1 two-tab CAS and operation receipts survive worker replacement
+ok 215 - M1 two-tab CAS and operation receipts survive worker replacement
+  ---
+  duration_ms: 19.75625
+  type: 'test'
+  ...
+# Subtest: M1 multi-source entry remains partial until its last effective evidence disappears
+ok 216 - M1 multi-source entry remains partial until its last effective evidence disappears
+  ---
+  duration_ms: 25.6105
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 purge fence immediately hides every historical payload before incremental cleanup
+ok 217 - CURRENT B-02 refusal + historical fixture: M1 purge fence immediately hides every historical payload before incremental cleanup
+  ---
+  duration_ms: 33.748417
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 purge cleans indexed payloads and referenced rewrites while preserving independent notes
+ok 218 - CURRENT B-02 refusal + historical fixture: M1 purge cleans indexed payloads and referenced rewrites while preserving independent notes
+  ---
+  duration_ms: 32.551459
+  type: 'test'
+  ...
+# Subtest: M1 Topic and persistent Section IDs survive rename, with shared Entry placement and human organization protection
+ok 219 - M1 Topic and persistent Section IDs survive rename, with shared Entry placement and human organization protection
+  ---
+  duration_ms: 21.893792
+  type: 'test'
+  ...
+# Subtest: M1 Library revision restore is a new protected CAS operation, not history rewriting
+ok 220 - M1 Library revision restore is a new protected CAS operation, not history rewriting
+  ---
+  duration_ms: 19.999625
+  type: 'test'
+  ...
+# Subtest: M1 Topic Section Placement revisions restore through current CAS and preserve human organization
+ok 221 - M1 Topic Section Placement revisions restore through current CAS and preserve human organization
+  ---
+  duration_ms: 26.231917
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 legacy source-dependent rewrites, unknown payloads and histories obey purge
+ok 222 - CURRENT B-02 refusal + historical fixture: M1 legacy source-dependent rewrites, unknown payloads and histories obey purge
+  ---
+  duration_ms: 34.5575
+  type: 'test'
+  ...
+# Subtest: M1 revision retention keeps every recent and newest 20 important; AI and user windows never coalesce
+ok 223 - M1 revision retention keeps every recent and newest 20 important; AI and user windows never coalesce
+  ---
+  duration_ms: 38.184375
+  type: 'test'
+  ...
+# Subtest: M1 forged evidence and command fields cannot modify Source/Input; empty working body has no Source fallback
+ok 224 - M1 forged evidence and command fields cannot modify Source/Input; empty working body has no Source fallback
+  ---
+  duration_ms: 17.859458
+  type: 'test'
+  ...
+# Subtest: M1 invalidation interruption cursor resumes and edit cost is independent of dependency fan-out
+ok 225 - M1 invalidation interruption cursor resumes and edit cost is independent of dependency fan-out
+  ---
+  duration_ms: 252.367625
+  type: 'test'
+  ...
+# Subtest: M1 transaction abort rolls back Entry provenance revision and receipt together
+ok 226 - M1 transaction abort rolls back Entry provenance revision and receipt together
+  ---
+  duration_ms: 11.511625
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 delayed validated output and invalidation batch cannot commit across edit or purge
+ok 227 - CURRENT B-02 refusal + historical fixture: M1 delayed validated output and invalidation batch cannot commit across edit or purge
+  ---
+  duration_ms: 34.505417
+  type: 'test'
+  ...
+# Subtest: M1 all supported fields protect independently and context-only additions cannot unlock suppression
+ok 228 - M1 all supported fields protect independently and context-only additions cannot unlock suppression
+  ---
+  duration_ms: 70.370041
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 source purge survives cleanup interruption and cannot recapture or restore deleted sources
+ok 229 - CURRENT B-02 refusal + historical fixture: M1 source purge survives cleanup interruption and cannot recapture or restore deleted sources
+  ---
+  duration_ms: 32.908959
+  type: 'test'
+  ...
+# Subtest: M1 quota-like abort after payload writes leaves no partial entry or receipt
+ok 230 - M1 quota-like abort after payload writes leaves no partial entry or receipt
+  ---
+  duration_ms: 12.550541
+  type: 'test'
+  ...
+# Subtest: M1 independent authored entries allow equal and empty bodies without invented AI provenance
+ok 231 - M1 independent authored entries allow equal and empty bodies without invented AI provenance
+  ---
+  duration_ms: 15.266375
+  type: 'test'
+  ...
+# Subtest: M1 redirect identity rejects loops and stale renamed IDs; rank exhaustion fails without reordering
+ok 232 - M1 redirect identity rejects loops and stale renamed IDs; rank exhaustion fails without reordering
+  ---
+  duration_ms: 13.787083
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 untraceable quarantine revision is fenced and erased with its unknown owner on source purge
+ok 233 - CURRENT B-02 refusal + historical fixture: M1 untraceable quarantine revision is fenced and erased with its unknown owner on source purge
+  ---
+  duration_ms: 32.908125
+  type: 'test'
+  ...
+# Subtest: M1 experimental storageSchema=2 is not trusted as a completed migration or source authority
+ok 234 - M1 experimental storageSchema=2 is not trusted as a completed migration or source authority
+  ---
+  duration_ms: 14.807875
+  type: 'test'
+  ...
+# Subtest: M1 Input capture and editing continue between migration batches and after a Library mapping failure
+ok 235 - M1 Input capture and editing continue between migration batches and after a Library mapping failure
+  ---
+  duration_ms: 121.10125
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 unavailable used versions never masquerade as current Input; purge reports pending until cleanup finishes
+ok 236 - CURRENT B-02 refusal + historical fixture: M1 unavailable used versions never masquerade as current Input; purge reports pending until cleanup finishes
+  ---
+  duration_ms: 30.974917
+  type: 'test'
+  ...
+# Subtest: M1 every approved Type maps to exactly one Family; Unicode byte limit never truncates
+ok 237 - M1 every approved Type maps to exactly one Family; Unicode byte limit never truncates
+  ---
+  duration_ms: 36.8005
+  type: 'test'
+  ...
+# Subtest: M1 hot 200KiB revision growth keeps all young history and suppression beyond retention
+ok 238 - M1 hot 200KiB revision growth keeps all young history and suppression beyond retention
+  ---
+  duration_ms: 184.728417
+  type: 'test'
+  ...
+# Subtest: M1 selected-note-only change cannot unlock removed Thought suppression
+ok 239 - M1 selected-note-only change cannot unlock removed Thought suppression
+  ---
+  duration_ms: 44.033958
+  type: 'test'
+  ...
+# Subtest: M1 unrelated queued jobs cannot starve purge; staged payloads are removed
+ok 240 - M1 unrelated queued jobs cannot starve purge; staged payloads are removed
+  ---
+  duration_ms: 39.036209
+  type: 'test'
+  ...
+# Subtest: M1 mapping transaction failure rolls back partial Thought/category mapping, then resumes
+ok 241 - M1 mapping transaction failure rolls back partial Thought/category mapping, then resumes
+  ---
+  duration_ms: 19.404959
+  type: 'test'
+  ...
+# Subtest: M1 ten Topic placements do not duplicate Entry body or Entry history
+ok 242 - M1 ten Topic placements do not duplicate Entry body or Entry history
+  ---
+  duration_ms: 39.397542
+  type: 'test'
+  ...
+# Subtest: M1 empty evidence body cannot authorize automatic content and empty AI output is rejected
+ok 243 - M1 empty evidence body cannot authorize automatic content and empty AI output is rejected
+  ---
+  duration_ms: 13.553917
+  type: 'test'
+  ...
+# Subtest: M1 incomplete Library activation fences Library history while Input history remains available
+ok 244 - M1 incomplete Library activation fences Library history while Input history remains available
+  ---
+  duration_ms: 12.37325
+  type: 'test'
+  ...
+# Subtest: M1 rapid Input remove/restore cannot revive an old AI Entry before or after queue consumption
+ok 245 - M1 rapid Input remove/restore cannot revive an old AI Entry before or after queue consumption
+  ---
+  duration_ms: 26.892792
+  type: 'test'
+  ...
+# Subtest: M1 supporting/context removal histories are not cleared by restoration or worker replacement
+ok 246 - M1 supporting/context removal histories are not cleared by restoration or worker replacement
+  ---
+  duration_ms: 32.376458
+  type: 'test'
+  ...
+# Subtest: original prepared structural handle dispatches exactly its selected Topic with shared genuine issuer budget
+ok 247 - original prepared structural handle dispatches exactly its selected Topic with shared genuine issuer budget
+  ---
+  duration_ms: 149.872542
+  type: 'test'
+  ...
+# Subtest: public handle, copied capability and another store cannot mint lifecycle selection
+ok 248 - public handle, copied capability and another store cannot mint lifecycle selection
+  ---
+  duration_ms: 76.671292
+  type: 'test'
+  ...
+# Subtest: stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+ok 249 - stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+  ---
+  duration_ms: 93.8445
+  type: 'test'
+  ...
+# Subtest: original revoke refuses or rolls back with accurate unresolved item
+ok 250 - original revoke refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 74.734209
+  type: 'test'
+  ...
+# Subtest: original dispose refuses or rolls back with accurate unresolved item
+ok 251 - original dispose refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 75.716834
+  type: 'test'
+  ...
+# Subtest: original storage refuses or rolls back with accurate unresolved item
+ok 252 - original storage refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 79.465334
+  type: 'test'
+  ...
+# Subtest: original legacy refuses or rolls back with accurate unresolved item
+ok 253 - original legacy refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 75.171708
+  type: 'test'
+  ...
+# Subtest: same dispatch reentry deduplicates and session model run cannot race local lifecycle
+ok 254 - same dispatch reentry deduplicates and session model run cannot race local lifecycle
+  ---
+  duration_ms: 84.240041
+  type: 'test'
+  ...
+# Subtest: explicit clock regression is deferred, close never starts another original action
+ok 255 - explicit clock regression is deferred, close never starts another original action
+  ---
+  duration_ms: 70.640042
+  type: 'test'
+  ...
+# Subtest: all Topics in one original prepared handle are dispatched without silently truncating the selection
+ok 256 - all Topics in one original prepared handle are dispatched without silently truncating the selection
+  ---
+  duration_ms: 134.586458
+  type: 'test'
+  ...
+# Subtest: a later selected Topic failure retains prior settlement and the exact unresolved action
+ok 257 - a later selected Topic failure retains prior settlement and the exact unresolved action
+  ---
+  duration_ms: 124.966167
+  type: 'test'
+  ...
+# Subtest: actual Input-only prepared handle cannot select an arbitrary existing Topic
+ok 258 - actual Input-only prepared handle cannot select an arbitrary existing Topic
+  ---
+  duration_ms: 43.93775
+  type: 'test'
+  ...
+# Subtest: late-dispose after original backup finalizer rolls the selected dispatch back
+ok 259 - late-dispose after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 84.894917
+  type: 'test'
+  ...
+# Subtest: late-grant after original backup finalizer rolls the selected dispatch back
+ok 260 - late-grant after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 84.025
+  type: 'test'
+  ...
+# Subtest: late-receipt after original backup finalizer rolls the selected dispatch back
+ok 261 - late-receipt after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 89.442417
+  type: 'test'
+  ...
+# Subtest: late-source after original backup finalizer rolls the selected dispatch back
+ok 262 - late-source after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 87.616583
+  type: 'test'
+  ...
+# Subtest: original receipt observer distinguishes transaction identity and multiple original receipts
+ok 263 - original receipt observer distinguishes transaction identity and multiple original receipts
+  ---
+  duration_ms: 69.190209
+  type: 'test'
+  ...
+# Subtest: failed original receipt put unbinds its observer without changing later receipt behavior
+ok 264 - failed original receipt put unbinds its observer without changing later receipt behavior
+  ---
+  duration_ms: 67.92975
+  type: 'test'
+  ...
+1..264
+# tests 264
+# suites 0
+# pass 264
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40978.003708

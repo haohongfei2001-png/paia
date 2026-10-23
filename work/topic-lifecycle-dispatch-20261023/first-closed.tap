@@ -1,0 +1,80 @@
+TAP version 13
+# Subtest: original prepared structural handle dispatches exactly its selected Topic with shared genuine issuer budget
+not ok 1 - original prepared structural handle dispatches exactly its selected Topic with shared genuine issuer budget
+  ---
+  duration_ms: 294.34575
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:28:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(f.observed.requests.every(r=>r.topicIds.length===1&&r.topicIds[0]===f.selected.id))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:28:645)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: public handle, copied capability and another store cannot mint lifecycle selection
+ok 2 - public handle, copied capability and another store cannot mint lifecycle selection
+  ---
+  duration_ms: 117.617958
+  type: 'test'
+  ...
+# Subtest: stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+ok 3 - stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+  ---
+  duration_ms: 186.540542
+  type: 'test'
+  ...
+# Subtest: original revoke refuses or rolls back with accurate unresolved item
+ok 4 - original revoke refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 118.267458
+  type: 'test'
+  ...
+# Subtest: original dispose refuses or rolls back with accurate unresolved item
+ok 5 - original dispose refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 164.296417
+  type: 'test'
+  ...
+# Subtest: original storage refuses or rolls back with accurate unresolved item
+ok 6 - original storage refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 113.33925
+  type: 'test'
+  ...
+# Subtest: original legacy refuses or rolls back with accurate unresolved item
+ok 7 - original legacy refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 151.280583
+  type: 'test'
+  ...
+# Subtest: same dispatch reentry deduplicates and session model run cannot race local lifecycle
+ok 8 - same dispatch reentry deduplicates and session model run cannot race local lifecycle
+  ---
+  duration_ms: 138.04175
+  type: 'test'
+  ...
+# Subtest: explicit clock regression is deferred, close never starts another original action
+ok 9 - explicit clock regression is deferred, close never starts another original action
+  ---
+  duration_ms: 106.132792
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 8
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1635.219417
