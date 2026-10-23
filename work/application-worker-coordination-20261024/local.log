@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: original local owners hold intake and release only requested work once
+ok 1 - original local owners hold intake and release only requested work once
+  ---
+  duration_ms: 1.364875
+  type: 'test'
+  ...
+# Subtest: all intake gates close before an existing drain settles, requested wake is retained
+ok 2 - all intake gates close before an existing drain settles, requested wake is retained
+  ---
+  duration_ms: 0.200208
+  type: 'test'
+  ...
+# Subtest: idle release does not invent work
+ok 3 - idle release does not invent work
+  ---
+  duration_ms: 0.150209
+  type: 'test'
+  ...
+# Subtest: failed original maintenance prevents proof and never becomes an automatic retry
+ok 4 - failed original maintenance prevents proof and never becomes an automatic retry
+  ---
+  duration_ms: 0.152958
+  type: 'test'
+  ...
+# Subtest: library retry during hold cannot clear the original failure marker
+ok 5 - library retry during hold cannot clear the original failure marker
+  ---
+  duration_ms: 0.162833
+  type: 'test'
+  ...
+# Subtest: forged tokens and foreign repository identity fail without release
+ok 6 - forged tokens and foreign repository identity fail without release
+  ---
+  duration_ms: 0.2195
+  type: 'test'
+  ...
+# Subtest: closing during drain releases late holds and cannot publish a usable receipt
+ok 7 - closing during drain releases late holds and cannot publish a usable receipt
+  ---
+  duration_ms: 0.3695
+  type: 'test'
+  ...
+# Subtest: default-null remote lane hold does not access store; copied factory cannot qualify
+ok 8 - default-null remote lane hold does not access store; copied factory cannot qualify
+  ---
+  duration_ms: 0.100583
+  type: 'test'
+  ...
+# Subtest: copied local runner cannot qualify the private prototype guard
+ok 9 - copied local runner cannot qualify the private prototype guard
+  ---
+  duration_ms: 0.316375
+  type: 'test'
+  ...
+# Subtest: default-null original runner exposes no promotion session and performs no store or body read
+ok 10 - default-null original runner exposes no promotion session and performs no store or body read
+  ---
+  duration_ms: 0.836334
+  type: 'test'
+  ...
+# Subtest: copied, claimed and foreign-store runner identities cannot expose a session
+ok 11 - copied, claimed and foreign-store runner identities cannot expose a session
+  ---
+  duration_ms: 0.124167
+  type: 'test'
+  ...
+# Subtest: M1 maintenance runner yields bounded batches and persisted work resumes after failure
+ok 12 - M1 maintenance runner yields bounded batches and persisted work resumes after failure
+  ---
+  duration_ms: 0.446458
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 157.293792
