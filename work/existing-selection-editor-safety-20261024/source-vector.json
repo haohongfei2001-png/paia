@@ -1,0 +1,7 @@
+{
+  "extension/background/application-selection-commands.js": "a3bf531ce83bb17e6c790c19f7452f3e7473e8b1031dc3783d0cace94824f164",
+  "extension/ui/settings-sync.js": "09e3f4f7c51896edaeb14f5243a9c3fd35bc8225f00c4c3acd15b2ce916285bf",
+  "extension/tests/application-selection-editor-safety.test.mjs": "3820eb87c6941f140c2f18baadfd9210a027cdbc0b38fcbb269a43c06eb9edac",
+  "extension/tests/application-selection-consumer.test.mjs": "3c5c34a380df29018ee0895afd4adfe5d24fc3e5fafef05d6a0e8e9359b0944f",
+  "extension/tests/settings-sync.test.mjs": "fb1f2a41f8e4c9cc937a53a71eb3fed2884b1d3c31d8c1ce3c760c379c3b5c97"
+}
