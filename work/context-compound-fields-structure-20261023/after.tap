@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: compound fields original body+note with independent authored owner
+ok 1 - compound fields original body+note with independent authored owner
+  ---
+  duration_ms: 681.898
+  type: 'test'
+  ...
+# Subtest: compound fields original note with independent authored owner
+ok 2 - compound fields original note with independent authored owner
+  ---
+  duration_ms: 587.423542
+  type: 'test'
+  ...
+# Subtest: compound fields original body+note with bound
+ok 3 - compound fields original body+note with bound
+  ---
+  duration_ms: 451.180084
+  type: 'test'
+  ...
+# Subtest: compound fields original body+note with bound and authored
+ok 4 - compound fields original body+note with bound and authored
+  ---
+  duration_ms: 594.240375
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with plain
+ok 5 - compound structure original Section with plain
+  ---
+  duration_ms: 767.691208
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with bound
+ok 6 - compound structure original Section with bound
+  ---
+  duration_ms: 707.710125
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with plain and authored
+ok 7 - compound structure original Section with plain and authored
+  ---
+  duration_ms: 1027.797292
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with bound and authored
+ok 8 - compound structure original Section with bound and authored
+  ---
+  duration_ms: 877.269417
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5859.385833

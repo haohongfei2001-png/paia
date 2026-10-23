@@ -445,8 +445,8 @@ export class LocalMaintenanceSession {
    else if(u.facet==='context'&&state.boundMapping?.has(u.key))ids.add(state.boundMapping.get(u.key).inputId);
    else if(d?.kind==='library_entry'&&(u.facet==='context'||u.facet==='topic'&&this.#authoredTopicCapable(state.authoredMapping?.get(u.key)))&&state.authoredMapping?.has(u.key))continue;
    else if(d?.kind==='placement'&&(u.facet==='context'||u.facet==='topic'&&this.#service?.topic.reconcileHumanPlacements===true)&&state.placementMapping?.has(u.key))ids.add(state.placementMapping.get(u.key).inputId);
-   else if(this.#structures(state,[u]).length)for(const m of this.#structures(state,[u]))for(const e of m.entries)ids.add(e.inputId);
    else if(d?.kind==='context_item'&&u.facet==='context'&&state.contextMapping?.has(u.key)){for(const e of state.contextMapping.get(u.key).provenance.evidence)if(!e.kind)ids.add(e.inputId);}
+   else if(this.#structures(state,[u]).length)for(const m of this.#structures(state,[u]))for(const e of m.entries)ids.add(e.inputId);
    else return null;
   }return [...ids].sort();
  }
