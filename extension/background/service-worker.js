@@ -1,3 +1,4 @@
+import {createApplicationSelectionCommands} from './application-selection-commands.js';
 import {createConfiguredSyncLifecycle,syncLifecycleError} from './sync-local-lifecycle.js';
 import {MaintenanceProcessingCommands,configureMaintenanceProcessingSource} from './maintenance-processing-commands.js';
 import {createAIFilterRuntime} from './ai-filter-commands.js';
@@ -170,13 +171,15 @@ chrome.runtime.onConnect?.addListener(port=>{if(port.name==='official-export-ses
 chrome.runtime.onConnect?.addListener(port=>{if(port.name.startsWith('bounded-organizer:')&&isExtensionPage(port.sender)){const id=port.name.slice('bounded-organizer:'.length);port.onDisconnect.addListener(()=>{void ready.then(()=>{if(boundedOrganizer.currentId===id&&boundedOrganizer.running)return boundedOrganizer.stop();}).catch(()=>{});});}});
 // Fail closed if storage isolation cannot be established; never expose records
 // directly to a content script, including the brief worker-startup period.
-const ready = chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' }).then(initializeApplicationServices).then(()=>store.recoverControlPublication()).then(async()=>{syncLifecycle=await createConfiguredSyncLifecycle(store,chrome);await syncLifecycle.attachPromptService(promptReuse.service);await syncLifecycle.attachContextService(contextCards);if(syncSuspended)syncLifecycle.suspend();});
+const applicationIsolation=chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
+const ready = applicationIsolation.then(initializeApplicationServices).then(()=>store.recoverControlPublication()).then(async()=>{syncLifecycle=await createConfiguredSyncLifecycle(store,chrome);await syncLifecycle.attachPromptService(promptReuse.service);await syncLifecycle.attachContextService(contextCards);if(syncSuspended)syncLifecycle.suspend();});
+const applicationSelection=createApplicationSelectionCommands(chrome,{isolated:()=>applicationIsolation,ready:()=>ready,lifecycle:()=>syncLifecycle});
 const privacyReady=Promise.resolve(privacySession.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'}));
 privacyReady.catch(()=>{});
 ready.catch(() => {});
 // Register synchronously; startup only reconciles local receipts, never unknown IO.
 chrome.runtime.onStartup?.addListener(()=>{void ready.then(()=>syncLifecycle.reconcile()).catch(()=>{});});
-chrome.runtime.onSuspend?.addListener(()=>{syncSuspended=true;syncLifecycle?.suspend();});
+chrome.runtime.onSuspend?.addListener(()=>{syncSuspended=true;syncLifecycle?.suspend();applicationSelection.close();});
 chrome.runtime.onSuspendCanceled?.addListener(()=>{syncSuspended=false;void ready.then(()=>syncLifecycle.resumeAfterSuspend()).catch(()=>{});});
 installCaptureRecovery(chrome, ready);
 // Register lifecycle listeners synchronously; the fixed facade reaches the one
@@ -206,6 +209,12 @@ function isChatGPTContent(sender) {
 }
 
 async function handle(request, sender) {
+  if(typeof request?.type==='string'&&request.type.startsWith('PAIA_GENERATION_'))return applicationSelection.handle(request,sender);
+  if(request?.type==='PAIA_SYNC_STATUS'&&applicationSelection.enabled){
+   await applicationIsolation;try{await ready;}catch(error){if(error?.code!=='GENERATION_SELECTION_PENDING')throw error;}
+   const view=syncLifecycle?await syncLifecycle.handle(request,sender):{version:1,state:'unavailable',reason:'provider-not-configured',productionActivation:false};
+   return applicationSelection.decorate(request,sender,view);
+  }
   await ready;
   if (!request || typeof request.type !== 'string') throw new ArchiveError('INVALID_REQUEST');
   if(request.type.startsWith('PAIA_SYNC_'))return syncLifecycle.handle(request,sender);
@@ -598,6 +607,7 @@ if(runtime.onStartup)startupMaintenance();
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   handle(request, sender)
     .then(async data => {
+      if(request.type.startsWith('PAIA_GENERATION_')){sendResponse({ok:true,data});return;}
       if(request.type.startsWith('PAIA_SYNC_')){
         if(['PAIA_SYNC_RESTORE','PAIA_SYNC_CONTINUE'].includes(request.type)&&data?.task?.phase==='confirmed')await notifyArchiveChanged(request.type);
         sendResponse({ok:true,data});return;
