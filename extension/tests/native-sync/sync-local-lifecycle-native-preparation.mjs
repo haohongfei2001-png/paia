@@ -49,15 +49,22 @@ export async function runSyncLifecycleNative(h,{device='A'}={}){
  assert.deepEqual(consent,{dispatched:1,settled:1,acknowledged:1});
  await p.locator('.sidebar-bottom [data-view=settings]').click();await p.locator('#settings-panel').waitFor({state:'visible'});await chooseConsumerGroup(p,'data');await p.locator('#settings-sync').click();
  const button=name=>p.locator(`#settings-sync-dialog [data-sync-command=${name}]`);
+ const clickAcknowledged=async command=>{
+  assert.ok(['RESUME','NOW','RESTORE'].includes(command));
+  await p.evaluate(command=>{const send=chrome.runtime.sendMessage;let pending,count=0;const type='PAIA_SYNC_'+command;const observed=function(message,...args){const result=Reflect.apply(send,this,[message,...args]);if(message?.type===type){count++;pending=result;}return result;};chrome.runtime.sendMessage=observed;globalThis.__syncActionObservation={async complete(){if(count!==1||!pending)throw Error('SYNC_ACTION_NOT_DISPATCHED_ONCE');const response=await pending;if(count!==1||response?.ok!==true)throw Error('SYNC_ACTION_ACK_'+JSON.stringify({command,count,ok:response?.ok,error:response?.error}));return {command,dispatched:count,acknowledged:1};},stop(){if(chrome.runtime.sendMessage===observed)chrome.runtime.sendMessage=send;}};},command);
+  try{await button(command).click();return await p.evaluate(()=>__syncActionObservation.complete());}
+  finally{await p.evaluate(()=>{__syncActionObservation.stop();delete globalThis.__syncActionObservation;});}
+ };
+
  await button('RESUME').waitFor({state:'visible'});
  const rpc=(type,extra={})=>p.evaluate(async({type,extra})=>{const r=await chrome.runtime.sendMessage({type,...extra});if(!r?.ok)throw Error(JSON.stringify(r));return r.data;},{type,extra});
  let manual;
  if(device==='A'){await rpc('UPDATE_PREFERENCES',{changes:{language:'en',appearance:'dark',fontSize:'large',readingWidth:'wide',timeDisplay:'date_only',timeEmphasis:'standard'}});await rpc('FILTER_MODE',{mode:'off'});const q=await rpc('PAIA_PROMPT_QUERY');manual=await rpc('PAIA_PROMPT_CHANGE',{change:{action:'create',revision:q.revision,text:'SYNTHETIC original manual work'}});}
- await button('RESUME').click();await button('NOW').waitFor({state:'visible'});
+ await clickAcknowledged('RESUME');await button('NOW').waitFor({state:'visible'});
  if(device==='A')assert.equal((await worker().evaluate(()=>globalThis.__localSyncNative.capture())).added,1);
- else{await button('RESTORE').click();await p.waitForFunction(()=>document.querySelector('[data-sync-command=RESTORE]')?.disabled===false);const restored=await inspect();assert.equal(restored.view.task.phase,'confirmed');assert.equal(restored.view.task.kind,'restore');const q=await rpc('PAIA_PROMPT_QUERY');assert.equal(q.items.find(x=>x.id.startsWith('manual:')).text,device==='B'?'SYNTHETIC original manual work':'SYNTHETIC remote manual choice');}
+ else{await clickAcknowledged('RESTORE');await p.waitForFunction(()=>document.querySelector('[data-sync-command=RESTORE]')?.disabled===false);const restored=await inspect();assert.equal(restored.view.task.phase,'confirmed');assert.equal(restored.view.task.kind,'restore');const q=await rpc('PAIA_PROMPT_QUERY');assert.equal(q.items.find(x=>x.id.startsWith('manual:')).text,device==='B'?'SYNTHETIC original manual work':'SYNTHETIC remote manual choice');}
  if(device==='B'){await rpc('UPDATE_PREFERENCES',{changes:{appearance:'light',fontSize:'small'}});await rpc('FILTER_MODE',{mode:'light'});assert.deepEqual(await worker().evaluate(()=>globalThis.__localSyncNative.conflict()),['conflict','conflict']);const q=await rpc('PAIA_PROMPT_QUERY');assert.equal(q.manualConflict.state,'available');await rpc('PAIA_PROMPT_CONFLICT_RESOLVE',{resolution:{token:q.manualConflict.token,choice:'other'}});assert.equal((await rpc('PAIA_PROMPT_QUERY')).manualConflict.state,'none');}
- if(device!=='C'){await button('NOW').click();await p.waitForFunction(()=>document.querySelector('[data-sync-command=NOW]')?.disabled===false);const done=await inspect();assert.equal(done.view.task.kind,'checkpoint');assert.equal(done.view.task.phase,'confirmed');assert.equal(done.task.reference.kind,'checkpoint-manifest');}
+ if(device!=='C'){await clickAcknowledged('NOW');await p.waitForFunction(()=>document.querySelector('[data-sync-command=NOW]')?.disabled===false);const done=await inspect();assert.equal(done.view.task.kind,'checkpoint');assert.equal(done.view.task.phase,'confirmed');assert.equal(done.task.reference.kind,'checkpoint-manifest');}
  const result=await inspect();assert.equal(result.native,true);assert.equal(result.journals,true);assert.equal(result.view.wholeArchiveComplete,false);
  assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
  return {status:'ACTUAL_SETTINGS_WORKER_CHECKPOINT_PROMPT_'+device,consent,native:true,wholeArchiveComplete:false,checkpointProduced:device!=='C',confirmedRestore:device!=='A',explicitBoundConflictResolved:device==='B',remote:await worker().evaluate(()=>globalThis.__localSyncNative.remote())};
