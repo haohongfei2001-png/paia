@@ -1,0 +1,121 @@
+name: PAIA Browser2 one-time capacity diagnostic
+
+on:
+  push:
+    branches: ['diagnostic/browser2-capacity-02144bcc-20261023-once']
+
+permissions:
+  contents: read
+
+env:
+  CI: '1'
+  PLAYWRIGHT_MODULE: playwright
+  PAIA_TEST_CONCURRENCY: '1'
+
+jobs:
+  browser2:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/diagnostic/browser2-capacity-02144bcc-20261023-once' && github.event.created == true && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - name: Checkout diagnostic harness identity
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Preserve observer outside tested checkout
+        working-directory: .
+        env:
+          HARNESS_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$HARNESS_SHA"
+          OBSERVER_DIR="$(mktemp -d "$RUNNER_TEMP/paia-browser2-observer-XXXXXX")"
+          install -m 600 .github/diagnostics/browser2-capacity-observer.cjs "$OBSERVER_DIR/observer.cjs"
+          echo "PAIA_B2_OBSERVER=$OBSERVER_DIR/observer.cjs" >> "$GITHUB_ENV"
+          echo "PAIA_B2_OBSERVER_SHA256=$(sha256sum "$OBSERVER_DIR/observer.cjs" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
+          echo "PAIA_B2_HARNESS_SHA=$HARNESS_SHA" >> "$GITHUB_ENV"
+      - name: Checkout original tested source
+        uses: actions/checkout@v4
+        with:
+          ref: 02144bccf5e0e0b6842aaa4e7c6958cedecdfde1
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify exact tested identity and complete Browser2 selection
+        env:
+          PAIA_B2_TESTED_SHA: 02144bccf5e0e0b6842aaa4e7c6958cedecdfde1
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PAIA_B2_TESTED_SHA"
+          test "$(sha256sum "$PAIA_B2_OBSERVER" | cut -d ' ' -f 1)" = "$PAIA_B2_OBSERVER_SHA256"
+          node "$PAIA_B2_OBSERVER" --verify-source "$PWD"
+      - run: npm install --no-audit --no-fund --package-lock=false
+      - name: Prepare portable Chrome test environment
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Use signed Ubuntu archive over HTTPS before browser font dependencies
+        run: |
+          # Run37687078617 stalled in font setup; prior37685485859 exhausted its adapter budget on this mirror.
+          # Change only that mirror URI; preserve suites, packages and signing keys.
+          sudo python3 - <<'PYAPT'
+          from pathlib import Path
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt').glob('*mirrors*.txt'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          for path in paths:
+              if path.is_file():
+                  text = path.read_text()
+                  updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')
+                  if updated != text:
+                      path.write_text(updated)
+          PYAPT
+      - name: Resolve browser fonts from fresh signed indexes
+        run: |
+          # Private per-job state; no Actions cache restore or save is enabled.
+          PAIA_FONT_STATE="$RUNNER_TEMP/paia-browser-fonts-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-2"
+          echo "PAIA_FONT_STATE=$PAIA_FONT_STATE" >> "$GITHUB_ENV"
+          python3 scripts/prepare-browser-fonts.py plan --state "$PAIA_FONT_STATE"
+      - name: Provide Chinese glyph coverage for actual visual evidence
+        env:
+          PAIA_FONT_CACHE_MATCHED_KEY: ''
+        run: |
+          python3 scripts/prepare-browser-fonts.py install --state "$PAIA_FONT_STATE" --cache "$PAIA_FONT_STATE/private/debs"
+          fc-list :lang=zh | grep -q .
+          mkdir -p work
+          for family in 'Noto Serif CJK SC' 'Noto Sans CJK SC' 'WenQuanYi Zen Hei'; do
+            fc-match --format '%{family}: %{file}\n' "$family"
+          done | tee work/current-browser-fonts.txt
+      - name: Verify the installed Chrome actually launches
+        run: xvfb-run -a node scripts/check-hosted-chrome.mjs
+      - name: Run original Browser2 with process event observation
+        env:
+          PAIA_TEST_SHARD: '2/10'
+          PAIA_TEST_CONCURRENCY: '1'
+          PAIA_B2_OBSERVE: '1'
+          PAIA_B2_ROOT: ${{ github.workspace }}/extension
+        run: |
+          set -euo pipefail
+          git diff --exit-code --quiet HEAD -- .
+          test -z "${NODE_OPTIONS:-}"
+          # Only this command and its existing children inherit the preload.
+          NODE_OPTIONS="--require=$PAIA_B2_OBSERVER" xvfb-run -a npm run test:browser
+      - name: Upload original work and diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser2-capacity-02144bcc-harness-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: extension/work
+          if-no-files-found: warn
+          retention-days: 14
