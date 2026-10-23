@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: BNS generation/purge native active-library source
+ok 1 - BNS generation/purge native active-library source
+  ---
+  duration_ms: 9838.052292
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native active-library release
+ok 2 - BNS generation/purge native active-library release
+  ---
+  duration_ms: 9251.227792
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native protected-group source
+ok 3 - BNS generation/purge native protected-group source
+  ---
+  duration_ms: 7132.274167
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native protected-group release
+ok 4 - BNS generation/purge native protected-group release
+  ---
+  duration_ms: 6588.792666
+  type: 'test'
+  ...
+# Subtest: typed Topic activity Sync native source
+ok 5 - typed Topic activity Sync native source
+  ---
+  duration_ms: 8804.267875
+  type: 'test'
+  ...
+# Subtest: typed Topic activity Sync native release
+ok 6 - typed Topic activity Sync native release
+  ---
+  duration_ms: 8534.561958
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60095.515834

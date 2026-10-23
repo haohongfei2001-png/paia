@@ -1,0 +1,10 @@
+PASS: 22482 package guardrails across 636 runtime resources
+Static audit only; actual logged-in Chrome verification requires separate recorded evidence.
+RELEASE_PRODUCT_GUARD_PASS 660 files
+{
+  "output": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/active-generation-native-milestone-20261023/release",
+  "version": "0.55.9",
+  "versionName": "v0.55.9 Development",
+  "files": 660,
+  "reused": false
+}

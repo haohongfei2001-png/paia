@@ -1,0 +1,355 @@
+{
+  "variant": "source",
+  "scope": "explicit-existing-Topic-first-inactivity-local-only",
+  "head": "7db1a0be23e023a01e559adb77a18bad20b5bac9",
+  "result": "PASS",
+  "schedulerActivated": false,
+  "syncEnabled": false,
+  "owningSha256": "b160023c39e559b6c9c30f203dc2e0582eb6a26710b35251189fce7fd73a17d9",
+  "originalSetupSha256": "b94c97d11f3058195f3318bb7235875373c7e2e30fa181abbc34b3747b21a6a5",
+  "hashes": {
+    "core/browser-native-sync/core.js": "7b0a6f48d1448391f670f375dfbe9b383ea625b83ba356e51da5567cba249018",
+    "core/browser-native-sync/codecs.js": "fd5202d3bc7b9dcc6d41aa917b780ec2b311f9375398b03f57de81ce6af79aa3",
+    "core/browser-native-sync/topic-activity-codec.js": "67b3eb0180735e137b09f99a068b80deaf73c40a849e6faf9712bd22c6caae6b",
+    "core/browser-native-sync/topic-activity-journal.js": "4267967caab2d733cd2ab1b914bbf690b23ee8ba39a9408e6ac658f1b0eb355c",
+    "core/topic-lifecycle.js": "5511a8dd465427e26d4419367eb64bb2d6aecc37e898ca90700a6f6d08a08653",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "dba49c2b12296d5016e9e3c9fccf0f8e00e0996a9c6b58945f64b2f1c715a5ee",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/library-documents-owner.js": "0bcc0281bb2739a7799753d07cc6a12d7271c9d37de6f981b4a1e80e7175b8c6",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "7e687234e1f41a73a73adde30e9445af381b887ee27b3118bbe67e077f0b67c2",
+    "core/thought-journal.js": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  },
+  "originalHashes": {
+    "core/browser-native-sync/core.js": "7b0a6f48d1448391f670f375dfbe9b383ea625b83ba356e51da5567cba249018",
+    "core/browser-native-sync/codecs.js": "fd5202d3bc7b9dcc6d41aa917b780ec2b311f9375398b03f57de81ce6af79aa3",
+    "core/browser-native-sync/topic-activity-codec.js": "67b3eb0180735e137b09f99a068b80deaf73c40a849e6faf9712bd22c6caae6b",
+    "core/browser-native-sync/topic-activity-journal.js": "4267967caab2d733cd2ab1b914bbf690b23ee8ba39a9408e6ac658f1b0eb355c",
+    "core/topic-lifecycle.js": "5511a8dd465427e26d4419367eb64bb2d6aecc37e898ca90700a6f6d08a08653",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "dba49c2b12296d5016e9e3c9fccf0f8e00e0996a9c6b58945f64b2f1c715a5ee",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/library-documents-owner.js": "0bcc0281bb2739a7799753d07cc6a12d7271c9d37de6f981b4a1e80e7175b8c6",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "7e687234e1f41a73a73adde30e9445af381b887ee27b3118bbe67e077f0b67c2",
+    "core/thought-journal.js": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    {
+      "name": "original inactive owner and independent activity wire/outbox commit in one original repository transaction",
+      "state": "PASS",
+      "assertions": 11
+    },
+    {
+      "name": "original backup-restored Topic accepts qualified remote activity without echo and replays exactly",
+      "state": "PASS",
+      "assertions": 11
+    },
+    {
+      "name": "late Topic identity mutation cannot acknowledge an activity wire with a different original identity",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity Sync protocol head tail rejects and rolls back original owner plus outbox",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity Sync protocol receipt tail rejects and rolls back original owner plus outbox",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity Sync protocol generation tail rejects and rolls back original owner plus outbox",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity Sync domain receipt tail rejects and rolls back original owner plus outbox",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity Sync Source tail rejects and rolls back original owner plus outbox",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity Sync grant tail rejects and rolls back original owner plus outbox",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity Sync storage failure tail rejects and rolls back original owner plus outbox",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity Sync private budget tail rejects and rolls back original owner plus outbox",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity wire cannot bypass original pin protection",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "activity wire cannot bypass original keep protection",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "activity wire cannot bypass original lifecycle protection",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "generic Core local and remote write paths cannot consume an activity DTO as authority",
+      "state": "PASS",
+      "assertions": 6
+    },
+    {
+      "name": "wire schema refuses user actor, body extras, forged parents, dataset and implicit policy",
+      "state": "PASS",
+      "assertions": 8
+    },
+    {
+      "name": "remote receive uses current independent grant and original activity eligibility, never the wire as a grant",
+      "state": "PASS",
+      "assertions": 5
+    },
+    {
+      "name": "clock regression rejects before any activity or protocol write",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "lost commit return resolves by durable original receipt without another activity or outbox write",
+      "state": "PASS",
+      "assertions": 6
+    },
+    {
+      "name": "independent competing activity is refused on an already settled Topic, retaining the first result",
+      "state": "PASS",
+      "assertions": 8
+    },
+    {
+      "name": "busy journal refuses reentry and close while the original qualified operation is in flight",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "cold service and repository reopen replays durable lifecycle plus typed receipt without another write",
+      "state": "PASS",
+      "assertions": 5
+    },
+    {
+      "name": "duplicate rejects a changed durable activity mapping instead of reporting the old success",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "remote event time cannot replace the receiver current clock qualification",
+      "state": "PASS",
+      "assertions": 5
+    },
+    {
+      "name": "duplicate checks durable revision bytes against the original typed operation",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "duplicate checks durable head against the original typed operation",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "duplicate checks durable receipt against the original typed operation",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "duplicate checks durable sequence against the original typed operation",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "duplicate checks durable entity revision against the original typed operation",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "duplicate checks durable marker shape against the original typed operation",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity Core rejects replaced get without invoking caller code",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity Core rejects replaced applyInTransaction without invoking caller code",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "activity Core rejects replaced bind without invoking caller code",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "duplicate rechecks protocol after original domain receipt settlement",
+      "state": "PASS",
+      "assertions": 2
+    }
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "activity-native-18deda66-953e-448e-964c-71b9c7043a3c",
+      "activity-native-1a7f6573-a2b4-435a-b488-79e24df024ae",
+      "activity-native-1dcb965e-53be-4940-99ae-3afca0b3aa7e",
+      "activity-native-1f2eb7f5-db24-487f-adc7-0e387bbb7964",
+      "activity-native-1fd2a5dc-0cf2-48eb-8f2e-579681a630a8",
+      "activity-native-32513842-f2a7-43b3-b8cd-e22279a17a36",
+      "activity-native-3d650ca8-e66d-4a1d-b816-96981cfe36d7",
+      "activity-native-4499003d-e358-481a-b175-a7659c18b192",
+      "activity-native-46c29129-4b4f-4426-bf80-d04f61a647fb",
+      "activity-native-4794dfed-bdb1-4bf5-855f-6c03aa067675",
+      "activity-native-48bcd1dc-b2cb-401e-a300-839ab17cb6fb",
+      "activity-native-6c570a17-7d87-4906-ad28-8d819454d46a",
+      "activity-native-6e9fba22-b311-4887-bafc-17c1bc6bd2c2",
+      "activity-native-78d22408-7aec-404c-8566-cd394f11df58",
+      "activity-native-7c1b5a41-d6a9-4748-95e3-510dd4549cca",
+      "activity-native-8d7b771f-64cf-477f-b409-6fac62e0df26",
+      "activity-native-95c399ab-b3bf-4928-90ff-b31256c9f057",
+      "activity-native-9c825bb7-a7d0-45f0-9d9e-d25e6f6a569a",
+      "activity-native-9d07fbeb-a197-4fdf-bf32-11a20b64f4fb",
+      "activity-native-9d57cc7e-cb4b-4a34-9c3d-654387077adb",
+      "activity-native-a038d180-5fb0-4db4-9c26-09568227ab76",
+      "activity-native-a468097f-a182-48b4-abed-890cf62e9593",
+      "activity-native-a6cbd252-7f7d-457f-8802-a6f1895e55af",
+      "activity-native-a914f9dc-ae91-488a-b5e2-47d74d300616",
+      "activity-native-accb9c73-b31e-427c-8c06-45fce814559b",
+      "activity-native-b4905d9e-5641-4c07-9ddc-e9fb8ae7260d",
+      "activity-native-bc770238-9632-4dc3-9180-84208470eade",
+      "activity-native-bd1598cf-bd08-4cb8-9f49-50652a70654d",
+      "activity-native-be5d03d4-a277-4dd8-829f-473149dc5b2b",
+      "activity-native-c2bb0e8f-a9c6-4950-8b6c-a617dac4df30",
+      "activity-native-c5187de8-6bba-41a3-ab0a-173ec57f19c0",
+      "activity-native-c8a9aa48-3e3b-47bc-a9d8-456a9072f371",
+      "activity-native-cac2b711-32cc-4039-bf9e-b975a90a886f",
+      "activity-native-e4f606fe-56f0-41b6-ba5c-312afa2f38a6",
+      "activity-native-e5a5ae70-37b5-4b57-b4e8-7c1b6cf59ce5",
+      "activity-native-f832d7b6-069e-4c69-bcdd-52d93866868e",
+      "activity-native-fb224df9-fcdb-48a7-ba10-02a628609b41",
+      "activity-native-fba18d40-e663-4bab-b11f-441a49b06860",
+      "activity-native-fe2eeafc-a7ea-4b4c-87ca-f405054e1e75",
+      "activity-native-ff01e622-7147-4180-a319-dcbe399a1e07",
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "07158d08-b9a0-45a6-a495-204d586b7e8e",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "07158d08-b9a0-45a6-a495-204d586b7e8e",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "activity-native-18deda66-953e-448e-964c-71b9c7043a3c",
+            "activity-native-1a7f6573-a2b4-435a-b488-79e24df024ae",
+            "activity-native-1dcb965e-53be-4940-99ae-3afca0b3aa7e",
+            "activity-native-1f2eb7f5-db24-487f-adc7-0e387bbb7964",
+            "activity-native-1fd2a5dc-0cf2-48eb-8f2e-579681a630a8",
+            "activity-native-32513842-f2a7-43b3-b8cd-e22279a17a36",
+            "activity-native-3d650ca8-e66d-4a1d-b816-96981cfe36d7",
+            "activity-native-4499003d-e358-481a-b175-a7659c18b192",
+            "activity-native-46c29129-4b4f-4426-bf80-d04f61a647fb",
+            "activity-native-4794dfed-bdb1-4bf5-855f-6c03aa067675",
+            "activity-native-48bcd1dc-b2cb-401e-a300-839ab17cb6fb",
+            "activity-native-6c570a17-7d87-4906-ad28-8d819454d46a",
+            "activity-native-6e9fba22-b311-4887-bafc-17c1bc6bd2c2",
+            "activity-native-78d22408-7aec-404c-8566-cd394f11df58",
+            "activity-native-7c1b5a41-d6a9-4748-95e3-510dd4549cca",
+            "activity-native-8d7b771f-64cf-477f-b409-6fac62e0df26",
+            "activity-native-95c399ab-b3bf-4928-90ff-b31256c9f057",
+            "activity-native-9c825bb7-a7d0-45f0-9d9e-d25e6f6a569a",
+            "activity-native-9d07fbeb-a197-4fdf-bf32-11a20b64f4fb",
+            "activity-native-9d57cc7e-cb4b-4a34-9c3d-654387077adb",
+            "activity-native-a038d180-5fb0-4db4-9c26-09568227ab76",
+            "activity-native-a468097f-a182-48b4-abed-890cf62e9593",
+            "activity-native-a6cbd252-7f7d-457f-8802-a6f1895e55af",
+            "activity-native-a914f9dc-ae91-488a-b5e2-47d74d300616",
+            "activity-native-accb9c73-b31e-427c-8c06-45fce814559b",
+            "activity-native-b4905d9e-5641-4c07-9ddc-e9fb8ae7260d",
+            "activity-native-bc770238-9632-4dc3-9180-84208470eade",
+            "activity-native-bd1598cf-bd08-4cb8-9f49-50652a70654d",
+            "activity-native-be5d03d4-a277-4dd8-829f-473149dc5b2b",
+            "activity-native-c2bb0e8f-a9c6-4950-8b6c-a617dac4df30",
+            "activity-native-c5187de8-6bba-41a3-ab0a-173ec57f19c0",
+            "activity-native-c8a9aa48-3e3b-47bc-a9d8-456a9072f371",
+            "activity-native-cac2b711-32cc-4039-bf9e-b975a90a886f",
+            "activity-native-e4f606fe-56f0-41b6-ba5c-312afa2f38a6",
+            "activity-native-e5a5ae70-37b5-4b57-b4e8-7c1b6cf59ce5",
+            "activity-native-f832d7b6-069e-4c69-bcdd-52d93866868e",
+            "activity-native-fb224df9-fcdb-48a7-ba10-02a628609b41",
+            "activity-native-fba18d40-e663-4bab-b11f-441a49b06860",
+            "activity-native-fe2eeafc-a7ea-4b4c-87ca-f405054e1e75",
+            "activity-native-ff01e622-7147-4180-a319-dcbe399a1e07",
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  },
+  "afterHashes": {
+    "core/browser-native-sync/core.js": "7b0a6f48d1448391f670f375dfbe9b383ea625b83ba356e51da5567cba249018",
+    "core/browser-native-sync/codecs.js": "fd5202d3bc7b9dcc6d41aa917b780ec2b311f9375398b03f57de81ce6af79aa3",
+    "core/browser-native-sync/topic-activity-codec.js": "67b3eb0180735e137b09f99a068b80deaf73c40a849e6faf9712bd22c6caae6b",
+    "core/browser-native-sync/topic-activity-journal.js": "4267967caab2d733cd2ab1b914bbf690b23ee8ba39a9408e6ac658f1b0eb355c",
+    "core/topic-lifecycle.js": "5511a8dd465427e26d4419367eb64bb2d6aecc37e898ca90700a6f6d08a08653",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "dba49c2b12296d5016e9e3c9fccf0f8e00e0996a9c6b58945f64b2f1c715a5ee",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/library-documents-owner.js": "0bcc0281bb2739a7799753d07cc6a12d7271c9d37de6f981b4a1e80e7175b8c6",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "7e687234e1f41a73a73adde30e9445af381b887ee27b3118bbe67e077f0b67c2",
+    "core/thought-journal.js": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  }
+}

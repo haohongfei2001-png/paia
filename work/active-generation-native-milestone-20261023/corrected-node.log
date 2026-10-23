@@ -1,0 +1,538 @@
+TAP version 13
+# Subtest: BNS exact bytes, unsupported codecs and actor boundaries fail closed
+ok 1 - BNS exact bytes, unsupported codecs and actor boundaries fail closed
+  ---
+  duration_ms: 5.247375
+  type: 'test'
+  ...
+# Subtest: BNS receiving 12 before 11 accepts both exactly once and retains real holes
+ok 2 - BNS receiving 12 before 11 accepts both exactly once and retains real holes
+  ---
+  duration_ms: 48.099208
+  type: 'test'
+  ...
+# Subtest: BNS full ancestry survives reversed tail and immediate-base shortcuts are insufficient
+ok 3 - BNS full ancestry survives reversed tail and immediate-base shortcuts are insufficient
+  ---
+  duration_ms: 14.356917
+  type: 'test'
+  ...
+# Subtest: BNS two independent repositories preserve concurrent human alternatives and exact resolution parents
+ok 4 - BNS two independent repositories preserve concurrent human alternatives and exact resolution parents
+  ---
+  duration_ms: 17.717291
+  type: 'test'
+  ...
+# Subtest: BNS same ID divergent digest and reused device sequence are hard collisions
+ok 5 - BNS same ID divergent digest and reused device sequence are hard collisions
+  ---
+  duration_ms: 7.363208
+  type: 'test'
+  ...
+# Subtest: BNS stale preparation aborts content and never consumes a sequence
+ok 6 - BNS stale preparation aborts content and never consumes a sequence
+  ---
+  duration_ms: 3.912958
+  type: 'test'
+  ...
+# Subtest: BNS immutable Source identity and payload hashes are independently validated
+ok 7 - BNS immutable Source identity and payload hashes are independently validated
+  ---
+  duration_ms: 4.718167
+  type: 'test'
+  ...
+# Subtest: BNS permanent purge removes history bodies and publishes the body-free fence
+ok 8 - BNS permanent purge removes history bodies and publishes the body-free fence
+  ---
+  duration_ms: 10.368042
+  type: 'test'
+  ...
+# Subtest: BNS actual Prompt domain save and outbox share one production IDB transaction
+ok 9 - BNS actual Prompt domain save and outbox share one production IDB transaction
+  ---
+  duration_ms: 39.337834
+  type: 'test'
+  ...
+# Subtest: BNS Prompt remote apply restores orphan manual work without copying use ranking or echoing
+ok 10 - BNS Prompt remote apply restores orphan manual work without copying use ranking or echoing
+  ---
+  duration_ms: 6.498166
+  type: 'test'
+  ...
+# Subtest: BNS verified-use local counter cannot invalidate subsequent manual Prompt work
+ok 11 - BNS verified-use local counter cannot invalidate subsequent manual Prompt work
+  ---
+  duration_ms: 21.802209
+  type: 'test'
+  ...
+# Subtest: BNS source several revisions restore to fresh Prompt owner and destination can edit
+ok 12 - BNS source several revisions restore to fresh Prompt owner and destination can edit
+  ---
+  duration_ms: 23.528875
+  type: 'test'
+  ...
+# Subtest: BNS a colliding operation aborts the complete received batch before partial materialization
+ok 13 - BNS a colliding operation aborts the complete received batch before partial materialization
+  ---
+  duration_ms: 5.538458
+  type: 'test'
+  ...
+# Subtest: BNS purge redacts incomplete pending bodies and preserves the anti-resurrection receipt
+ok 14 - BNS purge redacts incomplete pending bodies and preserves the anti-resurrection receipt
+  ---
+  duration_ms: 3.501375
+  type: 'test'
+  ...
+# Subtest: BNS three concurrent purge operations converge regardless of arrival order
+ok 15 - BNS three concurrent purge operations converge regardless of arrival order
+  ---
+  duration_ms: 7.305375
+  type: 'test'
+  ...
+# Subtest: BNS asynchronous digest validation owns a snapshot before caller mutation
+ok 16 - BNS asynchronous digest validation owns a snapshot before caller mutation
+  ---
+  duration_ms: 2.921958
+  type: 'test'
+  ...
+# Subtest: BNS sparse arrays and hidden symbol data are rejected rather than normalized
+ok 17 - BNS sparse arrays and hidden symbol data are rejected rather than normalized
+  ---
+  duration_ms: 0.217125
+  type: 'test'
+  ...
+# Subtest: BNS invalid pending ancestry is quarantined without poisoning a valid parent or restart
+ok 18 - BNS invalid pending ancestry is quarantined without poisoning a valid parent or restart
+  ---
+  duration_ms: 4.746125
+  type: 'test'
+  ...
+# Subtest: BNS whole receive batch is captured before the first asynchronous validation
+ok 19 - BNS whole receive batch is captured before the first asynchronous validation
+  ---
+  duration_ms: 2.647042
+  type: 'test'
+  ...
+# Subtest: BNS inherited object properties cannot be used as registered purge codecs
+ok 20 - BNS inherited object properties cannot be used as registered purge codecs
+  ---
+  duration_ms: 0.248667
+  type: 'test'
+  ...
+# Subtest: BNS current codec cannot implicitly admit future Context families or processing metadata
+ok 21 - BNS current codec cannot implicitly admit future Context families or processing metadata
+  ---
+  duration_ms: 0.29175
+  type: 'test'
+  ...
+# Subtest: BNS remote manual update retains existing device reuse counts and starts new IDs at zero
+ok 22 - BNS remote manual update retains existing device reuse counts and starts new IDs at zero
+  ---
+  duration_ms: 11.17625
+  type: 'test'
+  ...
+# Subtest: BNS verified reuse committed during remote validation survives owner materialization
+ok 23 - BNS verified reuse committed during remote validation survives owner materialization
+  ---
+  duration_ms: 22.223333
+  type: 'test'
+  ...
+# Subtest: BNS remote first apply refuses unmanaged manual Prompt work without protocol side effects
+ok 24 - BNS remote first apply refuses unmanaged manual Prompt work without protocol side effects
+  ---
+  duration_ms: 24.315959
+  type: 'test'
+  ...
+# Subtest: BNS remote descendant refuses a changed canonical Prompt owner outside the optional journal
+ok 25 - BNS remote descendant refuses a changed canonical Prompt owner outside the optional journal
+  ---
+  duration_ms: 20.323125
+  type: 'test'
+  ...
+# Subtest: BNS empty remote first apply and managed descendant retain their normal idempotent owner path
+ok 26 - BNS empty remote first apply and managed descendant retain their normal idempotent owner path
+  ---
+  duration_ms: 6.903375
+  type: 'test'
+  ...
+# Subtest: BNS Prompt purge remains explicitly unavailable and atomically preserves the existing owner
+ok 27 - BNS Prompt purge remains explicitly unavailable and atomically preserves the existing owner
+  ---
+  duration_ms: 7.165667
+  type: 'test'
+  ...
+# Subtest: original immutable operation validation authenticates frozen identities and detaches mutable inputs
+ok 28 - original immutable operation validation authenticates frozen identities and detaches mutable inputs
+  ---
+  duration_ms: 1.364458
+  type: 'test'
+  ...
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+ok 29 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 278.309834
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rebinds original proof and never duplicates canonical application
+ok 30 - protected group cold resume rebinds original proof and never duplicates canonical application
+  ---
+  duration_ms: 240.261667
+  type: 'test'
+  ...
+# Subtest: protected group never lends a transaction to custom diagnostic callback
+ok 31 - protected group never lends a transaction to custom diagnostic callback
+  ---
+  duration_ms: 89.866208
+  type: 'test'
+  ...
+# Subtest: protected group cannot acquire genuine authority using forged or foreign proof
+ok 32 - protected group cannot acquire genuine authority using forged or foreign proof
+  ---
+  duration_ms: 72.734709
+  type: 'test'
+  ...
+# Subtest: protected group keeps token away from mutable repository and Core transaction wrappers
+ok 33 - protected group keeps token away from mutable repository and Core transaction wrappers
+  ---
+  duration_ms: 287.53675
+  type: 'test'
+  ...
+# Subtest: protected original group refuses gate-phase drift without partial owner writes
+ok 34 - protected original group refuses gate-phase drift without partial owner writes
+  ---
+  duration_ms: 140.131166
+  type: 'test'
+  ...
+# Subtest: protected original group refuses checkpoint-item drift without partial owner writes
+ok 35 - protected original group refuses checkpoint-item drift without partial owner writes
+  ---
+  duration_ms: 158.008625
+  type: 'test'
+  ...
+# Subtest: protected original group refuses consent drift without partial owner writes
+ok 36 - protected original group refuses consent drift without partial owner writes
+  ---
+  duration_ms: 176.055625
+  type: 'test'
+  ...
+# Subtest: protected original group refuses restore-row drift without partial owner writes
+ok 37 - protected original group refuses restore-row drift without partial owner writes
+  ---
+  duration_ms: 108.5735
+  type: 'test'
+  ...
+# Subtest: protected original group refuses purge-deny drift without partial owner writes
+ok 38 - protected original group refuses purge-deny drift without partial owner writes
+  ---
+  duration_ms: 139.316041
+  type: 'test'
+  ...
+# Subtest: protected group native terminal canonical drift rolls back original owner and receipt
+ok 39 - protected group native terminal canonical drift rolls back original owner and receipt
+  ---
+  duration_ms: 154.400167
+  type: 'test'
+  ...
+# Subtest: protected group native terminal restore-receipt drift rolls back original owner and receipt
+ok 40 - protected group native terminal restore-receipt drift rolls back original owner and receipt
+  ---
+  duration_ms: 157.262083
+  type: 'test'
+  ...
+# Subtest: protected group native terminal checkpoint-item drift rolls back original owner and receipt
+ok 41 - protected group native terminal checkpoint-item drift rolls back original owner and receipt
+  ---
+  duration_ms: 123.811375
+  type: 'test'
+  ...
+# Subtest: protected group native terminal protection drift rolls back original owner and receipt
+ok 42 - protected group native terminal protection drift rolls back original owner and receipt
+  ---
+  duration_ms: 158.144875
+  type: 'test'
+  ...
+# Subtest: protected group native terminal gate drift rolls back original owner and receipt
+ok 43 - protected group native terminal gate drift rolls back original owner and receipt
+  ---
+  duration_ms: 142.1335
+  type: 'test'
+  ...
+# Subtest: protected original graph seal retains existing-active migration refusal
+ok 44 - protected original graph seal retains existing-active migration refusal
+  ---
+  duration_ms: 194.3095
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted stage.put before lending a write transaction
+ok 45 - protected group refuses substituted stage.put before lending a write transaction
+  ---
+  duration_ms: 110.136625
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted coreB.get before lending a write transaction
+ok 46 - protected group refuses substituted coreB.get before lending a write transaction
+  ---
+  duration_ms: 100.273208
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.applyInitialSource before lending a write transaction
+ok 47 - protected group refuses substituted b.applyInitialSource before lending a write transaction
+  ---
+  duration_ms: 99.823
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.control before lending a write transaction
+ok 48 - protected group refuses substituted b.control before lending a write transaction
+  ---
+  duration_ms: 98.240084
+  type: 'test'
+  ...
+# Subtest: protected group descriptor guard refuses an owner method getter without executing it
+ok 49 - protected group descriptor guard refuses an owner method getter without executing it
+  ---
+  duration_ms: 92.506458
+  type: 'test'
+  ...
+# Subtest: protected group rejects a shadowing prototype method before write authority
+ok 50 - protected group rejects a shadowing prototype method before write authority
+  ---
+  duration_ms: 89.29075
+  type: 'test'
+  ...
+# Subtest: protected group restore field getter cannot rebind the private original consumer
+ok 51 - protected group restore field getter cannot rebind the private original consumer
+  ---
+  duration_ms: 58.672625
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rejects extra durable restore fields
+ok 52 - protected group cold resume rejects extra durable restore fields
+  ---
+  duration_ms: 104.8645
+  type: 'test'
+  ...
+# Subtest: protected group native owner failure rolls back and fresh explicit retry reuses original graph
+ok 53 - protected group native owner failure rolls back and fresh explicit retry reuses original graph
+  ---
+  duration_ms: 181.633125
+  type: 'test'
+  ...
+# Subtest: protected fixed group publication refuses substituted original consumer methods before write callback
+ok 54 - protected fixed group publication refuses substituted original consumer methods before write callback
+  ---
+  duration_ms: 192.861458
+  type: 'test'
+  ...
+# Subtest: original inactive owner and independent activity wire/outbox commit in one original repository transaction
+ok 55 - original inactive owner and independent activity wire/outbox commit in one original repository transaction
+  ---
+  duration_ms: 138.119542
+  type: 'test'
+  ...
+# Subtest: original backup-restored Topic accepts qualified remote activity without echo and replays exactly
+ok 56 - original backup-restored Topic accepts qualified remote activity without echo and replays exactly
+  ---
+  duration_ms: 147.746291
+  type: 'test'
+  ...
+# Subtest: late Topic identity mutation cannot acknowledge an activity wire with a different original identity
+ok 57 - late Topic identity mutation cannot acknowledge an activity wire with a different original identity
+  ---
+  duration_ms: 63.306542
+  type: 'test'
+  ...
+# Subtest: activity Sync protocol head tail rejects and rolls back original owner plus outbox
+ok 58 - activity Sync protocol head tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 65.964958
+  type: 'test'
+  ...
+# Subtest: activity Sync protocol receipt tail rejects and rolls back original owner plus outbox
+ok 59 - activity Sync protocol receipt tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 96.762625
+  type: 'test'
+  ...
+# Subtest: activity Sync protocol generation tail rejects and rolls back original owner plus outbox
+ok 60 - activity Sync protocol generation tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 89.967458
+  type: 'test'
+  ...
+# Subtest: activity Sync domain receipt tail rejects and rolls back original owner plus outbox
+ok 61 - activity Sync domain receipt tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 103.09475
+  type: 'test'
+  ...
+# Subtest: activity Sync Source tail rejects and rolls back original owner plus outbox
+ok 62 - activity Sync Source tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 120.496959
+  type: 'test'
+  ...
+# Subtest: activity Sync grant tail rejects and rolls back original owner plus outbox
+ok 63 - activity Sync grant tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 67.932042
+  type: 'test'
+  ...
+# Subtest: activity Sync storage failure tail rejects and rolls back original owner plus outbox
+ok 64 - activity Sync storage failure tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 75.604208
+  type: 'test'
+  ...
+# Subtest: activity Sync private budget tail rejects and rolls back original owner plus outbox
+ok 65 - activity Sync private budget tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 142.530084
+  type: 'test'
+  ...
+# Subtest: activity wire cannot bypass original pin protection
+ok 66 - activity wire cannot bypass original pin protection
+  ---
+  duration_ms: 64.472583
+  type: 'test'
+  ...
+# Subtest: activity wire cannot bypass original keep protection
+ok 67 - activity wire cannot bypass original keep protection
+  ---
+  duration_ms: 60.947334
+  type: 'test'
+  ...
+# Subtest: activity wire cannot bypass original lifecycle protection
+ok 68 - activity wire cannot bypass original lifecycle protection
+  ---
+  duration_ms: 59.900167
+  type: 'test'
+  ...
+# Subtest: generic Core local and remote write paths cannot consume an activity DTO as authority
+ok 69 - generic Core local and remote write paths cannot consume an activity DTO as authority
+  ---
+  duration_ms: 109.0765
+  type: 'test'
+  ...
+# Subtest: wire schema refuses user actor, body extras, forged parents, dataset and implicit policy
+ok 70 - wire schema refuses user actor, body extras, forged parents, dataset and implicit policy
+  ---
+  duration_ms: 74.831834
+  type: 'test'
+  ...
+# Subtest: remote receive uses current independent grant and original activity eligibility, never the wire as a grant
+ok 71 - remote receive uses current independent grant and original activity eligibility, never the wire as a grant
+  ---
+  duration_ms: 115.834792
+  type: 'test'
+  ...
+# Subtest: clock regression rejects before any activity or protocol write
+ok 72 - clock regression rejects before any activity or protocol write
+  ---
+  duration_ms: 58.352542
+  type: 'test'
+  ...
+# Subtest: lost commit return resolves by durable original receipt without another activity or outbox write
+ok 73 - lost commit return resolves by durable original receipt without another activity or outbox write
+  ---
+  duration_ms: 90.036
+  type: 'test'
+  ...
+# Subtest: independent competing activity is refused on an already settled Topic, retaining the first result
+ok 74 - independent competing activity is refused on an already settled Topic, retaining the first result
+  ---
+  duration_ms: 216.0145
+  type: 'test'
+  ...
+# Subtest: busy journal refuses reentry and close while the original qualified operation is in flight
+ok 75 - busy journal refuses reentry and close while the original qualified operation is in flight
+  ---
+  duration_ms: 112.238875
+  type: 'test'
+  ...
+# Subtest: cold service and repository reopen replays durable lifecycle plus typed receipt without another write
+ok 76 - cold service and repository reopen replays durable lifecycle plus typed receipt without another write
+  ---
+  duration_ms: 112.8075
+  type: 'test'
+  ...
+# Subtest: duplicate rejects a changed durable activity mapping instead of reporting the old success
+ok 77 - duplicate rejects a changed durable activity mapping instead of reporting the old success
+  ---
+  duration_ms: 83.211583
+  type: 'test'
+  ...
+# Subtest: remote event time cannot replace the receiver current clock qualification
+ok 78 - remote event time cannot replace the receiver current clock qualification
+  ---
+  duration_ms: 108.593833
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable revision bytes against the original typed operation
+ok 79 - duplicate checks durable revision bytes against the original typed operation
+  ---
+  duration_ms: 84.995625
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable head against the original typed operation
+ok 80 - duplicate checks durable head against the original typed operation
+  ---
+  duration_ms: 156.215583
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable receipt against the original typed operation
+ok 81 - duplicate checks durable receipt against the original typed operation
+  ---
+  duration_ms: 89.848167
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable sequence against the original typed operation
+ok 82 - duplicate checks durable sequence against the original typed operation
+  ---
+  duration_ms: 136.682375
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable entity revision against the original typed operation
+ok 83 - duplicate checks durable entity revision against the original typed operation
+  ---
+  duration_ms: 278.467333
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable marker shape against the original typed operation
+ok 84 - duplicate checks durable marker shape against the original typed operation
+  ---
+  duration_ms: 95.348833
+  type: 'test'
+  ...
+# Subtest: activity Core rejects replaced get without invoking caller code
+ok 85 - activity Core rejects replaced get without invoking caller code
+  ---
+  duration_ms: 52.495333
+  type: 'test'
+  ...
+# Subtest: activity Core rejects replaced applyInTransaction without invoking caller code
+ok 86 - activity Core rejects replaced applyInTransaction without invoking caller code
+  ---
+  duration_ms: 52.031625
+  type: 'test'
+  ...
+# Subtest: activity Core rejects replaced bind without invoking caller code
+ok 87 - activity Core rejects replaced bind without invoking caller code
+  ---
+  duration_ms: 52.134333
+  type: 'test'
+  ...
+# Subtest: duplicate rechecks protocol after original domain receipt settlement
+ok 88 - duplicate rechecks protocol after original domain receipt settlement
+  ---
+  duration_ms: 72.559792
+  type: 'test'
+  ...
+1..88
+# tests 88
+# suites 0
+# pass 88
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7887.1365

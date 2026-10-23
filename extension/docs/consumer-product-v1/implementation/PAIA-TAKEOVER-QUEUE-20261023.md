@@ -430,3 +430,7 @@ Protected group consumer, typed automatic lifecycle Sync intent and populated So
 ### Published editing and protected restore composition
 
 Integrated d3aa1054 active original-library binding and a43fe357 protected original grouped restore. Exact composite four owning files passed 76/76 with stable runtime vectors; original active owner final check was 95/95 separately. Default application database selection and existing-generation migration remain open. See work/active-generation-library-20261023/REPORT.md; no new cloud/native run or whole-plan completion claim.
+
+## Published writes, protected groups and typed first Topic activity native milestone
+
+Corrected7db1a0be composition88/88 and Source/Release native6/6 (original21 active+26 protected-group+34 activity cases per variant), standard660-file development artifact. Initial54/55 import-cycle failure retained; one direct-owner import correction preserves all guards. No cloud/Full/install or whole-stage acceptance. [Report](../../../../work/active-generation-native-milestone-20261023/REPORT.md). Remaining data graph, nonempty merge, phased large graph and lifecycle work continues; default production Sync remains off as required for local SYNC01.

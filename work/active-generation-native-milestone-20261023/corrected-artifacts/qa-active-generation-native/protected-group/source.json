@@ -1,0 +1,101 @@
+{
+  "variant": "source",
+  "scope": "protected-group",
+  "head": "7db1a0be23e023a01e559adb77a18bad20b5bac9",
+  "result": "PASS",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "63fe421ec7568a3f4a6e3c05d9ac671713412bfc72c11fe437561d0f9bbdac25",
+  "hashes": {
+    "core/browser-native-sync/source-working-canonical.js": "7204baff14915477b91f25bede6d4ec1983cfc723939d8df305d3489f2938a66",
+    "core/browser-native-sync/source-working-default-meta.js": "65138b44ac8e10919aa7681e5dd8dfb2376148f9aac586f544faa33aa4286412",
+    "core/browser-native-sync/source-working-derived.js": "c0bb5f43bc7500d8b63e43695cc7af2dbde7b2e7d17e6f725113e6ea3febdaa3",
+    "core/browser-native-sync/source-working-replay.js": "b25751994d8f57907a7cd797af66dfec2aa0e042e662aa5f77bbe4f123ebbbaf",
+    "core/browser-native-sync/canonical-generation-repository-gate.js": "6ba8012730d7ab33ee9041297203a29169a21fdf1db500609ca284a2a00c06f2",
+    "core/browser-native-sync/canonical-generation-copy-retirement.js": "3671ca4c2d542929fbfe904d34a231e1c6fc7dd12458674d33016b60b1331ea6",
+    "core/browser-native-sync/saved-work-successor-codec.js": "e6e439804e1c83c41296b37281be8966502235c17107eab6e67874bebec14a3a",
+    "core/browser-native-sync/saved-work-journal.js": "157f5f353c80acc6d2947064b5e9397b7a5537cb8e71442ee74bedea89ee7876",
+    "core/browser-native-sync/canonical-generation-human-restore.js": "cc84377922fd4009ed069e12cf6926120868ea528a144cb373fb3ab064565a6c",
+    "core/browser-native-sync/human-library-group.js": "32222df5009911879fd035021b3411e5c4fd6cff9b464fa1d94949538a5388b5",
+    "core/browser-native-sync/human-library-plan.js": "498f8a1f44ea5dae861f61d4676b98f58c50c478f789176b252b8af872cea29b",
+    "core/browser-native-sync/human-library-search-proof.js": "105c65d9b2d9793accb9df6026bb70063822958dabf2fe741953db9eccbb9f76",
+    "core/ia-store-owner.js": "7e687234e1f41a73a73adde30e9445af381b887ee27b3118bbe67e077f0b67c2",
+    "core/library-documents-owner.js": "0bcc0281bb2739a7799753d07cc6a12d7271c9d37de6f981b4a1e80e7175b8c6",
+    "core/browser-native-sync/saved-work-bootstrap.js": "d5b4c18d31693006fd15c2a3e6f745bfeaea50431b3f2d3de7b608a04a4384bb",
+    "core/browser-native-sync/group-checkpoint-plan.js": "c3b4308c50d979742db12b12ddcab2ee187f32373ce4cc5fcfd487eb2aebb6da",
+    "core/browser-native-sync/group-checkpoint-scope.js": "920bca646adcc9fb118cef5d1bd8e6323b4f4de2f99cd45c96c1607221b7ce84",
+    "core/library-documents-store.js": "63f7e9dec5c31e076cfa48e865b1fa7ef1e804ac12ba2d25c3c1d8faff69931a",
+    "core/idb-repository.js": "dba49c2b12296d5016e9e3c9fccf0f8e00e0996a9c6b58945f64b2f1c715a5ee",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/thought-maintenance.js": "35f099480098ac724f3de6a26f50b4991bb027c6eff05340eba5621c318833b6",
+    "core/source-purge-admission.js": "8a526a77ff393739736d19b746319ac5b844192392ecb5f53c7edf67ce294347",
+    "core/browser-native-sync/core.js": "7b0a6f48d1448391f670f375dfbe9b383ea625b83ba356e51da5567cba249018",
+    "core/browser-native-sync/group-checkpoint.js": "1db8ba7ee989a2c0af4a1fc4a9dcc76105ce8304514db67e7acdf4c7f8681296",
+    "core/browser-native-sync/canonical-generation-publication.js": "81621d248693cb811a38aab113990cdf0a43f9dbf398dd80d25148f8544faa97",
+    "core/browser-native-sync/canonical-generation-checkpoint-stage.js": "e9214533537b95678051e064ac90d597f277140634b508fd2c75cad9584449df",
+    "core/browser-native-sync/source-purge-journal.js": "947d434d558e309588e2bf0f4c1f8a4eae8a1d9ffaf21e66525f5a61022fbb49",
+    "core/browser-native-sync/source-purge-codec.js": "bfbe850cb33a941a753e5db7f118a10b681255aa5eead304543c714a602f2360",
+    "core/browser-native-sync/source-purge-checkpoint.js": "a2c4d8c710863ffc465baa33499a2d6b00ee8d4b1c2c933143c9ee1b9aeea5a8"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    "protected original group consumes actual Source owner and publishes qualified canonical state",
+    "protected group cold resume rebinds original proof and never duplicates canonical application",
+    "protected group never lends a transaction to custom diagnostic callback",
+    "protected group cannot acquire genuine authority using forged or foreign proof",
+    "protected group keeps token away from mutable repository and Core transaction wrappers",
+    "protected original group refuses gate-phase drift without partial owner writes",
+    "protected original group refuses checkpoint-item drift without partial owner writes",
+    "protected original group refuses consent drift without partial owner writes",
+    "protected original group refuses restore-row drift without partial owner writes",
+    "protected original group refuses purge-deny drift without partial owner writes",
+    "protected group native terminal canonical drift rolls back original owner and receipt",
+    "protected group native terminal restore-receipt drift rolls back original owner and receipt",
+    "protected group native terminal checkpoint-item drift rolls back original owner and receipt",
+    "protected group native terminal protection drift rolls back original owner and receipt",
+    "protected group native terminal gate drift rolls back original owner and receipt",
+    "protected original graph seal retains existing-active migration refusal",
+    "protected group refuses substituted stage.put before lending a write transaction",
+    "protected group refuses substituted coreB.get before lending a write transaction",
+    "protected group refuses substituted b.applyInitialSource before lending a write transaction",
+    "protected group refuses substituted b.control before lending a write transaction",
+    "protected group descriptor guard refuses an owner method getter without executing it",
+    "protected group rejects a shadowing prototype method before write authority",
+    "protected group restore field getter cannot rebind the private original consumer",
+    "protected group cold resume rejects extra durable restore fields",
+    "protected group native owner failure rolls back and fresh explicit retry reuses original graph",
+    "protected fixed group publication refuses substituted original consumer methods before write callback"
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "741d2147-37ee-415e-855d-f72d351effc4",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "741d2147-37ee-415e-855d-f72d351effc4",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}
