@@ -10,9 +10,9 @@ def topic_section(t, ctl, records):
     ]
     blocks = ''.join(f'''<article class="pc-topic-block" data-topic-block="{key}"><h3><a href="#pc-topic-{key}" data-topic-open="{key}">{title}</a></h3>{''.join(f'<a class="pc-section-anchor" href="#pc-section-{section}" data-topic-open="{key}">{label}</a>' for section, label in sections)}</article>''' for key, title, sections in topics)
     trails = [
-        ('a', '08 MAY', '09:42', records[0][2], t('第一版应该做什么 · 最初的问题', 'What belongs in v1 · First question')),
-        ('b', '08 MAY', '11:18', records[1][2], t('第一版应该做什么 · 缩小范围', 'What belongs in v1 · Narrowing the scope')),
-        ('c', '08 MAY', '18:03', records[2][2], t('第一版应该做什么 · 判断标准', 'What belongs in v1 · Decision criterion')),
+        ('a', '12 AUG', '09:42', records[0][2], t('第一版应该做什么 · 最初的问题', 'What belongs in v1 · First question')),
+        ('b', '26 AUG', '11:18', records[1][2], t('第一版应该做什么 · 缩小范围', 'What belongs in v1 · Narrowing the scope')),
+        ('c', '10 SEP', '18:03', records[2][2], t('第一版应该做什么 · 判断标准', 'What belongs in v1 · Decision criterion')),
         ('note', '24 SEP', '10:26', t('保留这个取舍：先找回，再决定是否创造更多。', 'Keep this trade-off: recover first, then decide whether to create more.'), t('用户研究 · 保留的决定', 'User research · Decision retained')),
     ]
     def entry(row):
