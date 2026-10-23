@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,mkdtemp,rm,cp} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {join,isAbsolute} from 'node:path';
@@ -18,6 +18,7 @@ for(const variant of ['source','release'])test('BNS saved AI typed successor nat
   if(variant==='release'){assert.equal(isAbsolute(release),true);if(!process.env.PAIA_NATIVE_RELEASE_PATH)execFileSync(process.env.PYTHON||'python3',['scripts/build_current_release.py',release],{cwd:root,stdio:'pipe'});}
   extension=await instrumentedExtension(variant==='source'?root:release);
   const owning=await readFile(join(root,'tests/browser-native-sync-saved-successor.test.mjs'),'utf8');receipt.owningSha256=createHash('sha256').update(owning).digest('hex');
+  await cp(join(root,'tests/native-sync/structural-correction-bridge.mjs'),join(extension.path,'background/bns-saved-successor-assert.mjs'));
   await writeFile(join(extension.path,'background/bns-saved-successor-fixture.mjs'),nativeSavedSuccessorFixture(owning));
   const worker=join(extension.path,'background/service-worker.js'),original=await readFile(worker,'utf8'),marker="import './bns-native-storage-fixture.mjs';";assert.equal(original.split(marker).length,2);await writeFile(worker,original.replace(marker,marker+"\nimport './bns-saved-successor-fixture.mjs';"));
   receipt.hashes=Object.fromEntries(await Promise.all(files.map(async file=>[file,createHash('sha256').update(await readFile(join(extension.path,file))).digest('hex')])));

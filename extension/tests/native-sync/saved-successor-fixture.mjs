@@ -16,6 +16,10 @@ export function nativeSavedSuccessorFixture(source){
  let result=nativeSavedGroupFixture(declarations+source);
  const replace=(before,after)=>{if(result.split(before).length!==2)throw Error('SAVED_SUCCESSOR_BRIDGE_CHANGED');result=result.replace(before,after);};
  replace("command==='saved-group-matrix'","command==='saved-successor-matrix'");
- replace("const check=(e,p)=>{", "const check=(e,p)=>{if(p instanceof RegExp){if(!p.test(String(e)))throw Error('wrong rejection '+e);return;}");
+ // Use the strict native assertion adapter: unlike JSON comparison it also
+ // distinguishes undefined keys, sparse arrays, prototypes and negative zero.
+ const begin=result.indexOf('const assert={'),end=result.indexOf('\nlet sequence=0;',begin);
+ if(begin<0||end<0||result.indexOf('const assert={',begin+1)>=0)throw Error('SAVED_SUCCESSOR_ASSERT_BRIDGE_CHANGED');
+ result="import {assert as nativeSavedAssert} from './bns-saved-successor-assert.mjs';\n"+result.slice(0,begin)+'const assert=nativeSavedAssert;'+result.slice(end);
  return result;
 }
