@@ -20,7 +20,8 @@ export const QUALIFIED_HUMAN_BUDGET_CASES=Object.freeze([
   "a valid original prepared owner does not lend authority to a wrong repository, scope or caller token",
   "qualified fixed final closure refuses canonical-row and never publishes",
   "qualified fixed final closure refuses task-identity and never publishes",
-  "qualified fixed final closure refuses unexpected-row and never publishes"
+  "qualified fixed final closure refuses unexpected-row and never publishes",
+  "a real consumed v1 owner and pending publication cannot enter any v2 API or change either database"
 ]);
 // Prepared only: exact original cold and semantic cases, with no browser execution.
 export function nativeQualifiedHumanBudgetFixture(source,helpers,command){
@@ -61,7 +62,7 @@ const previous=globalThis.__bnsNative;
 globalThis.__bnsNative={...previous,async run(command,...args){
  if(command!==${JSON.stringify(command)})return previous.run(command,...args);
  const passed=[];
- const selected=cases;if(selected.length!==22||new Set(selected.map(x=>x.name)).size!==22||JSON.stringify(selected.map(x=>x.name))!==${JSON.stringify(JSON.stringify(QUALIFIED_HUMAN_BUDGET_CASES))}||selected.some(x=>/(?:^|[^0-9])(?:65|129)(?:[^0-9]|$)/.test(x.name)))throw Error('native selected count or allowlist');
+ const selected=cases;if(selected.length!==23||new Set(selected.map(x=>x.name)).size!==23||JSON.stringify(selected.map(x=>x.name))!==${JSON.stringify(JSON.stringify(QUALIFIED_HUMAN_BUDGET_CASES))}||selected.some(x=>/(?:^|[^0-9])(?:65|129)(?:[^0-9]|$)/.test(x.name)))throw Error('native selected count or allowlist');
  for(const item of selected){const after=[];let failure;
   try{await item.fn({after(fn){if(typeof fn!=='function')throw Error('native after');after.push(fn);}});passed.push(item.name);}
   catch(error){failure=Error(item.name+': '+error.stack);}

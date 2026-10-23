@@ -5,7 +5,7 @@
   "extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js": "6a52902a2e316e7dc98139756c0b7c2bfe00814a02fe091c4d4ee48e213c2568",
   "extension/core/browser-native-sync/canonical-generation-task-ledger.js": "bab67a07475bfde5703e6da057abf5af79c8388064734a088dd208f76d08c306",
   "extension/core/idb-repository.js": "98fcf2f37cc01819c0bcc069e2fe60aa0efb0acec9ffb9bef7b1c25f9e588b97",
-  "extension/tests/qualified-human-recovery-budget.test.mjs": "3fa3fa3bfabd91908ccf2a5b5ba4b57c06ff068c856b3daa70fe53ece2fdf106",
-  "extension/tests/native-sync/qualified-human-budget-chrome.test.mjs": "b5e61bdf0daf3257b144655d3bcfac45336c065bdf5a95d5242242eed0c7a37b",
-  "extension/tests/native-sync/qualified-human-budget-fixture.mjs": "be5f079b0e2d3560d144c3f8173f6a223303479d3f3b349a50506547a6818590"
+  "extension/tests/qualified-human-recovery-budget.test.mjs": "be40f8d3616f43199b6175447fb36b661c6360a6bf4073d9f9cc24e67cbc961e",
+  "extension/tests/native-sync/qualified-human-budget-chrome.test.mjs": "16e9a7a91d9ff569cc5a940487854d46adc31acb868868d079c608460733cb74",
+  "extension/tests/native-sync/qualified-human-budget-fixture.mjs": "d11549299c97d3a463600c81b1e5f76b675cb5fc7bd8b968e230a0cd46210a1d"
 }

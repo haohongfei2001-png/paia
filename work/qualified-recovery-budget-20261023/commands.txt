@@ -10,3 +10,5 @@ Node: /Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-o
 8. --check work/qualified-recovery-budget-20261023/qualified-human-budget-matrix.mjs -> exit0
 9. --check extension/tests/native-sync/qualified-human-budget-chrome.test.mjs -> exit0
 No original phased-stage file invocation, name filter, 65/129, browser, build, CI or network service call.
+10. --test extension/tests/qualified-human-recovery-budget.test.mjs -> real-v1-final.tap, exit0 (23/23), added real original v1 consumed/pending path
+11. rerun inert prepare-native.mjs/check-native.mjs and generated-matrix --check after 23rd case -> exit0; zero callbacks/browser/build

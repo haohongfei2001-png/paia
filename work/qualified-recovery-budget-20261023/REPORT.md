@@ -13,7 +13,7 @@ The previous accidental original phased-file invocation and its expected-refusal
 ## Fixed admission and limits
 
 - New explicit original-owner APIs: `stageQualifiedHumanCheckpoint`, `validateQualifiedHumanCheckpoint`, `revalidateQualifiedHumanCheckpoint`. The ordinary phased APIs continue to require v1.
-- Both versions use the original single durable task key. New v2 start rejects **any** existing v1 row before burning or changing a pending reservation. Twelve dedicated states cover staging/authenticated/validated/applying/verified/failed, each with and without pending work; their complete original rows remain unchanged.
+- Both versions use the original single durable task key. New v2 start rejects **any** existing v1 row before burning or changing a pending reservation. Twelve raw-task DTO negative states cover staging/authenticated/validated/applying/verified/failed, each with and without pending work; their complete original rows remain unchanged.
 - v2 is limited to authenticated source-free Human Entry creation: at most129 groups, exactly3 operations and2 members per group, at most387 operations /775 graph items. Original transport, payload2MiB and graph4096 limits remain. No arbitrary target, constructor option, scope DTO or callback can install an elevated envelope.
 - Task v1 remains16MiB. v2 is64MiB; both retain120s cumulative active work,4096 tickets and30s per reservation. Ordinary authenticate/validate/owner/verify tickets remain at most2MiB. Only v2 `rehydrate` and `publication` tickets permit at most8MiB.
 - The private original owner token, repository identity, original scope/prototype and immutable proof/task identity admit the two closure transactions. Numeric task rows and exported audit functions do not grant a transaction. Ordinary public8MiB registration, forged tokens, an original prepared owner used with another repository/fake scope, and generic callbacks are rejected.
@@ -46,13 +46,15 @@ The1/2/3-group controls measured114/144/174 actual final references, exactly mat
 
 ## Small local validation
 
-Environment: actual Node22.23.3, macOS arm64, original fake-indexeddb owning fixtures. No browser/performance claim. The new fixture rejects any count outside1–3.
+Environment: actual Node22.23.3, macOS arm64, original fake-indexeddb owning fixtures. No browser/performance claim. The new fixture rejects any count outside1–3. The final dedicated file additionally exercises a real original v1 task, separate from the raw-task DTO controls.
 
 1. `first.tap`: dedicated17 tests,5passed/12failed, exit1. The12 failures were a new test-fixture mistake calling nonexistent `stage.status()`, before those no-refill assertions executed. Corrected to read the existing original state row. All original output retained.
 2. `second.tap`: dedicated19 + original storage-cold6 + original repository-gate27 =52/52, exit0; this precedes the exact before-owner planner.
 3. `preflight.tap`: dedicated19/19, exit0, with the exact pre-owner planner.
 4. `final-small.tap`: dedicated22 + original storage-cold6 + original repository-gate27 =55/55, exit0, including final raw drift/task identity/extra-row rejection.
-5. `final-guarded-small.tap`: exact final code after the dedicated fixture's explicit≤3 guard,55/55, exit0; no fail/cancel/skip/todo,3574.2345ms.
+5. `final-guarded-small.tap`: runtime code after the dedicated fixture's explicit≤3 guard,55/55, exit0; no fail/cancel/skip/todo,3574.2345ms.
+
+6. `real-v1-final.tap`: final dedicated23/23, exit0,2755.288917ms. The added real1-group v1 path stages, validates, applies its original owner and reserves an original2MiB publication ticket. All three qualifiedv2 APIs refuse it. Whole target and registry database snapshots and exact ledger remain unchanged; the originalv1 final seal then succeeds with its same taskId and2MiB reservation. No raw task row is injected in this added case. The preceding12 DTO controls remain separately identified.
 
 These are distinct invocations, not one accumulated all-green result. No command imports or executes `canonical-generation-phased-stage.test.mjs` and no name filter is used.
 
@@ -70,7 +72,7 @@ Small native-scope simulation confirms actual reads/charges and exact reference 
 
 ## Native preparation only
 
-`qualified-human-budget-chrome.test.mjs` prepares a Source/Release pair using the existing native harness and optional `PAIA_NATIVE_RELEASE_PATH`, real original constructors, real IndexedDB, network isolation and cleanup. `qualified-human-budget-fixture.mjs` has a static exact22-name allowlist, uniqueness check,65/129 name rejection and the original fixture's≤3 guard. All original case bodies are preserved except original constructor/factory adaptation. The common fake factory is replaced with isolated names in real IndexedDB; ordinary-repository controls use their own native database.
+`qualified-human-budget-chrome.test.mjs` prepares a Source/Release pair using the existing native harness and optional `PAIA_NATIVE_RELEASE_PATH`, real original constructors, real IndexedDB, network isolation and cleanup. `qualified-human-budget-fixture.mjs` has a static exact23-name allowlist, uniqueness check,65/129 name rejection and the original fixture's≤3 guard. All original case bodies are preserved except original constructor/factory adaptation. The common fake factory is replaced with isolated names in real IndexedDB; ordinary-repository controls use their own native database.
 
 Registration was inspected only after stripping imports to inert registration functions. No case callback was invoked. Generated bridge syntax and owning native file syntax pass. `native-registration.json` and `native-preparation.json` explicitly record executedCallbacks0, browserExecutedfalse and buildExecutedfalse. Root will execute the combined small native milestone, then its unique129 validation; this package prepares no automatic new cloud workflow.
 
