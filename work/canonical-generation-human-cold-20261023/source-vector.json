@@ -6,9 +6,12 @@
     "extension/core/browser-native-sync/human-library-plan.js": "b4faac3b6392469bc0c5bda67240b25b33c586ee1f305f6ddb059c72a5d05446",
     "extension/core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
     "extension/core/thought-binding.js": "777a0006cc04081e68e3ea98c95ad9961fdd12a25aaa6b361862e34511837f5e",
-    "extension/tests/canonical-generation-phased-stage.test.mjs": "0e78386bfb480369bfc96954a7ee69d2819705e08c30394c0c4b5262c5ab5c6c",
+    "extension/tests/canonical-generation-phased-stage.test.mjs": "00fb78a10affb99a5ea5ca823915825c10ffdbaa22cbc67b1d9f3e6cf8bdd2a4",
     "extension/tests/canonical-human-cold-expectation.test.mjs": "e8b8f125199dda8088ec62009f840b5bf21b27d5736035e057c9e49000e4844c",
-    "extension/docs/consumer-product-v1/implementation/CANONICAL-HUMAN-COLD-CONTINUATION-20261023.md": "bb75252dcc395d0d833dcad6fad2996c3316cd2063d5e39369f7ffca4071a387"
+    "extension/docs/consumer-product-v1/implementation/CANONICAL-HUMAN-COLD-CONTINUATION-20261023.md": "e5aaa97b5acd4400d56dc190dbc403ff7038e0a16f31c5d9004676166be2188a",
+    "extension/tests/native-sync/phased-human-cold-fixture.mjs": "aa043a9610dfdb9027f549731d4d634ea1e18129589d9699afd792258b08d0f3",
+    "extension/tests/native-sync/phased-human-cold-chrome.test.mjs": "08689eaeea7a7acb54f659435d70cd6c36ac9a01df621eee417aed1c45096857"
   },
-  "verification": "38 selected phased cases, 191/192 related batch; one browser module import failure, no browser started"
+  "verification": "38 selected phased cases, 191/192 related batch; one browser module import failure, no browser started",
+  "nativePreparation": "18 cases per variant; generated and syntax-checked only; cold actual owner edit positive1/1"
 }

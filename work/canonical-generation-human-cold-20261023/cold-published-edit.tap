@@ -1,0 +1,18 @@
+TAP version 13
+# SYNTHETIC cold graph revalidated
+# SYNTHETIC cold expectations rehydrated
+# Subtest: explicit cold rehydration resumes the original two-group cursor and publishes without resetting its ledger
+ok 1 - explicit cold rehydration resumes the original two-group cursor and publishes without resetting its ledger
+  ---
+  duration_ms: 406.604292
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 597.777375
