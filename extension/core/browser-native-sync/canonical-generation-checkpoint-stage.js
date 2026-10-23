@@ -64,6 +64,7 @@ function freshMetadata(row){
  }
  for(const key of ['count','mapped','quarantined','sealed','input','thought','records','blocks','documents','blockCount','recordCount','activeTopics','indexGap','indexedActiveTopics','repairedDefaultSections','repairedGenerationTopics','repairedIndexTopics','repairedTopics','unresolvedLayouts','legacyCount','decisionSequence','policyEpoch'])if(Object.hasOwn(row,key)&&row[key]!==0)fail('GENERATION_CHECKPOINT_NOT_EMPTY');
 }
+export function requireOriginalPhasedFreshMetadata(rows){if(!Array.isArray(rows))fail('GENERATION_CHECKPOINT_NOT_EMPTY');for(const row of rows)if(![PROTECTION,CANONICAL_GENERATION_GATE].includes(row?.id))freshMetadata(row);if(!equal(rows.map(r=>r.id).sort(),[...Object.keys(freshMetadataShapes),PROTECTION,CANONICAL_GENERATION_GATE].sort()))fail('GENERATION_CHECKPOINT_NOT_EMPTY');return true;}
 // Read-only fixed initial metadata capture for the phased original owner.
 // The checkpoint copies are separately authenticated by its private graph.
 export async function captureOriginalPhasedEmptyMetadata(store,t){requireOriginalLibraryDocumentsStore(store);const rows=[];for(const key of await t.keys('meta',null,null,4096)){if(key.startsWith(CANONICAL_CHECKPOINT_PREFIX))continue;const row=await t.get('meta',key);if(![PROTECTION,CANONICAL_GENERATION_GATE].includes(key))freshMetadata(row);rows.push(row);}if(!equal(rows.map(r=>r.id).sort(),[...Object.keys(freshMetadataShapes),PROTECTION,CANONICAL_GENERATION_GATE].sort()))fail('GENERATION_CHECKPOINT_NOT_EMPTY');return rows;}
@@ -174,18 +175,20 @@ export class CanonicalGenerationCheckpointStage {
   }finally{ended=true;phase=null;iteratorAuthorities.delete(this);}
  }
  async validatePhasedHumanCheckpoint(){const lease=enterOriginalGenerationTaskInvocation(this.#binding.repository);try{return await this.#validatePhasedHumanCheckpoint();}finally{leaveOriginalGenerationTaskInvocation(this.#binding.repository,lease);}}
- async #validatePhasedHumanCheckpoint(){
+ async revalidatePhasedHumanCheckpoint(){const lease=enterOriginalGenerationTaskInvocation(this.#binding.repository);try{return await this.#validatePhasedHumanCheckpoint(true);}finally{leaveOriginalGenerationTaskInvocation(this.#binding.repository,lease);}}
+ async #validatePhasedHumanCheckpoint(cold=false){
   const before=await this.#read();if(!before||before.phase!=='authenticated')fail('GENERATION_CHECKPOINT_NOT_READY');
   await this.#publication.captureSourceBase(before.sourceBase);
   let task=originalGenerationTaskData(await this.#binding.repository.transaction(false,t=>t.get('meta',CANONICAL_PHASED_TASK),['meta']));
-  if(task.identity.manifestId!==before.manifestRef.id||!equal(task.identity.sourceBase,before.sourceBase)||task.phase!=='authenticated')fail('GENERATION_TASK_CHANGED');
+  if(task.identity.manifestId!==before.manifestRef.id||!equal(task.identity.sourceBase,before.sourceBase)||!(cold?['validated','applying']:['authenticated']).includes(task.phase))fail('GENERATION_TASK_CHANGED');
+  const resumedPhase=cold?task.phase:'authenticated';
   const persist=async(old,next)=>{let scope;await this.#write(async t=>{scope=t;if(!equal(await t.get('meta',old.id),old))fail();await t.put('meta',next);sealRows(this.#binding.repository,t,[next],[]);},'checkpoint',true);recordOriginalGenerationControlWork(this.#binding.repository,scope);task=next;};
   if(task.pending)await persist(task,originalGenerationTaskBurn(task));
   let phase=null;const items=[],pages=[],validationPrefix=CANONICAL_CHECKPOINT_PREFIX+'validated-page:';
   const currentPhase=()=>{current(this.#binding);if(!phase||phase.bytes>phase.ticket.bytes||performance.now()-phase.started>=phase.ticket.ms)fail('BNS_GROUP_RESOURCE_LIMIT');};
   const reserve=async()=>{const next=originalGenerationTaskReserve(task,'validate',{bytes:Math.min(2*1024*1024,GENERATION_TASK_LIMITS.workBytes-task.workBytes),ms:Math.min(30000,GENERATION_TASK_LIMITS.activeMs-task.activeMs)});await persist(task,next);phase={ticket:task.pending,started:performance.now(),bytes:0};};
   const dataWrite=async fn=>{currentPhase();let scope;const result=await this.#write(async t=>{scope=t;currentPhase();registerRepositoryWorkLimit(this.#binding.repository,t,{bytes:Math.max(1,phase.ticket.bytes-phase.bytes),ms:Math.max(1,Math.floor(phase.ticket.ms-(performance.now()-phase.started)))});if(!equal(await t.get('meta',CANONICAL_PHASED_TASK),task)||!equal(await t.get('meta',before.id),before))fail();return fn(t);},'checkpoint',true);phase.bytes+=readOriginalCommittedTransactionWork(this.#binding.repository,scope).bytes;currentPhase();return result;};
-  const settle=async(nextPhase='authenticated')=>{currentPhase();const next=originalGenerationTaskSettle(task,phase.ticket,{bytes:phase.bytes,activeMs:performance.now()-phase.started},nextPhase);phase=null;await persist(task,next);};
+  const settle=async(nextPhase=resumedPhase)=>{currentPhase();const next=originalGenerationTaskSettle(task,phase.ticket,{bytes:phase.bytes,activeMs:performance.now()-phase.started},nextPhase);phase=null;await persist(task,next);};
   // Reauthenticate the original encoded manifest under this task; mutable
   // durable decoded fields or an alternative ref cannot manufacture a proof.
   await reserve();phase.bytes+=before.manifestRef.encodedBytes+before.manifestRef.decodedBytes;currentPhase();const decoded=await readObject(before.manifestRef,async()=>Uint8Array.from(before.manifestEncoded),{profile:SEGMENT_PROFILE});currentPhase();if(!equal(decodeJSON(decoded,SEGMENT_PROFILE.decoded),before.manifest))fail();await settle();
@@ -202,7 +205,7 @@ export class CanonicalGenerationCheckpointStage {
   await reserve();phase.bytes+=payloadBytes;currentPhase();const plan=await prepareValidatedGroupedCheckpointGraph(this.#binding.core,items,before.manifest,{store:this.#binding.store});currentPhase();const graphDigest=plan.digest;
   if(plan.digest!==graphDigest||plan.groups.some(g=>g.type!=='humanLibraryCommit'||g.prepared.descriptor.value.kind!=='entry'||g.prepared.members.some(m=>!['entry','history'].includes(m.value.entityType)||m.value.before!==null||m.value.after.sourceRecordIds?.length)))fail('GENERATION_TASK_PROFILE');
   await this.#publication.captureSourceBase(before.sourceBase);const final={id:CANONICAL_CHECKPOINT_PREFIX+'validated-task:v1',version:1,taskId:task.taskId,manifestId:before.manifestRef.id,graphDigest,generationIdentity:task.identity.generationIdentity,sourceBase:before.sourceBase,itemCount:items.length,pageCount:pages.length,chain,pageChain};
-  await dataWrite(async t=>{const gate=await t.get('meta',CANONICAL_GENERATION_GATE);if(!equal(gate.identity,task.identity.generationIdentity))fail();if((await t.keys('meta',null,IDBKeyRange.bound(validationPrefix,validationPrefix+'\uffff',false,true),4096)).length!==pages.length)fail();for(const row of pages)if(!equal(await t.get('meta',row.id),row))fail();await t.put('meta',final);sealRows(this.#binding.repository,t,[before,final,...pages],[[ITEM,before.received],[PAGE,before.pages],[validationPrefix,pages.length]]);});await settle('validated');
+  await dataWrite(async t=>{const gate=await t.get('meta',CANONICAL_GENERATION_GATE);if(!equal(gate.identity,task.identity.generationIdentity))fail();if((await t.keys('meta',null,IDBKeyRange.bound(validationPrefix,validationPrefix+'\uffff',false,true),4096)).length!==pages.length)fail();for(const row of pages)if(!equal(await t.get('meta',row.id),row))fail();await t.put('meta',final);sealRows(this.#binding.repository,t,[before,final,...pages],[[ITEM,before.received],[PAGE,before.pages],[validationPrefix,pages.length]]);});await settle(cold?resumedPhase:'validated');
   const proof=Object.freeze(Object.create(null));phasedProofs.set(proof,{binding:this.#binding,packet:Object.freeze({plan,manifestRef:freeze(clone(before.manifestRef)),graphDigest,generationIdentity:freeze(clone(task.identity.generationIdentity)),sourceBase:freeze(clone(before.sourceBase)),task:freeze(clone(task)),state:freeze(clone(before)),items:freeze(clone(items)),validation:freeze(clone(final)),pages:freeze(clone(pages))})});return proof;
  }
  async validate(){

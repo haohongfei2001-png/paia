@@ -1,0 +1,115 @@
+TAP version 13
+# Subtest: ledger hard task ceilings survive repeated conservative cold burns
+ok 1 - ledger hard task ceilings survive repeated conservative cold burns
+  ---
+  duration_ms: 7.475792
+  type: 'test'
+  ...
+# Subtest: live phased invocation cannot be mistaken for a cold crashed reservation
+ok 2 - live phased invocation cannot be mistaken for a cold crashed reservation
+  ---
+  duration_ms: 311.267292
+  type: 'test'
+  ...
+# Subtest: cold proof reconstruction after owner application stays closed and cannot reset accumulated task
+ok 3 - cold proof reconstruction after owner application stays closed and cannot reset accumulated task
+  ---
+  duration_ms: 440.854708
+  type: 'test'
+  ...
+# SYNTHETIC cold graph revalidated
+# SYNTHETIC cold expectations rehydrated
+# Subtest: explicit cold rehydration resumes the original two-group cursor and publishes without resetting its ledger
+ok 4 - explicit cold rehydration resumes the original two-group cursor and publishes without resetting its ledger
+  ---
+  duration_ms: 867.859834
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable origin drift without publishing
+ok 5 - cold original expectation refuses durable origin drift without publishing
+  ---
+  duration_ms: 562.424958
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable entry drift without publishing
+ok 6 - cold original expectation refuses durable entry drift without publishing
+  ---
+  duration_ms: 594.287125
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable history drift without publishing
+ok 7 - cold original expectation refuses durable history drift without publishing
+  ---
+  duration_ms: 452.611542
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable receipt drift without publishing
+ok 8 - cold original expectation refuses durable receipt drift without publishing
+  ---
+  duration_ms: 490.27175
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable semantic drift without publishing
+ok 9 - cold original expectation refuses durable semantic drift without publishing
+  ---
+  duration_ms: 418.987708
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable binding drift without publishing
+ok 10 - cold original expectation refuses durable binding drift without publishing
+  ---
+  duration_ms: 410.180708
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable compatibility drift without publishing
+ok 11 - cold original expectation refuses durable compatibility drift without publishing
+  ---
+  duration_ms: 463.92675
+  type: 'test'
+  ...
+# Subtest: cold completed readiness never repairs incomplete or damaged binding inside a shadow generation
+ok 12 - cold completed readiness never repairs incomplete or damaged binding inside a shadow generation
+  ---
+  duration_ms: 277.777584
+  type: 'test'
+  ...
+# Subtest: cold completed readiness never repairs incomplete or damaged binding-version inside a shadow generation
+ok 13 - cold completed readiness never repairs incomplete or damaged binding-version inside a shadow generation
+  ---
+  duration_ms: 304.539959
+  type: 'test'
+  ...
+# Subtest: cold completed readiness never repairs incomplete or damaged compatibility inside a shadow generation
+ok 14 - cold completed readiness never repairs incomplete or damaged compatibility inside a shadow generation
+  ---
+  duration_ms: 268.04375
+  type: 'test'
+  ...
+# Subtest: cold readonly readiness does not permit later binding drift before the next original owner
+ok 15 - cold readonly readiness does not permit later binding drift before the next original owner
+  ---
+  duration_ms: 429.574125
+  type: 'test'
+  ...
+# Subtest: cold readonly readiness does not permit later compatibility drift before the next original owner
+ok 16 - cold readonly readiness does not permit later compatibility drift before the next original owner
+  ---
+  duration_ms: 439.780292
+  type: 'test'
+  ...
+1..0
+# Subtest: extension/tests/canonical-human-cold-expectation.test.mjs
+ok 2 - extension/tests/canonical-human-cold-expectation.test.mjs
+  ---
+  duration_ms: 529.93375
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7278.497834

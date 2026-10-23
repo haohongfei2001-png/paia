@@ -1,0 +1,14 @@
+{
+  "base": "b1fd5ea1",
+  "files": {
+    "extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js": "3f22f9a96553a113b0d4c86d7a9a48208daef111d329e2517f3f0bb1c4688070",
+    "extension/core/browser-native-sync/canonical-generation-phased-human.js": "bae35f50c3bdd50b3e5cc8c787c1bb0d2c391d47120c84f0ae6a01b982c8c93c",
+    "extension/core/browser-native-sync/human-library-plan.js": "b4faac3b6392469bc0c5bda67240b25b33c586ee1f305f6ddb059c72a5d05446",
+    "extension/core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
+    "extension/core/thought-binding.js": "777a0006cc04081e68e3ea98c95ad9961fdd12a25aaa6b361862e34511837f5e",
+    "extension/tests/canonical-generation-phased-stage.test.mjs": "0e78386bfb480369bfc96954a7ee69d2819705e08c30394c0c4b5262c5ab5c6c",
+    "extension/tests/canonical-human-cold-expectation.test.mjs": "e8b8f125199dda8088ec62009f840b5bf21b27d5736035e057c9e49000e4844c",
+    "extension/docs/consumer-product-v1/implementation/CANONICAL-HUMAN-COLD-CONTINUATION-20261023.md": "bb75252dcc395d0d833dcad6fad2996c3316cd2063d5e39369f7ffca4071a387"
+  },
+  "verification": "38 selected phased cases, 191/192 related batch; one browser module import failure, no browser started"
+}

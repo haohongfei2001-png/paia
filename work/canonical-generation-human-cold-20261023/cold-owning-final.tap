@@ -1,0 +1,247 @@
+TAP version 13
+# {"count":1,"items":7,"phase":"authenticated","workBytes":110227,"activeMs":16,"tickets":1}
+# Subtest: explicit phased authentication of 1 original Human creates keeps canonical target invisible
+ok 1 - explicit phased authentication of 1 original Human creates keeps canonical target invisible
+  ---
+  duration_ms: 295.302709
+  type: 'test'
+  ...
+# Subtest: committed page followed by lost response burns original reservation on fresh explicit continuation
+ok 2 - committed page followed by lost response burns original reservation on fresh explicit continuation
+  ---
+  duration_ms: 773.672458
+  type: 'test'
+  ...
+# Subtest: old checkpoint invocation cannot silently enter or reset a phased task
+ok 3 - old checkpoint invocation cannot silently enter or reset a phased task
+  ---
+  duration_ms: 393.289916
+  type: 'test'
+  ...
+# Subtest: transport fault leaves a durable reservation without synthetic refund
+ok 4 - transport fault leaves a durable reservation without synthetic refund
+  ---
+  duration_ms: 234.510125
+  type: 'test'
+  ...
+# Subtest: ledger cannot double refund, reset spent work or accept unknown shape
+ok 5 - ledger cannot double refund, reset spent work or accept unknown shape
+  ---
+  duration_ms: 0.930333
+  type: 'test'
+  ...
+# Subtest: ledger hard task ceilings survive repeated conservative cold burns
+ok 6 - ledger hard task ceilings survive repeated conservative cold burns
+  ---
+  duration_ms: 0.700708
+  type: 'test'
+  ...
+# {"validatedGroups":1,"workBytes":223784,"activeMs":87,"tickets":4}
+# Subtest: explicit phased whole Human graph validates 1 groups without claiming canonical application
+ok 7 - explicit phased whole Human graph validates 1 groups without claiming canonical application
+  ---
+  duration_ms: 408.55225
+  type: 'test'
+  ...
+# {"verificationGroups":1,"state":"verified-in-process","completed":1,"total":1,"pages":1,"workBytes":400717,"publicationQualified":false}
+# {"ownerGroups":1,"state":"applied","completed":1,"total":1,"workBytes":367388,"activeMs":234,"publicationQualified":false}
+# Subtest: phased original owner consumes 1 source-free Human groups within durable task budget
+ok 8 - phased original owner consumes 1 source-free Human groups within durable task budget
+  ---
+  duration_ms: 742.563458
+  type: 'test'
+  ...
+# {"phaseCosts":1,"authenticate":{"bytes":110179,"ms":26},"validate":{"bytes":113629,"ms":67},"owner":{"bytes":143443,"ms":150},"controlWork":{"transactions":11,"references":159,"bytes":73662,"activeMs":60.752374999999574,"maxReferences":17,"maxBytes":22825,"maxActiveMs":16.80529200000001}}
+# {"publicationGroups":1,"prepared":{"state":"prepared","manifestId":"2eae99814ad0177524d958f968ed6416861a3ac06ee7fe36777ac83909fe7e23","graphDigest":"845642016152643f97e9d4facaf9dffebea9df958aa63e4adfbd332328331316","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"prepaidBytes":2097152,"prepaidMs":30000}}
+# {"publicationGroups":1,"task":{"id":"canonical-generation:checkpoint:phased-task:v1","version":1,"taskId":"83308800-e64f-45d0-9b43-cdff05d93ae4","identity":{"manifestId":"2eae99814ad0177524d958f968ed6416861a3ac06ee7fe36777ac83909fe7e23","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"sourceBase":{"root":{"id":"canonical-generation:registry:v1","version":1,"revision":0,"active":null,"pending":null},"gate":null}},"phase":"verified","tickets":6,"burned":0,"workBytes":2464403,"activeMs":30243,"pending":null,"transportIds":["87ba7f69958521c60e14214abe58c341f835ed8ece286683f84228298ee81eb6"]},"work":{"native":{"references":114,"bytes":59455,"activeMs":142.50045799999998},"preparationBytes":907,"prepaidBytes":2097152,"prepaidMs":30000},"controlWork":{"transactions":12,"references":170,"bytes":77735,"activeMs":74.80166599999984,"maxReferences":17,"maxBytes":22825,"maxActiveMs":16.80529200000001}}
+# Subtest: fixed phased publication closes 1 original Human groups atomically
+ok 9 - fixed phased publication closes 1 original Human groups atomically
+  ---
+  duration_ms: 740.9495
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late item mutation and rolls back the whole publication transaction
+ok 10 - fixed phased seal rejects real late item mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 641.050292
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late page mutation and rolls back the whole publication transaction
+ok 11 - fixed phased seal rejects real late page mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 635.623375
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late validation mutation and rolls back the whole publication transaction
+ok 12 - fixed phased seal rejects real late validation mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 550.59
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late canonical mutation and rolls back the whole publication transaction
+ok 13 - fixed phased seal rejects real late canonical mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 377.424584
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late receipt mutation and rolls back the whole publication transaction
+ok 14 - fixed phased seal rejects real late receipt mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 574.453875
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late counter mutation and rolls back the whole publication transaction
+ok 15 - fixed phased seal rejects real late counter mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 479.489125
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late extra mutation and rolls back the whole publication transaction
+ok 16 - fixed phased seal rejects real late extra mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 480.479709
+  type: 'test'
+  ...
+# Subtest: fixed phased publication rejects forged proof and active source changed since original begin
+ok 17 - fixed phased publication rejects forged proof and active source changed since original begin
+  ---
+  duration_ms: 458.374
+  type: 'test'
+  ...
+# Subtest: live phased invocation cannot be mistaken for a cold crashed reservation
+ok 18 - live phased invocation cannot be mistaken for a cold crashed reservation
+  ---
+  duration_ms: 200.896125
+  type: 'test'
+  ...
+# Subtest: phased original journal rejects instance getter substitution before reading it or spending a ticket
+ok 19 - phased original journal rejects instance getter substitution before reading it or spending a ticket
+  ---
+  duration_ms: 261.206166
+  type: 'test'
+  ...
+# Subtest: cold proof reconstruction after owner application stays closed and cannot reset accumulated task
+ok 20 - cold proof reconstruction after owner application stays closed and cannot reset accumulated task
+  ---
+  duration_ms: 382.936583
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-sequence mutation and rolls back the whole publication transaction
+ok 21 - fixed phased seal rejects real late semantic-sequence mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 357.795875
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-known mutation and rolls back the whole publication transaction
+ok 22 - fixed phased seal rejects real late semantic-known mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 357.512958
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-dirty mutation and rolls back the whole publication transaction
+ok 23 - fixed phased seal rejects real late semantic-dirty mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 321.750375
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-extra mutation and rolls back the whole publication transaction
+ok 24 - fixed phased seal rejects real late semantic-extra mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 290.80675
+  type: 'test'
+  ...
+# SYNTHETIC cold graph revalidated
+# SYNTHETIC cold expectations rehydrated
+# Subtest: explicit cold rehydration resumes the original two-group cursor and publishes without resetting its ledger
+ok 25 - explicit cold rehydration resumes the original two-group cursor and publishes without resetting its ledger
+  ---
+  duration_ms: 782.799792
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable origin drift without publishing
+ok 26 - cold original expectation refuses durable origin drift without publishing
+  ---
+  duration_ms: 396.448583
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable entry drift without publishing
+ok 27 - cold original expectation refuses durable entry drift without publishing
+  ---
+  duration_ms: 407.727875
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable history drift without publishing
+ok 28 - cold original expectation refuses durable history drift without publishing
+  ---
+  duration_ms: 425.150916
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable receipt drift without publishing
+ok 29 - cold original expectation refuses durable receipt drift without publishing
+  ---
+  duration_ms: 416.832
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable semantic drift without publishing
+ok 30 - cold original expectation refuses durable semantic drift without publishing
+  ---
+  duration_ms: 430.174833
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable binding drift without publishing
+ok 31 - cold original expectation refuses durable binding drift without publishing
+  ---
+  duration_ms: 481.34825
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable compatibility drift without publishing
+ok 32 - cold original expectation refuses durable compatibility drift without publishing
+  ---
+  duration_ms: 475.857625
+  type: 'test'
+  ...
+# Subtest: cold completed readiness never repairs incomplete or damaged binding inside a shadow generation
+ok 33 - cold completed readiness never repairs incomplete or damaged binding inside a shadow generation
+  ---
+  duration_ms: 336.713334
+  type: 'test'
+  ...
+# Subtest: cold completed readiness never repairs incomplete or damaged binding-version inside a shadow generation
+ok 34 - cold completed readiness never repairs incomplete or damaged binding-version inside a shadow generation
+  ---
+  duration_ms: 333.289166
+  type: 'test'
+  ...
+# Subtest: cold completed readiness never repairs incomplete or damaged compatibility inside a shadow generation
+ok 35 - cold completed readiness never repairs incomplete or damaged compatibility inside a shadow generation
+  ---
+  duration_ms: 358.771083
+  type: 'test'
+  ...
+# Subtest: cold readonly readiness does not permit later binding drift before the next original owner
+ok 36 - cold readonly readiness does not permit later binding drift before the next original owner
+  ---
+  duration_ms: 600.185292
+  type: 'test'
+  ...
+# Subtest: cold readonly readiness does not permit later compatibility drift before the next original owner
+ok 37 - cold readonly readiness does not permit later compatibility drift before the next original owner
+  ---
+  duration_ms: 663.914916
+  type: 'test'
+  ...
+# Subtest: cold publication crash keeps the old prepaid ticket burned and resumes the original completed cursor
+ok 38 - cold publication crash keeps the old prepaid ticket burned and resumes the original completed cursor
+  ---
+  duration_ms: 800.253333
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17279.902209

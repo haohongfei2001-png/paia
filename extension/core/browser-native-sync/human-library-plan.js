@@ -110,6 +110,17 @@ export function humanEntryPlan(cap){const p=plans.get(cap);if(p?.kind!=='entry')
 // Read-only expectation from the original private named planner, before its
 // writer runs. A DTO cannot construct this view or acquire execution authority.
 export function originalHumanEntryGenerationExpectation(cap){const p=plans.get(cap);if(p?.kind!=='entry'||p.sourceBound||p.provenance.length||p.dependencies.length)fail('BNS_HUMAN_GENERATION_SCOPE');return structuredClone({entry:p.row,history:p.history,operationReceipt:p.operationReceipt,thoughtSequence:p.thoughtSequence,revisionSequence:p.revisionSequence,base:p.entry});}
+// Readonly deterministic replay of the original source-free creation planner.
+// The supplied baseline is not thereby trusted and this returns no writer cap;
+// the phased consumer must separately authenticate its durable original base.
+export async function deriveOriginalHumanCreationExpectation(store,core,baseline,input){
+ requireOriginalLibraryDocumentsStore(store);if(store.repository!==core.repository)fail('BNS_HUMAN_BINDING_REQUIRED');
+ const before=clone(baseline),d=clone(input);validateHumanLibraryCommit(d);if(d.kind!=='entry'||d.datasetId!==core.datasetId)fail('BNS_HUMAN_GENERATION_SCOPE');
+ const request=await restoreHumanRequest(d);keys(request,['operationId','actor','title','body','note','type','formation','evidence'],['operationId','actor','body','type','formation','evidence']);validateFields({body:request.body,title:request.title??'',note:request.note??'',type:request.type,formation:request.formation});
+ if(!idOK(request.operationId)||request.operationId.length<8||request.actor!=='user'||request.formation!=='explicit'||!Array.isArray(request.evidence)||request.evidence.length||!store.libraryDocumentMode||before?.library?.sealed)fail('BNS_HUMAN_GENERATION_SCOPE');
+ const entry=bindHumanReplayEntry(before,d.events,d.allocation),allocation=prepareHumanAllocation(store,entry),requestDigest=await hashText(JSON.stringify(request)),exactSignature=await keyedHash(before.secret,['body',request.type,request.body]);
+ const expected=computeHumanEntryState(request,before,requestDigest,exactSignature,allocation);allocation.seal();return {entry:clone(expected.row),history:clone(expected.history),operationReceipt:clone(expected.operationReceipt),thoughtSequence:expected.thoughtSequence,revisionSequence:expected.revisionSequence,base:before};
+}
 export async function requireHumanEntryPlan(t,cap,store,core){const p=plans.get(cap);if(p?.kind!=='entry'||p.store!==store||p.core!==core)fail('BNS_HUMAN_PLAN_REQUIRED');if(!equal(await base(store,core,t),p.entry)||await t.get('operationReceipts',p.request.operationId)||await t.get('thoughts',p.row.id))fail('BNS_HUMAN_CHANGED');for(const h of p.history)if(await t.get('revisions',h.id))fail('BNS_HUMAN_CHANGED');if(p.sourceBound){await checkEvidenceInTransaction(store,t,p.evidence);for(const row of p.provenance)if(await t.get('provenance',row.id))fail('BNS_HUMAN_CHANGED');for(const row of p.dependencies)if(await t.get('dependencies',row.id))fail('BNS_HUMAN_CHANGED');}return p.allocation;}
 
 async function editReadSet(t,id){
