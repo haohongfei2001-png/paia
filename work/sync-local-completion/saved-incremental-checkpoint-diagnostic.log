@@ -1,0 +1,60 @@
+TAP version 13
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase staged-item
+# SYNTHETIC phase before-saved-step-commit
+# SYNTHETIC phase after-saved-step-commit
+# SYNTHETIC phase saved-step-settled
+# SYNTHETIC phase before-saved-step-commit
+# SYNTHETIC callback error SyncError BNS_GROUP_RESOURCE_LIMIT SyncError: BNS_GROUP_RESOURCE_LIMIT
+#     at fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+#     at current (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/manual-merge-terminal.js:13:172)
+#     at sealManualMergeTransaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/manual-merge-terminal.js:18:44)
+#     at async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint.js:215:47
+#     at async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-incremental.test.mjs:32:496
+#     at async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:462:20)
+#     at async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:290:185
+#     at async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:203:11
+# Subtest: existing B checkpoint merge preserves local work and continues remote typed chain
+not ok 1 - existing B checkpoint merge preserves local work and continues remote typed chain
+  ---
+  duration_ms: 511.735833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-incremental.test.mjs:32:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:23:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:462:920)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 671.958208

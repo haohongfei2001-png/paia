@@ -18,7 +18,7 @@ export function savedEditRequest(input){
  if(input.expectedFieldRevisions!==undefined){if(!exact(input.expectedFieldRevisions,ENTRY_FIELDS))bad();r.expectedFieldRevisions=Object.fromEntries(ENTRY_FIELDS.filter(k=>Object.hasOwn(input.expectedFieldRevisions,k)).map(k=>{if(!count(input.expectedFieldRevisions[k]))bad();return [k,input.expectedFieldRevisions[k]];}));}
  return r;
 }
-export function normalizeSavedPayload(payload){const p=clone(payload);p.history=p.history.map(h=>({...h,sequence:0,listKey:[h.entityKey,0],documentList:[h.documentId,0]}));return p;}
+export function normalizeSavedPayload(payload){const p=clone(payload);delete p.entry.updatedSequence;delete p.entry.negativeUpdatedSequence;p.history=p.history.map(h=>({...h,sequence:0,listKey:[h.entityKey,0],documentList:[h.documentId,0]}));return p;}
 export function validateSavedSuccessorEnvelope(v){
  if(bytes(v).length>2*1024*1024||!all(v,['id','version','anchor','before','after','request','events','allocation','sequenceBefore','revisionBefore'])||v.version!==1||!hash(v.anchor)||!count(v.sequenceBefore)||!count(v.revisionBefore))bad();
  validateSavedWorkEnvelope({id:v.id,version:1,payload:v.before});validateSavedWorkEnvelope({id:v.id,version:1,payload:v.after});savedEditRequest(v.request);validateHumanAllocationEvents(v.events,v.allocation);return v;

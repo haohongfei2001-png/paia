@@ -1,0 +1,232 @@
+TAP version 13
+# Subtest: canonical saved AI bootstrap preserves origin, exact provenance and protected history; later local edit and removal survive replay
+ok 1 - canonical saved AI bootstrap preserves origin, exact provenance and protected history; later local edit and removal survive replay
+  ---
+  duration_ms: 101.440167
+  type: 'test'
+  ...
+# Subtest: unprotected AI reading output is not promoted to saved canonical work
+ok 2 - unprotected AI reading output is not promoted to saved canonical work
+  ---
+  duration_ms: 29.868625
+  type: 'test'
+  ...
+# Subtest: saved bootstrap rejects forged author, provenance, history and protections without destination writes
+ok 3 - saved bootstrap rejects forged author, provenance, history and protections without destination writes
+  ---
+  duration_ms: 110.922584
+  type: 'test'
+  ...
+# Subtest: Source changed after saved preparation refuses writes and post-owner failure rolls every table back
+ok 4 - Source changed after saved preparation refuses writes and post-owner failure rolls every table back
+  ---
+  duration_ms: 68.682625
+  type: 'test'
+  ...
+# Subtest: saved bootstrap refuses populated conflicting target and arbitrary caller capability
+ok 5 - saved bootstrap refuses populated conflicting target and arbitrary caller capability
+  ---
+  duration_ms: 58.583541
+  type: 'test'
+  ...
+# Subtest: saved preparation binds original transaction, permission and unchanged destination
+ok 6 - saved preparation binds original transaction, permission and unchanged destination
+  ---
+  duration_ms: 93.121083
+  type: 'test'
+  ...
+# Subtest: saved payload limits and missing Source proof reject before mutation
+ok 7 - saved payload limits and missing Source proof reject before mutation
+  ---
+  duration_ms: 63.482875
+  type: 'test'
+  ...
+# Subtest: final original transaction fence rejects Source drift after saved owner returned
+ok 8 - final original transaction fence rejects Source drift after saved owner returned
+  ---
+  duration_ms: 50.764709
+  type: 'test'
+  ...
+# Subtest: saved bootstrap malformed history and fields perform no destination reads
+ok 9 - saved bootstrap malformed history and fields perform no destination reads
+  ---
+  duration_ms: 50.1525
+  type: 'test'
+  ...
+# Subtest: original finalizer late source aborts the complete saved bootstrap
+ok 10 - original finalizer late source aborts the complete saved bootstrap
+  ---
+  duration_ms: 63.56175
+  type: 'test'
+  ...
+# Subtest: original finalizer late gate aborts the complete saved bootstrap
+ok 11 - original finalizer late gate aborts the complete saved bootstrap
+  ---
+  duration_ms: 59.008083
+  type: 'test'
+  ...
+# Subtest: original finalizer late restore aborts the complete saved bootstrap
+ok 12 - original finalizer late restore aborts the complete saved bootstrap
+  ---
+  duration_ms: 69.150083
+  type: 'test'
+  ...
+# Subtest: original finalizer late thought epoch aborts the complete saved bootstrap
+ok 13 - original finalizer late thought epoch aborts the complete saved bootstrap
+  ---
+  duration_ms: 60.431333
+  type: 'test'
+  ...
+# Subtest: original finalizer late filter aborts the complete saved bootstrap
+ok 14 - original finalizer late filter aborts the complete saved bootstrap
+  ---
+  duration_ms: 75.494
+  type: 'test'
+  ...
+# Subtest: original finalizer late receipt aborts the complete saved bootstrap
+ok 15 - original finalizer late receipt aborts the complete saved bootstrap
+  ---
+  duration_ms: 51.67225
+  type: 'test'
+  ...
+# Subtest: original finalizer late namespace aborts the complete saved bootstrap
+ok 16 - original finalizer late namespace aborts the complete saved bootstrap
+  ---
+  duration_ms: 53.925875
+  type: 'test'
+  ...
+# Subtest: original finalizer late target aborts the complete saved bootstrap
+ok 17 - original finalizer late target aborts the complete saved bootstrap
+  ---
+  duration_ms: 54.875042
+  type: 'test'
+  ...
+# Subtest: original finalizer late original settings aborts the complete saved bootstrap
+ok 18 - original finalizer late original settings aborts the complete saved bootstrap
+  ---
+  duration_ms: 54.061083
+  type: 'test'
+  ...
+# Subtest: empty cold B receives original Source and saved AI artifact atomically, then keeps its later human edits on replay
+ok 19 - empty cold B receives original Source and saved AI artifact atomically, then keeps its later human edits on replay
+  ---
+  duration_ms: 66.319958
+  type: 'test'
+  ...
+# Subtest: Source-first saved failure after both original owners rolls Source, Entry, protocol and markers back
+ok 20 - Source-first saved failure after both original owners rolls Source, Entry, protocol and markers back
+  ---
+  duration_ms: 50.47225
+  type: 'test'
+  ...
+# Subtest: Source-first saved rejects an unrelated authenticated Source plan before any canonical write
+ok 21 - Source-first saved rejects an unrelated authenticated Source plan before any canonical write
+  ---
+  duration_ms: 78.482333
+  type: 'test'
+  ...
+# Subtest: saved bootstrap cold profile refuses unrelated populated Thought allocation without writing either owner
+ok 22 - saved bootstrap cold profile refuses unrelated populated Thought allocation without writing either owner
+  ---
+  duration_ms: 49.856125
+  type: 'test'
+  ...
+# Subtest: typed saved publication and cold receive retain immutable AI provenance and exact original wire receipt
+ok 23 - typed saved publication and cold receive retain immutable AI provenance and exact original wire receipt
+  ---
+  duration_ms: 89.01625
+  type: 'test'
+  ...
+# Subtest: typed saved wire cannot bypass owner through ordinary Core receive or local commit
+ok 24 - typed saved wire cannot bypass owner through ordinary Core receive or local commit
+  ---
+  duration_ms: 47.894334
+  type: 'test'
+  ...
+# Subtest: typed saved publication rejects local edit after preparation without protocol or outbox write
+ok 25 - typed saved publication rejects local edit after preparation without protocol or outbox write
+  ---
+  duration_ms: 35.487458
+  type: 'test'
+  ...
+# Subtest: typed saved protocol write failure rolls canonical Source, Entry and every receipt back
+ok 26 - typed saved protocol write failure rolls canonical Source, Entry and every receipt back
+  ---
+  duration_ms: 64.656125
+  type: 'test'
+  ...
+# Subtest: typed saved publication original terminal fence rejects late source change
+ok 27 - typed saved publication original terminal fence rejects late source change
+  ---
+  duration_ms: 41.777416
+  type: 'test'
+  ...
+# Subtest: typed saved publication original terminal fence rejects late outbox change
+ok 28 - typed saved publication original terminal fence rejects late outbox change
+  ---
+  duration_ms: 53.7365
+  type: 'test'
+  ...
+# Subtest: saved bootstrap terminal authority rejects late migration
+ok 29 - saved bootstrap terminal authority rejects late migration
+  ---
+  duration_ms: 57.471792
+  type: 'test'
+  ...
+# Subtest: saved bootstrap terminal authority rejects late local-control-publication:revision
+ok 30 - saved bootstrap terminal authority rejects late local-control-publication:revision
+  ---
+  duration_ms: 53.061958
+  type: 'test'
+  ...
+# Subtest: saved bootstrap terminal authority rejects late local-control-publication:reservation
+ok 31 - saved bootstrap terminal authority rejects late local-control-publication:reservation
+  ---
+  duration_ms: 66.646333
+  type: 'test'
+  ...
+# Subtest: saved bootstrap terminal authority rejects late thought-library
+ok 32 - saved bootstrap terminal authority rejects late thought-library
+  ---
+  duration_ms: 62.07525
+  type: 'test'
+  ...
+# Subtest: saved typed receive terminal proof rejects late protocol sequence
+ok 33 - saved typed receive terminal proof rejects late protocol sequence
+  ---
+  duration_ms: 79.030375
+  type: 'test'
+  ...
+# Subtest: saved typed receive terminal proof rejects late protocol frontier
+ok 34 - saved typed receive terminal proof rejects late protocol frontier
+  ---
+  duration_ms: 66.511625
+  type: 'test'
+  ...
+# Subtest: saved typed receive terminal proof rejects late protocol generation
+ok 35 - saved typed receive terminal proof rejects late protocol generation
+  ---
+  duration_ms: 70.678042
+  type: 'test'
+  ...
+# Subtest: saved typed receive terminal proof rejects late protocol entityRevision
+ok 36 - saved typed receive terminal proof rejects late protocol entityRevision
+  ---
+  duration_ms: 73.054542
+  type: 'test'
+  ...
+# Subtest: saved typed receive terminal proof rejects late protocol receipt
+ok 37 - saved typed receive terminal proof rejects late protocol receipt
+  ---
+  duration_ms: 67.357333
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2542.082833

@@ -1,0 +1,30 @@
+{
+  "base": "4f803429bd256dbcac11c779b11fcb62922f9f19",
+  "coordinator": "temporary exact tested file; not committed, apply narrow patch in root",
+  "files": [
+    {
+      "path": "extension/core/browser-native-sync/saved-work-bootstrap.js",
+      "sha256": "d5b4c18d31693006fd15c2a3e6f745bfeaea50431b3f2d3de7b608a04a4384bb"
+    },
+    {
+      "path": "extension/core/browser-native-sync/saved-work-journal.js",
+      "sha256": "157f5f353c80acc6d2947064b5e9397b7a5537cb8e71442ee74bedea89ee7876"
+    },
+    {
+      "path": "extension/core/browser-native-sync/saved-work-successor-codec.js",
+      "sha256": "e6e439804e1c83c41296b37281be8966502235c17107eab6e67874bebec14a3a"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint-plan.js",
+      "sha256": "cf41e4e0dd2a3740b1ec5385792a62d42877b8e0a574740af502aac960bca386"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint.js",
+      "sha256": "73ccc48ecd3a4ca08a1f900247c1d363676382caeff4aa6da7feadf7b8cfef85"
+    },
+    {
+      "path": "extension/tests/browser-native-sync-saved-incremental.test.mjs",
+      "sha256": "211c5a8856af7332905f3a144d91f46e58590c5ab4f5ee2fa314d817cff0a017"
+    }
+  ]
+}

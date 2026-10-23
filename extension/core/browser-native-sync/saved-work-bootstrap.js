@@ -1,3 +1,4 @@
+import {bindHumanReplayEntry} from './human-library-allocation.js';
 import {savedEditRequest,normalizeSavedPayload,validateSavedSuccessor,deriveSavedSuccessor,restoreSavedHistoryOrder} from './saved-work-successor-codec.js';
 import {humanPlanEntry,prepareSavedEntryEditPlan,humanEntryEditPlan,executeHumanPlanInTransaction} from './human-library-plan.js';
 import {hashText} from '../dedupe.js';
@@ -236,7 +237,7 @@ export async function prepareSavedWorkScope(store,core,scope,plan){
   const evidence=[await planEvidenceProjection({inputId:b.id,contentRevision:source.inputState.contentRevision,body:b.libraryText??source.source.originalText,note:b.note||'',sourceRecordIds:[source.source.id],identities:[source.source.sourceKey]},{role:'primary',selectedFields:wire.selectedFields},secret,epoch)];
   if(!equal(portableSourceLinkedEvidence(evidence),wire))fail('BNS_SOURCE_LINKED_EVIDENCE_CHANGED');const expected=await deriveSavedPlan(core,plan,payload,evidence,secret);
   if(ids.has(expected.entry.id)||provenance.has(expected.provenance.id))bad();ids.add(expected.entry.id);provenance.add(expected.provenance.id);for(const row of expected.history){if(histories.has(row.id)||row.id===source.baselineRevision.id)bad();histories.add(row.id);}
-  retained+=bytes({expected,evidence}).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');members.push({evidence,expected});
+  retained+=bytes({expected,evidence}).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');members.push({evidence,expected,revisionId:last.revisionId});
  }savedScopes.set(scope,{store,core,plan,secret,epoch,members});
 }
 const normalizedSavedHistory=rows=>rows.map(row=>({...row,sequence:0,listKey:[row.entityKey,0],documentList:[row.documentId,0]}));
@@ -245,6 +246,7 @@ export async function requireSavedWorkScope(store,t,scope){
  if(!equal((await t.get('meta','thought-suppression-key'))?.value,p.secret)||((await t.get('meta','thought-epoch'))?.value||0)!==p.epoch)fail('BNS_SAVED_WORK_CHANGED');
  const sequence=(await t.get('meta','thought-sequence'))?.value;if(!Number.isSafeInteger(sequence)||await t.count('thoughts')!==p.members.length||await t.count('provenance')!==p.members.length||await t.count('dependencies')!==p.members.length||await t.count('thoughtSuppressions')||await t.count('placements')||await t.count('librarySearchTerms'))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  for(const member of p.members){await checkEvidenceInTransaction(store,t,member.evidence);const e=member.expected,rows=await ownedRows(t,e.entry.id),expected={entry:e.entry,history:e.history,provenance:[e.provenance],dependencies:[e.dependency],placements:0,suppressions:0};
+  requireSavedPhysical(await p.core.get(t,'savedPhysical',e.entry.id)??null,member.revisionId,rows,expected);rows.entry=savedSemanticEntry(rows.entry);expected.entry=savedSemanticEntry(expected.entry);
   rows.history=normalizedSavedHistory(rows.history);expected.history=normalizedSavedHistory(expected.history);if(sequence<e.entry.updatedSequence||!equal(rows,expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  }
  for(const row of await readGroupRows(t,'libraryMigrationItems')){const e=p.members.find(member=>member.expected.entry.id===row.ownerId)?.expected.entry;if(!e||!equal(row,{id:JSON.stringify(['search','entry',e.id]),entityKind:'search',statusKey:0,ownerKind:'entry',ownerId:e.id,version:ownerVersion('entry',e),phase:'delete',offset:0,sourceRecordIds:e.sourceRecordIds??[]}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
@@ -276,10 +278,14 @@ async function verifySavedGroupStage(store,core,plan,stage,state){
 // Saved successors use the original human editing owner, but a distinct typed
 // wire profile. The ordinary user-created Human codec is never broadened to AI.
 const savedEdits=new WeakMap();
-export async function prepareSavedWorkEdit(store,core,input){
+export async function prepareSavedWorkEdit(store,core,input){return prepareSavedEdit(store,core,input,null);}
+export async function prepareSavedWorkReceive(store,core,input){
+ bounded(input);const operation=clone(input);await validateFrozenOperation(operation);if(operation.type!=='savedWorkSuccessor'||operation.datasetId!==core.datasetId)fail('BNS_SAVED_WORK_OPERATION');return prepareSavedEdit(store,core,operation.value.request,operation);
+}
+async function prepareSavedEdit(store,core,input,incoming){
  binding(store,core);const request=savedEditRequest(input),requestDigest=await hashText(JSON.stringify(request));
  const retry=await core.transaction(false,async t=>({marker:await core.get(t,'savedEditReceipt',request.operationId),domain:await t.get('operationReceipts',request.operationId)}));
- if(retry.marker){const original=await core.read('revision',retry.marker.revisionId),op=original?.operation,receipt=await core.read('receipt',retry.marker.protocolOperationId);if(original?.redacted||op?.type!=='savedWorkSuccessor'||op.operationId!==retry.marker.protocolOperationId||!equal(savedEditRequest(op.value.request),request)||retry.marker.requestDigest!==requestDigest||retry.domain?.digest!==requestDigest||!equal(retry.marker.result,retry.domain?.result)||!receipt||!equal(receipt,{id:receipt.id,digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence}))fail('BNS_SAVED_WORK_COLLISION');return {duplicate:true,result:clone(retry.marker.result)};}
+ if(retry.marker){if(incoming&&retry.marker.revisionId!==incoming.revisionId)fail('BNS_SAVED_WORK_COLLISION');const original=await core.read('revision',retry.marker.revisionId),op=original?.operation,receipt=await core.read('receipt',retry.marker.protocolOperationId);if(original?.redacted||op?.type!=='savedWorkSuccessor'||op.operationId!==retry.marker.protocolOperationId||!equal(savedEditRequest(op.value.request),request)||retry.marker.requestDigest!==requestDigest||retry.domain?.digest!==requestDigest||!equal(retry.marker.result,retry.domain?.result)||!receipt||!equal(receipt,{id:receipt.id,digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence}))fail('BNS_SAVED_WORK_COLLISION');return {duplicate:true,result:clone(retry.marker.result)};}
  if(retry.domain)fail('BNS_SAVED_WORK_COLLISION');
  const start=Date.now(),anchorHead=await core.read('head','savedWorkBootstrap',request.id),head=await core.read('head','savedWorkSuccessor',request.id);
  if(anchorHead?.purged||anchorHead?.revisions?.length!==1||head&&(head.purged||head.revisions.length!==1))fail('BNS_SAVED_WORK_CHANGED');
@@ -291,20 +297,24 @@ export async function prepareSavedWorkEdit(store,core,input){
   for(const row of ancestry){const op=row.operation;for(const [kind,ids,value]of [['receipt',[op.operationId],{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence}],['sequence',[op.deviceId,String(op.sequence).padStart(16,'0')],{operationId:op.operationId,digest:op.revisionId}],['entityRevision',[op.type,op.entityId,op.revisionId],{revisionId:op.revisionId}]]){const actual=await core.get(t,kind,...ids);if(!actual||!equal(actual,{id:actual.id,...value}))fail('BNS_SAVED_WORK_CHANGED');result.push(actual);}}
   return result;
  });
- const previous=chain.at(-1)??anchor,canonical=await core.transaction(false,async t=>({authority:await authority(store,core,t),rows:await ownedRows(t,request.id)}));
+ const previous=chain.at(-1)??anchor;if(incoming&&(incoming.value.anchor!==anchor.operation.revisionId||!equal(incoming.parents,head?.revisions??[])))fail('BNS_SAVED_WORK_CONFLICT');const canonical=await core.transaction(false,async t=>({authority:await authority(store,core,t),rows:await ownedRows(t,request.id)}));
  const link=anchor.operation.value.payload.link,evidenceForChain=await restoreSourceLinkedEvidence(store,link.evidence),derived=await deriveSavedChain(ancestry.map(row=>row.operation),evidenceForChain,canonical.authority.secret),r=canonical.rows;
  const expected={entry:derived.expected.entry,history:derived.expected.history,provenance:[derived.expected.provenance],dependencies:[derived.expected.dependency],placements:0,suppressions:0};
- if(!equal({...r,history:normalizedSavedHistory(r.history)},{...expected,history:normalizedSavedHistory(expected.history)}))fail('BNS_SAVED_WORK_CHANGED');
+ const mapping=await core.read('savedPhysical',request.id)??null;requireSavedPhysical(mapping,previous.operation.revisionId,r,expected);
+ if(!equal({...r,entry:savedSemanticEntry(r.entry),history:normalizedSavedHistory(r.history)},{...expected,entry:savedSemanticEntry(expected.entry),history:normalizedSavedHistory(expected.history)}))fail('BNS_SAVED_WORK_CHANGED');
  const payload=bounded({...clone(derived.payload),entry:portableEntry(r.entry),history:r.history});
- const entry=await humanPlanEntry(store,core),owner=await prepareSavedEntryEditPlan(store,core,request,entry);if(owner.conflict)return owner;if(owner.duplicate)fail('BNS_SAVED_WORK_COLLISION');
+ if(incoming&&!equal(normalizeSavedPayload(payload),normalizeSavedPayload(incoming.value.before)))fail('BNS_SAVED_WORK_CONFLICT');
+ const entry=await humanPlanEntry(store,core);if(incoming)bindHumanReplayEntry(entry,incoming.value.events,incoming.value.allocation);const owner=await prepareSavedEntryEditPlan(store,core,request,entry);if(owner.conflict)return owner;if(owner.duplicate)fail('BNS_SAVED_WORK_COLLISION');
  const view=humanEntryEditPlan(owner),after={...clone(payload),entry:portableEntry(view.entry),history:clone(view.history)},events=view.events,allocation={domainCount:events.filter(e=>e.role==='domain').length,indexGenerationCount:events.filter(e=>e.role==='index-generation').length};
  const value={id:request.id,version:1,anchor:anchor.operation.revisionId,before:payload,after,request,events,allocation,sequenceBefore:entry.sequence?.value||0,revisionBefore:entry.revision?.value||0};await validateSavedSuccessor(value);
- const prepared=await core.prepare([{type:'savedWorkSuccessor',expectedParents:head?.revisions||[],value}],{actor:'user'}),before=await core.transaction(false,async t=>({authority:await authority(store,core,t),rows:await ownedRows(t,request.id),source:await sourceProof(core,t,payload.link)}));
+ if(incoming&&!equal(normalizeSavedPayload(after),normalizeSavedPayload(incoming.value.after)))fail('BNS_SAVED_WORK_CHANGED');
+ const prepared=incoming?{operations:[incoming]}:await core.prepare([{type:'savedWorkSuccessor',expectedParents:head?.revisions||[],value}],{actor:'user'}),before=await core.transaction(false,async t=>({authority:await authority(store,core,t),rows:await ownedRows(t,request.id),source:await sourceProof(core,t,payload.link)}));
  if(!equal(before.rows.entry, {...payload.entry,exactSignature:before.rows.entry.exactSignature})||!equal(before.rows.history,payload.history)||!equal(before.authority.sequence,entry.sequence)||!equal(before.authority.revision,entry.revision))fail('BNS_SAVED_WORK_CHANGED');
  const evidence=await restoreSourceLinkedEvidence(store,payload.link.evidence);let retained=bytes({value,before,prepared,view,ancestry,lineage}).length;
  const current=()=>{if(Date.now()-start>30000||retained>limit)fail('BNS_SAVED_WORK_LIMIT');};current();
  const facts=await core.transaction(false,t=>captureTopicFormationTerminal(store,t,evidence,{current,retain:x=>{retained+=bytes(x).length;current();return clone(x);}}));
- const cap=Object.freeze({});savedEdits.set(cap,{store,core,owner,view,prepared,before,evidence,facts,start,request,requestDigest,anchor,previous,ancestry,lineage});return cap;
+ const outgoing=incoming?await core.transaction(false,async t=>{const prefix=await core.idIn(t,'outbox');return {prefix,rows:await readGroupRows(t,'meta',{prefix})};}):null,outbox=outgoing?.rows??null,outboxPrefix=outgoing?.prefix??null;retained+=bytes(outbox).length;current();
+ const cap=Object.freeze({});savedEdits.set(cap,{store,core,owner,view,prepared,before,evidence,facts,start,request,requestDigest,anchor,previous,ancestry,lineage,incoming,mapping,outbox,outboxPrefix});return cap;
 }
 export async function commitSavedWorkEdit(t,cap,store){
  const p=savedEdits.get(cap);if(!p||p.store!==store)fail('BNS_SAVED_WORK_CAPABILITY');const {core,before,view,request}=p;
@@ -313,16 +323,47 @@ export async function commitSavedWorkEdit(t,cap,store){
  for(const fact of p.facts)if(!equal(fact.project(await t.get(fact.table,fact.key),()=>{}),fact.expected))fail('BNS_SAVED_WORK_CHANGED');
  for(const original of p.lineage)if(!equal(await t.get('meta',original.id),original))fail('BNS_SAVED_WORK_CHANGED');
  for(const original of p.ancestry)if(!equal(await core.get(t,'revision',original.operation.revisionId),original))fail('BNS_SAVED_WORK_CHANGED');
- const operation=p.prepared.operations[0],intent=await savedProtocolIntent(t,core,operation,true),result=await executeHumanPlanInTransaction(t,p.owner);
- protocolApplications.set(t,{core,operation,origin:'local'});try{await core.commitPrepared(t,p.prepared,{materialize:false});}finally{protocolApplications.delete(t);}
+ if(p.outbox&&!equal(await readGroupRows(t,'meta',{prefix:p.outboxPrefix}),p.outbox))fail('BNS_SAVED_WORK_CHANGED');
+ if(!equal(await core.get(t,'savedPhysical',request.id)??null,p.mapping))fail('BNS_SAVED_WORK_CHANGED');
+ const operation=p.prepared.operations[0],intent=await savedProtocolIntent(t,core,operation,!p.incoming);if(p.incoming){const key=await core.idIn(t,'outbox',operation.operationId);if(await t.get('meta',key))fail('BNS_SAVED_WORK_COLLISION');intent.push([key,null]);}
+ const result=await executeHumanPlanInTransaction(t,p.owner);
+ protocolApplications.set(t,{core,operation,origin:p.incoming?'remote':'local'});try{if(p.incoming){const applied=await core.applyInTransaction(t,operation,{origin:'remote',materialize:false});if(applied.state!=='applied')fail('BNS_SAVED_WORK_OPERATION');}else await core.commitPrepared(t,p.prepared,{materialize:false});}finally{protocolApplications.delete(t);}
  const marker={version:1,requestDigest:p.requestDigest,result:clone(result),protocolOperationId:operation.operationId,revisionId:operation.revisionId},key=await core.idIn(t,'savedEditReceipt',request.operationId);if(await t.get('meta',key))fail('BNS_SAVED_WORK_COLLISION');await core.put(t,'savedEditReceipt',[request.operationId],marker);
- const points=[...before.source.rows.map(row=>['meta',row.id,row]),...before.authority.roots.map(([id,row])=>['meta',id,row]),...new Map([...p.ancestry,...p.lineage].map(row=>[row.id,row])).values()].map(x=>Array.isArray(x)?x:['meta',x.id,x]);
+ const physical={version:1,revisionId:operation.revisionId,wire:savedPhysical(operation.value.after),local:savedPhysical({entry:view.entry,history:view.history})},physicalKey=await core.idIn(t,'savedPhysical',request.id);await core.put(t,'savedPhysical',[request.id],physical);
+ const points=[...(p.outbox??[]).map(row=>['meta',row.id,row]),['meta',physicalKey,{id:physicalKey,...physical}],...before.source.rows.map(row=>['meta',row.id,row]),...before.authority.roots.map(([id,row])=>['meta',id,row]),...new Map([...p.ancestry,...p.lineage].map(row=>[row.id,row])).values()].map(x=>Array.isArray(x)?x:['meta',x.id,x]);
  const previousSuccessorHead=p.lineage.find(row=>row.type==='savedWorkSuccessor'&&Array.isArray(row.revisions));if(previousSuccessorHead){const index=points.findIndex(([table,id])=>table==='meta'&&id===previousSuccessorHead.id);points.splice(index,1);}
  points.push(['meta',key,{...marker,id:key}],['meta','thought-sequence',{id:'thought-sequence',value:view.operationReceipt.operationSequence}],['meta','revision-sequence',{id:'revision-sequence',value:view.revisionSequence}],['meta','backup-data-generation',{id:'backup-data-generation',value:before.authority.generation+1}],['thoughts',view.entry.id,view.entry],['operationReceipts',request.operationId,view.operationReceipt],...before.rows.provenance.map(row=>['provenance',row.id,row]),...before.rows.dependencies.map(row=>['dependencies',row.id,row]),...view.history.map(row=>['revisions',row.id,row]),...before.rows.history.filter(row=>!view.history.some(current=>current.id===row.id)).map(row=>['revisions',row.id,null]));
  const current=()=>{if(Date.now()-p.start>30000)fail('BNS_SAVED_WORK_LIMIT');assertOriginalControlSettingsFacts(store,now.control);return true;};
  registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){
+  if(p.outbox){const prefix=p.outboxPrefix;if((yield {method:'count',table:'meta',key:IDBKeyRange.bound(prefix,prefix+'\uffff')})!==p.outbox.length)fail('BNS_SAVED_WORK_CHANGED');}
   for(const fact of p.facts)if(!equal(fact.project(yield {method:'get',table:fact.table,key:fact.key},current),fact.expected))fail('BNS_SAVED_WORK_CHANGED');
   for(const [table,key,row]of points)if(!equal((yield {method:'get',table,key})??null,row))fail('BNS_SAVED_WORK_CHANGED');
   for(const [table,index,key,n]of [['revisions','byList',prefix(['library_entry:'+request.id]),view.history.length],['provenance','byOwner',prefix(['entry',request.id]),1],['dependencies','byTarget',prefix(['entry',request.id]),1],['placements','byEntry',prefix([request.id]),0],['thoughtSuppressions','byEntry',request.id,0],['thoughtSuppressions','byScope',p.evidence[0].scopeToken,0],['thoughtSuppressions','byExact',view.entry.exactSignature,0]])if((yield {method:'count',table,index,key})!==n)fail('BNS_SAVED_WORK_CHANGED');return true;
  }});await sealSavedProtocol(t,core,intent,p.start);return result;
+}
+
+function savedSemanticEntry(entry){const row=clone(entry);if(row){delete row.updatedSequence;delete row.negativeUpdatedSequence;}return row;}
+function savedPhysical(payload){return {updatedSequence:payload.entry.updatedSequence,negativeUpdatedSequence:payload.entry.negativeUpdatedSequence,history:payload.history.map(row=>({id:row.id,sequence:row.sequence,listKey:clone(row.listKey),documentList:clone(row.documentList)}))};}
+function requireSavedPhysical(mapping,revisionId,actual,wire){
+ if(mapping){if(!equal(mapping,{id:mapping.id,version:1,revisionId,wire:savedPhysical(wire),local:savedPhysical(actual)}))fail('BNS_SAVED_WORK_CHANGED');}
+ else if(actual.entry?.updatedSequence!==wire.entry?.updatedSequence||actual.entry?.negativeUpdatedSequence!==wire.entry?.negativeUpdatedSequence)fail('BNS_SAVED_WORK_CHANGED');
+}
+
+// Final closure for an existing populated saved cut after a checked incremental
+// transition. The private Scope derives every semantic row; raw local physical
+// allocation is accepted only through that exact saved mapping.
+export async function sealSavedWorkCurrentScope(store,core,t,scope){
+ const p=savedScopes.get(scope);if(!p||p.store!==store||p.core!==core)fail('BNS_SAVED_WORK_CAPABILITY');await requireSavedWorkScope(store,t,scope);const database=store.repository.db,started=Date.now(),points=[],counts=[];let retained=0;
+ for(const member of p.members){const id=member.expected.entry.id,r=await ownedRows(t,id);for(const [table,rows]of [['thoughts',[r.entry]],['revisions',r.history],['provenance',r.provenance],['dependencies',r.dependencies]])for(const row of rows){retained+=bytes(row).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');points.push([table,row.id,clone(row)]);}const key=await core.idIn(t,'savedPhysical',id);points.push(['meta',key,await t.get('meta',key)??null]);counts.push(['revisions','byList',prefix(['library_entry:'+id]),r.history.length],['provenance','byOwner',prefix(['entry',id]),1],['dependencies','byTarget',prefix(['entry',id]),1]);}
+ const current=()=>{if(store.repository!==core.repository||store.repository.db!==database||Date.now()-started>=30000)fail('BNS_SAVED_WORK_LIMIT');return true;},facts=await captureTopicFormationTerminal(store,t,p.members.flatMap(m=>m.evidence),{current,retain:value=>{retained+=bytes(value).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');return clone(value);}});
+ counts.push(['placements',null,null,0],['thoughtSuppressions',null,null,0],['librarySearchTerms',null,null,0],['thoughts',null,null,p.members.length],['provenance',null,null,p.members.length],['dependencies',null,null,p.members.length]);registerRepositoryFinalReadFence(store.repository,t,{isCurrent:()=>store.repository===core.repository&&store.repository.db===database&&Date.now()-started<30000,plan:function*(){for(const fact of facts)if(!equal(fact.project(yield {method:'get',table:fact.table,key:fact.key},current),fact.expected))fail('BNS_SAVED_WORK_CHANGED');for(const [table,key,row]of points)if(!equal((yield {method:'get',table,key})??null,row))fail('BNS_SAVED_WORK_CHANGED');for(const [table,index,key,n]of counts)if((yield {method:'count',table,...(index?{index,key}:{})})!==n)fail('BNS_SAVED_WORK_CHANGED');return true;}});
+}
+// Existing saved-step progress uses the repository's private work meter. The
+// legacy manual helper uses public lifetime diagnostics, not a step budget.
+export async function sealSavedWorkMergeProgress(store,core,t,stage,started,intents=[]){
+ requireRepositoryTransactionScope(store.repository,t);const database=store.repository.db,points=[],counts=[],namespaces=[core.prefix+'generation:'+await core.bind(t)+':',stage.prefix+'generation:'+stage.fixedNamespace+':'];let retained=0;
+ const current=()=>{if(store.repository!==core.repository||store.repository.db!==database||performance.now()-started>=30000)fail('BNS_GROUP_RESOURCE_LIMIT');return true;};
+ for(const prefix of namespaces){const existing=await readGroupRows(t,'meta',{prefix}),map=new Map(existing.map(row=>[row.id,row]));for(const row of intents)if(row.id.startsWith(prefix))map.set(row.id,clone(row));const rows=[...map.values()];counts.push([prefix,rows.length]);for(const row of rows){retained+=bytes(row).length;if(retained>limit)fail('BNS_GROUP_RESOURCE_LIMIT');points.push([row.id,clone(row)]);}}
+ for(const id of ['migration','gate','thought-library','recovery-restore-epoch','thought-epoch','thought-suppression-key','thought-sequence','revision-sequence',CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION,core.prefix+'active','backup-data-generation']){let row=await t.get('meta',id)??null;if(id==='backup-data-generation'&&t.backupChanged){if(!row)fail('BNS_SAVED_WORK_CHANGED');row={...row,value:row.value+1};}points.push([id,clone(row)]);}
+ current();registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){for(const [id,row]of points)if(!equal((yield {method:'get',table:'meta',key:id})??null,row))fail('BNS_RESTORE_LOCAL_CHANGED');for(const [prefix,n]of counts)if((yield {method:'count',table:'meta',key:IDBKeyRange.bound(prefix,prefix+'\uffff')})!==n)fail('BNS_RESTORE_LOCAL_CHANGED');return true;}});
 }

@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: existing B preserves its local saved edit and outbox while consuming compatible remote successor
+ok 1 - existing B preserves its local saved edit and outbox while consuming compatible remote successor
+  ---
+  duration_ms: 460.613834
+  type: 'test'
+  ...
+# Subtest: existing B checkpoint merge preserves local work and continues remote typed chain
+ok 2 - existing B checkpoint merge preserves local work and continues remote typed chain
+  ---
+  duration_ms: 642.435458
+  type: 'test'
+  ...
+# Subtest: same-entity checkpoint fork refuses before any write and retains local outbox
+ok 3 - same-entity checkpoint fork refuses before any write and retains local outbox
+  ---
+  duration_ms: 272.904625
+  type: 'test'
+  ...
+# Subtest: a descendant of B local edit returns through a cold device without losing B original outbox
+ok 4 - a descendant of B local edit returns through a cold device without losing B original outbox
+  ---
+  duration_ms: 601.250625
+  type: 'test'
+  ...
+# Subtest: durable partial saved checkpoint resumes after restart and stays exportable
+ok 5 - durable partial saved checkpoint resumes after restart and stays exportable
+  ---
+  duration_ms: 610.873041
+  type: 'test'
+  ...
+# Subtest: durable partial saved checkpoint refuses a new local base
+ok 6 - durable partial saved checkpoint refuses a new local base
+  ---
+  duration_ms: 546.70675
+  type: 'test'
+  ...
+# Subtest: lost final saved checkpoint return resolves by original durable receipts without replaying writes
+ok 7 - lost final saved checkpoint return resolves by original durable receipts without replaying writes
+  ---
+  duration_ms: 321.883
+  type: 'test'
+  ...
+# Subtest: same incoming saved operation competing locally commits once and retries idempotently
+ok 8 - same incoming saved operation competing locally commits once and retries idempotently
+  ---
+  duration_ms: 250.095083
+  type: 'test'
+  ...
+# Subtest: saved incremental final tail rejects local Entry mutation and rolls back the current whole step
+ok 9 - saved incremental final tail rejects local Entry mutation and rolls back the current whole step
+  ---
+  duration_ms: 320.350833
+  type: 'test'
+  ...
+# Subtest: saved incremental final tail rejects local outbox mutation and rolls back the current whole step
+ok 10 - saved incremental final tail rejects local outbox mutation and rolls back the current whole step
+  ---
+  duration_ms: 348.93475
+  type: 'test'
+  ...
+# Subtest: saved incremental final tail rejects remote physical mutation and rolls back the current whole step
+ok 11 - saved incremental final tail rejects remote physical mutation and rolls back the current whole step
+  ---
+  duration_ms: 323.102458
+  type: 'test'
+  ...
+# Subtest: saved incremental final tail rejects stage progress mutation and rolls back the current whole step
+ok 12 - saved incremental final tail rejects stage progress mutation and rolls back the current whole step
+  ---
+  duration_ms: 344.641625
+  type: 'test'
+  ...
+# Subtest: saved incremental final tail rejects remote receipt mutation and rolls back the current whole step
+ok 13 - saved incremental final tail rejects remote receipt mutation and rolls back the current whole step
+  ---
+  duration_ms: 321.841833
+  type: 'test'
+  ...
+# Subtest: saved incremental source revocation after staging preserves local work and all queued sends
+ok 14 - saved incremental source revocation after staging preserves local work and all queued sends
+  ---
+  duration_ms: 269.197958
+  type: 'test'
+  ...
+# Subtest: saved incremental scope rejects other receipt introduced after verified union
+ok 15 - saved incremental scope rejects other receipt introduced after verified union
+  ---
+  duration_ms: 332.788542
+  type: 'test'
+  ...
+# Subtest: saved incremental scope rejects other placement introduced after verified union
+ok 16 - saved incremental scope rejects other placement introduced after verified union
+  ---
+  duration_ms: 333.997958
+  type: 'test'
+  ...
+# Subtest: saved incremental scope rejects search term introduced after verified union
+ok 17 - saved incremental scope rejects search term introduced after verified union
+  ---
+  duration_ms: 320.051333
+  type: 'test'
+  ...
+# Subtest: saved incremental ancestor checkpoint acknowledges without replacing B newer work
+ok 18 - saved incremental ancestor checkpoint acknowledges without replacing B newer work
+  ---
+  duration_ms: 245.324458
+  type: 'test'
+  ...
+# Subtest: saved incremental private work budget rejects 4097 reads despite resetting public diagnostics
+ok 19 - saved incremental private work budget rejects 4097 reads despite resetting public diagnostics
+  ---
+  duration_ms: 358.678875
+  type: 'test'
+  ...
+# Subtest: saved incremental public elapsed deadline leaves only fully committed resumable steps
+ok 20 - saved incremental public elapsed deadline leaves only fully committed resumable steps
+  ---
+  duration_ms: 473.662125
+  type: 'test'
+  ...
+# Subtest: ancestor-only saved checkpoint rejects Source drift at final settlement
+ok 21 - ancestor-only saved checkpoint rejects Source drift at final settlement
+  ---
+  duration_ms: 215.179708
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8070.118416

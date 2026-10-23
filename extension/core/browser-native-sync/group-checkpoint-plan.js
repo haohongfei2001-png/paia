@@ -132,7 +132,7 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
   const claim=(kind,id,entity)=>{const key=JSON.stringify([kind,id]),prior=identities.get(key);if(prior!==undefined&&prior!==entity)fail('BNS_SAVED_WORK_COLLISION');identities.set(key,entity);};
   const sourceOwner=Symbol('source');claim('history',sourceBaseline.id,sourceOwner);claim('operation',sourceBaseline.operationId,sourceOwner);
   for(const group of [...saved,...successors]){const op=group.operations[0],payloads=group.type==='savedWorkBootstrap'?[op.value.payload]:[op.value.before,op.value.after];
-   for(const payload of payloads){const entity=op.entityId;claim('provenance',payload.link.provenanceId,entity);claim('allocation',payload.entry.createdSequence,entity);claim('allocation',payload.entry.updatedSequence,entity);for(const row of payload.history){claim('history',row.id,entity);claim('operation',row.operationId,entity);}}
+   for(const payload of payloads){const entity=op.entityId;claim('provenance',payload.link.provenanceId,entity);claim('allocation',payload.entry.createdSequence,entity);for(const row of payload.history){claim('history',row.id,entity);claim('operation',row.operationId,entity);}}const after=group.type==='savedWorkBootstrap'?op.value.payload:op.value.after;claim('update:'+op.deviceId,after.entry.updatedSequence,op.entityId);
   }
   const anchors=new Map();for(const group of saved){const anchor=group.operations[0],wire=anchor.value.payload.link.evidence,source=createdInputs.get(wire.inputId);
    if(anchors.has(anchor.entityId)||!source||!equal([source.prepared.descriptor.value.sourceId],wire.sourceRecordIds)||!equal([source.prepared.descriptor.value.sourceKey],wire.sourceIdentityTokens))fail('BNS_GROUP_CAUSAL_GAP');
