@@ -142,4 +142,13 @@ export class SourcePurgeReceiver{
  }
 }
 
-export async function requireNoSourcePurgeDeny(core,t){if((await t.primaryRangePage('meta',{prefix:core.prefix+'sourcePurgeDeny:',limit:1})).rows.length)fail('BNS_SOURCE_PURGE_RECONCILIATION_REQUIRED');}
+export async function requireNoSourcePurgeDeny(core,t){
+ const repository=core.repository,prefix=core.prefix+'sourcePurgeDeny:',identity=requireRepositoryTransactionScope(repository,t);
+ requireRepositoryTransactionDataMethods(repository,t);
+ const current=()=>{if(core.repository!==repository||core.prefix+'sourcePurgeDeny:'!==prefix)fail('BNS_SOURCE_PURGE_RECONCILIATION_REQUIRED');return true;};
+ if(identity.mode==='readwrite')registerRepositoryWorkLimit(repository,t);
+ if((await t.primaryRangePage('meta',{prefix,limit:1})).rows.length)fail('BNS_SOURCE_PURGE_RECONCILIATION_REQUIRED');current();
+ if(identity.mode==='readwrite')registerRepositoryFinalReadFence(repository,t,{isCurrent:current,plan:function*(){
+  if((yield {method:'count',table:'meta',key:prefixRange(prefix)})!==0)fail('BNS_SOURCE_PURGE_RECONCILIATION_REQUIRED');return true;
+ }});
+}

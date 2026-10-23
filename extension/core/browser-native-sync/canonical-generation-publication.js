@@ -75,7 +75,11 @@ export class CanonicalGenerationPublication {
  sourceBaseSnapshot(token){const b=bases.get(token);if(!b||b.owner!==this)fail('GENERATION_CAPABILITY');return copy(b.snapshot);}
  async sealOriginalCheckpoint(handle,restore,proof){
   const held=this.#held(handle);if(typeof originalCheckpoint.requireOriginalCanonicalGenerationActivation!=='function')fail('GENERATION_COORDINATOR_UNAVAILABLE');
-  const packet=checkpointStage.readCanonicalCheckpointProof(proof,{store:restore?.store,core:restore?.live}),base=await this.captureSourceBase(packet.sourceBase);
+  const packet=checkpointStage.readCanonicalCheckpointProof(proof,{store:restore?.store,core:restore?.live});
+  // A source revision proves freshness, not inheritance of purge negatives or
+  // existing canonical data. Replacement needs a separate migration owner.
+  if(packet.sourceBase.root.active!==null)fail('GENERATION_EXISTING_SOURCE_OWNER_REQUIRED');
+  const base=await this.captureSourceBase(packet.sourceBase);
   if(!equal(packet.generationIdentity,held.identity))fail('GENERATION_COLLISION');
   const selected=sealData({sealId:crypto.randomUUID(),manifestId:packet.manifestRef.id,graphDigest:packet.graphDigest});
   let validationError;const gate=await held.repository.transaction(true,async t=>{registerRepositoryWorkLimit(held.repository,t);const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(before.phase!=='staging')fail('GENERATION_NOT_STAGING');

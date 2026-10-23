@@ -1,3 +1,4 @@
+import {requireNoSourcePurgeDeny} from './source-purge-journal.js';
 import {ArchiveError} from '../constants.js';
 import {requireRepositoryTransactionDataMethods,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
 import {CanonicalGenerationPublication,CANONICAL_GENERATION_GATE} from './canonical-generation-publication.js';
@@ -33,6 +34,7 @@ function held(proof,options){const p=proofs.get(proof);if(!p||p.binding.store!==
 export function readCanonicalCheckpointProof(proof,options){const p=held(proof,options);return freeze(clone({manifestRef:p.state.manifestRef,manifest:p.state.manifest,items:p.items.map(x=>x.item),graphDigest:p.state.graphDigest,stateId:p.state.id,generationIdentity:p.gate.identity,sourceBase:p.state.sourceBase}));}
 async function requireProof(proof,options,t,sealGate){
  const p=held(proof,options),repository=p.binding.repository;requireRepositoryTransactionDataMethods(repository,t);registerRepositoryWorkLimit(repository,t);
+ await requireNoSourcePurgeDeny(p.binding.core,t);
  const points=[p.state,p.gate,...p.items,...p.pages];for(const row of points)if(!equal(await t.get('meta',row.id)??null,row))fail();
  const itemRows=await readRows(t,ITEM),pageRows=await readRows(t,PAGE);if(!equal(itemRows,p.items)||!equal(pageRows,p.pages))fail();
  sealRows(repository,t,sealGate?points:points.filter(row=>row.id!==CANONICAL_GENERATION_GATE),[[ITEM,p.items.length],[PAGE,p.pages.length]],()=>{held(proof,options);return true;});return true;
@@ -47,7 +49,7 @@ export class CanonicalGenerationCheckpointStage {
  #publication;#handle;#binding;#checkpoint;
  constructor(publication,handle,{store,core,checkpoint=async()=>{}}){if(!(publication instanceof CanonicalGenerationPublication)||typeof checkpoint!=='function')fail('GENERATION_CHECKPOINT_BINDING');this.#publication=publication;this.#handle=handle;this.#binding=binding(store,core);this.#checkpoint=checkpoint;}
  async #read(){current(this.#binding);return this.#binding.repository.transaction(false,async t=>{const state=await t.get('meta',CANONICAL_CHECKPOINT_STATE);return state===undefined?null:stateData(state,this.#binding.core);},['meta']);}
- async #write(fn){current(this.#binding);return this.#publication.stagingWrite(this.#handle,async t=>{requireRepositoryTransactionDataMethods(this.#binding.repository,t);return fn(t);});}
+ async #write(fn){current(this.#binding);return this.#publication.stagingWrite(this.#handle,async t=>{requireRepositoryTransactionDataMethods(this.#binding.repository,t);await requireNoSourcePurgeDeny(this.#binding.core,t);return fn(t);});}
  async begin(ref,get){const budget=createGroupPageBudget(),transport=boundedTransport(get,budget);try{return await this.#begin(ref,transport.get,budget);}finally{transport.close();}}
  async #begin(ref,get,budget){
   ref=clone(ref);current(this.#binding);if(ref?.kind!=='checkpoint-manifest'||typeof get!=='function')fail('BNS_CHECKPOINT_INVALID');
