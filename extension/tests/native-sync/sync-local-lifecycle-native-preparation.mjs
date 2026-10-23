@@ -9,17 +9,28 @@ import {root} from './storage-harness.mjs';
 import {chooseConsumerGroup} from '../harness/settings-consumer-presentation.mjs';
 import {observeANS07Consent} from '../harness/ans07-seed-evidence.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
-export async function prepareSyncLifecycleNative(extension){
- assert.ok(extension?.path&&extension.path!==root&&typeof extension.cleanup==='function','owned disposable extension required');
+export async function prepareSyncLifecycleNative(extension,{device='A',remote=[]}={}){
+ assert.ok(extension?.path&&extension.path!==root&&typeof extension.cleanup==='function','owned disposable extension required');assert.ok(['A','B','C'].includes(device));
  const configPath=join(extension.path,'background/sync-lifecycle-configuration.js'),workerPath=join(extension.path,'background/service-worker.js');
  const before=await readFile(configPath,'utf8');assert.equal(before,await readFile(join(root,'background/sync-lifecycle-configuration.js'),'utf8'));
- const config=`let attempts=0;export const syntheticAttempts=()=>attempts;export function readSyncLifecycleConfiguration(){return {provider:'google-drive',datasetId:'SYNTHETIC_native_local_sync',deviceId:'SYNTHETIC_native_device',binding:{subject:'SYNTHETIC_native_subject',clientId:'000000000000-synthetic.apps.googleusercontent.com',generation:'SYNTHETIC_native_generation',scopes:['https://www.googleapis.com/auth/drive.appdata']},isCurrent:()=>true,request:async()=>{attempts++;throw Error('SYNTHETIC transport unavailable; no HTTP');}};}\n`;
- const bridge=`\nimport {syntheticAttempts} from './sync-lifecycle-configuration.js';
-globalThis.__localSyncNative={ready,async inspect(){await ready;return {native:store.repository.db instanceof IDBDatabase,view:await syncLifecycle.snapshot(),attempts:syntheticAttempts(),task:(await chrome.storage.local.get('paia-sync-local-lifecycle:v1'))['paia-sync-local-lifecycle:v1']?.task,journals:[store.sourceBootstrapJournal,store.sourcePurgeJournal,store.filterIntentJournal,store.inputWorkingJournal].every(j=>j?.core.repository===store.repository)};},async capture(){await ready;return store.capture({epoch:(await store.status()).epoch,adapterVersion:'0.3.0',chat:{id:'SYNTHETIC_native_sync',url:'https://chatgpt.com/c/SYNTHETIC_native_sync',title:'SYNTHETIC local sync'},messages:[{sourceMessageId:'SYNTHETIC_one',pageOrder:1,originalText:'SYNTHETIC original retained'}]});}};\n`;
+ const helper=await readFile(join(root,'tests/harness/checkpoint-publication-http.mjs'),'utf8');
+ const adapted=helper.replace("from '../../core/browser-native-sync/value.js'","from '../core/browser-native-sync/value.js'").replace('return {files,requests,request,loseNextPost(){lose=true;}};',"return {files,requests,request,restore(saved){files.clear();for(const f of saved){files.set(f.id,{...f,raw:new Uint8Array(f.raw)});}next=Math.max(0,...saved.map(f=>Number(f.id.replace('SYNTHETIC_file_',''))||0));},loseNextPost(){lose=true;}};");
+ assert.notEqual(adapted,helper);await writeFile(join(extension.path,'background/sync-synthetic-http.js'),adapted);
+ const config=`import {fakeGoogleCheckpointHTTP} from './sync-synthetic-http.js';
+const binding={subject:'SYNTHETIC_native_subject',clientId:'000000000000-synthetic.apps.googleusercontent.com',generation:'SYNTHETIC_native_generation',scopes:['https://www.googleapis.com/auth/drive.appdata']},cloud=fakeGoogleCheckpointHTTP(binding),initial=${JSON.stringify(remote)},KEY='SYNTHETIC_native_remote';let loaded=false;
+async function load(){if(loaded)return;const saved=(await chrome.storage.local.get(KEY))[KEY]??initial;cloud.restore(saved);loaded=true;}
+export async function syntheticRemote(){await load();return [...cloud.files.values()].map(f=>({...f,raw:Array.from(f.raw)}));}
+export function readSyncLifecycleConfiguration(){return {provider:'google-drive',datasetId:'SYNTHETIC_native_local_sync',deviceId:'SYNTHETIC_native_${device}',binding,isCurrent:()=>true,request:async r=>{await load();const result=await cloud.request(r);await chrome.storage.local.set({[KEY]:await syntheticRemote()});return result;}};}
+`;
+ const bridge=`
+import {syntheticRemote} from './sync-lifecycle-configuration.js';
+import {sealOperation as syntheticSeal} from '../core/browser-native-sync/core.js';
+globalThis.__localSyncNative={ready,remote:syntheticRemote,async inspect(){await ready;return {native:store.repository.db instanceof IDBDatabase,view:await syncLifecycle.snapshot(),task:(await chrome.storage.local.get('paia-sync-local-lifecycle:v1'))['paia-sync-local-lifecycle:v1']?.task,journals:[store.sourceBootstrapJournal,store.sourcePurgeJournal,store.filterIntentJournal,store.inputWorkingJournal,store.consumerPreferenceJournal,promptReuse.service.syncJournal].every(j=>j?.core.repository===store.repository)};},async capture(){await ready;return store.capture({epoch:(await store.status()).epoch,adapterVersion:'0.3.0',chat:{id:'SYNTHETIC_native_sync',url:'https://chatgpt.com/c/SYNTHETIC_native_sync',title:'SYNTHETIC local sync'},messages:[{sourceMessageId:'SYNTHETIC_one',pageOrder:1,originalText:'SYNTHETIC original retained'}]});},async conflict(){await ready;const core=promptReuse.service.syncJournal.core,id='prompt-reuse:v1',h=await core.read('head','promptPreferences',id),bh=await core.read('head','promptBinding',id),a=(await core.read('revision',h.revisions[0])).operation,ba=(await core.read('revision',bh.revisions[0])).operation,value=structuredClone(a.value);value.overrides[0].text='SYNTHETIC remote manual choice';const make=(type,sequence,value)=>syntheticSeal({protocol:1,datasetId:core.datasetId,deviceId:'SYNTHETIC_native_remote_branch',sequence,operationId:crypto.randomUUID(),type,entityId:id,codecVersion:1,kind:'put',actor:'user',parents:[],value});const b=await make('promptPreferences',1,value),bb=await make('promptBinding',2,{...structuredClone(ba.value),promptRevisionId:b.revisionId});return [(await core.receive(b)).state,(await core.receive(bb)).state];}};
+`;
  const worker=await readFile(workerPath,'utf8');await writeFile(configPath,config);await writeFile(workerPath,worker+bridge);
- return {configurationSha256:sha(config),originalWorkerSha256:sha(worker),bridgeSha256:sha(bridge),claim:'PREPARED_ONLY_NO_NATIVE_RESULT'};
+ return {configurationSha256:sha(config),originalWorkerSha256:sha(worker),bridgeSha256:sha(bridge),syntheticHttpSha256:sha(adapted),claim:'PREPARED_ONLY_NO_NATIVE_RESULT'};
 }
-export async function runSyncLifecycleNative(h){
+export async function runSyncLifecycleNative(h,{device='A'}={}){
  // This uses the visible original Settings modal inside the headless harness,
  // not a parallel Sync page or a direct lifecycle.handle replacement.
  const p=h.archive,worker=()=>h.context.serviceWorkers().find(w=>w.url()===`chrome-extension://${h.extensionId}/background/service-worker.js`),inspect=()=>worker().evaluate(()=>globalThis.__localSyncNative.inspect());
@@ -38,14 +49,16 @@ export async function runSyncLifecycleNative(h){
  assert.deepEqual(consent,{dispatched:1,settled:1,acknowledged:1});
  await p.locator('.sidebar-bottom [data-view=settings]').click();await p.locator('#settings-panel').waitFor({state:'visible'});await chooseConsumerGroup(p,'data');await p.locator('#settings-sync').click();
  const button=name=>p.locator(`#settings-sync-dialog [data-sync-command=${name}]`);
- await button('RESUME').waitFor({state:'visible'});assert.equal((await inspect()).attempts,0);await button('RESUME').click();await button('NOW').waitFor({state:'visible'});
- const baseline=await inspect();assert.equal(baseline.native,true);assert.equal(baseline.journals,true);assert.equal(baseline.view.wholeArchiveComplete,false);
- assert.equal((await worker().evaluate(()=>globalThis.__localSyncNative.capture())).added,1);
- await button('NOW').click();await p.waitForFunction(()=>/未确定|undetermined/.test(document.querySelector('#settings-sync-state')?.textContent??''));
- const unknown=await inspect();assert.equal(unknown.view.task.phase,'unknown');assert.ok(unknown.attempts>0);assert.equal(unknown.view.wholeArchiveComplete,false);assert.equal(await button('NOW').isVisible(),false);
- await button('STATUS').click();await button('PAUSE').waitFor({state:'visible'});await button('PAUSE').click();await button('RESUME').waitFor({state:'visible'});
- const paused=await inspect();assert.equal(paused.view.state,'paused');assert.equal(paused.attempts,unknown.attempts);
- await h.restartWorker();const cold=await inspect();assert.equal(cold.view.state,'paused');assert.deepEqual(cold.task,paused.task);assert.equal(cold.attempts,0,'cold startup never resends unknown work');
+ await button('RESUME').waitFor({state:'visible'});
+ const rpc=(type,extra={})=>p.evaluate(async({type,extra})=>{const r=await chrome.runtime.sendMessage({type,...extra});if(!r?.ok)throw Error(JSON.stringify(r));return r.data;},{type,extra});
+ let manual;
+ if(device==='A'){await rpc('UPDATE_PREFERENCES',{changes:{language:'en',appearance:'dark',fontSize:'large',readingWidth:'wide',timeDisplay:'date_only',timeEmphasis:'standard'}});await rpc('FILTER_MODE',{mode:'off'});const q=await rpc('PAIA_PROMPT_QUERY');manual=await rpc('PAIA_PROMPT_CHANGE',{change:{action:'create',revision:q.revision,text:'SYNTHETIC original manual work'}});}
+ await button('RESUME').click();await button('NOW').waitFor({state:'visible'});
+ if(device==='A')assert.equal((await worker().evaluate(()=>globalThis.__localSyncNative.capture())).added,1);
+ else{await button('RESTORE').click();await p.waitForFunction(()=>document.querySelector('[data-sync-command=RESTORE]')?.disabled===false);const restored=await inspect();assert.equal(restored.view.task.phase,'confirmed');assert.equal(restored.view.task.kind,'restore');const q=await rpc('PAIA_PROMPT_QUERY');assert.equal(q.items.find(x=>x.id.startsWith('manual:')).text,device==='B'?'SYNTHETIC original manual work':'SYNTHETIC remote manual choice');}
+ if(device==='B'){await rpc('UPDATE_PREFERENCES',{changes:{appearance:'light',fontSize:'small'}});await rpc('FILTER_MODE',{mode:'light'});assert.deepEqual(await worker().evaluate(()=>globalThis.__localSyncNative.conflict()),['conflict','conflict']);const q=await rpc('PAIA_PROMPT_QUERY');assert.equal(q.manualConflict.state,'available');await rpc('PAIA_PROMPT_CONFLICT_RESOLVE',{resolution:{token:q.manualConflict.token,choice:'other'}});assert.equal((await rpc('PAIA_PROMPT_QUERY')).manualConflict.state,'none');}
+ if(device!=='C'){await button('NOW').click();await p.waitForFunction(()=>document.querySelector('[data-sync-command=NOW]')?.disabled===false);const done=await inspect();assert.equal(done.view.task.kind,'checkpoint');assert.equal(done.view.task.phase,'confirmed');assert.equal(done.task.reference.kind,'checkpoint-manifest');}
+ const result=await inspect();assert.equal(result.native,true);assert.equal(result.journals,true);assert.equal(result.view.wholeArchiveComplete,false);
  assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
- return {status:'LOCAL_SETTINGS_WORKER_NATIVE_PARTIAL_ONLY',consent,unknownTaskRetained:true,coldPaused:true,noAutomaticTransfer:true,wholeArchiveComplete:false,checkpointProduced:false,confirmedUpload:false};
+ return {status:'ACTUAL_SETTINGS_WORKER_CHECKPOINT_PROMPT_'+device,consent,native:true,wholeArchiveComplete:false,checkpointProduced:device!=='C',confirmedRestore:device!=='A',explicitBoundConflictResolved:device==='B',remote:await worker().evaluate(()=>globalThis.__localSyncNative.remote())};
 }

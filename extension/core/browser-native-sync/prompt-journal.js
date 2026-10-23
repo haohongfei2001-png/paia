@@ -1,3 +1,4 @@
+import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {controlPublicationEncoding} from '../local-control-publication.js';
 import {requireOriginalPromptControlObservation} from '../indexed-store.js';
 import {validateOperation} from './core.js';
@@ -43,8 +44,16 @@ export class JournalRestoreFence {
  }
 }
 
-// Explicit dependency injection only. The service worker does not construct this
-// journal, so this proof cannot enable cloud access or change ordinary saves.
+const manualBindingResolutions=new WeakMap();
+// The token is issued only by the original explicit manual resolver below.
+// Core independently validates the operation parents before accepting this pair.
+export async function requireOriginalPromptBindingResolution(core,t,token,changes,promptBinding){
+ const held=manualBindingResolutions.get(token);if(!held||held.core!==core||!equal(changes,held.changes)||!equal(promptBinding,held.promptBinding))fail('BNS_PROMPT_RESOLUTION_INVALID');
+ await held.assertCurrent(t);return held.parents.slice();
+}
+
+// Original-owner injection only. The fixed configured worker may attach this
+// journal; the default null configuration creates no journal or cloud authority.
 export class PromptSyncJournal {
  #correctionBindings;
  #bindingPrepared=new WeakMap();
@@ -59,16 +68,23 @@ export class PromptSyncJournal {
   const preferences=await read(readPromptPreferences(t)),fence=await read(this.restoreFence.snapshot(t)),generation=await read(t.get('meta','backup-data-generation')),gate=await read(t.get('meta','gate')),
    namespaceRow=await read(t.get('meta',this.core.prefix+'active')),epochRow=await read(t.get('meta','recovery-restore-epoch')),ownerEpochRow=await read(this.core.get(t,'ownerRecoveryEpoch')),head=await read(this.core.get(t,'head','promptPreferences',PROMPT_REUSE_ROW)),proof=await read(this.core.materializedOwner(t,'promptPreferences',PROMPT_REUSE_ROW)),binding=await read(this.core.get(t,'head','promptBinding',PROMPT_REUSE_ROW)),bindingRow=await read(t.get('meta',PROMPT_CORRECTION_BINDING_ROW)),bindingProof=await read(this.core.get(t,'materializedOwner','promptBinding',PROMPT_REUSE_ROW));
   const versions=[];if(head&&!head.purged&&head.revisions.length===2)for(const revision of head.revisions){const row=await read(this.core.get(t,'revision',revision));if(!row||row.redacted||row.operation?.revisionId!==revision)fail('BNS_OWNER_PROOF_INVALID');versions.push(row);}
-  checkGroupPageBudget(budget);return {preferences,fence,generation,gate,namespaceRow,epochRow,ownerEpochRow,head,proof,binding,bindingRow,bindingProof,versions};
+  const bindingVersions=[];if(binding&&!binding.purged&&binding.revisions.length===2)for(const revision of binding.revisions){const row=await read(this.core.get(t,'revision',revision));if(!row||row.redacted||row.operation?.revisionId!==revision)fail('BNS_OWNER_PROOF_INVALID');bindingVersions.push(row);}
+  checkGroupPageBudget(budget);return {preferences,fence,generation,gate,namespaceRow,epochRow,ownerEpochRow,head,proof,binding,bindingRow,bindingProof,versions,bindingVersions};
  }
  async captureManualConflict(service){
   this.#manualOwner(service);const snapshot=await this.core.transaction(false,t=>this.#manualSnapshot(t),['meta']);
   const {preferences,head,proof,versions}=snapshot;
   if(!head||!head.purged&&head.revisions.length<2)return {state:'none'};
-  if(this.correctionBindings||snapshot.binding||snapshot.bindingRow||snapshot.bindingProof||head.purged||head.revisions.length!==2)return {state:'unsupported',reason:'other-preferences'};
+  if(head.purged||head.revisions.length!==2||!this.correctionBindings&&(snapshot.binding||snapshot.bindingRow||snapshot.bindingProof))return {state:'unsupported',reason:'other-preferences'};
   if(!proof||proof.ownerRevision!==preferences.revision||!head.revisions.includes(proof.operation.revisionId)||!equal(proof.operation.value,projectEntity('promptPreferences',preferences)))return {state:'unsupported',reason:'owner-changed'};
   for(const row of versions){await validateOperation(row.operation);if(row.operation.datasetId!==this.core.datasetId||row.operation.type!=='promptPreferences'||row.operation.entityId!==PROMPT_REUSE_ROW||row.operation.kind!=='put')fail('BNS_OWNER_PROOF_INVALID');}
   const local=versions.find(r=>r.operation.revisionId===proof.operation.revisionId).operation,other=versions.find(r=>r.operation.revisionId!==local.revisionId).operation;
+  if(this.correctionBindings){
+   const {binding,bindingRow,bindingProof,bindingVersions}=snapshot;
+   if(!binding||binding.purged||binding.revisions.length!==2||!bindingRow||!bindingProof||bindingProof.ownerRevision!==preferences.revision||!binding.revisions.includes(bindingProof.revisionId))return {state:'unsupported',reason:'binding-changed'};
+   const linked=new Map();for(const row of bindingVersions){const operation=row.operation;await validateOperation(operation);if(operation.datasetId!==this.core.datasetId||operation.type!=='promptBinding'||operation.entityId!==PROMPT_REUSE_ROW||operation.kind!=='put')fail('BNS_OWNER_PROOF_INVALID');const prompt=versions.find(v=>v.operation.revisionId===operation.value.promptRevisionId)?.operation;if(!prompt||linked.has(prompt.revisionId))return {state:'unsupported',reason:'binding-changed'};promptCorrectionEnvelope(operation.value,prompt.value);linked.set(prompt.revisionId,operation);}
+   const localBinding=linked.get(local.revisionId),otherBinding=linked.get(other.revisionId);if(!localBinding||!otherBinding||bindingProof.revisionId!==localBinding.revisionId||!equal({...bindingRow,id:PROMPT_REUSE_ROW},localBinding.value)||localBinding.value.normalizerVersion!==otherBinding.value.normalizerVersion||!equal(localBinding.value.bindings,otherBinding.value.bindings))return {state:'unsupported',reason:'binding-changed'};
+  }
   const a=local.value,b=other.value;if(!equal(a.pins,b.pins)||!equal(a.splits,b.splits)||a.overrides.length!==b.overrides.length)return {state:'unsupported',reason:'other-preferences'};
   const differences=[];for(let index=0;index<a.overrides.length;index++){const left=a.overrides[index],right=b.overrides[index];if(left.id!==right.id)return {state:'unsupported',reason:'other-preferences'};if(equal(left,right))continue;const {text:lt,...l}=left,{text:rt,...r}=right;if(!equal(l,r)||!/^manual:[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(left.id)||!validPromptText(lt)||!validPromptText(rt)||left.representative!==undefined)return {state:'unsupported',reason:'other-preferences'};differences.push({id:left.id,localText:lt,otherText:rt});}
   if(differences.length!==1)return {state:'unsupported',reason:'other-preferences'};
@@ -82,7 +98,13 @@ export class PromptSyncJournal {
   const after=clone(snapshot.preferences),item=after.overrides.find(x=>x.id===detail.id);item.text=choice==='other'?detail.otherText:choice==='manual'?text:detail.localText;
   let createdId=null;if(choice==='both'){createdId='manual:'+crypto.randomUUID();after.overrides.push({id:createdId,text:detail.otherText,hidden:false,reuseCount:0});}
   after.revision++;if(!validPromptPreferences(after))fail('BNS_PROMPT_RESOLUTION_INVALID');
-  const prepared=await this.restoreFence.prepare(()=>this.core.prepare([{type:'promptPreferences',value:projectEntity('promptPreferences',after),resolve:true,parents:snapshot.head.revisions,expectedParents:snapshot.head.revisions}]));
+  const changes=[{type:'promptPreferences',value:projectEntity('promptPreferences',after),resolve:true,parents:snapshot.head.revisions,expectedParents:snapshot.head.revisions}];let options={};
+  if(this.correctionBindings){
+   const previous=validatePromptCorrectionCompanion({...snapshot.bindingRow,id:PROMPT_REUSE_ROW}),bindings=clone(previous.bindings);if(createdId)bindings.push({familyId:createdId,kind:'manual',inputIds:[]});bindings.sort((a,b)=>a.familyId<b.familyId?-1:a.familyId>b.familyId?1:0);
+   const promptBinding={version:1,normalizerVersion:previous.normalizerVersion,bindings},token=Object.freeze({});
+   manualBindingResolutions.set(token,{core:this.core,changes:clone(changes),promptBinding:clone(promptBinding),parents:snapshot.binding.revisions.slice(),assertCurrent:async t=>{this.#manualOwner(service);if(!equal(await this.#manualSnapshot(t),snapshot))fail('BNS_OWNER_CHANGED');}});options={promptBinding,promptBindingResolution:token};
+  }
+  const prepared=await this.restoreFence.prepare(()=>this.core.prepare(changes,options));
   this.#manualPrepared.set(prepared,{held,after,createdId});return prepared;
  }
  async commitManualResolution(t,service,prepared,controlObservation){
@@ -91,7 +113,11 @@ export class PromptSyncJournal {
   if(!equal(await this.#manualSnapshot(t),snapshot))fail('BNS_OWNER_CHANGED');await this.restoreFence.commit(t,prepared);
   await t.put('meta',record.after);await this.core.commitPrepared(t,prepared,{materialize:false});const operation=prepared.operations[0];await this.core.recordMaterializedOwner(t,operation,record.after.revision);
   const points=[record.after,{id:await this.core.idIn(t,'head','promptPreferences',PROMPT_REUSE_ROW),type:'promptPreferences',entityId:PROMPT_REUSE_ROW,revisions:[operation.revisionId],purged:false,fence:null},{id:await this.core.idIn(t,'materializedOwner','promptPreferences',PROMPT_REUSE_ROW),version:1,revisionId:operation.revisionId,ownerRevision:record.after.revision},{id:await this.core.idIn(t,'revision',operation.revisionId),operation,redacted:false},{id:await this.core.idIn(t,'outbox',operation.operationId),operationId:operation.operationId,revisionId:operation.revisionId,state:'queued'},...snapshot.versions];
-  const absent=[PROMPT_CORRECTION_BINDING_ROW,await this.core.idIn(t,'head','promptBinding',PROMPT_REUSE_ROW),await this.core.idIn(t,'materializedOwner','promptBinding',PROMPT_REUSE_ROW)];
+  const absent=[];
+  if(this.correctionBindings){
+   const binding=prepared.operations[1];if(binding?.type!=='promptBinding'||binding.value.promptRevisionId!==operation.revisionId)fail('BNS_PROMPT_BINDING_INVALID');promptCorrectionEnvelope(binding.value,operation.value);const row={...clone(binding.value),id:PROMPT_CORRECTION_BINDING_ROW};await t.put('meta',row);await this.core.recordMaterializedOwner(t,binding,record.after.revision);
+   points.push(row,{id:await this.core.idIn(t,'head','promptBinding',PROMPT_REUSE_ROW),type:'promptBinding',entityId:PROMPT_REUSE_ROW,revisions:[binding.revisionId],purged:false,fence:null},{id:await this.core.idIn(t,'materializedOwner','promptBinding',PROMPT_REUSE_ROW),version:1,revisionId:binding.revisionId,ownerRevision:record.after.revision},{id:await this.core.idIn(t,'revision',binding.revisionId),operation:binding,redacted:false},{id:await this.core.idIn(t,'outbox',binding.operationId),operationId:binding.operationId,revisionId:binding.revisionId,state:'queued'},...snapshot.bindingVersions);
+  }else absent.push(PROMPT_CORRECTION_BINDING_ROW,await this.core.idIn(t,'head','promptBinding',PROMPT_REUSE_ROW),await this.core.idIn(t,'materializedOwner','promptBinding',PROMPT_REUSE_ROW));
   const fixed=[['gate',snapshot.gate],[this.core.prefix+'active',snapshot.namespaceRow],['backup-data-generation',{id:'backup-data-generation',value:(snapshot.generation?.value||0)+1}],['recovery-restore-epoch',snapshot.epochRow],[await this.core.idIn(t,'ownerRecoveryEpoch'),snapshot.ownerEpochRow??{id:await this.core.idIn(t,'ownerRecoveryEpoch'),version:1,epoch:snapshot.fence.epoch}]];
   registerRepositoryFinalReadFence(this.core.repository,t,{isCurrent:()=>{currentControl();return this.core===this.#originalCore&&service.syncJournal===this;},plan:function*(){for(const row of points)if(!equal((yield {method:'get',table:'meta',key:row.id}),row))fail('BNS_OWNER_CHANGED');for(const key of absent)if((yield {method:'get',table:'meta',key})!==undefined)fail('BNS_OWNER_CHANGED');for(const [key,value]of fixed)if(!equal((yield {method:'get',table:'meta',key})??null,value??null))fail('BNS_OWNER_CHANGED');return true;}});
   return {revision:record.after.revision,id:record.held.detail.id,createdId:record.createdId};
@@ -106,7 +132,9 @@ export class PromptSyncJournal {
   if(portable.promptRevisionId!==promptHead.revisions[0]||proof.ownerRevision!==preferences.revision||proof.operation.revisionId!==head.revisions[0]||!equal(proof.operation.value,portable))fail('BNS_OWNER_CHANGED');
   return {promptHead,promptProof,head,row,proof,generation};
  }
- async projectCorrections(snapshot,now){
+ async projectCorrections(snapshot,now,service=null){
+  const head=await this.core.read('head','promptPreferences',PROMPT_REUSE_ROW);
+  if(head?.revisions.length>1){const offer=await this.captureManualConflict(service);if(offer.state!=='available')fail('BNS_CONFLICT_REQUIRES_RESOLUTION');const held=this.#manualConflicts.get(offer.capability);if(!equal(held.snapshot.preferences,snapshot.preferences)||(held.snapshot.generation?.value||0)!==snapshot.generation)fail('BNS_OWNER_CHANGED');const binding=promptCorrectionEnvelope({...held.snapshot.bindingRow,id:PROMPT_REUSE_ROW},projectEntity('promptPreferences',snapshot.preferences)),result=await projectBoundPromptCorrections({binding,inputs:snapshot.inputs,preferences:snapshot.preferences,now});await this.assertManualConflict(service,offer.capability);return result;}
   if(!this.correctionBindings)fail('BNS_PROMPT_BINDING_REQUIRED');const before=await this.core.transaction(false,t=>this.bindingSnapshot(t,snapshot.preferences,{allowAbsent:true}),['meta']);if(before.generation!==snapshot.generation)fail('BNS_OWNER_CHANGED');
   if(!before.row){if(before.promptHead)fail('BNS_PROMPT_BINDING_REQUIRED');return {families:snapshot.families,unresolved:[],bindingsComplete:true};}
   const binding=promptCorrectionEnvelope({...before.row,id:PROMPT_REUSE_ROW},projectEntity('promptPreferences',snapshot.preferences)),result=await projectBoundPromptCorrections({binding,inputs:snapshot.inputs,preferences:snapshot.preferences,now});
@@ -175,11 +203,41 @@ async function qualifyPromptOwner(t,context){
 export async function restorePromptPreferences(t,context){
  return materializePrompt(t,{...context,origin:'remote'});
 }
-export async function materializePromptBinding(t,context){
+export function preparePromptBindingReplay(core,plan){
+ requireOriginalGroupCheckpointPlan(core,plan);
+ const history=new Map(plan.groups.flatMap(group=>group.operations).filter(op=>['promptPreferences','promptBinding'].includes(op.type)).map(op=>[op.revisionId,op]));
+ return async(t,context)=>{requireOriginalGroupCheckpointPlan(core,plan);if(context.core!==core||!equal(history.get(context.operation.revisionId)??null,context.operation))fail('BNS_OWNER_CHANGED');return materializePromptBindingCurrent(t,context,history);};
+}
+export async function materializePromptBinding(t,context){return materializePromptBindingCurrent(t,context,null);}
+async function materializePromptBindingCurrent(t,context,history){
  const {core,operation,head,previousHead}=context;if(operation.type!=='promptBinding'||head.purged||head.revisions.length!==1)fail('BNS_PROMPT_BINDING_REQUIRED');
  const value=validatePromptCorrectionCompanion(operation.value),preferences=await readPromptPreferences(t),promptHead=await core.get(t,'head','promptPreferences',PROMPT_REUSE_ROW),promptProof=await core.materializedOwner(t,'promptPreferences',PROMPT_REUSE_ROW);
  if(promptHead?.purged||promptHead?.revisions.length!==1||promptHead.revisions[0]!==value.promptRevisionId||promptProof?.operation.revisionId!==value.promptRevisionId||promptProof.ownerRevision!==preferences.revision||!equal(promptProof.operation.value,projectEntity('promptPreferences',preferences)))fail('BNS_OWNER_CHANGED');promptCorrectionEnvelope(value,promptProof.operation.value);
  const row=await t.get('meta',PROMPT_CORRECTION_BINDING_ROW),previousCore=context.previousCore||core,proof=await previousCore.materializedOwner(t,'promptBinding',PROMPT_REUSE_ROW);
- if(row||previousHead||proof){if(!row||row.id!==PROMPT_CORRECTION_BINDING_ROW||!previousHead||previousHead.purged||previousHead.revisions.length!==1||!proof||proof.operation.revisionId!==previousHead.revisions[0]||proof.ownerRevision!==preferences.revision-1||!equal(proof.operation.value,validatePromptCorrectionCompanion({...row,id:PROMPT_REUSE_ROW})))fail('BNS_OWNER_CHANGED');await new JournalRestoreFence(previousCore).snapshot(t);}
+ if(row||previousHead||proof){
+  if(!row||row.id!==PROMPT_CORRECTION_BINDING_ROW||!previousHead||previousHead.purged||!proof||proof.ownerRevision!==preferences.revision-1||!equal(proof.operation.value,validatePromptCorrectionCompanion({...row,id:PROMPT_REUSE_ROW})))fail('BNS_OWNER_CHANGED');
+  if(previousHead.revisions.length===1){if(proof.operation.revisionId!==previousHead.revisions[0])fail('BNS_OWNER_CHANGED');}
+  else{
+   // Only a completely resolved paired manual fork can cross an intermediate
+   // two-head history. Every prior sealed companion is matched one-to-one to
+   // a parent of the already materialized final Prompt, in this transaction.
+   if(!history||previousHead.revisions.length!==2||operation.actor!=='user'||operation.kind!=='put'||promptProof.operation.actor!=='user'||!equal(operation.parents,[...previousHead.revisions].sort())||promptProof.operation.parents.length!==2)fail('BNS_OWNER_CHANGED');
+   const linked=new Map(),prompts=[];
+   for(const revision of previousHead.revisions){const prior=await previousCore.get(t,'revision',revision);if(!prior||prior.redacted)fail('BNS_OWNER_CHANGED');const companion=prior.operation;if(!equal(history.get(companion.revisionId)??null,companion))fail('BNS_OWNER_CHANGED');if(companion.type!=='promptBinding'||companion.entityId!==PROMPT_REUSE_ROW||companion.datasetId!==core.datasetId||companion.kind!=='put'||!promptProof.operation.parents.includes(companion.value.promptRevisionId)||linked.has(companion.value.promptRevisionId))fail('BNS_OWNER_CHANGED');const target=await previousCore.get(t,'revision',companion.value.promptRevisionId);if(!target||target.redacted)fail('BNS_OWNER_CHANGED');if(!equal(history.get(target.operation.revisionId)??null,target.operation))fail('BNS_OWNER_CHANGED');if(target.operation.type!=='promptPreferences'||target.operation.entityId!==PROMPT_REUSE_ROW||target.operation.datasetId!==core.datasetId||target.operation.kind!=='put')fail('BNS_OWNER_CHANGED');promptCorrectionEnvelope(companion.value,target.operation.value);linked.set(target.operation.revisionId,companion);prompts.push(target.operation);}
+   const companions=[...linked.values()];if(linked.size!==2||companions[0].value.normalizerVersion!==companions[1].value.normalizerVersion||!equal(companions[0].value.bindings,companions[1].value.bindings)||!await previousCore.ownerAncestor(t,proof.operation,previousHead.revisions))fail('BNS_OWNER_CHANGED');
+   const historical=await previousCore.get(t,'revision',proof.operation.value.promptRevisionId);if(!historical||historical.redacted||!await previousCore.ownerAncestor(t,historical.operation,promptProof.operation.parents))fail('BNS_OWNER_CHANGED');if(!equal(history.get(historical.operation.revisionId)??null,historical.operation))fail('BNS_OWNER_CHANGED');promptCorrectionEnvelope(proof.operation.value,historical.operation.value);
+   qualifyResolvedManualPair(prompts.map(x=>x.value),promptProof.operation.value,companions[0].value,value);
+  }
+  await new JournalRestoreFence(previousCore).snapshot(t);
+ }
  await t.put('meta',{...clone(value),id:PROMPT_CORRECTION_BINDING_ROW});await core.recordMaterializedOwner(t,operation,preferences.revision);
+}
+
+function qualifyResolvedManualPair([left,right],resolved,before,after){
+ const manual=id=>/^manual:[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(id);
+ if(!equal(left.pins,right.pins)||!equal(left.splits,right.splits)||left.overrides.length!==right.overrides.length||!equal(left.pins,resolved.pins)||!equal(left.splits,resolved.splits)||![left.overrides.length,left.overrides.length+1].includes(resolved.overrides.length)||after.normalizerVersion!==before.normalizerVersion)fail('BNS_OWNER_CHANGED');
+ let changed=-1;for(let i=0;i<left.overrides.length;i++){const a=left.overrides[i],b=right.overrides[i],c=resolved.overrides[i];if(equal(a,b)){if(!equal(a,c))fail('BNS_OWNER_CHANGED');continue;}const {text:at,...ar}=a,{text:bt,...br}=b,{text:ct,...cr}=c;if(changed!==-1||!manual(a.id)||a.representative!==undefined||!equal(ar,br)||!equal(ar,cr)||![at,bt,ct].every(x=>validPromptText(x)&&quickPromptEligible(x)))fail('BNS_OWNER_CHANGED');changed=i;}
+ if(changed===-1)fail('BNS_OWNER_CHANGED');const expected=clone(before.bindings);
+ if(resolved.overrides.length>left.overrides.length){const extra=resolved.overrides.at(-1),a=left.overrides[changed].text,b=right.overrides[changed].text,c=resolved.overrides[changed].text;if(!manual(extra.id)||left.overrides.some(x=>x.id===extra.id)||!equal(extra,{id:extra.id,text:extra.text,hidden:false})||!(c===a&&extra.text===b||c===b&&extra.text===a))fail('BNS_OWNER_CHANGED');expected.push({familyId:extra.id,kind:'manual',inputIds:[]});expected.sort((a,b)=>a.familyId<b.familyId?-1:a.familyId>b.familyId?1:0);}
+ if(!equal(after.bindings,expected))fail('BNS_OWNER_CHANGED');
 }

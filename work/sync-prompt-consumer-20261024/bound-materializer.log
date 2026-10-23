@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: bound manual local resolves exact Prompt and companion parents together
+ok 1 - bound manual local resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 84.853208
+  type: 'test'
+  ...
+# Subtest: bound manual other resolves exact Prompt and companion parents together
+ok 2 - bound manual other resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 49.436667
+  type: 'test'
+  ...
+# Subtest: bound manual both resolves exact Prompt and companion parents together
+ok 3 - bound manual both resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 45.916916
+  type: 'test'
+  ...
+# Subtest: bound manual manual resolves exact Prompt and companion parents together
+ok 4 - bound manual manual resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 43.641041
+  type: 'test'
+  ...
+# Subtest: bound binding-proof refuses and preserves complete prior owner
+ok 5 - bound binding-proof refuses and preserves complete prior owner
+  ---
+  duration_ms: 28.337084
+  type: 'test'
+  ...
+# Subtest: bound binding-row refuses and preserves complete prior owner
+ok 6 - bound binding-row refuses and preserves complete prior owner
+  ---
+  duration_ms: 27.501166
+  type: 'test'
+  ...
+# Subtest: bound late-binding-write refuses and preserves complete prior owner
+ok 7 - bound late-binding-write refuses and preserves complete prior owner
+  ---
+  duration_ms: 33.299125
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved local pair with full two-parent history
+ok 8 - original remote materializer restores resolved local pair with full two-parent history
+  ---
+  duration_ms: 31.744542
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved other pair with full two-parent history
+ok 9 - original remote materializer restores resolved other pair with full two-parent history
+  ---
+  duration_ms: 30.680667
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved both pair with full two-parent history
+ok 10 - original remote materializer restores resolved both pair with full two-parent history
+  ---
+  duration_ms: 30.387958
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved manual pair with full two-parent history
+ok 11 - original remote materializer restores resolved manual pair with full two-parent history
+  ---
+  duration_ms: 31.039375
+  type: 'test'
+  ...
+# Subtest: remote resolved pair historical-companion rejects within original transaction and preserves all prior rows
+ok 12 - remote resolved pair historical-companion rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 29.431667
+  type: 'test'
+  ...
+# Subtest: remote resolved pair wrong-pair rejects within original transaction and preserves all prior rows
+ok 13 - remote resolved pair wrong-pair rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 24.2715
+  type: 'test'
+  ...
+# Subtest: remote resolved pair old-proof rejects within original transaction and preserves all prior rows
+ok 14 - remote resolved pair old-proof rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 25.000166
+  type: 'test'
+  ...
+# Subtest: remote resolved pair changed-other-preference rejects within original transaction and preserves all prior rows
+ok 15 - remote resolved pair changed-other-preference rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 26.36275
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 661.981125

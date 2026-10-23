@@ -1,0 +1,884 @@
+TAP version 13
+# Subtest: closed A full Prompt and all seven preferences restore together, continue original B owners, then closed B restores to C
+ok 1 - closed A full Prompt and all seven preferences restore together, continue original B owners, then closed B restores to C
+  ---
+  duration_ms: 1305.6145
+  type: 'test'
+  ...
+# Subtest: original imported publication terminal failure remains publishing, no echo, all original writers blocked, cold exact retry completes
+ok 2 - original imported publication terminal failure remains publishing, no echo, all original writers blocked, cold exact retry completes
+  ---
+  duration_ms: 390.142334
+  type: 'test'
+  ...
+# Subtest: crash after committed imported activation and before SDK preparation resumes only the proven undispatched attempt
+ok 3 - crash after committed imported activation and before SDK preparation resumes only the proven undispatched attempt
+  ---
+  duration_ms: 341.563583
+  type: 'test'
+  ...
+# Subtest: failure after original imported owners and active pointer inside IDB rolls back every store and publishes nothing
+ok 4 - failure after original imported owners and active pointer inside IDB rolls back every store and publishes nothing
+  ---
+  duration_ms: 306.380666
+  type: 'test'
+  ...
+# Subtest: same original activation transaction corrupted manifest refuses before SDK and cannot be settled by retry
+ok 5 - same original activation transaction corrupted manifest refuses before SDK and cannot be settled by retry
+  ---
+  duration_ms: 289.179625
+  type: 'test'
+  ...
+# Subtest: same original activation transaction corrupted smart-filter refuses before SDK and cannot be settled by retry
+ok 6 - same original activation transaction corrupted smart-filter refuses before SDK and cannot be settled by retry
+  ---
+  duration_ms: 280.703833
+  type: 'test'
+  ...
+# Subtest: imported unknown terminal outcome stays held without guessing or replay
+ok 7 - imported unknown terminal outcome stays held without guessing or replay
+  ---
+  duration_ms: 270.396292
+  type: 'test'
+  ...
+# Subtest: imported unknown terminal outcome exact visible stamp settles without new SDK
+ok 8 - imported unknown terminal outcome exact visible stamp settles without new SDK
+  ---
+  duration_ms: 284.771791
+  type: 'test'
+  ...
+# Subtest: a cloned or invented imported preference effect capability has no original write authority
+ok 9 - a cloned or invented imported preference effect capability has no original write authority
+  ---
+  duration_ms: 200.658375
+  type: 'test'
+  ...
+# Subtest: even a real prepared imported snapshot token cannot manufacture SDK terminal or visible evidence
+ok 10 - even a real prepared imported snapshot token cannot manufacture SDK terminal or visible evidence
+  ---
+  duration_ms: 271.531667
+  type: 'test'
+  ...
+# Subtest: a supplied stage facade cannot hide the original durable stage changing after preparation
+ok 11 - a supplied stage facade cannot hide the original durable stage changing after preparation
+  ---
+  duration_ms: 211.037709
+  type: 'test'
+  ...
+# Subtest: version dispatch preserves every existing registered version and refuses the old reader before restoration
+ok 12 - version dispatch preserves every existing registered version and refuses the old reader before restoration
+  ---
+  duration_ms: 20.186541
+  type: 'test'
+  ...
+# Subtest: an unknown historical baseline is bootstrap only; real user selection including the default remains explicit
+ok 13 - an unknown historical baseline is bootstrap only; real user selection including the default remains explicit
+  ---
+  duration_ms: 1.465833
+  type: 'test'
+  ...
+# Subtest: baseline bootstrap cannot replace an existing explicit head or consume a sequence
+ok 14 - baseline bootstrap cannot replace an existing explicit head or consume a sequence
+  ---
+  duration_ms: 10.6255
+  type: 'test'
+  ...
+# Subtest: unsupported display intent remains exact with a rendering fallback; Smart Filter modes and authority fields stay restricted
+ok 15 - unsupported display intent remains exact with a rendering fallback; Smart Filter modes and authority fields stay restricted
+  ---
+  duration_ms: 0.296041
+  type: 'test'
+  ...
+# Subtest: unsettled portable publication blocks Core yielding and acknowledgement across a namespace switch
+ok 16 - unsettled portable publication blocks Core yielding and acknowledgement across a namespace switch
+  ---
+  duration_ms: 8.25275
+  type: 'test'
+  ...
+# Subtest: direct prepared-publication selection cannot bypass the portable pending barrier
+ok 17 - direct prepared-publication selection cannot bypass the portable pending barrier
+  ---
+  duration_ms: 8.554458
+  type: 'test'
+  ...
+# Subtest: an already reserved portable cut refuses upload until visibility is settled; exact retry retains its queue
+ok 18 - an already reserved portable cut refuses upload until visibility is settled; exact retry retains its queue
+  ---
+  duration_ms: 23.446625
+  type: 'test'
+  ...
+# Subtest: same-transaction publication-before-ack visibility failure rolls back acknowledgement and permits exact retry
+ok 19 - same-transaction publication-before-ack visibility failure rolls back acknowledgement and permits exact retry
+  ---
+  duration_ms: 18.961875
+  type: 'test'
+  ...
+# Subtest: same-transaction publication-after-ack visibility failure rolls back acknowledgement and permits exact retry
+ok 20 - same-transaction publication-after-ack visibility failure rolls back acknowledgement and permits exact retry
+  ---
+  duration_ms: 17.480875
+  type: 'test'
+  ...
+# Subtest: a local v1 pending cannot manufacture SDK terminal or visible evidence with a public prepared token
+ok 21 - a local v1 pending cannot manufacture SDK terminal or visible evidence with a public prepared token
+  ---
+  duration_ms: 49.941958
+  type: 'test'
+  ...
+# Subtest: the original display writer commits exact explicit intent, genuine outbox and portable pending before one actual local publication
+ok 22 - the original display writer commits exact explicit intent, genuine outbox and portable pending before one actual local publication
+  ---
+  duration_ms: 47.074666
+  type: 'test'
+  ...
+# Subtest: selecting a display default is a genuine explicit operation; fresh untouched defaults bootstrap no history
+ok 23 - selecting a display default is a genuine explicit operation; fresh untouched defaults bootstrap no history
+  ---
+  duration_ms: 40.394667
+  type: 'test'
+  ...
+# Subtest: existing nondefault original preferences bootstrap with unknown explicitness without publishing or changing local authority
+ok 24 - existing nondefault original preferences bootstrap with unknown explicitness without publishing or changing local authority
+  ---
+  duration_ms: 51.605667
+  type: 'test'
+  ...
+# Subtest: actual local publication failure retains committed intent/outbox/pending and blocks every other original control publisher
+ok 25 - actual local publication failure retains committed intent/outbox/pending and blocks every other original control publisher
+  ---
+  duration_ms: 35.792709
+  type: 'test'
+  ...
+# Subtest: the genuine original transaction abort rolls back portable owner/outbox/pending and the new control revision together
+ok 26 - the genuine original transaction abort rolls back portable owner/outbox/pending and the new control revision together
+  ---
+  duration_ms: 27.85275
+  type: 'test'
+  ...
+# Subtest: the original Smart Filter mode and portable intent commit atomically without a fictional Chrome publication
+ok 27 - the original Smart Filter mode and portable intent commit atomically without a fictional Chrome publication
+  ---
+  duration_ms: 33.992458
+  type: 'test'
+  ...
+# Subtest: original Smart Filter transaction abort preserves its complete mode/epoch and emits no operation
+ok 28 - original Smart Filter transaction abort preserves its complete mode/epoch and emits no operation
+  ---
+  duration_ms: 25.319083
+  type: 'test'
+  ...
+# Subtest: unsupported inherited display intent keeps exact wire history and allows a genuine later original choice
+ok 29 - unsupported inherited display intent keeps exact wire history and allows a genuine later original choice
+  ---
+  duration_ms: 38.948708
+  type: 'test'
+  ...
+# Subtest: a fulfilled wrong adapter result cannot settle portable intent without exact actual local readback
+ok 30 - a fulfilled wrong adapter result cannot settle portable intent without exact actual local readback
+  ---
+  duration_ms: 26.616333
+  type: 'test'
+  ...
+# Subtest: one original publication attempt cannot dispatch the same stamp again after terminal readback failure
+ok 31 - one original publication attempt cannot dispatch the same stamp again after terminal readback failure
+  ---
+  duration_ms: 39.836791
+  type: 'test'
+  ...
+# Subtest: closed original owner recovers a known terminal failed publication by patching only display values on fresh local control
+ok 32 - closed original owner recovers a known terminal failed publication by patching only display values on fresh local control
+  ---
+  duration_ms: 40.6
+  type: 'test'
+  ...
+# Subtest: a cold owner recognizes exact already applied terminal intent without another set or a fabricated acknowledgement
+ok 33 - a cold owner recognizes exact already applied terminal intent without another set or a fabricated acknowledgement
+  ---
+  duration_ms: 31.240041
+  type: 'test'
+  ...
+# Subtest: same-value intent cannot release an unproven publication until its actual attempt stamp is observed after cold reopen
+ok 34 - same-value intent cannot release an unproven publication until its actual attempt stamp is observed after cold reopen
+  ---
+  duration_ms: 24.060667
+  type: 'test'
+  ...
+# Subtest: a closed owner recognizes a physically applied same-value attempt with unknown terminal status without another publication
+ok 35 - a closed owner recognizes a physically applied same-value attempt with unknown terminal status without another publication
+  ---
+  duration_ms: 33.318792
+  type: 'test'
+  ...
+# Subtest: a foreign valid attempt stamp cannot settle an unknown same-value publication after cold reopen
+ok 36 - a foreign valid attempt stamp cannot settle an unknown same-value publication after cold reopen
+  ---
+  duration_ms: 28.845125
+  type: 'test'
+  ...
+# Subtest: cold recovery rejects malformed extra attempt stamp without altering any original store
+ok 37 - cold recovery rejects malformed extra attempt stamp without altering any original store
+  ---
+  duration_ms: 22.923083
+  type: 'test'
+  ...
+# Subtest: cold recovery rejects malformed version attempt stamp without altering any original store
+ok 38 - cold recovery rejects malformed version attempt stamp without altering any original store
+  ---
+  duration_ms: 25.543125
+  type: 'test'
+  ...
+# Subtest: cold recovery rejects malformed nonce attempt stamp without altering any original store
+ok 39 - cold recovery rejects malformed nonce attempt stamp without altering any original store
+  ---
+  duration_ms: 23.215458
+  type: 'test'
+  ...
+# Subtest: cold portable recovery preserves changed gate without replaying controls
+ok 40 - cold portable recovery preserves changed gate without replaying controls
+  ---
+  duration_ms: 29.409083
+  type: 'test'
+  ...
+# Subtest: cold portable recovery preserves changed recovery-restore-epoch without replaying controls
+ok 41 - cold portable recovery preserves changed recovery-restore-epoch without replaying controls
+  ---
+  duration_ms: 31.063125
+  type: 'test'
+  ...
+# Subtest: cold original recovery rejects pending-extra without any physical or local mutation
+ok 42 - cold original recovery rejects pending-extra without any physical or local mutation
+  ---
+  duration_ms: 27.98575
+  type: 'test'
+  ...
+# Subtest: cold original recovery rejects wrong-operation without any physical or local mutation
+ok 43 - cold original recovery rejects wrong-operation without any physical or local mutation
+  ---
+  duration_ms: 27.748
+  type: 'test'
+  ...
+# Subtest: cold original recovery rejects terminal-null-hash without any physical or local mutation
+ok 44 - cold original recovery rejects terminal-null-hash without any physical or local mutation
+  ---
+  duration_ms: 27.806791
+  type: 'test'
+  ...
+# Subtest: each actual recovery attempt records its fresh before digest; an unchanged retry cannot release an older in-flight setter
+ok 45 - each actual recovery attempt records its fresh before digest; an unchanged retry cannot release an older in-flight setter
+  ---
+  duration_ms: 35.627792
+  type: 'test'
+  ...
+# Subtest: original prejournal mode baseline commits its actual counter in an opaque operation ID without portable counter fields or SDK effects
+ok 46 - original prejournal mode baseline commits its actual counter in an opaque operation ID without portable counter fields or SDK effects
+  ---
+  duration_ms: 25.521292
+  type: 'test'
+  ...
+# Subtest: returning to the prejournal default light mode retains its real baseline while a fresh untouched light mode creates no history
+ok 47 - returning to the prejournal default light mode retains its real baseline while a fresh untouched light mode creates no history
+  ---
+  duration_ms: 19.979625
+  type: 'test'
+  ...
+# Subtest: bound manual local resolves exact Prompt and companion parents together
+ok 48 - bound manual local resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 138.015209
+  type: 'test'
+  ...
+# Subtest: bound manual other resolves exact Prompt and companion parents together
+ok 49 - bound manual other resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 95.116709
+  type: 'test'
+  ...
+# Subtest: bound manual both resolves exact Prompt and companion parents together
+ok 50 - bound manual both resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 85.067334
+  type: 'test'
+  ...
+# Subtest: bound manual manual resolves exact Prompt and companion parents together
+ok 51 - bound manual manual resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 75.438708
+  type: 'test'
+  ...
+# Subtest: bound binding-proof refuses and preserves complete prior owner
+ok 52 - bound binding-proof refuses and preserves complete prior owner
+  ---
+  duration_ms: 49.279375
+  type: 'test'
+  ...
+# Subtest: bound binding-row refuses and preserves complete prior owner
+ok 53 - bound binding-row refuses and preserves complete prior owner
+  ---
+  duration_ms: 45.919666
+  type: 'test'
+  ...
+# Subtest: bound late-binding-write refuses and preserves complete prior owner
+ok 54 - bound late-binding-write refuses and preserves complete prior owner
+  ---
+  duration_ms: 57.56075
+  type: 'test'
+  ...
+# Subtest: explicit local resolves exact two parents, canonical proof and outbox together
+ok 55 - explicit local resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 115.017875
+  type: 'test'
+  ...
+# Subtest: explicit other resolves exact two parents, canonical proof and outbox together
+ok 56 - explicit other resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 63.39025
+  type: 'test'
+  ...
+# Subtest: explicit manual resolves exact two parents, canonical proof and outbox together
+ok 57 - explicit manual resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 60.059125
+  type: 'test'
+  ...
+# Subtest: explicit both resolves exact two parents, canonical proof and outbox together
+ok 58 - explicit both resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 56.368625
+  type: 'test'
+  ...
+# Subtest: unrelated pins conflict is retained without whole-aggregate choice
+ok 59 - unrelated pins conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 35.476833
+  type: 'test'
+  ...
+# Subtest: unrelated other-body conflict is retained without whole-aggregate choice
+ok 60 - unrelated other-body conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 32.197583
+  type: 'test'
+  ...
+# Subtest: unrelated hidden conflict is retained without whole-aggregate choice
+ok 61 - unrelated hidden conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 33.829292
+  type: 'test'
+  ...
+# Subtest: unrelated split conflict is retained without whole-aggregate choice
+ok 62 - unrelated split conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 29.442458
+  type: 'test'
+  ...
+# Subtest: unrelated binding-proof conflict is retained without whole-aggregate choice
+ok 63 - unrelated binding-proof conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 32.891334
+  type: 'test'
+  ...
+# Subtest: review head change cannot commit stale human decision
+ok 64 - review head change cannot commit stale human decision
+  ---
+  duration_ms: 37.157167
+  type: 'test'
+  ...
+# Subtest: review epoch change cannot commit stale human decision
+ok 65 - review epoch change cannot commit stale human decision
+  ---
+  duration_ms: 35.785042
+  type: 'test'
+  ...
+# Subtest: review namespace change cannot commit stale human decision
+ok 66 - review namespace change cannot commit stale human decision
+  ---
+  duration_ms: 35.008042
+  type: 'test'
+  ...
+# Subtest: review revision change cannot commit stale human decision
+ok 67 - review revision change cannot commit stale human decision
+  ---
+  duration_ms: 30.244917
+  type: 'test'
+  ...
+# Subtest: review proof change cannot commit stale human decision
+ok 68 - review proof change cannot commit stale human decision
+  ---
+  duration_ms: 29.327416
+  type: 'test'
+  ...
+# Subtest: review generation change cannot commit stale human decision
+ok 69 - review generation change cannot commit stale human decision
+  ---
+  duration_ms: 30.966583
+  type: 'test'
+  ...
+# Subtest: corrupt committed operation fails digest validation before displaying an offer
+ok 70 - corrupt committed operation fails digest validation before displaying an offer
+  ---
+  duration_ms: 24.309834
+  type: 'test'
+  ...
+# Subtest: proof-failure rolls back preferences, heads, proof and outbox
+ok 71 - proof-failure rolls back preferences, heads, proof and outbox
+  ---
+  duration_ms: 32.741
+  type: 'test'
+  ...
+# Subtest: late-owner-write rolls back preferences, heads, proof and outbox
+ok 72 - late-owner-write rolls back preferences, heads, proof and outbox
+  ---
+  duration_ms: 33.097916
+  type: 'test'
+  ...
+# Subtest: forged token, sender, unsupported text, replaced journal and consent all refuse without writes
+ok 73 - forged token, sender, unsupported text, replaced journal and consent all refuse without writes
+  ---
+  duration_ms: 37.358
+  type: 'test'
+  ...
+# Subtest: ordinary local service exposes no resolution offer without its original journal
+ok 74 - ordinary local service exposes no resolution offer without its original journal
+  ---
+  duration_ms: 29.896083
+  type: 'test'
+  ...
+# Subtest: original control change after prepare refuses before the write; an old offer cannot be renewed
+ok 75 - original control change after prepare refuses before the write; an old offer cannot be renewed
+  ---
+  duration_ms: 35.339791
+  type: 'test'
+  ...
+# Subtest: late gate change in the write rolls back the entire resolution
+ok 76 - late gate change in the write rolls back the entire resolution
+  ---
+  duration_ms: 35.049542
+  type: 'test'
+  ...
+# Subtest: late control-cache change in the write rolls back the entire resolution
+ok 77 - late control-cache change in the write rolls back the entire resolution
+  ---
+  duration_ms: 31.899125
+  type: 'test'
+  ...
+# Subtest: private surface rechecks offer after host/display awaits; host never receives either body
+ok 78 - private surface rechecks offer after host/display awaits; host never receives either body
+  ---
+  duration_ms: 2.770416
+  type: 'test'
+  ...
+# Subtest: one authorized resolution dispatch emits one change only after success; host cannot resolve
+ok 79 - one authorized resolution dispatch emits one change only after success; host cannot resolve
+  ---
+  duration_ms: 0.628083
+  type: 'test'
+  ...
+# Subtest: complete original projector anchors preserve exact portable work/order and exclude local counters
+ok 80 - complete original projector anchors preserve exact portable work/order and exclude local counters
+  ---
+  duration_ms: 21.647916
+  type: 'test'
+  ...
+# Subtest: stable complete Input identities bind a rebuilt family; same text/newest/hash-only substitute does not
+ok 81 - stable complete Input identities bind a rebuilt family; same text/newest/hash-only substitute does not
+  ---
+  duration_ms: 2.356667
+  type: 'test'
+  ...
+# Subtest: one missing anchor is not replaced by extra automatic members and divergent anchors remain unresolved
+ok 82 - one missing anchor is not replaced by extra automatic members and divergent anchors remain unresolved
+  ---
+  duration_ms: 0.924292
+  type: 'test'
+  ...
+# Subtest: representative must remain a member even when every captured family anchor exists
+ok 83 - representative must remain a member even when every captured family anchor exists
+  ---
+  duration_ms: 0.757
+  type: 'test'
+  ...
+# Subtest: manual representative and split without a real candidate remain unresolved, retaining original facts
+ok 84 - manual representative and split without a real candidate remain unresolved, retaining original facts
+  ---
+  duration_ms: 0.306459
+  type: 'test'
+  ...
+# Subtest: split/do-not-merge facts and stable group IDs survive and missing split Input is retained unresolved
+ok 85 - split/do-not-merge facts and stable group IDs survive and missing split Input is retained unresolved
+  ---
+  duration_ms: 1.3235
+  type: 'test'
+  ...
+# Subtest: independent UUID and orphan work retain exact bodies and pin order without invented memberships
+ok 86 - independent UUID and orphan work retain exact bodies and pin order without invented memberships
+  ---
+  duration_ms: 0.784875
+  type: 'test'
+  ...
+# Subtest: unknown normalizer preserves work and refuses derived binding, even if hashes/text currently match
+ok 87 - unknown normalizer preserves work and refuses derived binding, even if hashes/text currently match
+  ---
+  duration_ms: 1.412584
+  type: 'test'
+  ...
+# Subtest: many-to-one convergence never silently overwrites either original correction
+ok 88 - many-to-one convergence never silently overwrites either original correction
+  ---
+  duration_ms: 1.147
+  type: 'test'
+  ...
+# Subtest: input permutation/time/ranking does not change capture binding or authorize a different correction
+ok 89 - input permutation/time/ranking does not change capture binding or authorize a different correction
+  ---
+  duration_ms: 1.572
+  type: 'test'
+  ...
+# Subtest: ranking-only overrides are not a second portable work owner
+ok 90 - ranking-only overrides are not a second portable work owner
+  ---
+  duration_ms: 0.798791
+  type: 'test'
+  ...
+# Subtest: strict binding DTO rejects extra/missing/local fields, duplicate or invalid anchor memberships
+ok 91 - strict binding DTO rejects extra/missing/local fields, duplicate or invalid anchor memberships
+  ---
+  duration_ms: 1.94475
+  type: 'test'
+  ...
+# Subtest: finite parser rejects getters, sparse arrays, symbols, cycles and excess data without invoking code
+ok 92 - finite parser rejects getters, sparse arrays, symbols, cycles and excess data without invoking code
+  ---
+  duration_ms: 36.889542
+  type: 'test'
+  ...
+# Subtest: escaped UTF8 over-limit DTO is refused before constructing any JSON temporary
+ok 93 - escaped UTF8 over-limit DTO is refused before constructing any JSON temporary
+  ---
+  duration_ms: 9.494584
+  type: 'test'
+  ...
+# Subtest: oversize input array is refused before allocating its own-name vector and invalid UTF16 stays invalid
+ok 94 - oversize input array is refused before allocating its own-name vector and invalid UTF16 stays invalid
+  ---
+  duration_ms: 1.410416
+  type: 'test'
+  ...
+# Subtest: unknown normalizer with the same current family hash preserves human work as unresolved without attaching it to automatic members
+ok 95 - unknown normalizer with the same current family hash preserves human work as unresolved without attaching it to automatic members
+  ---
+  duration_ms: 2.966291
+  type: 'test'
+  ...
+# Subtest: bound projection accepts canonical property order and borrows original IDs after a genuine family hash rebuild
+ok 96 - bound projection accepts canonical property order and borrows original IDs after a genuine family hash rebuild
+  ---
+  duration_ms: 3.54925
+  type: 'test'
+  ...
+# Subtest: actual Source and Prompt owner commit two linked operations/outboxes without changing archive or permission
+ok 97 - actual Source and Prompt owner commit two linked operations/outboxes without changing archive or permission
+  ---
+  duration_ms: 173.151834
+  type: 'test'
+  ...
+# Subtest: original full corrections, ordered pins, representative and split facts have required body-free bindings
+ok 98 - original full corrections, ordered pins, representative and split facts have required body-free bindings
+  ---
+  duration_ms: 171.29825
+  type: 'test'
+  ...
+# Subtest: prejournal populated Prompt bootstrap preserves real row and adds only the initial two bootstrap operations
+ok 99 - prejournal populated Prompt bootstrap preserves real row and adds only the initial two bootstrap operations
+  ---
+  duration_ms: 114.641583
+  type: 'test'
+  ...
+# Subtest: existing actual A manual Prompt head enrolls one bootstrap companion without rewriting Prompt history
+ok 100 - existing actual A manual Prompt head enrolls one bootstrap companion without rewriting Prompt history
+  ---
+  duration_ms: 103.040875
+  type: 'test'
+  ...
+# Subtest: genuine Working edits retain old correction Input anchors and allow a body-free current target rebind
+ok 101 - genuine Working edits retain old correction Input anchors and allow a body-free current target rebind
+  ---
+  duration_ms: 130.793958
+  type: 'test'
+  ...
+# Subtest: verified local reuse renews both owner revisions without new portable operation or binding recapture
+ok 102 - verified local reuse renews both owner revisions without new portable operation or binding recapture
+  ---
+  duration_ms: 81.199958
+  type: 'test'
+  ...
+# Subtest: a genuine formerly eligible Working edit retains work when original eligibility omits a missing Prompt anchor
+ok 103 - a genuine formerly eligible Working edit retains work when original eligibility omits a missing Prompt anchor
+  ---
+  duration_ms: 102.075
+  type: 'test'
+  ...
+# Subtest: genuine Working convergence keeps both human corrections and ordered pins unresolved without overwriting either body
+ok 104 - genuine Working convergence keeps both human corrections and ordered pins unresolved without overwriting either body
+  ---
+  duration_ms: 156.966209
+  type: 'test'
+  ...
+# Subtest: failure after real paired commit work aborts physical row, binding and both outboxes across the complete repository
+ok 105 - failure after real paired commit work aborts physical row, binding and both outboxes across the complete repository
+  ---
+  duration_ms: 69.837166
+  type: 'test'
+  ...
+# Subtest: a real concurrent original Prompt write after paired prepare wins CAS and leaves no half-pair
+ok 106 - a real concurrent original Prompt write after paired prepare wins CAS and leaves no half-pair
+  ---
+  duration_ms: 69.43975
+  type: 'test'
+  ...
+# Subtest: missing physical companion refuses a subsequent genuine owner write with no repository changes
+ok 107 - missing physical companion refuses a subsequent genuine owner write with no repository changes
+  ---
+  duration_ms: 61.532375
+  type: 'test'
+  ...
+# Subtest: a swapped older valid physical companion cannot qualify the current Prompt head or mutate the repository
+ok 108 - a swapped older valid physical companion cannot qualify the current Prompt head or mutate the repository
+  ---
+  duration_ms: 70.216208
+  type: 'test'
+  ...
+# Subtest: original grouped owner consumes full Prompt from closed A through B Working continuation and closed B to fresh C
+ok 109 - original grouped owner consumes full Prompt from closed A through B Working continuation and closed B to fresh C
+  ---
+  duration_ms: 800.936625
+  type: 'test'
+  ...
+# Subtest: original edit then split then new split correction preserves shared declared anchors and both authored bodies
+ok 110 - original edit then split then new split correction preserves shared declared anchors and both authored bodies
+  ---
+  duration_ms: 91.141542
+  type: 'test'
+  ...
+# Subtest: an undeclared shared anchor in a structurally valid companion refuses actual query and write without repository changes
+ok 111 - an undeclared shared anchor in a structurally valid companion refuses actual query and write without repository changes
+  ---
+  duration_ms: 87.030333
+  type: 'test'
+  ...
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 112 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 4.913916
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 113 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 1.922
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 114 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 1.370125
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 115 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 0.760125
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 116 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 1.27475
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 117 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 1.046208
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 118 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 1.851458
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 119 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.470417
+  type: 'test'
+  ...
+# Subtest: shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+ok 120 - shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+  ---
+  duration_ms: 1.446292
+  type: 'test'
+  ...
+# Subtest: pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+ok 121 - pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+  ---
+  duration_ms: 76.333708
+  type: 'test'
+  ...
+# Subtest: same actual store journals feed original durable publication; no whole archive completion claim
+ok 122 - same actual store journals feed original durable publication; no whole archive completion claim
+  ---
+  duration_ms: 335.59825
+  type: 'test'
+  ...
+# Subtest: lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+ok 123 - lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+  ---
+  duration_ms: 267.294416
+  type: 'test'
+  ...
+# Subtest: pause during committed POST fences late response and explicit same task continuation first reconciles it
+ok 124 - pause during committed POST fences late response and explicit same task continuation first reconciles it
+  ---
+  duration_ms: 240.642583
+  type: 'test'
+  ...
+# Subtest: binding generation change and foreign account block old pending upload without retargeting it
+ok 125 - binding generation change and foreign account block old pending upload without retargeting it
+  ---
+  duration_ms: 112.955917
+  type: 'test'
+  ...
+# Subtest: durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+ok 126 - durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+  ---
+  duration_ms: 49.548584
+  type: 'test'
+  ...
+# Subtest: second owner and state changes are refused, malformed provider binding never installs journals
+ok 127 - second owner and state changes are refused, malformed provider binding never installs journals
+  ---
+  duration_ms: 18.075334
+  type: 'test'
+  ...
+# Subtest: wrong task command does not mutate pending identity or conceal original failure
+ok 128 - wrong task command does not mutate pending identity or conceal original failure
+  ---
+  duration_ms: 93.833166
+  type: 'test'
+  ...
+# Subtest: existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+ok 129 - existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+  ---
+  duration_ms: 115.372292
+  type: 'test'
+  ...
+# Subtest: suspend cancellation reconciles local state without IO or automatic continuation
+ok 130 - suspend cancellation reconciles local state without IO or automatic continuation
+  ---
+  duration_ms: 172.930916
+  type: 'test'
+  ...
+# Subtest: cold recovery of original confirmed publication receipt needs no remote request
+ok 131 - cold recovery of original confirmed publication receipt needs no remote request
+  ---
+  duration_ms: 175.782375
+  type: 'test'
+  ...
+# Subtest: remote loss after original verified cut never causes silently recreating it
+ok 132 - remote loss after original verified cut never causes silently recreating it
+  ---
+  duration_ms: 106.764458
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=false
+ok 133 - actual worker synchronous events and same-store command consumer, configured=false
+  ---
+  duration_ms: 80.601375
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=true
+ok 134 - actual worker synchronous events and same-store command consumer, configured=true
+  ---
+  duration_ms: 208.446625
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=restore
+ok 135 - actual worker synchronous events and same-store command consumer, configured=restore
+  ---
+  duration_ms: 136.789375
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge
+not ok 136 - actual worker synchronous events and same-store command consumer, configured=purge
+  ---
+  duration_ms: 79.22625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:118:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"ok":false,"error":"STORAGE_FAILED"}
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:151:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge-unknown
+ok 137 - actual worker synchronous events and same-store command consumer, configured=purge-unknown
+  ---
+  duration_ms: 235.892292
+  type: 'test'
+  ...
+# Subtest: OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+ok 138 - OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+  ---
+  duration_ms: 100.151792
+  type: 'test'
+  ...
+# Subtest: interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+ok 139 - interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+  ---
+  duration_ms: 101.366917
+  type: 'test'
+  ...
+# Subtest: configured capture owner always includes original permanent-denial journal
+ok 140 - configured capture owner always includes original permanent-denial journal
+  ---
+  duration_ms: 16.564542
+  type: 'test'
+  ...
+# Subtest: Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+ok 141 - Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+  ---
+  duration_ms: 0.264667
+  type: 'test'
+  ...
+# Subtest: configured actions still require original consent; status and stop remain non-transferring
+ok 142 - configured actions still require original consent; status and stop remain non-transferring
+  ---
+  duration_ms: 15.622333
+  type: 'test'
+  ...
+# Subtest: explicit pause during original preparation fences its transaction checkpoint before any transfer
+ok 143 - explicit pause during original preparation fences its transaction checkpoint before any transfer
+  ---
+  duration_ms: 28.738084
+  type: 'test'
+  ...
+1..143
+# tests 143
+# suites 0
+# pass 142
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4366.59175
