@@ -1,0 +1,28 @@
+{
+  "baseline": "59675bf5",
+  "node": "v22.23.3",
+  "platform": "Darwin",
+  "architecture": "arm64",
+  "kind": "Node synthetic fake-indexeddb, not native browser",
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "extension/tests/topic-activity-sync.test.mjs",
+    "extension/tests/browser-native-sync-core.test.mjs",
+    "extension/tests/topic-lifecycle-local-consumer.test.mjs",
+    "extension/tests/topic-lifecycle-dispatch.test.mjs",
+    "extension/tests/topic-lifecycle-source-processing-boundary.test.mjs"
+  ],
+  "tests": 120,
+  "pass": 120,
+  "fail": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "todo": 0,
+  "exitCode": 0,
+  "tapDurationMs": 6433.754625,
+  "newOwningCases": 34,
+  "browserExecuted": false,
+  "cloudExecuted": false,
+  "realTransportExecuted": false
+}

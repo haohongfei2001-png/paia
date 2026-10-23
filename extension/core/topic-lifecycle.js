@@ -8,18 +8,31 @@ import {queueSearch} from './library-search.js';
 import {ArchiveError} from './constants.js';
 import {topicLifecyclePolicy,evaluateTopicInactivity} from './topic-lifecycle-policy.js';
 import {captureTopicLifecycleActivity,sealTopicLifecycleActivity} from './topic-lifecycle-activity.js';
+import {prepareOriginalTopicActivity,commitOriginalTopicActivity,completeOriginalTopicActivity,releaseOriginalTopicActivity} from './browser-native-sync/topic-activity-journal.js';
+import {topicActivityIdentity} from './browser-native-sync/topic-activity-codec.js';
+import {contextScopeTransactionReader} from './context-topic-scope.js';
+import {captureTopicProcessingReadFacts} from './topic-processing.js';
+
+const originalServices=new WeakSet(),originalTransitions=new WeakMap();
+export function requireOriginalTopicLifecycleService(service){if(!originalServices.has(service)||service.store!==service.guard.store)fail();return service.store;}
+export async function captureOriginalTopicActivityIdentity(service,request,activity){
+ const store=requireOriginalTopicLifecycleService(service),prepared=await service.guard.prepareWithProcessingMode(request.scope);
+ return store.repository.transaction(false,async t=>{await service.guard.check(t,prepared);if(await service.guard.processing(t,prepared.evidence,[request.id])!==prepared.authority.processingEpoch)fail();service.guard.assertProcessingFacts(t,{workBudget:activity.workBudget});const readFacts=captureTopicProcessingReadFacts(service.guard,t,{qualification:service.guard.qualification()}),row=await contextScopeTransactionReader(store,t,activity.workBudget).get('topics',request.id);return {before:topicActivityIdentity(row),readFacts};});
+}
+export function requireOriginalTopicActivityTransition(service,t){const r=originalTransitions.get(t);if(!r||r.service!==service)fail();return r;}
 
 // Activity only: no admission, removal, merge, membership or permission write.
 // Inactivity policy/dispatch is explicit and local; no background activation.
 export class TopicLifecycleService {
- constructor(store,options={}){this.store=store;this.guard=new TopicProcessingGuard(store,options);}
+ constructor(store,options={}){this.store=store;this.guard=new TopicProcessingGuard(store,options);originalServices.add(this);}
  async change(request){return this.#change(request);}
  async changeInactive(request,options){
   const held={policy:topicLifecyclePolicy(options?.policy),now:options?.now,previousObservedAt:options?.previousObservedAt??null,workBudget:options?.workBudget};
   if(request?.to!=='dormant'||!evaluateTopicInactivity({...held,activityAt:new Date(0).toISOString()}).eligible)fail();
-  return this.#change(structuredClone(request),held);
+  const detached=structuredClone(request),sync=await prepareOriginalTopicActivity(this,request,detached,held);
+  try{return await completeOriginalTopicActivity(sync,await this.#change(detached,held,sync));}finally{releaseOriginalTopicActivity(sync);}
  }
- async #change(request,activity=null){
+ async #change(request,activity=null,sync=null){
   keys(request,['id','to','expectedRevision','operationId','scope'],['id','to','expectedRevision','operationId','scope']);
   if(!idOK(request.id)||!['active','dormant'].includes(request.to)||!revisionOK(request.expectedRevision))fail();
   const prepared=await this.guard.prepareWithProcessingMode(request.scope);
@@ -39,9 +52,10 @@ export class TopicLifecycleService {
    if(row.protections?.lifecycle?.locked)fail();
    if(request.to==='dormant')await assertMemoryTopicTransitionAllowed(t,row,{nextGeneration:null});
    const activityCap=activity?await captureTopicLifecycleActivity(this,t,row,activity,prepared.evidence):null;
-   const before=structuredClone(row);setTopicLifecycle(row,request.to,{actor:'ai',operationId:request.operationId,at:this.store.clock()});row.revision++;row.organizationRevision++;
+   const before=structuredClone(row);setTopicLifecycle(row,request.to,{actor:'ai',operationId:request.operationId,at:sync?.transitionAt??this.store.clock()});row.revision++;row.organizationRevision++;
    await t.put('topics',row);await queueSearch(t,'topic',row);
    await journal(this.store,t,{kind:'topic',entityId:row.id,before,after:row,fieldMask:['lifecycle'],actor:'ai',reason:'activity',important:true,operationId:request.operationId,baseRevision:before.revision,afterRevision:row.revision,sourceRecordIds:row.sourceRecordIds||[]},{boundedPrune:!!activity});
+   if(sync){originalTransitions.set(t,{service:this,before:topicActivityIdentity(before),after:topicActivityIdentity(row),identity:structuredClone(row.identity),request});try{await commitOriginalTopicActivity(this,t,sync);}finally{originalTransitions.delete(t);}}
    if(activityCap){
     sealTopicLifecycleActivity(this,t,activityCap,row);
     receiptObserver=observeOriginalOperationReceipt(this.store,t,request.operationId);const store=this.store,cap=receiptObserver;
@@ -51,3 +65,6 @@ export class TopicLifecycleService {
   },activity?{workLimit:{}}:undefined);}finally{if(receiptObserver)releaseOriginalOperationReceipt(receiptObserver);}
  }
 }
+
+const originalChangeInactive=TopicLifecycleService.prototype.changeInactive;
+export function runOriginalTopicActivityReceive(service,request,options){requireOriginalTopicLifecycleService(service);return originalChangeInactive.call(service,request,options);}

@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: original inactive owner and independent activity wire/outbox commit in one original repository transaction
+ok 1 - original inactive owner and independent activity wire/outbox commit in one original repository transaction
+  ---
+  duration_ms: 151.101
+  type: 'test'
+  ...
+# Subtest: original backup-restored Topic accepts qualified remote activity without echo and replays exactly
+ok 2 - original backup-restored Topic accepts qualified remote activity without echo and replays exactly
+  ---
+  duration_ms: 159.272666
+  type: 'test'
+  ...
+# Subtest: late Topic identity mutation cannot acknowledge an activity wire with a different original identity
+ok 3 - late Topic identity mutation cannot acknowledge an activity wire with a different original identity
+  ---
+  duration_ms: 83.243125
+  type: 'test'
+  ...
+# Subtest: activity Sync protocol head tail rejects and rolls back original owner plus outbox
+ok 4 - activity Sync protocol head tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 95.018334
+  type: 'test'
+  ...
+# Subtest: activity Sync protocol receipt tail rejects and rolls back original owner plus outbox
+ok 5 - activity Sync protocol receipt tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 89.009375
+  type: 'test'
+  ...
+# Subtest: activity Sync protocol generation tail rejects and rolls back original owner plus outbox
+ok 6 - activity Sync protocol generation tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 74.453375
+  type: 'test'
+  ...
+# Subtest: activity Sync domain receipt tail rejects and rolls back original owner plus outbox
+ok 7 - activity Sync domain receipt tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 89.918583
+  type: 'test'
+  ...
+# Subtest: activity Sync Source tail rejects and rolls back original owner plus outbox
+ok 8 - activity Sync Source tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 78.780084
+  type: 'test'
+  ...
+# Subtest: activity Sync grant tail rejects and rolls back original owner plus outbox
+ok 9 - activity Sync grant tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 73.0535
+  type: 'test'
+  ...
+# Subtest: activity Sync storage failure tail rejects and rolls back original owner plus outbox
+ok 10 - activity Sync storage failure tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 74.811375
+  type: 'test'
+  ...
+# Subtest: activity Sync private budget tail rejects and rolls back original owner plus outbox
+ok 11 - activity Sync private budget tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 129.717458
+  type: 'test'
+  ...
+# Subtest: activity wire cannot bypass original pin protection
+ok 12 - activity wire cannot bypass original pin protection
+  ---
+  duration_ms: 63.826416
+  type: 'test'
+  ...
+# Subtest: activity wire cannot bypass original keep protection
+ok 13 - activity wire cannot bypass original keep protection
+  ---
+  duration_ms: 62.25625
+  type: 'test'
+  ...
+# Subtest: activity wire cannot bypass original lifecycle protection
+ok 14 - activity wire cannot bypass original lifecycle protection
+  ---
+  duration_ms: 60.375208
+  type: 'test'
+  ...
+# Subtest: generic Core local and remote write paths cannot consume an activity DTO as authority
+ok 15 - generic Core local and remote write paths cannot consume an activity DTO as authority
+  ---
+  duration_ms: 114.343958
+  type: 'test'
+  ...
+# Subtest: wire schema refuses user actor, body extras, forged parents, dataset and implicit policy
+ok 16 - wire schema refuses user actor, body extras, forged parents, dataset and implicit policy
+  ---
+  duration_ms: 82.304333
+  type: 'test'
+  ...
+# Subtest: remote receive uses current independent grant and original activity eligibility, never the wire as a grant
+ok 17 - remote receive uses current independent grant and original activity eligibility, never the wire as a grant
+  ---
+  duration_ms: 123.523375
+  type: 'test'
+  ...
+# Subtest: clock regression rejects before any activity or protocol write
+ok 18 - clock regression rejects before any activity or protocol write
+  ---
+  duration_ms: 59.649166
+  type: 'test'
+  ...
+# Subtest: lost commit return resolves by durable original receipt without another activity or outbox write
+ok 19 - lost commit return resolves by durable original receipt without another activity or outbox write
+  ---
+  duration_ms: 111.009375
+  type: 'test'
+  ...
+# Subtest: independent competing activity is refused on an already settled Topic, retaining the first result
+ok 20 - independent competing activity is refused on an already settled Topic, retaining the first result
+  ---
+  duration_ms: 192.464375
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2125.343542
