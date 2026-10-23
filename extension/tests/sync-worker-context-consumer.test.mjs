@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {openConfiguredSyncWorker} from './harness/sync-configured-worker.mjs';
+import {fakeGoogleCheckpointHTTP,fakeOneDriveCheckpointHTTP} from './harness/checkpoint-publication-http.mjs';
+import {readContextCards} from '../core/context-cards.js';
+const google={subject:'SYNTHETIC_google_subject',clientId:'000000000000-synthetic.apps.googleusercontent.com',generation:'SYNTHETIC_generation',scopes:['https://www.googleapis.com/auth/drive.appdata']};
+const onedrive={subject:'SYNTHETIC_subject',tenantId:'9188040d-6c67-4c5b-b112-36a304b66dad',clientId:'00000000-0000-0000-0000-000000000001',generation:'SYNTHETIC_generation',scopes:['Files.ReadWrite.AppFolder']};
+const row=f=>f.bridge.store.repository.transaction(false,readContextCards,['meta']);
+const change=(f,c)=>f.rpc('PAIA_CONTEXT_CARDS_CHANGE',{change:c});
+for(const kind of ['google','onedrive'])test(kind+' original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore',async t=>{
+ const binding=kind==='google'?google:onedrive,cloud=(kind==='google'?fakeGoogleCheckpointHTTP:fakeOneDriveCheckpointHTTP)(binding),options={binding,provider:kind==='google'?'google-drive':'onedrive',cloud};let current;const open=async(deviceId,more={})=>current=await openConfiguredSyncWorker({...options,deviceId,...more});t.after(()=>current?.close());
+ const a=await open('SYNTHETIC_context_A'),id=crypto.randomUUID(),put={kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:0,body:'SYNTHETIC existing Context literal\r\n中文🙂',section:'SYNTHETIC',card:'info'};
+ assert.equal((await change(a,put)).ok,true);const before=await row(a),core=a.bridge.store.sourceBootstrapJournal.core;assert.equal(await core.read('head','contextMutationMember',id),undefined);const revisionCount=async()=>{let n=0;for await(const ignored of core.rows('revision'))n++;return n;},n=await revisionCount();
+ assert.equal((await a.rpc('PAIA_SYNC_STATUS')).data.needsContextEnrollment,true);assert.equal(await revisionCount(),n);assert.equal(cloud.requests.length,0);
+ assert.equal((await a.ui('RESUME')).ok,true);assert.deepEqual(await row(a),before);assert.ok(await core.read('head','contextMutationMember',id));assert.equal((await a.rpc('PAIA_SYNC_STATUS')).data.needsContextEnrollment,false);
+ const saved={storage:a.storage,factory:a.factory};await a.close();const cold=await open('SYNTHETIC_context_A',saved);assert.equal((await cold.rpc('PAIA_SYNC_STATUS')).data.needsContextEnrollment,false);assert.deepEqual(await row(cold),before);assert.equal(cloud.requests.length,0);
+ assert.equal((await cold.ui('RESUME')).ok,true);const edited=await change(cold,{...put,operationId:crypto.randomUUID(),expectedRevision:1,body:'SYNTHETIC cold exact edit'});assert.equal(edited.ok,true,JSON.stringify(edited));await cold.capture();const publish=await cold.ui('NOW');assert.equal(publish.ok,true,JSON.stringify(publish));const expected=await row(cold);await cold.close();
+ const b=await open('SYNTHETIC_context_B');assert.equal((await b.ui('RESUME')).ok,true);const restore=await b.ui('RESTORE');assert.equal(restore.ok,true,JSON.stringify(restore));const restored=await row(b);assert.deepEqual(restored.items.map(({epoch,...item})=>item),expected.items.map(({epoch,...item})=>item));assert.equal(restored.items[0].body,'SYNTHETIC cold exact edit');assert.equal(restore.data.wholeArchiveComplete,false);
+ const update=await change(b,{...put,operationId:crypto.randomUUID(),epoch:await b.bridge.store.recoveryDraftEpoch(),expectedRevision:2,body:'SYNTHETIC B ordinary edit'});assert.equal(update.ok,true,JSON.stringify(update));assert.equal((await row(b)).items[0].body,'SYNTHETIC B ordinary edit');
+});

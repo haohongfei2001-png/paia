@@ -1,0 +1,9 @@
+# Original Context worker integration — 2026-10-24
+
+Base a2d9592a63fa917a60dda907b6022bb3390d244a. Fixed source configuration remains null. The original worker attaches its existing ContextCardsService to the same Sync Core and original typed ContextMutationSyncJournal. Startup/status do not bootstrap contents. Explicit Resume enrolls missing original items and nondefault portable desired-card intent through the original journal, retaining canonical content and receipts. Cold startup reattaches represented owners. Context still is not whole-archive or automatic-lineage qualification; no global device permission is restored.
+
+Resume enrollment is now exclusive with other Sync operations and checks the original serial before publishing active state. A later Pause wins; no transfer or replacement task is dispatched. Earlier exact enrollment receipts may remain after cancellation, without a false active outcome.
+
+Validation used actual worker and Settings commands, original typed journals, fake IndexedDB and synthetic Google/OneDrive HTTP models (no network). First two-case invocation failed 0/2 because the fixture tried NOW after cold startup without re-enrolling the unrepresented empty Prompt owner. The original Prompt guard remains; fixture now explicitly uses the existing Resume action. Second invocation passed 2/2. Six whole files then passed 60/60, TAP 3709.228125 ms. After adding the enrollment cancellation fence and regression, the final same six whole files passed 61/61, TAP 4066.10975 ms, exit 0, no fail/cancel/skip/todo. Logs are separate and retained. Node22.23.3/macOS; this is not browser or Linux/cloud certification.
+
+No build, native browser, scale rerun, real account, credentials, CI, deployment, installed runtime, main or PR mutation. Original 129-scale failure and spent run limits remain. Context current automatic lineage, source-linked Human and protected library selection continue as separate work.

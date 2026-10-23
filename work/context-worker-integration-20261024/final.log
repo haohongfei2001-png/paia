@@ -1,0 +1,376 @@
+TAP version 13
+# Subtest: actual original Context put commits canonical/outbox and real receiver materializes same literal body
+ok 1 - actual original Context put commits canonical/outbox and real receiver materializes same literal body
+  ---
+  duration_ms: 158.379875
+  type: 'test'
+  ...
+# Subtest: actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+ok 2 - actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+  ---
+  duration_ms: 223.557791
+  type: 'test'
+  ...
+# Subtest: a split group and direct generic remote operation cannot write any canonical or protocol row
+ok 3 - a split group and direct generic remote operation cannot write any canonical or protocol row
+  ---
+  duration_ms: 62.011042
+  type: 'test'
+  ...
+# Subtest: existing original manual per-card ancestor remains exact while next move crosses the old codec type
+ok 4 - existing original manual per-card ancestor remains exact while next move crosses the old codec type
+  ---
+  duration_ms: 78.896083
+  type: 'test'
+  ...
+# Subtest: explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+ok 5 - explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+  ---
+  duration_ms: 88.467167
+  type: 'test'
+  ...
+# Subtest: real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+ok 6 - real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+  ---
+  duration_ms: 180.440042
+  type: 'test'
+  ...
+# Subtest: cold repository reopen retains original move receipt and allows undo then edit
+ok 7 - cold repository reopen retains original move receipt and allows undo then edit
+  ---
+  duration_ms: 98.501166
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on receipt write failure
+ok 8 - original transaction rolls canonical and all protocol rows back on receipt write failure
+  ---
+  duration_ms: 75.386792
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on protocol write failure
+ok 9 - original transaction rolls canonical and all protocol rows back on protocol write failure
+  ---
+  duration_ms: 75.131834
+  type: 'test'
+  ...
+# Subtest: prepared original group cannot survive a late independent local Context edit
+ok 10 - prepared original group cannot survive a late independent local Context edit
+  ---
+  duration_ms: 77.481209
+  type: 'test'
+  ...
+# Subtest: cloned preparation and fabricated service cannot mint or consume the original owner capability
+ok 11 - cloned preparation and fabricated service cannot mint or consume the original owner capability
+  ---
+  duration_ms: 71.073
+  type: 'test'
+  ...
+# Subtest: sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+ok 12 - sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+  ---
+  duration_ms: 78.701209
+  type: 'test'
+  ...
+# Subtest: late restore epoch write after canonical and protocol apply aborts the whole original transaction
+ok 13 - late restore epoch write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 72.44775
+  type: 'test'
+  ...
+# Subtest: late typed head write after canonical and protocol apply aborts the whole original transaction
+ok 14 - late typed head write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 70.644125
+  type: 'test'
+  ...
+# Subtest: automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+ok 15 - automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+  ---
+  duration_ms: 126.076875
+  type: 'test'
+  ...
+# Subtest: NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+ok 16 - NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+  ---
+  duration_ms: 1929.811959
+  type: 'test'
+  ...
+# Subtest: last typed protocol write failure rolls back canonical Context, Source, receipt and replay activation
+ok 17 - last typed protocol write failure rolls back canonical Context, Source, receipt and replay activation
+  ---
+  duration_ms: 345.390875
+  type: 'test'
+  ...
+# Subtest: a cold original grouped owner requires exact revalidation and restores the same command once
+ok 18 - a cold original grouped owner requires exact revalidation and restores the same command once
+  ---
+  duration_ms: 498.193
+  type: 'test'
+  ...
+# Subtest: changed actual Context after publication qualification cannot activate its former sealed graph
+ok 19 - changed actual Context after publication qualification cannot activate its former sealed graph
+  ---
+  duration_ms: 437.163083
+  type: 'test'
+  ...
+# Subtest: original native current Mixed remains unavailable in the non-native fixture without publishing objects
+ok 20 - original native current Mixed remains unavailable in the non-native fixture without publishing objects
+  ---
+  duration_ms: 34.38475
+  type: 'test'
+  ...
+# Subtest: actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+ok 21 - actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+  ---
+  duration_ms: 38.474625
+  type: 'test'
+  ...
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 22 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 3.568
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 23 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 2.193958
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 24 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 1.353083
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 25 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 0.573375
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 26 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 0.587792
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 27 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.369417
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 28 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 1.424792
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 29 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.781834
+  type: 'test'
+  ...
+# Subtest: configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+ok 30 - configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+  ---
+  duration_ms: 0.754541
+  type: 'test'
+  ...
+# Subtest: shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+ok 31 - shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+  ---
+  duration_ms: 1.069125
+  type: 'test'
+  ...
+# Subtest: pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+ok 32 - pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+  ---
+  duration_ms: 76.265583
+  type: 'test'
+  ...
+# Subtest: same actual store journals feed original durable publication; no whole archive completion claim
+ok 33 - same actual store journals feed original durable publication; no whole archive completion claim
+  ---
+  duration_ms: 319.620458
+  type: 'test'
+  ...
+# Subtest: lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+ok 34 - lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+  ---
+  duration_ms: 275.454042
+  type: 'test'
+  ...
+# Subtest: pause during committed POST fences late response and explicit same task continuation first reconciles it
+ok 35 - pause during committed POST fences late response and explicit same task continuation first reconciles it
+  ---
+  duration_ms: 319.770541
+  type: 'test'
+  ...
+# Subtest: binding generation change and foreign account block old pending upload without retargeting it
+ok 36 - binding generation change and foreign account block old pending upload without retargeting it
+  ---
+  duration_ms: 166.08325
+  type: 'test'
+  ...
+# Subtest: durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+ok 37 - durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+  ---
+  duration_ms: 81.020542
+  type: 'test'
+  ...
+# Subtest: second owner and state changes are refused, malformed provider binding never installs journals
+ok 38 - second owner and state changes are refused, malformed provider binding never installs journals
+  ---
+  duration_ms: 30.788
+  type: 'test'
+  ...
+# Subtest: wrong task command does not mutate pending identity or conceal original failure
+ok 39 - wrong task command does not mutate pending identity or conceal original failure
+  ---
+  duration_ms: 142.775417
+  type: 'test'
+  ...
+# Subtest: existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+ok 40 - existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+  ---
+  duration_ms: 178.872084
+  type: 'test'
+  ...
+# Subtest: suspend cancellation reconciles local state without IO or automatic continuation
+ok 41 - suspend cancellation reconciles local state without IO or automatic continuation
+  ---
+  duration_ms: 200.58525
+  type: 'test'
+  ...
+# Subtest: cold recovery of original confirmed publication receipt needs no remote request
+ok 42 - cold recovery of original confirmed publication receipt needs no remote request
+  ---
+  duration_ms: 207.01825
+  type: 'test'
+  ...
+# Subtest: remote loss after original verified cut never causes silently recreating it
+ok 43 - remote loss after original verified cut never causes silently recreating it
+  ---
+  duration_ms: 120.89525
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=false
+ok 44 - actual worker synchronous events and same-store command consumer, configured=false
+  ---
+  duration_ms: 71.64325
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=true
+ok 45 - actual worker synchronous events and same-store command consumer, configured=true
+  ---
+  duration_ms: 241.918417
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=restore
+ok 46 - actual worker synchronous events and same-store command consumer, configured=restore
+  ---
+  duration_ms: 158.086625
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge
+ok 47 - actual worker synchronous events and same-store command consumer, configured=purge
+  ---
+  duration_ms: 761.458042
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge-unknown
+ok 48 - actual worker synchronous events and same-store command consumer, configured=purge-unknown
+  ---
+  duration_ms: 260.869791
+  type: 'test'
+  ...
+# Subtest: OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+ok 49 - OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+  ---
+  duration_ms: 94.928125
+  type: 'test'
+  ...
+# Subtest: interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+ok 50 - interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+  ---
+  duration_ms: 94.781125
+  type: 'test'
+  ...
+# Subtest: configured capture owner always includes original permanent-denial journal
+ok 51 - configured capture owner always includes original permanent-denial journal
+  ---
+  duration_ms: 14.8655
+  type: 'test'
+  ...
+# Subtest: Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+ok 52 - Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+  ---
+  duration_ms: 0.248542
+  type: 'test'
+  ...
+# Subtest: configured actions still require original consent; status and stop remain non-transferring
+ok 53 - configured actions still require original consent; status and stop remain non-transferring
+  ---
+  duration_ms: 14.554916
+  type: 'test'
+  ...
+# Subtest: explicit pause during original preparation fences its transaction checkpoint before any transfer
+ok 54 - explicit pause during original preparation fences its transaction checkpoint before any transfer
+  ---
+  duration_ms: 26.677041
+  type: 'test'
+  ...
+# Subtest: explicit pause during enrollment wins over an earlier Resume and refuses simultaneous enrollment
+ok 55 - explicit pause during enrollment wins over an earlier Resume and refuses simultaneous enrollment
+  ---
+  duration_ms: 17.291958
+  type: 'test'
+  ...
+# Subtest: google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 56 - google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 1773.574
+  type: 'test'
+  ...
+# Subtest: onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 57 - onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 1415.733333
+  type: 'test'
+  ...
+# Subtest: actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+ok 58 - actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+  ---
+  duration_ms: 87.913083
+  type: 'test'
+  ...
+# Subtest: unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+ok 59 - unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+  ---
+  duration_ms: 77.71975
+  type: 'test'
+  ...
+# Subtest: google original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+ok 60 - google original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+  ---
+  duration_ms: 781.936334
+  type: 'test'
+  ...
+# Subtest: onedrive original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+ok 61 - onedrive original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+  ---
+  duration_ms: 807.264541
+  type: 'test'
+  ...
+1..61
+# tests 61
+# suites 0
+# pass 61
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4066.10975

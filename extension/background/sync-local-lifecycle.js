@@ -1,3 +1,5 @@
+import {ContextCardsService,readContextCards} from '../core/context-cards.js';
+import {ContextMutationSyncJournal} from '../core/browser-native-sync/context-mutation-journal.js';
 import {ConsumerPreferenceSyncJournal} from '../core/browser-native-sync/consumer-preference-journal.js';
 import {CONSUMER_PREFERENCE_KEYS} from '../core/browser-native-sync/consumer-preference-codec.js';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
@@ -34,7 +36,7 @@ const originalCore=BrowserNativeSyncCore;
 export async function createConfiguredSyncLifecycle(store,api){
  if(arguments.length!==2)fail('BNS_SYNC_CONFIGURATION');
  const config=readSyncLifecycleConfiguration();
- if(config===null)return Object.freeze({attachPromptService:async()=>{},snapshot:async()=>unavailable(),reconcile:async()=>unavailable(),suspend:()=>{},resumeAfterSuspend:async()=>unavailable(),handle:async(request,sender)=>{trusted(request,sender,api);if(request.type!=='PAIA_SYNC_STATUS')fail('BNS_SYNC_UNAVAILABLE');return unavailable();}});
+ if(config===null)return Object.freeze({attachPromptService:async()=>{},attachContextService:async()=>{},snapshot:async()=>unavailable(),reconcile:async()=>unavailable(),suspend:()=>{},resumeAfterSuspend:async()=>unavailable(),handle:async(request,sender)=>{trusted(request,sender,api);if(request.type!=='PAIA_SYNC_STATUS')fail('BNS_SYNC_UNAVAILABLE');return unavailable();}});
  if(!exact(config,['provider','datasetId','deviceId','binding','request','isCurrent'])||!['google-drive','onedrive'].includes(config.provider)||!opaque(config.datasetId)||!opaque(config.deviceId)||typeof config.request!=='function'||typeof config.isCurrent!=='function'||!store?.repository||!api?.storage?.local)fail('BNS_SYNC_CONFIGURATION');
  if(owners.has(api.storage.local))fail('BNS_SYNC_OWNER_BUSY');
  const reservation={};owners.set(api.storage.local,reservation);let controller;
@@ -70,7 +72,7 @@ function checked(row){
 }
 
 class SyncLifecycle {
- #store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#busy=false;#suspended=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;
+ #store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#busy=false;#suspended=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;#contextService=null;#contextJournal=null;
  constructor(store,api,config,binding,bindingId,generation,core){this.#store=store;this.#api=api;this.#config=config;this.#binding=binding;this.#bindingId=bindingId;this.#generation=generation;this.#core=core;this.#journal=new PreparedPublicationJournal(core,{checkpoint:()=>this.#allowed()});}
  #hostCurrent(){try{return this.#config.isCurrent(this.#binding)===true;}catch{return false;}}
  #allowed(){if(this.#suspended||this.#blocked||this.#uncertain||!this.#row||this.#row.mode!=='active'||this.#row.bindingId!==this.#bindingId||this.#row.generation!==this.#generation||!this.#hostCurrent())fail('BNS_SYNC_PAUSED');}
@@ -88,7 +90,7 @@ class SyncLifecycle {
    this.#row=next;return next;
   });this.#write=action.catch(()=>{});return action;
  }
- #view(){return Object.freeze({version:1,scope:this.#promptService?'source-working-prompt':'source-working-only',wholeArchiveComplete:false,purgeProtection:'original-journal-fail-closed',portablePreferences:this.#store.consumerPreferenceJournal===this.#preferenceJournal,needsPreferenceEnrollment:this.#store.consumerPreferenceJournal!==this.#preferenceJournal,needsPromptEnrollment:!!this.#promptService&&this.#promptService.syncJournal!==this.#promptJournal,resumeAvailable:!this.#suspended&&!this.#uncertain&&!this.#busy&&this.#hostCurrent()&&(!this.#row||this.#row.bindingId===this.#bindingId&&(this.#row.mode!=='disconnected'||this.#row.generation!==this.#generation)),unsupportedOwners:this.#promptService?['human-library','context','topic','nonportable-settings','edited-source-purge']:['human-library','prompt','context','topic','nonportable-settings','edited-source-purge'],state:this.#suspended?'suspended':this.#uncertain?'settlement-unknown':this.#row?.mode??'not-started',busy:this.#busy,task:this.#row?.task?{kind:this.#row.task.kind,phase:this.#row.task.phase}:null,error:this.#row?.error??null,productionActivation:false});}
+ #view(){return Object.freeze({version:1,scope:this.#promptService?'source-working-prompt':'source-working-only',wholeArchiveComplete:false,contextCommands:!!this.#contextService,needsContextEnrollment:!!this.#contextService&&this.#contextService.syncJournal!==this.#contextJournal,purgeProtection:'original-journal-fail-closed',portablePreferences:this.#store.consumerPreferenceJournal===this.#preferenceJournal,needsPreferenceEnrollment:this.#store.consumerPreferenceJournal!==this.#preferenceJournal,needsPromptEnrollment:!!this.#promptService&&this.#promptService.syncJournal!==this.#promptJournal,resumeAvailable:!this.#suspended&&!this.#uncertain&&!this.#busy&&this.#hostCurrent()&&(!this.#row||this.#row.bindingId===this.#bindingId&&(this.#row.mode!=='disconnected'||this.#row.generation!==this.#generation)),unsupportedOwners:this.#promptService?['human-library',this.#contextService?'automatic-context':'context','topic','nonportable-settings','edited-source-purge']:['human-library','prompt','context','topic','nonportable-settings','edited-source-purge'],state:this.#suspended?'suspended':this.#uncertain?'settlement-unknown':this.#row?.mode??'not-started',busy:this.#busy,task:this.#row?.task?{kind:this.#row.task.kind,phase:this.#row.task.phase}:null,error:this.#row?.error??null,productionActivation:false});}
  async attachPreferences(){
   this.#preferenceJournal=new ConsumerPreferenceSyncJournal(this.#core);
   // Existing original intents/terminal receipts are recovered by the original
@@ -118,6 +120,29 @@ class SyncLifecycle {
   const preferences=await this.#store.repository.transaction(false,readPromptPreferences,['meta']),head=await this.#core.read('head','promptPreferences',PROMPT_REUSE_ROW),binding=await this.#core.read('head','promptBinding',PROMPT_REUSE_ROW);
   if(!binding&&(head||preferences.pins.length||preferences.overrides.length||preferences.splits.length))await journal.bootstrap(service);
  }
+ async attachContextService(service){
+  if(this.#contextService||!(service instanceof ContextCardsService)||service.s!==this.#store||service.syncJournal!==null)fail('BNS_SYNC_OWNER_BUSY');
+  this.#contextService=service;this.#contextJournal=new ContextMutationSyncJournal(this.#core,{store:this.#store});
+  // Startup only restores an already represented original owner. It never
+  // invents a bootstrap for content created before this device enrolled.
+  const row=await this.#store.repository.transaction(false,readContextCards,['meta']);
+  let represented=!!await this.#core.read('contextMutationState');
+  for(const key of ['info','rules','now','inputs'])if(await this.#core.read('head','contextDesired',key)){represented=true;break;}
+  for(const item of row.items)if(await this.#contextHead(item)){represented=true;break;}
+  if(represented)service.syncJournal=this.#contextJournal;
+ }
+ async #contextHead(item){return await this.#core.read('head','contextMutationMember',item.id)??await this.#core.read('head',({info:'contextItem',rules:'contextRulesItem',now:'contextNowItem'})[item.card],item.id);}
+ async #enrollContext(){
+  if(!this.#contextService)return;
+  const service=this.#contextService,journal=this.#contextJournal;
+  if(service.syncJournal!==null&&service.syncJournal!==journal)fail('BNS_SYNC_OWNER_BUSY');
+  service.syncJournal=journal;
+  const row=await this.#store.repository.transaction(false,readContextCards,['meta']);
+  // Each fixed owner rechecks its original canonical row in the same strict
+  // transaction. Failure retains earlier exact receipts; no bulk rewrite.
+  for(const item of row.items)if(!await this.#contextHead(item))await journal.bootstrapItem(service,item.id);
+  for(const key of ['info','rules','now','inputs'])if(row.access[key].revision>0&&!await this.#core.read('head','contextDesired',key))await journal.bootstrapAccess(key);
+ }
  async snapshot(){return this.#view();}
  async reconcile(){
   if(this.#busy)fail('BNS_SYNC_BUSY');if(this.#suspended)fail('BNS_SYNC_PAUSED');this.#row=await this.#read();
@@ -145,9 +170,14 @@ class SyncLifecycle {
   // Disconnect requires a new independently qualified source binding generation.
   // Resume is not a local credential cache or an implied account authorization.
   if(this.#row?.mode==='disconnected'&&this.#row.generation===this.#generation)fail('BNS_SYNC_REAUTHORIZATION_REQUIRED');
-  await this.#enrollPreferences();
-  await this.#enrollPrompt();
-  await this.#save(row=>({...this.#initial(row),generation:this.#generation,mode:'active',error:null}));this.#blocked=false;return this.#view();
+  this.#busy=true;const serial=this.#serial;
+  const current=()=>{if(serial!==this.#serial||this.#suspended||!this.#hostCurrent())fail('BNS_RECOVERY_INTERRUPTED');};
+  try{
+   await this.#enrollPreferences();current();
+   await this.#enrollPrompt();current();
+   await this.#enrollContext();current();
+   await this.#save(row=>{current();return {...this.#initial(row),generation:this.#generation,mode:'active',error:null};});current();this.#blocked=false;return Object.freeze({...this.#view(),busy:false});
+  }finally{this.#busy=false;}
  }
  #openTransport(serial){
   const current=binding=>serial===this.#serial&&!this.#blocked&&!this.#suspended&&!this.#uncertain&&this.#row?.mode==='active'&&equal(binding,this.#binding)&&this.#hostCurrent();
@@ -161,6 +191,7 @@ class SyncLifecycle {
   this.#allowed();if(this.#busy)fail('BNS_SYNC_BUSY');const old=this.#row.task;
   if(old&&old.phase!=='confirmed'&&old.kind!=='checkpoint'){if(old.kind==='publication')return this.#task('publication');fail('BNS_SYNC_TASK_PENDING');}
   if(this.#promptService&&this.#promptService.syncJournal!==this.#promptJournal)fail('BNS_PROMPT_BINDING_REQUIRED');
+  if(this.#contextService&&this.#contextService.syncJournal!==this.#contextJournal)fail('BNS_CONTEXT_BOOTSTRAP_REQUIRED');
   this.#busy=true;const serial=this.#serial;this.#checkpoint=this.#checkpointOwner();
   const current=()=>{this.#allowed();if(serial!==this.#serial)fail('BNS_RECOVERY_INTERRUPTED');};
   try{

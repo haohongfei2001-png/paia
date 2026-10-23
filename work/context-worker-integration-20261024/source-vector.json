@@ -1,0 +1,7 @@
+{
+  "extension/background/service-worker.js": "2dab2882a6ec8bca94977e3ea09fad82e96c226f1eb05722f68ba18fe2d9f5e6",
+  "extension/background/sync-local-lifecycle.js": "e5a078624c3d993020b274a08f5b76ef9b2e4ae7310107137e4325af24ed8712",
+  "extension/ui/settings-sync.js": "0c5e5d07c2c5d93f4be4d117bd6cf8c1a4479f166a60c3b5fccc048ad15d8a40",
+  "extension/tests/sync-local-lifecycle.test.mjs": "a1b57f304c9a225f3cfa0fa486189ecc29f21c10024934e548cdbad4aa1a8adc",
+  "extension/tests/sync-worker-context-consumer.test.mjs": "0fd6c860efebf3addb082120f8756965d62cc3c5959d40ca34b48b87d6d83ac6"
+}

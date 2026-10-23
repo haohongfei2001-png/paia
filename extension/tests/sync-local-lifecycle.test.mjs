@@ -202,3 +202,10 @@ test('explicit pause during original preparation fences its transaction checkpoi
  RecoverableCheckpointPublication.prototype.prepare=async function(...args){enter();await wait;return prepare.apply(this,args);};t.after(()=>{RecoverableCheckpointPublication.prototype.prepare=prepare;release();});
  const pending=command(x.owner,'NOW'),rejected=assert.rejects(pending,{code:'BNS_CHECKPOINT_PUBLICATION_INTERRUPTED'});await entered;await command(x.owner,'PAUSE');release();await rejected;assert.equal((await row(f)).mode,'paused');assert.equal(posts(f.cloud).length,0);assert.equal((await row(f)).task,null,'no replacement task or data write after pause');
 });
+
+import {ConsumerPreferenceSyncJournal} from '../core/browser-native-sync/consumer-preference-journal.js';
+test('explicit pause during enrollment wins over an earlier Resume and refuses simultaneous enrollment',async t=>{
+ const f=await configured(t),x=await f.open();let enter,release;const entered=new Promise(r=>enter=r),wait=new Promise(r=>release=r),bootstrap=ConsumerPreferenceSyncJournal.prototype.bootstrap;
+ ConsumerPreferenceSyncJournal.prototype.bootstrap=async function(...args){enter();await wait;return bootstrap.apply(this,args);};t.after(()=>{ConsumerPreferenceSyncJournal.prototype.bootstrap=bootstrap;release();});
+ const pending=command(x.owner,'RESUME'),rejected=assert.rejects(pending,{code:'BNS_RECOVERY_INTERRUPTED'});await entered;await assert.rejects(command(x.owner,'RESUME'),{code:'BNS_SYNC_BUSY'});await command(x.owner,'PAUSE');release();await rejected;assert.equal((await row(f)).mode,'paused');assert.equal((await x.owner.snapshot()).busy,false);assert.equal(f.cloud.requests.length,0);assert.equal((await row(f)).task,null);
+});
