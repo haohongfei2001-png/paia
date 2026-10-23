@@ -11,9 +11,12 @@ export function createMaintenancePayload(metadata,material,limits,placements=[],
  const view=material?.view;
  if(!Array.isArray(view?.inputs)||!Array.isArray(authoredEntries)||!Array.isArray(boundEntries)||!view.inputs.length&&!authoredEntries.length||!Number.isSafeInteger(material.sourceCount)||material.sourceCount<(view.inputs.length?1:0)||!view.inputs.length&&material.sourceCount!==0||material.sourceCount>20)fail('BUDGET_EXCEEDED');
  if(!limits||!['maxInputs','maxContentBytes','maxRequestBytes'].every(k=>Number.isSafeInteger(limits[k])&&limits[k]>0)||view.inputs.length+authoredEntries.length+boundEntries.length>Math.min(20,limits.maxInputs))fail('BUDGET_EXCEEDED');
+ // Notes only accompany a single original Context correction with its exact
+ // complete Input-field selection. Ordinary Topic/Input requests remain body-only.
  const inputs=view.inputs.map((input,index)=>{
-  if(typeof input.id!=='string'||input.role!=='primary'||!Number.isSafeInteger(input.revision)||input.revision<0||typeof input.fields?.body!=='string'||Object.keys(input.fields).length!==1)fail('UNAVAILABLE');
-  return {ref:'i'+index,inputId:input.id,revision:input.revision,body:input.fields.body};
+  const note=Object.hasOwn(input.fields||{},'note'),selected=contextItems?.[0]?.inputFields?.find(e=>e.inputId===input.id);
+  if(typeof input.id!=='string'||input.role!=='primary'||!Number.isSafeInteger(input.revision)||input.revision<0||typeof input.fields?.body!=='string'||Object.keys(input.fields).length!==(note?2:1)||note&&(typeof input.fields.note!=='string'||contextItems.length!==1||metadata.coverage?.length!==1||metadata.coverage[0].facet!=='context'||JSON.stringify(selected?.selectedFields)!=='["body","note"]'))fail('UNAVAILABLE');
+  return {ref:'i'+index,inputId:input.id,revision:input.revision,body:input.fields.body,...(note?{note:input.fields.note}:{})};
  });
  if(new Set(inputs.map(i=>i.inputId)).size!==inputs.length)fail('UNAVAILABLE');
  // Entry descriptors come from the original formation owner after exact Entry authority.
@@ -67,7 +70,11 @@ export function createMaintenancePayload(metadata,material,limits,placements=[],
  // closure. Only the separately granted fields cross this purpose boundary.
  if(!Array.isArray(contextItems)||contextItems.length>1)fail('BUDGET_EXCEEDED');
  for(const m of contextItems){
-  exact(m,['kind','itemId','revision','card','selectedFields','proof','inputIds','fields','fieldDigests']);exact(m.fields,['body','section']);exact(m.fieldDigests,['body','section']);
+  if(Object.hasOwn(m,'inputFields')){
+   if(!Array.isArray(m.inputFields)||!Array.isArray(m.inputIds)||m.inputFields.length!==m.inputIds.length||!m.inputFields.some(e=>JSON.stringify(e.selectedFields)==='["body","note"]')||new Set(m.inputFields.map(e=>e.inputId)).size!==m.inputFields.length)fail('UNAVAILABLE');
+   for(const e of m.inputFields){exact(e,['inputId','selectedFields']);const input=inputs.find(i=>i.inputId===e.inputId);if(!m.inputIds.includes(e.inputId)||!input||!['["body"]','["body","note"]'].includes(JSON.stringify(e.selectedFields))||Object.hasOwn(input,'note')!==e.selectedFields.includes('note'))fail('UNAVAILABLE');}
+  }
+  exact(m,['kind','itemId','revision','card','selectedFields','proof','inputIds','fields','fieldDigests',...(Object.hasOwn(m,'inputFields')?['inputFields']:[])]);exact(m.fields,['body','section']);exact(m.fieldDigests,['body','section']);
   if(m.kind!=='contextEdit'||!Number.isSafeInteger(m.revision)||m.revision<2||!['info','rules','now'].includes(m.card)||JSON.stringify(m.selectedFields)!=='["body","section"]'||!m.selectedFields.every(f=>typeof m.fields[f]==='string'&&/^[a-f0-9]{64}$/.test(m.fieldDigests[f]))||!metadata.coverage?.some(u=>u.facet==='context'&&u.key===JSON.stringify(['context_item',m.itemId]))||!Array.isArray(m.inputIds)||!m.inputIds.length||!m.inputIds.every(id=>inputs.some(i=>i.inputId===id)))fail('UNAVAILABLE');
  }
  if((metadata.coverage||[]).some(u=>u.key?.startsWith('["context_item",')&&(u.facet!=='context'||!contextItems.some(m=>u.key===JSON.stringify(['context_item',m.itemId])))))fail('UNAVAILABLE');

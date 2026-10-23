@@ -1,0 +1,56 @@
+TAP version 13
+# Subtest: complete body and note Context edit retains exact original fields with independent note permission
+not ok 1 - complete body and note Context edit retains exact original fields with independent note permission
+  ---
+  duration_ms: 79.430375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:349:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"81495777-edcb-40dd-a1ff-100e5904eb96\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:351:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: complete body and note Context restore retains exact original fields with independent note permission
+not ok 2 - complete body and note Context restore retains exact original fields with independent note permission
+  ---
+  duration_ms: 52.257459
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:349:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"bea33cd7-fce5-40e0-b31d-94e5ad59bbea\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:351:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 276.504708
