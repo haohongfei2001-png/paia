@@ -1,0 +1,36 @@
+TAP version 13
+# SYNTHETIC changed table libraryMigrationItems
+# SYNTHETIC mixed owner failure SyncError: BNS_RESTORE_LOCAL_CHANGED
+#     at fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+#     at refuse (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/mixed-nonempty-merge.js:17:18)
+#     at same (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/mixed-nonempty-merge.js:47:76)
+#     at sealMixedNonemptyResult (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/mixed-nonempty-merge.js:80:347)
+#     at async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:322:4
+#     at async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/mixed-nonempty-recovery.test.mjs:81:106
+#     at async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:492:87)
+#     at async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:290:185
+#     at async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:203:11
+# Subtest: genuine new Human work from populated B returns to populated A through original owner and onward to C
+not ok 1 - genuine new Human work from populated B returns to populated A through original owner and onward to C
+  ---
+  duration_ms: 3808.568333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/mixed-nonempty-recovery.test.mjs:79:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:25:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:492:1039)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4034.86375

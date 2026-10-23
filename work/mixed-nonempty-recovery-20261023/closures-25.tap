@@ -1,0 +1,160 @@
+TAP version 13
+# Subtest: one mixed populated library preserves local Human work while receiving an independent Working edit and exports cold C
+ok 1 - one mixed populated library preserves local Human work while receiving an independent Working edit and exports cold C
+  ---
+  duration_ms: 1711.994083
+  type: 'test'
+  ...
+# Subtest: mixed merge interruption at mixed-applied-group keeps every prior table
+ok 2 - mixed merge interruption at mixed-applied-group keeps every prior table
+  ---
+  duration_ms: 1232.036084
+  type: 'test'
+  ...
+# Subtest: mixed merge interruption at before-mixed-commit keeps every prior table
+ok 3 - mixed merge interruption at before-mixed-commit keeps every prior table
+  ---
+  duration_ms: 1699.420333
+  type: 'test'
+  ...
+# Subtest: owner-return old-receipt drift is refused with complete rollback
+ok 4 - owner-return old-receipt drift is refused with complete rollback
+  ---
+  duration_ms: 1150.964292
+  type: 'test'
+  ...
+# Subtest: owner-return local-outbox drift is refused with complete rollback
+ok 5 - owner-return local-outbox drift is refused with complete rollback
+  ---
+  duration_ms: 1159.56
+  type: 'test'
+  ...
+# Subtest: owner-return unknown-protocol drift is refused with complete rollback
+ok 6 - owner-return unknown-protocol drift is refused with complete rollback
+  ---
+  duration_ms: 1103.155208
+  type: 'test'
+  ...
+# Subtest: owner-return Human-body drift is refused with complete rollback
+ok 7 - owner-return Human-body drift is refused with complete rollback
+  ---
+  duration_ms: 1141.304958
+  type: 'test'
+  ...
+# Subtest: owner-return Human-key drift is refused with complete rollback
+ok 8 - owner-return Human-key drift is refused with complete rollback
+  ---
+  duration_ms: 1162.786792
+  type: 'test'
+  ...
+# Subtest: owner-return control drift is refused with complete rollback
+ok 9 - owner-return control drift is refused with complete rollback
+  ---
+  duration_ms: 1141.441583
+  type: 'test'
+  ...
+# Subtest: owner-return annual-index drift is refused with complete rollback
+ok 10 - owner-return annual-index drift is refused with complete rollback
+  ---
+  duration_ms: 1236.520666
+  type: 'test'
+  ...
+# Subtest: owner-return stage-cursor drift is refused with complete rollback
+ok 11 - owner-return stage-cursor drift is refused with complete rollback
+  ---
+  duration_ms: 1087.638375
+  type: 'test'
+  ...
+# Subtest: owner-return working-allocation drift is refused with complete rollback
+ok 12 - owner-return working-allocation drift is refused with complete rollback
+  ---
+  duration_ms: 1044.69
+  type: 'test'
+  ...
+# Subtest: owner-return semantic drift is refused with complete rollback
+ok 13 - owner-return semantic drift is refused with complete rollback
+  ---
+  duration_ms: 1175.854666
+  type: 'test'
+  ...
+# Subtest: terminal old-receipt drift is refused with complete rollback
+ok 14 - terminal old-receipt drift is refused with complete rollback
+  ---
+  duration_ms: 1840.818833
+  type: 'test'
+  ...
+# Subtest: terminal local-outbox drift is refused with complete rollback
+ok 15 - terminal local-outbox drift is refused with complete rollback
+  ---
+  duration_ms: 1491.442166
+  type: 'test'
+  ...
+# Subtest: terminal unknown-protocol drift is refused with complete rollback
+ok 16 - terminal unknown-protocol drift is refused with complete rollback
+  ---
+  duration_ms: 1962.249792
+  type: 'test'
+  ...
+# Subtest: terminal Human-body drift is refused with complete rollback
+ok 17 - terminal Human-body drift is refused with complete rollback
+  ---
+  duration_ms: 2365.750167
+  type: 'test'
+  ...
+# Subtest: terminal Human-key drift is refused with complete rollback
+ok 18 - terminal Human-key drift is refused with complete rollback
+  ---
+  duration_ms: 1673.349667
+  type: 'test'
+  ...
+# Subtest: terminal control drift is refused with complete rollback
+ok 19 - terminal control drift is refused with complete rollback
+  ---
+  duration_ms: 1454.081917
+  type: 'test'
+  ...
+# Subtest: terminal annual-index drift is refused with complete rollback
+ok 20 - terminal annual-index drift is refused with complete rollback
+  ---
+  duration_ms: 1161.340958
+  type: 'test'
+  ...
+# Subtest: terminal stage-cursor drift is refused with complete rollback
+ok 21 - terminal stage-cursor drift is refused with complete rollback
+  ---
+  duration_ms: 1126.029709
+  type: 'test'
+  ...
+# Subtest: terminal working-allocation drift is refused with complete rollback
+ok 22 - terminal working-allocation drift is refused with complete rollback
+  ---
+  duration_ms: 1122.667084
+  type: 'test'
+  ...
+# Subtest: terminal semantic drift is refused with complete rollback
+ok 23 - terminal semantic drift is refused with complete rollback
+  ---
+  duration_ms: 1115.618917
+  type: 'test'
+  ...
+# Subtest: same-Input branch refuses implicit winner and keeps local Human outbox
+ok 24 - same-Input branch refuses implicit winner and keeps local Human outbox
+  ---
+  duration_ms: 983.384875
+  type: 'test'
+  ...
+# Subtest: mixed merge actual 4097-read work refuses even if diagnostics are reset
+ok 25 - mixed merge actual 4097-read work refuses even if diagnostics are reset
+  ---
+  duration_ms: 1156.868583
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 33699.61

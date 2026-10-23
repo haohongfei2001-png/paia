@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: mixed chronology accepts a second independent remote edit after later local Human work
+ok 1 - mixed chronology accepts a second independent remote edit after later local Human work
+  ---
+  duration_ms: 2666.600666
+  type: 'test'
+  ...
+# Subtest: mixed same checkpoint replay does not rewrite canonical rows or queued local work
+ok 2 - mixed same checkpoint replay does not rewrite canonical rows or queued local work
+  ---
+  duration_ms: 1645.574083
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4493.513625

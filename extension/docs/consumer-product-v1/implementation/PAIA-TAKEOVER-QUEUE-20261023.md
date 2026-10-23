@@ -438,3 +438,10 @@ Corrected7db1a0be composition88/88 and Source/Release native6/6 (original21 acti
 ## Nonempty Source/Working and Human restore integration at bfb2a398
 
 Exact3d25df83 plus narrow root coordinator and test-only1114ffe4 integrated. Four complete owning files60/60; one661-file development build; Source/Release original22 incremental and9 Human restore cases each,4/4 native parents with no external requests. [Report](../../../../work/nonempty-source-human-native-20261023/REPORT.md). Mixed Source/Human/saved destination merge, larger phased restoration and formed/adopted/negative families remain work, not external blockers or completed Sync. No prior Full/capacity result is replaced.
+
+
+## Populated mixed recovery native milestone at736031b6
+
+Original Working/Human nonempty mixed merge, multi-Source purge and causal Formation are integrated. First owning batch389/390 and second374/390 remain separate retained failures; final affected Source owning24/24 after correct original snapshot binding. One667-file development build and final Source/Release8/8 native parents execute36 mixed,50 purge,24 Source incremental and26 Formation original cases per variant, unchanged source vectors and zero external requests. [Full evidence](../../../../work/mixed-nonempty-recovery-20261023/REPORT.md).
+
+Native current mixed re-export, Saved/Human mixtures, interleaved incoming Working+Human and larger/cold phased recovery remain active engineering. The phased branch's old65 success was withdrawn after a semantic metadata closure defect was found; corrected safety checks refuse final budget exhaustion. No budget increase or false completion. Production Sync remains default-off; whole programme and external acceptance remain open.

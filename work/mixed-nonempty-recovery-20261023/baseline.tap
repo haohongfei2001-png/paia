@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: one mixed populated library preserves local Human work while receiving an independent Working edit and exports cold C
+not ok 1 - one mixed populated library preserves local Human work while receiving an independent Working edit and exports cold C
+  ---
+  duration_ms: 1073.38825
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/mixed-nonempty-recovery.test.mjs:48:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_MERGE_OWNER_UNSUPPORTED'
+  code: 'BNS_GROUP_MERGE_OWNER_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+    GroupedCheckpointRestore.mergeManual (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:343:79)
+    async receive (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/mixed-nonempty-recovery.test.mjs:47:287)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/mixed-nonempty-recovery.test.mjs:54:68)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1291.24675

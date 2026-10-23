@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: BNS populated mixed and Source denial native mixed-nonempty source
+ok 1 - BNS populated mixed and Source denial native mixed-nonempty source
+  ---
+  duration_ms: 43934.732666
+  type: 'test'
+  ...
+# Subtest: BNS populated mixed and Source denial native mixed-nonempty release
+ok 2 - BNS populated mixed and Source denial native mixed-nonempty release
+  ---
+  duration_ms: 43841.709167
+  type: 'test'
+  ...
+# Subtest: BNS populated mixed and Source denial native source-purge-multi source
+ok 3 - BNS populated mixed and Source denial native source-purge-multi source
+  ---
+  duration_ms: 12763.098875
+  type: 'test'
+  ...
+# Subtest: BNS populated mixed and Source denial native source-purge-multi release
+ok 4 - BNS populated mixed and Source denial native source-purge-multi release
+  ---
+  duration_ms: 12904.721291
+  type: 'test'
+  ...
+# Subtest: BNS nonempty Source Working native source-incremental source
+ok 5 - BNS nonempty Source Working native source-incremental source
+  ---
+  duration_ms: 47634.056875
+  type: 'test'
+  ...
+# Subtest: BNS nonempty Source Working native source-incremental release
+ok 6 - BNS nonempty Source Working native source-incremental release
+  ---
+  duration_ms: 39318.658541
+  type: 'test'
+  ...
+# Subtest: original Topic Formation causal Sync native source
+ok 7 - original Topic Formation causal Sync native source
+  ---
+  duration_ms: 8194.568958
+  type: 'test'
+  ...
+# Subtest: original Topic Formation causal Sync native release
+ok 8 - original Topic Formation causal Sync native release
+  ---
+  duration_ms: 8997.709125
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 232519.498833

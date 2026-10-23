@@ -1,0 +1,331 @@
+{
+  "variant": "release",
+  "scope": "explicit-existing-Topic-Formation-and-causal-activity-local-only",
+  "head": "736031b68547e39db880152bfe884914a47e9801",
+  "result": "PASS",
+  "schedulerActivated": false,
+  "syncEnabled": false,
+  "owningSha256": "4c051c74683c17bfd761fc2a53c460815829a10ff412d97ff4b662e106a62d55",
+  "originalSetupSha256": "b94c97d11f3058195f3318bb7235875373c7e2e30fa181abbc34b3747b21a6a5",
+  "hashes": {
+    "core/topic-formation.js": "fd6b7ddce47de32cf18f5cf9cb33b76fb20fb0de4c58e5bccd3e249ee7bdf136",
+    "core/topic-formation-terminal.js": "407b041a7335607f09656d811c3fd9c61130b388c638f389ca484dc1709dd1df",
+    "core/topic-formation-evidence.js": "cab7b4b5429bb3dd7b6fa4e21393cccc303403ad5adb41761e62de5a9ec00bb5",
+    "core/topic-formation-policy.js": "daaa011b7f792d9499c4b43c4a96e9e690e85e9ea9b5e71d93601a4286f7480f",
+    "core/topic-identity.js": "bddbc5036723b5001306890e66c4b5554b1b8ce621702e0ec2e4baa4c85945fc",
+    "core/topic-retrieval.js": "4e6365b568b4f1c81f2c7d947f1052c73616ac6bcc26b9fc949dfd238cbe232e",
+    "core/browser-native-sync/topic-formation-codec.js": "66d2c65e40a34fb247a3704841bb1148be47eb62b9901ed66868bb00c8787fe4",
+    "core/browser-native-sync/topic-formation-journal.js": "2a66c442a3e5c7ac2b97a4976ab34301f2e63ff57d2c923d28a0fd7fabbae99c",
+    "core/browser-native-sync/human-library-allocation.js": "1b5584c0def8fc38241749dd3439085233aa732db5e672a6d08194512ac93d07",
+    "core/backup-service.js": "4c56bf65281d5069e9ad93bf0480721c1723743181629846a0ee6f138a85176c",
+    "core/browser-native-sync/core.js": "77dee7e562f58bb770198b4d482d110f814d92db003acaa7a9d41c671f8905d4",
+    "core/browser-native-sync/codecs.js": "2db51ae97891bfd3a6d2f171f13d82cbc0ad227b3573a2f63014af76c732c200",
+    "core/browser-native-sync/topic-activity-codec.js": "0031d7146d7ef85675ca4bab69362ae90060fa0b38995c537d41db9436325529",
+    "core/browser-native-sync/topic-activity-journal.js": "4a96ac6e2bef06a957d0ccb27e725ee54ef56de6b28bd43f91e6f6255f264455",
+    "core/topic-lifecycle.js": "5511a8dd465427e26d4419367eb64bb2d6aecc37e898ca90700a6f6d08a08653",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "dba49c2b12296d5016e9e3c9fccf0f8e00e0996a9c6b58945f64b2f1c715a5ee",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/library-documents-owner.js": "0bcc0281bb2739a7799753d07cc6a12d7271c9d37de6f981b4a1e80e7175b8c6",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "7e687234e1f41a73a73adde30e9445af381b887ee27b3118bbe67e077f0b67c2",
+    "core/thought-journal.js": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  },
+  "originalHashes": {
+    "core/topic-formation.js": "fd6b7ddce47de32cf18f5cf9cb33b76fb20fb0de4c58e5bccd3e249ee7bdf136",
+    "core/topic-formation-terminal.js": "407b041a7335607f09656d811c3fd9c61130b388c638f389ca484dc1709dd1df",
+    "core/topic-formation-evidence.js": "cab7b4b5429bb3dd7b6fa4e21393cccc303403ad5adb41761e62de5a9ec00bb5",
+    "core/topic-formation-policy.js": "daaa011b7f792d9499c4b43c4a96e9e690e85e9ea9b5e71d93601a4286f7480f",
+    "core/topic-identity.js": "bddbc5036723b5001306890e66c4b5554b1b8ce621702e0ec2e4baa4c85945fc",
+    "core/topic-retrieval.js": "4e6365b568b4f1c81f2c7d947f1052c73616ac6bcc26b9fc949dfd238cbe232e",
+    "core/browser-native-sync/topic-formation-codec.js": "66d2c65e40a34fb247a3704841bb1148be47eb62b9901ed66868bb00c8787fe4",
+    "core/browser-native-sync/topic-formation-journal.js": "2a66c442a3e5c7ac2b97a4976ab34301f2e63ff57d2c923d28a0fd7fabbae99c",
+    "core/browser-native-sync/human-library-allocation.js": "1b5584c0def8fc38241749dd3439085233aa732db5e672a6d08194512ac93d07",
+    "core/backup-service.js": "4c56bf65281d5069e9ad93bf0480721c1723743181629846a0ee6f138a85176c",
+    "core/browser-native-sync/core.js": "77dee7e562f58bb770198b4d482d110f814d92db003acaa7a9d41c671f8905d4",
+    "core/browser-native-sync/codecs.js": "2db51ae97891bfd3a6d2f171f13d82cbc0ad227b3573a2f63014af76c732c200",
+    "core/browser-native-sync/topic-activity-codec.js": "0031d7146d7ef85675ca4bab69362ae90060fa0b38995c537d41db9436325529",
+    "core/browser-native-sync/topic-activity-journal.js": "4a96ac6e2bef06a957d0ccb27e725ee54ef56de6b28bd43f91e6f6255f264455",
+    "core/topic-lifecycle.js": "5511a8dd465427e26d4419367eb64bb2d6aecc37e898ca90700a6f6d08a08653",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "dba49c2b12296d5016e9e3c9fccf0f8e00e0996a9c6b58945f64b2f1c715a5ee",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/library-documents-owner.js": "0bcc0281bb2739a7799753d07cc6a12d7271c9d37de6f981b4a1e80e7175b8c6",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "7e687234e1f41a73a73adde30e9445af381b887ee27b3118bbe67e077f0b67c2",
+    "core/thought-journal.js": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    {
+      "name": "original Formation reactivation and full domain history settle with typed protocol in the same transaction",
+      "state": "PASS",
+      "assertions": 8
+    },
+    {
+      "name": "cold original backup base replays Formation through a genuine receiver issuer and preserves important history without echo",
+      "state": "PASS",
+      "assertions": 14
+    },
+    {
+      "name": "actual inactivity → original Formation reactivation → independent inactivity preserves a causal chain on cold B",
+      "state": "PASS",
+      "assertions": 13
+    },
+    {
+      "name": "Formation history after original owner cannot settle and rolls back all tables",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "Formation receipt after original owner cannot settle and rolls back all tables",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "Formation protocol head after original owner cannot settle and rolls back all tables",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "Formation protocol receipt after original owner cannot settle and rolls back all tables",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "Formation Source after original owner cannot settle and rolls back all tables",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "Formation grant after original owner cannot settle and rolls back all tables",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "Formation ACK failure after original owner cannot settle and rolls back all tables",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "Formation private budget after original owner cannot settle and rolls back all tables",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "generic Core cannot treat Formation data as a domain write capability",
+      "state": "PASS",
+      "assertions": 5
+    },
+    {
+      "name": "competing original Formation event is rejected after one settled restoration",
+      "state": "PASS",
+      "assertions": 6
+    },
+    {
+      "name": "original human lifecycle lock rejects Formation replay with no partial Sync writes",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "lost return resolves original receipt without repeating history or protocol",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "duplicate rechecks domain result before acknowledging success",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "duplicate rechecks protocol mapping before acknowledging success",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "duplicate rechecks history removal before acknowledging success",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "Formation selected history collection is closed against extra history tail writes",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "Formation selected history collection is closed against prior history changed tail writes",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "duplicate checks original important-history semantic before/after rather than presence alone",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "new independent inactivity refuses a missing Formation settlement receipt",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "journal busy protects a held original commit and does not discard in-flight ownership",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "Formation wire rejects prose hidden inside bodyfree identity and result metadata",
+      "state": "PASS",
+      "assertions": 5
+    },
+    {
+      "name": "two concurrent receives retain one exact incoming operation and do not overwrite the in-flight claim",
+      "state": "PASS",
+      "assertions": 7
+    },
+    {
+      "name": "Sync binding refuses a custom transaction delegate that cannot promise first-read budget registration",
+      "state": "PASS",
+      "assertions": 2
+    }
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "formation-native-02d65ef5-b774-4e49-90e2-0218a886743e",
+      "formation-native-039b7364-8c04-44dd-8f64-e3069f552688",
+      "formation-native-196b0337-b835-45ea-b0be-7c1edffc8171",
+      "formation-native-30dc9d91-15d9-4873-8dfa-0cca3142a315",
+      "formation-native-4d9699cc-54b7-4177-8b20-d263c2c4aee1",
+      "formation-native-4f442392-6dc4-494e-89cd-b4e68daed8c3",
+      "formation-native-5605b969-78ae-42fd-8eab-940682d087c6",
+      "formation-native-637de8b6-767d-4daa-9f74-15329e8af982",
+      "formation-native-6cb88a12-50c7-45fd-ad1b-4319cfea8bf5",
+      "formation-native-6e7b25f0-7b3a-4ee8-930e-a5e3cfbcff01",
+      "formation-native-76b69a2b-dbc2-462c-8335-97884b1aaa03",
+      "formation-native-7ebdc67e-7062-4317-bd67-915044a154bd",
+      "formation-native-863454c5-6d79-4a89-b818-27b527fcd849",
+      "formation-native-86b3cfe8-242d-4664-9c00-d958802c3110",
+      "formation-native-895ab14c-52f7-4ab6-af13-88b9dd3e0d28",
+      "formation-native-8fffea2b-e3ba-48ac-bc6a-73a4f4c8d0e1",
+      "formation-native-9d411f2b-3b53-4460-b758-193e72150e90",
+      "formation-native-9e6c513f-a097-4f6c-9cb7-d3f69c9923a1",
+      "formation-native-a3c3ba70-94ba-4938-acad-c16ca292d59a",
+      "formation-native-a7daa2d9-88c2-4e70-9ab3-8cb65601cb5e",
+      "formation-native-b5e31e97-e634-4a45-8de9-4e7ac9484dda",
+      "formation-native-bee19fc5-351e-41a5-b811-c10ee611bd96",
+      "formation-native-cde6258f-7d37-4f3a-84f5-0f617a67b9dd",
+      "formation-native-d1aab064-3527-46ad-aa47-2c1e8098a5a0",
+      "formation-native-d99b1ffe-a305-483b-ab3f-49767a8c9784",
+      "formation-native-ddf24d22-2f96-4fc1-aeb8-5654ac8ca202",
+      "formation-native-e4573c3a-405c-4801-ac97-6cfaea40ce94",
+      "formation-native-e5713969-d8dc-47c9-8d89-a52337f6d015",
+      "formation-native-e97a5b83-5dec-4c0e-a4f9-26492c075c28",
+      "formation-native-ee89be34-f69d-4e95-91f5-085c912388ad",
+      "formation-native-f0a0ea59-8bcf-46e3-a8f8-6a9c7b796ce0",
+      "formation-native-f89f491c-8eaf-4f97-8aaf-b91f708bff20",
+      "formation-native-fc84d320-8b14-470a-b40f-44ef1fd403c9",
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "8305c156-ca23-4251-9887-bd45c92b897c",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "8305c156-ca23-4251-9887-bd45c92b897c",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "formation-native-02d65ef5-b774-4e49-90e2-0218a886743e",
+            "formation-native-039b7364-8c04-44dd-8f64-e3069f552688",
+            "formation-native-196b0337-b835-45ea-b0be-7c1edffc8171",
+            "formation-native-30dc9d91-15d9-4873-8dfa-0cca3142a315",
+            "formation-native-4d9699cc-54b7-4177-8b20-d263c2c4aee1",
+            "formation-native-4f442392-6dc4-494e-89cd-b4e68daed8c3",
+            "formation-native-5605b969-78ae-42fd-8eab-940682d087c6",
+            "formation-native-637de8b6-767d-4daa-9f74-15329e8af982",
+            "formation-native-6cb88a12-50c7-45fd-ad1b-4319cfea8bf5",
+            "formation-native-6e7b25f0-7b3a-4ee8-930e-a5e3cfbcff01",
+            "formation-native-76b69a2b-dbc2-462c-8335-97884b1aaa03",
+            "formation-native-7ebdc67e-7062-4317-bd67-915044a154bd",
+            "formation-native-863454c5-6d79-4a89-b818-27b527fcd849",
+            "formation-native-86b3cfe8-242d-4664-9c00-d958802c3110",
+            "formation-native-895ab14c-52f7-4ab6-af13-88b9dd3e0d28",
+            "formation-native-8fffea2b-e3ba-48ac-bc6a-73a4f4c8d0e1",
+            "formation-native-9d411f2b-3b53-4460-b758-193e72150e90",
+            "formation-native-9e6c513f-a097-4f6c-9cb7-d3f69c9923a1",
+            "formation-native-a3c3ba70-94ba-4938-acad-c16ca292d59a",
+            "formation-native-a7daa2d9-88c2-4e70-9ab3-8cb65601cb5e",
+            "formation-native-b5e31e97-e634-4a45-8de9-4e7ac9484dda",
+            "formation-native-bee19fc5-351e-41a5-b811-c10ee611bd96",
+            "formation-native-cde6258f-7d37-4f3a-84f5-0f617a67b9dd",
+            "formation-native-d1aab064-3527-46ad-aa47-2c1e8098a5a0",
+            "formation-native-d99b1ffe-a305-483b-ab3f-49767a8c9784",
+            "formation-native-ddf24d22-2f96-4fc1-aeb8-5654ac8ca202",
+            "formation-native-e4573c3a-405c-4801-ac97-6cfaea40ce94",
+            "formation-native-e5713969-d8dc-47c9-8d89-a52337f6d015",
+            "formation-native-e97a5b83-5dec-4c0e-a4f9-26492c075c28",
+            "formation-native-ee89be34-f69d-4e95-91f5-085c912388ad",
+            "formation-native-f0a0ea59-8bcf-46e3-a8f8-6a9c7b796ce0",
+            "formation-native-f89f491c-8eaf-4f97-8aaf-b91f708bff20",
+            "formation-native-fc84d320-8b14-470a-b40f-44ef1fd403c9",
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  },
+  "afterHashes": {
+    "core/topic-formation.js": "fd6b7ddce47de32cf18f5cf9cb33b76fb20fb0de4c58e5bccd3e249ee7bdf136",
+    "core/topic-formation-terminal.js": "407b041a7335607f09656d811c3fd9c61130b388c638f389ca484dc1709dd1df",
+    "core/topic-formation-evidence.js": "cab7b4b5429bb3dd7b6fa4e21393cccc303403ad5adb41761e62de5a9ec00bb5",
+    "core/topic-formation-policy.js": "daaa011b7f792d9499c4b43c4a96e9e690e85e9ea9b5e71d93601a4286f7480f",
+    "core/topic-identity.js": "bddbc5036723b5001306890e66c4b5554b1b8ce621702e0ec2e4baa4c85945fc",
+    "core/topic-retrieval.js": "4e6365b568b4f1c81f2c7d947f1052c73616ac6bcc26b9fc949dfd238cbe232e",
+    "core/browser-native-sync/topic-formation-codec.js": "66d2c65e40a34fb247a3704841bb1148be47eb62b9901ed66868bb00c8787fe4",
+    "core/browser-native-sync/topic-formation-journal.js": "2a66c442a3e5c7ac2b97a4976ab34301f2e63ff57d2c923d28a0fd7fabbae99c",
+    "core/browser-native-sync/human-library-allocation.js": "1b5584c0def8fc38241749dd3439085233aa732db5e672a6d08194512ac93d07",
+    "core/backup-service.js": "4c56bf65281d5069e9ad93bf0480721c1723743181629846a0ee6f138a85176c",
+    "core/browser-native-sync/core.js": "77dee7e562f58bb770198b4d482d110f814d92db003acaa7a9d41c671f8905d4",
+    "core/browser-native-sync/codecs.js": "2db51ae97891bfd3a6d2f171f13d82cbc0ad227b3573a2f63014af76c732c200",
+    "core/browser-native-sync/topic-activity-codec.js": "0031d7146d7ef85675ca4bab69362ae90060fa0b38995c537d41db9436325529",
+    "core/browser-native-sync/topic-activity-journal.js": "4a96ac6e2bef06a957d0ccb27e725ee54ef56de6b28bd43f91e6f6255f264455",
+    "core/topic-lifecycle.js": "5511a8dd465427e26d4419367eb64bb2d6aecc37e898ca90700a6f6d08a08653",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "dba49c2b12296d5016e9e3c9fccf0f8e00e0996a9c6b58945f64b2f1c715a5ee",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/library-documents-owner.js": "0bcc0281bb2739a7799753d07cc6a12d7271c9d37de6f981b4a1e80e7175b8c6",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "7e687234e1f41a73a73adde30e9445af381b887ee27b3118bbe67e077f0b67c2",
+    "core/thought-journal.js": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  }
+}

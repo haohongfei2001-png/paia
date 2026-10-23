@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: Human receive terminal interrupt refuses and restores every table
+ok 1 - Human receive terminal interrupt refuses and restores every table
+  ---
+  duration_ms: 1117.503917
+  type: 'test'
+  ...
+# Subtest: Human receive terminal search-delete refuses and restores every table
+ok 2 - Human receive terminal search-delete refuses and restores every table
+  ---
+  duration_ms: 1007.342333
+  type: 'test'
+  ...
+# Subtest: Human receive terminal search-extra refuses and restores every table
+ok 3 - Human receive terminal search-extra refuses and restores every table
+  ---
+  duration_ms: 979.070083
+  type: 'test'
+  ...
+# Subtest: Human receive terminal metadata refuses and restores every table
+ok 4 - Human receive terminal metadata refuses and restores every table
+  ---
+  duration_ms: 986.681708
+  type: 'test'
+  ...
+# Subtest: Human receive terminal protocol refuses and restores every table
+ok 5 - Human receive terminal protocol refuses and restores every table
+  ---
+  duration_ms: 1025.316083
+  type: 'test'
+  ...
+# Subtest: Human receive terminal old-human refuses and restores every table
+ok 6 - Human receive terminal old-human refuses and restores every table
+  ---
+  duration_ms: 988.871125
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6298.597083
