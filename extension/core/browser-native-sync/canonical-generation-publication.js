@@ -23,6 +23,7 @@ const activeRepositories=new WeakMap(),activeSourceWorkingRows=new WeakMap();
 export async function prepareOriginalActiveRepositoryWrite(repository){const binding=activeRepositories.get(repository);if(!binding)return null;return binding.prepare();}
 export function releaseOriginalActiveRepositoryWrite(token){const row=repositoryAuthorities.get(token);if(row?.authority.kind==='active-library')repositoryAuthorities.delete(token);}
 const handles=new WeakMap(),seals=new WeakMap(),bases=new WeakMap(),repositoryAuthorities=new WeakMap();
+const completionSecret=Object.freeze({}),completionSessions=new WeakMap();
 export function readOriginalPublicationRepositoryAuthority(token,repository,scope){
  const r=repositoryAuthorities.get(token);if(!r)return null;if(r.repository!==repository||r.name!==repository.name||r.factory!==repository.factory||scope!==null&&(repository.db!==scope.tx.db||r.scope!==null&&r.scope!==scope))fail('GENERATION_REPOSITORY_WRITE_DENIED');if(scope!==null&&r.scope===null)r.scope=scope;return r.authority;
 }
@@ -96,7 +97,11 @@ export class CanonicalGenerationPublication {
  async openOriginalActiveOrganizerStore(local,aiFilterAuthority){
   if(arguments.length!==2)fail('GENERATION_CAPABILITY');return this.#openOriginalActiveStore(local,true,aiFilterAuthority);
  }
- async #openOriginalActiveStore(local,organizer,aiFilterAuthority){
+ // Explicit recovery completion only: opening never deletes checkpoint copies.
+ async openOriginalRecoveryCompletion(local){
+  if(arguments.length!==1)fail('GENERATION_CAPABILITY');return this.#openOriginalActiveStore(local,false,null,true);
+ }
+ async #openOriginalActiveStore(local,organizer,aiFilterAuthority,completion=false){
   this.#bound(this.#registry);
   await openOriginalExistingRepository(this.#registry);this.#bound(this.#registry);
   const readSelection=async t=>{
@@ -113,8 +118,10 @@ export class CanonicalGenerationPublication {
   const handle=Object.freeze(Object.create(null)),held={owner:this,repository,identity:ident,handle};
   try{
    await openOriginalExistingRepository(repository);this.#bound(repository);handles.set(handle,held);this.#repositories.set(ident.generationId,held);
-   await originalBindActiveStore.call(this,handle,store);
+   if(organizer){const cleanup=await this.#prepareCopyRetirement(handle);if(cleanup.prepared.state!==null||cleanup.prepared.progress?.phase!=='retired')fail('GENERATION_RECOVERY_COMPLETION_REQUIRED');}
+   if(!completion)await originalBindActiveStore.call(this,handle,store);
    if(!equal(await originalGenerationRepositoryRead(this.#registry,readSelection,['meta']),root))fail('GENERATION_CHANGED');
+   if(completion)return await this.#openRecoveryCompletion(handle,store,binding=>{const current=activeRepositories.get(repository);if(current&&current!==binding)return;if(current===binding)activeRepositories.delete(repository);handles.delete(handle);if(this.#repositories.get(ident.generationId)===held)this.#repositories.delete(ident.generationId);repository.db?.close();repository.db=null;});
    return store;
   }catch(error){activeRepositories.delete(repository);handles.delete(handle);if(this.#repositories.get(ident.generationId)===held)this.#repositories.delete(ident.generationId);repository.db?.close();repository.db=null;throw error;}
  }
@@ -219,7 +226,11 @@ export class CanonicalGenerationPublication {
  // graph. This does not switch the application's chrome.local/database factory.
  // The returned status is not a writer token; cold instances must bind again.
  async bindOriginalActiveStore(handle,store){
-  if(arguments.length!==2)fail('GENERATION_CAPABILITY');requireOriginalLibraryDocumentsStore(store);const held=this.#held(handle),descriptor=Object.getOwnPropertyDescriptor(store,'repository');if(!descriptor||descriptor.value!==held.repository||descriptor.get||descriptor.set)fail('GENERATION_CAPABILITY');
+  if(arguments.length!==2)fail('GENERATION_CAPABILITY');await this.#bindOriginalActiveStore(handle,store,()=>true);return {state:'bound',identity:copy(this.#held(handle).identity)};
+ }
+ #originalStore(handle,store){requireOriginalLibraryDocumentsStore(store);const held=this.#held(handle),descriptor=Object.getOwnPropertyDescriptor(store,'repository');if(!descriptor||descriptor.value!==held.repository||descriptor.get||descriptor.set)fail('GENERATION_CAPABILITY');return held;}
+ async #bindOriginalActiveStore(handle,store,isCurrent){
+  const held=this.#originalStore(handle,store);
   const prepare=async()=>{
    this.#held(handle);const property=Object.getOwnPropertyDescriptor(store,'repository');if(!property||property.value!==held.repository||property.get||property.set)fail('GENERATION_CAPABILITY');
    const budget=createGroupPageBudget(),root=await originalGenerationRepositoryRead(this.#registry,rootRead,['meta']);chargeGroupPageValue(budget,root);
@@ -230,9 +241,9 @@ export class CanonicalGenerationPublication {
    const last=await originalGenerationRepositoryRead(this.#registry,rootRead,['meta']);chargeGroupPageValue(budget,last);checkGroupPageBudget(budget);if(!equal(last,root))fail('GENERATION_CHANGED');
    const token=Object.freeze(Object.create(null));repositoryAuthorities.set(token,{repository:held.repository,name:held.repository.name,factory:held.repository.factory,scope:null,authority:Object.freeze({kind:'active-library',identity:held.identity,gate:copy(gate),marker:copy(selected.marker),qualification:copy(q)})});return token;
   };
-  const token=await prepare();releaseOriginalActiveRepositoryWrite(token);activeRepositories.set(held.repository,{prepare});return {state:'bound',identity:copy(held.identity)};
+  const token=await prepare();releaseOriginalActiveRepositoryWrite(token);if(!isCurrent())fail('GENERATION_COMPLETION_CANCELLED');const binding={prepare};activeRepositories.set(held.repository,binding);return binding;
  }
- async retireCheckpointCopies(handle){
+ async #prepareCopyRetirement(handle){
   const started=performance.now(),budget=createGroupPageBudget(),held=this.#held(handle);
   // The receipt is from the original registry, never a caller DTO. This is a
   // two-database protocol: the target gate is the deletion TX linearization
@@ -246,7 +257,23 @@ export class CanonicalGenerationPublication {
   const q=data(qualification,['id','version','kind','identity','seal','sourceBase']);if(q.id!==qualifiedGraph||q.version!==1||!['original-human','original-group','original-phased-human'].includes(q.kind)||!equal(q.identity,held.identity)||!equal(q.seal,gate.seal))fail('GENERATION_GRAPH_QUALIFICATION_REQUIRED');
   const base=data(q.sourceBase,['root','gate']),sourceRoot=rootData(base.root);if(sourceRoot.active!==null||sourceRoot.pending!==null||base.gate!==null||receipt.revision!==sourceRoot.revision+1)fail('GENERATION_CHANGED');
   const prepared=await prepareOriginalCopyRetirement(held.repository,gate,qualification,budget,started);checkGroupPageBudget(budget);
+  return {held,prepared,gate,qualification,protection,budget,started,receipt};
+ }
+ async retireCheckpointCopies(handle){
+  const {held,prepared,gate,qualification,protection,budget,started}=await this.#prepareCopyRetirement(handle);
   return publicationTransaction(held.repository,t=>retireOriginalCheckpointCopies(held.repository,t,prepared,gate,qualification,protection,budget,started),['meta'],'checkpoint-retire');
+ }
+ async openRecoveryCompletion(handle,store){
+  if(arguments.length!==2)fail('GENERATION_CAPABILITY');return this.#openRecoveryCompletion(handle,store,null);
+ }
+ async #openRecoveryCompletion(handle,store,closeOwned){
+  const held=this.#originalStore(handle,store);if(activeRepositories.has(held.repository))fail('GENERATION_ALREADY_BOUND');
+  const initial=await this.#prepareCopyRetirement(handle),receipt=copy(initial.receipt);
+  const check=async()=>{this.#originalStore(handle,store);const next=await this.#prepareCopyRetirement(handle);if(!equal(next.receipt,receipt))fail('GENERATION_CHANGED');return next;};
+  const session=new CanonicalRecoveryCompletionSession(completionSecret);
+  completionSessions.set(session,{store,repository:held.repository,closeOwned,receipt,progress:copy(initial.prepared.progress??initial.prepared.initial),state:'checkpoint-copies-cleaning',busy:false,cancelled:false,binding:null,error:null,
+   check,retire:()=>originalRetireCopies.call(this,handle),bind:isCurrent=>this.#bindOriginalActiveStore(handle,store,isCurrent)});
+  return session;
  }
  async prepareDeletion(handle){
   const held=this.#held(handle);
@@ -264,6 +291,34 @@ export function originalCheckpointStagingWrite(publication,handle,fn,authority,s
 
 // Capture fixed original owners before any caller can replace instance methods.
 const originalBindActiveStore=CanonicalGenerationPublication.prototype.bindOriginalActiveStore;
+const originalRetireCopies=CanonicalGenerationPublication.prototype.retireCheckpointCopies;
+
+// A truthful, explicit post-publication consumer. Durable progress belongs only
+// to the original retirement owner; this session stores no new metadata and
+// accepts no replacement cleanup/write callbacks. It never migrates the older
+// LocalSyncRecoverySession or automatically runs during application startup.
+export class CanonicalRecoveryCompletionSession {
+ constructor(secret){if(secret!==completionSecret)fail('GENERATION_CAPABILITY');}
+ #held(){const held=completionSessions.get(this);if(!held)fail('GENERATION_CAPABILITY');return held;}
+ status(){const h=this.#held(),p=h.progress;return {state:h.state,publicationCommitted:true,publicationId:h.receipt.operationId,ready:h.state==='ready',busy:h.busy,error:h.error,progress:{itemsRemoved:p.itemsRemoved,itemTotal:p.itemTotal,pagesRemoved:p.pagesRemoved,pageTotal:p.pageTotal}};}
+ readyStore(){const h=this.#held();if(h.cancelled||h.state!=='ready')fail('GENERATION_COMPLETION_NOT_READY');return h.store;}
+ cancel(){const h=this.#held();if(h.cancelled)return this.status();h.cancelled=true;h.state='cancelled';if(h.binding&&activeRepositories.get(h.repository)===h.binding)activeRepositories.delete(h.repository);if(!h.busy)h.closeOwned?.(h.binding);return this.status();}
+ async advance(){
+  const h=this.#held();if(h.cancelled)fail('GENERATION_COMPLETION_CANCELLED');if(h.busy)fail('GENERATION_COMPLETION_BUSY');if(h.state==='ready')return this.status();h.busy=true;h.error=null;
+  try{
+   await h.check();if(h.cancelled)fail('GENERATION_COMPLETION_CANCELLED');
+   // Exactly one original bounded batch; no loop, retry or enlarged budget.
+   const result=await h.retire();h.progress={...h.progress,...result};if(h.cancelled)fail('GENERATION_COMPLETION_CANCELLED');
+   if(result.state==='retired'){
+    const fresh=await h.check();if(fresh.prepared.progress?.phase!=='retired'||fresh.prepared.state!==null)fail('GENERATION_COPY_RETIREMENT_CHANGED');
+    if(h.cancelled)fail('GENERATION_COMPLETION_CANCELLED');h.binding=await h.bind(()=>!h.cancelled);
+    if(h.cancelled){if(activeRepositories.get(h.repository)===h.binding)activeRepositories.delete(h.repository);fail('GENERATION_COMPLETION_CANCELLED');}h.state='ready';
+   }
+  }catch(error){h.error=typeof error?.code==='string'?error.code:'GENERATION_COMPLETION_FAILED';throw error;}
+  finally{h.busy=false;if(h.cancelled)h.closeOwned?.(h.binding);}
+  return this.status();
+ }
+}
 
 // A fixed local control classification for the original Source/Working merge.
 // It grants no writer and never rewrites stored rows. Full native snapshots and

@@ -21,7 +21,7 @@ const DATASET='synthetic_local_selection',REGISTRY=APPLICATION_GENERATION_REGIST
 function journals(store,deviceId){const core=new BrowserNativeSyncCore(store.repository,{datasetId:DATASET,deviceId});store.sourceBootstrapJournal=new SourceBootstrapJournal(core);store.filterIntentJournal=new FilterIntentSyncJournal(core);store.inputWorkingJournal=new InputWorkingSyncJournal(core,{filterJournal:store.filterIntentJournal,logicalCommits:true});return core;}
 async function raw(repository,fn){await repository.open();await new Promise((resolve,reject)=>{const tx=repository.db.transaction(['meta'],'readwrite');tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error);fn(tx.objectStore('meta'));});}
 const snapshot=s=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(s.repository.stores.map(async name=>[name,await t.all(name)]))));
-async function fixture(t){
+async function fixture(t,{complete=true}={}){
  const factory=new IDBFactory(),storage=local(),registry=new ArchiveRepository(local(),{indexedDB:factory,name:REGISTRY}),publication=new CanonicalGenerationPublication(registry),a=new LibraryDocumentsStore(local(),{indexedDB:factory,name:'SYNTHETIC-local-selection-A'}),b=new LibraryDocumentsStore(storage,{indexedDB:factory,name:'SYNTHETIC-local-selection-B'});
  const repositories=[registry,a.repository,b.repository];t.after(()=>repositories.forEach(r=>r.db?.close()));
  await a.consent(true);await a.finishFoundation();const coreA=journals(a,'synthetic_A');
@@ -29,8 +29,8 @@ async function fixture(t){
  const blocks=(await a.snapshot()).library.blocks;for(const block of blocks)await inputEdit(a,block.id,{note:'SYNTHETIC initial note'});
  const handle=await publication.attach(b.repository,{generationId:'synthetic_generation',databaseId:'synthetic_database'});await b.consent(true);await b.finishFoundation();const coreB=journals(b,'synthetic_B');
  const objects=new Map(),transport={async putImmutable(ref,bytes){objects.set(ref.id,bytes.slice());},async get(ref){return objects.get(ref.id)?.slice();}},cut=await buildGroupedCheckpoint(coreA,transport,{store:a}),stage=new CanonicalGenerationCheckpointStage(publication,handle,{store:b,core:coreB,protectRepository:true});await stage.stageCheckpoint(cut.ref,r=>transport.get(r));const proof=await stage.validate(),restore=new GroupedCheckpointRestore(coreB,{store:b,restoreId:'synthetic_initial_restore'});await restore.stageCanonicalGeneration(proof);await restore.activate();await restore.prepareCanonicalGenerationPublication(proof);const seal=await publication.sealOriginalCheckpoint(handle,restore,proof);await publication.reserve(seal,'synthetic_local_publication');await publication.recover();
- while((await publication.retireCheckpointCopies(handle)).state!=='retired'){}
- await publication.bindOriginalActiveStore(handle,b);while(!(await restore.cleanup({limit:100})).complete){}
+ if(complete){while((await publication.retireCheckpointCopies(handle)).state!=='retired'){}
+ await publication.bindOriginalActiveStore(handle,b);while(!(await restore.cleanup({limit:100})).complete){}}
  async function cold(){const r=new ArchiveRepository(local(),{indexedDB:factory,name:REGISTRY}),p=new CanonicalGenerationPublication(r);repositories.push(r);const store=await p.openOriginalActiveStore(storage);repositories.push(store.repository);return {store,publication:p,registry:r,core:journals(store,'synthetic_B')};}
  return {factory,storage,registry,publication,a,b,coreA,coreB,transport,blocks,handle,cold};
 }
@@ -58,4 +58,9 @@ test('actual configured worker builds its original services on the selected Orga
  globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.55.0'}),getURL:path=>origin+path,sendMessage:async()=>{},onMessage:{addListener:fn=>listener=fn}},storage:{local:{...f.storage,setAccessLevel:async()=>{}}}};toolbarRegistrationFixture(chrome);
  await import(pathToFileURL(join(copy.path,'background/service-worker.js')).href);assert.equal(typeof listener,'function');const bridge=globalThis.__uir03Worker;await bridge.ready;t.after(()=>bridge.store.repository.db?.close());assert.equal(bridge.library.store,bridge.store);assert.equal(bridge.store.constructor.name,'OrganizerStore');assert.equal(bridge.store.repository.name,f.b.repository.name);assert.equal((await bridge.store.input(f.blocks[0].id)).note,'SYNTHETIC initial note');
  const response=await new Promise(resolve=>listener({type:'GET_STATUS'},{id,url:origin+'ui/archive.html'},resolve));assert.equal(response.ok,true);assert.equal(response.data.consented,true);assert.ok(!(await f.factory.databases()).some(x=>x.name===DATABASE_NAME));assert.deepEqual(await readFile(source),before);
+});
+
+test('configured application requires exact retired checkpoint copies and never silently cleans them',async t=>{
+ const f=await fixture(t,{complete:false}),before=await snapshot(f.b);useFactory(t,f.factory);await assert.rejects(selectOriginalApplicationStore(f.storage,{configuration}),{code:'GENERATION_RECOVERY_COMPLETION_REQUIRED'});assert.deepEqual(await snapshot(f.b),before);assert.ok(!(await f.factory.databases()).some(x=>x.name===DATABASE_NAME));
+ const completion=await f.publication.openRecoveryCompletion(f.handle,f.b);while((await completion.advance()).state!=='ready'){}const store=await selected(t,f);assert.equal(store.constructor,originalOrganizerConstructor());assert.equal(store.repository.name,f.b.repository.name);
 });
