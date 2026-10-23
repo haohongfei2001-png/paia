@@ -1,0 +1,263 @@
+TAP version 13
+# {"count":1,"items":7,"phase":"authenticated","workBytes":86347,"activeMs":5,"tickets":1}
+# Subtest: explicit phased authentication of 1 original Human creates keeps canonical target invisible
+ok 1 - explicit phased authentication of 1 original Human creates keeps canonical target invisible
+  ---
+  duration_ms: 104.80875
+  type: 'test'
+  ...
+# Subtest: committed page followed by lost response burns original reservation on fresh explicit continuation
+ok 2 - committed page followed by lost response burns original reservation on fresh explicit continuation
+  ---
+  duration_ms: 237.490417
+  type: 'test'
+  ...
+# Subtest: old checkpoint invocation cannot silently enter or reset a phased task
+ok 3 - old checkpoint invocation cannot silently enter or reset a phased task
+  ---
+  duration_ms: 72.109084
+  type: 'test'
+  ...
+# Subtest: transport fault leaves a durable reservation without synthetic refund
+ok 4 - transport fault leaves a durable reservation without synthetic refund
+  ---
+  duration_ms: 61.311625
+  type: 'test'
+  ...
+# Subtest: ledger cannot double refund, reset spent work or accept unknown shape
+ok 5 - ledger cannot double refund, reset spent work or accept unknown shape
+  ---
+  duration_ms: 0.270625
+  type: 'test'
+  ...
+# Subtest: ledger hard task ceilings survive repeated conservative cold burns
+ok 6 - ledger hard task ceilings survive repeated conservative cold burns
+  ---
+  duration_ms: 0.37475
+  type: 'test'
+  ...
+# {"validatedGroups":1,"workBytes":176144,"activeMs":13,"tickets":4}
+# Subtest: explicit phased whole Human graph validates 1 groups without claiming canonical application
+ok 7 - explicit phased whole Human graph validates 1 groups without claiming canonical application
+  ---
+  duration_ms: 83.340458
+  type: 'test'
+  ...
+# {"verificationGroups":1,"state":"verified-in-process","completed":1,"total":1,"pages":1,"workBytes":351141,"publicationQualified":false}
+# {"ownerGroups":1,"state":"applied","completed":1,"total":1,"workBytes":317792,"activeMs":52,"publicationQualified":false}
+# Subtest: phased original owner consumes 1 source-free Human groups within durable task budget
+ok 8 - phased original owner consumes 1 source-free Human groups within durable task budget
+  ---
+  duration_ms: 150.444458
+  type: 'test'
+  ...
+# {"ownerGroups":129,"last":{"state":"applying","completed":36,"total":129,"workBytes":16692386,"activeMs":2228,"publicationQualified":false},"error":"BNS_GROUP_RESOURCE_LIMIT","message":"BNS_GROUP_RESOURCE_LIMIT","stack":"Error: BNS_GROUP_RESOURCE_LIMIT\\n    at ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:503:955)\\n    at async tx (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:38:215)\\n    at async \#step (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:74:16)\\n    at async CanonicalGenerationPhasedHumanRestore.step (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:66:129)\\n    at async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/canonical-generation-phased-stage.test.mjs:25:386)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+# Subtest: phased original owner consumes 129 source-free Human groups within durable task budget
+ok 9 - phased original owner consumes 129 source-free Human groups within durable task budget
+  ---
+  duration_ms: 4099.309833
+  type: 'test'
+  ...
+# {"phaseCosts":1,"authenticate":{"bytes":86347,"ms":5},"validate":{"bytes":89797,"ms":7},"owner":{"bytes":141638,"ms":31},"controlWork":{"transactions":11,"references":159,"bytes":65701,"activeMs":10.863458999998329,"maxReferences":17,"maxBytes":14881,"maxActiveMs":3.852332999999817}}
+# {"publicationGroups":1,"prepared":{"state":"prepared","manifestId":"f532529a007051c60988f2b32e3f056026602844b04034e2e6e4ebec13796250","graphDigest":"cdd4961c8be33fa54a1f706fc02353cd3014368204faa4841c162a948edce2d4","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"prepaidBytes":2097152,"prepaidMs":30000}}
+# {"publicationGroups":1,"task":{"id":"canonical-generation:checkpoint:phased-task:v1","version":1,"taskId":"aad96af9-20ea-4bd8-afa1-73ec3571cb1d","identity":{"manifestId":"f532529a007051c60988f2b32e3f056026602844b04034e2e6e4ebec13796250","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"sourceBase":{"root":{"id":"canonical-generation:registry:v1","version":1,"revision":0,"active":null,"pending":null},"gate":null}},"phase":"verified","tickets":6,"burned":0,"workBytes":2414934,"activeMs":30043,"pending":null,"transportIds":["287c91785f67b08936176b65541a96f2551ba83ff63abeae92475fa1c8210470"]},"work":{"native":{"references":114,"bytes":55495,"activeMs":24.001792000000023},"preparationBytes":907,"prepaidBytes":2097152,"prepaidMs":30000},"controlWork":{"transactions":12,"references":170,"bytes":69773,"activeMs":14.114000999998098,"maxReferences":17,"maxBytes":14881,"maxActiveMs":3.852332999999817}}
+# Subtest: fixed phased publication closes 1 original Human groups atomically
+ok 10 - fixed phased publication closes 1 original Human groups atomically
+  ---
+  duration_ms: 137.822125
+  type: 'test'
+  ...
+# {"phaseCosts":65,"authenticate":{"bytes":3242514,"ms":110},"validate":{"bytes":2804549,"ms":137},"owner":{"bytes":8456566,"ms":2084},"controlWork":{"transactions":187,"references":2287,"bytes":951413,"activeMs":479.34778699999606,"maxReferences":17,"maxBytes":14893,"maxActiveMs":7.059709000000112}}
+# {"publicationGroups":65,"prepared":{"state":"prepared","manifestId":"2fe3cb937c145a2391c7f7f598ffa117a3b15df9c48c4f2c4fd002ff64bf2889","graphDigest":"406eda22d0966ca7e322c920ed1523d9389bc5c1987f7a4b86d0a479144e9c02","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"prepaidBytes":2097152,"prepaidMs":30000}}
+# {"publicationGroups":65,"result":"BNS_GROUP_RESOURCE_LIMIT","task":{"id":"canonical-generation:checkpoint:phased-task:v1","version":1,"taskId":"2fb05929-a1e9-4e54-a3c2-6abfc500c1ec","identity":{"manifestId":"2fe3cb937c145a2391c7f7f598ffa117a3b15df9c48c4f2c4fd002ff64bf2889","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"sourceBase":{"root":{"id":"canonical-generation:registry:v1","version":1,"revision":0,"active":null,"pending":null},"gate":null}},"phase":"applying","tickets":94,"burned":0,"workBytes":16600781,"activeMs":32331,"pending":{"sequence":94,"kind":"verify","bytes":2097152,"ms":30000},"transportIds":["489d86c2170dda0eb53e890f495886c8c72a57fd93a4a513ef502cc53032bfcd","eff4dfc624de7ad38af78d1c569bfb3000f645226bc9f1b5f89c7736831836ea","cb36282d8f6b3975753bd0b8a2232eb37b431267154da8e83b02173d7f72b376","1214d535050a175c519ededdf679c586d7e08df0366621c0be026a9dd1df8d0a"]},"controlWork":{"transactions":188,"references":2298,"bytes":956102,"activeMs":482.7470789999943,"maxReferences":17,"maxBytes":14893,"maxActiveMs":7.059709000000112}}
+# Subtest: complete semantic closure keeps 65-group publication within the hard budget by rejecting excess
+ok 11 - complete semantic closure keeps 65-group publication within the hard budget by rejecting excess
+  ---
+  duration_ms: 3952.469
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late item mutation and rolls back the whole publication transaction
+ok 12 - fixed phased seal rejects real late item mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 126.336791
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late page mutation and rolls back the whole publication transaction
+ok 13 - fixed phased seal rejects real late page mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 131.088125
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late validation mutation and rolls back the whole publication transaction
+ok 14 - fixed phased seal rejects real late validation mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 142.961291
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late canonical mutation and rolls back the whole publication transaction
+ok 15 - fixed phased seal rejects real late canonical mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 122.271959
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late receipt mutation and rolls back the whole publication transaction
+ok 16 - fixed phased seal rejects real late receipt mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 126.396625
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late counter mutation and rolls back the whole publication transaction
+ok 17 - fixed phased seal rejects real late counter mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 136.17825
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late extra mutation and rolls back the whole publication transaction
+ok 18 - fixed phased seal rejects real late extra mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 135.801667
+  type: 'test'
+  ...
+# Subtest: fixed phased publication rejects forged proof and active source changed since original begin
+ok 19 - fixed phased publication rejects forged proof and active source changed since original begin
+  ---
+  duration_ms: 121.118792
+  type: 'test'
+  ...
+# Subtest: live phased invocation cannot be mistaken for a cold crashed reservation
+ok 20 - live phased invocation cannot be mistaken for a cold crashed reservation
+  ---
+  duration_ms: 62.472666
+  type: 'test'
+  ...
+# Subtest: phased original journal rejects instance getter substitution before reading it or spending a ticket
+ok 21 - phased original journal rejects instance getter substitution before reading it or spending a ticket
+  ---
+  duration_ms: 74.731208
+  type: 'test'
+  ...
+# Subtest: cold proof reconstruction after owner application stays closed and cannot reset accumulated task
+ok 22 - cold proof reconstruction after owner application stays closed and cannot reset accumulated task
+  ---
+  duration_ms: 124.893084
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-sequence mutation and rolls back the whole publication transaction
+ok 23 - fixed phased seal rejects real late semantic-sequence mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 220.653458
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-known mutation and rolls back the whole publication transaction
+ok 24 - fixed phased seal rejects real late semantic-known mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 153.711917
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-dirty mutation and rolls back the whole publication transaction
+ok 25 - fixed phased seal rejects real late semantic-dirty mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 146.530334
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-extra mutation and rolls back the whole publication transaction
+ok 26 - fixed phased seal rejects real late semantic-extra mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 132.225125
+  type: 'test'
+  ...
+# SYNTHETIC cold graph revalidated
+# SYNTHETIC cold expectations rehydrated
+# Subtest: explicit cold rehydration resumes the original two-group cursor and publishes without resetting its ledger
+ok 27 - explicit cold rehydration resumes the original two-group cursor and publishes without resetting its ledger
+  ---
+  duration_ms: 291.55025
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable origin drift without publishing
+ok 28 - cold original expectation refuses durable origin drift without publishing
+  ---
+  duration_ms: 155.724958
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable entry drift without publishing
+ok 29 - cold original expectation refuses durable entry drift without publishing
+  ---
+  duration_ms: 173.114958
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable history drift without publishing
+ok 30 - cold original expectation refuses durable history drift without publishing
+  ---
+  duration_ms: 168.976208
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable receipt drift without publishing
+ok 31 - cold original expectation refuses durable receipt drift without publishing
+  ---
+  duration_ms: 213.099333
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable semantic drift without publishing
+ok 32 - cold original expectation refuses durable semantic drift without publishing
+  ---
+  duration_ms: 240.072416
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable binding drift without publishing
+ok 33 - cold original expectation refuses durable binding drift without publishing
+  ---
+  duration_ms: 231.174583
+  type: 'test'
+  ...
+# Subtest: cold original expectation refuses durable compatibility drift without publishing
+ok 34 - cold original expectation refuses durable compatibility drift without publishing
+  ---
+  duration_ms: 200.710667
+  type: 'test'
+  ...
+# Subtest: cold completed readiness never repairs incomplete or damaged binding inside a shadow generation
+ok 35 - cold completed readiness never repairs incomplete or damaged binding inside a shadow generation
+  ---
+  duration_ms: 130.606917
+  type: 'test'
+  ...
+# Subtest: cold completed readiness never repairs incomplete or damaged binding-version inside a shadow generation
+ok 36 - cold completed readiness never repairs incomplete or damaged binding-version inside a shadow generation
+  ---
+  duration_ms: 151.371333
+  type: 'test'
+  ...
+# Subtest: cold completed readiness never repairs incomplete or damaged compatibility inside a shadow generation
+ok 37 - cold completed readiness never repairs incomplete or damaged compatibility inside a shadow generation
+  ---
+  duration_ms: 129.97075
+  type: 'test'
+  ...
+# Subtest: cold readonly readiness does not permit later binding drift before the next original owner
+ok 38 - cold readonly readiness does not permit later binding drift before the next original owner
+  ---
+  duration_ms: 210.402958
+  type: 'test'
+  ...
+# Subtest: cold readonly readiness does not permit later compatibility drift before the next original owner
+ok 39 - cold readonly readiness does not permit later compatibility drift before the next original owner
+  ---
+  duration_ms: 203.589875
+  type: 'test'
+  ...
+# Subtest: cold publication crash keeps the old prepaid ticket burned and resumes the original completed cursor
+ok 40 - cold publication crash keeps the old prepaid ticket burned and resumes the original completed cursor
+  ---
+  duration_ms: 299.982042
+  type: 'test'
+  ...
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13801.859

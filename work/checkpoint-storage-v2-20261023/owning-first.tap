@@ -1,0 +1,480 @@
+TAP version 13
+# Subtest: generation checkpoint authenticates original Source graph and mints private input proof without canonical writes
+ok 1 - generation checkpoint authenticates original Source graph and mints private input proof without canonical writes
+  ---
+  duration_ms: 171.651417
+  type: 'test'
+  ...
+# Subtest: generation checkpoint resumes after committed final page and validates durable cursor/receipt
+ok 2 - generation checkpoint resumes after committed final page and validates durable cursor/receipt
+  ---
+  duration_ms: 116.010542
+  type: 'test'
+  ...
+# Subtest: generation checkpoint lost page response resumes exact cursor without duplicate items
+ok 3 - generation checkpoint lost page response resumes exact cursor without duplicate items
+  ---
+  duration_ms: 107.364875
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable item drift before proof
+ok 4 - generation checkpoint rejects durable item drift before proof
+  ---
+  duration_ms: 88.895834
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable page drift before proof
+ok 5 - generation checkpoint rejects durable page drift before proof
+  ---
+  duration_ms: 79.496166
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable cursor drift before proof
+ok 6 - generation checkpoint rejects durable cursor drift before proof
+  ---
+  duration_ms: 78.07175
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable extra-item drift before proof
+ok 7 - generation checkpoint rejects durable extra-item drift before proof
+  ---
+  duration_ms: 75.1295
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable gate drift before proof
+ok 8 - generation checkpoint rejects durable gate drift before proof
+  ---
+  duration_ms: 75.92475
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late item and rolls back
+ok 9 - generation checkpoint original same-TX terminal rejects late item and rolls back
+  ---
+  duration_ms: 96.699875
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late page and rolls back
+ok 10 - generation checkpoint original same-TX terminal rejects late page and rolls back
+  ---
+  duration_ms: 99.47875
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late extra-item and rolls back
+ok 11 - generation checkpoint original same-TX terminal rejects late extra-item and rolls back
+  ---
+  duration_ms: 94.324125
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late state and rolls back
+ok 12 - generation checkpoint original same-TX terminal rejects late state and rolls back
+  ---
+  duration_ms: 88.084792
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late gate and rolls back
+ok 13 - generation checkpoint original same-TX terminal rejects late gate and rolls back
+  ---
+  duration_ms: 89.347875
+  type: 'test'
+  ...
+# Subtest: generation checkpoint detaches manifest ref before held external get
+ok 14 - generation checkpoint detaches manifest ref before held external get
+  ---
+  duration_ms: 64.770125
+  type: 'test'
+  ...
+# Subtest: generation checkpoint refuses another target handle or foreign compiler binding
+ok 15 - generation checkpoint refuses another target handle or foreign compiler binding
+  ---
+  duration_ms: 72.229666
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects incomplete immutable chain before authenticated state
+ok 16 - generation checkpoint rejects incomplete immutable chain before authenticated state
+  ---
+  duration_ms: 63.323125
+  type: 'test'
+  ...
+# (node:98076) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: generation checkpoint held manifest get times out and late completion cannot create state
+ok 17 - generation checkpoint held manifest get times out and late completion cannot create state
+  ---
+  duration_ms: 58.515583
+  type: 'test'
+  ...
+# Subtest: generation checkpoint authenticates multiple durable pages from actual original Source appends
+ok 18 - generation checkpoint authenticates multiple durable pages from actual original Source appends
+  ---
+  duration_ms: 256.69575
+  type: 'test'
+  ...
+# Subtest: generation checkpoint valid immutable hashes do not prove an incomplete original causal group
+ok 19 - generation checkpoint valid immutable hashes do not prove an incomplete original causal group
+  ---
+  duration_ms: 69.595041
+  type: 'test'
+  ...
+# Subtest: generation checkpoint v1 charges declared decoded transport bytes before decompression or fetch
+ok 20 - generation checkpoint v1 charges declared decoded transport bytes before decompression or fetch
+  ---
+  duration_ms: 89.354208
+  type: 'test'
+  ...
+# Subtest: generation checkpoint source base is fixed before first manifest read and refuses subsequent publication
+ok 21 - generation checkpoint source base is fixed before first manifest read and refuses subsequent publication
+  ---
+  duration_ms: 66.815292
+  type: 'test'
+  ...
+# Subtest: generation checkpoint restart never refreshes a stale durable begin source base
+ok 22 - generation checkpoint restart never refreshes a stale durable begin source base
+  ---
+  duration_ms: 64.648458
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects rewritten durable manifest identity before private proof
+ok 23 - generation checkpoint rejects rewritten durable manifest identity before private proof
+  ---
+  duration_ms: 60.364959
+  type: 'test'
+  ...
+# Subtest: generation checkpoint authenticates original gzip manifest bytes on durable validation
+ok 24 - generation checkpoint authenticates original gzip manifest bytes on durable validation
+  ---
+  duration_ms: 72.927416
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable manifest bytes mismatch
+ok 25 - generation checkpoint rejects durable manifest bytes mismatch
+  ---
+  duration_ms: 58.572042
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable manifest manifest mismatch
+ok 26 - generation checkpoint rejects durable manifest manifest mismatch
+  ---
+  duration_ms: 57.262667
+  type: 'test'
+  ...
+# Subtest: fixed copy retirement preserves original canonical export before and after and cold resumes
+ok 27 - fixed copy retirement preserves original canonical export before and after and cold resumes
+  ---
+  duration_ms: 779.255333
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+ok 28 - copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+  ---
+  duration_ms: 377.865
+  type: 'test'
+  ...
+# Subtest: copy retirement has no arbitrary public deletion or receipt authority
+ok 29 - copy retirement has no arbitrary public deletion or receipt authority
+  ---
+  duration_ms: 337.419667
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification kind
+ok 30 - copy retirement refuses changed fixed qualification kind
+  ---
+  duration_ms: 318.888417
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification identity
+ok 31 - copy retirement refuses changed fixed qualification identity
+  ---
+  duration_ms: 303.695375
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification seal
+ok 32 - copy retirement refuses changed fixed qualification seal
+  ---
+  duration_ms: 282.108417
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification sourceBase
+ok 33 - copy retirement refuses changed fixed qualification sourceBase
+  ---
+  duration_ms: 300.094792
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses unknown copy without deleting remaining copies
+ok 34 - copy retirement refuses unknown copy without deleting remaining copies
+  ---
+  duration_ms: 342.271042
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing copy without deleting remaining copies
+ok 35 - copy retirement refuses missing copy without deleting remaining copies
+  ---
+  duration_ms: 308.109875
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses foreign marker without deleting remaining copies
+ok 36 - copy retirement refuses foreign marker without deleting remaining copies
+  ---
+  duration_ms: 432.208541
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing marker without deleting remaining copies
+ok 37 - copy retirement refuses missing marker without deleting remaining copies
+  ---
+  duration_ms: 283.708541
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses forged progress without deleting remaining copies
+ok 38 - copy retirement refuses forged progress without deleting remaining copies
+  ---
+  duration_ms: 258.408167
+  type: 'test'
+  ...
+# Subtest: copy retirement cannot use a generic metadata publication as graph qualification
+ok 39 - copy retirement cannot use a generic metadata publication as graph qualification
+  ---
+  duration_ms: 68.892458
+  type: 'test'
+  ...
+# Subtest: retirement cannot execute a caller callback or expand its fixed deletion scope
+ok 40 - retirement cannot execute a caller callback or expand its fixed deletion scope
+  ---
+  duration_ms: 257.221417
+  type: 'test'
+  ...
+# Subtest: copy retirement settles only a bounded page and resumes actual remaining copies on cold reopen
+ok 41 - copy retirement settles only a bounded page and resumes actual remaining copies on cold reopen
+  ---
+  duration_ms: 852.073375
+  type: 'test'
+  ...
+# Subtest: phased retirement removes only checkpoint body copies and preserves export and audit controls
+ok 42 - phased retirement removes only checkpoint body copies and preserves export and audit controls
+  ---
+  duration_ms: 385.752542
+  type: 'test'
+  ...
+# Subtest: phased retirement bounded page survives actual store and registry close then preserves original edit
+ok 43 - phased retirement bounded page survives actual store and registry close then preserves original edit
+  ---
+  duration_ms: 575.335166
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses unknown with complete rollback
+ok 44 - phased retirement refuses unknown with complete rollback
+  ---
+  duration_ms: 185.029333
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses missing-item with complete rollback
+ok 45 - phased retirement refuses missing-item with complete rollback
+  ---
+  duration_ms: 186.158708
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses missing-validation with complete rollback
+ok 46 - phased retirement refuses missing-validation with complete rollback
+  ---
+  duration_ms: 163.719709
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses pending-task with complete rollback
+ok 47 - phased retirement refuses pending-task with complete rollback
+  ---
+  duration_ms: 159.914
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses foreign-task with complete rollback
+ok 48 - phased retirement refuses foreign-task with complete rollback
+  ---
+  duration_ms: 159.966333
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses validation-chain with complete rollback
+ok 49 - phased retirement refuses validation-chain with complete rollback
+  ---
+  duration_ms: 155.713875
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses receipt-extra with complete rollback
+ok 50 - phased retirement refuses receipt-extra with complete rollback
+  ---
+  duration_ms: 152.148166
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses progress with complete rollback
+ok 51 - phased retirement refuses progress with complete rollback
+  ---
+  duration_ms: 146.459709
+  type: 'test'
+  ...
+# Subtest: phased retirement terminal fence refuses late ledger and rolls back deletions
+ok 52 - phased retirement terminal fence refuses late ledger and rolls back deletions
+  ---
+  duration_ms: 144.473167
+  type: 'test'
+  ...
+# Subtest: phased retirement terminal fence refuses late new-copy and rolls back deletions
+ok 53 - phased retirement terminal fence refuses late new-copy and rolls back deletions
+  ---
+  duration_ms: 160.793458
+  type: 'test'
+  ...
+# Subtest: phased retirement pins audit controls across cleanup calls
+ok 54 - phased retirement pins audit controls across cleanup calls
+  ---
+  duration_ms: 498.892708
+  type: 'test'
+  ...
+# Subtest: private checkpoint storage v1 survives real cold owner continuation and copy retirement
+ok 55 - private checkpoint storage v1 survives real cold owner continuation and copy retirement
+  ---
+  duration_ms: 489.598084
+  type: 'test'
+  ...
+# Subtest: private checkpoint storage v2 survives real cold owner continuation and copy retirement
+ok 56 - private checkpoint storage v2 survives real cold owner continuation and copy retirement
+  ---
+  duration_ms: 353.6055
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses version drift without migration
+ok 57 - private checkpoint cold reader refuses version drift without migration
+  ---
+  duration_ms: 82.182916
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses base64 drift without migration
+ok 58 - private checkpoint cold reader refuses base64 drift without migration
+  ---
+  duration_ms: 88.888875
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses length drift without migration
+ok 59 - private checkpoint cold reader refuses length drift without migration
+  ---
+  duration_ms: 79.404167
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses hash drift without migration
+ok 60 - private checkpoint cold reader refuses hash drift without migration
+  ---
+  duration_ms: 84.485
+  type: 'test'
+  ...
+# Subtest: private manifest bytes v2 canonical exact roundtrip 1
+ok 61 - private manifest bytes v2 canonical exact roundtrip 1
+  ---
+  duration_ms: 1.01725
+  type: 'test'
+  ...
+# Subtest: private manifest bytes v2 canonical exact roundtrip 2
+ok 62 - private manifest bytes v2 canonical exact roundtrip 2
+  ---
+  duration_ms: 0.113375
+  type: 'test'
+  ...
+# Subtest: private manifest bytes v2 canonical exact roundtrip 3
+ok 63 - private manifest bytes v2 canonical exact roundtrip 3
+  ---
+  duration_ms: 0.081125
+  type: 'test'
+  ...
+# Subtest: private manifest bytes v2 canonical exact roundtrip 256
+ok 64 - private manifest bytes v2 canonical exact roundtrip 256
+  ---
+  duration_ms: 0.119541
+  type: 'test'
+  ...
+# Subtest: private manifest bytes v2 canonical exact roundtrip 4096
+ok 65 - private manifest bytes v2 canonical exact roundtrip 4096
+  ---
+  duration_ms: 0.636166
+  type: 'test'
+  ...
+# Subtest: private manifest bytes v2 canonical exact roundtrip 1048576
+ok 66 - private manifest bytes v2 canonical exact roundtrip 1048576
+  ---
+  duration_ms: 73.025625
+  type: 'test'
+  ...
+# Subtest: private manifest storage refuses noncanonical "Zh==" length 1
+ok 67 - private manifest storage refuses noncanonical "Zh==" length 1
+  ---
+  duration_ms: 0.297209
+  type: 'test'
+  ...
+# Subtest: private manifest storage refuses noncanonical "Zm9=" length 2
+ok 68 - private manifest storage refuses noncanonical "Zm9=" length 2
+  ---
+  duration_ms: 0.0395
+  type: 'test'
+  ...
+# Subtest: private manifest storage refuses noncanonical "Zg" length 1
+ok 69 - private manifest storage refuses noncanonical "Zg" length 1
+  ---
+  duration_ms: 0.165959
+  type: 'test'
+  ...
+# Subtest: private manifest storage refuses noncanonical "Zg===" length 1
+ok 70 - private manifest storage refuses noncanonical "Zg===" length 1
+  ---
+  duration_ms: 0.27675
+  type: 'test'
+  ...
+# Subtest: private manifest storage refuses noncanonical "Zg==\\n" length 1
+ok 71 - private manifest storage refuses noncanonical "Zg==\\n" length 1
+  ---
+  duration_ms: 0.090834
+  type: 'test'
+  ...
+# Subtest: private manifest storage refuses noncanonical "-g==" length 1
+ok 72 - private manifest storage refuses noncanonical "-g==" length 1
+  ---
+  duration_ms: 0.030666
+  type: 'test'
+  ...
+# Subtest: private manifest storage refuses noncanonical "_g==" length 1
+ok 73 - private manifest storage refuses noncanonical "_g==" length 1
+  ---
+  duration_ms: 0.022
+  type: 'test'
+  ...
+# Subtest: private manifest storage refuses noncanonical "=AAA" length 3
+ok 74 - private manifest storage refuses noncanonical "=AAA" length 3
+  ---
+  duration_ms: 0.020958
+  type: 'test'
+  ...
+# Subtest: private manifest storage refuses noncanonical "AAA=" length 3
+ok 75 - private manifest storage refuses noncanonical "AAA=" length 3
+  ---
+  duration_ms: 0.068333
+  type: 'test'
+  ...
+# Subtest: private manifest storage refuses noncanonical "AAAA" length 2
+ok 76 - private manifest storage refuses noncanonical "AAAA" length 2
+  ---
+  duration_ms: 0.021917
+  type: 'test'
+  ...
+# Subtest: private manifest storage refuses noncanonical "" length 0
+ok 77 - private manifest storage refuses noncanonical "" length 0
+  ---
+  duration_ms: 0.018375
+  type: 'test'
+  ...
+# Subtest: private manifest storage rejects unknown versions and malformed legacy arrays
+ok 78 - private manifest storage rejects unknown versions and malformed legacy arrays
+  ---
+  duration_ms: 0.190709
+  type: 'test'
+  ...
+1..78
+# tests 78
+# suites 0
+# pass 78
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5672.79675

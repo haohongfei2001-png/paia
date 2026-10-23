@@ -1,0 +1,52 @@
+{
+  "node": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+  "calls": [
+    {
+      "args": [
+        "--test",
+        "extension/tests/checkpoint-manifest-storage.test.mjs",
+        "extension/tests/checkpoint-manifest-storage-cold.test.mjs",
+        "extension/tests/canonical-generation-checkpoint-stage.test.mjs",
+        "extension/tests/canonical-generation-copy-retirement.test.mjs",
+        "extension/tests/canonical-generation-phased-copy-retirement.test.mjs"
+      ],
+      "exit": 0,
+      "log": "owning-first.tap"
+    },
+    {
+      "args": [
+        "--test",
+        "--test-name-pattern=^(?!.*(?:129 source-free|65-group)).*$",
+        "extension/tests/canonical-generation-phased-stage.test.mjs"
+      ],
+      "exit": 0,
+      "log": "phased-selected.tap"
+    },
+    {
+      "args": [
+        "work/checkpoint-storage-v2-20261023/fixed-comparison.mjs"
+      ],
+      "exit": 0,
+      "log": "fixed-comparison.log"
+    },
+    {
+      "args": [
+        "--test",
+        "--test-name-pattern=original gzip manifest",
+        "extension/tests/canonical-generation-checkpoint-stage.test.mjs"
+      ],
+      "exit": 0,
+      "log": "gzip-compat-added.tap"
+    },
+    {
+      "args": [
+        "--test",
+        "extension/tests/canonical-generation-copy-retirement.test.mjs",
+        "extension/tests/canonical-generation-phased-copy-retirement.test.mjs",
+        "extension/tests/checkpoint-manifest-storage-cold.test.mjs"
+      ],
+      "exit": 0,
+      "log": "retirement-final.tap"
+    }
+  ]
+}

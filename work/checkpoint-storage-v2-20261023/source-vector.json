@@ -1,0 +1,9 @@
+{
+  "extension/core/browser-native-sync/checkpoint-manifest-storage.js": "30ee42365a495c2346cc97328fcd0ac8f760fb854add5dfd54b105d99fc117ed",
+  "extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js": "b7fa358c7e15774c5d3f21b667ba5e5506f774c700a82cb5c5906746ca7c0a72",
+  "extension/core/browser-native-sync/canonical-generation-copy-retirement.js": "474f1bd5d61311eece4734bd05ace5e3ed1d9008486bd51af93a2a84f569f165",
+  "extension/tests/checkpoint-manifest-storage.test.mjs": "029da4ab811a9a2b3b10242c94ffb32d1002c61c3f4ccb67e7f9433d9032eb21",
+  "extension/tests/checkpoint-manifest-storage-cold.test.mjs": "72a71224776992da7c4722b9fc436eca281d6342c9ba0233690b26dc08e813e3",
+  "extension/tests/canonical-generation-checkpoint-stage.test.mjs": "76d81799e2f901854f97e844c9f50caab346dc33f443b9f972d951a0b44f7584",
+  "extension/tests/canonical-generation-phased-copy-retirement.test.mjs": "6151b4445151c0e62352d9a594ee2995e3cf9071f03d05e03e40e1eab28e8905"
+}

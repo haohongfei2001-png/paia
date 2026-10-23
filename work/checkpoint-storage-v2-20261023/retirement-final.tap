@@ -1,0 +1,238 @@
+TAP version 13
+# Subtest: fixed copy retirement preserves original canonical export before and after and cold resumes
+ok 1 - fixed copy retirement preserves original canonical export before and after and cold resumes
+  ---
+  duration_ms: 564.963792
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+ok 2 - copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+  ---
+  duration_ms: 271.422459
+  type: 'test'
+  ...
+# Subtest: copy retirement has no arbitrary public deletion or receipt authority
+ok 3 - copy retirement has no arbitrary public deletion or receipt authority
+  ---
+  duration_ms: 248.864583
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification kind
+ok 4 - copy retirement refuses changed fixed qualification kind
+  ---
+  duration_ms: 245.457333
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification identity
+ok 5 - copy retirement refuses changed fixed qualification identity
+  ---
+  duration_ms: 245.208792
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification seal
+ok 6 - copy retirement refuses changed fixed qualification seal
+  ---
+  duration_ms: 243.127833
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification sourceBase
+ok 7 - copy retirement refuses changed fixed qualification sourceBase
+  ---
+  duration_ms: 250.0685
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses unknown copy without deleting remaining copies
+ok 8 - copy retirement refuses unknown copy without deleting remaining copies
+  ---
+  duration_ms: 250.859208
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing copy without deleting remaining copies
+ok 9 - copy retirement refuses missing copy without deleting remaining copies
+  ---
+  duration_ms: 260.186166
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses foreign marker without deleting remaining copies
+ok 10 - copy retirement refuses foreign marker without deleting remaining copies
+  ---
+  duration_ms: 254.944791
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing marker without deleting remaining copies
+ok 11 - copy retirement refuses missing marker without deleting remaining copies
+  ---
+  duration_ms: 237.939125
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses forged progress without deleting remaining copies
+ok 12 - copy retirement refuses forged progress without deleting remaining copies
+  ---
+  duration_ms: 232.786417
+  type: 'test'
+  ...
+# Subtest: copy retirement cannot use a generic metadata publication as graph qualification
+ok 13 - copy retirement cannot use a generic metadata publication as graph qualification
+  ---
+  duration_ms: 60.977417
+  type: 'test'
+  ...
+# Subtest: retirement cannot execute a caller callback or expand its fixed deletion scope
+ok 14 - retirement cannot execute a caller callback or expand its fixed deletion scope
+  ---
+  duration_ms: 227.070375
+  type: 'test'
+  ...
+# Subtest: copy retirement settles only a bounded page and resumes actual remaining copies on cold reopen
+ok 15 - copy retirement settles only a bounded page and resumes actual remaining copies on cold reopen
+  ---
+  duration_ms: 843.4775
+  type: 'test'
+  ...
+# Subtest: phased retirement removes only checkpoint body copies and preserves export and audit controls
+ok 16 - phased retirement removes only checkpoint body copies and preserves export and audit controls
+  ---
+  duration_ms: 283.9945
+  type: 'test'
+  ...
+# Subtest: phased retirement bounded page survives actual store and registry close then preserves original edit
+ok 17 - phased retirement bounded page survives actual store and registry close then preserves original edit
+  ---
+  duration_ms: 455.386334
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses unknown with complete rollback
+ok 18 - phased retirement refuses unknown with complete rollback
+  ---
+  duration_ms: 142.731792
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses missing-item with complete rollback
+ok 19 - phased retirement refuses missing-item with complete rollback
+  ---
+  duration_ms: 133.98825
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses missing-validation with complete rollback
+ok 20 - phased retirement refuses missing-validation with complete rollback
+  ---
+  duration_ms: 135.87775
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses pending-task with complete rollback
+ok 21 - phased retirement refuses pending-task with complete rollback
+  ---
+  duration_ms: 131.113375
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses foreign-task with complete rollback
+ok 22 - phased retirement refuses foreign-task with complete rollback
+  ---
+  duration_ms: 131.256917
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses validation-chain with complete rollback
+ok 23 - phased retirement refuses validation-chain with complete rollback
+  ---
+  duration_ms: 131.318708
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses receipt-extra with complete rollback
+ok 24 - phased retirement refuses receipt-extra with complete rollback
+  ---
+  duration_ms: 128.295333
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses progress with complete rollback
+ok 25 - phased retirement refuses progress with complete rollback
+  ---
+  duration_ms: 130.696917
+  type: 'test'
+  ...
+# Subtest: phased retirement terminal fence refuses late ledger and rolls back deletions
+ok 26 - phased retirement terminal fence refuses late ledger and rolls back deletions
+  ---
+  duration_ms: 138.045875
+  type: 'test'
+  ...
+# Subtest: phased retirement terminal fence refuses late new-copy and rolls back deletions
+ok 27 - phased retirement terminal fence refuses late new-copy and rolls back deletions
+  ---
+  duration_ms: 135.495916
+  type: 'test'
+  ...
+# Subtest: phased retirement pins audit controls across cleanup calls
+ok 28 - phased retirement pins audit controls across cleanup calls
+  ---
+  duration_ms: 412.158792
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses malformed checkpoint storage version before any deletion
+ok 29 - phased retirement refuses malformed checkpoint storage version before any deletion
+  ---
+  duration_ms: 149.159
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses malformed checkpoint storage base64 before any deletion
+ok 30 - phased retirement refuses malformed checkpoint storage base64 before any deletion
+  ---
+  duration_ms: 135.33275
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses malformed checkpoint storage length before any deletion
+ok 31 - phased retirement refuses malformed checkpoint storage length before any deletion
+  ---
+  duration_ms: 129.399333
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses malformed checkpoint storage ref-digest before any deletion
+ok 32 - phased retirement refuses malformed checkpoint storage ref-digest before any deletion
+  ---
+  duration_ms: 128.589667
+  type: 'test'
+  ...
+# Subtest: private checkpoint storage v1 survives real cold owner continuation and copy retirement
+ok 33 - private checkpoint storage v1 survives real cold owner continuation and copy retirement
+  ---
+  duration_ms: 374.07575
+  type: 'test'
+  ...
+# Subtest: private checkpoint storage v2 survives real cold owner continuation and copy retirement
+ok 34 - private checkpoint storage v2 survives real cold owner continuation and copy retirement
+  ---
+  duration_ms: 278.3895
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses version drift without migration
+ok 35 - private checkpoint cold reader refuses version drift without migration
+  ---
+  duration_ms: 60.929416
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses base64 drift without migration
+ok 36 - private checkpoint cold reader refuses base64 drift without migration
+  ---
+  duration_ms: 58.5035
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses length drift without migration
+ok 37 - private checkpoint cold reader refuses length drift without migration
+  ---
+  duration_ms: 61.596208
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses hash drift without migration
+ok 38 - private checkpoint cold reader refuses hash drift without migration
+  ---
+  duration_ms: 59.559834
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4560.645

@@ -1,0 +1,284 @@
+{
+  "node": "v22.23.3",
+  "platform": "darwin",
+  "arch": "arm64",
+  "note": "Fixed synthetic clock, UUID sequence and migration secret. Matching original manifest hash for each v1/v2 pair. v1 is original legacy durable Array<number> format prepared before original phased authentication; v2 is actual new begin. No production clock/random mutation. No timing inference. Final reservation remains unchanged 2MiB; full original raw final seal executed for these small samples only.",
+  "results": [
+    {
+      "count": 1,
+      "version": 1,
+      "manifestId": "c0f25829aaa423199006b2ea758d49a94c13ec5485f0e4bddafa1f9e1c05be46",
+      "manifestEncodedBytes": 1956,
+      "statePhysicalBytes": 9124,
+      "representationPhysicalBytes": 6591,
+      "phases": [
+        {
+          "name": "authenticate",
+          "ledgerBytes": 110233,
+          "accumulatedBytes": 110233,
+          "tickets": 1
+        },
+        {
+          "name": "validate",
+          "ledgerBytes": 113683,
+          "accumulatedBytes": 223916,
+          "tickets": 4
+        },
+        {
+          "name": "owner-0",
+          "ledgerBytes": 141628,
+          "accumulatedBytes": 365544,
+          "tickets": 5
+        },
+        {
+          "name": "final-prepare",
+          "ledgerBytes": 2097152,
+          "accumulatedBytes": 2462696,
+          "tickets": 6
+        },
+        {
+          "name": "final-seal",
+          "ledgerBytes": 0,
+          "accumulatedBytes": 2462696,
+          "tickets": 6
+        }
+      ]
+    },
+    {
+      "count": 1,
+      "version": 2,
+      "manifestId": "c0f25829aaa423199006b2ea758d49a94c13ec5485f0e4bddafa1f9e1c05be46",
+      "manifestEncodedBytes": 1956,
+      "statePhysicalBytes": 5143,
+      "representationPhysicalBytes": 2610,
+      "phases": [
+        {
+          "name": "authenticate",
+          "ledgerBytes": 86347,
+          "accumulatedBytes": 86347,
+          "tickets": 1
+        },
+        {
+          "name": "validate",
+          "ledgerBytes": 89797,
+          "accumulatedBytes": 176144,
+          "tickets": 4
+        },
+        {
+          "name": "owner-0",
+          "ledgerBytes": 141628,
+          "accumulatedBytes": 317772,
+          "tickets": 5
+        },
+        {
+          "name": "final-prepare",
+          "ledgerBytes": 2097152,
+          "accumulatedBytes": 2414924,
+          "tickets": 6
+        },
+        {
+          "name": "final-seal",
+          "ledgerBytes": 0,
+          "accumulatedBytes": 2414924,
+          "tickets": 6
+        }
+      ]
+    },
+    {
+      "count": 2,
+      "version": 1,
+      "manifestId": "bb98b7910c971b3d8edf8c7f7fef0e8b49dbdd7565de10d531e0c0e928e558cf",
+      "manifestEncodedBytes": 1959,
+      "statePhysicalBytes": 9131,
+      "representationPhysicalBytes": 6595,
+      "phases": [
+        {
+          "name": "authenticate",
+          "ledgerBytes": 155610,
+          "accumulatedBytes": 155610,
+          "tickets": 1
+        },
+        {
+          "name": "validate",
+          "ledgerBytes": 149875,
+          "accumulatedBytes": 305485,
+          "tickets": 4
+        },
+        {
+          "name": "owner-0",
+          "ledgerBytes": 142196,
+          "accumulatedBytes": 447681,
+          "tickets": 5
+        },
+        {
+          "name": "owner-1",
+          "ledgerBytes": 127872,
+          "accumulatedBytes": 575553,
+          "tickets": 6
+        },
+        {
+          "name": "final-prepare",
+          "ledgerBytes": 2097152,
+          "accumulatedBytes": 2672705,
+          "tickets": 7
+        },
+        {
+          "name": "final-seal",
+          "ledgerBytes": 0,
+          "accumulatedBytes": 2672705,
+          "tickets": 7
+        }
+      ]
+    },
+    {
+      "count": 2,
+      "version": 2,
+      "manifestId": "bb98b7910c971b3d8edf8c7f7fef0e8b49dbdd7565de10d531e0c0e928e558cf",
+      "manifestEncodedBytes": 1959,
+      "statePhysicalBytes": 5150,
+      "representationPhysicalBytes": 2614,
+      "phases": [
+        {
+          "name": "authenticate",
+          "ledgerBytes": 131724,
+          "accumulatedBytes": 131724,
+          "tickets": 1
+        },
+        {
+          "name": "validate",
+          "ledgerBytes": 125989,
+          "accumulatedBytes": 257713,
+          "tickets": 4
+        },
+        {
+          "name": "owner-0",
+          "ledgerBytes": 142196,
+          "accumulatedBytes": 399909,
+          "tickets": 5
+        },
+        {
+          "name": "owner-1",
+          "ledgerBytes": 127872,
+          "accumulatedBytes": 527781,
+          "tickets": 6
+        },
+        {
+          "name": "final-prepare",
+          "ledgerBytes": 2097152,
+          "accumulatedBytes": 2624933,
+          "tickets": 7
+        },
+        {
+          "name": "final-seal",
+          "ledgerBytes": 0,
+          "accumulatedBytes": 2624933,
+          "tickets": 7
+        }
+      ]
+    },
+    {
+      "count": 3,
+      "version": 1,
+      "manifestId": "e60e4a4fd7fbd55cf62149def7d6b8e2270343d7ebc6fa410a9edfeded3acedb",
+      "manifestEncodedBytes": 1959,
+      "statePhysicalBytes": 9128,
+      "representationPhysicalBytes": 6592,
+      "phases": [
+        {
+          "name": "authenticate",
+          "ledgerBytes": 200914,
+          "accumulatedBytes": 200914,
+          "tickets": 1
+        },
+        {
+          "name": "validate",
+          "ledgerBytes": 185979,
+          "accumulatedBytes": 386893,
+          "tickets": 4
+        },
+        {
+          "name": "owner-0",
+          "ledgerBytes": 142795,
+          "accumulatedBytes": 529688,
+          "tickets": 5
+        },
+        {
+          "name": "owner-1",
+          "ledgerBytes": 127914,
+          "accumulatedBytes": 657602,
+          "tickets": 6
+        },
+        {
+          "name": "owner-2",
+          "ledgerBytes": 127897,
+          "accumulatedBytes": 785499,
+          "tickets": 7
+        },
+        {
+          "name": "final-prepare",
+          "ledgerBytes": 2097152,
+          "accumulatedBytes": 2882651,
+          "tickets": 8
+        },
+        {
+          "name": "final-seal",
+          "ledgerBytes": 0,
+          "accumulatedBytes": 2882651,
+          "tickets": 8
+        }
+      ]
+    },
+    {
+      "count": 3,
+      "version": 2,
+      "manifestId": "e60e4a4fd7fbd55cf62149def7d6b8e2270343d7ebc6fa410a9edfeded3acedb",
+      "manifestEncodedBytes": 1959,
+      "statePhysicalBytes": 5150,
+      "representationPhysicalBytes": 2614,
+      "phases": [
+        {
+          "name": "authenticate",
+          "ledgerBytes": 177046,
+          "accumulatedBytes": 177046,
+          "tickets": 1
+        },
+        {
+          "name": "validate",
+          "ledgerBytes": 162111,
+          "accumulatedBytes": 339157,
+          "tickets": 4
+        },
+        {
+          "name": "owner-0",
+          "ledgerBytes": 142795,
+          "accumulatedBytes": 481952,
+          "tickets": 5
+        },
+        {
+          "name": "owner-1",
+          "ledgerBytes": 127914,
+          "accumulatedBytes": 609866,
+          "tickets": 6
+        },
+        {
+          "name": "owner-2",
+          "ledgerBytes": 127897,
+          "accumulatedBytes": 737763,
+          "tickets": 7
+        },
+        {
+          "name": "final-prepare",
+          "ledgerBytes": 2097152,
+          "accumulatedBytes": 2834915,
+          "tickets": 8
+        },
+        {
+          "name": "final-seal",
+          "ledgerBytes": 0,
+          "accumulatedBytes": 2834915,
+          "tickets": 8
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+# Phased recovery work accounting — 2026-10-23
+
+Base/runtime: `872e23b00e141f9f2d0a192d763ae91e9ba3e171`. This is an investigation of the consuming recovery path, not a passing scale milestone or a runtime change.
+
+## Actual bounded probe
+
+Three independent synthetic source/target/registry fixtures, containing exactly 1, 2 and 3 original source-free Human creates, ran the existing authentication, validation, every original owner, final preparation and actual generation seal once each. Node 22.23.3, darwin/arm64. No browser, build, installation, network, 65/129 restore, cloud or Full run. This probe seals the native fake-IDB generation but does not reserve/recover the active registry or claim cold lifecycle acceptance. Existing lifecycle evidence remains separate.
+
+A synchronous temporary observer at the original physical work meter recorded only numeric charges and fixed row categories. It did not replace a return, meter, limit, guard, fence, scheduler or transaction. Each real call still used its original counter and commit checks. It adds unmeasured observer execution overhead; timings are therefore not performance evidence. The original file bytes were restored in `finally`; execution.json contains equal before/after hashes. accounting.mjs is the exact caller and observer.patch records the exact temporary insertion. No runtime file remains modified. `accounting.json` contains no row content, IDs, source bodies, credentials or real user data.
+
+| Creates | Authentication ledger B | Validation ledger B | First owner B | Later owner B | Actual final native B / refs |
+|---|---:|---:|---:|---:|---:|
+| 1 | 110191 | 113641 | 141608 | — | 59460 / 114 |
+| 2 | 155622 | 149887 | 142226 | 127887 | 91805 / 144 |
+| 3 | 200926 | 185991 | 142845 | 127924;127897 | 124118 / 174 |
+
+Authentication/validation/owner ledger deltas include original serialization and committed physical data work. Independently charged control transactions are included in nativeBytes, then removed using the original completed control-work counter to obtain dataNativeBytes. They are never refunded to the task. The final preparation reserves 2097152 B and final seal settles that whole reservation conservatively; the difference between ledger delta and observed native bytes at those two phases is NOT serialization or negative work. It is prepaid reservation accounting.
+
+For the 3-group fixture, each later owner uses approximately 82500 B physical work plus 45400 B real encodings; total about 127900 B. There is **zero checkpoint-item charge in owner-1 and owner-2**. `prepareOriginalHumanGenerationStep` -> original Journal.prepareReceive -> Core.prepareHumanReceive uses this group's exact protocol/head/mapping and original allocation/permission facts; it does not read the entire preceding canonical inventory per group. `protocolExpectation` does CPU traversal of preceding operations to compute frontiers, but it does not reread all prior database rows and is not the 16 MiB native-byte culprit.
+
+Authentication/validation genuinely copy the checkpoint bodies more than once. In the 3-group fixture both phases charge 56502 B for checkpoint-item rows: append/read plus their required final exact read fences. Their checkpoint-state charges are respectively 73969 and 55866 B; that state includes the encoded manifest represented as a numeric array. The full immutable state is compared and persisted repeatedly. These are actual operations, not a meter accidentally multiplying the entire p.items vector on every page. Phase validation constructs a page `values` vector and hashes its raw bytes, then separately constructs the original complete graph. Warm reuse that simply omits these durable checks would change the refusal contract.
+
+## What the prior 129 evidence actually says
+
+Preserved `work/canonical-generation-human-scale-20261023/phased-validation-second.tap` records 12651960 B before the 129 owners. Preserved `work/canonical-generation-semantic-closure-20261023/owning-final.tap` records 16720921 B after 31 settled owners. These are different historical exact runs, so their subtraction is an approximate cross-run explanation, not a joined measurement. The new 1/2/3 probe independently confirms the approximately constant later-owner cost. The existing 65 ledger records 3409128 B authentication + 3018767 B validation + 8377078 B owners = 14804973 B before final preparation. None is a successful corrected 65/129 publication.
+
+## Rejected implementation: consume and retire checkpoint bodies after each group
+
+A safe implementation would need the original owner and exact item comparison in the same transaction, a private exact index->Core mapping, an atomic body-free consumption receipt, preservation of all page hashes/chain/manifest/spent controls and negative intent, and cold reconstruction from actual Core rows rechecked through the original compiler. Final publication would still check every actual canonical/protocol/control row and exact missing/present copy counts. Postpublication retirement would need a versioned exact consumer of these receipts, not a broad missing-row exception.
+
+The 65-group checkpoint has 195 revisions + 195 heads + one frontier. Removing its 390 consumed revision/head items eliminates 390 final gets, but safely reading each before deletion incurs the identical key+row cost earlier. Each deletion key is 45 characters and costs 47 physical bytes, so deletion adds **at least 18330 B** before receipts, absence fences and cold reconstruction. 129 similarly adds at least **36378 B** for 774 items. Later owners currently do not reread those item bodies, so there is no compensating repeated-read saving. This could reduce final transaction peak while increasing cumulative work; it does not resolve the original 129 task shortage and was not implemented.
+
+## Remaining engineering and budget boundary
+
+There is no demonstrated safe small read-coalescing change large enough to close this consuming scale path. The unused protocol field in the public expectation view could remove one real encoding, and immutable manifest separation could remove repeated state-body copies, but neither removes the required whole final physical read set or the original per-owner writes/receipts/fences. They must not become a separate series of purported scale milestones.
+
+Current measured final raw closure grows by 32345 B then 32313 B per additional simple create, with 30 additional request references each time. This **small-sample arithmetic** projects roughly 2.13 million B (about 2.03 MiB) at 65 and 4.00 MiB at 129; it is not an executed large measurement or formal lower bound for every possible input. It does establish an independent issue to resolve before proposing a task-only increase: keeping the current entire-raw single-TX publication and 2 MiB per-TX cap cannot be assumed to work merely by raising the cumulative 16 MiB task cap. Prior corrected 65 final refusal is direct evidence of that issue.
+
+A conditional warm-only 129 budget estimate is prior validation 12651960 + 129 * measured max later owner 127924 + first-owner premium about15000 + conservative final reservation2097152 = about31.27 million B; a **32 MiB task** would be a test ceiling for that narrow warm estimate, not a sufficient approval request or a completion guarantee. A single genuine cold revalidation/rehydration would consume additional real work and needs its own bounded cost envelope; no claim that 32 MiB covers it. No limit was changed.
+
+Therefore the next coherent engineering decision must address publication architecture and its exact mutation model together with cumulative budgeting. Preserve the current 4096 references / 2 MiB / 30 seconds per transaction. A future staged verification/immutable generation seal must prove how writes are prevented or invalidate every already verified page, including the existing raw late-write negative controls; a version counter alone cannot substitute for the original raw full closure against unversioned backend writes. If that cannot be proven under the required model, report the explicit scale ceiling rather than publishing a false general restore path.
+
+No 65/129 rerun is warranted until that architecture is implemented and reviewed. Any later authorized scale execution should run one frozen exact candidate, stop on the first budget/ref/state mismatch without increasing limits or automatic retry, retain spent tickets and the previous active generation, and preserve all original failures. A task-budget-only increase is not currently recommended because it leaves the independent final-transaction blocker unresolved.
