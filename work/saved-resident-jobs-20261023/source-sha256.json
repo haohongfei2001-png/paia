@@ -1,0 +1,7 @@
+{
+  "extension/core/ai-usage/semantic-invalidation.js": "a4b8ddf476f6985b48e420f6bc1e146fb3c64e107783c651ce659e217fbb99fb",
+  "extension/core/browser-native-sync/group-checkpoint-scope.js": "3fda9ccb9854164d226dd6df26d37400023a31b3f3b2add61b4b61c8940a4bbd",
+  "extension/core/browser-native-sync/group-checkpoint.js": "351b5fba591e55f1e5def4a66ee82eda20a5e28ff2bba4014ea8ca173dca32b5",
+  "extension/core/browser-native-sync/saved-work-bootstrap.js": "5a70d26fea639eca05801a81f658740a69f54b19274866b55c38f31b9d287082",
+  "extension/tests/browser-native-sync-saved-resident-jobs.test.mjs": "5d5b066beb1cfcbaaf4970b3cb1e2c99bc825d6c7b212b0878a5b11d6909e10b"
+}

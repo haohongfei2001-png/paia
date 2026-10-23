@@ -1,0 +1,463 @@
+TAP version 13
+# Subtest: actual Working Input edit cancels the existing never-dispatched job atomically
+ok 1 - actual Working Input edit cancels the existing never-dispatched job atomically
+  ---
+  duration_ms: 79.881
+  type: 'test'
+  ...
+# Subtest: dispatched synthetic attempt remains unknown and retains reservation after real edit
+ok 2 - dispatched synthetic attempt remains unknown and retains reservation after real edit
+  ---
+  duration_ms: 50.594209
+  type: 'test'
+  ...
+# Subtest: duplicate capture and unrelated metadata do not change an existing job
+ok 3 - duplicate capture and unrelated metadata do not change an existing job
+  ---
+  duration_ms: 48.01825
+  type: 'test'
+  ...
+# Subtest: 101 active jobs overflow leaves every job and receipt untouched and current still rejects stale work
+ok 4 - 101 active jobs overflow leaves every job and receipt untouched and current still rejects stale work
+  ---
+  duration_ms: 86.721583
+  type: 'test'
+  ...
+# SYNTHETIC_INVALIDATION_COST {"jobs":100,"reads":449,"writes":115,"elapsedMs":45.49995799999999}
+# SYNTHETIC_CAPTURE_COST {"jobs":0,"reads":109,"writes":24,"elapsedMs":8.361208000000033}
+# Subtest: at most 100 actual indexed jobs are examined; ordinary zero-job capture has no job writes
+ok 5 - at most 100 actual indexed jobs are examined; ordinary zero-job capture has no job writes
+  ---
+  duration_ms: 119.188791
+  type: 'test'
+  ...
+# Subtest: semantic cancellation write failure rolls the real canonical edit and all jobs back
+ok 6 - semantic cancellation write failure rolls the real canonical edit and all jobs back
+  ---
+  duration_ms: 31.046166
+  type: 'test'
+  ...
+# Subtest: trusted restore epoch changes cancel a never-dispatched job without provider authority
+ok 7 - trusted restore epoch changes cancel a never-dispatched job without provider authority
+  ---
+  duration_ms: 33.702375
+  type: 'test'
+  ...
+# Subtest: missing known rows and unavailable authority are not proof of semantic invalidation
+ok 8 - missing known rows and unavailable authority are not proof of semantic invalidation
+  ---
+  duration_ms: 30.552292
+  type: 'test'
+  ...
+# Subtest: a true unknown outcome retains reservation and is not repeatedly recancelled
+ok 9 - a true unknown outcome retains reservation and is not repeatedly recancelled
+  ---
+  duration_ms: 43.183167
+  type: 'test'
+  ...
+# Subtest: unrelated and duplicate writes never scan the active job index
+ok 10 - unrelated and duplicate writes never scan the active job index
+  ---
+  duration_ms: 38.847791
+  type: 'test'
+  ...
+# Subtest: invalidation read error is propagated and cannot become a successful canonical mutation
+ok 11 - invalidation read error is propagated and cannot become a successful canonical mutation
+  ---
+  duration_ms: 31.4405
+  type: 'test'
+  ...
+# Subtest: a committed local child receipt survives cancellation of an unfinished sibling
+ok 12 - a committed local child receipt survives cancellation of an unfinished sibling
+  ---
+  duration_ms: 43.450375
+  type: 'test'
+  ...
+# Subtest: a durable dispatch fence with missing receipt is not proof of a never-dispatched child
+ok 13 - a durable dispatch fence with missing receipt is not proof of a never-dispatched child
+  ---
+  duration_ms: 34.70625
+  type: 'test'
+  ...
+# Subtest: 100 legitimate scoped Organize plans do not reread unchanged evidence for each job on capture
+ok 14 - 100 legitimate scoped Organize plans do not reread unchanged evidence for each job on capture
+  ---
+  duration_ms: 4789.404125
+  type: 'test'
+  ...
+# Subtest: AUDIT existing checkpoint fails closed for a real complete bootstrap, not a successful restore
+ok 15 - AUDIT existing checkpoint fails closed for a real complete bootstrap, not a successful restore
+  ---
+  duration_ms: 125.764084
+  type: 'test'
+  ...
+# Subtest: AUDIT protocol-only committed staging receipts make the existing complete receive primitive duplicate
+ok 16 - AUDIT protocol-only committed staging receipts make the existing complete receive primitive duplicate
+  ---
+  duration_ms: 90.689292
+  type: 'test'
+  ...
+# Subtest: AUDIT protocol checkpoint is not an inventory of unjournaled canonical source
+ok 17 - AUDIT protocol checkpoint is not an inventory of unjournaled canonical source
+  ---
+  duration_ms: 38.172208
+  type: 'test'
+  ...
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 18 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 241.110333
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 19 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 611.917209
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 20 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 575.487875
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 21 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 646.166917
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 22 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 603.825709
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 23 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 479.900792
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 24 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 445.998709
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 25 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 410.821167
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 26 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 437.233833
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 27 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 450.841833
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 28 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 529.662875
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 29 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 188.47825
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 30 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 61.293041
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 31 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 764.975291
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":160.42166699999962,"reads":2705,"writes":1161}}
+# Subtest: exact128 retained operations restore and the129th has explicit paged scope admission
+ok 32 - exact128 retained operations restore and the129th has explicit paged scope admission
+  ---
+  duration_ms: 1543.546833
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 33 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 30.243042
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 34 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 44.971708
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 35 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 40.731584
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 36 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 41.516083
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 37 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 42.677541
+  type: 'test'
+  ...
+# Subtest: saved original editor records typed successor atomically after cold B restore
+ok 38 - saved original editor records typed successor atomically after cold B restore
+  ---
+  duration_ms: 944.797459
+  type: 'test'
+  ...
+# Subtest: saved successor stale revision and field CAS preserve canonical and complete protocol
+ok 39 - saved successor stale revision and field CAS preserve canonical and complete protocol
+  ---
+  duration_ms: 272.546625
+  type: 'test'
+  ...
+# Subtest: saved successor lost response retries original receipt and outbox without a second edit
+ok 40 - saved successor lost response retries original receipt and outbox without a second edit
+  ---
+  duration_ms: 295.067167
+  type: 'test'
+  ...
+# Subtest: saved successor cannot weaken existing user-only Source journal or accept changed Source
+ok 41 - saved successor cannot weaken existing user-only Source journal or accept changed Source
+  ---
+  duration_ms: 273.395084
+  type: 'test'
+  ...
+# Subtest: saved successor final source failure rolls back canonical and atomic outbox
+ok 42 - saved successor final source failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 274.560458
+  type: 'test'
+  ...
+# Subtest: saved successor final control failure rolls back canonical and atomic outbox
+ok 43 - saved successor final control failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 258.729958
+  type: 'test'
+  ...
+# Subtest: saved successor final frontier failure rolls back canonical and atomic outbox
+ok 44 - saved successor final frontier failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 267.931583
+  type: 'test'
+  ...
+# Subtest: saved successor final receipt failure rolls back canonical and atomic outbox
+ok 45 - saved successor final receipt failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 262.798542
+  type: 'test'
+  ...
+# Subtest: saved successor final history failure rolls back canonical and atomic outbox
+ok 46 - saved successor final history failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 300.925916
+  type: 'test'
+  ...
+# Subtest: saved successor final budget failure rolls back canonical and atomic outbox
+ok 47 - saved successor final budget failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 402.536125
+  type: 'test'
+  ...
+# Subtest: saved successor final failure failure rolls back canonical and atomic outbox
+ok 48 - saved successor final failure failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 253.3635
+  type: 'test'
+  ...
+# Subtest: saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+ok 49 - saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+  ---
+  duration_ms: 431.512958
+  type: 'test'
+  ...
+# Subtest: saved successor typed Core rejects direct application without original owner capability
+ok 50 - saved successor typed Core rejects direct application without original owner capability
+  ---
+  duration_ms: 268.048125
+  type: 'test'
+  ...
+# Subtest: saved successor unrepresented ordinary edit remains an explicit refusal
+ok 51 - saved successor unrepresented ordinary edit remains an explicit refusal
+  ---
+  duration_ms: 272.701542
+  type: 'test'
+  ...
+# Subtest: saved successor typed validator and graph refuse forged request allocation origin and ancestry
+ok 52 - saved successor typed validator and graph refuse forged request allocation origin and ancestry
+  ---
+  duration_ms: 295.968084
+  type: 'test'
+  ...
+# Subtest: saved successor cold recovery applied-group fault leaves complete stage and canonical state unchanged
+ok 53 - saved successor cold recovery applied-group fault leaves complete stage and canonical state unchanged
+  ---
+  duration_ms: 429.05425
+  type: 'test'
+  ...
+# Subtest: saved successor cold recovery after-activation fault leaves complete stage and canonical state unchanged
+ok 54 - saved successor cold recovery after-activation fault leaves complete stage and canonical state unchanged
+  ---
+  duration_ms: 375.819709
+  type: 'test'
+  ...
+# Subtest: saved successor budget is admitted before the original first transaction query
+ok 55 - saved successor budget is admitted before the original first transaction query
+  ---
+  duration_ms: 207.174542
+  type: 'test'
+  ...
+# Subtest: saved original edit planner refuses duplicate physical index keys hidden at a page boundary
+ok 56 - saved original edit planner refuses duplicate physical index keys hidden at a page boundary
+  ---
+  duration_ms: 201.732375
+  type: 'test'
+  ...
+# Subtest: saved successor cold final receipt drift rolls back every canonical protocol and activated stage row
+ok 57 - saved successor cold final receipt drift rolls back every canonical protocol and activated stage row
+  ---
+  duration_ms: 405.911125
+  type: 'test'
+  ...
+# Subtest: saved coalesced typed edits preserve every operation through B to cold C and continuation
+ok 58 - saved coalesced typed edits preserve every operation through B to cold C and continuation
+  ---
+  duration_ms: 558.094833
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor missing
+ok 59 - saved coalesced continuation authenticates every original typed ancestor missing
+  ---
+  duration_ms: 243.823708
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor changed
+ok 60 - saved coalesced continuation authenticates every original typed ancestor changed
+  ---
+  duration_ms: 248.547542
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor tail
+ok 61 - saved coalesced continuation authenticates every original typed ancestor tail
+  ---
+  duration_ms: 275.621667
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit tail source rolls back original row replacement and outbox
+ok 62 - saved coalesced edit tail source rolls back original row replacement and outbox
+  ---
+  duration_ms: 234.029084
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit tail receipt rolls back original row replacement and outbox
+ok 63 - saved coalesced edit tail receipt rolls back original row replacement and outbox
+  ---
+  duration_ms: 204.913458
+  type: 'test'
+  ...
+# Subtest: saved coalesced cold final activation failure preserves every table and stage
+ok 64 - saved coalesced cold final activation failure preserves every table and stage
+  ---
+  duration_ms: 348.370791
+  type: 'test'
+  ...
+# Subtest: saved coalesced initial capture still refuses missing typed intermediate facts
+ok 65 - saved coalesced initial capture still refuses missing typed intermediate facts
+  ---
+  duration_ms: 38.224583
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority before-owner anchor-head rolls back
+ok 66 - saved coalesced ancestry authority before-owner anchor-head rolls back
+  ---
+  duration_ms: 190.953042
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority before-owner ancestor-receipt rolls back
+ok 67 - saved coalesced ancestry authority before-owner ancestor-receipt rolls back
+  ---
+  duration_ms: 185.53625
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority after-owner anchor-head rolls back
+ok 68 - saved coalesced ancestry authority after-owner anchor-head rolls back
+  ---
+  duration_ms: 218.977292
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority after-owner ancestor-receipt rolls back
+ok 69 - saved coalesced ancestry authority after-owner ancestor-receipt rolls back
+  ---
+  duration_ms: 196.518542
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit preserves a later original global history counter
+ok 70 - saved coalesced edit preserves a later original global history counter
+  ---
+  duration_ms: 194.203375
+  type: 'test'
+  ...
+# Subtest: saved typed retention uses original canonical policy and preserves a provable cold continuation
+ok 71 - saved typed retention uses original canonical policy and preserves a provable cold continuation
+  ---
+  duration_ms: 471.582209
+  type: 'test'
+  ...
+# Subtest: saved typed retention throw aborts canonical pruning and outbox together
+ok 72 - saved typed retention throw aborts canonical pruning and outbox together
+  ---
+  duration_ms: 206.809458
+  type: 'test'
+  ...
+# Subtest: saved typed retention resurrect-outside-index aborts canonical pruning and outbox together
+ok 73 - saved typed retention resurrect-outside-index aborts canonical pruning and outbox together
+  ---
+  duration_ms: 202.638166
+  type: 'test'
+  ...
+# Subtest: saved typed retention exact cutoff preserves the original important and boundary rows
+ok 74 - saved typed retention exact cutoff preserves the original important and boundary rows
+  ---
+  duration_ms: 204.259
+  type: 'test'
+  ...
+# Subtest: saved typed retention cannot forge removed histories or restore them through cold canonical activation
+ok 75 - saved typed retention cannot forge removed histories or restore them through cold canonical activation
+  ---
+  duration_ms: 370.788584
+  type: 'test'
+  ...
+1..75
+# tests 75
+# suites 0
+# pass 75
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11462.394833

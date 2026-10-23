@@ -1,0 +1,31 @@
+TAP version 13
+# file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/work/saved-resident-jobs-baseline/extension/core/browser-native-sync/human-library-group.js:52
+# const generationSteps=new WeakMap(),generationTransactions=new WeakSet(),originalGenerationPrepare=HumanLibrarySyncJournal.prototype.prepareReceive,originalGenerationCommit=HumanLibrarySyncJournal.prototype.commitReceiveInTransaction;
+#                                                                                                    ^
+# ReferenceError: Cannot access 'HumanLibrarySyncJournal' before initialization
+#     at file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/work/saved-resident-jobs-baseline/extension/core/browser-native-sync/human-library-group.js:52:100
+#     at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+#     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+#     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+# Node.js v22.23.3
+# Subtest: work/saved-resident-jobs-baseline/extension/tests/ai-cost-semantic-invalidation.test.mjs
+not ok 1 - work/saved-resident-jobs-baseline/extension/tests/ai-cost-semantic-invalidation.test.mjs
+  ---
+  duration_ms: 174.062291
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/work/saved-resident-jobs-baseline/extension/tests/ai-cost-semantic-invalidation.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 178.52825

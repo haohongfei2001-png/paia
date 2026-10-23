@@ -1,0 +1,82 @@
+{
+  "node": "22.23.3",
+  "platform": "macOS arm64",
+  "base": "70ba7df95b154f46fd3951f4d5091ee29859805a",
+  "runs": [
+    {
+      "log": "before.tap",
+      "exit": 1,
+      "pass": 0,
+      "fail": 1,
+      "note": "first baseline receives STORAGE_FAILED; exact cause not yet surfaced"
+    },
+    {
+      "log": "before-owner.tap",
+      "exit": 1,
+      "pass": 0,
+      "fail": 1,
+      "note": "Organizer-first fixture import TDZ"
+    },
+    {
+      "log": "before-owner-order.tap",
+      "exit": 1,
+      "pass": 0,
+      "fail": 1,
+      "note": "original Library-first import; baseline receive STORAGE_FAILED"
+    },
+    {
+      "log": "fixture-diagnostic.tap",
+      "exit": 1,
+      "pass": 0,
+      "fail": 1,
+      "note": "read callback diagnosis reveals BNS_GROUP_CANONICAL_UNREPRESENTED before job retention"
+    },
+    {
+      "log": "first-implementation.tap",
+      "exit": 0,
+      "pass": 1,
+      "fail": 0
+    },
+    {
+      "log": "expanded.tap",
+      "exit": 0,
+      "pass": 16,
+      "fail": 0
+    },
+    {
+      "log": "owning-final.tap",
+      "exit": 1,
+      "pass": 133,
+      "fail": 5,
+      "note": "four existing module-entry TDZ plus incorrect new expected STALE_BASE; actual original guard CANCELLED"
+    },
+    {
+      "log": "affected-after-import-order.tap",
+      "exit": 1,
+      "pass": 18,
+      "fail": 4,
+      "note": "new owning 18/18; original four entry TDZ persists"
+    },
+    {
+      "log": "base-import.tap",
+      "exit": 1,
+      "pass": 0,
+      "fail": 1,
+      "note": "incomplete archive omitted original background dependency; infrastructure preparation failure"
+    },
+    {
+      "log": "base-import-complete.tap",
+      "exit": 1,
+      "pass": 0,
+      "fail": 1,
+      "note": "exact untouched base original semantic-invalidation file independently reproduces TDZ"
+    },
+    {
+      "log": "body-with-library-preload.tap",
+      "exit": 0,
+      "pass": 75,
+      "fail": 0,
+      "note": "explicit original Library preloading only; not normal-entry qualification"
+    }
+  ]
+}
