@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: real original authored creation and placement yield typed current human evidence, never Input or Source
+ok 1 - real original authored creation and placement yield typed current human evidence, never Input or Source
+  ---
+  duration_ms: 46.580916
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects input-citation
+ok 2 - typed authored assessment rejects input-citation
+  ---
+  duration_ms: 19.582958
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects foreign-entry
+ok 3 - typed authored assessment rejects foreign-entry
+  ---
+  duration_ms: 19.928584
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects foreign-topic
+ok 4 - typed authored assessment rejects foreign-topic
+  ---
+  duration_ms: 18.5935
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects missing-body
+ok 5 - typed authored assessment rejects missing-body
+  ---
+  duration_ms: 19.04275
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects past-end
+ok 6 - typed authored assessment rejects past-end
+  ---
+  duration_ms: 17.96825
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects negative-start
+ok 7 - typed authored assessment rejects negative-start
+  ---
+  duration_ms: 16.06125
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects gap
+ok 8 - typed authored assessment rejects gap
+  ---
+  duration_ms: 16.559209
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects new-identity
+ok 9 - typed authored assessment rejects new-identity
+  ---
+  duration_ms: 19.494375
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects extra-field
+ok 10 - typed authored assessment rejects extra-field
+  ---
+  duration_ms: 15.673125
+  type: 'test'
+  ...
+# Subtest: all selected authored fields, including a cleared field, remain exact owner evidence
+ok 11 - all selected authored fields, including a cleared field, remain exact owner evidence
+  ---
+  duration_ms: 21.729167
+  type: 'test'
+  ...
+# Subtest: original authored owner proof rejects source-derived-name
+ok 12 - original authored owner proof rejects source-derived-name
+  ---
+  duration_ms: 16.884333
+  type: 'test'
+  ...
+# Subtest: original authored owner proof rejects removed-entry
+ok 13 - original authored owner proof rejects removed-entry
+  ---
+  duration_ms: 14.301459
+  type: 'test'
+  ...
+# Subtest: original authored owner proof rejects hidden-source
+ok 14 - original authored owner proof rejects hidden-source
+  ---
+  duration_ms: 15.660916
+  type: 'test'
+  ...
+# Subtest: original authored owner proof rejects unlogged-body
+ok 15 - original authored owner proof rejects unlogged-body
+  ---
+  duration_ms: 15.8365
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 441.195917

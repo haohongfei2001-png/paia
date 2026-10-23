@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: original Topic formation owner retains exact authored identity with an independent Topic processing call and receipt
+not ok 1 - original Topic formation owner retains exact authored identity with an independent Topic processing call and receipt
+  ---
+  duration_ms: 52.045583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:17:1'
+  failureType: 'testCodeFailure'
+  error: 'INVALID_REQUEST'
+  code: 'INVALID_REQUEST'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/thought-model.js:6:30)
+    TopicProcessingGuard.check (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing.js:139:60)
+    async check (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-formation.js:134:35)
+    async runFinalReadFences (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/idb-repository.js:166:61)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/idb-repository.js:427:404)
+    async file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/indexed-store.js:279:123
+    async file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/indexed-store.js:192:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 211.743917
