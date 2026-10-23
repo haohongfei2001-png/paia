@@ -20,7 +20,9 @@
         "extension/tests/canonical-generation-phased-stage.test.mjs"
       ],
       "exit": 0,
-      "log": "phased-selected.tap"
+      "log": "phased-selected.tap",
+      "actualScope": "Entire original phased-stage file: 40 cases including prohibited 65 and 129. Negative pattern failed to exclude. Expected-refusal assertions pass; scale recovery did not succeed.",
+      "boundaryViolation": true
     },
     {
       "args": [
