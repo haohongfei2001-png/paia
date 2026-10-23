@@ -1,0 +1,11 @@
+{
+  "extension/core/browser-native-sync/saved-work-bootstrap.js": "f635874237714198c0ccf0552dfc85ae8b1e2a6282ee984ca96ba8eded66387e",
+  "extension/core/browser-native-sync/group-checkpoint.js": "b8657b3e68d004d25cf8afc932219ecf8767853f342391cf088751108293b014",
+  "extension/core/browser-native-sync/group-checkpoint-plan.js": "1fb730f52b631db65d5752c98820d9b282203fea9363ef94d68794e14dfd03de",
+  "extension/core/browser-native-sync/human-library-scope.js": "c897bb58ab460e6d7702a828b739c38717a2ec44e156c2552fc69bf05a65592f",
+  "extension/core/browser-native-sync/human-library-group.js": "75717e98fa9f8dc5400ebf3c382272d6772c01654f359bfa395b5c0ac2688ebf",
+  "extension/tests/browser-native-sync-saved-mixed.test.mjs": "373e6c14a1ea67e25b1a579638252de8b3ee30200340e1f27d885577ce729f26",
+  "extension/tests/browser-native-sync-saved-mixed-incremental.test.mjs": "65d1ceae9c1161252f64c2e00427994d82ec2d58493e5da6015f94537a2eb1c0",
+  "extension/tests/native-sync/saved-mixed-incremental-chrome.test.mjs": "6cd796585204ea2c29c3ddf6ac90f2968bdb0ee9a7ed4dcb440b98cd9ea73418",
+  "extension/tests/native-sync/generation-purge-fixture.mjs": "7c078f77925ed6e93089f2d2d0e23ed28d74659b561d38a7a71586cc263ba018"
+}

@@ -1,3 +1,6 @@
+import {physical as humanPhysical} from './human-library-journal.js';
+import {deltaDescription,observeSemanticChange,planSemanticDeltaWrite,KNOWN_PREFIX,DIRTY_PREFIX,DELTA_COUNTER,HUMAN_FENCE} from '../ai-usage/delta.js';
+import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {originalHumanSavedApplicationWitness} from './human-library-group.js';
 import {originalHumanSavedScopePartition} from './human-library-scope.js';
 import {bindHumanReplayEntry} from './human-library-allocation.js';
@@ -8,7 +11,7 @@ import {validateGroupedCheckpointGraph} from './group-checkpoint.js';
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
 import {protocolObject} from './segments.js';
 import {protocolPhysicalId} from './physical-key.js';
-import {ownerVersion} from '../library-search.js';
+import {ownerVersion,planSearchQueueLocator} from '../library-search.js';
 import {readGroupRows} from './group-page-reader.js';
 import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {readControlPublicationFence,CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION} from '../local-control-publication.js';
@@ -374,7 +377,7 @@ export async function sealSavedWorkCurrentScope(store,core,t,scope){
  const p=savedScopes.get(scope);if(!p||p.store!==store||p.core!==core)fail('BNS_SAVED_WORK_CAPABILITY');await requireSavedWorkScope(store,t,scope);const database=store.repository.db,started=Date.now(),points=[],counts=[];let retained=0;
  for(const member of p.members){const id=member.expected.entry.id,r=await ownedRows(t,id);for(const [table,rows]of [['thoughts',[r.entry]],['revisions',r.history],['provenance',r.provenance],['dependencies',r.dependencies]])for(const row of rows){retained+=bytes(row).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');points.push([table,row.id,clone(row)]);}const key=await core.idIn(t,'savedPhysical',id);points.push(['meta',key,await t.get('meta',key)??null]);counts.push(['revisions','byList',prefix(['library_entry:'+id]),r.history.length],['provenance','byOwner',prefix(['entry',id]),1],['dependencies','byTarget',prefix(['entry',id]),1]);}
  const current=()=>{if(store.repository!==core.repository||store.repository.db!==database||Date.now()-started>=30000)fail('BNS_SAVED_WORK_LIMIT');return true;},facts=await captureTopicFormationTerminal(store,t,p.members.flatMap(m=>m.evidence),{current,retain:value=>{retained+=bytes(value).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');return clone(value);}});
- counts.push(['placements',null,null,0],['thoughtSuppressions',null,null,0],['librarySearchTerms',null,null,0],['thoughts',null,null,p.members.length],['provenance',null,null,p.members.length],['dependencies',null,null,p.members.length]);registerRepositoryFinalReadFence(store.repository,t,{isCurrent:()=>store.repository===core.repository&&store.repository.db===database&&Date.now()-started<30000,plan:function*(){for(const fact of facts)if(!equal(fact.project(yield {method:'get',table:fact.table,key:fact.key},current),fact.expected))fail('BNS_SAVED_WORK_CHANGED');for(const [table,key,row]of points)if(!equal((yield {method:'get',table,key})??null,row))fail('BNS_SAVED_WORK_CHANGED');for(const [table,index,key,n]of counts)if((yield {method:'count',table,...(index?{index,key}:{})})!==n)fail('BNS_SAVED_WORK_CHANGED');return true;}});
+ counts.push(['placements',null,null,0],['thoughtSuppressions',null,null,0],['librarySearchTerms',null,null,0],['thoughts',null,null,p.members.length+(originalHumanSavedScopePartition(scope,store)?.entries.length||0)],['provenance',null,null,p.members.length],['dependencies',null,null,p.members.length]);registerRepositoryFinalReadFence(store.repository,t,{isCurrent:()=>store.repository===core.repository&&store.repository.db===database&&Date.now()-started<30000,plan:function*(){for(const fact of facts)if(!equal(fact.project(yield {method:'get',table:fact.table,key:fact.key},current),fact.expected))fail('BNS_SAVED_WORK_CHANGED');for(const [table,key,row]of points)if(!equal((yield {method:'get',table,key})??null,row))fail('BNS_SAVED_WORK_CHANGED');for(const [table,index,key,n]of counts)if((yield {method:'count',table,...(index?{index,key}:{})})!==n)fail('BNS_SAVED_WORK_CHANGED');return true;}});
 }
 // Existing saved-step progress uses the repository's private work meter. The
 // legacy manual helper uses public lifetime diagnostics, not a step budget.
@@ -391,4 +394,57 @@ export async function sealSavedWorkMergeProgress(store,core,t,stage,started,inte
 export function originalSavedHumanScopePartition(scope,store){
  const p=savedScopes.get(scope);if(!p)return null;if(p.store!==store)fail('BNS_SAVED_WORK_CAPABILITY');requireOriginalGroupCheckpointPlan(p.core,p.plan);
  return {entries:p.members.map(m=>m.expected.entry.id),provenance:p.members.map(m=>m.expected.provenance.id),dependencies:p.members.map(m=>m.expected.dependency.id)};
+}
+
+// A finite existing mixed cut keeps every non-target physical row. Its expected
+// delta is constructed BEFORE the original Saved writer from its private plan;
+// a post-owner snapshot cannot turn corruption into a new preservation baseline.
+const mixedRetentions=new WeakMap();
+export async function prepareSavedMixedRetention(store,core,t,scope,edit,stage){
+ const human=originalHumanSavedScopePartition(scope,store);if(!human)return null;
+ const owner=savedScopes.get(scope),p=edit?savedEdits.get(edit):null;
+ if(!owner||owner.store!==store||owner.core!==core||edit&&(!p||p.store!==store||p.core!==core||!p.incoming))fail('BNS_SAVED_WORK_CAPABILITY');
+ requireOriginalGroupCheckpointPlan(core,owner.plan);requireRepositoryTransactionScope(store.repository,t);requireRepositoryTransactionDataMethods(store.repository,t);
+ const database=store.repository.db,start=Date.now(),tables=new Map();let retained=0;
+ const current=()=>{if(store.repository!==core.repository||store.repository.db!==database||Date.now()-start>=30000||retained>limit)fail('BNS_SAVED_WORK_LIMIT');return true;};
+ for(const name of t.tx.objectStoreNames){const rows=await readGroupRows(t,name);for(const row of rows){retained+=measureSourceWorkingPhysicalTree(row).B;current();}tables.set(name,new Map(rows.map(row=>[row.id,row])));}
+ // A retained physical allocation must still be the original Human member's
+ // exact mapping. A corrupted preexisting mapping is not a new valid baseline.
+ const latest=new Map();for(const group of owner.plan.groups)if(group.type==='humanLibraryCommit')for(const op of group.prepared.members)latest.set(op.entityId,op);
+ for(const op of latest.values()){
+  const type=op.value.entityType,table=type==='entry'?'thoughts':type==='history'?'revisions':null;if(!table)fail('BNS_SAVED_WORK_UNSUPPORTED');
+  const row=tables.get(table).get(op.value.after.id),key=await core.idIn(t,'humanMapping',op.entityId),mapping=tables.get('meta').get(key);
+  if(!row||!mapping||!equal(mapping,{id:key,type,wire:humanPhysical(type,op.value.after),local:humanPhysical(type,row),revisionId:op.revisionId}))fail('BNS_HUMAN_MAPPING_CHANGED');
+ }
+ // This first mixed consumer has no AI jobs to invalidate. It never skips a
+ // real job owner or declares its original semantic transition unchanged.
+ if(tables.get('organizerJobs')?.size||t.semanticChanges?.size||t.aiUsageBoundaryChanged)fail('BNS_SAVED_WORK_UNSUPPORTED');
+ const put=(table,key,row)=>{current();const map=tables.get(table);if(!map)fail('BNS_SAVED_WORK_CAPABILITY');if(row===null)map.delete(key);else{retained+=measureSourceWorkingPhysicalTree(row).B;current();map.set(key,clone(row));}};
+ if(p){
+  const {view,request}=p,operation=p.prepared.operations[0],meta=tables.get('meta');
+  for(const [key,row]of await savedProtocolIntent(t,core,operation,false))put('meta',key,row);
+  const markerKey=await core.idIn(t,'savedEditReceipt',request.operationId),physicalKey=await core.idIn(t,'savedPhysical',request.id);
+  put('meta',markerKey,{id:markerKey,version:1,requestDigest:p.requestDigest,result:clone(view.result),protocolOperationId:operation.operationId,revisionId:operation.revisionId});
+  put('meta',physicalKey,{id:physicalKey,version:1,revisionId:operation.revisionId,wire:savedPhysical(operation.value.after),local:savedPhysical({entry:view.entry,history:view.history})});
+  put('meta','thought-sequence',{id:'thought-sequence',value:view.operationReceipt.operationSequence});put('meta','revision-sequence',{id:'revision-sequence',value:view.revisionSequence});put('meta','backup-data-generation',{id:'backup-data-generation',value:p.before.authority.generation+1});
+  const prior=tables.get('thoughts').get(request.id),changes=new Map(),oldHistory=tables.get('revisions');
+  for(const row of view.history)observeSemanticChange(changes,deltaDescription('revisions',oldHistory.get(row.id)),deltaDescription('revisions',row));
+  put('thoughts',request.id,view.entry);put('operationReceipts',request.operationId,view.operationReceipt);
+  for(const row of p.before.rows.history)if(!view.history.some(r=>r.id===row.id))put('revisions',row.id,null);for(const row of view.history)put('revisions',row.id,row);
+  if(prior.searchVersion!==ownerVersion('entry',view.entry)){const queue=planSearchQueueLocator('entry',view.entry);put('libraryMigrationItems',queue.id,queue);}
+  if(t.semanticEnabled){let sequence=meta.get(DELTA_COUNTER)?.value||0,humanChanged=false;
+   for(const {before,after}of changes.values()){const planned=planSemanticDeltaWrite(before,after,meta.get(KNOWN_PREFIX+after.key),meta.get(DIRTY_PREFIX+after.key),sequence);if(!planned)continue;sequence=planned.row.sequence;humanChanged||=after.human;put('meta',planned.row.id,planned.row);put('meta',DIRTY_PREFIX+after.key,planned.dirty);}
+   if(sequence!==(meta.get(DELTA_COUNTER)?.value||0))put('meta',DELTA_COUNTER,{id:DELTA_COUNTER,value:sequence});if(humanChanged)put('meta',HUMAN_FENCE,{id:HUMAN_FENCE,value:(meta.get(HUMAN_FENCE)?.value||0)+1});
+  }
+ }
+ const cap=Object.freeze({});mixedRetentions.set(cap,{store,core,t,stage,database,tables,current,retained,sealed:false});return cap;
+}
+export async function sealSavedMixedRetention(store,core,t,cap,stage,intents){
+ if(cap===null)return;const p=mixedRetentions.get(cap);if(!p||p.store!==store||p.core!==core||p.t!==t||p.stage!==stage||p.sealed)fail('BNS_SAVED_WORK_CAPABILITY');p.current();
+ const restoreKey=await stage.idIn(t,'restore'),mergePrefix=await core.idIn(t,'mergeCommit'),meta=p.tables.get('meta');
+ // The original coordinator alone supplies its already-computed durable cursor
+ // and optional merge receipt. No arbitrary canonical/system-key override.
+ if(!Array.isArray(intents)||intents.length<1||intents.length>2||new Set(intents.map(r=>r.id)).size!==intents.length||!intents.some(r=>r.id===restoreKey))fail('BNS_SAVED_WORK_CAPABILITY');
+ for(const row of intents){if(row.id!==restoreKey&&!row.id.startsWith(mergePrefix))fail('BNS_SAVED_WORK_CAPABILITY');if(!equalSourceWorkingPhysicalTree((await t.get('meta',row.id))??null,meta.get(row.id)??null))fail('BNS_RESTORE_STAGE_CHANGED');p.retained+=measureSourceWorkingPhysicalTree(row).B;if(p.retained>limit)fail('BNS_SAVED_WORK_LIMIT');meta.set(row.id,clone(row));}
+ p.sealed=true;registerRepositoryFinalReadFence(store.repository,t,{isCurrent:p.current,plan:function*(){for(const [table,rows]of p.tables){if((yield {method:'count',table})!==rows.size)fail('BNS_SAVED_WORK_CHANGED');for(const [key,row]of rows)if(!equalSourceWorkingPhysicalTree((yield {method:'get',table,key})??null,row))fail('BNS_SAVED_WORK_CHANGED');}return true;}});
 }

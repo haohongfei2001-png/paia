@@ -1,0 +1,36 @@
+--- a/extension/core/browser-native-sync/group-checkpoint.js
++++ b/extension/core/browser-native-sync/group-checkpoint.js
+@@ -4,7 +4,7 @@
+ import {requireNoSourcePurgeDeny} from './source-purge-journal.js';
+ import {equalSourceWorkingPhysicalTree} from './source-working-physical.js';
+ import {readCanonicalCheckpointProof,requireCanonicalCheckpointProof,requireCanonicalCheckpointInputProof} from './canonical-generation-checkpoint-stage.js';
+-import {prepareSavedWorkGroupApplication,applySavedWorkGroupStep,sealSavedWorkGroupActivation,prepareSavedWorkReceive,commitSavedWorkEdit,sealSavedWorkCurrentScope,sealSavedWorkMergeProgress} from './saved-work-bootstrap.js';
++import {prepareSavedWorkGroupApplication,applySavedWorkGroupStep,sealSavedWorkGroupActivation,prepareSavedWorkReceive,commitSavedWorkEdit,sealSavedWorkCurrentScope,sealSavedWorkMergeProgress,prepareSavedMixedRetention,sealSavedMixedRetention} from './saved-work-bootstrap.js';
+ import {groupOperationPages,createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget,readGroupRows} from './group-page-reader.js';
+ import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,captureMixedCurrentGroupProjection,requireMixedCurrentGroupProjection,encodeMixedCurrentGroupCheckpoint,publishMixedCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
+ import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-working-commit.js';
+@@ -326,7 +326,7 @@
+  // named-owner transition with its durable cursor. A failed later step is not
+  // described as whole-checkpoint rollback or acknowledged as complete.
+  async mergeSaved(state,remotePlan,localOperations){
+-  const started=performance.now(),current=()=>{if(performance.now()-started>=30000)fail('BNS_GROUP_RESOURCE_LIMIT');},allowed=new Set(['sourceBootstrapCommit','savedWorkBootstrap','savedWorkSuccessor']);
++  const started=performance.now(),current=()=>{if(performance.now()-started>=30000)fail('BNS_GROUP_RESOURCE_LIMIT');},allowed=new Set(['sourceBootstrapCommit','savedWorkBootstrap','savedWorkSuccessor','humanLibraryCommit']);
+   let localPlan=await prepareGroupCheckpointPlan(this.live,localOperations);if([...localPlan.groups,...remotePlan.groups].some(g=>!allowed.has(g.type)))fail('BNS_GROUP_MERGE_OWNER_UNSUPPORTED');
+   const combined=new Map(localOperations.map(op=>[op.revisionId,op]));for(const g of remotePlan.groups)for(const op of g.operations){const old=combined.get(op.revisionId);if(old&&!equal(old,op))fail('BNS_GROUP_DUPLICATE');combined.set(op.revisionId,op);}
+   if(bytes([...combined.values()]).length>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');const merged=await prepareGroupCheckpointPlan(this.live,[...combined.values()]),known=new Set(localOperations.map(op=>op.revisionId)),incoming=merged.groups.filter(g=>g.operations.some(op=>!known.has(op.revisionId)));
+@@ -339,13 +339,14 @@
+     current();if(!equal(await this.stage.get(t,'restore'),previous)||!equal(await authority(this.store,this.live,t),previous.savedMerge?.base??previous.base))fail('BNS_RESTORE_LOCAL_CHANGED');
+     await requireNoSourcePurgeDeny(this.live,t);await requireConsumerPublicationSettled(t);await this.store.qualifyControlPublicationRead(t);await requireCommittedPlan(this.live,t,localPlan);await requireGroupScope(this.store,t,before);
+     for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
++    const retention=await prepareSavedMixedRetention(this.store,this.live,t,before,prepared,this.stage);
+     if(operation)await commitSavedWorkEdit(t,prepared,this.store);
+     await requireCommittedPlan(this.live,t,nextPlan);await requireGroupScope(this.store,t,after);await sealSavedWorkCurrentScope(this.store,this.live,t,after);
+     const base=await authority(this.store,this.live,t),nextBase={...base,ownerGeneration:base.ownerGeneration+(t.backupChanged?1:0)},completed=[...(previous.savedMerge?.completed??[]),...(operation?[operation.revisionId]:[])];
+     const next={...withoutId(previous),phase:complete?'merged':'merging-saved',savedMerge:{digest:merged.digest,completed,base:nextBase}};
+     const intents=[],merge=complete?{version:1,restoreId:this.restoreId,namespace:base.namespace,epoch:base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:merged.digest,receipts}:null;
+     if(complete){if(await this.live.get(t,'mergeCommit',this.restoreId))fail('BNS_RESTORE_ID_COLLISION');intents.push({id:await this.live.idIn(t,'mergeCommit',this.restoreId),...merge});Object.assign(next,{mergeNamespace:base.namespace,mergeDigest:merged.digest,mergeReceipts:receipts});}
+-    intents.push({id:await this.stage.idIn(t,'restore'),...next});await sealSavedWorkMergeProgress(this.store,this.live,t,this.stage,started,intents);await this.checkpoint('before-saved-step-commit',t);
++    intents.push({id:await this.stage.idIn(t,'restore'),...next});await sealSavedMixedRetention(this.store,this.live,t,retention,this.stage,intents);await sealSavedWorkMergeProgress(this.store,this.live,t,this.stage,started,intents);await this.checkpoint('before-saved-step-commit',t);
+     if(merge)await this.live.put(t,'mergeCommit',[this.restoreId],merge);await this.stage.put(t,'restore',[],next);await this.checkpoint('after-saved-step-commit',t);current();return {state:complete?'activated':'partial',namespace:base.namespace,merged:complete};
+    },{ms:Math.max(1,Math.floor(30000-(performance.now()-started)))});
+    state=await this.stage.read('restore');await this.checkpoint('saved-step-settled',operation?.revisionId??null);current();if(complete)return result;localOperations.push(operation);localPlan=nextPlan;
