@@ -16,7 +16,15 @@
     "settings-sync.test.mjs",
     "browser-native-sync-source-purge-filter.test.mjs",
     "library-documents-generation-owner.test.mjs",
-    "library-documents-owner.test.mjs"
+    "library-documents-owner.test.mjs",
+    "prompt-companion-resolution-core.test.mjs",
+    "manual-prompt-bound-conflict.test.mjs",
+    "sync-worker-checkpoint-prompt.test.mjs",
+    "resolved-prompt-replay.test.mjs",
+    "source-purge-checkpoint-publication.test.mjs",
+    "consumer-local-protection-checkpoint.test.mjs",
+    "consumer-preference-group-restore.test.mjs",
+    "mixed-configuration-owner.test.mjs"
   ],
   "native": [
     "native-sync/checkpoint-publication-native.test.mjs",

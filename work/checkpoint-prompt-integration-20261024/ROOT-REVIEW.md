@@ -17,3 +17,13 @@ Existing ContextDesiredSyncJournal already implements portable per-card desired 
 ## Original Organizer identity successor integrated
 
 16d5fd9d is integrated as e85eab36. Reviewed its two runtime paths: the original constructor brand plus declaration-time Organizer descriptor/parent snapshots supplement the unchanged complete Docs base chain. No write capability is minted. Original lazy constructor initialization avoids first-call snapshot trust. Author evidence is 66/67 in three files (new fixture captured before journal installation), then corrected new owning file 14/14; original 53 passes were not rerun. Root will exercise the composed actual worker path after remaining dependencies freeze.
+
+## Frozen packages integrated at 7ac78c15
+
+3350ad90 and its exact final journal consumer e4005a39 were integrated together (dae5e62b/49029a3d). Negative producer and durable recovery 50cb35e8 became7ac78c15 with no conflict; original Prompt historical-conflict check5411fb21 remains. Runtime remains deliberately unfrozen pending complete resolved Prompt replay and original consumer-preference publication in negative recovery. Default old grouped restore still refuses negative; only original local recovery selects the existing negative owner.
+
+Root inspected the private paired Core capability, exact two-head one-to-one envelopes, detached mutation inputs and unchanged final Core generation/namespace/sequence checks. Negative sidecar comparison retains exact provider/account digest, original local durable publication object refs and original namespace/database identity. Unknown attempted publication after purge remains pending/blocked; no retry or deletion of uncertainty is inferred. The author whole-file negative196/196 and Prompt43/43 are component evidence; prior negative195/196 and worker2/4 failures remain.
+
+51892575 fixes only portable comparison for two valid device-local booleans; A-close/B-republish/C and post-stage local value retention pass with20/20 across three complete owning files. Full local control is still read/qualified by the original owner, no remote protection value is installed. The draft second test incorrectly expected a device-only change to reject stage authority; corrected test requires original local value preservation and documents that difference.
+
+Existing synthetic compaction collection is already completed in4c0d4d62 (8/8 author evidence); do not recreate it from old planner-only wording. Context complete owner integration is independent and in progress, not silently included in this checkpoint/Prompt batch.
