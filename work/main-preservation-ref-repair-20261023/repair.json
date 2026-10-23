@@ -1,0 +1,12 @@
+{
+  "invalidRef": "refs/heads/codex/phased-work-accounting-20261023 2",
+  "originalBytes": "e88c56448df51401e11eb151a6410c9dbce3d909\n",
+  "sha256": "54fd28eafd33602128b5a2441d13a9d7f4c61ab06c5d3b927420a35845b7f994",
+  "quarantine": "/Users/hhf/Documents/GitHub/paia/.git/paia-ref-quarantine-20261023/phased-work-accounting-20261023 2",
+  "preservedValidRef": "refs/heads/codex/preserved-phased-accounting-duplicate-20261023",
+  "normalRef": "23eccead1ce0549c956f6efb0ae09376d4608444",
+  "normalUnchanged": true,
+  "reason": "git fetch failed bad object invalid ref name; original target commit exists",
+  "main": "0ce10a79f65ca9c811a32c1b0e6db2d833b85f9a",
+  "pr313": "02144bccf5e0e0b6842aaa4e7c6958cedecdfde1"
+}

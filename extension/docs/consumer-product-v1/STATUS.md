@@ -1,3 +1,13 @@
+# Local mixed recovery continuation — 2026-10-23
+
+Root integration now includes incoming Human creation/editing in existing mixed Saved libraries and selected active Source permanent-ignore/replay protection. Exact local composition423/423, one672-file build, and Source/Release4/4 native parents (34+14 original cases per variant) pass with stable vectors and zero external requests. [Receipt](../../../work/qualified-mixed-integration-20261023/REPORT.md). This finite milestone does not complete arbitrary mixed negative recovery or all Sync stages.
+
+The new qualified129 budget implementation is under a strict cumulative-cost correction: independent review found control transactions and entry reads outside the prior task ledger. A three-group native harness check passes, but the newly authorized129 opportunity has not executed. Full mixed positive/negative checkpoint atomic application and safe application startup selection continue in parallel. Default production Sync stays off. All old Full/diagnostic limits and failures remain.
+
+Latest remote website main0ce10a79 is preserved by normal merge, with29 exact main blobs and no extension change. A single malformed local Git reference was preserved/quarantined; normal branches and user work remain. [Preservation evidence](../../../work/main-preservation-ref-repair-20261023/REPORT.md).
+
+## Preserved preceding checkpoint
+
 # Current whole-programme takeover — 2026-10-23
 
 The user has assigned this original local Codex task sole responsibility for the

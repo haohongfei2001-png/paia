@@ -1,0 +1,125 @@
+{
+  "merge": "aaffef6ce07696b7bd2be6917b83a7960efab069",
+  "parents": "f13bded82f0c2fab4fd7c2777b7ebafa7e7578aa 0ce10a79f65ca9c811a32c1b0e6db2d833b85f9a",
+  "main": "0ce10a79f65ca9c811a32c1b0e6db2d833b85f9a",
+  "paths": {
+    "README.md": {
+      "main": "62eddfc99f0223015204557735a3449efb14c611",
+      "candidate": "62eddfc99f0223015204557735a3449efb14c611"
+    },
+    "WEBSITE_DESIGN.md": {
+      "main": "094edb3d0819e8dbe5c9a050221861c96c8feb49",
+      "candidate": "094edb3d0819e8dbe5c9a050221861c96c8feb49"
+    },
+    "assets/website/atelier/demo11.css": {
+      "main": "12f6c97a8abffc8c3a4fa2b1c4d9d9ff64444af1",
+      "candidate": "12f6c97a8abffc8c3a4fa2b1c4d9d9ff64444af1"
+    },
+    "assets/website/atelier/demo11.en.js": {
+      "main": "4704550ee3c6c71ae0fc873ea0421cf08692b5ba",
+      "candidate": "4704550ee3c6c71ae0fc873ea0421cf08692b5ba"
+    },
+    "assets/website/atelier/demo11.zh.js": {
+      "main": "f422a4d9f858f9854d7aae02595af67d03d73d74",
+      "candidate": "f422a4d9f858f9854d7aae02595af67d03d73d74"
+    },
+    "assets/website/atelier/presentation11.js": {
+      "main": "1b13b3030e538fad58f3165bd481dab6b5fbe5bf",
+      "candidate": "1b13b3030e538fad58f3165bd481dab6b5fbe5bf"
+    },
+    "assets/website/atelier/refinement11.css": {
+      "main": "7b1a0b81138f1222df957b875a7e13ebf056b3a9",
+      "candidate": "7b1a0b81138f1222df957b875a7e13ebf056b3a9"
+    },
+    "demo.html": {
+      "main": "d1c529000b4e6c06772a94b333da6cadcb99a4b5",
+      "candidate": "d1c529000b4e6c06772a94b333da6cadcb99a4b5"
+    },
+    "en/demo.html": {
+      "main": "d1c529000b4e6c06772a94b333da6cadcb99a4b5",
+      "candidate": "d1c529000b4e6c06772a94b333da6cadcb99a4b5"
+    },
+    "en/index.html": {
+      "main": "ff3f2e030efb163d924a45b39d1239fa3a39ed66",
+      "candidate": "ff3f2e030efb163d924a45b39d1239fa3a39ed66"
+    },
+    "index.html": {
+      "main": "ff3f2e030efb163d924a45b39d1239fa3a39ed66",
+      "candidate": "ff3f2e030efb163d924a45b39d1239fa3a39ed66"
+    },
+    "website/README.md": {
+      "main": "f31ad3e5ed52953b14f8a1dab883dd1f43e49a95",
+      "candidate": "f31ad3e5ed52953b14f8a1dab883dd1f43e49a95"
+    },
+    "website/atelier/README.md": {
+      "main": "d20d7ea2d41e869a8978c7932d767db38593a1bd",
+      "candidate": "d20d7ea2d41e869a8978c7932d767db38593a1bd"
+    },
+    "website/atelier/REFINEMENT_V11.md": {
+      "main": "ae0d60a0c17e08583edc11cefdc6304a2adf32e9",
+      "candidate": "ae0d60a0c17e08583edc11cefdc6304a2adf32e9"
+    },
+    "website/atelier/demo.en.html": {
+      "main": "d1c529000b4e6c06772a94b333da6cadcb99a4b5",
+      "candidate": "d1c529000b4e6c06772a94b333da6cadcb99a4b5"
+    },
+    "website/atelier/demo.zh.html": {
+      "main": "263ec3021b21c767e02e0085cd2f0856e6133d7e",
+      "candidate": "263ec3021b21c767e02e0085cd2f0856e6133d7e"
+    },
+    "website/atelier/home.en.html": {
+      "main": "ff3f2e030efb163d924a45b39d1239fa3a39ed66",
+      "candidate": "ff3f2e030efb163d924a45b39d1239fa3a39ed66"
+    },
+    "website/atelier/home.zh.html": {
+      "main": "b3003df91bbbca79eb736f3aacd12dfa5120b3f8",
+      "candidate": "b3003df91bbbca79eb736f3aacd12dfa5120b3f8"
+    },
+    "website/atelier/preserved-v11.json": {
+      "main": "ff99e2633c71fdadbec1c2a5b999022df39274d0",
+      "candidate": "ff99e2633c71fdadbec1c2a5b999022df39274d0"
+    },
+    "website/atelier_checks.py": {
+      "main": "d2943056ea475ef539cd63eea18eae7492a213f0",
+      "candidate": "d2943056ea475ef539cd63eea18eae7492a213f0"
+    },
+    "website/atelier_home.py": {
+      "main": "7a1c2a008c51af5f7928caaa3aba66aa1346765a",
+      "candidate": "7a1c2a008c51af5f7928caaa3aba66aa1346765a"
+    },
+    "website/build.py": {
+      "main": "9f851d718577874d012b91afe8e4cb6afc86145b",
+      "candidate": "9f851d718577874d012b91afe8e4cb6afc86145b"
+    },
+    "website/harmony_checks.py": {
+      "main": "48ea436f69d9dea8843f3a872426891ce0774917",
+      "candidate": "48ea436f69d9dea8843f3a872426891ce0774917"
+    },
+    "website/launch_checks.py": {
+      "main": "01a440fe13e474aaeac7012c33c3b061bcaf9ba3",
+      "candidate": "01a440fe13e474aaeac7012c33c3b061bcaf9ba3"
+    },
+    "website/refinement11_checks.py": {
+      "main": "850cbecb2f0114ffcd908c24162a90f78bfa97fa",
+      "candidate": "850cbecb2f0114ffcd908c24162a90f78bfa97fa"
+    },
+    "website/test.py": {
+      "main": "8fa79c6899605a2c768f2e0877753867b8dfd29d",
+      "candidate": "8fa79c6899605a2c768f2e0877753867b8dfd29d"
+    },
+    "website/verify_live.py": {
+      "main": "b5a812012824baf0bf67017d5a3843eb4c421fdc",
+      "candidate": "b5a812012824baf0bf67017d5a3843eb4c421fdc"
+    },
+    "zh/demo.html": {
+      "main": "263ec3021b21c767e02e0085cd2f0856e6133d7e",
+      "candidate": "263ec3021b21c767e02e0085cd2f0856e6133d7e"
+    },
+    "zh/index.html": {
+      "main": "b3003df91bbbca79eb736f3aacd12dfa5120b3f8",
+      "candidate": "b3003df91bbbca79eb736f3aacd12dfa5120b3f8"
+    }
+  },
+  "extensionDiff": [],
+  "connectivityFsckExit": 0
+}

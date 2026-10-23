@@ -31,8 +31,8 @@ concrete grouped decision, with budget and stop conditions.
 
 ## 2. Baseline and integration identity
 
-- Last verified remote main: `9d7200555b315e1d89509f12bf78bf62e16418ae`,
-  preserved by normal merge `5e6f4f72`; its 23 website/document paths do not change extension runtime.
+- Last verified remote main: `0ce10a79f65ca9c811a32c1b0e6db2d833b85f9a`,
+  preserved by normal merge `aaffef6c`; its 29 new website/document paths do not change extension runtime.
   Earlier main checkpoints below retain their historical identities.
 - Preserved handoff candidate: `b0a10565fc590416fd9287b6abc3870fe7c8f2e4`;
   semantic read-pair implementation `f745013c121391488002116e28b061dd796c94ef`.
@@ -476,3 +476,10 @@ Resident Saved jobs, durable original active-library reopening, checkpoint stora
 The separate accidental 65/129 expected-refusal execution is disclosed in the checkpoint-storage correction record; it is not success or retrospectively authorized. New direct human approval permits private task-bound 8 MiB final/cold phases and new-task 64 MiB/120 s, ordinary limits unchanged, small tests first and one 129-group local recovery including one cold reopen. Root owns that one execution; pending implementation/review is not a pass.
 
 Parallel local engineering continues: incoming Human groups into existing mixed Saved libraries; selected Source-library negative intent plus ordinary incremental edits; complete mixed positive/negative checkpoint restore remains open. No new cloud, real-account, credentials, paid-model, install or deployment authority.
+
+
+## Current coherent mixed continuation at d8f76271
+
+Incoming Human groups into existing mixed Saved and selected Source negative continuation pass Source/Release4/4 native parents,34+14 original cases per variant; one672-file development build. Preceding complete owning Node423/423 has its separate0ab2dd4f identity. [Evidence](../../../../work/qualified-mixed-integration-20261023/REPORT.md). The bounded positive/negative protocol compiler is integrated; actual atomic mixed canonical application remains an active package. Default application startup selection is being implemented with a single original Organizer owner, default-off configuration and no silent fallback from missing/corrupt selected generations. Existing-active replacement remains distinct.
+
+The authorized qualified129 path has preliminary small correctness and a3-group native harness pass, but independent review requires control transactions/entry reads to enter the64MiB/120s cumulative task budget. Rolling prepaid accounting is in implementation. Root has not consumed the newly approved129 opportunity. No claim of whole operation wall-time or browser-memory hard bounds is made.
