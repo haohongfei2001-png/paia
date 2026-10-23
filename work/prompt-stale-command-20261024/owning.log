@@ -1,0 +1,292 @@
+TAP version 13
+# Subtest: bound manual local resolves exact Prompt and companion parents together
+ok 1 - bound manual local resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 89.888959
+  type: 'test'
+  ...
+# Subtest: bound manual other resolves exact Prompt and companion parents together
+ok 2 - bound manual other resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 54.49
+  type: 'test'
+  ...
+# Subtest: bound manual both resolves exact Prompt and companion parents together
+ok 3 - bound manual both resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 50.600208
+  type: 'test'
+  ...
+# Subtest: bound manual manual resolves exact Prompt and companion parents together
+ok 4 - bound manual manual resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 46.695667
+  type: 'test'
+  ...
+# Subtest: bound binding-proof refuses and preserves complete prior owner
+ok 5 - bound binding-proof refuses and preserves complete prior owner
+  ---
+  duration_ms: 32.979541
+  type: 'test'
+  ...
+# Subtest: bound binding-row refuses and preserves complete prior owner
+ok 6 - bound binding-row refuses and preserves complete prior owner
+  ---
+  duration_ms: 30.5975
+  type: 'test'
+  ...
+# Subtest: bound late-binding-write refuses and preserves complete prior owner
+ok 7 - bound late-binding-write refuses and preserves complete prior owner
+  ---
+  duration_ms: 37.493541
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved local pair with full two-parent history
+ok 8 - original remote materializer restores resolved local pair with full two-parent history
+  ---
+  duration_ms: 35.561541
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved other pair with full two-parent history
+ok 9 - original remote materializer restores resolved other pair with full two-parent history
+  ---
+  duration_ms: 35.074042
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved both pair with full two-parent history
+ok 10 - original remote materializer restores resolved both pair with full two-parent history
+  ---
+  duration_ms: 36.368583
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved manual pair with full two-parent history
+ok 11 - original remote materializer restores resolved manual pair with full two-parent history
+  ---
+  duration_ms: 32.552708
+  type: 'test'
+  ...
+# Subtest: remote resolved pair historical-companion rejects within original transaction and preserves all prior rows
+ok 12 - remote resolved pair historical-companion rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 30.925583
+  type: 'test'
+  ...
+# Subtest: remote resolved pair wrong-pair rejects within original transaction and preserves all prior rows
+ok 13 - remote resolved pair wrong-pair rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 30.86675
+  type: 'test'
+  ...
+# Subtest: remote resolved pair old-proof rejects within original transaction and preserves all prior rows
+ok 14 - remote resolved pair old-proof rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 29.125709
+  type: 'test'
+  ...
+# Subtest: remote resolved pair changed-other-preference rejects within original transaction and preserves all prior rows
+ok 15 - remote resolved pair changed-other-preference rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 28.627625
+  type: 'test'
+  ...
+# Subtest: prepared full graph deferral complete keeps canonical companion atomic
+ok 16 - prepared full graph deferral complete keeps canonical companion atomic
+  ---
+  duration_ms: 51.443542
+  type: 'test'
+  ...
+# Subtest: prepared full graph deferral early-return keeps canonical companion atomic
+ok 17 - prepared full graph deferral early-return keeps canonical companion atomic
+  ---
+  duration_ms: 38.264375
+  type: 'test'
+  ...
+# Subtest: prepared full graph deferral row-mutated keeps canonical companion atomic
+ok 18 - prepared full graph deferral row-mutated keeps canonical companion atomic
+  ---
+  duration_ms: 39.201167
+  type: 'test'
+  ...
+# Subtest: prepared full graph deferral epoch-mutated keeps canonical companion atomic
+ok 19 - prepared full graph deferral epoch-mutated keeps canonical companion atomic
+  ---
+  duration_ms: 39.410042
+  type: 'test'
+  ...
+# Subtest: prepared full graph deferral cloned-plan keeps canonical companion atomic
+ok 20 - prepared full graph deferral cloned-plan keeps canonical companion atomic
+  ---
+  duration_ms: 34.443958
+  type: 'test'
+  ...
+# Subtest: explicit local resolves exact two parents, canonical proof and outbox together
+ok 21 - explicit local resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 70.779708
+  type: 'test'
+  ...
+# Subtest: explicit other resolves exact two parents, canonical proof and outbox together
+ok 22 - explicit other resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 35.909041
+  type: 'test'
+  ...
+# Subtest: explicit manual resolves exact two parents, canonical proof and outbox together
+ok 23 - explicit manual resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 36.86575
+  type: 'test'
+  ...
+# Subtest: explicit both resolves exact two parents, canonical proof and outbox together
+ok 24 - explicit both resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 33.410708
+  type: 'test'
+  ...
+# Subtest: unrelated pins conflict is retained without whole-aggregate choice
+ok 25 - unrelated pins conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 21.18675
+  type: 'test'
+  ...
+# Subtest: unrelated other-body conflict is retained without whole-aggregate choice
+ok 26 - unrelated other-body conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 21.074375
+  type: 'test'
+  ...
+# Subtest: unrelated hidden conflict is retained without whole-aggregate choice
+ok 27 - unrelated hidden conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 18.962583
+  type: 'test'
+  ...
+# Subtest: unrelated split conflict is retained without whole-aggregate choice
+ok 28 - unrelated split conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 21.671292
+  type: 'test'
+  ...
+# Subtest: unrelated binding-proof conflict is retained without whole-aggregate choice
+ok 29 - unrelated binding-proof conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 23.121334
+  type: 'test'
+  ...
+# Subtest: review head change cannot commit stale human decision
+ok 30 - review head change cannot commit stale human decision
+  ---
+  duration_ms: 24.909792
+  type: 'test'
+  ...
+# Subtest: review epoch change cannot commit stale human decision
+ok 31 - review epoch change cannot commit stale human decision
+  ---
+  duration_ms: 22.872875
+  type: 'test'
+  ...
+# Subtest: review namespace change cannot commit stale human decision
+ok 32 - review namespace change cannot commit stale human decision
+  ---
+  duration_ms: 22.41575
+  type: 'test'
+  ...
+# Subtest: review revision change cannot commit stale human decision
+ok 33 - review revision change cannot commit stale human decision
+  ---
+  duration_ms: 23.9875
+  type: 'test'
+  ...
+# Subtest: review proof change cannot commit stale human decision
+ok 34 - review proof change cannot commit stale human decision
+  ---
+  duration_ms: 23.090708
+  type: 'test'
+  ...
+# Subtest: review generation change cannot commit stale human decision
+ok 35 - review generation change cannot commit stale human decision
+  ---
+  duration_ms: 22.515
+  type: 'test'
+  ...
+# Subtest: corrupt committed operation fails digest validation before displaying an offer
+ok 36 - corrupt committed operation fails digest validation before displaying an offer
+  ---
+  duration_ms: 20.241
+  type: 'test'
+  ...
+# Subtest: proof-failure rolls back preferences, heads, proof and outbox
+ok 37 - proof-failure rolls back preferences, heads, proof and outbox
+  ---
+  duration_ms: 25.378167
+  type: 'test'
+  ...
+# Subtest: late-owner-write rolls back preferences, heads, proof and outbox
+ok 38 - late-owner-write rolls back preferences, heads, proof and outbox
+  ---
+  duration_ms: 25.884458
+  type: 'test'
+  ...
+# Subtest: forged token, sender, unsupported text, replaced journal and consent all refuse without writes
+ok 39 - forged token, sender, unsupported text, replaced journal and consent all refuse without writes
+  ---
+  duration_ms: 27.920792
+  type: 'test'
+  ...
+# Subtest: ordinary local service exposes no resolution offer without its original journal
+ok 40 - ordinary local service exposes no resolution offer without its original journal
+  ---
+  duration_ms: 23.352
+  type: 'test'
+  ...
+# Subtest: original control change after prepare refuses before the write; an old offer cannot be renewed
+ok 41 - original control change after prepare refuses before the write; an old offer cannot be renewed
+  ---
+  duration_ms: 23.524292
+  type: 'test'
+  ...
+# Subtest: late gate change in the write rolls back the entire resolution
+ok 42 - late gate change in the write rolls back the entire resolution
+  ---
+  duration_ms: 27.892542
+  type: 'test'
+  ...
+# Subtest: late control-cache change in the write rolls back the entire resolution
+ok 43 - late control-cache change in the write rolls back the entire resolution
+  ---
+  duration_ms: 27.169292
+  type: 'test'
+  ...
+# Subtest: original command reports stale manual review without retrying or changing the archive
+ok 44 - original command reports stale manual review without retrying or changing the archive
+  ---
+  duration_ms: 22.437417
+  type: 'test'
+  ...
+# Subtest: command stale presentation does not mask storage, integrity or forged errors
+ok 45 - command stale presentation does not mask storage, integrity or forged errors
+  ---
+  duration_ms: 17.360333
+  type: 'test'
+  ...
+# Subtest: private surface rechecks offer after host/display awaits; host never receives either body
+ok 46 - private surface rechecks offer after host/display awaits; host never receives either body
+  ---
+  duration_ms: 1.327541
+  type: 'test'
+  ...
+# Subtest: one authorized resolution dispatch emits one change only after success; host cannot resolve
+ok 47 - one authorized resolution dispatch emits one change only after success; host cannot resolve
+  ---
+  duration_ms: 0.188375
+  type: 'test'
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 941.920584

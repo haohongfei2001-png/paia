@@ -1,0 +1,4 @@
+{
+  "extension/background/prompt-reuse-commands.js": "2a631f1a15dbfaa90037897355f13a9562c54ce36d796cee06fb76a77e00eeb1",
+  "extension/tests/manual-prompt-conflict-consumer.test.mjs": "9623b9a609448a741eb3f78b0c6f069f22ba473a38d538f594a9699edce572fa"
+}

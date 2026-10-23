@@ -1,3 +1,4 @@
+import {SyncError} from '../core/browser-native-sync/value.js';
 import {ArchiveError} from '../core/constants.js';
 import {validPromptSelectionRef} from '../core/prompt-selection.js';
 import {own,quickPromptEligible} from '../core/prompt-reuse-preferences.js';
@@ -8,7 +9,15 @@ export class PromptReuseCommands{
   if(sender.id!==api.runtime.id||!['ui/prompt-reuse-test.html','ui/archive.html','ui/popup.html'].some(path=>sender.url===api.runtime.getURL(path)))throw new ArchiveError('FORBIDDEN');
   return this.dispatch(request);
  }
- async dispatch(request,{assertTarget=null,targetIdentity=null}={}){
+ async dispatch(request,options={}){
+  try{return await this.#dispatch(request,options);}catch(error){
+   // Preserve the original refusal. A changed original journal owner is a
+   // stale reviewed view, not evidence that a storage write failed.
+   if(error instanceof SyncError&&error.code==='BNS_OWNER_CHANGED')throw new ArchiveError('MEMORY_STALE');
+   throw error;
+  }
+ }
+ async #dispatch(request,{assertTarget=null,targetIdentity=null}={}){
   const api=this.api;
   if(!(await this.service.s.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
   if(request.type==='PAIA_PROMPT_QUERY'&&own(request,['type','includeHidden']))return this.service.query({includeHidden:request.includeHidden});

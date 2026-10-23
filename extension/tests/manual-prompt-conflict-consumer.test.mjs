@@ -1,3 +1,5 @@
+import {SyncError} from '../core/browser-native-sync/value.js';
+import {ArchiveError} from '../core/constants.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setup} from './harness/thought-m1.mjs';
@@ -28,3 +30,12 @@ test('ordinary local service exposes no resolution offer without its original jo
 
 test('original control change after prepare refuses before the write; an old offer cannot be renewed',async()=>{const f=await fixture(),o=await offer(f),prepare=f.core.prepare.bind(f.core);let changed;f.core.prepare=async(...args)=>{const p=await prepare(...args);await f.s.setEnabled(false);changed=await meta(f);return p;};await assert.rejects(resolve(f,o));assert.deepEqual(await meta(f),changed);f.s.repository.close();});
 for(const kind of ['gate','control-cache'])test('late '+kind+' change in the write rolls back the entire resolution',async()=>{const f=await fixture(),o=await offer(f),before=await meta(f),original=f.core.recordMaterializedOwner.bind(f.core);f.core.recordMaterializedOwner=async(t,...args)=>{await original(t,...args);if(kind==='gate'){const gate=await t.get('meta','gate');await t.put('meta',{...gate,epoch:gate.epoch+1});}else f.s.controlCache.settings.consentVersion=0;};await assert.rejects(resolve(f,o));assert.deepEqual(await meta(f),before);f.s.repository.close();});
+
+test('original command reports stale manual review without retrying or changing the archive',async()=>{
+ const f=await fixture(),o=await offer(f);await f.core.transaction(true,t=>t.put('meta',{id:'backup-data-generation',value:99}));const before=await meta(f);
+ await assert.rejects(resolve(f,o),error=>error.code==='MEMORY_STALE');assert.deepEqual(await meta(f),before);f.s.repository.close();
+});
+
+test('command stale presentation does not mask storage, integrity or forged errors',async()=>{
+ const f=await fixture();for(const error of [new ArchiveError('STORAGE_FAILED'),new SyncError('BNS_OWNER_PROOF_INVALID'),Object.assign(Error('SYNTHETIC untrusted code'),{code:'BNS_OWNER_CHANGED'})]){let calls=0;f.service.query=async()=>{calls++;throw error;};await assert.rejects(f.commands.handle({type:'PAIA_PROMPT_QUERY'},f.sender),e=>e===error);assert.equal(calls,1);}f.s.repository.close();
+});

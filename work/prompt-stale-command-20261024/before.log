@@ -1,0 +1,30 @@
+TAP version 13
+# Subtest: original command reports stale manual review without retrying or changing the archive
+not ok 1 - original command reports stale manual review without retrying or changing the archive
+  ---
+  duration_ms: 50.254958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/manual-prompt-conflict-consumer.test.mjs:32:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    SyncError: BNS_OWNER_CHANGED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/manual-prompt-conflict-consumer.test.mjs:34:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 178.161667
