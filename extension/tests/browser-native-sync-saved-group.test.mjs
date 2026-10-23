@@ -50,3 +50,15 @@ for(const change of ['missing items','manifest ref','changed item','cloned plan'
 });
 
 for(const kind of ['stage','replay'])test('saved terminal scope refuses a new unplanned '+kind+' row after activation',async t=>{const {transport,cut}=await fixture(t),b=await make(t,'synthetic-B');let injected=false;const restore=new StagedSyncRestore(b.core,{grouped:{store:b.s},checkpoint:async(name,tx)=>{if(name!=='after-activation')return;const active=await tx.get('meta',b.core.prefix+'active'),id=kind==='stage'?await restore.stage.idIn(tx,'groupItem','9999'):b.core.prefix+'generation:'+active.namespace+':unplanned:';await tx.put('meta',{id,synthetic:true});injected=true;}});await restore.stageCheckpoint(cut.ref,r=>transport.get(r));const before=await snapshot(b.s);await assert.rejects(restore.activate());assert.equal(injected,true);assert.deepEqual(await snapshot(b.s),before);});
+
+
+test('saved group private budget survives public metrics reset and rolls back activated scope',async t=>{
+ const {transport,cut}=await fixture(t),b=await make(t,'synthetic-B');let entered=false,attempted=0;
+ const restore=new StagedSyncRestore(b.core,{grouped:{store:b.s},checkpoint:async(name,tx)=>{
+  if(name!=='after-activation')return;entered=true;
+  for(let n=0;n<4097;n++){tx.metrics.reads=0;tx.metrics.writes=0;attempted++;await tx.get('meta','synthetic-budget-absent');}
+  tx.metrics.reads=0;tx.metrics.writes=0;
+ }});
+ await restore.stageCheckpoint(cut.ref,r=>transport.get(r));const before=await snapshot(b.s);
+ await assert.rejects(restore.activate(),{code:'BNS_GROUP_RESOURCE_LIMIT'});assert.equal(entered,true);assert.ok(attempted>0&&attempted<=4097);assert.deepEqual(await snapshot(b.s),before);
+});

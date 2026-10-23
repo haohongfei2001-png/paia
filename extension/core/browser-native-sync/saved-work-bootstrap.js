@@ -27,7 +27,7 @@ import {clone,equal,identifier,bytes,digest,fail} from './value.js';
 const plans=new WeakMap(),publications=new WeakMap(),protocolApplications=new WeakMap(),wireOperations=new WeakSet(),limit=2*1024*1024;
 const bad=()=>fail('BNS_SAVED_WORK_UNSUPPORTED');
 function binding(store,core){requireOriginalLibraryDocumentsStore(store);if(store.repository!==core.repository)fail('BNS_SAVED_WORK_BINDING');}
-async function page(t,name,index,key,max){const p=await t.rangePage(name,index,prefix(key),null,max+1);if(p.next||p.rows.length>max)bad();return p.rows.map(x=>x.value);}
+async function page(t,name,index,key,max){const rows=[];let after=null;do{const p=await t.rangePage(name,index,prefix(key),after,Math.min(64,max+1-rows.length));rows.push(...p.rows.map(x=>x.value));if(rows.length>max)bad();after=p.next;}while(after!==null);return rows;}
 async function ownedRows(t,id){return {entry:await t.get('thoughts',id)??null,history:await page(t,'revisions','byList',['library_entry:'+id],128),provenance:await page(t,'provenance','byOwner',['entry',id],1),dependencies:await page(t,'dependencies','byTarget',['entry',id],1),placements:await t.count('placements','byEntry',prefix([id])),suppressions:await t.count('thoughtSuppressions','byEntry',id)};}
 async function authority(store,core,t){
  const c=await store.control(t);if(c.settings.enabled!==true||c.settings.consentVersion!==CONSENT_VERSION)fail('BNS_SAVED_WORK_PERMISSION');

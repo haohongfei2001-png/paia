@@ -1,0 +1,43 @@
+TAP version 13
+# SYNTHETIC query diagnostic blockIndex byRecord undefined Error: BNS_GROUP_RESOURCE_LIMIT
+#     at workRefuse (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:97:53)
+#     at finiteWorkQuery (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:106:133)
+#     at Transaction.all (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:356:62)
+#     at tx.all (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-group.test.mjs:57:215)
+#     at LibraryDocumentsStore.saveRecord (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:296:27)
+#     at async LibraryDocumentsStore.saveRecord (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/ia-store-owner.js:70:3)
+#     at async LibraryDocumentsStore.saveRecord (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/smart-filter-store-owner.js:199:30)
+#     at async LibraryDocumentsStore.applyInitialSource (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:310:49)
+#     at async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-bootstrap-receive.js:47:5
+#     at async BrowserNativeSyncCore.commitSourceBootstrapReceive (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:526:352)
+# Subtest: saved group private budget survives public metrics reset and rolls back activated scope
+not ok 1 - saved group private budget survives public metrics reset and rolls back activated scope
+  ---
+  duration_ms: 255.972834
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-group.test.mjs:55:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-group.test.mjs:64:84)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 429.136167

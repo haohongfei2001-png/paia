@@ -1,0 +1,27 @@
+{
+  "base": "47996679",
+  "repositoryPrimitive": "9926333ac0a32e0746b9d3f739bd2e2260705e18",
+  "coordinator": "temporary uncommitted original file; exact patch required",
+  "files": [
+    {
+      "path": "extension/core/idb-repository.js",
+      "sha256": "a974ce3fe86cc2363b95977d099766120968f41bc3bce645f10ee63929a1ca85"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint.js",
+      "sha256": "043a906495a5023a63a9365fb690110f082154de98cf44a085670b8ddc20d3e8"
+    },
+    {
+      "path": "extension/core/browser-native-sync/saved-work-bootstrap.js",
+      "sha256": "2abcd56f4ef0b2334bb951b69b864cafab32217401121dd73dd44acec7bfdaaf"
+    },
+    {
+      "path": "extension/tests/browser-native-sync-saved-group.test.mjs",
+      "sha256": "29e937fabb8f697ea5a0cf62e8d738b5d0718a96e8bae4639d7ba2a1d36cbcd9"
+    },
+    {
+      "path": "work/sync-local-completion/saved-group-coordinator.patch",
+      "sha256": "e2b393a648586b56fb7348f333fab93380637fe989347e4e1f704f3638f2a42f"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 diff --git a/extension/core/browser-native-sync/group-checkpoint.js b/extension/core/browser-native-sync/group-checkpoint.js
-index a8d87fd6..47302650 100644
+index a8d87fd6..df78ef93 100644
 --- a/extension/core/browser-native-sync/group-checkpoint.js
 +++ b/extension/core/browser-native-sync/group-checkpoint.js
 @@ -1,3 +1,4 @@
@@ -7,7 +7,7 @@ index a8d87fd6..47302650 100644
  import {groupOperationPages,createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget,readGroupRows} from './group-page-reader.js';
  import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,captureMixedCurrentGroupProjection,requireMixedCurrentGroupProjection,encodeMixedCurrentGroupCheckpoint,publishMixedCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
  import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-working-commit.js';
-@@ -162,7 +163,7 @@ export class GroupedCheckpointRestore{
+@@ -162,12 +163,12 @@ export class GroupedCheckpointRestore{
    if(localOperations.length)return this.mergeManual(state,plan,localOperations);
    const filter=new FilterIntentSyncJournal(replay),working=new InputWorkingCommitReceiver(this.store,replay,{filterJournal:filter}),manual=manualSyncOwners(replay),desired=contextDesiredMaterializer(replay),topicDesired=topicDesiredMaterializer(replay),consumerOperations=finalConsumerPreferenceOperations(plan);
    const sourceProof=await prepareRestoredFilterSources(canonical.expected.records.map(row=>({...row})));
@@ -16,6 +16,12 @@ index a8d87fd6..47302650 100644
    const applications=[];for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);else if(group.type==='sourceAppendCommit'){const anchor=plan.groups.find(x=>x.id===group.prepared.descriptor.value.bootstrap.revisionId);applications.push([group,await prepareAppendApplication(this.store,replay,group.operations,anchor.operations)]);}else if(group.type==='inputWorkingCommit')applications.push([group,await prepareWorkingApplication(working,group.operations)]);else if(group.type==='filterIntent')applications.push([group,await prepareFilterApplication(filter,group.operations[0])]);else applications.push([group,null]);}
    const consumerApplication=consumerOperations.length?await prepareRestoredConsumerPreferenceApplication(this.store,replay,plan,this.stage,state):null;
    const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(replay,[]));
+   return this.store.run(async()=>{const result=await this.live.transaction(true,async t=>{
+-   if(state.manifest.ownerScope.version===2)registerRepositoryWorkLimit(this.store.repository,t);
++   if(state.manifest.ownerScope.version===2||savedApplication)registerRepositoryWorkLimit(this.store.repository,t);
+    const current=await this.stage.get(t,'restore');if(!equal(current,state))fail('BNS_RESTORE_STAGE_CHANGED');
+    if(state.phase==='activated'){const active=await t.get('meta',this.live.prefix+'active');if(active?.namespace!==state.replayId||active.manifestId!==state.manifestId||await readRestoreEpoch(t)!==state.base.fence.epoch)fail('BNS_RESTORE_LOCAL_CHANGED');return {state:'activated',namespace:state.replayId};}
+    if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');
 @@ -175,7 +176,7 @@ export class GroupedCheckpointRestore{
     await requireGroupScope(this.store,t,empty);if(humanApplication)await requireHumanGroupApplication(t,humanApplication);
     for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
