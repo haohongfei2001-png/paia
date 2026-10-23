@@ -1,0 +1,130 @@
+{
+  "variant": "source",
+  "scope": "selected-negative",
+  "head": "d8f762715fd26c317ff2361d5dd54bd3d1570675",
+  "result": "PASS",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "53a0f26e05920ab3c97b9d4ef56e142344fa8519db737425c5d49e02c314fde8",
+  "hashes": {
+    "core/browser-native-sync/source-working-merge.js": "c813ffb9dcde98015d7d4ea4fe7225d0bafc65951eb056007ccd015ecd07cbee",
+    "core/browser-native-sync/completed-group-restore-control.js": "997b8345579ec2d1b088db266d9f55f30334a8c2e6fe59d08cd85a4e4408338a",
+    "core/browser-native-sync/source-working-physical.js": "849950db460e2f2b14547e72670887a59494a66a402e0f2566cf5a77b10d9e95",
+    "core/browser-native-sync/input-working-journal.js": "ec8ace6217992d922238b27e19a1056156e6e01023ee57ff055b1190396e2f1a",
+    "core/browser-native-sync/filter-intent-journal.js": "cb9bdb3c0fb9e8106de7572e0ab1e1d1a24672abb88f7cfcd69a601feb5cbe33",
+    "core/browser-native-sync/source-working-canonical.js": "c840b8d177f3d268e81e6b2dfbd02799282f175beb4f9538974a0ac2bb754d2e",
+    "core/browser-native-sync/source-working-default-meta.js": "6a5b5c06c89494f08409acc1e11bb20ae997a252e45c3981786bba9d85214593",
+    "core/browser-native-sync/source-working-derived.js": "c0bb5f43bc7500d8b63e43695cc7af2dbde7b2e7d17e6f725113e6ea3febdaa3",
+    "core/browser-native-sync/source-working-replay.js": "f70b91482ed2af6bb101574d291f773cf54b5e35e6b152ddb1a77659d8be8c0f",
+    "core/browser-native-sync/canonical-generation-repository-gate.js": "57dc20277ffbc136a70767fea3e53f48387fb02523a467d12eb2dcff4c2c43d8",
+    "core/browser-native-sync/canonical-generation-copy-retirement.js": "474f1bd5d61311eece4734bd05ace5e3ed1d9008486bd51af93a2a84f569f165",
+    "core/browser-native-sync/saved-work-successor-codec.js": "e6e439804e1c83c41296b37281be8966502235c17107eab6e67874bebec14a3a",
+    "core/browser-native-sync/saved-work-journal.js": "157f5f353c80acc6d2947064b5e9397b7a5537cb8e71442ee74bedea89ee7876",
+    "core/browser-native-sync/canonical-generation-human-restore.js": "cc84377922fd4009ed069e12cf6926120868ea528a144cb373fb3ab064565a6c",
+    "core/browser-native-sync/human-library-group.js": "71403dec91999571feb2f0639c7fa67aaa5e36181f55098c32fd501feb322786",
+    "core/browser-native-sync/human-library-plan.js": "a0b4845ddfe44968bdc7e68c9bb7ae5d35135b728a4ff860a735f7ebedf546e2",
+    "core/browser-native-sync/human-library-search-proof.js": "105c65d9b2d9793accb9df6026bb70063822958dabf2fe741953db9eccbb9f76",
+    "core/ia-store-owner.js": "67825a0116b455b19d2187bc7f12db8fd4957a97e3b543172f2c093d15a03e18",
+    "core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
+    "core/browser-native-sync/saved-work-bootstrap.js": "d9d471f3097fc68b42abfcbf53947f5413c79dfd438617caac57b70ccda1b00b",
+    "core/browser-native-sync/group-checkpoint-plan.js": "0536d0afcb587dac7ee3e1ae2c7817291c57653a1d4730379f86d53aac6709ae",
+    "core/browser-native-sync/group-checkpoint-scope.js": "3fda9ccb9854164d226dd6df26d37400023a31b3f3b2add61b4b61c8940a4bbd",
+    "core/library-documents-store.js": "63f7e9dec5c31e076cfa48e865b1fa7ef1e804ac12ba2d25c3c1d8faff69931a",
+    "core/idb-repository.js": "98fcf2f37cc01819c0bcc069e2fe60aa0efb0acec9ffb9bef7b1c25f9e588b97",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/thought-maintenance.js": "35f099480098ac724f3de6a26f50b4991bb027c6eff05340eba5621c318833b6",
+    "core/source-purge-admission.js": "8a526a77ff393739736d19b746319ac5b844192392ecb5f53c7edf67ce294347",
+    "core/browser-native-sync/core.js": "77dee7e562f58bb770198b4d482d110f814d92db003acaa7a9d41c671f8905d4",
+    "core/browser-native-sync/group-checkpoint.js": "51029ae95bc786b96854661fc14a32c99ae73b96612d54f87e737567e527d7db",
+    "core/browser-native-sync/canonical-generation-publication.js": "fe75053d0d79bda67eb11fdca446d1ea696a2c42ca76277deb103673b02db7f6",
+    "core/browser-native-sync/canonical-generation-checkpoint-stage.js": "6a52902a2e316e7dc98139756c0b7c2bfe00814a02fe091c4d4ee48e213c2568",
+    "core/browser-native-sync/source-purge-journal.js": "dc77e32d5f525e0dc0fd4cc5a99d90eeb1421503cd135258de863e753dea0bc3",
+    "core/browser-native-sync/source-purge-codec.js": "bfbe850cb33a941a753e5db7f118a10b681255aa5eead304543c714a602f2360",
+    "core/browser-native-sync/source-purge-checkpoint.js": "bd89348e36a52d5d4f74d6797725504d2b0855192c098976ba62a222884939c1"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    "cold selected library permanently ignores old Source, receives independent Source, edits and reopens",
+    "selected Source purge refuses unbound and preserves every table",
+    "selected Source purge refuses completed and preserves every table",
+    "selected Source purge refuses control and preserves every table",
+    "selected Source purge refuses resident-copy and preserves every table",
+    "selected Source purge refuses unknown-namespace and preserves every table",
+    "selected Source purge refuses post-restore-source and preserves every table",
+    "selected Source purge refuses filter-owner and preserves every table",
+    "late other-source change inside original purge rolls back the full selected library",
+    "late new-meta change inside original purge rolls back the full selected library",
+    "late gate change inside original purge rolls back the full selected library",
+    "late outbox change inside original purge rolls back the full selected library",
+    "late completed change inside original purge rolls back the full selected library",
+    "real permanent-ignore keeps the grouped-checkpoint reconciliation gate closed before remote read"
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "7b8c0644-ea99-44fa-80e3-6ad38091a2ae",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "7b8c0644-ea99-44fa-80e3-6ad38091a2ae",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  },
+  "afterHashes": {
+    "core/browser-native-sync/source-working-merge.js": "c813ffb9dcde98015d7d4ea4fe7225d0bafc65951eb056007ccd015ecd07cbee",
+    "core/browser-native-sync/completed-group-restore-control.js": "997b8345579ec2d1b088db266d9f55f30334a8c2e6fe59d08cd85a4e4408338a",
+    "core/browser-native-sync/source-working-physical.js": "849950db460e2f2b14547e72670887a59494a66a402e0f2566cf5a77b10d9e95",
+    "core/browser-native-sync/input-working-journal.js": "ec8ace6217992d922238b27e19a1056156e6e01023ee57ff055b1190396e2f1a",
+    "core/browser-native-sync/filter-intent-journal.js": "cb9bdb3c0fb9e8106de7572e0ab1e1d1a24672abb88f7cfcd69a601feb5cbe33",
+    "core/browser-native-sync/source-working-canonical.js": "c840b8d177f3d268e81e6b2dfbd02799282f175beb4f9538974a0ac2bb754d2e",
+    "core/browser-native-sync/source-working-default-meta.js": "6a5b5c06c89494f08409acc1e11bb20ae997a252e45c3981786bba9d85214593",
+    "core/browser-native-sync/source-working-derived.js": "c0bb5f43bc7500d8b63e43695cc7af2dbde7b2e7d17e6f725113e6ea3febdaa3",
+    "core/browser-native-sync/source-working-replay.js": "f70b91482ed2af6bb101574d291f773cf54b5e35e6b152ddb1a77659d8be8c0f",
+    "core/browser-native-sync/canonical-generation-repository-gate.js": "57dc20277ffbc136a70767fea3e53f48387fb02523a467d12eb2dcff4c2c43d8",
+    "core/browser-native-sync/canonical-generation-copy-retirement.js": "474f1bd5d61311eece4734bd05ace5e3ed1d9008486bd51af93a2a84f569f165",
+    "core/browser-native-sync/saved-work-successor-codec.js": "e6e439804e1c83c41296b37281be8966502235c17107eab6e67874bebec14a3a",
+    "core/browser-native-sync/saved-work-journal.js": "157f5f353c80acc6d2947064b5e9397b7a5537cb8e71442ee74bedea89ee7876",
+    "core/browser-native-sync/canonical-generation-human-restore.js": "cc84377922fd4009ed069e12cf6926120868ea528a144cb373fb3ab064565a6c",
+    "core/browser-native-sync/human-library-group.js": "71403dec91999571feb2f0639c7fa67aaa5e36181f55098c32fd501feb322786",
+    "core/browser-native-sync/human-library-plan.js": "a0b4845ddfe44968bdc7e68c9bb7ae5d35135b728a4ff860a735f7ebedf546e2",
+    "core/browser-native-sync/human-library-search-proof.js": "105c65d9b2d9793accb9df6026bb70063822958dabf2fe741953db9eccbb9f76",
+    "core/ia-store-owner.js": "67825a0116b455b19d2187bc7f12db8fd4957a97e3b543172f2c093d15a03e18",
+    "core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
+    "core/browser-native-sync/saved-work-bootstrap.js": "d9d471f3097fc68b42abfcbf53947f5413c79dfd438617caac57b70ccda1b00b",
+    "core/browser-native-sync/group-checkpoint-plan.js": "0536d0afcb587dac7ee3e1ae2c7817291c57653a1d4730379f86d53aac6709ae",
+    "core/browser-native-sync/group-checkpoint-scope.js": "3fda9ccb9854164d226dd6df26d37400023a31b3f3b2add61b4b61c8940a4bbd",
+    "core/library-documents-store.js": "63f7e9dec5c31e076cfa48e865b1fa7ef1e804ac12ba2d25c3c1d8faff69931a",
+    "core/idb-repository.js": "98fcf2f37cc01819c0bcc069e2fe60aa0efb0acec9ffb9bef7b1c25f9e588b97",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/thought-maintenance.js": "35f099480098ac724f3de6a26f50b4991bb027c6eff05340eba5621c318833b6",
+    "core/source-purge-admission.js": "8a526a77ff393739736d19b746319ac5b844192392ecb5f53c7edf67ce294347",
+    "core/browser-native-sync/core.js": "77dee7e562f58bb770198b4d482d110f814d92db003acaa7a9d41c671f8905d4",
+    "core/browser-native-sync/group-checkpoint.js": "51029ae95bc786b96854661fc14a32c99ae73b96612d54f87e737567e527d7db",
+    "core/browser-native-sync/canonical-generation-publication.js": "fe75053d0d79bda67eb11fdca446d1ea696a2c42ca76277deb103673b02db7f6",
+    "core/browser-native-sync/canonical-generation-checkpoint-stage.js": "6a52902a2e316e7dc98139756c0b7c2bfe00814a02fe091c4d4ee48e213c2568",
+    "core/browser-native-sync/source-purge-journal.js": "dc77e32d5f525e0dc0fd4cc5a99d90eeb1421503cd135258de863e753dea0bc3",
+    "core/browser-native-sync/source-purge-codec.js": "bfbe850cb33a941a753e5db7f118a10b681255aa5eead304543c714a602f2360",
+    "core/browser-native-sync/source-purge-checkpoint.js": "bd89348e36a52d5d4f74d6797725504d2b0855192c098976ba62a222884939c1"
+  }
+}

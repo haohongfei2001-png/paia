@@ -1,0 +1,109 @@
+{
+  "mode": "small",
+  "head": "d8f762715fd26c317ff2361d5dd54bd3d1570675",
+  "groups": 3,
+  "coldPrefix": 1,
+  "result": "PASS",
+  "node": "v22.23.3",
+  "platform": "darwin",
+  "arch": "arm64",
+  "fullSyncQualification": false,
+  "cloudExecuted": false,
+  "startedAt": "2026-10-23T11:27:13.990Z",
+  "fixtureSha256": "41d64b4b2a7d7e55e809fa71388696d1884080729f5ece73cd90cfa2ece64829",
+  "browserVersion": "156.0.8078.47",
+  "schedule": {
+    "version": 1,
+    "groups": 3,
+    "operations": 9,
+    "items": 19,
+    "pages": 1,
+    "rawPoints": 118,
+    "storeCounts": 37,
+    "fixedReferences": 19,
+    "references": 174
+  },
+  "ledger": {
+    "id": "canonical-generation:checkpoint:phased-task:v1",
+    "version": 2,
+    "taskId": "0795be3c-3346-4aae-b0e8-67486a6c41b1",
+    "identity": {
+      "manifestId": "b0494e9ffe60f7fb87b703daf84094080a21cb395e3e723389ef1090dc935c9b",
+      "generationIdentity": {
+        "generationId": "synthetic_qualified_generation",
+        "databaseId": "synthetic_qualified_database",
+        "databaseName": "paia-native-qualified-small-target"
+      },
+      "sourceBase": {
+        "root": {
+          "id": "canonical-generation:registry:v1",
+          "version": 1,
+          "revision": 0,
+          "active": null,
+          "pending": null
+        },
+        "gate": null
+      }
+    },
+    "phase": "verified",
+    "tickets": 12,
+    "burned": 0,
+    "workBytes": 9414880,
+    "activeMs": 30162,
+    "pending": null,
+    "transportIds": [
+      "080bdf8bd0d7f416bda92725fe9039c2e81a743ecaf3475a19fe7130a8cb6fa6"
+    ]
+  },
+  "work": {
+    "native": {
+      "references": 174,
+      "bytes": 122679,
+      "activeMs": 73
+    },
+    "preparationBytes": 940,
+    "prepaidBytes": 8388608,
+    "prepaidMs": 30000
+  },
+  "wallMs": 1778.838833,
+  "memoryScope": "Node orchestration process samples only; browser heap/process peak UNKNOWN",
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive",
+      "paia-native-qualified-small-registry",
+      "paia-native-qualified-small-source",
+      "paia-native-qualified-small-target"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "fcc5318b-96c9-4b2f-a4b9-54306f767495",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "fcc5318b-96c9-4b2f-a4b9-54306f767495",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive",
+            "paia-native-qualified-small-registry",
+            "paia-native-qualified-small-source",
+            "paia-native-qualified-small-target"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  },
+  "sourceStable": true
+}

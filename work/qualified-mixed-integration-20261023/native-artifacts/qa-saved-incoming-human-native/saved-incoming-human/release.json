@@ -1,0 +1,120 @@
+{
+  "variant": "release",
+  "scope": "saved-incoming-human",
+  "head": "d8f762715fd26c317ff2361d5dd54bd3d1570675",
+  "result": "PASS",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "6a937268f8d44dab587f8eb750cb224da907d1e39526f25fe5f6bc1e6ef0daaa",
+  "hashes": {
+    "core/browser-native-sync/saved-work-bootstrap.js": "d9d471f3097fc68b42abfcbf53947f5413c79dfd438617caac57b70ccda1b00b",
+    "core/browser-native-sync/group-checkpoint.js": "51029ae95bc786b96854661fc14a32c99ae73b96612d54f87e737567e527d7db",
+    "core/browser-native-sync/group-checkpoint-plan.js": "0536d0afcb587dac7ee3e1ae2c7817291c57653a1d4730379f86d53aac6709ae",
+    "core/browser-native-sync/group-checkpoint-scope.js": "3fda9ccb9854164d226dd6df26d37400023a31b3f3b2add61b4b61c8940a4bbd",
+    "core/browser-native-sync/human-library-scope.js": "c897bb58ab460e6d7702a828b739c38717a2ec44e156c2552fc69bf05a65592f",
+    "core/browser-native-sync/human-library-group.js": "71403dec91999571feb2f0639c7fa67aaa5e36181f55098c32fd501feb322786",
+    "core/browser-native-sync/human-library-plan.js": "a0b4845ddfe44968bdc7e68c9bb7ae5d35135b728a4ff860a735f7ebedf546e2",
+    "core/browser-native-sync/human-library-journal.js": "962ef77a4f47fe129c5490731614c2d42eb2b7426c67f5ec05103a578990e794",
+    "core/browser-native-sync/saved-work-journal.js": "157f5f353c80acc6d2947064b5e9397b7a5537cb8e71442ee74bedea89ee7876",
+    "core/browser-native-sync/saved-work-successor-codec.js": "e6e439804e1c83c41296b37281be8966502235c17107eab6e67874bebec14a3a",
+    "core/browser-native-sync/source-working-physical.js": "849950db460e2f2b14547e72670887a59494a66a402e0f2566cf5a77b10d9e95",
+    "core/idb-repository.js": "98fcf2f37cc01819c0bcc069e2fe60aa0efb0acec9ffb9bef7b1c25f9e588b97",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
+    "core/organizer/store-owner.js": "06fd1229b88b914b9965252c377caf6e8531dc67b654c87d2a30b8b0b7a048dd",
+    "core/ai-usage/delta.js": "c463eb810b8bc6e56fabd0520f9736b1fed81923c37272d1e63cf4988a813114",
+    "core/ai-usage/semantic-invalidation.js": "a4b8ddf476f6985b48e420f6bc1e146fb3c64e107783c651ce659e217fbb99fb",
+    "core/ai-usage/domain-result-receipt.js": "d099ee52d6920cb3ff1e41dd0ddfb123ad98789004264d15fb36e66060f1fe44",
+    "core/ai-usage/foundation.js": "25d0f55bcd51b8ca2543225b9c73b6e4c646a52785b65cff651e4f5571ed554a"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    "incoming Human create into mixed B keeps Saved and outbox and continues to cold C",
+    "incoming Human edit into mixed B keeps Saved and outbox and continues to cold C",
+    "same Human entity fork rejects before changing mixed B",
+    "incoming Human owner return rejects counter atomically",
+    "incoming Human owner return rejects Saved history atomically",
+    "incoming Human owner return rejects Saved mapping atomically",
+    "incoming Human owner return rejects local outbox atomically",
+    "incoming Human owner return rejects Human mapping atomically",
+    "incoming Human owner return rejects protocol atomically",
+    "incoming Human owner return rejects extra row atomically",
+    "incoming Human final tail rejects counter atomically",
+    "incoming Human final tail rejects Saved history atomically",
+    "incoming Human final tail rejects Saved mapping atomically",
+    "incoming Human final tail rejects local outbox atomically",
+    "incoming Human final tail rejects Human mapping atomically",
+    "incoming Human final tail rejects protocol atomically",
+    "incoming Human final tail rejects extra row atomically",
+    "incoming Human failure rolls back original group and explicit retry returns once",
+    "incoming Human edit preserves resident planned financial and completion semantics",
+    "incoming Human edit preserves resident unknown financial and completion semantics",
+    "incoming Human edit preserves resident settled financial and completion semantics",
+    "incoming Human edit preserves resident committed financial and completion semantics",
+    "cold Saved edit rejects missing allocation mapping without writing",
+    "cold Saved edit rejects wrong revision allocation mapping without writing",
+    "cold Saved edit rejects wrong entity allocation mapping without writing",
+    "cold Saved edit rejects copied local allocation mapping without writing",
+    "cold Saved edit rejects forged version allocation mapping without writing",
+    "wire Saved allocation collision still fails before the mixed receiver writes",
+    "two incoming Human groups resume only after their complete durable owner boundary",
+    "local mutation after incoming Human stage rejects before first owner write",
+    "forged v2 upgrade of a v1 local mapping does not mint a cold allocation",
+    "multiple Saved entities retain unique cold local allocations and separate wire identities",
+    "first incoming Human group into a populated Saved cut also requires the full pre-write retention closure",
+    "incoming Human retention witness binds exact private owner and both original plan identities"
+  ],
+  "hashesAfter": {
+    "core/browser-native-sync/saved-work-bootstrap.js": "d9d471f3097fc68b42abfcbf53947f5413c79dfd438617caac57b70ccda1b00b",
+    "core/browser-native-sync/group-checkpoint.js": "51029ae95bc786b96854661fc14a32c99ae73b96612d54f87e737567e527d7db",
+    "core/browser-native-sync/group-checkpoint-plan.js": "0536d0afcb587dac7ee3e1ae2c7817291c57653a1d4730379f86d53aac6709ae",
+    "core/browser-native-sync/group-checkpoint-scope.js": "3fda9ccb9854164d226dd6df26d37400023a31b3f3b2add61b4b61c8940a4bbd",
+    "core/browser-native-sync/human-library-scope.js": "c897bb58ab460e6d7702a828b739c38717a2ec44e156c2552fc69bf05a65592f",
+    "core/browser-native-sync/human-library-group.js": "71403dec91999571feb2f0639c7fa67aaa5e36181f55098c32fd501feb322786",
+    "core/browser-native-sync/human-library-plan.js": "a0b4845ddfe44968bdc7e68c9bb7ae5d35135b728a4ff860a735f7ebedf546e2",
+    "core/browser-native-sync/human-library-journal.js": "962ef77a4f47fe129c5490731614c2d42eb2b7426c67f5ec05103a578990e794",
+    "core/browser-native-sync/saved-work-journal.js": "157f5f353c80acc6d2947064b5e9397b7a5537cb8e71442ee74bedea89ee7876",
+    "core/browser-native-sync/saved-work-successor-codec.js": "e6e439804e1c83c41296b37281be8966502235c17107eab6e67874bebec14a3a",
+    "core/browser-native-sync/source-working-physical.js": "849950db460e2f2b14547e72670887a59494a66a402e0f2566cf5a77b10d9e95",
+    "core/idb-repository.js": "98fcf2f37cc01819c0bcc069e2fe60aa0efb0acec9ffb9bef7b1c25f9e588b97",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
+    "core/organizer/store-owner.js": "06fd1229b88b914b9965252c377caf6e8531dc67b654c87d2a30b8b0b7a048dd",
+    "core/ai-usage/delta.js": "c463eb810b8bc6e56fabd0520f9736b1fed81923c37272d1e63cf4988a813114",
+    "core/ai-usage/semantic-invalidation.js": "a4b8ddf476f6985b48e420f6bc1e146fb3c64e107783c651ce659e217fbb99fb",
+    "core/ai-usage/domain-result-receipt.js": "d099ee52d6920cb3ff1e41dd0ddfb123ad98789004264d15fb36e66060f1fe44",
+    "core/ai-usage/foundation.js": "25d0f55bcd51b8ca2543225b9c73b6e4c646a52785b65cff651e4f5571ed554a"
+  },
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "096ff065-50f7-4732-afec-6530e2b369c9",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "096ff065-50f7-4732-afec-6530e2b369c9",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}
