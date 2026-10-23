@@ -69,7 +69,7 @@ async function selectedActiveControls(store,core,before){
 async function portfolioRows(t){
  const all={};let retained=0;for(const name of t.tx.objectStoreNames){all[name]=await readGroupRows(t,name);for(const row of all[name]){retained+=measureSourceWorkingPhysicalTree(row).B;if(retained>2*1024*1024)denied();}}return all;
 }
-function verifyPortfolioIndexes(raw,groups,total=groups.length){
+export function verifySourcePurgePortfolioIndexes(raw,groups,total=groups.length){
  const n=groups.length,metadata=new Map(raw.meta.map(row=>[row.id,row]));
  for(const name of ['recordIndex','blockIndex','documents'])if(raw[name].length!==n||new Set(raw[name].map(r=>r.sequence)).size!==n||raw[name].some(r=>!Number.isSafeInteger(r.sequence)||r.sequence<0||r.sequence>=total))denied();
  for(const name of ['inputStates','revisions']){const key=name==='inputStates'?'deltaSequence':'sequence';if(raw[name].length!==n||new Set(raw[name].map(r=>r[key])).size!==n||raw[name].some(r=>!Number.isSafeInteger(r[key])||r[key]<1||r[key]>total))denied();}
@@ -85,7 +85,7 @@ function verifyPortfolioIndexes(raw,groups,total=groups.length){
 async function preparePortfolio(store,core,before,plan,inventory){
  const negative=inventory.negative;
  if(plan.groups.length===1&&!negative.length&&!activeSelections.get(before))return null;const scope=await prepareGroupScope(plan),qualified=negative.length?await prepareSourcePurgeRemainingCanonical(store,core,plan,scope,inventory):null;
- return core.transaction(false,async t=>{if(!equal(await authority(store,core,t),before.authority)||!equal(await rows(t,'bns:v1:'),before.rows))denied();let raw;if(!negative.length){raw=await portfolioRows(t);await requireGroupScope(store,t,scope);verifyPortfolioIndexes(raw,plan.groups);}else{raw=qualified.raw;await requireSourcePurgeRemainingScope(store,t,scope,qualified.view,qualified.proof);verifyPortfolioIndexes(qualified.view,plan.groups,plan.groups.length+negative.length);}return raw;});
+ return core.transaction(false,async t=>{if(!equal(await authority(store,core,t),before.authority)||!equal(await rows(t,'bns:v1:'),before.rows))denied();let raw;if(!negative.length){raw=await portfolioRows(t);await requireGroupScope(store,t,scope);verifySourcePurgePortfolioIndexes(raw,plan.groups);}else{raw=qualified.raw;await requireSourcePurgeRemainingScope(store,t,scope,qualified.view,qualified.proof);verifySourcePurgePortfolioIndexes(qualified.view,plan.groups,plan.groups.length+negative.length);}return raw;});
 }
 function remainingPortfolio(p){
  if(!p.portfolio)return null;const result=Object.fromEntries(Object.entries(p.portfolio).filter(([name])=>name!=='meta').map(([name,rows])=>[name,new Map(rows.map(row=>[row.id,structuredClone(row)]))]));
@@ -197,6 +197,40 @@ export async function prepareSourcePurgeRemote(input,core){
  if(new Set(ordered.map(op=>op.operationId)).size!==7||new Set(ordered.map(op=>op.revisionId)).size!==7||ordered.some((op,i)=>op.sequence!==d.sequence-7+i)||new Set(intent.targets.map(x=>x.before.sequence)).size!==7)denied();
  return {intent,operations:[...ordered,d]};
 }
+// The grouped owner can prepare a negative-only domain application before its
+// single enclosing transaction. This capability never materializes old bodies,
+// deletes live content, or grants the generic protocol receiver purge authority.
+const coldApplications=new WeakMap();
+export async function prepareColdSourcePurgeApplication(store,core,input){
+ if(store?.repository!==core?.repository)denied();
+ const remote=await prepareSourcePurgeRemote(input,core),cap=Object.freeze({});
+ coldApplications.set(cap,{store,core,repository:core.repository,datasetId:core.datasetId,deviceId:core.deviceId,prefix:core.prefix,namespace:core.fixedNamespace,remote,start:Date.now()});return cap;
+}
+export async function applyColdSourcePurgeApplication(t,cap){
+ const p=coldApplications.get(cap);if(!p||p.store.repository!==p.repository||p.core.repository!==p.repository||p.core.datasetId!==p.datasetId||p.core.deviceId!==p.deviceId||p.core.prefix!==p.prefix||p.core.fixedNamespace!==p.namespace||Date.now()-p.start>=30000)denied();
+ const {store,core,remote}=p,{intent,operations}=remote;
+ requireRepositoryTransactionScope(p.repository,t);requireRepositoryTransactionDataMethods(p.repository,t);
+ await authority(store,core,t);
+ // No live identity, pending edit, local removal or other permanent tombstone
+ // may be silently replaced by this cold import. Live deletion stays with purge().
+ const deny={id:core.prefix+'sourcePurgeDeny:'+intent.sourceKey,version:1,intent:operations[7].revisionId,sourceKey:intent.sourceKey,sourceId:intent.sourceId},tombstone={id:'source:'+intent.sourceKey,sequence:Date.parse(intent.at),value:{sourceIdentityHash:intent.sourceKey,deletedAt:intent.at,status:'permanently_ignored'}};
+ const prior=await t.get('meta',deny.id),tomb=await t.get('tombstones',tombstone.id);
+ if(prior||tomb){
+  if(!equal(prior,deny)||!tomb||!exact(tomb,['id','sequence','value'])||!exact(tomb.value,['sourceIdentityHash','deletedAt','status'])||tomb.value.sourceIdentityHash!==intent.sourceKey||tomb.value.status!=='permanently_ignored'||!Number.isFinite(Date.parse(tomb.value.deletedAt))||tomb.sequence!==Date.parse(tomb.value.deletedAt)||await t.get('records',intent.sourceId)||await t.get('blocks',intent.inputId))denied();
+  for(const operation of [...intent.targets.map(x=>x.before),...operations]){const row=await core.get(t,'revision',operation.revisionId),receipt=await core.get(t,'receipt',operation.operationId);if(!equal(row,{id:row?.id,operation,redacted:operation.type!=='sourcePurgeIntent'})||!equal(receipt,{id:receipt?.id,digest:operation.revisionId,deviceId:operation.deviceId,sequence:operation.sequence}))denied();}
+  return {state:'duplicate'};
+ }
+ for(const [table,id]of [['records',intent.sourceId],['recordIndex',intent.sourceId],['blocks',intent.inputId],['blockIndex',intent.inputId],['documents',intent.documentId],['libraryDocuments',intent.documentId],['inputStates',intent.inputId],['revisions',intent.baselineId],['times',intent.sourceKey],['inputRemovals',intent.sourceKey],['filterInputs',intent.inputId],['sourceCounts',JSON.stringify([intent.documentId,intent.sourceKey])]])if(await t.get(table,id))denied();
+ for(const operation of [...intent.targets.map(x=>x.before),...operations]){
+  if((await t.primaryRangePage('meta',{prefix:await core.idIn(t,'entityPending',operation.type,operation.entityId)+':',limit:1})).rows.length)denied();
+  for(const [kind,ids]of [['revision',[operation.revisionId]],['receipt',[operation.operationId]],['head',[operation.type,operation.entityId]],['entityPending',[operation.type,operation.entityId]]])if(await core.get(t,kind,...ids))denied();
+ }
+ await t.put('meta',deny);
+ for(const target of intent.targets){const op=target.before;await core.put(t,'revision',[op.revisionId],{operation:op,redacted:true});await core.put(t,'entityRevision',[op.type,op.entityId,op.revisionId],{revisionId:op.revisionId});await core.recordReceipt(t,op);}
+ try{for(const operation of operations){applications.set(t,{core,operation,origin:'remote'});const result=await core.applyInTransaction(t,operation,{origin:'remote',materialize:false});if(result.state!==(operation.kind==='purge'?'purged':'applied'))denied();}}finally{applications.delete(t);}
+ await t.put('tombstones',tombstone);return {state:'purged'};
+}
+
 // Explicit local receiver only. Provider possession is the v1 trust boundary;
 // this bodyfree envelope conveys denial, never Source/body creation authority.
 export class SourcePurgeReceiver{

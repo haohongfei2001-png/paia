@@ -1,0 +1,29 @@
+TAP version 13
+# Subtest: complete original positive and permanent negative Source checkpoint activates atomically and re-exports
+not ok 1 - complete original positive and permanent negative Source checkpoint activates atomically and re-exports
+  ---
+  duration_ms: 307.156167
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-source-purge-group.test.mjs:17:1'
+  failureType: 'testCodeFailure'
+  error: 't.rangePage is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    invalidateSemanticJobs (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/ai-usage/semantic-invalidation.js:11:23)
+    flushSemanticWrites (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/ai-usage/delta.js:112:67)
+    async planSourcePurgeGroupPhysical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group-physical.js:36:39)
+    async SourcePurgeGroupedCheckpointRestore.stageCheckpoint (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:74:188)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-source-purge-group.test.mjs:17:234)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 471.099583

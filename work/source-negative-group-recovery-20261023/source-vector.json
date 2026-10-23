@@ -1,0 +1,17 @@
+{
+  "base": "9f4cd6b8",
+  "upstreamRuntimeDependency": "cbbb8a3b",
+  "compilerParent": "b227c5fdc54fefeacdda70dba700753ba013535b",
+  "files": {
+    "extension/core/browser-native-sync/group-checkpoint.js": "fb4bcf93ac4c99aee3cf6e04d949e42fdf2d5e23f473a3f8bc91e1ea10a08ab2",
+    "extension/core/browser-native-sync/source-purge-journal.js": "784083e1fe93b6f0c056d4422a36dea838e01052918afee8c9b76dc628cd6da1",
+    "extension/core/browser-native-sync/source-purge-negative.js": "1e4c6aa8c84b082d0d0d8349039f3c3453113a8254959008975118dcd03219d7",
+    "extension/core/browser-native-sync/source-purge-group.js": "a7f0e9545530fa5d74dd82cdf74f4cdf3ee25bc06aaf80e4a2e77d0604beba2b",
+    "extension/core/browser-native-sync/source-purge-group-physical.js": "b6f204f1127ef9ac7f39f6a69ba06a2964ea3bcdb005e6fc2e91a3da1b87cd50",
+    "extension/tests/browser-native-sync-source-purge-group.test.mjs": "468fe1d84b94d383098f873e1bab5b3dd8af9d600fb8b61a4762c64f1d96d094"
+  },
+  "nativePreparationOnly": {
+    "extension/tests/native-sync/source-purge-group-fixture.mjs": "268ec840f970e1458bf77583db7de8c9cffcba0868e625431d30ed23e7ded99e",
+    "extension/tests/native-sync/source-purge-group-native.test.mjs": "5a66cf6b597ae7cfc90f27c913577b7134356c8176de5a7225cc86e0ea8cd068"
+  }
+}

@@ -1,0 +1,31 @@
+TAP version 13
+# PLANNER {"expected":{"id":"document:079a6d6d-b7fb-46de-97d9-baea473b69d0","source":{"aiSuggestionStatus":"none","firstSourceSentAt":null,"futureAISummary":null,"id":"document:079a6d6d-b7fb-46de-97d9-baea473b69d0","lastSourceSentAt":null,"originalConversationTitle":"SYNTHETIC 2","platform":"chatgpt","sourceConversationId":"synthetic-group-negative-chat-2","status":"active","summaryPlaceholder":"摘要预留 · 尚未整理","titleRevision":0,"userTitle":""},"working":{"aiSuggestionStatus":"none","firstSourceSentAt":null,"futureAISummary":null,"id":"document:079a6d6d-b7fb-46de-97d9-baea473b69d0","lastSourceSentAt":null,"originalConversationTitle":"SYNTHETIC 2","platform":"chatgpt","sourceConversationId":"synthetic-group-negative-chat-2","status":"active","summaryPlaceholder":"摘要预留 · 尚未整理","userTitle":""}},"documents":[{"id":"document:079a6d6d-b7fb-46de-97d9-baea473b69d0","chatKey":"chatgpt:synthetic-group-negative-chat-2","sequence":0,"displayKey":[0,"document:079a6d6d-b7fb-46de-97d9-baea473b69d0"],"value":{"aiSuggestionStatus":"none","firstSourceSentAt":null,"futureAISummary":null,"id":"document:079a6d6d-b7fb-46de-97d9-baea473b69d0","lastSourceSentAt":null,"originalConversationTitle":"SYNTHETIC 2","platform":"chatgpt","sourceConversationId":"synthetic-group-negative-chat-2","status":"excluded","summaryPlaceholder":"摘要预留 · 尚未整理","titleRevision":0,"userTitle":""},"archiveDisplay":[0,"document:079a6d6d-b7fb-46de-97d9-baea473b69d0"]}],"library":[{"id":"document:079a6d6d-b7fb-46de-97d9-baea473b69d0","value":{"aiSuggestionStatus":"none","firstSourceSentAt":null,"futureAISummary":null,"id":"document:079a6d6d-b7fb-46de-97d9-baea473b69d0","lastSourceSentAt":null,"originalConversationTitle":"SYNTHETIC 2","platform":"chatgpt","sourceConversationId":"synthetic-group-negative-chat-2","status":"excluded","summaryPlaceholder":"摘要预留 · 尚未整理","userTitle":""}}],"index":[{"id":"block:079a6d6d-b7fb-46de-97d9-baea473b69d0","sequence":0,"documentId":"document:079a6d6d-b7fb-46de-97d9-baea473b69d0","recordIds":["079a6d6d-b7fb-46de-97d9-baea473b69d0"],"attachedDocument":"document:079a6d6d-b7fb-46de-97d9-baea473b69d0","sourceRecordId":"079a6d6d-b7fb-46de-97d9-baea473b69d0","excluded":false,"excludedKey":0,"known":1,"stamp":"","listKey":["document:079a6d6d-b7fb-46de-97d9-baea473b69d0",0,1,"",1,"block:079a6d6d-b7fb-46de-97d9-baea473b69d0"],"sort":[1,"",1,"block:079a6d6d-b7fb-46de-97d9-baea473b69d0"],"sourceSentAt":null,"conversationOrder":1}],"schema":{"byAttached":{"path":"attachedDocument","multi":false},"byDocument":{"path":"documentId","multi":false},"byExcluded":{"path":["documentId","excludedKey"],"multi":false},"byKnown":{"path":["documentId","excludedKey","known"],"multi":false},"byList":{"path":"listKey","multi":false},"byRecord":{"path":"recordIds","multi":true},"bySequence":{"path":"sequence","multi":false},"byTime":{"path":["documentId","known","stamp","id"],"multi":false}}}
+# Subtest: complete original positive and permanent negative Source checkpoint activates atomically and re-exports
+not ok 1 - complete original positive and permanent negative Source checkpoint activates atomically and re-exports
+  ---
+  duration_ms: 279.372
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-source-purge-group.test.mjs:17:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SOURCE_BOOTSTRAP_CHANGED'
+  code: 'BNS_SOURCE_BOOTSTRAP_CHANGED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    verifyInitialSourceWrite (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-bootstrap-plan.js:23:26)
+    async Object.applyInitialSource (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:326:64)
+    async planSourcePurgeGroupPhysical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group-physical.js:33:33)
+    async SourcePurgeGroupedCheckpointRestore.stageCheckpoint (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:74:188)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-source-purge-group.test.mjs:17:234)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 388.492125
