@@ -1,0 +1,199 @@
+TAP version 13
+# {"smallGroups":1,"validatedBytes":2352992,"firstOwnerBytes":156192,"coldRevalidationBytes":2240962,"coldRehydrateBytes":95359,"finalNative":{"references":114,"bytes":55731,"activeMs":23.672167},"referencePreflight":114,"finalPrepaid":8388608,"totalBytes":11198979}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+ok 1 - qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+  ---
+  duration_ms: 285.500667
+  type: 'test'
+  ...
+# {"smallGroups":2,"validatedBytes":2437946,"firstOwnerBytes":156815,"coldRevalidationBytes":2280526,"coldRehydrateBytes":95395,"finalNative":{"references":144,"bytes":88058,"activeMs":28.983833000000004},"referencePreflight":144,"finalPrepaid":8388608,"totalBytes":11506171}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+ok 2 - qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+  ---
+  duration_ms: 306.381792
+  type: 'test'
+  ...
+# {"smallGroups":3,"validatedBytes":2522739,"firstOwnerBytes":157324,"coldRevalidationBytes":2319997,"coldRehydrateBytes":95369,"finalNative":{"references":174,"bytes":120362,"activeMs":35.378917},"referencePreflight":174,"finalPrepaid":8388608,"totalBytes":11810368}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+ok 3 - qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+  ---
+  duration_ms: 372.236166
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=false
+ok 4 - qualified start cannot refill existing v1 staging task with pending=false
+  ---
+  duration_ms: 45.111125
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=true
+ok 5 - qualified start cannot refill existing v1 staging task with pending=true
+  ---
+  duration_ms: 46.936375
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=false
+ok 6 - qualified start cannot refill existing v1 authenticated task with pending=false
+  ---
+  duration_ms: 45.796792
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=true
+ok 7 - qualified start cannot refill existing v1 authenticated task with pending=true
+  ---
+  duration_ms: 49.634625
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=false
+ok 8 - qualified start cannot refill existing v1 validated task with pending=false
+  ---
+  duration_ms: 54.646458
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=true
+ok 9 - qualified start cannot refill existing v1 validated task with pending=true
+  ---
+  duration_ms: 49.206125
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=false
+ok 10 - qualified start cannot refill existing v1 applying task with pending=false
+  ---
+  duration_ms: 46.5145
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=true
+ok 11 - qualified start cannot refill existing v1 applying task with pending=true
+  ---
+  duration_ms: 45.744083
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=false
+ok 12 - qualified start cannot refill existing v1 verified task with pending=false
+  ---
+  duration_ms: 46.259625
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=true
+ok 13 - qualified start cannot refill existing v1 verified task with pending=true
+  ---
+  duration_ms: 43.811833
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=false
+ok 14 - qualified start cannot refill existing v1 failed task with pending=false
+  ---
+  duration_ms: 41.764416
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=true
+ok 15 - qualified start cannot refill existing v1 failed task with pending=true
+  ---
+  duration_ms: 42.296458
+  type: 'test'
+  ...
+# Subtest: qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+ok 16 - qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+  ---
+  duration_ms: 0.368708
+  type: 'test'
+  ...
+# Subtest: forged tokens and public work options never admit an elevated original transaction
+ok 17 - forged tokens and public work options never admit an elevated original transaction
+  ---
+  duration_ms: 50.090959
+  type: 'test'
+  ...
+# Subtest: qualified cold loss burns both original publication and control debt and refuses over cumulative time
+ok 18 - qualified cold loss burns both original publication and control debt and refuses over cumulative time
+  ---
+  duration_ms: 152.597916
+  type: 'test'
+  ...
+# Subtest: a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+ok 19 - a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+  ---
+  duration_ms: 127.314208
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses canonical-row and never publishes
+ok 20 - qualified fixed final closure refuses canonical-row and never publishes
+  ---
+  duration_ms: 167.416542
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses task-identity and never publishes
+ok 21 - qualified fixed final closure refuses task-identity and never publishes
+  ---
+  duration_ms: 156.778708
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses unexpected-row and never publishes
+ok 22 - qualified fixed final closure refuses unexpected-row and never publishes
+  ---
+  duration_ms: 165.863917
+  type: 'test'
+  ...
+# Subtest: a real consumed v1 owner and pending publication cannot enter any v2 API or change either database
+ok 23 - a real consumed v1 owner and pending publication cannot enter any v2 API or change either database
+  ---
+  duration_ms: 122.033792
+  type: 'test'
+  ...
+# Subtest: qualified control debt is durably prepaid from first staging transaction through terminal closure
+ok 24 - qualified control debt is durably prepaid from first staging transaction through terminal closure
+  ---
+  duration_ms: 47.794542
+  type: 'test'
+  ...
+# Subtest: ordinary real scopes and copied task DTOs cannot mint or settle control receipts
+ok 25 - ordinary real scopes and copied task DTOs cannot mint or settle control receipts
+  ---
+  duration_ms: 95.39675
+  type: 'test'
+  ...
+# Subtest: qualified control admission refuses cumulative bytes exhaustion before any owner write
+ok 26 - qualified control admission refuses cumulative bytes exhaustion before any owner write
+  ---
+  duration_ms: 55.919958
+  type: 'test'
+  ...
+# Subtest: qualified control admission refuses cumulative time exhaustion before any owner write
+ok 27 - qualified control admission refuses cumulative time exhaustion before any owner write
+  ---
+  duration_ms: 54.029792
+  type: 'test'
+  ...
+# Subtest: failed next control transaction burns predecessor refund and refuses same-process continuation
+ok 28 - failed next control transaction burns predecessor refund and refuses same-process continuation
+  ---
+  duration_ms: 110.2615
+  type: 'test'
+  ...
+# Subtest: failed terminal raw closure retains prepayment and refuses a later refund
+ok 29 - failed terminal raw closure retains prepayment and refuses a later refund
+  ---
+  duration_ms: 104.7195
+  type: 'test'
+  ...
+# Subtest: old experimental v2 task shape cannot be migrated or refilled
+ok 30 - old experimental v2 task shape cannot be migrated or refilled
+  ---
+  duration_ms: 46.761416
+  type: 'test'
+  ...
+# Subtest: control refund snapshot locks concurrent registry reads until the native successor commits
+ok 31 - control refund snapshot locks concurrent registry reads until the native successor commits
+  ---
+  duration_ms: 95.878583
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3194.532917

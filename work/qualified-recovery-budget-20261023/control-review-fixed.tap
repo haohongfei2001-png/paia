@@ -1,0 +1,207 @@
+TAP version 13
+# {"smallGroups":1,"validatedBytes":2352991,"firstOwnerBytes":156182,"coldRevalidationBytes":2240961,"coldRehydrateBytes":95351,"finalNative":{"references":114,"bytes":55728,"activeMs":23.52329199999997},"referencePreflight":114,"finalPrepaid":8388608,"totalBytes":11198957}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+ok 1 - qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+  ---
+  duration_ms: 296.460208
+  type: 'test'
+  ...
+# {"smallGroups":2,"validatedBytes":2437943,"firstOwnerBytes":156785,"coldRevalidationBytes":2280523,"coldRehydrateBytes":95371,"finalNative":{"references":144,"bytes":88049,"activeMs":29.49275},"referencePreflight":144,"finalPrepaid":8388608,"totalBytes":11506090}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+ok 2 - qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+  ---
+  duration_ms: 308.508667
+  type: 'test'
+  ...
+# {"smallGroups":3,"validatedBytes":2522739,"firstOwnerBytes":157359,"coldRevalidationBytes":2319997,"coldRehydrateBytes":95379,"finalNative":{"references":174,"bytes":120362,"activeMs":35.73954200000003},"referencePreflight":174,"finalPrepaid":8388608,"totalBytes":11810378}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+ok 3 - qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+  ---
+  duration_ms: 385.794041
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=false
+ok 4 - qualified start cannot refill existing v1 staging task with pending=false
+  ---
+  duration_ms: 45.215041
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=true
+ok 5 - qualified start cannot refill existing v1 staging task with pending=true
+  ---
+  duration_ms: 45.038291
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=false
+ok 6 - qualified start cannot refill existing v1 authenticated task with pending=false
+  ---
+  duration_ms: 43.973542
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=true
+ok 7 - qualified start cannot refill existing v1 authenticated task with pending=true
+  ---
+  duration_ms: 44.424083
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=false
+ok 8 - qualified start cannot refill existing v1 validated task with pending=false
+  ---
+  duration_ms: 43.679167
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=true
+ok 9 - qualified start cannot refill existing v1 validated task with pending=true
+  ---
+  duration_ms: 47.558667
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=false
+ok 10 - qualified start cannot refill existing v1 applying task with pending=false
+  ---
+  duration_ms: 43.7375
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=true
+ok 11 - qualified start cannot refill existing v1 applying task with pending=true
+  ---
+  duration_ms: 42.725625
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=false
+ok 12 - qualified start cannot refill existing v1 verified task with pending=false
+  ---
+  duration_ms: 42.06225
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=true
+ok 13 - qualified start cannot refill existing v1 verified task with pending=true
+  ---
+  duration_ms: 44.750084
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=false
+ok 14 - qualified start cannot refill existing v1 failed task with pending=false
+  ---
+  duration_ms: 42.668042
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=true
+ok 15 - qualified start cannot refill existing v1 failed task with pending=true
+  ---
+  duration_ms: 42.467
+  type: 'test'
+  ...
+# Subtest: qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+ok 16 - qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+  ---
+  duration_ms: 0.323791
+  type: 'test'
+  ...
+# Subtest: forged tokens and public work options never admit an elevated original transaction
+ok 17 - forged tokens and public work options never admit an elevated original transaction
+  ---
+  duration_ms: 49.249208
+  type: 'test'
+  ...
+# Subtest: qualified cold loss burns both original publication and control debt and refuses over cumulative time
+ok 18 - qualified cold loss burns both original publication and control debt and refuses over cumulative time
+  ---
+  duration_ms: 152.170583
+  type: 'test'
+  ...
+# Subtest: a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+ok 19 - a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+  ---
+  duration_ms: 123.260334
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses canonical-row and never publishes
+ok 20 - qualified fixed final closure refuses canonical-row and never publishes
+  ---
+  duration_ms: 165.085041
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses task-identity and never publishes
+ok 21 - qualified fixed final closure refuses task-identity and never publishes
+  ---
+  duration_ms: 148.201375
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses unexpected-row and never publishes
+ok 22 - qualified fixed final closure refuses unexpected-row and never publishes
+  ---
+  duration_ms: 157.580708
+  type: 'test'
+  ...
+# Subtest: a real consumed v1 owner and pending publication cannot enter any v2 API or change either database
+ok 23 - a real consumed v1 owner and pending publication cannot enter any v2 API or change either database
+  ---
+  duration_ms: 117.760333
+  type: 'test'
+  ...
+# Subtest: qualified control debt is durably prepaid from first staging transaction through terminal closure
+ok 24 - qualified control debt is durably prepaid from first staging transaction through terminal closure
+  ---
+  duration_ms: 47.491583
+  type: 'test'
+  ...
+# Subtest: ordinary real scopes and copied task DTOs cannot mint or settle control receipts
+ok 25 - ordinary real scopes and copied task DTOs cannot mint or settle control receipts
+  ---
+  duration_ms: 94.033167
+  type: 'test'
+  ...
+# Subtest: qualified control admission refuses cumulative bytes exhaustion before any owner write
+ok 26 - qualified control admission refuses cumulative bytes exhaustion before any owner write
+  ---
+  duration_ms: 55.918833
+  type: 'test'
+  ...
+# Subtest: qualified control admission refuses cumulative time exhaustion before any owner write
+ok 27 - qualified control admission refuses cumulative time exhaustion before any owner write
+  ---
+  duration_ms: 55.682958
+  type: 'test'
+  ...
+# Subtest: failed next control transaction burns predecessor refund and refuses same-process continuation
+ok 28 - failed next control transaction burns predecessor refund and refuses same-process continuation
+  ---
+  duration_ms: 106.641833
+  type: 'test'
+  ...
+# Subtest: failed terminal raw closure retains prepayment and refuses a later refund
+not ok 29 - failed terminal raw closure retains prepayment and refuses a later refund
+  ---
+  duration_ms: 105.017917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:77:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: GENERATION_TASK_CHANGED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:78:814)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: old experimental v2 task shape cannot be migrated or refilled
+ok 30 - old experimental v2 task shape cannot be migrated or refilled
+  ---
+  duration_ms: 52.349584
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 29
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3116.059125

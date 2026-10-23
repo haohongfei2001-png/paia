@@ -16,12 +16,21 @@ export const QUALIFIED_HUMAN_BUDGET_CASES=Object.freeze([
   "qualified start cannot refill existing v1 failed task with pending=true",
   "qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill",
   "forged tokens and public work options never admit an elevated original transaction",
-  "qualified cold revalidation burns an interrupted original publication reservation and keeps its task identity",
+  "qualified cold loss burns both original publication and control debt and refuses over cumulative time",
   "a valid original prepared owner does not lend authority to a wrong repository, scope or caller token",
   "qualified fixed final closure refuses canonical-row and never publishes",
   "qualified fixed final closure refuses task-identity and never publishes",
   "qualified fixed final closure refuses unexpected-row and never publishes",
-  "a real consumed v1 owner and pending publication cannot enter any v2 API or change either database"
+  "a real consumed v1 owner and pending publication cannot enter any v2 API or change either database",
+  "qualified control debt is durably prepaid from first staging transaction through terminal closure",
+  "ordinary real scopes and copied task DTOs cannot mint or settle control receipts",
+  "qualified control admission refuses cumulative bytes exhaustion before any owner write",
+  "qualified control admission refuses cumulative time exhaustion before any owner write",
+  "failed next control transaction burns predecessor refund and refuses same-process continuation",
+  "failed terminal raw closure retains prepayment and refuses a later refund",
+  "old experimental v2 task shape cannot be migrated or refilled",
+  "control refund snapshot locks concurrent registry reads until the native successor commits",
+  "qualified graph compilation charges its original readonly suppression lookup to the phase"
 ]);
 // Prepared only: exact original cold and semantic cases, with no browser execution.
 export function nativeQualifiedHumanBudgetFixture(source,helpers,command){
@@ -62,7 +71,7 @@ const previous=globalThis.__bnsNative;
 globalThis.__bnsNative={...previous,async run(command,...args){
  if(command!==${JSON.stringify(command)})return previous.run(command,...args);
  const passed=[];
- const selected=cases;if(selected.length!==23||new Set(selected.map(x=>x.name)).size!==23||JSON.stringify(selected.map(x=>x.name))!==${JSON.stringify(JSON.stringify(QUALIFIED_HUMAN_BUDGET_CASES))}||selected.some(x=>/(?:^|[^0-9])(?:65|129)(?:[^0-9]|$)/.test(x.name)))throw Error('native selected count or allowlist');
+ const selected=cases;if(selected.length!==32||new Set(selected.map(x=>x.name)).size!==32||JSON.stringify(selected.map(x=>x.name))!==${JSON.stringify(JSON.stringify(QUALIFIED_HUMAN_BUDGET_CASES))}||selected.some(x=>/(?:^|[^0-9])(?:65|129)(?:[^0-9]|$)/.test(x.name)))throw Error('native selected count or allowlist');
  for(const item of selected){const after=[];let failure;
   try{await item.fn({after(fn){if(typeof fn!=='function')throw Error('native after');after.push(fn);}});passed.push(item.name);}
   catch(error){failure=Error(item.name+': '+error.stack);}

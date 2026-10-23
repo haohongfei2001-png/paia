@@ -12,3 +12,8 @@ Node: /Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-o
 No original phased-stage file invocation, name filter, 65/129, browser, build, CI or network service call.
 10. --test extension/tests/qualified-human-recovery-budget.test.mjs -> real-v1-final.tap, exit0 (23/23), added real original v1 consumed/pending path
 11. rerun inert prepare-native.mjs/check-native.mjs and generated-matrix --check after 23rd case -> exit0; zero callbacks/browser/build
+
+Strict control follow-up:
+/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node --test extension/tests/qualified-human-recovery-budget.test.mjs [each control-* dedicated TAP except owning-final]
+/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node --test extension/tests/qualified-human-recovery-budget.test.mjs extension/tests/canonical-generation-repository-gate.test.mjs extension/tests/checkpoint-manifest-storage-cold.test.mjs > control-owning-final.tap
+No original phased-stage file invocation; no name filters. Native preparation is inert registration and --check only.

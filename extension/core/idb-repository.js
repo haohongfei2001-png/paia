@@ -1,3 +1,4 @@
+import {readOriginalCheckpointCompileWork,settleOriginalCheckpointCompileWork} from './browser-native-sync/canonical-generation-checkpoint-stage.js';
 import {originalPhasedHumanReadWork,settleOriginalPhasedHumanReadWork,readOriginalPhasedHumanClosureWork} from './browser-native-sync/canonical-generation-phased-human.js';
 import {prepareOriginalActiveRepositoryWrite,releaseOriginalActiveRepositoryWrite,readOriginalPublicationClosureWork} from './browser-native-sync/canonical-generation-publication.js';
 import {CANONICAL_REPOSITORY_PROTECTION,CANONICAL_REPOSITORY_GATE,readOriginalGenerationRepositoryAuthority,originalGenerationRepositoryAdmission,originalGenerationRepositoryMutation,originalGenerationRepositorySettlement} from './browser-native-sync/canonical-generation-repository-gate.js';
@@ -279,6 +280,16 @@ export function readOriginalCommittedTransactionWork(repository,scope){
  if(!r.committedWork)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
  return r.committedWork;
 }
+// Restriction-only check for the fixed phased task ledger. A caller cannot
+// manufacture the private staging/owner/publication token by copying a DTO.
+export function registerOriginalRepositoryReadWorkLimit(repository,scope,limits){registerOriginalWorkLimit(repository,scope,limits,true);}
+export function requireOriginalTaskControlFailure(repository,scope){const r=scopeRecord(repository,scope);if(!r.unwound||r.originalSuccess||!r.shadow)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');return true;}
+export function requireOriginalTaskControlScope(repository,scope,terminal=false){
+ const r=scopeRecord(repository,scope);requireRepositoryTransactionDataMethods(repository,scope);
+ const kind=r.shadow?.authority?.kind;
+ if(r.phase!=='callback'||r.identity.mode!=='readwrite'||!r.shadow||!(terminal?kind==='publication-phased-human-seal':['checkpoint','human-phased'].includes(kind))||readOriginalGenerationRepositoryAuthority(r.shadow.token,repository,scope)!==r.shadow.authority)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ return true;
+}
 export function requireRepositoryTransactionCommitted(repository,scope){
  const r=scopeRecord(repository,scope);
  // Settlement also includes abort. Only the original successful transaction
@@ -509,7 +520,7 @@ export class ArchiveRepository {
   });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{if(write)await beginShadowWrite(this,scope,record,shadowAuthority);else{const limits=originalPhasedHumanReadWork(this,scope);if(limits)registerOriginalWorkLimit(this,scope,limits,true);}const result=await fn(scope);if(write)await finishShadowWrite(this,scope,record);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{if(record.originalSuccess&&record.workLimit&&!record.workLimit.failed)record.committedWork=Object.freeze({references:record.workLimit.refs,bytes:record.workLimit.bytes,activeMs:Math.max(0,workClock()-record.workLimit.started)});clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();if(!write)settleOriginalPhasedHumanReadWork(this,scope);}
+  try{if(write)await beginShadowWrite(this,scope,record,shadowAuthority);else{const limits=originalPhasedHumanReadWork(this,scope)??readOriginalCheckpointCompileWork(this,scope);if(limits)registerOriginalWorkLimit(this,scope,limits,true);}const result=await fn(scope);if(write)await finishShadowWrite(this,scope,record);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{if(record.originalSuccess&&record.workLimit&&!record.workLimit.failed)record.committedWork=Object.freeze({references:record.workLimit.refs,bytes:record.workLimit.bytes,activeMs:Math.max(0,workClock()-record.workLimit.started)});clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();if(!write){settleOriginalPhasedHumanReadWork(this,scope);settleOriginalCheckpointCompileWork(this,scope);}}
   }finally{if(activeToken)releaseOriginalActiveRepositoryWrite(activeToken);if(write)writeState.active--;}
  }
  async initialize(){

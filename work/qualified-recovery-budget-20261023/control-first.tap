@@ -1,0 +1,268 @@
+TAP version 13
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+not ok 1 - qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+  ---
+  duration_ms: 83.950416
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:24:28'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_CHECKPOINT_CHANGED'
+  code: 'GENERATION_CHECKPOINT_CHANGED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:29:80)
+    Object.plan (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:78:293)
+    Generator.next (<anonymous>)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:232:34)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:521:642)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:105:184)
+    async #qualifiedEntry (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:149:29)
+    async #stagePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:167:84)
+    async CanonicalGenerationCheckpointStage.stageQualifiedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:165:130)
+    async qualified (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:22:29)
+  ...
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+not ok 2 - qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+  ---
+  duration_ms: 60.425583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:24:28'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_CHECKPOINT_CHANGED'
+  code: 'GENERATION_CHECKPOINT_CHANGED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:29:80)
+    Object.plan (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:78:293)
+    Generator.next (<anonymous>)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:232:34)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:521:642)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:105:184)
+    async #qualifiedEntry (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:149:29)
+    async #stagePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:167:84)
+    async CanonicalGenerationCheckpointStage.stageQualifiedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:165:130)
+    async qualified (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:22:29)
+  ...
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+not ok 3 - qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+  ---
+  duration_ms: 67.863375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:24:28'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_CHECKPOINT_CHANGED'
+  code: 'GENERATION_CHECKPOINT_CHANGED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:29:80)
+    Object.plan (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:78:293)
+    Generator.next (<anonymous>)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:232:34)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:521:642)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:105:184)
+    async #qualifiedEntry (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:149:29)
+    async #stagePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:167:84)
+    async CanonicalGenerationCheckpointStage.stageQualifiedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:165:130)
+    async qualified (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:22:29)
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=false
+ok 4 - qualified start cannot refill existing v1 staging task with pending=false
+  ---
+  duration_ms: 47.659167
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=true
+ok 5 - qualified start cannot refill existing v1 staging task with pending=true
+  ---
+  duration_ms: 46.665125
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=false
+ok 6 - qualified start cannot refill existing v1 authenticated task with pending=false
+  ---
+  duration_ms: 46.758083
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=true
+ok 7 - qualified start cannot refill existing v1 authenticated task with pending=true
+  ---
+  duration_ms: 44.558917
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=false
+ok 8 - qualified start cannot refill existing v1 validated task with pending=false
+  ---
+  duration_ms: 45.187625
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=true
+ok 9 - qualified start cannot refill existing v1 validated task with pending=true
+  ---
+  duration_ms: 45.498958
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=false
+ok 10 - qualified start cannot refill existing v1 applying task with pending=false
+  ---
+  duration_ms: 44.016
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=true
+ok 11 - qualified start cannot refill existing v1 applying task with pending=true
+  ---
+  duration_ms: 43.782333
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=false
+ok 12 - qualified start cannot refill existing v1 verified task with pending=false
+  ---
+  duration_ms: 46.112042
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=true
+ok 13 - qualified start cannot refill existing v1 verified task with pending=true
+  ---
+  duration_ms: 43.822042
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=false
+ok 14 - qualified start cannot refill existing v1 failed task with pending=false
+  ---
+  duration_ms: 43.676292
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=true
+ok 15 - qualified start cannot refill existing v1 failed task with pending=true
+  ---
+  duration_ms: 42.072792
+  type: 'test'
+  ...
+# Subtest: qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+ok 16 - qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+  ---
+  duration_ms: 0.376958
+  type: 'test'
+  ...
+# Subtest: forged tokens and public work options never admit an elevated original transaction
+ok 17 - forged tokens and public work options never admit an elevated original transaction
+  ---
+  duration_ms: 49.338666
+  type: 'test'
+  ...
+# Subtest: qualified cold revalidation burns an interrupted original publication reservation and keeps its task identity
+not ok 18 - qualified cold revalidation burns an interrupted original publication reservation and keeps its task identity
+  ---
+  duration_ms: 56.176
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:44:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_CHECKPOINT_CHANGED'
+  code: 'GENERATION_CHECKPOINT_CHANGED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:29:80)
+    Object.plan (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:78:293)
+    Generator.next (<anonymous>)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:232:34)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:521:642)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:105:184)
+    async #qualifiedEntry (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:149:29)
+    async #stagePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:167:84)
+    async CanonicalGenerationCheckpointStage.stageQualifiedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:165:130)
+    async qualified (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:22:29)
+  ...
+# Subtest: a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+not ok 19 - a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+  ---
+  duration_ms: 45.825209
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:47:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_CHECKPOINT_CHANGED'
+  code: 'GENERATION_CHECKPOINT_CHANGED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:29:80)
+    Object.plan (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:78:293)
+    Generator.next (<anonymous>)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:232:34)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:521:642)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:105:184)
+    async #qualifiedEntry (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:149:29)
+    async #stagePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:167:84)
+    async CanonicalGenerationCheckpointStage.stageQualifiedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:165:130)
+    async qualified (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:22:29)
+  ...
+# Subtest: qualified fixed final closure refuses canonical-row and never publishes
+not ok 20 - qualified fixed final closure refuses canonical-row and never publishes
+  ---
+  duration_ms: 54.53325
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:51:72'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_CHECKPOINT_CHANGED'
+  code: 'GENERATION_CHECKPOINT_CHANGED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:29:80)
+    Object.plan (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:78:293)
+    Generator.next (<anonymous>)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:232:34)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:521:642)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:105:184)
+    async #qualifiedEntry (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:149:29)
+    async #stagePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:167:84)
+    async CanonicalGenerationCheckpointStage.stageQualifiedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:165:130)
+    async qualified (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:22:29)
+  ...
+# Subtest: qualified fixed final closure refuses task-identity and never publishes
+not ok 21 - qualified fixed final closure refuses task-identity and never publishes
+  ---
+  duration_ms: 51.8805
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:51:72'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_CHECKPOINT_CHANGED'
+  code: 'GENERATION_CHECKPOINT_CHANGED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:29:80)
+    Object.plan (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:78:293)
+    Generator.next (<anonymous>)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:232:34)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:521:642)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:105:184)
+    async #qualifiedEntry (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:149:29)
+    async #stagePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:167:84)
+    async CanonicalGenerationCheckpointStage.stageQualifiedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:165:130)
+    async qualified (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:22:29)
+  ...
+# Subtest: qualified fixed final closure refuses unexpected-row and never publishes
+not ok 22 - qualified fixed final closure refuses unexpected-row and never publishes
+  ---
+  duration_ms: 50.415041
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:51:72'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_CHECKPOINT_CHANGED'
+  code: 'GENERATION_CHECKPOINT_CHANGED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:29:80)
+    Object.plan (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:78:293)
+    Generator.next (<anonymous>)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:232:34)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:521:642)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:105:184)
+    async #qualifiedEntry (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:149:29)
+    async #stagePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:167:84)
+    async CanonicalGenerationCheckpointStage.stageQualifiedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:165:130)
+    async qualified (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:22:29)
+  ...
+# Subtest: a real consumed v1 owner and pending publication cannot enter any v2 API or change either database
+ok 23 - a real consumed v1 owner and pending publication cannot enter any v2 API or change either database
+  ---
+  duration_ms: 132.81725
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 15
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1346.013834

@@ -1,0 +1,217 @@
+TAP version 13
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+not ok 1 - qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+  ---
+  duration_ms: 275.620791
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:24:28'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 8398444
+    - 8388608
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 8388608
+  actual: 8398444
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:26:803)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+not ok 2 - qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+  ---
+  duration_ms: 299.30525
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:24:28'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 8398444
+    - 8388608
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 8388608
+  actual: 8398444
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:26:803)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+not ok 3 - qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+  ---
+  duration_ms: 362.658375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:24:28'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 8398444
+    - 8388608
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 8388608
+  actual: 8398444
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:26:803)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=false
+ok 4 - qualified start cannot refill existing v1 staging task with pending=false
+  ---
+  duration_ms: 52.993916
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=true
+ok 5 - qualified start cannot refill existing v1 staging task with pending=true
+  ---
+  duration_ms: 48.376791
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=false
+ok 6 - qualified start cannot refill existing v1 authenticated task with pending=false
+  ---
+  duration_ms: 47.422084
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=true
+ok 7 - qualified start cannot refill existing v1 authenticated task with pending=true
+  ---
+  duration_ms: 46.580792
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=false
+ok 8 - qualified start cannot refill existing v1 validated task with pending=false
+  ---
+  duration_ms: 48.052542
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=true
+ok 9 - qualified start cannot refill existing v1 validated task with pending=true
+  ---
+  duration_ms: 77.620708
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=false
+ok 10 - qualified start cannot refill existing v1 applying task with pending=false
+  ---
+  duration_ms: 120.515875
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=true
+ok 11 - qualified start cannot refill existing v1 applying task with pending=true
+  ---
+  duration_ms: 52.830291
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=false
+ok 12 - qualified start cannot refill existing v1 verified task with pending=false
+  ---
+  duration_ms: 47.06725
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=true
+ok 13 - qualified start cannot refill existing v1 verified task with pending=true
+  ---
+  duration_ms: 47.831042
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=false
+ok 14 - qualified start cannot refill existing v1 failed task with pending=false
+  ---
+  duration_ms: 52.61475
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=true
+ok 15 - qualified start cannot refill existing v1 failed task with pending=true
+  ---
+  duration_ms: 46.896709
+  type: 'test'
+  ...
+# Subtest: qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+ok 16 - qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+  ---
+  duration_ms: 0.381208
+  type: 'test'
+  ...
+# Subtest: forged tokens and public work options never admit an elevated original transaction
+ok 17 - forged tokens and public work options never admit an elevated original transaction
+  ---
+  duration_ms: 53.355208
+  type: 'test'
+  ...
+# Subtest: qualified cold revalidation burns an interrupted original publication reservation and keeps its task identity
+not ok 18 - qualified cold revalidation burns an interrupted original publication reservation and keeps its task identity
+  ---
+  duration_ms: 162.404459
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:44:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-task-ledger.js:14:25)
+    prepareOriginalGenerationControl (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-task-ledger.js:67:172)
+    file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:163:191
+    async file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-publication.js:155:17
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:521:206)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:105:184)
+    async #persistPhased (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:163:47)
+    async persist (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:207:40)
+    async reserve (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:211:240)
+    async #validatePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:216:3)
+  ...
+# Subtest: a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+ok 19 - a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+  ---
+  duration_ms: 138.369583
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses canonical-row and never publishes
+ok 20 - qualified fixed final closure refuses canonical-row and never publishes
+  ---
+  duration_ms: 179.117916
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses task-identity and never publishes
+ok 21 - qualified fixed final closure refuses task-identity and never publishes
+  ---
+  duration_ms: 158.497833
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses unexpected-row and never publishes
+ok 22 - qualified fixed final closure refuses unexpected-row and never publishes
+  ---
+  duration_ms: 159.513208
+  type: 'test'
+  ...
+# Subtest: a real consumed v1 owner and pending publication cannot enter any v2 API or change either database
+ok 23 - a real consumed v1 owner and pending publication cannot enter any v2 API or change either database
+  ---
+  duration_ms: 123.192959
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 19
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2726.72875

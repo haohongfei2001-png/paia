@@ -1,0 +1,211 @@
+TAP version 13
+# {"smallGroups":1,"validatedBytes":2351747,"firstOwnerBytes":156172,"coldRevalidationBytes":2238541,"coldRehydrateBytes":95343,"finalNative":{"references":114,"bytes":55725,"activeMs":22.859083},"referencePreflight":114,"finalPrepaid":8388608,"totalBytes":11195273}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+ok 1 - qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+  ---
+  duration_ms: 284.286541
+  type: 'test'
+  ...
+# {"smallGroups":2,"validatedBytes":2436699,"firstOwnerBytes":156800,"coldRevalidationBytes":2278103,"coldRehydrateBytes":95401,"finalNative":{"references":144,"bytes":88064,"activeMs":28.83395900000005},"referencePreflight":144,"finalPrepaid":8388608,"totalBytes":11502481}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+ok 2 - qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+  ---
+  duration_ms: 301.688833
+  type: 'test'
+  ...
+# {"smallGroups":3,"validatedBytes":2521494,"firstOwnerBytes":157329,"coldRevalidationBytes":2317576,"coldRehydrateBytes":95355,"finalNative":{"references":174,"bytes":120353,"activeMs":34.76495799999998},"referencePreflight":174,"finalPrepaid":8388608,"totalBytes":11806662}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+ok 3 - qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+  ---
+  duration_ms: 366.7375
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=false
+ok 4 - qualified start cannot refill existing v1 staging task with pending=false
+  ---
+  duration_ms: 44.432083
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=true
+ok 5 - qualified start cannot refill existing v1 staging task with pending=true
+  ---
+  duration_ms: 44.314083
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=false
+ok 6 - qualified start cannot refill existing v1 authenticated task with pending=false
+  ---
+  duration_ms: 43.857208
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=true
+ok 7 - qualified start cannot refill existing v1 authenticated task with pending=true
+  ---
+  duration_ms: 43.370959
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=false
+ok 8 - qualified start cannot refill existing v1 validated task with pending=false
+  ---
+  duration_ms: 42.670791
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=true
+ok 9 - qualified start cannot refill existing v1 validated task with pending=true
+  ---
+  duration_ms: 47.703125
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=false
+ok 10 - qualified start cannot refill existing v1 applying task with pending=false
+  ---
+  duration_ms: 43.381167
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=true
+ok 11 - qualified start cannot refill existing v1 applying task with pending=true
+  ---
+  duration_ms: 43.165125
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=false
+ok 12 - qualified start cannot refill existing v1 verified task with pending=false
+  ---
+  duration_ms: 42.54575
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=true
+ok 13 - qualified start cannot refill existing v1 verified task with pending=true
+  ---
+  duration_ms: 42.1555
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=false
+ok 14 - qualified start cannot refill existing v1 failed task with pending=false
+  ---
+  duration_ms: 41.868875
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=true
+ok 15 - qualified start cannot refill existing v1 failed task with pending=true
+  ---
+  duration_ms: 42.107
+  type: 'test'
+  ...
+# Subtest: qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+ok 16 - qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+  ---
+  duration_ms: 0.313458
+  type: 'test'
+  ...
+# Subtest: forged tokens and public work options never admit an elevated original transaction
+ok 17 - forged tokens and public work options never admit an elevated original transaction
+  ---
+  duration_ms: 47.542417
+  type: 'test'
+  ...
+# Subtest: qualified cold loss burns both original publication and control debt and refuses over cumulative time
+ok 18 - qualified cold loss burns both original publication and control debt and refuses over cumulative time
+  ---
+  duration_ms: 151.021625
+  type: 'test'
+  ...
+# Subtest: a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+ok 19 - a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+  ---
+  duration_ms: 123.286
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses canonical-row and never publishes
+ok 20 - qualified fixed final closure refuses canonical-row and never publishes
+  ---
+  duration_ms: 167.644084
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses task-identity and never publishes
+ok 21 - qualified fixed final closure refuses task-identity and never publishes
+  ---
+  duration_ms: 149.201959
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses unexpected-row and never publishes
+ok 22 - qualified fixed final closure refuses unexpected-row and never publishes
+  ---
+  duration_ms: 171.177917
+  type: 'test'
+  ...
+# Subtest: a real consumed v1 owner and pending publication cannot enter any v2 API or change either database
+ok 23 - a real consumed v1 owner and pending publication cannot enter any v2 API or change either database
+  ---
+  duration_ms: 126.664792
+  type: 'test'
+  ...
+# Subtest: qualified control debt is durably prepaid from first staging transaction through terminal closure
+ok 24 - qualified control debt is durably prepaid from first staging transaction through terminal closure
+  ---
+  duration_ms: 47.269084
+  type: 'test'
+  ...
+# Subtest: ordinary real scopes and copied task DTOs cannot mint or settle control receipts
+ok 25 - ordinary real scopes and copied task DTOs cannot mint or settle control receipts
+  ---
+  duration_ms: 95.131917
+  type: 'test'
+  ...
+# Subtest: qualified control admission refuses cumulative bytes exhaustion before any owner write
+ok 26 - qualified control admission refuses cumulative bytes exhaustion before any owner write
+  ---
+  duration_ms: 54.639
+  type: 'test'
+  ...
+# Subtest: qualified control admission refuses cumulative time exhaustion before any owner write
+ok 27 - qualified control admission refuses cumulative time exhaustion before any owner write
+  ---
+  duration_ms: 55.680125
+  type: 'test'
+  ...
+# Subtest: failed next control transaction retains predecessor receipt for exactly one successful settlement
+not ok 28 - failed next control transaction retains predecessor receipt for exactly one successful settlement
+  ---
+  duration_ms: 30056.163125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:74:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: failed terminal raw closure neither consumes nor double refunds the last control receipt
+not ok 29 - failed terminal raw closure neither consumes nor double refunds the last control receipt
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:77:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: old experimental v2 task shape cannot be migrated or refilled
+not ok 30 - old experimental v2 task shape cannot be migrated or refilled
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:80:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 27
+# fail 0
+# cancelled 3
+# skipped 0
+# todo 0
+# duration_ms 32891.965333

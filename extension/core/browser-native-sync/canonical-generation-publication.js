@@ -1,3 +1,4 @@
+import {abandonOriginalGenerationControl,originalGenerationControlReadWork,completeOriginalGenerationControlRead} from './canonical-generation-task-ledger.js';
 import * as phasedHuman from './canonical-generation-phased-human.js';
 import {requireOriginalLibraryDocumentsStore,originalLibraryDocumentsConstructor} from '../library-documents-owner.js';
 import {prepareOriginalCopyRetirement,retireOriginalCheckpointCopies} from './canonical-generation-copy-retirement.js';
@@ -8,7 +9,7 @@ import * as originalCheckpoint from './group-checkpoint.js';
 import * as checkpointStage from './canonical-generation-checkpoint-stage.js';
 import {ArchiveError} from '../constants.js';
 import {SyncError} from './value.js';
-import {ArchiveRepository,originalRepositoryTransactionOwner,openOriginalExistingRepository,originalGenerationRepositoryRead,originalGenerationRepositoryTransaction,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
+import {ArchiveRepository,originalRepositoryTransactionOwner,openOriginalExistingRepository,originalGenerationRepositoryRead,originalGenerationRepositoryTransaction,registerRepositoryWorkLimit,registerOriginalRepositoryReadWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
 
 // Opt-in publication infrastructure. This module does not validate a canonical
 // graph, switch the application's repository, publish chrome.local or delete a
@@ -26,7 +27,7 @@ export function readOriginalPublicationRepositoryAuthority(token,repository,scop
 }
 export function readOriginalPublicationClosureWork(token,repository,scope){const r=repositoryAuthorities.get(token);if(!r?.qualified)return null;readOriginalPublicationRepositoryAuthority(token,repository,scope);if(r.authority.kind!=='publication-phased-human-seal')fail('GENERATION_REPOSITORY_WRITE_DENIED');return phasedHuman.readOriginalPhasedHumanPublicationClosureWork(r.qualified.restore,r.qualified.proof,repository,scope);}
 async function publicationTransaction(repository,fn,stores=['meta'],kind='publication',qualified=null){
- const token=Object.freeze(Object.create(null));repositoryAuthorities.set(token,{repository,name:repository.name,factory:repository.factory,scope:null,qualified,authority:Object.freeze({kind})});try{return await originalGenerationRepositoryTransaction(repository,token,fn,stores);}finally{repositoryAuthorities.delete(token);}
+ const token=Object.freeze(Object.create(null));repositoryAuthorities.set(token,{repository,name:repository.name,factory:repository.factory,scope:null,qualified,authority:Object.freeze({kind})});try{return await originalGenerationRepositoryTransaction(repository,token,fn,stores);}catch(e){const scope=repositoryAuthorities.get(token)?.scope;if(scope)abandonOriginalGenerationControl(repository,scope);throw e;}finally{repositoryAuthorities.delete(token);}
 }
 
 const fail=(code='GENERATION_INVALID')=>{throw new ArchiveError(code);};
@@ -108,6 +109,13 @@ export class CanonicalGenerationPublication {
    return store;
   }catch(error){activeRepositories.delete(repository);handles.delete(handle);if(this.#repositories.get(ident.generationId)===held)this.#repositories.delete(ident.generationId);repository.db?.close();repository.db=null;throw error;}
  }
+ // Fixed task-bound lookup only; no callback or caller-selected read plan.
+ async captureOriginalPhasedSourceBase(handle,expected){
+  const held=this.#held(handle);this.#bound(this.#registry);
+  const read=async()=>{let scope,admitted=false;try{return await this.#registry.transaction(false,async t=>{scope=t;const limits=originalGenerationControlReadWork(held.repository,this.#registry,t);admitted=true;registerOriginalRepositoryReadWorkLimit(this.#registry,t,limits);return rootRead(t);},['meta']);}finally{if(admitted)completeOriginalGenerationControlRead(held.repository,this.#registry,scope);}};
+  const root=await read();if(root.pending||root.active!==null)fail('GENERATION_EXISTING_SOURCE_OWNER_REQUIRED');if(!equal(await read(),root))fail('GENERATION_CHANGED');
+  const snapshot={root,gate:null};if(!equal(snapshot,expected))fail('GENERATION_CHANGED');const token=Object.freeze(Object.create(null));bases.set(token,{owner:this,snapshot:copy(snapshot)});return token;
+ }
  async captureSourceBase(expected=undefined){
   this.#bound(this.#registry);const root=await this.#registry.transaction(false,rootRead,['meta']);if(root.pending)fail('GENERATION_PENDING');
   const gate=root.active?await this.#repository(root.active.identity).transaction(false,async t=>this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),root.active.identity),['meta']):null;
@@ -126,7 +134,7 @@ export class CanonicalGenerationPublication {
   // A source revision proves freshness, not inheritance of purge negatives or
   // existing canonical data. Replacement needs a separate migration owner.
   if(packet.sourceBase.root.active!==null)fail('GENERATION_EXISTING_SOURCE_OWNER_REQUIRED');
-  const base=await this.captureSourceBase(packet.sourceBase);
+  const base=await (human==='phased'&&phasedHuman.originalPhasedHumanPublicationVersion(restore,proof)===2?this.captureOriginalPhasedSourceBase(handle,packet.sourceBase):this.captureSourceBase(packet.sourceBase));
   if(!equal(packet.generationIdentity,held.identity))fail('GENERATION_COLLISION');
   const selected=sealData({sealId:crypto.randomUUID(),manifestId:packet.manifestRef.id,graphDigest:packet.graphDigest});
   let validationError;const gate=await publicationTransaction(held.repository,async t=>{registerRepositoryWorkLimit(held.repository,t,human==='phased'?phasedHuman.originalPhasedHumanPublicationWork(restore,proof):undefined);const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(before.phase!=='staging')fail('GENERATION_NOT_STAGING');

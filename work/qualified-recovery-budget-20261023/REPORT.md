@@ -79,3 +79,33 @@ Registration was inspected only after stripping imports to inert registration fu
 ## Stop conditions for the root-owned scale validation
 
 Before owners, require the actual proof's complete schedule≤4096; preserve parser2MiB/graph4096 and exact admitted profile. At any task, phase, scope, prototype, identity, freshness, raw-count/point,2MiB ordinary,8MiB closure,64MiB cumulative or120s active limit refusal: stop the candidate, retain its original task row/pending ticket and evidence, and report failure without migration/refill or another large retry. Keep the distinct fresh synthetic source/target used for this authorized run separate from all earlier failed generations. Success still does not authorize cloud Full or real account/service calls.
+
+## Strict committed control accounting follow-up (2026-10-23)
+
+The earlier tables and 23-case evidence above are historical evidence of the initial implementation, whose control transactions were only recorded diagnostically. They do not establish the strict cumulative budget. This follow-up includes committed graph-internal control work in the same 64 MiB / 120 s task ledger. It does not change the approved limits.
+
+New v2 tasks have exact `controlSequence`, `controlBurned`, `controlPending` fields. Each original private control transaction settles a predecessor only from its exact process-local committed scope receipt, then atomically prepays its own 2 MiB / 30 s envelope. Task/state/gate admission reads occur inside that first control transaction. A missing receipt after a genuine cold reopen burns the previous envelope. Failed control attempts retain the durable prepaid debt and block further same-process refund; an explicit cold continuation burns it. Existing v1 tasks and earlier experimental v2 shapes are refused by the v2 entrypoints without migration, refill, or a second task key.
+
+The predecessor receipt is locked while its successor is pending, so concurrent fixed registry reads cannot spend a receipt after its refund was calculated. Fixed source-base reads consume that target control envelope. The original graph compiler's suppression-key readonly transaction now has a v2-only phase window: genuine committed bytes enter the validation phase; its already-included phase wall time is not counted twice. Original Human preparation windows take precedence. v1 behavior remains unchanged.
+
+The final original 8 MiB transaction settles the last control debt, writes the new task row, and checks that exact row among all original raw points and store counts. The final owner ticket remains conservatively fully charged at 8 MiB / 30 s, with both `pending` and `controlPending` null. There is no extra terminal settlement transaction. Exact final references remain 114 / 144 / 174 for the 1 / 2 / 3-group dedicated fixtures. No original-scale result is claimed.
+
+Budget boundaries are explicit: original attach/Foundation/begin setup and later publication reserve/recover remain independent original bounded operations. An uncommitted admission refusal before a control plan, including a rolled-back first task creation, is independently limited by the original transaction cap; it cannot durably charge itself in its own rolled-back transaction. This is not a claim that every failed attempt, wall time, or all application I/O across process restarts is covered by the task's cumulative allowance. A failed successor with an existing receipt loses its refund and blocks same-process continuation. A cold lost-publication fixture burns both its 8 MiB / 30 s owner ticket and 2 MiB / 30 s control debt, then refuses further admission at the existing 120 s cumulative boundary. This refusal is retained, not repaired by raising limits.
+
+### Exact local invocations
+
+All commands used the same absolute official Node 22.23.3 path recorded in commands.txt. Dedicated fixture size remains hard-limited to 1–3 groups. These are separate invocations:
+
+- `control-first.tap`: 15 / 23, 8 failed. New entry fence initially expected the pre-write gate revision; corrected to original `writeRevision + 1`.
+- `control-second.tap`: 19 / 23, 4 failed. Three old assertions assumed final preparation added only 8 MiB despite newly charged control work. The fourth exposed the legitimate lost-publication dual-debt time refusal.
+- `control-third.tap`: 23 / 23 after accurate assertions and preserving that refusal.
+- `control-expanded.tap`: 27 passed, 3 cancelled, exit 1. Direct native abort inside a fixture's pending `put` left its fixture promise unresolved. Preserved at 32,891.965333 ms.
+- `control-expanded-fixed.tap`: 30 / 30, controlled `AbortError` after the real put request lets the original repository perform abort/unwind.
+- `control-review-fixed.tap`: 29 / 30. A refused registry read's finally initially masked `BNS_GROUP_RESOURCE_LIMIT` with `GENERATION_TASK_CHANGED`; fixed with an actual admission flag.
+- `control-concurrency.tap`: 31 / 31 including real successor-pending concurrent registry refusal.
+- `control-final.tap`: dedicated 32 / 32, 3,421.397084 ms.
+- `control-owning-final.tap`: **65 small tests total**, exit 0, 4,122.365291 ms: dedicated qualified budget 32 + repository gate 27 + checkpoint manifest cold 6. This is a count of small tests, **not execution of a 65-group case**. Final change before this invocation confines compiler accounting to v2, retaining v1 behavior.
+
+No invocation ran or imported `canonical-generation-phased-stage.test.mjs`, a 65/129-group probe, a browser, or a build. The dedicated tests include the original real consumed v1 path and twelve separately labelled raw DTO no-refill controls; actual ordinary 2 MiB write refusal; forged/wrong-repository scope rejection; first-stage self-prepayment; cumulative byte/time refusal before owner writes; failed successor and final transaction rollback; cold burn; concurrent receipt locking; and observed genuine compiler readonly work.
+
+The Source/Release native bridge now has a static **32-name** allowlist and `packages.cases = 32`. Its constructor/factory adaptation and original test bodies are retained. Only inert registration and syntax checks ran; executed callbacks = 0, browser = false, build = false. The independent programme reviewer inspected source and found the two successful-path gaps closed; that review did not run tests. Root retains sole ownership of native integration and the one authorized 129-case execution.

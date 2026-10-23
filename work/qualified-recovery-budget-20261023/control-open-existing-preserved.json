@@ -1,0 +1,6 @@
+{
+  "base": "0264d726",
+  "verifiedAgainst": "working tree strict control accounting",
+  "originalOpenExistingRegionsUnchanged": true,
+  "method": "zero context diff has no modified openExisting implementation or original binding lines"
+}
