@@ -1,0 +1,56 @@
+TAP version 13
+# Subtest: actual manual placement reconciles same Topic without changing default Section or human owners
+not ok 1 - actual manual placement reconciles same Topic without changing default Section or human owners
+  ---
+  duration_ms: 103.057625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:24:33'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"INVALID_REQUEST","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:e8cdc521b4868698dc7f17709386c5c4770ca2508df98eb7c24d818576327462","facets":[]}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:26:81)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: actual manual placement reconciles same Topic without changing named Section or human owners
+not ok 2 - actual manual placement reconciles same Topic without changing named Section or human owners
+  ---
+  duration_ms: 68.562583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:24:33'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"INVALID_REQUEST","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:1b038496519b51cb08aca2a07a0444b205a6dc23a07af1c542a5bd48560f7df6","facets":[]}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:26:81)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 321.572791

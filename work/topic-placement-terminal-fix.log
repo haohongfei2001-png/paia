@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: actual manual placement reconciles same Topic without changing named Section or human owners
+ok 1 - actual manual placement reconciles same Topic without changing named Section or human owners
+  ---
+  duration_ms: 341.441417
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back name drift and exact ACK
+ok 2 - Placement Topic final backup fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 221.498167
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back input drift and exact ACK
+ok 3 - Placement Topic final backup fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 216.465375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back source drift and exact ACK
+ok 4 - Placement Topic final backup fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 210.310958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back membership drift and exact ACK
+ok 5 - Placement Topic final backup fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 209.428083
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back order drift and exact ACK
+ok 6 - Placement Topic final backup fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 206.552458
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back section drift and exact ACK
+ok 7 - Placement Topic final backup fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 208.753958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back entry-revision drift and exact ACK
+ok 8 - Placement Topic final backup fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 234.936375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back input-revision drift and exact ACK
+ok 9 - Placement Topic final backup fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 221.136125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back section-revision drift and exact ACK
+ok 10 - Placement Topic final backup fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 210.379709
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back topic-revision drift and exact ACK
+ok 11 - Placement Topic final backup fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 220.150542
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back topic-epoch drift and exact ACK
+ok 12 - Placement Topic final backup fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 223.328958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back authority-epoch drift and exact ACK
+ok 13 - Placement Topic final backup fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 211.117333
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back processing drift and exact ACK
+ok 14 - Placement Topic final backup fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 201.99775
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back abort drift and exact ACK
+ok 15 - Placement Topic final backup fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 204.982334
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back source-body drift and exact ACK
+ok 16 - Placement Topic final backup fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 205.348125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back restore drift and exact ACK
+ok 17 - Placement Topic final backup fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 210.145292
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3897.311083

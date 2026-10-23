@@ -90,12 +90,12 @@ export class AIUsageFoundation {
  }
  // Bounded scheduling-index maintenance, not job/receipt deletion or a retry.
  // Preserve every original DEFER field under a non-scheduling history key.
- async archiveObsoleteDeferred({cursor=null,limit=100,reconsiderEntryTopics=false,reconsiderEntryContexts=false,reconsiderPlacementContexts=false,reconsiderStructuralContexts=false,reconsiderStructuralTopics=false,reconsiderContextEdits=false,maintenanceRouteVersion=null}={},owner=null){
+ async archiveObsoleteDeferred({cursor=null,limit=100,reconsiderEntryTopics=false,reconsiderEntryContexts=false,reconsiderPlacementContexts=false,reconsiderPlacementTopics=false,reconsiderStructuralContexts=false,reconsiderStructuralTopics=false,reconsiderContextEdits=false,maintenanceRouteVersion=null}={},owner=null){
   if(!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&(typeof cursor!=='string'||!cursor.startsWith('aiu:defer:')||cursor.length>2000))fail();
-  if(typeof reconsiderEntryTopics!=='boolean'||typeof reconsiderEntryContexts!=='boolean'||typeof reconsiderPlacementContexts!=='boolean'||typeof reconsiderStructuralContexts!=='boolean'||typeof reconsiderStructuralTopics!=='boolean'||typeof reconsiderContextEdits!=='boolean')fail();
-  if((reconsiderEntryContexts||reconsiderPlacementContexts||reconsiderStructuralContexts||reconsiderStructuralTopics||reconsiderContextEdits)&&!opaque(maintenanceRouteVersion))fail();
-  const reconsiderEntries=reconsiderEntryTopics||reconsiderEntryContexts||reconsiderPlacementContexts||reconsiderStructuralContexts||reconsiderStructuralTopics||reconsiderContextEdits;
-  if(reconsiderEntries){exact(owner,['signal','isCurrent']);if((reconsiderEntryTopics||reconsiderEntryContexts)&&!this.#qualifyMaintenanceEntries||reconsiderPlacementContexts&&!this.#qualifyMaintenancePlacements||(reconsiderStructuralContexts||reconsiderStructuralTopics)&&!this.#qualifyMaintenanceStructures||reconsiderContextEdits&&!this.#qualifyMaintenanceContextEdits||!(owner.signal instanceof AbortSignal)||typeof owner.isCurrent!=='function')fail('UNAVAILABLE');}
+  if(typeof reconsiderEntryTopics!=='boolean'||typeof reconsiderEntryContexts!=='boolean'||typeof reconsiderPlacementContexts!=='boolean'||typeof reconsiderPlacementTopics!=='boolean'||typeof reconsiderStructuralContexts!=='boolean'||typeof reconsiderStructuralTopics!=='boolean'||typeof reconsiderContextEdits!=='boolean')fail();
+  if((reconsiderEntryContexts||reconsiderPlacementContexts||reconsiderPlacementTopics||reconsiderStructuralContexts||reconsiderStructuralTopics||reconsiderContextEdits)&&!opaque(maintenanceRouteVersion))fail();
+  const reconsiderEntries=reconsiderEntryTopics||reconsiderEntryContexts||reconsiderPlacementContexts||reconsiderPlacementTopics||reconsiderStructuralContexts||reconsiderStructuralTopics||reconsiderContextEdits;
+  if(reconsiderEntries){exact(owner,['signal','isCurrent']);if((reconsiderEntryTopics||reconsiderEntryContexts)&&!this.#qualifyMaintenanceEntries||(reconsiderPlacementContexts||reconsiderPlacementTopics)&&!this.#qualifyMaintenancePlacements||(reconsiderStructuralContexts||reconsiderStructuralTopics)&&!this.#qualifyMaintenanceStructures||reconsiderContextEdits&&!this.#qualifyMaintenanceContextEdits||!(owner.signal instanceof AbortSignal)||typeof owner.isCurrent!=='function')fail('UNAVAILABLE');}
   const assertOwner=()=>{if(reconsiderEntries&&(owner.signal.aborted||owner.isCurrent()!==true))fail('CANCELLED');};assertOwner();
   return this.write(async t=>{
    if(reconsiderEntries){const abort=()=>{try{t.tx.abort();}catch{}};owner.signal.addEventListener('abort',abort,{once:true});const cleanup=()=>owner.signal.removeEventListener('abort',abort);t.tx.addEventListener('complete',cleanup,{once:true});t.tx.addEventListener('abort',cleanup,{once:true});}assertOwner();
@@ -114,7 +114,7 @@ export class AIUsageFoundation {
     const changed=known?.descriptor?.key===row.unit.key&&typeof known.signature==='string'&&(known.signature!==row.signature||known.descriptor.removed===true);
     const acknowledged=ack?.kind===KIND&&ack.state==='ACKNOWLEDGED'&&ack.signature===row.signature&&equal(ack.unit,row.unit);
     let mappingAvailable=false;
-    if(reconsiderEntries&&(!(reconsiderEntryContexts||reconsiderPlacementContexts||reconsiderStructuralContexts||reconsiderStructuralTopics||reconsiderContextEdits)||maintenanceRouteVersion!==job.routeVersion)&&!changed&&!acknowledged&&job.type==='AI_MAINTENANCE'&&((row.unit.facet==='topic'&&reconsiderEntryTopics)||(row.unit.facet==='context'&&reconsiderEntryContexts))&&row.retryCondition===({topic:'TOPIC_MAPPING_UNAVAILABLE',context:'CONTEXT_MAPPING_UNAVAILABLE'})[row.unit.facet]&&known?.signature===row.signature&&known.descriptor?.kind==='library_entry'&&!known.descriptor.removed&&!known.descriptor.fenceOnly&&await this.s.sourcePresent(t,known.descriptor.sourceRecordIds)){
+    if(reconsiderEntries&&(!(reconsiderEntryContexts||reconsiderPlacementContexts||reconsiderPlacementTopics||reconsiderStructuralContexts||reconsiderStructuralTopics||reconsiderContextEdits)||maintenanceRouteVersion!==job.routeVersion)&&!changed&&!acknowledged&&job.type==='AI_MAINTENANCE'&&((row.unit.facet==='topic'&&reconsiderEntryTopics)||(row.unit.facet==='context'&&reconsiderEntryContexts))&&row.retryCondition===({topic:'TOPIC_MAPPING_UNAVAILABLE',context:'CONTEXT_MAPPING_UNAVAILABLE'})[row.unit.facet]&&known?.signature===row.signature&&known.descriptor?.kind==='library_entry'&&!known.descriptor.removed&&!known.descriptor.fenceOnly&&await this.s.sourcePresent(t,known.descriptor.sourceRecordIds)){
      const dirty=await t.get('meta',DIRTY_PREFIX+row.unit.key);
      if(dirty?.signature===row.signature&&(dirty.pendingFacets||['topic','context']).includes(row.unit.facet)){
       const admitted=await this.#qualifyMaintenanceEntries(t,{items:[{key:known.descriptor.key,signature:known.signature,descriptor:structuredClone(known.descriptor)}],coverage:[structuredClone(row.unit)]});assertOwner();
@@ -122,9 +122,9 @@ export class AIUsageFoundation {
       mappingAvailable=admitted.length===1;
      }
     }
-    if(reconsiderPlacementContexts&&maintenanceRouteVersion!==job.routeVersion&&!changed&&!acknowledged&&job.type==='AI_MAINTENANCE'&&row.unit.facet==='context'&&row.retryCondition==='CONTEXT_MAPPING_UNAVAILABLE'&&known?.signature===row.signature&&known.descriptor?.kind==='placement'&&!known.descriptor.removed&&!known.descriptor.fenceOnly&&await this.s.sourcePresent(t,known.descriptor.sourceRecordIds)){
+    if(((reconsiderPlacementContexts&&row.unit.facet==='context')||(reconsiderPlacementTopics&&row.unit.facet==='topic'))&&maintenanceRouteVersion!==job.routeVersion&&!changed&&!acknowledged&&job.type==='AI_MAINTENANCE'&&row.retryCondition===(row.unit.facet==='topic'?'TOPIC_MAPPING_UNAVAILABLE':'CONTEXT_MAPPING_UNAVAILABLE')&&known?.signature===row.signature&&known.descriptor?.kind==='placement'&&!known.descriptor.removed&&!known.descriptor.fenceOnly&&await this.s.sourcePresent(t,known.descriptor.sourceRecordIds)){
      const dirty=await t.get('meta',DIRTY_PREFIX+row.unit.key);
-     if(dirty?.signature===row.signature&&(dirty.pendingFacets||['topic','context']).includes('context')){
+     if(dirty?.signature===row.signature&&(dirty.pendingFacets||['topic','context']).includes(row.unit.facet)){
       const admitted=await this.#qualifyMaintenancePlacements(t,{items:[{key:known.descriptor.key,signature:known.signature,descriptor:structuredClone(known.descriptor)}],coverage:[structuredClone(row.unit)]});assertOwner();
       if(!Array.isArray(admitted)||admitted.length>1||admitted.length===1&&!equal(validateCoverage(admitted,job.type),[row.unit]))fail('INVALID_REQUEST');mappingAvailable=admitted.length===1;
      }
@@ -146,7 +146,7 @@ export class AIUsageFoundation {
     if(!changed&&!acknowledged&&!mappingAvailable)continue;assertOwner();
     const boundRow=mappingAvailable&&row.unit.facet==='context'&&(known.descriptor.sourceRecordIds||[]).length?await t.get('thoughts',known.descriptor.kind==='placement'?(await t.get('placements',known.descriptor.recordId||known.descriptor.entityId))?.entryId:known.descriptor.entityId):null;
     const boundFields=boundRow&&['note','title'].some(f=>(boundRow[f]??'').trim()||boundRow.fieldRevisions?.[f]>0);
-    const history={...row,...(mappingAvailable?{reconsideredBecause:known.descriptor.kind==='context_item'?'HUMAN_CONTEXT_EDIT_MAPPER_V1':known.descriptor.kind==='topic'?(row.unit.facet==='topic'?'HUMAN_TOPIC_RECONCILIATION_V1':'HUMAN_TOPIC_CONTEXT_MAPPER_V1'):known.descriptor.kind==='section'?(row.unit.facet==='topic'?'HUMAN_SECTION_RECONCILIATION_V1':'HUMAN_SECTION_CONTEXT_MAPPER_V1'):boundFields?'BOUND_ENTRY_CONTEXT_MAPPER_V1':known.descriptor.kind==='placement'?'MANUAL_PLACEMENT_CONTEXT_MAPPER_V1':!known.descriptor.sourceRecordIds.length&&!known.descriptor.inputIds.length?'AUTHORED_ENTRY_CONTEXT_MAPPER_V1':row.unit.facet==='topic'?'RESTORED_ENTRY_TOPIC_MAPPER_V1':'RESTORED_ENTRY_CONTEXT_MAPPER_V1'}:{}),id:'aiu:defer-history:'+row.id.slice('aiu:defer:'.length),originalId:row.id},prior=await t.get('organizerWorkItems',history.id);
+    const history={...row,...(mappingAvailable?{reconsideredBecause:known.descriptor.kind==='context_item'?'HUMAN_CONTEXT_EDIT_MAPPER_V1':known.descriptor.kind==='topic'?(row.unit.facet==='topic'?'HUMAN_TOPIC_RECONCILIATION_V1':'HUMAN_TOPIC_CONTEXT_MAPPER_V1'):known.descriptor.kind==='section'?(row.unit.facet==='topic'?'HUMAN_SECTION_RECONCILIATION_V1':'HUMAN_SECTION_CONTEXT_MAPPER_V1'):boundFields?'BOUND_ENTRY_CONTEXT_MAPPER_V1':known.descriptor.kind==='placement'?(row.unit.facet==='topic'?'HUMAN_PLACEMENT_RECONCILIATION_V1':'MANUAL_PLACEMENT_CONTEXT_MAPPER_V1'):!known.descriptor.sourceRecordIds.length&&!known.descriptor.inputIds.length?'AUTHORED_ENTRY_CONTEXT_MAPPER_V1':row.unit.facet==='topic'?'RESTORED_ENTRY_TOPIC_MAPPER_V1':'RESTORED_ENTRY_CONTEXT_MAPPER_V1'}:{}),id:'aiu:defer-history:'+row.id.slice('aiu:defer:'.length),originalId:row.id},prior=await t.get('organizerWorkItems',history.id);
     if(prior&&!equal(prior,history))fail('DEFER_HISTORY_CONFLICT');
     if(!prior)await t.put('organizerWorkItems',history);
     await t.delete('organizerWorkItems',row.id);archived++;if(mappingAvailable)reconsidered++;assertOwner();
@@ -884,7 +884,7 @@ export class AIUsageFoundation {
    if(this.#qualifyMaintenancePlacements){
     const admitted=await this.#qualifyMaintenancePlacements(t,structuredClone({items:job.items,coverage:job.coverage}));assertOwner();if(!Array.isArray(admitted))fail();
     if(admitted.length){const checked=validateCoverage(admitted,job.type);
-     if(checked.some(u=>u.facet!=='context'||!unsupported.some(v=>equal(u,v))||job.items.find(i=>i.key===u.key)?.descriptor.kind!=='placement'))fail();
+     if(checked.some(u=>!['context','topic'].includes(u.facet)||!unsupported.some(v=>equal(u,v))||job.items.find(i=>i.key===u.key)?.descriptor.kind!=='placement'))fail();
      unsupported=unsupported.filter(u=>!checked.some(v=>equal(u,v)));
     }
    }

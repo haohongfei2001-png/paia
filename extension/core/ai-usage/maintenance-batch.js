@@ -4,7 +4,7 @@ const TYPE='AI_MAINTENANCE',LIMIT=100;
 const result=(status,rest={})=>({status,dispatchAllowed:false,financialAuthority:false,...rest});
 // Exact current session capability; this classifies metadata only, never bodies.
 // Human owners require their own mapper and remain semantic obligations.
-export function unsupportedMaintenanceCoverage(items,coverage,qualifiedEntries=new Set(),qualifiedPlacements=new Set(),qualifiedAuthored=new Set(),qualifiedBound=new Set(),qualifiedStructural=new Set(),qualifiedStructuralTopics=new Set(),qualifiedContextEdits=new Set(),qualifiedAuthoredTopics=new Set()){
+export function unsupportedMaintenanceCoverage(items,coverage,qualifiedEntries=new Set(),qualifiedPlacements=new Set(),qualifiedAuthored=new Set(),qualifiedBound=new Set(),qualifiedStructural=new Set(),qualifiedStructuralTopics=new Set(),qualifiedContextEdits=new Set(),qualifiedAuthoredTopics=new Set(),qualifiedPlacementTopics=new Set()){
  const units=validateCoverage(coverage,TYPE),unsupported=[];
  for(const unit of units){const item=items.find(i=>i.key===unit.key),d=item?.descriptor;
   if(!d||d.removed||d.fenceOnly)fail('STALE_BASE');
@@ -12,7 +12,7 @@ export function unsupportedMaintenanceCoverage(items,coverage,qualifiedEntries=n
   else if(d.kind==='library_entry'&&['topic','context'].includes(unit.facet)&&qualifiedEntries.has(unit.key))continue;
   else if(d.kind==='library_entry'&&(unit.facet==='context'&&qualifiedAuthored.has(unit.key)||unit.facet==='topic'&&qualifiedAuthoredTopics.has(unit.key)))continue;
   else if(['library_entry','placement'].includes(d.kind)&&unit.facet==='context'&&qualifiedBound.has(unit.key))continue;
-  else if(d.kind==='placement'&&unit.facet==='context'&&qualifiedPlacements.has(unit.key))continue;
+  else if(d.kind==='placement'&&(unit.facet==='context'&&qualifiedPlacements.has(unit.key)||unit.facet==='topic'&&qualifiedPlacementTopics.has(unit.key)))continue;
   else if(['section','topic'].includes(d.kind)&&unit.facet==='topic'&&qualifiedStructuralTopics.has(unit.key))continue;
   else if(['section','topic'].includes(d.kind)&&unit.facet==='context'&&qualifiedStructural.has(unit.key))continue;
   else if(d.kind==='context_item'&&unit.facet==='context'&&qualifiedContextEdits.has(unit.key))continue;

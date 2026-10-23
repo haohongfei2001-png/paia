@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: placement genuine independent Topic authority commits with original closed owner
+ok 1 - placement genuine independent Topic authority commits with original closed owner
+  ---
+  duration_ms: 592.395958
+  type: 'test'
+  ...
+# Subtest: placement genuine independent Topic authority revocation at settlement rolls back
+ok 2 - placement genuine independent Topic authority revocation at settlement rolls back
+  ---
+  duration_ms: 390.349541
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1147.153167

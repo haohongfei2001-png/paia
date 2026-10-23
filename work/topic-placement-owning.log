@@ -1,0 +1,2476 @@
+TAP version 13
+# Subtest: 37 actual Inputs form one existing plan with 74 exact units and at most two maintenance children
+ok 1 - 37 actual Inputs form one existing plan with 74 exact units and at most two maintenance children
+  ---
+  duration_ms: 451.71425
+  type: 'test'
+  ...
+# Subtest: bounded page preserves exact continuation and never reports backlog completed
+ok 2 - bounded page preserves exact continuation and never reports backlog completed
+  ---
+  duration_ms: 319.893709
+  type: 'test'
+  ...
+# Subtest: actual ACK excludes resolved facet while preserving incomplete coverage
+ok 3 - actual ACK excludes resolved facet while preserving incomplete coverage
+  ---
+  duration_ms: 31.0055
+  type: 'test'
+  ...
+# Subtest: actual opaque DEFER blocks same signature without guessing retry time; changed evidence can be reconsidered
+ok 4 - actual opaque DEFER blocks same signature without guessing retry time; changed evidence can be reconsidered
+  ---
+  duration_ms: 40.99725
+  type: 'test'
+  ...
+# Subtest: fully local resolved work yields no candidate or attempt
+ok 5 - fully local resolved work yields no candidate or attempt
+  ---
+  duration_ms: 32.851458
+  type: 'test'
+  ...
+# Subtest: missing authority rejects and stale candidate is rechecked by actual plan
+ok 6 - missing authority rejects and stale candidate is rechecked by actual plan
+  ---
+  duration_ms: 26.736875
+  type: 'test'
+  ...
+# Subtest: caller cannot select another job type, timestamp, quota or unsafe size
+ok 7 - caller cannot select another job type, timestamp, quota or unsafe size
+  ---
+  duration_ms: 21.431041
+  type: 'test'
+  ...
+# Subtest: filter-only pending work cannot create its own maintenance call
+ok 8 - filter-only pending work cannot create its own maintenance call
+  ---
+  duration_ms: 22.794042
+  type: 'test'
+  ...
+# Subtest: 37 actual three-facet Inputs retain complete units across the capacity cursor
+ok 9 - 37 actual three-facet Inputs retain complete units across the capacity cursor
+  ---
+  duration_ms: 491.737667
+  type: 'test'
+  ...
+# Subtest: too many existing DEFER records fails closed without guessing absence
+ok 10 - too many existing DEFER records fails closed without guessing absence
+  ---
+  duration_ms: 37.655625
+  type: 'test'
+  ...
+# Subtest: legal DEFER history from changed Input signatures cannot permanently block current maintenance
+ok 11 - legal DEFER history from changed Input signatures cannot permanently block current maintenance
+  ---
+  duration_ms: 907.461167
+  type: 'test'
+  ...
+# Subtest: same-signature opaque DEFER remains active; exact actual ACK can archive it without losing evidence
+ok 12 - same-signature opaque DEFER remains active; exact actual ACK can archive it without losing evidence
+  ---
+  duration_ms: 32.263333
+  type: 'test'
+  ...
+# Subtest: missing KNOWN row is not proof that DEFER is obsolete
+ok 13 - missing KNOWN row is not proof that DEFER is obsolete
+  ---
+  duration_ms: 24.542208
+  type: 'test'
+  ...
+# Subtest: actual removed Input archives its prior DEFER without altering job or receipt
+ok 14 - actual removed Input archives its prior DEFER without altering job or receipt
+  ---
+  duration_ms: 31.607875
+  type: 'test'
+  ...
+# Subtest: history move and active-prefix removal roll back as one transaction
+ok 15 - history move and active-prefix removal roll back as one transaction
+  ---
+  duration_ms: 32.502375
+  type: 'test'
+  ...
+# Subtest: malformed record aborts whole archival page instead of silently skipping unknown evidence
+ok 16 - malformed record aborts whole archival page instead of silently skipping unknown evidence
+  ---
+  duration_ms: 31.576583
+  type: 'test'
+  ...
+# Subtest: archival reads current signature in its own transaction rather than a caller snapshot
+ok 17 - archival reads current signature in its own transaction rather than a caller snapshot
+  ---
+  duration_ms: 30.562083
+  type: 'test'
+  ...
+# Subtest: one overflowing read archives at most one hundred and reports remaining bound without looping
+ok 18 - one overflowing read archives at most one hundred and reports remaining bound without looping
+  ---
+  duration_ms: 1427.542667
+  type: 'test'
+  ...
+# Subtest: actual ACK and DEFER pack exactly 100 units without consuming the overflow Input
+ok 19 - actual ACK and DEFER pack exactly 100 units without consuming the overflow Input
+  ---
+  duration_ms: 445.902667
+  type: 'test'
+  ...
+# Subtest: capacity continuation also respects smaller and maximum scan limits
+ok 20 - capacity continuation also respects smaller and maximum scan limits
+  ---
+  duration_ms: 765.240417
+  type: 'test'
+  ...
+# Subtest: actual resolved Topic and Context leave filter-only work deferred without a request
+ok 21 - actual resolved Topic and Context leave filter-only work deferred without a request
+  ---
+  duration_ms: 16.6445
+  type: 'test'
+  ...
+# Subtest: corrupt repeated pending facets reject before capacity can report an empty completed page
+ok 22 - corrupt repeated pending facets reject before capacity can report an empty completed page
+  ---
+  duration_ms: 27.054208
+  type: 'test'
+  ...
+# Subtest: actual manual placement reconciles same Topic without changing default Section or human owners
+ok 23 - actual manual placement reconciles same Topic without changing default Section or human owners
+  ---
+  duration_ms: 641.414791
+  type: 'test'
+  ...
+# Subtest: actual manual placement reconciles same Topic without changing named Section or human owners
+not ok 24 - actual manual placement reconciles same Topic without changing named Section or human owners
+  ---
+  duration_ms: 184.199917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:24:33'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"STALE_BASE","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:f9ece4df7938063e4d1548848fff823b6790341be6da64ab57f7fcba0924082f","facets":[]}
+    + actual - expected
+    
+    + 'STALE_BASE'
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  actual: 'STALE_BASE'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:26:81)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back name drift and exact ACK
+ok 25 - Placement Topic final receipt fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 438.52825
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back input drift and exact ACK
+ok 26 - Placement Topic final receipt fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 385.202958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back source drift and exact ACK
+ok 27 - Placement Topic final receipt fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 387.213333
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back membership drift and exact ACK
+ok 28 - Placement Topic final receipt fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 394.49175
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back order drift and exact ACK
+ok 29 - Placement Topic final receipt fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 351.376
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back section drift and exact ACK
+ok 30 - Placement Topic final receipt fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 388.801541
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back entry-revision drift and exact ACK
+ok 31 - Placement Topic final receipt fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 358.806209
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back input-revision drift and exact ACK
+ok 32 - Placement Topic final receipt fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 364.023083
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back section-revision drift and exact ACK
+ok 33 - Placement Topic final receipt fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 349.49025
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back topic-revision drift and exact ACK
+ok 34 - Placement Topic final receipt fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 349.297458
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back topic-epoch drift and exact ACK
+ok 35 - Placement Topic final receipt fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 283.63975
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back authority-epoch drift and exact ACK
+ok 36 - Placement Topic final receipt fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 251.583667
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back processing drift and exact ACK
+ok 37 - Placement Topic final receipt fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 226.050583
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back abort drift and exact ACK
+ok 38 - Placement Topic final receipt fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 215.102208
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back source-body drift and exact ACK
+ok 39 - Placement Topic final receipt fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 241.464542
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back restore drift and exact ACK
+ok 40 - Placement Topic final receipt fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 249.784417
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back name drift and exact ACK
+ok 41 - Placement Topic final ack fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 238.353166
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back input drift and exact ACK
+ok 42 - Placement Topic final ack fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 230.628875
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back source drift and exact ACK
+ok 43 - Placement Topic final ack fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 231.965958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back membership drift and exact ACK
+ok 44 - Placement Topic final ack fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 313.9175
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back order drift and exact ACK
+ok 45 - Placement Topic final ack fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 229.651292
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back section drift and exact ACK
+ok 46 - Placement Topic final ack fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 231.466083
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back entry-revision drift and exact ACK
+ok 47 - Placement Topic final ack fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 237.388
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back input-revision drift and exact ACK
+ok 48 - Placement Topic final ack fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 237.533458
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back section-revision drift and exact ACK
+ok 49 - Placement Topic final ack fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 214.213625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back topic-revision drift and exact ACK
+ok 50 - Placement Topic final ack fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 256.504
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back topic-epoch drift and exact ACK
+ok 51 - Placement Topic final ack fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 309.730041
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back authority-epoch drift and exact ACK
+ok 52 - Placement Topic final ack fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 311.094209
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back processing drift and exact ACK
+ok 53 - Placement Topic final ack fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 274.493458
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back abort drift and exact ACK
+ok 54 - Placement Topic final ack fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 253.750917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back source-body drift and exact ACK
+ok 55 - Placement Topic final ack fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 329.539208
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back restore drift and exact ACK
+ok 56 - Placement Topic final ack fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 309.074917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back name drift and exact ACK
+ok 57 - Placement Topic final counter fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 334.935375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back input drift and exact ACK
+ok 58 - Placement Topic final counter fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 264.685958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back source drift and exact ACK
+ok 59 - Placement Topic final counter fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 328.662875
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back membership drift and exact ACK
+ok 60 - Placement Topic final counter fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 261.774083
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back order drift and exact ACK
+ok 61 - Placement Topic final counter fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 241.1945
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back section drift and exact ACK
+ok 62 - Placement Topic final counter fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 347.11175
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back entry-revision drift and exact ACK
+ok 63 - Placement Topic final counter fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 308.298917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back input-revision drift and exact ACK
+ok 64 - Placement Topic final counter fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 272.023667
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back section-revision drift and exact ACK
+ok 65 - Placement Topic final counter fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 288.456916
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back topic-revision drift and exact ACK
+ok 66 - Placement Topic final counter fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 259.250834
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back topic-epoch drift and exact ACK
+ok 67 - Placement Topic final counter fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 265.389792
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back authority-epoch drift and exact ACK
+ok 68 - Placement Topic final counter fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 233.700333
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back processing drift and exact ACK
+ok 69 - Placement Topic final counter fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 230.511541
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back abort drift and exact ACK
+ok 70 - Placement Topic final counter fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 215.700833
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back source-body drift and exact ACK
+ok 71 - Placement Topic final counter fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 215.656625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back restore drift and exact ACK
+ok 72 - Placement Topic final counter fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 224.6675
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back name drift and exact ACK
+ok 73 - Placement Topic final backup fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 225.38375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back input drift and exact ACK
+ok 74 - Placement Topic final backup fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 276.256875
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back source drift and exact ACK
+ok 75 - Placement Topic final backup fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 363.969625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back membership drift and exact ACK
+not ok 76 - Placement Topic final backup fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 280.078167
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:280'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:34:213)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Placement Topic final backup fence rolls back order drift and exact ACK
+not ok 77 - Placement Topic final backup fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 343.515083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:280'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:34:213)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Placement Topic final backup fence rolls back section drift and exact ACK
+not ok 78 - Placement Topic final backup fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 275.654917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:280'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:34:213)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Placement Topic final backup fence rolls back entry-revision drift and exact ACK
+not ok 79 - Placement Topic final backup fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 267.71075
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:280'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:34:213)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Placement Topic final backup fence rolls back input-revision drift and exact ACK
+ok 80 - Placement Topic final backup fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 226.028625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back section-revision drift and exact ACK
+ok 81 - Placement Topic final backup fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 233.711167
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back topic-revision drift and exact ACK
+not ok 82 - Placement Topic final backup fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 250.067209
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:280'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:34:213)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Placement Topic final backup fence rolls back topic-epoch drift and exact ACK
+ok 83 - Placement Topic final backup fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 269.072125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back authority-epoch drift and exact ACK
+not ok 84 - Placement Topic final backup fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 325.624958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:280'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:34:213)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Placement Topic final backup fence rolls back processing drift and exact ACK
+ok 85 - Placement Topic final backup fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 289.924584
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back abort drift and exact ACK
+ok 86 - Placement Topic final backup fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 239.484667
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back source-body drift and exact ACK
+ok 87 - Placement Topic final backup fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 227.277333
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back restore drift and exact ACK
+ok 88 - Placement Topic final backup fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 227.217458
+  type: 'test'
+  ...
+# Subtest: unknown Placement Topic attempt keeps identity and never redispatches
+ok 89 - unknown Placement Topic attempt keeps identity and never redispatches
+  ---
+  duration_ms: 610.382959
+  type: 'test'
+  ...
+# Subtest: Placement Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+ok 90 - Placement Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+  ---
+  duration_ms: 566.437625
+  type: 'test'
+  ...
+# Subtest: prior Context-only route keeps same-route Topic DEFER pending
+ok 91 - prior Context-only route keeps same-route Topic DEFER pending
+  ---
+  duration_ms: 246.079
+  type: 'test'
+  ...
+# Subtest: prior Context-only route reconsiders Topic on new qualified route only
+ok 92 - prior Context-only route reconsiders Topic on new qualified route only
+  ---
+  duration_ms: 433.934084
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent grant permission before dispatch
+ok 93 - manual placement needs complete independent grant permission before dispatch
+  ---
+  duration_ms: 55.544542
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent facet permission before dispatch
+ok 94 - manual placement needs complete independent facet permission before dispatch
+  ---
+  duration_ms: 89.229959
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent placement permission before dispatch
+ok 95 - manual placement needs complete independent placement permission before dispatch
+  ---
+  duration_ms: 63.491667
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent entry permission before dispatch
+ok 96 - manual placement needs complete independent entry permission before dispatch
+  ---
+  duration_ms: 58.952083
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent input permission before dispatch
+ok 97 - manual placement needs complete independent input permission before dispatch
+  ---
+  duration_ms: 55.442459
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses different-name without ACK or human mutation
+ok 98 - placement Topic assessment refuses different-name without ACK or human mutation
+  ---
+  duration_ms: 198.067792
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses distinct without ACK or human mutation
+ok 99 - placement Topic assessment refuses distinct without ACK or human mutation
+  ---
+  duration_ms: 209.128125
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses ambiguous without ACK or human mutation
+ok 100 - placement Topic assessment refuses ambiguous without ACK or human mutation
+  ---
+  duration_ms: 256.109792
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses internal-aspect without ACK or human mutation
+ok 101 - placement Topic assessment refuses internal-aspect without ACK or human mutation
+  ---
+  duration_ms: 244.348959
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-evidence without ACK or human mutation
+ok 102 - placement Topic assessment refuses partial-evidence without ACK or human mutation
+  ---
+  duration_ms: 189.598709
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-relation without ACK or human mutation
+ok 103 - placement Topic assessment refuses partial-relation without ACK or human mutation
+  ---
+  duration_ms: 257.178875
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses wrong-section without ACK or human mutation
+ok 104 - placement Topic assessment refuses wrong-section without ACK or human mutation
+  ---
+  duration_ms: 247.818708
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses new-section without ACK or human mutation
+ok 105 - placement Topic assessment refuses new-section without ACK or human mutation
+  ---
+  duration_ms: 210.532125
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses missing-entry without ACK or human mutation
+ok 106 - placement Topic assessment refuses missing-entry without ACK or human mutation
+  ---
+  duration_ms: 194.981625
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses new-entry without ACK or human mutation
+ok 107 - placement Topic assessment refuses new-entry without ACK or human mutation
+  ---
+  duration_ms: 196.351709
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses extra-reference without ACK or human mutation
+ok 108 - placement Topic assessment refuses extra-reference without ACK or human mutation
+  ---
+  duration_ms: 191.932917
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-entry without ACK or human mutation
+ok 109 - placement Topic assessment refuses partial-entry without ACK or human mutation
+  ---
+  duration_ms: 185.318667
+  type: 'test'
+  ...
+# Subtest: original Context placement does not acquire Topic capability false
+ok 110 - original Context placement does not acquire Topic capability false
+  ---
+  duration_ms: 259.768125
+  type: 'test'
+  ...
+# Subtest: original Context placement does not acquire Topic capability undefined
+ok 111 - original Context placement does not acquire Topic capability undefined
+  ---
+  duration_ms: 269.763334
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean "true"
+ok 112 - placement capability rejects non-boolean "true"
+  ---
+  duration_ms: 41.944125
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean 1
+ok 113 - placement capability rejects non-boolean 1
+  ---
+  duration_ms: 40.615792
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean null
+ok 114 - placement capability rejects non-boolean null
+  ---
+  duration_ms: 39.553583
+  type: 'test'
+  ...
+# Subtest: placement genuine independent Topic authority commits with original closed owner
+ok 115 - placement genuine independent Topic authority commits with original closed owner
+  ---
+  duration_ms: 336.601
+  type: 'test'
+  ...
+# Subtest: placement genuine independent Topic authority revocation at settlement rolls back
+ok 116 - placement genuine independent Topic authority revocation at settlement rolls back
+  ---
+  duration_ms: 392.035208
+  type: 'test'
+  ...
+# Subtest: genuine renamed Section receives checked original-owner reuse NO_CHANGE, preserves human work, and never redispatches
+ok 117 - genuine renamed Section receives checked original-owner reuse NO_CHANGE, preserves human work, and never redispatches
+  ---
+  duration_ms: 735.695292
+  type: 'test'
+  ...
+# Subtest: rename Section needs independent complete grant processing before dispatch
+ok 118 - rename Section needs independent complete grant processing before dispatch
+  ---
+  duration_ms: 122.31225
+  type: 'test'
+  ...
+# Subtest: rename Section needs independent complete facet processing before dispatch
+ok 119 - rename Section needs independent complete facet processing before dispatch
+  ---
+  duration_ms: 121.838208
+  type: 'test'
+  ...
+# Subtest: rename Section needs independent complete title processing before dispatch
+ok 120 - rename Section needs independent complete title processing before dispatch
+  ---
+  duration_ms: 133.962625
+  type: 'test'
+  ...
+# Subtest: rename Section needs independent complete member processing before dispatch
+ok 121 - rename Section needs independent complete member processing before dispatch
+  ---
+  duration_ms: 114.419583
+  type: 'test'
+  ...
+# Subtest: rename Section needs independent complete input processing before dispatch
+ok 122 - rename Section needs independent complete input processing before dispatch
+  ---
+  duration_ms: 120.70875
+  type: 'test'
+  ...
+# Subtest: Section Topic empty response cannot silently ACK or mutate human work
+ok 123 - Section Topic empty response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 390.914125
+  type: 'test'
+  ...
+# Subtest: Section Topic duplicate-partial-evidence response cannot silently ACK or mutate human work
+ok 124 - Section Topic duplicate-partial-evidence response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 405.083791
+  type: 'test'
+  ...
+# Subtest: Section Topic duplicate-partial-relation response cannot silently ACK or mutate human work
+ok 125 - Section Topic duplicate-partial-relation response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 392.969416
+  type: 'test'
+  ...
+# Subtest: Section Topic duplicate-partial-aspect response cannot silently ACK or mutate human work
+ok 126 - Section Topic duplicate-partial-aspect response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 383.112084
+  type: 'test'
+  ...
+# Subtest: Section Topic duplicate-member response cannot silently ACK or mutate human work
+ok 127 - Section Topic duplicate-member response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 378.866417
+  type: 'test'
+  ...
+# Subtest: Section Topic duplicate-parent response cannot silently ACK or mutate human work
+ok 128 - Section Topic duplicate-parent response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 369.091292
+  type: 'test'
+  ...
+# Subtest: Section Topic foreign-evidence response cannot silently ACK or mutate human work
+ok 129 - Section Topic foreign-evidence response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 362.434792
+  type: 'test'
+  ...
+# Subtest: Section Topic wrong-member-input response cannot silently ACK or mutate human work
+ok 130 - Section Topic wrong-member-input response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 380.022959
+  type: 'test'
+  ...
+# Subtest: Section Topic default-section response cannot silently ACK or mutate human work
+ok 131 - Section Topic default-section response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 309.907541
+  type: 'test'
+  ...
+# Subtest: Section Topic ambiguous response cannot silently ACK or mutate human work
+ok 132 - Section Topic ambiguous response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 286.01025
+  type: 'test'
+  ...
+# Subtest: Section Topic distinct response cannot silently ACK or mutate human work
+ok 133 - Section Topic distinct response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 252.79475
+  type: 'test'
+  ...
+# Subtest: Section Topic same-parent response cannot silently ACK or mutate human work
+ok 134 - Section Topic same-parent response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 221.908625
+  type: 'test'
+  ...
+# Subtest: Section Topic different-name response cannot silently ACK or mutate human work
+ok 135 - Section Topic different-name response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 238.917709
+  type: 'test'
+  ...
+# Subtest: Section Topic partial-evidence response cannot silently ACK or mutate human work
+ok 136 - Section Topic partial-evidence response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 271.48175
+  type: 'test'
+  ...
+# Subtest: Section Topic partial-relation response cannot silently ACK or mutate human work
+ok 137 - Section Topic partial-relation response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 237.711959
+  type: 'test'
+  ...
+# Subtest: Section Topic partial-aspect response cannot silently ACK or mutate human work
+ok 138 - Section Topic partial-aspect response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 246.815167
+  type: 'test'
+  ...
+# Subtest: Section Topic wrong-boundary response cannot silently ACK or mutate human work
+ok 139 - Section Topic wrong-boundary response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 240.231667
+  type: 'test'
+  ...
+# Subtest: Section Topic missing-member response cannot silently ACK or mutate human work
+ok 140 - Section Topic missing-member response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 311.973417
+  type: 'test'
+  ...
+# Subtest: Section Topic new-member response cannot silently ACK or mutate human work
+ok 141 - Section Topic new-member response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 236.751125
+  type: 'test'
+  ...
+# Subtest: Section Topic extra-membership response cannot silently ACK or mutate human work
+ok 142 - Section Topic extra-membership response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 237.292416
+  type: 'test'
+  ...
+# Subtest: Section Topic named-section response cannot silently ACK or mutate human work
+ok 143 - Section Topic named-section response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 248.435584
+  type: 'test'
+  ...
+# Subtest: Section Topic wrong-section response cannot silently ACK or mutate human work
+ok 144 - Section Topic wrong-section response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 242.264125
+  type: 'test'
+  ...
+# Subtest: Section Topic insufficient-provenance response cannot silently ACK or mutate human work
+ok 145 - Section Topic insufficient-provenance response cannot silently ACK or mutate human work
+  ---
+  duration_ms: 220.247
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back name drift and exact ACK
+ok 146 - Section Topic final receipt fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 295.617875
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back input drift and exact ACK
+ok 147 - Section Topic final receipt fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 385.711791
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back source drift and exact ACK
+ok 148 - Section Topic final receipt fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 313.610209
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back membership drift and exact ACK
+ok 149 - Section Topic final receipt fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 345.711375
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back order drift and exact ACK
+ok 150 - Section Topic final receipt fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 258.095208
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back section drift and exact ACK
+ok 151 - Section Topic final receipt fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 452.945625
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back entry-revision drift and exact ACK
+ok 152 - Section Topic final receipt fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 394.588458
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back input-revision drift and exact ACK
+ok 153 - Section Topic final receipt fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 391.416959
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back section-revision drift and exact ACK
+ok 154 - Section Topic final receipt fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 299.642791
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back topic-revision drift and exact ACK
+ok 155 - Section Topic final receipt fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 305.689
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back topic-epoch drift and exact ACK
+ok 156 - Section Topic final receipt fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 379.238625
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back authority-epoch drift and exact ACK
+ok 157 - Section Topic final receipt fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 353.495458
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back processing drift and exact ACK
+ok 158 - Section Topic final receipt fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 303.853041
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back abort drift and exact ACK
+ok 159 - Section Topic final receipt fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 332.7755
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back source-body drift and exact ACK
+ok 160 - Section Topic final receipt fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 300.227167
+  type: 'test'
+  ...
+# Subtest: Section Topic final receipt fence rolls back restore drift and exact ACK
+ok 161 - Section Topic final receipt fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 302.474167
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back name drift and exact ACK
+ok 162 - Section Topic final ack fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 267.608375
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back input drift and exact ACK
+ok 163 - Section Topic final ack fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 256.940208
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back source drift and exact ACK
+ok 164 - Section Topic final ack fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 257.759833
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back membership drift and exact ACK
+ok 165 - Section Topic final ack fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 266.454709
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back order drift and exact ACK
+ok 166 - Section Topic final ack fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 304.094875
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back section drift and exact ACK
+ok 167 - Section Topic final ack fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 384.938084
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back entry-revision drift and exact ACK
+ok 168 - Section Topic final ack fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 302.34875
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back input-revision drift and exact ACK
+ok 169 - Section Topic final ack fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 335.171958
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back section-revision drift and exact ACK
+ok 170 - Section Topic final ack fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 288.625916
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back topic-revision drift and exact ACK
+ok 171 - Section Topic final ack fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 265.73025
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back topic-epoch drift and exact ACK
+ok 172 - Section Topic final ack fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 265.460625
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back authority-epoch drift and exact ACK
+ok 173 - Section Topic final ack fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 269.460083
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back processing drift and exact ACK
+ok 174 - Section Topic final ack fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 250.589084
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back abort drift and exact ACK
+ok 175 - Section Topic final ack fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 312.37175
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back source-body drift and exact ACK
+ok 176 - Section Topic final ack fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 333.778584
+  type: 'test'
+  ...
+# Subtest: Section Topic final ack fence rolls back restore drift and exact ACK
+ok 177 - Section Topic final ack fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 324.12225
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back name drift and exact ACK
+ok 178 - Section Topic final counter fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 267.089708
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back input drift and exact ACK
+ok 179 - Section Topic final counter fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 260.427042
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back source drift and exact ACK
+ok 180 - Section Topic final counter fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 798.694833
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back membership drift and exact ACK
+ok 181 - Section Topic final counter fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 445.058
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back order drift and exact ACK
+ok 182 - Section Topic final counter fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 290.428458
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back section drift and exact ACK
+ok 183 - Section Topic final counter fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 273.101667
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back entry-revision drift and exact ACK
+ok 184 - Section Topic final counter fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 311.340084
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back input-revision drift and exact ACK
+ok 185 - Section Topic final counter fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 277.156833
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back section-revision drift and exact ACK
+ok 186 - Section Topic final counter fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 281.712625
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back topic-revision drift and exact ACK
+ok 187 - Section Topic final counter fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 372.000708
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back topic-epoch drift and exact ACK
+ok 188 - Section Topic final counter fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 275.169458
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back authority-epoch drift and exact ACK
+ok 189 - Section Topic final counter fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 378.286083
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back processing drift and exact ACK
+ok 190 - Section Topic final counter fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 264.752042
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back abort drift and exact ACK
+ok 191 - Section Topic final counter fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 284.692084
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back source-body drift and exact ACK
+ok 192 - Section Topic final counter fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 265.850375
+  type: 'test'
+  ...
+# Subtest: Section Topic final counter fence rolls back restore drift and exact ACK
+ok 193 - Section Topic final counter fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 257.849625
+  type: 'test'
+  ...
+# Subtest: unknown Section Topic attempt keeps identity and never redispatches
+ok 194 - unknown Section Topic attempt keeps identity and never redispatches
+  ---
+  duration_ms: 191.856541
+  type: 'test'
+  ...
+# Subtest: one rename opportunity leaves unrelated dirty work and original cursor pending
+ok 195 - one rename opportunity leaves unrelated dirty work and original cursor pending
+  ---
+  duration_ms: 432.859542
+  type: 'test'
+  ...
+# Subtest: prior Context-only route keeps same-route Topic DEFER pending
+ok 196 - prior Context-only route keeps same-route Topic DEFER pending
+  ---
+  duration_ms: 299.054541
+  type: 'test'
+  ...
+# Subtest: prior Context-only route reconsiders Topic on new qualified route only
+ok 197 - prior Context-only route reconsiders Topic on new qualified route only
+  ---
+  duration_ms: 663.574334
+  type: 'test'
+  ...
+# Subtest: default Section reconciles all 1 existing members without changing identity, membership, provenance or order
+ok 198 - default Section reconciles all 1 existing members without changing identity, membership, provenance or order
+  ---
+  duration_ms: 319.972292
+  type: 'test'
+  ...
+# Subtest: default Section reconciles all 2 existing members without changing identity, membership, provenance or order
+ok 199 - default Section reconciles all 2 existing members without changing identity, membership, provenance or order
+  ---
+  duration_ms: 467.855708
+  type: 'test'
+  ...
+# Subtest: default Section reconciles all 6 existing members without changing identity, membership, provenance or order
+ok 200 - default Section reconciles all 6 existing members without changing identity, membership, provenance or order
+  ---
+  duration_ms: 1168.852583
+  type: 'test'
+  ...
+# Subtest: named Section reconciles all 1 existing members without changing identity, membership, provenance or order
+ok 201 - named Section reconciles all 1 existing members without changing identity, membership, provenance or order
+  ---
+  duration_ms: 311.649041
+  type: 'test'
+  ...
+# Subtest: named Section reconciles all 2 existing members without changing identity, membership, provenance or order
+ok 202 - named Section reconciles all 2 existing members without changing identity, membership, provenance or order
+  ---
+  duration_ms: 487.254792
+  type: 'test'
+  ...
+# Subtest: named Section reconciles all 6 existing members without changing identity, membership, provenance or order
+ok 203 - named Section reconciles all 6 existing members without changing identity, membership, provenance or order
+  ---
+  duration_ms: 1134.811416
+  type: 'test'
+  ...
+# Subtest: complete two-member Section refuses input-grant without truncated ACK
+ok 204 - complete two-member Section refuses input-grant without truncated ACK
+  ---
+  duration_ms: 95.27325
+  type: 'test'
+  ...
+# Subtest: complete two-member Section refuses entry-grant without truncated ACK
+ok 205 - complete two-member Section refuses entry-grant without truncated ACK
+  ---
+  duration_ms: 95.984083
+  type: 'test'
+  ...
+# Subtest: complete two-member Section refuses missing-evidence without truncated ACK
+ok 206 - complete two-member Section refuses missing-evidence without truncated ACK
+  ---
+  duration_ms: 388.5985
+  type: 'test'
+  ...
+# Subtest: complete two-member Section refuses missing-aspect without truncated ACK
+ok 207 - complete two-member Section refuses missing-aspect without truncated ACK
+  ---
+  duration_ms: 372.762959
+  type: 'test'
+  ...
+# Subtest: complete two-member Section refuses missing-relation without truncated ACK
+ok 208 - complete two-member Section refuses missing-relation without truncated ACK
+  ---
+  duration_ms: 333.504958
+  type: 'test'
+  ...
+# Subtest: complete two-member Section refuses missing-entry without truncated ACK
+ok 209 - complete two-member Section refuses missing-entry without truncated ACK
+  ---
+  duration_ms: 330.43525
+  type: 'test'
+  ...
+# Subtest: complete two-member Section refuses duplicate-first-entry without truncated ACK
+ok 210 - complete two-member Section refuses duplicate-first-entry without truncated ACK
+  ---
+  duration_ms: 350.855625
+  type: 'test'
+  ...
+# Subtest: complete oversized Section preserves both obligations and cancels only the original unsent reservation
+ok 211 - complete oversized Section preserves both obligations and cancels only the original unsent reservation
+  ---
+  duration_ms: 478.02925
+  type: 'test'
+  ...
+# Subtest: Section Topic-only checked reuse has no effective result and no persisted provider body
+ok 212 - Section Topic-only checked reuse has no effective result and no persisted provider body
+  ---
+  duration_ms: 555.650958
+  type: 'test'
+  ...
+# Subtest: Section Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+ok 213 - Section Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+  ---
+  duration_ms: 353.674417
+  type: 'test'
+  ...
+# Subtest: unqualified Section Topic cosmetic stays deferred without provider or ACK
+ok 214 - unqualified Section Topic cosmetic stays deferred without provider or ACK
+  ---
+  duration_ms: 56.494625
+  type: 'test'
+  ...
+# Subtest: unqualified Section Topic empty stays deferred without provider or ACK
+ok 215 - unqualified Section Topic empty stays deferred without provider or ACK
+  ---
+  duration_ms: 57.129041
+  type: 'test'
+  ...
+# Subtest: unqualified Section Topic ai-member stays deferred without provider or ACK
+ok 216 - unqualified Section Topic ai-member stays deferred without provider or ACK
+  ---
+  duration_ms: 61.424
+  type: 'test'
+  ...
+# Subtest: unqualified Section Topic source stays deferred without provider or ACK
+ok 217 - unqualified Section Topic source stays deferred without provider or ACK
+  ---
+  duration_ms: 64.562875
+  type: 'test'
+  ...
+# Subtest: unqualified Section Topic removed stays deferred without provider or ACK
+ok 218 - unqualified Section Topic removed stays deferred without provider or ACK
+  ---
+  duration_ms: 51.219
+  type: 'test'
+  ...
+# Subtest: independent review: competing ACK preserves omitted-batch partial result
+ok 219 - independent review: competing ACK preserves omitted-batch partial result
+  ---
+  duration_ms: 360.069958
+  type: 'test'
+  ...
+# Subtest: Section reconciliation keeps an unrelated Topic distinct with no borrowed identity
+ok 220 - Section reconciliation keeps an unrelated Topic distinct with no borrowed identity
+  ---
+  duration_ms: 336.465459
+  type: 'test'
+  ...
+# Subtest: Section reconciliation keeps an unrelated Topic same with no borrowed identity
+ok 221 - Section reconciliation keeps an unrelated Topic same with no borrowed identity
+  ---
+  duration_ms: 225.578917
+  type: 'test'
+  ...
+# Subtest: Section reconciliation keeps an unrelated Topic internal_aspect with no borrowed identity
+ok 222 - Section reconciliation keeps an unrelated Topic internal_aspect with no borrowed identity
+  ---
+  duration_ms: 275.246708
+  type: 'test'
+  ...
+# Subtest: Section reconciliation keeps an unrelated Topic ambiguous with no borrowed identity
+ok 223 - Section reconciliation keeps an unrelated Topic ambiguous with no borrowed identity
+  ---
+  duration_ms: 255.411833
+  type: 'test'
+  ...
+# Subtest: duplicated complete Input citations do not create members, recurrence, or an effective Topic result
+ok 224 - duplicated complete Input citations do not create members, recurrence, or an effective Topic result
+  ---
+  duration_ms: 307.360541
+  type: 'test'
+  ...
+# Subtest: an existing other Section with the same human title cannot replace the exact selected Section
+ok 225 - an existing other Section with the same human title cannot replace the exact selected Section
+  ---
+  duration_ms: 371.194334
+  type: 'test'
+  ...
+# Subtest: source structured adapter reconciles default Section through original Topic receipt/ACK and actual Context owner
+ok 226 - source structured adapter reconciles default Section through original Topic receipt/ACK and actual Context owner
+  ---
+  duration_ms: 383.426834
+  type: 'test'
+  ...
+# Subtest: source structured adapter reconciles named two-member Section through original Topic receipt/ACK and actual Context owner
+ok 227 - source structured adapter reconciles named two-member Section through original Topic receipt/ACK and actual Context owner
+  ---
+  duration_ms: 535.07275
+  type: 'test'
+  ...
+# Subtest: Section payload admits exact Topic-only, Context-only or combined coverage and refuses incomplete evidence
+ok 228 - Section payload admits exact Topic-only, Context-only or combined coverage and refuses incomplete evidence
+  ---
+  duration_ms: 337.504833
+  type: 'test'
+  ...
+# Subtest: Section final result accepts only exact existing parent/member reuse and human-intent success
+ok 229 - Section final result accepts only exact existing parent/member reuse and human-intent success
+  ---
+  duration_ms: 339.66
+  type: 'test'
+  ...
+# Subtest: human Topic-name capability does not opt a Section into reconciliation when Section capability is undefined
+ok 230 - human Topic-name capability does not opt a Section into reconciliation when Section capability is undefined
+  ---
+  duration_ms: 251.6625
+  type: 'test'
+  ...
+# Subtest: human Topic-name capability does not opt a Section into reconciliation when Section capability is false
+ok 231 - human Topic-name capability does not opt a Section into reconciliation when Section capability is false
+  ---
+  duration_ms: 268.090875
+  type: 'test'
+  ...
+# Subtest: Section capability rejects non-boolean "true"
+ok 232 - Section capability rejects non-boolean "true"
+  ---
+  duration_ms: 40.9625
+  type: 'test'
+  ...
+# Subtest: Section capability rejects non-boolean 1
+ok 233 - Section capability rejects non-boolean 1
+  ---
+  duration_ms: 37.880667
+  type: 'test'
+  ...
+# Subtest: Section capability rejects non-boolean null
+ok 234 - Section capability rejects non-boolean null
+  ---
+  duration_ms: 36.909875
+  type: 'test'
+  ...
+# Subtest: a genuine Section rename arriving after unsupported deferral is re-isolated from unrelated pending Input on the bounded reread
+ok 235 - a genuine Section rename arriving after unsupported deferral is re-isolated from unrelated pending Input on the bounded reread
+  ---
+  duration_ms: 370.857292
+  type: 'test'
+  ...
+# Subtest: actual bounded Working provider request is causally consumed by original Topic and Context ACK
+ok 236 - actual bounded Working provider request is causally consumed by original Topic and Context ACK
+  ---
+  duration_ms: 479.870667
+  type: 'test'
+  ...
+# Subtest: two explicitly authorized conversations share a bounded purpose request without legacy organize gateway relaxation
+ok 237 - two explicitly authorized conversations share a bounded purpose request without legacy organize gateway relaxation
+  ---
+  duration_ms: 446.762208
+  type: 'test'
+  ...
+# Subtest: source-equal Working body is intentionally transmitted but no Source object, note or history is collected
+ok 238 - source-equal Working body is intentionally transmitted but no Source object, note or history is collected
+  ---
+  duration_ms: 357.204583
+  type: 'test'
+  ...
+# Subtest: missing original processing allowed refuses before actual dispatch attempt
+ok 239 - missing original processing allowed refuses before actual dispatch attempt
+  ---
+  duration_ms: 42.69725
+  type: 'test'
+  ...
+# Subtest: missing original processing epoch refuses before actual dispatch attempt
+ok 240 - missing original processing epoch refuses before actual dispatch attempt
+  ---
+  duration_ms: 35.547417
+  type: 'test'
+  ...
+# Subtest: missing original processing scope refuses before actual dispatch attempt
+ok 241 - missing original processing scope refuses before actual dispatch attempt
+  ---
+  duration_ms: 36.756833
+  type: 'test'
+  ...
+# Subtest: actual processing change at the final original material read blocks body dispatch
+ok 242 - actual processing change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 124.111209
+  type: 'test'
+  ...
+# Subtest: actual restore change at the final original material read blocks body dispatch
+ok 243 - actual restore change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 134.206417
+  type: 'test'
+  ...
+# Subtest: actual removed change at the final original material read blocks body dispatch
+ok 244 - actual removed change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 127.740417
+  type: 'test'
+  ...
+# Subtest: actual filter change at the final original material read blocks body dispatch
+ok 245 - actual filter change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 154.775
+  type: 'test'
+  ...
+# Subtest: actual working change at the final original material read blocks body dispatch
+ok 246 - actual working change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 134.385334
+  type: 'test'
+  ...
+# Subtest: actual source-hash change at the final original material read blocks body dispatch
+ok 247 - actual source-hash change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 141.264167
+  type: 'test'
+  ...
+# Subtest: actual topic change at the final original material read blocks body dispatch
+ok 248 - actual topic change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 141.80975
+  type: 'test'
+  ...
+# Subtest: long real current Working material refuses before reserve or provider without truncation
+ok 249 - long real current Working material refuses before reserve or provider without truncation
+  ---
+  duration_ms: 62.519916
+  type: 'test'
+  ...
+# Subtest: exact original request/content budgets reject rather than truncate a legitimate material object
+ok 250 - exact original request/content budgets reject rather than truncate a legitimate material object
+  ---
+  duration_ms: 0.474083
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing missing reads no body and makes no physical attempt
+ok 251 - default-denied unified material processing missing reads no body and makes no physical attempt
+  ---
+  duration_ms: 25.890292
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing false reads no body and makes no physical attempt
+ok 252 - default-denied unified material processing false reads no body and makes no physical attempt
+  ---
+  duration_ms: 29.0165
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing revoked reads no body and makes no physical attempt
+ok 253 - default-denied unified material processing revoked reads no body and makes no physical attempt
+  ---
+  duration_ms: 27.776375
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing expired reads no body and makes no physical attempt
+ok 254 - default-denied unified material processing expired reads no body and makes no physical attempt
+  ---
+  duration_ms: 31.316625
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing store reads no body and makes no physical attempt
+ok 255 - default-denied unified material processing store reads no body and makes no physical attempt
+  ---
+  duration_ms: 29.290125
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing caller reads no body and makes no physical attempt
+ok 256 - default-denied unified material processing caller reads no body and makes no physical attempt
+  ---
+  duration_ms: 27.37575
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing principal reads no body and makes no physical attempt
+ok 257 - default-denied unified material processing principal reads no body and makes no physical attempt
+  ---
+  duration_ms: 31.60525
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing fields reads no body and makes no physical attempt
+ok 258 - default-denied unified material processing fields reads no body and makes no physical attempt
+  ---
+  duration_ms: 29.20475
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing facets reads no body and makes no physical attempt
+ok 259 - default-denied unified material processing facets reads no body and makes no physical attempt
+  ---
+  duration_ms: 29.45275
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing epoch reads no body and makes no physical attempt
+ok 260 - default-denied unified material processing epoch reads no body and makes no physical attempt
+  ---
+  duration_ms: 30.095167
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing async-current reads no body and makes no physical attempt
+ok 261 - default-denied unified material processing async-current reads no body and makes no physical attempt
+  ---
+  duration_ms: 28.326
+  type: 'test'
+  ...
+# Subtest: unified processing epoch cannot silently change between preflight and physical call
+ok 262 - unified processing epoch cannot silently change between preflight and physical call
+  ---
+  duration_ms: 76.213708
+  type: 'test'
+  ...
+# Subtest: unified processing false during a returned actual proposal denies both domain writes and ACK
+ok 263 - unified processing false during a returned actual proposal denies both domain writes and ACK
+  ---
+  duration_ms: 155.019291
+  type: 'test'
+  ...
+# Subtest: unified processing revoked during a returned actual proposal denies both domain writes and ACK
+ok 264 - unified processing revoked during a returned actual proposal denies both domain writes and ACK
+  ---
+  duration_ms: 146.553375
+  type: 'test'
+  ...
+# Subtest: unified processing expired during a returned actual proposal denies both domain writes and ACK
+ok 265 - unified processing expired during a returned actual proposal denies both domain writes and ACK
+  ---
+  duration_ms: 143.407209
+  type: 'test'
+  ...
+# Subtest: opaque material handle current-read protects Source corruption and rejects forged/released/cancelled access
+ok 266 - opaque material handle current-read protects Source corruption and rejects forged/released/cancelled access
+  ---
+  duration_ms: 36.309375
+  type: 'test'
+  ...
+# Subtest: unified false after recorded response and before Topic write clears private capability and preserves zero ACK
+ok 267 - unified false after recorded response and before Topic write clears private capability and preserves zero ACK
+  ---
+  duration_ms: 172.472209
+  type: 'test'
+  ...
+# Subtest: unified revoked after recorded response and before Topic write clears private capability and preserves zero ACK
+ok 268 - unified revoked after recorded response and before Topic write clears private capability and preserves zero ACK
+  ---
+  duration_ms: 168.164625
+  type: 'test'
+  ...
+# Subtest: unified expired after recorded response and before Topic write clears private capability and preserves zero ACK
+ok 269 - unified expired after recorded response and before Topic write clears private capability and preserves zero ACK
+  ---
+  duration_ms: 168.336333
+  type: 'test'
+  ...
+# Subtest: partial Context continuation cannot reuse processed response after unified false
+ok 270 - partial Context continuation cannot reuse processed response after unified false
+  ---
+  duration_ms: 279.720333
+  type: 'test'
+  ...
+# Subtest: partial Context continuation cannot reuse processed response after unified revoked
+ok 271 - partial Context continuation cannot reuse processed response after unified revoked
+  ---
+  duration_ms: 303.133708
+  type: 'test'
+  ...
+# Subtest: partial Context continuation cannot reuse processed response after unified expired
+ok 272 - partial Context continuation cannot reuse processed response after unified expired
+  ---
+  duration_ms: 249.02725
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 100 captures precede optional AI, have zero mandatory calls and no body queue
+ok 273 - AI-COST-01 100 captures precede optional AI, have zero mandatory calls and no body queue
+  ---
+  duration_ms: 860.691625
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 duplicate capture, Sync delivery, reads and reopen do not create a semantic job
+ok 274 - AI-COST-01 duplicate capture, Sync delivery, reads and reopen do not create a semantic job
+  ---
+  duration_ms: 43.980916
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 rapid edits coalesce latest revision; create/delete before dispatch removes pending work
+ok 275 - AI-COST-01 rapid edits coalesce latest revision; create/delete before dispatch removes pending work
+  ---
+  duration_ms: 74.031916
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 canonical mutation and dirty marker roll back together on flush failure
+ok 276 - AI-COST-01 canonical mutation and dirty marker roll back together on flush failure
+  ---
+  duration_ms: 24.013875
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 scheduler reads bounded dirty metadata, never all Input bodies or full-state scans
+ok 277 - AI-COST-01 scheduler reads bounded dirty metadata, never all Input bodies or full-state scans
+  ---
+  duration_ms: 23.5615
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 Topic A success cannot acknowledge Topic B or failed Context, even with larger later sequence
+ok 278 - AI-COST-01 Topic A success cannot acknowledge Topic B or failed Context, even with larger later sequence
+  ---
+  duration_ms: 46.6575
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 facet result and exact acknowledgement are atomic; failure retains the hole
+ok 279 - AI-COST-01 facet result and exact acknowledgement are atomic; failure retains the hole
+  ---
+  duration_ms: 41.664458
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 immutable child attempts survive restart and unknown response without rebilling
+ok 280 - AI-COST-01 immutable child attempts survive restart and unknown response without rebilling
+  ---
+  duration_ms: 37.127084
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 late results cannot overwrite new human edits or revoked processing consent
+ok 281 - AI-COST-01 late results cannot overwrite new human edits or revoked processing consent
+  ---
+  duration_ms: 94.682334
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 cancel before dispatch releases; cancel after dispatch never refunds unknown attempt
+ok 282 - AI-COST-01 cancel before dispatch releases; cancel after dispatch never refunds unknown attempt
+  ---
+  duration_ms: 62.416541
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 concurrent plans/dispatches share one flight and one physical operation
+ok 283 - AI-COST-01 concurrent plans/dispatches share one flight and one physical operation
+  ---
+  duration_ms: 35.785084
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 missing authority and real remote provider fail closed; receipts never retain provider bodies
+ok 284 - AI-COST-01 missing authority and real remote provider fail closed; receipts never retain provider bodies
+  ---
+  duration_ms: 25.004917
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 local NO_CHANGE and cache intent cost zero and retain exact per-facet holes
+ok 285 - AI-COST-01 local NO_CHANGE and cache intent cost zero and retain exact per-facet holes
+  ---
+  duration_ms: 28.219125
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 DEFER records retry condition without re-dispatching unchanged evidence
+ok 286 - AI-COST-01 DEFER records retry condition without re-dispatching unchanged evidence
+  ---
+  duration_ms: 31.121125
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 child bounds are typed and duplicate evidence never creates independent lineage
+ok 287 - AI-COST-01 child bounds are typed and duplicate evidence never creates independent lineage
+  ---
+  duration_ms: 65.154791
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 edits supersede a reserved but undispatched job and release only its unused reservation
+ok 288 - AI-COST-01 edits supersede a reserved but undispatched job and release only its unused reservation
+  ---
+  duration_ms: 34.148542
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 human Topic and physical Section revisions are reusable without scanning bodies
+ok 289 - AI-COST-01 human Topic and physical Section revisions are reusable without scanning bodies
+  ---
+  duration_ms: 29.284584
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 human Context edits revoke work, and automatic Context maintenance cannot create feedback work
+ok 290 - AI-COST-01 human Context edits revoke work, and automatic Context maintenance cannot create feedback work
+  ---
+  duration_ms: 30.076125
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 later successful Input does not acknowledge an earlier Input hole
+ok 291 - AI-COST-01 later successful Input does not acknowledge an earlier Input hole
+  ---
+  duration_ms: 39.943083
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 unauthorized facet scope and source deletion fail at the last current-state fence
+ok 292 - AI-COST-01 unauthorized facet scope and source deletion fail at the last current-state fence
+  ---
+  duration_ms: 29.631416
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 default production owner is present, denies execution and performs no constructor work
+ok 293 - AI-COST-01 default production owner is present, denies execution and performs no constructor work
+  ---
+  duration_ms: 17.145584
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 lost transient usage rows cannot remint a dispatched attempt after library recovery
+ok 294 - AI-COST-01 lost transient usage rows cannot remint a dispatched attempt after library recovery
+  ---
+  duration_ms: 33.432459
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 one successful child cannot hide another child unknown outcome
+ok 295 - AI-COST-01 one successful child cannot hide another child unknown outcome
+  ---
+  duration_ms: 27.005333
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 cancelling a recorded result retains spend but allows later genuinely changed work
+ok 296 - AI-COST-01 cancelling a recorded result retains spend but allows later genuinely changed work
+  ---
+  duration_ms: 31.411166
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 unknown outcome reconciliation requires a trusted exact-bound proof and never retries
+ok 297 - AI-COST-01 unknown outcome reconciliation requires a trusted exact-bound proof and never retries
+  ---
+  duration_ms: 27.968292
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 jobs, operation fences, coverage and usage are absent from existing portable backup
+ok 298 - AI-COST-01 jobs, operation fences, coverage and usage are absent from existing portable backup
+  ---
+  duration_ms: 55.069917
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 pruning or replaying old human journals cannot remove or downgrade current dirty work
+ok 299 - AI-COST-01 pruning or replaying old human journals cannot remove or downgrade current dirty work
+  ---
+  duration_ms: 33.007167
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 derived revision bookkeeping does not dirty or invalidate human evidence by itself
+ok 300 - AI-COST-01 derived revision bookkeeping does not dirty or invalidate human evidence by itself
+  ---
+  duration_ms: 41.074875
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 verified rejection of one child retains each unfinished sibling and the single flight
+ok 301 - AI-COST-01 verified rejection of one child retains each unfinished sibling and the single flight
+  ---
+  duration_ms: 110.10475
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 Topic-only acknowledgement preserves Context work and explicit Organize remains independently eligible
+ok 302 - AI-COST-01 Topic-only acknowledgement preserves Context work and explicit Organize remains independently eligible
+  ---
+  duration_ms: 42.811209
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 same-revision journal redelivery is not new semantic work or a new human fence
+ok 303 - AI-COST-01 same-revision journal redelivery is not new semantic work or a new human fence
+  ---
+  duration_ms: 24.088666
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 actual replace restore coalesces human journals by revision rather than UUID order
+ok 304 - AI-COST-01 actual replace restore coalesces human journals by revision rather than UUID order
+  ---
+  duration_ms: 227.430541
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 keep-separate changes rebind only never-dispatched uncommitted plans
+ok 305 - AI-COST-01 keep-separate changes rebind only never-dispatched uncommitted plans
+  ---
+  duration_ms: 82.327834
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 locally completed child and partial same-child coverage reserve only unresolved units
+ok 306 - AI-COST-01 locally completed child and partial same-child coverage reserve only unresolved units
+  ---
+  duration_ms: 59.220167
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 route and snapshot metadata changes leave canonical identities, permissions and human work unchanged
+ok 307 - AI-COST-01 route and snapshot metadata changes leave canonical identities, permissions and human work unchanged
+  ---
+  duration_ms: 29.846208
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 untrusted provider or native-currency fields cannot select a route or mint an allowance
+ok 308 - AI-COST-01 untrusted provider or native-currency fields cannot select a route or mint an allowance
+  ---
+  duration_ms: 20.80075
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 canonical clear and bounded metadata cleanup roll back together without body scans or financial reset
+ok 309 - AI-COST-01 canonical clear and bounded metadata cleanup roll back together without body scans or financial reset
+  ---
+  duration_ms: 37.174333
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 clear ordering preserves only the valid canonical writes after that clear
+ok 310 - AI-COST-01 clear ordering preserves only the valid canonical writes after that clear
+  ---
+  duration_ms: 18.954875
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 actual replace discards old dirty owners but retains an unknown dispatched attempt fence
+ok 311 - AI-COST-01 actual replace discards old dirty owners but retains an unknown dispatched attempt fence
+  ---
+  duration_ms: 71.728333
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 changed human fence resumes the zero-attempt remainder after local subset or child completion
+ok 312 - AI-COST-01 changed human fence resumes the zero-attempt remainder after local subset or child completion
+  ---
+  duration_ms: 87.382709
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 changed human fence cannot rebind a dispatched, recorded or unknown attempt
+ok 313 - AI-COST-01 changed human fence cannot rebind a dispatched, recorded or unknown attempt
+  ---
+  duration_ms: 107.616209
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 canonical cleanup crosses 100-row pages without scanning bodies or deleting other kinds
+ok 314 - AI-COST-01 canonical cleanup crosses 100-row pages without scanning bodies or deleting other kinds
+  ---
+  duration_ms: 748.466292
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 planning snapshots caller-owned evidence before asynchronous authority reads
+ok 315 - AI-COST-01 planning snapshots caller-owned evidence before asynchronous authority reads
+  ---
+  duration_ms: 28.738208
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 provider metadata is snapshotted before asynchronous dispatch admission
+ok 316 - AI-COST-01 provider metadata is snapshotted before asynchronous dispatch admission
+  ---
+  duration_ms: 25.64275
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 local and response facet writes retain the submitted coverage snapshot
+ok 317 - AI-COST-01 local and response facet writes retain the submitted coverage snapshot
+  ---
+  duration_ms: 49.155375
+  type: 'test'
+  ...
+# Subtest: AI-COST-01 outcome reconciliation snapshots verified result before asynchronous persistence
+ok 318 - AI-COST-01 outcome reconciliation snapshots verified result before asynchronous persistence
+  ---
+  duration_ms: 25.49175
+  type: 'test'
+  ...
+# Subtest: each of two real maintenance children receives only its exact pending evidence keys
+ok 319 - each of two real maintenance children receives only its exact pending evidence keys
+  ---
+  duration_ms: 320.820792
+  type: 'test'
+  ...
+# Subtest: partially local-completed Input is absent from remaining child request, without reducing full-job qualification
+ok 320 - partially local-completed Input is absent from remaining child request, without reducing full-job qualification
+  ---
+  duration_ms: 33.199625
+  type: 'test'
+  ...
+# Subtest: missing or ambiguous persisted child evidence refuses before an attempt or receipt change
+ok 321 - missing or ambiguous persisted child evidence refuses before an attempt or receipt change
+  ---
+  duration_ms: 43.262708
+  type: 'test'
+  ...
+# Subtest: narrow child metadata never narrows authority or current checks for sibling evidence
+ok 322 - narrow child metadata never narrows authority or current checks for sibling evidence
+  ---
+  duration_ms: 36.821875
+  type: 'test'
+  ...
+# Subtest: source schema is accepted by the original bounded Qwen validator inside its original current-binding snapshot depth
+ok 323 - source schema is accepted by the original bounded Qwen validator inside its original current-binding snapshot depth
+  ---
+  duration_ms: 2.177125
+  type: 'test'
+  ...
+# Subtest: closed source Topic maps every original claim and immediately erases its last-facet child registration
+ok 324 - closed source Topic maps every original claim and immediately erases its last-facet child registration
+  ---
+  duration_ms: 2.537125
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown envelope field and erases the failed private binding
+ok 325 - source adapter rejects unknown envelope field and erases the failed private binding
+  ---
+  duration_ms: 0.221833
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown Topic field and erases the failed private binding
+ok 326 - source adapter rejects unknown Topic field and erases the failed private binding
+  ---
+  duration_ms: 0.215791
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown Input citation and erases the failed private binding
+ok 327 - source adapter rejects unknown Input citation and erases the failed private binding
+  ---
+  duration_ms: 0.192083
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown citation index and erases the failed private binding
+ok 328 - source adapter rejects unknown citation index and erases the failed private binding
+  ---
+  duration_ms: 0.2485
+  type: 'test'
+  ...
+# Subtest: source adapter rejects duplicate/unknown relations and erases the failed private binding
+ok 329 - source adapter rejects duplicate/unknown relations and erases the failed private binding
+  ---
+  duration_ms: 0.261833
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown Entry and erases the failed private binding
+ok 330 - source adapter rejects unknown Entry and erases the failed private binding
+  ---
+  duration_ms: 0.337625
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown Section and erases the failed private binding
+ok 331 - source adapter rejects unknown Section and erases the failed private binding
+  ---
+  duration_ms: 0.513834
+  type: 'test'
+  ...
+# Subtest: source adapter rejects invalid empty Section sentinel and erases the failed private binding
+ok 332 - source adapter rejects invalid empty Section sentinel and erases the failed private binding
+  ---
+  duration_ms: 0.488458
+  type: 'test'
+  ...
+# Subtest: source adapter rejects invalid boundary digest sentinel and erases the failed private binding
+ok 333 - source adapter rejects invalid boundary digest sentinel and erases the failed private binding
+  ---
+  duration_ms: 0.6205
+  type: 'test'
+  ...
+# Subtest: source adapter rejects extra unused citation with unknown Input and erases the failed private binding
+ok 334 - source adapter rejects extra unused citation with unknown Input and erases the failed private binding
+  ---
+  duration_ms: 0.163958
+  type: 'test'
+  ...
+# Subtest: source adapter rejects bound exceeded and erases the failed private binding
+ok 335 - source adapter rejects bound exceeded and erases the failed private binding
+  ---
+  duration_ms: 0.134
+  type: 'test'
+  ...
+# Subtest: source adapter rejects sparse array and erases the failed private binding
+ok 336 - source adapter rejects sparse array and erases the failed private binding
+  ---
+  duration_ms: 0.118084
+  type: 'test'
+  ...
+# Subtest: source adapter rejects accessor and erases the failed private binding
+ok 337 - source adapter rejects accessor and erases the failed private binding
+  ---
+  duration_ms: 0.10975
+  type: 'test'
+  ...
+# Subtest: source adapter rejects symbol and erases the failed private binding
+ok 338 - source adapter rejects symbol and erases the failed private binding
+  ---
+  duration_ms: 0.087458
+  type: 'test'
+  ...
+# Subtest: source adapter rejects alias and erases the failed private binding
+ok 339 - source adapter rejects alias and erases the failed private binding
+  ---
+  duration_ms: 0.098375
+  type: 'test'
+  ...
+# Subtest: source adapter rejects cyclic data and erases the failed private binding
+ok 340 - source adapter rejects cyclic data and erases the failed private binding
+  ---
+  duration_ms: 0.120416
+  type: 'test'
+  ...
+# Subtest: source adapter rejects wrong job and erases the failed private binding
+ok 341 - source adapter rejects wrong job and erases the failed private binding
+  ---
+  duration_ms: 0.12125
+  type: 'test'
+  ...
+# Subtest: source adapter rejects wrong child and erases the failed private binding
+ok 342 - source adapter rejects wrong child and erases the failed private binding
+  ---
+  duration_ms: 0.119583
+  type: 'test'
+  ...
+# Subtest: source adapter rejects missing active facet and erases the failed private binding
+ok 343 - source adapter rejects missing active facet and erases the failed private binding
+  ---
+  duration_ms: 0.120458
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unpaired sentinel content and erases the failed private binding
+ok 344 - source adapter rejects unpaired sentinel content and erases the failed private binding
+  ---
+  duration_ms: 0.124375
+  type: 'test'
+  ...
+# Subtest: source adapter rejects invalid additional Entry index and erases the failed private binding
+ok 345 - source adapter rejects invalid additional Entry index and erases the failed private binding
+  ---
+  duration_ms: 0.180666
+  type: 'test'
+  ...
+# Subtest: accessor snapshots refuse without executing even a harmless getter
+ok 346 - accessor snapshots refuse without executing even a harmless getter
+  ---
+  duration_ms: 0.101125
+  type: 'test'
+  ...
+# Subtest: private correlation rejects a forged facet receipt and clears the retained sibling binding
+ok 347 - private correlation rejects a forged facet receipt and clears the retained sibling binding
+  ---
+  duration_ms: 0.742209
+  type: 'test'
+  ...
+# Subtest: revoke removes private child state without a body cache
+ok 348 - revoke removes private child state without a body cache
+  ---
+  duration_ms: 0.348292
+  type: 'test'
+  ...
+# Subtest: signal removes private child state without a body cache
+ok 349 - signal removes private child state without a body cache
+  ---
+  duration_ms: 0.228
+  type: 'test'
+  ...
+# Subtest: release-child removes private child state without a body cache
+ok 350 - release-child removes private child state without a body cache
+  ---
+  duration_ms: 0.194
+  type: 'test'
+  ...
+# Subtest: release-job removes private child state without a body cache
+ok 351 - release-job removes private child state without a body cache
+  ---
+  duration_ms: 1.873917
+  type: 'test'
+  ...
+# Subtest: dispose removes private child state without a body cache
+ok 352 - dispose removes private child state without a body cache
+  ---
+  duration_ms: 0.249208
+  type: 'test'
+  ...
+# Subtest: source DEFER is privately authenticated, bounded, exact, non-clonable and releases final facet state
+ok 353 - source DEFER is privately authenticated, bounded, exact, non-clonable and releases final facet state
+  ---
+  duration_ms: 0.484542
+  type: 'test'
+  ...
+# Subtest: filter result covers exact sent inputs and cannot return another unit
+ok 354 - filter result covers exact sent inputs and cannot return another unit
+  ---
+  duration_ms: 0.354542
+  type: 'test'
+  ...
+# Subtest: remote client rejects externally supplied response callbacks
+ok 355 - remote client rejects externally supplied response callbacks
+  ---
+  duration_ms: 0.998834
+  type: 'test'
+  ...
+# Subtest: remote client refuses a fixture/open schema before tokenizing, declaring or reserving
+ok 356 - remote client refuses a fixture/open schema before tokenizing, declaring or reserving
+  ---
+  duration_ms: 0.947916
+  type: 'test'
+  ...
+# Subtest: throwing currentness owner releases the private child binding
+ok 357 - throwing currentness owner releases the private child binding
+  ---
+  duration_ms: 0.206708
+  type: 'test'
+  ...
+# Subtest: fresh identities cannot replace the exact sent semantic snapshot
+ok 358 - fresh identities cannot replace the exact sent semantic snapshot
+  ---
+  duration_ms: 0.186791
+  type: 'test'
+  ...
+# Subtest: fresh sections cannot replace the exact sent semantic snapshot
+ok 359 - fresh sections cannot replace the exact sent semantic snapshot
+  ---
+  duration_ms: 0.131833
+  type: 'test'
+  ...
+# Subtest: fresh constraints cannot replace the exact sent semantic snapshot
+ok 360 - fresh constraints cannot replace the exact sent semantic snapshot
+  ---
+  duration_ms: 0.123417
+  type: 'test'
+  ...
+# Subtest: fresh entries cannot replace the exact sent semantic snapshot
+ok 361 - fresh entries cannot replace the exact sent semantic snapshot
+  ---
+  duration_ms: 0.188875
+  type: 'test'
+  ...
+# Subtest: existing source UPDATE uses exact sent stable target and original associations without generating a replacement Item
+ok 362 - existing source UPDATE uses exact sent stable target and original associations without generating a replacement Item
+  ---
+  duration_ms: 456.19425
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong revision and releases private body registration
+ok 363 - existing source rejects wrong revision and releases private body registration
+  ---
+  duration_ms: 326.479583
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong card and releases private body registration
+ok 364 - existing source rejects wrong card and releases private body registration
+  ---
+  duration_ms: 360.708542
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong sent semantic body and releases private body registration
+ok 365 - existing source rejects wrong sent semantic body and releases private body registration
+  ---
+  duration_ms: 313.275375
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong display reference and releases private body registration
+ok 366 - existing source rejects wrong display reference and releases private body registration
+  ---
+  duration_ms: 304.81075
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong private epoch and releases private body registration
+ok 367 - existing source rejects wrong private epoch and releases private body registration
+  ---
+  duration_ms: 320.241417
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong manual origin and releases private body registration
+ok 368 - existing source rejects wrong manual origin and releases private body registration
+  ---
+  duration_ms: 320.082583
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong protected state and releases private body registration
+ok 369 - existing source rejects wrong protected state and releases private body registration
+  ---
+  duration_ms: 274.000125
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong human edited state and releases private body registration
+ok 370 - existing source rejects wrong human edited state and releases private body registration
+  ---
+  duration_ms: 311.055167
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong removed lifecycle and releases private body registration
+ok 371 - existing source rejects wrong removed lifecycle and releases private body registration
+  ---
+  duration_ms: 295.713209
+  type: 'test'
+  ...
+# Subtest: NO_CHANGE may check a real prior Input subset while the unrelated remainder stays deferred
+ok 372 - NO_CHANGE may check a real prior Input subset while the unrelated remainder stays deferred
+  ---
+  duration_ms: 389.499708
+  type: 'test'
+  ...
+# Subtest: REMOVE_CANDIDATE refuses a partial old lineage even when revision and associations are exact
+ok 373 - REMOVE_CANDIDATE refuses a partial old lineage even when revision and associations are exact
+  ---
+  duration_ms: 377.663834
+  type: 'test'
+  ...
+# Subtest: NO_CHANGE cannot substitute another Source family for the prior registered lineage
+ok 374 - NO_CHANGE cannot substitute another Source family for the prior registered lineage
+  ---
+  duration_ms: 291.215583
+  type: 'test'
+  ...
+# Subtest: REMOVE_CANDIDATE cannot substitute another Source family for the prior registered lineage
+ok 375 - REMOVE_CANDIDATE cannot substitute another Source family for the prior registered lineage
+  ---
+  duration_ms: 260.643291
+  type: 'test'
+  ...
+# Subtest: same display ref c0 in another physical child cannot target the first child Item or borrow its baseline
+ok 376 - same display ref c0 in another physical child cannot target the first child Item or borrow its baseline
+  ---
+  duration_ms: 430.091542
+  type: 'test'
+  ...
+# Subtest: only Filter semantic missing IDs create original bounded private DEFER while the sibling remains valid
+ok 377 - only Filter semantic missing IDs create original bounded private DEFER while the sibling remains valid
+  ---
+  duration_ms: 0.472833
+  type: 'test'
+  ...
+# Subtest: only Filter semantic duplicate IDs create original bounded private DEFER while the sibling remains valid
+ok 378 - only Filter semantic duplicate IDs create original bounded private DEFER while the sibling remains valid
+  ---
+  duration_ms: 0.267667
+  type: 'test'
+  ...
+# Subtest: only Filter semantic unselected IDs create original bounded private DEFER while the sibling remains valid
+ok 379 - only Filter semantic unselected IDs create original bounded private DEFER while the sibling remains valid
+  ---
+  duration_ms: 0.238333
+  type: 'test'
+  ...
+# Subtest: semantic Filter mismatch cannot convert invalid metadata inputs into DEFER
+ok 380 - semantic Filter mismatch cannot convert invalid metadata inputs into DEFER
+  ---
+  duration_ms: 0.204167
+  type: 'test'
+  ...
+# Subtest: semantic Filter mismatch cannot convert invalid metadata units into DEFER
+ok 381 - semantic Filter mismatch cannot convert invalid metadata units into DEFER
+  ---
+  duration_ms: 0.143917
+  type: 'test'
+  ...
+# Subtest: semantic Filter mismatch cannot convert invalid common currentness into DEFER
+ok 382 - semantic Filter mismatch cannot convert invalid common currentness into DEFER
+  ---
+  duration_ms: 0.081916
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema is bounded and independently decodes typed Entry evidence
+ok 383 - source-owned authored schema is bounded and independently decodes typed Entry evidence
+  ---
+  duration_ms: 0.557042
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses foreign-entry
+ok 384 - source-owned authored schema refuses foreign-entry
+  ---
+  duration_ms: 0.198125
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses foreign-topic
+ok 385 - source-owned authored schema refuses foreign-topic
+  ---
+  duration_ms: 0.149708
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses input-citation
+ok 386 - source-owned authored schema refuses input-citation
+  ---
+  duration_ms: 0.127584
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses partial-field
+ok 387 - source-owned authored schema refuses partial-field
+  ---
+  duration_ms: 0.180833
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses stale-name
+ok 388 - source-owned authored schema refuses stale-name
+  ---
+  duration_ms: 0.138292
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses stale-fields
+ok 389 - source-owned authored schema refuses stale-fields
+  ---
+  duration_ms: 0.123166
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses top-input-citation
+ok 390 - source-owned authored schema refuses top-input-citation
+  ---
+  duration_ms: 0.126375
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses extra-permission
+ok 391 - source-owned authored schema refuses extra-permission
+  ---
+  duration_ms: 0.19775
+  type: 'test'
+  ...
+# Subtest: source-owned unresolved authored identity yields exact Topic DEFER without inventing a new identity
+ok 392 - source-owned unresolved authored identity yields exact Topic DEFER without inventing a new identity
+  ---
+  duration_ms: 0.2415
+  type: 'test'
+  ...
+1..392
+# tests 392
+# suites 0
+# pass 385
+# fail 7
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 37717.764375
