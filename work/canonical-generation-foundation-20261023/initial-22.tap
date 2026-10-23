@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: generation publication starts empty, stages invisibly and commits exact durable identity
+ok 1 - generation publication starts empty, stages invisibly and commits exact durable identity
+  ---
+  duration_ms: 13.124625
+  type: 'test'
+  ...
+# Subtest: generation publication phases preserve whole old/new data and reject stale writers
+ok 2 - generation publication phases preserve whole old/new data and reject stale writers
+  ---
+  duration_ms: 8.774917
+  type: 'test'
+  ...
+# Subtest: generation restart recovers reserved without exposing staging or replaying payload
+ok 3 - generation restart recovers reserved without exposing staging or replaying payload
+  ---
+  duration_ms: 8.701291
+  type: 'test'
+  ...
+# Subtest: generation restart recovers source-retired without exposing staging or replaying payload
+ok 4 - generation restart recovers source-retired without exposing staging or replaying payload
+  ---
+  duration_ms: 7.983875
+  type: 'test'
+  ...
+# Subtest: generation restart recovers target-ready without exposing staging or replaying payload
+ok 5 - generation restart recovers target-ready without exposing staging or replaying payload
+  ---
+  duration_ms: 7.284083
+  type: 'test'
+  ...
+# Subtest: generation old in-flight writer invalidates reservation and discarded target cannot be republished
+ok 6 - generation old in-flight writer invalidates reservation and discarded target cannot be republished
+  ---
+  duration_ms: 7.093125
+  type: 'test'
+  ...
+# Subtest: generation old writer paused before native TX is rejected after retirement
+ok 7 - generation old writer paused before native TX is rejected after retirement
+  ---
+  duration_ms: 5.621083
+  type: 'test'
+  ...
+# Subtest: generation lost publication response is resolved from receipt without duplicate transition
+ok 8 - generation lost publication response is resolved from receipt without duplicate transition
+  ---
+  duration_ms: 3.246792
+  type: 'test'
+  ...
+# Subtest: generation foreign registry cannot attach or delete an active generation
+ok 9 - generation foreign registry cannot attach or delete an active generation
+  ---
+  duration_ms: 5.191917
+  type: 'test'
+  ...
+# Subtest: generation persistent generation catalog prevents restart collision
+ok 10 - generation persistent generation catalog prevents restart collision
+  ---
+  duration_ms: 3.06225
+  type: 'test'
+  ...
+# Subtest: generation persistent database catalog prevents restart collision
+ok 11 - generation persistent database catalog prevents restart collision
+  ---
+  duration_ms: 2.875541
+  type: 'test'
+  ...
+# Subtest: generation persistent name catalog prevents restart collision
+ok 12 - generation persistent name catalog prevents restart collision
+  ---
+  duration_ms: 2.436
+  type: 'test'
+  ...
+# Subtest: generation active and pending participants cannot be deleted; old retired DB is preserved until separate deletion
+ok 13 - generation active and pending participants cannot be deleted; old retired DB is preserved until separate deletion
+  ---
+  duration_ms: 6.292375
+  type: 'test'
+  ...
+# Subtest: generation rejects preexisting canonical payload even when meta is empty
+ok 14 - generation rejects preexisting canonical payload even when meta is empty
+  ---
+  duration_ms: 1.825792
+  type: 'test'
+  ...
+# Subtest: generation original new thought-library DDL marker alone is permitted
+ok 15 - generation original new thought-library DDL marker alone is permitted
+  ---
+  duration_ms: 3.696417
+  type: 'test'
+  ...
+# Subtest: generation rejects fake capabilities, getter definitions and mutable repository identity
+ok 16 - generation rejects fake capabilities, getter definitions and mutable repository identity
+  ---
+  duration_ms: 2.059709
+  type: 'test'
+  ...
+# Subtest: generation final root drift rolls back original publication TX
+ok 17 - generation final root drift rolls back original publication TX
+  ---
+  duration_ms: 4.1485
+  type: 'test'
+  ...
+# Subtest: generation final receipt drift rolls back original publication TX
+ok 18 - generation final receipt drift rolls back original publication TX
+  ---
+  duration_ms: 4.133875
+  type: 'test'
+  ...
+# Subtest: generation final gate drift rolls back original publication TX
+ok 19 - generation final gate drift rolls back original publication TX
+  ---
+  duration_ms: 3.184542
+  type: 'test'
+  ...
+# Subtest: generation active lookup refuses altered durable publication receipt
+ok 20 - generation active lookup refuses altered durable publication receipt
+  ---
+  duration_ms: 3.158417
+  type: 'test'
+  ...
+# Subtest: generation staging callback cannot overwrite gate and failures roll back payload
+ok 21 - generation staging callback cannot overwrite gate and failures roll back payload
+  ---
+  duration_ms: 1.896458
+  type: 'test'
+  ...
+# Subtest: generation original per-TX byte limit is registered before callback and rolls back
+ok 22 - generation original per-TX byte limit is registered before callback and rolls back
+  ---
+  duration_ms: 6.608125
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 254.866375
