@@ -1,3 +1,4 @@
+import {readOriginalCommittedTransactionWork} from '../idb-repository.js';
 import {ArchiveError} from '../constants.js';
 import {clone,equal,hash} from './value.js';
 // Numeric transition rules only. No exported function opens a repository,
@@ -33,3 +34,13 @@ export function originalGenerationTaskBurn(before){originalGenerationTaskData(be
 const liveInvocations=new WeakMap();
 export function enterOriginalGenerationTaskInvocation(repository){if(liveInvocations.has(repository))fail('GENERATION_TASK_BUSY');const lease=Object.freeze({});liveInvocations.set(repository,lease);return lease;}
 export function leaveOriginalGenerationTaskInvocation(repository,lease){if(liveInvocations.get(repository)!==lease)fail('GENERATION_TASK_CHANGED');liveInvocations.delete(repository);}
+
+// Process-local diagnostics only: these totals neither settle nor refund a task.
+// Only a genuine completed original transaction may be recorded, once.
+const controlWork=new WeakMap(),controlScopes=new WeakSet();
+export function recordOriginalGenerationControlWork(repository,scope){
+ const work=readOriginalCommittedTransactionWork(repository,scope);if(controlScopes.has(scope))fail('GENERATION_TASK_CHANGED');controlScopes.add(scope);
+ const before=controlWork.get(repository)||{transactions:0,references:0,bytes:0,activeMs:0,maxReferences:0,maxBytes:0,maxActiveMs:0};
+ controlWork.set(repository,{transactions:before.transactions+1,references:before.references+work.references,bytes:before.bytes+work.bytes,activeMs:before.activeMs+work.activeMs,maxReferences:Math.max(before.maxReferences,work.references),maxBytes:Math.max(before.maxBytes,work.bytes),maxActiveMs:Math.max(before.maxActiveMs,work.activeMs)});
+}
+export function readOriginalGenerationControlWork(repository){return Object.freeze({...controlWork.get(repository)||{transactions:0,references:0,bytes:0,activeMs:0,maxReferences:0,maxBytes:0,maxActiveMs:0}});}

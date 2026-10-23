@@ -1,0 +1,62 @@
+TAP version 13
+# {"phaseCosts":1,"authenticate":{"bytes":110149,"ms":8},"validate":{"bytes":113599,"ms":14},"owner":{"bytes":131976,"ms":46},"controlWork":{"transactions":11,"references":159,"bytes":73644,"activeMs":18.520873000000165,"maxReferences":17,"maxBytes":22815,"maxActiveMs":7.31454100000002}}
+# {"publicationGroups":1,"prepared":{"state":"prepared","manifestId":"d20fb186053f03686dae08cba07321540096b621bc3954efd04a6d2d54c6d00e","graphDigest":"86c376dbf76e5a360080e695681e31583e8990f04276b178574e908a2e3b9395","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"prepaidBytes":2097152,"prepaidMs":30000}}
+# {"publicationGroups":1,"task":{"id":"canonical-generation:checkpoint:phased-task:v1","version":1,"taskId":"78d0ae3f-4247-4e54-a5a0-2e3b6204019b","identity":{"manifestId":"d20fb186053f03686dae08cba07321540096b621bc3954efd04a6d2d54c6d00e","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"sourceBase":{"root":{"id":"canonical-generation:registry:v1","version":1,"revision":0,"active":null,"pending":null},"gate":null}},"phase":"verified","tickets":6,"burned":0,"workBytes":2452876,"activeMs":30068,"pending":null,"transportIds":["a403f83e76be96fb15ba2e86b61c9b7479c59768b011d2c3084b42d0f8837aa8"]},"work":{"native":{"references":113,"bytes":55139,"activeMs":28.669791999999973},"preparationBytes":907,"prepaidBytes":2097152,"prepaidMs":30000},"controlWork":{"transactions":12,"references":170,"bytes":77716,"activeMs":22.316248000000144,"maxReferences":17,"maxBytes":22815,"maxActiveMs":7.31454100000002}}
+# Subtest: fixed phased publication closes 1 original Human groups atomically
+ok 1 - fixed phased publication closes 1 original Human groups atomically
+  ---
+  duration_ms: 246.222042
+  type: 'test'
+  ...
+# {"phaseCosts":65,"authenticate":{"bytes":3409254,"ms":154},"validate":{"bytes":3018929,"ms":215},"owner":{"bytes":8372020,"ms":2619},"controlWork":{"transactions":187,"references":2287,"bytes":959416,"activeMs":583.4761999999998,"maxReferences":17,"maxBytes":22833,"maxActiveMs":6.461958000000095}}
+# {"publicationGroups":65,"prepared":{"state":"prepared","manifestId":"22b32c9a87ef53f900f4c143e13028adc7a3ead7d695f2b4643e142a3e850585","graphDigest":"d169c7563d27f7564b80b82299807c7daa02014f88483302777167023a6429d1","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"prepaidBytes":1977013,"prepaidMs":30000}}
+# Subtest: fixed phased publication closes 65 original Human groups atomically
+not ok 2 - fixed phased publication closes 65 original Human groups atomically
+  ---
+  duration_ms: 5038.213
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:27:27'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:503:955)
+    async publicationTransaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-publication.js:28:197)
+    async #sealCheckpoint (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-publication.js:106:34)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:27:1016)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: fixed phased seal rejects real late semantic-sequence mutation and rolls back the whole publication transaction
+ok 3 - fixed phased seal rejects real late semantic-sequence mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 163.1235
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-known mutation and rolls back the whole publication transaction
+ok 4 - fixed phased seal rejects real late semantic-known mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 157.70275
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-dirty mutation and rolls back the whole publication transaction
+ok 5 - fixed phased seal rejects real late semantic-dirty mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 159.547125
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-extra mutation and rolls back the whole publication transaction
+ok 6 - fixed phased seal rejects real late semantic-extra mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 168.0265
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6147.553917

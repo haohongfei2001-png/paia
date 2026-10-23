@@ -1,4 +1,4 @@
-import {CANONICAL_PHASED_TASK,GENERATION_TASK_LIMITS,enterOriginalGenerationTaskInvocation,leaveOriginalGenerationTaskInvocation,originalGenerationTaskData,originalGenerationTaskStart,originalGenerationTaskReserve,originalGenerationTaskSettle,originalGenerationTaskBurn} from './canonical-generation-task-ledger.js';
+import {CANONICAL_PHASED_TASK,GENERATION_TASK_LIMITS,recordOriginalGenerationControlWork,enterOriginalGenerationTaskInvocation,leaveOriginalGenerationTaskInvocation,originalGenerationTaskData,originalGenerationTaskStart,originalGenerationTaskReserve,originalGenerationTaskSettle,originalGenerationTaskBurn} from './canonical-generation-task-ledger.js';
 import {requireNoSourcePurgeDeny} from './source-purge-journal.js';
 import {ArchiveError,CONSENT_VERSION} from '../constants.js';
 import {requireOriginalLibraryDocumentsStore} from '../library-documents-owner.js';
@@ -150,9 +150,9 @@ export class CanonicalGenerationCheckpointStage {
   const gate=await this.#binding.repository.transaction(false,t=>t.get('meta',CANONICAL_GENERATION_GATE),['meta']);
   const identity={manifestId:state.manifestRef.id,generationIdentity:gate.identity,sourceBase:state.sourceBase};
   let task=await this.#binding.repository.transaction(false,t=>t.get('meta',CANONICAL_PHASED_TASK),['meta']);
-  if(!task){if(state.phase!=='staging'||state.received!==0)fail('GENERATION_TASK_PROFILE');task=originalGenerationTaskStart(identity);await this.#write(async t=>{if(await t.get('meta',task.id)||!equal(await t.get('meta',state.id),state))fail();await t.put('meta',task);sealRows(this.#binding.repository,t,[task,state],[]);},'checkpoint',true);}
+  if(!task){if(state.phase!=='staging'||state.received!==0)fail('GENERATION_TASK_PROFILE');task=originalGenerationTaskStart(identity);let scope;await this.#write(async t=>{scope=t;if(await t.get('meta',task.id)||!equal(await t.get('meta',state.id),state))fail();await t.put('meta',task);sealRows(this.#binding.repository,t,[task,state],[]);},'checkpoint',true);recordOriginalGenerationControlWork(this.#binding.repository,scope);}
   originalGenerationTaskData(task);if(!equal(task.identity,identity))fail();
-  const persist=async(before,after)=>{await this.#write(async t=>{if(!equal(await t.get('meta',before.id),before))fail('GENERATION_TASK_CHANGED');await t.put('meta',after);sealRows(this.#binding.repository,t,[after],[]);},'checkpoint',true);task=after;};
+  const persist=async(before,after)=>{let scope;await this.#write(async t=>{scope=t;if(!equal(await t.get('meta',before.id),before))fail('GENERATION_TASK_CHANGED');await t.put('meta',after);sealRows(this.#binding.repository,t,[after],[]);},'checkpoint',true);recordOriginalGenerationControlWork(this.#binding.repository,scope);task=after;};
   if(task.pending)await persist(task,originalGenerationTaskBurn(task));
   if(state.phase==='authenticated'&&task.phase==='authenticated')return {state:clone(state),task:clone(task)};
   if(!['staging','authenticated'].includes(state.phase)||task.phase!=='staging')fail('GENERATION_TASK_CHANGED');
@@ -179,7 +179,7 @@ export class CanonicalGenerationCheckpointStage {
   await this.#publication.captureSourceBase(before.sourceBase);
   let task=originalGenerationTaskData(await this.#binding.repository.transaction(false,t=>t.get('meta',CANONICAL_PHASED_TASK),['meta']));
   if(task.identity.manifestId!==before.manifestRef.id||!equal(task.identity.sourceBase,before.sourceBase)||task.phase!=='authenticated')fail('GENERATION_TASK_CHANGED');
-  const persist=async(old,next)=>{await this.#write(async t=>{if(!equal(await t.get('meta',old.id),old))fail();await t.put('meta',next);sealRows(this.#binding.repository,t,[next],[]);},'checkpoint',true);task=next;};
+  const persist=async(old,next)=>{let scope;await this.#write(async t=>{scope=t;if(!equal(await t.get('meta',old.id),old))fail();await t.put('meta',next);sealRows(this.#binding.repository,t,[next],[]);},'checkpoint',true);recordOriginalGenerationControlWork(this.#binding.repository,scope);task=next;};
   if(task.pending)await persist(task,originalGenerationTaskBurn(task));
   let phase=null;const items=[],pages=[],validationPrefix=CANONICAL_CHECKPOINT_PREFIX+'validated-page:';
   const currentPhase=()=>{current(this.#binding);if(!phase||phase.bytes>phase.ticket.bytes||performance.now()-phase.started>=phase.ticket.ms)fail('BNS_GROUP_RESOURCE_LIMIT');};
