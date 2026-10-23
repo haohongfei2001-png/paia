@@ -29,6 +29,7 @@ import {portableSourceLinkedEvidence} from './source-linked-evidence.js';
 import {JournalRestoreFence} from './prompt-journal.js';
 import {sourceLinkedDescriptor,restoreSourceLinkedEvidence} from './source-linked-evidence.js';
 import {clone,equal,identifier,bytes,digest,fail} from './value.js';
+import {projectSemanticJobInvalidation} from '../ai-usage/semantic-invalidation.js';
 
 // A bounded canonical bootstrap, not a fabricated replay of a lost AI request.
 // This profile proves one original AI baseline followed by a complete bounded
@@ -400,11 +401,14 @@ export function originalSavedHumanScopePartition(scope,store){
 // delta is constructed BEFORE the original Saved writer from its private plan;
 // a post-owner snapshot cannot turn corruption into a new preservation baseline.
 const mixedRetentions=new WeakMap();
-export async function prepareSavedMixedRetention(store,core,t,scope,edit,stage){
+export async function prepareSavedMixedRetention(store,core,t,scope,edit,stage,afterScope=scope){
  const human=originalHumanSavedScopePartition(scope,store);if(!human)return null;
  const owner=savedScopes.get(scope),p=edit?savedEdits.get(edit):null;
  if(!owner||owner.store!==store||owner.core!==core||edit&&(!p||p.store!==store||p.core!==core||!p.incoming))fail('BNS_SAVED_WORK_CAPABILITY');
- requireOriginalGroupCheckpointPlan(core,owner.plan);requireRepositoryTransactionScope(store.repository,t);requireRepositoryTransactionDataMethods(store.repository,t);
+ const afterOwner=savedScopes.get(afterScope);if(!afterOwner||afterOwner.store!==store||afterOwner.core!==core||!originalHumanSavedScopePartition(afterScope,store))fail('BNS_SAVED_WORK_CAPABILITY');
+ const operations=owner.plan.groups.flatMap(g=>g.operations),next=afterOwner.plan.groups.flatMap(g=>g.operations),expected=[...operations,...(p?[p.prepared.operations[0]]:[])],ordered=rows=>[...rows].sort((a,b)=>a.revisionId.localeCompare(b.revisionId));
+ if(!equal(ordered(next),ordered(expected)))fail('BNS_SAVED_WORK_CAPABILITY');
+ requireOriginalGroupCheckpointPlan(core,afterOwner.plan);requireOriginalGroupCheckpointPlan(core,owner.plan);requireRepositoryTransactionScope(store.repository,t);requireRepositoryTransactionDataMethods(store.repository,t);
  const database=store.repository.db,start=Date.now(),tables=new Map();let retained=0;
  const current=()=>{if(store.repository!==core.repository||store.repository.db!==database||Date.now()-start>=30000||retained>limit)fail('BNS_SAVED_WORK_LIMIT');return true;};
  for(const name of t.tx.objectStoreNames){const rows=await readGroupRows(t,name);for(const row of rows){retained+=measureSourceWorkingPhysicalTree(row).B;current();}tables.set(name,new Map(rows.map(row=>[row.id,row])));}
@@ -416,9 +420,9 @@ export async function prepareSavedMixedRetention(store,core,t,scope,edit,stage){
   const row=tables.get(table).get(op.value.after.id),key=await core.idIn(t,'humanMapping',op.entityId),mapping=tables.get('meta').get(key);
   if(!row||!mapping||!equal(mapping,{id:key,type,wire:humanPhysical(type,op.value.after),local:humanPhysical(type,row),revisionId:op.revisionId}))fail('BNS_HUMAN_MAPPING_CHANGED');
  }
- // This first mixed consumer has no AI jobs to invalidate. It never skips a
- // real job owner or declares its original semantic transition unchanged.
- if(tables.get('organizerJobs')?.size||t.semanticChanges?.size||t.aiUsageBoundaryChanged)fail('BNS_SAVED_WORK_UNSUPPORTED');
+ // Admission starts before the incoming edit; preexisting transaction deltas
+ // are not an unqualified second writer in this exact retention proof.
+ if(t.semanticChanges?.size||t.aiUsageBoundaryChanged)fail('BNS_SAVED_WORK_UNSUPPORTED');
  const put=(table,key,row)=>{current();const map=tables.get(table);if(!map)fail('BNS_SAVED_WORK_CAPABILITY');if(row===null)map.delete(key);else{retained+=measureSourceWorkingPhysicalTree(row).B;current();map.set(key,clone(row));}};
  if(p){
   const {view,request}=p,operation=p.prepared.operations[0],meta=tables.get('meta');
@@ -432,12 +436,18 @@ export async function prepareSavedMixedRetention(store,core,t,scope,edit,stage){
   put('thoughts',request.id,view.entry);put('operationReceipts',request.operationId,view.operationReceipt);
   for(const row of p.before.rows.history)if(!view.history.some(r=>r.id===row.id))put('revisions',row.id,null);for(const row of view.history)put('revisions',row.id,row);
   if(prior.searchVersion!==ownerVersion('entry',view.entry)){const queue=planSearchQueueLocator('entry',view.entry);put('libraryMigrationItems',queue.id,queue);}
-  if(t.semanticEnabled){let sequence=meta.get(DELTA_COUNTER)?.value||0,humanChanged=false;
-   for(const {before,after}of changes.values()){const planned=planSemanticDeltaWrite(before,after,meta.get(KNOWN_PREFIX+after.key),meta.get(DIRTY_PREFIX+after.key),sequence);if(!planned)continue;sequence=planned.row.sequence;humanChanged||=after.human;put('meta',planned.row.id,planned.row);put('meta',DIRTY_PREFIX+after.key,planned.dirty);}
+  if(t.semanticEnabled){let sequence=meta.get(DELTA_COUNTER)?.value||0,humanChanged=false;const changedEvidence=new Map();
+   for(const {before,after}of changes.values()){const planned=planSemanticDeltaWrite(before,after,meta.get(KNOWN_PREFIX+after.key),meta.get(DIRTY_PREFIX+after.key),sequence);if(!planned)continue;sequence=planned.row.sequence;humanChanged||=after.human;put('meta',planned.row.id,planned.row);changedEvidence.set(after.key,planned.row);put('meta',DIRTY_PREFIX+after.key,planned.dirty);}
    if(sequence!==(meta.get(DELTA_COUNTER)?.value||0))put('meta',DELTA_COUNTER,{id:DELTA_COUNTER,value:sequence});if(humanChanged)put('meta',HUMAN_FENCE,{id:HUMAN_FENCE,value:(meta.get(HUMAN_FENCE)?.value||0)+1});
+   if(changedEvidence.size){const projection=await projectSemanticJobInvalidation(t,changedEvidence);for(const {table,row}of projection.writes)put(table,row.id,row);}
   }
  }
- const cap=Object.freeze({});mixedRetentions.set(cap,{store,core,t,stage,database,tables,current,retained,sealed:false});return cap;
+ const cap=Object.freeze({}),record={store,core,t,stage,database,tables,current,retained,sealed:false,scopes:new Set([scope,afterScope])};mixedRetentions.set(cap,record);
+ // Merely borrowing the admission capability cannot commit a partial proof.
+ registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){if(!record.sealed)fail('BNS_SAVED_WORK_CAPABILITY');return true;}});return cap;
+}
+export function requireSavedMixedResidentRetention(store,t,scope,cap){
+ if(cap===null)return false;const p=mixedRetentions.get(cap);if(!p||p.store!==store||p.t!==t||!p.scopes.has(scope)||p.core.repository!==store.repository||p.database!==store.repository.db)fail('BNS_SAVED_WORK_CAPABILITY');p.current();requireRepositoryTransactionScope(store.repository,t);return true;
 }
 export async function sealSavedMixedRetention(store,core,t,cap,stage,intents){
  if(cap===null)return;const p=mixedRetentions.get(cap);if(!p||p.store!==store||p.core!==core||p.t!==t||p.stage!==stage||p.sealed)fail('BNS_SAVED_WORK_CAPABILITY');p.current();

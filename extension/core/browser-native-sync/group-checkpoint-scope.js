@@ -1,5 +1,5 @@
 import {requireSourcePurgeRemainingCanonicalProof} from './source-purge-negative.js';
-import {prepareSavedWorkScope,requireSavedWorkScope} from './saved-work-bootstrap.js';
+import {prepareSavedWorkScope,requireSavedWorkScope,requireSavedMixedResidentRetention} from './saved-work-bootstrap.js';
 import {readGroupRows} from './group-page-reader.js';
 import {compareMixedConfiguration,consumeMixedPublicationMetadata} from './mixed-configuration.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
@@ -200,12 +200,13 @@ export async function prepareGroupScope(plan,{store,nativeMixedCompilation,mixed
   if(human){if(nativeMixedCompilation!==undefined)reserveOriginalMixedKeyedScopePhase(nativeMixedCompilation,store,scope,plan);await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);}freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;
  }catch(error){originalScopes.delete(scope);throw error;}
 }
-export async function requireGroupScope(store,t,scope){
+export async function requireGroupScope(store,t,scope,residentRetention=null){
  requireCompiledGroupScope(scope);
  const c=await store.control(t);
  if(!equal(c.preferences,consumerDisplayPreferences(scope.expected.consumerPreferences??[]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ const resident=residentRetention===null?false:requireSavedMixedResidentRetention(store,t,scope,residentRetention);
  const saved=scope.expected.savedWork?await requireSavedWorkScope(store,t,scope):false,human=hasHumanScope(scope)?await requireHumanScope(store,t,scope):null,humanStores=new Set(['thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems','provenance','dependencies']);
- for(const name of t.tx.objectStoreNames)if(!represented.has(name)&&!ephemeralStores.has(name)&&!((human||saved)&&humanStores.has(name))&&await t.count(name))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ for(const name of t.tx.objectStoreNames)if(!represented.has(name)&&!ephemeralStores.has(name)&&!(resident&&saved&&human&&['organizerJobs','organizerUsage','organizerWorkItems'].includes(name))&&!((human||saved)&&humanStores.has(name))&&await t.count(name))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  // Inspect every canonical metadata key, but do not walk the selected Core's
  // immutable protocol namespace as if it were owner data. That closed bns:v1
  // prefix cannot match backupMetaAllowed; its graph is proven independently.

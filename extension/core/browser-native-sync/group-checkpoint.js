@@ -349,11 +349,11 @@ export class GroupedCheckpointRestore{
    const nextPlan=operation?await prepareGroupCheckpointPlan(this.live,[...localOperations,operation]):localPlan,before=await prepareGroupScope(localPlan,{store:this.store}),after=await prepareGroupScope(nextPlan,{store:this.store}),complete=index===incoming.length-1||!incoming.length,previous=state;
    const result=await this.store.foundationWrite(async t=>{
     current();if(!equal(await this.stage.get(t,'restore'),previous)||!equal(await authority(this.store,this.live,t),previous.savedMerge?.base??previous.base))fail('BNS_RESTORE_LOCAL_CHANGED');
-    await requireNoSourcePurgeDeny(this.live,t);await requireConsumerPublicationSettled(t);await this.store.qualifyControlPublicationRead(t);await requireCommittedPlan(this.live,t,localPlan);await requireGroupScope(this.store,t,before);
+    await requireNoSourcePurgeDeny(this.live,t);await requireConsumerPublicationSettled(t);await this.store.qualifyControlPublicationRead(t);await requireCommittedPlan(this.live,t,localPlan);
+    const retention=await prepareSavedMixedRetention(this.store,this.live,t,before,prepared,this.stage,after);await requireGroupScope(this.store,t,before,retention);
     for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
-    const retention=await prepareSavedMixedRetention(this.store,this.live,t,before,prepared,this.stage);
     if(operation)await commitSavedWorkEdit(t,prepared,this.store);
-    await requireCommittedPlan(this.live,t,nextPlan);await requireGroupScope(this.store,t,after);await sealSavedWorkCurrentScope(this.store,this.live,t,after);
+    await requireCommittedPlan(this.live,t,nextPlan);await requireGroupScope(this.store,t,after,retention);await sealSavedWorkCurrentScope(this.store,this.live,t,after);
     const base=await authority(this.store,this.live,t),nextBase={...base,ownerGeneration:base.ownerGeneration+(t.backupChanged?1:0)},completed=[...(previous.savedMerge?.completed??[]),...(operation?[operation.revisionId]:[])];
     const next={...withoutId(previous),phase:complete?'merged':'merging-saved',savedMerge:{digest:merged.digest,completed,base:nextBase}};
     const intents=[],merge=complete?{version:1,restoreId:this.restoreId,namespace:base.namespace,epoch:base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:merged.digest,receipts}:null;

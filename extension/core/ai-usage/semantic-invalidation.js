@@ -57,3 +57,16 @@ export async function invalidateSemanticJobs(t,changedEvidence=new Map()){
  }
  return {status:unsupported?'INCOMPLETE':'CHECKED',checked:page.rows.length,cancelled,unsupported};
 }
+
+// Read-only expected writes for the original Saved receive owner's terminal
+// proof. Execute the SAME invalidator against cloned reads and an in-memory
+// write overlay; this projection grants neither dispatch nor commit authority.
+export async function projectSemanticJobInvalidation(t,changedEvidence=new Map()){
+ const pending=new Map(),writes=[],copy=value=>value==null?value:structuredClone(value);
+ const view={tx:t.tx,
+  rangePage:async(...args)=>copy(await t.rangePage(...args)),
+  get:async(table,key)=>pending.get(table)?.has(key)?copy(pending.get(table).get(key)):copy(await t.get(table,key)),
+  put:async(table,row)=>{if(!['organizerUsage','organizerJobs'].includes(table))throw new Error('SEMANTIC_PROJECTION_OWNER');let rows=pending.get(table);if(!rows)pending.set(table,rows=new Map());rows.set(row.id,copy(row));writes.push({table,row:copy(row)});}
+ };
+ return {result:await invalidateSemanticJobs(view,changedEvidence),writes};
+}
