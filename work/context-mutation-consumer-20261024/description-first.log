@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: original literal put descriptor carries body once and reproduces original command digest
+ok 1 - original literal put descriptor carries body once and reproduces original command digest
+  ---
+  duration_ms: 31.624833
+  type: 'test'
+  ...
+# Subtest: original cross-card move and exact old receipt undo preserve order and literal body
+ok 2 - original cross-card move and exact old receipt undo preserve order and literal body
+  ---
+  duration_ms: 19.672
+  type: 'test'
+  ...
+# Subtest: original adjacent reorder records exactly two owner changes and preserves full group
+ok 3 - original adjacent reorder records exactly two owner changes and preserves full group
+  ---
+  duration_ms: 21.05975
+  type: 'test'
+  ...
+# Subtest: missing sibling cannot validate a two-owner mutation
+ok 4 - missing sibling cannot validate a two-owner mutation
+  ---
+  duration_ms: 17.005792
+  type: 'test'
+  ...
+# Subtest: description rejects forged body
+ok 5 - description rejects forged body
+  ---
+  duration_ms: 15.925666
+  type: 'test'
+  ...
+# Subtest: description rejects forged result
+ok 6 - description rejects forged result
+  ---
+  duration_ms: 13.242084
+  type: 'test'
+  ...
+# Subtest: description rejects forged order
+ok 7 - description rejects forged order
+  ---
+  duration_ms: 13.388833
+  type: 'test'
+  ...
+# Subtest: description rejects forged cut
+ok 8 - description rejects forged cut
+  ---
+  duration_ms: 12.153209
+  type: 'test'
+  ...
+# Subtest: description rejects forged digest
+ok 9 - description rejects forged digest
+  ---
+  duration_ms: 14.305459
+  type: 'test'
+  ...
+# Subtest: description rejects forged extra-command-key
+ok 10 - description rejects forged extra-command-key
+  ---
+  duration_ms: 12.590834
+  type: 'test'
+  ...
+# Subtest: a move receipt cannot replace original undo receipt qualification
+ok 11 - a move receipt cannot replace original undo receipt qualification
+  ---
+  duration_ms: 14.969042
+  type: 'test'
+  ...
+# Subtest: no descriptor may carry a second literal command body
+ok 12 - no descriptor may carry a second literal command body
+  ---
+  duration_ms: 12.955041
+  type: 'test'
+  ...
+# Subtest: different untouched group member rejects a previously valid reorder proof
+ok 13 - different untouched group member rejects a previously valid reorder proof
+  ---
+  duration_ms: 15.51325
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 375.386042
