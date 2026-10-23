@@ -1,0 +1,27 @@
+TAP version 13
+# SYNTHETIC empty metadata shapes [{"id":"backup-data-generation","fields":["id","value"],"types":{"id":"string","value":"number"}},{"id":"canonical-generation:gate:v1","fields":["id","identity","phase","publicationId","registryName","retirementId","seal","version","writeRevision"],"types":{"id":"string","version":"number","registryName":"string","identity":"object","phase":"string","writeRevision":"number","seal":"object","publicationId":"object","retirementId":"object"}},{"id":"gate","fields":["enabled","epoch","id"],"types":{"id":"string","epoch":"number","enabled":"boolean"}},{"id":"ia-migration","fields":["completedAt","count","cursor","id","phase","policy","startedAt","verified","version"],"types":{"id":"string","phase":"string","cursor":"object","count":"number","version":"number","startedAt":"string","verified":"boolean","completedAt":"string","policy":"object"}},{"id":"library-documents-compat-v2","fields":["activeTopics","complete","completedAt","cursor","id","indexGap","indexedActiveTopics","repairedDefaultSections","repairedGenerationTopics","repairedIndexTopics","repairedTopics","unresolvedLayouts"],"types":{"id":"string","cursor":"object","complete":"boolean","activeTopics":"number","repairedTopics":"number","repairedIndexTopics":"number","repairedGenerationTopics":"number","repairedDefaultSections":"number","unresolvedLayouts":"number","indexedActiveTopics":"number","indexGap":"number","completedAt":"string"}},{"id":"local-control-publication:revision","fields":["id","revision","version"],"types":{"id":"string","version":"number","revision":"number"}},{"id":"migration","fields":["blockCount","cursor","databaseId","digest","id","phase","recordCount","recoveryVerified","verified"],"types":{"id":"string","phase":"string","databaseId":"string","cursor":"number","digest":"string","verified":"boolean","recoveryVerified":"boolean","recordCount":"number","blockCount":"number"}},{"id":"sequence","fields":["blocks","documents","id","records"],"types":{"id":"string","records":"number","blocks":"number","documents":"number"}},{"id":"smart-filter","fields":["classifierVersion","completedAt","cursor","decisionSequence","diagnosticsVersion","filterVersion","id","legacyCount","mapped","migrationVersion","mode","noticePending","phase","policyEpoch","policyVersion","taskState","verified"],"types":{"id":"string","phase":"string","migrationVersion":"number","cursor":"object","mapped":"number","legacyCount":"number","mode":"string","noticePending":"boolean","decisionSequence":"number","policyEpoch":"number","filterVersion":"number","policyVersion":"number","classifierVersion":"string","diagnosticsVersion":"number","taskState":"string","verified":"boolean","completedAt":"string"}},{"id":"thought-binding:v1","fields":["complete","cursor","id","input","thought","version"],"types":{"id":"string","version":"number","cursor":"object","complete":"boolean","input":"number","thought":"number"}},{"id":"thought-ddl","fields":["fromVersion","id","toVersion"],"types":{"id":"string","fromVersion":"number","toVersion":"number"}},{"id":"thought-library","fields":["completedAt","cursor","fromVersion","id","libraryActivation","mapped","migrationVersion","phase","quarantined","schemaVersion","sealed","startedAt","targetVersion","verified"],"types":{"id":"string","schemaVersion":"number","migrationVersion":"number","fromVersion":"number","targetVersion":"number","phase":"string","cursor":"object","mapped":"number","quarantined":"number","sealed":"number","startedAt":"string","libraryActivation":"string","verified":"boolean","completedAt":"string"}},{"id":"thought-reverse-edit:v1","fields":["enabled","id","version"],"types":{"id":"string","version":"number","enabled":"boolean"}},{"id":"thought-suppression-key","fields":["id","value"],"types":{"id":"string","value":"object"}}]
+# Subtest: protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+not ok 1 - protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+  ---
+  duration_ms: 132.687959
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-repository-gate.test.mjs:43:129'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-repository-gate.test.mjs:43:610)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 307.299583

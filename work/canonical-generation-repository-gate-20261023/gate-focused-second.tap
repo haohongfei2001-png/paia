@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+ok 1 - protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+  ---
+  duration_ms: 299.034209
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects put before external callback
+ok 2 - protected original repository rejects put before external callback
+  ---
+  duration_ms: 101.3645
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects delete before external callback
+ok 3 - protected original repository rejects delete before external callback
+  ---
+  duration_ms: 87.983667
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects clear before external callback
+ok 4 - protected original repository rejects clear before external callback
+  ---
+  duration_ms: 90.36225
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects raw before external callback
+ok 5 - protected original repository rejects raw before external callback
+  ---
+  duration_ms: 91.135875
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects forged-capability before external callback
+ok 6 - protected original repository rejects forged-capability before external callback
+  ---
+  duration_ms: 86.401916
+  type: 'test'
+  ...
+# Subtest: protected gate is enforced by a cold original repository instance
+ok 7 - protected gate is enforced by a cold original repository instance
+  ---
+  duration_ms: 84.535542
+  type: 'test'
+  ...
+# Subtest: private generation authority never passes through mutable instance wrappers
+ok 8 - private generation authority never passes through mutable instance wrappers
+  ---
+  duration_ms: 125.677625
+  type: 'test'
+  ...
+# Subtest: protected public staging/active callback and metadata seal cannot acquire graph writer
+ok 9 - protected public staging/active callback and metadata seal cannot acquire graph writer
+  ---
+  duration_ms: 86.364625
+  type: 'test'
+  ...
+# Subtest: protected Human does not lend a private transaction to external diagnostic callback
+ok 10 - protected Human does not lend a private transaction to external diagnostic callback
+  ---
+  duration_ms: 92.507875
+  type: 'test'
+  ...
+# Subtest: unmarked original database preserves ordinary writes but rejects a forged protection marker
+ok 11 - unmarked original database preserves ordinary writes but rejects a forged protection marker
+  ---
+  duration_ms: 78.242958
+  type: 'test'
+  ...
+# Subtest: late raw protection marker on unmarked write is rejected and rolled back
+ok 12 - late raw protection marker on unmarked write is rejected and rolled back
+  ---
+  duration_ms: 79.430084
+  type: 'test'
+  ...
+# Subtest: protected stage resumes cold original consumer after committed page response loss
+ok 13 - protected stage resumes cold original consumer after committed page response loss
+  ---
+  duration_ms: 118.687958
+  type: 'test'
+  ...
+# Subtest: protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+ok 14 - protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+  ---
+  duration_ms: 255.803125
+  type: 'test'
+  ...
+# Subtest: protected cold attach retains registry binding and publication resumes after target-ready
+ok 15 - protected cold attach retains registry binding and publication resumes after target-ready
+  ---
+  duration_ms: 253.507458
+  type: 'test'
+  ...
+# Subtest: protection installation refuses a nonempty original target and preserves its prior human work
+ok 16 - protection installation refuses a nonempty original target and preserves its prior human work
+  ---
+  duration_ms: 67.606417
+  type: 'test'
+  ...
+# Subtest: a caller-shaped store cannot mint original protection installation authority
+ok 17 - a caller-shaped store cannot mint original protection installation authority
+  ---
+  duration_ms: 58.41575
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2206.386625

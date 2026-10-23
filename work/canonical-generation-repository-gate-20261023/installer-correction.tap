@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+ok 1 - protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+  ---
+  duration_ms: 317.726708
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects put before external callback
+ok 2 - protected original repository rejects put before external callback
+  ---
+  duration_ms: 89.821583
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects delete before external callback
+ok 3 - protected original repository rejects delete before external callback
+  ---
+  duration_ms: 86.232875
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects clear before external callback
+ok 4 - protected original repository rejects clear before external callback
+  ---
+  duration_ms: 80.417542
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects raw before external callback
+ok 5 - protected original repository rejects raw before external callback
+  ---
+  duration_ms: 83.367125
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects forged-capability before external callback
+ok 6 - protected original repository rejects forged-capability before external callback
+  ---
+  duration_ms: 88.276292
+  type: 'test'
+  ...
+# Subtest: protected gate is enforced by a cold original repository instance
+ok 7 - protected gate is enforced by a cold original repository instance
+  ---
+  duration_ms: 77.941584
+  type: 'test'
+  ...
+# Subtest: private generation authority never passes through mutable instance wrappers
+ok 8 - private generation authority never passes through mutable instance wrappers
+  ---
+  duration_ms: 115.911875
+  type: 'test'
+  ...
+# Subtest: protected public staging/active callback and metadata seal cannot acquire graph writer
+ok 9 - protected public staging/active callback and metadata seal cannot acquire graph writer
+  ---
+  duration_ms: 79.122292
+  type: 'test'
+  ...
+# Subtest: protected Human does not lend a private transaction to external diagnostic callback
+ok 10 - protected Human does not lend a private transaction to external diagnostic callback
+  ---
+  duration_ms: 83.418834
+  type: 'test'
+  ...
+# Subtest: unmarked original database preserves ordinary writes but rejects a forged protection marker
+ok 11 - unmarked original database preserves ordinary writes but rejects a forged protection marker
+  ---
+  duration_ms: 75.143458
+  type: 'test'
+  ...
+# Subtest: late raw protection marker on unmarked write is rejected and rolled back
+ok 12 - late raw protection marker on unmarked write is rejected and rolled back
+  ---
+  duration_ms: 85.962916
+  type: 'test'
+  ...
+# Subtest: protected stage resumes cold original consumer after committed page response loss
+ok 13 - protected stage resumes cold original consumer after committed page response loss
+  ---
+  duration_ms: 105.701792
+  type: 'test'
+  ...
+# Subtest: protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+ok 14 - protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+  ---
+  duration_ms: 276.394083
+  type: 'test'
+  ...
+# Subtest: protected cold attach retains registry binding and publication resumes after target-ready
+ok 15 - protected cold attach retains registry binding and publication resumes after target-ready
+  ---
+  duration_ms: 252.694834
+  type: 'test'
+  ...
+# Subtest: protection installation refuses a nonempty original target and preserves its prior human work
+ok 16 - protection installation refuses a nonempty original target and preserves its prior human work
+  ---
+  duration_ms: 66.191375
+  type: 'test'
+  ...
+# Subtest: a caller-shaped store cannot mint original protection installation authority
+ok 17 - a caller-shaped store cannot mint original protection installation authority
+  ---
+  duration_ms: 57.793708
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+ok 18 - protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+  ---
+  duration_ms: 59.358542
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+ok 19 - protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+  ---
+  duration_ms: 58.134583
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+ok 20 - protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+  ---
+  duration_ms: 76.15925
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2384.492125

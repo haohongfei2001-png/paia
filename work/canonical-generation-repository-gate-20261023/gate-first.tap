@@ -1,0 +1,311 @@
+TAP version 13
+# Subtest: generation checkpoint authenticates original Source graph and mints private input proof without canonical writes
+ok 1 - generation checkpoint authenticates original Source graph and mints private input proof without canonical writes
+  ---
+  duration_ms: 139.501042
+  type: 'test'
+  ...
+# Subtest: generation checkpoint resumes after committed final page and validates durable cursor/receipt
+ok 2 - generation checkpoint resumes after committed final page and validates durable cursor/receipt
+  ---
+  duration_ms: 82.004792
+  type: 'test'
+  ...
+# Subtest: generation checkpoint lost page response resumes exact cursor without duplicate items
+not ok 3 - generation checkpoint lost page response resumes exact cursor without duplicate items
+  ---
+  duration_ms: 76.293583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-checkpoint-stage.test.mjs:27:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-checkpoint-stage.test.mjs:28:348)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: generation checkpoint rejects durable item drift before proof
+ok 4 - generation checkpoint rejects durable item drift before proof
+  ---
+  duration_ms: 63.664291
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable page drift before proof
+ok 5 - generation checkpoint rejects durable page drift before proof
+  ---
+  duration_ms: 62.931458
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable cursor drift before proof
+ok 6 - generation checkpoint rejects durable cursor drift before proof
+  ---
+  duration_ms: 57.723834
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable extra-item drift before proof
+ok 7 - generation checkpoint rejects durable extra-item drift before proof
+  ---
+  duration_ms: 59.262459
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable gate drift before proof
+ok 8 - generation checkpoint rejects durable gate drift before proof
+  ---
+  duration_ms: 56.148167
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late item and rolls back
+ok 9 - generation checkpoint original same-TX terminal rejects late item and rolls back
+  ---
+  duration_ms: 68.958334
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late page and rolls back
+ok 10 - generation checkpoint original same-TX terminal rejects late page and rolls back
+  ---
+  duration_ms: 64.485542
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late extra-item and rolls back
+ok 11 - generation checkpoint original same-TX terminal rejects late extra-item and rolls back
+  ---
+  duration_ms: 69.713333
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late state and rolls back
+ok 12 - generation checkpoint original same-TX terminal rejects late state and rolls back
+  ---
+  duration_ms: 65.33025
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late gate and rolls back
+ok 13 - generation checkpoint original same-TX terminal rejects late gate and rolls back
+  ---
+  duration_ms: 66.71225
+  type: 'test'
+  ...
+# Subtest: generation checkpoint detaches manifest ref before held external get
+ok 14 - generation checkpoint detaches manifest ref before held external get
+  ---
+  duration_ms: 49.0035
+  type: 'test'
+  ...
+# Subtest: generation checkpoint refuses another target handle or foreign compiler binding
+ok 15 - generation checkpoint refuses another target handle or foreign compiler binding
+  ---
+  duration_ms: 86.075459
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects incomplete immutable chain before authenticated state
+ok 16 - generation checkpoint rejects incomplete immutable chain before authenticated state
+  ---
+  duration_ms: 71.823625
+  type: 'test'
+  ...
+# (node:58297) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: generation checkpoint held manifest get times out and late completion cannot create state
+ok 17 - generation checkpoint held manifest get times out and late completion cannot create state
+  ---
+  duration_ms: 52.50625
+  type: 'test'
+  ...
+# Subtest: generation checkpoint authenticates multiple durable pages from actual original Source appends
+ok 18 - generation checkpoint authenticates multiple durable pages from actual original Source appends
+  ---
+  duration_ms: 243.184625
+  type: 'test'
+  ...
+# Subtest: generation checkpoint valid immutable hashes do not prove an incomplete original causal group
+ok 19 - generation checkpoint valid immutable hashes do not prove an incomplete original causal group
+  ---
+  duration_ms: 61.374458
+  type: 'test'
+  ...
+# Subtest: generation checkpoint v1 charges declared decoded transport bytes before decompression or fetch
+ok 20 - generation checkpoint v1 charges declared decoded transport bytes before decompression or fetch
+  ---
+  duration_ms: 79.041333
+  type: 'test'
+  ...
+# Subtest: generation checkpoint source base is fixed before first manifest read and refuses subsequent publication
+ok 21 - generation checkpoint source base is fixed before first manifest read and refuses subsequent publication
+  ---
+  duration_ms: 55.733666
+  type: 'test'
+  ...
+# Subtest: generation checkpoint restart never refreshes a stale durable begin source base
+ok 22 - generation checkpoint restart never refreshes a stale durable begin source base
+  ---
+  duration_ms: 55.827875
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects rewritten durable manifest identity before private proof
+ok 23 - generation checkpoint rejects rewritten durable manifest identity before private proof
+  ---
+  duration_ms: 52.114
+  type: 'test'
+  ...
+# Subtest: generation checkpoint authenticates original gzip manifest bytes on durable validation
+ok 24 - generation checkpoint authenticates original gzip manifest bytes on durable validation
+  ---
+  duration_ms: 65.353417
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable manifest bytes mismatch
+ok 25 - generation checkpoint rejects durable manifest bytes mismatch
+  ---
+  duration_ms: 53.807291
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable manifest manifest mismatch
+ok 26 - generation checkpoint rejects durable manifest manifest mismatch
+  ---
+  duration_ms: 54.432041
+  type: 'test'
+  ...
+# Subtest: generation Human steps consume original actual receiver and cold-resume without publishing partial target
+ok 27 - generation Human steps consume original actual receiver and cold-resume without publishing partial target
+  ---
+  duration_ms: 364.842625
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: cursor
+ok 28 - generation Human rollback: cursor
+  ---
+  duration_ms: 126.90075
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: owner_receipt
+ok 29 - generation Human rollback: owner_receipt
+  ---
+  duration_ms: 120.724917
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: human_body
+ok 30 - generation Human rollback: human_body
+  ---
+  duration_ms: 115.732625
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: history
+ok 31 - generation Human rollback: history
+  ---
+  duration_ms: 120.752792
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: gate
+ok 32 - generation Human rollback: gate
+  ---
+  duration_ms: 110.829334
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: extra_member
+ok 33 - generation Human rollback: extra_member
+  ---
+  duration_ms: 164.265834
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: backup
+ok 34 - generation Human rollback: backup
+  ---
+  duration_ms: 134.303834
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: oversized
+ok 35 - generation Human rollback: oversized
+  ---
+  duration_ms: 128.167625
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: fault
+ok 36 - generation Human rollback: fault
+  ---
+  duration_ms: 120.252916
+  type: 'test'
+  ...
+# Subtest: generation Human lost committed response resumes next exact group
+ok 37 - generation Human lost committed response resumes next exact group
+  ---
+  duration_ms: 197.002959
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects version drift
+ok 38 - generation Human final receipt rejects version drift
+  ---
+  duration_ms: 212.410417
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects index drift
+ok 39 - generation Human final receipt rejects index drift
+  ---
+  duration_ms: 219.47
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects manifestId drift
+ok 40 - generation Human final receipt rejects manifestId drift
+  ---
+  duration_ms: 200.548666
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects graphDigest drift
+ok 41 - generation Human final receipt rejects graphDigest drift
+  ---
+  duration_ms: 194.003916
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects generationIdentity drift
+ok 42 - generation Human final receipt rejects generationIdentity drift
+  ---
+  duration_ms: 191.645875
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects sourceBase drift
+ok 43 - generation Human final receipt rejects sourceBase drift
+  ---
+  duration_ms: 199.224625
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects domainOperationId drift
+ok 44 - generation Human final receipt rejects domainOperationId drift
+  ---
+  duration_ms: 199.156667
+  type: 'test'
+  ...
+# Subtest: generation Human rejects unknown protocol rows before resuming
+ok 45 - generation Human rejects unknown protocol rows before resuming
+  ---
+  duration_ms: 115.786041
+  type: 'test'
+  ...
+# Subtest: generation Human refuses forged checkpoint proof and paused original collection
+ok 46 - generation Human refuses forged checkpoint proof and paused original collection
+  ---
+  duration_ms: 82.174458
+  type: 'test'
+  ...
+# Subtest: generation Human fixed original activation requires completed prepared original restore
+ok 47 - generation Human fixed original activation requires completed prepared original restore
+  ---
+  duration_ms: 222.312209
+  type: 'test'
+  ...
+# Subtest: generation Human pinned Core device identity cannot change during continuation
+ok 48 - generation Human pinned Core device identity cannot change during continuation
+  ---
+  duration_ms: 74.135583
+  type: 'test'
+  ...
+1..48
+# tests 48
+# suites 0
+# pass 47
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3775.756584

@@ -1,5 +1,5 @@
 import {ArchiveError,CONSENT_VERSION} from '../constants.js';
-import {registerRepositoryWorkLimit,registerRepositoryFinalReadFence,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
+import {originalGenerationRepositoryTransaction,registerRepositoryWorkLimit,registerRepositoryFinalReadFence,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
 import {readCanonicalCheckpointProof,requireCanonicalCheckpointProof,requireCanonicalCheckpointProofForSeal} from './canonical-generation-checkpoint-stage.js';
 import {prepareGroupCheckpointPlan,requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {prepareGroupScope,requireGroupScope} from './group-checkpoint-scope.js';
@@ -12,6 +12,8 @@ import {clone,equal,fail,SyncError} from './value.js';
 
 export const CANONICAL_HUMAN_RESTORE_STATE='canonical-generation:human-restore:v1';
 const RECEIPT='canonical-generation:human-step:',GATE='canonical-generation:gate:v1',owners=new WeakMap(),publicationPreparations=new WeakMap();
+const repositoryAuthorities=new WeakMap(),defaultCheckpoint=async()=>{};
+export function readOriginalHumanRepositoryAuthority(token,repository,scope){const r=repositoryAuthorities.get(token);if(!r)return null;bound(r.owner);if(r.owner.repository!==repository||scope!==null&&r.scope!==null&&r.scope!==scope)fail('GENERATION_REPOSITORY_WRITE_DENIED');if(scope!==null&&r.scope===null)r.scope=scope;return r.authority;}
 const receiptId=n=>RECEIPT+String(n).padStart(8,'0');
 function bound(r){if(r.store.repository!==r.repository||r.core.repository!==r.repository||r.core.prefix!==r.prefix||r.core.fixedNamespace!==r.namespace||r.core.datasetId!==r.datasetId||r.core.deviceId!==r.deviceId||r.store.humanLibraryJournal!==r.journal||r.journal.core!==r.core)fail('BNS_HUMAN_GENERATION_SCOPE');}
 function sameState(actual,expected){if(!equal(actual??null,expected??null))fail('BNS_HUMAN_GENERATION_CURSOR');}
@@ -40,7 +42,7 @@ async function terminal(r,t,{seal=false}={}){
  if(t.backupChanged&&!points.some(x=>x.table==='meta'&&x.key==='backup-data-generation'))fail('BNS_GROUP_COMMIT_UNPROVEN');
  registerRepositoryFinalReadFence(r.repository,t,{isCurrent:()=>{bound(r);return true;},plan:function*(){for(const {table,key,count}of counts)if((yield {method:'count',table,...(key?{key}:{})})!==count)throw new ArchiveError('BNS_HUMAN_GENERATION_CHANGED');for(const {table,key,row}of points)if(!equalSourceWorkingPhysicalTree((yield {method:'get',table,key}),row))throw new ArchiveError('BNS_HUMAN_GENERATION_CHANGED');return true;}});
 }
-async function tx(r,fn){let semantic;try{return await r.core.transaction(true,async t=>{registerRepositoryWorkLimit(r.repository,t);requireRepositoryTransactionDataMethods(r.repository,t);try{const c=await r.store.control(t);if(!c.settings.enabled||c.settings.consentVersion!==CONSENT_VERSION)fail('BNS_GROUP_PERMISSION');return await fn(t);}catch(e){if(e instanceof SyncError)semantic=e;throw e;}});}catch(e){throw semantic??e;}}
+async function tx(r,fn){let semantic;const token=Object.freeze(Object.create(null));repositoryAuthorities.set(token,{owner:r,scope:null,authority:Object.freeze({kind:r.checkpoint===defaultCheckpoint?'human':'human-debug'})});try{return await originalGenerationRepositoryTransaction(r.repository,token,async t=>{registerRepositoryWorkLimit(r.repository,t);requireRepositoryTransactionDataMethods(r.repository,t);try{const c=await r.store.control(t);if(!c.settings.enabled||c.settings.consentVersion!==CONSENT_VERSION)fail('BNS_GROUP_PERMISSION');return await fn(t);}catch(e){if(e instanceof SyncError)semantic=e;throw e;}});}catch(e){throw semantic??e;}finally{repositoryAuthorities.delete(token);}}
 async function readState(r){bound(r);return r.repository.transaction(false,t=>t.get('meta',CANONICAL_HUMAN_RESTORE_STATE)??null,['meta']);}
 async function preparation(r,proof){
  bound(r);const packet=readCanonicalCheckpointProof(proof,r),operations=packet.items.filter(x=>x.kind==='revision').map(x=>x.operation),plan=await prepareGroupCheckpointPlan(r.core,operations);if(plan.digest!==packet.graphDigest||plan.groups.some(g=>g.type!=='humanLibraryCommit'||!['entry','entry-edit'].includes(g.prepared.descriptor.value.kind)))fail('BNS_HUMAN_GENERATION_SCOPE');
@@ -49,7 +51,7 @@ async function preparation(r,proof){
  const cursor=state?.cursor??0,prefix=await prepareGroupCheckpointPlan(r.core,plan.groups.slice(0,cursor).flatMap(g=>g.operations)),scope=await prepareGroupScope(prefix,{store:r.store});return {packet,plan,state,identity,cursor,prefix,scope};
 }
 export class CanonicalGenerationHumanRestore{
- constructor({store,core,checkpoint=async()=>{}}){if(store?.repository!==core?.repository||!core?.fixedNamespace||typeof checkpoint!=='function'||store.humanLibraryJournal?.core!==core)fail('BNS_HUMAN_GENERATION_SCOPE');owners.set(this,{store,core,repository:core.repository,prefix:core.prefix,namespace:core.fixedNamespace,datasetId:core.datasetId,deviceId:core.deviceId,journal:store.humanLibraryJournal,checkpoint});this.store=store;this.live=core;}
+ constructor({store,core,checkpoint=defaultCheckpoint}){if(store?.repository!==core?.repository||!core?.fixedNamespace||typeof checkpoint!=='function'||store.humanLibraryJournal?.core!==core)fail('BNS_HUMAN_GENERATION_SCOPE');owners.set(this,{store,core,repository:core.repository,prefix:core.prefix,namespace:core.fixedNamespace,datasetId:core.datasetId,deviceId:core.deviceId,journal:store.humanLibraryJournal,checkpoint});this.store=store;this.live=core;}
  async step(proof){
   const r=owners.get(this),p=await preparation(r,proof);if(p.state?.phase==='complete'){await this.verify(proof);return {state:'complete',completed:p.cursor,total:p.plan.groups.length};}
   const group=p.plan.groups[p.cursor];if(!group)fail('BNS_HUMAN_GENERATION_SCOPE');const owner=await prepareOriginalHumanGenerationStep(r.store,r.core,p.plan,p.cursor),nextPlan=await prepareGroupCheckpointPlan(r.core,p.plan.groups.slice(0,p.cursor+1).flatMap(g=>g.operations)),nextScope=await prepareGroupScope(nextPlan,{store:r.store}),receipt={id:receiptId(p.cursor),version:1,...p.identity,index:p.cursor,groupId:group.id,operationId:group.prepared.descriptor.operationId,domainOperationId:group.prepared.descriptor.value.domainOperationId},next={id:CANONICAL_HUMAN_RESTORE_STATE,version:1,...p.identity,phase:p.cursor+1===p.plan.groups.length?'complete':'applying',cursor:p.cursor+1,total:p.plan.groups.length};

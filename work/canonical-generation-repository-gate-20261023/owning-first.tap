@@ -1,0 +1,912 @@
+TAP version 13
+# Subtest: actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+ok 1 - actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+  ---
+  duration_ms: 540.4485
+  type: 'test'
+  ...
+# Subtest: actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+ok 2 - actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+  ---
+  duration_ms: 198.941583
+  type: 'test'
+  ...
+# Subtest: actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+ok 3 - actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+  ---
+  duration_ms: 377.338292
+  type: 'test'
+  ...
+# Subtest: generation checkpoint authenticates original Source graph and mints private input proof without canonical writes
+ok 4 - generation checkpoint authenticates original Source graph and mints private input proof without canonical writes
+  ---
+  duration_ms: 208.83675
+  type: 'test'
+  ...
+# Subtest: generation checkpoint resumes after committed final page and validates durable cursor/receipt
+ok 5 - generation checkpoint resumes after committed final page and validates durable cursor/receipt
+  ---
+  duration_ms: 123.764209
+  type: 'test'
+  ...
+# Subtest: generation checkpoint lost page response resumes exact cursor without duplicate items
+ok 6 - generation checkpoint lost page response resumes exact cursor without duplicate items
+  ---
+  duration_ms: 101.123041
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable item drift before proof
+ok 7 - generation checkpoint rejects durable item drift before proof
+  ---
+  duration_ms: 84.19025
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable page drift before proof
+ok 8 - generation checkpoint rejects durable page drift before proof
+  ---
+  duration_ms: 88.407625
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable cursor drift before proof
+ok 9 - generation checkpoint rejects durable cursor drift before proof
+  ---
+  duration_ms: 67.261167
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable extra-item drift before proof
+ok 10 - generation checkpoint rejects durable extra-item drift before proof
+  ---
+  duration_ms: 65.798125
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable gate drift before proof
+ok 11 - generation checkpoint rejects durable gate drift before proof
+  ---
+  duration_ms: 74.548541
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late item and rolls back
+ok 12 - generation checkpoint original same-TX terminal rejects late item and rolls back
+  ---
+  duration_ms: 83.084041
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late page and rolls back
+ok 13 - generation checkpoint original same-TX terminal rejects late page and rolls back
+  ---
+  duration_ms: 86.280041
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late extra-item and rolls back
+ok 14 - generation checkpoint original same-TX terminal rejects late extra-item and rolls back
+  ---
+  duration_ms: 80.195208
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late state and rolls back
+ok 15 - generation checkpoint original same-TX terminal rejects late state and rolls back
+  ---
+  duration_ms: 74.375042
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late gate and rolls back
+ok 16 - generation checkpoint original same-TX terminal rejects late gate and rolls back
+  ---
+  duration_ms: 67.138416
+  type: 'test'
+  ...
+# Subtest: generation checkpoint detaches manifest ref before held external get
+ok 17 - generation checkpoint detaches manifest ref before held external get
+  ---
+  duration_ms: 49.712542
+  type: 'test'
+  ...
+# Subtest: generation checkpoint refuses another target handle or foreign compiler binding
+ok 18 - generation checkpoint refuses another target handle or foreign compiler binding
+  ---
+  duration_ms: 69.564417
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects incomplete immutable chain before authenticated state
+ok 19 - generation checkpoint rejects incomplete immutable chain before authenticated state
+  ---
+  duration_ms: 51.890459
+  type: 'test'
+  ...
+# (node:59174) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: generation checkpoint held manifest get times out and late completion cannot create state
+ok 20 - generation checkpoint held manifest get times out and late completion cannot create state
+  ---
+  duration_ms: 49.959708
+  type: 'test'
+  ...
+# Subtest: generation checkpoint authenticates multiple durable pages from actual original Source appends
+ok 21 - generation checkpoint authenticates multiple durable pages from actual original Source appends
+  ---
+  duration_ms: 245.524667
+  type: 'test'
+  ...
+# Subtest: generation checkpoint valid immutable hashes do not prove an incomplete original causal group
+ok 22 - generation checkpoint valid immutable hashes do not prove an incomplete original causal group
+  ---
+  duration_ms: 66.76025
+  type: 'test'
+  ...
+# Subtest: generation checkpoint v1 charges declared decoded transport bytes before decompression or fetch
+ok 23 - generation checkpoint v1 charges declared decoded transport bytes before decompression or fetch
+  ---
+  duration_ms: 79.871375
+  type: 'test'
+  ...
+# Subtest: generation checkpoint source base is fixed before first manifest read and refuses subsequent publication
+ok 24 - generation checkpoint source base is fixed before first manifest read and refuses subsequent publication
+  ---
+  duration_ms: 57.2195
+  type: 'test'
+  ...
+# Subtest: generation checkpoint restart never refreshes a stale durable begin source base
+ok 25 - generation checkpoint restart never refreshes a stale durable begin source base
+  ---
+  duration_ms: 58.192417
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects rewritten durable manifest identity before private proof
+ok 26 - generation checkpoint rejects rewritten durable manifest identity before private proof
+  ---
+  duration_ms: 54.545916
+  type: 'test'
+  ...
+# Subtest: generation checkpoint authenticates original gzip manifest bytes on durable validation
+ok 27 - generation checkpoint authenticates original gzip manifest bytes on durable validation
+  ---
+  duration_ms: 63.381083
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable manifest bytes mismatch
+ok 28 - generation checkpoint rejects durable manifest bytes mismatch
+  ---
+  duration_ms: 53.904375
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable manifest manifest mismatch
+ok 29 - generation checkpoint rejects durable manifest manifest mismatch
+  ---
+  duration_ms: 54.856541
+  type: 'test'
+  ...
+# Subtest: generation Human steps consume original actual receiver and cold-resume without publishing partial target
+ok 30 - generation Human steps consume original actual receiver and cold-resume without publishing partial target
+  ---
+  duration_ms: 497.328041
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: cursor
+ok 31 - generation Human rollback: cursor
+  ---
+  duration_ms: 161.763417
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: owner_receipt
+ok 32 - generation Human rollback: owner_receipt
+  ---
+  duration_ms: 136.534958
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: human_body
+ok 33 - generation Human rollback: human_body
+  ---
+  duration_ms: 140.68025
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: history
+ok 34 - generation Human rollback: history
+  ---
+  duration_ms: 146.988083
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: gate
+ok 35 - generation Human rollback: gate
+  ---
+  duration_ms: 116.894042
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: extra_member
+ok 36 - generation Human rollback: extra_member
+  ---
+  duration_ms: 118.167917
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: backup
+ok 37 - generation Human rollback: backup
+  ---
+  duration_ms: 122.58125
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: oversized
+ok 38 - generation Human rollback: oversized
+  ---
+  duration_ms: 130.447584
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: fault
+ok 39 - generation Human rollback: fault
+  ---
+  duration_ms: 125.931042
+  type: 'test'
+  ...
+# Subtest: generation Human lost committed response resumes next exact group
+ok 40 - generation Human lost committed response resumes next exact group
+  ---
+  duration_ms: 212.7035
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects version drift
+ok 41 - generation Human final receipt rejects version drift
+  ---
+  duration_ms: 213.163041
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects index drift
+ok 42 - generation Human final receipt rejects index drift
+  ---
+  duration_ms: 205.04075
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects manifestId drift
+ok 43 - generation Human final receipt rejects manifestId drift
+  ---
+  duration_ms: 199.879167
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects graphDigest drift
+ok 44 - generation Human final receipt rejects graphDigest drift
+  ---
+  duration_ms: 197.59375
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects generationIdentity drift
+ok 45 - generation Human final receipt rejects generationIdentity drift
+  ---
+  duration_ms: 194.218542
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects sourceBase drift
+ok 46 - generation Human final receipt rejects sourceBase drift
+  ---
+  duration_ms: 193.482166
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects domainOperationId drift
+ok 47 - generation Human final receipt rejects domainOperationId drift
+  ---
+  duration_ms: 182.439833
+  type: 'test'
+  ...
+# Subtest: generation Human rejects unknown protocol rows before resuming
+ok 48 - generation Human rejects unknown protocol rows before resuming
+  ---
+  duration_ms: 110.840792
+  type: 'test'
+  ...
+# Subtest: generation Human refuses forged checkpoint proof and paused original collection
+ok 49 - generation Human refuses forged checkpoint proof and paused original collection
+  ---
+  duration_ms: 79.809208
+  type: 'test'
+  ...
+# Subtest: generation Human fixed original activation requires completed prepared original restore
+ok 50 - generation Human fixed original activation requires completed prepared original restore
+  ---
+  duration_ms: 227.755542
+  type: 'test'
+  ...
+# Subtest: generation Human pinned Core device identity cannot change during continuation
+ok 51 - generation Human pinned Core device identity cannot change during continuation
+  ---
+  duration_ms: 75.061083
+  type: 'test'
+  ...
+# Subtest: generation publication starts empty, stages invisibly and commits exact durable identity
+ok 52 - generation publication starts empty, stages invisibly and commits exact durable identity
+  ---
+  duration_ms: 32.077667
+  type: 'test'
+  ...
+# Subtest: generation publication phases preserve whole old/new data and reject stale writers
+ok 53 - generation publication phases preserve whole old/new data and reject stale writers
+  ---
+  duration_ms: 21.687583
+  type: 'test'
+  ...
+# Subtest: generation restart recovers reserved without exposing staging or replaying payload
+ok 54 - generation restart recovers reserved without exposing staging or replaying payload
+  ---
+  duration_ms: 29.817042
+  type: 'test'
+  ...
+# Subtest: generation restart recovers source-retired without exposing staging or replaying payload
+ok 55 - generation restart recovers source-retired without exposing staging or replaying payload
+  ---
+  duration_ms: 25.361917
+  type: 'test'
+  ...
+# Subtest: generation restart recovers target-ready without exposing staging or replaying payload
+ok 56 - generation restart recovers target-ready without exposing staging or replaying payload
+  ---
+  duration_ms: 22.666542
+  type: 'test'
+  ...
+# Subtest: generation old in-flight writer invalidates reservation and discarded target cannot be republished
+not ok 57 - generation old in-flight writer invalidates reservation and discarded target cannot be republished
+  ---
+  duration_ms: 14.816833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:28:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation old writer paused before native TX is rejected after retirement
+not ok 58 - generation old writer paused before native TX is rejected after retirement
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:34:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation lost publication response is resolved from receipt without duplicate transition
+not ok 59 - generation lost publication response is resolved from receipt without duplicate transition
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:38:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation foreign registry cannot attach or delete an active generation
+not ok 60 - generation foreign registry cannot attach or delete an active generation
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:41:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation persistent generation catalog prevents restart collision
+not ok 61 - generation persistent generation catalog prevents restart collision
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:44:57'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation persistent database catalog prevents restart collision
+not ok 62 - generation persistent database catalog prevents restart collision
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:44:57'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation persistent name catalog prevents restart collision
+not ok 63 - generation persistent name catalog prevents restart collision
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:44:57'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation active and pending participants cannot be deleted; old retired DB is preserved until separate deletion
+not ok 64 - generation active and pending participants cannot be deleted; old retired DB is preserved until separate deletion
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:47:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation rejects preexisting canonical payload even when meta is empty
+not ok 65 - generation rejects preexisting canonical payload even when meta is empty
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:50:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation original new thought-library DDL marker alone is permitted
+not ok 66 - generation original new thought-library DDL marker alone is permitted
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:53:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation rejects fake capabilities, getter definitions and mutable repository identity
+not ok 67 - generation rejects fake capabilities, getter definitions and mutable repository identity
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:56:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation final root drift rolls back original publication TX
+not ok 68 - generation final root drift rolls back original publication TX
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:59:47'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation final receipt drift rolls back original publication TX
+not ok 69 - generation final receipt drift rolls back original publication TX
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:59:47'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation final gate drift rolls back original publication TX
+not ok 70 - generation final gate drift rolls back original publication TX
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:59:47'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation active lookup refuses altered durable publication receipt
+not ok 71 - generation active lookup refuses altered durable publication receipt
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:62:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation staging callback cannot overwrite gate and failures roll back payload
+not ok 72 - generation staging callback cannot overwrite gate and failures roll back payload
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:65:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation original per-TX byte limit is registered before callback and rolls back
+not ok 73 - generation original per-TX byte limit is registered before callback and rolls back
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:68:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation registry rejects non-null falsy active or pending false
+not ok 74 - generation registry rejects non-null falsy active or pending false
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:71:33'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation registry rejects non-null falsy active or pending 0
+not ok 75 - generation registry rejects non-null falsy active or pending 0
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:71:33'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation registry rejects non-null falsy active or pending ""
+not ok 76 - generation registry rejects non-null falsy active or pending ""
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:71:33'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation initial reservation is reported pending with no active generation
+not ok 77 - generation initial reservation is reported pending with no active generation
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:74:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation drifted source identity is refused before persistent reservation
+not ok 78 - generation drifted source identity is refused before persistent reservation
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:75:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation publication receipt tampering prevents new writes and reservations
+not ok 79 - generation publication receipt tampering prevents new writes and reservations
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:78:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation reservation terminal also seals the previous active receipt
+not ok 80 - generation reservation terminal also seals the previous active receipt
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:81:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation recover refuses unattached generations and leaves durable pending intact
+not ok 81 - generation recover refuses unattached generations and leaves durable pending intact
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:84:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation crash after target invalidation resumes pending cancellation without publishing stale graph
+not ok 82 - generation crash after target invalidation resumes pending cancellation without publishing stale graph
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:85:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: generation concurrent advances produce exact conflicts or one commit and remain recoverable
+not ok 83 - generation concurrent advances produce exact conflicts or one commit and remain recoverable
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-publication.test.mjs:91:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+ok 84 - protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+  ---
+  duration_ms: 499.28225
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects put before external callback
+ok 85 - protected original repository rejects put before external callback
+  ---
+  duration_ms: 134.133708
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects delete before external callback
+ok 86 - protected original repository rejects delete before external callback
+  ---
+  duration_ms: 107.888167
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects clear before external callback
+ok 87 - protected original repository rejects clear before external callback
+  ---
+  duration_ms: 120.214083
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects raw before external callback
+ok 88 - protected original repository rejects raw before external callback
+  ---
+  duration_ms: 110.65975
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects forged-capability before external callback
+ok 89 - protected original repository rejects forged-capability before external callback
+  ---
+  duration_ms: 113.894875
+  type: 'test'
+  ...
+# Subtest: protected gate is enforced by a cold original repository instance
+ok 90 - protected gate is enforced by a cold original repository instance
+  ---
+  duration_ms: 95.997208
+  type: 'test'
+  ...
+# Subtest: private generation authority never passes through mutable instance wrappers
+ok 91 - private generation authority never passes through mutable instance wrappers
+  ---
+  duration_ms: 138.377292
+  type: 'test'
+  ...
+# Subtest: protected public staging/active callback and metadata seal cannot acquire graph writer
+ok 92 - protected public staging/active callback and metadata seal cannot acquire graph writer
+  ---
+  duration_ms: 99.031875
+  type: 'test'
+  ...
+# Subtest: protected Human does not lend a private transaction to external diagnostic callback
+ok 93 - protected Human does not lend a private transaction to external diagnostic callback
+  ---
+  duration_ms: 106.013708
+  type: 'test'
+  ...
+# Subtest: unmarked original database preserves ordinary writes but rejects a forged protection marker
+ok 94 - unmarked original database preserves ordinary writes but rejects a forged protection marker
+  ---
+  duration_ms: 102.149833
+  type: 'test'
+  ...
+# Subtest: late raw protection marker on unmarked write is rejected and rolled back
+ok 95 - late raw protection marker on unmarked write is rejected and rolled back
+  ---
+  duration_ms: 99.378125
+  type: 'test'
+  ...
+# Subtest: protected stage resumes cold original consumer after committed page response loss
+ok 96 - protected stage resumes cold original consumer after committed page response loss
+  ---
+  duration_ms: 134.207667
+  type: 'test'
+  ...
+# Subtest: protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+ok 97 - protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+  ---
+  duration_ms: 268.102625
+  type: 'test'
+  ...
+# Subtest: protected cold attach retains registry binding and publication resumes after target-ready
+ok 98 - protected cold attach retains registry binding and publication resumes after target-ready
+  ---
+  duration_ms: 251.901917
+  type: 'test'
+  ...
+# Subtest: protection installation refuses a nonempty original target and preserves its prior human work
+ok 99 - protection installation refuses a nonempty original target and preserves its prior human work
+  ---
+  duration_ms: 67.416459
+  type: 'test'
+  ...
+# Subtest: a caller-shaped store cannot mint original protection installation authority
+ok 100 - a caller-shaped store cannot mint original protection installation authority
+  ---
+  duration_ms: 59.18775
+  type: 'test'
+  ...
+# Subtest: original closed terminal read plan permits legal owner writes and runs after actual finalizers
+ok 101 - original closed terminal read plan permits legal owner writes and runs after actual finalizers
+  ---
+  duration_ms: 50.932083
+  type: 'test'
+  ...
+# Subtest: terminal put rejection remains sticky when a second fence catches it
+ok 102 - terminal put rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 41.229041
+  type: 'test'
+  ...
+# Subtest: terminal delete rejection remains sticky when a second fence catches it
+ok 103 - terminal delete rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 31.606916
+  type: 'test'
+  ...
+# Subtest: terminal clear rejection remains sticky when a second fence catches it
+ok 104 - terminal clear rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 27.457375
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-plan before a non-IDB promise can commit
+ok 105 - terminal rejects async-plan before a non-IDB promise can commit
+  ---
+  duration_ms: 23.149375
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-step before a non-IDB promise can commit
+ok 106 - terminal rejects async-step before a non-IDB promise can commit
+  ---
+  duration_ms: 23.714291
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-current before a non-IDB promise can commit
+ok 107 - terminal rejects async-current before a non-IDB promise can commit
+  ---
+  duration_ms: 26.279375
+  type: 'test'
+  ...
+# Subtest: terminal rejects truthy-current before a non-IDB promise can commit
+ok 108 - terminal rejects truthy-current before a non-IDB promise can commit
+  ---
+  duration_ms: 23.966875
+  type: 'test'
+  ...
+# Subtest: terminal rejects throw-current before a non-IDB promise can commit
+ok 109 - terminal rejects throw-current before a non-IDB promise can commit
+  ---
+  duration_ms: 23.59475
+  type: 'test'
+  ...
+# Subtest: late terminal registration cannot replace an already checked first fence even when caught
+ok 110 - late terminal registration cannot replace an already checked first fence even when caught
+  ---
+  duration_ms: 23.752541
+  type: 'test'
+  ...
+# Subtest: completed, foreign, copied and readonly scopes never register a terminal capability
+ok 111 - completed, foreign, copied and readonly scopes never register a terminal capability
+  ---
+  duration_ms: 41.990166
+  type: 'test'
+  ...
+# Subtest: all prior synchronous currentness predicates are checked after the final second-fence read
+ok 112 - all prior synchronous currentness predicates are checked after the final second-fence read
+  ---
+  duration_ms: 20.203458
+  type: 'test'
+  ...
+# Subtest: exact primary range count is bounded metadata and does not count the whole store
+ok 113 - exact primary range count is bounded metadata and does not count the whole store
+  ---
+  duration_ms: 19.822292
+  type: 'test'
+  ...
+# Subtest: late finalizer registration refusal is sticky outside the owner callback
+ok 114 - late finalizer registration refusal is sticky outside the owner callback
+  ---
+  duration_ms: 19.852
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via get
+ok 115 - terminal comparator cannot escape the closed plan via get
+  ---
+  duration_ms: 16.300667
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via all
+ok 116 - terminal comparator cannot escape the closed plan via all
+  ---
+  duration_ms: 18.533292
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via count
+ok 117 - terminal comparator cannot escape the closed plan via count
+  ---
+  duration_ms: 19.319834
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via putDerivedSearchRow
+ok 118 - terminal comparator cannot escape the closed plan via putDerivedSearchRow
+  ---
+  duration_ms: 18.668292
+  type: 'test'
+  ...
+# Subtest: an unbounded all request is not a supported closed terminal operation
+ok 119 - an unbounded all request is not a supported closed terminal operation
+  ---
+  duration_ms: 17.87025
+  type: 'test'
+  ...
+# Subtest: a registered scope cannot replace its original native transaction behind a closed get
+ok 120 - a registered scope cannot replace its original native transaction behind a closed get
+  ---
+  duration_ms: 16.26825
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject accessor properties without acquiring their value
+ok 121 - closed terminal specs reject accessor properties without acquiring their value
+  ---
+  duration_ms: 18.237458
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject inherited properties without acquiring their value
+ok 122 - closed terminal specs reject inherited properties without acquiring their value
+  ---
+  duration_ms: 18.915458
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject symbol properties without acquiring their value
+ok 123 - closed terminal specs reject symbol properties without acquiring their value
+  ---
+  duration_ms: 23.715
+  type: 'test'
+  ...
+1..123
+# tests 123
+# suites 0
+# pass 96
+# fail 0
+# cancelled 27
+# skipped 0
+# todo 0
+# duration_ms 3991.009375
