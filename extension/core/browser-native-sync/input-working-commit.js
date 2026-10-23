@@ -127,3 +127,18 @@ export async function projectOriginalWorkingHistory(store,core,application,group
  },['meta']);
  return {rows,mappings,revisionSequence:sequence,operationCount:a.prepared.members.length+1};
 }
+
+// Fixed projection from an original prepared Working owner into the private
+// Human future Source view. This never returns or accepts write authority.
+export function projectOriginalWorkingSource(store,core,application,group,source){
+ const a=workingApplications.get(application);if(!a||a.receiver.store!==store||a.receiver.core!==core||group.type!=='inputWorkingCommit'||group.id!==a.prepared.descriptor.revisionId||!source||source.input.id!==a.descriptor.inputId)fail('BNS_PREPARATION_REQUIRED');
+ const {input:b,inputState:state}=source,sourceRefs=[{id:source.source.id,sourceKey:source.source.sourceKey,dedupeKey:source.source.dedupeKey,contentHash:source.source.contentHash}];
+ qualifyWorking(application,{b,state,sourceRefs},{sources:[[source.source]]});
+ if(a.block.value.revision!==b.revision+1||a.state.value.contentRevision!==state.contentRevision+1)fail('BNS_WORKING_STALE');
+ return {...clone(source),input:clone(a.block.value),inputState:clone(a.state.value)};
+}
+// Only the owning restore can consume its exact private preparation. Invalid
+// bindings do not dispose another restore's capability.
+export function releaseOriginalWorkingApplication(store,core,application){
+ const a=workingApplications.get(application);if(!a)return false;if(a.receiver.store!==store||a.receiver.core!==core)fail('BNS_PREPARATION_REQUIRED');return workingApplications.delete(application);
+}

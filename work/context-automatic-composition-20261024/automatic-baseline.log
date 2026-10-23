@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: NOW automatic lineage and manual mix original shadow round trip
+not ok 1 - NOW automatic lineage and manual mix original shadow round trip
+  ---
+  duration_ms: 205.742292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/work/context-mutation-consumer-20261024/automatic-shadow-blocked.test.mjs:4:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_UNSUPPORTED'
+  code: 'BNS_HUMAN_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/value.js:5:32)
+    finishOriginalCompiledGraph (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint-plan.js:155:196)
+    async prepareGroupCheckpointPlanInternal (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint-plan.js:96:13)
+    async buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:109:89)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/checkpoint-publication.js:33:333)
+    async #prepareObjects (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/checkpoint-publication.js:65:16)
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/checkpoint-publication.js:80:78
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/checkpoint-publication.js:35:14)
+    async publish (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/harness/context-mutation-shadow.mjs:32:192)
+    async roundTrip (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/harness/context-mutation-shadow.mjs:40:53)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 352.850167

@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: NOW automatic lineage and manual mix original shadow round trip
+not ok 1 - NOW automatic lineage and manual mix original shadow round trip
+  ---
+  duration_ms: 1057.232542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/work/context-mutation-consumer-20261024/automatic-shadow-blocked.test.mjs:4:1'
+  failureType: 'testCodeFailure'
+  error: 'INVALID_REQUEST'
+  code: 'INVALID_REQUEST'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/thought-model.js:6:30)
+    checkEvidenceInTransaction (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/thought-evidence.js:61:22)
+    async requireHumanEntryPlan (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/human-library-plan.js:137:433)
+    async beginHumanOperation (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/human-library-plan.js:185:809)
+    async OrganizerStore.operationInTransaction (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/thought-store-owner.js:113:242)
+    async executeHumanPlanInTransaction (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/human-library-plan.js:352:809)
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/human-library-group.js:47:61
+    async BrowserNativeSyncCore.commitHumanReceive (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/core.js:506:84)
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:294:315
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:60:223
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1185.573166

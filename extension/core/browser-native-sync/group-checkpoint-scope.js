@@ -41,6 +41,10 @@ export function requireOriginalMixedHumanCompilationInput(core,scope,wire,plan){
  requireOriginalCurrentMixedGroupPlan(core,plan);const p=originalScopes.get(scope);
  if(arguments.length!==4||!p||p.phase!=='preparing'||scopeDeref.call(p.plan)!==plan||p.humanWire!==wire||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
+export function originalLinkedHumanCompilationEpoch(scope,wire){
+ const p=originalScopes.get(scope);if(!p||p.phase!=='preparing'||p.humanWire!==wire)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');const plan=scopeDeref.call(p.plan);requireOriginalGroupCheckpointPlan(p.core,plan);
+ if(!plan.groups.some(g=>g.type==='sourceBootstrapCommit')||plan.groups.some(g=>g.type==='sourceAppendCommit'))fail('BNS_HUMAN_UNSUPPORTED');return plan.groups.filter(g=>g.type==='inputWorkingCommit').length;
+}
 export function requireGroupHumanCompilationInput(scope,wire){
  const p=originalScopes.get(scope);if(p&&(p.phase!=='preparing'||p.humanWire!==wire))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }

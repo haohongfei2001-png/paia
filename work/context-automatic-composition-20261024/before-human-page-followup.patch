@@ -1,0 +1,172 @@
+diff --git a/extension/core/browser-native-sync/group-checkpoint-plan.js b/extension/core/browser-native-sync/group-checkpoint-plan.js
+index 750ca1a2..d60fdeb7 100644
+--- a/extension/core/browser-native-sync/group-checkpoint-plan.js
++++ b/extension/core/browser-native-sync/group-checkpoint-plan.js
+@@ -152,8 +152,19 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
+  }
+  const human=groups.filter(group=>group.type==='humanLibraryCommit'),linked=human.filter(group=>group.prepared.descriptor.value.kind.startsWith('source-'));
+  if(linked.length){
+-  if(binding.currentSourceWorking||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1||groups.some(group=>!['humanLibraryCommit','sourceBootstrapCommit'].includes(group.type)))fail('BNS_HUMAN_UNSUPPORTED');
+-  for(const group of linked){const link=group.prepared.members.find(op=>op.value.entityType==='sourceLink');depend(group,createdInputs.get(link.value.after.evidence.inputId));}
++  if(binding.currentSourceWorking===true||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1||groups.some(group=>!['humanLibraryCommit','sourceBootstrapCommit','inputWorkingCommit','contextMutationCommit','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type)))fail('BNS_HUMAN_UNSUPPORTED');
++  // A linked Human action observes one exact Source/Working content revision.
++  // Order the real producer, never just a same-Input bootstrap or every edit.
++  for(const group of linked){
++   const links=group.prepared.members.filter(op=>op.value.entityType==='sourceLink');if(!links.length)fail('BNS_GROUP_CAUSAL_GAP');
++   for(const link of links){const e=link.value.after.evidence,source=createdInputs.get(e.inputId);if(!source)fail('BNS_GROUP_CAUSAL_GAP');
++    const initial=initialSourcePlan(source.capability);if(!equal([initial.source.id],e.sourceRecordIds)||!equal([initial.source.sourceKey],e.sourceIdentityTokens))fail('BNS_GROUP_CAUSAL_GAP');depend(group,source);
++    const edits=groups.filter(g=>g.type==='inputWorkingCommit'&&g.prepared.descriptor.value.inputId===e.inputId),states=edits.map(g=>({group:g,state:g.prepared.members.find(op=>op.value.entityType==='inputState')?.value.entity}));
++    if(states.some(x=>!x.state)||states.length&&Math.max(...states.map(x=>x.state.contentRevision))!==e.basedOnContentRevision)fail('BNS_GROUP_CAUSAL_GAP');
++    if(e.basedOnContentRevision===initial.inputState.contentRevision){if(edits.length)fail('BNS_GROUP_CAUSAL_GAP');}
++    else{const match=states.filter(x=>x.state.contentRevision===e.basedOnContentRevision);if(match.length!==1)fail('BNS_GROUP_CAUSAL_GAP');depend(group,match[0].group);}
++   }
++  }
+   for(const group of groups)if(group.type==='sourceBootstrapCommit')for(const other of human.filter(g=>!linked.includes(g)))group.dependencies.add(other.id);
+  }else{for(const group of human)if([...group.dependencies].some(id=>!human.some(other=>other.id===id)))fail('BNS_HUMAN_UNSUPPORTED');for(const group of groups)if(group.type!=='humanLibraryCommit')for(const other of human)group.dependencies.add(other.id);}
+ 
+diff --git a/extension/core/browser-native-sync/group-checkpoint-scope.js b/extension/core/browser-native-sync/group-checkpoint-scope.js
+index bc610a68..7b33170d 100644
+--- a/extension/core/browser-native-sync/group-checkpoint-scope.js
++++ b/extension/core/browser-native-sync/group-checkpoint-scope.js
+@@ -41,6 +41,10 @@ export function requireOriginalMixedHumanCompilationInput(core,scope,wire,plan){
+  requireOriginalCurrentMixedGroupPlan(core,plan);const p=originalScopes.get(scope);
+  if(arguments.length!==4||!p||p.phase!=='preparing'||scopeDeref.call(p.plan)!==plan||p.humanWire!==wire||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ }
++export function originalLinkedHumanCompilationEpoch(scope,wire){
++ const p=originalScopes.get(scope);if(!p||p.phase!=='preparing'||p.humanWire!==wire)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');const plan=scopeDeref.call(p.plan);requireOriginalGroupCheckpointPlan(p.core,plan);
++ if(!plan.groups.some(g=>g.type==='sourceBootstrapCommit')||plan.groups.some(g=>g.type==='sourceAppendCommit'))fail('BNS_HUMAN_UNSUPPORTED');return plan.groups.filter(g=>g.type==='inputWorkingCommit').length;
++}
+ export function requireGroupHumanCompilationInput(scope,wire){
+  const p=originalScopes.get(scope);if(p&&(p.phase!=='preparing'||p.humanWire!==wire))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ }
+diff --git a/extension/core/browser-native-sync/group-checkpoint.js b/extension/core/browser-native-sync/group-checkpoint.js
+index c33099d1..5d7bc1a1 100644
+--- a/extension/core/browser-native-sync/group-checkpoint.js
++++ b/extension/core/browser-native-sync/group-checkpoint.js
+@@ -11,7 +11,7 @@ import {readCanonicalCheckpointProof,requireCanonicalCheckpointProof,requireCano
+ import {prepareSavedWorkGroupApplication,applySavedWorkGroupStep,sealSavedWorkGroupActivation,prepareSavedWorkReceive,commitSavedWorkEdit,sealSavedWorkCurrentScope,sealSavedWorkMergeProgress,prepareSavedMixedRetention,sealSavedMixedRetention} from './saved-work-bootstrap.js';
+ import {groupOperationPages,createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget,readGroupRows} from './group-page-reader.js';
+ import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,captureMixedCurrentGroupProjection,requireMixedCurrentGroupProjection,encodeMixedCurrentGroupCheckpoint,publishMixedCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
+-import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-working-commit.js';
++import {InputWorkingCommitReceiver,prepareWorkingApplication,releaseOriginalWorkingApplication} from './input-working-commit.js';
+ import {prepareHumanGroupApplication,prepareHumanIncrementalGroupApplication,requireHumanGroupApplication,applyHumanGroupStep} from './human-library-group.js';
+ import {FilterIntentSyncJournal,prepareRestoredFilterSources,prepareFilterApplication} from './filter-intent-journal.js';
+ import {manualSyncOwners} from './manual-owners.js';
+@@ -275,12 +275,12 @@ export class GroupedCheckpointRestore{
+   if(localOperations.length)return plan.groups.some(g=>g.type==='savedWorkBootstrap')?this.mergeSaved(state,plan,localOperations):plan.groups.every(g=>['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(g.type))?this.mergeSourceWorking(state,plan,localOperations):plan.groups.some(g=>g.type==='sourceBootstrapCommit')&&plan.groups.some(g=>g.type==='humanLibraryCommit')?this.mergeMixed(state,plan,localOperations):this.mergeManual(state,plan,localOperations);
+   const filter=new FilterIntentSyncJournal(replay),working=new InputWorkingCommitReceiver(this.store,replay,{filterJournal:filter}),manual=manualSyncOwners(replay),desired=contextDesiredMaterializer(replay),topicDesired=topicDesiredMaterializer(replay),consumerOperations=finalConsumerPreferenceOperations(plan),bindingMaterializer=preparePromptBindingReplay(replay,plan);
+   const sourceProof=await prepareRestoredFilterSources(canonical.expected.records.map(row=>({...row})));
+-  const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan),savedApplication=await prepareSavedWorkGroupApplication(this.store,replay,plan,this.stage,state,humanApplication),contextApplication=await prepareContextGroupApplication(this.store,replay,plan,{live:this.live,generationProof});
+-  const applications=[];for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);else if(group.type==='sourceAppendCommit'){const anchor=plan.groups.find(x=>x.id===group.prepared.descriptor.value.bootstrap.revisionId);applications.push([group,await prepareAppendApplication(this.store,replay,group.operations,anchor.operations)]);}else if(group.type==='inputWorkingCommit')applications.push([group,await prepareWorkingApplication(working,group.operations)]);else if(group.type==='filterIntent')applications.push([group,await prepareFilterApplication(filter,group.operations[0])]);else applications.push([group,null]);}
++  const applications=[];try{for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);else if(group.type==='sourceAppendCommit'){const anchor=plan.groups.find(x=>x.id===group.prepared.descriptor.value.bootstrap.revisionId);applications.push([group,await prepareAppendApplication(this.store,replay,group.operations,anchor.operations)]);}else if(group.type==='inputWorkingCommit')applications.push([group,await prepareWorkingApplication(working,group.operations)]);else if(group.type==='filterIntent')applications.push([group,await prepareFilterApplication(filter,group.operations[0])]);else applications.push([group,null]);}
++  const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan,plan.groups.some(g=>g.type==='inputWorkingCommit')?{plan,applications}:null),savedApplication=await prepareSavedWorkGroupApplication(this.store,replay,plan,this.stage,state,humanApplication),contextApplication=await prepareContextGroupApplication(this.store,replay,plan,{live:this.live,generationProof});
+   const consumerApplication=consumerOperations.length?await prepareRestoredConsumerPreferenceApplication(this.store,replay,plan,this.stage,state):null;
+   const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(replay,[]));
+   const applyTransaction=generationProof?(fn=>generationTransaction(this,'group-apply',fn)):(fn=>this.live.transaction(true,fn));
+-  return this.store.run(async()=>{const result=await applyTransaction(async t=>{
++  return await this.store.run(async()=>{const result=await applyTransaction(async t=>{
+    if(state.manifest.ownerScope.version===2||savedApplication||generationProof)registerRepositoryWorkLimit(this.store.repository,t);
+    await requireNoSourcePurgeDeny(this.live,t);
+    if(generationProof)await requireCanonicalCheckpointProof(generationProof,{store:this.store,core:this.live},t);
+@@ -312,6 +312,7 @@ export class GroupedCheckpointRestore{
+    }
+    return {state:publishing?'publishing':'activated',namespace:state.replayId};
+   });if(result.state==='publishing'){await this.store.publish();return {state:'activated',namespace:state.replayId};}return result;});
++  }finally{for(const [group,cap]of applications)if(group.type==='inputWorkingCommit')releaseOriginalWorkingApplication(this.store,replay,cap);}
+  }
+  // Source/Working union uses one bounded original-owner transaction. Failure
+  // rolls back this whole checkpoint merge; local queued work stays untouched.
+diff --git a/extension/core/browser-native-sync/human-library-group.js b/extension/core/browser-native-sync/human-library-group.js
+index ada4ed13..6051bb38 100644
+--- a/extension/core/browser-native-sync/human-library-group.js
++++ b/extension/core/browser-native-sync/human-library-group.js
+@@ -8,7 +8,7 @@ import {clone,equal,fail} from './value.js';
+ const applications=new WeakMap();
+ // A private closed-graph application, built only from the original opaque
+ // named-owner plans. No domain reducer or generic data-store proxy is installed.
+-export async function prepareHumanGroupApplication(store,core,plan){return prepareGroupApplication(store,core,plan,null);}
++export async function prepareHumanGroupApplication(store,core,plan,working=null){if(working){requireOriginalGroupCheckpointPlan(core,plan);if(working.plan!==plan||!Array.isArray(working.applications)||working.applications.length>128)fail('BNS_HUMAN_UNSUPPORTED');}return prepareGroupApplication(store,core,plan,null,working);}
+ export async function prepareHumanIncrementalGroupApplication(store,core,basePlan,groups,working=null){
+  requireOriginalGroupCheckpointPlan(core,basePlan);
+  if(working){requireOriginalGroupCheckpointPlan(core,working.plan);if(!Array.isArray(groups)||!groups.length||groups.length>128||new Set(groups).size!==groups.length||!Array.isArray(working.applications)||working.applications.length>128)fail('BNS_HUMAN_UNSUPPORTED');
+@@ -25,7 +25,7 @@ async function prepareGroupApplication(store,core,plan,basePlan,working=null){
+  if(basePlan)await core.transaction(false,async t=>{for(const id of Object.keys(mappingIds)){const row=await core.get(t,'humanMapping',id);if(row)mappingState.set(id,row);}},['meta']);
+  const linked=groups.some(group=>group.prepared.descriptor.value.kind.startsWith('source-'));
+  for(const group of plan.groups){
+-  if(group.type!=='humanLibraryCommit'){if(working)await advanceHumanGraphWorking(inventory,working.plan,group,working.applications.find(([g])=>g===group)[1]);else if(linked)advanceHumanGraphSource(inventory,plan,group);continue;}
++  if(group.type!=='humanLibraryCommit'){if(group.type==='inputWorkingCommit'&&working)await advanceHumanGraphWorking(inventory,working.plan,group,working.applications.find(([g])=>g===group)?.[1]);else if(group.type==='sourceBootstrapCommit'&&linked)advanceHumanGraphSource(inventory,plan,group);else if(linked&&!['contextMutationCommit','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type))fail('BNS_HUMAN_UNSUPPORTED');continue;}
+   const protocol=protocols.find(item=>item.descriptor.revisionId===group.id);if(!protocol)fail('BNS_HUMAN_COMMIT_REQUIRED');const beforeState=humanGraphReadSetProjection(inventory),owner=await prepareHumanGraphNamedPlan(inventory,protocol.descriptor.value),view=humanPlanJournalRows(owner),history=new Map(beforeState.revisions.map(row=>[row.id,row]));for(const row of view.history)history.set(row.id,row);
+   for(const id of [...new Set(view.rows.filter(row=>row.type==='topic').map(row=>row.after.id))])for(const row of beforeState.revisions.filter(row=>row.kind==='topic'&&row.entityId===id))if(!view.rows.some(item=>item.type==='history'&&item.after.id===row.id))view.rows.push({type:'history',before:row,after:row});
+   if(view.rows.length!==protocol.members.length)fail('BNS_HUMAN_PLAN_CHANGED');const mappings=[];
+diff --git a/extension/core/browser-native-sync/human-library-plan.js b/extension/core/browser-native-sync/human-library-plan.js
+index 3930b8d2..48f8365e 100644
+--- a/extension/core/browser-native-sync/human-library-plan.js
++++ b/extension/core/browser-native-sync/human-library-plan.js
+@@ -2,7 +2,7 @@ import {captureCurrentContextLineage,measureCurrentContextLineage,fenceCurrentCo
+ import {inputProjection} from '../thought-evidence.js';
+ import {applyBinding} from '../thought-binding.js';
+ import {validInputTopicSpan,addInputToTopicsInTransaction} from '../topic-actions.js';
+-import {projectOriginalWorkingHistory} from './input-working-commit.js';
++import {projectOriginalWorkingHistory,projectOriginalWorkingSource} from './input-working-commit.js';
+ import {sourceLinkedDescriptor,portableSourceLinkedEvidence} from './source-linked-evidence.js';
+ import {validateEvidence,checkEvidenceInTransaction,planEvidenceProjection} from '../thought-evidence.js';
+ import {initialSourcePlanBorrows,initialSourcePlan} from './source-bootstrap-plan.js';
+@@ -465,9 +465,11 @@ export function advanceHumanGraphSource(cap,plan,group){
+ // private application; no caller DTO or post-write sample can seed this view.
+ export async function advanceHumanGraphWorking(cap,plan,group,application){
+  const g=futureGraphs.get(cap);if(!g)fail('BNS_HUMAN_PLAN_REQUIRED');requireOriginalGroupCheckpointPlan(g.core,plan);
+- if(!plan.groups.includes(group)||group.type!=='inputWorkingCommit'||g.used.has(application)||g.state.sources.length)fail('BNS_HUMAN_UNSUPPORTED');
++ if(!plan.groups.includes(group)||group.type!=='inputWorkingCommit'||g.used.has(application))fail('BNS_HUMAN_UNSUPPORTED');
++ const sourceIndex=g.state.sources.findIndex(e=>e.input.id===group.prepared.descriptor.value.inputId);if(g.state.sources.length&&sourceIndex<0||g.state.provenance.some(row=>row.inputId===group.prepared.descriptor.value.inputId)||g.state.dependencies.some(row=>row.inputId===group.prepared.descriptor.value.inputId))fail('BNS_WORKING_REFERENCED');
++ const source=sourceIndex<0?null:projectOriginalWorkingSource(g.store,g.core,application,group,g.state.sources[sourceIndex]);
+  const result=await projectOriginalWorkingHistory(g.store,g.core,application,group,g.state.revisions,g.state.base.revision?.value||0,g.workingMappings??new Map());
+- for(const row of result.rows)replaceHumanRow(g,g.state.revisions,row);
++ for(const row of result.rows)replaceHumanRow(g,g.state.revisions,row);if(source)g.state.sources[sourceIndex]=source;g.state.epoch++;
+  if(g.state.revisions.length>128)fail('BNS_HUMAN_GRAPH_LIMIT');g.state.base.revision={id:'revision-sequence',value:result.revisionSequence};g.state.base.generation+=result.operationCount;g.workingMappings=result.mappings;g.used.add(application);
+ }
+ async function futureSourceEvidence(g,wire){
+diff --git a/extension/core/browser-native-sync/human-library-scope.js b/extension/core/browser-native-sync/human-library-scope.js
+index 0ec470fd..9f1eed1e 100644
+--- a/extension/core/browser-native-sync/human-library-scope.js
++++ b/extension/core/browser-native-sync/human-library-scope.js
+@@ -5,7 +5,7 @@ import {planHumanEntryEvidence} from '../thought-store-owner.js';
+ import {originalCurrentMixedGroupCore} from './group-checkpoint-plan.js';
+ import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
+ import {localHumanTopicIdentity,localHumanSuppression,localSourceSuppression} from './human-library-identity.js';
+-import {requireGroupHumanCompilationInput} from './group-checkpoint-scope.js';
++import {requireGroupHumanCompilationInput,originalLinkedHumanCompilationEpoch} from './group-checkpoint-scope.js';
+ import {normalizePhysical} from './human-library-journal.js';
+ import {keyedHash} from '../thought-model.js';
+ import {ownerVersion} from '../library-search.js';
+@@ -31,7 +31,7 @@ export function compileHumanScope(plan){
+ export async function prepareHumanScopeProof(store,scope,wire,nativeMixedCompilation){
+  requireGroupHumanCompilationInput(scope,wire);
+  if(!store)fail('BNS_GROUP_BINDING');const previous=proofs.get(scope);if(preparations.has(scope)||previous?.projectionOpening||previous?.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');preparations.add(scope);try{const native=nativeMixedCompilation!==undefined,secret=native?borrowOriginalMixedScopeCompilationSecret(nativeMixedCompilation,store,scope,wire):await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key'))?.value,['meta']));if(!Array.isArray(secret))fail('BNS_HUMAN_BINDING_REQUIRED');const current=()=>{if(native)requireOriginalMixedScopeCompilationCurrent(nativeMixedCompilation,store,scope);};current();
+- const links=wire.rows.sourceLink??[];if(native&&links.length)fail('BNS_HUMAN_UNSUPPORTED');const linkedEpoch=links.length?await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-epoch'))?.value||0,['meta'])):null,provenance=[],dependencies=[];
++ const links=wire.rows.sourceLink??[];if(native&&links.length)fail('BNS_HUMAN_UNSUPPORTED');const linkedEpoch=links.length?originalLinkedHumanCompilationEpoch(scope,wire):null,provenance=[],dependencies=[];
+  for(const value of links){const link=validateSourceLinkedDescriptor(value),e=link.evidence,scopeToken=await keyedHash(secret,['scope',e.sourceIdentityTokens]),evidence={...clone(e),scopeToken,versionToken:await keyedHash(secret,['version',scopeToken,e.fieldDigests]),epoch:linkedEpoch},pair=planHumanEntryEvidence({actor:'user',formation:'explicit'},evidence,{id:link.provenanceId,generationId:link.generationId,entryId:link.id,at:link.at,generator:null});if(link.version===2){pair.provenance.contributionType='exact_excerpt';pair.provenance.span=clone(link.span);}provenance.push(pair.provenance);dependencies.push(pair.dependency);}
+  const rows=clone(wire.rows);for(const row of rows.entry){row.exactSignature=await keyedHash(secret,['body',row.type,row.thoughtText]);current();}for(const row of rows.topic){row.identity=(await localHumanTopicIdentity(row.name,row.identity,secret)).identity;current();}
+  for(const row of rows.history)if(row.kind==='topic')for(const side of ['before','after'])if(row[side]){row[side].identity=(await localHumanTopicIdentity(row[side].name,row[side].identity,secret)).identity;current();}
+diff --git a/extension/core/browser-native-sync/input-working-commit.js b/extension/core/browser-native-sync/input-working-commit.js
+index d08e8f9d..d997d36b 100644
+--- a/extension/core/browser-native-sync/input-working-commit.js
++++ b/extension/core/browser-native-sync/input-working-commit.js
+@@ -127,3 +127,18 @@ export async function projectOriginalWorkingHistory(store,core,application,group
+  },['meta']);
+  return {rows,mappings,revisionSequence:sequence,operationCount:a.prepared.members.length+1};
+ }
++
++// Fixed projection from an original prepared Working owner into the private
++// Human future Source view. This never returns or accepts write authority.
++export function projectOriginalWorkingSource(store,core,application,group,source){
++ const a=workingApplications.get(application);if(!a||a.receiver.store!==store||a.receiver.core!==core||group.type!=='inputWorkingCommit'||group.id!==a.prepared.descriptor.revisionId||!source||source.input.id!==a.descriptor.inputId)fail('BNS_PREPARATION_REQUIRED');
++ const {input:b,inputState:state}=source,sourceRefs=[{id:source.source.id,sourceKey:source.source.sourceKey,dedupeKey:source.source.dedupeKey,contentHash:source.source.contentHash}];
++ qualifyWorking(application,{b,state,sourceRefs},{sources:[[source.source]]});
++ if(a.block.value.revision!==b.revision+1||a.state.value.contentRevision!==state.contentRevision+1)fail('BNS_WORKING_STALE');
++ return {...clone(source),input:clone(a.block.value),inputState:clone(a.state.value)};
++}
++// Only the owning restore can consume its exact private preparation. Invalid
++// bindings do not dispose another restore's capability.
++export function releaseOriginalWorkingApplication(store,core,application){
++ const a=workingApplications.get(application);if(!a)return false;if(a.receiver.store!==store||a.receiver.core!==core)fail('BNS_PREPARATION_REQUIRED');return workingApplications.delete(application);
++}

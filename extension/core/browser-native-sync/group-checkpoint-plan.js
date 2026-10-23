@@ -152,8 +152,19 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
  }
  const human=groups.filter(group=>group.type==='humanLibraryCommit'),linked=human.filter(group=>group.prepared.descriptor.value.kind.startsWith('source-'));
  if(linked.length){
-  if(binding.currentSourceWorking||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1||groups.some(group=>!['humanLibraryCommit','sourceBootstrapCommit'].includes(group.type)))fail('BNS_HUMAN_UNSUPPORTED');
-  for(const group of linked){const link=group.prepared.members.find(op=>op.value.entityType==='sourceLink');depend(group,createdInputs.get(link.value.after.evidence.inputId));}
+  if(binding.currentSourceWorking===true||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1||groups.some(group=>!['humanLibraryCommit','sourceBootstrapCommit','inputWorkingCommit','contextMutationCommit','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type)))fail('BNS_HUMAN_UNSUPPORTED');
+  // A linked Human action observes one exact Source/Working content revision.
+  // Order the real producer, never just a same-Input bootstrap or every edit.
+  for(const group of linked){
+   const links=group.prepared.members.filter(op=>op.value.entityType==='sourceLink');if(!links.length)fail('BNS_GROUP_CAUSAL_GAP');
+   for(const link of links){const e=link.value.after.evidence,source=createdInputs.get(e.inputId);if(!source)fail('BNS_GROUP_CAUSAL_GAP');
+    const initial=initialSourcePlan(source.capability);if(!equal([initial.source.id],e.sourceRecordIds)||!equal([initial.source.sourceKey],e.sourceIdentityTokens))fail('BNS_GROUP_CAUSAL_GAP');depend(group,source);
+    const edits=groups.filter(g=>g.type==='inputWorkingCommit'&&g.prepared.descriptor.value.inputId===e.inputId),states=edits.map(g=>({group:g,state:g.prepared.members.find(op=>op.value.entityType==='inputState')?.value.entity}));
+    if(states.some(x=>!x.state)||states.length&&Math.max(...states.map(x=>x.state.contentRevision))!==e.basedOnContentRevision)fail('BNS_GROUP_CAUSAL_GAP');
+    if(e.basedOnContentRevision===initial.inputState.contentRevision){if(edits.length)fail('BNS_GROUP_CAUSAL_GAP');}
+    else{const match=states.filter(x=>x.state.contentRevision===e.basedOnContentRevision);if(match.length!==1)fail('BNS_GROUP_CAUSAL_GAP');depend(group,match[0].group);}
+   }
+  }
   for(const group of groups)if(group.type==='sourceBootstrapCommit')for(const other of human.filter(g=>!linked.includes(g)))group.dependencies.add(other.id);
  }else{for(const group of human)if([...group.dependencies].some(id=>!human.some(other=>other.id===id)))fail('BNS_HUMAN_UNSUPPORTED');for(const group of groups)if(group.type!=='humanLibraryCommit')for(const other of human)group.dependencies.add(other.id);}
 

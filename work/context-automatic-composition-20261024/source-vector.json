@@ -1,0 +1,35 @@
+{
+  "parent": "12509bc2f665cc516cf94df3889f74589508b867",
+  "branch": "codex/context-current-lineage-20261024",
+  "status": "WIP_NOT_QUALIFIED",
+  "files": [
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint-plan.js",
+      "sha256": "9041fcf8fd4e5ef05a5f3fab2b3f79807cf2555ee5622417eb097123ab816c4e"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint-scope.js",
+      "sha256": "6caabeb4593a233b67c8f326ca56e6ee9e5a2fec26d549d78e2862bd8b8ff146"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint.js",
+      "sha256": "e447efe5ba33f0da0ad747510ef1fa6f5cdd1fd00e2e8f45b64e02819f188cfa"
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-group.js",
+      "sha256": "65c680c281ce6961e4f3fea7761e7f825cd37369e029df78859a1de946368763"
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-plan.js",
+      "sha256": "1080980fba89fd562586254242142fb41b6731eeea5128977a36535a34145edf"
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-scope.js",
+      "sha256": "70185a5d53acc956d5341d1da0312edcd885ab3e4ccec1da32336dde0c66c310"
+    },
+    {
+      "path": "extension/core/browser-native-sync/input-working-commit.js",
+      "sha256": "c108e315f1571fe539a115be04a2f55c0a98cd842502f6389976632a4fb3db27"
+    }
+  ]
+}

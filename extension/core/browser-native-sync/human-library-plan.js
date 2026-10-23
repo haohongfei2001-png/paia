@@ -2,7 +2,7 @@ import {captureCurrentContextLineage,measureCurrentContextLineage,fenceCurrentCo
 import {inputProjection} from '../thought-evidence.js';
 import {applyBinding} from '../thought-binding.js';
 import {validInputTopicSpan,addInputToTopicsInTransaction} from '../topic-actions.js';
-import {projectOriginalWorkingHistory} from './input-working-commit.js';
+import {projectOriginalWorkingHistory,projectOriginalWorkingSource} from './input-working-commit.js';
 import {sourceLinkedDescriptor,portableSourceLinkedEvidence} from './source-linked-evidence.js';
 import {validateEvidence,checkEvidenceInTransaction,planEvidenceProjection} from '../thought-evidence.js';
 import {initialSourcePlanBorrows,initialSourcePlan} from './source-bootstrap-plan.js';
@@ -465,9 +465,11 @@ export function advanceHumanGraphSource(cap,plan,group){
 // private application; no caller DTO or post-write sample can seed this view.
 export async function advanceHumanGraphWorking(cap,plan,group,application){
  const g=futureGraphs.get(cap);if(!g)fail('BNS_HUMAN_PLAN_REQUIRED');requireOriginalGroupCheckpointPlan(g.core,plan);
- if(!plan.groups.includes(group)||group.type!=='inputWorkingCommit'||g.used.has(application)||g.state.sources.length)fail('BNS_HUMAN_UNSUPPORTED');
+ if(!plan.groups.includes(group)||group.type!=='inputWorkingCommit'||g.used.has(application))fail('BNS_HUMAN_UNSUPPORTED');
+ const sourceIndex=g.state.sources.findIndex(e=>e.input.id===group.prepared.descriptor.value.inputId);if(g.state.sources.length&&sourceIndex<0||g.state.provenance.some(row=>row.inputId===group.prepared.descriptor.value.inputId)||g.state.dependencies.some(row=>row.inputId===group.prepared.descriptor.value.inputId))fail('BNS_WORKING_REFERENCED');
+ const source=sourceIndex<0?null:projectOriginalWorkingSource(g.store,g.core,application,group,g.state.sources[sourceIndex]);
  const result=await projectOriginalWorkingHistory(g.store,g.core,application,group,g.state.revisions,g.state.base.revision?.value||0,g.workingMappings??new Map());
- for(const row of result.rows)replaceHumanRow(g,g.state.revisions,row);
+ for(const row of result.rows)replaceHumanRow(g,g.state.revisions,row);if(source)g.state.sources[sourceIndex]=source;g.state.epoch++;
  if(g.state.revisions.length>128)fail('BNS_HUMAN_GRAPH_LIMIT');g.state.base.revision={id:'revision-sequence',value:result.revisionSequence};g.state.base.generation+=result.operationCount;g.workingMappings=result.mappings;g.used.add(application);
 }
 async function futureSourceEvidence(g,wire){
