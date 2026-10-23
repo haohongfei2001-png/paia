@@ -444,12 +444,17 @@ const originalDataPrototypeParent=originalPrototypeOf(originalDataPrototype);
 const originalDataMethods=Object.freeze(['get','has','put','count','rangePage','primaryRangePage','delete'].map(name=>Object.freeze([name,Object.freeze(originalOwnDescriptor(originalDataPrototype,name))])));
 
 export class ArchiveRepository {
+ #existingOnly=false;
  constructor(local,{indexedDB=globalThis.indexedDB,name=DATABASE_NAME,checkpoint=async()=>{},ia=false,smartFilter=false,thoughtLibrary=false}={}){this.local=local;this.ia=ia;this.smartFilter=smartFilter;this.thoughtLibrary=thoughtLibrary;this.stores=[...STORES,...(ia?IA_STORES:[]),...(smartFilter?FILTER_STORES:[]),...(thoughtLibrary?LIBRARY_STORES:[])];this.factory=indexedDB;this.name=name;this.checkpoint=checkpoint;this.metrics={reads:0,writes:0,scans:0};repositoryWrites.set(this,{generation:Object.freeze({}),active:0});}
+ // Cold selection must never create a missing library or migrate an older schema.
+ async openExisting(){this.#existingOnly=true;return originalRepositoryOpen.call(this);}
  async open(){
   if(this.db)return; if(!this.factory)throw fail();
+  if(this.#existingOnly){const version=this.thoughtLibrary?5:this.smartFilter?4:this.ia?3:2;if(typeof this.factory.databases!=='function'||!(await this.factory.databases()).some(row=>row.name===this.name&&row.version===version))throw fail();}
   this.db=await new Promise((resolve,reject)=>{
    let blocked=false;const r=this.factory.open(this.name,this.thoughtLibrary?5:this.smartFilter?4:this.ia?3:2);
    r.onupgradeneeded=event=>{
+    if(this.#existingOnly){r.transaction.abort();return;}
     const db=r.result;for(const name of this.stores)if(!db.objectStoreNames.contains(name))db.createObjectStore(name,{keyPath:'id'});
     for(const name of ['importEvidence','importSources']){const st=r.transaction.objectStore(name);if(!st.indexNames.contains('bySource'))st.createIndex('bySource','sourceKey');}
     if(this.ia){
@@ -608,3 +613,8 @@ export async function originalGenerationRepositoryTransaction(repository,token,f
  }
  return promptTransactionMethod.value.call(repository,true,fn,stores,token);
 }
+
+const originalRepositoryOpen=ArchiveRepository.prototype.open;
+
+const originalRepositoryOpenExisting=ArchiveRepository.prototype.openExisting;
+export function openOriginalExistingRepository(repository){if(!repositoryWrites.has(repository))throw new ArchiveError('GENERATION_CAPABILITY');return originalRepositoryOpenExisting.call(repository);}

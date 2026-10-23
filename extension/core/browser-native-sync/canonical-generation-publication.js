@@ -1,5 +1,5 @@
 import * as phasedHuman from './canonical-generation-phased-human.js';
-import {requireOriginalLibraryDocumentsStore} from '../library-documents-owner.js';
+import {requireOriginalLibraryDocumentsStore,originalLibraryDocumentsConstructor} from '../library-documents-owner.js';
 import {prepareOriginalCopyRetirement,retireOriginalCheckpointCopies} from './canonical-generation-copy-retirement.js';
 import {CANONICAL_REPOSITORY_PROTECTION,originalGenerationProtection} from './canonical-generation-repository-gate.js';
 import {createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget} from './group-page-reader.js';
@@ -8,7 +8,7 @@ import * as originalCheckpoint from './group-checkpoint.js';
 import * as checkpointStage from './canonical-generation-checkpoint-stage.js';
 import {ArchiveError} from '../constants.js';
 import {SyncError} from './value.js';
-import {ArchiveRepository,originalGenerationRepositoryRead,originalGenerationRepositoryTransaction,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
+import {ArchiveRepository,originalRepositoryTransactionOwner,openOriginalExistingRepository,originalGenerationRepositoryRead,originalGenerationRepositoryTransaction,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
 
 // Opt-in publication infrastructure. This module does not validate a canonical
 // graph, switch the application's repository, publish chrome.local or delete a
@@ -17,7 +17,7 @@ export const CANONICAL_GENERATION_REGISTRY='canonical-generation:registry:v1';
 export const CANONICAL_GENERATION_GATE='canonical-generation:gate:v1';
 const qualifiedGraph='canonical-generation:qualified-graph:v1';
 const receipts='canonical-generation:receipt:',deletions='canonical-generation:deletion:',invalidations='canonical-generation:invalidated:',catalog='canonical-generation:catalog:';
-const activeRepositories=new WeakMap();
+const activeRepositories=new WeakMap(),activeSourceWorkingRows=new WeakMap();
 export async function prepareOriginalActiveRepositoryWrite(repository){const binding=activeRepositories.get(repository);if(!binding)return null;return binding.prepare();}
 export function releaseOriginalActiveRepositoryWrite(token){const row=repositoryAuthorities.get(token);if(row?.authority.kind==='active-library')repositoryAuthorities.delete(token);}
 const handles=new WeakMap(),seals=new WeakMap(),bases=new WeakMap(),repositoryAuthorities=new WeakMap();
@@ -81,6 +81,31 @@ export class CanonicalGenerationPublication {
    const gate={id:CANONICAL_GENERATION_GATE,version:1,registryName:this.#registryName,identity:ident,phase:'staging',writeRevision:0,seal:null,publicationId:null,retirementId:null};await t.put('meta',gate);sealPoint(repository,t,gate.id,gate);
   },repository.stores);
   const handle=Object.freeze(Object.create(null)),held={owner:this,repository,identity:ident,handle};handles.set(handle,held);this.#repositories.set(ident.generationId,held);return handle;
+ }
+ // Explicit local application entry. The durable registry alone chooses the
+ // original store; callers cannot supply a database, handle or factory here.
+ // This opens an existing schema only and never repairs catalog/publication rows.
+ async openOriginalActiveStore(local){
+  if(arguments.length!==1)fail('GENERATION_CAPABILITY');this.#bound(this.#registry);
+  await openOriginalExistingRepository(this.#registry);this.#bound(this.#registry);
+  const readSelection=async t=>{
+   const root=await rootRead(t);if(root.pending)fail('GENERATION_PENDING');if(!root.active)fail('GENERATION_NOT_ACTIVE');
+   const ident=identity(root.active.identity);if(ident.databaseName===this.#registryName)fail('GENERATION_COLLISION');
+   if(await t.get('meta',deletions+ident.generationId))fail('GENERATION_DELETED');
+   for(const [kind,key]of [['generation',ident.generationId],['database',ident.databaseId],['name',ident.databaseName]]){
+    const row={id:catalog+kind+':'+key,version:1,identity:ident};if(!equal(await t.get('meta',row.id),row))fail('GENERATION_COLLISION');
+   }return root;
+  };
+  const root=await originalGenerationRepositoryRead(this.#registry,readSelection,['meta']),ident=identity(root.active.identity);
+  if(this.#repositories.has(ident.generationId))fail('GENERATION_ALREADY_ATTACHED');
+  const Store=originalLibraryDocumentsConstructor(),store=new Store(local,{indexedDB:this.#factory,name:ident.databaseName}),repository=store.repository;
+  const handle=Object.freeze(Object.create(null)),held={owner:this,repository,identity:ident,handle};
+  try{
+   await openOriginalExistingRepository(repository);this.#bound(repository);handles.set(handle,held);this.#repositories.set(ident.generationId,held);
+   await originalBindActiveStore.call(this,handle,store);
+   if(!equal(await originalGenerationRepositoryRead(this.#registry,readSelection,['meta']),root))fail('GENERATION_CHANGED');
+   return store;
+  }catch(error){activeRepositories.delete(repository);handles.delete(handle);if(this.#repositories.get(ident.generationId)===held)this.#repositories.delete(ident.generationId);repository.db?.close();repository.db=null;throw error;}
  }
  async captureSourceBase(expected=undefined){
   this.#bound(this.#registry);const root=await this.#registry.transaction(false,rootRead,['meta']);if(root.pending)fail('GENERATION_PENDING');
@@ -218,3 +243,48 @@ export class CanonicalGenerationPublication {
 }
 const originalStagingWrite=CanonicalGenerationPublication.prototype.stagingWrite;
 export function originalCheckpointStagingWrite(publication,handle,fn,authority,stores){return originalStagingWrite.call(publication,handle,fn,authority,stores);}
+
+// Capture fixed original owners before any caller can replace instance methods.
+const originalBindActiveStore=CanonicalGenerationPublication.prototype.bindOriginalActiveStore;
+
+// A fixed local control classification for the original Source/Working merge.
+// It grants no writer and never rewrites stored rows. Full native snapshots and
+// their terminal fences remain owned by source-working-merge. Ordinary/unbound
+// databases receive no projection, and unsupported generation families refuse.
+export async function prepareOriginalActiveSourceWorkingRows(repository,rows){
+ const binding=activeRepositories.get(repository);if(!binding)return rows;if(!originalRepositoryTransactionOwner(repository))fail('GENERATION_CAPABILITY');
+ const token=await binding.prepare();
+ try{
+  const record=repositoryAuthorities.get(token),{gate,marker,qualification:q}=record.authority;
+  if(q.kind!=='original-group')fail('GENERATION_SOURCE_WORKING_PROFILE_REQUIRED');
+  const budget=createGroupPageBudget(),prepared=await prepareOriginalCopyRetirement(repository,gate,q,budget,performance.now());
+  if(prepared.state!==null||prepared.progress?.phase!=='retired'||prepared.controls.length)fail('GENERATION_COPY_RETIREMENT_CHANGED');
+  const controls=[gate,marker,q,prepared.progress];
+  const completed=rows.meta.filter(row=>row.canonicalGeneration!==undefined);
+  if(completed.length!==1)fail('GENERATION_CHANGED');const restore=completed[0];
+  if(!equal(restore.canonicalGeneration,{stateId:'canonical-generation:checkpoint:state:v1',identity:gate.identity})||restore.manifestId!==gate.seal.manifestId||restore.graphDigest!==gate.seal.graphDigest||restore.phase!=='activated'||restore.cleanup?.complete!==true)fail('GENERATION_CHANGED');
+  const evidence={repository,controls,restoreId:restore.id,restore};
+  const result=projectActiveSourceWorkingRows(evidence,rows);activeSourceWorkingRows.set(result,evidence);return result;
+ }finally{releaseOriginalActiveRepositoryWrite(token);}
+}
+function projectActiveSourceWorkingRows(evidence,rows){
+ const {controls,restoreId,restore}=evidence,actual=rows.meta.filter(row=>row.id.startsWith('canonical-generation:'));
+ if(actual.length!==controls.length||controls.some(row=>!equal(actual.find(value=>value.id===row.id),row))||!equal(rows.meta.find(row=>row.id===restoreId),restore))fail('GENERATION_CHANGED');
+ const meta=rows.meta.filter(row=>!controls.some(control=>row.id===control.id)).map(row=>{if(row.id!==restoreId)return row;const {canonicalGeneration,...ordinary}=row;return Object.freeze(ordinary);});
+ return Object.freeze({...rows,meta:Object.freeze(meta)});
+}
+export function projectOriginalActiveSourceWorkingRows(repository,before,rows){
+ const evidence=activeSourceWorkingRows.get(before);if(!evidence)return rows;
+ if(evidence.repository!==repository||!activeRepositories.has(repository))fail('GENERATION_CAPABILITY');return projectActiveSourceWorkingRows(evidence,rows);
+}
+
+export function originalActiveSourceWorkingTerminalRows(repository,before,rows){
+ const evidence=activeSourceWorkingRows.get(before);if(!evidence)return rows;
+ if(evidence.repository!==repository||!activeRepositories.has(repository))fail('GENERATION_CAPABILITY');
+ projectActiveSourceWorkingRows(evidence,rows);
+ const gate=evidence.controls.find(row=>row.id===CANONICAL_GENERATION_GATE);
+ if(!Number.isSafeInteger(gate.writeRevision+1))fail('GENERATION_CHANGED');
+ // The original active-library repository owner advances precisely once after
+ // callback return. Seal that exact transition, never omit the gate from fences.
+ return {...rows,meta:rows.meta.map(row=>row.id===gate.id?{...gate,writeRevision:gate.writeRevision+1}:row)};
+}

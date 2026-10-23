@@ -1,0 +1,152 @@
+TAP version 13
+# Subtest: durable registry selects original library after cold reopen and normal owner edits remain durable
+ok 1 - durable registry selects original library after cold reopen and normal owner edits remain durable
+  ---
+  duration_ms: 861.632542
+  type: 'test'
+  ...
+# Subtest: existing selected library receives A successor while preserving independent B edit and outbox
+not ok 2 - existing selected library receives A successor while preserving independent B edit and outbox
+  ---
+  duration_ms: 819.178833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/canonical-generation-local-library.test.mjs:34:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:26:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:507:1158)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: missing registry rejects without leaving a ghost database
+not ok 3 - missing registry rejects without leaving a ghost database
+  ---
+  duration_ms: 1.304
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/canonical-generation-local-library.test.mjs:36:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     name: 'SYNTHETIC-absent-registry',
+    +     version: 0
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      name: 'SYNTHETIC-absent-registry'
+      version: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/canonical-generation-local-library.test.mjs:36:297)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: missing selected database rejects without creating a replacement
+not ok 4 - missing selected database rejects without creating a replacement
+  ---
+  duration_ms: 466.237542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/canonical-generation-local-library.test.mjs:37:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        {
+          name: 'SYNTHETIC-local-selection-A',
+          version: 5
+        },
+    ...
+        },
+    +   {
+    +     name: 'SYNTHETIC-local-selection-B',
+    +     version: 0
+    +   }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      name: 'SYNTHETIC-local-selection-A'
+      version: 5
+    1:
+      name: 'SYNTHETIC-local-selection-registry'
+      version: 2
+  actual:
+    0:
+      name: 'SYNTHETIC-local-selection-A'
+      version: 5
+    1:
+      name: 'SYNTHETIC-local-selection-registry'
+      version: 2
+    2:
+      name: 'SYNTHETIC-local-selection-B'
+      version: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/canonical-generation-local-library.test.mjs:37:307)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: existing old schema is refused without an implicit migration or later automatic upgrade
+ok 5 - existing old schema is refused without an implicit migration or later automatic upgrade
+  ---
+  duration_ms: 0.624875
+  type: 'test'
+  ...
+# Subtest: cold selection refuses missing catalog and never repairs it
+ok 6 - cold selection refuses missing catalog and never repairs it
+  ---
+  duration_ms: 474.9235
+  type: 'test'
+  ...
+# Subtest: cold selection refuses missing receipt and never repairs it
+ok 7 - cold selection refuses missing receipt and never repairs it
+  ---
+  duration_ms: 478.325292
+  type: 'test'
+  ...
+# Subtest: cold selection refuses missing qualification and never repairs it
+ok 8 - cold selection refuses missing qualification and never repairs it
+  ---
+  duration_ms: 465.160708
+  type: 'test'
+  ...
+# Subtest: a legitimate pending publication refuses cold selection and already-open owner writes
+ok 9 - a legitimate pending publication refuses cold selection and already-open owner writes
+  ---
+  duration_ms: 649.004542
+  type: 'test'
+  ...
+# Subtest: changed durable receipt after selection refuses normal owner edit and retains all data
+ok 10 - changed durable receipt after selection refuses normal owner edit and retains all data
+  ---
+  duration_ms: 550.11075
+  type: 'test'
+  ...
+# Subtest: replacing the returned original store repository cannot carry its active authority
+ok 11 - replacing the returned original store repository cannot carry its active authority
+  ---
+  duration_ms: 499.008791
+  type: 'test'
+  ...
+# Subtest: same manager refuses a second implicit attachment and callers cannot supply a database override
+ok 12 - same manager refuses a second implicit attachment and callers cannot supply a database override
+  ---
+  duration_ms: 520.054958
+  type: 'test'
+  ...

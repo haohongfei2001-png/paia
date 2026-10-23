@@ -1,0 +1,6 @@
+{
+  "extension/core/idb-repository.js": "20327d67af3170ccc233b952369c2154ad9fc373888ef6f20e985bf5edc4fe4d",
+  "extension/core/browser-native-sync/canonical-generation-publication.js": "5f5706c542f90ee5825710073ca5ad08680abd92abf3ec1c1177893f94a13d66",
+  "extension/core/browser-native-sync/source-working-merge.js": "c813ffb9dcde98015d7d4ea4fe7225d0bafc65951eb056007ccd015ecd07cbee",
+  "extension/tests/canonical-generation-local-library.test.mjs": "1a241c88d0f666d0699a9221fc98d45a28b57368b504130826bc1dd5f57667d6"
+}
