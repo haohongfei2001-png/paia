@@ -1,7 +1,7 @@
 import {modeBootstrapCommitment} from './consumer-mode-baseline.js';
 import {requireOriginalMixedNativeCanonicalCut} from './human-library-plan.js';
 import {CONSUMER_PREFERENCE_KEYS,assertConsumerPreferenceOperation,consumerPreferenceRenderingValue} from './consumer-preference-codec.js';
-import {CONSUMER_OWNER_PREFIX,consumerDisplayPreferences} from './consumer-preference-restore.js';
+import {CONSUMER_OWNER_PREFIX,consumerDisplayPreferences,consumerPreferencesMatchLocal} from './consumer-preference-restore.js';
 import {TOPIC_DESIRED_PREFIX,assertTopicDesiredReference,logicalTopicFacts} from './topic-desired-codec.js';
 import {CONTEXT_TOPIC_ACCESS_ROW,validContextTopicPreferences} from '../context-topic-preferences.js';
 import {validContextTopicReceipt} from '../context-topic-access.js';
@@ -50,7 +50,7 @@ export function compareMixedConfiguration(core,scope,plan,raw,control,restored){
   consumed.push(row.id,proof.id);return op;
  };
  for(const id of CONSUMER_PREFERENCE_KEYS){const op=consume('consumerPreference',id,CONSUMER_OWNER_PREFIX,'intent');if(op){assertConsumerPreferenceOperation(op);values.push(clone(op.value));}}
- if(raw.rows.meta.filter(row=>row.id.startsWith(CONSUMER_OWNER_PREFIX)).length!==values.length||!equal(control.preferences,consumerDisplayPreferences(values)))refuse();
+ if(raw.rows.meta.filter(row=>row.id.startsWith(CONSUMER_OWNER_PREFIX)).length!==values.length||!consumerPreferencesMatchLocal(control.preferences,consumerDisplayPreferences(values)))refuse();
  const filter=rows.get('smart-filter');if(filter?.mode!==replay.mode||filter.policyEpoch!==replay.policyEpoch)refuse();
  for(const value of scope.expected.topicDesired??[]){const op=consume('topicDesired',value.id,TOPIC_DESIRED_PREFIX,'value');if(!op||!equal(op.value,value))unproven();const member=ops.find(o=>o.revisionId===value.topicRef.memberRevisionId),commit=ops.find(o=>o.revisionId===value.topicRef.commitRevisionId);assertTopicDesiredReference(value,commit,member);desired.push(clone(value));}
  if(raw.rows.meta.filter(row=>row.id.startsWith(TOPIC_DESIRED_PREFIX)).length!==desired.length)refuse();

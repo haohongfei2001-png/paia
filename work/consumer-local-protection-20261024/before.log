@@ -1,0 +1,66 @@
+TAP version 13
+# Subtest: original A local preview protection and B sidebar choice survive complete checkpoint recovery and republish without transfer
+not ok 1 - original A local preview protection and B sidebar choice survive complete checkpoint recovery and republish without transfer
+  ---
+  duration_ms: 77.43925
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/consumer-local-protection-checkpoint.test.mjs:17:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+    requireGroupScope (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:206:210)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:109:496
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:165:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:523:253)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:165:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: a protection change after staging invalidates the original full control fence and preserves current local state
+not ok 2 - a protection change after staging invalidates the original full control fence and preserves current local state
+  ---
+  duration_ms: 81.8395
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/consumer-local-protection-checkpoint.test.mjs:18:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+    -   code: 'BNS_RESTORE_LOCAL_CHANGED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_RESTORE_LOCAL_CHANGED'
+  actual:
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+    requireGroupScope (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:206:210)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:287:4
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:165:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:523:253)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:165:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:279:48
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:203:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/consumer-local-protection-checkpoint.test.mjs:18:564)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 320.661917

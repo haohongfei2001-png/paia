@@ -1,6 +1,6 @@
 import {archiveYearKey,archiveYearMeta} from '../archive-year-index.js';
 import {consumeMixedPublicationMetadata,mixedConfigurationReplay} from './mixed-configuration.js';
-import {consumerDisplayPreferences} from './consumer-preference-restore.js';
+import {consumerDisplayPreferences,consumerPreferencesMatchLocal} from './consumer-preference-restore.js';
 import {assertSourceWorkingCanonicalAndProtocolRows,assertSourceWorkingRestoredCanonicalAndProtocolRows,assertSourceWorkingMergedCanonicalAndProtocolRows} from './source-working-canonical.js';
 import {assertSourceWorkingSpecialScalars} from './source-working-derived.js';
 import {defaults} from '../workspace.js';
@@ -179,7 +179,7 @@ function qualifyLocal(core,scope,plan,rows,control,databaseId,replay){
 
 function qualifyDefaultInfrastructure(rows,control,databaseId,take,read,sourceSequence,configuration=null){
  assertSourceWorkingSpecialScalars('meta',control);
- if(!equal(control.preferences,configuration?.preferences??defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||!Array.isArray(control.classificationRules)||control.classificationRules.length||!Array.isArray(control.filterRules)||control.filterRules.length)refuse();
+ if(!consumerPreferencesMatchLocal(control.preferences,configuration?.preferences??defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||!Array.isArray(control.classificationRules)||control.classificationRules.length||!Array.isArray(control.filterRules)||control.filterRules.length)refuse();
  const settings=control.settings;if(!exact(settings,['consentVersion','consentAt','enabled','epoch'])||settings.consentVersion!==CONSENT_VERSION||settings.enabled!==true||!iso(settings.consentAt)||!count(settings.epoch)||settings.epoch<1||!opaque(databaseId))refuse();
  take('sequence',sourceSequence);take('gate',{epoch:settings.epoch,enabled:true});
  const migration=read('migration');if(!hash(migration.digest))refuse();take('migration',{phase:'active',databaseId,cursor:0,digest:migration.digest,verified:true,recoveryVerified:true,recordCount:0,blockCount:0});
