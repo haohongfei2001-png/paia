@@ -1,0 +1,225 @@
+TAP version 13
+# Subtest: default source configuration preserves the ordinary original Organizer store
+ok 1 - default source configuration preserves the ordinary original Organizer store
+  ---
+  duration_ms: 43.284209
+  type: 'test'
+  ...
+# Subtest: first published generation selects original Organizer and cold reopens owner edits
+ok 2 - first published generation selects original Organizer and cold reopens owner edits
+  ---
+  duration_ms: 582.500875
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default empty without replacing or migrating it
+ok 3 - enabled selection refuses existing default empty without replacing or migrating it
+  ---
+  duration_ms: 466.6235
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default content without replacing or migrating it
+ok 4 - enabled selection refuses existing default content without replacing or migrating it
+  ---
+  duration_ms: 450.466208
+  type: 'test'
+  ...
+# Subtest: enabled missing registry refuses without creating registry target or fallback
+ok 5 - enabled missing registry refuses without creating registry target or fallback
+  ---
+  duration_ms: 0.2075
+  type: 'test'
+  ...
+# Subtest: enabled corrupt registry fails without silently opening default
+ok 6 - enabled corrupt registry fails without silently opening default
+  ---
+  duration_ms: 404.347917
+  type: 'test'
+  ...
+# Subtest: enabled corrupt target fails without silently opening default
+ok 7 - enabled corrupt target fails without silently opening default
+  ---
+  duration_ms: 404.67825
+  type: 'test'
+  ...
+# Subtest: enabled corrupt receipt fails without silently opening default
+ok 8 - enabled corrupt receipt fails without silently opening default
+  ---
+  duration_ms: 421.749417
+  type: 'test'
+  ...
+# Subtest: default database appearing before final selection check rejects the selected store
+ok 9 - default database appearing before final selection check rejects the selected store
+  ---
+  duration_ms: 448.610792
+  type: 'test'
+  ...
+# Subtest: caller database factory constructor and malformed configuration cannot choose an application store
+ok 10 - caller database factory constructor and malformed configuration cannot choose an application store
+  ---
+  duration_ms: 0.44075
+  type: 'test'
+  ...
+# Subtest: enabled selection requires database enumeration and never falls back
+ok 11 - enabled selection requires database enumeration and never falls back
+  ---
+  duration_ms: 0.081875
+  type: 'test'
+  ...
+# Subtest: selected original Organizer retains the exact AI filter authority without granting it default permission
+ok 12 - selected original Organizer retains the exact AI filter authority without granting it default permission
+  ---
+  duration_ms: 427.576833
+  type: 'test'
+  ...
+# Subtest: actual configured worker builds its original services on the selected Organizer without a fallback store
+ok 13 - actual configured worker builds its original services on the selected Organizer without a fallback store
+  ---
+  duration_ms: 1776.217875
+  type: 'test'
+  ...
+# Subtest: configured application requires exact retired checkpoint copies and never silently cleans them
+ok 14 - configured application requires exact retired checkpoint copies and never silently cleans them
+  ---
+  duration_ms: 411.746083
+  type: 'test'
+  ...
+# Subtest: completion 1 group publication stays private until original cleanup then ready edit
+ok 15 - completion 1 group publication stays private until original cleanup then ready edit
+  ---
+  duration_ms: 286.695041
+  type: 'test'
+  ...
+# Subtest: completion 3 group publication stays private until original cleanup then ready edit
+ok 16 - completion 3 group publication stays private until original cleanup then ready edit
+  ---
+  duration_ms: 316.277583
+  type: 'test'
+  ...
+# Subtest: fixed cold completion opens original selected store without binding or deleting until explicit advance
+not ok 17 - fixed cold completion opens original selected store without binding or deleting until explicit advance
+  ---
+  duration_ms: 286.312875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/canonical-recovery-completion.test.mjs:33:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'SYNTHETIC original 0'
+    - undefined
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual: 'SYNTHETIC original 0'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/canonical-recovery-completion.test.mjs:36:308)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: completion retirement failure preserves committed publication and cold continuation remains explicit
+not ok 18 - completion retirement failure preserves committed publication and cold continuation remains explicit
+  ---
+  duration_ms: 30151.254083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/canonical-recovery-completion.test.mjs:38:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: completion cancellation during original batch never binds and preserves durable retirement for cold reopen
+not ok 19 - completion cancellation during original batch never binds and preserves durable retirement for cold reopen
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/canonical-recovery-completion.test.mjs:44:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: completion cancellation preserves a newer original owner binding on external store
+not ok 20 - completion cancellation preserves a newer original owner binding on external store
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/canonical-recovery-completion.test.mjs:50:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: completion refuses forged session handles and unrecovered publication without deleting copies
+not ok 21 - completion refuses forged session handles and unrecovered publication without deleting copies
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/canonical-recovery-completion.test.mjs:53:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: completion rejects concurrent advances and cancel before advance performs no cleanup
+not ok 22 - completion rejects concurrent advances and cancel before advance performs no cleanup
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/canonical-recovery-completion.test.mjs:56:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: qualified v2 1 group cold retirement preserves canonical and audit rows and ordinary editing
+ok 23 - qualified v2 1 group cold retirement preserves canonical and audit rows and ordinary editing
+  ---
+  duration_ms: 278.111125
+  type: 'test'
+  ...
+# Subtest: qualified v2 3 group cold retirement preserves canonical and audit rows and ordinary editing
+ok 24 - qualified v2 3 group cold retirement preserves canonical and audit rows and ordinary editing
+  ---
+  duration_ms: 310.853584
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement refuses control-debt before deleting any body copy
+ok 25 - qualified cold retirement refuses control-debt before deleting any body copy
+  ---
+  duration_ms: 152.957708
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement refuses foreign-task before deleting any body copy
+ok 26 - qualified cold retirement refuses foreign-task before deleting any body copy
+  ---
+  duration_ms: 151.428958
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement terminal fence rolls back deletions after late control ledger mutation
+ok 27 - qualified cold retirement terminal fence rolls back deletions after late control ledger mutation
+  ---
+  duration_ms: 150.258167
+  type: 'test'
+  ...
+# Subtest: qualified three group large body authentication refuses before publication at original budget
+ok 28 - qualified three group large body authentication refuses before publication at original budget
+  ---
+  duration_ms: 215.842541
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 22
+# fail 1
+# cancelled 5
+# skipped 0
+# todo 0
+# duration_ms 31214.121166

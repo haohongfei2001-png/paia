@@ -1,0 +1,12 @@
+{
+  "implementation": "4bc7471543465758c6b6c9fa6d5a86aba47f126b",
+  "node": "22.23.3",
+  "files": {
+    "extension/core/browser-native-sync/canonical-generation-publication.js": "da0f41fa8265c642f09abcbdea8deefb53daaa6d409c6ae9e117fce250465cd0",
+    "extension/tests/application-store-selection.test.mjs": "d3168772bd71206f5db77251e0a1b3afe36d3ade0596f56b4369923657050585",
+    "extension/tests/canonical-recovery-completion.test.mjs": "2f4b618a2b6eee64ba25f741d7866c960aa2926e1de183a86fc87405537b3a22",
+    "extension/tests/native-sync/canonical-recovery-completion-chrome.test.mjs": "1b94e73a9306526fcc95a469da135427b8d867aced54b585d5a9a9e81c6c8483",
+    "extension/tests/native-sync/canonical-recovery-completion-fixture.mjs": "2f805d8019b390fbec25c684619fc9a2b32afe006e8cb34d857de4cf4616fb4c",
+    "extension/core/browser-native-sync/canonical-generation-copy-retirement.js": "d13b71805bc1f1f88686836bc9c5e52acb43f801ded2a7497dd78f3302ceafb2"
+  }
+}

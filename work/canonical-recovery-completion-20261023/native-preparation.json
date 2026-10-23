@@ -1,0 +1,16 @@
+{
+  "names": [
+    "completion 1 group publication stays private until original cleanup then ready edit",
+    "completion 3 group publication stays private until original cleanup then ready edit",
+    "fixed cold completion opens original selected store without binding or deleting until explicit advance",
+    "completion retirement failure preserves committed publication and cold continuation remains explicit",
+    "completion cancellation during original batch never binds and preserves durable retirement for cold reopen",
+    "completion cancellation preserves a newer original owner binding on external store",
+    "completion refuses forged session handles and unrecovered publication without deleting copies",
+    "completion rejects concurrent advances and cancel before advance performs no cleanup"
+  ],
+  "cases": 8,
+  "executedCallbacks": 0,
+  "browserExecuted": false,
+  "buildExecuted": false
+}
