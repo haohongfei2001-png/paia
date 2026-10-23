@@ -28,9 +28,16 @@ export function finalConsumerPreferenceOperations(plan){
 export function consumerDisplayPreferences(values){
  const preferences=defaults();for(const value of values)if(value.id!=='smartFilter')preferences[value.id]=consumerPreferenceRenderingValue(value);return preferences;
 }
+// Only the two validated device-local booleans are excluded from portable intent.
+// All other fields, including unsupported local authority, remain exact. The
+// original control publication fence and saveControl preserve the latest local values.
+export function consumerPreferencesMatchLocal(actual,expected){
+ if(typeof actual?.hideContentPreviews!=='boolean'||typeof actual?.sidebarCollapsed!=='boolean')return false;
+ return equal({...actual,hideContentPreviews:false,sidebarCollapsed:false},expected);
+}
 export async function requireConsumerPreferenceOwners(t,store,core,operations){
  const control=await store.control(t),values=operations.map(op=>op.value),filter=await t.get('meta','smart-filter');
- if(!equal(control.preferences,consumerDisplayPreferences(values)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ if(!consumerPreferencesMatchLocal(control.preferences,consumerDisplayPreferences(values)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  const mode=values.find(v=>v.id==='smartFilter');if(filter?.mode!==(mode?consumerPreferenceRenderingValue(mode):'light')||!Number.isSafeInteger(filter.policyEpoch)||filter.policyEpoch<0||!mode&&filter.policyEpoch!==0)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  const result=[];for(const key of CONSUMER_PREFERENCE_KEYS){
   const row=await t.get('meta',rowId(key)),operation=operations.find(op=>op.entityId===key);

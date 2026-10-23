@@ -27,7 +27,7 @@ import {deltaDescription,deltaSignature,KNOWN_PREFIX,DIRTY_PREFIX,HUMAN_FENCE,DE
 import {emptyContextCards as emptyContext} from '../context-cards.js';
 import {REVISION_POLICY} from '../ia-store-owner.js';
 import {FILTER_VERSIONS} from '../smart-filter.js';
-import {finalConsumerPreferenceOperations,consumerDisplayPreferences,requireConsumerPreferenceOwners} from './consumer-preference-restore.js';
+import {finalConsumerPreferenceOperations,consumerDisplayPreferences,consumerPreferencesMatchLocal,requireConsumerPreferenceOwners} from './consumer-preference-restore.js';
 import {originalGroupCheckpointCore,originalGroupCheckpointCoreOrNull} from './group-checkpoint-plan.js';
 import {readTopicDesiredOwners,requireLocalTopicChoicesRepresented} from './topic-desired-journal.js';
 import {CONTEXT_TOPIC_ACCESS_ROW} from '../context-topic-preferences.js';
@@ -66,7 +66,7 @@ export const currentHumanGroupStores=Object.freeze(['meta','thoughts','topics','
 // trees and operands. No public Core or wrapper read is a source of truth.
 export async function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,control,databaseId){
  requireOriginalCurrentGroupScope(core,scope,plan);
- if(!equal(control.preferences,defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||control.classificationRules.length||control.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ if(!consumerPreferencesMatchLocal(control.preferences,defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||control.classificationRules.length||control.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  const rows=new Map(raw.groupMeta.map(row=>[row.id,row])),take=(id,expected)=>{const row=rows.get(id);if(!row||!equal(row,{...expected,id}))fail('BNS_GROUP_COMMIT_UNPROVEN');rows.delete(id);};
  const key=(kind,...parts)=>protocolPhysicalId(core.prefix,raw.namespace,kind,parts),frontiers=new Map(),operations=plan.groups.flatMap(g=>g.operations),latest=new Map();let promptHead=null,promptOperation=null;
  const generation=rows.get(key('generation'));if(!generation||!count(generation.value)||generation.value<1)fail('BNS_GROUP_COMMIT_UNPROVEN');take(key('generation'),{value:generation.value});
@@ -203,7 +203,7 @@ export async function prepareGroupScope(plan,{store,nativeMixedCompilation,mixed
 export async function requireGroupScope(store,t,scope,residentRetention=null){
  requireCompiledGroupScope(scope);
  const c=await store.control(t);
- if(!equal(c.preferences,consumerDisplayPreferences(scope.expected.consumerPreferences??[]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ if(!consumerPreferencesMatchLocal(c.preferences,consumerDisplayPreferences(scope.expected.consumerPreferences??[]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  const resident=residentRetention===null?false:requireSavedMixedResidentRetention(store,t,scope,residentRetention);
  const saved=scope.expected.savedWork?await requireSavedWorkScope(store,t,scope):false,human=hasHumanScope(scope)?await requireHumanScope(store,t,scope):null,humanStores=new Set(['thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems','provenance','dependencies']);
  for(const name of t.tx.objectStoreNames)if(!represented.has(name)&&!ephemeralStores.has(name)&&!(resident&&saved&&human&&['organizerJobs','organizerUsage','organizerWorkItems'].includes(name))&&!((human||saved)&&humanStores.has(name))&&await t.count(name))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
@@ -264,7 +264,7 @@ function compareGroupCanonicalValues(scope,actual,human){
 export function assertOriginalCurrentMixedNativeBodies(core,store,scope,plan,raw,control,nonce,searchProof){
  if(arguments.length!==8)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
  requireOriginalMixedNativeControl(nonce,store,core,scope,plan,raw,control);
- if(!equal(control.preferences,consumerDisplayPreferences(scope.expected.consumerPreferences??[]))||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||control.classificationRules.length||control.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ if(!consumerPreferencesMatchLocal(control.preferences,consumerDisplayPreferences(scope.expected.consumerPreferences??[]))||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||control.classificationRules.length||control.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  assertMixedCurrentSourceDerivedRows(core,scope,plan,raw.rows);
  const human=assertOriginalMixedNativeHumanBodies(store,core,scope,plan,raw,nonce,searchProof),actual={},original=originalScopes.get(scope);
  for(const name of ['records','blocks','documents','libraryDocuments'])actual[name]=sort(raw.rows[name].map(row=>clone(row.value)));
@@ -339,7 +339,7 @@ export function measureOriginalMixedPreparingWireScope(core,scope,plan,store,non
 // supplied filtered snapshot cannot acquire this qualification.
 export async function requireSourcePurgeRemainingScope(store,t,scope,view,proof){
  await requireSourcePurgeRemainingCanonicalProof(proof,store,t,scope,view);const original=requireCompiledGroupScope(scope),plan=scopeDeref.call(original.plan);if(!plan||plan.groups.some(group=>group.type!=='sourceBootstrapCommit')||hasHumanScope(scope)||scope.expected.savedWork)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
- const c=await store.control(t);if(!equal(c.preferences,consumerDisplayPreferences([]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ const c=await store.control(t);if(!consumerPreferencesMatchLocal(c.preferences,consumerDisplayPreferences([]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  for(const [name,rows]of Object.entries(view))if(!represented.has(name)&&!ephemeralStores.has(name)&&rows.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  for(const row of view.meta){const key=row.id;if(key.startsWith(original.core.prefix))continue;if(key===CONTEXT_CARDS_ROW||key===PROMPT_REUSE_ROW||counters.has(key))continue;
   if(key===CONTEXT_TOPIC_ACCESS_ROW){await requireLocalTopicChoicesRepresented(t,original.core,[]);continue;}

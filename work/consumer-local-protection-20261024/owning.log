@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: original A local preview protection and B sidebar choice survive complete checkpoint recovery and republish without transfer
+ok 1 - original A local preview protection and B sidebar choice survive complete checkpoint recovery and republish without transfer
+  ---
+  duration_ms: 278.336792
+  type: 'test'
+  ...
+# Subtest: a device-only protection change after staging is preserved by the original activation control owner
+ok 2 - a device-only protection change after staging is preserved by the original activation control owner
+  ---
+  duration_ms: 92.081542
+  type: 'test'
+  ...
+# Subtest: local comparison excludes only valid device booleans and keeps every other value exact
+ok 3 - local comparison excludes only valid device booleans and keeps every other value exact
+  ---
+  duration_ms: 0.107167
+  type: 'test'
+  ...
+# Subtest: closed A full Prompt and all seven preferences restore together, continue original B owners, then closed B restores to C
+ok 4 - closed A full Prompt and all seven preferences restore together, continue original B owners, then closed B restores to C
+  ---
+  duration_ms: 948.979
+  type: 'test'
+  ...
+# Subtest: original imported publication terminal failure remains publishing, no echo, all original writers blocked, cold exact retry completes
+ok 5 - original imported publication terminal failure remains publishing, no echo, all original writers blocked, cold exact retry completes
+  ---
+  duration_ms: 314.39375
+  type: 'test'
+  ...
+# Subtest: crash after committed imported activation and before SDK preparation resumes only the proven undispatched attempt
+ok 6 - crash after committed imported activation and before SDK preparation resumes only the proven undispatched attempt
+  ---
+  duration_ms: 278.063833
+  type: 'test'
+  ...
+# Subtest: failure after original imported owners and active pointer inside IDB rolls back every store and publishes nothing
+ok 7 - failure after original imported owners and active pointer inside IDB rolls back every store and publishes nothing
+  ---
+  duration_ms: 247.24
+  type: 'test'
+  ...
+# Subtest: same original activation transaction corrupted manifest refuses before SDK and cannot be settled by retry
+ok 8 - same original activation transaction corrupted manifest refuses before SDK and cannot be settled by retry
+  ---
+  duration_ms: 252.051875
+  type: 'test'
+  ...
+# Subtest: same original activation transaction corrupted smart-filter refuses before SDK and cannot be settled by retry
+ok 9 - same original activation transaction corrupted smart-filter refuses before SDK and cannot be settled by retry
+  ---
+  duration_ms: 253.878833
+  type: 'test'
+  ...
+# Subtest: imported unknown terminal outcome stays held without guessing or replay
+ok 10 - imported unknown terminal outcome stays held without guessing or replay
+  ---
+  duration_ms: 267.375334
+  type: 'test'
+  ...
+# Subtest: imported unknown terminal outcome exact visible stamp settles without new SDK
+ok 11 - imported unknown terminal outcome exact visible stamp settles without new SDK
+  ---
+  duration_ms: 281.435708
+  type: 'test'
+  ...
+# Subtest: a cloned or invented imported preference effect capability has no original write authority
+ok 12 - a cloned or invented imported preference effect capability has no original write authority
+  ---
+  duration_ms: 200.892916
+  type: 'test'
+  ...
+# Subtest: even a real prepared imported snapshot token cannot manufacture SDK terminal or visible evidence
+ok 13 - even a real prepared imported snapshot token cannot manufacture SDK terminal or visible evidence
+  ---
+  duration_ms: 275.864083
+  type: 'test'
+  ...
+# Subtest: a supplied stage facade cannot hide the original durable stage changing after preparation
+ok 14 - a supplied stage facade cannot hide the original durable stage changing after preparation
+  ---
+  duration_ms: 213.462667
+  type: 'test'
+  ...
+# Subtest: Source private plans borrow only actual immutable children and keep mutable inputs and readouts detached
+ok 15 - Source private plans borrow only actual immutable children and keep mutable inputs and readouts detached
+  ---
+  duration_ms: 216.544083
+  type: 'test'
+  ...
+# Subtest: Mixed Scope borrows only original immutable domain identities and clones allocator-normalized rows
+ok 16 - Mixed Scope borrows only original immutable domain identities and clones allocator-normalized rows
+  ---
+  duration_ms: 138.047209
+  type: 'test'
+  ...
+# Subtest: original mode chronology counts real changes only and original desired receipts match the original local choices
+ok 17 - original mode chronology counts real changes only and original desired receipts match the original local choices
+  ---
+  duration_ms: 111.813042
+  type: 'test'
+  ...
+# Subtest: original mixed configuration refuses a coherently inflated physical/proof revision and mode counter with all source rows unchanged
+ok 18 - original mixed configuration refuses a coherently inflated physical/proof revision and mode counter with all source rows unchanged
+  ---
+  duration_ms: 108.729291
+  type: 'test'
+  ...
+# Subtest: original mixed configuration refuses missing/stale owners and unknown additional portable owner keys
+ok 19 - original mixed configuration refuses missing/stale owners and unknown additional portable owner keys
+  ---
+  duration_ms: 108.617542
+  type: 'test'
+  ...
+# Subtest: original nonportable Topic aggregate and receipts cannot hide changed desired bits or imported local grant echoes
+ok 20 - original nonportable Topic aggregate and receipts cannot hide changed desired bits or imported local grant echoes
+  ---
+  duration_ms: 119.667833
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3672.975791

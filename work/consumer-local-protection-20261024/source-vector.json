@@ -1,0 +1,7 @@
+{
+  "extension/core/browser-native-sync/consumer-preference-restore.js": "a55402730b58c8c48d3707069db32fa0228743f3a04c6a345517f47c54cb5d8a",
+  "extension/core/browser-native-sync/group-checkpoint-scope.js": "2b661deb41235ae550c7c4fa6e155f7cfb12a5ec65172db51a4e3184d78a750c",
+  "extension/core/browser-native-sync/mixed-configuration.js": "2c2ffc08c0a19bdd2c08c3d59702bb510c286bac3c5590e8c6b909bccb080ca5",
+  "extension/core/browser-native-sync/source-working-default-meta.js": "056eb638285db1488ed499fd0cb440f436938c443bc27ec975de64e7bcdc483b",
+  "extension/tests/consumer-local-protection-checkpoint.test.mjs": "bc5b69380bb1609d7bf80b8073558751450827db8850eeb94f94aa7cc559704d"
+}
