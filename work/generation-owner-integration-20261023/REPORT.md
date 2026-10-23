@@ -57,3 +57,9 @@ This package closes the fixed publication consumer for the finite source-free Hu
 A following fixed-seal delta writes the exact bodyfree `canonical-generation:qualified-graph:v1` row (version, original Human/group kind, identity, seal and sourceBase) in the same transaction before the real validator. Its new row/count therefore participates in the original complete physical final fence, with an additional exact publication seal. Preexisting qualification rows refuse. Any validation failure rolls the provisional row back; generic metadata seal never produces it. This prepares future copy-retirement authority without accepting caller receipt DTOs, and does not itself retire a copy.
 
 The three complete generation owner/Human/publication files pass **96/96**, exit0, TAP9737.653542ms, wall9820.833292ms, unchanged vectors. The final Human owning file now has34 cases. The extra tests prove exact bodyfree schema/identity/seal binding and forged preexisting-row refusal. No native/build rerun was performed for this successor.
+
+## Existing-device saved incremental integration
+
+Selected526b7091 as98ac9fcc and applied only the coordinator consumer import, accepted partial phase, captured merge base, saved dispatch and original `mergeSaved` method. Root's authenticated generation private proof, empty-target guard, purge denial, activation physical fences and manual merge remain. The incoming typed transitions retain original saved owner and per-step durable partial receipt; this is not checkpoint-wide atomicity.
+
+Root ran the exact saved incremental owning file plus nonempty manual recovery and original generation owner after integration: **73/73**, exit0, TAP12604.137458ms, wall12681.459958ms. Original component139/139 and separate37/37 are not added to this invocation. All before/after core and owning hashes remained unchanged. No native/browser/build/cloud execution for this successor.

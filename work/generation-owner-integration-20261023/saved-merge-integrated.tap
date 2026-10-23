@@ -1,0 +1,448 @@
+TAP version 13
+# Subtest: independently journaled nonempty initial B keeps its existing namespace and manual Context
+ok 1 - independently journaled nonempty initial B keeps its existing namespace and manual Context
+  ---
+  duration_ms: 88.127166
+  type: 'test'
+  ...
+# Subtest: original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+ok 2 - original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+  ---
+  duration_ms: 111.403958
+  type: 'test'
+  ...
+# Subtest: same Context fork retains both devices unchanged and refuses unresolved conflict
+ok 3 - same Context fork retains both devices unchanged and refuses unresolved conflict
+  ---
+  duration_ms: 55.645208
+  type: 'test'
+  ...
+# Subtest: late local edit after stage remains intact and blocks merge
+ok 4 - late local edit after stage remains intact and blocks merge
+  ---
+  duration_ms: 55.962542
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+ok 5 - nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 69.24725
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+ok 6 - nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 69.601584
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+ok 7 - nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 77.083875
+  type: 'test'
+  ...
+# Subtest: old cut cannot resurrect a removed Context and explicit restoration remains causal
+ok 8 - old cut cannot resurrect a removed Context and explicit restoration remains causal
+  ---
+  duration_ms: 97.10975
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal context drift with complete rollback
+ok 9 - closed original Repository fence rejects post-seal context drift with complete rollback
+  ---
+  duration_ms: 60.199417
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal prompt drift with complete rollback
+ok 10 - closed original Repository fence rejects post-seal prompt drift with complete rollback
+  ---
+  duration_ms: 68.868583
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal new-meta drift with complete rollback
+ok 11 - closed original Repository fence rejects post-seal new-meta drift with complete rollback
+  ---
+  duration_ms: 59.506
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal receipt drift with complete rollback
+ok 12 - closed original Repository fence rejects post-seal receipt drift with complete rollback
+  ---
+  duration_ms: 58.684542
+  type: 'test'
+  ...
+# Subtest: lost acknowledgement confirmation requires original durable protocol receipts after cleanup
+ok 13 - lost acknowledgement confirmation requires original durable protocol receipts after cleanup
+  ---
+  duration_ms: 61.326334
+  type: 'test'
+  ...
+# Subtest: original backup finalizer cannot change Context after the merge callback and before native commit
+ok 14 - original backup finalizer cannot change Context after the merge callback and before native commit
+  ---
+  duration_ms: 61.604375
+  type: 'test'
+  ...
+# Subtest: retained merge snapshot refuses more than 2 MiB without any canonical or protocol commit
+ok 15 - retained merge snapshot refuses more than 2 MiB without any canonical or protocol commit
+  ---
+  duration_ms: 63.020375
+  type: 'test'
+  ...
+# Subtest: manual merge original control publication rejects same-key local-control-publication:revision drift at finalizer tail
+ok 16 - manual merge original control publication rejects same-key local-control-publication:revision drift at finalizer tail
+  ---
+  duration_ms: 60.074167
+  type: 'test'
+  ...
+# Subtest: manual merge original control publication rejects same-key migration drift at finalizer tail
+ok 17 - manual merge original control publication rejects same-key migration drift at finalizer tail
+  ---
+  duration_ms: 58.781875
+  type: 'test'
+  ...
+# Subtest: post-cleanup merge acknowledgement requires independent empty-receipts binding
+ok 18 - post-cleanup merge acknowledgement requires independent empty-receipts binding
+  ---
+  duration_ms: 60.508708
+  type: 'test'
+  ...
+# Subtest: post-cleanup merge acknowledgement requires independent graph-digest binding
+ok 19 - post-cleanup merge acknowledgement requires independent graph-digest binding
+  ---
+  duration_ms: 60.042125
+  type: 'test'
+  ...
+# Subtest: post-cleanup merge acknowledgement requires independent manifest-id binding
+ok 20 - post-cleanup merge acknowledgement requires independent manifest-id binding
+  ---
+  duration_ms: 65.73525
+  type: 'test'
+  ...
+# Subtest: durable merge confirmation preserves later legitimate local edits and refuses a missing independent commit
+ok 21 - durable merge confirmation preserves later legitimate local edits and refuses a missing independent commit
+  ---
+  duration_ms: 64.288333
+  type: 'test'
+  ...
+# Subtest: original transaction budget rolls back merge when tail work exceeds references even after diagnostics reset
+ok 22 - original transaction budget rolls back merge when tail work exceeds references even after diagnostics reset
+  ---
+  duration_ms: 128.106833
+  type: 'test'
+  ...
+# Subtest: existing B preserves its local saved edit and outbox while consuming compatible remote successor
+ok 23 - existing B preserves its local saved edit and outbox while consuming compatible remote successor
+  ---
+  duration_ms: 457.665333
+  type: 'test'
+  ...
+# Subtest: existing B checkpoint merge preserves local work and continues remote typed chain
+ok 24 - existing B checkpoint merge preserves local work and continues remote typed chain
+  ---
+  duration_ms: 719.899792
+  type: 'test'
+  ...
+# Subtest: same-entity checkpoint fork refuses before any write and retains local outbox
+ok 25 - same-entity checkpoint fork refuses before any write and retains local outbox
+  ---
+  duration_ms: 305.703042
+  type: 'test'
+  ...
+# Subtest: a descendant of B local edit returns through a cold device without losing B original outbox
+ok 26 - a descendant of B local edit returns through a cold device without losing B original outbox
+  ---
+  duration_ms: 667.889042
+  type: 'test'
+  ...
+# Subtest: durable partial saved checkpoint resumes after restart and stays exportable
+ok 27 - durable partial saved checkpoint resumes after restart and stays exportable
+  ---
+  duration_ms: 692.38575
+  type: 'test'
+  ...
+# Subtest: durable partial saved checkpoint refuses a new local base
+ok 28 - durable partial saved checkpoint refuses a new local base
+  ---
+  duration_ms: 577.091792
+  type: 'test'
+  ...
+# Subtest: lost final saved checkpoint return resolves by original durable receipts without replaying writes
+ok 29 - lost final saved checkpoint return resolves by original durable receipts without replaying writes
+  ---
+  duration_ms: 330.983
+  type: 'test'
+  ...
+# Subtest: same incoming saved operation competing locally commits once and retries idempotently
+ok 30 - same incoming saved operation competing locally commits once and retries idempotently
+  ---
+  duration_ms: 253.946833
+  type: 'test'
+  ...
+# Subtest: saved incremental final tail rejects local Entry mutation and rolls back the current whole step
+ok 31 - saved incremental final tail rejects local Entry mutation and rolls back the current whole step
+  ---
+  duration_ms: 331.863375
+  type: 'test'
+  ...
+# Subtest: saved incremental final tail rejects local outbox mutation and rolls back the current whole step
+ok 32 - saved incremental final tail rejects local outbox mutation and rolls back the current whole step
+  ---
+  duration_ms: 322.937916
+  type: 'test'
+  ...
+# Subtest: saved incremental final tail rejects remote physical mutation and rolls back the current whole step
+ok 33 - saved incremental final tail rejects remote physical mutation and rolls back the current whole step
+  ---
+  duration_ms: 321.510417
+  type: 'test'
+  ...
+# Subtest: saved incremental final tail rejects stage progress mutation and rolls back the current whole step
+ok 34 - saved incremental final tail rejects stage progress mutation and rolls back the current whole step
+  ---
+  duration_ms: 342.06675
+  type: 'test'
+  ...
+# Subtest: saved incremental final tail rejects remote receipt mutation and rolls back the current whole step
+ok 35 - saved incremental final tail rejects remote receipt mutation and rolls back the current whole step
+  ---
+  duration_ms: 334.990083
+  type: 'test'
+  ...
+# Subtest: saved incremental source revocation after staging preserves local work and all queued sends
+ok 36 - saved incremental source revocation after staging preserves local work and all queued sends
+  ---
+  duration_ms: 264.2725
+  type: 'test'
+  ...
+# Subtest: saved incremental scope rejects other receipt introduced after verified union
+ok 37 - saved incremental scope rejects other receipt introduced after verified union
+  ---
+  duration_ms: 344.618792
+  type: 'test'
+  ...
+# Subtest: saved incremental scope rejects other placement introduced after verified union
+ok 38 - saved incremental scope rejects other placement introduced after verified union
+  ---
+  duration_ms: 331.628042
+  type: 'test'
+  ...
+# Subtest: saved incremental scope rejects search term introduced after verified union
+ok 39 - saved incremental scope rejects search term introduced after verified union
+  ---
+  duration_ms: 358.603375
+  type: 'test'
+  ...
+# Subtest: saved incremental ancestor checkpoint acknowledges without replacing B newer work
+ok 40 - saved incremental ancestor checkpoint acknowledges without replacing B newer work
+  ---
+  duration_ms: 286.773041
+  type: 'test'
+  ...
+# Subtest: saved incremental private work budget rejects 4097 reads despite resetting public diagnostics
+ok 41 - saved incremental private work budget rejects 4097 reads despite resetting public diagnostics
+  ---
+  duration_ms: 379.648958
+  type: 'test'
+  ...
+# Subtest: saved incremental public elapsed deadline leaves only fully committed resumable steps
+ok 42 - saved incremental public elapsed deadline leaves only fully committed resumable steps
+  ---
+  duration_ms: 474.922666
+  type: 'test'
+  ...
+# Subtest: ancestor-only saved checkpoint rejects Source drift at final settlement
+ok 43 - ancestor-only saved checkpoint rejects Source drift at final settlement
+  ---
+  duration_ms: 211.565791
+  type: 'test'
+  ...
+# Subtest: generation authenticated graph uses original Source owner and stays invisible until separate publication
+ok 44 - generation authenticated graph uses original Source owner and stays invisible until separate publication
+  ---
+  duration_ms: 150.567125
+  type: 'test'
+  ...
+# Subtest: generation cross-database consumer preference publication is refused without local writes
+ok 45 - generation cross-database consumer preference publication is refused without local writes
+  ---
+  duration_ms: 67.111292
+  type: 'test'
+  ...
+# Subtest: generation ordinary activated receipt is not a prepared original graph seal
+ok 46 - generation ordinary activated receipt is not a prepared original graph seal
+  ---
+  duration_ms: 83.886333
+  type: 'test'
+  ...
+# Subtest: generation original seal reads the physical receipt even if stage.get is substituted
+ok 47 - generation original seal reads the physical receipt even if stage.get is substituted
+  ---
+  duration_ms: 84.773416
+  type: 'test'
+  ...
+# Subtest: generation graph seal refuses late canonical mutation and rolls back the sealed gate
+ok 48 - generation graph seal refuses late canonical mutation and rolls back the sealed gate
+  ---
+  duration_ms: 93.607459
+  type: 'test'
+  ...
+# Subtest: generation original owner applied-group failure rolls back canonical and activation receipt
+ok 49 - generation original owner applied-group failure rolls back canonical and activation receipt
+  ---
+  duration_ms: 95.90025
+  type: 'test'
+  ...
+# Subtest: generation original owner before-activation failure rolls back canonical and activation receipt
+ok 50 - generation original owner before-activation failure rolls back canonical and activation receipt
+  ---
+  duration_ms: 106.37875
+  type: 'test'
+  ...
+# Subtest: generation original owner after-activation failure rolls back canonical and activation receipt
+ok 51 - generation original owner after-activation failure rolls back canonical and activation receipt
+  ---
+  duration_ms: 94.417125
+  type: 'test'
+  ...
+# Subtest: generation restart must rebind genuine graph proof before original activation
+ok 52 - generation restart must rebind genuine graph proof before original activation
+  ---
+  duration_ms: 91.149459
+  type: 'test'
+  ...
+# Subtest: generation fake and foreign graph proofs cannot stage canonical content
+ok 53 - generation fake and foreign graph proofs cannot stage canonical content
+  ---
+  duration_ms: 53.261958
+  type: 'test'
+  ...
+# Subtest: generation late gate drift aborts the complete original owner transaction
+ok 54 - generation late gate drift aborts the complete original owner transaction
+  ---
+  duration_ms: 72.722542
+  type: 'test'
+  ...
+# Subtest: generation late authenticated-item drift aborts the complete original owner transaction
+ok 55 - generation late authenticated-item drift aborts the complete original owner transaction
+  ---
+  duration_ms: 73.116792
+  type: 'test'
+  ...
+# Subtest: generation late activation drift aborts the complete original owner transaction
+ok 56 - generation late activation drift aborts the complete original owner transaction
+  ---
+  duration_ms: 75.620375
+  type: 'test'
+  ...
+# Subtest: generation late restore-receipt drift aborts the complete original owner transaction
+ok 57 - generation late restore-receipt drift aborts the complete original owner transaction
+  ---
+  duration_ms: 76.957125
+  type: 'test'
+  ...
+# Subtest: original grouped begin detaches the manifest identity before its first await
+ok 58 - original grouped begin detaches the manifest identity before its first await
+  ---
+  duration_ms: 77.040208
+  type: 'test'
+  ...
+# Subtest: original grouped tail detaches the successor identity through held transport
+ok 59 - original grouped tail detaches the successor identity through held transport
+  ---
+  duration_ms: 99.981208
+  type: 'test'
+  ...
+# Subtest: generation existing active source requires a real negative-ledger migration owner
+ok 60 - generation existing active source requires a real negative-ledger migration owner
+  ---
+  duration_ms: 81.291666
+  type: 'test'
+  ...
+# Subtest: known purge deny blocks authenticated-stage before storing old checkpoint content
+ok 61 - known purge deny blocks authenticated-stage before storing old checkpoint content
+  ---
+  duration_ms: 38.896917
+  type: 'test'
+  ...
+# Subtest: known purge deny blocks original-group before storing old checkpoint content
+ok 62 - known purge deny blocks original-group before storing old checkpoint content
+  ---
+  duration_ms: 38.480917
+  type: 'test'
+  ...
+# Subtest: known purge deny blocks canonical-owner before storing old checkpoint content
+ok 63 - known purge deny blocks canonical-owner before storing old checkpoint content
+  ---
+  duration_ms: 53.789292
+  type: 'test'
+  ...
+# Subtest: late purge deny rolls back authenticated-stage writes at native completion
+ok 64 - late purge deny rolls back authenticated-stage writes at native completion
+  ---
+  duration_ms: 43.884125
+  type: 'test'
+  ...
+# Subtest: late purge deny rolls back original-group writes at native completion
+ok 65 - late purge deny rolls back original-group writes at native completion
+  ---
+  duration_ms: 40.027916
+  type: 'test'
+  ...
+# Subtest: late purge deny rolls back canonical-owner writes at native completion
+ok 66 - late purge deny rolls back canonical-owner writes at native completion
+  ---
+  duration_ms: 55.88625
+  type: 'test'
+  ...
+# Subtest: original purge refuses a genuine authenticated checkpoint body still resident outside protocol namespace
+ok 67 - original purge refuses a genuine authenticated checkpoint body still resident outside protocol namespace
+  ---
+  duration_ms: 59.590834
+  type: 'test'
+  ...
+# Subtest: cold purge receiver refuses a genuine authenticated checkpoint body with no canonical Source
+ok 68 - cold purge receiver refuses a genuine authenticated checkpoint body with no canonical Source
+  ---
+  duration_ms: 95.007417
+  type: 'test'
+  ...
+# Subtest: late resident checkpoint insertion rolls back local original purge
+ok 69 - late resident checkpoint insertion rolls back local original purge
+  ---
+  duration_ms: 76.450209
+  type: 'test'
+  ...
+# Subtest: late resident checkpoint insertion rolls back cold original purge
+ok 70 - late resident checkpoint insertion rolls back cold original purge
+  ---
+  duration_ms: 99.537875
+  type: 'test'
+  ...
+# Subtest: duplicate purge acknowledgement refuses resident checkpoint state:v1
+ok 71 - duplicate purge acknowledgement refuses resident checkpoint state:v1
+  ---
+  duration_ms: 101.977125
+  type: 'test'
+  ...
+# Subtest: duplicate purge acknowledgement refuses resident checkpoint item:00000000
+ok 72 - duplicate purge acknowledgement refuses resident checkpoint item:00000000
+  ---
+  duration_ms: 101.412917
+  type: 'test'
+  ...
+# Subtest: duplicate purge acknowledgement refuses resident checkpoint page:00000000
+ok 73 - duplicate purge acknowledgement refuses resident checkpoint page:00000000
+  ---
+  duration_ms: 106.644709
+  type: 'test'
+  ...
+1..73
+# tests 73
+# suites 0
+# pass 73
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12604.137458
