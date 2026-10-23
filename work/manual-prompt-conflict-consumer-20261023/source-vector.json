@@ -1,0 +1,12 @@
+{
+  "extension/background/prompt-reuse-commands.js": "48968727e67d50aa5fc1d20e77da933bf081f07a0ebbc1db01adab6548e2cf57",
+  "extension/background/prompt-surface.js": "f8ea4bda4c67d812344f8e79c50f04d32678929e2407580d4cc9643bb4b4c6ee",
+  "extension/core/browser-native-sync/prompt-journal.js": "092c9032d4e5fdbfc06ace7c5ed852397e38482dfff58119c402a0f3415b1576",
+  "extension/core/prompt-reuse-service.js": "795d2a8e906237610ab6c92ed9ce7ca517bd39f897bc9a82dd1ff1efc178bf2c",
+  "extension/tests/manual-prompt-conflict-consumer.test.mjs": "c1e56dcf2c437fc48cba61f06009deb01549d2c05550b36928715035d55c4c43",
+  "extension/tests/manual-prompt-conflict-surface.test.mjs": "d4dc0ab1999f6527aff655d5e7709f70eded6b64c68100057666d691899ec896",
+  "extension/tests/manual-prompt-conflict-view.test.mjs": "ae8b4eec986d24218d30eb655da7f2f4e793eb8c84531fa1dd2028995ba15331",
+  "extension/tests/native-sync/manual-prompt-conflict-fixture.mjs": "fb8048838f2b1cfe1b805c9bb1888e117481a1621e7ec24244f8c8913209a42e",
+  "extension/ui/prompt-conflict-view.js": "7cf13abcea4f9d36be6c5dc3f31cb80f9137a602f4fe82cef034b91db39ade9b",
+  "extension/ui/prompt-surface.js": "7e296e2dd19c6a1b87dc150d6f4cef61636e0c2288d369ab96838ca2969a882d"
+}

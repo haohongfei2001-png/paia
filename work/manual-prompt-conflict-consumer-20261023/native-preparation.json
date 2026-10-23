@@ -1,0 +1,30 @@
+{
+  "cases": [
+    "explicit local resolves exact two parents, canonical proof and outbox together",
+    "explicit other resolves exact two parents, canonical proof and outbox together",
+    "explicit manual resolves exact two parents, canonical proof and outbox together",
+    "explicit both resolves exact two parents, canonical proof and outbox together",
+    "unrelated pins conflict is retained without whole-aggregate choice",
+    "unrelated other-body conflict is retained without whole-aggregate choice",
+    "unrelated hidden conflict is retained without whole-aggregate choice",
+    "unrelated split conflict is retained without whole-aggregate choice",
+    "unrelated binding-proof conflict is retained without whole-aggregate choice",
+    "review head change cannot commit stale human decision",
+    "review epoch change cannot commit stale human decision",
+    "review namespace change cannot commit stale human decision",
+    "review revision change cannot commit stale human decision",
+    "review proof change cannot commit stale human decision",
+    "review generation change cannot commit stale human decision",
+    "corrupt committed operation fails digest validation before displaying an offer",
+    "proof-failure rolls back preferences, heads, proof and outbox",
+    "late-owner-write rolls back preferences, heads, proof and outbox",
+    "forged token, sender, unsupported text, replaced journal and consent all refuse without writes",
+    "ordinary local service exposes no resolution offer without its original journal",
+    "original control change after prepare refuses before the write; an old offer cannot be renewed",
+    "late gate change in the write rolls back the entire resolution",
+    "late control-cache change in the write rolls back the entire resolution"
+  ],
+  "executedCallbacks": 0,
+  "browser": false,
+  "build": false
+}

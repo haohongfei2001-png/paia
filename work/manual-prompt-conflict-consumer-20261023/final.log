@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: host content and forged extension locations cannot query the library or trigger insertion
+ok 1 - host content and forged extension locations cannot query the library or trigger insertion
+  ---
+  duration_ms: 1.361791
+  type: 'test'
+  ...
+# Subtest: only explicitly selected text reaches top frame; duplicate operation never repeats insertion
+ok 2 - only explicitly selected text reaches top frame; duplicate operation never repeats insertion
+  ---
+  duration_ms: 7.630041
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: null
+ok 3 - unverified acknowledgement is never successful or automatically retried: null
+  ---
+  duration_ms: 0.217708
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: {"status":"inserted"}
+ok 4 - unverified acknowledgement is never successful or automatically retried: {"status":"inserted"}
+  ---
+  duration_ms: 0.176833
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: {"status":"uncertain"}
+ok 5 - unverified acknowledgement is never successful or automatically retried: {"status":"uncertain"}
+  ---
+  duration_ms: 0.195958
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: {"status":"failed","reason":"insertion_rejected"}
+ok 6 - unverified acknowledgement is never successful or automatically retried: {"status":"failed","reason":"insertion_rejected"}
+  ---
+  duration_ms: 0.23525
+  type: 'test'
+  ...
+# Subtest: consent, stale selected text and tab navigation fail before sending
+ok 7 - consent, stale selected text and tab navigation fail before sending
+  ---
+  duration_ms: 0.268208
+  type: 'test'
+  ...
+# Subtest: clipboard success waits for browser acknowledgement; rejection does not report copied
+ok 8 - clipboard success waits for browser acknowledgement; rejection does not report copied
+  ---
+  duration_ms: 0.103166
+  type: 'test'
+  ...
+# Subtest: new Stage 1/2 runtime has no network, send, reply, website storage, page bridge or raw HTML write
+ok 9 - new Stage 1/2 runtime has no network, send, reply, website storage, page bridge or raw HTML write
+  ---
+  duration_ms: 6.083541
+  type: 'test'
+  ...
+# Subtest: explicit local resolves exact two parents, canonical proof and outbox together
+ok 10 - explicit local resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 78.068209
+  type: 'test'
+  ...
+# Subtest: explicit other resolves exact two parents, canonical proof and outbox together
+ok 11 - explicit other resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 37.737542
+  type: 'test'
+  ...
+# Subtest: explicit manual resolves exact two parents, canonical proof and outbox together
+ok 12 - explicit manual resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 33.135
+  type: 'test'
+  ...
+# Subtest: explicit both resolves exact two parents, canonical proof and outbox together
+ok 13 - explicit both resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 26.623167
+  type: 'test'
+  ...
+# Subtest: unrelated pins conflict is retained without whole-aggregate choice
+ok 14 - unrelated pins conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 17.971666
+  type: 'test'
+  ...
+# Subtest: unrelated other-body conflict is retained without whole-aggregate choice
+ok 15 - unrelated other-body conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 16.226166
+  type: 'test'
+  ...
+# Subtest: unrelated hidden conflict is retained without whole-aggregate choice
+ok 16 - unrelated hidden conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 17.66
+  type: 'test'
+  ...
+# Subtest: unrelated split conflict is retained without whole-aggregate choice
+ok 17 - unrelated split conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 18.552792
+  type: 'test'
+  ...
+# Subtest: unrelated binding-proof conflict is retained without whole-aggregate choice
+ok 18 - unrelated binding-proof conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 17.268167
+  type: 'test'
+  ...
+# Subtest: review head change cannot commit stale human decision
+ok 19 - review head change cannot commit stale human decision
+  ---
+  duration_ms: 22.427125
+  type: 'test'
+  ...
+# Subtest: review epoch change cannot commit stale human decision
+ok 20 - review epoch change cannot commit stale human decision
+  ---
+  duration_ms: 20.114792
+  type: 'test'
+  ...
+# Subtest: review namespace change cannot commit stale human decision
+ok 21 - review namespace change cannot commit stale human decision
+  ---
+  duration_ms: 21.213959
+  type: 'test'
+  ...
+# Subtest: review revision change cannot commit stale human decision
+ok 22 - review revision change cannot commit stale human decision
+  ---
+  duration_ms: 18.9935
+  type: 'test'
+  ...
+# Subtest: review proof change cannot commit stale human decision
+ok 23 - review proof change cannot commit stale human decision
+  ---
+  duration_ms: 20.160833
+  type: 'test'
+  ...
+# Subtest: review generation change cannot commit stale human decision
+ok 24 - review generation change cannot commit stale human decision
+  ---
+  duration_ms: 19.865917
+  type: 'test'
+  ...
+# Subtest: corrupt committed operation fails digest validation before displaying an offer
+ok 25 - corrupt committed operation fails digest validation before displaying an offer
+  ---
+  duration_ms: 15.390292
+  type: 'test'
+  ...
+# Subtest: proof-failure rolls back preferences, heads, proof and outbox
+ok 26 - proof-failure rolls back preferences, heads, proof and outbox
+  ---
+  duration_ms: 22.622
+  type: 'test'
+  ...
+# Subtest: late-owner-write rolls back preferences, heads, proof and outbox
+ok 27 - late-owner-write rolls back preferences, heads, proof and outbox
+  ---
+  duration_ms: 21.760417
+  type: 'test'
+  ...
+# Subtest: forged token, sender, unsupported text, replaced journal and consent all refuse without writes
+ok 28 - forged token, sender, unsupported text, replaced journal and consent all refuse without writes
+  ---
+  duration_ms: 22.1245
+  type: 'test'
+  ...
+# Subtest: ordinary local service exposes no resolution offer without its original journal
+ok 29 - ordinary local service exposes no resolution offer without its original journal
+  ---
+  duration_ms: 17.98325
+  type: 'test'
+  ...
+# Subtest: both literal bodies stay visible and manual unchanged CRLF stays exact
+ok 30 - both literal bodies stay visible and manual unchanged CRLF stays exact
+  ---
+  duration_ms: 7.352792
+  type: 'test'
+  ...
+# Subtest: composition and deferred decision do not submit; both selection is explicit
+ok 31 - composition and deferred decision do not submit; both selection is explicit
+  ---
+  duration_ms: 0.12625
+  type: 'test'
+  ...
+# Subtest: failure preserves edited body, disables stale resolution, and does not retry
+ok 32 - failure preserves edited body, disables stale resolution, and does not retry
+  ---
+  duration_ms: 0.136333
+  type: 'test'
+  ...
+# Subtest: rejected submit leaves draft and allows only explicit later cancellation
+ok 33 - rejected submit leaves draft and allows only explicit later cancellation
+  ---
+  duration_ms: 0.276875
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 678.324833

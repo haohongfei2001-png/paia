@@ -1,0 +1,520 @@
+TAP version 13
+# Subtest: host content and forged extension locations cannot query the library or trigger insertion
+ok 1 - host content and forged extension locations cannot query the library or trigger insertion
+  ---
+  duration_ms: 1.392584
+  type: 'test'
+  ...
+# Subtest: only explicitly selected text reaches top frame; duplicate operation never repeats insertion
+ok 2 - only explicitly selected text reaches top frame; duplicate operation never repeats insertion
+  ---
+  duration_ms: 7.096042
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: null
+ok 3 - unverified acknowledgement is never successful or automatically retried: null
+  ---
+  duration_ms: 0.221542
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: {"status":"inserted"}
+ok 4 - unverified acknowledgement is never successful or automatically retried: {"status":"inserted"}
+  ---
+  duration_ms: 0.14175
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: {"status":"uncertain"}
+ok 5 - unverified acknowledgement is never successful or automatically retried: {"status":"uncertain"}
+  ---
+  duration_ms: 0.177083
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: {"status":"failed","reason":"insertion_rejected"}
+ok 6 - unverified acknowledgement is never successful or automatically retried: {"status":"failed","reason":"insertion_rejected"}
+  ---
+  duration_ms: 0.093791
+  type: 'test'
+  ...
+# Subtest: consent, stale selected text and tab navigation fail before sending
+ok 7 - consent, stale selected text and tab navigation fail before sending
+  ---
+  duration_ms: 0.226458
+  type: 'test'
+  ...
+# Subtest: clipboard success waits for browser acknowledgement; rejection does not report copied
+ok 8 - clipboard success waits for browser acknowledgement; rejection does not report copied
+  ---
+  duration_ms: 0.11225
+  type: 'test'
+  ...
+# Subtest: new Stage 1/2 runtime has no network, send, reply, website storage, page bridge or raw HTML write
+ok 9 - new Stage 1/2 runtime has no network, send, reply, website storage, page bridge or raw HTML write
+  ---
+  duration_ms: 9.562833
+  type: 'test'
+  ...
+# Subtest: editing reuse text never changes Source, Working Input, history or other archive authority
+ok 10 - editing reuse text never changes Source, Working Input, history or other archive authority
+  ---
+  duration_ms: 90.727959
+  type: 'test'
+  ...
+# Subtest: pin/reorder/unpin and reversible hide preserve manual order through new capture
+ok 11 - pin/reorder/unpin and reversible hide preserve manual order through new capture
+  ---
+  duration_ms: 91.123916
+  type: 'test'
+  ...
+# Subtest: split correction survives service restart and never immediately remerges identical inputs
+ok 12 - split correction survives service restart and never immediately remerges identical inputs
+  ---
+  duration_ms: 43.612209
+  type: 'test'
+  ...
+# Subtest: current Working Input, removal, explicit AI exclusion and tombstones govern every release
+ok 13 - current Working Input, removal, explicit AI exclusion and tombstones govern every release
+  ---
+  duration_ms: 45.551583
+  type: 'test'
+  ...
+# Subtest: purge removes automatic evidence, while explicit independent template survives by contract
+ok 14 - purge removes automatic evidence, while explicit independent template survives by contract
+  ---
+  duration_ms: 56.59475
+  type: 'test'
+  ...
+# Subtest: assistant role, removed and filtered inputs never seed an automatic family
+ok 15 - assistant role, removed and filtered inputs never seed an automatic family
+  ---
+  duration_ms: 37.039292
+  type: 'test'
+  ...
+# Subtest: stale preference writes and invalid manual orders fail without dropping saved work
+ok 16 - stale preference writes and invalid manual orders fail without dropping saved work
+  ---
+  duration_ms: 40.68925
+  type: 'test'
+  ...
+# Subtest: strict Backup round trip retains edited template, pins/hide/split without a new store or grants
+ok 17 - strict Backup round trip retains edited template, pins/hide/split without a new store or grants
+  ---
+  duration_ms: 84.867542
+  type: 'test'
+  ...
+# Subtest: backup empty/merge cannot silently overwrite independent template work
+ok 18 - backup empty/merge cannot silently overwrite independent template work
+  ---
+  duration_ms: 32.555667
+  type: 'test'
+  ...
+# Subtest: removed input and purge fences veto old automatic read-back, without resurrecting through rebuild
+ok 19 - removed input and purge fences veto old automatic read-back, without resurrecting through rebuild
+  ---
+  duration_ms: 43.648333
+  type: 'test'
+  ...
+# Subtest: storage abort preserves overrides and archive; a changed release generation is rejected
+ok 20 - storage abort preserves overrides and archive; a changed release generation is rejected
+  ---
+  duration_ms: 48.462291
+  type: 'test'
+  ...
+# Subtest: explicit independent-template delete removes hidden/pinned work, stale release and new Backup without touching history
+ok 21 - explicit independent-template delete removes hidden/pinned work, stale release and new Backup without touching history
+  ---
+  duration_ms: 112.38
+  type: 'test'
+  ...
+# Subtest: delete refuses any family with current members, but permits its independent edited template after support loss
+ok 22 - delete refuses any family with current members, but permits its independent edited template after support loss
+  ---
+  duration_ms: 104.593042
+  type: 'test'
+  ...
+# Subtest: delete frees a full bounded override slot; hide does not; unrelated manual order survives
+ok 23 - delete frees a full bounded override slot; hide does not; unrelated manual order survives
+  ---
+  duration_ms: 129.776042
+  type: 'test'
+  ...
+# Subtest: stale or aborted delete preserves the template, pin and archive atomically
+ok 24 - stale or aborted delete preserves the template, pin and archive atomically
+  ---
+  duration_ms: 41.039084
+  type: 'test'
+  ...
+# Subtest: surface reorder retains the complete manual order including hidden pins
+ok 25 - surface reorder retains the complete manual order including hidden pins
+  ---
+  duration_ms: 51.657708
+  type: 'test'
+  ...
+# Subtest: surface frames require exact origin, nonce, current host, positive frame and consent
+ok 26 - surface frames require exact origin, nonce, current host, positive frame and consent
+  ---
+  duration_ms: 2.7
+  type: 'test'
+  ...
+# Subtest: host gets only geometry; frame insertion is forcibly bound to its own tab and cannot query arbitrary capabilities
+ok 27 - host gets only geometry; frame insertion is forcibly bound to its own tab and cannot query arbitrary capabilities
+  ---
+  duration_ms: 0.547042
+  type: 'test'
+  ...
+# Subtest: position is bounded device-only metadata, with no website or archive body storage
+ok 28 - position is bounded device-only metadata, with no website or archive body storage
+  ---
+  duration_ms: 0.265042
+  type: 'test'
+  ...
+# Subtest: safe geometry clamps orb and card, excludes native composer controls at 320px and expanded scale
+ok 29 - safe geometry clamps orb and card, excludes native composer controls at 320px and expanded scale
+  ---
+  duration_ms: 4.481625
+  type: 'test'
+  ...
+# Subtest: surface publishes only one static extension frame, no host library bridge or new privileged host
+ok 30 - surface publishes only one static extension frame, no host library bridge or new privileged host
+  ---
+  duration_ms: 3.710542
+  type: 'test'
+  ...
+# Subtest: popup diagnostic is consent-only, exact-view authorized and returns bounded metadata
+ok 31 - popup diagnostic is consent-only, exact-view authorized and returns bounded metadata
+  ---
+  duration_ms: 0.677292
+  type: 'test'
+  ...
+# Subtest: open geometry uses one visible anchor, projects the attached card into safe bands and restores without drift
+ok 32 - open geometry uses one visible anchor, projects the attached card into safe bands and restores without drift
+  ---
+  duration_ms: 1.18225
+  type: 'test'
+  ...
+# Subtest: SPA geometry save binds the initial sender URL to the exact live document, without authorizing stale navigation
+ok 33 - SPA geometry save binds the initial sender URL to the exact live document, without authorizing stale navigation
+  ---
+  duration_ms: 0.779042
+  type: 'test'
+  ...
+# Subtest: open surface preserves legacy metadata without moving the common composer anchor
+ok 34 - open surface preserves legacy metadata without moving the common composer anchor
+  ---
+  duration_ms: 2.051875
+  type: 'test'
+  ...
+# Subtest: saved open anchor remains viewport-bounded when scrolling moves the composer outside the viewport
+ok 35 - saved open anchor remains viewport-bounded when scrolling moves the composer outside the viewport
+  ---
+  duration_ms: 1.22575
+  type: 'test'
+  ...
+# Subtest: initial host mount stays hidden until held first geometry frame: composer top 8
+ok 36 - initial host mount stays hidden until held first geometry frame: composer top 8
+  ---
+  duration_ms: 2.370375
+  type: 'test'
+  ...
+# Subtest: initial host mount stays hidden until held first geometry frame: composer top 700
+ok 37 - initial host mount stays hidden until held first geometry frame: composer top 700
+  ---
+  duration_ms: 1.289583
+  type: 'test'
+  ...
+# Subtest: disposing the host cancels its pending presentation timer and removes composer activity listeners
+ok 38 - disposing the host cancels its pending presentation timer and removes composer activity listeners
+  ---
+  duration_ms: 0.968
+  type: 'test'
+  ...
+# Subtest: open orb requests the private card close policy instead of only focusing or destroying its frame
+ok 39 - open orb requests the private card close policy instead of only focusing or destroying its frame
+  ---
+  duration_ms: 0.96825
+  type: 'test'
+  ...
+# Subtest: orb drag click suppression ends with its gesture and keyboard activation still requests closure
+ok 40 - orb drag click suppression ends with its gesture and keyboard activation still requests closure
+  ---
+  duration_ms: 1.377875
+  type: 'test'
+  ...
+# Subtest: orb drag temporarily excludes the iframe from hit testing and every terminal path releases capture once
+ok 41 - orb drag temporarily excludes the iframe from hit testing and every terminal path releases capture once
+  ---
+  duration_ms: 7.172375
+  type: 'test'
+  ...
+# Subtest: host close request is nonce-only and bound to the exact active top document, consent and live card
+ok 42 - host close request is nonce-only and bound to the exact active top document, consent and live card
+  ---
+  duration_ms: 0.406208
+  type: 'test'
+  ...
+# Subtest: host close request rejects navigation or consent changes during its live probe; SPA uses the live document
+ok 43 - host close request rejects navigation or consent changes during its live probe; SPA uses the live document
+  ---
+  duration_ms: 0.176417
+  type: 'test'
+  ...
+# Subtest: approved double-card presentation uses one persistent circle and accessible owner
+ok 44 - approved double-card presentation uses one persistent circle and accessible owner
+  ---
+  duration_ms: 0.862333
+  type: 'test'
+  ...
+# Subtest: authenticated measure is geometry-only, bounded, exact-shaped and nonce-bound
+ok 45 - authenticated measure is geometry-only, bounded, exact-shaped and nonce-bound
+  ---
+  duration_ms: 1.08325
+  type: 'test'
+  ...
+# Subtest: host measurement accepts only current private nonce and preserves the frame
+ok 46 - host measurement accepts only current private nonce and preserves the frame
+  ---
+  duration_ms: 1.046291
+  type: 'test'
+  ...
+# Subtest: measure acknowledgements follow layout and cannot authorize a superseded nonce or generation
+ok 47 - measure acknowledgements follow layout and cannot authorize a superseded nonce or generation
+  ---
+  duration_ms: 0.792667
+  type: 'test'
+  ...
+# Subtest: surface exposes only normalized display preferences through the original read-only meta owner
+ok 48 - surface exposes only normalized display preferences through the original read-only meta owner
+  ---
+  duration_ms: 0.246541
+  type: 'test'
+  ...
+# Subtest: private query exposes only a strict automatic-presentation boolean and never host suggestion bodies
+ok 49 - private query exposes only a strict automatic-presentation boolean and never host suggestion bodies
+  ---
+  duration_ms: 0.762542
+  type: 'test'
+  ...
+# Subtest: first collapsed host reads only display choices and cannot persist them as geometry
+ok 50 - first collapsed host reads only display choices and cannot persist them as geometry
+  ---
+  duration_ms: 0.147625
+  type: 'test'
+  ...
+# Subtest: display-only activation never reinitializes an open private editor; consent activation retains its guard
+ok 51 - display-only activation never reinitializes an open private editor; consent activation retains its guard
+  ---
+  duration_ms: 2.544667
+  type: 'test'
+  ...
+# Subtest: initial connected orb already has the saved accessible language and theme before its first animation frame
+ok 52 - initial connected orb already has the saved accessible language and theme before its first animation frame
+  ---
+  duration_ms: 0.690541
+  type: 'test'
+  ...
+# Subtest: only an authenticated private frame selects a strict device-local collapsed form
+ok 53 - only an authenticated private frame selects a strict device-local collapsed form
+  ---
+  duration_ms: 0.305833
+  type: 'test'
+  ...
+# Subtest: private close relays only the original nonce-bound host form, never a child-selected or stale form
+ok 54 - private close relays only the original nonce-bound host form, never a child-selected or stale form
+  ---
+  duration_ms: 0.36025
+  type: 'test'
+  ...
+# Subtest: explicit local resolves exact two parents, canonical proof and outbox together
+ok 55 - explicit local resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 87.200458
+  type: 'test'
+  ...
+# Subtest: explicit other resolves exact two parents, canonical proof and outbox together
+ok 56 - explicit other resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 35.130333
+  type: 'test'
+  ...
+# Subtest: explicit manual resolves exact two parents, canonical proof and outbox together
+ok 57 - explicit manual resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 38.191208
+  type: 'test'
+  ...
+# Subtest: explicit both resolves exact two parents, canonical proof and outbox together
+ok 58 - explicit both resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 33.793333
+  type: 'test'
+  ...
+# Subtest: unrelated pins conflict is retained without whole-aggregate choice
+ok 59 - unrelated pins conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 18.722625
+  type: 'test'
+  ...
+# Subtest: unrelated other-body conflict is retained without whole-aggregate choice
+ok 60 - unrelated other-body conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 18.690583
+  type: 'test'
+  ...
+# Subtest: unrelated hidden conflict is retained without whole-aggregate choice
+ok 61 - unrelated hidden conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 18.840917
+  type: 'test'
+  ...
+# Subtest: unrelated split conflict is retained without whole-aggregate choice
+ok 62 - unrelated split conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 17.250583
+  type: 'test'
+  ...
+# Subtest: unrelated binding-proof conflict is retained without whole-aggregate choice
+ok 63 - unrelated binding-proof conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 20.71225
+  type: 'test'
+  ...
+# Subtest: review head change cannot commit stale human decision
+ok 64 - review head change cannot commit stale human decision
+  ---
+  duration_ms: 24.910791
+  type: 'test'
+  ...
+# Subtest: review epoch change cannot commit stale human decision
+ok 65 - review epoch change cannot commit stale human decision
+  ---
+  duration_ms: 23.482834
+  type: 'test'
+  ...
+# Subtest: review namespace change cannot commit stale human decision
+ok 66 - review namespace change cannot commit stale human decision
+  ---
+  duration_ms: 25.830917
+  type: 'test'
+  ...
+# Subtest: review revision change cannot commit stale human decision
+ok 67 - review revision change cannot commit stale human decision
+  ---
+  duration_ms: 25.041625
+  type: 'test'
+  ...
+# Subtest: review proof change cannot commit stale human decision
+ok 68 - review proof change cannot commit stale human decision
+  ---
+  duration_ms: 22.13625
+  type: 'test'
+  ...
+# Subtest: review generation change cannot commit stale human decision
+ok 69 - review generation change cannot commit stale human decision
+  ---
+  duration_ms: 23.021917
+  type: 'test'
+  ...
+# Subtest: corrupt committed operation fails digest validation before displaying an offer
+ok 70 - corrupt committed operation fails digest validation before displaying an offer
+  ---
+  duration_ms: 17.684708
+  type: 'test'
+  ...
+# Subtest: proof-failure rolls back preferences, heads, proof and outbox
+ok 71 - proof-failure rolls back preferences, heads, proof and outbox
+  ---
+  duration_ms: 24.704833
+  type: 'test'
+  ...
+# Subtest: late-owner-write rolls back preferences, heads, proof and outbox
+ok 72 - late-owner-write rolls back preferences, heads, proof and outbox
+  ---
+  duration_ms: 24.936875
+  type: 'test'
+  ...
+# Subtest: forged token, sender, unsupported text, replaced journal and consent all refuse without writes
+ok 73 - forged token, sender, unsupported text, replaced journal and consent all refuse without writes
+  ---
+  duration_ms: 26.588834
+  type: 'test'
+  ...
+# Subtest: ordinary local service exposes no resolution offer without its original journal
+ok 74 - ordinary local service exposes no resolution offer without its original journal
+  ---
+  duration_ms: 23.877625
+  type: 'test'
+  ...
+# Subtest: original control change after prepare refuses before the write; an old offer cannot be renewed
+ok 75 - original control change after prepare refuses before the write; an old offer cannot be renewed
+  ---
+  duration_ms: 25.076583
+  type: 'test'
+  ...
+# Subtest: late gate change in the write rolls back the entire resolution
+ok 76 - late gate change in the write rolls back the entire resolution
+  ---
+  duration_ms: 28.2445
+  type: 'test'
+  ...
+# Subtest: late control-cache change in the write rolls back the entire resolution
+ok 77 - late control-cache change in the write rolls back the entire resolution
+  ---
+  duration_ms: 23.573833
+  type: 'test'
+  ...
+# Subtest: both literal bodies stay visible and manual unchanged CRLF stays exact
+ok 78 - both literal bodies stay visible and manual unchanged CRLF stays exact
+  ---
+  duration_ms: 9.338583
+  type: 'test'
+  ...
+# Subtest: composition and deferred decision do not submit; both selection is explicit
+ok 79 - composition and deferred decision do not submit; both selection is explicit
+  ---
+  duration_ms: 0.255417
+  type: 'test'
+  ...
+# Subtest: failure preserves edited body, disables stale resolution, and does not retry
+ok 80 - failure preserves edited body, disables stale resolution, and does not retry
+  ---
+  duration_ms: 0.157042
+  type: 'test'
+  ...
+# Subtest: rejected submit leaves draft and allows only explicit later cancellation
+ok 81 - rejected submit leaves draft and allows only explicit later cancellation
+  ---
+  duration_ms: 0.352625
+  type: 'test'
+  ...
+# Subtest: Cancel starts the original refresh; an immediate host Close is deliberately refused until its query settles
+ok 82 - Cancel starts the original refresh; an immediate host Close is deliberately refused until its query settles
+  ---
+  duration_ms: 3.317958
+  type: 'test'
+  ...
+# Subtest: an original query failure releases pending without saving or auto-closing; one later explicit Close remains valid
+ok 83 - an original query failure releases pending without saving or auto-closing; one later explicit Close remains valid
+  ---
+  duration_ms: 1.463667
+  type: 'test'
+  ...
+# Subtest: dirty and active IME guards still reject Close without any query or write
+ok 84 - dirty and active IME guards still reject Close without any query or write
+  ---
+  duration_ms: 0.49625
+  type: 'test'
+  ...
+# Subtest: native helper waits for the original query, retains one frame and performs exactly one acknowledged host gesture
+ok 85 - native helper waits for the original query, retains one frame and performs exactly one acknowledged host gesture
+  ---
+  duration_ms: 1.717958
+  type: 'test'
+  ...
+1..85
+# tests 85
+# suites 0
+# pass 85
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1216.602708
