@@ -1,0 +1,9 @@
+# Resolved Prompt intermediate replay — 2026-10-24
+
+Actual worker integration reported A publication, fresh B restore, explicit original paired Prompt conflict resolution and B successor publication succeeded; fresh C restore failed with BNS_GROUP_CAUSAL_GAP. The author preserves this in work/sync-prompt-consumer-20261024/actual-preferences-second.log. Root source review identified the original grouped activation loop requiring every historical operation to return applied; a complete, finally resolved graph can contain an intermediate conflict.
+
+The successor permits that intermediate result only for an original branded compiled plan, its exact original single Prompt/companion group, two unique current heads including the operation being replayed, a later explicit user resolution of both complete heads, paired companions linked one-to-one to both original Prompt parents, and unique final heads causally covering both resolvers. Other result states, unresolved graphs, unpaired legacy history and wider conflicts retain refusal. Every original protocol receipt/history/frontier, canonical materializer and final whole-cut/head comparison remains in the same activation transaction. No writes, remote response or namespace authority are provided by the pure eligibility helper.
+
+The original remote companion materializer separately needs its exact two-head terminal owner qualification; the Prompt author owns that dependent change. This root package alone does not fix the complete C consumer or prove native recovery.
+
+Validation: Node22.23.3, first11/11 and final11/11 after adding exact current-operation membership, no fail/cancel/skip/todo. These are small original compiler eligibility tests, not a native run or end-to-end restoration. The original worker failure is not overwritten. Root will run the actual composed owning/native batch after dependencies freeze. No build, cloud, account, model, large seed or scale recovery executed.
