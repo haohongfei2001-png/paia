@@ -1,0 +1,472 @@
+TAP version 13
+# Subtest: original lazy default memory configuration survives A to initialized B to C without portable permission intent
+ok 1 - original lazy default memory configuration survives A to initialized B to C without portable permission intent
+  ---
+  duration_ms: 398.184709
+  type: 'test'
+  ...
+# Subtest: nondefault memory external stays unrepresented with no publication or writes
+ok 2 - nondefault memory external stays unrepresented with no publication or writes
+  ---
+  duration_ms: 63.707875
+  type: 'test'
+  ...
+# Subtest: nondefault memory localOnly stays unrepresented with no publication or writes
+ok 3 - nondefault memory localOnly stays unrepresented with no publication or writes
+  ---
+  duration_ms: 45.838
+  type: 'test'
+  ...
+# Subtest: nondefault memory touched stays unrepresented with no publication or writes
+ok 4 - nondefault memory touched stays unrepresented with no publication or writes
+  ---
+  duration_ms: 48.203167
+  type: 'test'
+  ...
+# Subtest: nondefault memory revision stays unrepresented with no publication or writes
+ok 5 - nondefault memory revision stays unrepresented with no publication or writes
+  ---
+  duration_ms: 43.915208
+  type: 'test'
+  ...
+# Subtest: nondefault memory unknown stays unrepresented with no publication or writes
+ok 6 - nondefault memory unknown stays unrepresented with no publication or writes
+  ---
+  duration_ms: 44.723042
+  type: 'test'
+  ...
+# Subtest: a separate legacy profile is not admitted with the default configuration
+ok 7 - a separate legacy profile is not admitted with the default configuration
+  ---
+  duration_ms: 40.980584
+  type: 'test'
+  ...
+# Subtest: a changed target memory decision after staging refuses activation and preserves the existing target
+ok 8 - a changed target memory decision after staging refuses activation and preserves the existing target
+  ---
+  duration_ms: 105.646916
+  type: 'test'
+  ...
+# Subtest: bound manual local resolves exact Prompt and companion parents together
+ok 9 - bound manual local resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 142.051583
+  type: 'test'
+  ...
+# Subtest: bound manual other resolves exact Prompt and companion parents together
+ok 10 - bound manual other resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 93.458709
+  type: 'test'
+  ...
+# Subtest: bound manual both resolves exact Prompt and companion parents together
+ok 11 - bound manual both resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 91.164542
+  type: 'test'
+  ...
+# Subtest: bound manual manual resolves exact Prompt and companion parents together
+ok 12 - bound manual manual resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 80.985584
+  type: 'test'
+  ...
+# Subtest: bound binding-proof refuses and preserves complete prior owner
+ok 13 - bound binding-proof refuses and preserves complete prior owner
+  ---
+  duration_ms: 58.654458
+  type: 'test'
+  ...
+# Subtest: bound binding-row refuses and preserves complete prior owner
+ok 14 - bound binding-row refuses and preserves complete prior owner
+  ---
+  duration_ms: 44.699792
+  type: 'test'
+  ...
+# Subtest: bound late-binding-write refuses and preserves complete prior owner
+ok 15 - bound late-binding-write refuses and preserves complete prior owner
+  ---
+  duration_ms: 51.635792
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved local pair with full two-parent history
+ok 16 - original remote materializer restores resolved local pair with full two-parent history
+  ---
+  duration_ms: 50.823084
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved other pair with full two-parent history
+ok 17 - original remote materializer restores resolved other pair with full two-parent history
+  ---
+  duration_ms: 49.516541
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved both pair with full two-parent history
+ok 18 - original remote materializer restores resolved both pair with full two-parent history
+  ---
+  duration_ms: 51.178041
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved manual pair with full two-parent history
+ok 19 - original remote materializer restores resolved manual pair with full two-parent history
+  ---
+  duration_ms: 47.967875
+  type: 'test'
+  ...
+# Subtest: remote resolved pair historical-companion rejects within original transaction and preserves all prior rows
+ok 20 - remote resolved pair historical-companion rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 40.411666
+  type: 'test'
+  ...
+# Subtest: remote resolved pair wrong-pair rejects within original transaction and preserves all prior rows
+ok 21 - remote resolved pair wrong-pair rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 38.951792
+  type: 'test'
+  ...
+# Subtest: remote resolved pair old-proof rejects within original transaction and preserves all prior rows
+ok 22 - remote resolved pair old-proof rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 38.992417
+  type: 'test'
+  ...
+# Subtest: remote resolved pair changed-other-preference rejects within original transaction and preserves all prior rows
+ok 23 - remote resolved pair changed-other-preference rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 35.652625
+  type: 'test'
+  ...
+# Subtest: prepared full graph deferral complete keeps canonical companion atomic
+ok 24 - prepared full graph deferral complete keeps canonical companion atomic
+  ---
+  duration_ms: 56.825125
+  type: 'test'
+  ...
+# Subtest: prepared full graph deferral early-return keeps canonical companion atomic
+ok 25 - prepared full graph deferral early-return keeps canonical companion atomic
+  ---
+  duration_ms: 58.402292
+  type: 'test'
+  ...
+# Subtest: prepared full graph deferral row-mutated keeps canonical companion atomic
+ok 26 - prepared full graph deferral row-mutated keeps canonical companion atomic
+  ---
+  duration_ms: 67.038167
+  type: 'test'
+  ...
+# Subtest: prepared full graph deferral epoch-mutated keeps canonical companion atomic
+ok 27 - prepared full graph deferral epoch-mutated keeps canonical companion atomic
+  ---
+  duration_ms: 52.343291
+  type: 'test'
+  ...
+# Subtest: prepared full graph deferral cloned-plan keeps canonical companion atomic
+ok 28 - prepared full graph deferral cloned-plan keeps canonical companion atomic
+  ---
+  duration_ms: 47.008041
+  type: 'test'
+  ...
+# Subtest: promptPreferences exact complete paired two-head resolution admits only intermediate conflict
+ok 29 - promptPreferences exact complete paired two-head resolution admits only intermediate conflict
+  ---
+  duration_ms: 65.931458
+  type: 'test'
+  ...
+# Subtest: promptBinding exact complete paired two-head resolution admits only intermediate conflict
+ok 30 - promptBinding exact complete paired two-head resolution admits only intermediate conflict
+  ---
+  duration_ms: 30.382458
+  type: 'test'
+  ...
+# Subtest: refuses duplicate intermediate result
+ok 31 - refuses duplicate intermediate result
+  ---
+  duration_ms: 27.1235
+  type: 'test'
+  ...
+# Subtest: refuses foreign intermediate result
+ok 32 - refuses foreign intermediate result
+  ---
+  duration_ms: 27.307625
+  type: 'test'
+  ...
+# Subtest: refuses pending intermediate result
+ok 33 - refuses pending intermediate result
+  ---
+  duration_ms: 24.3275
+  type: 'test'
+  ...
+# Subtest: refuses purged intermediate result
+ok 34 - refuses purged intermediate result
+  ---
+  duration_ms: 29.656584
+  type: 'test'
+  ...
+# Subtest: refuses missing intermediate result
+ok 35 - refuses missing intermediate result
+  ---
+  duration_ms: 24.476
+  type: 'test'
+  ...
+# Subtest: unpaired legacy resolution does not borrow the new paired exception
+ok 36 - unpaired legacy resolution does not borrow the new paired exception
+  ---
+  duration_ms: 25.058625
+  type: 'test'
+  ...
+# Subtest: three-way history does not borrow finite two-head resolution
+ok 37 - three-way history does not borrow finite two-head resolution
+  ---
+  duration_ms: 28.496333
+  type: 'test'
+  ...
+# Subtest: cloned plan or group cannot replace the original compilation identity
+ok 38 - cloned plan or group cannot replace the original compilation identity
+  ---
+  duration_ms: 24.667625
+  type: 'test'
+  ...
+# Subtest: unresolved paired history remains rejected by the original compiler
+ok 39 - unresolved paired history remains rejected by the original compiler
+  ---
+  duration_ms: 24.649708
+  type: 'test'
+  ...
+# Subtest: promptPreferences resolves two advancing branches only by distinct full-parent ancestry
+ok 40 - promptPreferences resolves two advancing branches only by distinct full-parent ancestry
+  ---
+  duration_ms: 28.378458
+  type: 'test'
+  ...
+# Subtest: promptBinding resolves two advancing branches only by distinct full-parent ancestry
+ok 41 - promptBinding resolves two advancing branches only by distinct full-parent ancestry
+  ---
+  duration_ms: 23.686375
+  type: 'test'
+  ...
+# Subtest: complete Prompt resolution without its companion resolver cannot qualify a replay cut
+ok 42 - complete Prompt resolution without its companion resolver cannot qualify a replay cut
+  ---
+  duration_ms: 23.533625
+  type: 'test'
+  ...
+# Subtest: google all deleted +  original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+ok 43 - google all deleted +  original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+  ---
+  duration_ms: 2493.248416
+  type: 'test'
+  ...
+# Subtest: google surviving Working +  original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+ok 44 - google surviving Working +  original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+  ---
+  duration_ms: 3089.282542
+  type: 'test'
+  ...
+# Subtest: onedrive all deleted +  original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+ok 45 - onedrive all deleted +  original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+  ---
+  duration_ms: 2347.92525
+  type: 'test'
+  ...
+# Subtest: onedrive surviving Working +  original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+ok 46 - onedrive surviving Working +  original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+  ---
+  duration_ms: 3622.643125
+  type: 'test'
+  ...
+# Subtest: negative portable local publication terminal is settled from durable stage after cold instance only
+ok 47 - negative portable local publication terminal is settled from durable stage after cold instance only
+  ---
+  duration_ms: 422.846666
+  type: 'test'
+  ...
+# Subtest: negative portable local publication unknown-visible is settled from durable stage after cold instance only
+ok 48 - negative portable local publication unknown-visible is settled from durable stage after cold instance only
+  ---
+  duration_ms: 411.353208
+  type: 'test'
+  ...
+# Subtest: negative portable local publication unknown-absent is settled from durable stage after cold instance only
+ok 49 - negative portable local publication unknown-absent is settled from durable stage after cold instance only
+  ---
+  duration_ms: 337.901792
+  type: 'test'
+  ...
+# Subtest: negative portable local publication undispatched is settled from durable stage after cold instance only
+ok 50 - negative portable local publication undispatched is settled from durable stage after cold instance only
+  ---
+  duration_ms: 400.119333
+  type: 'test'
+  ...
+# Subtest: negative portable pause at activate preserves original transactional outcome and cold recovery
+ok 51 - negative portable pause at activate preserves original transactional outcome and cold recovery
+  ---
+  duration_ms: 294.954584
+  type: 'test'
+  ...
+# Subtest: negative portable pause at terminal preserves original transactional outcome and cold recovery
+ok 52 - negative portable pause at terminal preserves original transactional outcome and cold recovery
+  ---
+  duration_ms: 309.014875
+  type: 'test'
+  ...
+# Subtest: negative portable pause at publication preserves original transactional outcome and cold recovery
+ok 53 - negative portable pause at publication preserves original transactional outcome and cold recovery
+  ---
+  duration_ms: 359.697791
+  type: 'test'
+  ...
+# Subtest: cold negative portable portableDigest mismatch refuses all writes and preserves every table
+ok 54 - cold negative portable portableDigest mismatch refuses all writes and preserves every table
+  ---
+  duration_ms: 331.195667
+  type: 'test'
+  ...
+# Subtest: cold negative portable manifest mismatch refuses all writes and preserves every table
+ok 55 - cold negative portable manifest mismatch refuses all writes and preserves every table
+  ---
+  duration_ms: 332.2945
+  type: 'test'
+  ...
+# Subtest: cold negative portable revisionIds mismatch refuses all writes and preserves every table
+ok 56 - cold negative portable revisionIds mismatch refuses all writes and preserves every table
+  ---
+  duration_ms: 544.3365
+  type: 'test'
+  ...
+# Subtest: cold negative portable owner-proof mismatch refuses all writes and preserves every table
+ok 57 - cold negative portable owner-proof mismatch refuses all writes and preserves every table
+  ---
+  duration_ms: 716.412417
+  type: 'test'
+  ...
+# Subtest: mixed negative portable export refuses inconsistent source_purged maintenance acknowledgement without any write
+ok 58 - mixed negative portable export refuses inconsistent source_purged maintenance acknowledgement without any write
+  ---
+  duration_ms: 638.620125
+  type: 'test'
+  ...
+# Subtest: mixed negative portable export refuses inconsistent source_updated maintenance acknowledgement without any write
+ok 59 - mixed negative portable export refuses inconsistent source_updated maintenance acknowledgement without any write
+  ---
+  duration_ms: 608.740041
+  type: 'test'
+  ...
+# Subtest: continuing one negative stage cannot settle a different valid-looking pending stage
+ok 60 - continuing one negative stage cannot settle a different valid-looking pending stage
+  ---
+  duration_ms: 667.1315
+  type: 'test'
+  ...
+# Subtest: google negative + surviving Working + explicit paired manual resolution: A closes, B restores, cold edit reaches C
+ok 61 - google negative + surviving Working + explicit paired manual resolution: A closes, B restores, cold edit reaches C
+  ---
+  duration_ms: 3906.579375
+  type: 'test'
+  ...
+# Subtest: onedrive negative + surviving Working + explicit paired manual resolution: A closes, B restores, cold edit reaches C
+ok 62 - onedrive negative + surviving Working + explicit paired manual resolution: A closes, B restores, cold edit reaches C
+  ---
+  duration_ms: 4121.741875
+  type: 'test'
+  ...
+# Subtest: detached Prompt predictor rejects repository without table changes
+ok 63 - detached Prompt predictor rejects repository without table changes
+  ---
+  duration_ms: 15.448541
+  type: 'test'
+  ...
+# Subtest: detached Prompt predictor rejects wrapped-repository without table changes
+ok 64 - detached Prompt predictor rejects wrapped-repository without table changes
+  ---
+  duration_ms: 12.345292
+  type: 'test'
+  ...
+# Subtest: detached Prompt predictor rejects fabricated-maps without table changes
+ok 65 - detached Prompt predictor rejects fabricated-maps without table changes
+  ---
+  duration_ms: 14.155958
+  type: 'test'
+  ...
+# Subtest: detached Prompt predictor rejects cloned-plan without table changes
+ok 66 - detached Prompt predictor rejects cloned-plan without table changes
+  ---
+  duration_ms: 12.662584
+  type: 'test'
+  ...
+# Subtest: original Repository Prompt deferred pair left unresolved aborts every table at final fence
+ok 67 - original Repository Prompt deferred pair left unresolved aborts every table at final fence
+  ---
+  duration_ms: 17.843125
+  type: 'test'
+  ...
+# Subtest: negative publication refuses nondefault memory externalAccess before cloud writes
+ok 68 - negative publication refuses nondefault memory externalAccess before cloud writes
+  ---
+  duration_ms: 174.615333
+  type: 'test'
+  ...
+# Subtest: negative publication refuses nondefault memory localOnly before cloud writes
+ok 69 - negative publication refuses nondefault memory localOnly before cloud writes
+  ---
+  duration_ms: 171.864042
+  type: 'test'
+  ...
+# Subtest: negative publication refuses nondefault memory userTouched before cloud writes
+ok 70 - negative publication refuses nondefault memory userTouched before cloud writes
+  ---
+  duration_ms: 172.245834
+  type: 'test'
+  ...
+# Subtest: negative publication refuses nondefault memory revision before cloud writes
+ok 71 - negative publication refuses nondefault memory revision before cloud writes
+  ---
+  duration_ms: 171.661916
+  type: 'test'
+  ...
+# Subtest: negative publication refuses nondefault memory unknown before cloud writes
+ok 72 - negative publication refuses nondefault memory unknown before cloud writes
+  ---
+  duration_ms: 171.624125
+  type: 'test'
+  ...
+# Subtest: negative publication refuses nondefault memory legacy-profile before cloud writes
+ok 73 - negative publication refuses nondefault memory legacy-profile before cloud writes
+  ---
+  duration_ms: 174.235875
+  type: 'test'
+  ...
+# Subtest: google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 74 - google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 1556.196334
+  type: 'test'
+  ...
+# Subtest: onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 75 - onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 1240.43975
+  type: 'test'
+  ...
+# Subtest: actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+ok 76 - actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+  ---
+  duration_ms: 84.135292
+  type: 'test'
+  ...
+# Subtest: unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+ok 77 - unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+  ---
+  duration_ms: 77.403625
+  type: 'test'
+  ...
+1..77
+# tests 77
+# suites 0
+# pass 77
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18123.098792

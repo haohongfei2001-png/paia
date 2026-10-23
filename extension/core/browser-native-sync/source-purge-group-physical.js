@@ -1,4 +1,5 @@
-import {materializePrompt,preparePromptBindingReplay} from './prompt-journal.js';
+import {requireOriginalGenerationCoreMethods} from './core.js';
+import {materializePrompt,prepareSourcePurgePromptPrediction} from './prompt-journal.js';
 import {requireResolvedPromptReplayConflict} from './resolved-prompt-replay.js';
 import {projectSourcePurgeConsumerRows} from './consumer-preference-restore.js';
 import {CONSUMER_PUBLICATION_PENDING_ID} from './consumer-publication-state.js';
@@ -18,7 +19,9 @@ import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from '.
 import {registerRepositoryFinalReadFence} from '../idb-repository.js';
 import {fail} from './value.js';
 const deny=()=>fail('BNS_SOURCE_PURGE_GROUP_CHANGED'),copy=x=>x===undefined?undefined:structuredClone(x),sort=rows=>rows.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
-const snapshots=new WeakMap();
+const snapshots=new WeakMap(),promptPredictions=new WeakMap();
+export function requireSourcePurgePromptPrediction(core,plan,scratch){const p=promptPredictions.get(scratch);if(!p||p.core!==core||p.plan!==plan||p.repository!==core.repository||p.database!==core.repository.db)deny();requireOriginalGenerationCoreMethods(core);}
+
 export async function sourcePurgeGroupSnapshot(core,t){
  const rows={},schema={};let refs=0,size=0;
  for(const name of core.repository.stores){rows[name]=await readGroupRows(t,name);refs+=rows[name].length;for(const row of rows[name])size+=measureSourceWorkingPhysicalTree(row).B;if(refs>4096||size>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');const table=t.tx.objectStore(name);schema[name]=Object.fromEntries([...table.indexNames].map(key=>{const i=table.index(key);return [key,{path:copy(i.keyPath),multi:i.multiEntry}];}));}
@@ -27,7 +30,7 @@ export async function sourcePurgeGroupSnapshot(core,t){
 // Detached prediction only: original domain/index/semantic writers operate on
 // private Maps. No native transaction, store mutation, or alternate data truth.
 export async function planSourcePurgeGroupPhysical(store,core,before,groups,negative,protocol,active,observed=null,portable=null){
- const bound=snapshots.get(before);if(!bound||bound.core!==core||bound.repository!==store.repository||bound.database!==store.repository.db)deny();
+ requireOriginalGenerationCoreMethods(core);const bound=snapshots.get(before);if(!bound||bound.core!==core||bound.repository!==store.repository||bound.database!==store.repository.db)deny();
  if(measureSourceWorkingPhysicalTree(before).B*4+measureSourceWorkingPhysicalTree({groups,negative,protocol}).B*8>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');
  const maps=Object.fromEntries(Object.entries(before).map(([name,rows])=>[name,new Map(rows.map(row=>[row.id,copy(row)]))]));
  const cmp=(a,b)=>{if(Array.isArray(a)&&Array.isArray(b)){for(let i=0;i<Math.min(a.length,b.length);i++){const c=cmp(a[i],b[i]);if(c)return c;}return a.length-b.length;}return a===b?0:a<b?-1:1;};
@@ -39,6 +42,8 @@ export async function planSourcePurgeGroupPhysical(store,core,before,groups,nega
   rangePage:async(table,index,range,after,limit,direction='next')=>{let rows=query(table,index,range);if(direction==='prev')rows.reverse();if(after!==null)rows=rows.filter(x=>direction==='prev'?cmp(x.key,after)<0:cmp(x.key,after)>0);return {rows:rows.slice(0,limit).map(x=>({key:copy(x.key),value:copy(x.row)})),next:rows.length>limit?copy(rows[limit-1].key):null};},
   all:async(table,index,key)=>query(table,index,key).map(x=>copy(x.row)),count:async(table,index,key)=>query(table,index,key).length,
   edge:async(table,index,key,direction='next')=>{const rows=query(table,index,key);return copy((direction==='prev'?rows.at(-1):rows[0])?.row);},keys:async(table,index,key)=>query(table,index,key).map(x=>x.row.id)};
+ if(portable)promptPredictions.set(scratch,{core,plan:portable.plan,repository:core.repository,database:core.repository.db});
+ const promptPrediction=portable?prepareSourcePurgePromptPrediction(core,portable.plan,scratch):null;
  const facade={changedSources:new Set(),control:async()=>copy(store.controlCache),saveRecord:IndexedArchiveStore.prototype.saveRecord,refreshDoc:IndexedArchiveStore.prototype.refreshDoc,initialFilter:planInitialFilter,applyInitialBaseline:(t,cap)=>originalIAConstructor().prototype.applyInitialBaseline.call(store,t,cap)};
  const working=groups.filter(g=>g.type==='inputWorkingCommit'),events=observed?.invalidations.filter(r=>!before.invalidations.some(old=>old.id===r.id))??[];
  if(working.length&&events.length!==working.length)deny();
@@ -52,7 +57,7 @@ export async function planSourcePurgeGroupPhysical(store,core,before,groups,nega
    let revisions=[],stale=false;for(const head of previousHead?.revisions??[]){if(await core.ancestor(scratch,head,operation.revisionId))continue;if(await core.ancestor(scratch,operation.revisionId,head))stale=true;revisions.push(head);}if(!stale)revisions.push(operation.revisionId);revisions.sort();
    const head={type:operation.type,entityId:operation.entityId,revisions,purged:false,fence:null};await core.put(scratch,'head',[operation.type,operation.entityId],head);
    if(revisions.length>1)requireResolvedPromptReplayConflict(core,portable.plan,group,{state:'conflict',revisions});
-   else if(group.type!=='consumerPreference'){const winner=(await core.get(scratch,'revision',revisions[0])).operation;await (group.type==='promptBinding'?preparePromptBindingReplay(core,portable.plan):materializePrompt)(scratch,{core,previousCore:core,operation:winner,head,origin:'remote',previousHead,previousVersions});}
+   else if(group.type!=='consumerPreference'){const winner=(await core.get(scratch,'revision',revisions[0])).operation;const context={core,previousCore:core,operation:winner,head,origin:'remote',previousHead,previousVersions};if(group.type==='promptBinding')await promptPrediction.apply(context);else await materializePrompt(scratch,context);}
    continue;
   }
   if(group.type!=='inputWorkingCommit'||!observed)deny();
@@ -68,6 +73,7 @@ export async function planSourcePurgeGroupPhysical(store,core,before,groups,nega
   protocol.push({id:key('workingOwner',block.id),revisionId:members.find(m=>m.type==='input').operation.revisionId,deltaSequence:result.deltaSequence});for(const h of result.history)protocol.push({id:key('workingHistory',h.id),sequence:h.sequence,revisionId:members.find(m=>m.type==='revision'&&m.value.id===h.id).operation.revisionId});
  }
 
+ if(promptPrediction){promptPrediction.complete();promptPredictions.delete(scratch);}
  for(const n of negative){const v=n.intent,id='source:'+v.sourceKey;if(maps.tombstones.has(id))continue;await scratch.put('tombstones',{id,sequence:Date.parse(v.at),value:{sourceIdentityHash:v.sourceKey,deletedAt:v.at,status:'permanently_ignored'}});}
  let publication=null,predictedControl=null;
  if(portable?.consumer){

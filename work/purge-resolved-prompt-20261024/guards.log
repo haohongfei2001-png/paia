@@ -1,0 +1,215 @@
+TAP version 13
+# Subtest: google negative + surviving Working + explicit paired manual resolution: A closes, B restores, cold edit reaches C
+ok 1 - google negative + surviving Working + explicit paired manual resolution: A closes, B restores, cold edit reaches C
+  ---
+  duration_ms: 3154.520959
+  type: 'test'
+  ...
+# Subtest: onedrive negative + surviving Working + explicit paired manual resolution: A closes, B restores, cold edit reaches C
+ok 2 - onedrive negative + surviving Working + explicit paired manual resolution: A closes, B restores, cold edit reaches C
+  ---
+  duration_ms: 3751.557792
+  type: 'test'
+  ...
+# Subtest: detached Prompt predictor rejects native without table changes
+ok 3 - detached Prompt predictor rejects native without table changes
+  ---
+  duration_ms: 17.877
+  type: 'test'
+  ...
+# Subtest: detached Prompt predictor rejects wrapped-native without table changes
+ok 4 - detached Prompt predictor rejects wrapped-native without table changes
+  ---
+  duration_ms: 16.135416
+  type: 'test'
+  ...
+# Subtest: detached Prompt predictor rejects fabricated-maps without table changes
+ok 5 - detached Prompt predictor rejects fabricated-maps without table changes
+  ---
+  duration_ms: 11.19725
+  type: 'test'
+  ...
+# Subtest: detached Prompt predictor rejects cloned-plan without table changes
+ok 6 - detached Prompt predictor rejects cloned-plan without table changes
+  ---
+  duration_ms: 12.589209
+  type: 'test'
+  ...
+# Subtest: original native Prompt deferred pair left unresolved aborts every table at final fence
+not ok 7 - original native Prompt deferred pair left unresolved aborts every table at final fence
+  ---
+  duration_ms: 12.989292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:52:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'STORAGE_FAILED'
+    -   code: 'BNS_OWNER_CHANGED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_OWNER_CHANGED'
+  actual:
+  error: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:27:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:523:1205)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:167:66)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:54:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:54:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: negative publication refuses nondefault memory externalAccess before cloud writes
+not ok 8 - negative publication refuses nondefault memory externalAccess before cloud writes
+  ---
+  duration_ms: 83.681292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:58:104'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:59:274)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: negative publication refuses nondefault memory localOnly before cloud writes
+not ok 9 - negative publication refuses nondefault memory localOnly before cloud writes
+  ---
+  duration_ms: 78.849708
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:58:104'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:59:274)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: negative publication refuses nondefault memory userTouched before cloud writes
+not ok 10 - negative publication refuses nondefault memory userTouched before cloud writes
+  ---
+  duration_ms: 78.695625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:58:104'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:59:274)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: negative publication refuses nondefault memory revision before cloud writes
+not ok 11 - negative publication refuses nondefault memory revision before cloud writes
+  ---
+  duration_ms: 79.256875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:58:104'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:59:274)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: negative publication refuses nondefault memory unknown before cloud writes
+not ok 12 - negative publication refuses nondefault memory unknown before cloud writes
+  ---
+  duration_ms: 78.421167
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:58:104'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:59:274)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: negative publication refuses nondefault memory legacy-profile before cloud writes
+not ok 13 - negative publication refuses nondefault memory legacy-profile before cloud writes
+  ---
+  duration_ms: 77.9385
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:58:104'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-resolved-prompt.test.mjs:59:274)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 6
+# fail 7
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7580.510166

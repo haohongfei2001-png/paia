@@ -1,3 +1,4 @@
+import {requireSourcePurgePromptPrediction} from './source-purge-group-physical.js';
 import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {controlPublicationEncoding} from '../local-control-publication.js';
 import {requireOriginalPromptControlObservation} from '../indexed-store.js';
@@ -204,11 +205,21 @@ export async function restorePromptPreferences(t,context){
  return materializePrompt(t,{...context,origin:'remote'});
 }
 export function preparePromptBindingReplay(core,plan){
+ return prepareBindingReplay(core,plan,(t,deferred)=>registerRepositoryFinalReadFence(core.repository,t,{isCurrent:()=>true,plan:function*(){if(deferred.has(t))fail('BNS_OWNER_CHANGED');return true;}})).materialize;
+}
+// This predictor can only use the original negative physical planner's private
+// Maps. Neither a native transaction nor a wrapper around one can acquire it.
+export function prepareSourcePurgePromptPrediction(core,plan,scratch){
+ requireSourcePurgePromptPrediction(core,plan,scratch);
+ const check=()=>requireSourcePurgePromptPrediction(core,plan,scratch),owner=prepareBindingReplay(core,plan,()=>check());
+ return Object.freeze({apply:async context=>{check();return owner.materialize(scratch,context);},complete:()=>{check();owner.complete(scratch);}});
+}
+function prepareBindingReplay(core,plan,register){
  requireOriginalGroupCheckpointPlan(core,plan);
  const history=new Map(plan.groups.flatMap(group=>group.operations).filter(op=>['promptPreferences','promptBinding'].includes(op.type)).map(op=>[op.revisionId,op])),deferred=new WeakMap(),resolvers=[];
  const ancestor=(a,b)=>{const queue=[b],seen=new Set();while(queue.length){const id=queue.pop();if(id===a)return true;if(seen.has(id))continue;seen.add(id);const op=history.get(id);if(!op)return false;queue.push(...op.parents);}return false;};
  for(const companion of history.values())if(companion.type==='promptBinding'&&companion.actor==='user'&&companion.parents.length===2){const prompt=history.get(companion.value.promptRevisionId),old=companion.parents.map(id=>history.get(id));if(!prompt||prompt.type!=='promptPreferences'||prompt.actor!=='user'||prompt.parents.length!==2||old.some(x=>!x||x.type!=='promptBinding')||new Set(old.map(x=>x.value.promptRevisionId)).size!==2||!equal(old.map(x=>x.value.promptRevisionId).sort(),prompt.parents.slice().sort()))continue;const prior=old.map(x=>history.get(x.value.promptRevisionId));if(prior.some(x=>!x)||old[0].value.normalizerVersion!==old[1].value.normalizerVersion||!equal(old[0].value.bindings,old[1].value.bindings))continue;try{qualifyResolvedManualPair(prior.map(x=>x.value),prompt.value,old[0].value,companion.value);}catch{continue;}resolvers.push({prompt,companion});}
- return async(t,context)=>{
+ const materialize=async(t,context)=>{
   requireOriginalGroupCheckpointPlan(core,plan);if(context.core!==core||!equal(history.get(context.operation.revisionId)??null,context.operation))fail('BNS_OWNER_CHANGED');
   const promptHead=await core.get(t,'head','promptPreferences',PROMPT_REUSE_ROW),row=await t.get('meta',PROMPT_CORRECTION_BINDING_ROW),proof=await core.materializedOwner(t,'promptBinding',PROMPT_REUSE_ROW),fence=await new JournalRestoreFence(core).snapshot(t);let held=deferred.get(t);
   if(held&&(!equal(row??null,held.row)||!equal(proof,held.proof)||!equal(fence,held.fence)))fail('BNS_OWNER_CHANGED');
@@ -220,14 +231,14 @@ export function preparePromptBindingReplay(core,plan){
    const resolver=resolvers.find(x=>ancestor(context.operation.revisionId,x.companion.revisionId)&&promptHead.revisions.length<=2&&promptHead.revisions.every(id=>x.prompt.parents.some(parent=>ancestor(id,parent))));if(!resolver)fail('BNS_OWNER_CHANGED');
    const preferences=await readPromptPreferences(t),promptProof=await core.materializedOwner(t,'promptPreferences',PROMPT_REUSE_ROW);if(!promptProof||promptProof.ownerRevision!==preferences.revision||!equal(promptProof.operation.value,projectEntity('promptPreferences',preferences)))fail('BNS_OWNER_CHANGED');
    if(row||proof){if(!row||!proof||proof.ownerRevision>preferences.revision||!equal({...row,id:PROMPT_REUSE_ROW},proof.operation.value)||!equal(history.get(proof.operation.revisionId)??null,proof.operation))fail('BNS_OWNER_CHANGED');}
-   if(!held)registerRepositoryFinalReadFence(core.repository,t,{isCurrent:()=>true,plan:function*(){if(deferred.has(t))fail('BNS_OWNER_CHANGED');return true;}});
+   if(!held)register(t,deferred);
    deferred.set(t,held??{row:row??null,proof,fence});return;
   }
   const resolving=held&&resolvers.some(x=>x.companion.revisionId===context.operation.revisionId);
   if(held&&!resolving)fail('BNS_OWNER_CHANGED');
   await materializePromptBindingCurrent(t,context,history,resolving?held:null);if(held)deferred.delete(t);
  };
-
+ return {materialize,complete:t=>{requireOriginalGroupCheckpointPlan(core,plan);if(deferred.has(t))fail('BNS_OWNER_CHANGED');}};
 }
 export async function materializePromptBinding(t,context){return materializePromptBindingCurrent(t,context,null);}
 async function materializePromptBindingCurrent(t,context,history,deferred=null){

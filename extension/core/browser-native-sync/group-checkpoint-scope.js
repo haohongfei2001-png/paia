@@ -347,6 +347,7 @@ export async function requireSourcePurgeRemainingScope(store,t,scope,view,proof)
  for(const row of view.meta){const key=row.id;if(key.startsWith(original.core.prefix))continue;if(key===CONTEXT_CARDS_ROW||key===PROMPT_REUSE_ROW||counters.has(key))continue;
   if(key===CONTEXT_TOPIC_ACCESS_ROW){await requireLocalTopicChoicesRepresented(t,original.core,[]);continue;}
   if(key==='smart-filter'){const intent=scope.expected.consumerPreferences?.find(row=>row.id==='smartFilter');if(row.mode!==(intent?.value??'light')||!count(row.policyEpoch)||!intent&&row.policyEpoch!==0)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(key==='memory:config'){requireOriginalDefaultMemoryRow(row);continue;}
   if(backupMetaAllowed(key))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  }
  const actual={};for(const name of ['records','blocks','documents','libraryDocuments'])actual[name]=sort(view[name].map(row=>clone(row.value)));for(const name of ['times','inputStates','revisions','filterIntents'])actual[name]=sort(view[name].map(row=>clone(row)));
