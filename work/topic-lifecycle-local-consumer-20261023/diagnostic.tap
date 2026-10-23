@@ -1,0 +1,36 @@
+TAP version 13
+# NotFoundError: The operation failed because the requested database object could not be found. For example, an object store did not exist but was being opened.
+#     at new DOMException (node:internal/per_context/domexception:76:18)
+#     at new NotFoundError (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/vendor/fake-indexeddb/build/esm/lib/errors.js:59:5)
+#     at FDBObjectStore.index (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/vendor/fake-indexeddb/build/esm/FDBObjectStore.js:334:13)
+#     at Transaction.count (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:355:143)
+#     at t.count (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/context-topic-scope.js:128:58)
+#     at captureTopicLifecycleActivity (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/topic-lifecycle-activity.js:26:28)
+#     at async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/topic-lifecycle.js:40:31
+#     at async OrganizerStore.libraryOperationInTransaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/library-documents-owner.js:80:16)
+#     at async OrganizerStore.operationInTransaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/thought-store-owner.js:112:363)
+#     at async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:451:20)
+# Subtest: explicit inactivity uses real original issuer and commits once; restarted consumer replays exact receipt
+not ok 1 - explicit inactivity uses real original issuer and commits once; restarted consumer replays exact receipt
+  ---
+  duration_ms: 48.824125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:22:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:23:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:451:920)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/indexed-store.js:279:123
+    async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/indexed-store.js:192:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 161.2415

@@ -73,7 +73,7 @@ export function originalLibraryDocumentsConstructor(){
  async libraryStatus(){const base=await super.libraryStatus();return {...base,compatibility:await this.libraryCompatibilityStatus()};}
  async librarySafetyChange(t,row,priorFields){if(row.storageSchema!==2||row.lifecycle==='quarantined')return;if(priorFields){let contentChanged=false;for(const [field,before]of Object.entries(priorFields)){if(before!==row[field==='body'?'thoughtText':field]){row.fieldRevisions[field]++;if(field==='body')row.meaningfulContentAt=this.clock();if(field!=='note')contentChanged=true;}}if(contentChanged)row.contentRevision++;}row.searchSafetyVersion=(row.searchSafetyVersion||0)+1;await queueSearch(t,'entry',row);}
  async libraryMaintenanceWrite(fn){await this.finishFoundation();return this.run(()=>this.repository.transaction(true,fn));}
- async operation(request,fn){return super.operation(request,t=>this.libraryOperationInTransaction(t,request,fn));}
+ async operation(request,fn,options){return super.operation(request,t=>this.libraryOperationInTransaction(t,request,fn),options);}
  async libraryOperationInTransaction(t,request,fn){
   // Layout jobs lock organization only; Entry fields remain editable.
   for(const id of [request.topicId,...(request.changes?.name!==undefined||request.name!==undefined?[request.id]:[])].filter(Boolean)){const topic=await t.get('topics',id);if(topic?.layoutJobId&&!request.layoutInternal)return {conflict:true,organizationBusy:true};}

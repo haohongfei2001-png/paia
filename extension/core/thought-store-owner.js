@@ -6,7 +6,7 @@ import {assertMemoryPlacementChangeAllowed} from './memory/organization-guard.js
 import {initializeTopicIdentity,prepareTopicName,assertTopicIdentityBase,registerTopicName,prepareTopicRename,recordTopicRename,planHumanTopicField,resolveTopicIdentity,mapTopicIdentityBatch} from './topic-identity.js';
 import {newOrganizationIntents,recordMembershipIntent,fixMembershipSet,moveMembership} from './topic-intent.js';
 import {BINDING_ROW,applyBinding,classifyBinding,thoughtLayout,bindingRead,migrateBindings,reverseSetting,prepareBodyEdit} from './thought-binding.js';
-import {IndexedArchiveStore} from './indexed-store.js';
+import {IndexedArchiveStore,snapshotWriteWorkLimit} from './indexed-store.js';
 import {editSection,checkRestore,restoreOrganization} from './thought-organization.js';
 import {originalFilterConstructor,originalFilterPromptQueueOwner} from './smart-filter-store-owner.js';
 import {hashText} from './dedupe.js';
@@ -81,7 +81,7 @@ class LibraryFoundationStore extends SmartFilterStore {
  constructor(local,options={}) {super(local,{...options,thoughtLibrary:true});originalOrganizeMaterialInstances.add(this);this.foundationLoaded=false;this.humanLibraryJournal=options.humanLibraryJournal??null;}
  run(fn) {return super.run(async()=>{if(!this.foundationLoaded&&!this.foundationFailure){try{const marker=await migrateThoughtLibrary(this,{maxBatches:1});this.foundationLoaded=marker.phase==='active';}catch{this.foundationFailure=true;}}return fn();});}
  async finishFoundation(){while(!this.foundationLoaded){await this.run(()=>Promise.resolve());if(this.foundationFailure)throw new ArchiveError('STORAGE_FAILED');if(!this.foundationLoaded)await new Promise(resolve=>setTimeout(resolve,0));}if(!this.bindingsLoaded){await migrateBindings(this);this.bindingsLoaded=true;}}
- async foundationWrite(fn){await this.finishFoundation();return IndexedArchiveStore.prototype.write.call(this,fn);}
+ async foundationWrite(fn,workLimit=null){const budget=snapshotWriteWorkLimit(workLimit);await this.finishFoundation();return IndexedArchiveStore.prototype.write.call(this,fn,null,null,budget);}
  async applySavedWorkBootstrapInTransaction(t,cap){
   const p=await requireSavedWorkBootstrap(t,cap,this);if(p.duplicate)return {state:'duplicate',id:p.id};
   await t.put('thoughts',p.entry);await t.put('provenance',p.provenance);await t.put('dependencies',p.dependency);
@@ -103,11 +103,12 @@ class LibraryFoundationStore extends SmartFilterStore {
  async processPurgeCleanup(options={}) {await this.finishFoundation();return purgeBatch(this,options.limit??100);}
  async drainInvalidations() {let batches=0;for(;;){const r=await this.processInvalidations();if(!r.pending)return {batches};batches++;await this.repository.checkpoint('thought-invalidation-batch');}}
  async drainPurgeCleanup() {let batches=0;for(;;){const r=await this.processPurgeCleanup();if(!r.pending)return {batches};batches++;await this.repository.checkpoint('thought-purge-batch');}}
- async operation(request,fn) {
+ async operation(request,fn,{workLimit=null}={}) {
+  const budget=snapshotWriteWorkLimit(workLimit);
   if(this.humanLibraryJournal)throw new ArchiveError('BNS_HUMAN_UNSUPPORTED_MUTATION');
   if(!idOK(request?.operationId)||request.operationId.length<8)fail();
   const digest=await hashText(JSON.stringify(request));
-  return this.foundationWrite(t=>this.operationInTransaction(t,request,digest,fn));
+  return this.foundationWrite(t=>this.operationInTransaction(t,request,digest,fn),budget);
  }
  async operationInTransaction(t,request,digest,fn){try{if(request.expectedRecoveryEpoch!==undefined&&((await t.get('meta','recovery-restore-epoch'))?.value??'initial')!==request.expectedRecoveryEpoch)throw new ArchiveError('BACKUP_CHANGED');await beginHumanOperation(this,t,request);const prior=await receipt(t,request,digest);if(prior)return prior;const result=await fn(t);if(!result.conflict)await saveReceipt(this,t,request,digest,result);await finishHumanOperation(this,t,request,result);return result;}catch(error){throw humanOperationError(request,error);}finally{releaseHumanOperation(t,request);}
  }

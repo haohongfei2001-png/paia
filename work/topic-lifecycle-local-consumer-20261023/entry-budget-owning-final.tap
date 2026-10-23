@@ -1,0 +1,862 @@
+TAP version 13
+# Subtest: TOPIC-02 dormancy and reactivation keep the exact ID, body, layout, human fields and grants across restart
+ok 1 - TOPIC-02 dormancy and reactivation keep the exact ID, body, layout, human fields and grants across restart
+  ---
+  duration_ms: 127.601959
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 pin, keep, restored lifecycle, removed and redirected identities reject automatic transitions
+ok 2 - TOPIC-02 pin, keep, restored lifecycle, removed and redirected identities reject automatic transitions
+  ---
+  duration_ms: 237.567709
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 lifecycle stale CAS, preflight authority race and failed journal leave old usable state
+ok 3 - TOPIC-02 lifecycle stale CAS, preflight authority race and failed journal leave old usable state
+  ---
+  duration_ms: 73.224583
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 allowed Inputs cannot authorize a denied Topic lifecycle mutation
+ok 4 - TOPIC-02 allowed Inputs cannot authorize a denied Topic lifecycle mutation
+  ---
+  duration_ms: 57.424541
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 dormancy preserves effective access under denied
+ok 5 - TOPIC-02 dormancy preserves effective access under denied
+  ---
+  duration_ms: 98.00525
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 dormancy preserves effective access under never
+ok 6 - TOPIC-02 dormancy preserves effective access under never
+  ---
+  duration_ms: 72.898542
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 dormancy preserves effective access under section
+ok 7 - TOPIC-02 dormancy preserves effective access under section
+  ---
+  duration_ms: 65.083084
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 dormancy preserves effective access under other_profile_never
+ok 8 - TOPIC-02 dormancy preserves effective access under other_profile_never
+  ---
+  duration_ms: 66.243916
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 default-off activity remains valid and only the permission owner can clear a veto
+ok 9 - TOPIC-02 default-off activity remains valid and only the permission owner can clear a veto
+  ---
+  duration_ms: 89.569666
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 actual replace restore restores the current restriction before an unchanged lifecycle request
+ok 10 - TOPIC-02 actual replace restore restores the current restriction before an unchanged lifecycle request
+  ---
+  duration_ms: 137.617166
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 unrelated Topic and empty Section restrictions do not block safe activity
+ok 11 - TOPIC-02 unrelated Topic and empty Section restrictions do not block safe activity
+  ---
+  duration_ms: 64.529541
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal authority rolls back after backup revocation
+ok 12 - TOPIC-02 original lifecycle terminal authority rolls back after backup revocation
+  ---
+  duration_ms: 45.440792
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal authority rolls back after journal issuer
+ok 13 - TOPIC-02 original lifecycle terminal authority rolls back after journal issuer
+  ---
+  duration_ms: 32.054334
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 unchanged original lifecycle authority commits once and exact replay adds no history
+ok 14 - TOPIC-02 unchanged original lifecycle authority commits once and exact replay adds no history
+  ---
+  duration_ms: 39.165167
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal rejects wall expiry after the real backup finalizer
+ok 15 - TOPIC-02 original lifecycle terminal rejects wall expiry after the real backup finalizer
+  ---
+  duration_ms: 29.674084
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal rejects earlier use release after the real backup finalizer
+ok 16 - TOPIC-02 original lifecycle terminal rejects earlier use release after the real backup finalizer
+  ---
+  duration_ms: 32.018542
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal rejects owner release after the real backup finalizer
+ok 17 - TOPIC-02 original lifecycle terminal rejects owner release after the real backup finalizer
+  ---
+  duration_ms: 32.654625
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal rejects work signal after the real backup finalizer
+ok 18 - TOPIC-02 original lifecycle terminal rejects work signal after the real backup finalizer
+  ---
+  duration_ms: 27.820625
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal rejects reads exhausted after the real backup finalizer
+ok 19 - TOPIC-02 original lifecycle terminal rejects reads exhausted after the real backup finalizer
+  ---
+  duration_ms: 31.871125
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal rejects hash fields overrun after the real backup finalizer
+ok 20 - TOPIC-02 original lifecycle terminal rejects hash fields overrun after the real backup finalizer
+  ---
+  duration_ms: 36.583666
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal rejects hash bytes overrun after the real backup finalizer
+ok 21 - TOPIC-02 original lifecycle terminal rejects hash bytes overrun after the real backup finalizer
+  ---
+  duration_ms: 32.310333
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal rejects ledger signal swap after the real backup finalizer
+ok 22 - TOPIC-02 original lifecycle terminal rejects ledger signal swap after the real backup finalizer
+  ---
+  duration_ms: 37.08575
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal rejects ledger seen swap after the real backup finalizer
+ok 23 - TOPIC-02 original lifecycle terminal rejects ledger seen swap after the real backup finalizer
+  ---
+  duration_ms: 45.683041
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle terminal rejects restore epoch after the real backup finalizer
+ok 24 - TOPIC-02 original lifecycle terminal rejects restore epoch after the real backup finalizer
+  ---
+  duration_ms: 36.126667
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 lifecycle cannot renew a monotonic lease while its wall clock stalls
+ok 25 - TOPIC-02 lifecycle cannot renew a monotonic lease while its wall clock stalls
+  ---
+  duration_ms: 1125.505791
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 later genuine issuer cannot release an earlier lifecycle use in the final callback round
+ok 26 - TOPIC-02 later genuine issuer cannot release an earlier lifecycle use in the final callback round
+  ---
+  duration_ms: 33.463875
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 another original repository fence cannot revoke lifecycle authority after its read plan
+ok 27 - TOPIC-02 another original repository fence cannot revoke lifecycle authority after its read plan
+  ---
+  duration_ms: 31.586791
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle rolls back every table after actual topic write failure
+ok 28 - TOPIC-02 original lifecycle rolls back every table after actual topic write failure
+  ---
+  duration_ms: 28.800875
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle rolls back every table after actual search write failure
+ok 29 - TOPIC-02 original lifecycle rolls back every table after actual search write failure
+  ---
+  duration_ms: 30.522291
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle rolls back every table after actual journal write failure
+ok 30 - TOPIC-02 original lifecycle rolls back every table after actual journal write failure
+  ---
+  duration_ms: 34.298916
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle rolls back every table after actual receipt write failure
+ok 31 - TOPIC-02 original lifecycle rolls back every table after actual receipt write failure
+  ---
+  duration_ms: 27.090875
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle rolls back every table after actual backup write failure
+ok 32 - TOPIC-02 original lifecycle rolls back every table after actual backup write failure
+  ---
+  duration_ms: 29.206834
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original legacy DTO lifecycle retains its non-strict direct API
+ok 33 - TOPIC-02 original legacy DTO lifecycle retains its non-strict direct API
+  ---
+  duration_ms: 26.371291
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle rejects copied capability before any write
+ok 34 - TOPIC-02 original lifecycle rejects copied capability before any write
+  ---
+  duration_ms: 19.107667
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle rejects completed read capability before any write
+ok 35 - TOPIC-02 original lifecycle rejects completed read capability before any write
+  ---
+  duration_ms: 24.035291
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 original lifecycle rejects foreign database before any write
+ok 36 - TOPIC-02 original lifecycle rejects foreign database before any write
+  ---
+  duration_ms: 37.118959
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 installed human-library journal remains an unsupported-mutation refusal
+ok 37 - TOPIC-02 installed human-library journal remains an unsupported-mutation refusal
+  ---
+  duration_ms: 20.648459
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 genuine lifecycle conflict preserves lifecycle identity and refuses revoked completion
+ok 38 - TOPIC-02 genuine lifecycle conflict preserves lifecycle identity and refuses revoked completion
+  ---
+  duration_ms: 29.188125
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 genuine lifecycle no-op preserves lifecycle identity and refuses revoked completion
+ok 39 - TOPIC-02 genuine lifecycle no-op preserves lifecycle identity and refuses revoked completion
+  ---
+  duration_ms: 29.867875
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 private lifecycle mode rejects prepare/write phase switch GLLL
+ok 40 - TOPIC-02 private lifecycle mode rejects prepare/write phase switch GLLL
+  ---
+  duration_ms: 23.025292
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 private lifecycle mode rejects prepare/write phase switch LGGG
+ok 41 - TOPIC-02 private lifecycle mode rejects prepare/write phase switch LGGG
+  ---
+  duration_ms: 19.443333
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 private lifecycle mode rejects prepare/write phase switch GGLL
+ok 42 - TOPIC-02 private lifecycle mode rejects prepare/write phase switch GGLL
+  ---
+  duration_ms: 20.384458
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 private lifecycle mode rejects prepare/write phase switch LLGG
+ok 43 - TOPIC-02 private lifecycle mode rejects prepare/write phase switch LLGG
+  ---
+  duration_ms: 18.499959
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 private lifecycle mode rejects prepare/write phase switch GGGL
+ok 44 - TOPIC-02 private lifecycle mode rejects prepare/write phase switch GGGL
+  ---
+  duration_ms: 20.084292
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 private lifecycle mode rejects prepare/write phase switch LLLG
+ok 45 - TOPIC-02 private lifecycle mode rejects prepare/write phase switch LLLG
+  ---
+  duration_ms: 19.313375
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 private lifecycle mode rejects prepare/write phase switch GGLG
+ok 46 - TOPIC-02 private lifecycle mode rejects prepare/write phase switch GGLG
+  ---
+  duration_ms: 18.034916
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 private lifecycle mode rejects prepare/write phase switch LLGL
+ok 47 - TOPIC-02 private lifecycle mode rejects prepare/write phase switch LLGL
+  ---
+  duration_ms: 20.088417
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 lifecycle rejects copied private preparation provenance
+ok 48 - TOPIC-02 lifecycle rejects copied private preparation provenance
+  ---
+  duration_ms: 19.685375
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 lifecycle rejects evidence reference private preparation provenance
+ok 49 - TOPIC-02 lifecycle rejects evidence reference private preparation provenance
+  ---
+  duration_ms: 20.254209
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 lifecycle rejects authority reference private preparation provenance
+ok 50 - TOPIC-02 lifecycle rejects authority reference private preparation provenance
+  ---
+  duration_ms: 19.427125
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 lifecycle rejects untracked private preparation provenance
+ok 51 - TOPIC-02 lifecycle rejects untracked private preparation provenance
+  ---
+  duration_ms: 17.852291
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 lifecycle rejects foreign guard private preparation provenance
+ok 52 - TOPIC-02 lifecycle rejects foreign guard private preparation provenance
+  ---
+  duration_ms: 19.399959
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 pure legacy mode closes later processing admission before any resolver invocation
+ok 53 - TOPIC-02 pure legacy mode closes later processing admission before any resolver invocation
+  ---
+  duration_ms: 34.088792
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 genuine lifecycle preserves its original 20 Input scope boundary
+ok 54 - TOPIC-02 genuine lifecycle preserves its original 20 Input scope boundary
+  ---
+  duration_ms: 89.07225
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 genuine lifecycle preserves its original 21 Input scope boundary
+ok 55 - TOPIC-02 genuine lifecycle preserves its original 21 Input scope boundary
+  ---
+  duration_ms: 53.423041
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 legacy lifecycle preserves its original 21 Input scope boundary
+ok 56 - TOPIC-02 legacy lifecycle preserves its original 21 Input scope boundary
+  ---
+  duration_ms: 54.0085
+  type: 'test'
+  ...
+# Subtest: TOPIC-02 legacy lifecycle preserves its original 100 Input scope boundary
+ok 57 - TOPIC-02 legacy lifecycle preserves its original 100 Input scope boundary
+  ---
+  duration_ms: 181.642084
+  type: 'test'
+  ...
+# Subtest: fixed lazy original constructor preserves singleton, base and private constructor identity
+ok 58 - fixed lazy original constructor preserves singleton, base and private constructor identity
+  ---
+  duration_ms: 1.033458
+  type: 'test'
+  ...
+# Subtest: each original public entry independently initializes the static worker graph
+ok 59 - each original public entry independently initializes the static worker graph
+  ---
+  duration_ms: 1025.492708
+  type: 'test'
+  ...
+# Subtest: M1 v3 migration preserves every Source/Input/import/filter field and all stores
+ok 60 - M1 v3 migration preserves every Source/Input/import/filter field and all stores
+  ---
+  duration_ms: 87.312041
+  type: 'test'
+  ...
+# Subtest: M1 v4 migration preserves every Source/Input/import/filter field and all stores
+ok 61 - M1 v4 migration preserves every Source/Input/import/filter field and all stores
+  ---
+  duration_ms: 54.6235
+  type: 'test'
+  ...
+# Subtest: M1 actual version provenance ignores note-only changes when only body was used
+ok 62 - M1 actual version provenance ignores note-only changes when only body was used
+  ---
+  duration_ms: 68.6235
+  type: 'test'
+  ...
+# Subtest: M1 inferred auto create and stale supplied evidence are rejected
+ok 63 - M1 inferred auto create and stale supplied evidence are rejected
+  ---
+  duration_ms: 43.736542
+  type: 'test'
+  ...
+# Subtest: M1 per-field human edit protection survives undo and blocks only matching AI fields
+ok 64 - M1 per-field human edit protection survives undo and blocks only matching AI fields
+  ---
+  duration_ms: 51.439958
+  type: 'test'
+  ...
+# Subtest: M1 suppression has no body and same evidence cannot resurrect deleted result
+ok 65 - M1 suppression has no body and same evidence cannot resurrect deleted result
+  ---
+  duration_ms: 41.279167
+  type: 'test'
+  ...
+# Subtest: M1 removing the last evidence invalidates AI content but preserves authored content
+ok 66 - M1 removing the last evidence invalidates AI content but preserves authored content
+  ---
+  duration_ms: 84.059042
+  type: 'test'
+  ...
+# Subtest: M1 nonempty legacy Thought quarantine preserves payload and old revisions without inventing formation
+ok 67 - M1 nonempty legacy Thought quarantine preserves payload and old revisions without inventing formation
+  ---
+  duration_ms: 61.952625
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after thoughts commit resumes idempotently
+ok 68 - M1 migration crash after thoughts commit resumes idempotently
+  ---
+  duration_ms: 51.355375
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after dependencies commit resumes idempotently
+ok 69 - M1 migration crash after dependencies commit resumes idempotently
+  ---
+  duration_ms: 52.581833
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after verify commit resumes idempotently
+ok 70 - M1 migration crash after verify commit resumes idempotently
+  ---
+  duration_ms: 42.392541
+  type: 'test'
+  ...
+# Subtest: M1 actual note dependency becomes stale while conversation title alone does not
+ok 71 - M1 actual note dependency becomes stale while conversation title alone does not
+  ---
+  duration_ms: 48.154959
+  type: 'test'
+  ...
+# Subtest: M1 context-only cannot form an Entry or bypass removed/filtered source gates
+ok 72 - M1 context-only cannot form an Entry or bypass removed/filtered source gates
+  ---
+  duration_ms: 60.163917
+  type: 'test'
+  ...
+# Subtest: M1 new non-context evidence only allows a future candidate, not resurrection
+ok 73 - M1 new non-context evidence only allows a future candidate, not resurrection
+  ---
+  duration_ms: 62.419375
+  type: 'test'
+  ...
+# Subtest: M1 two-tab CAS and operation receipts survive worker replacement
+ok 74 - M1 two-tab CAS and operation receipts survive worker replacement
+  ---
+  duration_ms: 51.573375
+  type: 'test'
+  ...
+# Subtest: M1 multi-source entry remains partial until its last effective evidence disappears
+ok 75 - M1 multi-source entry remains partial until its last effective evidence disappears
+  ---
+  duration_ms: 69.304542
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 purge fence immediately hides every historical payload before incremental cleanup
+ok 76 - CURRENT B-02 refusal + historical fixture: M1 purge fence immediately hides every historical payload before incremental cleanup
+  ---
+  duration_ms: 99.454542
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 purge cleans indexed payloads and referenced rewrites while preserving independent notes
+ok 77 - CURRENT B-02 refusal + historical fixture: M1 purge cleans indexed payloads and referenced rewrites while preserving independent notes
+  ---
+  duration_ms: 63.903292
+  type: 'test'
+  ...
+# Subtest: M1 Topic and persistent Section IDs survive rename, with shared Entry placement and human organization protection
+ok 78 - M1 Topic and persistent Section IDs survive rename, with shared Entry placement and human organization protection
+  ---
+  duration_ms: 48.968958
+  type: 'test'
+  ...
+# Subtest: M1 Library revision restore is a new protected CAS operation, not history rewriting
+ok 79 - M1 Library revision restore is a new protected CAS operation, not history rewriting
+  ---
+  duration_ms: 37.237542
+  type: 'test'
+  ...
+# Subtest: M1 Topic Section Placement revisions restore through current CAS and preserve human organization
+ok 80 - M1 Topic Section Placement revisions restore through current CAS and preserve human organization
+  ---
+  duration_ms: 47.574625
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 legacy source-dependent rewrites, unknown payloads and histories obey purge
+ok 81 - CURRENT B-02 refusal + historical fixture: M1 legacy source-dependent rewrites, unknown payloads and histories obey purge
+  ---
+  duration_ms: 56.888583
+  type: 'test'
+  ...
+# Subtest: M1 revision retention keeps every recent and newest 20 important; AI and user windows never coalesce
+ok 82 - M1 revision retention keeps every recent and newest 20 important; AI and user windows never coalesce
+  ---
+  duration_ms: 61.381042
+  type: 'test'
+  ...
+# Subtest: M1 forged evidence and command fields cannot modify Source/Input; empty working body has no Source fallback
+ok 83 - M1 forged evidence and command fields cannot modify Source/Input; empty working body has no Source fallback
+  ---
+  duration_ms: 33.804917
+  type: 'test'
+  ...
+# Subtest: M1 invalidation interruption cursor resumes and edit cost is independent of dependency fan-out
+ok 84 - M1 invalidation interruption cursor resumes and edit cost is independent of dependency fan-out
+  ---
+  duration_ms: 454.199
+  type: 'test'
+  ...
+# Subtest: M1 transaction abort rolls back Entry provenance revision and receipt together
+ok 85 - M1 transaction abort rolls back Entry provenance revision and receipt together
+  ---
+  duration_ms: 21.345959
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 delayed validated output and invalidation batch cannot commit across edit or purge
+ok 86 - CURRENT B-02 refusal + historical fixture: M1 delayed validated output and invalidation batch cannot commit across edit or purge
+  ---
+  duration_ms: 77.544417
+  type: 'test'
+  ...
+# Subtest: M1 all supported fields protect independently and context-only additions cannot unlock suppression
+ok 87 - M1 all supported fields protect independently and context-only additions cannot unlock suppression
+  ---
+  duration_ms: 55.108083
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 source purge survives cleanup interruption and cannot recapture or restore deleted sources
+ok 88 - CURRENT B-02 refusal + historical fixture: M1 source purge survives cleanup interruption and cannot recapture or restore deleted sources
+  ---
+  duration_ms: 63.268459
+  type: 'test'
+  ...
+# Subtest: M1 quota-like abort after payload writes leaves no partial entry or receipt
+ok 89 - M1 quota-like abort after payload writes leaves no partial entry or receipt
+  ---
+  duration_ms: 22.523084
+  type: 'test'
+  ...
+# Subtest: M1 independent authored entries allow equal and empty bodies without invented AI provenance
+ok 90 - M1 independent authored entries allow equal and empty bodies without invented AI provenance
+  ---
+  duration_ms: 30.659834
+  type: 'test'
+  ...
+# Subtest: M1 redirect identity rejects loops and stale renamed IDs; rank exhaustion fails without reordering
+ok 91 - M1 redirect identity rejects loops and stale renamed IDs; rank exhaustion fails without reordering
+  ---
+  duration_ms: 26.729542
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 untraceable quarantine revision is fenced and erased with its unknown owner on source purge
+ok 92 - CURRENT B-02 refusal + historical fixture: M1 untraceable quarantine revision is fenced and erased with its unknown owner on source purge
+  ---
+  duration_ms: 49.973208
+  type: 'test'
+  ...
+# Subtest: M1 experimental storageSchema=2 is not trusted as a completed migration or source authority
+ok 93 - M1 experimental storageSchema=2 is not trusted as a completed migration or source authority
+  ---
+  duration_ms: 21.236
+  type: 'test'
+  ...
+# Subtest: M1 Input capture and editing continue between migration batches and after a Library mapping failure
+ok 94 - M1 Input capture and editing continue between migration batches and after a Library mapping failure
+  ---
+  duration_ms: 198.331375
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 unavailable used versions never masquerade as current Input; purge reports pending until cleanup finishes
+ok 95 - CURRENT B-02 refusal + historical fixture: M1 unavailable used versions never masquerade as current Input; purge reports pending until cleanup finishes
+  ---
+  duration_ms: 54.294375
+  type: 'test'
+  ...
+# Subtest: M1 every approved Type maps to exactly one Family; Unicode byte limit never truncates
+ok 96 - M1 every approved Type maps to exactly one Family; Unicode byte limit never truncates
+  ---
+  duration_ms: 79.058292
+  type: 'test'
+  ...
+# Subtest: M1 hot 200KiB revision growth keeps all young history and suppression beyond retention
+ok 97 - M1 hot 200KiB revision growth keeps all young history and suppression beyond retention
+  ---
+  duration_ms: 289.394792
+  type: 'test'
+  ...
+# Subtest: M1 selected-note-only change cannot unlock removed Thought suppression
+ok 98 - M1 selected-note-only change cannot unlock removed Thought suppression
+  ---
+  duration_ms: 33.37425
+  type: 'test'
+  ...
+# Subtest: M1 unrelated queued jobs cannot starve purge; staged payloads are removed
+ok 99 - M1 unrelated queued jobs cannot starve purge; staged payloads are removed
+  ---
+  duration_ms: 54.962834
+  type: 'test'
+  ...
+# Subtest: M1 mapping transaction failure rolls back partial Thought/category mapping, then resumes
+ok 100 - M1 mapping transaction failure rolls back partial Thought/category mapping, then resumes
+  ---
+  duration_ms: 22.812583
+  type: 'test'
+  ...
+# Subtest: M1 ten Topic placements do not duplicate Entry body or Entry history
+ok 101 - M1 ten Topic placements do not duplicate Entry body or Entry history
+  ---
+  duration_ms: 59.724916
+  type: 'test'
+  ...
+# Subtest: M1 empty evidence body cannot authorize automatic content and empty AI output is rejected
+ok 102 - M1 empty evidence body cannot authorize automatic content and empty AI output is rejected
+  ---
+  duration_ms: 18.830875
+  type: 'test'
+  ...
+# Subtest: M1 incomplete Library activation fences Library history while Input history remains available
+ok 103 - M1 incomplete Library activation fences Library history while Input history remains available
+  ---
+  duration_ms: 16.516417
+  type: 'test'
+  ...
+# Subtest: M1 rapid Input remove/restore cannot revive an old AI Entry before or after queue consumption
+ok 104 - M1 rapid Input remove/restore cannot revive an old AI Entry before or after queue consumption
+  ---
+  duration_ms: 38.573
+  type: 'test'
+  ...
+# Subtest: M1 supporting/context removal histories are not cleared by restoration or worker replacement
+ok 105 - M1 supporting/context removal histories are not cleared by restoration or worker replacement
+  ---
+  duration_ms: 46.090334
+  type: 'test'
+  ...
+# Subtest: explicit inactivity uses real original issuer and commits once; restarted consumer replays exact receipt
+ok 106 - explicit inactivity uses real original issuer and commits once; restarted consumer replays exact receipt
+  ---
+  duration_ms: 147.942958
+  type: 'test'
+  ...
+# Subtest: activity missing cannot write or issue a success receipt
+ok 107 - activity missing cannot write or issue a success receipt
+  ---
+  duration_ms: 56.380041
+  type: 'test'
+  ...
+# Subtest: activity recent cannot write or issue a success receipt
+ok 108 - activity recent cannot write or issue a success receipt
+  ---
+  duration_ms: 62.98725
+  type: 'test'
+  ...
+# Subtest: activity future cannot write or issue a success receipt
+ok 109 - activity future cannot write or issue a success receipt
+  ---
+  duration_ms: 57.01775
+  type: 'test'
+  ...
+# Subtest: activity backwards cannot write or issue a success receipt
+ok 110 - activity backwards cannot write or issue a success receipt
+  ---
+  duration_ms: 51.866625
+  type: 'test'
+  ...
+# Subtest: original pin veto remains authoritative
+ok 111 - original pin veto remains authoritative
+  ---
+  duration_ms: 78.716625
+  type: 'test'
+  ...
+# Subtest: original keep veto remains authoritative
+ok 112 - original keep veto remains authoritative
+  ---
+  duration_ms: 86.930917
+  type: 'test'
+  ...
+# Subtest: original lifecycle veto remains authoritative
+ok 113 - original lifecycle veto remains authoritative
+  ---
+  duration_ms: 76.719917
+  type: 'test'
+  ...
+# Subtest: late activity after original backup finalizer rolls back every table
+ok 114 - late activity after original backup finalizer rolls back every table
+  ---
+  duration_ms: 64.688791
+  type: 'test'
+  ...
+# Subtest: late building-generation after original backup finalizer rolls back every table
+ok 115 - late building-generation after original backup finalizer rolls back every table
+  ---
+  duration_ms: 57.895917
+  type: 'test'
+  ...
+# Subtest: late membership after original backup finalizer rolls back every table
+ok 116 - late membership after original backup finalizer rolls back every table
+  ---
+  duration_ms: 56.938
+  type: 'test'
+  ...
+# Subtest: late source after original backup finalizer rolls back every table
+ok 117 - late source after original backup finalizer rolls back every table
+  ---
+  duration_ms: 61.075791
+  type: 'test'
+  ...
+# Subtest: late source-delete after original backup finalizer rolls back every table
+ok 118 - late source-delete after original backup finalizer rolls back every table
+  ---
+  duration_ms: 69.177917
+  type: 'test'
+  ...
+# Subtest: late memory-negative after original backup finalizer rolls back every table
+ok 119 - late memory-negative after original backup finalizer rolls back every table
+  ---
+  duration_ms: 83.177125
+  type: 'test'
+  ...
+# Subtest: late grant after original backup finalizer rolls back every table
+ok 120 - late grant after original backup finalizer rolls back every table
+  ---
+  duration_ms: 50.804625
+  type: 'test'
+  ...
+# Subtest: legacy authority and forged budget cannot mint automatic activity capability
+ok 121 - legacy authority and forged budget cannot mint automatic activity capability
+  ---
+  duration_ms: 49.303833
+  type: 'test'
+  ...
+# Subtest: automatic owner preserves installed Sync journal refusal
+ok 122 - automatic owner preserves installed Sync journal refusal
+  ---
+  duration_ms: 41.471791
+  type: 'test'
+  ...
+# Subtest: private cumulative reference limit aborts the complete actual lifecycle transaction
+ok 123 - private cumulative reference limit aborts the complete actual lifecycle transaction
+  ---
+  duration_ms: 38.345125
+  type: 'test'
+  ...
+# Subtest: bounded original history pruning counts physical history bytes and rolls back on overflow
+ok 124 - bounded original history pruning counts physical history bytes and rolls back on overflow
+  ---
+  duration_ms: 50.74525
+  type: 'test'
+  ...
+# Subtest: bounded and original pruning preserve the exact same newest-important and young rows
+ok 125 - bounded and original pruning preserve the exact same newest-important and young rows
+  ---
+  duration_ms: 173.621417
+  type: 'test'
+  ...
+# Subtest: inflight original history deletion failure rolls lifecycle, journal, indexes and receipt back
+ok 126 - inflight original history deletion failure rolls lifecycle, journal, indexes and receipt back
+  ---
+  duration_ms: 53.457666
+  type: 'test'
+  ...
+# Subtest: policy is explicit, detached, versioned and never adopts the proposal as defaults
+ok 127 - policy is explicit, detached, versioned and never adopts the proposal as defaults
+  ---
+  duration_ms: 0.531
+  type: 'test'
+  ...
+# Subtest: already dormant with a new action is deferred without another receipt; close never dispatches
+ok 128 - already dormant with a new action is deferred without another receipt; close never dispatches
+  ---
+  duration_ms: 75.052958
+  type: 'test'
+  ...
+# Subtest: original formation Topic sources exceed the independent processing scope: unchanged original sources commit
+ok 129 - original formation Topic sources exceed the independent processing scope: unchanged original sources commit
+  ---
+  duration_ms: 135.342292
+  type: 'test'
+  ...
+# Subtest: original formation Topic sources exceed the independent processing scope: late extra Source deletion rolls back
+ok 130 - original formation Topic sources exceed the independent processing scope: late extra Source deletion rolls back
+  ---
+  duration_ms: 118.05225
+  type: 'test'
+  ...
+# Subtest: lost delivery after real commit is reconciled by the same original operation receipt, never a new action
+ok 131 - lost delivery after real commit is reconciled by the same original operation receipt, never a new action
+  ---
+  duration_ms: 53.036584
+  type: 'test'
+  ...
+# Subtest: close stops future dispatch and reports an already in-flight original commit without claiming rollback
+ok 132 - close stops future dispatch and reports an already in-flight original commit without claiming rollback
+  ---
+  duration_ms: 59.570291
+  type: 'test'
+  ...
+# Subtest: actual moved Source-linked member outside Topic sources and processing scope rejects late Source deletion
+ok 133 - actual moved Source-linked member outside Topic sources and processing scope rejects late Source deletion
+  ---
+  duration_ms: 120.964541
+  type: 'test'
+  ...
+# Subtest: moved member entry-revision late same-count drift rolls every table back
+ok 134 - moved member entry-revision late same-count drift rolls every table back
+  ---
+  duration_ms: 115.619709
+  type: 'test'
+  ...
+# Subtest: moved member entry-admission late same-count drift rolls every table back
+ok 135 - moved member entry-admission late same-count drift rolls every table back
+  ---
+  duration_ms: 108.72
+  type: 'test'
+  ...
+# Subtest: moved member provenance late same-count drift rolls every table back
+ok 136 - moved member provenance late same-count drift rolls every table back
+  ---
+  duration_ms: 107.251333
+  type: 'test'
+  ...
+# Subtest: moved member dependency late same-count drift rolls every table back
+ok 137 - moved member dependency late same-count drift rolls every table back
+  ---
+  duration_ms: 119.667084
+  type: 'test'
+  ...
+# Subtest: moved member input-metadata late same-count drift rolls every table back
+ok 138 - moved member input-metadata late same-count drift rolls every table back
+  ---
+  duration_ms: 108.251333
+  type: 'test'
+  ...
+# Subtest: unchanged original moved member commits with independently selected processing Input
+ok 139 - unchanged original moved member commits with independently selected processing Input
+  ---
+  duration_ms: 118.590959
+  type: 'test'
+  ...
+# Subtest: automatic receipt replay is physically byte-bounded before callback admission
+ok 140 - automatic receipt replay is physically byte-bounded before callback admission
+  ---
+  duration_ms: 58.273
+  type: 'test'
+  ...
+# Subtest: original execution transaction charges publication prelude before its first receipt read
+ok 141 - original execution transaction charges publication prelude before its first receipt read
+  ---
+  duration_ms: 31.051417
+  type: 'test'
+  ...
+# Subtest: original writer budget configuration only tightens and accepts no callback
+ok 142 - original writer budget configuration only tightens and accepts no callback
+  ---
+  duration_ms: 35.312584
+  type: 'test'
+  ...
+1..142
+# tests 142
+# suites 0
+# pass 142
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3946.211416

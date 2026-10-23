@@ -1,3 +1,4 @@
+import {requireRepositoryTransactionScope} from './idb-repository.js';
 import {prefix} from './thought-model.js';
 import {rootReadAuthority} from './organizer/root-read.js';
 
@@ -188,12 +189,27 @@ async function topicMeta(store,t,topic){
  await t.put('meta',meta);
  return {meta,key,epoch};
 }
+// Optional process-local observation of this original writer only. It is not
+// activity/read/processing authority and accepts no caller-supplied after-image.
+const invalidationObservations=new WeakMap(),invalidationCapabilities=new WeakMap();
+export function observeOriginalTopicInvalidation(store,t,topicId,before){
+ requireRepositoryTransactionScope(store.repository,t);let observations=invalidationObservations.get(t);if(!observations){observations=new Map();invalidationObservations.set(t,observations);}if(observations.has(topicId))fail();
+ const cap=Object.freeze({}),record={store,t,topicId,before:JSON.stringify(before),after:null};observations.set(topicId,record);invalidationCapabilities.set(cap,record);return cap;
+}
+function recordOriginalTopicInvalidation(store,t,topicId,before,after){
+ const record=invalidationObservations.get(t)?.get(topicId);if(!record)return;
+ if(record.store!==store||record.after!==null||record.before!==JSON.stringify(before))fail();record.after=JSON.stringify(after);
+}
+export function originalTopicInvalidationResult(store,t,cap){
+ const record=invalidationCapabilities.get(cap);if(!record||record.store!==store||record.t!==t||record.after===null)fail();return record.after;
+}
 export async function invalidateThoughtTopicIndex(store,t,topicId,{sourceTime=false,preparedGeneration}={}){
  const id=topicMetaId(topicId),meta=await t.get('meta',id);
  if(!meta||meta.version!==THOUGHT_TOPIC_INDEX_VERSION)return false;
  const topic=await t.get('topics',topicId);
  if(!topic||!['active','dormant'].includes(topic.lifecycle)||topic.redirectTo)return false;
  const epoch=(await t.get('meta','thought-epoch'))?.value||0,planned=planThoughtTopicInvalidation(meta,topic,epoch,{sourceTime,allocateGeneration:()=>generation(store,preparedGeneration)});
+ recordOriginalTopicInvalidation(store,t,topicId,meta,planned.meta);
  await t.put('meta',planned.meta);
  return true;
 }

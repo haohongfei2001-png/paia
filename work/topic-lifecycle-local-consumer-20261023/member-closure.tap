@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: actual moved Source-linked member outside Topic sources and processing scope rejects late Source deletion
+ok 1 - actual moved Source-linked member outside Topic sources and processing scope rejects late Source deletion
+  ---
+  duration_ms: 125.72475
+  type: 'test'
+  ...
+# Subtest: moved member entry-revision late same-count drift rolls every table back
+ok 2 - moved member entry-revision late same-count drift rolls every table back
+  ---
+  duration_ms: 73.427625
+  type: 'test'
+  ...
+# Subtest: moved member entry-admission late same-count drift rolls every table back
+ok 3 - moved member entry-admission late same-count drift rolls every table back
+  ---
+  duration_ms: 67.361209
+  type: 'test'
+  ...
+# Subtest: moved member provenance late same-count drift rolls every table back
+ok 4 - moved member provenance late same-count drift rolls every table back
+  ---
+  duration_ms: 63.977792
+  type: 'test'
+  ...
+# Subtest: moved member dependency late same-count drift rolls every table back
+ok 5 - moved member dependency late same-count drift rolls every table back
+  ---
+  duration_ms: 64.476292
+  type: 'test'
+  ...
+# Subtest: moved member input-metadata late same-count drift rolls every table back
+ok 6 - moved member input-metadata late same-count drift rolls every table back
+  ---
+  duration_ms: 64.63625
+  type: 'test'
+  ...
+# Subtest: unchanged original moved member commits with independently selected processing Input
+ok 7 - unchanged original moved member commits with independently selected processing Input
+  ---
+  duration_ms: 69.7895
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 678.4815

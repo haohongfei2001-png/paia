@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: explicit inactivity uses real original issuer and commits once; restarted consumer replays exact receipt
+ok 1 - explicit inactivity uses real original issuer and commits once; restarted consumer replays exact receipt
+  ---
+  duration_ms: 72.829333
+  type: 'test'
+  ...
+# Subtest: activity missing cannot write or issue a success receipt
+ok 2 - activity missing cannot write or issue a success receipt
+  ---
+  duration_ms: 38.82725
+  type: 'test'
+  ...
+# Subtest: activity recent cannot write or issue a success receipt
+ok 3 - activity recent cannot write or issue a success receipt
+  ---
+  duration_ms: 29.646291
+  type: 'test'
+  ...
+# Subtest: activity future cannot write or issue a success receipt
+ok 4 - activity future cannot write or issue a success receipt
+  ---
+  duration_ms: 24.829167
+  type: 'test'
+  ...
+# Subtest: activity backwards cannot write or issue a success receipt
+ok 5 - activity backwards cannot write or issue a success receipt
+  ---
+  duration_ms: 23.334792
+  type: 'test'
+  ...
+# Subtest: original pin veto remains authoritative
+ok 6 - original pin veto remains authoritative
+  ---
+  duration_ms: 25.255
+  type: 'test'
+  ...
+# Subtest: original keep veto remains authoritative
+ok 7 - original keep veto remains authoritative
+  ---
+  duration_ms: 25.957083
+  type: 'test'
+  ...
+# Subtest: original lifecycle veto remains authoritative
+ok 8 - original lifecycle veto remains authoritative
+  ---
+  duration_ms: 22.491625
+  type: 'test'
+  ...
+# Subtest: late activity after original backup finalizer rolls back every table
+ok 9 - late activity after original backup finalizer rolls back every table
+  ---
+  duration_ms: 25.855417
+  type: 'test'
+  ...
+# Subtest: late membership after original backup finalizer rolls back every table
+ok 10 - late membership after original backup finalizer rolls back every table
+  ---
+  duration_ms: 25.794292
+  type: 'test'
+  ...
+# Subtest: late source after original backup finalizer rolls back every table
+ok 11 - late source after original backup finalizer rolls back every table
+  ---
+  duration_ms: 23.61825
+  type: 'test'
+  ...
+# Subtest: late source-delete after original backup finalizer rolls back every table
+ok 12 - late source-delete after original backup finalizer rolls back every table
+  ---
+  duration_ms: 29.23775
+  type: 'test'
+  ...
+# Subtest: late memory-negative after original backup finalizer rolls back every table
+ok 13 - late memory-negative after original backup finalizer rolls back every table
+  ---
+  duration_ms: 26.947583
+  type: 'test'
+  ...
+# Subtest: late grant after original backup finalizer rolls back every table
+ok 14 - late grant after original backup finalizer rolls back every table
+  ---
+  duration_ms: 20.85325
+  type: 'test'
+  ...
+# Subtest: legacy authority and forged budget cannot mint automatic activity capability
+ok 15 - legacy authority and forged budget cannot mint automatic activity capability
+  ---
+  duration_ms: 22.2005
+  type: 'test'
+  ...
+# Subtest: automatic owner preserves installed Sync journal refusal
+ok 16 - automatic owner preserves installed Sync journal refusal
+  ---
+  duration_ms: 20.009042
+  type: 'test'
+  ...
+# Subtest: private cumulative reference limit aborts the complete actual lifecycle transaction
+ok 17 - private cumulative reference limit aborts the complete actual lifecycle transaction
+  ---
+  duration_ms: 20.027166
+  type: 'test'
+  ...
+# Subtest: bounded original history pruning counts physical history bytes and rolls back on overflow
+ok 18 - bounded original history pruning counts physical history bytes and rolls back on overflow
+  ---
+  duration_ms: 31.872209
+  type: 'test'
+  ...
+# Subtest: bounded and original pruning preserve the exact same newest-important and young rows
+ok 19 - bounded and original pruning preserve the exact same newest-important and young rows
+  ---
+  duration_ms: 27.091833
+  type: 'test'
+  ...
+# Subtest: inflight original history deletion failure rolls lifecycle, journal, indexes and receipt back
+ok 20 - inflight original history deletion failure rolls lifecycle, journal, indexes and receipt back
+  ---
+  duration_ms: 24.265458
+  type: 'test'
+  ...
+# Subtest: policy is explicit, detached, versioned and never adopts the proposal as defaults
+ok 21 - policy is explicit, detached, versioned and never adopts the proposal as defaults
+  ---
+  duration_ms: 0.136292
+  type: 'test'
+  ...
+# Subtest: already dormant with a new action is deferred without another receipt; close never dispatches
+ok 22 - already dormant with a new action is deferred without another receipt; close never dispatches
+  ---
+  duration_ms: 30.680583
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 738.833833

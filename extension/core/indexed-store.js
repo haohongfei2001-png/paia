@@ -5,7 +5,7 @@ import {prepareRemoval,expandRemoval,validateRemovalEdit} from './archive-remova
 import {queryPage} from './archive-query.js';
 import {OperationAttemptLedger,validateOperationQuery} from './operation-outcome.js';
 import {captureIsExcluded,clearReadingTargets,clearPurgedReaderPolicy} from './reader-state.js';
-import {requireRepositoryTransactionScope,ArchiveRepository,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
+import {registerRepositoryWorkLimit,requireRepositoryTransactionScope,ArchiveRepository,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
 import {ADAPTER_VERSION,CONSENT_VERSION,STORAGE_KEY,ArchiveError,STATUS_CODES,ERROR_CODES} from './constants.js';
 import {validateCapture,validateEnrichment,validateChanges,canonicalChat} from './validation.js';
 import {identify,identifySource,hashText} from './dedupe.js';
@@ -20,6 +20,16 @@ import {CONTROL_PUBLICATION_RESERVATION,readControlPublicationFence,reserveContr
 import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
 
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+// Optional original-writer budget only, never a caller-provided transaction hook.
+export function snapshotWriteWorkLimit(value){
+ if(value===null)return null;
+ if(!value||Object.getPrototypeOf(value)!==Object.prototype)throw new ArchiveError('INVALID_REQUEST');
+ const descriptors=Object.getOwnPropertyDescriptors(value),keys=Reflect.ownKeys(descriptors);
+ if(keys.some(key=>!['references','bytes','ms'].includes(key)||!Object.hasOwn(descriptors[key],'value')))throw new ArchiveError('INVALID_REQUEST');
+ const result=Object.fromEntries(keys.map(key=>[key,descriptors[key].value]));
+ for(const [key,max] of [['references',4096],['bytes',2*1024*1024],['ms',30000]])if(Object.hasOwn(result,key)&&(!Number.isFinite(result[key])||result[key]<=0||result[key]>max||key!=='ms'&&!Number.isSafeInteger(result[key])))throw new ArchiveError('INVALID_REQUEST');
+ return Object.freeze(result);
+};
 // Conservative, bounded equality for a rejected preference publication only.
 // Unlike JSON equality, this preserves missing/undefined and exact scalar values.
 const publicationEqual=(a,b)=>{
@@ -276,7 +286,7 @@ export class IndexedArchiveStore {
   await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);if(this.consumerPreferenceJournal)await this.consumerPreferenceJournal.settle(t,this,owner.reservation,publication);else await requireConsumerPublicationSettled(t);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);
   owner.loadedStamp=structuredClone(payload.controlPublication);this.controlCache=control;this.pendingControl=null;rememberOriginalControlSettings(this);
  }
- write(fn,onCommitted=null,prepare=null){return this.run(async()=>{try{const prepared=prepare?await prepare():null,result=await this.repository.transaction(true,async t=>{try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')error(e.code);throw e;}return fn(t,prepared);});onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
+ write(fn,onCommitted=null,prepare=null,workLimit=null){const budget=snapshotWriteWorkLimit(workLimit);return this.run(async()=>{try{const prepared=prepare?await prepare():null,result=await this.repository.transaction(true,async t=>{if(budget)registerRepositoryWorkLimit(this.repository,t,budget);try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')error(e.code);throw e;}return fn(t,prepared);});onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
  status(){return this.run(()=>this.repository.transaction(false,async t=>{const {settings:s}=await this.control(t);return {enabled:s.enabled===true&&s.consentVersion===CONSENT_VERSION,consented:s.consentVersion===CONSENT_VERSION,epoch:s.epoch,adapterVersion:ADAPTER_VERSION};}));}
  consent(accepted){if(accepted!==true)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const c=await this.control(t);c.settings={consentVersion:CONSENT_VERSION,consentAt:this.clock(),enabled:true,epoch:c.settings.epoch+1};c.diagnostics.status='WAITING_CHAT';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled:true};});}
  setEnabled(enabled){return this.write(async t=>{const c=await this.control(t);if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(typeof enabled!=='boolean')error('INVALID_REQUEST');c.settings.enabled=enabled;c.settings.epoch++;c.diagnostics.status=enabled?'WAITING_CHAT':'PAUSED';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled};});}

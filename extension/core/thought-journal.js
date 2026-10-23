@@ -13,7 +13,7 @@ export function planJournalRevision(data,previous,at) {
  }
  return {coalesced:false,entityKey,row:{...data,entityKey,documentId:data.documentId||data.entityId,at,windowStartedAt:at}};
 }
-export async function journal(store,t,data) {
+export async function journal(store,t,data,{boundedPrune=false}={}) {
  // Before-images of generated labels retain their purge fence after human rename/merge.
  if(['topic','section'].includes(data.kind))data={...data,sourceRecordIds:[...new Set([...(data.sourceRecordIds||[]),...(data.before?.sourceRecordIds||[]),...(data.after?.sourceRecordIds||[])])]};
  const at=humanClock(store,t),entityKey=data.kind+':'+data.entityId;
@@ -23,7 +23,7 @@ export async function journal(store,t,data) {
  // Preserve the existing sequence-write -> UUID order, and allocate neither
  // when a coalesced revision keeps its original physical row identity.
  const sequence=await nextSequence(t,'revision-sequence'),id=humanUuid(store,t);
- await t.put('revisions',{...plan.row,id,sequence,listKey:[entityKey,sequence],documentList:[plan.row.documentId,sequence]});await store.pruneEntity(t,entityKey);return id;
+ await t.put('revisions',{...plan.row,id,sequence,listKey:[entityKey,sequence],documentList:[plan.row.documentId,sequence]});await store.pruneEntity(t,entityKey,{bounded:boundedPrune});return id;
 }
 export async function receipt(t,request,digest) {
  const prior=await t.get('operationReceipts',request.operationId);if(!prior)return null;

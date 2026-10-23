@@ -1,0 +1,37 @@
+TAP version 13
+# Subtest: two selected Topics preserve first committed receipt when second transaction fails
+not ok 1 - two selected Topics preserve first committed receipt when second transaction fails
+  ---
+  duration_ms: 96.989584
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:57:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(failure)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:57:1036)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: budget accessors are rejected at both original owner entries without evaluation
+ok 2 - budget accessors are rejected at both original owner entries without evaluation
+  ---
+  duration_ms: 20.858167
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 264.37175
