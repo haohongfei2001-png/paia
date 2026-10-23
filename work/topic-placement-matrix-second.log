@@ -1,0 +1,511 @@
+TAP version 13
+# Subtest: actual manual placement reconciles same Topic without changing default Section or human owners
+ok 1 - actual manual placement reconciles same Topic without changing default Section or human owners
+  ---
+  duration_ms: 327.661625
+  type: 'test'
+  ...
+# Subtest: actual manual placement reconciles same Topic without changing named Section or human owners
+ok 2 - actual manual placement reconciles same Topic without changing named Section or human owners
+  ---
+  duration_ms: 267.029167
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back name drift and exact ACK
+not ok 3 - Placement Topic final receipt fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 256.045167
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    'COMMITTED'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  actual: 'COMMITTED'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:34:145)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back input drift and exact ACK
+ok 4 - Placement Topic final receipt fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 201.173083
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back source drift and exact ACK
+ok 5 - Placement Topic final receipt fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 205.198833
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back membership drift and exact ACK
+ok 6 - Placement Topic final receipt fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 243.4285
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back order drift and exact ACK
+ok 7 - Placement Topic final receipt fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 212.152125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back section drift and exact ACK
+ok 8 - Placement Topic final receipt fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 204.731417
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back entry-revision drift and exact ACK
+ok 9 - Placement Topic final receipt fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 207.465375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back input-revision drift and exact ACK
+ok 10 - Placement Topic final receipt fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 209.91525
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back section-revision drift and exact ACK
+ok 11 - Placement Topic final receipt fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 196.103917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back topic-revision drift and exact ACK
+ok 12 - Placement Topic final receipt fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 204.311625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back topic-epoch drift and exact ACK
+ok 13 - Placement Topic final receipt fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 202.826084
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back authority-epoch drift and exact ACK
+ok 14 - Placement Topic final receipt fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 197.921542
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back processing drift and exact ACK
+ok 15 - Placement Topic final receipt fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 219.096
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back abort drift and exact ACK
+ok 16 - Placement Topic final receipt fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 194.191417
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back source-body drift and exact ACK
+ok 17 - Placement Topic final receipt fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 199.156417
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back restore drift and exact ACK
+ok 18 - Placement Topic final receipt fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 202.805
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back name drift and exact ACK
+not ok 19 - Placement Topic final ack fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 260.81775
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    'COMMITTED'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  actual: 'COMMITTED'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:34:145)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Placement Topic final ack fence rolls back input drift and exact ACK
+ok 20 - Placement Topic final ack fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 203.811584
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back source drift and exact ACK
+ok 21 - Placement Topic final ack fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 208.326292
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back membership drift and exact ACK
+ok 22 - Placement Topic final ack fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 203.821042
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back order drift and exact ACK
+ok 23 - Placement Topic final ack fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 197.942625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back section drift and exact ACK
+ok 24 - Placement Topic final ack fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 212.285959
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back entry-revision drift and exact ACK
+ok 25 - Placement Topic final ack fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 202.543875
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back input-revision drift and exact ACK
+ok 26 - Placement Topic final ack fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 217.652542
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back section-revision drift and exact ACK
+ok 27 - Placement Topic final ack fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 199.244708
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back topic-revision drift and exact ACK
+ok 28 - Placement Topic final ack fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 221.309625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back topic-epoch drift and exact ACK
+ok 29 - Placement Topic final ack fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 239.014792
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back authority-epoch drift and exact ACK
+ok 30 - Placement Topic final ack fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 215.177417
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back processing drift and exact ACK
+ok 31 - Placement Topic final ack fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 222.077375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back abort drift and exact ACK
+ok 32 - Placement Topic final ack fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 233.418166
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back source-body drift and exact ACK
+ok 33 - Placement Topic final ack fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 245.422625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back restore drift and exact ACK
+ok 34 - Placement Topic final ack fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 209.427917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back name drift and exact ACK
+not ok 35 - Placement Topic final counter fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 340.133125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    'COMMITTED'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  actual: 'COMMITTED'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:34:145)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Placement Topic final counter fence rolls back input drift and exact ACK
+ok 36 - Placement Topic final counter fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 218.392959
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back source drift and exact ACK
+ok 37 - Placement Topic final counter fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 263.724125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back membership drift and exact ACK
+ok 38 - Placement Topic final counter fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 218.039
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back order drift and exact ACK
+ok 39 - Placement Topic final counter fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 203.256917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back section drift and exact ACK
+ok 40 - Placement Topic final counter fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 210.102208
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back entry-revision drift and exact ACK
+ok 41 - Placement Topic final counter fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 204.944833
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back input-revision drift and exact ACK
+ok 42 - Placement Topic final counter fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 314.662667
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back section-revision drift and exact ACK
+ok 43 - Placement Topic final counter fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 226.758208
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back topic-revision drift and exact ACK
+ok 44 - Placement Topic final counter fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 217.162958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back topic-epoch drift and exact ACK
+ok 45 - Placement Topic final counter fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 202.441
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back authority-epoch drift and exact ACK
+ok 46 - Placement Topic final counter fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 221.310958
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back processing drift and exact ACK
+ok 47 - Placement Topic final counter fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 204.645459
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back abort drift and exact ACK
+ok 48 - Placement Topic final counter fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 197.687625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back source-body drift and exact ACK
+ok 49 - Placement Topic final counter fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 207.30275
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back restore drift and exact ACK
+ok 50 - Placement Topic final counter fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 211.06925
+  type: 'test'
+  ...
+# Subtest: unknown Placement Topic attempt keeps identity and never redispatches
+ok 51 - unknown Placement Topic attempt keeps identity and never redispatches
+  ---
+  duration_ms: 171.799208
+  type: 'test'
+  ...
+# Subtest: Placement Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+ok 52 - Placement Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+  ---
+  duration_ms: 282.23
+  type: 'test'
+  ...
+# Subtest: prior Context-only route keeps same-route Topic DEFER pending
+ok 53 - prior Context-only route keeps same-route Topic DEFER pending
+  ---
+  duration_ms: 373.792833
+  type: 'test'
+  ...
+# Subtest: prior Context-only route reconsiders Topic on new qualified route only
+ok 54 - prior Context-only route reconsiders Topic on new qualified route only
+  ---
+  duration_ms: 465.017417
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent grant permission before dispatch
+ok 55 - manual placement needs complete independent grant permission before dispatch
+  ---
+  duration_ms: 64.484666
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent facet permission before dispatch
+ok 56 - manual placement needs complete independent facet permission before dispatch
+  ---
+  duration_ms: 76.792125
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent placement permission before dispatch
+ok 57 - manual placement needs complete independent placement permission before dispatch
+  ---
+  duration_ms: 85.921583
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent entry permission before dispatch
+ok 58 - manual placement needs complete independent entry permission before dispatch
+  ---
+  duration_ms: 90.309708
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent input permission before dispatch
+ok 59 - manual placement needs complete independent input permission before dispatch
+  ---
+  duration_ms: 68.500584
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses different-name without ACK or human mutation
+ok 60 - placement Topic assessment refuses different-name without ACK or human mutation
+  ---
+  duration_ms: 207.158291
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses distinct without ACK or human mutation
+ok 61 - placement Topic assessment refuses distinct without ACK or human mutation
+  ---
+  duration_ms: 225.158959
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses ambiguous without ACK or human mutation
+ok 62 - placement Topic assessment refuses ambiguous without ACK or human mutation
+  ---
+  duration_ms: 214.5605
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses internal-aspect without ACK or human mutation
+ok 63 - placement Topic assessment refuses internal-aspect without ACK or human mutation
+  ---
+  duration_ms: 186.196667
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-evidence without ACK or human mutation
+ok 64 - placement Topic assessment refuses partial-evidence without ACK or human mutation
+  ---
+  duration_ms: 182.908959
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-relation without ACK or human mutation
+ok 65 - placement Topic assessment refuses partial-relation without ACK or human mutation
+  ---
+  duration_ms: 248.533917
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses wrong-section without ACK or human mutation
+ok 66 - placement Topic assessment refuses wrong-section without ACK or human mutation
+  ---
+  duration_ms: 213.211333
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses new-section without ACK or human mutation
+ok 67 - placement Topic assessment refuses new-section without ACK or human mutation
+  ---
+  duration_ms: 216.086
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses missing-entry without ACK or human mutation
+ok 68 - placement Topic assessment refuses missing-entry without ACK or human mutation
+  ---
+  duration_ms: 204.355833
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses new-entry without ACK or human mutation
+ok 69 - placement Topic assessment refuses new-entry without ACK or human mutation
+  ---
+  duration_ms: 195.125292
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses extra-reference without ACK or human mutation
+ok 70 - placement Topic assessment refuses extra-reference without ACK or human mutation
+  ---
+  duration_ms: 199.356375
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-entry without ACK or human mutation
+ok 71 - placement Topic assessment refuses partial-entry without ACK or human mutation
+  ---
+  duration_ms: 199.127167
+  type: 'test'
+  ...
+# Subtest: original Context placement does not acquire Topic capability false
+ok 72 - original Context placement does not acquire Topic capability false
+  ---
+  duration_ms: 233.337417
+  type: 'test'
+  ...
+# Subtest: original Context placement does not acquire Topic capability undefined
+ok 73 - original Context placement does not acquire Topic capability undefined
+  ---
+  duration_ms: 244.216042
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean "true"
+ok 74 - placement capability rejects non-boolean "true"
+  ---
+  duration_ms: 35.291791
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean 1
+ok 75 - placement capability rejects non-boolean 1
+  ---
+  duration_ms: 38.103125
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean null
+ok 76 - placement capability rejects non-boolean null
+  ---
+  duration_ms: 38.58775
+  type: 'test'
+  ...
+1..76
+# tests 76
+# suites 0
+# pass 73
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16002.140333

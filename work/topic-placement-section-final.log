@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: Placement Topic final receipt fence rolls back name drift and exact ACK
+ok 1 - Placement Topic final receipt fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 298.163166
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back name drift and exact ACK
+ok 2 - Placement Topic final ack fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 332.488333
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back name drift and exact ACK
+ok 3 - Placement Topic final counter fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 229.08475
+  type: 'test'
+  ...
+# Subtest: placement genuine independent Topic authority commits with original closed owner
+ok 4 - placement genuine independent Topic authority commits with original closed owner
+  ---
+  duration_ms: 297.393459
+  type: 'test'
+  ...
+# Subtest: placement genuine independent Topic authority revocation at settlement rolls back
+ok 5 - placement genuine independent Topic authority revocation at settlement rolls back
+  ---
+  duration_ms: 298.645625
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1609.932125

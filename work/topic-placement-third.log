@@ -1,0 +1,39 @@
+TAP version 13
+# Subtest: actual manual placement reconciles same Topic without changing default Section or human owners
+not ok 1 - actual manual placement reconciles same Topic without changing default Section or human owners
+  ---
+  duration_ms: 323.734458
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:24:33'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"COMMITTED","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:3147f6fb6056262a91f1b23b2fd87bf3c8893a84c61b7c9bbf30e13310ac69d9","facets":[{"facet":"topic","units":1,"state":"COMMITTED","outcome":"NO_CHANGE"},{"facet":"context","units":1,"state":"COMMITTED"}],"nextCursor":null,"complete":true,"deferredUnits":0,"blockedUnits":0,"remainingWork":false}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:26:81)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: actual manual placement reconciles same Topic without changing named Section or human owners
+ok 2 - actual manual placement reconciles same Topic without changing named Section or human owners
+  ---
+  duration_ms: 275.077792
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 730.120917

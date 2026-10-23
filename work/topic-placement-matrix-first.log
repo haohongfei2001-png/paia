@@ -1,0 +1,1634 @@
+TAP version 13
+# Subtest: actual manual placement reconciles same Topic without changing default Section or human owners
+not ok 1 - actual manual placement reconciles same Topic without changing default Section or human owners
+  ---
+  duration_ms: 86.28525
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:24:33'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: actual manual placement reconciles same Topic without changing named Section or human owners
+not ok 2 - actual manual placement reconciles same Topic without changing named Section or human owners
+  ---
+  duration_ms: 60.83925
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:24:33'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back name drift and exact ACK
+not ok 3 - Placement Topic final receipt fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 57.043166
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back input drift and exact ACK
+not ok 4 - Placement Topic final receipt fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 44.276167
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back source drift and exact ACK
+not ok 5 - Placement Topic final receipt fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 49.584541
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back membership drift and exact ACK
+not ok 6 - Placement Topic final receipt fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 43.401291
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back order drift and exact ACK
+not ok 7 - Placement Topic final receipt fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 42.298333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back section drift and exact ACK
+not ok 8 - Placement Topic final receipt fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 43.627417
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back entry-revision drift and exact ACK
+not ok 9 - Placement Topic final receipt fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 45.107209
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back input-revision drift and exact ACK
+not ok 10 - Placement Topic final receipt fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 45.423291
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back section-revision drift and exact ACK
+not ok 11 - Placement Topic final receipt fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 49.648917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back topic-revision drift and exact ACK
+not ok 12 - Placement Topic final receipt fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 48.261125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back topic-epoch drift and exact ACK
+not ok 13 - Placement Topic final receipt fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 44.418583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back authority-epoch drift and exact ACK
+not ok 14 - Placement Topic final receipt fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 43.854083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back processing drift and exact ACK
+not ok 15 - Placement Topic final receipt fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 43.932458
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back abort drift and exact ACK
+not ok 16 - Placement Topic final receipt fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 50.92825
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back source-body drift and exact ACK
+not ok 17 - Placement Topic final receipt fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 57.464834
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final receipt fence rolls back restore drift and exact ACK
+not ok 18 - Placement Topic final receipt fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 41.899083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back name drift and exact ACK
+not ok 19 - Placement Topic final ack fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 41.124667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back input drift and exact ACK
+not ok 20 - Placement Topic final ack fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 38.99175
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back source drift and exact ACK
+not ok 21 - Placement Topic final ack fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 42.365208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back membership drift and exact ACK
+not ok 22 - Placement Topic final ack fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 40.608958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back order drift and exact ACK
+not ok 23 - Placement Topic final ack fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 40.06775
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back section drift and exact ACK
+not ok 24 - Placement Topic final ack fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 39.359583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back entry-revision drift and exact ACK
+not ok 25 - Placement Topic final ack fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 50.855083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back input-revision drift and exact ACK
+not ok 26 - Placement Topic final ack fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 43.798708
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back section-revision drift and exact ACK
+not ok 27 - Placement Topic final ack fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 43.522709
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back topic-revision drift and exact ACK
+not ok 28 - Placement Topic final ack fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 44.127208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back topic-epoch drift and exact ACK
+not ok 29 - Placement Topic final ack fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 43.149125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back authority-epoch drift and exact ACK
+not ok 30 - Placement Topic final ack fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 41.271458
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back processing drift and exact ACK
+not ok 31 - Placement Topic final ack fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 43.543042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back abort drift and exact ACK
+not ok 32 - Placement Topic final ack fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 42.086584
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back source-body drift and exact ACK
+not ok 33 - Placement Topic final ack fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 46.889958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final ack fence rolls back restore drift and exact ACK
+not ok 34 - Placement Topic final ack fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 40.711083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back name drift and exact ACK
+not ok 35 - Placement Topic final counter fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 40.340625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back input drift and exact ACK
+not ok 36 - Placement Topic final counter fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 40.331667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back source drift and exact ACK
+not ok 37 - Placement Topic final counter fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 39.883834
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back membership drift and exact ACK
+not ok 38 - Placement Topic final counter fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 40.770292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back order drift and exact ACK
+not ok 39 - Placement Topic final counter fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 41.862292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back section drift and exact ACK
+not ok 40 - Placement Topic final counter fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 39.053667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back entry-revision drift and exact ACK
+not ok 41 - Placement Topic final counter fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 39.990041
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back input-revision drift and exact ACK
+not ok 42 - Placement Topic final counter fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 43.80525
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back section-revision drift and exact ACK
+not ok 43 - Placement Topic final counter fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 39.905833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back topic-revision drift and exact ACK
+not ok 44 - Placement Topic final counter fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 40.402084
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back topic-epoch drift and exact ACK
+not ok 45 - Placement Topic final counter fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 39.780666
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back authority-epoch drift and exact ACK
+not ok 46 - Placement Topic final counter fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 38.639542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back processing drift and exact ACK
+not ok 47 - Placement Topic final counter fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 40.567666
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back abort drift and exact ACK
+not ok 48 - Placement Topic final counter fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 40.719458
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back source-body drift and exact ACK
+not ok 49 - Placement Topic final counter fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 43.773292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic final counter fence rolls back restore drift and exact ACK
+not ok 50 - Placement Topic final counter fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 45.22625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:29:271'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: unknown Placement Topic attempt keeps identity and never redispatches
+not ok 51 - unknown Placement Topic attempt keeps identity and never redispatches
+  ---
+  duration_ms: 45.440292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:38:1'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: Placement Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+not ok 52 - Placement Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+  ---
+  duration_ms: 41.386417
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:43:1'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: prior Context-only route keeps same-route Topic DEFER pending
+not ok 53 - prior Context-only route keeps same-route Topic DEFER pending
+  ---
+  duration_ms: 39.716667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:50:35'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: prior Context-only route reconsiders Topic on new qualified route only
+not ok 54 - prior Context-only route reconsiders Topic on new qualified route only
+  ---
+  duration_ms: 39.715417
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:50:35'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: manual placement needs complete independent grant permission before dispatch
+not ok 55 - manual placement needs complete independent grant permission before dispatch
+  ---
+  duration_ms: 40.384375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:57:68'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: manual placement needs complete independent facet permission before dispatch
+not ok 56 - manual placement needs complete independent facet permission before dispatch
+  ---
+  duration_ms: 39.253666
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:57:68'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: manual placement needs complete independent placement permission before dispatch
+not ok 57 - manual placement needs complete independent placement permission before dispatch
+  ---
+  duration_ms: 40.240375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:57:68'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: manual placement needs complete independent entry permission before dispatch
+not ok 58 - manual placement needs complete independent entry permission before dispatch
+  ---
+  duration_ms: 45.494291
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:57:68'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: manual placement needs complete independent input permission before dispatch
+not ok 59 - manual placement needs complete independent input permission before dispatch
+  ---
+  duration_ms: 39.088333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:57:68'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses different-name without ACK or human mutation
+not ok 60 - placement Topic assessment refuses different-name without ACK or human mutation
+  ---
+  duration_ms: 40.398416
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses distinct without ACK or human mutation
+not ok 61 - placement Topic assessment refuses distinct without ACK or human mutation
+  ---
+  duration_ms: 40.571708
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses ambiguous without ACK or human mutation
+not ok 62 - placement Topic assessment refuses ambiguous without ACK or human mutation
+  ---
+  duration_ms: 39.43325
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses internal-aspect without ACK or human mutation
+not ok 63 - placement Topic assessment refuses internal-aspect without ACK or human mutation
+  ---
+  duration_ms: 41.107209
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses partial-evidence without ACK or human mutation
+not ok 64 - placement Topic assessment refuses partial-evidence without ACK or human mutation
+  ---
+  duration_ms: 40.852042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses partial-relation without ACK or human mutation
+not ok 65 - placement Topic assessment refuses partial-relation without ACK or human mutation
+  ---
+  duration_ms: 40.547583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses wrong-section without ACK or human mutation
+not ok 66 - placement Topic assessment refuses wrong-section without ACK or human mutation
+  ---
+  duration_ms: 40.410916
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses new-section without ACK or human mutation
+not ok 67 - placement Topic assessment refuses new-section without ACK or human mutation
+  ---
+  duration_ms: 39.7595
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses missing-entry without ACK or human mutation
+not ok 68 - placement Topic assessment refuses missing-entry without ACK or human mutation
+  ---
+  duration_ms: 78.532125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses new-entry without ACK or human mutation
+not ok 69 - placement Topic assessment refuses new-entry without ACK or human mutation
+  ---
+  duration_ms: 94.843583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses extra-reference without ACK or human mutation
+not ok 70 - placement Topic assessment refuses extra-reference without ACK or human mutation
+  ---
+  duration_ms: 49.101375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement Topic assessment refuses partial-entry without ACK or human mutation
+not ok 71 - placement Topic assessment refuses partial-entry without ACK or human mutation
+  ---
+  duration_ms: 57.478125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:61:211'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: original Context placement does not acquire Topic capability false
+not ok 72 - original Context placement does not acquire Topic capability false
+  ---
+  duration_ms: 43.027875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:65:40'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: original Context placement does not acquire Topic capability undefined
+not ok 73 - original Context placement does not acquire Topic capability undefined
+  ---
+  duration_ms: 46.802667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs:65:40'
+  failureType: 'testCodeFailure'
+  error: 'Maximum call stack size exceeded'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+    isolatePlacement (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/local-maintenance-session.js:497:592)
+  ...
+# Subtest: placement capability rejects non-boolean "true"
+ok 74 - placement capability rejects non-boolean "true"
+  ---
+  duration_ms: 35.004375
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean 1
+ok 75 - placement capability rejects non-boolean 1
+  ---
+  duration_ms: 36.1225
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean null
+ok 76 - placement capability rejects non-boolean null
+  ---
+  duration_ms: 33.577
+  type: 'test'
+  ...
+1..76
+# tests 76
+# suites 0
+# pass 3
+# fail 73
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3512.648375
