@@ -198,7 +198,7 @@ export async function requireGroupScope(store,t,scope){
  requireCompiledGroupScope(scope);
  const c=await store.control(t);
  if(!equal(c.preferences,consumerDisplayPreferences(scope.expected.consumerPreferences??[]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
- const human=hasHumanScope(scope)?await requireHumanScope(store,t,scope):null,humanStores=new Set(['thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems']);
+ const human=hasHumanScope(scope)?await requireHumanScope(store,t,scope):null,humanStores=new Set(['thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems','provenance','dependencies']);
  for(const name of t.tx.objectStoreNames)if(!represented.has(name)&&!ephemeralStores.has(name)&&!(human&&humanStores.has(name))&&await t.count(name))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  // Only key bounded metadata inspection. Never export arbitrary meta/body rows.
  const keys=await new Promise((resolve,reject)=>{const out=[],r=t.tx.objectStore('meta').openKeyCursor();r.onerror=()=>reject(r.error);r.onsuccess=()=>{const cursor=r.result;if(!cursor)return resolve(out);if(out.length===10000)return reject(Object.assign(new Error('BNS_GROUP_RESOURCE_LIMIT'),{code:'BNS_GROUP_RESOURCE_LIMIT'}));out.push(cursor.key);cursor.continue();};});

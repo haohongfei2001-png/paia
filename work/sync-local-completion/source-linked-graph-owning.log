@@ -1,0 +1,815 @@
+TAP version 13
+# Subtest: frozen actual 0.32 reader refuses required grouped scope before any stage write, without Git history or network
+ok 1 - frozen actual 0.32 reader refuses required grouped scope before any stage write, without Git history or network
+  ---
+  duration_ms: 219.81075
+  type: 'test'
+  ...
+# Subtest: native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+ok 2 - native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+  ---
+  duration_ms: 130.261166
+  type: 'test'
+  ...
+# Subtest: actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+ok 3 - actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+  ---
+  duration_ms: 211.470334
+  type: 'test'
+  ...
+# Subtest: missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+ok 4 - missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+  ---
+  duration_ms: 58.01625
+  type: 'test'
+  ...
+# Subtest: operation budget counts all ancestry rather than current heads
+ok 5 - operation budget counts all ancestry rather than current heads
+  ---
+  duration_ms: 44.75225
+  type: 'test'
+  ...
+# Subtest: actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+ok 6 - actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+  ---
+  duration_ms: 89.693667
+  type: 'test'
+  ...
+# Subtest: fourMiB operation bytes include all retained payloads, not only final current text
+ok 7 - fourMiB operation bytes include all retained payloads, not only final current text
+  ---
+  duration_ms: 822.062584
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled note rather than claiming protocol coverage
+ok 8 - full inventory rejects actual unjournaled note rather than claiming protocol coverage
+  ---
+  duration_ms: 51.253666
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+ok 9 - full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+  ---
+  duration_ms: 49.883625
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+ok 10 - full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+  ---
+  duration_ms: 46.490917
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+ok 11 - full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+  ---
+  duration_ms: 38.5125
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+ok 12 - full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+  ---
+  duration_ms: 42.877125
+  type: 'test'
+  ...
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 13 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 295.278667
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 14 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 660.769
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 15 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 602.767333
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 16 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 555.638917
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 17 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 456.244
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 18 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 289.217417
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 19 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 264.948584
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 20 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 241.574875
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 21 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 221.973
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 22 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 245.200875
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 23 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 270.735292
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 24 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 132.09625
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 25 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 39.438417
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 26 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 510.864
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":123.42116600000008,"reads":2683,"writes":1161}}
+# Subtest: exact128 retained operations restore, the129th refuses, and bounded transaction work is measured
+ok 27 - exact128 retained operations restore, the129th refuses, and bounded transaction work is measured
+  ---
+  duration_ms: 964.486709
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 28 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 21.676708
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 29 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 29.551917
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 30 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 28.272625
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 31 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 28.620584
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 32 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 28.766625
+  type: 'test'
+  ...
+# Subtest: actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+ok 33 - actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+  ---
+  duration_ms: 748.753625
+  type: 'test'
+  ...
+# Subtest: actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+ok 34 - actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+  ---
+  duration_ms: 315.689958
+  type: 'test'
+  ...
+# Subtest: actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+ok 35 - actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+  ---
+  duration_ms: 686.46625
+  type: 'test'
+  ...
+# Subtest: real bound create/edit/lifecycle owners publish required members through original segments and duplicate ACK adds nothing
+ok 36 - real bound create/edit/lifecycle owners publish required members through original segments and duplicate ACK adds nothing
+  ---
+  duration_ms: 555.249167
+  type: 'test'
+  ...
+# Subtest: actual owner and its outbox roll back together after protocol write failure
+ok 37 - actual owner and its outbox roll back together after protocol write failure
+  ---
+  duration_ms: 45.20225
+  type: 'test'
+  ...
+# Subtest: real bound named Topic/Section/placement/move/fixed/remove/restore/identity consumers remain atomic
+ok 38 - real bound named Topic/Section/placement/move/fixed/remove/restore/identity consumers remain atomic
+  ---
+  duration_ms: 779.72875
+  type: 'test'
+  ...
+# Subtest: private receiver replays actual owners across installation keys and local sequences, preserves coalesced history, duplicate after edit is zero write
+ok 39 - private receiver replays actual owners across installation keys and local sequences, preserves coalesced history, duplicate after edit is zero write
+  ---
+  duration_ms: 313.470125
+  type: 'test'
+  ...
+# Subtest: partial/swapped/semantic tampered/local-counter tampered groups and invalid options refuse with all actual stores unchanged
+ok 40 - partial/swapped/semantic tampered/local-counter tampered groups and invalid options refuse with all actual stores unchanged
+  ---
+  duration_ms: 59.570959
+  type: 'test'
+  ...
+# Subtest: remote actual canonical/domain history/Core/mapping writes all roll back on final ACK failure; prepared owner edit refuses
+ok 41 - remote actual canonical/domain history/Core/mapping writes all roll back on final ACK failure; prepared owner edit refuses
+  ---
+  duration_ms: 71.834916
+  type: 'test'
+  ...
+# Subtest: one global 128-operation ancestry budget includes every parent commit and its member closure before producer writes
+ok 42 - one global 128-operation ancestry budget includes every parent commit and its member closure before producer writes
+  ---
+  duration_ms: 1165.071541
+  type: 'test'
+  ...
+# Subtest: actual receiver can edit and republish to original producer despite different physical sequences
+ok 43 - actual receiver can edit and republish to original producer despite different physical sequences
+  ---
+  duration_ms: 68.746792
+  type: 'test'
+  ...
+# Subtest: current grouped checkpoint refuses an unjournaled human edit before publication with every store unchanged
+ok 44 - current grouped checkpoint refuses an unjournaled human edit before publication with every store unchanged
+  ---
+  duration_ms: 34.363625
+  type: 'test'
+  ...
+# Subtest: private prepared receiver refuses a real intervening canonical owner change and an unbound capability before any ACK
+ok 45 - private prepared receiver refuses a real intervening canonical owner change and an unbound capability before any ACK
+  ---
+  duration_ms: 46.280166
+  type: 'test'
+  ...
+# Subtest: actual opt-in capture atomically publishes a complete required Source bootstrap
+ok 46 - actual opt-in capture atomically publishes a complete required Source bootstrap
+  ---
+  duration_ms: 90.106166
+  type: 'test'
+  ...
+# Subtest: real publication creates empty receiver Source and preserves exact baseline identity/time with local sequences
+ok 47 - real publication creates empty receiver Source and preserves exact baseline identity/time with local sequences
+  ---
+  duration_ms: 182.706833
+  type: 'test'
+  ...
+# Subtest: actual A first Working edit follows bootstrap, roundtrips and coalesces without copied canonical rows
+ok 48 - actual A first Working edit follows bootstrap, roundtrips and coalesces without copied canonical rows
+  ---
+  duration_ms: 446.778417
+  type: 'test'
+  ...
+# Subtest: actual B first Working edit follows bootstrap, roundtrips and coalesces without copied canonical rows
+ok 49 - actual B first Working edit follows bootstrap, roundtrips and coalesces without copied canonical rows
+  ---
+  duration_ms: 395.991667
+  type: 'test'
+  ...
+# Subtest: every real one-operation publication is rejected by frozen old reader before descriptor arrives
+ok 50 - every real one-operation publication is rejected by frozen old reader before descriptor arrives
+  ---
+  duration_ms: 136.380917
+  type: 'test'
+  ...
+# Subtest: incomplete, generic and applyPending bootstrap refuse with all stores unchanged
+ok 51 - incomplete, generic and applyPending bootstrap refuse with all stores unchanged
+  ---
+  duration_ms: 130.950458
+  type: 'test'
+  ...
+# Subtest: receiver exception after Source/canonical writes rolls back every store and protocol receipt with no echo
+ok 52 - receiver exception after Source/canonical writes rolls back every store and protocol receipt with no echo
+  ---
+  duration_ms: 114.692209
+  type: 'test'
+  ...
+# Subtest: producer exception after outbox write rolls back canonical and protocol together
+ok 53 - producer exception after outbox write rolls back canonical and protocol together
+  ---
+  duration_ms: 33.807917
+  type: 'test'
+  ...
+# Subtest: actual initial time ledger survives publication exactly and does not substitute capture time for Source time
+ok 54 - actual initial time ledger survives publication exactly and does not substitute capture time for Source time
+  ---
+  duration_ms: 166.782208
+  type: 'test'
+  ...
+# Subtest: committed duplicate capture, enrichment and multi-message bound requests refuse without half writes
+ok 55 - committed duplicate capture, enrichment and multi-message bound requests refuse without half writes
+  ---
+  duration_ms: 35.968167
+  type: 'test'
+  ...
+# Subtest: receive first-await permission race rejects without admitting protocol or canonical rows
+ok 56 - receive first-await permission race rejects without admitting protocol or canonical rows
+  ---
+  duration_ms: 81.483417
+  type: 'test'
+  ...
+# Subtest: receive first-await restore race rejects without admitting protocol or canonical rows
+ok 57 - receive first-await restore race rejects without admitting protocol or canonical rows
+  ---
+  duration_ms: 77.244667
+  type: 'test'
+  ...
+# Subtest: receive first-await namespace race rejects without admitting protocol or canonical rows
+ok 58 - receive first-await namespace race rejects without admitting protocol or canonical rows
+  ---
+  duration_ms: 83.358292
+  type: 'test'
+  ...
+# Subtest: re-sealed internally inconsistent Source time, document, and baseline closures reject every store atomically
+ok 59 - re-sealed internally inconsistent Source time, document, and baseline closures reject every store atomically
+  ---
+  duration_ms: 159.806208
+  type: 'test'
+  ...
+# Subtest: valid separate captures cannot lend members or descriptors to one another
+ok 60 - valid separate captures cannot lend members or descriptors to one another
+  ---
+  duration_ms: 137.159167
+  type: 'test'
+  ...
+# Subtest: deleted Source cannot be recreated by exact acknowledged bootstrap replay
+ok 61 - deleted Source cannot be recreated by exact acknowledged bootstrap replay
+  ---
+  duration_ms: 92.211833
+  type: 'test'
+  ...
+# Subtest: old acknowledged bootstrap is refused after same-value restore epoch changes
+ok 62 - old acknowledged bootstrap is refused after same-value restore epoch changes
+  ---
+  duration_ms: 69.171459
+  type: 'test'
+  ...
+# Subtest: existing conversation or local capture is not silently merged into initial bootstrap scope
+ok 63 - existing conversation or local capture is not silently merged into initial bootstrap scope
+  ---
+  duration_ms: 91.575042
+  type: 'test'
+  ...
+# Subtest: malformed descriptor refs and unknown member fields reject as typed codec errors
+ok 64 - malformed descriptor refs and unknown member fields reject as typed codec errors
+  ---
+  duration_ms: 72.651291
+  type: 'test'
+  ...
+# Subtest: default null keeps ordinary capture duplicates and enrichment without bootstrap wire publication
+ok 65 - default null keeps ordinary capture duplicates and enrichment without bootstrap wire publication
+  ---
+  duration_ms: 22.814291
+  type: 'test'
+  ...
+# Subtest: actual checkpoint staging refuses the required bootstrap family and cannot activate partial canonical Source
+ok 66 - actual checkpoint staging refuses the required bootstrap family and cannot activate partial canonical Source
+  ---
+  duration_ms: 42.568
+  type: 'test'
+  ...
+# Subtest: canonical refresh mutation cannot slip into committed outbox despite a valid prepared Source plan
+ok 67 - canonical refresh mutation cannot slip into committed outbox despite a valid prepared Source plan
+  ---
+  duration_ms: 17.319833
+  type: 'test'
+  ...
+# Subtest: Source ledger cannot carry a createTime inconsistent with its qualified response candidate
+ok 68 - Source ledger cannot carry a createTime inconsistent with its qualified response candidate
+  ---
+  duration_ms: 62.805833
+  type: 'test'
+  ...
+# Subtest: actual DOM/response conflict and blocked time remain qualified, while fabricated empty or historical conflict ledgers refuse
+ok 69 - actual DOM/response conflict and blocked time remain qualified, while fabricated empty or historical conflict ledgers refuse
+  ---
+  duration_ms: 195.854375
+  type: 'test'
+  ...
+# Subtest: exact Git original module and entire96-module static import closure is immutable
+ok 70 - exact Git original module and entire96-module static import closure is immutable
+  ---
+  duration_ms: 39.564292
+  type: 'test'
+  ...
+# Subtest: changed Entry fields, key order, expected-field order and protected intent retain exact original plans and actual owner writes
+ok 71 - changed Entry fields, key order, expected-field order and protected intent retain exact original plans and actual owner writes
+  ---
+  duration_ms: 221.789625
+  type: 'test'
+  ...
+# Subtest: original coalescence, exact sixty-second boundary and same-value receipt preserve allocation identity and counters
+ok 72 - original coalescence, exact sixty-second boundary and same-value receipt preserve allocation identity and counters
+  ---
+  duration_ms: 181.01475
+  type: 'test'
+  ...
+# Subtest: active and stale-layout membership touches inherit complete index metadata and ordered domain/index roles
+ok 73 - active and stale-layout membership touches inherit complete index metadata and ordered domain/index roles
+  ---
+  duration_ms: 259.722333
+  type: 'test'
+  ...
+# Subtest: removed/restored original Entry and preserved important history remain exact; stale CAS and duplicate refuse or return before allocation
+ok 74 - removed/restored original Entry and preserved important history remain exact; stale CAS and duplicate refuse or return before allocation
+  ---
+  duration_ms: 155.357209
+  type: 'test'
+  ...
+# Subtest: history-retirement and final original read-set races retain fail-closed original outcomes without writes
+ok 75 - history-retirement and final original read-set races retain fail-closed original outcomes without writes
+  ---
+  duration_ms: 111.62675
+  type: 'test'
+  ...
+# Subtest: original permission and field-level CAS boundaries remain before computation and unbound capabilities cannot write
+ok 76 - original permission and field-level CAS boundaries remain before computation and unbound capabilities cannot write
+  ---
+  duration_ms: 128.4355
+  type: 'test'
+  ...
+# Subtest: original topic-edit transaction writer preserves ordered allocations and rollback
+ok 77 - original topic-edit transaction writer preserves ordered allocations and rollback
+  ---
+  duration_ms: 104.685333
+  type: 'test'
+  ...
+# Subtest: original topic-rename transaction writer preserves ordered allocations and rollback
+ok 78 - original topic-rename transaction writer preserves ordered allocations and rollback
+  ---
+  duration_ms: 56.946417
+  type: 'test'
+  ...
+# Subtest: original section-edit transaction writer preserves ordered allocations and rollback
+ok 79 - original section-edit transaction writer preserves ordered allocations and rollback
+  ---
+  duration_ms: 56.884833
+  type: 'test'
+  ...
+# Subtest: public editTopic captures the validated changes object before its first await
+ok 80 - public editTopic captures the validated changes object before its first await
+  ---
+  duration_ms: 34.963917
+  type: 'test'
+  ...
+# Subtest: original source-linked creation plan consumes exact original provenance/dependency and edit owner
+ok 81 - original source-linked creation plan consumes exact original provenance/dependency and edit owner
+  ---
+  duration_ms: 149.371542
+  type: 'test'
+  ...
+# Subtest: source edit after preparation refuses original create without any additional writes
+ok 82 - source edit after preparation refuses original create without any additional writes
+  ---
+  duration_ms: 70.906042
+  type: 'test'
+  ...
+# Subtest: linked owner keeps creation, provenance, dependency and history in one rollback boundary
+ok 83 - linked owner keeps creation, provenance, dependency and history in one rollback boundary
+  ---
+  duration_ms: 47.312625
+  type: 'test'
+  ...
+# Subtest: stale Source is not admitted for linked edit
+ok 84 - stale Source is not admitted for linked edit
+  ---
+  duration_ms: 65.305458
+  type: 'test'
+  ...
+# Subtest: retained dependency mismatch refuses linked edit without writes
+ok 85 - retained dependency mismatch refuses linked edit without writes
+  ---
+  duration_ms: 61.586917
+  type: 'test'
+  ...
+# Subtest: portable Source edge rebinds local tokens after real bootstrap into independent B
+ok 86 - portable Source edge rebinds local tokens after real bootstrap into independent B
+  ---
+  duration_ms: 122.314833
+  type: 'test'
+  ...
+# Subtest: source-linked typed journal exports portable edge and receives create/edit through original B owner
+ok 87 - source-linked typed journal exports portable edge and receives create/edit through original B owner
+  ---
+  duration_ms: 166.346792
+  type: 'test'
+  ...
+# Subtest: single Source and source-linked create/edit restore as one original owner graph on cold B
+ok 88 - single Source and source-linked create/edit restore as one original owner graph on cold B
+  ---
+  duration_ms: 1257.674667
+  type: 'test'
+  ...
+# Subtest: M1 v3 migration preserves every Source/Input/import/filter field and all stores
+ok 89 - M1 v3 migration preserves every Source/Input/import/filter field and all stores
+  ---
+  duration_ms: 84.072625
+  type: 'test'
+  ...
+# Subtest: M1 v4 migration preserves every Source/Input/import/filter field and all stores
+ok 90 - M1 v4 migration preserves every Source/Input/import/filter field and all stores
+  ---
+  duration_ms: 52.318125
+  type: 'test'
+  ...
+# Subtest: M1 actual version provenance ignores note-only changes when only body was used
+ok 91 - M1 actual version provenance ignores note-only changes when only body was used
+  ---
+  duration_ms: 72.584125
+  type: 'test'
+  ...
+# Subtest: M1 inferred auto create and stale supplied evidence are rejected
+ok 92 - M1 inferred auto create and stale supplied evidence are rejected
+  ---
+  duration_ms: 38.210417
+  type: 'test'
+  ...
+# Subtest: M1 per-field human edit protection survives undo and blocks only matching AI fields
+ok 93 - M1 per-field human edit protection survives undo and blocks only matching AI fields
+  ---
+  duration_ms: 49.417583
+  type: 'test'
+  ...
+# Subtest: M1 suppression has no body and same evidence cannot resurrect deleted result
+ok 94 - M1 suppression has no body and same evidence cannot resurrect deleted result
+  ---
+  duration_ms: 40.387292
+  type: 'test'
+  ...
+# Subtest: M1 removing the last evidence invalidates AI content but preserves authored content
+ok 95 - M1 removing the last evidence invalidates AI content but preserves authored content
+  ---
+  duration_ms: 61.828916
+  type: 'test'
+  ...
+# Subtest: M1 nonempty legacy Thought quarantine preserves payload and old revisions without inventing formation
+ok 96 - M1 nonempty legacy Thought quarantine preserves payload and old revisions without inventing formation
+  ---
+  duration_ms: 42.671917
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after thoughts commit resumes idempotently
+ok 97 - M1 migration crash after thoughts commit resumes idempotently
+  ---
+  duration_ms: 37.852042
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after dependencies commit resumes idempotently
+ok 98 - M1 migration crash after dependencies commit resumes idempotently
+  ---
+  duration_ms: 38.23625
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after verify commit resumes idempotently
+ok 99 - M1 migration crash after verify commit resumes idempotently
+  ---
+  duration_ms: 40.135666
+  type: 'test'
+  ...
+# Subtest: M1 actual note dependency becomes stale while conversation title alone does not
+ok 100 - M1 actual note dependency becomes stale while conversation title alone does not
+  ---
+  duration_ms: 45.928625
+  type: 'test'
+  ...
+# Subtest: M1 context-only cannot form an Entry or bypass removed/filtered source gates
+ok 101 - M1 context-only cannot form an Entry or bypass removed/filtered source gates
+  ---
+  duration_ms: 57.766875
+  type: 'test'
+  ...
+# Subtest: M1 new non-context evidence only allows a future candidate, not resurrection
+ok 102 - M1 new non-context evidence only allows a future candidate, not resurrection
+  ---
+  duration_ms: 60.230667
+  type: 'test'
+  ...
+# Subtest: M1 two-tab CAS and operation receipts survive worker replacement
+ok 103 - M1 two-tab CAS and operation receipts survive worker replacement
+  ---
+  duration_ms: 67.58775
+  type: 'test'
+  ...
+# Subtest: M1 multi-source entry remains partial until its last effective evidence disappears
+ok 104 - M1 multi-source entry remains partial until its last effective evidence disappears
+  ---
+  duration_ms: 66.944167
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 purge fence immediately hides every historical payload before incremental cleanup
+ok 105 - CURRENT B-02 refusal + historical fixture: M1 purge fence immediately hides every historical payload before incremental cleanup
+  ---
+  duration_ms: 75.125667
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 purge cleans indexed payloads and referenced rewrites while preserving independent notes
+ok 106 - CURRENT B-02 refusal + historical fixture: M1 purge cleans indexed payloads and referenced rewrites while preserving independent notes
+  ---
+  duration_ms: 74.268125
+  type: 'test'
+  ...
+# Subtest: M1 Topic and persistent Section IDs survive rename, with shared Entry placement and human organization protection
+ok 107 - M1 Topic and persistent Section IDs survive rename, with shared Entry placement and human organization protection
+  ---
+  duration_ms: 50.93475
+  type: 'test'
+  ...
+# Subtest: M1 Library revision restore is a new protected CAS operation, not history rewriting
+ok 108 - M1 Library revision restore is a new protected CAS operation, not history rewriting
+  ---
+  duration_ms: 46.344792
+  type: 'test'
+  ...
+# Subtest: M1 Topic Section Placement revisions restore through current CAS and preserve human organization
+ok 109 - M1 Topic Section Placement revisions restore through current CAS and preserve human organization
+  ---
+  duration_ms: 55.695042
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 legacy source-dependent rewrites, unknown payloads and histories obey purge
+ok 110 - CURRENT B-02 refusal + historical fixture: M1 legacy source-dependent rewrites, unknown payloads and histories obey purge
+  ---
+  duration_ms: 124.16825
+  type: 'test'
+  ...
+# Subtest: M1 revision retention keeps every recent and newest 20 important; AI and user windows never coalesce
+ok 111 - M1 revision retention keeps every recent and newest 20 important; AI and user windows never coalesce
+  ---
+  duration_ms: 66.0335
+  type: 'test'
+  ...
+# Subtest: M1 forged evidence and command fields cannot modify Source/Input; empty working body has no Source fallback
+ok 112 - M1 forged evidence and command fields cannot modify Source/Input; empty working body has no Source fallback
+  ---
+  duration_ms: 29.304125
+  type: 'test'
+  ...
+# Subtest: M1 invalidation interruption cursor resumes and edit cost is independent of dependency fan-out
+ok 113 - M1 invalidation interruption cursor resumes and edit cost is independent of dependency fan-out
+  ---
+  duration_ms: 344.358083
+  type: 'test'
+  ...
+# Subtest: M1 transaction abort rolls back Entry provenance revision and receipt together
+ok 114 - M1 transaction abort rolls back Entry provenance revision and receipt together
+  ---
+  duration_ms: 15.673041
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 delayed validated output and invalidation batch cannot commit across edit or purge
+ok 115 - CURRENT B-02 refusal + historical fixture: M1 delayed validated output and invalidation batch cannot commit across edit or purge
+  ---
+  duration_ms: 51.821875
+  type: 'test'
+  ...
+# Subtest: M1 all supported fields protect independently and context-only additions cannot unlock suppression
+ok 116 - M1 all supported fields protect independently and context-only additions cannot unlock suppression
+  ---
+  duration_ms: 53.4015
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 source purge survives cleanup interruption and cannot recapture or restore deleted sources
+ok 117 - CURRENT B-02 refusal + historical fixture: M1 source purge survives cleanup interruption and cannot recapture or restore deleted sources
+  ---
+  duration_ms: 45.152208
+  type: 'test'
+  ...
+# Subtest: M1 quota-like abort after payload writes leaves no partial entry or receipt
+ok 118 - M1 quota-like abort after payload writes leaves no partial entry or receipt
+  ---
+  duration_ms: 17.905125
+  type: 'test'
+  ...
+# Subtest: M1 independent authored entries allow equal and empty bodies without invented AI provenance
+ok 119 - M1 independent authored entries allow equal and empty bodies without invented AI provenance
+  ---
+  duration_ms: 22.367875
+  type: 'test'
+  ...
+# Subtest: M1 redirect identity rejects loops and stale renamed IDs; rank exhaustion fails without reordering
+ok 120 - M1 redirect identity rejects loops and stale renamed IDs; rank exhaustion fails without reordering
+  ---
+  duration_ms: 31.623708
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 untraceable quarantine revision is fenced and erased with its unknown owner on source purge
+ok 121 - CURRENT B-02 refusal + historical fixture: M1 untraceable quarantine revision is fenced and erased with its unknown owner on source purge
+  ---
+  duration_ms: 40.845584
+  type: 'test'
+  ...
+# Subtest: M1 experimental storageSchema=2 is not trusted as a completed migration or source authority
+ok 122 - M1 experimental storageSchema=2 is not trusted as a completed migration or source authority
+  ---
+  duration_ms: 20.079167
+  type: 'test'
+  ...
+# Subtest: M1 Input capture and editing continue between migration batches and after a Library mapping failure
+ok 123 - M1 Input capture and editing continue between migration batches and after a Library mapping failure
+  ---
+  duration_ms: 169.149083
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 unavailable used versions never masquerade as current Input; purge reports pending until cleanup finishes
+ok 124 - CURRENT B-02 refusal + historical fixture: M1 unavailable used versions never masquerade as current Input; purge reports pending until cleanup finishes
+  ---
+  duration_ms: 40.425417
+  type: 'test'
+  ...
+# Subtest: M1 every approved Type maps to exactly one Family; Unicode byte limit never truncates
+ok 125 - M1 every approved Type maps to exactly one Family; Unicode byte limit never truncates
+  ---
+  duration_ms: 49.169541
+  type: 'test'
+  ...
+# Subtest: M1 hot 200KiB revision growth keeps all young history and suppression beyond retention
+ok 126 - M1 hot 200KiB revision growth keeps all young history and suppression beyond retention
+  ---
+  duration_ms: 226.317125
+  type: 'test'
+  ...
+# Subtest: M1 selected-note-only change cannot unlock removed Thought suppression
+ok 127 - M1 selected-note-only change cannot unlock removed Thought suppression
+  ---
+  duration_ms: 24.99175
+  type: 'test'
+  ...
+# Subtest: M1 unrelated queued jobs cannot starve purge; staged payloads are removed
+ok 128 - M1 unrelated queued jobs cannot starve purge; staged payloads are removed
+  ---
+  duration_ms: 39.5415
+  type: 'test'
+  ...
+# Subtest: M1 mapping transaction failure rolls back partial Thought/category mapping, then resumes
+ok 129 - M1 mapping transaction failure rolls back partial Thought/category mapping, then resumes
+  ---
+  duration_ms: 19.843583
+  type: 'test'
+  ...
+# Subtest: M1 ten Topic placements do not duplicate Entry body or Entry history
+ok 130 - M1 ten Topic placements do not duplicate Entry body or Entry history
+  ---
+  duration_ms: 46.3635
+  type: 'test'
+  ...
+# Subtest: M1 empty evidence body cannot authorize automatic content and empty AI output is rejected
+ok 131 - M1 empty evidence body cannot authorize automatic content and empty AI output is rejected
+  ---
+  duration_ms: 16.317458
+  type: 'test'
+  ...
+# Subtest: M1 incomplete Library activation fences Library history while Input history remains available
+ok 132 - M1 incomplete Library activation fences Library history while Input history remains available
+  ---
+  duration_ms: 13.734625
+  type: 'test'
+  ...
+# Subtest: M1 rapid Input remove/restore cannot revive an old AI Entry before or after queue consumption
+ok 133 - M1 rapid Input remove/restore cannot revive an old AI Entry before or after queue consumption
+  ---
+  duration_ms: 32.773666
+  type: 'test'
+  ...
+# Subtest: M1 supporting/context removal histories are not cleared by restoration or worker replacement
+ok 134 - M1 supporting/context removal histories are not cleared by restoration or worker replacement
+  ---
+  duration_ms: 38.858084
+  type: 'test'
+  ...
+1..134
+# tests 134
+# suites 0
+# pass 134
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6139.4415

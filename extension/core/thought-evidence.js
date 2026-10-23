@@ -38,11 +38,17 @@ export async function evidenceFor(store,specs,{independentContext=false,qualific
  const evidence=[];
  for(let i=0;i<specs.length;i++) {
   if(qualification!==null)assertMaintenanceQualification(qualification,store);
-  const p=data.rows[i],s=specs[i],digests={};for(const field of [...s.selectedFields].sort()){if(qualification!==null)chargeMaintenanceQualificationHash(qualification,store,p[field]);digests[field]=await hashText(p[field]);if(qualification!==null)assertMaintenanceQualification(qualification,store);}
-  const scopeToken=await keyedHash(data.secret,['scope',p.identities.length?p.identities:['input:'+p.inputId]]);
-  evidence.push({inputId:p.inputId,basedOnContentRevision:p.contentRevision,selectedFields:[...s.selectedFields].sort(),fieldDigests:digests,role:s.role,sourceRecordIds:p.sourceRecordIds,sourceIdentityTokens:p.identities,scopeToken,versionToken:await keyedHash(data.secret,['version',scopeToken,digests]),epoch:data.epoch,...(s.anchorId?{anchorId:s.anchorId}:{})});
+  evidence.push(await planEvidenceProjection(data.rows[i],specs[i],data.secret,data.epoch,qualification===null?null:{before:field=>{assertMaintenanceQualification(qualification,store);chargeMaintenanceQualificationHash(qualification,store,data.rows[i][field]);},after:()=>assertMaintenanceQualification(qualification,store)}));
  }
  if(qualification!==null)assertMaintenanceQualification(qualification,store);return evidence;
+}
+
+// Pure representation after an owner's projection/eligibility checks. This
+// function grants no read or mutation authority; callers retain those checks.
+export async function planEvidenceProjection(p,s,secret,epoch,qualification=null){
+ const digests={};for(const field of [...s.selectedFields].sort()){qualification?.before(field);digests[field]=await hashText(p[field]);qualification?.after();}
+ const scopeToken=await keyedHash(secret,['scope',p.identities.length?p.identities:['input:'+p.inputId]]);
+ return {inputId:p.inputId,basedOnContentRevision:p.contentRevision,selectedFields:[...s.selectedFields].sort(),fieldDigests:digests,role:s.role,sourceRecordIds:p.sourceRecordIds,sourceIdentityTokens:p.identities,scopeToken,versionToken:await keyedHash(secret,['version',scopeToken,digests]),epoch,...(s.anchorId?{anchorId:s.anchorId}:{})};
 }
 export async function validateEvidence(store,evidence,options) {
  if(!Array.isArray(evidence)||evidence.length>100)fail();

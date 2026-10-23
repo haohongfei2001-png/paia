@@ -117,7 +117,13 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
  // complete parent order and execute them first, so the original local history
  // allocator starts from the actual captured empty installation, never a
  // predicted foreign-owner counter. Existing non-Human dependencies stay intact.
- const human=groups.filter(group=>group.type==='humanLibraryCommit');for(const group of human)if([...group.dependencies].some(id=>!human.some(other=>other.id===id)))fail('BNS_HUMAN_UNSUPPORTED');for(const group of groups)if(group.type!=='humanLibraryCommit')for(const other of human)group.dependencies.add(other.id);
+ const human=groups.filter(group=>group.type==='humanLibraryCommit'),linked=human.filter(group=>group.prepared.descriptor.value.kind.startsWith('source-'));
+ if(linked.length){
+  if(binding.currentSourceWorking||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1||groups.some(group=>!['humanLibraryCommit','sourceBootstrapCommit'].includes(group.type)))fail('BNS_HUMAN_UNSUPPORTED');
+  for(const group of linked){const link=group.prepared.members.find(op=>op.value.entityType==='sourceLink');depend(group,createdInputs.get(link.value.after.evidence.inputId));}
+  for(const group of groups)if(group.type==='sourceBootstrapCommit')for(const other of human.filter(g=>!linked.includes(g)))group.dependencies.add(other.id);
+ }else{for(const group of human)if([...group.dependencies].some(id=>!human.some(other=>other.id===id)))fail('BNS_HUMAN_UNSUPPORTED');for(const group of groups)if(group.type!=='humanLibraryCommit')for(const other of human)group.dependencies.add(other.id);}
+
  const done=new Set(),ordered=[];
  while(ordered.length<groups.length){const ready=groups.filter(group=>!done.has(group.id)&&[...group.dependencies].every(id=>done.has(id))).sort((a,b)=>a.id.localeCompare(b.id));if(!ready.length)fail('BNS_GROUP_CAUSAL_GAP');for(const group of ready){done.add(group.id);ordered.push({...group,dependencies:[...group.dependencies].sort()});}}
  // Exact ordering commitment is independent of received object/page order.

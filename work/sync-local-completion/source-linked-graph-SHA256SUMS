@@ -1,0 +1,12 @@
+7fe89a9ad884169c3a513653e32e38ecb731c8670fa83cd975c030d70d065c92  extension/core/browser-native-sync/core.js
+959c54f22e96570c296e7aadb9bd000941657b64b49cc66af9a57335cea53151  extension/core/browser-native-sync/group-checkpoint-plan.js
+3bf0cb550f9ca564f1f78b844f01c8dc5a66e97c56814fa729ae42905667c70c  extension/core/browser-native-sync/group-checkpoint-scope.js
+a11180360a718f82779a34b6466d056f6d91ca17a4fd5336f8cbc6a955ece9f4  extension/core/browser-native-sync/human-library-codec.js
+328e4e0c3f620255bcac9a599220702b89d000ee4f84a29209e9251eece88886  extension/core/browser-native-sync/human-library-group.js
+88010919575375a5b696c7fc86837e595223cc035cc6120d2bf68b821550774e  extension/core/browser-native-sync/human-library-journal.js
+67d8039d4eb03dfeef259bd53ead7a41712f6991fffcd7b14247265578f815f1  extension/core/browser-native-sync/human-library-plan.js
+a1a9c20190c17347bc247afd249c14e1afbc61d16f110338227355f12a85c096  extension/core/browser-native-sync/human-library-request.js
+0839fb662e46a8a2260b2120724ef908ca8347a8006c6e23418cb0d1798ebe99  extension/core/browser-native-sync/human-library-scope.js
+fb3e3db2c631a5540f9533599e4f4ac97bc6baa270bed7edca628aed77a17f35  extension/core/browser-native-sync/source-linked-evidence.js
+99159e1774fa41b5521c4232b463759874eff8b825520464795d97b89430578a  extension/core/thought-evidence.js
+823ae512b4fa2fcd346011c8517eab1808757d95f7db24ddbdc53109783213b0  extension/tests/human-source-entry-plan.test.mjs
