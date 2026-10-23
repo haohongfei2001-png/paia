@@ -62,7 +62,7 @@ function planMixedSemanticTransactions(transactions,historySequence=null){
    for(const member of group.prepared.members){const {entityType:type,entity}=member.value;if(type==='inputState'){observeSemanticChange(changes,deltaDescription('inputStates',inputs.get(entity.id)),deltaDescription('inputStates',entity));inputs.set(entity.id,entity);}}
    for(const member of group.prepared.members){const {entityType:type,entity}=member.value;if(['baselineRevision','revision'].includes(type)){observeSemanticChange(changes,deltaDescription('revisions',journals.get(entity.id)),deltaDescription('revisions',entity));journals.set(entity.id,entity);}}
   }else if(group.type==='humanLibraryCommit'){
-   if(!['topic','entry','section','placement'].includes(group.prepared.descriptor.value.kind))refuse();
+   if(!['topic','entry','entry-edit','section','placement'].includes(group.prepared.descriptor.value.kind))refuse();
    for(const member of group.prepared.members){const {entityType:type,after}=member.value,name={entry:'thoughts',topic:'topics',section:'sections',placement:'placements'}[type];if(name)owners[name].set(after.id,after);}
    // Original domain journals use their independently sealed shared allocation
    // sequence. Rehashed older history members remain present but unchanged

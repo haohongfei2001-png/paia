@@ -20,6 +20,10 @@ const blockSnapshot=b=>({libraryText:b.libraryText,note:b.note,excluded:b.exclud
 const thoughtSnapshot=t=>({title:t.title,thoughtText:t.thoughtText,note:t.note,topics:t.topics,types:t.types});
 const major=(a,b)=>{const x=a??'',y=b??'';let start=0,end=0;while(start<Math.min(x.length,y.length)&&x[start]===y[start])start++;while(end<Math.min(x.length,y.length)-start&&x[x.length-end-1]===y[y.length-end-1])end++;return Math.max(x.length,y.length)-start-end>=200||(x.length>=40&&x.length-start-end>x.length/2);};
 
+// Original remote Working row projection, shared by the writer and its finite
+// mixed future view. This only builds data; it grants no repository authority.
+export function remoteWorkingHistoryRow(value,sequence){return {...structuredClone(value),sequence,listKey:[value.entityKey,sequence],documentList:[value.documentId,sequence]};}
+
 // One revision planner for ordinary and optional journaled Input writes.
 export function inputEditJournalData(a,b,request){const removed=a.excluded!==b.excluded||!!request.removeScope,reason=removed?(b.excluded?'remove':'restore'):request.revisionReason==='restore'?'restore':major(a.libraryText,b.libraryText)?'major_edit':'edit';return {kind:'input',entityId:b.id,documentId:b.documentId,before:blockSnapshot(a),after:blockSnapshot(b),reason,important:reason!=='edit',sourceRecordIds:refIds(b)};}
 export async function planInputRevision(t,data,{now,uuid}){
@@ -103,7 +107,7 @@ export function originalIAConstructor(){
   const current=(await t.get('blocks',block.id))?.value;if(!same(current,before))fail();
   const after={...current,...structuredClone(block)},deltaSequence=await nextSequence(t,'input-delta-sequence');
   await t.put('blocks',{id:after.id,value:after});await t.put('inputStates',{...structuredClone(inputState),deltaSequence});
-  const mapped=[];for(const item of history){const sequence=item.localSequence??await nextSequence(t,'revision-sequence'),row={...structuredClone(item.value),sequence,listKey:[item.value.entityKey,sequence],documentList:[item.value.documentId,sequence]};await t.put('revisions',row);mapped.push({id:row.id,sequence});}
+  const mapped=[];for(const item of history){const sequence=item.localSequence??await nextSequence(t,'revision-sequence'),row=remoteWorkingHistoryRow(item.value,sequence);await t.put('revisions',row);mapped.push({id:row.id,sequence});}
   for(const keep of keeps)await t.put('filterIntents',structuredClone(keep));
   await this.updateProtectedFilterRow(t,after,'user_edit',true);
   await this.invalidate(t,after.id,'source_updated',inputState.contentRevision,{operationId});

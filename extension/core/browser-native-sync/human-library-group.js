@@ -1,7 +1,7 @@
 import {ownerVersion,planSearchQueueLocator} from '../library-search.js';
 import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {HumanLibrarySyncJournal} from './human-library-journal.js';
-import {captureHumanGraphReadSet,advanceHumanGraphSource,requireHumanGraphReadSet,prepareHumanGraphNamedPlan,advanceHumanGraphReadSet,humanGraphReadSetProjection,humanPlanJournalRows,executeHumanPlanInTransaction} from './human-library-plan.js';
+import {captureHumanGraphReadSet,advanceHumanGraphSource,advanceHumanGraphWorking,requireHumanGraphReadSet,prepareHumanGraphNamedPlan,advanceHumanGraphReadSet,humanGraphReadSetProjection,humanPlanJournalRows,executeHumanPlanInTransaction} from './human-library-plan.js';
 import {portableHumanEntity} from './human-library-codec.js';
 import {physical,normalizePhysical} from './human-library-journal.js';
 import {clone,equal,fail} from './value.js';
@@ -9,16 +9,23 @@ const applications=new WeakMap();
 // A private closed-graph application, built only from the original opaque
 // named-owner plans. No domain reducer or generic data-store proxy is installed.
 export async function prepareHumanGroupApplication(store,core,plan){return prepareGroupApplication(store,core,plan,null);}
-export async function prepareHumanIncrementalGroupApplication(store,core,basePlan,groups){requireOriginalGroupCheckpointPlan(core,basePlan);return prepareGroupApplication(store,core,{groups},basePlan);}
-async function prepareGroupApplication(store,core,plan,basePlan){
+export async function prepareHumanIncrementalGroupApplication(store,core,basePlan,groups,working=null){
+ requireOriginalGroupCheckpointPlan(core,basePlan);
+ if(working){requireOriginalGroupCheckpointPlan(core,working.plan);if(!Array.isArray(groups)||!groups.length||groups.length>128||new Set(groups).size!==groups.length||!Array.isArray(working.applications)||working.applications.length>128)fail('BNS_HUMAN_UNSUPPORTED');
+  groups=Object.freeze([...groups]);working={plan:working.plan,applications:Object.freeze(working.applications.map(pair=>Object.freeze([pair[0],pair[1]])))};let afterHuman=false;
+  for(const group of groups){if(!working.plan.groups.includes(group)||!['humanLibraryCommit','inputWorkingCommit'].includes(group.type))fail('BNS_HUMAN_UNSUPPORTED');if(group.type==='inputWorkingCommit'){afterHuman=true;if(!working.applications.some(([g,cap])=>g===group&&cap))fail('BNS_PREPARATION_REQUIRED');}else if(afterHuman||group.prepared.descriptor.value.kind.startsWith('source-'))fail('BNS_HUMAN_UNSUPPORTED');}
+ }
+ return prepareGroupApplication(store,core,{groups},basePlan,working);
+}
+async function prepareGroupApplication(store,core,plan,basePlan,working=null){
  const groups=plan.groups.filter(group=>group.type==='humanLibraryCommit');if(!groups.length)return null;
- const protocols=basePlan?await core.prepareHumanIncrementalProtocols(basePlan,plan.groups):await core.prepareHumanRestoreProtocols(plan.groups),inventory=await captureHumanGraphReadSet(store,core),initial=humanGraphReadSetProjection(inventory);
+ const protocols=basePlan?await core.prepareHumanIncrementalProtocols(basePlan,working?groups:plan.groups):await core.prepareHumanRestoreProtocols(plan.groups),inventory=await captureHumanGraphReadSet(store,core),initial=humanGraphReadSetProjection(inventory);
  if(!basePlan)for(const name of ['thoughts','topics','sections','placements','thoughtSuppressions','revisions','operationReceipts','names','pairs','indices','provenance','dependencies'])if(initial[name].length)fail('BNS_HUMAN_RESTORE_REQUIRED');
  const mappingState=new Map(),steps=[],searchChanges=new Map(),mappingIds=await core.transaction(false,async t=>Object.fromEntries(await Promise.all([...new Set(protocols.flatMap(item=>item.members.map(op=>op.entityId)))].map(async id=>[id,await core.idIn(t,'humanMapping',id)]))),['meta']);
  if(basePlan)await core.transaction(false,async t=>{for(const id of Object.keys(mappingIds)){const row=await core.get(t,'humanMapping',id);if(row)mappingState.set(id,row);}},['meta']);
  const linked=groups.some(group=>group.prepared.descriptor.value.kind.startsWith('source-'));
  for(const group of plan.groups){
-  if(group.type!=='humanLibraryCommit'){if(linked)advanceHumanGraphSource(inventory,plan,group);continue;}
+  if(group.type!=='humanLibraryCommit'){if(working)await advanceHumanGraphWorking(inventory,working.plan,group,working.applications.find(([g])=>g===group)[1]);else if(linked)advanceHumanGraphSource(inventory,plan,group);continue;}
   const protocol=protocols.find(item=>item.descriptor.revisionId===group.id);if(!protocol)fail('BNS_HUMAN_COMMIT_REQUIRED');const beforeState=humanGraphReadSetProjection(inventory),owner=await prepareHumanGraphNamedPlan(inventory,protocol.descriptor.value),view=humanPlanJournalRows(owner),history=new Map(beforeState.revisions.map(row=>[row.id,row]));for(const row of view.history)history.set(row.id,row);
   for(const id of [...new Set(view.rows.filter(row=>row.type==='topic').map(row=>row.after.id))])for(const row of beforeState.revisions.filter(row=>row.kind==='topic'&&row.entityId===id))if(!view.rows.some(item=>item.type==='history'&&item.after.id===row.id))view.rows.push({type:'history',before:row,after:row});
   if(view.rows.length!==protocol.members.length)fail('BNS_HUMAN_PLAN_CHANGED');const mappings=[];

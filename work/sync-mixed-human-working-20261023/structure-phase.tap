@@ -1,0 +1,25 @@
+TAP version 13
+# SYNTHETIC phase joint activate
+# Subtest: Human structure and consecutive Working histories share one future graph then permit both original local writers
+not ok 1 - Human structure and consecutive Working histories share one future graph then permit both original local writers
+  ---
+  duration_ms: 1627.984958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-human-working-recovery.test.mjs:59:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:492:836)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1852.579166

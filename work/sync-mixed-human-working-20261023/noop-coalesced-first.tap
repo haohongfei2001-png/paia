@@ -1,0 +1,30 @@
+TAP version 13
+# Subtest: original no-op placed Entry edit preserves its Entry tick while Topic touch and receipt remain exact
+ok 1 - original no-op placed Entry edit preserves its Entry tick while Topic touch and receipt remain exact
+  ---
+  duration_ms: 1158.54925
+  type: 'test'
+  ...
+# Subtest: coalesced original Entry histories and consecutive Working retain real history identities across two receivers
+not ok 2 - coalesced original Entry histories and consecutive Working retain real history identities across two receivers
+  ---
+  duration_ms: 1788.477417
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-human-working-recovery.test.mjs:94:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:492:836)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:203:11
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3146.518

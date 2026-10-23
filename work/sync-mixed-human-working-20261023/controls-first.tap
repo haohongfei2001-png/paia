@@ -1,0 +1,151 @@
+TAP version 13
+# Subtest: simultaneous Human and Working incoming commits through both original owners and exports cold C
+ok 1 - simultaneous Human and Working incoming commits through both original owners and exports cold C
+  ---
+  duration_ms: 1735.738166
+  type: 'test'
+  ...
+# Subtest: Human structure and consecutive Working histories share one future graph then permit both original local writers
+not ok 2 - Human structure and consecutive Working histories share one future graph then permit both original local writers
+  ---
+  duration_ms: 1559.707542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-human-working-recovery.test.mjs:59:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    refuse (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-default-meta.js:19:18)
+    planMixedSemanticTransactions (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-default-meta.js:65:95)
+    planSourceWorkingSemanticMetadata (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-default-meta.js:54:72)
+    prepareMixedNonemptyMerge (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/mixed-nonempty-merge.js:38:178)
+    async GroupedCheckpointRestore.mergeMixed (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint.js:312:37)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-human-working-recovery.test.mjs:60:128)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lost successful return is settled from the durable merged receipt without another owner write
+ok 3 - lost successful return is settled from the durable merged receipt without another owner write
+  ---
+  duration_ms: 1000.031625
+  type: 'test'
+  ...
+# Subtest: simultaneous incoming Human fork preserves all local state
+ok 4 - simultaneous incoming Human fork preserves all local state
+  ---
+  duration_ms: 890.973584
+  type: 'test'
+  ...
+# Subtest: simultaneous incoming Working fork preserves all local state
+ok 5 - simultaneous incoming Working fork preserves all local state
+  ---
+  duration_ms: 875.881292
+  type: 'test'
+  ...
+# Subtest: Human-return old-receipt drift cannot be swallowed by the other owner
+ok 6 - Human-return old-receipt drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 1088.415458
+  type: 'test'
+  ...
+# Subtest: Human-return Working-history drift cannot be swallowed by the other owner
+ok 7 - Human-return Working-history drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 1018.045292
+  type: 'test'
+  ...
+# Subtest: Human-return local-outbox drift cannot be swallowed by the other owner
+ok 8 - Human-return local-outbox drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 1055.192542
+  type: 'test'
+  ...
+# Subtest: Human-return stage-cursor drift cannot be swallowed by the other owner
+ok 9 - Human-return stage-cursor drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 1142.475417
+  type: 'test'
+  ...
+# Subtest: Working-return old-receipt drift cannot be swallowed by the other owner
+ok 10 - Working-return old-receipt drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 977.39375
+  type: 'test'
+  ...
+# Subtest: Working-return Working-history drift cannot be swallowed by the other owner
+ok 11 - Working-return Working-history drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 1018.080083
+  type: 'test'
+  ...
+# Subtest: Working-return local-outbox drift cannot be swallowed by the other owner
+ok 12 - Working-return local-outbox drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 1198.330958
+  type: 'test'
+  ...
+# Subtest: Working-return stage-cursor drift cannot be swallowed by the other owner
+ok 13 - Working-return stage-cursor drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 1015.469458
+  type: 'test'
+  ...
+# Subtest: terminal old-receipt drift cannot be swallowed by the other owner
+ok 14 - terminal old-receipt drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 964.517583
+  type: 'test'
+  ...
+# Subtest: terminal Working-history drift cannot be swallowed by the other owner
+ok 15 - terminal Working-history drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 799.966
+  type: 'test'
+  ...
+# Subtest: terminal local-outbox drift cannot be swallowed by the other owner
+ok 16 - terminal local-outbox drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 986.471583
+  type: 'test'
+  ...
+# Subtest: terminal stage-cursor drift cannot be swallowed by the other owner
+ok 17 - terminal stage-cursor drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 827.78575
+  type: 'test'
+  ...
+# Subtest: combined terminal authority rejects atomically
+ok 18 - combined terminal authority rejects atomically
+  ---
+  duration_ms: 841.001708
+  type: 'test'
+  ...
+# Subtest: combined terminal semantic rejects atomically
+ok 19 - combined terminal semantic rejects atomically
+  ---
+  duration_ms: 1017.062083
+  type: 'test'
+  ...
+# Subtest: combined terminal work-limit rejects atomically
+ok 20 - combined terminal work-limit rejects atomically
+  ---
+  duration_ms: 825.813166
+  type: 'test'
+  ...
+# Subtest: combined terminal interrupt rejects atomically
+ok 21 - combined terminal interrupt rejects atomically
+  ---
+  duration_ms: 765.91925
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 20
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21789.221791

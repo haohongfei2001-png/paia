@@ -1,3 +1,4 @@
+import {remoteWorkingHistoryRow} from '../ia-store-owner.js';
 import {CONSENT_VERSION} from '../constants.js';
 import {InputWorkingSyncJournal} from './input-working-journal.js';
 import {FilterIntentSyncJournal} from './filter-intent-journal.js';
@@ -104,4 +105,25 @@ async function applyWorkingOwner(receiver,t,application,before,finish){
     const fence=await receiver.journal.fence.snapshot(t);if(!fence.marker)await receiver.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:fence.epoch});
     if(finish)await finish();
    });
+}
+
+// Read-only projection of the exact prepared Working owner. Only the original
+// private application can select rows; the Human future graph supplies its
+// private evolving history/counter. Actual writes still use applyWorkingOwner.
+export async function projectOriginalWorkingHistory(store,core,application,group,currentHistory,revisionSequence,previousMappings){
+ const a=workingApplications.get(application);if(!a||a.receiver.store!==store||a.receiver.core!==core||store.repository!==core.repository||group.type!=='inputWorkingCommit'||group.id!==a.prepared.descriptor.revisionId||group.operations.length!==a.prepared.members.length+1||group.operations.some(op=>![...a.prepared.members,a.prepared.descriptor].some(expected=>equal(op,expected))))fail('BNS_PREPARATION_REQUIRED');
+ if(!Number.isSafeInteger(revisionSequence)||revisionSequence<0||!(previousMappings instanceof Map))fail('BNS_WORKING_HISTORY_CHANGED');
+ const rows=[],mappings=new Map(previousMappings);let sequence=revisionSequence;
+ await core.transaction(false,async t=>{
+  const oldHistory=currentHistory.filter(row=>row.entityKey==='input:'+a.descriptor.inputId);
+  if(oldHistory.some(row=>!a.history.some(item=>item.value.id===row.id))||new Set([...oldHistory.map(row=>row.id),...a.history.map(item=>item.value.id)]).size>96)fail('BNS_WORKING_HISTORY_INCOMPLETE');
+  for(const item of a.history){
+   const virtual=mappings.get(item.value.id),map=virtual??await core.get(t,'workingHistory',item.value.id),local=currentHistory.find(row=>row.id===item.value.id),old=virtual?.operation??(map?await core.get(t,'revision',map.revisionId):null)?.operation;
+   if(map){if(!local||!old||!equal(local,remoteWorkingHistoryRow(old.value.entity,map.sequence)))fail('BNS_WORKING_HISTORY_CHANGED');}
+   else if(local&&(item.value.reason!=='baseline'||!equal(local,remoteWorkingHistoryRow(item.value,local.sequence))))fail('BNS_WORKING_HISTORY_COLLISION');
+   const assigned=map?.sequence??local?.sequence??++sequence;if(!Number.isSafeInteger(assigned)||assigned<1||!Number.isSafeInteger(sequence))fail('BNS_WORKING_HISTORY_BOUND');
+   rows.push(remoteWorkingHistoryRow(item.value,assigned));mappings.set(item.value.id,{sequence:assigned,revisionId:item.operation.revisionId,operation:item.operation});
+  }
+ },['meta']);
+ return {rows,mappings,revisionSequence:sequence,operationCount:a.prepared.members.length+1};
 }

@@ -1,0 +1,24 @@
+{
+  "base": "4818ecc41159120d6cd05ed7c84c5131147f1b6e",
+  "node": "v22.23.3",
+  "runtimeAndTests": {
+    "extension/core/ia-store-owner.js": "67825a0116b455b19d2187bc7f12db8fd4957a97e3b543172f2c093d15a03e18",
+    "extension/core/browser-native-sync/input-working-commit.js": "8ed12714b0f305041c3964b578f9ecce27b5037184e09524b3b586709bfe10fe",
+    "extension/core/browser-native-sync/human-library-plan.js": "37572fce827863503531ce4ab6ea907047b28fbddd01a7778412a2884e8caf78",
+    "extension/core/browser-native-sync/human-library-group.js": "c934ccdfb932d25b081a3014208683af35d29222149b4772dc111fb85041b3c7",
+    "extension/core/browser-native-sync/mixed-nonempty-merge.js": "c92e5015e634ae1dd058c69902d4d341ffcf0fd0bfd485024d3a7788d4981970",
+    "extension/core/browser-native-sync/mixed-human-physical.js": "bba7f124631237035512f7c5bc680e74234263c866a57e8e0627c029ad3c6ae5",
+    "extension/core/browser-native-sync/source-working-default-meta.js": "6a5b5c06c89494f08409acc1e11bb20ae997a252e45c3981786bba9d85214593",
+    "extension/core/browser-native-sync/group-checkpoint.js": "7c48baceb60537b6ea441f8ce06f29dceca3462c062835c6f7ef7270978b4d2e",
+    "extension/tests/native-sync/generation-purge-fixture.mjs": "846c9e67030dbb7c597ed029e50c7fb1eb7b816998313ee27f4f349ece814281",
+    "extension/tests/mixed-human-working-recovery.test.mjs": "a4c5e9954bd8c045688f8fb46bb378ee85afce49afab228895d31e34d576472a",
+    "extension/tests/native-sync/mixed-human-working-chrome.test.mjs": "b6550a9b904954974cd5011f51dafb563de396fb8a38fbca0fb5a5df30c5d0df"
+  },
+  "temporarySharedPatches": [
+    "extension/core/browser-native-sync/group-checkpoint.js",
+    "extension/tests/native-sync/generation-purge-fixture.mjs"
+  ],
+  "browserExecuted": false,
+  "buildExecuted": false,
+  "cloudExecuted": false
+}

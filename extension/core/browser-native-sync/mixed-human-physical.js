@@ -1,3 +1,4 @@
+import {planHumanEntryFields} from '../thought-store-owner.js';
 import {validContextTopicReceipt} from '../context-topic-access.js';
 import {requireOriginalCurrentMixedGroupScope} from './group-checkpoint-scope.js';
 import {physical} from './human-library-journal.js';
@@ -14,7 +15,7 @@ export function prepareMixedHumanPhysicalExpectation(groups,localDeviceId){
  for(const group of groups){
   if(group.type!=='humanLibraryCommit')continue;
   const descriptor=group.prepared.descriptor.value,members=group.prepared.members;
-  if(!['topic','entry','section','placement'].includes(descriptor.kind))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+  if(!['topic','entry','entry-edit','section','placement'].includes(descriptor.kind))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   const local=group.operations.every(op=>op.deviceId===localDeviceId),member=type=>members.find(op=>op.value.entityType===type)?.value.after;
   let result;
   if(descriptor.kind==='topic'){
@@ -23,6 +24,16 @@ export function prepareMixedHumanPhysicalExpectation(groups,localDeviceId){
   }else if(descriptor.kind==='entry'){
    const entry=member('entry');if(!entry||entries.has(entry.id))refuse();const tick=++sequence;
    entries.set(entry.id,{createdSequence:tick,updatedSequence:tick,negativeUpdatedSequence:-tick});result={id:entry.id,revision:entry.revision};
+  }else if(descriptor.kind==='entry-edit'){
+   const operation=members.find(op=>op.value.entityType==='entry'),entry=operation?.value.after,before=operation?.value.before,prior=entries.get(entry?.id),at=descriptor.events.find(event=>event.role==='domain'&&event.kind==='clock')?.value;
+   if(!entry||!before||!prior||entry.id!==descriptor.request.id||!at)refuse();
+   // Reuse the original field planner to decide whether this edit consumes a
+   // new Entry tick; a no-op still touches placements and creates its receipt.
+   const {fields}=planHumanEntryFields(before,descriptor.request,{at});
+   if(fields.length){const tick=++sequence;entries.set(entry.id,{...prior,updatedSequence:tick,negativeUpdatedSequence:-tick});}
+   const edges=[...placements.values()].filter(row=>row.entryId===entry.id).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+   for(const edge of edges){const topic=topics.get(edge.topicId);if(!topic)refuse();if(topic.row.activeLayoutGeneration===edge.layoutGeneration)topic.negativeUpdatedSequence=-++sequence;}
+   result={id:entry.id,revision:entry.revision};
   }else if(descriptor.kind==='section'){
    const section=member('section'),topic=member('topic'),prior=topics.get(descriptor.request.topicId);
    if(!section||!topic||!prior||topic.id!==descriptor.request.topicId||section.topicId!==topic.id||section.layoutGeneration!==topic.activeLayoutGeneration||section.id!==JSON.stringify([topic.id,topic.activeLayoutGeneration,section.sectionId])||sections.has(section.id))refuse();
