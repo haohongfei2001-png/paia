@@ -17,8 +17,9 @@ function requireOwner(a){requireOriginalLibraryDocumentsGenerationMethods(a.stor
 // original invisible generation, then qualified from that real owner before
 // publication. No DTO is ever presented as an IndexedStore.
 export async function prepareContextGroupApplication(store,core,plan,{live=null,generationProof=null}={}){
- requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGroupCheckpointPlan(core,plan);
+ requireOriginalGroupCheckpointPlan(core,plan);
  if(!plan.groups.some(group=>group.type==='contextMutationCommit'))return null;
+ requireOriginalLibraryDocumentsGenerationMethods(store);
  if(store.repository!==core.repository)fail('BNS_CONTEXT_OWNER_REQUIRED');
  const automatic=plan.groups.some(group=>group.type==='contextMutationCommit'&&group.prepared.members.some(op=>op.value.item.origin==='automatic'));
  if(automatic){const proof=readCanonicalCheckpointProof(generationProof,{store,core:live});if(proof.graphDigest!==plan.digest||live.repository!==core.repository)fail('BNS_CONTEXT_SHADOW_REQUIRED');}
@@ -59,8 +60,9 @@ export async function executeOriginalContextGroupStep(t,core,protocol,capability
 // The original generation publisher holds and fences it before the active
 // pointer can change. A second preparation releases its own capture only.
 export async function prepareContextGenerationPublication(store,core,plan){
- requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGroupCheckpointPlan(core,plan);
+ requireOriginalGroupCheckpointPlan(core,plan);
  if(!plan.groups.some(group=>group.type==='contextMutationCommit'))return null;
+ requireOriginalLibraryDocumentsGenerationMethods(store);
  const captured=await store.run(()=>core.transaction(false,async t=>({row:await readContextCards(t),raw:await t.get('meta',CONTEXT_CARDS_ROW),epoch:await readRestoreEpoch(t)}),['meta']));
  const automatic=captured.row.items.filter(item=>item.origin==='automatic');let lineage=null;
  try{

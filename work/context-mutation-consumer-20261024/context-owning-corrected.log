@@ -1,0 +1,1583 @@
+TAP version 13
+# Subtest: optional manual journal preserves actual local global access toggle and receipt
+ok 1 - optional manual journal preserves actual local global access toggle and receipt
+  ---
+  duration_ms: 167.354834
+  type: 'test'
+  ...
+# Subtest: optional manual journal preserves actual local info access toggle and receipt
+ok 2 - optional manual journal preserves actual local info access toggle and receipt
+  ---
+  duration_ms: 92.835833
+  type: 'test'
+  ...
+# Subtest: optional manual journal preserves actual local rules access toggle and receipt
+ok 3 - optional manual journal preserves actual local rules access toggle and receipt
+  ---
+  duration_ms: 83.716625
+  type: 'test'
+  ...
+# Subtest: optional manual journal preserves actual local now access toggle and receipt
+ok 4 - optional manual journal preserves actual local now access toggle and receipt
+  ---
+  duration_ms: 75.349458
+  type: 'test'
+  ...
+# Subtest: optional manual journal preserves actual local inputs access toggle and receipt
+ok 5 - optional manual journal preserves actual local inputs access toggle and receipt
+  ---
+  duration_ms: 62.778625
+  type: 'test'
+  ...
+# Subtest: optional journal retains automatic info origin and lineage through actual human edit/remove/restore
+ok 6 - optional journal retains automatic info origin and lineage through actual human edit/remove/restore
+  ---
+  duration_ms: 126.685291
+  type: 'test'
+  ...
+# Subtest: optional journal retains automatic rules origin and lineage through actual human edit/remove/restore
+ok 7 - optional journal retains automatic rules origin and lineage through actual human edit/remove/restore
+  ---
+  duration_ms: 114.51725
+  type: 'test'
+  ...
+# Subtest: optional journal retains automatic now origin and lineage through actual human edit/remove/restore
+ok 8 - optional journal retains automatic now origin and lineage through actual human edit/remove/restore
+  ---
+  duration_ms: 110.46875
+  type: 'test'
+  ...
+# Subtest: manual writes still require actual outbox commit and a journal failure rolls canonical and receipt back
+ok 9 - manual writes still require actual outbox commit and a journal failure rolls canonical and receipt back
+  ---
+  duration_ms: 86.1515
+  type: 'test'
+  ...
+# Subtest: local-only access receipt failure preserves canonical and all protocol state
+ok 10 - local-only access receipt failure preserves canonical and all protocol state
+  ---
+  duration_ms: 63.037083
+  type: 'test'
+  ...
+# Subtest: local-only automatic receipt failure preserves canonical and all protocol state
+ok 11 - local-only automatic receipt failure preserves canonical and all protocol state
+  ---
+  duration_ms: 99.023167
+  type: 'test'
+  ...
+# Subtest: a concurrent local access write during local-only preparation still rejects stale whole-row apply
+ok 12 - a concurrent local access write during local-only preparation still rejects stale whole-row apply
+  ---
+  duration_ms: 94.947709
+  type: 'test'
+  ...
+# Subtest: undefined preparation is not a local-only fallback and old Info journal remains strict
+ok 13 - undefined preparation is not a local-only fallback and old Info journal remains strict
+  ---
+  duration_ms: 64.999542
+  type: 'test'
+  ...
+# Subtest: actual card access writer records desired head and outbox atomically
+ok 14 - actual card access writer records desired head and outbox atomically
+  ---
+  duration_ms: 83.631416
+  type: 'test'
+  ...
+# Subtest: registered desired conflict owner is invoked for the real concurrent off branch
+ok 15 - registered desired conflict owner is invoked for the real concurrent off branch
+  ---
+  duration_ms: 79.945917
+  type: 'test'
+  ...
+# Subtest: info exact access retry, remote restore and global remain independent
+ok 16 - info exact access retry, remote restore and global remain independent
+  ---
+  duration_ms: 86.944417
+  type: 'test'
+  ...
+# Subtest: rules exact access retry, remote restore and global remain independent
+ok 17 - rules exact access retry, remote restore and global remain independent
+  ---
+  duration_ms: 88.77925
+  type: 'test'
+  ...
+# Subtest: now exact access retry, remote restore and global remain independent
+ok 18 - now exact access retry, remote restore and global remain independent
+  ---
+  duration_ms: 86.710375
+  type: 'test'
+  ...
+# Subtest: inputs exact access retry, remote restore and global remain independent
+ok 19 - inputs exact access retry, remote restore and global remain independent
+  ---
+  duration_ms: 98.778
+  type: 'test'
+  ...
+# Subtest: remote enable never expands global-on scope and exact operation can retry after local pause
+ok 20 - remote enable never expands global-on scope and exact operation can retry after local pause
+  ---
+  duration_ms: 76.401
+  type: 'test'
+  ...
+# Subtest: unmanaged local denial is not overwritten by imported enable
+ok 21 - unmanaged local denial is not overwritten by imported enable
+  ---
+  duration_ms: 62.156458
+  type: 'test'
+  ...
+# Subtest: concurrent off preserves both heads while restricting only the affected card
+ok 22 - concurrent off preserves both heads while restricting only the affected card
+  ---
+  duration_ms: 89.682916
+  type: 'test'
+  ...
+# Subtest: unregistered conflict retains existing Core semantics and no canonical materialization
+ok 23 - unregistered conflict retains existing Core semantics and no canonical materialization
+  ---
+  duration_ms: 73.796084
+  type: 'test'
+  ...
+# Subtest: journal failure rolls back card, protocol and local receipt
+ok 24 - journal failure rolls back card, protocol and local receipt
+  ---
+  duration_ms: 35.408834
+  type: 'test'
+  ...
+# Subtest: receipt failure rolls back card, protocol and local receipt
+ok 25 - receipt failure rolls back card, protocol and local receipt
+  ---
+  duration_ms: 37.1015
+  type: 'test'
+  ...
+# Subtest: conflict owner failure rolls back even protocol receipts and generation
+ok 26 - conflict owner failure rolls back even protocol receipts and generation
+  ---
+  duration_ms: 81.565458
+  type: 'test'
+  ...
+# Subtest: restore epoch invalidates even a negative remote change without partial acknowledgements
+ok 27 - restore epoch invalidates even a negative remote change without partial acknowledgements
+  ---
+  duration_ms: 73.49725
+  type: 'test'
+  ...
+# Subtest: unregistered local edit prevents remote restrictive owner replacement too
+ok 28 - unregistered local edit prevents remote restrictive owner replacement too
+  ---
+  duration_ms: 109.738291
+  type: 'test'
+  ...
+# Subtest: valid resolution can leave a restrictive conflict projection without consumed revision
+ok 29 - valid resolution can leave a restrictive conflict projection without consumed revision
+  ---
+  duration_ms: 81.036541
+  type: 'test'
+  ...
+# Subtest: existing local card desired state can bootstrap without changing local authority or receipts
+ok 30 - existing local card desired state can bootstrap without changing local authority or receipts
+  ---
+  duration_ms: 64.138
+  type: 'test'
+  ...
+# Subtest: first materialization binds a real non-null local restore epoch; changed epoch rejects later
+ok 31 - first materialization binds a real non-null local restore epoch; changed epoch rejects later
+  ---
+  duration_ms: 74.058166
+  type: 'test'
+  ...
+# Subtest: long legal per-step card changes retain bounded verified ancestry rather than stopping at 129
+ok 32 - long legal per-step card changes retain bounded verified ancestry rather than stopping at 129
+  ---
+  duration_ms: 1677.157666
+  type: 'test'
+  ...
+# Subtest: conflict projection does not advance on additional stale ancestry delivery
+ok 33 - conflict projection does not advance on additional stale ancestry delivery
+  ---
+  duration_ms: 79.863417
+  type: 'test'
+  ...
+# Subtest: global-on conflict cannot resolve to expanded effective scope, but explicit off resolution succeeds
+ok 34 - global-on conflict cannot resolve to expanded effective scope, but explicit off resolution succeeds
+  ---
+  duration_ms: 85.271709
+  type: 'test'
+  ...
+# Subtest: prepared local enable refuses concurrent restriction even when prior local enabled=true
+ok 35 - prepared local enable refuses concurrent restriction even when prior local enabled=true
+  ---
+  duration_ms: 87.666792
+  type: 'test'
+  ...
+# Subtest: prepared local enable refuses concurrent restriction even when prior local enabled=false
+ok 36 - prepared local enable refuses concurrent restriction even when prior local enabled=false
+  ---
+  duration_ms: 76.965334
+  type: 'test'
+  ...
+# Subtest: optional journal leaves the existing nonjournal access owner unchanged
+ok 37 - optional journal leaves the existing nonjournal access owner unchanged
+  ---
+  duration_ms: 33.299125
+  type: 'test'
+  ...
+# Subtest: actual staged desired activation restores four choices but no global grant and rolls back atomically
+ok 38 - actual staged desired activation restores four choices but no global grant and rolls back atomically
+  ---
+  duration_ms: 103.398959
+  type: 'test'
+  ...
+# Subtest: stage cannot borrow live anchor to accept an otherwise over-bound desired ancestry
+ok 39 - stage cannot borrow live anchor to accept an otherwise over-bound desired ancestry
+  ---
+  duration_ms: 1642.396458
+  type: 'test'
+  ...
+# Subtest: actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+ok 40 - actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+  ---
+  duration_ms: 113.059583
+  type: 'test'
+  ...
+# Subtest: real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+ok 41 - real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+  ---
+  duration_ms: 146.093584
+  type: 'test'
+  ...
+# Subtest: actual journal abort rolls back canonical, outbox and command receipt
+ok 42 - actual journal abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 43.854667
+  type: 'test'
+  ...
+# Subtest: actual receipt abort rolls back canonical, outbox and command receipt
+ok 43 - actual receipt abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 42.754666
+  type: 'test'
+  ...
+# Subtest: receive refuses unmanaged canonical owner without protocol side effects
+ok 44 - receive refuses unmanaged canonical owner without protocol side effects
+  ---
+  duration_ms: 83.853791
+  type: 'test'
+  ...
+# Subtest: receive refuses edited canonical owner without protocol side effects
+ok 45 - receive refuses edited canonical owner without protocol side effects
+  ---
+  duration_ms: 91.934125
+  type: 'test'
+  ...
+# Subtest: receive refuses deleted-same-body canonical owner without protocol side effects
+ok 46 - receive refuses deleted-same-body canonical owner without protocol side effects
+  ---
+  duration_ms: 78.692459
+  type: 'test'
+  ...
+# Subtest: remote receive preserves unrelated Item and enabled local access exactly
+ok 47 - remote receive preserves unrelated Item and enabled local access exactly
+  ---
+  duration_ms: 59.076167
+  type: 'test'
+  ...
+# Subtest: staged restore proves whole chain and activation abort leaves old generation untouched
+ok 48 - staged restore proves whole chain and activation abort leaves old generation untouched
+  ---
+  duration_ms: 86.27525
+  type: 'test'
+  ...
+# Subtest: invalid restore transition cannot smuggle a different body through a removed predecessor
+ok 49 - invalid restore transition cannot smuggle a different body through a removed predecessor
+  ---
+  duration_ms: 81.44725
+  type: 'test'
+  ...
+# Subtest: bootstrap preserves existing manual Info and supports fresh exact restore
+ok 50 - bootstrap preserves existing manual Info and supports fresh exact restore
+  ---
+  duration_ms: 77.369917
+  type: 'test'
+  ...
+# Subtest: scope refuses access, Rules, Now and permanent purge without inventing owners
+ok 51 - scope refuses access, Rules, Now and permanent purge without inventing owners
+  ---
+  duration_ms: 76.56975
+  type: 'test'
+  ...
+# Subtest: bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+ok 52 - bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+  ---
+  duration_ms: 37.646958
+  type: 'test'
+  ...
+# Subtest: manual Info unmaterialized ancestry still rejects 129 atomically
+ok 53 - manual Info unmaterialized ancestry still rejects 129 atomically
+  ---
+  duration_ms: 1847.778834
+  type: 'test'
+  ...
+# Subtest: existing Item change rejects same-value head advancement after validation before prepare
+ok 54 - existing Item change rejects same-value head advancement after validation before prepare
+  ---
+  duration_ms: 39.743042
+  type: 'test'
+  ...
+# Subtest: actual 130 consecutive service edits received one by one retain safe materialized ancestry
+ok 55 - actual 130 consecutive service edits received one by one retain safe materialized ancestry
+  ---
+  duration_ms: 1664.090833
+  type: 'test'
+  ...
+# Subtest: verified continuation rejects local-edit without protocol acknowledgement
+ok 56 - verified continuation rejects local-edit without protocol acknowledgement
+  ---
+  duration_ms: 54.750583
+  type: 'test'
+  ...
+# Subtest: verified continuation rejects epoch without protocol acknowledgement
+ok 57 - verified continuation rejects epoch without protocol acknowledgement
+  ---
+  duration_ms: 59.116042
+  type: 'test'
+  ...
+# Subtest: verified continuation rejects forged-proof without protocol acknowledgement
+ok 58 - verified continuation rejects forged-proof without protocol acknowledgement
+  ---
+  duration_ms: 51.154125
+  type: 'test'
+  ...
+# Subtest: verified continuation rejects forged-binding without protocol acknowledgement
+ok 59 - verified continuation rejects forged-binding without protocol acknowledgement
+  ---
+  duration_ms: 52.596417
+  type: 'test'
+  ...
+# Subtest: a first remote materialization under a nonnull restore epoch can establish its own proof
+ok 60 - a first remote materialization under a nonnull restore epoch can establish its own proof
+  ---
+  duration_ms: 57.06025
+  type: 'test'
+  ...
+# Subtest: new namespace cannot borrow the old namespace verified head
+ok 61 - new namespace cannot borrow the old namespace verified head
+  ---
+  duration_ms: 52.638541
+  type: 'test'
+  ...
+# Subtest: canonical write and validation proof roll back together on final proof failure
+ok 62 - canonical write and validation proof roll back together on final proof failure
+  ---
+  duration_ms: 54.56625
+  type: 'test'
+  ...
+# Subtest: verified predecessor does not permit an invalid soft-delete transition
+ok 63 - verified predecessor does not permit an invalid soft-delete transition
+  ---
+  duration_ms: 57.116542
+  type: 'test'
+  ...
+# Subtest: a prior materialization proof does not block a subsequent valid journaled local edit
+ok 64 - a prior materialization proof does not block a subsequent valid journaled local edit
+  ---
+  duration_ms: 77.473958
+  type: 'test'
+  ...
+# Subtest: rules actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+ok 65 - rules actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+  ---
+  duration_ms: 146.133458
+  type: 'test'
+  ...
+# Subtest: rules real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+ok 66 - rules real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+  ---
+  duration_ms: 117.074583
+  type: 'test'
+  ...
+# Subtest: rules actual journal abort rolls back canonical, outbox and command receipt
+ok 67 - rules actual journal abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 49.360541
+  type: 'test'
+  ...
+# Subtest: rules actual receipt abort rolls back canonical, outbox and command receipt
+ok 68 - rules actual receipt abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 41.546458
+  type: 'test'
+  ...
+# Subtest: rules receive refuses unmanaged canonical owner without protocol side effects
+ok 69 - rules receive refuses unmanaged canonical owner without protocol side effects
+  ---
+  duration_ms: 86.965625
+  type: 'test'
+  ...
+# Subtest: rules receive refuses edited canonical owner without protocol side effects
+ok 70 - rules receive refuses edited canonical owner without protocol side effects
+  ---
+  duration_ms: 96.313875
+  type: 'test'
+  ...
+# Subtest: rules receive refuses deleted-same-body canonical owner without protocol side effects
+ok 71 - rules receive refuses deleted-same-body canonical owner without protocol side effects
+  ---
+  duration_ms: 94.198375
+  type: 'test'
+  ...
+# Subtest: rules remote receive preserves unrelated Item and enabled local access exactly
+ok 72 - rules remote receive preserves unrelated Item and enabled local access exactly
+  ---
+  duration_ms: 64.060208
+  type: 'test'
+  ...
+# Subtest: rules staged restore proves whole chain and activation abort leaves old generation untouched
+ok 73 - rules staged restore proves whole chain and activation abort leaves old generation untouched
+  ---
+  duration_ms: 90.033625
+  type: 'test'
+  ...
+# Subtest: rules invalid restore transition cannot smuggle a different body through a removed predecessor
+ok 74 - rules invalid restore transition cannot smuggle a different body through a removed predecessor
+  ---
+  duration_ms: 81.004416
+  type: 'test'
+  ...
+# Subtest: rules bootstrap preserves existing manual Context and supports fresh exact restore
+ok 75 - rules bootstrap preserves existing manual Context and supports fresh exact restore
+  ---
+  duration_ms: 80.956958
+  type: 'test'
+  ...
+# Subtest: rules bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+ok 76 - rules bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+  ---
+  duration_ms: 32.8705
+  type: 'test'
+  ...
+# Subtest: rules manual Context unmaterialized ancestry still rejects 129 atomically
+ok 77 - rules manual Context unmaterialized ancestry still rejects 129 atomically
+  ---
+  duration_ms: 1797.494959
+  type: 'test'
+  ...
+# Subtest: rules existing Item change rejects same-value head advancement after validation before prepare
+ok 78 - rules existing Item change rejects same-value head advancement after validation before prepare
+  ---
+  duration_ms: 36.223291
+  type: 'test'
+  ...
+# Subtest: rules exact codec scope and old reader coverage remain conservative
+ok 79 - rules exact codec scope and old reader coverage remain conservative
+  ---
+  duration_ms: 32.282917
+  type: 'test'
+  ...
+# Subtest: rules access stays local; purge and cross-card same ID never overwrite owner
+ok 80 - rules access stays local; purge and cross-card same ID never overwrite owner
+  ---
+  duration_ms: 105.626792
+  type: 'test'
+  ...
+# Subtest: rules mixed Info Rules Now checkpoint restores all exact Items with local access off
+ok 81 - rules mixed Info Rules Now checkpoint restores all exact Items with local access off
+  ---
+  duration_ms: 100.716125
+  type: 'test'
+  ...
+# Subtest: now actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+ok 82 - now actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+  ---
+  duration_ms: 65.1905
+  type: 'test'
+  ...
+# Subtest: now real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+ok 83 - now real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+  ---
+  duration_ms: 95.171417
+  type: 'test'
+  ...
+# Subtest: now actual journal abort rolls back canonical, outbox and command receipt
+ok 84 - now actual journal abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 37.676583
+  type: 'test'
+  ...
+# Subtest: now actual receipt abort rolls back canonical, outbox and command receipt
+ok 85 - now actual receipt abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 30.693542
+  type: 'test'
+  ...
+# Subtest: now receive refuses unmanaged canonical owner without protocol side effects
+ok 86 - now receive refuses unmanaged canonical owner without protocol side effects
+  ---
+  duration_ms: 70.755083
+  type: 'test'
+  ...
+# Subtest: now receive refuses edited canonical owner without protocol side effects
+ok 87 - now receive refuses edited canonical owner without protocol side effects
+  ---
+  duration_ms: 65.856667
+  type: 'test'
+  ...
+# Subtest: now receive refuses deleted-same-body canonical owner without protocol side effects
+ok 88 - now receive refuses deleted-same-body canonical owner without protocol side effects
+  ---
+  duration_ms: 73.12
+  type: 'test'
+  ...
+# Subtest: now remote receive preserves unrelated Item and enabled local access exactly
+ok 89 - now remote receive preserves unrelated Item and enabled local access exactly
+  ---
+  duration_ms: 61.568708
+  type: 'test'
+  ...
+# Subtest: now staged restore proves whole chain and activation abort leaves old generation untouched
+ok 90 - now staged restore proves whole chain and activation abort leaves old generation untouched
+  ---
+  duration_ms: 90.421542
+  type: 'test'
+  ...
+# Subtest: now invalid restore transition cannot smuggle a different body through a removed predecessor
+ok 91 - now invalid restore transition cannot smuggle a different body through a removed predecessor
+  ---
+  duration_ms: 63.155625
+  type: 'test'
+  ...
+# Subtest: now bootstrap preserves existing manual Context and supports fresh exact restore
+ok 92 - now bootstrap preserves existing manual Context and supports fresh exact restore
+  ---
+  duration_ms: 62.900708
+  type: 'test'
+  ...
+# Subtest: now bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+ok 93 - now bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+  ---
+  duration_ms: 30.648958
+  type: 'test'
+  ...
+# Subtest: now manual Context unmaterialized ancestry still rejects 129 atomically
+ok 94 - now manual Context unmaterialized ancestry still rejects 129 atomically
+  ---
+  duration_ms: 1324.125958
+  type: 'test'
+  ...
+# Subtest: now existing Item change rejects same-value head advancement after validation before prepare
+ok 95 - now existing Item change rejects same-value head advancement after validation before prepare
+  ---
+  duration_ms: 32.09175
+  type: 'test'
+  ...
+# Subtest: now exact codec scope and old reader coverage remain conservative
+ok 96 - now exact codec scope and old reader coverage remain conservative
+  ---
+  duration_ms: 20.729708
+  type: 'test'
+  ...
+# Subtest: now access stays local; purge and cross-card same ID never overwrite owner
+ok 97 - now access stays local; purge and cross-card same ID never overwrite owner
+  ---
+  duration_ms: 68.611292
+  type: 'test'
+  ...
+# Subtest: now mixed Info Rules Now checkpoint restores all exact Items with local access off
+ok 98 - now mixed Info Rules Now checkpoint restores all exact Items with local access off
+  ---
+  duration_ms: 49.242959
+  type: 'test'
+  ...
+# Subtest: native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+ok 99 - native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+  ---
+  duration_ms: 122.958416
+  type: 'test'
+  ...
+# Subtest: actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+ok 100 - actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+  ---
+  duration_ms: 185.770459
+  type: 'test'
+  ...
+# Subtest: missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+ok 101 - missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+  ---
+  duration_ms: 65.807542
+  type: 'test'
+  ...
+# Subtest: operation budget counts all ancestry rather than current heads
+ok 102 - operation budget counts all ancestry rather than current heads
+  ---
+  duration_ms: 51.092958
+  type: 'test'
+  ...
+# Subtest: actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+ok 103 - actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+  ---
+  duration_ms: 80.876416
+  type: 'test'
+  ...
+# Subtest: fourMiB operation bytes include all retained payloads, not only final current text
+ok 104 - fourMiB operation bytes include all retained payloads, not only final current text
+  ---
+  duration_ms: 896.145875
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled note rather than claiming protocol coverage
+ok 105 - full inventory rejects actual unjournaled note rather than claiming protocol coverage
+  ---
+  duration_ms: 69.418708
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+ok 106 - full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+  ---
+  duration_ms: 60.909541
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+ok 107 - full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+  ---
+  duration_ms: 68.086416
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+ok 108 - full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+  ---
+  duration_ms: 60.158083
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+ok 109 - full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+  ---
+  duration_ms: 63.340167
+  type: 'test'
+  ...
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 110 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 254.104333
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 111 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 767.835917
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 112 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 738.416208
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 113 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 807.027417
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 114 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 729.961792
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 115 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 501.168667
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 116 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 412.035458
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 117 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 399.816542
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 118 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 415.589875
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 119 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 357.022375
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 120 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 312.760625
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 121 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 123.557959
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 122 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 40.476292
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 123 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 496.458125
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":116.44845799999985,"reads":2705,"writes":1161}}
+# Subtest: exact128 retained operations restore and the129th has explicit paged scope admission
+ok 124 - exact128 retained operations restore and the129th has explicit paged scope admission
+  ---
+  duration_ms: 1009.084459
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 125 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 22.791125
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 126 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 29.734125
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 127 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 28.582667
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 128 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 27.78825
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 129 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 30.2815
+  type: 'test'
+  ...
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+ok 130 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 584.022542
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rebinds original proof and never duplicates canonical application
+ok 131 - protected group cold resume rebinds original proof and never duplicates canonical application
+  ---
+  duration_ms: 434.85575
+  type: 'test'
+  ...
+# Subtest: protected group never lends a transaction to custom diagnostic callback
+ok 132 - protected group never lends a transaction to custom diagnostic callback
+  ---
+  duration_ms: 208.031583
+  type: 'test'
+  ...
+# Subtest: protected group cannot acquire genuine authority using forged or foreign proof
+ok 133 - protected group cannot acquire genuine authority using forged or foreign proof
+  ---
+  duration_ms: 146.798667
+  type: 'test'
+  ...
+# Subtest: protected group keeps token away from mutable repository and Core transaction wrappers
+ok 134 - protected group keeps token away from mutable repository and Core transaction wrappers
+  ---
+  duration_ms: 352.200875
+  type: 'test'
+  ...
+# Subtest: protected original group refuses gate-phase drift without partial owner writes
+ok 135 - protected original group refuses gate-phase drift without partial owner writes
+  ---
+  duration_ms: 222.097542
+  type: 'test'
+  ...
+# Subtest: protected original group refuses checkpoint-item drift without partial owner writes
+ok 136 - protected original group refuses checkpoint-item drift without partial owner writes
+  ---
+  duration_ms: 209.055291
+  type: 'test'
+  ...
+# Subtest: protected original group refuses consent drift without partial owner writes
+ok 137 - protected original group refuses consent drift without partial owner writes
+  ---
+  duration_ms: 206.906666
+  type: 'test'
+  ...
+# Subtest: protected original group refuses restore-row drift without partial owner writes
+ok 138 - protected original group refuses restore-row drift without partial owner writes
+  ---
+  duration_ms: 182.784333
+  type: 'test'
+  ...
+# Subtest: protected original group refuses purge-deny drift without partial owner writes
+ok 139 - protected original group refuses purge-deny drift without partial owner writes
+  ---
+  duration_ms: 192.904625
+  type: 'test'
+  ...
+# Subtest: protected group native terminal canonical drift rolls back original owner and receipt
+ok 140 - protected group native terminal canonical drift rolls back original owner and receipt
+  ---
+  duration_ms: 266.616167
+  type: 'test'
+  ...
+# Subtest: protected group native terminal restore-receipt drift rolls back original owner and receipt
+ok 141 - protected group native terminal restore-receipt drift rolls back original owner and receipt
+  ---
+  duration_ms: 288.831208
+  type: 'test'
+  ...
+# Subtest: protected group native terminal checkpoint-item drift rolls back original owner and receipt
+ok 142 - protected group native terminal checkpoint-item drift rolls back original owner and receipt
+  ---
+  duration_ms: 235.269208
+  type: 'test'
+  ...
+# Subtest: protected group native terminal protection drift rolls back original owner and receipt
+ok 143 - protected group native terminal protection drift rolls back original owner and receipt
+  ---
+  duration_ms: 274.995125
+  type: 'test'
+  ...
+# Subtest: protected group native terminal gate drift rolls back original owner and receipt
+ok 144 - protected group native terminal gate drift rolls back original owner and receipt
+  ---
+  duration_ms: 195.060833
+  type: 'test'
+  ...
+# Subtest: protected original graph seal retains existing-active migration refusal
+ok 145 - protected original graph seal retains existing-active migration refusal
+  ---
+  duration_ms: 254.033083
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted stage.put before lending a write transaction
+ok 146 - protected group refuses substituted stage.put before lending a write transaction
+  ---
+  duration_ms: 143.186166
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted coreB.get before lending a write transaction
+ok 147 - protected group refuses substituted coreB.get before lending a write transaction
+  ---
+  duration_ms: 145.009583
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.applyInitialSource before lending a write transaction
+ok 148 - protected group refuses substituted b.applyInitialSource before lending a write transaction
+  ---
+  duration_ms: 148.635542
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.control before lending a write transaction
+ok 149 - protected group refuses substituted b.control before lending a write transaction
+  ---
+  duration_ms: 145.894875
+  type: 'test'
+  ...
+# Subtest: protected group descriptor guard refuses an owner method getter without executing it
+ok 150 - protected group descriptor guard refuses an owner method getter without executing it
+  ---
+  duration_ms: 149.287291
+  type: 'test'
+  ...
+# Subtest: protected group rejects a shadowing prototype method before write authority
+ok 151 - protected group rejects a shadowing prototype method before write authority
+  ---
+  duration_ms: 167.300875
+  type: 'test'
+  ...
+# Subtest: protected group restore field getter cannot rebind the private original consumer
+ok 152 - protected group restore field getter cannot rebind the private original consumer
+  ---
+  duration_ms: 91.239542
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rejects extra durable restore fields
+ok 153 - protected group cold resume rejects extra durable restore fields
+  ---
+  duration_ms: 115.516625
+  type: 'test'
+  ...
+# Subtest: protected group native owner failure rolls back and fresh explicit retry reuses original graph
+ok 154 - protected group native owner failure rolls back and fresh explicit retry reuses original graph
+  ---
+  duration_ms: 195.65475
+  type: 'test'
+  ...
+# Subtest: protected fixed group publication refuses substituted original consumer methods before write callback
+ok 155 - protected fixed group publication refuses substituted original consumer methods before write callback
+  ---
+  duration_ms: 180.425375
+  type: 'test'
+  ...
+# Subtest: CTX4 additive row survives a reconstructed store without DDL or legacy body/revision changes
+ok 156 - CTX4 additive row survives a reconstructed store without DDL or legacy body/revision changes
+  ---
+  duration_ms: 97.232125
+  type: 'test'
+  ...
+# Subtest: CTX4 existing-file replacement retains independent Items and tombstones but invalidates old operation epoch
+ok 157 - CTX4 existing-file replacement retains independent Items and tombstones but invalidates old operation epoch
+  ---
+  duration_ms: 145.115125
+  type: 'test'
+  ...
+# Subtest: CTX4-02 local capabilities are truthful without changing default access or creating data
+ok 158 - CTX4-02 local capabilities are truthful without changing default access or creating data
+  ---
+  duration_ms: 99.1345
+  type: 'test'
+  ...
+# Subtest: CTX4-02 info create/edit/delete/restore preserves sibling Items, count and identity
+ok 159 - CTX4-02 info create/edit/delete/restore preserves sibling Items, count and identity
+  ---
+  duration_ms: 84.579959
+  type: 'test'
+  ...
+# Subtest: CTX4-02 rules create/edit/delete/restore preserves sibling Items, count and identity
+ok 160 - CTX4-02 rules create/edit/delete/restore preserves sibling Items, count and identity
+  ---
+  duration_ms: 75.027542
+  type: 'test'
+  ...
+# Subtest: CTX4-02 now create/edit/delete/restore preserves sibling Items, count and identity
+ok 161 - CTX4-02 now create/edit/delete/restore preserves sibling Items, count and identity
+  ---
+  duration_ms: 70.029625
+  type: 'test'
+  ...
+# Subtest: CTX4-02 manual changes across all cards leave nonempty Source, Working Input and Thought owners untouched
+ok 162 - CTX4-02 manual changes across all cards leave nonempty Source, Working Input and Thought owners untouched
+  ---
+  duration_ms: 110.767208
+  type: 'test'
+  ...
+# Subtest: CTX4-02 concurrent card creates and revision races preserve every independent Item
+ok 163 - CTX4-02 concurrent card creates and revision races preserve every independent Item
+  ---
+  duration_ms: 62.866667
+  type: 'test'
+  ...
+# Subtest: CTX4-02 replacing the store preserves three-card bodies, protection, counts and exact receipts
+ok 164 - CTX4-02 replacing the store preserves three-card bodies, protection, counts and exact receipts
+  ---
+  duration_ms: 44.91275
+  type: 'test'
+  ...
+# Subtest: CTX4-02 expanded card validation still rejects malformed persisted Item ownership without repair
+ok 165 - CTX4-02 expanded card validation still rejects malformed persisted Item ownership without repair
+  ---
+  duration_ms: 50.509666
+  type: 'test'
+  ...
+# Subtest: CTX4-02 legacy omitted-card receipt replays exact historical digest without normalization or writes
+ok 166 - CTX4-02 legacy omitted-card receipt replays exact historical digest without normalization or writes
+  ---
+  duration_ms: 45.211792
+  type: 'test'
+  ...
+# Subtest: CTX4-02 new omitted-card writes keep their own digest and remain editable as explicit info
+ok 167 - CTX4-02 new omitted-card writes keep their own digest and remain editable as explicit info
+  ---
+  duration_ms: 37.164875
+  type: 'test'
+  ...
+# Subtest: CTX4-02 info immutable identity rejects substitution and retains the original receipt
+ok 168 - CTX4-02 info immutable identity rejects substitution and retains the original receipt
+  ---
+  duration_ms: 43.174125
+  type: 'test'
+  ...
+# Subtest: CTX4-02 rules immutable identity rejects substitution and retains the original receipt
+ok 169 - CTX4-02 rules immutable identity rejects substitution and retains the original receipt
+  ---
+  duration_ms: 45.987334
+  type: 'test'
+  ...
+# Subtest: CTX4-02 now immutable identity rejects substitution and retains the original receipt
+ok 170 - CTX4-02 now immutable identity rejects substitution and retains the original receipt
+  ---
+  duration_ms: 45.405417
+  type: 'test'
+  ...
+# Subtest: CTX4-02 Inputs, automatic origins, protection overrides and extra fields cannot become manual Items
+ok 171 - CTX4-02 Inputs, automatic origins, protection overrides and extra fields cannot become manual Items
+  ---
+  duration_ms: 32.217958
+  type: 'test'
+  ...
+# Subtest: CTX4-02 info stale edits, deletion and old undo cannot resurrect an Item
+ok 172 - CTX4-02 info stale edits, deletion and old undo cannot resurrect an Item
+  ---
+  duration_ms: 69.177125
+  type: 'test'
+  ...
+# Subtest: CTX4-02 rules stale edits, deletion and old undo cannot resurrect an Item
+ok 173 - CTX4-02 rules stale edits, deletion and old undo cannot resurrect an Item
+  ---
+  duration_ms: 66.741417
+  type: 'test'
+  ...
+# Subtest: CTX4-02 now stale edits, deletion and old undo cannot resurrect an Item
+ok 174 - CTX4-02 now stale edits, deletion and old undo cannot resurrect an Item
+  ---
+  duration_ms: 62.965792
+  type: 'test'
+  ...
+# Subtest: CTX4-02 recovery accepts source-free new and existing drafts only at their valid owner and epoch
+ok 175 - CTX4-02 recovery accepts source-free new and existing drafts only at their valid owner and epoch
+  ---
+  duration_ms: 34.365333
+  type: 'test'
+  ...
+# Subtest: CTX4-02 info body, protection and receipt roll back atomically on storage failure
+ok 176 - CTX4-02 info body, protection and receipt roll back atomically on storage failure
+  ---
+  duration_ms: 63.759625
+  type: 'test'
+  ...
+# Subtest: CTX4-02 rules body, protection and receipt roll back atomically on storage failure
+ok 177 - CTX4-02 rules body, protection and receipt roll back atomically on storage failure
+  ---
+  duration_ms: 44.298
+  type: 'test'
+  ...
+# Subtest: CTX4-02 now body, protection and receipt roll back atomically on storage failure
+ok 178 - CTX4-02 now body, protection and receipt roll back atomically on storage failure
+  ---
+  duration_ms: 37.673792
+  type: 'test'
+  ...
+# Subtest: CTX4-02 all cards resolve lost commit replies using exact body-free durable receipts
+ok 179 - CTX4-02 all cards resolve lost commit replies using exact body-free durable receipts
+  ---
+  duration_ms: 43.335333
+  type: 'test'
+  ...
+# Subtest: CTX4-02 unknown pending writes reject another card before any additional dispatch
+ok 180 - CTX4-02 unknown pending writes reject another card before any additional dispatch
+  ---
+  duration_ms: 1.278584
+  type: 'test'
+  ...
+# Subtest: CTX4-02 pending omitted card equals info while retries preserve exact original payload and digest
+ok 181 - CTX4-02 pending omitted card equals info while retries preserve exact original payload and digest
+  ---
+  duration_ms: 0.703333
+  type: 'test'
+  ...
+# Subtest: CTX4-02 pending Rules and Now writes cannot retry with legacy omitted-card identity
+ok 182 - CTX4-02 pending Rules and Now writes cannot retry with legacy omitted-card identity
+  ---
+  duration_ms: 0.283625
+  type: 'test'
+  ...
+# Subtest: CTX4 Home projection removes private body and free-form section without writes or detail loss
+ok 183 - CTX4 Home projection removes private body and free-form section without writes or detail loss
+  ---
+  duration_ms: 34.13975
+  type: 'test'
+  ...
+# Subtest: CTX4-02 info adjacent reorder commits both revisions once and preserves every body/access/identity
+ok 184 - CTX4-02 info adjacent reorder commits both revisions once and preserves every body/access/identity
+  ---
+  duration_ms: 46.919125
+  type: 'test'
+  ...
+# Subtest: CTX4-02 rules adjacent reorder commits both revisions once and preserves every body/access/identity
+ok 185 - CTX4-02 rules adjacent reorder commits both revisions once and preserves every body/access/identity
+  ---
+  duration_ms: 52.691917
+  type: 'test'
+  ...
+# Subtest: CTX4-02 now adjacent reorder commits both revisions once and preserves every body/access/identity
+ok 186 - CTX4-02 now adjacent reorder commits both revisions once and preserves every body/access/identity
+  ---
+  duration_ms: 48.540041
+  type: 'test'
+  ...
+# Subtest: CTX4-02 reorder rejects stale target/neighbor, skipped/foreign neighbor, boundary and tied restored order without writes
+ok 187 - CTX4-02 reorder rejects stale target/neighbor, skipped/foreign neighbor, boundary and tied restored order without writes
+  ---
+  duration_ms: 60.2885
+  type: 'test'
+  ...
+# Subtest: CTX4-02 reorder refuses injected journal without prepare, commit, owner write or receipt
+ok 188 - CTX4-02 reorder refuses injected journal without prepare, commit, owner write or receipt
+  ---
+  duration_ms: 39.809042
+  type: 'test'
+  ...
+# Subtest: CTX4-02 reorder receipt failure rolls back both items; unknown reply retry preserves exact pair and operation
+ok 189 - CTX4-02 reorder receipt failure rolls back both items; unknown reply retry preserves exact pair and operation
+  ---
+  duration_ms: 40.530833
+  type: 'test'
+  ...
+# Subtest: CTX4-02 original maintenance Items reordered by human retain provenance and reject old automatic replacement
+ok 190 - CTX4-02 original maintenance Items reordered by human retain provenance and reject old automatic replacement
+  ---
+  duration_ms: 203.225792
+  type: 'test'
+  ...
+# Subtest: CTX4 move info to rules preserves identity and uses original receipt for undo
+ok 191 - CTX4 move info to rules preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 44.284625
+  type: 'test'
+  ...
+# Subtest: CTX4 move info to now preserves identity and uses original receipt for undo
+ok 192 - CTX4 move info to now preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 46.605375
+  type: 'test'
+  ...
+# Subtest: CTX4 move rules to info preserves identity and uses original receipt for undo
+ok 193 - CTX4 move rules to info preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 47.962375
+  type: 'test'
+  ...
+# Subtest: CTX4 move rules to now preserves identity and uses original receipt for undo
+ok 194 - CTX4 move rules to now preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 44.688583
+  type: 'test'
+  ...
+# Subtest: CTX4 move now to info preserves identity and uses original receipt for undo
+ok 195 - CTX4 move now to info preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 37.678667
+  type: 'test'
+  ...
+# Subtest: CTX4 move now to rules preserves identity and uses original receipt for undo
+ok 196 - CTX4 move now to rules preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 44.188916
+  type: 'test'
+  ...
+# Subtest: CTX4 move checks current permission revisions and item CAS without changing any grant
+ok 197 - CTX4 move checks current permission revisions and item CAS without changing any grant
+  ---
+  duration_ms: 44.028292
+  type: 'test'
+  ...
+# Subtest: CTX4 move allocates above restored and removed orders; safe integer exhaustion refuses zero writes
+ok 198 - CTX4 move allocates above restored and removed orders; safe integer exhaustion refuses zero writes
+  ---
+  duration_ms: 39.678833
+  type: 'test'
+  ...
+# Subtest: CTX4 move undo refuses forged receipt, later edit and occupied original order
+ok 199 - CTX4 move undo refuses forged receipt, later edit and occupied original order
+  ---
+  duration_ms: 46.400708
+  type: 'test'
+  ...
+# Subtest: CTX4 move refuses journal before preparation and rolls back receipt failure atomically
+ok 200 - CTX4 move refuses journal before preparation and rolls back receipt failure atomically
+  ---
+  duration_ms: 33.314083
+  type: 'test'
+  ...
+# Subtest: CTX4 move of original automatic Items preserves provenance and rejects old automatic replacement
+ok 201 - CTX4 move of original automatic Items preserves provenance and rejects old automatic replacement
+  ---
+  duration_ms: 188.270041
+  type: 'test'
+  ...
+# Subtest: CTX4 move validates exact permissions and does not accept source/body/order or invalid card overrides
+ok 202 - CTX4 move validates exact permissions and does not accept source/body/order or invalid card overrides
+  ---
+  duration_ms: 30.916125
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix false/false/false preserves all access
+ok 203 - CTX4 move explicit current grant matrix false/false/false preserves all access
+  ---
+  duration_ms: 36.5195
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix false/false/true preserves all access
+ok 204 - CTX4 move explicit current grant matrix false/false/true preserves all access
+  ---
+  duration_ms: 37.997625
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix false/true/false preserves all access
+ok 205 - CTX4 move explicit current grant matrix false/true/false preserves all access
+  ---
+  duration_ms: 35.243875
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix false/true/true preserves all access
+ok 206 - CTX4 move explicit current grant matrix false/true/true preserves all access
+  ---
+  duration_ms: 36.891375
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix true/false/false preserves all access
+ok 207 - CTX4 move explicit current grant matrix true/false/false preserves all access
+  ---
+  duration_ms: 37.596083
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix true/false/true preserves all access
+ok 208 - CTX4 move explicit current grant matrix true/false/true preserves all access
+  ---
+  duration_ms: 34.425333
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix true/true/false preserves all access
+ok 209 - CTX4 move explicit current grant matrix true/true/false preserves all access
+  ---
+  duration_ms: 37.51425
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix true/true/true preserves all access
+ok 210 - CTX4 move explicit current grant matrix true/true/true preserves all access
+  ---
+  duration_ms: 35.175875
+  type: 'test'
+  ...
+# Subtest: CTX4 undo rechecks current grant revisions and original epoch without restoring historic grants
+ok 211 - CTX4 undo rechecks current grant revisions and original epoch without restoring historic grants
+  ---
+  duration_ms: 37.760958
+  type: 'test'
+  ...
+# Subtest: CTX4 fresh state is independent, default-off, and history is never migrated into Context
+ok 212 - CTX4 fresh state is independent, default-off, and history is never migrated into Context
+  ---
+  duration_ms: 65.057042
+  type: 'test'
+  ...
+# Subtest: CTX4 real create/edit/reload/delete/undo preserves Source/Input/Thought and monotonic revision
+ok 213 - CTX4 real create/edit/reload/delete/undo preserves Source/Input/Thought and monotonic revision
+  ---
+  duration_ms: 46.898875
+  type: 'test'
+  ...
+# Subtest: CTX4 access is durable and no lower toggle opens parent or clears siblings
+ok 214 - CTX4 access is durable and no lower toggle opens parent or clears siblings
+  ---
+  duration_ms: 37.339958
+  type: 'test'
+  ...
+# Subtest: CTX4 concurrent writes, replay, stale delete, operation substitution and restore epochs fail safely
+ok 215 - CTX4 concurrent writes, replay, stale delete, operation substitution and restore epochs fail safely
+  ---
+  duration_ms: 41.306208
+  type: 'test'
+  ...
+# Subtest: CTX4 atomic failure rolls back body, protection, deletion and receipt together
+ok 216 - CTX4 atomic failure rolls back body, protection, deletion and receipt together
+  ---
+  duration_ms: 41.704791
+  type: 'test'
+  ...
+# Subtest: CTX4 deleted identity fences recovery and unsupported automatic/Inputs writes
+ok 217 - CTX4 deleted identity fences recovery and unsupported automatic/Inputs writes
+  ---
+  duration_ms: 34.490833
+  type: 'test'
+  ...
+# Subtest: CTX4 malformed canonical state fails closed rather than replacing prior data
+ok 218 - CTX4 malformed canonical state fails closed rather than replacing prior data
+  ---
+  duration_ms: 30.686042
+  type: 'test'
+  ...
+# Subtest: CTX4 lost commit reply resolves exact body-free durable acknowledgement; unknown outcome stays pending
+ok 219 - CTX4 lost commit reply resolves exact body-free durable acknowledgement; unknown outcome stays pending
+  ---
+  duration_ms: 34.05825
+  type: 'test'
+  ...
+# Subtest: CTX4 unknown operation cannot be retried through another card, item, action or desired access value
+ok 220 - CTX4 unknown operation cannot be retried through another card, item, action or desired access value
+  ---
+  duration_ms: 1.388209
+  type: 'test'
+  ...
+# Subtest: CTX4 terminal restore epoch invalidation clears unknown pending operation without applying a new intent
+ok 221 - CTX4 terminal restore epoch invalidation clears unknown pending operation without applying a new intent
+  ---
+  duration_ms: 0.427333
+  type: 'test'
+  ...
+# Subtest: CTX4 outcome-side epoch invalidation is terminal and inner recovery epoch must match owner epoch
+ok 222 - CTX4 outcome-side epoch invalidation is terminal and inner recovery epoch must match owner epoch
+  ---
+  duration_ms: 33.183417
+  type: 'test'
+  ...
+# Subtest: original literal put descriptor carries body once and reproduces original command digest
+ok 223 - original literal put descriptor carries body once and reproduces original command digest
+  ---
+  duration_ms: 60.695041
+  type: 'test'
+  ...
+# Subtest: original cross-card move and exact old receipt undo preserve order and literal body
+ok 224 - original cross-card move and exact old receipt undo preserve order and literal body
+  ---
+  duration_ms: 39.207083
+  type: 'test'
+  ...
+# Subtest: original adjacent reorder records exactly two owner changes and preserves full group
+ok 225 - original adjacent reorder records exactly two owner changes and preserves full group
+  ---
+  duration_ms: 41.996208
+  type: 'test'
+  ...
+# Subtest: missing sibling cannot validate a two-owner mutation
+ok 226 - missing sibling cannot validate a two-owner mutation
+  ---
+  duration_ms: 40.779708
+  type: 'test'
+  ...
+# Subtest: description rejects forged body
+ok 227 - description rejects forged body
+  ---
+  duration_ms: 51.052
+  type: 'test'
+  ...
+# Subtest: description rejects forged result
+ok 228 - description rejects forged result
+  ---
+  duration_ms: 32.075333
+  type: 'test'
+  ...
+# Subtest: description rejects forged order
+ok 229 - description rejects forged order
+  ---
+  duration_ms: 33.699833
+  type: 'test'
+  ...
+# Subtest: description rejects forged cut
+ok 230 - description rejects forged cut
+  ---
+  duration_ms: 32.349583
+  type: 'test'
+  ...
+# Subtest: description rejects forged digest
+ok 231 - description rejects forged digest
+  ---
+  duration_ms: 33.94425
+  type: 'test'
+  ...
+# Subtest: description rejects forged extra-command-key
+ok 232 - description rejects forged extra-command-key
+  ---
+  duration_ms: 30.936583
+  type: 'test'
+  ...
+# Subtest: a move receipt cannot replace original undo receipt qualification
+ok 233 - a move receipt cannot replace original undo receipt qualification
+  ---
+  duration_ms: 38.901
+  type: 'test'
+  ...
+# Subtest: no descriptor may carry a second literal command body
+ok 234 - no descriptor may carry a second literal command body
+  ---
+  duration_ms: 33.370083
+  type: 'test'
+  ...
+# Subtest: different untouched group member rejects a previously valid reorder proof
+ok 235 - different untouched group member rejects a previously valid reorder proof
+  ---
+  duration_ms: 40.697042
+  type: 'test'
+  ...
+# Subtest: actual original Context put commits canonical/outbox and real receiver materializes same literal body
+ok 236 - actual original Context put commits canonical/outbox and real receiver materializes same literal body
+  ---
+  duration_ms: 186.046583
+  type: 'test'
+  ...
+# Subtest: actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+ok 237 - actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+  ---
+  duration_ms: 272.718875
+  type: 'test'
+  ...
+# Subtest: a split group and direct generic remote operation cannot write any canonical or protocol row
+ok 238 - a split group and direct generic remote operation cannot write any canonical or protocol row
+  ---
+  duration_ms: 97.519583
+  type: 'test'
+  ...
+# Subtest: existing original manual per-card ancestor remains exact while next move crosses the old codec type
+ok 239 - existing original manual per-card ancestor remains exact while next move crosses the old codec type
+  ---
+  duration_ms: 107.989083
+  type: 'test'
+  ...
+# Subtest: explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+ok 240 - explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+  ---
+  duration_ms: 120.094125
+  type: 'test'
+  ...
+# Subtest: real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+ok 241 - real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+  ---
+  duration_ms: 241.237166
+  type: 'test'
+  ...
+# Subtest: cold repository reopen retains original move receipt and allows undo then edit
+ok 242 - cold repository reopen retains original move receipt and allows undo then edit
+  ---
+  duration_ms: 106.495875
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on receipt write failure
+ok 243 - original transaction rolls canonical and all protocol rows back on receipt write failure
+  ---
+  duration_ms: 76.344458
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on protocol write failure
+ok 244 - original transaction rolls canonical and all protocol rows back on protocol write failure
+  ---
+  duration_ms: 77.263
+  type: 'test'
+  ...
+# Subtest: prepared original group cannot survive a late independent local Context edit
+ok 245 - prepared original group cannot survive a late independent local Context edit
+  ---
+  duration_ms: 90.878209
+  type: 'test'
+  ...
+# Subtest: cloned preparation and fabricated service cannot mint or consume the original owner capability
+ok 246 - cloned preparation and fabricated service cannot mint or consume the original owner capability
+  ---
+  duration_ms: 69.42575
+  type: 'test'
+  ...
+# Subtest: sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+ok 247 - sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+  ---
+  duration_ms: 95.753959
+  type: 'test'
+  ...
+# Subtest: late restore epoch write after canonical and protocol apply aborts the whole original transaction
+ok 248 - late restore epoch write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 88.555917
+  type: 'test'
+  ...
+# Subtest: late typed head write after canonical and protocol apply aborts the whole original transaction
+ok 249 - late typed head write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 89.347917
+  type: 'test'
+  ...
+# Subtest: automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+ok 250 - automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+  ---
+  duration_ms: 163.773459
+  type: 'test'
+  ...
+# Subtest: NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+ok 251 - NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+  ---
+  duration_ms: 2559.987625
+  type: 'test'
+  ...
+# Subtest: last typed protocol write failure rolls back canonical Context, Source, receipt and replay activation
+ok 252 - last typed protocol write failure rolls back canonical Context, Source, receipt and replay activation
+  ---
+  duration_ms: 442.177916
+  type: 'test'
+  ...
+# Subtest: a cold original grouped owner requires exact revalidation and restores the same command once
+ok 253 - a cold original grouped owner requires exact revalidation and restores the same command once
+  ---
+  duration_ms: 653.914542
+  type: 'test'
+  ...
+# Subtest: changed actual Context after publication qualification cannot activate its former sealed graph
+ok 254 - changed actual Context after publication qualification cannot activate its former sealed graph
+  ---
+  duration_ms: 398.853375
+  type: 'test'
+  ...
+# Subtest: original native current Mixed remains unavailable in the non-native fixture without publishing objects
+ok 255 - original native current Mixed remains unavailable in the non-native fixture without publishing objects
+  ---
+  duration_ms: 32.80725
+  type: 'test'
+  ...
+# Subtest: actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+ok 256 - actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+  ---
+  duration_ms: 35.186333
+  type: 'test'
+  ...
+# Subtest: original three-card history, desired proofs and exact scheduling metadata pass the unwired assertion only
+ok 257 - original three-card history, desired proofs and exact scheduling metadata pass the unwired assertion only
+  ---
+  duration_ms: 168.075834
+  type: 'test'
+  ...
+# Subtest: missing or altered genuine Context known and pending descriptors refuse without storage writes
+ok 258 - missing or altered genuine Context known and pending descriptors refuse without storage writes
+  ---
+  duration_ms: 384.446875
+  type: 'test'
+  ...
+# Subtest: desired owner proof head, value and epoch cannot be substituted
+ok 259 - desired owner proof head, value and epoch cannot be substituted
+  ---
+  duration_ms: 455.577167
+  type: 'test'
+  ...
+# Subtest: optional manual anchors must form an exact valid original operation and epoch pair
+ok 260 - optional manual anchors must form an exact valid original operation and epoch pair
+  ---
+  duration_ms: 199.680208
+  type: 'test'
+  ...
+# Subtest: nonrepresented physical text, nondefault desired and global effective access refuse
+ok 261 - nonrepresented physical text, nondefault desired and global effective access refuse
+  ---
+  duration_ms: 387.122875
+  type: 'test'
+  ...
+# Subtest: component transition checks reject altered full history without claiming authentication of DTOs
+ok 262 - component transition checks reject altered full history without claiming authentication of DTOs
+  ---
+  duration_ms: 250.543792
+  type: 'test'
+  ...
+1..262
+# tests 262
+# suites 0
+# pass 262
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7736.495084

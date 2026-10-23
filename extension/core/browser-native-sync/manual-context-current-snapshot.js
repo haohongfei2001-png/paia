@@ -19,6 +19,10 @@ export function hasCurrentContextOperations(plan){
 export function assertCurrentContextSnapshot(core,scope,plan,raw,rows){
  const physical=rows.get(CONTEXT_CARDS_ROW);if(!physical)refused();
  const typed=plan.groups.some(group=>group.type==='contextMutationCommit');
+ // This original native-current profile still qualifies manual Context only.
+ // Ordinary NOW and shadow publication use the separate original lineage
+ // capture/fence; a pure physical comparator cannot replace that authority.
+ if(typed&&physical.items?.some(item=>item.origin==='automatic'))fail('BNS_CONTEXT_LINEAGE_UNAVAILABLE');
  if(typed)assertContextMutationPhysicalShape(physical);else assertManualContextCurrentPhysicalShape(physical);if(!validContextCards(physical))refused();
  if(!Array.isArray(scope.expected.context)||!Array.isArray(scope.expected.desired))refused();
  const operations=plan.groups.flatMap(group=>group.operations);

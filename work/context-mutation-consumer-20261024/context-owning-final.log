@@ -1,0 +1,1882 @@
+TAP version 13
+# Subtest: optional manual journal preserves actual local global access toggle and receipt
+ok 1 - optional manual journal preserves actual local global access toggle and receipt
+  ---
+  duration_ms: 186.080875
+  type: 'test'
+  ...
+# Subtest: optional manual journal preserves actual local info access toggle and receipt
+ok 2 - optional manual journal preserves actual local info access toggle and receipt
+  ---
+  duration_ms: 80.406166
+  type: 'test'
+  ...
+# Subtest: optional manual journal preserves actual local rules access toggle and receipt
+ok 3 - optional manual journal preserves actual local rules access toggle and receipt
+  ---
+  duration_ms: 77.883791
+  type: 'test'
+  ...
+# Subtest: optional manual journal preserves actual local now access toggle and receipt
+ok 4 - optional manual journal preserves actual local now access toggle and receipt
+  ---
+  duration_ms: 71.777459
+  type: 'test'
+  ...
+# Subtest: optional manual journal preserves actual local inputs access toggle and receipt
+ok 5 - optional manual journal preserves actual local inputs access toggle and receipt
+  ---
+  duration_ms: 66.961708
+  type: 'test'
+  ...
+# Subtest: optional journal retains automatic info origin and lineage through actual human edit/remove/restore
+ok 6 - optional journal retains automatic info origin and lineage through actual human edit/remove/restore
+  ---
+  duration_ms: 121.871209
+  type: 'test'
+  ...
+# Subtest: optional journal retains automatic rules origin and lineage through actual human edit/remove/restore
+ok 7 - optional journal retains automatic rules origin and lineage through actual human edit/remove/restore
+  ---
+  duration_ms: 100.752584
+  type: 'test'
+  ...
+# Subtest: optional journal retains automatic now origin and lineage through actual human edit/remove/restore
+ok 8 - optional journal retains automatic now origin and lineage through actual human edit/remove/restore
+  ---
+  duration_ms: 100.705208
+  type: 'test'
+  ...
+# Subtest: manual writes still require actual outbox commit and a journal failure rolls canonical and receipt back
+ok 9 - manual writes still require actual outbox commit and a journal failure rolls canonical and receipt back
+  ---
+  duration_ms: 75.291958
+  type: 'test'
+  ...
+# Subtest: local-only access receipt failure preserves canonical and all protocol state
+ok 10 - local-only access receipt failure preserves canonical and all protocol state
+  ---
+  duration_ms: 60.181208
+  type: 'test'
+  ...
+# Subtest: local-only automatic receipt failure preserves canonical and all protocol state
+ok 11 - local-only automatic receipt failure preserves canonical and all protocol state
+  ---
+  duration_ms: 89.925583
+  type: 'test'
+  ...
+# Subtest: a concurrent local access write during local-only preparation still rejects stale whole-row apply
+ok 12 - a concurrent local access write during local-only preparation still rejects stale whole-row apply
+  ---
+  duration_ms: 56.702583
+  type: 'test'
+  ...
+# Subtest: undefined preparation is not a local-only fallback and old Info journal remains strict
+ok 13 - undefined preparation is not a local-only fallback and old Info journal remains strict
+  ---
+  duration_ms: 60.978958
+  type: 'test'
+  ...
+# Subtest: actual card access writer records desired head and outbox atomically
+ok 14 - actual card access writer records desired head and outbox atomically
+  ---
+  duration_ms: 98.824125
+  type: 'test'
+  ...
+# Subtest: registered desired conflict owner is invoked for the real concurrent off branch
+ok 15 - registered desired conflict owner is invoked for the real concurrent off branch
+  ---
+  duration_ms: 85.436583
+  type: 'test'
+  ...
+# Subtest: info exact access retry, remote restore and global remain independent
+ok 16 - info exact access retry, remote restore and global remain independent
+  ---
+  duration_ms: 86.615833
+  type: 'test'
+  ...
+# Subtest: rules exact access retry, remote restore and global remain independent
+ok 17 - rules exact access retry, remote restore and global remain independent
+  ---
+  duration_ms: 81.225583
+  type: 'test'
+  ...
+# Subtest: now exact access retry, remote restore and global remain independent
+ok 18 - now exact access retry, remote restore and global remain independent
+  ---
+  duration_ms: 78.885917
+  type: 'test'
+  ...
+# Subtest: inputs exact access retry, remote restore and global remain independent
+ok 19 - inputs exact access retry, remote restore and global remain independent
+  ---
+  duration_ms: 62.242167
+  type: 'test'
+  ...
+# Subtest: remote enable never expands global-on scope and exact operation can retry after local pause
+ok 20 - remote enable never expands global-on scope and exact operation can retry after local pause
+  ---
+  duration_ms: 58.928084
+  type: 'test'
+  ...
+# Subtest: unmanaged local denial is not overwritten by imported enable
+ok 21 - unmanaged local denial is not overwritten by imported enable
+  ---
+  duration_ms: 57.106709
+  type: 'test'
+  ...
+# Subtest: concurrent off preserves both heads while restricting only the affected card
+ok 22 - concurrent off preserves both heads while restricting only the affected card
+  ---
+  duration_ms: 80.559125
+  type: 'test'
+  ...
+# Subtest: unregistered conflict retains existing Core semantics and no canonical materialization
+ok 23 - unregistered conflict retains existing Core semantics and no canonical materialization
+  ---
+  duration_ms: 69.97
+  type: 'test'
+  ...
+# Subtest: journal failure rolls back card, protocol and local receipt
+ok 24 - journal failure rolls back card, protocol and local receipt
+  ---
+  duration_ms: 28.588792
+  type: 'test'
+  ...
+# Subtest: receipt failure rolls back card, protocol and local receipt
+ok 25 - receipt failure rolls back card, protocol and local receipt
+  ---
+  duration_ms: 32.439625
+  type: 'test'
+  ...
+# Subtest: conflict owner failure rolls back even protocol receipts and generation
+ok 26 - conflict owner failure rolls back even protocol receipts and generation
+  ---
+  duration_ms: 73.817875
+  type: 'test'
+  ...
+# Subtest: restore epoch invalidates even a negative remote change without partial acknowledgements
+ok 27 - restore epoch invalidates even a negative remote change without partial acknowledgements
+  ---
+  duration_ms: 68.369041
+  type: 'test'
+  ...
+# Subtest: unregistered local edit prevents remote restrictive owner replacement too
+ok 28 - unregistered local edit prevents remote restrictive owner replacement too
+  ---
+  duration_ms: 66.569667
+  type: 'test'
+  ...
+# Subtest: valid resolution can leave a restrictive conflict projection without consumed revision
+ok 29 - valid resolution can leave a restrictive conflict projection without consumed revision
+  ---
+  duration_ms: 72.965167
+  type: 'test'
+  ...
+# Subtest: existing local card desired state can bootstrap without changing local authority or receipts
+ok 30 - existing local card desired state can bootstrap without changing local authority or receipts
+  ---
+  duration_ms: 69.322084
+  type: 'test'
+  ...
+# Subtest: first materialization binds a real non-null local restore epoch; changed epoch rejects later
+ok 31 - first materialization binds a real non-null local restore epoch; changed epoch rejects later
+  ---
+  duration_ms: 82.424083
+  type: 'test'
+  ...
+# Subtest: long legal per-step card changes retain bounded verified ancestry rather than stopping at 129
+ok 32 - long legal per-step card changes retain bounded verified ancestry rather than stopping at 129
+  ---
+  duration_ms: 1577.754542
+  type: 'test'
+  ...
+# Subtest: conflict projection does not advance on additional stale ancestry delivery
+ok 33 - conflict projection does not advance on additional stale ancestry delivery
+  ---
+  duration_ms: 65.535709
+  type: 'test'
+  ...
+# Subtest: global-on conflict cannot resolve to expanded effective scope, but explicit off resolution succeeds
+ok 34 - global-on conflict cannot resolve to expanded effective scope, but explicit off resolution succeeds
+  ---
+  duration_ms: 70.794667
+  type: 'test'
+  ...
+# Subtest: prepared local enable refuses concurrent restriction even when prior local enabled=true
+ok 35 - prepared local enable refuses concurrent restriction even when prior local enabled=true
+  ---
+  duration_ms: 67.074
+  type: 'test'
+  ...
+# Subtest: prepared local enable refuses concurrent restriction even when prior local enabled=false
+ok 36 - prepared local enable refuses concurrent restriction even when prior local enabled=false
+  ---
+  duration_ms: 69.282166
+  type: 'test'
+  ...
+# Subtest: optional journal leaves the existing nonjournal access owner unchanged
+ok 37 - optional journal leaves the existing nonjournal access owner unchanged
+  ---
+  duration_ms: 21.795125
+  type: 'test'
+  ...
+# Subtest: actual staged desired activation restores four choices but no global grant and rolls back atomically
+ok 38 - actual staged desired activation restores four choices but no global grant and rolls back atomically
+  ---
+  duration_ms: 84.745333
+  type: 'test'
+  ...
+# Subtest: stage cannot borrow live anchor to accept an otherwise over-bound desired ancestry
+ok 39 - stage cannot borrow live anchor to accept an otherwise over-bound desired ancestry
+  ---
+  duration_ms: 1365.282708
+  type: 'test'
+  ...
+# Subtest: actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+ok 40 - actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+  ---
+  duration_ms: 137.525125
+  type: 'test'
+  ...
+# Subtest: real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+ok 41 - real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+  ---
+  duration_ms: 118.549417
+  type: 'test'
+  ...
+# Subtest: actual journal abort rolls back canonical, outbox and command receipt
+ok 42 - actual journal abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 42.776083
+  type: 'test'
+  ...
+# Subtest: actual receipt abort rolls back canonical, outbox and command receipt
+ok 43 - actual receipt abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 38.039833
+  type: 'test'
+  ...
+# Subtest: receive refuses unmanaged canonical owner without protocol side effects
+ok 44 - receive refuses unmanaged canonical owner without protocol side effects
+  ---
+  duration_ms: 73.1775
+  type: 'test'
+  ...
+# Subtest: receive refuses edited canonical owner without protocol side effects
+ok 45 - receive refuses edited canonical owner without protocol side effects
+  ---
+  duration_ms: 90.800459
+  type: 'test'
+  ...
+# Subtest: receive refuses deleted-same-body canonical owner without protocol side effects
+ok 46 - receive refuses deleted-same-body canonical owner without protocol side effects
+  ---
+  duration_ms: 75.469292
+  type: 'test'
+  ...
+# Subtest: remote receive preserves unrelated Item and enabled local access exactly
+ok 47 - remote receive preserves unrelated Item and enabled local access exactly
+  ---
+  duration_ms: 62.602125
+  type: 'test'
+  ...
+# Subtest: staged restore proves whole chain and activation abort leaves old generation untouched
+ok 48 - staged restore proves whole chain and activation abort leaves old generation untouched
+  ---
+  duration_ms: 82.1235
+  type: 'test'
+  ...
+# Subtest: invalid restore transition cannot smuggle a different body through a removed predecessor
+ok 49 - invalid restore transition cannot smuggle a different body through a removed predecessor
+  ---
+  duration_ms: 72.909
+  type: 'test'
+  ...
+# Subtest: bootstrap preserves existing manual Info and supports fresh exact restore
+ok 50 - bootstrap preserves existing manual Info and supports fresh exact restore
+  ---
+  duration_ms: 73.616708
+  type: 'test'
+  ...
+# Subtest: scope refuses access, Rules, Now and permanent purge without inventing owners
+ok 51 - scope refuses access, Rules, Now and permanent purge without inventing owners
+  ---
+  duration_ms: 68.589625
+  type: 'test'
+  ...
+# Subtest: bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+ok 52 - bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+  ---
+  duration_ms: 30.0735
+  type: 'test'
+  ...
+# Subtest: manual Info unmaterialized ancestry still rejects 129 atomically
+ok 53 - manual Info unmaterialized ancestry still rejects 129 atomically
+  ---
+  duration_ms: 1686.004417
+  type: 'test'
+  ...
+# Subtest: existing Item change rejects same-value head advancement after validation before prepare
+ok 54 - existing Item change rejects same-value head advancement after validation before prepare
+  ---
+  duration_ms: 31.480208
+  type: 'test'
+  ...
+# Subtest: actual 130 consecutive service edits received one by one retain safe materialized ancestry
+ok 55 - actual 130 consecutive service edits received one by one retain safe materialized ancestry
+  ---
+  duration_ms: 1403.284417
+  type: 'test'
+  ...
+# Subtest: verified continuation rejects local-edit without protocol acknowledgement
+ok 56 - verified continuation rejects local-edit without protocol acknowledgement
+  ---
+  duration_ms: 47.600583
+  type: 'test'
+  ...
+# Subtest: verified continuation rejects epoch without protocol acknowledgement
+ok 57 - verified continuation rejects epoch without protocol acknowledgement
+  ---
+  duration_ms: 43.99025
+  type: 'test'
+  ...
+# Subtest: verified continuation rejects forged-proof without protocol acknowledgement
+ok 58 - verified continuation rejects forged-proof without protocol acknowledgement
+  ---
+  duration_ms: 41.57875
+  type: 'test'
+  ...
+# Subtest: verified continuation rejects forged-binding without protocol acknowledgement
+ok 59 - verified continuation rejects forged-binding without protocol acknowledgement
+  ---
+  duration_ms: 51.13875
+  type: 'test'
+  ...
+# Subtest: a first remote materialization under a nonnull restore epoch can establish its own proof
+ok 60 - a first remote materialization under a nonnull restore epoch can establish its own proof
+  ---
+  duration_ms: 46.779875
+  type: 'test'
+  ...
+# Subtest: new namespace cannot borrow the old namespace verified head
+ok 61 - new namespace cannot borrow the old namespace verified head
+  ---
+  duration_ms: 44.187125
+  type: 'test'
+  ...
+# Subtest: canonical write and validation proof roll back together on final proof failure
+ok 62 - canonical write and validation proof roll back together on final proof failure
+  ---
+  duration_ms: 45.753417
+  type: 'test'
+  ...
+# Subtest: verified predecessor does not permit an invalid soft-delete transition
+ok 63 - verified predecessor does not permit an invalid soft-delete transition
+  ---
+  duration_ms: 44.447791
+  type: 'test'
+  ...
+# Subtest: a prior materialization proof does not block a subsequent valid journaled local edit
+ok 64 - a prior materialization proof does not block a subsequent valid journaled local edit
+  ---
+  duration_ms: 53.327958
+  type: 'test'
+  ...
+# Subtest: rules actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+ok 65 - rules actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+  ---
+  duration_ms: 132.828708
+  type: 'test'
+  ...
+# Subtest: rules real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+ok 66 - rules real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+  ---
+  duration_ms: 119.976792
+  type: 'test'
+  ...
+# Subtest: rules actual journal abort rolls back canonical, outbox and command receipt
+ok 67 - rules actual journal abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 41.226209
+  type: 'test'
+  ...
+# Subtest: rules actual receipt abort rolls back canonical, outbox and command receipt
+ok 68 - rules actual receipt abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 38.082875
+  type: 'test'
+  ...
+# Subtest: rules receive refuses unmanaged canonical owner without protocol side effects
+ok 69 - rules receive refuses unmanaged canonical owner without protocol side effects
+  ---
+  duration_ms: 77.259709
+  type: 'test'
+  ...
+# Subtest: rules receive refuses edited canonical owner without protocol side effects
+ok 70 - rules receive refuses edited canonical owner without protocol side effects
+  ---
+  duration_ms: 87.5465
+  type: 'test'
+  ...
+# Subtest: rules receive refuses deleted-same-body canonical owner without protocol side effects
+ok 71 - rules receive refuses deleted-same-body canonical owner without protocol side effects
+  ---
+  duration_ms: 84.457708
+  type: 'test'
+  ...
+# Subtest: rules remote receive preserves unrelated Item and enabled local access exactly
+ok 72 - rules remote receive preserves unrelated Item and enabled local access exactly
+  ---
+  duration_ms: 79.678666
+  type: 'test'
+  ...
+# Subtest: rules staged restore proves whole chain and activation abort leaves old generation untouched
+ok 73 - rules staged restore proves whole chain and activation abort leaves old generation untouched
+  ---
+  duration_ms: 88.505083
+  type: 'test'
+  ...
+# Subtest: rules invalid restore transition cannot smuggle a different body through a removed predecessor
+ok 74 - rules invalid restore transition cannot smuggle a different body through a removed predecessor
+  ---
+  duration_ms: 77.72475
+  type: 'test'
+  ...
+# Subtest: rules bootstrap preserves existing manual Context and supports fresh exact restore
+ok 75 - rules bootstrap preserves existing manual Context and supports fresh exact restore
+  ---
+  duration_ms: 74.348958
+  type: 'test'
+  ...
+# Subtest: rules bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+ok 76 - rules bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+  ---
+  duration_ms: 31.685917
+  type: 'test'
+  ...
+# Subtest: rules manual Context unmaterialized ancestry still rejects 129 atomically
+ok 77 - rules manual Context unmaterialized ancestry still rejects 129 atomically
+  ---
+  duration_ms: 1699.411416
+  type: 'test'
+  ...
+# Subtest: rules existing Item change rejects same-value head advancement after validation before prepare
+ok 78 - rules existing Item change rejects same-value head advancement after validation before prepare
+  ---
+  duration_ms: 31.726791
+  type: 'test'
+  ...
+# Subtest: rules exact codec scope and old reader coverage remain conservative
+ok 79 - rules exact codec scope and old reader coverage remain conservative
+  ---
+  duration_ms: 34.563583
+  type: 'test'
+  ...
+# Subtest: rules access stays local; purge and cross-card same ID never overwrite owner
+ok 80 - rules access stays local; purge and cross-card same ID never overwrite owner
+  ---
+  duration_ms: 95.106917
+  type: 'test'
+  ...
+# Subtest: rules mixed Info Rules Now checkpoint restores all exact Items with local access off
+ok 81 - rules mixed Info Rules Now checkpoint restores all exact Items with local access off
+  ---
+  duration_ms: 86.091041
+  type: 'test'
+  ...
+# Subtest: now actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+ok 82 - now actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+  ---
+  duration_ms: 57.062167
+  type: 'test'
+  ...
+# Subtest: now real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+ok 83 - now real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+  ---
+  duration_ms: 81.365625
+  type: 'test'
+  ...
+# Subtest: now actual journal abort rolls back canonical, outbox and command receipt
+ok 84 - now actual journal abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 28.840625
+  type: 'test'
+  ...
+# Subtest: now actual receipt abort rolls back canonical, outbox and command receipt
+ok 85 - now actual receipt abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 26.347083
+  type: 'test'
+  ...
+# Subtest: now receive refuses unmanaged canonical owner without protocol side effects
+ok 86 - now receive refuses unmanaged canonical owner without protocol side effects
+  ---
+  duration_ms: 50.838125
+  type: 'test'
+  ...
+# Subtest: now receive refuses edited canonical owner without protocol side effects
+ok 87 - now receive refuses edited canonical owner without protocol side effects
+  ---
+  duration_ms: 59.515333
+  type: 'test'
+  ...
+# Subtest: now receive refuses deleted-same-body canonical owner without protocol side effects
+ok 88 - now receive refuses deleted-same-body canonical owner without protocol side effects
+  ---
+  duration_ms: 61.786833
+  type: 'test'
+  ...
+# Subtest: now remote receive preserves unrelated Item and enabled local access exactly
+ok 89 - now remote receive preserves unrelated Item and enabled local access exactly
+  ---
+  duration_ms: 49.279458
+  type: 'test'
+  ...
+# Subtest: now staged restore proves whole chain and activation abort leaves old generation untouched
+ok 90 - now staged restore proves whole chain and activation abort leaves old generation untouched
+  ---
+  duration_ms: 70.883917
+  type: 'test'
+  ...
+# Subtest: now invalid restore transition cannot smuggle a different body through a removed predecessor
+ok 91 - now invalid restore transition cannot smuggle a different body through a removed predecessor
+  ---
+  duration_ms: 55.403667
+  type: 'test'
+  ...
+# Subtest: now bootstrap preserves existing manual Context and supports fresh exact restore
+ok 92 - now bootstrap preserves existing manual Context and supports fresh exact restore
+  ---
+  duration_ms: 51.032625
+  type: 'test'
+  ...
+# Subtest: now bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+ok 93 - now bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+  ---
+  duration_ms: 22.726625
+  type: 'test'
+  ...
+# Subtest: now manual Context unmaterialized ancestry still rejects 129 atomically
+ok 94 - now manual Context unmaterialized ancestry still rejects 129 atomically
+  ---
+  duration_ms: 1073.231583
+  type: 'test'
+  ...
+# Subtest: now existing Item change rejects same-value head advancement after validation before prepare
+ok 95 - now existing Item change rejects same-value head advancement after validation before prepare
+  ---
+  duration_ms: 19.614834
+  type: 'test'
+  ...
+# Subtest: now exact codec scope and old reader coverage remain conservative
+ok 96 - now exact codec scope and old reader coverage remain conservative
+  ---
+  duration_ms: 14.862208
+  type: 'test'
+  ...
+# Subtest: now access stays local; purge and cross-card same ID never overwrite owner
+ok 97 - now access stays local; purge and cross-card same ID never overwrite owner
+  ---
+  duration_ms: 48.532917
+  type: 'test'
+  ...
+# Subtest: now mixed Info Rules Now checkpoint restores all exact Items with local access off
+ok 98 - now mixed Info Rules Now checkpoint restores all exact Items with local access off
+  ---
+  duration_ms: 43.43275
+  type: 'test'
+  ...
+# Subtest: native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+ok 99 - native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+  ---
+  duration_ms: 95.690291
+  type: 'test'
+  ...
+# Subtest: actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+ok 100 - actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+  ---
+  duration_ms: 206.002042
+  type: 'test'
+  ...
+# Subtest: missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+ok 101 - missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+  ---
+  duration_ms: 59.086458
+  type: 'test'
+  ...
+# Subtest: operation budget counts all ancestry rather than current heads
+ok 102 - operation budget counts all ancestry rather than current heads
+  ---
+  duration_ms: 45.967792
+  type: 'test'
+  ...
+# Subtest: actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+ok 103 - actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+  ---
+  duration_ms: 115.979959
+  type: 'test'
+  ...
+# Subtest: fourMiB operation bytes include all retained payloads, not only final current text
+ok 104 - fourMiB operation bytes include all retained payloads, not only final current text
+  ---
+  duration_ms: 858.305792
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled note rather than claiming protocol coverage
+ok 105 - full inventory rejects actual unjournaled note rather than claiming protocol coverage
+  ---
+  duration_ms: 66.214417
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+ok 106 - full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+  ---
+  duration_ms: 58.020083
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+ok 107 - full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+  ---
+  duration_ms: 56.936291
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+ok 108 - full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+  ---
+  duration_ms: 50.73625
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+ok 109 - full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+  ---
+  duration_ms: 51.05475
+  type: 'test'
+  ...
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+not ok 110 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 144.729875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:15:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:17:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+not ok 111 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 251.493584
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:32:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:32:314)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+not ok 112 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 195.627334
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:36:77'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async staged (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:35:133)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:36:202)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+not ok 113 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 187.099125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:36:77'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async staged (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:35:133)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:36:202)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+not ok 114 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 192.323542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:36:77'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async staged (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:35:133)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:36:202)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+not ok 115 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 190.34425
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:37:80'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async staged (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:35:133)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:37:195)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+not ok 116 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 208.211084
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:37:80'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async staged (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:35:133)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:37:195)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+not ok 117 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 200.732375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:37:80'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async staged (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:35:133)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:37:195)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+not ok 118 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 187.763958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:37:80'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async staged (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:35:133)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:37:195)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+not ok 119 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 36.108041
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:38:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+    -   code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  actual:
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:38:212)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:38:212)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+not ok 120 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 183.321083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:39:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async staged (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:35:133)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:39:143)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+not ok 121 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 62.84
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:40:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async staged (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:35:133)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:40:142)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+not ok 122 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 61.391583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:41:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:41:198)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+not ok 123 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 166.73275
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:42:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async staged (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:35:133)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:42:180)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: exact128 retained operations restore and the129th has explicit paged scope admission
+not ok 124 - exact128 retained operations restore and the129th has explicit paged scope admission
+  ---
+  duration_ms: 767.545042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:43:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async staged (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:35:133)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:43:554)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+not ok 125 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 43.951875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:44:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+    -   code: 'BNS_GROUP_COMMIT_UNPROVEN'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_GROUP_COMMIT_UNPROVEN'
+  actual:
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:44:285)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:44:285)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+not ok 126 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 36.205792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:45:51'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: GENERATION_REPOSITORY_WRITE_DENIED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:45:911)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+not ok 127 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 36.509
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:45:51'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: GENERATION_REPOSITORY_WRITE_DENIED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:45:911)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+not ok 128 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 38.843
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:45:51'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: GENERATION_REPOSITORY_WRITE_DENIED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:45:911)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+not ok 129 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 37.173209
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:46:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+    -   code: 'BNS_GROUP_COMMIT_UNPROVEN'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_GROUP_COMMIT_UNPROVEN'
+  actual:
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:28:84)
+    prepareContextGenerationPublication (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/context-mutation-group.js:62:2)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:117:57)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:46:439)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs:46:439)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+ok 130 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 515.805584
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rebinds original proof and never duplicates canonical application
+ok 131 - protected group cold resume rebinds original proof and never duplicates canonical application
+  ---
+  duration_ms: 381.270084
+  type: 'test'
+  ...
+# Subtest: protected group never lends a transaction to custom diagnostic callback
+ok 132 - protected group never lends a transaction to custom diagnostic callback
+  ---
+  duration_ms: 136.985333
+  type: 'test'
+  ...
+# Subtest: protected group cannot acquire genuine authority using forged or foreign proof
+ok 133 - protected group cannot acquire genuine authority using forged or foreign proof
+  ---
+  duration_ms: 142.153834
+  type: 'test'
+  ...
+# Subtest: protected group keeps token away from mutable repository and Core transaction wrappers
+ok 134 - protected group keeps token away from mutable repository and Core transaction wrappers
+  ---
+  duration_ms: 344.342583
+  type: 'test'
+  ...
+# Subtest: protected original group refuses gate-phase drift without partial owner writes
+ok 135 - protected original group refuses gate-phase drift without partial owner writes
+  ---
+  duration_ms: 195.72375
+  type: 'test'
+  ...
+# Subtest: protected original group refuses checkpoint-item drift without partial owner writes
+ok 136 - protected original group refuses checkpoint-item drift without partial owner writes
+  ---
+  duration_ms: 194.111583
+  type: 'test'
+  ...
+# Subtest: protected original group refuses consent drift without partial owner writes
+ok 137 - protected original group refuses consent drift without partial owner writes
+  ---
+  duration_ms: 186.469959
+  type: 'test'
+  ...
+# Subtest: protected original group refuses restore-row drift without partial owner writes
+ok 138 - protected original group refuses restore-row drift without partial owner writes
+  ---
+  duration_ms: 172.424291
+  type: 'test'
+  ...
+# Subtest: protected original group refuses purge-deny drift without partial owner writes
+ok 139 - protected original group refuses purge-deny drift without partial owner writes
+  ---
+  duration_ms: 181.795709
+  type: 'test'
+  ...
+# Subtest: protected group native terminal canonical drift rolls back original owner and receipt
+ok 140 - protected group native terminal canonical drift rolls back original owner and receipt
+  ---
+  duration_ms: 233.329334
+  type: 'test'
+  ...
+# Subtest: protected group native terminal restore-receipt drift rolls back original owner and receipt
+ok 141 - protected group native terminal restore-receipt drift rolls back original owner and receipt
+  ---
+  duration_ms: 235.558542
+  type: 'test'
+  ...
+# Subtest: protected group native terminal checkpoint-item drift rolls back original owner and receipt
+ok 142 - protected group native terminal checkpoint-item drift rolls back original owner and receipt
+  ---
+  duration_ms: 207.364458
+  type: 'test'
+  ...
+# Subtest: protected group native terminal protection drift rolls back original owner and receipt
+ok 143 - protected group native terminal protection drift rolls back original owner and receipt
+  ---
+  duration_ms: 241.9315
+  type: 'test'
+  ...
+# Subtest: protected group native terminal gate drift rolls back original owner and receipt
+ok 144 - protected group native terminal gate drift rolls back original owner and receipt
+  ---
+  duration_ms: 170.207417
+  type: 'test'
+  ...
+# Subtest: protected original graph seal retains existing-active migration refusal
+ok 145 - protected original graph seal retains existing-active migration refusal
+  ---
+  duration_ms: 227.879334
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted stage.put before lending a write transaction
+ok 146 - protected group refuses substituted stage.put before lending a write transaction
+  ---
+  duration_ms: 132.272375
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted coreB.get before lending a write transaction
+ok 147 - protected group refuses substituted coreB.get before lending a write transaction
+  ---
+  duration_ms: 122.390958
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.applyInitialSource before lending a write transaction
+ok 148 - protected group refuses substituted b.applyInitialSource before lending a write transaction
+  ---
+  duration_ms: 122.390167
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.control before lending a write transaction
+ok 149 - protected group refuses substituted b.control before lending a write transaction
+  ---
+  duration_ms: 124.0615
+  type: 'test'
+  ...
+# Subtest: protected group descriptor guard refuses an owner method getter without executing it
+ok 150 - protected group descriptor guard refuses an owner method getter without executing it
+  ---
+  duration_ms: 124.177375
+  type: 'test'
+  ...
+# Subtest: protected group rejects a shadowing prototype method before write authority
+ok 151 - protected group rejects a shadowing prototype method before write authority
+  ---
+  duration_ms: 124.016583
+  type: 'test'
+  ...
+# Subtest: protected group restore field getter cannot rebind the private original consumer
+ok 152 - protected group restore field getter cannot rebind the private original consumer
+  ---
+  duration_ms: 75.983292
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rejects extra durable restore fields
+ok 153 - protected group cold resume rejects extra durable restore fields
+  ---
+  duration_ms: 109.882
+  type: 'test'
+  ...
+# Subtest: protected group native owner failure rolls back and fresh explicit retry reuses original graph
+ok 154 - protected group native owner failure rolls back and fresh explicit retry reuses original graph
+  ---
+  duration_ms: 189.553792
+  type: 'test'
+  ...
+# Subtest: protected fixed group publication refuses substituted original consumer methods before write callback
+ok 155 - protected fixed group publication refuses substituted original consumer methods before write callback
+  ---
+  duration_ms: 172.660708
+  type: 'test'
+  ...
+# Subtest: CTX4 additive row survives a reconstructed store without DDL or legacy body/revision changes
+ok 156 - CTX4 additive row survives a reconstructed store without DDL or legacy body/revision changes
+  ---
+  duration_ms: 90.09575
+  type: 'test'
+  ...
+# Subtest: CTX4 existing-file replacement retains independent Items and tombstones but invalidates old operation epoch
+ok 157 - CTX4 existing-file replacement retains independent Items and tombstones but invalidates old operation epoch
+  ---
+  duration_ms: 121.351917
+  type: 'test'
+  ...
+# Subtest: CTX4-02 local capabilities are truthful without changing default access or creating data
+ok 158 - CTX4-02 local capabilities are truthful without changing default access or creating data
+  ---
+  duration_ms: 98.666542
+  type: 'test'
+  ...
+# Subtest: CTX4-02 info create/edit/delete/restore preserves sibling Items, count and identity
+ok 159 - CTX4-02 info create/edit/delete/restore preserves sibling Items, count and identity
+  ---
+  duration_ms: 71.009208
+  type: 'test'
+  ...
+# Subtest: CTX4-02 rules create/edit/delete/restore preserves sibling Items, count and identity
+ok 160 - CTX4-02 rules create/edit/delete/restore preserves sibling Items, count and identity
+  ---
+  duration_ms: 65.327958
+  type: 'test'
+  ...
+# Subtest: CTX4-02 now create/edit/delete/restore preserves sibling Items, count and identity
+ok 161 - CTX4-02 now create/edit/delete/restore preserves sibling Items, count and identity
+  ---
+  duration_ms: 66.545666
+  type: 'test'
+  ...
+# Subtest: CTX4-02 manual changes across all cards leave nonempty Source, Working Input and Thought owners untouched
+ok 162 - CTX4-02 manual changes across all cards leave nonempty Source, Working Input and Thought owners untouched
+  ---
+  duration_ms: 103.333334
+  type: 'test'
+  ...
+# Subtest: CTX4-02 concurrent card creates and revision races preserve every independent Item
+ok 163 - CTX4-02 concurrent card creates and revision races preserve every independent Item
+  ---
+  duration_ms: 53.768958
+  type: 'test'
+  ...
+# Subtest: CTX4-02 replacing the store preserves three-card bodies, protection, counts and exact receipts
+ok 164 - CTX4-02 replacing the store preserves three-card bodies, protection, counts and exact receipts
+  ---
+  duration_ms: 50.008167
+  type: 'test'
+  ...
+# Subtest: CTX4-02 expanded card validation still rejects malformed persisted Item ownership without repair
+ok 165 - CTX4-02 expanded card validation still rejects malformed persisted Item ownership without repair
+  ---
+  duration_ms: 47.562708
+  type: 'test'
+  ...
+# Subtest: CTX4-02 legacy omitted-card receipt replays exact historical digest without normalization or writes
+ok 166 - CTX4-02 legacy omitted-card receipt replays exact historical digest without normalization or writes
+  ---
+  duration_ms: 36.031542
+  type: 'test'
+  ...
+# Subtest: CTX4-02 new omitted-card writes keep their own digest and remain editable as explicit info
+ok 167 - CTX4-02 new omitted-card writes keep their own digest and remain editable as explicit info
+  ---
+  duration_ms: 33.839959
+  type: 'test'
+  ...
+# Subtest: CTX4-02 info immutable identity rejects substitution and retains the original receipt
+ok 168 - CTX4-02 info immutable identity rejects substitution and retains the original receipt
+  ---
+  duration_ms: 37.276459
+  type: 'test'
+  ...
+# Subtest: CTX4-02 rules immutable identity rejects substitution and retains the original receipt
+ok 169 - CTX4-02 rules immutable identity rejects substitution and retains the original receipt
+  ---
+  duration_ms: 38.888083
+  type: 'test'
+  ...
+# Subtest: CTX4-02 now immutable identity rejects substitution and retains the original receipt
+ok 170 - CTX4-02 now immutable identity rejects substitution and retains the original receipt
+  ---
+  duration_ms: 41.385917
+  type: 'test'
+  ...
+# Subtest: CTX4-02 Inputs, automatic origins, protection overrides and extra fields cannot become manual Items
+ok 171 - CTX4-02 Inputs, automatic origins, protection overrides and extra fields cannot become manual Items
+  ---
+  duration_ms: 28.696958
+  type: 'test'
+  ...
+# Subtest: CTX4-02 info stale edits, deletion and old undo cannot resurrect an Item
+ok 172 - CTX4-02 info stale edits, deletion and old undo cannot resurrect an Item
+  ---
+  duration_ms: 59.77775
+  type: 'test'
+  ...
+# Subtest: CTX4-02 rules stale edits, deletion and old undo cannot resurrect an Item
+ok 173 - CTX4-02 rules stale edits, deletion and old undo cannot resurrect an Item
+  ---
+  duration_ms: 64.107917
+  type: 'test'
+  ...
+# Subtest: CTX4-02 now stale edits, deletion and old undo cannot resurrect an Item
+ok 174 - CTX4-02 now stale edits, deletion and old undo cannot resurrect an Item
+  ---
+  duration_ms: 60.166
+  type: 'test'
+  ...
+# Subtest: CTX4-02 recovery accepts source-free new and existing drafts only at their valid owner and epoch
+ok 175 - CTX4-02 recovery accepts source-free new and existing drafts only at their valid owner and epoch
+  ---
+  duration_ms: 39.192958
+  type: 'test'
+  ...
+# Subtest: CTX4-02 info body, protection and receipt roll back atomically on storage failure
+ok 176 - CTX4-02 info body, protection and receipt roll back atomically on storage failure
+  ---
+  duration_ms: 35.060875
+  type: 'test'
+  ...
+# Subtest: CTX4-02 rules body, protection and receipt roll back atomically on storage failure
+ok 177 - CTX4-02 rules body, protection and receipt roll back atomically on storage failure
+  ---
+  duration_ms: 32.801375
+  type: 'test'
+  ...
+# Subtest: CTX4-02 now body, protection and receipt roll back atomically on storage failure
+ok 178 - CTX4-02 now body, protection and receipt roll back atomically on storage failure
+  ---
+  duration_ms: 33.169958
+  type: 'test'
+  ...
+# Subtest: CTX4-02 all cards resolve lost commit replies using exact body-free durable receipts
+ok 179 - CTX4-02 all cards resolve lost commit replies using exact body-free durable receipts
+  ---
+  duration_ms: 41.908417
+  type: 'test'
+  ...
+# Subtest: CTX4-02 unknown pending writes reject another card before any additional dispatch
+ok 180 - CTX4-02 unknown pending writes reject another card before any additional dispatch
+  ---
+  duration_ms: 1.643625
+  type: 'test'
+  ...
+# Subtest: CTX4-02 pending omitted card equals info while retries preserve exact original payload and digest
+ok 181 - CTX4-02 pending omitted card equals info while retries preserve exact original payload and digest
+  ---
+  duration_ms: 0.49475
+  type: 'test'
+  ...
+# Subtest: CTX4-02 pending Rules and Now writes cannot retry with legacy omitted-card identity
+ok 182 - CTX4-02 pending Rules and Now writes cannot retry with legacy omitted-card identity
+  ---
+  duration_ms: 0.413125
+  type: 'test'
+  ...
+# Subtest: CTX4 Home projection removes private body and free-form section without writes or detail loss
+ok 183 - CTX4 Home projection removes private body and free-form section without writes or detail loss
+  ---
+  duration_ms: 42.533584
+  type: 'test'
+  ...
+# Subtest: CTX4-02 info adjacent reorder commits both revisions once and preserves every body/access/identity
+ok 184 - CTX4-02 info adjacent reorder commits both revisions once and preserves every body/access/identity
+  ---
+  duration_ms: 55.937959
+  type: 'test'
+  ...
+# Subtest: CTX4-02 rules adjacent reorder commits both revisions once and preserves every body/access/identity
+ok 185 - CTX4-02 rules adjacent reorder commits both revisions once and preserves every body/access/identity
+  ---
+  duration_ms: 48.461625
+  type: 'test'
+  ...
+# Subtest: CTX4-02 now adjacent reorder commits both revisions once and preserves every body/access/identity
+ok 186 - CTX4-02 now adjacent reorder commits both revisions once and preserves every body/access/identity
+  ---
+  duration_ms: 48.713834
+  type: 'test'
+  ...
+# Subtest: CTX4-02 reorder rejects stale target/neighbor, skipped/foreign neighbor, boundary and tied restored order without writes
+ok 187 - CTX4-02 reorder rejects stale target/neighbor, skipped/foreign neighbor, boundary and tied restored order without writes
+  ---
+  duration_ms: 55.922
+  type: 'test'
+  ...
+# Subtest: CTX4-02 reorder refuses injected journal without prepare, commit, owner write or receipt
+ok 188 - CTX4-02 reorder refuses injected journal without prepare, commit, owner write or receipt
+  ---
+  duration_ms: 35.261417
+  type: 'test'
+  ...
+# Subtest: CTX4-02 reorder receipt failure rolls back both items; unknown reply retry preserves exact pair and operation
+ok 189 - CTX4-02 reorder receipt failure rolls back both items; unknown reply retry preserves exact pair and operation
+  ---
+  duration_ms: 43.028916
+  type: 'test'
+  ...
+# Subtest: CTX4-02 original maintenance Items reordered by human retain provenance and reject old automatic replacement
+ok 190 - CTX4-02 original maintenance Items reordered by human retain provenance and reject old automatic replacement
+  ---
+  duration_ms: 194.244625
+  type: 'test'
+  ...
+# Subtest: CTX4 move info to rules preserves identity and uses original receipt for undo
+ok 191 - CTX4 move info to rules preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 43.165375
+  type: 'test'
+  ...
+# Subtest: CTX4 move info to now preserves identity and uses original receipt for undo
+ok 192 - CTX4 move info to now preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 36.986292
+  type: 'test'
+  ...
+# Subtest: CTX4 move rules to info preserves identity and uses original receipt for undo
+ok 193 - CTX4 move rules to info preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 39.183458
+  type: 'test'
+  ...
+# Subtest: CTX4 move rules to now preserves identity and uses original receipt for undo
+ok 194 - CTX4 move rules to now preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 39.881708
+  type: 'test'
+  ...
+# Subtest: CTX4 move now to info preserves identity and uses original receipt for undo
+ok 195 - CTX4 move now to info preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 36.488125
+  type: 'test'
+  ...
+# Subtest: CTX4 move now to rules preserves identity and uses original receipt for undo
+ok 196 - CTX4 move now to rules preserves identity and uses original receipt for undo
+  ---
+  duration_ms: 39.057125
+  type: 'test'
+  ...
+# Subtest: CTX4 move checks current permission revisions and item CAS without changing any grant
+ok 197 - CTX4 move checks current permission revisions and item CAS without changing any grant
+  ---
+  duration_ms: 40.939708
+  type: 'test'
+  ...
+# Subtest: CTX4 move allocates above restored and removed orders; safe integer exhaustion refuses zero writes
+ok 198 - CTX4 move allocates above restored and removed orders; safe integer exhaustion refuses zero writes
+  ---
+  duration_ms: 34.848209
+  type: 'test'
+  ...
+# Subtest: CTX4 move undo refuses forged receipt, later edit and occupied original order
+ok 199 - CTX4 move undo refuses forged receipt, later edit and occupied original order
+  ---
+  duration_ms: 43.908542
+  type: 'test'
+  ...
+# Subtest: CTX4 move refuses journal before preparation and rolls back receipt failure atomically
+ok 200 - CTX4 move refuses journal before preparation and rolls back receipt failure atomically
+  ---
+  duration_ms: 30.083833
+  type: 'test'
+  ...
+# Subtest: CTX4 move of original automatic Items preserves provenance and rejects old automatic replacement
+ok 201 - CTX4 move of original automatic Items preserves provenance and rejects old automatic replacement
+  ---
+  duration_ms: 178.05
+  type: 'test'
+  ...
+# Subtest: CTX4 move validates exact permissions and does not accept source/body/order or invalid card overrides
+ok 202 - CTX4 move validates exact permissions and does not accept source/body/order or invalid card overrides
+  ---
+  duration_ms: 27.884417
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix false/false/false preserves all access
+ok 203 - CTX4 move explicit current grant matrix false/false/false preserves all access
+  ---
+  duration_ms: 36.602958
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix false/false/true preserves all access
+ok 204 - CTX4 move explicit current grant matrix false/false/true preserves all access
+  ---
+  duration_ms: 31.126541
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix false/true/false preserves all access
+ok 205 - CTX4 move explicit current grant matrix false/true/false preserves all access
+  ---
+  duration_ms: 35.845458
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix false/true/true preserves all access
+ok 206 - CTX4 move explicit current grant matrix false/true/true preserves all access
+  ---
+  duration_ms: 32.9685
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix true/false/false preserves all access
+ok 207 - CTX4 move explicit current grant matrix true/false/false preserves all access
+  ---
+  duration_ms: 34.756125
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix true/false/true preserves all access
+ok 208 - CTX4 move explicit current grant matrix true/false/true preserves all access
+  ---
+  duration_ms: 31.234167
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix true/true/false preserves all access
+ok 209 - CTX4 move explicit current grant matrix true/true/false preserves all access
+  ---
+  duration_ms: 31.291208
+  type: 'test'
+  ...
+# Subtest: CTX4 move explicit current grant matrix true/true/true preserves all access
+ok 210 - CTX4 move explicit current grant matrix true/true/true preserves all access
+  ---
+  duration_ms: 31.591542
+  type: 'test'
+  ...
+# Subtest: CTX4 undo rechecks current grant revisions and original epoch without restoring historic grants
+ok 211 - CTX4 undo rechecks current grant revisions and original epoch without restoring historic grants
+  ---
+  duration_ms: 33.265792
+  type: 'test'
+  ...
+# Subtest: CTX4 fresh state is independent, default-off, and history is never migrated into Context
+ok 212 - CTX4 fresh state is independent, default-off, and history is never migrated into Context
+  ---
+  duration_ms: 61.67775
+  type: 'test'
+  ...
+# Subtest: CTX4 real create/edit/reload/delete/undo preserves Source/Input/Thought and monotonic revision
+ok 213 - CTX4 real create/edit/reload/delete/undo preserves Source/Input/Thought and monotonic revision
+  ---
+  duration_ms: 47.93925
+  type: 'test'
+  ...
+# Subtest: CTX4 access is durable and no lower toggle opens parent or clears siblings
+ok 214 - CTX4 access is durable and no lower toggle opens parent or clears siblings
+  ---
+  duration_ms: 42.372958
+  type: 'test'
+  ...
+# Subtest: CTX4 concurrent writes, replay, stale delete, operation substitution and restore epochs fail safely
+ok 215 - CTX4 concurrent writes, replay, stale delete, operation substitution and restore epochs fail safely
+  ---
+  duration_ms: 39.759917
+  type: 'test'
+  ...
+# Subtest: CTX4 atomic failure rolls back body, protection, deletion and receipt together
+ok 216 - CTX4 atomic failure rolls back body, protection, deletion and receipt together
+  ---
+  duration_ms: 38.11
+  type: 'test'
+  ...
+# Subtest: CTX4 deleted identity fences recovery and unsupported automatic/Inputs writes
+ok 217 - CTX4 deleted identity fences recovery and unsupported automatic/Inputs writes
+  ---
+  duration_ms: 32.063208
+  type: 'test'
+  ...
+# Subtest: CTX4 malformed canonical state fails closed rather than replacing prior data
+ok 218 - CTX4 malformed canonical state fails closed rather than replacing prior data
+  ---
+  duration_ms: 29.845708
+  type: 'test'
+  ...
+# Subtest: CTX4 lost commit reply resolves exact body-free durable acknowledgement; unknown outcome stays pending
+ok 219 - CTX4 lost commit reply resolves exact body-free durable acknowledgement; unknown outcome stays pending
+  ---
+  duration_ms: 30.4955
+  type: 'test'
+  ...
+# Subtest: CTX4 unknown operation cannot be retried through another card, item, action or desired access value
+ok 220 - CTX4 unknown operation cannot be retried through another card, item, action or desired access value
+  ---
+  duration_ms: 1.190791
+  type: 'test'
+  ...
+# Subtest: CTX4 terminal restore epoch invalidation clears unknown pending operation without applying a new intent
+ok 221 - CTX4 terminal restore epoch invalidation clears unknown pending operation without applying a new intent
+  ---
+  duration_ms: 0.440916
+  type: 'test'
+  ...
+# Subtest: CTX4 outcome-side epoch invalidation is terminal and inner recovery epoch must match owner epoch
+ok 222 - CTX4 outcome-side epoch invalidation is terminal and inner recovery epoch must match owner epoch
+  ---
+  duration_ms: 29.514292
+  type: 'test'
+  ...
+# Subtest: original literal put descriptor carries body once and reproduces original command digest
+ok 223 - original literal put descriptor carries body once and reproduces original command digest
+  ---
+  duration_ms: 64.009333
+  type: 'test'
+  ...
+# Subtest: original cross-card move and exact old receipt undo preserve order and literal body
+ok 224 - original cross-card move and exact old receipt undo preserve order and literal body
+  ---
+  duration_ms: 43.053083
+  type: 'test'
+  ...
+# Subtest: original adjacent reorder records exactly two owner changes and preserves full group
+ok 225 - original adjacent reorder records exactly two owner changes and preserves full group
+  ---
+  duration_ms: 46.91675
+  type: 'test'
+  ...
+# Subtest: missing sibling cannot validate a two-owner mutation
+ok 226 - missing sibling cannot validate a two-owner mutation
+  ---
+  duration_ms: 38.2655
+  type: 'test'
+  ...
+# Subtest: description rejects forged body
+ok 227 - description rejects forged body
+  ---
+  duration_ms: 38.302792
+  type: 'test'
+  ...
+# Subtest: description rejects forged result
+ok 228 - description rejects forged result
+  ---
+  duration_ms: 36.321791
+  type: 'test'
+  ...
+# Subtest: description rejects forged order
+ok 229 - description rejects forged order
+  ---
+  duration_ms: 34.395834
+  type: 'test'
+  ...
+# Subtest: description rejects forged cut
+ok 230 - description rejects forged cut
+  ---
+  duration_ms: 36.865458
+  type: 'test'
+  ...
+# Subtest: description rejects forged digest
+ok 231 - description rejects forged digest
+  ---
+  duration_ms: 38.295042
+  type: 'test'
+  ...
+# Subtest: description rejects forged extra-command-key
+ok 232 - description rejects forged extra-command-key
+  ---
+  duration_ms: 31.807625
+  type: 'test'
+  ...
+# Subtest: a move receipt cannot replace original undo receipt qualification
+ok 233 - a move receipt cannot replace original undo receipt qualification
+  ---
+  duration_ms: 37.972916
+  type: 'test'
+  ...
+# Subtest: no descriptor may carry a second literal command body
+ok 234 - no descriptor may carry a second literal command body
+  ---
+  duration_ms: 29.89675
+  type: 'test'
+  ...
+# Subtest: different untouched group member rejects a previously valid reorder proof
+ok 235 - different untouched group member rejects a previously valid reorder proof
+  ---
+  duration_ms: 42.185333
+  type: 'test'
+  ...
+# Subtest: actual original Context put commits canonical/outbox and real receiver materializes same literal body
+ok 236 - actual original Context put commits canonical/outbox and real receiver materializes same literal body
+  ---
+  duration_ms: 183.338417
+  type: 'test'
+  ...
+# Subtest: actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+ok 237 - actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+  ---
+  duration_ms: 273.207
+  type: 'test'
+  ...
+# Subtest: a split group and direct generic remote operation cannot write any canonical or protocol row
+ok 238 - a split group and direct generic remote operation cannot write any canonical or protocol row
+  ---
+  duration_ms: 79.380375
+  type: 'test'
+  ...
+# Subtest: existing original manual per-card ancestor remains exact while next move crosses the old codec type
+ok 239 - existing original manual per-card ancestor remains exact while next move crosses the old codec type
+  ---
+  duration_ms: 104.514541
+  type: 'test'
+  ...
+# Subtest: explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+ok 240 - explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+  ---
+  duration_ms: 112.580125
+  type: 'test'
+  ...
+# Subtest: real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+ok 241 - real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+  ---
+  duration_ms: 249.464334
+  type: 'test'
+  ...
+# Subtest: cold repository reopen retains original move receipt and allows undo then edit
+ok 242 - cold repository reopen retains original move receipt and allows undo then edit
+  ---
+  duration_ms: 103.096125
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on receipt write failure
+ok 243 - original transaction rolls canonical and all protocol rows back on receipt write failure
+  ---
+  duration_ms: 74.048167
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on protocol write failure
+ok 244 - original transaction rolls canonical and all protocol rows back on protocol write failure
+  ---
+  duration_ms: 74.898166
+  type: 'test'
+  ...
+# Subtest: prepared original group cannot survive a late independent local Context edit
+ok 245 - prepared original group cannot survive a late independent local Context edit
+  ---
+  duration_ms: 87.364375
+  type: 'test'
+  ...
+# Subtest: cloned preparation and fabricated service cannot mint or consume the original owner capability
+ok 246 - cloned preparation and fabricated service cannot mint or consume the original owner capability
+  ---
+  duration_ms: 67.080583
+  type: 'test'
+  ...
+# Subtest: sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+ok 247 - sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+  ---
+  duration_ms: 84.660958
+  type: 'test'
+  ...
+# Subtest: late restore epoch write after canonical and protocol apply aborts the whole original transaction
+ok 248 - late restore epoch write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 75.85925
+  type: 'test'
+  ...
+# Subtest: late typed head write after canonical and protocol apply aborts the whole original transaction
+ok 249 - late typed head write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 74.894875
+  type: 'test'
+  ...
+# Subtest: automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+ok 250 - automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+  ---
+  duration_ms: 137.905167
+  type: 'test'
+  ...
+# Subtest: NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+ok 251 - NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+  ---
+  duration_ms: 2198.176583
+  type: 'test'
+  ...
+# Subtest: last typed protocol write failure rolls back canonical Context, Source, receipt and replay activation
+ok 252 - last typed protocol write failure rolls back canonical Context, Source, receipt and replay activation
+  ---
+  duration_ms: 378.546542
+  type: 'test'
+  ...
+# Subtest: a cold original grouped owner requires exact revalidation and restores the same command once
+ok 253 - a cold original grouped owner requires exact revalidation and restores the same command once
+  ---
+  duration_ms: 533.291958
+  type: 'test'
+  ...
+# Subtest: changed actual Context after publication qualification cannot activate its former sealed graph
+ok 254 - changed actual Context after publication qualification cannot activate its former sealed graph
+  ---
+  duration_ms: 380.391167
+  type: 'test'
+  ...
+# Subtest: original native current Mixed remains unavailable in the non-native fixture without publishing objects
+ok 255 - original native current Mixed remains unavailable in the non-native fixture without publishing objects
+  ---
+  duration_ms: 31.805417
+  type: 'test'
+  ...
+# Subtest: actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+ok 256 - actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+  ---
+  duration_ms: 35.179834
+  type: 'test'
+  ...
+# Subtest: original three-card history, desired proofs and exact scheduling metadata pass the unwired assertion only
+ok 257 - original three-card history, desired proofs and exact scheduling metadata pass the unwired assertion only
+  ---
+  duration_ms: 149.368625
+  type: 'test'
+  ...
+# Subtest: missing or altered genuine Context known and pending descriptors refuse without storage writes
+ok 258 - missing or altered genuine Context known and pending descriptors refuse without storage writes
+  ---
+  duration_ms: 368.961375
+  type: 'test'
+  ...
+# Subtest: desired owner proof head, value and epoch cannot be substituted
+ok 259 - desired owner proof head, value and epoch cannot be substituted
+  ---
+  duration_ms: 427.474083
+  type: 'test'
+  ...
+# Subtest: optional manual anchors must form an exact valid original operation and epoch pair
+ok 260 - optional manual anchors must form an exact valid original operation and epoch pair
+  ---
+  duration_ms: 164.565625
+  type: 'test'
+  ...
+# Subtest: nonrepresented physical text, nondefault desired and global effective access refuse
+ok 261 - nonrepresented physical text, nondefault desired and global effective access refuse
+  ---
+  duration_ms: 298.815875
+  type: 'test'
+  ...
+# Subtest: component transition checks reject altered full history without claiming authentication of DTOs
+ok 262 - component transition checks reject altered full history without claiming authentication of DTOs
+  ---
+  duration_ms: 211.482209
+  type: 'test'
+  ...
+1..262
+# tests 262
+# suites 0
+# pass 242
+# fail 20
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5342.63175

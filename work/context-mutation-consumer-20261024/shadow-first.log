@@ -1,0 +1,47 @@
+TAP version 13
+# Subtest: NOW real adapter → closed A → protected shadow → publish → cold original Context edit manual move/reorder/undo
+not ok 1 - NOW real adapter → closed A → protected shadow → publish → cold original Context edit manual move/reorder/undo
+  ---
+  duration_ms: 444.00625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-shadow.test.mjs:36:33'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_NOT_EMPTY'
+  code: 'GENERATION_NOT_EMPTY'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/canonical-generation-publication.js:35:48)
+    file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/canonical-generation-publication.js:84:264
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/idb-repository.js:523:253)
+    async publicationTransaction (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/canonical-generation-publication.js:32:207)
+    async CanonicalGenerationPublication.attach (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/canonical-generation-publication.js:81:3)
+    async shadow (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-shadow.test.mjs:33:214)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-shadow.test.mjs:39:134)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: NOW real adapter → closed A → protected shadow → publish → cold original Context edit automatic lineage and manual mix
+not ok 2 - NOW real adapter → closed A → protected shadow → publish → cold original Context edit automatic lineage and manual mix
+  ---
+  duration_ms: 52.798375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-shadow.test.mjs:36:33'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_UNSUPPORTED_MUTATION'
+  code: 'BNS_HUMAN_UNSUPPORTED_MUTATION'
+  stack: |-
+    OrganizerStore.createEntry (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/thought-store-owner.js:147:67)
+    addToTopics (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/topic-actions.js:23:11)
+    async automatic (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-shadow.test.mjs:35:292)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-shadow.test.mjs:37:107)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 672.068042

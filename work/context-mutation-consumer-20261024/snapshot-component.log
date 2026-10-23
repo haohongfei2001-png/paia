@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: original native current Mixed remains unavailable in the non-native fixture without publishing objects
+ok 1 - original native current Mixed remains unavailable in the non-native fixture without publishing objects
+  ---
+  duration_ms: 59.674541
+  type: 'test'
+  ...
+# Subtest: actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+ok 2 - actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+  ---
+  duration_ms: 44.84075
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 227.253333
