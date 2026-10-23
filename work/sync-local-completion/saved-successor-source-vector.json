@@ -1,0 +1,31 @@
+{
+  "base": "86333634",
+  "exact_writer_dependency": "1dc04adf727ff1a905be4a0237f6b6ae5328c607",
+  "local_dependency_commit": "1801f109",
+  "coordinator_tracked": false,
+  "sha256": {
+    "extension/core/browser-native-sync/codecs.js": "67bcb06664e848df9613e81f7afc4c91d59f0841b7a2c4bf6e8cb5fb23015473",
+    "extension/core/browser-native-sync/core.js": "8f4ee8d8cc4df027e19268570b7d58881b86a2a30526d7f64eee40c8971ff674",
+    "extension/core/browser-native-sync/group-checkpoint-plan.js": "c499e761e6a505d2280b3422299396d95b100f9496b48c33c295fc198b5be24b",
+    "extension/core/browser-native-sync/group-checkpoint-scope.js": "68ed0d394b026b5bca82f3d01256a94b3ecfc42c1ca5e600e9f3324398f4922b",
+    "extension/core/browser-native-sync/group-checkpoint.js": "4db2ea2c652005a8e8b298ccab14bdc7157f85c13ab6fa680fb0c1f12bb017b1",
+    "extension/core/browser-native-sync/human-library-plan.js": "a9fd566a2ff414db717d20e043607b1fb098714fad56ea381e3601e98859110b",
+    "extension/core/browser-native-sync/saved-work-bootstrap.js": "25946f4b92a160c5e7ece19b33fed953f4d6623ab38d83eb2fabc6db20145767",
+    "extension/core/browser-native-sync/saved-work-journal.js": "cc95c92d6d986136a397695f900a1010863ba345e0f806375084f24161830679",
+    "extension/core/browser-native-sync/saved-work-successor-codec.js": "c3a906933fa47c4f5668cb5aaeb9e5aabc48a01b9394fa1f85d8e90e676567f2",
+    "extension/core/indexed-store.js": "b6d844b62249d99142ff000fc20fab1670af27a5c6155fefe2bd134bc74ee173",
+    "extension/core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "extension/core/library-documents-owner.js": "6b0c4f02f8beca3755de39d3ab6c21eadf657803c36fe31aacf04015b8c51d05",
+    "extension/tests/browser-native-sync-saved-successor.test.mjs": "a6b090b008054356e453f2c30ce22a8bc6c1d9e15f7167bc9b0521c664208ea8",
+    "work/sync-local-completion/saved-successor-budget-dependency.patch": "ebb4d7acb6fbc2652c63cf89c299705d4c65b4e9b5b19cc5877ec19652fbe34b",
+    "work/sync-local-completion/saved-successor-cold-first.log": "9986ddd0b3f748ed089e9dbd95c72cb7b05243535ed9cd1b8122fef410327291",
+    "work/sync-local-completion/saved-successor-cold-receipt.log": "3662d59ca0adcf169c314a7455e915b91a2365361f7f277f05cefa1a5ad31a52",
+    "work/sync-local-completion/saved-successor-combined-before-count.log": "36d427c2174244a633741a728f0dfef6c3ed79be80d33e4a6ccf01b04b126e09",
+    "work/sync-local-completion/saved-successor-combined.log": "5f8f9fe7f865bd9fa5b87ae4ee6f0e09c39f21b18ee015d38fb762caaa39313b",
+    "work/sync-local-completion/saved-successor-coordinator.patch": "66943d807a8cff1e804a40f61cfde041ca49bdfb2aa05f45c526e34d7aa9989f",
+    "work/sync-local-completion/saved-successor-first.log": "6c43e2c2f89b0cc28ea760161b751c563388d1f939fc75015285ce30aa541f83",
+    "work/sync-local-completion/saved-successor-local.log": "b966ee4c4a45fa953cac09ab8e10b84503378f11dd2393ecaeea28b031935690",
+    "work/sync-local-completion/saved-successor-owning-budget-assert.log": "001bdd24e86a34c1c5697f63ff14d3be294f16f1b9eaa2cb6b2e10a32bc26469",
+    "work/sync-local-completion/saved-successor-owning-first.log": "367c4bf29801466c327519c453e7e1a55a7d8a892d4fab3edb457ae30b64aa17"
+  }
+}

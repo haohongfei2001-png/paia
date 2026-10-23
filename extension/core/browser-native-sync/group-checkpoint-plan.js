@@ -1,3 +1,4 @@
+import {normalizeSavedPayload} from './saved-work-successor-codec.js';
 import {groupOperationPages,createGroupPageBudget,checkGroupPageBudget} from './group-page-reader.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {CORE_LIMITS,validateOperation,validateFrozenOperation,validateHumanCommitGroup,prepareOriginalSourceWorkingReceive,prepareOriginalCurrentMixedGroupReceive,requireOriginalSourceWorkingCore} from './core.js';
@@ -9,7 +10,7 @@ import {assertTopicDesiredReference} from './topic-desired-codec.js';
 
 const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBootstrapReceive'],sourceAppendCommit:['refs','prepareSourceAppendReceive'],inputWorkingCommit:['members','prepareWorkingReceive'],humanLibraryCommit:['members',null]});
 const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember','humanLibraryMember']);
-const singles=new Set(['promptPreferences','promptBinding','consumerPreference','topicDesired','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent','savedWorkBootstrap']);
+const singles=new Set(['promptPreferences','promptBinding','consumerPreference','topicDesired','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent','savedWorkBootstrap','savedWorkSuccessor']);
 const freeze=x=>{if(x&&typeof x==='object'){for(const value of Object.values(x))freeze(value);Object.freeze(x);}return x;};
 const originalPlans=new WeakMap(),originalOperationSizes=new WeakMap();
 // Compilation identity is local and body-free. A cloned DTO remains useful to
@@ -120,12 +121,18 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
  // complete parent order and execute them first, so the original local history
  // allocator starts from the actual captured empty installation, never a
  // predicted foreign-owner counter. Existing non-Human dependencies stay intact.
- const saved=groups.filter(group=>group.type==='savedWorkBootstrap');
+ const saved=groups.filter(group=>group.type==='savedWorkBootstrap'),successors=groups.filter(group=>group.type==='savedWorkSuccessor');
+ if(successors.length&&!saved.length)fail('BNS_SAVED_WORK_UNSUPPORTED');
  if(saved.length){
-  if(currentSourceWorking||saved.length!==1||groups.length!==2||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1)fail('BNS_SAVED_WORK_UNSUPPORTED');
+  if(currentSourceWorking||saved.length!==1||groups.length!==2+successors.length||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1)fail('BNS_SAVED_WORK_UNSUPPORTED');
   const group=saved[0],wire=group.operations[0].value.payload.link.evidence,source=createdInputs.get(wire.inputId);
   if(!source||!equal([source.prepared.descriptor.value.sourceId],wire.sourceRecordIds)||!equal([source.prepared.descriptor.value.sourceKey],wire.sourceIdentityTokens))fail('BNS_GROUP_CAUSAL_GAP');
   depend(group,source);
+  const anchor=group.operations[0];
+  for(const next of successors){const op=next.operations[0],prior=op.parents.length?byRevision.get(op.parents[0]):anchor;
+   if(op.entityId!==anchor.entityId||op.value.anchor!==anchor.revisionId||op.parents.length>1||!prior||(op.parents.length&&(prior.type!=='savedWorkSuccessor'||prior.value.anchor!==anchor.revisionId))||!equal(normalizeSavedPayload(op.value.before),normalizeSavedPayload(prior.type==='savedWorkBootstrap'?prior.value.payload:prior.value.after)))fail('BNS_SAVED_WORK_CHANGED');
+   depend(next,group);
+  }
  }
  const human=groups.filter(group=>group.type==='humanLibraryCommit'),linked=human.filter(group=>group.prepared.descriptor.value.kind.startsWith('source-'));
  if(linked.length){

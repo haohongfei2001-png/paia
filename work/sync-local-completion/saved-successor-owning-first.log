@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: saved original editor records typed successor atomically after cold B restore
+ok 1 - saved original editor records typed successor atomically after cold B restore
+  ---
+  duration_ms: 466.47425
+  type: 'test'
+  ...
+# Subtest: saved successor stale revision and field CAS preserve canonical and complete protocol
+ok 2 - saved successor stale revision and field CAS preserve canonical and complete protocol
+  ---
+  duration_ms: 127.260417
+  type: 'test'
+  ...
+# Subtest: saved successor lost response retries original receipt and outbox without a second edit
+ok 3 - saved successor lost response retries original receipt and outbox without a second edit
+  ---
+  duration_ms: 170.268125
+  type: 'test'
+  ...
+# Subtest: saved successor cannot weaken existing user-only Source journal or accept changed Source
+ok 4 - saved successor cannot weaken existing user-only Source journal or accept changed Source
+  ---
+  duration_ms: 122.109834
+  type: 'test'
+  ...
+# Subtest: saved successor final source failure rolls back canonical and atomic outbox
+ok 5 - saved successor final source failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 133.907875
+  type: 'test'
+  ...
+# Subtest: saved successor final control failure rolls back canonical and atomic outbox
+ok 6 - saved successor final control failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 130.033708
+  type: 'test'
+  ...
+# Subtest: saved successor final frontier failure rolls back canonical and atomic outbox
+ok 7 - saved successor final frontier failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 132.197583
+  type: 'test'
+  ...
+# Subtest: saved successor final receipt failure rolls back canonical and atomic outbox
+ok 8 - saved successor final receipt failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 129.220167
+  type: 'test'
+  ...
+# Subtest: saved successor final history failure rolls back canonical and atomic outbox
+ok 9 - saved successor final history failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 131.312625
+  type: 'test'
+  ...
+# Subtest: saved successor final budget failure rolls back canonical and atomic outbox
+ok 10 - saved successor final budget failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 194.424209
+  type: 'test'
+  ...
+# Subtest: saved successor final failure failure rolls back canonical and atomic outbox
+ok 11 - saved successor final failure failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 133.719167
+  type: 'test'
+  ...
+# Subtest: saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+ok 12 - saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+  ---
+  duration_ms: 215.137541
+  type: 'test'
+  ...
+# Subtest: saved successor typed Core rejects direct application without original owner capability
+ok 13 - saved successor typed Core rejects direct application without original owner capability
+  ---
+  duration_ms: 132.266792
+  type: 'test'
+  ...
+# Subtest: saved successor history retention and unrepresented ordinary edit remain explicit refusals
+ok 14 - saved successor history retention and unrepresented ordinary edit remain explicit refusals
+  ---
+  duration_ms: 166.156125
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2532.11425

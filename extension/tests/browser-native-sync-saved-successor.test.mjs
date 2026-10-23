@@ -1,0 +1,101 @@
+import {SavedWorkSyncJournal} from '../core/browser-native-sync/saved-work-journal.js';
+import {buildCheckpoint,StagedSyncRestore} from '../core/browser-native-sync/checkpoints.js';
+import {prepareGroupCheckpointPlan} from '../core/browser-native-sync/group-checkpoint-plan.js';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
+import {LibraryDocumentsStore} from '../core/library-documents-store.js';
+import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';
+import {SourceBootstrapJournal} from '../core/browser-native-sync/source-bootstrap-journal.js';
+import {SourceSavedWorkReceiver} from '../core/browser-native-sync/saved-work-receive.js';
+import {SourceBootstrapReceiver} from '../core/browser-native-sync/source-bootstrap-receive.js';
+import {captureSavedWorkBootstrap,prepareSavedWorkBootstrap,applySavedWorkBootstrap,prepareSavedWorkGroupApplication,applySavedWorkGroupStep,prepareSavedWorkPublication,publishSavedWorkBootstrap} from '../core/browser-native-sync/saved-work-bootstrap.js';
+import {local,capture,inputEdit} from './harness/thought-m1.mjs';
+globalThis.IDBKeyRange=IDBKeyRange;
+const generator={providerId:'fixture',providerVersion:'1',modelVersion:'deterministic-1',taskSchemaVersion:1,promptTemplateVersion:1,policyVersion:1};
+const snapshot=s=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all([...t.tx.objectStoreNames].map(async k=>[k,await t.all(k)]))));
+async function make(t,id){const s=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory()});await s.consent(true);await s.finishFoundation();t.after(()=>s.repository.db?.close());const core=new BrowserNativeSyncCore(s.repository,{datasetId:'synthetic-saved-work',deviceId:id});return {s,core};}
+async function saved(t,{edit=true}={}){const a=await make(t,'synthetic-A');a.s.sourceBootstrapJournal=new SourceBootstrapJournal(a.core);await a.s.capture(capture((await a.s.status()).epoch));a.input=(await a.s.snapshot()).library.blocks[0];a.evidence=await a.s.evidenceFor([{inputId:a.input.id,role:'primary',selectedFields:['body']}]);a.created=await a.s.createEntry({actor:'ai',operationId:crypto.randomUUID(),body:'SYNTHETIC retained AI artifact',type:'idea',formation:'explicit',evidence:a.evidence,generator});if(edit)await a.s.editEntry({id:a.created.id,expectedRevision:0,operationId:crypto.randomUUID(),changes:{body:'SYNTHETIC human protected result',note:'SYNTHETIC personal note'}});a.source=[];for await(const r of a.core.rows('revision'))a.source.push(r.operation);return a;}
+async function cold(t,a,id='synthetic-B'){const b=await make(t,id);await new SourceBootstrapReceiver(b.s,b.core).receive(a.source);return b;}
+
+const cloud=()=>{const rows=new Map();return {async putImmutable(ref,raw){rows.set(ref.id,raw.slice());},async get(ref){return rows.get(ref.id)?.slice();}};};
+async function fixture(t){const a=await saved(t),publication=await prepareSavedWorkPublication(a.s,a.core,a.created.id);a.operation=await publishSavedWorkBootstrap(a.s,publication);const transport=cloud(),cut=await buildCheckpoint(a.core,transport,{grouped:{store:a.s}});return {a,transport,cut};}
+const semantic=x=>({thoughts:x.thoughts.map(({exactSignature,...r})=>r),provenance:x.provenance.map(({scopeToken,versionToken,...r})=>r),dependencies:x.dependencies.map(({scopeToken,versionToken,...r})=>r),revisions:x.revisions.map(({sequence,listKey,documentList,...r})=>r).sort((a,b)=>a.id.localeCompare(b.id))});
+test('saved original editor records typed successor atomically after cold B restore',async t=>{
+ const {a,transport,cut}=await fixture(t),b=await make(t,'synthetic-B'),restore=new StagedSyncRestore(b.core,{grouped:{store:b.s}});await restore.stageCheckpoint(cut.ref,r=>transport.get(r));await restore.activate();
+ b.s.humanLibraryJournal=new SavedWorkSyncJournal(b.core);const request={id:a.created.id,expectedRevision:1,operationId:crypto.randomUUID(),changes:{title:'SYNTHETIC B successor'}};
+ const result=await b.s.editEntry(request);assert.equal(result.revision,2);const head=await b.core.read('head','savedWorkSuccessor',a.created.id),op=(await b.core.read('revision',head.revisions[0])).operation;
+ assert.equal(op.actor,'user');assert.equal(op.value.after.entry.origin,'ai');assert.deepEqual(op.value.after.generator,generator);assert.equal((await b.core.read('outbox',op.operationId)).state,'queued');
+ const before=await snapshot(b.s);assert.deepEqual(await b.s.editEntry(request),result);assert.deepEqual(await snapshot(b.s),before);
+ const next=await buildCheckpoint(b.core,transport,{grouped:{store:b.s},parents:[cut.ref.id]}),c=await make(t,'synthetic-C'),last=new StagedSyncRestore(c.core,{grouped:{store:c.s}});await last.stageCheckpoint(next.ref,r=>transport.get(r));await last.activate();assert.deepEqual(semantic(await snapshot(c.s)),semantic(await snapshot(b.s)));assert.equal(await c.core.read('outbox',op.operationId),undefined);
+ c.s.humanLibraryJournal=new SavedWorkSyncJournal(c.core);await c.s.editEntry({id:a.created.id,expectedRevision:2,operationId:crypto.randomUUID(),changes:{body:'SYNTHETIC C next successor'}});
+ const again=await buildCheckpoint(c.core,transport,{grouped:{store:c.s},parents:[next.ref.id]}),d=await make(t,'synthetic-D'),fourth=new StagedSyncRestore(d.core,{grouped:{store:d.s}});await fourth.stageCheckpoint(again.ref,r=>transport.get(r));await fourth.activate();assert.deepEqual(semantic(await snapshot(d.s)),semantic(await snapshot(c.s)));
+
+});
+async function restoredEditor(t,id='synthetic-B'){
+ const data=await fixture(t),b=await make(t,id),restore=new StagedSyncRestore(b.core,{grouped:{store:b.s}});await restore.stageCheckpoint(data.cut.ref,r=>data.transport.get(r));await restore.activate();b.s.humanLibraryJournal=new SavedWorkSyncJournal(b.core);return {...data,b};
+}
+const edit=(a,changes={title:'SYNTHETIC typed later title'})=>({id:a.created.id,expectedRevision:1,operationId:crypto.randomUUID(),changes});
+test('saved successor stale revision and field CAS preserve canonical and complete protocol',async t=>{
+ const {a,b}=await restoredEditor(t);for(const request of [{...edit(a),expectedRevision:0},{...edit(a),expectedFieldRevisions:{title:999}}]){const before=await snapshot(b.s);assert.deepEqual(await b.s.editEntry(request),{conflict:true});assert.deepEqual(await snapshot(b.s),before);}
+});
+test('saved successor lost response retries original receipt and outbox without a second edit',async t=>{
+ const {a,b}=await restoredEditor(t),request=edit(a),original=b.s.foundationWrite.bind(b.s);let lost=true;b.s.foundationWrite=async(...args)=>{const result=await original(...args);if(lost){lost=false;throw Error('SYNTHETIC lost response after durable commit');}return result;};
+ await assert.rejects(b.s.editEntry(request),/lost response/);const before=await snapshot(b.s);assert.equal(before.thoughts[0].revision,2);assert.deepEqual(await b.s.editEntry(request),{id:a.created.id,revision:2});assert.deepEqual(await snapshot(b.s),before);await assert.rejects(b.s.editEntry({...request,changes:{title:'SYNTHETIC changed retry'}}),{code:'BNS_SAVED_WORK_COLLISION'});assert.deepEqual(await snapshot(b.s),before);
+});
+test('saved successor cannot weaken existing user-only Source journal or accept changed Source',async t=>{
+ const {HumanLibrarySyncJournal}=await import('../core/browser-native-sync/human-library-journal.js');const {a,b}=await restoredEditor(t);b.s.humanLibraryJournal=new HumanLibrarySyncJournal(b.core);let before=await snapshot(b.s);await assert.rejects(b.s.editEntry(edit(a)));assert.deepEqual(await snapshot(b.s),before);
+ b.s.humanLibraryJournal=null;await inputEdit(b.s,a.input.id,{libraryText:'SYNTHETIC revoked source body'});b.s.humanLibraryJournal=new SavedWorkSyncJournal(b.core);before=await snapshot(b.s);await assert.rejects(b.s.editEntry(edit(a)));assert.deepEqual(await snapshot(b.s),before);
+});
+for(const drift of ['source','control','frontier','receipt','history','budget','failure'])test('saved successor final '+drift+' failure rolls back canonical and atomic outbox',async t=>{
+ const {a,b}=await restoredEditor(t),original=b.s.foundationWrite.bind(b.s);let injected=false;b.s.foundationWrite=(fn,budget)=>original(async tx=>{
+  const result=await fn(tx);injected=true;
+  if(drift==='failure')throw Error('SYNTHETIC after edit');
+  if(drift==='budget'){for(let i=0;i<4097;i++){tx.metrics.reads=0;tx.metrics.writes=0;await tx.get('meta','synthetic-no-row');}return result;}
+  if(drift==='source'){const row=await tx.get('blocks',a.input.id);await tx.put('blocks',{...row,value:{...row.value,libraryText:'SYNTHETIC late source drift'}});}
+  if(drift==='control'){const row=await tx.get('meta','migration');await tx.put('meta',{...row,databaseId:'synthetic-wrong-database'});}
+  if(drift==='frontier'){const row=await b.core.get(tx,'frontier',b.core.deviceId);await tx.put('meta',{...row,frontier:999});}
+  if(drift==='receipt'){const head=await b.core.get(tx,'head','savedWorkSuccessor',a.created.id),op=(await b.core.get(tx,'revision',head.revisions[0])).operation,row=await b.core.get(tx,'receipt',op.operationId);await tx.put('meta',{...row,sequence:999});}
+  if(drift==='history'){const rows=await tx.rangePage('revisions','byList',IDBKeyRange.bound(['library_entry:'+a.created.id],['library_entry:'+a.created.id,[]]),null,64),row=rows.rows.at(-1).value;await tx.put('revisions',{...row,actor:'ai'});}
+  return result;
+ },budget);
+ const before=await snapshot(b.s);await assert.rejects(b.s.editEntry(edit(a)));assert.equal(injected,true);assert.deepEqual(await snapshot(b.s),before);
+});
+test('saved successor concurrent device branches are refused as conflict rather than silently losing either edit',async t=>{
+ const {a,transport,cut,b}=await restoredEditor(t),c=await make(t,'synthetic-C'),restore=new StagedSyncRestore(c.core,{grouped:{store:c.s}});await restore.stageCheckpoint(cut.ref,r=>transport.get(r));await restore.activate();c.s.humanLibraryJournal=new SavedWorkSyncJournal(c.core);
+ await b.s.editEntry(edit(a));await c.s.editEntry(edit(a,{title:'SYNTHETIC competing title'}));const operations=[];for await(const row of b.core.rows('revision'))operations.push(row.operation);for await(const row of c.core.rows('revision'))if(row.operation.type==='savedWorkSuccessor')operations.push(row.operation);
+ const before=await snapshot(b.s);await assert.rejects(prepareGroupCheckpointPlan(b.core,operations));assert.deepEqual(await snapshot(b.s),before);
+});
+test('saved successor typed Core rejects direct application without original owner capability',async t=>{
+ const {a,b}=await restoredEditor(t);await b.s.editEntry(edit(a));const head=await b.core.read('head','savedWorkSuccessor',a.created.id),op=(await b.core.read('revision',head.revisions[0])).operation,before=await snapshot(a.s);
+ await assert.rejects(a.core.transaction(true,tx=>a.core.applyInTransaction(tx,op,{origin:'remote',materialize:false})),{code:'BNS_SAVED_WORK_OWNER_REQUIRED'});assert.deepEqual(await snapshot(a.s),before);
+});
+test('saved successor history retention and unrepresented ordinary edit remain explicit refusals',async t=>{
+ const {a,b,transport}=await restoredEditor(t);await b.s.editEntry(edit(a));const before=await snapshot(b.s);await assert.rejects(b.s.editEntry({id:a.created.id,expectedRevision:2,operationId:crypto.randomUUID(),changes:{title:'SYNTHETIC would coalesce'}}));assert.deepEqual(await snapshot(b.s),before);
+ b.s.humanLibraryJournal=null;await b.s.editEntry({id:a.created.id,expectedRevision:2,operationId:crypto.randomUUID(),changes:{body:'SYNTHETIC unrepresented edit'}});const changed=await snapshot(b.s);await assert.rejects(buildCheckpoint(b.core,transport,{grouped:{store:b.s}}));assert.deepEqual(await snapshot(b.s),changed);
+});
+test('saved successor typed validator and graph refuse forged request allocation origin and ancestry',async t=>{
+ const {sealOperation}=await import('../core/browser-native-sync/core.js');const {a,b}=await restoredEditor(t);await b.s.editEntry(edit(a));const head=await b.core.read('head','savedWorkSuccessor',a.created.id),op=(await b.core.read('revision',head.revisions[0])).operation,base=[];for await(const r of b.core.rows('revision'))if(r.operation.type!=='savedWorkSuccessor')base.push(r.operation);
+ for(const mutate of [o=>o.value.request.changes.title='SYNTHETIC forged request',o=>o.value.events[2].value='synthetic-different-history',o=>o.value.after.entry.origin='user',o=>o.value.after.generator.modelVersion='synthetic-different-model',o=>o.actor='bootstrap',o=>o.value.sequenceBefore++,o=>o.value.events[3].value='2100-01-01T00:00:00.000Z']){
+  const altered=structuredClone(op);mutate(altered);await assert.rejects(sealOperation(altered));
+ }
+ const altered=structuredClone(op);altered.value.anchor='0'.repeat(64);const validButUnanchored=await sealOperation(altered),before=await snapshot(b.s);await assert.rejects(prepareGroupCheckpointPlan(b.core,[...base,validButUnanchored]));assert.deepEqual(await snapshot(b.s),before);
+});
+for(const phase of ['applied-group','after-activation'])test('saved successor cold recovery '+phase+' fault leaves complete stage and canonical state unchanged',async t=>{
+ const {a,b,transport}=await restoredEditor(t);await b.s.editEntry(edit(a));const cut=await buildCheckpoint(b.core,transport,{grouped:{store:b.s}}),c=await make(t,'synthetic-C');let injected=false;
+ const restore=new StagedSyncRestore(c.core,{grouped:{store:c.s},checkpoint:async(name,arg)=>{if(name!==phase)return;if(phase==='applied-group'){injected=true;throw Error('SYNTHETIC group fault');}const row=await arg.get('blocks',a.input.id);await arg.put('blocks',{...row,value:{...row.value,libraryText:'SYNTHETIC late changed source'}});injected=true;}});await restore.stageCheckpoint(cut.ref,r=>transport.get(r));const before=await snapshot(c.s);await assert.rejects(restore.activate());assert.equal(injected,true);assert.deepEqual(await snapshot(c.s),before);
+});
+test('saved successor budget is admitted before the original first transaction query',async t=>{
+ const {a,b}=await restoredEditor(t),original=b.s.foundationWrite.bind(b.s);let scopeEntered=false,ownerEntered=false;b.s.foundationWrite=(fn)=>original(async t=>{scopeEntered=true;await t.get('meta','synthetic-first-owner-read');ownerEntered=true;return fn(t);},{references:1});
+ const before=await snapshot(b.s);await assert.rejects(b.s.editEntry(edit(a)),{code:'BNS_GROUP_RESOURCE_LIMIT'});assert.equal(scopeEntered,true);assert.equal(ownerEntered,false);assert.deepEqual(await snapshot(b.s),before);
+});
+test('saved original edit planner refuses duplicate physical index keys hidden at a page boundary',async t=>{
+ const {humanPlanEntry,prepareSavedEntryEditPlan}=await import('../core/browser-native-sync/human-library-plan.js'),{a,b}=await restoredEditor(t);
+ await b.s.repository.transaction(true,async tx=>{const rows=await tx.rangePage('revisions','byList',IDBKeyRange.bound(['library_entry:'+a.created.id],['library_entry:'+a.created.id,[]]),null,64),row=rows.rows[0].value;for(let n=0;n<65;n++)await tx.put('revisions',{...row,id:'synthetic-duplicate-index-'+n});});
+ const before=await snapshot(b.s);await assert.rejects(prepareSavedEntryEditPlan(b.s,b.core,edit(a),await humanPlanEntry(b.s,b.core)),{code:'BNS_HUMAN_HISTORY_LIMIT'});assert.deepEqual(await snapshot(b.s),before);
+});
+test('saved successor cold final receipt drift rolls back every canonical protocol and activated stage row',async t=>{
+ const {a,b,transport}=await restoredEditor(t);await b.s.editEntry(edit(a));const successorHead=await b.core.read('head','savedWorkSuccessor',a.created.id),operation=(await b.core.read('revision',successorHead.revisions[0])).operation,cut=await buildCheckpoint(b.core,transport,{grouped:{store:b.s}}),c=await make(t,'synthetic-C');let injected=false;
+ const restore=new StagedSyncRestore(c.core,{grouped:{store:c.s},checkpoint:async(name,tx)=>{if(name!=='after-activation')return;const active=await tx.get('meta',c.core.prefix+'active'),replay=new BrowserNativeSyncCore(c.s.repository,{datasetId:c.core.datasetId,deviceId:c.core.deviceId,namespace:active.namespace}),receipt=await replay.get(tx,'receipt',operation.operationId);assert.equal(receipt.digest,operation.revisionId);await tx.put('meta',{...receipt,sequence:receipt.sequence+1});injected=true;}});
+ await restore.stageCheckpoint(cut.ref,r=>transport.get(r));const before=await snapshot(c.s);await assert.rejects(restore.activate());assert.equal(injected,true);assert.deepEqual(await snapshot(c.s),before);
+});

@@ -1,0 +1,134 @@
+TAP version 13
+# Subtest: saved original editor records typed successor atomically after cold B restore
+ok 1 - saved original editor records typed successor atomically after cold B restore
+  ---
+  duration_ms: 492.893291
+  type: 'test'
+  ...
+# Subtest: saved successor stale revision and field CAS preserve canonical and complete protocol
+ok 2 - saved successor stale revision and field CAS preserve canonical and complete protocol
+  ---
+  duration_ms: 138.527375
+  type: 'test'
+  ...
+# Subtest: saved successor lost response retries original receipt and outbox without a second edit
+ok 3 - saved successor lost response retries original receipt and outbox without a second edit
+  ---
+  duration_ms: 148.7325
+  type: 'test'
+  ...
+# Subtest: saved successor cannot weaken existing user-only Source journal or accept changed Source
+ok 4 - saved successor cannot weaken existing user-only Source journal or accept changed Source
+  ---
+  duration_ms: 130.02175
+  type: 'test'
+  ...
+# Subtest: saved successor final source failure rolls back canonical and atomic outbox
+ok 5 - saved successor final source failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 141.762709
+  type: 'test'
+  ...
+# Subtest: saved successor final control failure rolls back canonical and atomic outbox
+ok 6 - saved successor final control failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 131.0155
+  type: 'test'
+  ...
+# Subtest: saved successor final frontier failure rolls back canonical and atomic outbox
+ok 7 - saved successor final frontier failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 148.713334
+  type: 'test'
+  ...
+# Subtest: saved successor final receipt failure rolls back canonical and atomic outbox
+ok 8 - saved successor final receipt failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 142.757375
+  type: 'test'
+  ...
+# Subtest: saved successor final history failure rolls back canonical and atomic outbox
+ok 9 - saved successor final history failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 135.595208
+  type: 'test'
+  ...
+# Subtest: saved successor final budget failure rolls back canonical and atomic outbox
+ok 10 - saved successor final budget failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 196.103833
+  type: 'test'
+  ...
+# Subtest: saved successor final failure failure rolls back canonical and atomic outbox
+ok 11 - saved successor final failure failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 139.377708
+  type: 'test'
+  ...
+# Subtest: saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+ok 12 - saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+  ---
+  duration_ms: 255.44225
+  type: 'test'
+  ...
+# Subtest: saved successor typed Core rejects direct application without original owner capability
+ok 13 - saved successor typed Core rejects direct application without original owner capability
+  ---
+  duration_ms: 156.173916
+  type: 'test'
+  ...
+# Subtest: saved successor history retention and unrepresented ordinary edit remain explicit refusals
+ok 14 - saved successor history retention and unrepresented ordinary edit remain explicit refusals
+  ---
+  duration_ms: 175.294375
+  type: 'test'
+  ...
+# Subtest: saved successor typed validator and graph refuse forged request allocation origin and ancestry
+ok 15 - saved successor typed validator and graph refuse forged request allocation origin and ancestry
+  ---
+  duration_ms: 159.00825
+  type: 'test'
+  ...
+# Subtest: saved successor cold recovery applied-group fault leaves complete stage and canonical state unchanged
+ok 16 - saved successor cold recovery applied-group fault leaves complete stage and canonical state unchanged
+  ---
+  duration_ms: 213.033417
+  type: 'test'
+  ...
+# Subtest: saved successor cold recovery after-activation fault leaves complete stage and canonical state unchanged
+ok 17 - saved successor cold recovery after-activation fault leaves complete stage and canonical state unchanged
+  ---
+  duration_ms: 306.54075
+  type: 'test'
+  ...
+# Subtest: saved successor budget is admitted before the original first transaction query
+not ok 18 - saved successor budget is admitted before the original first transaction query
+  ---
+  duration_ms: 138.330958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-successor.test.mjs:88:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-successor.test.mjs:90:121)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 17
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3504.069459

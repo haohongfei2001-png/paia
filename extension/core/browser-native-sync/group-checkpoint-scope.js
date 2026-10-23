@@ -161,7 +161,7 @@ async function compileOriginalWireScope(plan){
  for(const group of plan.groups){
   if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions'}[type];if(name&&!(type==='timeEvidence'&&value.value===null))maps[name].set(value.id,copy(value));}
   else if(group.type==='inputWorkingCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value;maps[{input:'blocks',inputState:'inputStates',revision:'revisions',filterIntent:'filterIntents'}[type]].set(value.id,copy(value));}
-  else if(group.type==='savedWorkBootstrap'){for(const row of group.operations[0].value.payload.history)maps.revisions.set(row.id,copy(row));}
+  else if(['savedWorkBootstrap','savedWorkSuccessor'].includes(group.type)){for(const row of (group.type==='savedWorkBootstrap'?group.operations[0].value.payload:group.operations[0].value.after).history)maps.revisions.set(row.id,copy(row));}
   else if(group.type!=='humanLibraryCommit'){const op=group.operations[0];if(group.type==='filterIntent')maps.filterIntents.set(op.entityId,copy(op.value));else if(group.type==='promptPreferences')prompt=copy(op.value);else if(group.type==='promptBinding')promptBinding=copy(op.value);else if(group.type==='contextDesired')desired.set(op.entityId,copy(op.value));else if(group.type==='topicDesired')topicDesired.set(op.entityId,copy(op.value));else if(group.type!=='consumerPreference')context.set(op.entityId,copy(op.value));}
  }
  const human=plan.groups.some(group=>group.type==='humanLibraryCommit')?compileHumanScope(plan):null;if(human)for(const row of human.rows.history)maps.revisions.set(row.id,mixed?row:clone(row));
@@ -172,7 +172,7 @@ async function compileOriginalWireScope(plan){
  expected.context=sort([...context.values()]);expected.desired=['info','rules','now','inputs'].map(id=>desired.get(id)||{id,enabled:false,revision:0});expected.prompt=prompt;if(promptBinding)expected.promptBinding=promptBinding;
  const consumer=finalConsumerPreferenceOperations(plan);if(consumer.length)expected.consumerPreferences=consumer.map(op=>copy(op.value));
  if(topicDesired.size)expected.topicDesired=sort([...topicDesired.values()]);
- if(human)expected.humanLibrary=human;const saved=plan.groups.find(g=>g.type==='savedWorkBootstrap');if(saved)expected.savedWork=copy(saved.operations[0].value.payload);
+ if(human)expected.humanLibrary=human;const saved=plan.groups.find(g=>g.type==='savedWorkBootstrap');if(saved)expected.savedWork=copy(plan.groups.filter(g=>g.type==='savedWorkSuccessor').at(-1)?.operations[0].value.after??saved.operations[0].value.payload);
  // Portable Human is independently compiled already. Mixed Scope can borrow
  // that untouched aggregate; OUTER history stays independently cloned so its
  // allocator normalization cannot zero portable Human history by alias.

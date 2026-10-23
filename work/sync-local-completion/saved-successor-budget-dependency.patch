@@ -1,0 +1,89 @@
+diff --git a/extension/core/indexed-store.js b/extension/core/indexed-store.js
+index 9e5a9709..d348c3b2 100644
+--- a/extension/core/indexed-store.js
++++ b/extension/core/indexed-store.js
+@@ -5,7 +5,7 @@ import {prepareRemoval,expandRemoval,validateRemovalEdit} from './archive-remova
+ import {queryPage} from './archive-query.js';
+ import {OperationAttemptLedger,validateOperationQuery} from './operation-outcome.js';
+ import {captureIsExcluded,clearReadingTargets,clearPurgedReaderPolicy} from './reader-state.js';
+-import {requireRepositoryTransactionScope,ArchiveRepository,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
++import {registerRepositoryWorkLimit,requireRepositoryTransactionScope,ArchiveRepository,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
+ import {ADAPTER_VERSION,CONSENT_VERSION,STORAGE_KEY,ArchiveError,STATUS_CODES,ERROR_CODES} from './constants.js';
+ import {validateCapture,validateEnrichment,validateChanges,canonicalChat} from './validation.js';
+ import {identify,identifySource,hashText} from './dedupe.js';
+@@ -20,6 +20,16 @@ import {CONTROL_PUBLICATION_RESERVATION,readControlPublicationFence,reserveContr
+ import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
+ 
+ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
++// Optional original-writer budget only, never a caller-provided transaction hook.
++export function snapshotWriteWorkLimit(value){
++ if(value===null)return null;
++ if(!value||Object.getPrototypeOf(value)!==Object.prototype)throw new ArchiveError('INVALID_REQUEST');
++ const descriptors=Object.getOwnPropertyDescriptors(value),keys=Reflect.ownKeys(descriptors);
++ if(keys.some(key=>!['references','bytes','ms'].includes(key)||!Object.hasOwn(descriptors[key],'value')))throw new ArchiveError('INVALID_REQUEST');
++ const result=Object.fromEntries(keys.map(key=>[key,descriptors[key].value]));
++ for(const [key,max] of [['references',4096],['bytes',2*1024*1024],['ms',30000]])if(Object.hasOwn(result,key)&&(!Number.isFinite(result[key])||result[key]<=0||result[key]>max||key!=='ms'&&!Number.isSafeInteger(result[key])))throw new ArchiveError('INVALID_REQUEST');
++ return Object.freeze(result);
++};
+ // Conservative, bounded equality for a rejected preference publication only.
+ // Unlike JSON equality, this preserves missing/undefined and exact scalar values.
+ const publicationEqual=(a,b)=>{
+@@ -276,7 +286,7 @@ export class IndexedArchiveStore {
+   await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);if(this.consumerPreferenceJournal)await this.consumerPreferenceJournal.settle(t,this,owner.reservation,publication);else await requireConsumerPublicationSettled(t);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);
+   owner.loadedStamp=structuredClone(payload.controlPublication);this.controlCache=control;this.pendingControl=null;rememberOriginalControlSettings(this);
+  }
+- write(fn,onCommitted=null,prepare=null){return this.run(async()=>{try{const prepared=prepare?await prepare():null,result=await this.repository.transaction(true,async t=>{try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')error(e.code);throw e;}return fn(t,prepared);});onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
++ write(fn,onCommitted=null,prepare=null,workLimit=null){const budget=snapshotWriteWorkLimit(workLimit);return this.run(async()=>{try{const prepared=prepare?await prepare():null,result=await this.repository.transaction(true,async t=>{if(budget)registerRepositoryWorkLimit(this.repository,t,budget);try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')error(e.code);throw e;}return fn(t,prepared);});onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
+  status(){return this.run(()=>this.repository.transaction(false,async t=>{const {settings:s}=await this.control(t);return {enabled:s.enabled===true&&s.consentVersion===CONSENT_VERSION,consented:s.consentVersion===CONSENT_VERSION,epoch:s.epoch,adapterVersion:ADAPTER_VERSION};}));}
+  consent(accepted){if(accepted!==true)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const c=await this.control(t);c.settings={consentVersion:CONSENT_VERSION,consentAt:this.clock(),enabled:true,epoch:c.settings.epoch+1};c.diagnostics.status='WAITING_CHAT';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled:true};});}
+  setEnabled(enabled){return this.write(async t=>{const c=await this.control(t);if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(typeof enabled!=='boolean')error('INVALID_REQUEST');c.settings.enabled=enabled;c.settings.epoch++;c.diagnostics.status=enabled?'WAITING_CHAT':'PAUSED';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled};});}
+diff --git a/extension/core/library-documents-owner.js b/extension/core/library-documents-owner.js
+index a0ce0621..29e4b70f 100644
+--- a/extension/core/library-documents-owner.js
++++ b/extension/core/library-documents-owner.js
+@@ -73,7 +73,7 @@ export function originalLibraryDocumentsConstructor(){
+  async libraryStatus(){const base=await super.libraryStatus();return {...base,compatibility:await this.libraryCompatibilityStatus()};}
+  async librarySafetyChange(t,row,priorFields){if(row.storageSchema!==2||row.lifecycle==='quarantined')return;if(priorFields){let contentChanged=false;for(const [field,before]of Object.entries(priorFields)){if(before!==row[field==='body'?'thoughtText':field]){row.fieldRevisions[field]++;if(field==='body')row.meaningfulContentAt=this.clock();if(field!=='note')contentChanged=true;}}if(contentChanged)row.contentRevision++;}row.searchSafetyVersion=(row.searchSafetyVersion||0)+1;await queueSearch(t,'entry',row);}
+  async libraryMaintenanceWrite(fn){await this.finishFoundation();return this.run(()=>this.repository.transaction(true,fn));}
+- async operation(request,fn){return super.operation(request,t=>this.libraryOperationInTransaction(t,request,fn));}
++ async operation(request,fn,options){return super.operation(request,t=>this.libraryOperationInTransaction(t,request,fn),options);}
+  async libraryOperationInTransaction(t,request,fn){
+   // Layout jobs lock organization only; Entry fields remain editable.
+   for(const id of [request.topicId,...(request.changes?.name!==undefined||request.name!==undefined?[request.id]:[])].filter(Boolean)){const topic=await t.get('topics',id);if(topic?.layoutJobId&&!request.layoutInternal)return {conflict:true,organizationBusy:true};}
+diff --git a/extension/core/thought-store-owner.js b/extension/core/thought-store-owner.js
+index cea2172a..b5c36ef2 100644
+--- a/extension/core/thought-store-owner.js
++++ b/extension/core/thought-store-owner.js
+@@ -6,7 +6,7 @@ import {assertMemoryPlacementChangeAllowed} from './memory/organization-guard.js
+ import {initializeTopicIdentity,prepareTopicName,assertTopicIdentityBase,registerTopicName,prepareTopicRename,recordTopicRename,planHumanTopicField,resolveTopicIdentity,mapTopicIdentityBatch} from './topic-identity.js';
+ import {newOrganizationIntents,recordMembershipIntent,fixMembershipSet,moveMembership} from './topic-intent.js';
+ import {BINDING_ROW,applyBinding,classifyBinding,thoughtLayout,bindingRead,migrateBindings,reverseSetting,prepareBodyEdit} from './thought-binding.js';
+-import {IndexedArchiveStore} from './indexed-store.js';
++import {IndexedArchiveStore,snapshotWriteWorkLimit} from './indexed-store.js';
+ import {editSection,checkRestore,restoreOrganization} from './thought-organization.js';
+ import {originalFilterConstructor,originalFilterPromptQueueOwner} from './smart-filter-store-owner.js';
+ import {hashText} from './dedupe.js';
+@@ -81,7 +81,7 @@ class LibraryFoundationStore extends SmartFilterStore {
+  constructor(local,options={}) {super(local,{...options,thoughtLibrary:true});originalOrganizeMaterialInstances.add(this);this.foundationLoaded=false;this.humanLibraryJournal=options.humanLibraryJournal??null;}
+  run(fn) {return super.run(async()=>{if(!this.foundationLoaded&&!this.foundationFailure){try{const marker=await migrateThoughtLibrary(this,{maxBatches:1});this.foundationLoaded=marker.phase==='active';}catch{this.foundationFailure=true;}}return fn();});}
+  async finishFoundation(){while(!this.foundationLoaded){await this.run(()=>Promise.resolve());if(this.foundationFailure)throw new ArchiveError('STORAGE_FAILED');if(!this.foundationLoaded)await new Promise(resolve=>setTimeout(resolve,0));}if(!this.bindingsLoaded){await migrateBindings(this);this.bindingsLoaded=true;}}
+- async foundationWrite(fn){await this.finishFoundation();return IndexedArchiveStore.prototype.write.call(this,fn);}
++ async foundationWrite(fn,workLimit=null){const budget=snapshotWriteWorkLimit(workLimit);await this.finishFoundation();return IndexedArchiveStore.prototype.write.call(this,fn,null,null,budget);}
+  async applySavedWorkBootstrapInTransaction(t,cap){
+   const p=await requireSavedWorkBootstrap(t,cap,this);if(p.duplicate)return {state:'duplicate',id:p.id};
+   await t.put('thoughts',p.entry);await t.put('provenance',p.provenance);await t.put('dependencies',p.dependency);
+@@ -103,11 +103,12 @@ class LibraryFoundationStore extends SmartFilterStore {
+  async processPurgeCleanup(options={}) {await this.finishFoundation();return purgeBatch(this,options.limit??100);}
+  async drainInvalidations() {let batches=0;for(;;){const r=await this.processInvalidations();if(!r.pending)return {batches};batches++;await this.repository.checkpoint('thought-invalidation-batch');}}
+  async drainPurgeCleanup() {let batches=0;for(;;){const r=await this.processPurgeCleanup();if(!r.pending)return {batches};batches++;await this.repository.checkpoint('thought-purge-batch');}}
+- async operation(request,fn) {
++ async operation(request,fn,{workLimit=null}={}) {
++  const budget=snapshotWriteWorkLimit(workLimit);
+   if(this.humanLibraryJournal)throw new ArchiveError('BNS_HUMAN_UNSUPPORTED_MUTATION');
+   if(!idOK(request?.operationId)||request.operationId.length<8)fail();
+   const digest=await hashText(JSON.stringify(request));
+-  return this.foundationWrite(t=>this.operationInTransaction(t,request,digest,fn));
++  return this.foundationWrite(t=>this.operationInTransaction(t,request,digest,fn),budget);
+  }
+  async operationInTransaction(t,request,digest,fn){try{if(request.expectedRecoveryEpoch!==undefined&&((await t.get('meta','recovery-restore-epoch'))?.value??'initial')!==request.expectedRecoveryEpoch)throw new ArchiveError('BACKUP_CHANGED');await beginHumanOperation(this,t,request);const prior=await receipt(t,request,digest);if(prior)return prior;const result=await fn(t);if(!result.conflict)await saveReceipt(this,t,request,digest,result);await finishHumanOperation(this,t,request,result);return result;}catch(error){throw humanOperationError(request,error);}finally{releaseHumanOperation(t,request);}
+  }
