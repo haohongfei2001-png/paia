@@ -1,0 +1,1627 @@
+TAP version 13
+# Subtest: original explicit local atomically resolves both complete prompt/companion head sets
+not ok 1 - original explicit local atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 42.581084
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/prompt-companion-resolution-core.test.mjs:15:55'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  code: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    BrowserNativeSyncCore.prepareLocal (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:202:88)
+    async BrowserNativeSyncCore.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:245:15)
+    async JournalRestoreFence.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/prompt-journal.js:35:18)
+    async PromptSyncJournal.prepareManualResolution (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/prompt-journal.js:106:18)
+    async PromptReuseService.resolveManualConflict (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/prompt-reuse-service.js:356:241)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/prompt-companion-resolution-core.test.mjs:15:328)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: original explicit other atomically resolves both complete prompt/companion head sets
+not ok 2 - original explicit other atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 24.845542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/prompt-companion-resolution-core.test.mjs:15:55'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  code: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    BrowserNativeSyncCore.prepareLocal (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:202:88)
+    async BrowserNativeSyncCore.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:245:15)
+    async JournalRestoreFence.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/prompt-journal.js:35:18)
+    async PromptSyncJournal.prepareManualResolution (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/prompt-journal.js:106:18)
+    async PromptReuseService.resolveManualConflict (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/prompt-reuse-service.js:356:241)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/prompt-companion-resolution-core.test.mjs:15:328)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: original explicit manual atomically resolves both complete prompt/companion head sets
+not ok 3 - original explicit manual atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 27.061875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/prompt-companion-resolution-core.test.mjs:15:55'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  code: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    BrowserNativeSyncCore.prepareLocal (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:202:88)
+    async BrowserNativeSyncCore.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:245:15)
+    async JournalRestoreFence.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/prompt-journal.js:35:18)
+    async PromptSyncJournal.prepareManualResolution (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/prompt-journal.js:106:18)
+    async PromptReuseService.resolveManualConflict (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/prompt-reuse-service.js:356:241)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/prompt-companion-resolution-core.test.mjs:15:328)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: original explicit both atomically resolves both complete prompt/companion head sets
+not ok 4 - original explicit both atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 21.590375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/prompt-companion-resolution-core.test.mjs:15:55'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  code: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    BrowserNativeSyncCore.prepareLocal (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:202:88)
+    async BrowserNativeSyncCore.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:245:15)
+    async JournalRestoreFence.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/prompt-journal.js:35:18)
+    async PromptSyncJournal.prepareManualResolution (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/prompt-journal.js:106:18)
+    async PromptReuseService.resolveManualConflict (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/prompt-reuse-service.js:356:241)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/prompt-companion-resolution-core.test.mjs:15:328)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: caller null cannot authorize multihead companion resolution
+ok 5 - caller null cannot authorize multihead companion resolution
+  ---
+  duration_ms: 20.433
+  type: 'test'
+  ...
+# Subtest: caller true cannot authorize multihead companion resolution
+ok 6 - caller true cannot authorize multihead companion resolution
+  ---
+  duration_ms: 18.41325
+  type: 'test'
+  ...
+# Subtest: caller {} cannot authorize multihead companion resolution
+ok 7 - caller {} cannot authorize multihead companion resolution
+  ---
+  duration_ms: 15.857833
+  type: 'test'
+  ...
+# Subtest: caller "forged" cannot authorize multihead companion resolution
+ok 8 - caller "forged" cannot authorize multihead companion resolution
+  ---
+  duration_ms: 16.903917
+  type: 'test'
+  ...
+# Subtest: ordinary write refuses both prompt conflict and direct binding conflict without changing any table
+ok 9 - ordinary write refuses both prompt conflict and direct binding conflict without changing any table
+  ---
+  duration_ms: 17.778958
+  type: 'test'
+  ...
+# Subtest: proof-failure rolls back prompt/binding/proofs/old history/outbox/all tables
+ok 10 - proof-failure rolls back prompt/binding/proofs/old history/outbox/all tables
+  ---
+  duration_ms: 18.978958
+  type: 'test'
+  ...
+# Subtest: late-binding-write rolls back prompt/binding/proofs/old history/outbox/all tables
+ok 11 - late-binding-write rolls back prompt/binding/proofs/old history/outbox/all tables
+  ---
+  duration_ms: 19.517625
+  type: 'test'
+  ...
+# Subtest: original exact preparation still loses to later generation and cannot commit partial companions
+not ok 12 - original exact preparation still loses to later generation and cannot commit partial companions
+  ---
+  duration_ms: 23.206459
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/prompt-companion-resolution-core.test.mjs:19:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + {
+    +   blockIndex: [
+    +     {
+    +       attachedDocument: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       conversationOrder: 1,
+    +       documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       excluded: false,
+    +       excludedKey: 0,
+    +       id: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       known: 1,
+    +       listKey: [
+    +         'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         0,
+    +         1,
+    +         '',
+    +         1,
+    +         'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +       ],
+    +       recordIds: [
+    +         '14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +       ],
+    +       sequence: 0,
+    +       sort: [
+    +         1,
+    +         '',
+    +         1,
+    +         'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +       ],
+    +       sourceRecordId: '14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       sourceSentAt: null,
+    +       stamp: ''
+    +     }
+    +   ],
+    +   blocks: [
+    +     {
+    +       id: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       value: {
+    +         aiSuggestionStatus: 'none',
+    +         documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         editedAt: null,
+    +         excluded: false,
+    +         id: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         libraryText: null,
+    +         mergedSourceIds: [],
+    +         note: '',
+    +         originalTextReference: '14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         provenance: [
+    +           {
+    +             sourceRecordId: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +           }
+    +         ],
+    +         provenanceSignature: '[{"sourceRecordId":"14d88448-9f73-4a08-84f6-66f309b8cb96"}]',
+    +         revision: 0,
+    +         sourceRecordId: '14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         status: 'active'
+    +       }
+    +     }
+    +   ],
+    +   categories: [],
+    +   dependencies: [],
+    +   documents: [
+    +     {
+    +       archiveDisplay: [
+    +         -0,
+    +         'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +       ],
+    +       chatKey: 'chatgpt:m1-synthetic-chat',
+    +       displayKey: [
+    +         -0,
+    +         'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +       ],
+    +       id: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       libraryDisplay: [
+    +         -0,
+    +         'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +       ],
+    +       sequence: 0,
+    +       value: {
+    +         aiSuggestionStatus: 'none',
+    +         firstSourceSentAt: null,
+    +         futureAISummary: null,
+    +         id: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         lastSourceSentAt: null,
+    +         originalConversationTitle: 'Synthetic chat',
+    +         platform: 'chatgpt',
+    +         sourceConversationId: 'm1-synthetic-chat',
+    +         status: 'active',
+    +         summaryPlaceholder: '摘要预留 · 尚未整理',
+    +         titleRevision: 0,
+    +         userTitle: ''
+    +       }
+    +     }
+    +   ],
+    +   entryRelations: [],
+    +   filterInputs: [
+    +     {
+    +       authorship: 'untouched',
+    +       basedOnContentRevision: 0,
+    +       classifierVersion: 'deterministic-light-2',
+    +       decision: 'uncertain',
+    +       documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       evaluationRevision: 0,
+    +       filterOverride: 'none',
+    +       filterVersion: 1,
+    +       id: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       pendingKey: 0,
+    +       policyVersion: 2,
+    +       presence: null,
+    +       reasonCode: 'metadata_unknown',
+    +       userEdited: false
+    +     }
+    +   ],
+    +   filterIntents: [],
+    +   importBatches: [],
+    +   importEvidence: [],
+    +   importSources: [],
+    +   importTasks: [],
+    +   inputRemovals: [],
+    +   inputStates: [
+    +     {
+    +       contentRevision: 0,
+    +       deltaSequence: 1,
+    +       documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       filteringPolicyState: 'none',
+    +       id: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       removalState: 'active',
+    +       sourceRecordIds: [
+    +         '14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +       ]
+    +     }
+    +   ],
+    +   invalidations: [],
+    +   libraryDocuments: [
+    +     {
+    +       id: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       value: {
+    +         aiSuggestionStatus: 'none',
+    +         firstSourceSentAt: null,
+    +         futureAISummary: null,
+    +         id: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         lastSourceSentAt: null,
+    +         originalConversationTitle: 'Synthetic chat',
+    +         platform: 'chatgpt',
+    +         sourceConversationId: 'm1-synthetic-chat',
+    +         status: 'active',
+    +         summaryPlaceholder: '摘要预留 · 尚未整理',
+    +         userTitle: ''
+    +       }
+    +     }
+    +   ],
+    +   libraryMigrationItems: [],
+    +   librarySearchTerms: [],
+    +   meta: [
+    +     {
+    +       descriptor: {
+    +         affectedRefs: [],
+    +         entityId: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         human: false,
+    +         independent: true,
+    +         inputIds: [
+    +           'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +         ],
+    +         key: '["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]',
+    +         kind: 'input',
+    +         lineage: [
+    +           '["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]'
+    +         ],
+    +         removalEpoch: 0,
+    +         removed: false,
+    +         revision: 0,
+    +         sourceRecordIds: [
+    +           '14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +         ]
+    +       },
+    +       id: 'aiu:delta:known:["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]',
+    +       sequence: 1,
+    +       signature: '{"key":"[\\"input\\",\\"block:14d88448-9f73-4a08-84f6-66f309b8cb96\\"]","kind":"input","entityId":"block:14d88448-9f73-4a08-84f6-66f309b8cb96","revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":["14d88448-9f73-4a08-84f6-66f309b8cb96"],"inputIds":["block:14d88448-9f73-4a08-84f6-66f309b8cb96"],"lineage":["[\\"input\\",\\"block:14d88448-9f73-4a08-84f6-66f309b8cb96\\"]"],"independent":true,"affectedRefs":[],"human":false}',
+    +       version: 1
+    +     },
+    +     {
+    +       descriptor: {
+    +         affectedRefs: [],
+    +         entityId: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         human: false,
+    +         independent: true,
+    +         inputIds: [
+    +           'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +         ],
+    +         key: '["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]',
+    +         kind: 'input',
+    +         lineage: [
+    +           '["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]'
+    +         ],
+    +         removalEpoch: 0,
+    +         removed: false,
+    +         revision: 0,
+    +         sourceRecordIds: [
+    +           '14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +         ]
+    +       },
+    +       id: 'aiu:delta:pending:["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]',
+    +       pendingFacets: [
+    +         'topic',
+    +         'context'
+    +       ],
+    +       requirements: [],
+    +       sequence: 1,
+    +       signature: '{"key":"[\\"input\\",\\"block:14d88448-9f73-4a08-84f6-66f309b8cb96\\"]","kind":"input","entityId":"block:14d88448-9f73-4a08-84f6-66f309b8cb96","revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":["14d88448-9f73-4a08-84f6-66f309b8cb96"],"inputIds":["block:14d88448-9f73-4a08-84f6-66f309b8cb96"],"lineage":["[\\"input\\",\\"block:14d88448-9f73-4a08-84f6-66f309b8cb96\\"]"],"independent":true,"affectedRefs":[],"human":false}',
+    +       version: 1
+    +     },
+    +     {
+    +       id: 'aiu:delta:sequence',
+    +       value: 1
+    +     },
+    +     {
+    +       conversationOrder: 1,
+    +       documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       id: 'archive-year:v1:row:document%3A14d88448-9f73-4a08-84f6-66f309b8cb96:1:000000000001:block%3A14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       inputId: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       sourceSentAt: null
+    +     },
+    +     {
+    +       id: 'backup-data-generation',
+    +       value: 6
+    +     },
+    +     {
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:entityRevision:promptBinding:prompt-reuse%3Av1:04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554',
+    +       revisionId: '04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554'
+    +     },
+    +     {
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:entityRevision:promptBinding:prompt-reuse%3Av1:24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10',
+    +       revisionId: '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10'
+    +     },
+    +     {
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:entityRevision:promptPreferences:prompt-reuse%3Av1:8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9',
+    +       revisionId: '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9'
+    +     },
+    +     {
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:entityRevision:promptPreferences:prompt-reuse%3Av1:99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c',
+    +       revisionId: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+    +     },
+    +     {
+    +       deviceId: 'SYNTHETIC_A',
+    +       frontier: 2,
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:frontier:SYNTHETIC_A',
+    +       ranges: []
+    +     },
+    +     {
+    +       deviceId: 'SYNTHETIC_B',
+    +       frontier: 2,
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:frontier:SYNTHETIC_B',
+    +       ranges: []
+    +     },
+    +     {
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:generation:',
+    +       value: 4
+    +     },
+    +     {
+    +       entityId: 'prompt-reuse:v1',
+    +       fence: null,
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:head:promptBinding:prompt-reuse%3Av1',
+    +       purged: false,
+    +       revisions: [
+    +         '04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554',
+    +         '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10'
+    +       ],
+    +       type: 'promptBinding'
+    +     },
+    +     {
+    +       entityId: 'prompt-reuse:v1',
+    +       fence: null,
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:head:promptPreferences:prompt-reuse%3Av1',
+    +       purged: false,
+    +       revisions: [
+    +         '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9',
+    +         '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+    +       ],
+    +       type: 'promptPreferences'
+    +     },
+    +     {
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:materializedOwner:promptBinding:prompt-reuse%3Av1',
+    +       ownerRevision: 1,
+    +       revisionId: '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10',
+    +       version: 1
+    +     },
+    +     {
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:materializedOwner:promptPreferences:prompt-reuse%3Av1',
+    +       ownerRevision: 1,
+    +       revisionId: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c',
+    +       version: 1
+    +     },
+    +     {
+    +       deviceId: 'SYNTHETIC_A',
+    +       digest: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c',
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:receipt:285c9809-d9aa-4ef7-ac8f-16a135cea1bc',
+    +       sequence: 1
+    +     },
+    +     {
+    +       deviceId: 'SYNTHETIC_A',
+    +       digest: '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10',
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:receipt:31f5e763-d2a9-4791-b784-18de1f0d6f9c',
+    +       sequence: 2
+    +     },
+    +     {
+    +       deviceId: 'SYNTHETIC_B',
+    +       digest: '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9',
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:receipt:91088c3c-2e9b-4870-ae32-f7c652f745d1',
+    +       sequence: 1
+    +     },
+    +     {
+    +       deviceId: 'SYNTHETIC_B',
+    +       digest: '04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554',
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:receipt:fe87b1be-1e76-46fd-85a1-77532d34949b',
+    +       sequence: 2
+    +     },
+    +     {
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:revision:04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554',
+    +       operation: {
+    +         actor: 'user',
+    +         codecVersion: 1,
+    +         datasetId: 'SYNTHETIC_companion_resolution',
+    +         deviceId: 'SYNTHETIC_B',
+    +         entityId: 'prompt-reuse:v1',
+    +         kind: 'put',
+    +         operationId: 'fe87b1be-1e76-46fd-85a1-77532d34949b',
+    +         parents: [],
+    +         protocol: 1,
+    +         revisionId: '04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554',
+    +         sequence: 2,
+    +         type: 'promptBinding',
+    +         value: {
+    +           bindings: [
+    +             {
+    +               familyId: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    +               inputIds: [],
+    +               kind: 'manual'
+    +             }
+    +           ],
+    +           id: 'prompt-reuse:v1',
+    +           normalizerVersion: 'prompt-candidate-whole-finite-v1',
+    +           promptRevisionId: '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9',
+    +           version: 1
+    +         }
+    +       },
+    +       redacted: false
+    +     },
+    +     {
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:revision:24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10',
+    +       operation: {
+    +         actor: 'user',
+    +         codecVersion: 1,
+    +         datasetId: 'SYNTHETIC_companion_resolution',
+    +         deviceId: 'SYNTHETIC_A',
+    +         entityId: 'prompt-reuse:v1',
+    +         kind: 'put',
+    +         operationId: '31f5e763-d2a9-4791-b784-18de1f0d6f9c',
+    +         parents: [],
+    +         protocol: 1,
+    +         revisionId: '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10',
+    +         sequence: 2,
+    +         type: 'promptBinding',
+    +         value: {
+    +           bindings: [
+    +             {
+    +               familyId: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    +               inputIds: [],
+    +               kind: 'manual'
+    +             }
+    +           ],
+    +           id: 'prompt-reuse:v1',
+    +           normalizerVersion: 'prompt-candidate-whole-finite-v1',
+    +           promptRevisionId: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c',
+    +           version: 1
+    +         }
+    +       },
+    +       redacted: false
+    +     },
+    +     {
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:revision:8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9',
+    +       operation: {
+    +         actor: 'user',
+    +         codecVersion: 1,
+    +         datasetId: 'SYNTHETIC_companion_resolution',
+    +         deviceId: 'SYNTHETIC_B',
+    +         entityId: 'prompt-reuse:v1',
+    +         kind: 'put',
+    +         operationId: '91088c3c-2e9b-4870-ae32-f7c652f745d1',
+    +         parents: [],
+    +         protocol: 1,
+    +         revisionId: '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9',
+    +         sequence: 1,
+    +         type: 'promptPreferences',
+    +         value: {
+    +           id: 'prompt-reuse:v1',
+    +           overrides: [
+    +             {
+    +               hidden: false,
+    +               id: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    +               text: 'SYNTHETIC other'
+    +             }
+    +           ],
+    +           pins: [],
+    +           splits: [],
+    +           version: 1
+    +         }
+    +       },
+    +       redacted: false
+    +     },
+    +     {
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:revision:99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c',
+    +       operation: {
+    +         actor: 'user',
+    +         codecVersion: 1,
+    +         datasetId: 'SYNTHETIC_companion_resolution',
+    +         deviceId: 'SYNTHETIC_A',
+    +         entityId: 'prompt-reuse:v1',
+    +         kind: 'put',
+    +         operationId: '285c9809-d9aa-4ef7-ac8f-16a135cea1bc',
+    +         parents: [],
+    +         protocol: 1,
+    +         revisionId: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c',
+    +         sequence: 1,
+    +         type: 'promptPreferences',
+    +         value: {
+    +           id: 'prompt-reuse:v1',
+    +           overrides: [
+    +             {
+    +               hidden: false,
+    +               id: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    +               text: 'SYNTHETIC local'
+    +             }
+    +           ],
+    +           pins: [],
+    +           splits: [],
+    +           version: 1
+    +         }
+    +       },
+    +       redacted: false
+    +     },
+    +     {
+    +       digest: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c',
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:sequence:SYNTHETIC_A:0000000000000001',
+    +       operationId: '285c9809-d9aa-4ef7-ac8f-16a135cea1bc'
+    +     },
+    +     {
+    +       digest: '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10',
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:sequence:SYNTHETIC_A:0000000000000002',
+    +       operationId: '31f5e763-d2a9-4791-b784-18de1f0d6f9c'
+    +     },
+    +     {
+    +       digest: '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9',
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:sequence:SYNTHETIC_B:0000000000000001',
+    +       operationId: '91088c3c-2e9b-4870-ae32-f7c652f745d1'
+    +     },
+    +     {
+    +       digest: '04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554',
+    +       id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:sequence:SYNTHETIC_B:0000000000000002',
+    +       operationId: 'fe87b1be-1e76-46fd-85a1-77532d34949b'
+    +     },
+    +     {
+    +       enabled: true,
+    +       epoch: 1,
+    +       id: 'gate'
+    +     },
+    +     {
+    +       completedAt: '2026-10-23T18:16:06.302Z',
+    +       count: 0,
+    +       cursor: null,
+    +       id: 'ia-migration',
+    +       phase: 'active',
+    +       policy: {
+    +         coalesceMs: 60000,
+    +         days: 90,
+    +         importantMinimum: 20
+    +       },
+    +       startedAt: '2026-10-23T18:16:06.301Z',
+    +       verified: true,
+    +       version: 1
+    +     },
+    +     {
+    +       id: 'input-delta-sequence',
+    +       value: 1
+    +     },
+    +     {
+    +       activeTopics: 0,
+    +       complete: true,
+    +       completedAt: '2026-10-23T18:16:06.310Z',
+    +       cursor: null,
+    +       id: 'library-documents-compat-v2',
+    +       indexGap: 0,
+    +       indexedActiveTopics: 0,
+    +       repairedDefaultSections: 0,
+    +       repairedGenerationTopics: 0,
+    +       repairedIndexTopics: 0,
+    +       repairedTopics: 0,
+    +       unresolvedLayouts: 0
+    +     },
+    +     {
+    +       id: 'local-control-publication:revision',
+    +       revision: 2,
+    +       version: 1
+    +     },
+    +     {
+    +       blockCount: 0,
+    +       cursor: 0,
+    +       databaseId: 'f301ce87-9b5d-4a8b-a52e-cc3aed3a05ab',
+    +       digest: '92534e1e3b505e669a2c96fd4664d44e63c9b6f5a3ccd6d69389fa85200cadca',
+    +       id: 'migration',
+    +       phase: 'active',
+    +       recordCount: 0,
+    +       recoveryVerified: true,
+    +       verified: true
+    +     },
+    +     {
+    +       bindings: [
+    +         {
+    +           familyId: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    +           inputIds: [],
+    +           kind: 'manual'
+    +         }
+    +       ],
+    +       id: 'prompt-correction-binding:v1',
+    +       normalizerVersion: 'prompt-candidate-whole-finite-v1',
+    +       promptRevisionId: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c',
+    +       version: 1
+    +     },
+    +     {
+    +       id: 'prompt-reuse:v1',
+    +       overrides: [
+    +         {
+    +           hidden: false,
+    +           id: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    +           reuseCount: 0,
+    +           text: 'SYNTHETIC local'
+    +         }
+    +       ],
+    +       pins: [],
+    +       revision: 1,
+    +       splits: [],
+    +       version: 1
+    +     },
+    +     {
+    +       id: 'revision-sequence',
+    +       value: 1
+    +     },
+    +     {
+    +       blocks: 1,
+    +       documents: 1,
+    +       id: 'sequence',
+    +       records: 1
+    +     },
+    +     {
+    +       classifierVersion: 'deterministic-light-2',
+    +       completedAt: '2026-10-23T18:16:06.302Z',
+    +       cursor: null,
+    +       decisionSequence: 0,
+    +       diagnosticsVersion: 1,
+    +       filterVersion: 1,
+    +       id: 'smart-filter',
+    +       legacyCount: 0,
+    +       mapped: 0,
+    +       migrationVersion: 1,
+    +       mode: 'light',
+    +       noticePending: false,
+    +       phase: 'active',
+    +       policyEpoch: 0,
+    +       policyVersion: 2,
+    +       taskState: 'idle',
+    +       verified: true
+    +     },
+    +     {
+    +       complete: true,
+    +       cursor: null,
+    +       id: 'thought-binding:v1',
+    +       input: 0,
+    +       thought: 0,
+    +       version: 1
+    +     },
+    +     {
+    +       fromVersion: 0,
+    +       id: 'thought-ddl',
+    +       toVersion: 5
+    +     },
+    +     {
+    +       completedAt: '2026-10-23T18:16:06.309Z',
+    +       cursor: null,
+    +       fromVersion: 0,
+    +       id: 'thought-library',
+    +       libraryActivation: 'ready',
+    +       mapped: 0,
+    +       migrationVersion: 1,
+    +       phase: 'active',
+    +       quarantined: 0,
+    +       schemaVersion: 1,
+    +       sealed: 0,
+    +       startedAt: '2026-10-23T18:16:06.302Z',
+    +       targetVersion: 5,
+    +       verified: true
+    +     },
+    +     {
+    +       enabled: false,
+    +       id: 'thought-reverse-edit:v1',
+    +       version: 1
+    +     },
+    +     {
+    +       id: 'thought-suppression-key',
+    +       value: [
+    +         20,
+    +         185,
+    +         86,
+    +         37,
+    +         200,
+    +         183,
+    +         145,
+    +         97,
+    +         76,
+    +         0,
+    +         27,
+    +         212,
+    +         206,
+    +         119,
+    +         223,
+    +         184,
+    +         98,
+    +         182,
+    +         103,
+    +         22,
+    +         243,
+    +         130,
+    +         243,
+    +         1,
+    +         252,
+    +         36,
+    +         88,
+    +         62,
+    +         123,
+    +         31,
+    +         22,
+    +         37
+    +       ]
+    +     }
+    +   ],
+    +   migrationBackup: [],
+    +   operationReceipts: [],
+    +   organizerJobs: [],
+    +   organizerSuggestions: [],
+    +   organizerUsage: [],
+    +   organizerWorkItems: [],
+    +   placements: [],
+    +   provenance: [],
+    +   recordIndex: [
+    +     {
+    +       chatKey: 'chatgpt:m1-synthetic-chat',
+    +       contentHash: '0de09a40f7fa1804edaf5c17115814c0963aca90aa6ac1811515aa676015bd5c',
+    +       conversationOrder: 1,
+    +       dedupeKey: '152791060c16747727574a6b3352bd44d05419e9c5b8bedf87a20dfc4f8ef431',
+    +       deletedAt: null,
+    +       hidden: false,
+    +       hiddenKey: 0,
+    +       id: '14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       known: 1,
+    +       legacyChat: undefined,
+    +       listKey: [
+    +         'chatgpt:m1-synthetic-chat',
+    +         0,
+    +         1,
+    +         '',
+    +         1,
+    +         '14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +       ],
+    +       sequence: 0,
+    +       sort: [
+    +         1,
+    +         '',
+    +         1,
+    +         '14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +       ],
+    +       sourceKey: '48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217',
+    +       sourceMessageId: 'm1-synthetic-message-001',
+    +       sourceSentAt: null,
+    +       trashKey: 0,
+    +       visibleKey: 0
+    +     }
+    +   ],
+    +   records: [
+    +     {
+    +       id: '14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       value: {
+    +         capturedAt: '2026-10-23T18:16:06.306Z',
+    +         chatId: 'm1-synthetic-chat',
+    +         chatTitle: 'Synthetic chat',
+    +         chatUrl: 'https://chatgpt.com/c/m1-synthetic-chat',
+    +         contentHash: '0de09a40f7fa1804edaf5c17115814c0963aca90aa6ac1811515aa676015bd5c',
+    +         conversationOrder: 1,
+    +         dedupeKey: '152791060c16747727574a6b3352bd44d05419e9c5b8bedf87a20dfc4f8ef431',
+    +         deletedAt: null,
+    +         editedText: '',
+    +         hidden: false,
+    +         id: '14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         note: '',
+    +         originalText: 'Synthetic explicit working input',
+    +         pageOrder: 1,
+    +         platform: 'chatgpt',
+    +         previousVersionId: null,
+    +         sourceKey: '48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217',
+    +         sourceMessageId: 'm1-synthetic-message-001',
+    +         sourceSentAt: null,
+    +         timeCandidates: {
+    +           agreement: 'unknown',
+    +           dom: false,
+    +           response: false
+    +         },
+    +         timeConfidence: 'unknown',
+    +         timeSource: 'unknown',
+    +         updatedAt: '2026-10-23T18:16:06.306Z'
+    +       }
+    +     }
+    +   ],
+    +   revisions: [
+    +     {
+    +       after: {
+    +         excluded: false,
+    +         libraryText: null,
+    +         note: '',
+    +         originalTextReference: '14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         provenanceSignature: '[{"sourceRecordId":"14d88448-9f73-4a08-84f6-66f309b8cb96"}]'
+    +       },
+    +       at: '2026-10-23T18:16:06.306Z',
+    +       before: {
+    +         excluded: false,
+    +         libraryText: null,
+    +         note: '',
+    +         originalTextReference: '14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         provenanceSignature: '[{"sourceRecordId":"14d88448-9f73-4a08-84f6-66f309b8cb96"}]'
+    +       },
+    +       documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       documentList: [
+    +         'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         1
+    +       ],
+    +       entityId: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       entityKey: 'input:block:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       id: 'acc6c7ab-e8a0-4556-ac85-0f59cc2044ad',
+    +       important: true,
+    +       kind: 'input',
+    +       listKey: [
+    +         'input:block:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         1
+    +       ],
+    +       reason: 'baseline',
+    +       sequence: 1,
+    +       sourceRecordIds: [
+    +         '14d88448-9f73-4a08-84f6-66f309b8cb96'
+    +       ],
+    +       windowStartedAt: '2026-10-23T18:16:06.306Z'
+    +     }
+    +   ],
+    +   sections: [],
+    +   sourceCounts: [
+    +     {
+    +       archiveFirst: [
+    +         'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         1,
+    +         '',
+    +         '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217"]'
+    +       ],
+    +       archiveLast: [
+    +         'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         1,
+    +         '',
+    +         '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217"]'
+    +       ],
+    +       documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +       id: '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217"]',
+    +       libraryFirst: [
+    +         'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         1,
+    +         '',
+    +         '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217"]'
+    +       ],
+    +       libraryLast: [
+    +         'document:14d88448-9f73-4a08-84f6-66f309b8cb96',
+    +         1,
+    +         '',
+    +         '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217"]'
+    +       ],
+    +       views: [
+    +         '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","archive"]',
+    +         '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","library"]'
+    +       ]
+    +     }
+    +   ],
+    +   thoughtSuppressions: [],
+    +   thoughts: [],
+    +   times: [],
+    +   tombstones: [],
+    +   topics: []
+    + }
+    - undefined
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+    blockIndex:
+      0:
+        id: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        sequence: 0
+        documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        recordIds:
+          0: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+        attachedDocument: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        sourceRecordId: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+        excluded: false
+        excludedKey: 0
+        known: 1
+        stamp: ''
+        listKey:
+          0: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          1: 0
+          2: 1
+          3: ''
+          4: 1
+          5: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        sort:
+          0: 1
+          1: ''
+          2: 1
+          3: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        sourceSentAt: ~
+        conversationOrder: 1
+    blocks:
+      0:
+        id: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        value:
+          id: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          sourceRecordId: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+          originalTextReference: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+          libraryText: ~
+          note: ''
+          editedAt: ~
+          excluded: false
+          status: 'active'
+          provenance:
+            0:
+              sourceRecordId: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+          mergedSourceIds:
+          aiSuggestionStatus: 'none'
+          revision: 0
+          provenanceSignature: '[{"sourceRecordId":"14d88448-9f73-4a08-84f6-66f309b8cb96"}]'
+    categories:
+    dependencies:
+    documents:
+      0:
+        id: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        chatKey: 'chatgpt:m1-synthetic-chat'
+        sequence: 0
+        displayKey:
+          0: -0
+          1: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        value:
+          id: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          platform: 'chatgpt'
+          sourceConversationId: 'm1-synthetic-chat'
+          originalConversationTitle: 'Synthetic chat'
+          userTitle: ''
+          summaryPlaceholder: '摘要预留 · 尚未整理'
+          futureAISummary: ~
+          firstSourceSentAt: ~
+          lastSourceSentAt: ~
+          status: 'active'
+          aiSuggestionStatus: 'none'
+          titleRevision: 0
+        libraryDisplay:
+          0: -0
+          1: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        archiveDisplay:
+          0: -0
+          1: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+    entryRelations:
+    filterInputs:
+      0:
+        id: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        authorship: 'untouched'
+        userEdited: false
+        filterOverride: 'none'
+        presence: ~
+        evaluationRevision: 0
+        pendingKey: 0
+        decision: 'uncertain'
+        reasonCode: 'metadata_unknown'
+        filterVersion: 1
+        policyVersion: 2
+        classifierVersion: 'deterministic-light-2'
+        basedOnContentRevision: 0
+    filterIntents:
+    importBatches:
+    importEvidence:
+    importSources:
+    importTasks:
+    inputRemovals:
+    inputStates:
+      0:
+        id: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        contentRevision: 0
+        removalState: 'active'
+        filteringPolicyState: 'none'
+        sourceRecordIds:
+          0: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+        deltaSequence: 1
+    invalidations:
+    libraryDocuments:
+      0:
+        id: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        value:
+          id: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          platform: 'chatgpt'
+          sourceConversationId: 'm1-synthetic-chat'
+          originalConversationTitle: 'Synthetic chat'
+          userTitle: ''
+          summaryPlaceholder: '摘要预留 · 尚未整理'
+          futureAISummary: ~
+          firstSourceSentAt: ~
+          lastSourceSentAt: ~
+          status: 'active'
+          aiSuggestionStatus: 'none'
+    libraryMigrationItems:
+    librarySearchTerms:
+    meta:
+      0:
+        id: 'aiu:delta:known:["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]'
+        version: 1
+        descriptor:
+          key: '["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]'
+          kind: 'input'
+          entityId: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          revision: 0
+          removed: false
+          removalEpoch: 0
+          sourceRecordIds:
+            0: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+          inputIds:
+            0: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          lineage:
+            0: '["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]'
+          independent: true
+          affectedRefs:
+          human: false
+        signature: '{"key":"[\\"input\\",\\"block:14d88448-9f73-4a08-84f6-66f309b8cb96\\"]","kind":"input","entityId":"block:14d88448-9f73-4a08-84f6-66f309b8cb96","revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":["14d88448-9f73-4a08-84f6-66f309b8cb96"],"inputIds":["block:14d88448-9f73-4a08-84f6-66f309b8cb96"],"lineage":["[\\"input\\",\\"block:14d88448-9f73-4a08-84f6-66f309b8cb96\\"]"],"independent":true,"affectedRefs":[],"human":false}'
+        sequence: 1
+      1:
+        id: 'aiu:delta:pending:["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]'
+        version: 1
+        descriptor:
+          key: '["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]'
+          kind: 'input'
+          entityId: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          revision: 0
+          removed: false
+          removalEpoch: 0
+          sourceRecordIds:
+            0: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+          inputIds:
+            0: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          lineage:
+            0: '["input","block:14d88448-9f73-4a08-84f6-66f309b8cb96"]'
+          independent: true
+          affectedRefs:
+          human: false
+        signature: '{"key":"[\\"input\\",\\"block:14d88448-9f73-4a08-84f6-66f309b8cb96\\"]","kind":"input","entityId":"block:14d88448-9f73-4a08-84f6-66f309b8cb96","revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":["14d88448-9f73-4a08-84f6-66f309b8cb96"],"inputIds":["block:14d88448-9f73-4a08-84f6-66f309b8cb96"],"lineage":["[\\"input\\",\\"block:14d88448-9f73-4a08-84f6-66f309b8cb96\\"]"],"independent":true,"affectedRefs":[],"human":false}'
+        sequence: 1
+        requirements:
+        pendingFacets:
+          0: 'topic'
+          1: 'context'
+      2:
+        id: 'aiu:delta:sequence'
+        value: 1
+      3:
+        id: 'archive-year:v1:row:document%3A14d88448-9f73-4a08-84f6-66f309b8cb96:1:000000000001:block%3A14d88448-9f73-4a08-84f6-66f309b8cb96'
+        inputId: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        sourceSentAt: ~
+        conversationOrder: 1
+      4:
+        id: 'backup-data-generation'
+        value: 6
+      5:
+        revisionId: '04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554'
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:entityRevision:promptBinding:prompt-reuse%3Av1:04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554'
+      6:
+        revisionId: '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10'
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:entityRevision:promptBinding:prompt-reuse%3Av1:24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10'
+      7:
+        revisionId: '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9'
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:entityRevision:promptPreferences:prompt-reuse%3Av1:8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9'
+      8:
+        revisionId: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:entityRevision:promptPreferences:prompt-reuse%3Av1:99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+      9:
+        frontier: 2
+        ranges:
+        deviceId: 'SYNTHETIC_A'
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:frontier:SYNTHETIC_A'
+      10:
+        frontier: 2
+        ranges:
+        deviceId: 'SYNTHETIC_B'
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:frontier:SYNTHETIC_B'
+      11:
+        value: 4
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:generation:'
+      12:
+        type: 'promptBinding'
+        entityId: 'prompt-reuse:v1'
+        revisions:
+          0: '04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554'
+          1: '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10'
+        purged: false
+        fence: ~
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:head:promptBinding:prompt-reuse%3Av1'
+      13:
+        type: 'promptPreferences'
+        entityId: 'prompt-reuse:v1'
+        revisions:
+          0: '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9'
+          1: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+        purged: false
+        fence: ~
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:head:promptPreferences:prompt-reuse%3Av1'
+      14:
+        version: 1
+        revisionId: '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10'
+        ownerRevision: 1
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:materializedOwner:promptBinding:prompt-reuse%3Av1'
+      15:
+        version: 1
+        revisionId: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+        ownerRevision: 1
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:materializedOwner:promptPreferences:prompt-reuse%3Av1'
+      16:
+        digest: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+        deviceId: 'SYNTHETIC_A'
+        sequence: 1
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:receipt:285c9809-d9aa-4ef7-ac8f-16a135cea1bc'
+      17:
+        digest: '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10'
+        deviceId: 'SYNTHETIC_A'
+        sequence: 2
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:receipt:31f5e763-d2a9-4791-b784-18de1f0d6f9c'
+      18:
+        digest: '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9'
+        deviceId: 'SYNTHETIC_B'
+        sequence: 1
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:receipt:91088c3c-2e9b-4870-ae32-f7c652f745d1'
+      19:
+        digest: '04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554'
+        deviceId: 'SYNTHETIC_B'
+        sequence: 2
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:receipt:fe87b1be-1e76-46fd-85a1-77532d34949b'
+      20:
+        operation:
+          protocol: 1
+          datasetId: 'SYNTHETIC_companion_resolution'
+          deviceId: 'SYNTHETIC_B'
+          sequence: 2
+          operationId: 'fe87b1be-1e76-46fd-85a1-77532d34949b'
+          type: 'promptBinding'
+          entityId: 'prompt-reuse:v1'
+          codecVersion: 1
+          kind: 'put'
+          actor: 'user'
+          parents:
+          value:
+            id: 'prompt-reuse:v1'
+            version: 1
+            normalizerVersion: 'prompt-candidate-whole-finite-v1'
+            bindings:
+              0:
+                familyId: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+                kind: 'manual'
+                inputIds:
+            promptRevisionId: '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9'
+          revisionId: '04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554'
+        redacted: false
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:revision:04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554'
+      21:
+        operation:
+          protocol: 1
+          datasetId: 'SYNTHETIC_companion_resolution'
+          deviceId: 'SYNTHETIC_A'
+          sequence: 2
+          operationId: '31f5e763-d2a9-4791-b784-18de1f0d6f9c'
+          type: 'promptBinding'
+          entityId: 'prompt-reuse:v1'
+          codecVersion: 1
+          kind: 'put'
+          actor: 'user'
+          parents:
+          value:
+            id: 'prompt-reuse:v1'
+            version: 1
+            normalizerVersion: 'prompt-candidate-whole-finite-v1'
+            bindings:
+              0:
+                familyId: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+                kind: 'manual'
+                inputIds:
+            promptRevisionId: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+          revisionId: '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10'
+        redacted: false
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:revision:24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10'
+      22:
+        operation:
+          protocol: 1
+          datasetId: 'SYNTHETIC_companion_resolution'
+          deviceId: 'SYNTHETIC_B'
+          sequence: 1
+          operationId: '91088c3c-2e9b-4870-ae32-f7c652f745d1'
+          type: 'promptPreferences'
+          entityId: 'prompt-reuse:v1'
+          codecVersion: 1
+          kind: 'put'
+          actor: 'user'
+          parents:
+          value:
+            id: 'prompt-reuse:v1'
+            version: 1
+            pins:
+            overrides:
+              0:
+                id: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+                text: 'SYNTHETIC other'
+                hidden: false
+            splits:
+          revisionId: '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9'
+        redacted: false
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:revision:8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9'
+      23:
+        operation:
+          protocol: 1
+          datasetId: 'SYNTHETIC_companion_resolution'
+          deviceId: 'SYNTHETIC_A'
+          sequence: 1
+          operationId: '285c9809-d9aa-4ef7-ac8f-16a135cea1bc'
+          type: 'promptPreferences'
+          entityId: 'prompt-reuse:v1'
+          codecVersion: 1
+          kind: 'put'
+          actor: 'user'
+          parents:
+          value:
+            id: 'prompt-reuse:v1'
+            version: 1
+            pins:
+            overrides:
+              0:
+                id: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+                text: 'SYNTHETIC local'
+                hidden: false
+            splits:
+          revisionId: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+        redacted: false
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:revision:99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+      24:
+        operationId: '285c9809-d9aa-4ef7-ac8f-16a135cea1bc'
+        digest: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:sequence:SYNTHETIC_A:0000000000000001'
+      25:
+        operationId: '31f5e763-d2a9-4791-b784-18de1f0d6f9c'
+        digest: '24b7bef64dccbc93fe9aacd6a97709c8c8888cd24c540912d738c0c275342e10'
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:sequence:SYNTHETIC_A:0000000000000002'
+      26:
+        operationId: '91088c3c-2e9b-4870-ae32-f7c652f745d1'
+        digest: '8a182914bce89cf9922d0426613d7a95d14f057215349d031db70f3a60706ce9'
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:sequence:SYNTHETIC_B:0000000000000001'
+      27:
+        operationId: 'fe87b1be-1e76-46fd-85a1-77532d34949b'
+        digest: '04e094e9cc2e4567b65333f27dd8461d1c8207010dfb0d905678deaa01458554'
+        id: 'bns:v1:SYNTHETIC_companion_resolution:generation:initial:sequence:SYNTHETIC_B:0000000000000002'
+      28:
+        id: 'gate'
+        epoch: 1
+        enabled: true
+      29:
+        id: 'ia-migration'
+        phase: 'active'
+        cursor: ~
+        count: 0
+        version: 1
+        startedAt: '2026-10-23T18:16:06.301Z'
+        verified: true
+        completedAt: '2026-10-23T18:16:06.302Z'
+        policy:
+          days: 90
+          importantMinimum: 20
+          coalesceMs: 60000
+      30:
+        id: 'input-delta-sequence'
+        value: 1
+      31:
+        id: 'library-documents-compat-v2'
+        cursor: ~
+        complete: true
+        activeTopics: 0
+        repairedTopics: 0
+        repairedIndexTopics: 0
+        repairedGenerationTopics: 0
+        repairedDefaultSections: 0
+        unresolvedLayouts: 0
+        indexedActiveTopics: 0
+        indexGap: 0
+        completedAt: '2026-10-23T18:16:06.310Z'
+      32:
+        id: 'local-control-publication:revision'
+        version: 1
+        revision: 2
+      33:
+        id: 'migration'
+        phase: 'active'
+        databaseId: 'f301ce87-9b5d-4a8b-a52e-cc3aed3a05ab'
+        cursor: 0
+        digest: '92534e1e3b505e669a2c96fd4664d44e63c9b6f5a3ccd6d69389fa85200cadca'
+        verified: true
+        recoveryVerified: true
+        recordCount: 0
+        blockCount: 0
+      34:
+        id: 'prompt-correction-binding:v1'
+        version: 1
+        normalizerVersion: 'prompt-candidate-whole-finite-v1'
+        bindings:
+          0:
+            familyId: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+            kind: 'manual'
+            inputIds:
+        promptRevisionId: '99b25cce1c951db0c05f4256445c3586004be59866633070fa710df0440fda5c'
+      35:
+        id: 'prompt-reuse:v1'
+        version: 1
+        pins:
+        overrides:
+          0:
+            id: 'manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+            text: 'SYNTHETIC local'
+            hidden: false
+            reuseCount: 0
+        splits:
+        revision: 1
+      36:
+        id: 'revision-sequence'
+        value: 1
+      37:
+        id: 'sequence'
+        records: 1
+        blocks: 1
+        documents: 1
+      38:
+        id: 'smart-filter'
+        phase: 'active'
+        migrationVersion: 1
+        cursor: ~
+        mapped: 0
+        legacyCount: 0
+        mode: 'light'
+        noticePending: false
+        decisionSequence: 0
+        policyEpoch: 0
+        filterVersion: 1
+        policyVersion: 2
+        classifierVersion: 'deterministic-light-2'
+        diagnosticsVersion: 1
+        taskState: 'idle'
+        verified: true
+        completedAt: '2026-10-23T18:16:06.302Z'
+      39:
+        id: 'thought-binding:v1'
+        version: 1
+        cursor: ~
+        complete: true
+        input: 0
+        thought: 0
+      40:
+        id: 'thought-ddl'
+        fromVersion: 0
+        toVersion: 5
+      41:
+        id: 'thought-library'
+        schemaVersion: 1
+        migrationVersion: 1
+        fromVersion: 0
+        targetVersion: 5
+        phase: 'active'
+        cursor: ~
+        mapped: 0
+        quarantined: 0
+        sealed: 0
+        startedAt: '2026-10-23T18:16:06.302Z'
+        libraryActivation: 'ready'
+        verified: true
+        completedAt: '2026-10-23T18:16:06.309Z'
+      42:
+        id: 'thought-reverse-edit:v1'
+        version: 1
+        enabled: false
+      43:
+        id: 'thought-suppression-key'
+        value:
+          0: 20
+          1: 185
+          2: 86
+          3: 37
+          4: 200
+          5: 183
+          6: 145
+          7: 97
+          8: 76
+          9: 0
+          10: 27
+          11: 212
+          12: 206
+          13: 119
+          14: 223
+          15: 184
+          16: 98
+          17: 182
+          18: 103
+          19: 22
+          20: 243
+          21: 130
+          22: 243
+          23: 1
+          24: 252
+          25: 36
+          26: 88
+          27: 62
+          28: 123
+          29: 31
+          30: 22
+          31: 37
+    migrationBackup:
+    operationReceipts:
+    organizerJobs:
+    organizerSuggestions:
+    organizerUsage:
+    organizerWorkItems:
+    placements:
+    provenance:
+    recordIndex:
+      0:
+        id: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+        sequence: 0
+        sourceKey: '48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217'
+        sourceMessageId: 'm1-synthetic-message-001'
+        chatKey: 'chatgpt:m1-synthetic-chat'
+        dedupeKey: '152791060c16747727574a6b3352bd44d05419e9c5b8bedf87a20dfc4f8ef431'
+        contentHash: '0de09a40f7fa1804edaf5c17115814c0963aca90aa6ac1811515aa676015bd5c'
+        listKey:
+          0: 'chatgpt:m1-synthetic-chat'
+          1: 0
+          2: 1
+          3: ''
+          4: 1
+          5: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+        sort:
+          0: 1
+          1: ''
+          2: 1
+          3: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+        sourceSentAt: ~
+        conversationOrder: 1
+        hidden: false
+        deletedAt: ~
+        trashKey: 0
+        hiddenKey: 0
+        visibleKey: 0
+        known: 1
+    records:
+      0:
+        id: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+        value:
+          id: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+          platform: 'chatgpt'
+          chatId: 'm1-synthetic-chat'
+          chatUrl: 'https://chatgpt.com/c/m1-synthetic-chat'
+          chatTitle: 'Synthetic chat'
+          sourceMessageId: 'm1-synthetic-message-001'
+          pageOrder: 1
+          originalText: 'Synthetic explicit working input'
+          contentHash: '0de09a40f7fa1804edaf5c17115814c0963aca90aa6ac1811515aa676015bd5c'
+          sourceKey: '48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217'
+          dedupeKey: '152791060c16747727574a6b3352bd44d05419e9c5b8bedf87a20dfc4f8ef431'
+          sourceSentAt: ~
+          timeSource: 'unknown'
+          timeConfidence: 'unknown'
+          conversationOrder: 1
+          capturedAt: '2026-10-23T18:16:06.306Z'
+          previousVersionId: ~
+          note: ''
+          editedText: ''
+          hidden: false
+          deletedAt: ~
+          updatedAt: '2026-10-23T18:16:06.306Z'
+          timeCandidates:
+            dom: false
+            response: false
+            agreement: 'unknown'
+    revisions:
+      0:
+        kind: 'input'
+        entityId: 'block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        before:
+          libraryText: ~
+          note: ''
+          excluded: false
+          originalTextReference: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+          provenanceSignature: '[{"sourceRecordId":"14d88448-9f73-4a08-84f6-66f309b8cb96"}]'
+        after:
+          libraryText: ~
+          note: ''
+          excluded: false
+          originalTextReference: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+          provenanceSignature: '[{"sourceRecordId":"14d88448-9f73-4a08-84f6-66f309b8cb96"}]'
+        reason: 'baseline'
+        important: true
+        sourceRecordIds:
+          0: '14d88448-9f73-4a08-84f6-66f309b8cb96'
+        id: 'acc6c7ab-e8a0-4556-ac85-0f59cc2044ad'
+        entityKey: 'input:block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        sequence: 1
+        windowStartedAt: '2026-10-23T18:16:06.306Z'
+        at: '2026-10-23T18:16:06.306Z'
+        listKey:
+          0: 'input:block:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          1: 1
+        documentList:
+          0: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          1: 1
+    sections:
+    sourceCounts:
+      0:
+        id: '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217"]'
+        documentId: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+        views:
+          0: '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","archive"]'
+          1: '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","library"]'
+        archiveFirst:
+          0: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          1: 1
+          2: ''
+          3: '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217"]'
+        archiveLast:
+          0: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          1: 1
+          2: ''
+          3: '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217"]'
+        libraryFirst:
+          0: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          1: 1
+          2: ''
+          3: '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217"]'
+        libraryLast:
+          0: 'document:14d88448-9f73-4a08-84f6-66f309b8cb96'
+          1: 1
+          2: ''
+          3: '["document:14d88448-9f73-4a08-84f6-66f309b8cb96","48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217"]'
+    thoughtSuppressions:
+    thoughts:
+    times:
+    tombstones:
+    topics:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/prompt-companion-resolution-core.test.mjs:19:598)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 7
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 388.337208

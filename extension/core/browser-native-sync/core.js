@@ -1,3 +1,5 @@
+import {requireOriginalPromptBindingResolution} from './prompt-journal.js';
+import {promptCorrectionEnvelope} from './prompt-correction-binding.js';
 import {assertTopicFormationOperation} from './topic-formation-codec.js';
 import {requireOriginalFormationProtocolOwner} from './topic-formation-journal.js';
 import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
@@ -175,13 +177,18 @@ export class BrowserNativeSyncCore {
  async put(t,kind,ids,data){return t.put('meta',{...data,id:await this.idIn(t,kind,...ids)});}
  async namespace(){return this.transaction(false,t=>this.bind(t),['meta']);}
  async read(kind,...ids){return this.transaction(false,t=>this.get(t,kind,...ids),['meta']);}
- async prepareLocal(changes,{actor='user',operationIds=null,logicalCommit=null,sourceBootstrap=null,sourceAppend=null,humanLibrary=null,promptBinding=null}={}){
+ async prepareLocal(changes,{actor='user',operationIds=null,logicalCommit=null,sourceBootstrap=null,sourceAppend=null,humanLibrary=null,promptBinding=null,promptBindingResolution=null}={}){
   if(!Array.isArray(changes)||!changes.length||changes.length>CORE_LIMITS.batch)fail('BNS_BATCH_LIMIT');
-  changes=clone(changes);operationIds=operationIds?clone(operationIds):null;
-  const snapshot=await this.transaction(false,async t=>{await requireConsumerPublicationSettled(t);return ({
+  changes=clone(changes);operationIds=operationIds?clone(operationIds):null;promptBinding=promptBinding?clone(promptBinding):null;
+  if(promptBindingResolution!==null&&(!promptBinding||actor!=='user'||changes.length!==1||changes[0].type!=='promptPreferences'||changes[0].resolve!==true||!Array.isArray(changes[0].parents)||!Array.isArray(changes[0].expectedParents)))fail('BNS_PROMPT_BINDING_INVALID');
+  const snapshot=await this.transaction(false,async t=>{await requireConsumerPublicationSettled(t);
+   let bindingResolution=null;if(promptBindingResolution!==null){const parents=await requireOriginalPromptBindingResolution(this,t,promptBindingResolution,changes,promptBinding),head=await this.get(t,'head','promptBinding',changes[0].entityId||changes[0].value?.id);
+    if(!Array.isArray(parents)||parents.length!==2||!head||head.purged||!equal([...parents].sort(),[...head.revisions].sort()))fail('BNS_PROMPT_BINDING_INVALID');
+    bindingResolution={head,parents,versions:await Promise.all(parents.map(parent=>this.get(t,'revision',parent))),promptVersions:await Promise.all(changes[0].parents.map(parent=>this.get(t,'revision',parent)))};
+   }return ({
    sequence:(await this.get(t,'device',this.deviceId))?.sequence||0,
    generation:(await this.get(t,'generation'))?.value||0,namespace:await this.bind(t),
-   heads:await Promise.all(changes.map(c=>this.get(t,'head',c.type,c.entityId||c.value?.id))),
+   heads:await Promise.all(changes.map(c=>this.get(t,'head',c.type,c.entityId||c.value?.id))),bindingResolution,
   });},['meta']);
   const operations=[],seen=new Set();let sequence=snapshot.sequence;
   for(let index=0;index<changes.length;index++){
@@ -198,8 +205,16 @@ export class BrowserNativeSyncCore {
   }
   if(promptBinding){
    if(!exact(promptBinding,['version','normalizerVersion','bindings'])||Object.keys(promptBinding).length!==3||logicalCommit||sourceBootstrap||sourceAppend||humanLibrary||operations.length!==1||operations[0].type!=='promptPreferences'||operations[0].kind!=='put')fail('BNS_PROMPT_BINDING_INVALID');
-   const value={id:operations[0].entityId,...clone(promptBinding),promptRevisionId:operations[0].revisionId},bindingHead=await this.read('head','promptBinding',value.id);
-   if(bindingHead?.purged)fail('BNS_ENTITY_PURGED');if(bindingHead?.revisions.length>1)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
+   const value={id:operations[0].entityId,...clone(promptBinding),promptRevisionId:operations[0].revisionId},bindingHead=snapshot.bindingResolution?.head??await this.read('head','promptBinding',value.id);
+   if(bindingHead?.purged)fail('BNS_ENTITY_PURGED');
+   if(bindingHead?.revisions.length>1){
+    const resolved=snapshot.bindingResolution,prompt=operations[0],expected=snapshot.heads[0]?.revisions;
+    if(!resolved)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
+    if(prompt.actor!=='user'||changes[0].resolve!==true||expected?.length!==2||!equal([...changes[0].parents].sort(),[...expected].sort())||!equal([...changes[0].expectedParents].sort(),[...expected].sort()))fail('BNS_RESOLUTION_PARENTS');
+    const oldPrompts=new Map();for(const row of resolved.promptVersions){if(!row||row.redacted)fail('BNS_PROMPT_BINDING_INVALID');const old=await validateOperation(row.operation);if(old.type!=='promptPreferences'||old.entityId!==value.id||old.datasetId!==this.datasetId||old.kind!=='put'||!expected.includes(old.revisionId))fail('BNS_PROMPT_BINDING_INVALID');oldPrompts.set(old.revisionId,old);}if(oldPrompts.size!==expected.length)fail('BNS_PROMPT_BINDING_INVALID');
+    const linked=[];for(let index=0;index<resolved.versions.length;index++){const row=resolved.versions[index];if(!row||row.redacted)fail('BNS_PROMPT_BINDING_INVALID');const companion=await validateOperation(row.operation);if(companion.revisionId!==resolved.parents[index]||companion.datasetId!==this.datasetId||companion.type!=='promptBinding'||companion.entityId!==value.id||companion.kind!=='put'||!expected.includes(companion.value.promptRevisionId))fail('BNS_PROMPT_BINDING_INVALID');promptCorrectionEnvelope(companion.value,oldPrompts.get(companion.value.promptRevisionId).value);linked.push(companion.value.promptRevisionId);}
+    if(new Set(linked).size!==expected.length)fail('BNS_PROMPT_BINDING_INVALID');promptCorrectionEnvelope(value,prompt.value);
+   }else if(snapshot.bindingResolution)fail('BNS_PROMPT_BINDING_INVALID');
    operations.push(await sealOperation({protocol:1,datasetId:this.datasetId,deviceId:this.deviceId,sequence:++sequence,operationId:crypto.randomUUID(),type:'promptBinding',entityId:value.id,codecVersion:1,kind:'put',actor,parents:bindingHead?.revisions??[],value}));
   }
   if(logicalCommit){

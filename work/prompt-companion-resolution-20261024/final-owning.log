@@ -1,0 +1,556 @@
+TAP version 13
+# Subtest: BNS exact bytes, unsupported codecs and actor boundaries fail closed
+ok 1 - BNS exact bytes, unsupported codecs and actor boundaries fail closed
+  ---
+  duration_ms: 5.721708
+  type: 'test'
+  ...
+# Subtest: BNS receiving 12 before 11 accepts both exactly once and retains real holes
+ok 2 - BNS receiving 12 before 11 accepts both exactly once and retains real holes
+  ---
+  duration_ms: 36.41175
+  type: 'test'
+  ...
+# Subtest: BNS full ancestry survives reversed tail and immediate-base shortcuts are insufficient
+ok 3 - BNS full ancestry survives reversed tail and immediate-base shortcuts are insufficient
+  ---
+  duration_ms: 21.163125
+  type: 'test'
+  ...
+# Subtest: BNS two independent repositories preserve concurrent human alternatives and exact resolution parents
+ok 4 - BNS two independent repositories preserve concurrent human alternatives and exact resolution parents
+  ---
+  duration_ms: 22.0545
+  type: 'test'
+  ...
+# Subtest: BNS same ID divergent digest and reused device sequence are hard collisions
+ok 5 - BNS same ID divergent digest and reused device sequence are hard collisions
+  ---
+  duration_ms: 7.202292
+  type: 'test'
+  ...
+# Subtest: BNS stale preparation aborts content and never consumes a sequence
+ok 6 - BNS stale preparation aborts content and never consumes a sequence
+  ---
+  duration_ms: 4.580417
+  type: 'test'
+  ...
+# Subtest: BNS immutable Source identity and payload hashes are independently validated
+ok 7 - BNS immutable Source identity and payload hashes are independently validated
+  ---
+  duration_ms: 5.940708
+  type: 'test'
+  ...
+# Subtest: BNS permanent purge removes history bodies and publishes the body-free fence
+ok 8 - BNS permanent purge removes history bodies and publishes the body-free fence
+  ---
+  duration_ms: 13.942792
+  type: 'test'
+  ...
+# Subtest: BNS actual Prompt domain save and outbox share one production IDB transaction
+ok 9 - BNS actual Prompt domain save and outbox share one production IDB transaction
+  ---
+  duration_ms: 45.294792
+  type: 'test'
+  ...
+# Subtest: BNS Prompt remote apply restores orphan manual work without copying use ranking or echoing
+ok 10 - BNS Prompt remote apply restores orphan manual work without copying use ranking or echoing
+  ---
+  duration_ms: 9.737417
+  type: 'test'
+  ...
+# Subtest: BNS verified-use local counter cannot invalidate subsequent manual Prompt work
+ok 11 - BNS verified-use local counter cannot invalidate subsequent manual Prompt work
+  ---
+  duration_ms: 31.237333
+  type: 'test'
+  ...
+# Subtest: BNS source several revisions restore to fresh Prompt owner and destination can edit
+ok 12 - BNS source several revisions restore to fresh Prompt owner and destination can edit
+  ---
+  duration_ms: 34.54725
+  type: 'test'
+  ...
+# Subtest: BNS a colliding operation aborts the complete received batch before partial materialization
+ok 13 - BNS a colliding operation aborts the complete received batch before partial materialization
+  ---
+  duration_ms: 4.815958
+  type: 'test'
+  ...
+# Subtest: BNS purge redacts incomplete pending bodies and preserves the anti-resurrection receipt
+ok 14 - BNS purge redacts incomplete pending bodies and preserves the anti-resurrection receipt
+  ---
+  duration_ms: 4.742875
+  type: 'test'
+  ...
+# Subtest: BNS three concurrent purge operations converge regardless of arrival order
+ok 15 - BNS three concurrent purge operations converge regardless of arrival order
+  ---
+  duration_ms: 11.483541
+  type: 'test'
+  ...
+# Subtest: BNS asynchronous digest validation owns a snapshot before caller mutation
+ok 16 - BNS asynchronous digest validation owns a snapshot before caller mutation
+  ---
+  duration_ms: 4.254334
+  type: 'test'
+  ...
+# Subtest: BNS sparse arrays and hidden symbol data are rejected rather than normalized
+ok 17 - BNS sparse arrays and hidden symbol data are rejected rather than normalized
+  ---
+  duration_ms: 0.192167
+  type: 'test'
+  ...
+# Subtest: BNS invalid pending ancestry is quarantined without poisoning a valid parent or restart
+ok 18 - BNS invalid pending ancestry is quarantined without poisoning a valid parent or restart
+  ---
+  duration_ms: 8.361458
+  type: 'test'
+  ...
+# Subtest: BNS whole receive batch is captured before the first asynchronous validation
+ok 19 - BNS whole receive batch is captured before the first asynchronous validation
+  ---
+  duration_ms: 3.763042
+  type: 'test'
+  ...
+# Subtest: BNS inherited object properties cannot be used as registered purge codecs
+ok 20 - BNS inherited object properties cannot be used as registered purge codecs
+  ---
+  duration_ms: 0.4075
+  type: 'test'
+  ...
+# Subtest: BNS current codec cannot implicitly admit future Context families or processing metadata
+ok 21 - BNS current codec cannot implicitly admit future Context families or processing metadata
+  ---
+  duration_ms: 0.340084
+  type: 'test'
+  ...
+# Subtest: BNS remote manual update retains existing device reuse counts and starts new IDs at zero
+ok 22 - BNS remote manual update retains existing device reuse counts and starts new IDs at zero
+  ---
+  duration_ms: 10.402375
+  type: 'test'
+  ...
+# Subtest: BNS verified reuse committed during remote validation survives owner materialization
+ok 23 - BNS verified reuse committed during remote validation survives owner materialization
+  ---
+  duration_ms: 31.417084
+  type: 'test'
+  ...
+# Subtest: BNS remote first apply refuses unmanaged manual Prompt work without protocol side effects
+ok 24 - BNS remote first apply refuses unmanaged manual Prompt work without protocol side effects
+  ---
+  duration_ms: 27.240083
+  type: 'test'
+  ...
+# Subtest: BNS remote descendant refuses a changed canonical Prompt owner outside the optional journal
+ok 25 - BNS remote descendant refuses a changed canonical Prompt owner outside the optional journal
+  ---
+  duration_ms: 25.916583
+  type: 'test'
+  ...
+# Subtest: BNS empty remote first apply and managed descendant retain their normal idempotent owner path
+ok 26 - BNS empty remote first apply and managed descendant retain their normal idempotent owner path
+  ---
+  duration_ms: 9.1735
+  type: 'test'
+  ...
+# Subtest: BNS Prompt purge remains explicitly unavailable and atomically preserves the existing owner
+ok 27 - BNS Prompt purge remains explicitly unavailable and atomically preserves the existing owner
+  ---
+  duration_ms: 8.897166
+  type: 'test'
+  ...
+# Subtest: original immutable operation validation authenticates frozen identities and detaches mutable inputs
+ok 28 - original immutable operation validation authenticates frozen identities and detaches mutable inputs
+  ---
+  duration_ms: 1.0265
+  type: 'test'
+  ...
+# Subtest: advanced conflict A/B to C/B resolves from exact last materialized A owner
+ok 29 - advanced conflict A/B to C/B resolves from exact last materialized A owner
+  ---
+  duration_ms: 51.978875
+  type: 'test'
+  ...
+# Subtest: advanced conflict resolution still allows actual device-local verified reuse
+ok 30 - advanced conflict resolution still allows actual device-local verified reuse
+  ---
+  duration_ms: 35.024833
+  type: 'test'
+  ...
+# Subtest: local human edit and exact text reversion cannot masquerade as the materialized ancestor
+ok 31 - local human edit and exact text reversion cannot masquerade as the materialized ancestor
+  ---
+  duration_ms: 38.263791
+  type: 'test'
+  ...
+# Subtest: legacy advanced conflict without proof stays blocked and retains every protocol row
+ok 32 - legacy advanced conflict without proof stays blocked and retains every protocol row
+  ---
+  duration_ms: 26.46625
+  type: 'test'
+  ...
+# Subtest: verified reuse saturation advances existing proof revision without inventing a counter increment
+ok 33 - verified reuse saturation advances existing proof revision without inventing a counter increment
+  ---
+  duration_ms: 30.041042
+  type: 'test'
+  ...
+# Subtest: verified reuse never creates an absent proof or repairs prior human edits
+ok 34 - verified reuse never creates an absent proof or repairs prior human edits
+  ---
+  duration_ms: 56.77475
+  type: 'test'
+  ...
+# Subtest: proof cannot be borrowed from a different active namespace
+ok 35 - proof cannot be borrowed from a different active namespace
+  ---
+  duration_ms: 22.462875
+  type: 'test'
+  ...
+# Subtest: ordinary journal commits materialize:false write exact proof and failed commit rolls it back
+ok 36 - ordinary journal commits materialize:false write exact proof and failed commit rolls it back
+  ---
+  duration_ms: 34.44275
+  type: 'test'
+  ...
+# Subtest: exact materialized pointer must be an ancestor of current heads, not merely equal text
+ok 37 - exact materialized pointer must be an ancestor of current heads, not merely equal text
+  ---
+  duration_ms: 25.5615
+  type: 'test'
+  ...
+# Subtest: bounded owner ancestry refuses a too-deep conflict without protocol acknowledgement
+ok 38 - bounded owner ancestry refuses a too-deep conflict without protocol acknowledgement
+  ---
+  duration_ms: 350.662542
+  type: 'test'
+  ...
+# Subtest: staged resolved descendant qualifies the live materialized ancestor and transfers proof to new namespace
+ok 39 - staged resolved descendant qualifies the live materialized ancestor and transfers proof to new namespace
+  ---
+  duration_ms: 46.668125
+  type: 'test'
+  ...
+# Subtest: explicit bootstrap preserves canonical revision and binds exact proof; concurrent head is refused
+ok 40 - explicit bootstrap preserves canonical revision and binds exact proof; concurrent head is refused
+  ---
+  duration_ms: 31.716
+  type: 'test'
+  ...
+# Subtest: original explicit local atomically resolves both complete prompt/companion head sets
+ok 41 - original explicit local atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 80.715792
+  type: 'test'
+  ...
+# Subtest: original explicit other atomically resolves both complete prompt/companion head sets
+ok 42 - original explicit other atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 43.64775
+  type: 'test'
+  ...
+# Subtest: original explicit manual atomically resolves both complete prompt/companion head sets
+ok 43 - original explicit manual atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 50.276792
+  type: 'test'
+  ...
+# Subtest: original explicit both atomically resolves both complete prompt/companion head sets
+ok 44 - original explicit both atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 38.9885
+  type: 'test'
+  ...
+# Subtest: caller null cannot authorize multihead companion resolution
+ok 45 - caller null cannot authorize multihead companion resolution
+  ---
+  duration_ms: 26.21975
+  type: 'test'
+  ...
+# Subtest: caller true cannot authorize multihead companion resolution
+ok 46 - caller true cannot authorize multihead companion resolution
+  ---
+  duration_ms: 24.038125
+  type: 'test'
+  ...
+# Subtest: caller {} cannot authorize multihead companion resolution
+ok 47 - caller {} cannot authorize multihead companion resolution
+  ---
+  duration_ms: 24.916334
+  type: 'test'
+  ...
+# Subtest: caller "forged" cannot authorize multihead companion resolution
+ok 48 - caller "forged" cannot authorize multihead companion resolution
+  ---
+  duration_ms: 27.085542
+  type: 'test'
+  ...
+# Subtest: ordinary write refuses both prompt conflict and direct binding conflict without changing any table
+ok 49 - ordinary write refuses both prompt conflict and direct binding conflict without changing any table
+  ---
+  duration_ms: 24.42775
+  type: 'test'
+  ...
+# Subtest: proof-failure rolls back prompt/binding/proofs/old history/outbox/all tables
+ok 50 - proof-failure rolls back prompt/binding/proofs/old history/outbox/all tables
+  ---
+  duration_ms: 32.744083
+  type: 'test'
+  ...
+# Subtest: late-binding-write rolls back prompt/binding/proofs/old history/outbox/all tables
+ok 51 - late-binding-write rolls back prompt/binding/proofs/old history/outbox/all tables
+  ---
+  duration_ms: 33.7385
+  type: 'test'
+  ...
+# Subtest: original exact preparation still loses to later generation and cannot commit partial companions
+ok 52 - original exact preparation still loses to later generation and cannot commit partial companions
+  ---
+  duration_ms: 29.64775
+  type: 'test'
+  ...
+# Subtest: original private token rejects clone-token substitution without writes
+ok 53 - original private token rejects clone-token substitution without writes
+  ---
+  duration_ms: 23.248167
+  type: 'test'
+  ...
+# Subtest: original private token rejects prompt-parents substitution without writes
+ok 54 - original private token rejects prompt-parents substitution without writes
+  ---
+  duration_ms: 24.090625
+  type: 'test'
+  ...
+# Subtest: original private token rejects binding-envelope substitution without writes
+ok 55 - original private token rejects binding-envelope substitution without writes
+  ---
+  duration_ms: 23.482375
+  type: 'test'
+  ...
+# Subtest: original private token rejects actor substitution without writes
+ok 56 - original private token rejects actor substitution without writes
+  ---
+  duration_ms: 23.975125
+  type: 'test'
+  ...
+# Subtest: original private token rejects operation-kind substitution without writes
+ok 57 - original private token rejects operation-kind substitution without writes
+  ---
+  duration_ms: 22.767125
+  type: 'test'
+  ...
+# Subtest: original private token rejects extra-change substitution without writes
+ok 58 - original private token rejects extra-change substitution without writes
+  ---
+  duration_ms: 23.642708
+  type: 'test'
+  ...
+# Subtest: prepared pair remains private and cannot commit a cloned operation envelope
+ok 59 - prepared pair remains private and cannot commit a cloned operation envelope
+  ---
+  duration_ms: 22.463667
+  type: 'test'
+  ...
+# Subtest: complete original projector anchors preserve exact portable work/order and exclude local counters
+ok 60 - complete original projector anchors preserve exact portable work/order and exclude local counters
+  ---
+  duration_ms: 15.401833
+  type: 'test'
+  ...
+# Subtest: stable complete Input identities bind a rebuilt family; same text/newest/hash-only substitute does not
+ok 61 - stable complete Input identities bind a rebuilt family; same text/newest/hash-only substitute does not
+  ---
+  duration_ms: 1.70225
+  type: 'test'
+  ...
+# Subtest: one missing anchor is not replaced by extra automatic members and divergent anchors remain unresolved
+ok 62 - one missing anchor is not replaced by extra automatic members and divergent anchors remain unresolved
+  ---
+  duration_ms: 0.546167
+  type: 'test'
+  ...
+# Subtest: representative must remain a member even when every captured family anchor exists
+ok 63 - representative must remain a member even when every captured family anchor exists
+  ---
+  duration_ms: 0.620708
+  type: 'test'
+  ...
+# Subtest: manual representative and split without a real candidate remain unresolved, retaining original facts
+ok 64 - manual representative and split without a real candidate remain unresolved, retaining original facts
+  ---
+  duration_ms: 0.32075
+  type: 'test'
+  ...
+# Subtest: split/do-not-merge facts and stable group IDs survive and missing split Input is retained unresolved
+ok 65 - split/do-not-merge facts and stable group IDs survive and missing split Input is retained unresolved
+  ---
+  duration_ms: 0.998
+  type: 'test'
+  ...
+# Subtest: independent UUID and orphan work retain exact bodies and pin order without invented memberships
+ok 66 - independent UUID and orphan work retain exact bodies and pin order without invented memberships
+  ---
+  duration_ms: 0.587708
+  type: 'test'
+  ...
+# Subtest: unknown normalizer preserves work and refuses derived binding, even if hashes/text currently match
+ok 67 - unknown normalizer preserves work and refuses derived binding, even if hashes/text currently match
+  ---
+  duration_ms: 0.583875
+  type: 'test'
+  ...
+# Subtest: many-to-one convergence never silently overwrites either original correction
+ok 68 - many-to-one convergence never silently overwrites either original correction
+  ---
+  duration_ms: 1.582834
+  type: 'test'
+  ...
+# Subtest: input permutation/time/ranking does not change capture binding or authorize a different correction
+ok 69 - input permutation/time/ranking does not change capture binding or authorize a different correction
+  ---
+  duration_ms: 1.515667
+  type: 'test'
+  ...
+# Subtest: ranking-only overrides are not a second portable work owner
+ok 70 - ranking-only overrides are not a second portable work owner
+  ---
+  duration_ms: 0.697417
+  type: 'test'
+  ...
+# Subtest: strict binding DTO rejects extra/missing/local fields, duplicate or invalid anchor memberships
+ok 71 - strict binding DTO rejects extra/missing/local fields, duplicate or invalid anchor memberships
+  ---
+  duration_ms: 1.578167
+  type: 'test'
+  ...
+# Subtest: finite parser rejects getters, sparse arrays, symbols, cycles and excess data without invoking code
+ok 72 - finite parser rejects getters, sparse arrays, symbols, cycles and excess data without invoking code
+  ---
+  duration_ms: 28.188333
+  type: 'test'
+  ...
+# Subtest: escaped UTF8 over-limit DTO is refused before constructing any JSON temporary
+ok 73 - escaped UTF8 over-limit DTO is refused before constructing any JSON temporary
+  ---
+  duration_ms: 6.966667
+  type: 'test'
+  ...
+# Subtest: oversize input array is refused before allocating its own-name vector and invalid UTF16 stays invalid
+ok 74 - oversize input array is refused before allocating its own-name vector and invalid UTF16 stays invalid
+  ---
+  duration_ms: 1.079875
+  type: 'test'
+  ...
+# Subtest: unknown normalizer with the same current family hash preserves human work as unresolved without attaching it to automatic members
+ok 75 - unknown normalizer with the same current family hash preserves human work as unresolved without attaching it to automatic members
+  ---
+  duration_ms: 1.507459
+  type: 'test'
+  ...
+# Subtest: bound projection accepts canonical property order and borrows original IDs after a genuine family hash rebuild
+ok 76 - bound projection accepts canonical property order and borrows original IDs after a genuine family hash rebuild
+  ---
+  duration_ms: 1.261667
+  type: 'test'
+  ...
+# Subtest: actual Source and Prompt owner commit two linked operations/outboxes without changing archive or permission
+ok 77 - actual Source and Prompt owner commit two linked operations/outboxes without changing archive or permission
+  ---
+  duration_ms: 128.308917
+  type: 'test'
+  ...
+# Subtest: original full corrections, ordered pins, representative and split facts have required body-free bindings
+ok 78 - original full corrections, ordered pins, representative and split facts have required body-free bindings
+  ---
+  duration_ms: 125.058917
+  type: 'test'
+  ...
+# Subtest: prejournal populated Prompt bootstrap preserves real row and adds only the initial two bootstrap operations
+ok 79 - prejournal populated Prompt bootstrap preserves real row and adds only the initial two bootstrap operations
+  ---
+  duration_ms: 91.373417
+  type: 'test'
+  ...
+# Subtest: existing actual A manual Prompt head enrolls one bootstrap companion without rewriting Prompt history
+ok 80 - existing actual A manual Prompt head enrolls one bootstrap companion without rewriting Prompt history
+  ---
+  duration_ms: 75.686917
+  type: 'test'
+  ...
+# Subtest: genuine Working edits retain old correction Input anchors and allow a body-free current target rebind
+ok 81 - genuine Working edits retain old correction Input anchors and allow a body-free current target rebind
+  ---
+  duration_ms: 102.96325
+  type: 'test'
+  ...
+# Subtest: verified local reuse renews both owner revisions without new portable operation or binding recapture
+ok 82 - verified local reuse renews both owner revisions without new portable operation or binding recapture
+  ---
+  duration_ms: 66.174792
+  type: 'test'
+  ...
+# Subtest: a genuine formerly eligible Working edit retains work when original eligibility omits a missing Prompt anchor
+ok 83 - a genuine formerly eligible Working edit retains work when original eligibility omits a missing Prompt anchor
+  ---
+  duration_ms: 68.252416
+  type: 'test'
+  ...
+# Subtest: genuine Working convergence keeps both human corrections and ordered pins unresolved without overwriting either body
+ok 84 - genuine Working convergence keeps both human corrections and ordered pins unresolved without overwriting either body
+  ---
+  duration_ms: 126.840084
+  type: 'test'
+  ...
+# Subtest: failure after real paired commit work aborts physical row, binding and both outboxes across the complete repository
+ok 85 - failure after real paired commit work aborts physical row, binding and both outboxes across the complete repository
+  ---
+  duration_ms: 53.966458
+  type: 'test'
+  ...
+# Subtest: a real concurrent original Prompt write after paired prepare wins CAS and leaves no half-pair
+ok 86 - a real concurrent original Prompt write after paired prepare wins CAS and leaves no half-pair
+  ---
+  duration_ms: 58.258917
+  type: 'test'
+  ...
+# Subtest: missing physical companion refuses a subsequent genuine owner write with no repository changes
+ok 87 - missing physical companion refuses a subsequent genuine owner write with no repository changes
+  ---
+  duration_ms: 49.967792
+  type: 'test'
+  ...
+# Subtest: a swapped older valid physical companion cannot qualify the current Prompt head or mutate the repository
+ok 88 - a swapped older valid physical companion cannot qualify the current Prompt head or mutate the repository
+  ---
+  duration_ms: 56.17225
+  type: 'test'
+  ...
+# Subtest: original grouped owner consumes full Prompt from closed A through B Working continuation and closed B to fresh C
+ok 89 - original grouped owner consumes full Prompt from closed A through B Working continuation and closed B to fresh C
+  ---
+  duration_ms: 664.488041
+  type: 'test'
+  ...
+# Subtest: original edit then split then new split correction preserves shared declared anchors and both authored bodies
+ok 90 - original edit then split then new split correction preserves shared declared anchors and both authored bodies
+  ---
+  duration_ms: 72.406542
+  type: 'test'
+  ...
+# Subtest: an undeclared shared anchor in a structurally valid companion refuses actual query and write without repository changes
+ok 91 - an undeclared shared anchor in a structurally valid companion refuses actual query and write without repository changes
+  ---
+  duration_ms: 67.713625
+  type: 'test'
+  ...
+1..91
+# tests 91
+# suites 0
+# pass 91
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1973.706708
