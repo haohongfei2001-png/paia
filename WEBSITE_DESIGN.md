@@ -1,3 +1,9 @@
+> **23 October 2026 — Atelier V9 homepage.** The owner requested the current
+> conversation design be published, with an independent hero background and a
+> less rigid Thought Library presentation. The paired home templates and their
+> scoped verification now live in [website/atelier/README.md](website/atelier/README.md).
+> Other pages, the standalone demo, product runtime and release boundaries remain.
+
 > **Current visual direction — Owner correction, 8 October 2026:** the website
 > now follows current PAIA product mockups and the D6.2 / PT1 / Context4 material
 > language, with a modern frosted-glass presentation and richer motion. The
