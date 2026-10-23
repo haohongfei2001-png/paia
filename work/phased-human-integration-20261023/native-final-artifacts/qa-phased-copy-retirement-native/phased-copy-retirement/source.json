@@ -1,0 +1,84 @@
+{
+  "variant": "source",
+  "scope": "phased-copy-retirement",
+  "head": "872e23b00e141f9f2d0a192d763ae91e9ba3e171",
+  "result": "PASS",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "5c1b73550cda4d7b36daf87ed6dc5ef909499d723045f3cefa95b78c79270d25",
+  "hashes": {
+    "core/browser-native-sync/canonical-generation-copy-retirement.js": "bb935416e839a5501dcbca2f484f981a324e1a1b70c9a71b833b516d6026d537",
+    "core/browser-native-sync/canonical-generation-phased-human.js": "bae35f50c3bdd50b3e5cc8c787c1bb0d2c391d47120c84f0ae6a01b982c8c93c",
+    "core/browser-native-sync/canonical-generation-task-ledger.js": "1a5c9098ad40ac141b17047ead690aac843252a6e36cccc217fc41a60af05ac2",
+    "core/thought-binding.js": "777a0006cc04081e68e3ea98c95ad9961fdd12a25aaa6b361862e34511837f5e",
+    "core/browser-native-sync/canonical-generation-human-restore.js": "cc84377922fd4009ed069e12cf6926120868ea528a144cb373fb3ab064565a6c",
+    "core/browser-native-sync/human-library-group.js": "930daeab93932e8fbab7f562afedc62259424683afdaeaddbf4c3cf51fb0c194",
+    "core/browser-native-sync/human-library-plan.js": "a0b4845ddfe44968bdc7e68c9bb7ae5d35135b728a4ff860a735f7ebedf546e2",
+    "core/browser-native-sync/human-library-search-proof.js": "105c65d9b2d9793accb9df6026bb70063822958dabf2fe741953db9eccbb9f76",
+    "core/ia-store-owner.js": "67825a0116b455b19d2187bc7f12db8fd4957a97e3b543172f2c093d15a03e18",
+    "core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
+    "core/browser-native-sync/saved-work-bootstrap.js": "f635874237714198c0ccf0552dfc85ae8b1e2a6282ee984ca96ba8eded66387e",
+    "core/browser-native-sync/group-checkpoint-plan.js": "0536d0afcb587dac7ee3e1ae2c7817291c57653a1d4730379f86d53aac6709ae",
+    "core/browser-native-sync/group-checkpoint-scope.js": "23f4ff5e40f4a451ed1b562b7dbc5d851e0dbd20c2ca0dc8a983a3f37e01d495",
+    "core/library-documents-store.js": "63f7e9dec5c31e076cfa48e865b1fa7ef1e804ac12ba2d25c3c1d8faff69931a",
+    "core/idb-repository.js": "759765671a8855b4d7ea061e299c7d8837b502173cf376180cf0b45662072ae1",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/thought-maintenance.js": "35f099480098ac724f3de6a26f50b4991bb027c6eff05340eba5621c318833b6",
+    "core/source-purge-admission.js": "8a526a77ff393739736d19b746319ac5b844192392ecb5f53c7edf67ce294347",
+    "core/browser-native-sync/core.js": "77dee7e562f58bb770198b4d482d110f814d92db003acaa7a9d41c671f8905d4",
+    "core/browser-native-sync/group-checkpoint.js": "7ece28241883e823390d99662f39f41651ae60d021de57693e22f840b02cb3e5",
+    "core/browser-native-sync/canonical-generation-publication.js": "f287cffdf240cd5bed3deb65b494db26e6bdb83b249b4767c714f257272cebf1",
+    "core/browser-native-sync/canonical-generation-checkpoint-stage.js": "3f22f9a96553a113b0d4c86d7a9a48208daef111d329e2517f3f0bb1c4688070",
+    "core/browser-native-sync/source-purge-journal.js": "1e86249972e868fe47afb468cad44fd02dabc860981418654ddec509fd0252cc",
+    "core/browser-native-sync/source-purge-codec.js": "bfbe850cb33a941a753e5db7f118a10b681255aa5eead304543c714a602f2360",
+    "core/browser-native-sync/source-purge-checkpoint.js": "a2c4d8c710863ffc465baa33499a2d6b00ee8d4b1c2c933143c9ee1b9aeea5a8"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    "phased retirement removes only checkpoint body copies and preserves export and audit controls",
+    "phased retirement bounded page survives actual store and registry close then preserves original edit",
+    "phased retirement refuses unknown with complete rollback",
+    "phased retirement refuses missing-item with complete rollback",
+    "phased retirement refuses missing-validation with complete rollback",
+    "phased retirement refuses pending-task with complete rollback",
+    "phased retirement refuses foreign-task with complete rollback",
+    "phased retirement refuses validation-chain with complete rollback",
+    "phased retirement refuses receipt-extra with complete rollback",
+    "phased retirement refuses progress with complete rollback",
+    "phased retirement terminal fence refuses late ledger and rolls back deletions",
+    "phased retirement terminal fence refuses late new-copy and rolls back deletions",
+    "phased retirement pins audit controls across cleanup calls"
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "5a070cdf-3fdd-483c-a203-6f44be05d3b0",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "5a070cdf-3fdd-483c-a203-6f44be05d3b0",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}

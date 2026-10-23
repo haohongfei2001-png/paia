@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: phased retirement removes only checkpoint body copies and preserves export and audit controls
+ok 1 - phased retirement removes only checkpoint body copies and preserves export and audit controls
+  ---
+  duration_ms: 399.405125
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 609.993125

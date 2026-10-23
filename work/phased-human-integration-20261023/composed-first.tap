@@ -1,0 +1,454 @@
+TAP version 13
+# Subtest: original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+ok 1 - original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+  ---
+  duration_ms: 515.297125
+  type: 'test'
+  ...
+# Subtest: mixed graph rejects a Saved creation allocation borrowed from the Human owner
+ok 2 - mixed graph rejects a Saved creation allocation borrowed from the Human owner
+  ---
+  duration_ms: 91.403667
+  type: 'test'
+  ...
+# Subtest: mixed export refuses an unjournaled Human entry and leaves original library unchanged
+ok 3 - mixed export refuses an unjournaled Human entry and leaves original library unchanged
+  ---
+  duration_ms: 89.915333
+  type: 'test'
+  ...
+# Subtest: mixed Saved profile explicitly refuses structural Human groups
+ok 4 - mixed Saved profile explicitly refuses structural Human groups
+  ---
+  duration_ms: 113.269792
+  type: 'test'
+  ...
+# Subtest: mixed cold activation refuses existing local canonical Human work
+ok 5 - mixed cold activation refuses existing local canonical Human work
+  ---
+  duration_ms: 158.292667
+  type: 'test'
+  ...
+# Subtest: mixed activation failure preserves both owners and explicit retry commits exactly once
+ok 6 - mixed activation failure preserves both owners and explicit retry commits exactly once
+  ---
+  duration_ms: 212.935709
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human body drift with complete rollback
+ok 7 - mixed final native fence rejects Human body drift with complete rollback
+  ---
+  duration_ms: 171.203375
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human history drift with complete rollback
+ok 8 - mixed final native fence rejects Human history drift with complete rollback
+  ---
+  duration_ms: 207.866625
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human receipt drift with complete rollback
+ok 9 - mixed final native fence rejects Human receipt drift with complete rollback
+  ---
+  duration_ms: 187.257958
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human mapping drift with complete rollback
+ok 10 - mixed final native fence rejects Human mapping drift with complete rollback
+  ---
+  duration_ms: 190.505958
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human queue drift with complete rollback
+ok 11 - mixed final native fence rejects Human queue drift with complete rollback
+  ---
+  duration_ms: 194.113583
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects extra Human row drift with complete rollback
+ok 12 - mixed final native fence rejects extra Human row drift with complete rollback
+  ---
+  duration_ms: 202.377083
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Saved body drift with complete rollback
+ok 13 - mixed final native fence rejects Saved body drift with complete rollback
+  ---
+  duration_ms: 219.143917
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Source record drift with complete rollback
+ok 14 - mixed final native fence rejects Source record drift with complete rollback
+  ---
+  duration_ms: 196.920625
+  type: 'test'
+  ...
+# Subtest: mixed activation preserves the original private transaction budget
+ok 15 - mixed activation preserves the original private transaction budget
+  ---
+  duration_ms: 380.5795
+  type: 'test'
+  ...
+# Subtest: mixed original Human witness rejects a copied capability without opening a writer
+ok 16 - mixed original Human witness rejects a copied capability without opening a writer
+  ---
+  duration_ms: 141.520416
+  type: 'test'
+  ...
+# Subtest: existing mixed B refuses unsupported incremental receive before changing its canonical or protocol rows
+ok 17 - existing mixed B refuses unsupported incremental receive before changing its canonical or protocol rows
+  ---
+  duration_ms: 448.350583
+  type: 'test'
+  ...
+# Subtest: two original Human edits remain human-owned alongside a Saved successor on cold C
+ok 18 - two original Human edits remain human-owned alongside a Saved successor on cold C
+  ---
+  duration_ms: 608.735875
+  type: 'test'
+  ...
+# Subtest: caller entity text cannot impersonate an internal Human identity while borrowing its allocation
+ok 19 - caller entity text cannot impersonate an internal Human identity while borrowing its allocation
+  ---
+  duration_ms: 98.822
+  type: 'test'
+  ...
+# Subtest: committed original graph can bind original store and edit through original Human owner
+ok 20 - committed original graph can bind original store and edit through original Human owner
+  ---
+  duration_ms: 472.894458
+  type: 'test'
+  ...
+# Subtest: staging sealed and target-ready graphs cannot bind an active application writer
+ok 21 - staging sealed and target-ready graphs cannot bind an active application writer
+  ---
+  duration_ms: 338.991
+  type: 'test'
+  ...
+# Subtest: binding refuses fake stores handles and mismatched original repositories
+ok 22 - binding refuses fake stores handles and mismatched original repositories
+  ---
+  duration_ms: 318.9935
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:gate:v1
+ok 23 - active application cannot mutate protected protocol canonical-generation:gate:v1
+  ---
+  duration_ms: 391.260875
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:repository-protection:v1
+ok 24 - active application cannot mutate protected protocol canonical-generation:repository-protection:v1
+  ---
+  duration_ms: 327.045042
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:qualified-graph:v1
+ok 25 - active application cannot mutate protected protocol canonical-generation:qualified-graph:v1
+  ---
+  duration_ms: 318.343084
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:checkpoint:item:00000000
+ok 26 - active application cannot mutate protected protocol canonical-generation:checkpoint:item:00000000
+  ---
+  duration_ms: 302.935917
+  type: 'test'
+  ...
+# Subtest: active application cannot delete protected generation metadata
+ok 27 - active application cannot delete protected generation metadata
+  ---
+  duration_ms: 325.812625
+  type: 'test'
+  ...
+# Subtest: active application cannot clear protected generation metadata
+ok 28 - active application cannot clear protected generation metadata
+  ---
+  duration_ms: 358.089958
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:gate:v1
+ok 29 - raw native mutation of protected generation row rolls whole active write back canonical-generation:gate:v1
+  ---
+  duration_ms: 373.417584
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:qualified-graph:v1
+ok 30 - raw native mutation of protected generation row rolls whole active write back canonical-generation:qualified-graph:v1
+  ---
+  duration_ms: 401.496375
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:checkpoint:unknown
+ok 31 - raw native mutation of protected generation row rolls whole active write back canonical-generation:checkpoint:unknown
+  ---
+  duration_ms: 348.631875
+  type: 'test'
+  ...
+# Subtest: failed active callback does not advance write revision or retain any write
+ok 32 - failed active callback does not advance write revision or retain any write
+  ---
+  duration_ms: 436.637459
+  type: 'test'
+  ...
+# Subtest: active write retains original4096 resource budget and full rollback
+ok 33 - active write retains original4096 resource budget and full rollback
+  ---
+  duration_ms: 485.879166
+  type: 'test'
+  ...
+# Subtest: cold unbound original repository does not inherit live writer authority
+ok 34 - cold unbound original repository does not inherit live writer authority
+  ---
+  duration_ms: 341.024292
+  type: 'test'
+  ...
+# Subtest: changed durable registry receipt refuses before active callback
+ok 35 - changed durable registry receipt refuses before active callback
+  ---
+  duration_ms: 384.174667
+  type: 'test'
+  ...
+# Subtest: post-preflight reservation race retains the source write and invalidates stale replacement
+ok 36 - post-preflight reservation race retains the source write and invalidates stale replacement
+  ---
+  duration_ms: 387.673833
+  type: 'test'
+  ...
+# Subtest: cold original library rebinds from durable publication and continues original edit without resetting consent
+ok 37 - cold original library rebinds from durable publication and continues original edit without resetting consent
+  ---
+  duration_ms: 406.019416
+  type: 'test'
+  ...
+# Subtest: competing prepared active writes cannot silently share one source revision
+ok 38 - competing prepared active writes cannot silently share one source revision
+  ---
+  duration_ms: 366.77975
+  type: 'test'
+  ...
+# Subtest: changed registry instance wrapper cannot manufacture active writer readiness
+ok 39 - changed registry instance wrapper cannot manufacture active writer readiness
+  ---
+  duration_ms: 390.22275
+  type: 'test'
+  ...
+# Subtest: overflowed write revision fails before any active write is retained
+ok 40 - overflowed write revision fails before any active write is retained
+  ---
+  duration_ms: 509.0455
+  type: 'test'
+  ...
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+ok 41 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 308.457125
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rebinds original proof and never duplicates canonical application
+ok 42 - protected group cold resume rebinds original proof and never duplicates canonical application
+  ---
+  duration_ms: 307.650208
+  type: 'test'
+  ...
+# Subtest: protected group never lends a transaction to custom diagnostic callback
+ok 43 - protected group never lends a transaction to custom diagnostic callback
+  ---
+  duration_ms: 116.166541
+  type: 'test'
+  ...
+# Subtest: protected group cannot acquire genuine authority using forged or foreign proof
+ok 44 - protected group cannot acquire genuine authority using forged or foreign proof
+  ---
+  duration_ms: 116.520625
+  type: 'test'
+  ...
+# Subtest: protected group keeps token away from mutable repository and Core transaction wrappers
+ok 45 - protected group keeps token away from mutable repository and Core transaction wrappers
+  ---
+  duration_ms: 258.526625
+  type: 'test'
+  ...
+# Subtest: protected original group refuses gate-phase drift without partial owner writes
+ok 46 - protected original group refuses gate-phase drift without partial owner writes
+  ---
+  duration_ms: 133.374958
+  type: 'test'
+  ...
+# Subtest: protected original group refuses checkpoint-item drift without partial owner writes
+ok 47 - protected original group refuses checkpoint-item drift without partial owner writes
+  ---
+  duration_ms: 119.515583
+  type: 'test'
+  ...
+# Subtest: protected original group refuses consent drift without partial owner writes
+ok 48 - protected original group refuses consent drift without partial owner writes
+  ---
+  duration_ms: 131.083541
+  type: 'test'
+  ...
+# Subtest: protected original group refuses restore-row drift without partial owner writes
+ok 49 - protected original group refuses restore-row drift without partial owner writes
+  ---
+  duration_ms: 167.399083
+  type: 'test'
+  ...
+# Subtest: protected original group refuses purge-deny drift without partial owner writes
+ok 50 - protected original group refuses purge-deny drift without partial owner writes
+  ---
+  duration_ms: 149.434833
+  type: 'test'
+  ...
+# Subtest: protected group native terminal canonical drift rolls back original owner and receipt
+ok 51 - protected group native terminal canonical drift rolls back original owner and receipt
+  ---
+  duration_ms: 168.547084
+  type: 'test'
+  ...
+# Subtest: protected group native terminal restore-receipt drift rolls back original owner and receipt
+ok 52 - protected group native terminal restore-receipt drift rolls back original owner and receipt
+  ---
+  duration_ms: 194.483375
+  type: 'test'
+  ...
+# Subtest: protected group native terminal checkpoint-item drift rolls back original owner and receipt
+ok 53 - protected group native terminal checkpoint-item drift rolls back original owner and receipt
+  ---
+  duration_ms: 169.060625
+  type: 'test'
+  ...
+# Subtest: protected group native terminal protection drift rolls back original owner and receipt
+ok 54 - protected group native terminal protection drift rolls back original owner and receipt
+  ---
+  duration_ms: 226.945458
+  type: 'test'
+  ...
+# Subtest: protected group native terminal gate drift rolls back original owner and receipt
+ok 55 - protected group native terminal gate drift rolls back original owner and receipt
+  ---
+  duration_ms: 398.703375
+  type: 'test'
+  ...
+# Subtest: protected original graph seal retains existing-active migration refusal
+ok 56 - protected original graph seal retains existing-active migration refusal
+  ---
+  duration_ms: 265.496167
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted stage.put before lending a write transaction
+ok 57 - protected group refuses substituted stage.put before lending a write transaction
+  ---
+  duration_ms: 148.898125
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted coreB.get before lending a write transaction
+ok 58 - protected group refuses substituted coreB.get before lending a write transaction
+  ---
+  duration_ms: 123.798625
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.applyInitialSource before lending a write transaction
+ok 59 - protected group refuses substituted b.applyInitialSource before lending a write transaction
+  ---
+  duration_ms: 127.162625
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.control before lending a write transaction
+ok 60 - protected group refuses substituted b.control before lending a write transaction
+  ---
+  duration_ms: 142.480125
+  type: 'test'
+  ...
+# Subtest: protected group descriptor guard refuses an owner method getter without executing it
+ok 61 - protected group descriptor guard refuses an owner method getter without executing it
+  ---
+  duration_ms: 121.29425
+  type: 'test'
+  ...
+# Subtest: protected group rejects a shadowing prototype method before write authority
+ok 62 - protected group rejects a shadowing prototype method before write authority
+  ---
+  duration_ms: 127.472292
+  type: 'test'
+  ...
+# Subtest: protected group restore field getter cannot rebind the private original consumer
+ok 63 - protected group restore field getter cannot rebind the private original consumer
+  ---
+  duration_ms: 91.481584
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rejects extra durable restore fields
+ok 64 - protected group cold resume rejects extra durable restore fields
+  ---
+  duration_ms: 141.860833
+  type: 'test'
+  ...
+# Subtest: protected group native owner failure rolls back and fresh explicit retry reuses original graph
+ok 65 - protected group native owner failure rolls back and fresh explicit retry reuses original graph
+  ---
+  duration_ms: 233.722375
+  type: 'test'
+  ...
+# Subtest: protected fixed group publication refuses substituted original consumer methods before write callback
+ok 66 - protected fixed group publication refuses substituted original consumer methods before write callback
+  ---
+  duration_ms: 236.997
+  type: 'test'
+  ...
+# Subtest: committed work includes original final reads and is an immutable numeric-only receipt
+ok 67 - committed work includes original final reads and is an immutable numeric-only receipt
+  ---
+  duration_ms: 9.895792
+  type: 'test'
+  ...
+# Subtest: committed accounting does not keep charging user pause after completion
+ok 68 - committed accounting does not keep charging user pause after completion
+  ---
+  duration_ms: 17.224667
+  type: 'test'
+  ...
+# Subtest: foreign repository and fabricated scope cannot get accounting evidence
+ok 69 - foreign repository and fabricated scope cannot get accounting evidence
+  ---
+  duration_ms: 3.209
+  type: 'test'
+  ...
+# Subtest: unmetered transaction does not manufacture a zero-cost receipt
+ok 70 - unmetered transaction does not manufacture a zero-cost receipt
+  ---
+  duration_ms: 1.484375
+  type: 'test'
+  ...
+# Subtest: aborted native transaction cannot produce committed work
+ok 71 - aborted native transaction cannot produce committed work
+  ---
+  duration_ms: 1.599125
+  type: 'test'
+  ...
+# Subtest: failed terminal fence cannot produce committed work
+ok 72 - failed terminal fence cannot produce committed work
+  ---
+  duration_ms: 1.130833
+  type: 'test'
+  ...
+# Subtest: private resource overrun cannot be reset through public diagnostics
+ok 73 - private resource overrun cannot be reset through public diagnostics
+  ---
+  duration_ms: 1.159208
+  type: 'test'
+  ...
+# Subtest: control diagnostics count genuine completed scope once without granting task refund
+ok 74 - control diagnostics count genuine completed scope once without granting task refund
+  ---
+  duration_ms: 2.956417
+  type: 'test'
+  ...
+1..74
+# tests 74
+# suites 0
+# pass 74
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17812.321292

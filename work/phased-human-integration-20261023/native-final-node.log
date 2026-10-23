@@ -1,0 +1,700 @@
+TAP version 13
+# Subtest: actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+ok 1 - actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+  ---
+  duration_ms: 876.8405
+  type: 'test'
+  ...
+# Subtest: actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+ok 2 - actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+  ---
+  duration_ms: 511.936709
+  type: 'test'
+  ...
+# Subtest: actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+ok 3 - actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+  ---
+  duration_ms: 465.01875
+  type: 'test'
+  ...
+# Subtest: mixed existing B retains original Human work and outbox across Saved successors and cold C
+ok 4 - mixed existing B retains original Human work and outbox across Saved successors and cold C
+  ---
+  duration_ms: 1046.619
+  type: 'test'
+  ...
+# Subtest: incoming new Human edit stays outside the Saved mixed consumer
+ok 5 - incoming new Human edit stays outside the Saved mixed consumer
+  ---
+  duration_ms: 425.196083
+  type: 'test'
+  ...
+# Subtest: incoming new Human create stays outside the Saved mixed consumer
+ok 6 - incoming new Human create stays outside the Saved mixed consumer
+  ---
+  duration_ms: 490.813125
+  type: 'test'
+  ...
+# Subtest: mixed Saved same-entity fork refuses before all canonical and protocol writes
+ok 7 - mixed Saved same-entity fork refuses before all canonical and protocol writes
+  ---
+  duration_ms: 434.65175
+  type: 'test'
+  ...
+# Subtest: mixed Saved partial commit resumes after a cold coordinator restart
+ok 8 - mixed Saved partial commit resumes after a cold coordinator restart
+  ---
+  duration_ms: 657.41025
+  type: 'test'
+  ...
+# Subtest: mixed Saved partial commit rejects a subsequently edited Human base
+ok 9 - mixed Saved partial commit rejects a subsequently edited Human base
+  ---
+  duration_ms: 572.537958
+  type: 'test'
+  ...
+# Subtest: mixed Saved lost final return is settled by durable receipt without repeating owner writes
+ok 10 - mixed Saved lost final return is settled by durable receipt without repeating owner writes
+  ---
+  duration_ms: 449.181958
+  type: 'test'
+  ...
+# Subtest: ancestor-only mixed Saved checkpoint preserves newer Human and Saved content and local sends
+ok 11 - ancestor-only mixed Saved checkpoint preserves newer Human and Saved content and local sends
+  ---
+  duration_ms: 514.653958
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human body drift with complete step rollback
+ok 12 - mixed Saved original-owner return rejects Human body drift with complete step rollback
+  ---
+  duration_ms: 472.881959
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human physical allocation drift with complete step rollback
+ok 13 - mixed Saved original-owner return rejects Human physical allocation drift with complete step rollback
+  ---
+  duration_ms: 461.878667
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human history drift with complete step rollback
+ok 14 - mixed Saved original-owner return rejects Human history drift with complete step rollback
+  ---
+  duration_ms: 390.498208
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human receipt drift with complete step rollback
+ok 15 - mixed Saved original-owner return rejects Human receipt drift with complete step rollback
+  ---
+  duration_ms: 436.543208
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human mapping drift with complete step rollback
+ok 16 - mixed Saved original-owner return rejects Human mapping drift with complete step rollback
+  ---
+  duration_ms: 381.034417
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects local outbox drift with complete step rollback
+ok 17 - mixed Saved original-owner return rejects local outbox drift with complete step rollback
+  ---
+  duration_ms: 408.303917
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human semantic drift with complete step rollback
+ok 18 - mixed Saved original-owner return rejects Human semantic drift with complete step rollback
+  ---
+  duration_ms: 402.571125
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Source drift with complete step rollback
+ok 19 - mixed Saved original-owner return rejects Source drift with complete step rollback
+  ---
+  duration_ms: 405.650791
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects stage cursor drift with complete step rollback
+ok 20 - mixed Saved original-owner return rejects stage cursor drift with complete step rollback
+  ---
+  duration_ms: 407.339167
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects extra row drift with complete step rollback
+ok 21 - mixed Saved original-owner return rejects extra row drift with complete step rollback
+  ---
+  duration_ms: 510.853542
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects suppression key drift with complete step rollback
+ok 22 - mixed Saved original-owner return rejects suppression key drift with complete step rollback
+  ---
+  duration_ms: 479.990875
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects search queue drift with complete step rollback
+ok 23 - mixed Saved original-owner return rejects search queue drift with complete step rollback
+  ---
+  duration_ms: 427.300292
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects Human body drift atomically
+ok 24 - mixed Saved final backup tail rejects Human body drift atomically
+  ---
+  duration_ms: 449.493458
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects Human history drift atomically
+ok 25 - mixed Saved final backup tail rejects Human history drift atomically
+  ---
+  duration_ms: 440.386167
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects Human semantic drift atomically
+ok 26 - mixed Saved final backup tail rejects Human semantic drift atomically
+  ---
+  duration_ms: 463.273084
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects stage cursor drift atomically
+ok 27 - mixed Saved final backup tail rejects stage cursor drift atomically
+  ---
+  duration_ms: 445.535084
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects extra row drift atomically
+ok 28 - mixed Saved final backup tail rejects extra row drift atomically
+  ---
+  duration_ms: 520.004375
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects search queue drift atomically
+ok 29 - mixed Saved final backup tail rejects search queue drift atomically
+  ---
+  duration_ms: 839.491333
+  type: 'test'
+  ...
+# Subtest: mixed Saved private work limit rejects overflow despite rewritten public metrics
+ok 30 - mixed Saved private work limit rejects overflow despite rewritten public metrics
+  ---
+  duration_ms: 617.597208
+  type: 'test'
+  ...
+# Subtest: mixed Saved storage failure rolls back both partitions then explicit retry commits once
+ok 31 - mixed Saved storage failure rolls back both partitions then explicit retry commits once
+  ---
+  duration_ms: 678.648417
+  type: 'test'
+  ...
+# Subtest: mixed Saved clock deadline preserves only acknowledged complete steps and allows explicit resume
+ok 32 - mixed Saved clock deadline preserves only acknowledged complete steps and allows explicit resume
+  ---
+  duration_ms: 697.594166
+  type: 'test'
+  ...
+# Subtest: mixed Saved Source edit after stage rejects without changing either owner
+ok 33 - mixed Saved Source edit after stage rejects without changing either owner
+  ---
+  duration_ms: 390.4175
+  type: 'test'
+  ...
+# Subtest: mixed ancestor acknowledgement rejects late Human semantic corruption without a Saved write
+ok 34 - mixed ancestor acknowledgement rejects late Human semantic corruption without a Saved write
+  ---
+  duration_ms: 417.614833
+  type: 'test'
+  ...
+# Subtest: mixed Saved rejects preexisting Human mapping revisionId corruption instead of authenticating it as retained state
+ok 35 - mixed Saved rejects preexisting Human mapping revisionId corruption instead of authenticating it as retained state
+  ---
+  duration_ms: 555.447708
+  type: 'test'
+  ...
+# Subtest: mixed Saved rejects preexisting Human mapping local corruption instead of authenticating it as retained state
+ok 36 - mixed Saved rejects preexisting Human mapping local corruption instead of authenticating it as retained state
+  ---
+  duration_ms: 488.848333
+  type: 'test'
+  ...
+# Subtest: mixed Saved rejects preexisting Human mapping extra corruption instead of authenticating it as retained state
+ok 37 - mixed Saved rejects preexisting Human mapping extra corruption instead of authenticating it as retained state
+  ---
+  duration_ms: 413.240625
+  type: 'test'
+  ...
+# Subtest: original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+ok 38 - original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+  ---
+  duration_ms: 529.392917
+  type: 'test'
+  ...
+# Subtest: mixed graph rejects a Saved creation allocation borrowed from the Human owner
+ok 39 - mixed graph rejects a Saved creation allocation borrowed from the Human owner
+  ---
+  duration_ms: 104.918291
+  type: 'test'
+  ...
+# Subtest: mixed export refuses an unjournaled Human entry and leaves original library unchanged
+ok 40 - mixed export refuses an unjournaled Human entry and leaves original library unchanged
+  ---
+  duration_ms: 99.461875
+  type: 'test'
+  ...
+# Subtest: mixed Saved profile explicitly refuses structural Human groups
+ok 41 - mixed Saved profile explicitly refuses structural Human groups
+  ---
+  duration_ms: 120.786042
+  type: 'test'
+  ...
+# Subtest: mixed cold activation refuses existing local canonical Human work
+ok 42 - mixed cold activation refuses existing local canonical Human work
+  ---
+  duration_ms: 148.687833
+  type: 'test'
+  ...
+# Subtest: mixed activation failure preserves both owners and explicit retry commits exactly once
+ok 43 - mixed activation failure preserves both owners and explicit retry commits exactly once
+  ---
+  duration_ms: 243.0315
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human body drift with complete rollback
+ok 44 - mixed final native fence rejects Human body drift with complete rollback
+  ---
+  duration_ms: 179.33525
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human history drift with complete rollback
+ok 45 - mixed final native fence rejects Human history drift with complete rollback
+  ---
+  duration_ms: 218.455125
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human receipt drift with complete rollback
+ok 46 - mixed final native fence rejects Human receipt drift with complete rollback
+  ---
+  duration_ms: 204.227459
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human mapping drift with complete rollback
+ok 47 - mixed final native fence rejects Human mapping drift with complete rollback
+  ---
+  duration_ms: 183.539375
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human queue drift with complete rollback
+ok 48 - mixed final native fence rejects Human queue drift with complete rollback
+  ---
+  duration_ms: 202.915667
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects extra Human row drift with complete rollback
+ok 49 - mixed final native fence rejects extra Human row drift with complete rollback
+  ---
+  duration_ms: 185.721208
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Saved body drift with complete rollback
+ok 50 - mixed final native fence rejects Saved body drift with complete rollback
+  ---
+  duration_ms: 195.868333
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Source record drift with complete rollback
+ok 51 - mixed final native fence rejects Source record drift with complete rollback
+  ---
+  duration_ms: 184.088083
+  type: 'test'
+  ...
+# Subtest: mixed activation preserves the original private transaction budget
+ok 52 - mixed activation preserves the original private transaction budget
+  ---
+  duration_ms: 226.114417
+  type: 'test'
+  ...
+# Subtest: mixed original Human witness rejects a copied capability without opening a writer
+ok 53 - mixed original Human witness rejects a copied capability without opening a writer
+  ---
+  duration_ms: 112.794334
+  type: 'test'
+  ...
+# Subtest: existing mixed B refuses incoming new Human groups before changing its canonical or protocol rows
+ok 54 - existing mixed B refuses incoming new Human groups before changing its canonical or protocol rows
+  ---
+  duration_ms: 292.534458
+  type: 'test'
+  ...
+# Subtest: two original Human edits remain human-owned alongside a Saved successor on cold C
+ok 55 - two original Human edits remain human-owned alongside a Saved successor on cold C
+  ---
+  duration_ms: 452.611708
+  type: 'test'
+  ...
+# Subtest: caller entity text cannot impersonate an internal Human identity while borrowing its allocation
+ok 56 - caller entity text cannot impersonate an internal Human identity while borrowing its allocation
+  ---
+  duration_ms: 89.737833
+  type: 'test'
+  ...
+# Subtest: fixed copy retirement preserves original canonical export before and after and cold resumes
+ok 57 - fixed copy retirement preserves original canonical export before and after and cold resumes
+  ---
+  duration_ms: 708.31875
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+ok 58 - copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+  ---
+  duration_ms: 270.527959
+  type: 'test'
+  ...
+# Subtest: copy retirement has no arbitrary public deletion or receipt authority
+ok 59 - copy retirement has no arbitrary public deletion or receipt authority
+  ---
+  duration_ms: 323.795084
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification kind
+ok 60 - copy retirement refuses changed fixed qualification kind
+  ---
+  duration_ms: 314.946
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification identity
+ok 61 - copy retirement refuses changed fixed qualification identity
+  ---
+  duration_ms: 291.163042
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification seal
+ok 62 - copy retirement refuses changed fixed qualification seal
+  ---
+  duration_ms: 679.979542
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification sourceBase
+ok 63 - copy retirement refuses changed fixed qualification sourceBase
+  ---
+  duration_ms: 300.912167
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses unknown copy without deleting remaining copies
+ok 64 - copy retirement refuses unknown copy without deleting remaining copies
+  ---
+  duration_ms: 408.766625
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing copy without deleting remaining copies
+ok 65 - copy retirement refuses missing copy without deleting remaining copies
+  ---
+  duration_ms: 421.951792
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses foreign marker without deleting remaining copies
+ok 66 - copy retirement refuses foreign marker without deleting remaining copies
+  ---
+  duration_ms: 376.819625
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing marker without deleting remaining copies
+ok 67 - copy retirement refuses missing marker without deleting remaining copies
+  ---
+  duration_ms: 317.700667
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses forged progress without deleting remaining copies
+ok 68 - copy retirement refuses forged progress without deleting remaining copies
+  ---
+  duration_ms: 306.667916
+  type: 'test'
+  ...
+# Subtest: copy retirement cannot use a generic metadata publication as graph qualification
+ok 69 - copy retirement cannot use a generic metadata publication as graph qualification
+  ---
+  duration_ms: 80.786542
+  type: 'test'
+  ...
+# Subtest: retirement cannot execute a caller callback or expand its fixed deletion scope
+ok 70 - retirement cannot execute a caller callback or expand its fixed deletion scope
+  ---
+  duration_ms: 440.115917
+  type: 'test'
+  ...
+# Subtest: copy retirement settles only a bounded page and resumes actual remaining copies on cold reopen
+ok 71 - copy retirement settles only a bounded page and resumes actual remaining copies on cold reopen
+  ---
+  duration_ms: 1178.005458
+  type: 'test'
+  ...
+# Subtest: phased retirement removes only checkpoint body copies and preserves export and audit controls
+ok 72 - phased retirement removes only checkpoint body copies and preserves export and audit controls
+  ---
+  duration_ms: 410.658916
+  type: 'test'
+  ...
+# Subtest: phased retirement bounded page survives actual store and registry close then preserves original edit
+ok 73 - phased retirement bounded page survives actual store and registry close then preserves original edit
+  ---
+  duration_ms: 561.9625
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses unknown with complete rollback
+ok 74 - phased retirement refuses unknown with complete rollback
+  ---
+  duration_ms: 165.242583
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses missing-item with complete rollback
+ok 75 - phased retirement refuses missing-item with complete rollback
+  ---
+  duration_ms: 169.694375
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses missing-validation with complete rollback
+ok 76 - phased retirement refuses missing-validation with complete rollback
+  ---
+  duration_ms: 168.95175
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses pending-task with complete rollback
+ok 77 - phased retirement refuses pending-task with complete rollback
+  ---
+  duration_ms: 153.038833
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses foreign-task with complete rollback
+ok 78 - phased retirement refuses foreign-task with complete rollback
+  ---
+  duration_ms: 169.34
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses validation-chain with complete rollback
+ok 79 - phased retirement refuses validation-chain with complete rollback
+  ---
+  duration_ms: 173.476375
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses receipt-extra with complete rollback
+ok 80 - phased retirement refuses receipt-extra with complete rollback
+  ---
+  duration_ms: 157.976333
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses progress with complete rollback
+ok 81 - phased retirement refuses progress with complete rollback
+  ---
+  duration_ms: 153.749667
+  type: 'test'
+  ...
+# Subtest: phased retirement terminal fence refuses late ledger and rolls back deletions
+ok 82 - phased retirement terminal fence refuses late ledger and rolls back deletions
+  ---
+  duration_ms: 156.5665
+  type: 'test'
+  ...
+# Subtest: phased retirement terminal fence refuses late new-copy and rolls back deletions
+ok 83 - phased retirement terminal fence refuses late new-copy and rolls back deletions
+  ---
+  duration_ms: 141.059167
+  type: 'test'
+  ...
+# Subtest: phased retirement pins audit controls across cleanup calls
+ok 84 - phased retirement pins audit controls across cleanup calls
+  ---
+  duration_ms: 486.012375
+  type: 'test'
+  ...
+# Subtest: source-free receive captures allocation base once and applies the unchanged original owner
+ok 85 - source-free receive captures allocation base once and applies the unchanged original owner
+  ---
+  duration_ms: 60.796125
+  type: 'test'
+  ...
+# Subtest: single captured preparation still rejects later thought-counter drift atomically
+ok 86 - single captured preparation still rejects later thought-counter drift atomically
+  ---
+  duration_ms: 37.927083
+  type: 'test'
+  ...
+# Subtest: single captured preparation still rejects later revision-counter drift atomically
+ok 87 - single captured preparation still rejects later revision-counter drift atomically
+  ---
+  duration_ms: 45.739791
+  type: 'test'
+  ...
+# Subtest: single captured preparation still rejects later receipt drift atomically
+ok 88 - single captured preparation still rejects later receipt drift atomically
+  ---
+  duration_ms: 48.160709
+  type: 'test'
+  ...
+# Subtest: single captured preparation still rejects later consent drift atomically
+ok 89 - single captured preparation still rejects later consent drift atomically
+  ---
+  duration_ms: 44.413334
+  type: 'test'
+  ...
+# Subtest: single captured preparation still rejects later original-owner drift atomically
+ok 90 - single captured preparation still rejects later original-owner drift atomically
+  ---
+  duration_ms: 50.963917
+  type: 'test'
+  ...
+# Subtest: simultaneous Human and Working incoming commits through both original owners and exports cold C
+ok 91 - simultaneous Human and Working incoming commits through both original owners and exports cold C
+  ---
+  duration_ms: 1807.660875
+  type: 'test'
+  ...
+# Subtest: Human structure or consecutive Working histories share future graph {"structured":true,"multiple":false}
+ok 92 - Human structure or consecutive Working histories share future graph {"structured":true,"multiple":false}
+  ---
+  duration_ms: 2729.985084
+  type: 'test'
+  ...
+# Subtest: Human structure or consecutive Working histories share future graph {"structured":false,"multiple":true}
+ok 93 - Human structure or consecutive Working histories share future graph {"structured":false,"multiple":true}
+  ---
+  duration_ms: 1936.025584
+  type: 'test'
+  ...
+# Subtest: lost successful return is settled from the durable merged receipt without another owner write
+ok 94 - lost successful return is settled from the durable merged receipt without another owner write
+  ---
+  duration_ms: 782.189666
+  type: 'test'
+  ...
+# Subtest: simultaneous incoming Human fork preserves all local state
+ok 95 - simultaneous incoming Human fork preserves all local state
+  ---
+  duration_ms: 858.608208
+  type: 'test'
+  ...
+# Subtest: simultaneous incoming Working fork preserves all local state
+ok 96 - simultaneous incoming Working fork preserves all local state
+  ---
+  duration_ms: 795.058625
+  type: 'test'
+  ...
+# Subtest: Human-return old-receipt drift cannot be swallowed by the other owner
+ok 97 - Human-return old-receipt drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 935.901958
+  type: 'test'
+  ...
+# Subtest: Human-return Working-history drift cannot be swallowed by the other owner
+ok 98 - Human-return Working-history drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 791.235292
+  type: 'test'
+  ...
+# Subtest: Human-return local-outbox drift cannot be swallowed by the other owner
+ok 99 - Human-return local-outbox drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 831.173792
+  type: 'test'
+  ...
+# Subtest: Human-return stage-cursor drift cannot be swallowed by the other owner
+ok 100 - Human-return stage-cursor drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 887.930792
+  type: 'test'
+  ...
+# Subtest: Working-return old-receipt drift cannot be swallowed by the other owner
+ok 101 - Working-return old-receipt drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 900.868583
+  type: 'test'
+  ...
+# Subtest: Working-return Working-history drift cannot be swallowed by the other owner
+ok 102 - Working-return Working-history drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 790.012
+  type: 'test'
+  ...
+# Subtest: Working-return local-outbox drift cannot be swallowed by the other owner
+ok 103 - Working-return local-outbox drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 963.343292
+  type: 'test'
+  ...
+# Subtest: Working-return stage-cursor drift cannot be swallowed by the other owner
+ok 104 - Working-return stage-cursor drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 822.024083
+  type: 'test'
+  ...
+# Subtest: terminal old-receipt drift cannot be swallowed by the other owner
+ok 105 - terminal old-receipt drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 871.275833
+  type: 'test'
+  ...
+# Subtest: terminal Working-history drift cannot be swallowed by the other owner
+ok 106 - terminal Working-history drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 961.6525
+  type: 'test'
+  ...
+# Subtest: terminal local-outbox drift cannot be swallowed by the other owner
+ok 107 - terminal local-outbox drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 1050.686125
+  type: 'test'
+  ...
+# Subtest: terminal stage-cursor drift cannot be swallowed by the other owner
+ok 108 - terminal stage-cursor drift cannot be swallowed by the other owner
+  ---
+  duration_ms: 958.259792
+  type: 'test'
+  ...
+# Subtest: combined terminal authority rejects atomically
+ok 109 - combined terminal authority rejects atomically
+  ---
+  duration_ms: 1035.56
+  type: 'test'
+  ...
+# Subtest: combined terminal semantic rejects atomically
+ok 110 - combined terminal semantic rejects atomically
+  ---
+  duration_ms: 945.085667
+  type: 'test'
+  ...
+# Subtest: combined terminal work-limit rejects atomically
+ok 111 - combined terminal work-limit rejects atomically
+  ---
+  duration_ms: 1023.850167
+  type: 'test'
+  ...
+# Subtest: combined terminal interrupt rejects atomically
+ok 112 - combined terminal interrupt rejects atomically
+  ---
+  duration_ms: 924.924875
+  type: 'test'
+  ...
+# Subtest: larger combined owner closure retains the unchanged per-transaction budget and fully rolls back
+ok 113 - larger combined owner closure retains the unchanged per-transaction budget and fully rolls back
+  ---
+  duration_ms: 1650.816875
+  type: 'test'
+  ...
+# Subtest: original no-op placed Entry edit preserves its Entry tick while Topic touch and receipt remain exact
+ok 114 - original no-op placed Entry edit preserves its Entry tick while Topic touch and receipt remain exact
+  ---
+  duration_ms: 979.177041
+  type: 'test'
+  ...
+# Subtest: coalesced original Entry histories and consecutive Working retain real history identities across two receivers
+ok 115 - coalesced original Entry histories and consecutive Working retain real history identities across two receivers
+  ---
+  duration_ms: 1923.837833
+  type: 'test'
+  ...
+1..115
+# tests 115
+# suites 0
+# pass 115
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62207.8415

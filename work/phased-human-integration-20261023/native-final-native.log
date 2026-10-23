@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: BNS simultaneous Human and Working native mixed-human-working source
+ok 1 - BNS simultaneous Human and Working native mixed-human-working source
+  ---
+  duration_ms: 36747.8915
+  type: 'test'
+  ...
+# Subtest: BNS simultaneous Human and Working native mixed-human-working release
+ok 2 - BNS simultaneous Human and Working native mixed-human-working release
+  ---
+  duration_ms: 36208.085917
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native phased-copy-retirement source
+ok 3 - BNS generation/purge native phased-copy-retirement source
+  ---
+  duration_ms: 4610.945667
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native phased-copy-retirement release
+ok 4 - BNS generation/purge native phased-copy-retirement release
+  ---
+  duration_ms: 4776.166458
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native phased-human-cold source
+ok 5 - BNS generation/purge native phased-human-cold source
+  ---
+  duration_ms: 5539.939875
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native phased-human-cold release
+ok 6 - BNS generation/purge native phased-human-cold release
+  ---
+  duration_ms: 5867.518583
+  type: 'test'
+  ...
+# Subtest: BNS existing mixed Saved native saved-incremental source
+ok 7 - BNS existing mixed Saved native saved-incremental source
+  ---
+  duration_ms: 22134.170709
+  type: 'test'
+  ...
+# Subtest: BNS existing mixed Saved native saved-incremental release
+ok 8 - BNS existing mixed Saved native saved-incremental release
+  ---
+  duration_ms: 21154.285708
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 156940.108083

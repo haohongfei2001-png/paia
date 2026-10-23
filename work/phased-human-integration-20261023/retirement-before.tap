@@ -1,0 +1,27 @@
+TAP version 13
+# Subtest: phased retirement removes only checkpoint body copies and preserves export and audit controls
+not ok 1 - phased retirement removes only checkpoint body copies and preserves export and audit controls
+  ---
+  duration_ms: 198.41
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/canonical-generation-phased-copy-retirement.test.mjs:22:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_GRAPH_QUALIFICATION_REQUIRED'
+  code: 'GENERATION_GRAPH_QUALIFICATION_REQUIRED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/canonical-generation-publication.js:31:48)
+    CanonicalGenerationPublication.retireCheckpointCopies (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/canonical-generation-publication.js:203:241)
+    async finish (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/canonical-generation-phased-copy-retirement.test.mjs:20:56)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/canonical-generation-phased-copy-retirement.test.mjs:22:178)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 368.295291

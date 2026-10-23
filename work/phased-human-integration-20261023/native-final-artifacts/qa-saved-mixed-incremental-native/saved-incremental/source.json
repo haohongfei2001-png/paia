@@ -1,0 +1,95 @@
+{
+  "variant": "source",
+  "scope": "saved-incremental",
+  "head": "872e23b00e141f9f2d0a192d763ae91e9ba3e171",
+  "result": "PASS",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "65d1ceae9c1161252f64c2e00427994d82ec2d58493e5da6015f94537a2eb1c0",
+  "hashes": {
+    "core/browser-native-sync/saved-work-bootstrap.js": "f635874237714198c0ccf0552dfc85ae8b1e2a6282ee984ca96ba8eded66387e",
+    "core/browser-native-sync/group-checkpoint.js": "7ece28241883e823390d99662f39f41651ae60d021de57693e22f840b02cb3e5",
+    "core/browser-native-sync/group-checkpoint-plan.js": "0536d0afcb587dac7ee3e1ae2c7817291c57653a1d4730379f86d53aac6709ae",
+    "core/browser-native-sync/group-checkpoint-scope.js": "23f4ff5e40f4a451ed1b562b7dbc5d851e0dbd20c2ca0dc8a983a3f37e01d495",
+    "core/browser-native-sync/human-library-scope.js": "c897bb58ab460e6d7702a828b739c38717a2ec44e156c2552fc69bf05a65592f",
+    "core/browser-native-sync/human-library-group.js": "930daeab93932e8fbab7f562afedc62259424683afdaeaddbf4c3cf51fb0c194",
+    "core/browser-native-sync/human-library-plan.js": "a0b4845ddfe44968bdc7e68c9bb7ae5d35135b728a4ff860a735f7ebedf546e2",
+    "core/browser-native-sync/human-library-journal.js": "833e6f7c3e41c3c446f9c5dd62b5321b454fbe1bbf2650737ce57580fdbd656d",
+    "core/browser-native-sync/saved-work-journal.js": "157f5f353c80acc6d2947064b5e9397b7a5537cb8e71442ee74bedea89ee7876",
+    "core/browser-native-sync/saved-work-successor-codec.js": "e6e439804e1c83c41296b37281be8966502235c17107eab6e67874bebec14a3a",
+    "core/browser-native-sync/source-working-physical.js": "849950db460e2f2b14547e72670887a59494a66a402e0f2566cf5a77b10d9e95",
+    "core/idb-repository.js": "759765671a8855b4d7ea061e299c7d8837b502173cf376180cf0b45662072ae1",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
+    "core/ai-usage/delta.js": "c463eb810b8bc6e56fabd0520f9736b1fed81923c37272d1e63cf4988a813114"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    "mixed existing B retains original Human work and outbox across Saved successors and cold C",
+    "incoming new Human edit stays outside the Saved mixed consumer",
+    "incoming new Human create stays outside the Saved mixed consumer",
+    "mixed Saved same-entity fork refuses before all canonical and protocol writes",
+    "mixed Saved partial commit resumes after a cold coordinator restart",
+    "mixed Saved partial commit rejects a subsequently edited Human base",
+    "mixed Saved lost final return is settled by durable receipt without repeating owner writes",
+    "ancestor-only mixed Saved checkpoint preserves newer Human and Saved content and local sends",
+    "mixed Saved original-owner return rejects Human body drift with complete step rollback",
+    "mixed Saved original-owner return rejects Human physical allocation drift with complete step rollback",
+    "mixed Saved original-owner return rejects Human history drift with complete step rollback",
+    "mixed Saved original-owner return rejects Human receipt drift with complete step rollback",
+    "mixed Saved original-owner return rejects Human mapping drift with complete step rollback",
+    "mixed Saved original-owner return rejects local outbox drift with complete step rollback",
+    "mixed Saved original-owner return rejects Human semantic drift with complete step rollback",
+    "mixed Saved original-owner return rejects Source drift with complete step rollback",
+    "mixed Saved original-owner return rejects stage cursor drift with complete step rollback",
+    "mixed Saved original-owner return rejects extra row drift with complete step rollback",
+    "mixed Saved original-owner return rejects suppression key drift with complete step rollback",
+    "mixed Saved original-owner return rejects search queue drift with complete step rollback",
+    "mixed Saved final backup tail rejects Human body drift atomically",
+    "mixed Saved final backup tail rejects Human history drift atomically",
+    "mixed Saved final backup tail rejects Human semantic drift atomically",
+    "mixed Saved final backup tail rejects stage cursor drift atomically",
+    "mixed Saved final backup tail rejects extra row drift atomically",
+    "mixed Saved final backup tail rejects search queue drift atomically",
+    "mixed Saved private work limit rejects overflow despite rewritten public metrics",
+    "mixed Saved storage failure rolls back both partitions then explicit retry commits once",
+    "mixed Saved clock deadline preserves only acknowledged complete steps and allows explicit resume",
+    "mixed Saved Source edit after stage rejects without changing either owner",
+    "mixed ancestor acknowledgement rejects late Human semantic corruption without a Saved write",
+    "mixed Saved rejects preexisting Human mapping revisionId corruption instead of authenticating it as retained state",
+    "mixed Saved rejects preexisting Human mapping local corruption instead of authenticating it as retained state",
+    "mixed Saved rejects preexisting Human mapping extra corruption instead of authenticating it as retained state"
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "8514cfd8-824c-4622-a878-8951080ea98d",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "8514cfd8-824c-4622-a878-8951080ea98d",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}

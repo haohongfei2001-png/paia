@@ -450,3 +450,10 @@ Native current mixed re-export, Saved/Human mixtures, interleaved incoming Worki
 ## Native mixed re-export and Saved mixture milestone atc6042491
 
 Original currentMixedProjection after authenticated merge now passes actual native coldA/B→C/edit/re-export. Source-freeHumanEntry plus Source/Saved cold combination preserves both owners and exact whole-table closures. BeforeSaved mixed47/47; finalcomposed33/33; one667-file build; Source/Release4/4parents with4mixed-export and19Saved cases pervariant. [Evidence](../../../../work/mixed-export-integration-20261023/REPORT.md). Parallel interleavedincomingHuman/Working, nonemptySaved successors and coldphased restoration remain genuine engineering. Remote main f2b8db27 website-only28paths preserved by normal merge; PR313 frozen unchanged.
+
+
+## Cold and simultaneous mixed recovery milestone at872e23b0
+
+Seven complete owning files115/115; one669-file development build; actual Source/Release8/8 native parents (each25 simultaneousHuman/Working,34existingMixedSaved,18coldHuman,13phasedcopy-retirement original cases), stable vectors and zero network. [Evidence](../../../../work/phased-human-integration-20261023/REPORT.md). Phased cold continuation, original post-publication editing and bounded cold-resumable cleanup are implemented. Draft cleanup content assertion was corrected before final validation; all earlier failures remain. Source-free Human preparation shares one original readonly cut while commit/terminal checks remain.
+
+These supersede earlier missing-code wording for these finite consumers, not for broad data families, scale or whole-programme acceptance.65/129budget refusals remain and were not rerun. Consumed-copy retirement before publication and broader mixed families remain engineering; post-publication cleanup is not capacity proof. Current non-Sync UI/Context consumers were re-audited to avoid reimplementing superseded gaps. Independent Topic identity issuance and controlled external qualification remain separate; default production Sync stays off.

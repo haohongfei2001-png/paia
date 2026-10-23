@@ -1,0 +1,109 @@
+{
+  "variant": "release",
+  "scope": "mixed-human-working",
+  "head": "872e23b00e141f9f2d0a192d763ae91e9ba3e171",
+  "result": "PASS",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "a4c5e9954bd8c045688f8fb46bb378ee85afce49afab228895d31e34d576472a",
+  "hashes": {
+    "core/browser-native-sync/input-working-commit.js": "8ed12714b0f305041c3964b578f9ecce27b5037184e09524b3b586709bfe10fe",
+    "core/browser-native-sync/mixed-human-physical.js": "bba7f124631237035512f7c5bc680e74234263c866a57e8e0627c029ad3c6ae5",
+    "core/browser-native-sync/mixed-nonempty-merge.js": "c92e5015e634ae1dd058c69902d4d341ffcf0fd0bfd485024d3a7788d4981970",
+    "core/browser-native-sync/mixed-merge-chronology.js": "fbfa4d9773c2da96fc96dd07b20a936582a04d867dc01f7ab9d583b6984e920d",
+    "core/browser-native-sync/mixed-restored-allocation.js": "0102414c4e2132dd9cdaca4e658538d77250abe1e08711cd144a1d86a43c7ac4",
+    "core/browser-native-sync/source-purge-metadata.js": "38f12a13c621f1a13d7792e8af2b8effc51e0b30401a436f40c2e2687c623ba0",
+    "core/browser-native-sync/source-purge-negative.js": "17f37f57739dae9e1004e102c0ba4198906c501f7d9be0e5b40119920ef26189",
+    "core/browser-native-sync/source-working-merge.js": "89d8f86d66ac8d14a5ec03c6d2fd48e595993dc8e36d99819c272438b91060b4",
+    "core/browser-native-sync/current-group-protocol-rows.js": "aa3cab60b475a4b232b2e5799d18107657fd8d6df00ea34d39e08df0fb7b0628",
+    "core/browser-native-sync/source-working-canonical.js": "c840b8d177f3d268e81e6b2dfbd02799282f175beb4f9538974a0ac2bb754d2e",
+    "core/browser-native-sync/source-working-default-meta.js": "6a5b5c06c89494f08409acc1e11bb20ae997a252e45c3981786bba9d85214593",
+    "core/browser-native-sync/source-working-derived.js": "c0bb5f43bc7500d8b63e43695cc7af2dbde7b2e7d17e6f725113e6ea3febdaa3",
+    "core/browser-native-sync/source-working-replay.js": "f70b91482ed2af6bb101574d291f773cf54b5e35e6b152ddb1a77659d8be8c0f",
+    "core/browser-native-sync/canonical-generation-repository-gate.js": "57dc20277ffbc136a70767fea3e53f48387fb02523a467d12eb2dcff4c2c43d8",
+    "core/browser-native-sync/canonical-generation-copy-retirement.js": "bb935416e839a5501dcbca2f484f981a324e1a1b70c9a71b833b516d6026d537",
+    "core/browser-native-sync/saved-work-successor-codec.js": "e6e439804e1c83c41296b37281be8966502235c17107eab6e67874bebec14a3a",
+    "core/browser-native-sync/saved-work-journal.js": "157f5f353c80acc6d2947064b5e9397b7a5537cb8e71442ee74bedea89ee7876",
+    "core/browser-native-sync/canonical-generation-human-restore.js": "cc84377922fd4009ed069e12cf6926120868ea528a144cb373fb3ab064565a6c",
+    "core/browser-native-sync/human-library-group.js": "930daeab93932e8fbab7f562afedc62259424683afdaeaddbf4c3cf51fb0c194",
+    "core/browser-native-sync/human-library-plan.js": "a0b4845ddfe44968bdc7e68c9bb7ae5d35135b728a4ff860a735f7ebedf546e2",
+    "core/browser-native-sync/human-library-search-proof.js": "105c65d9b2d9793accb9df6026bb70063822958dabf2fe741953db9eccbb9f76",
+    "core/ia-store-owner.js": "67825a0116b455b19d2187bc7f12db8fd4957a97e3b543172f2c093d15a03e18",
+    "core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
+    "core/browser-native-sync/saved-work-bootstrap.js": "f635874237714198c0ccf0552dfc85ae8b1e2a6282ee984ca96ba8eded66387e",
+    "core/browser-native-sync/group-checkpoint-plan.js": "0536d0afcb587dac7ee3e1ae2c7817291c57653a1d4730379f86d53aac6709ae",
+    "core/browser-native-sync/group-checkpoint-scope.js": "23f4ff5e40f4a451ed1b562b7dbc5d851e0dbd20c2ca0dc8a983a3f37e01d495",
+    "core/library-documents-store.js": "63f7e9dec5c31e076cfa48e865b1fa7ef1e804ac12ba2d25c3c1d8faff69931a",
+    "core/idb-repository.js": "759765671a8855b4d7ea061e299c7d8837b502173cf376180cf0b45662072ae1",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/thought-maintenance.js": "35f099480098ac724f3de6a26f50b4991bb027c6eff05340eba5621c318833b6",
+    "core/source-purge-admission.js": "8a526a77ff393739736d19b746319ac5b844192392ecb5f53c7edf67ce294347",
+    "core/browser-native-sync/core.js": "77dee7e562f58bb770198b4d482d110f814d92db003acaa7a9d41c671f8905d4",
+    "core/browser-native-sync/group-checkpoint.js": "7ece28241883e823390d99662f39f41651ae60d021de57693e22f840b02cb3e5",
+    "core/browser-native-sync/canonical-generation-publication.js": "f287cffdf240cd5bed3deb65b494db26e6bdb83b249b4767c714f257272cebf1",
+    "core/browser-native-sync/canonical-generation-checkpoint-stage.js": "3f22f9a96553a113b0d4c86d7a9a48208daef111d329e2517f3f0bb1c4688070",
+    "core/browser-native-sync/source-purge-journal.js": "1e86249972e868fe47afb468cad44fd02dabc860981418654ddec509fd0252cc",
+    "core/browser-native-sync/source-purge-codec.js": "bfbe850cb33a941a753e5db7f118a10b681255aa5eead304543c714a602f2360",
+    "core/browser-native-sync/source-purge-checkpoint.js": "a2c4d8c710863ffc465baa33499a2d6b00ee8d4b1c2c933143c9ee1b9aeea5a8"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    "simultaneous Human and Working incoming commits through both original owners and exports cold C",
+    "Human structure or consecutive Working histories share future graph {\"structured\":true,\"multiple\":false}",
+    "Human structure or consecutive Working histories share future graph {\"structured\":false,\"multiple\":true}",
+    "lost successful return is settled from the durable merged receipt without another owner write",
+    "simultaneous incoming Human fork preserves all local state",
+    "simultaneous incoming Working fork preserves all local state",
+    "Human-return old-receipt drift cannot be swallowed by the other owner",
+    "Human-return Working-history drift cannot be swallowed by the other owner",
+    "Human-return local-outbox drift cannot be swallowed by the other owner",
+    "Human-return stage-cursor drift cannot be swallowed by the other owner",
+    "Working-return old-receipt drift cannot be swallowed by the other owner",
+    "Working-return Working-history drift cannot be swallowed by the other owner",
+    "Working-return local-outbox drift cannot be swallowed by the other owner",
+    "Working-return stage-cursor drift cannot be swallowed by the other owner",
+    "terminal old-receipt drift cannot be swallowed by the other owner",
+    "terminal Working-history drift cannot be swallowed by the other owner",
+    "terminal local-outbox drift cannot be swallowed by the other owner",
+    "terminal stage-cursor drift cannot be swallowed by the other owner",
+    "combined terminal authority rejects atomically",
+    "combined terminal semantic rejects atomically",
+    "combined terminal work-limit rejects atomically",
+    "combined terminal interrupt rejects atomically",
+    "larger combined owner closure retains the unchanged per-transaction budget and fully rolls back",
+    "original no-op placed Entry edit preserves its Entry tick while Topic touch and receipt remain exact",
+    "coalesced original Entry histories and consecutive Working retain real history identities across two receivers"
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "7f75de4c-b749-4a95-8249-ce7759be5407",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "7f75de4c-b749-4a95-8249-ce7759be5407",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}
