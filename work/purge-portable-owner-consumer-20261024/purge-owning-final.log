@@ -1,0 +1,634 @@
+TAP version 13
+# Subtest: real positive Source plus permanent deletion compile as disjoint exact protocol closure
+ok 1 - real positive Source plus permanent deletion compile as disjoint exact protocol closure
+  ---
+  duration_ms: 299.133583
+  type: 'test'
+  ...
+# Subtest: two original permanent deletions and remaining independent Source retain each complete negative group
+ok 2 - two original permanent deletions and remaining independent Source retain each complete negative group
+  ---
+  duration_ms: 666.895417
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-original without changing canonical or protocol state
+ok 3 - closure refuses drop-original without changing canonical or protocol state
+  ---
+  duration_ms: 198.787875
+  type: 'test'
+  ...
+# Subtest: closure refuses old-body without changing canonical or protocol state
+ok 4 - closure refuses old-body without changing canonical or protocol state
+  ---
+  duration_ms: 198.799041
+  type: 'test'
+  ...
+# Subtest: closure refuses false-redaction without changing canonical or protocol state
+ok 5 - closure refuses false-redaction without changing canonical or protocol state
+  ---
+  duration_ms: 182.267958
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-purge without changing canonical or protocol state
+ok 6 - closure refuses drop-purge without changing canonical or protocol state
+  ---
+  duration_ms: 170.55425
+  type: 'test'
+  ...
+# Subtest: closure refuses head without changing canonical or protocol state
+ok 7 - closure refuses head without changing canonical or protocol state
+  ---
+  duration_ms: 171.2945
+  type: 'test'
+  ...
+# Subtest: closure refuses stale-head without changing canonical or protocol state
+ok 8 - closure refuses stale-head without changing canonical or protocol state
+  ---
+  duration_ms: 172.946
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-frontier without changing canonical or protocol state
+ok 9 - closure refuses drop-frontier without changing canonical or protocol state
+  ---
+  duration_ms: 173.06775
+  type: 'test'
+  ...
+# Subtest: closure refuses frontier-hole without changing canonical or protocol state
+ok 10 - closure refuses frontier-hole without changing canonical or protocol state
+  ---
+  duration_ms: 174.611875
+  type: 'test'
+  ...
+# Subtest: closure refuses extra-head without changing canonical or protocol state
+ok 11 - closure refuses extra-head without changing canonical or protocol state
+  ---
+  duration_ms: 174.618667
+  type: 'test'
+  ...
+# Subtest: closure refuses duplicate without changing canonical or protocol state
+ok 12 - closure refuses duplicate without changing canonical or protocol state
+  ---
+  duration_ms: 171.864
+  type: 'test'
+  ...
+# Subtest: closure refuses unknown-item without changing canonical or protocol state
+ok 13 - closure refuses unknown-item without changing canonical or protocol state
+  ---
+  duration_ms: 168.525333
+  type: 'test'
+  ...
+# Subtest: closure refuses unknown-field without changing canonical or protocol state
+ok 14 - closure refuses unknown-field without changing canonical or protocol state
+  ---
+  duration_ms: 169.570833
+  type: 'test'
+  ...
+# Subtest: independently valid positive creation cannot share the negative Source identity
+ok 15 - independently valid positive creation cannot share the negative Source identity
+  ---
+  duration_ms: 191.040208
+  type: 'test'
+  ...
+# Subtest: cloned result and changed Core do not carry original compiler identity
+ok 16 - cloned result and changed Core do not carry original compiler identity
+  ---
+  duration_ms: 174.055916
+  type: 'test'
+  ...
+# Subtest: caller edits during awaited digest cannot alter the original detached closure
+ok 17 - caller edits during awaited digest cannot alter the original detached closure
+  ---
+  duration_ms: 165.61825
+  type: 'test'
+  ...
+# Subtest: mixed compilation does not widen the original negative-only checkpoint publisher
+ok 18 - mixed compilation does not widen the original negative-only checkpoint publisher
+  ---
+  duration_ms: 166.400875
+  type: 'test'
+  ...
+# Subtest: Core rebinding during digest invalidates the closure rather than adopting later identity
+ok 19 - Core rebinding during digest invalidates the closure rather than adopting later identity
+  ---
+  duration_ms: 163.661916
+  type: 'test'
+  ...
+# Subtest: closure rejects oversized input before clone, digest or canonical mutation
+ok 20 - closure rejects oversized input before clone, digest or canonical mutation
+  ---
+  duration_ms: 165.200583
+  type: 'test'
+  ...
+# Subtest: closure refuses accessor-bearing input without invoking the accessor
+ok 21 - closure refuses accessor-bearing input without invoking the accessor
+  ---
+  duration_ms: 161.002
+  type: 'test'
+  ...
+# Subtest: original purge selects one of two independent Source bootstrap groups and preserves the other
+ok 22 - original purge selects one of two independent Source bootstrap groups and preserves the other
+  ---
+  duration_ms: 293.138958
+  type: 'test'
+  ...
+# Subtest: live second device preserves received and local Sources and outbox while consuming only selected remote purge
+ok 23 - live second device preserves received and local Sources and outbox while consuming only selected remote purge
+  ---
+  duration_ms: 482.141834
+  type: 'test'
+  ...
+# Subtest: late record mutation of an unselected Source rolls back the entire purge
+ok 24 - late record mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 173.090542
+  type: 'test'
+  ...
+# Subtest: late record-index mutation of an unselected Source rolls back the entire purge
+ok 25 - late record-index mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 170.244833
+  type: 'test'
+  ...
+# Subtest: late input mutation of an unselected Source rolls back the entire purge
+ok 26 - late input mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 173.197875
+  type: 'test'
+  ...
+# Subtest: late input-index mutation of an unselected Source rolls back the entire purge
+ok 27 - late input-index mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 163.015459
+  type: 'test'
+  ...
+# Subtest: late document mutation of an unselected Source rolls back the entire purge
+ok 28 - late document mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 150.618917
+  type: 'test'
+  ...
+# Subtest: late source-count mutation of an unselected Source rolls back the entire purge
+ok 29 - late source-count mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 151.472375
+  type: 'test'
+  ...
+# Subtest: late history mutation of an unselected Source rolls back the entire purge
+ok 30 - late history mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 150.393667
+  type: 'test'
+  ...
+# Subtest: late outbox mutation of an unselected Source rolls back the entire purge
+ok 31 - late outbox mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 154.981125
+  type: 'test'
+  ...
+# Subtest: late archive-index mutation of an unselected Source rolls back the entire purge
+ok 32 - late archive-index mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 154.851625
+  type: 'test'
+  ...
+# Subtest: late unexpected-row mutation of an unselected Source rolls back the entire purge
+ok 33 - late unexpected-row mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 153.491625
+  type: 'test'
+  ...
+# Subtest: unselected orphan protocol invalidity rejects before deleting either Source
+ok 34 - unselected orphan protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 53.960083
+  type: 'test'
+  ...
+# Subtest: unselected fork protocol invalidity rejects before deleting either Source
+ok 35 - unselected fork protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 79.604208
+  type: 'test'
+  ...
+# Subtest: unselected reused-member protocol invalidity rejects before deleting either Source
+ok 36 - unselected reused-member protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 51.613
+  type: 'test'
+  ...
+# Subtest: unselected generation protocol invalidity rejects before deleting either Source
+ok 37 - unselected generation protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 82.696333
+  type: 'test'
+  ...
+# Subtest: unselected frontier protocol invalidity rejects before deleting either Source
+ok 38 - unselected frontier protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 78.493292
+  type: 'test'
+  ...
+# Subtest: unselected device protocol invalidity rejects before deleting either Source
+ok 39 - unselected device protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 78.240833
+  type: 'test'
+  ...
+# Subtest: cryptographically valid cross-group member reuse is rejected by the original compiler
+ok 40 - cryptographically valid cross-group member reuse is rejected by the original compiler
+  ---
+  duration_ms: 51.122542
+  type: 'test'
+  ...
+# Subtest: multiple Source purge refuses append without deleting any data
+ok 41 - multiple Source purge refuses append without deleting any data
+  ---
+  duration_ms: 74.249916
+  type: 'test'
+  ...
+# Subtest: multiple Source purge refuses other-namespace without deleting any data
+ok 42 - multiple Source purge refuses other-namespace without deleting any data
+  ---
+  duration_ms: 46.799916
+  type: 'test'
+  ...
+# Subtest: multiple Source purge refuses resident-checkpoint without deleting any data
+ok 43 - multiple Source purge refuses resident-checkpoint without deleting any data
+  ---
+  duration_ms: 31.284042
+  type: 'test'
+  ...
+# Subtest: multiple Source purge refuses unknown-owner without deleting any data
+ok 44 - multiple Source purge refuses unknown-owner without deleting any data
+  ---
+  duration_ms: 70.405875
+  type: 'test'
+  ...
+# Subtest: original maintenance callback cannot establish a corrupted unselected source as the new baseline
+ok 45 - original maintenance callback cannot establish a corrupted unselected source as the new baseline
+  ---
+  duration_ms: 142.169666
+  type: 'test'
+  ...
+# Subtest: multiple Source purge keeps the private work budget despite resetting public metrics
+ok 46 - multiple Source purge keeps the private work budget despite resetting public metrics
+  ---
+  duration_ms: 192.524625
+  type: 'test'
+  ...
+# Subtest: remaining independent Source can be purged after the first cleanup without reviving either group
+ok 47 - remaining independent Source can be purged after the first cleanup without reviving either group
+  ---
+  duration_ms: 360.317458
+  type: 'test'
+  ...
+# Subtest: second selected purge preserves the first queued cleanup and both denial groups
+ok 48 - second selected purge preserves the first queued cleanup and both denial groups
+  ---
+  duration_ms: 357.008291
+  type: 'test'
+  ...
+# Subtest: live receiver consumes two selected purges while retaining a local third Source and its queued operations
+ok 49 - live receiver consumes two selected purges while retaining a local third Source and its queued operations
+  ---
+  duration_ms: 826.224333
+  type: 'test'
+  ...
+# Subtest: prior negative deny corruption rejects a subsequent purge without altering either group
+ok 50 - prior negative deny corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 177.607583
+  type: 'test'
+  ...
+# Subtest: prior negative tombstone corruption rejects a subsequent purge without altering either group
+ok 51 - prior negative tombstone corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 179.2555
+  type: 'test'
+  ...
+# Subtest: prior negative redacted-body corruption rejects a subsequent purge without altering either group
+ok 52 - prior negative redacted-body corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 171.523583
+  type: 'test'
+  ...
+# Subtest: prior negative old-outbox corruption rejects a subsequent purge without altering either group
+ok 53 - prior negative old-outbox corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 212.539625
+  type: 'test'
+  ...
+# Subtest: prior negative old-receipt corruption rejects a subsequent purge without altering either group
+ok 54 - prior negative old-receipt corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 216.757625
+  type: 'test'
+  ...
+# Subtest: prior negative input-state corruption rejects a subsequent purge without altering either group
+ok 55 - prior negative input-state corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 186.57725
+  type: 'test'
+  ...
+# Subtest: prior negative baseline corruption rejects a subsequent purge without altering either group
+ok 56 - prior negative baseline corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 182.490917
+  type: 'test'
+  ...
+# Subtest: late deny change during the second purge rolls back to the complete first result
+ok 57 - late deny change during the second purge rolls back to the complete first result
+  ---
+  duration_ms: 317.394709
+  type: 'test'
+  ...
+# Subtest: late prior-cleanup change during the second purge rolls back to the complete first result
+ok 58 - late prior-cleanup change during the second purge rolls back to the complete first result
+  ---
+  duration_ms: 312.672708
+  type: 'test'
+  ...
+# Subtest: late prior-tombstone change during the second purge rolls back to the complete first result
+ok 59 - late prior-tombstone change during the second purge rolls back to the complete first result
+  ---
+  duration_ms: 311.860584
+  type: 'test'
+  ...
+# Subtest: late prior-input-state change during the second purge rolls back to the complete first result
+ok 60 - late prior-input-state change during the second purge rolls back to the complete first result
+  ---
+  duration_ms: 310.953334
+  type: 'test'
+  ...
+# Subtest: prior baseline with valid shape but changed historical time cannot be authenticated by a later purge
+ok 61 - prior baseline with valid shape but changed historical time cannot be authenticated by a later purge
+  ---
+  duration_ms: 181.512333
+  type: 'test'
+  ...
+# Subtest: a canonical change during negative-member digest verification is not adopted as a new baseline
+ok 62 - a canonical change during negative-member digest verification is not adopted as a new baseline
+  ---
+  duration_ms: 191.916541
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects existing-meta at owner-return
+ok 63 - complete metadata cut rejects existing-meta at owner-return
+  ---
+  duration_ms: 151.084
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects new-meta at owner-return
+ok 64 - complete metadata cut rejects new-meta at owner-return
+  ---
+  duration_ms: 150.883417
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects other-annual at owner-return
+ok 65 - complete metadata cut rejects other-annual at owner-return
+  ---
+  duration_ms: 151.873458
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects other-outbox at owner-return
+ok 66 - complete metadata cut rejects other-outbox at owner-return
+  ---
+  duration_ms: 199.324167
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects existing-meta at tail
+ok 67 - complete metadata cut rejects existing-meta at tail
+  ---
+  duration_ms: 147.330916
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects new-meta at tail
+ok 68 - complete metadata cut rejects new-meta at tail
+  ---
+  duration_ms: 141.505334
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects other-annual at tail
+ok 69 - complete metadata cut rejects other-annual at tail
+  ---
+  duration_ms: 137.847375
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects other-outbox at tail
+ok 70 - complete metadata cut rejects other-outbox at tail
+  ---
+  duration_ms: 142.628417
+  type: 'test'
+  ...
+# Subtest: original reader and disposable index cleanup are replayed while unrelated metadata is preserved
+ok 71 - original reader and disposable index cleanup are replayed while unrelated metadata is preserved
+  ---
+  duration_ms: 144.243209
+  type: 'test'
+  ...
+# Subtest: original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+ok 72 - original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+  ---
+  duration_ms: 167.779875
+  type: 'test'
+  ...
+# Subtest: original human Input gate remains a refusal with every canonical and protocol row unchanged
+ok 73 - original human Input gate remains a refusal with every canonical and protocol row unchanged
+  ---
+  duration_ms: 43.137375
+  type: 'test'
+  ...
+# Subtest: resident staging or other namespace content refuses without deleting the active Source
+ok 74 - resident staging or other namespace content refuses without deleting the active Source
+  ---
+  duration_ms: 47.0205
+  type: 'test'
+  ...
+# Subtest: actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+ok 75 - actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+  ---
+  duration_ms: 261.733583
+  type: 'test'
+  ...
+# Subtest: bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+ok 76 - bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+  ---
+  duration_ms: 231.6455
+  type: 'test'
+  ...
+# Subtest: original purge final receipt drift rolls back all canonical and protocol state
+ok 77 - original purge final receipt drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 74.840458
+  type: 'test'
+  ...
+# Subtest: original purge final frontier drift rolls back all canonical and protocol state
+ok 78 - original purge final frontier drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 73.427375
+  type: 'test'
+  ...
+# Subtest: original purge final deny drift rolls back all canonical and protocol state
+ok 79 - original purge final deny drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 78.23675
+  type: 'test'
+  ...
+# Subtest: original purge final source-resurrection drift rolls back all canonical and protocol state
+ok 80 - original purge final source-resurrection drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 73.98725
+  type: 'test'
+  ...
+# Subtest: original purge final control drift rolls back all canonical and protocol state
+ok 81 - original purge final control drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 85.550584
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-job drift rolls back all canonical and protocol state
+ok 82 - original purge final cleanup-job drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 79.266833
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-event drift rolls back all canonical and protocol state
+ok 83 - original purge final cleanup-event drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 71.520959
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-epoch drift rolls back all canonical and protocol state
+ok 84 - original purge final cleanup-epoch drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 74.6255
+  type: 'test'
+  ...
+# Subtest: original purge final tombstone drift rolls back all canonical and protocol state
+ok 85 - original purge final tombstone drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 66.851042
+  type: 'test'
+  ...
+# Subtest: original purge final budget drift rolls back all canonical and protocol state
+ok 86 - original purge final budget drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 126.287542
+  type: 'test'
+  ...
+# Subtest: original purge final failure drift rolls back all canonical and protocol state
+ok 87 - original purge final failure drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 62.14675
+  type: 'test'
+  ...
+# Subtest: checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+ok 88 - checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+  ---
+  duration_ms: 144.446125
+  type: 'test'
+  ...
+# Subtest: checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+ok 89 - checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+  ---
+  duration_ms: 81.803417
+  type: 'test'
+  ...
+# Subtest: pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+ok 90 - pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+  ---
+  duration_ms: 86.978625
+  type: 'test'
+  ...
+# Subtest: human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+ok 91 - human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+  ---
+  duration_ms: 32.458666
+  type: 'test'
+  ...
+# Subtest: original import preflight before purge cannot reintroduce deleted Source or its imported text
+ok 92 - original import preflight before purge cannot reintroduce deleted Source or its imported text
+  ---
+  duration_ms: 68.6845
+  type: 'test'
+  ...
+# Subtest: generic Core cannot mint or receive the original-owner purge protocol
+ok 93 - generic Core cannot mint or receive the original-owner purge protocol
+  ---
+  duration_ms: 82.534417
+  type: 'test'
+  ...
+# Subtest: unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+ok 94 - unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+  ---
+  duration_ms: 34.15075
+  type: 'test'
+  ...
+# Subtest: cold receive final receipt corruption rolls back denial and all protocol rows
+ok 95 - cold receive final receipt corruption rolls back denial and all protocol rows
+  ---
+  duration_ms: 99.451375
+  type: 'test'
+  ...
+# Subtest: checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+ok 96 - checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+  ---
+  duration_ms: 111.900458
+  type: 'test'
+  ...
+# Subtest: checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+ok 97 - checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+  ---
+  duration_ms: 118.842375
+  type: 'test'
+  ...
+# Subtest: transport cannot enlarge a metered reference before returning oversized bytes
+ok 98 - transport cannot enlarge a metered reference before returning oversized bytes
+  ---
+  duration_ms: 84.314
+  type: 'test'
+  ...
+# Subtest: original maintenance observer cannot rebind the single Input state within its purge transaction
+ok 99 - original maintenance observer cannot rebind the single Input state within its purge transaction
+  ---
+  duration_ms: 48.51775
+  type: 'test'
+  ...
+# Subtest: google actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+ok 100 - google actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+  ---
+  duration_ms: 466.589542
+  type: 'test'
+  ...
+# Subtest: onedrive actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+ok 101 - onedrive actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+  ---
+  duration_ms: 332.130042
+  type: 'test'
+  ...
+# Subtest: purge refuses changed consumerPreference owner proof and preserves every table
+ok 102 - purge refuses changed consumerPreference owner proof and preserves every table
+  ---
+  duration_ms: 182.724792
+  type: 'test'
+  ...
+# Subtest: purge refuses changed promptPreferences owner proof and preserves every table
+ok 103 - purge refuses changed promptPreferences owner proof and preserves every table
+  ---
+  duration_ms: 194.569125
+  type: 'test'
+  ...
+# Subtest: purge refuses changed promptBinding owner proof and preserves every table
+ok 104 - purge refuses changed promptBinding owner proof and preserves every table
+  ---
+  duration_ms: 193.142
+  type: 'test'
+  ...
+1..104
+# tests 104
+# suites 0
+# pass 104
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9430.405583

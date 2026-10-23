@@ -1,0 +1,38 @@
+TAP version 13
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge
+ok 1 - actual worker synchronous events and same-store command consumer, configured=purge
+  ---
+  duration_ms: 240.580417
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge-unknown
+not ok 2 - actual worker synchronous events and same-store command consumer, configured=purge-unknown
+  ---
+  duration_ms: 244.116042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/sync-local-lifecycle.test.mjs:118:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/sync-local-lifecycle.test.mjs:150:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 612.625583

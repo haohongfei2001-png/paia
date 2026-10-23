@@ -1,3 +1,4 @@
+import {requireSourcePurgePortableOwnerRows} from './source-purge-portable.js';
 import {requireSourcePurgeProtocolControlReceipts} from './source-purge-protocol-controls.js';
 import {prepareOriginalActiveSourceWorkingRows,originalActiveSourceWorkingTerminalRows} from './canonical-generation-publication.js';
 import {assertCompletedGroupedRestoreControl} from './completed-group-restore-control.js';
@@ -27,7 +28,7 @@ const denied=()=>fail('BNS_SOURCE_PURGE_UNSUPPORTED');
 const prefixRange=p=>IDBKeyRange.bound(p,p+'\uffff',false,true);
 const residentCheckpointPrefix='canonical-generation:checkpoint:';
 async function requireNoResidentCheckpoint(t){if((await t.primaryRangePage('meta',{prefix:residentCheckpointPrefix,limit:1})).rows.length)denied();}
-const allowedKinds=new Set(['revision','head','receipt','sequence','frontier','generation','device','outbox','entityRevision','ownerRecoveryEpoch']);
+const allowedKinds=new Set(['revision','head','receipt','sequence','frontier','generation','device','outbox','entityRevision','ownerRecoveryEpoch','materializedOwner']);
 async function rows(t,prefix){const result=[];let after=null;do{const p=await t.primaryRangePage('meta',{prefix,after,limit:64});for(const row of p.rows){result.push(row.value);if(result.length>512||bytes(result).length>2*1024*1024)denied();}after=p.next;}while(after!==null);return result;}
 async function authority(store,core,t){
  await requireNoResidentCheckpoint(t);
@@ -103,7 +104,7 @@ export function verifySourcePurgePortfolioIndexes(raw,groups,total=groups.length
 async function preparePortfolio(store,core,before,plan,inventory){
  const negative=inventory.negative;
  if(plan.groups.length===1&&!negative.length&&!activeSelections.get(before))return null;const scope=await prepareGroupScope(plan),qualified=negative.length?await prepareSourcePurgeRemainingCanonical(store,core,plan,scope,inventory):null;
- return core.transaction(false,async t=>{if(!equal(await authority(store,core,t),before.authority)||!equal(await rows(t,'bns:v1:'),before.rows))denied();let raw;if(!negative.length){raw=await portfolioRows(t);await requireGroupScope(store,t,scope);verifySourcePurgePortfolioIndexes(raw,plan.groups);}else{raw=qualified.raw;await requireSourcePurgeRemainingScope(store,t,scope,qualified.view,qualified.proof);verifySourcePurgePortfolioIndexes(qualified.view,plan.groups,plan.groups.length+negative.length);}return raw;});
+ return core.transaction(false,async t=>{if(!equal(await authority(store,core,t),before.authority)||!equal(await rows(t,'bns:v1:'),before.rows))denied();let raw;if(!negative.length){raw=await portfolioRows(t);await requireGroupScope(store,t,scope);verifySourcePurgePortfolioIndexes(raw,plan.groups.filter(g=>g.type==='sourceBootstrapCommit'));}else{raw=qualified.raw;await requireSourcePurgeRemainingScope(store,t,scope,qualified.view,qualified.proof);verifySourcePurgePortfolioIndexes(qualified.view,plan.groups.filter(g=>g.type==='sourceBootstrapCommit'),plan.groups.filter(g=>g.type==='sourceBootstrapCommit').length+negative.length);}return raw;});
 }
 function remainingPortfolio(p){
  if(!p.portfolio)return null;const result=Object.fromEntries(Object.entries(p.portfolio).filter(([name])=>name!=='meta').map(([name,rows])=>[name,new Map(rows.map(row=>[row.id,structuredClone(row)]))]));
@@ -125,21 +126,23 @@ export async function prepareOriginalSourcePurge(store,id,key){
  const controls=await requireSourcePurgeProtocolControlReceipts(store,core,before.rows,before.namespace);for(const row of controls)publicationRows.add(row.id);
  for(const row of before.rows){if(row.id===core.prefix+'active'||row.id===activeSelections.get(before)?.id||row.id.startsWith(core.prefix+'sourcePurgeDeny:')||publicationRows.has(row.id))continue;if(!row.id.startsWith(generationPrefix)||!allowedKinds.has(row.id.slice(generationPrefix.length).split(':')[0]))denied();}
  const revisions=before.rows.filter(row=>row.id.startsWith(generationPrefix+'revision:'));
- if(!revisions.length||revisions.length>128)denied();const inventory=await sourcePurgeNegativeInventory(core,revisions,before.rows,before.namespace,prepareSourcePurgeRemote),{negative,entries}=inventory,allOperations=inventory.active;if(!allOperations.length||allOperations.length%7)denied();
- const plan=await prepareGroupCheckpointPlan(core,allOperations);if(plan.groups.some(group=>group.type!=='sourceBootstrapCommit'))denied();
+ if(!revisions.length||revisions.length>128)denied();const inventory=await sourcePurgeNegativeInventory(core,revisions,before.rows,before.namespace,prepareSourcePurgeRemote,false,true),{negative,entries}=inventory,allOperations=inventory.active;if(!allOperations.length)denied();
+ const plan=await prepareGroupCheckpointPlan(core,allOperations);if(plan.groups.some(group=>!['sourceBootstrapCommit','consumerPreference','promptPreferences','promptBinding'].includes(group.type)))denied();
  // First purge of this verified initial Source generation only. Edited,
  // merged or already-negative generations need their own complete replay.
  if(activeSelections.get(before)&&(negative.length||plan.digest!==activeSelections.get(before).completed.graphDigest))denied();
  // Every group must be its original complete, independent creation. A shared
  // document/chat, reused entity or orphan member cannot authorize deletion.
- const identities=new Map();for(const group of plan.groups){const e=initialSourcePlan(group.capability);for(const [kind,value]of [['source',e.source.id],['sourceKey',e.source.sourceKey],['chat',chatOf(e.source)],['document',e.inputDocument.id],['input',e.input.id],['history',e.baselineRevision.id]]){const k=kind+':'+value;if(identities.has(k))denied();identities.set(k,group.id);}}
- const matches=plan.groups.filter(group=>group.prepared.descriptor.value.sourceId===id&&group.prepared.descriptor.value.sourceKey===key);if(matches.length!==1)denied();const selectedGroup=matches[0],operations=allOperations.filter(op=>selectedGroup.operations.some(member=>member.revisionId===op.revisionId)),verified=selectedGroup.prepared,v=verified.descriptor.value,initial=initialSourcePlan(selectedGroup.capability);if(initial.source.id!==id||initial.source.sourceKey!==key)denied();
+ const identities=new Map();for(const group of plan.groups.filter(g=>g.type==='sourceBootstrapCommit')){const e=initialSourcePlan(group.capability);for(const [kind,value]of [['source',e.source.id],['sourceKey',e.source.sourceKey],['chat',chatOf(e.source)],['document',e.inputDocument.id],['input',e.input.id],['history',e.baselineRevision.id]]){const k=kind+':'+value;if(identities.has(k))denied();identities.set(k,group.id);}}
+ const matches=plan.groups.filter(group=>group.type==='sourceBootstrapCommit'&&group.prepared.descriptor.value.sourceId===id&&group.prepared.descriptor.value.sourceKey===key);if(matches.length!==1)denied();const selectedGroup=matches[0],operations=allOperations.filter(op=>selectedGroup.operations.some(member=>member.revisionId===op.revisionId)),verified=selectedGroup.prepared,v=verified.descriptor.value,initial=initialSourcePlan(selectedGroup.capability);if(initial.source.id!==id||initial.source.sourceKey!==key)denied();
  for(const p of negative)for(const [kind,value]of [['source',p.intent.sourceId],['sourceKey',p.intent.sourceKey],['document',p.intent.documentId],['input',p.intent.inputId],['history',p.intent.baselineId]])if(identities.has(kind+':'+value))denied();
  const portfolio=await preparePortfolio(store,core,before,plan,inventory);
  if(activeSelections.get(before)&&!equalSourceWorkingPhysicalTree(portfolio.meta,activeSelections.get(before).raw.meta))denied();
  const byId=new Map(before.rows.map(row=>[row.id,row]));
  const exactProtocol=new Map(),set=async(kind,ids,data)=>{const rid=await core.transaction(false,t=>core.idIn(t,kind,...ids),['meta']);exactProtocol.set(rid,{...data,id:rid});},frontiers=new Map();
  for(const entry of entries){const op=entry.operation,purged=op.kind==='purge';await set('revision',[op.revisionId],{operation:op,redacted:entry.redacted});await set('head',[op.type,op.entityId],{type:op.type,entityId:op.entityId,revisions:[op.revisionId],purged,fence:purged?op.revisionId:null});await set('receipt',[op.operationId],{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence});await set('sequence',[op.deviceId,String(op.sequence).padStart(16,'0')],{operationId:op.operationId,digest:op.revisionId});await set('entityRevision',[op.type,op.entityId,op.revisionId],{revisionId:op.revisionId});const outboxId=await core.transaction(false,t=>core.idIn(t,'outbox',op.operationId),['meta']);if(entry.original&&byId.has(outboxId))denied();if(byId.has(outboxId))exactProtocol.set(outboxId,{id:outboxId,operationId:op.operationId,revisionId:op.revisionId,state:'queued'});frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));}
+ for(const head of plan.heads)await set('head',[head.type,head.entityId],head);
+ for(const row of await core.transaction(false,t=>requireSourcePurgePortableOwnerRows(t,store,core,plan)))exactProtocol.set(row.id,row);
  for(const [deviceId,f]of frontiers)await set('frontier',[deviceId],{...f,deviceId});await set('generation',[],{value:entries.length});const ownOps=entries.map(e=>e.operation).filter(op=>op.deviceId===core.deviceId);if(ownOps.length)await set('device',[core.deviceId],{sequence:Math.max(...ownOps.map(op=>op.sequence))});
  for(const p of negative)exactProtocol.set(p.deny.id,p.deny);
  const marker=before.rows.find(row=>row.id===generationPrefix+'ownerRecoveryEpoch:');if(marker){if(!exact(marker,['id','version','epoch'])||Object.keys(marker).length!==3||marker.version!==1||marker.epoch!==null&&(typeof marker.epoch!=='string'||marker.epoch.length>512))denied();exactProtocol.set(marker.id,marker);}
