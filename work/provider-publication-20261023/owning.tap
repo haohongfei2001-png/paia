@@ -1,0 +1,940 @@
+TAP version 13
+# Subtest: contained immutable publication and fresh discovery preserve exact bytes with durable retry ID
+ok 1 - contained immutable publication and fresh discovery preserve exact bytes with durable retry ID
+  ---
+  duration_ms: 53.454125
+  type: 'test'
+  ...
+# Subtest: lost create completion survives adapter/core restart without allocating or uploading a second object
+ok 2 - lost create completion survives adapter/core restart without allocating or uploading a second object
+  ---
+  duration_ms: 22.304125
+  type: 'test'
+  ...
+# Subtest: wrong bytes are rejected before any remote request or local allocation
+ok 3 - wrong bytes are rejected before any remote request or local allocation
+  ---
+  duration_ms: 18.600334
+  type: 'test'
+  ...
+# Subtest: reject remote spaces corruption and preserve foreign objects
+ok 4 - reject remote spaces corruption and preserve foreign objects
+  ---
+  duration_ms: 15.330541
+  type: 'test'
+  ...
+# Subtest: reject remote dataset corruption and preserve foreign objects
+ok 5 - reject remote dataset corruption and preserve foreign objects
+  ---
+  duration_ms: 13.605334
+  type: 'test'
+  ...
+# Subtest: reject remote bytes corruption and preserve foreign objects
+ok 6 - reject remote bytes corruption and preserve foreign objects
+  ---
+  duration_ms: 16.36125
+  type: 'test'
+  ...
+# Subtest: reject remote size corruption and preserve foreign objects
+ok 7 - reject remote size corruption and preserve foreign objects
+  ---
+  duration_ms: 16.163625
+  type: 'test'
+  ...
+# Subtest: reject remote kind corruption and preserve foreign objects
+ok 8 - reject remote kind corruption and preserve foreign objects
+  ---
+  duration_ms: 13.567666
+  type: 'test'
+  ...
+# Subtest: HTTP 401 maps safely with no hidden retry
+ok 9 - HTTP 401 maps safely with no hidden retry
+  ---
+  duration_ms: 12.277375
+  type: 'test'
+  ...
+# Subtest: HTTP 403 maps safely with no hidden retry
+ok 10 - HTTP 403 maps safely with no hidden retry
+  ---
+  duration_ms: 11.369291
+  type: 'test'
+  ...
+# Subtest: HTTP 429 maps safely with no hidden retry
+ok 11 - HTTP 429 maps safely with no hidden retry
+  ---
+  duration_ms: 10.035583
+  type: 'test'
+  ...
+# Subtest: HTTP 500 maps safely with no hidden retry
+ok 12 - HTTP 500 maps safely with no hidden retry
+  ---
+  duration_ms: 13.626708
+  type: 'test'
+  ...
+# Subtest: HTTP 404 maps safely with no hidden retry
+ok 13 - HTTP 404 maps safely with no hidden retry
+  ---
+  duration_ms: 10.10125
+  type: 'test'
+  ...
+# Subtest: account generation changes while request is held fence late bytes; close settles a held host
+ok 14 - account generation changes while request is held fence late bytes; close settles a held host
+  ---
+  duration_ms: 11.681458
+  type: 'test'
+  ...
+# Subtest: held host times out once and cannot trigger a blind write retry
+ok 15 - held host times out once and cannot trigger a blind write retry
+  ---
+  duration_ms: 28.892625
+  type: 'test'
+  ...
+# Subtest: checkpoint pagination, invalid cursor and incomplete listing are bounded
+ok 16 - checkpoint pagination, invalid cursor and incomplete listing are bounded
+  ---
+  duration_ms: 15.573334
+  type: 'test'
+  ...
+# Subtest: core namespace swap invalidates transport and never reuses another generation allocation
+ok 17 - core namespace swap invalidates transport and never reuses another generation allocation
+  ---
+  duration_ms: 10.356125
+  type: 'test'
+  ...
+# Subtest: Google contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+ok 18 - Google contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+  ---
+  duration_ms: 147.677083
+  type: 'test'
+  ...
+# Subtest: broad scopes, credential-bearing binding and injected list query are refused
+ok 19 - broad scopes, credential-bearing binding and injected list query are refused
+  ---
+  duration_ms: 10.302
+  type: 'test'
+  ...
+# Subtest: concurrent publishers atomically share durable allocation; create collision requires exact readback
+ok 20 - concurrent publishers atomically share durable allocation; create collision requires exact readback
+  ---
+  duration_ms: 11.356542
+  type: 'test'
+  ...
+# Subtest: lost local reservation commit acknowledgement cannot publish before durable identity is recovered
+ok 21 - lost local reservation commit acknowledgement cannot publish before durable identity is recovered
+  ---
+  duration_ms: 10.039375
+  type: 'test'
+  ...
+# Subtest: oversized host response is refused before a copy or JSON parse
+ok 22 - oversized host response is refused before a copy or JSON parse
+  ---
+  duration_ms: 9.630958
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape ""
+ok 23 - reject invalid OAuth client ID shape ""
+  ---
+  duration_ms: 9.37775
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape " "
+ok 24 - reject invalid OAuth client ID shape " "
+  ---
+  duration_ms: 8.785
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape "https://000000000000.apps.googleusercontent.com"
+ok 25 - reject invalid OAuth client ID shape "https://000000000000.apps.googleusercontent.com"
+  ---
+  duration_ms: 8.55025
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape "000000000000.apps.googleusercontent.com\\n"
+ok 26 - reject invalid OAuth client ID shape "000000000000.apps.googleusercontent.com\\n"
+  ---
+  duration_ms: 8.325709
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape "1111111111111111111111111111111111111111111111111111111"
+ok 27 - reject invalid OAuth client ID shape "1111111111111111111111111111111111111111111111111111111"
+  ---
+  duration_ms: 10.723959
+  type: 'test'
+  ...
+# Subtest: held committed POST close remains unknown and reuses original durable ID
+ok 28 - held committed POST close remains unknown and reuses original durable ID
+  ---
+  duration_ms: 9.579625
+  type: 'test'
+  ...
+# Subtest: held committed POST identity remains unknown and reuses original durable ID
+ok 29 - held committed POST identity remains unknown and reuses original durable ID
+  ---
+  duration_ms: 9.328792
+  type: 'test'
+  ...
+# Subtest: one public operation has a total deadline; slow empty pages cannot multiply the timeout
+ok 30 - one public operation has a total deadline; slow empty pages cannot multiply the timeout
+  ---
+  duration_ms: 43.989917
+  type: 'test'
+  ...
+# Subtest: aggregate received bytes stop bounded pages before an unbounded rescan
+ok 31 - aggregate received bytes stop bounded pages before an unbounded rescan
+  ---
+  duration_ms: 18.782042
+  type: 'test'
+  ...
+# Subtest: allowed 404 response still enforces its byte ceiling before parse or write progress
+ok 32 - allowed 404 response still enforces its byte ceiling before parse or write progress
+  ---
+  duration_ms: 9.38375
+  type: 'test'
+  ...
+# Subtest: allowed 409 response still enforces its byte ceiling before parse or write progress
+ok 33 - allowed 409 response still enforces its byte ceiling before parse or write progress
+  ---
+  duration_ms: 9.562041
+  type: 'test'
+  ...
+# Subtest: original publication retry after pre-dispatch interruption resumes same cut through provider absence
+ok 34 - original publication retry after pre-dispatch interruption resumes same cut through provider absence
+  ---
+  duration_ms: 44.427042
+  type: 'test'
+  ...
+# Subtest: original publication missing verified cut blocks permanently without silently recreating remote data
+ok 35 - original publication missing verified cut blocks permanently without silently recreating remote data
+  ---
+  duration_ms: 32.82975
+  type: 'test'
+  ...
+# Subtest: same logical Google duplicates require complete pagination and exact readback, divergent=false
+ok 36 - same logical Google duplicates require complete pagination and exact readback, divergent=false
+  ---
+  duration_ms: 9.95375
+  type: 'test'
+  ...
+# Subtest: same logical Google duplicates require complete pagination and exact readback, divergent=true
+ok 37 - same logical Google duplicates require complete pagination and exact readback, divergent=true
+  ---
+  duration_ms: 11.174208
+  type: 'test'
+  ...
+# Subtest: ephemeral authorization uses exact binding and restrictive native Request settings
+ok 38 - ephemeral authorization uses exact binding and restrictive native Request settings
+  ---
+  duration_ms: 9.851708
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP redirect before buffering
+ok 39 - reject and cancel unsafe HTTP redirect before buffering
+  ---
+  duration_ms: 2.608542
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP url before buffering
+ok 40 - reject and cancel unsafe HTTP url before buffering
+  ---
+  duration_ms: 0.901208
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP opaque before buffering
+ok 41 - reject and cancel unsafe HTTP opaque before buffering
+  ---
+  duration_ms: 0.547708
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP length before buffering
+ok 42 - reject and cancel unsafe HTTP length before buffering
+  ---
+  duration_ms: 0.662792
+  type: 'test'
+  ...
+# Subtest: stream byte limit works without Content-Length and never copies the oversized chunk
+ok 43 - stream byte limit works without Content-Length and never copies the oversized chunk
+  ---
+  duration_ms: 0.808916
+  type: 'test'
+  ...
+# Subtest: chunked exact-limit response copies only admitted bytes
+ok 44 - chunked exact-limit response copies only admitted bytes
+  ---
+  duration_ms: 0.328208
+  type: 'test'
+  ...
+# Subtest: invalid credential expired makes zero fetches and exposes no secret
+ok 45 - invalid credential expired makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.229708
+  type: 'test'
+  ...
+# Subtest: invalid credential identity makes zero fetches and exposes no secret
+ok 46 - invalid credential identity makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.324792
+  type: 'test'
+  ...
+# Subtest: invalid credential scope makes zero fetches and exposes no secret
+ok 47 - invalid credential scope makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.252
+  type: 'test'
+  ...
+# Subtest: invalid credential newline makes zero fetches and exposes no secret
+ok 48 - invalid credential newline makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.0885
+  type: 'test'
+  ...
+# Subtest: invalid credential exception makes zero fetches and exposes no secret
+ok 49 - invalid credential exception makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.123833
+  type: 'test'
+  ...
+# Subtest: aborted held issuer never sends a late token
+ok 50 - aborted held issuer never sends a late token
+  ---
+  duration_ms: 2.93
+  type: 'test'
+  ...
+# Subtest: aborted held fetch cancels its late response body
+ok 51 - aborted held fetch cancels its late response body
+  ---
+  duration_ms: 0.571209
+  type: 'test'
+  ...
+# Subtest: abort during stalled body read settles and cancels without waiting for stream cancel completion
+ok 52 - abort during stalled body read settles and cancels without waiting for stream cancel completion
+  ---
+  duration_ms: 0.651833
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://evil.example/drive/v3/files
+ok 53 - reject uncontained endpoint before issuer https://evil.example/drive/v3/files
+  ---
+  duration_ms: 0.068583
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/about
+ok 54 - reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/about
+  ---
+  duration_ms: 0.118958
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/files?spaces=drive
+ok 55 - reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/files?spaces=drive
+  ---
+  duration_ms: 0.048167
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/files/SYNTHETIC_file?alt=media&alt=media
+ok 56 - reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/files/SYNTHETIC_file?alt=media&alt=media
+  ---
+  duration_ms: 0.034833
+  type: 'test'
+  ...
+# Subtest: adapter consumes actual bounded HTTP capability, including staged-ID create/readback
+ok 57 - adapter consumes actual bounded HTTP capability, including staged-ID create/readback
+  ---
+  duration_ms: 39.600125
+  type: 'test'
+  ...
+# Subtest: fetch settlement and abort in one turn still cancel the unassigned response body
+ok 58 - fetch settlement and abort in one turn still cancel the unassigned response body
+  ---
+  duration_ms: 0.74525
+  type: 'test'
+  ...
+# Subtest: empty HTTP error body retains status without inventing a parse error
+ok 59 - empty HTTP error body retains status without inventing a parse error
+  ---
+  duration_ms: 0.359292
+  type: 'test'
+  ...
+# Subtest: stream exception is sanitized and cancelled without revealing secret text
+ok 60 - stream exception is sanitized and cancelled without revealing secret text
+  ---
+  duration_ms: 0.529375
+  type: 'test'
+  ...
+# Subtest: caller Authorization and query injection never reach the credential issuer
+ok 61 - caller Authorization and query injection never reach the credential issuer
+  ---
+  duration_ms: 0.37875
+  type: 'test'
+  ...
+# Subtest: request cannot swap URL or headers while credential issuer is pending
+ok 62 - request cannot swap URL or headers while credential issuer is pending
+  ---
+  duration_ms: 0.188084
+  type: 'test'
+  ...
+# Subtest: zero-byte stream cannot evade the bounded read count
+ok 63 - zero-byte stream cannot evade the bounded read count
+  ---
+  duration_ms: 23.508875
+  type: 'test'
+  ...
+# Subtest: ephemeral authorization uses exact binding and restrictive native Request settings
+ok 64 - ephemeral authorization uses exact binding and restrictive native Request settings
+  ---
+  duration_ms: 13.105416
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP redirect before buffering
+ok 65 - reject and cancel unsafe HTTP redirect before buffering
+  ---
+  duration_ms: 3.234583
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP url before buffering
+ok 66 - reject and cancel unsafe HTTP url before buffering
+  ---
+  duration_ms: 0.96
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP opaque before buffering
+ok 67 - reject and cancel unsafe HTTP opaque before buffering
+  ---
+  duration_ms: 0.524625
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP length before buffering
+ok 68 - reject and cancel unsafe HTTP length before buffering
+  ---
+  duration_ms: 0.899958
+  type: 'test'
+  ...
+# Subtest: stream byte limit works without Content-Length and never copies the oversized chunk
+ok 69 - stream byte limit works without Content-Length and never copies the oversized chunk
+  ---
+  duration_ms: 2.698583
+  type: 'test'
+  ...
+# Subtest: chunked exact-limit response copies only admitted bytes
+ok 70 - chunked exact-limit response copies only admitted bytes
+  ---
+  duration_ms: 0.38475
+  type: 'test'
+  ...
+# Subtest: invalid credential expired makes zero fetches and exposes no secret
+ok 71 - invalid credential expired makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.24425
+  type: 'test'
+  ...
+# Subtest: invalid credential identity makes zero fetches and exposes no secret
+ok 72 - invalid credential identity makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.244125
+  type: 'test'
+  ...
+# Subtest: invalid credential scope makes zero fetches and exposes no secret
+ok 73 - invalid credential scope makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.282458
+  type: 'test'
+  ...
+# Subtest: invalid credential newline makes zero fetches and exposes no secret
+ok 74 - invalid credential newline makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.152458
+  type: 'test'
+  ...
+# Subtest: invalid credential exception makes zero fetches and exposes no secret
+ok 75 - invalid credential exception makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.358167
+  type: 'test'
+  ...
+# Subtest: aborted held issuer never sends a late token
+ok 76 - aborted held issuer never sends a late token
+  ---
+  duration_ms: 0.76775
+  type: 'test'
+  ...
+# Subtest: aborted held fetch cancels its late response body
+ok 77 - aborted held fetch cancels its late response body
+  ---
+  duration_ms: 0.438042
+  type: 'test'
+  ...
+# Subtest: abort during stalled body read settles and cancels without waiting for stream cancel completion
+ok 78 - abort during stalled body read settles and cancels without waiting for stream cancel completion
+  ---
+  duration_ms: 0.704416
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://evil.example/drive/v3/files
+ok 79 - reject uncontained endpoint before issuer https://evil.example/drive/v3/files
+  ---
+  duration_ms: 0.106208
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/me/drive/root/children
+ok 80 - reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/me/drive/root/children
+  ---
+  duration_ms: 0.152959
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/users/other/drive/special/approot
+ok 81 - reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/users/other/drive/special/approot
+  ---
+  duration_ms: 0.076541
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/me/drive/special/approot?$select=id&$select=id
+ok 82 - reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/me/drive/special/approot?$select=id&$select=id
+  ---
+  duration_ms: 0.038917
+  type: 'test'
+  ...
+# Subtest: fetch settlement and abort in one turn still cancel the unassigned response body
+ok 83 - fetch settlement and abort in one turn still cancel the unassigned response body
+  ---
+  duration_ms: 0.871541
+  type: 'test'
+  ...
+# Subtest: empty HTTP error body retains status without inventing a parse error
+ok 84 - empty HTTP error body retains status without inventing a parse error
+  ---
+  duration_ms: 0.191
+  type: 'test'
+  ...
+# Subtest: stream exception is sanitized and cancelled without revealing secret text
+ok 85 - stream exception is sanitized and cancelled without revealing secret text
+  ---
+  duration_ms: 0.271792
+  type: 'test'
+  ...
+# Subtest: request cannot swap URL or headers while credential issuer is pending
+ok 86 - request cannot swap URL or headers while credential issuer is pending
+  ---
+  duration_ms: 0.21725
+  type: 'test'
+  ...
+# Subtest: zero-byte stream cannot evade the bounded read count
+ok 87 - zero-byte stream cannot evade the bounded read count
+  ---
+  duration_ms: 27.191792
+  type: 'test'
+  ...
+# Subtest: preauthenticated GET assets never request or send Graph token
+ok 88 - preauthenticated GET assets never request or send Graph token
+  ---
+  duration_ms: 0.276208
+  type: 'test'
+  ...
+# Subtest: preauthenticated PUT assets never request or send Graph token
+ok 89 - preauthenticated PUT assets never request or send Graph token
+  ---
+  duration_ms: 0.405959
+  type: 'test'
+  ...
+# Subtest: signed asset bearer rejected before token or fetch
+ok 90 - signed asset bearer rejected before token or fetch
+  ---
+  duration_ms: 0.065917
+  type: 'test'
+  ...
+# Subtest: signed asset wrong-host rejected before token or fetch
+ok 91 - signed asset wrong-host rejected before token or fetch
+  ---
+  duration_ms: 0.029959
+  type: 'test'
+  ...
+# Subtest: signed asset wrong-kind rejected before token or fetch
+ok 92 - signed asset wrong-kind rejected before token or fetch
+  ---
+  duration_ms: 0.026167
+  type: 'test'
+  ...
+# Subtest: signed asset wrong-range rejected before token or fetch
+ok 93 - signed asset wrong-range rejected before token or fetch
+  ---
+  duration_ms: 0.027041
+  type: 'test'
+  ...
+# Subtest: exact transport composes bounded native Request HTTP with unsigned upload/download and immutable readback
+ok 94 - exact transport composes bounded native Request HTTP with unsigned upload/download and immutable readback
+  ---
+  duration_ms: 37.848667
+  type: 'test'
+  ...
+# Subtest: contained immutable upload session uses fail conflict and unsigned assets, exact read-back and restart reuse
+ok 95 - contained immutable upload session uses fail conflict and unsigned assets, exact read-back and restart reuse
+  ---
+  duration_ms: 49.451625
+  type: 'test'
+  ...
+# Subtest: lost upload result is read back by same immutable name after adapter restart, no duplicate PUT
+ok 96 - lost upload result is read back by same immutable name after adapter restart, no duplicate PUT
+  ---
+  duration_ms: 22.416833
+  type: 'test'
+  ...
+# Subtest: lost session creation refuses blind retry with no recoverable expiry or completed object
+ok 97 - lost session creation refuses blind retry with no recoverable expiry or completed object
+  ---
+  duration_ms: 21.063833
+  type: 'test'
+  ...
+# Subtest: wrong object bytes are rejected before root access or allocation
+ok 98 - wrong object bytes are rejected before root access or allocation
+  ---
+  duration_ms: 11.503375
+  type: 'test'
+  ...
+# Subtest: reject unqualified scope without request
+ok 99 - reject unqualified scope without request
+  ---
+  duration_ms: 12.025542
+  type: 'test'
+  ...
+# Subtest: reject unqualified tenant without request
+ok 100 - reject unqualified tenant without request
+  ---
+  duration_ms: 12.9125
+  type: 'test'
+  ...
+# Subtest: reject unqualified client without request
+ok 101 - reject unqualified client without request
+  ---
+  duration_ms: 13.686834
+  type: 'test'
+  ...
+# Subtest: reject remote parent and preserve all remote objects
+ok 102 - reject remote parent and preserve all remote objects
+  ---
+  duration_ms: 16.189125
+  type: 'test'
+  ...
+# Subtest: reject remote drive and preserve all remote objects
+ok 103 - reject remote drive and preserve all remote objects
+  ---
+  duration_ms: 13.976292
+  type: 'test'
+  ...
+# Subtest: reject remote remoteItem and preserve all remote objects
+ok 104 - reject remote remoteItem and preserve all remote objects
+  ---
+  duration_ms: 12.217791
+  type: 'test'
+  ...
+# Subtest: reject remote size and preserve all remote objects
+ok 105 - reject remote size and preserve all remote objects
+  ---
+  duration_ms: 11.696125
+  type: 'test'
+  ...
+# Subtest: reject remote etag and preserve all remote objects
+ok 106 - reject remote etag and preserve all remote objects
+  ---
+  duration_ms: 15.99875
+  type: 'test'
+  ...
+# Subtest: reject remote download-host and preserve all remote objects
+ok 107 - reject remote download-host and preserve all remote objects
+  ---
+  duration_ms: 11.598167
+  type: 'test'
+  ...
+# Subtest: reject remote bytes and preserve all remote objects
+ok 108 - reject remote bytes and preserve all remote objects
+  ---
+  duration_ms: 12.86075
+  type: 'test'
+  ...
+# Subtest: typed HTTP 401 stops with no retry and no provider message
+ok 109 - typed HTTP 401 stops with no retry and no provider message
+  ---
+  duration_ms: 10.182875
+  type: 'test'
+  ...
+# Subtest: typed HTTP 403 stops with no retry and no provider message
+ok 110 - typed HTTP 403 stops with no retry and no provider message
+  ---
+  duration_ms: 10.932875
+  type: 'test'
+  ...
+# Subtest: typed HTTP 429 stops with no retry and no provider message
+ok 111 - typed HTTP 429 stops with no retry and no provider message
+  ---
+  duration_ms: 9.246709
+  type: 'test'
+  ...
+# Subtest: typed HTTP 507 stops with no retry and no provider message
+ok 112 - typed HTTP 507 stops with no retry and no provider message
+  ---
+  duration_ms: 9.505292
+  type: 'test'
+  ...
+# Subtest: typed HTTP 500 stops with no retry and no provider message
+ok 113 - typed HTTP 500 stops with no retry and no provider message
+  ---
+  duration_ms: 10.158209
+  type: 'test'
+  ...
+# Subtest: held request close fences late results and settles once
+ok 114 - held request close fences late results and settles once
+  ---
+  duration_ms: 11.010875
+  type: 'test'
+  ...
+# Subtest: held request deadline has no retry
+ok 115 - held request deadline has no retry
+  ---
+  duration_ms: 28.898875
+  type: 'test'
+  ...
+# Subtest: changed appRoot cannot retarget existing transport
+ok 116 - changed appRoot cannot retarget existing transport
+  ---
+  duration_ms: 10.712833
+  type: 'test'
+  ...
+# Subtest: foreign files ignored, grouped discovery bounded and cursor cannot escape AppFolder
+ok 117 - foreign files ignored, grouped discovery bounded and cursor cannot escape AppFolder
+  ---
+  duration_ms: 15.981458
+  type: 'test'
+  ...
+# Subtest: OneDrive contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+ok 118 - OneDrive contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+  ---
+  duration_ms: 144.093958
+  type: 'test'
+  ...
+# Subtest: account invalidation after dispatched session is unknown and never retargeted
+ok 119 - account invalidation after dispatched session is unknown and never retargeted
+  ---
+  duration_ms: 9.458292
+  type: 'test'
+  ...
+# Subtest: account invalidation after dispatched upload is unknown and never retargeted
+ok 120 - account invalidation after dispatched upload is unknown and never retargeted
+  ---
+  duration_ms: 9.961416
+  type: 'test'
+  ...
+# Subtest: concurrent callers cannot create a second outstanding upload attempt
+ok 121 - concurrent callers cannot create a second outstanding upload attempt
+  ---
+  duration_ms: 10.803625
+  type: 'test'
+  ...
+# Subtest: oversized allowed 409 is rejected before copying or proceeding to upload
+ok 122 - oversized allowed 409 is rejected before copying or proceeding to upload
+  ---
+  duration_ms: 8.858042
+  type: 'test'
+  ...
+# Subtest: user edits between download and final metadata deny bytes without overwriting remote file
+ok 123 - user edits between download and final metadata deny bytes without overwriting remote file
+  ---
+  duration_ms: 10.131541
+  type: 'test'
+  ...
+# Subtest: provider signed upload http is refused before user bytes leave
+ok 124 - provider signed upload http is refused before user bytes leave
+  ---
+  duration_ms: 10.286084
+  type: 'test'
+  ...
+# Subtest: provider signed upload userinfo is refused before user bytes leave
+ok 125 - provider signed upload userinfo is refused before user bytes leave
+  ---
+  duration_ms: 8.408458
+  type: 'test'
+  ...
+# Subtest: provider signed upload arbitrary-host is refused before user bytes leave
+ok 126 - provider signed upload arbitrary-host is refused before user bytes leave
+  ---
+  duration_ms: 8.458167
+  type: 'test'
+  ...
+# Subtest: provider signed upload suffix-trick is refused before user bytes leave
+ok 127 - provider signed upload suffix-trick is refused before user bytes leave
+  ---
+  duration_ms: 8.50375
+  type: 'test'
+  ...
+# Subtest: forged next page cannot add query, change root, or send credentials outside exact endpoint
+ok 128 - forged next page cannot add query, change root, or send credentials outside exact endpoint
+  ---
+  duration_ms: 14.331791
+  type: 'test'
+  ...
+# Subtest: original publication retry after pre-dispatch interruption resumes same cut through provider absence
+ok 129 - original publication retry after pre-dispatch interruption resumes same cut through provider absence
+  ---
+  duration_ms: 37.482709
+  type: 'test'
+  ...
+# Subtest: original publication missing verified cut blocks permanently without silently recreating remote data
+ok 130 - original publication missing verified cut blocks permanently without silently recreating remote data
+  ---
+  duration_ms: 37.884875
+  type: 'test'
+  ...
+# Subtest: package allows exact inert provider Sync module URLs and rejects changed, duplicated or foreign-module URLs
+ok 131 - package allows exact inert provider Sync module URLs and rejects changed, duplicated or foreign-module URLs
+  ---
+  duration_ms: 86.108542
+  type: 'test'
+  ...
+# Subtest: BNS publication cut, configuration and object IDs survive restart and exclude later edits
+ok 132 - BNS publication cut, configuration and object IDs survive restart and exclude later edits
+  ---
+  duration_ms: 33.661125
+  type: 'test'
+  ...
+# Subtest: BNS unknown upload outcome reconciles the same logical identity, written=true
+ok 133 - BNS unknown upload outcome reconciles the same logical identity, written=true
+  ---
+  duration_ms: 22.381
+  type: 'test'
+  ...
+# Subtest: BNS unknown upload outcome reconciles the same logical identity, written=false
+ok 134 - BNS unknown upload outcome reconciles the same logical identity, written=false
+  ---
+  duration_ms: 15.341584
+  type: 'test'
+  ...
+# Subtest: BNS streamed progress may stop and resume without retaining a whole-dataset receipt list
+ok 135 - BNS streamed progress may stop and resume without retaining a whole-dataset receipt list
+  ---
+  duration_ms: 36.28525
+  type: 'test'
+  ...
+# Subtest: BNS preparation failure rolls back reservations, identity and active index atomically
+ok 136 - BNS preparation failure rolls back reservations, identity and active index atomically
+  ---
+  duration_ms: 6.135334
+  type: 'test'
+  ...
+# Subtest: BNS only one prepared publication can reserve the same cut and primitive ack cannot bypass it
+ok 137 - BNS only one prepared publication can reserve the same cut and primitive ack cannot bypass it
+  ---
+  duration_ms: 7.032292
+  type: 'test'
+  ...
+# Subtest: BNS local acknowledgement failure preserves queue and exact receipt retry
+ok 138 - BNS local acknowledgement failure preserves queue and exact receipt retry
+  ---
+  duration_ms: 12.601917
+  type: 'test'
+  ...
+# Subtest: BNS missing previously verified remote data is blocked before delayed local acknowledgement
+ok 139 - BNS missing previously verified remote data is blocked before delayed local acknowledgement
+  ---
+  duration_ms: 12.822667
+  type: 'test'
+  ...
+# Subtest: BNS corrupt same-ID object is quarantined without overwrite or false queue acknowledgement
+ok 140 - BNS corrupt same-ID object is quarantined without overwrite or false queue acknowledgement
+  ---
+  duration_ms: 8.816375
+  type: 'test'
+  ...
+# Subtest: BNS partial remote dependency loss cannot be acknowledged as a complete descriptor
+ok 141 - BNS partial remote dependency loss cannot be acknowledged as a complete descriptor
+  ---
+  duration_ms: 29.51025
+  type: 'test'
+  ...
+# Subtest: BNS purge during upload marks the old body cut obsolete and never publishes its descriptor
+ok 142 - BNS purge during upload marks the old body cut obsolete and never publishes its descriptor
+  ---
+  duration_ms: 29.711667
+  type: 'test'
+  ...
+# Subtest: BNS active publication prevents restore namespace loss and confirmed ID cannot retarget later generation
+ok 143 - BNS active publication prevents restore namespace loss and confirmed ID cannot retarget later generation
+  ---
+  duration_ms: 13.124375
+  type: 'test'
+  ...
+# Subtest: BNS pending catalogue and reservation scan are bounded, with explicit continuation
+ok 144 - BNS pending catalogue and reservation scan are bounded, with explicit continuation
+  ---
+  duration_ms: 7.390208
+  type: 'test'
+  ...
+# Subtest: BNS duplicate publication ID with changed packing and modified durable blueprint fail closed
+ok 145 - BNS duplicate publication ID with changed packing and modified durable blueprint fail closed
+  ---
+  duration_ms: 4.703666
+  type: 'test'
+  ...
+# Subtest: BNS concurrent restart publishers deduplicate immutable objects and atomic confirmation
+ok 146 - BNS concurrent restart publishers deduplicate immutable objects and atomic confirmation
+  ---
+  duration_ms: 9.176833
+  type: 'test'
+  ...
+# Subtest: BNS an in-flight success cannot clear a concurrently recorded integrity block
+ok 147 - BNS an in-flight success cannot clear a concurrently recorded integrity block
+  ---
+  duration_ms: 5.876583
+  type: 'test'
+  ...
+# Subtest: BNS unqualified chunk profiles and malformed reservations are rejected before upload
+ok 148 - BNS unqualified chunk profiles and malformed reservations are rejected before upload
+  ---
+  duration_ms: 3.02175
+  type: 'test'
+  ...
+# Subtest: BNS transport error bodies are neither persisted nor returned by the publication boundary
+ok 149 - BNS transport error bodies are neither persisted nor returned by the publication boundary
+  ---
+  duration_ms: 4.907083
+  type: 'test'
+  ...
+# Subtest: BNS purge while a publication iterator is suspended cannot publish its later descriptor
+ok 150 - BNS purge while a publication iterator is suspended cannot publish its later descriptor
+  ---
+  duration_ms: 5.685792
+  type: 'test'
+  ...
+# Subtest: BNS obsolete retirement atomically releases surviving reservations and retains every possible object without bodies
+ok 151 - BNS obsolete retirement atomically releases surviving reservations and retains every possible object without bodies
+  ---
+  duration_ms: 15.81775
+  type: 'test'
+  ...
+# Subtest: BNS retirement cannot clear an integrity block or retire a merely prepared cut
+ok 152 - BNS retirement cannot clear an integrity block or retire a merely prepared cut
+  ---
+  duration_ms: 5.74225
+  type: 'test'
+  ...
+# Subtest: BNS old suspended publisher cannot advance or acknowledge after obsolete retirement
+ok 153 - BNS old suspended publisher cannot advance or acknowledge after obsolete retirement
+  ---
+  duration_ms: 6.377042
+  type: 'test'
+  ...
+# Subtest: BNS retired opaque object ledger survives namespace restore and cannot retarget its old publication ID
+ok 154 - BNS retired opaque object ledger survives namespace restore and cannot retarget its old publication ID
+  ---
+  duration_ms: 10.198125
+  type: 'test'
+  ...
+# Subtest: BNS late in-flight descriptor completion remains retained and cannot create a publication acknowledgement
+ok 155 - BNS late in-flight descriptor completion remains retained and cannot create a publication acknowledgement
+  ---
+  duration_ms: 8.707084
+  type: 'test'
+  ...
+1..155
+# tests 155
+# suites 0
+# pass 155
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 875.771125
