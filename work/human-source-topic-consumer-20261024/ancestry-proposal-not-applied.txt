@@ -1,0 +1,13 @@
+ async requireHumanAncestry(t,operations){
+  // A mutation batch and its already-committed ancestor closure are different
+  // resources. Keep the 128-member mutation limit; bound this read-only closure
+  // by the ordinary 4096 references / 2 MiB / 30 s qualification budget.
+  const started=performance.now(),seen=new Map(operations.map(op=>[op.revisionId,op])),queue=operations.flatMap(op=>op.parents);let size=operations.reduce((n,op)=>n+bytes(op).length,0);
+  const budget=()=>{if(seen.size>4096||size>2*1024*1024||performance.now()-started>30000)fail('BNS_HUMAN_GRAPH_LIMIT');};budget();
+  if(seen.size!==operations.length||operations.length>CORE_LIMITS.batch)fail('BNS_HUMAN_GRAPH_LIMIT');
+  while(queue.length){budget();const id=queue.pop();if(seen.has(id))continue;const row=await this.get(t,'revision',id);if(!row||row.redacted)fail('BNS_HUMAN_ANCESTRY_REQUIRED');const op=row.operation;if(op.revisionId!==id||!['humanLibraryMember','humanLibraryCommit'].includes(op.type))fail('BNS_HUMAN_ANCESTRY_REQUIRED');seen.set(id,op);size+=bytes(op).length;budget();queue.push(...op.parents);if(op.type==='humanLibraryMember'){const head=await this.get(t,'head','humanLibraryCommit',op.value.logicalCommitId);if(head?.purged||head?.revisions.length!==1)fail('BNS_HUMAN_ANCESTRY_REQUIRED');queue.push(...head.revisions);}else queue.push(...op.value.members.map(ref=>ref.revisionId));}
+  // Repeated references are one immutable node, not a way to skip validation.
+  // Only parent edges are causal: the descriptor/member closure is reciprocal.
+  const pending=new Map(),children=new Map(),ready=[];for(const [id,op]of seen){if(op.parents.some(p=>!seen.has(p)))fail('BNS_HUMAN_ANCESTRY_REQUIRED');pending.set(id,op.parents.length);if(!op.parents.length)ready.push(id);for(const parent of op.parents){const list=children.get(parent)||[];list.push(id);children.set(parent,list);}}
+  let visited=0;while(ready.length){budget();const id=ready.pop();visited++;for(const child of children.get(id)||[]){const n=pending.get(child)-1;pending.set(child,n);if(!n)ready.push(child);}}if(visited!==seen.size)fail('BNS_HUMAN_ANCESTRY_REQUIRED');budget();
+ }
