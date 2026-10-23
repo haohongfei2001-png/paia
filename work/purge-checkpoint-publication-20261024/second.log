@@ -1,0 +1,98 @@
+TAP version 13
+# Subtest: google all deleted negative only publishes → A closes → B cloud discovery → cold → C
+not ok 1 - google all deleted negative only publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 158.431333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:27:56)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:34:82)
+    #save (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:52:27)
+    file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:80:239
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:35:14)
+  ...
+# Subtest: google surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+not ok 2 - google surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 248.58275
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:27:56)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:34:82)
+    #save (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:52:27)
+    file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:80:239
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:35:14)
+  ...
+# Subtest: onedrive all deleted negative only publishes → A closes → B cloud discovery → cold → C
+not ok 3 - onedrive all deleted negative only publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 108.277834
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:27:56)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:34:82)
+    #save (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:52:27)
+    file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:80:239
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:35:14)
+  ...
+# Subtest: onedrive surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+not ok 4 - onedrive surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 229.538292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:27:56)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:34:82)
+    #save (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:52:27)
+    file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:80:239
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:35:14)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 865.278834

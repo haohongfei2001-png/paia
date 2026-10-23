@@ -1,3 +1,5 @@
+import {SourcePurgeGroupedCheckpointRestore,validateSourcePurgeCheckpointGraph,requireCheckpointRevisionRetention} from './source-purge-group.js';
+import {sourcePurgeRestoreKey} from './source-purge-protocol-controls.js';
 import {StagedSyncRestore,checkpointItems} from './checkpoints.js';
 import {validateGroupedCheckpointGraph} from './group-checkpoint.js';
 import {assertProtocolObjectReference,readObject,SEGMENT_PROFILE} from './segments.js';
@@ -8,13 +10,13 @@ import {bytes,clone,decodeJSON,equal,exact,fail,hash,opaque,SyncError} from './v
 // Core/store and a transport; this module creates no provider, account or grant.
 // Durable progress belongs exclusively to the existing staged restore owner.
 export class LocalSyncRecoverySession {
- #restore;#transport;#core;#store;#discoveryTimeoutMs;#readTimeoutMs;#cancelRead=null;#recoveryState='not-restored';#busy=false;#paused=false;#closed=false;#serial=0;#ref=null;#state='idle';#error=null;
+ #restore;#restoreId;#checkpoint;#negative=false;#transport;#core;#store;#discoveryTimeoutMs;#readTimeoutMs;#cancelRead=null;#recoveryState='not-restored';#busy=false;#paused=false;#closed=false;#serial=0;#ref=null;#state='idle';#error=null;
  constructor(core,{store,transport,restoreId=crypto.randomUUID(),checkpoint=async()=>{},discoveryTimeoutMs=30000,readTimeoutMs=30000}={}){
   if(store?.repository!==core?.repository||!core?.repository||typeof transport?.get!=='function'||!opaque(restoreId)||typeof checkpoint!=='function'||!Number.isSafeInteger(discoveryTimeoutMs)||discoveryTimeoutMs<1||discoveryTimeoutMs>30000||!Number.isSafeInteger(readTimeoutMs)||readTimeoutMs<1||readTimeoutMs>30000)fail('BNS_RECOVERY_BINDING');
-  this.#transport=transport;this.#core=core;this.#store=store;this.#discoveryTimeoutMs=discoveryTimeoutMs;this.#readTimeoutMs=readTimeoutMs;
+  this.#restoreId=restoreId;this.#checkpoint=checkpoint;this.#transport=transport;this.#core=core;this.#store=store;this.#discoveryTimeoutMs=discoveryTimeoutMs;this.#readTimeoutMs=readTimeoutMs;
   this.#restore=new StagedSyncRestore(core,{restoreId,grouped:{store},checkpoint:async(...args)=>{this.#check();await checkpoint(...args);this.#check();}});
  }
- get restoreId(){return this.#restore.restoreId;}
+ get restoreId(){return this.#restoreId;}
  snapshot(){return Object.freeze({version:1,state:this.#closed?'closed':this.#paused?'paused':this.#state,recoveryState:this.#recoveryState,busy:this.#busy,error:this.#error,productionActivation:false});}
  #check(serial=this.#serial){if(this.#closed||this.#paused||serial!==this.#serial)fail('BNS_RECOVERY_INTERRUPTED');}
  async #run(state,action){
@@ -42,6 +44,8 @@ export class LocalSyncRecoverySession {
    const deadline=performance.now()+this.#readTimeoutMs;
    const detached=clone(ref);if(this.#ref&&this.#ref.id!==detached?.id)fail('BNS_RESTORE_ID_COLLISION');this.#ref=detached;
    const get=async reference=>{this.#check(serial);const raw=await this.#readUntil(()=>this.#transport.get(clone(reference)),deadline,serial,'BNS_RECOVERY_READ_LIMIT');this.#check(serial);return this.#transportBytes(reference,raw);};
+   const manifest=decodeJSON(await readObject(detached,get),SEGMENT_PROFILE.decoded);assertGroupedCheckpointManifest(manifest,{core:this.#core});
+   if(manifest.ownerScope.families.some(x=>x.type==='sourcePurgeIntent')){this.#restore=new SourcePurgeGroupedCheckpointRestore(this.#core,{store:this.#store,restoreId:this.#restoreId,persistent:true,isCurrent:()=>{this.#check(serial);return true;},checkpoint:async(...args)=>{this.#check(serial);await this.#checkpoint(...args);this.#check(serial);}});this.#negative=true;}else if(this.#negative)fail('BNS_RESTORE_ID_COLLISION');
    const result=await this.#restore.stageCheckpoint(detached,get);this.#check(serial);if(performance.now()>=deadline)fail('BNS_RECOVERY_READ_LIMIT');
    // A previous activation still requires the original replay/epoch proof.
    this.#state=['activated','merged'].includes(result.phase)?'confirmation-needed':'validated';
@@ -59,7 +63,7 @@ export class LocalSyncRecoverySession {
  async recover(ref){await this.stage(ref);return this.activate();}
  async resumeStored(){
   return this.#run('reading',async serial=>{
-   const row=await this.#restore.stage.read('restore');this.#check(serial);if(!row?.manifestRef)fail('BNS_RESTORE_NOT_READY');
+   const negative=await this.#core.transaction(false,t=>t.get('meta',sourcePurgeRestoreKey(this.#core,this.#restoreId)));const row=negative??await this.#restore.stage.read('restore');this.#check(serial);if(!row?.manifestRef)fail('BNS_RESTORE_NOT_READY');
    this.#ref=clone(row.manifestRef);this.#state=['validated','publishing','activated','merged'].includes(row.phase)?'confirmation-needed':'incomplete';
   });
  }
@@ -94,9 +98,9 @@ export class LocalSyncRecoverySession {
     assertGroupedCheckpointManifest(manifest,{core:this.#core});
     const items=[];for await(const item of checkpointItems(manifest,get)){if(++decodedItems>4096)fail('BNS_RECOVERY_DISCOVERY_LIMIT');items.push(item);}
     // Reuse the exact staged owner's graph/heads/frontier/scope compiler.
-    await validateGroupedCheckpointGraph(this.#core,items,manifest,{store:this.#store});
+    if(manifest.ownerScope.families.some(x=>x.type==='sourcePurgeIntent'))await validateSourcePurgeCheckpointGraph(this.#core,items,manifest);else await validateGroupedCheckpointGraph(this.#core,items,manifest,{store:this.#store});
     this.#check(serial);if(performance.now()>=deadline)fail('BNS_RECOVERY_DISCOVERY_LIMIT');
-    cuts.set(id,new Map(items.filter(item=>item.kind==='revision').map(item=>[item.operation.revisionId,item])));
+    cuts.set(id,items);
     const known=manifest.parents.filter(parent=>refs.has(parent));parents.set(id,known);
     for(const parent of known)children.get(parent).push(id);
    }
@@ -111,7 +115,7 @@ export class LocalSyncRecoverySession {
    // caller-supplied parent IDs. Require the original reconcileTail invariant
    // as well: every historical revision remains exact in the validated head.
    // Current projections or compaction that cannot prove this are refused.
-   const selected=cuts.get(heads[0]);for(const revisions of cuts.values())for(const [id,item]of revisions)if(!equal(selected.get(id)??null,item))fail('BNS_GROUP_TAIL_INVALID');
+   const selected=cuts.get(heads[0]);for(const revisions of cuts.values())await requireCheckpointRevisionRetention(this.#core,revisions,selected);
    this.#state='discovered';return clone(refs.get(heads[0]));
   });
  }

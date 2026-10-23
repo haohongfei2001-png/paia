@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: google all deleted negative only publishes → A closes → B cloud discovery → cold → C
+not ok 1 - google all deleted negative only publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 137.444959
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'CONTROL_PUBLICATION_CHANGED'
+  code: 'CONTROL_PUBLICATION_CHANGED'
+  stack: |-
+    error (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:51:26)
+    requireOriginalControlObservation (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:147:216)
+    verify (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:97:298)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:99:2
+    async Object.run (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:36:28)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:33:333)
+    async #prepareObjects (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:64:16)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:79:78
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:35:14)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:28:81)
+  ...
+# Subtest: google surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+not ok 2 - google surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 220.67125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'CONTROL_PUBLICATION_CHANGED'
+  code: 'CONTROL_PUBLICATION_CHANGED'
+  stack: |-
+    error (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:51:26)
+    requireOriginalControlObservation (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:147:216)
+    verify (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:97:298)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:99:2
+    async Object.run (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:36:28)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:33:333)
+    async #prepareObjects (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:64:16)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:79:78
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:35:14)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:28:81)
+  ...
+# Subtest: onedrive all deleted negative only publishes → A closes → B cloud discovery → cold → C
+not ok 3 - onedrive all deleted negative only publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 91.270958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'CONTROL_PUBLICATION_CHANGED'
+  code: 'CONTROL_PUBLICATION_CHANGED'
+  stack: |-
+    error (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:51:26)
+    requireOriginalControlObservation (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:147:216)
+    verify (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:97:298)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:99:2
+    async Object.run (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:36:28)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:33:333)
+    async #prepareObjects (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:64:16)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:79:78
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:35:14)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:28:81)
+  ...
+# Subtest: onedrive surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+not ok 4 - onedrive surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 200.335375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'CONTROL_PUBLICATION_CHANGED'
+  code: 'CONTROL_PUBLICATION_CHANGED'
+  stack: |-
+    error (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:51:26)
+    requireOriginalControlObservation (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:147:216)
+    verify (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:97:298)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:99:2
+    async Object.run (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:36:28)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:33:333)
+    async #prepareObjects (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:64:16)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:79:78
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:35:14)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:28:81)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 807.825875

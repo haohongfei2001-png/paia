@@ -1,3 +1,4 @@
+import {requireSourcePurgeProtocolControlReceipts} from './source-purge-protocol-controls.js';
 import {prepareOriginalActiveSourceWorkingRows,originalActiveSourceWorkingTerminalRows} from './canonical-generation-publication.js';
 import {assertCompletedGroupedRestoreControl} from './completed-group-restore-control.js';
 import {planSourcePurgeMetadata} from './source-purge-metadata.js';
@@ -90,7 +91,7 @@ export function verifySourcePurgePortfolioIndexes(raw,groups,total=groups.length
  const n=groups.length,metadata=new Map(raw.meta.map(row=>[row.id,row]));
  for(const name of ['recordIndex','blockIndex','documents'])if(raw[name].length!==n||new Set(raw[name].map(r=>r.sequence)).size!==n||raw[name].some(r=>!Number.isSafeInteger(r.sequence)||r.sequence<0||r.sequence>=total))denied();
  for(const name of ['inputStates','revisions']){const key=name==='inputStates'?'deltaSequence':'sequence';if(raw[name].length!==n||new Set(raw[name].map(r=>r[key])).size!==n||raw[name].some(r=>!Number.isSafeInteger(r[key])||r[key]<1||r[key]>total))denied();}
- for(const [id,value]of [['sequence',{records:total,blocks:total,documents:total}],['input-delta-sequence',{value:total}],['revision-sequence',{value:total}]])if(!equal(metadata.get(id),{id,...value}))denied();
+ for(const [id,value]of [['sequence',{records:total,blocks:total,documents:total}],['input-delta-sequence',{value:total}],['revision-sequence',{value:total}]])if(!(total===0&&!metadata.has(id))&&!equal(metadata.get(id)??null,{id,...value}))denied();
  if(raw.sourceCounts.length!==n||raw.filterInputs.length!==n||['invalidations','operationReceipts','librarySearchTerms','migrationBackup'].some(name=>raw[name].length))denied();
  for(const group of groups){const e=initialSourcePlan(group.capability),r=e.source,b=e.input,ri=raw.recordIndex.find(row=>row.id===r.id),bi=raw.blockIndex.find(row=>row.id===b.id),doc=raw.documents.find(row=>row.id===b.documentId),count=sourceCount(b.documentId,r.sourceKey,[r],[b],r.chatId);
   if(!equal(raw.filterInputs.find(row=>row.id===b.id),planInitialFilter(b,raw.inputStates.find(row=>row.id===b.id))))denied();
@@ -121,6 +122,7 @@ export async function prepareOriginalSourcePurge(store,id,key){
  // prepared publications are deliberately refused. A selected active vector
  // alone cannot prove that all resident copies were retired.
  const publicationRows=await confirmedPublicationRows(core,before.rows,before.namespace);
+ const controls=await requireSourcePurgeProtocolControlReceipts(store,core,before.rows,before.namespace);for(const row of controls)publicationRows.add(row.id);
  for(const row of before.rows){if(row.id===core.prefix+'active'||row.id===activeSelections.get(before)?.id||row.id.startsWith(core.prefix+'sourcePurgeDeny:')||publicationRows.has(row.id))continue;if(!row.id.startsWith(generationPrefix)||!allowedKinds.has(row.id.slice(generationPrefix.length).split(':')[0]))denied();}
  const revisions=before.rows.filter(row=>row.id.startsWith(generationPrefix+'revision:'));
  if(!revisions.length||revisions.length>128)denied();const inventory=await sourcePurgeNegativeInventory(core,revisions,before.rows,before.namespace,prepareSourcePurgeRemote),{negative,entries}=inventory,allOperations=inventory.active;if(!allOperations.length||allOperations.length%7)denied();

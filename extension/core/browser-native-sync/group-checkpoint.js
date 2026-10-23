@@ -1,6 +1,6 @@
 import {requireResolvedPromptReplayConflict} from './resolved-prompt-replay.js';
 import {observeOriginalControlPublication,requireOriginalControlObservation} from '../indexed-store.js';
-import {buildSourcePurgeGroupedCheckpoint,SourcePurgeGroupedCheckpointRestore} from './source-purge-group.js';
+import {buildSourcePurgeGroupedCheckpoint,SourcePurgeGroupedCheckpointRestore,hasSourcePurgeDispatchCut,requireSourcePurgeDispatchCut} from './source-purge-group.js';
 import {prepareMixedNonemptyMerge,prepareMixedNonemptyResult,requireMixedNonemptyBase,sealMixedNonemptyResult} from './mixed-nonempty-merge.js';
 import {prepareSourceWorkingMerge,prepareSourceWorkingMergeResult,requireSourceWorkingMergeBase,requireSourceWorkingMergeResult,sealSourceWorkingMerge} from './source-working-merge.js';
 import {requireOriginalLibraryDocumentsGenerationMethods} from '../library-documents-owner.js';
@@ -76,6 +76,7 @@ async function requireCommittedPlan(core,t,plan){
 // a provider can call it in the exact frame that dispatches its HTTP request.
 const checkpointDispatchCuts=new WeakMap();
 export function requireGroupedCheckpointDispatchCut(core,store,result){
+ if(hasSourcePurgeDispatchCut(result))return requireSourcePurgeDispatchCut(core,store,result);
  const proof=checkpointDispatchCuts.get(result);
  if(!proof||proof.core!==core||proof.store!==store||store.repository!==core.repository||store.tail!==proof.tail)fail('BNS_SNAPSHOT_CHANGED');
  requireOriginalGenerationCoreMethods(core);requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalControlObservation(store,proof.observation);return true;
@@ -97,9 +98,9 @@ async function buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,
  finally{if(cap)releaseHumanCurrentUnindexedProjection(cap);}
 }
 export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGMENT_PROFILE,parents=[],currentHumanProjection=false,currentSourceWorkingProjection=false,currentMixedProjection=false,sourcePurgeProjection=false,dispatchQualification=false}={}){
- if(typeof dispatchQualification!=='boolean'||dispatchQualification&&[currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection,sourcePurgeProjection].some(value=>value!==false))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ if(typeof dispatchQualification!=='boolean'||dispatchQualification&&[currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection].some(value=>value!==false))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  if(typeof sourcePurgeProjection!=='boolean')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
- if(sourcePurgeProjection){if([currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection].some(value=>value!==false))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');return buildSourcePurgeGroupedCheckpoint(core,transport,{store,profile,parents});}
+ if(sourcePurgeProjection){if([currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection].some(value=>value!==false))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');return buildSourcePurgeGroupedCheckpoint(core,transport,{store,profile,parents,dispatchQualification});}
  if([currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection].some(value=>typeof value!=='boolean')||Number(currentHumanProjection)+Number(currentSourceWorkingProjection)+Number(currentMixedProjection)>1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  if(currentMixedProjection)return buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents,true);
  if(currentSourceWorkingProjection)return buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents);

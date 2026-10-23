@@ -1,0 +1,98 @@
+TAP version 13
+# Subtest: google all deleted negative only publishes → A closes → B cloud discovery → cold → C
+not ok 1 - google all deleted negative only publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 114.421291
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    allOperations (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:61:149)
+    async buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:106:127)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:32:333)
+    async #prepareObjects (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:62:16)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:77:78
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:34:14)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:28:81)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: google surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+not ok 2 - google surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 176.672084
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    allOperations (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:61:149)
+    async buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:106:127)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:32:333)
+    async #prepareObjects (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:62:16)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:77:78
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:34:14)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:28:81)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: onedrive all deleted negative only publishes → A closes → B cloud discovery → cold → C
+not ok 3 - onedrive all deleted negative only publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 73.914667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    allOperations (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:61:149)
+    async buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:106:127)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:32:333)
+    async #prepareObjects (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:62:16)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:77:78
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:34:14)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:28:81)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: onedrive surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+not ok 4 - onedrive surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 161.52625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:27:73'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    allOperations (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:61:149)
+    async buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:106:127)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:32:333)
+    async #prepareObjects (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:62:16)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:77:78
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:34:14)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-checkpoint-publication.test.mjs:28:81)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 654.820167

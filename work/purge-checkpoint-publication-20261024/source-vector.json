@@ -1,0 +1,9 @@
+{
+  "extension/core/browser-native-sync/checkpoint-publication.js": "d1d5d56f58e2d7f645ec8b579f9c5217ae3ded3242819f00013c0d9d0b983659",
+  "extension/core/browser-native-sync/group-checkpoint.js": "10115eee04430bb3b98cbff05d5c09c6d267a02eb3d5845da2d3391028e455c0",
+  "extension/core/browser-native-sync/recovery-session.js": "a3632b10af0e89ca5a8d253669a038f2b159b463a8d42b7644dd70d8db52cfab",
+  "extension/core/browser-native-sync/source-purge-group.js": "3e1df7d9d14f2db658e0281556565380c20f0209549d0ac4079d145cd17d912a",
+  "extension/core/browser-native-sync/source-purge-journal.js": "8d255d0342593463e5c009cac5bdbeef8ce94a59e96e5d1c75baa6661ac74b02",
+  "extension/core/browser-native-sync/source-purge-protocol-controls.js": "4b9f2bfcb470ed44da7192b2f36ae2b9cfcbf0ce51c70517616f6a569e6d2fbf",
+  "extension/tests/source-purge-checkpoint-publication.test.mjs": "ab0f60b56a00d21c5e4a3ef2b70b9c770a49c08346b4c7800e73300af5d60bb9"
+}

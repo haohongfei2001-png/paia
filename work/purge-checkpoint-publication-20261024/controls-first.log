@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: google negative publication pause at final adapter read fences the first write
+ok 1 - google negative publication pause at final adapter read fences the first write
+  ---
+  duration_ms: 209.371667
+  type: 'test'
+  ...
+# Subtest: onedrive negative publication pause at final adapter read fences the first write
+ok 2 - onedrive negative publication pause at final adapter read fences the first write
+  ---
+  duration_ms: 166.779208
+  type: 'test'
+  ...
+# Subtest: persistent negative restore pause at progress preserves every table and cold continuation uses original row
+ok 3 - persistent negative restore pause at progress preserves every table and cold continuation uses original row
+  ---
+  duration_ms: 1003.886208
+  type: 'test'
+  ...
+# Subtest: persistent negative restore pause at activate preserves every table and cold continuation uses original row
+ok 4 - persistent negative restore pause at activate preserves every table and cold continuation uses original row
+  ---
+  duration_ms: 969.060333
+  type: 'test'
+  ...
+# Subtest: persistent negative restore pause at terminal preserves every table and cold continuation uses original row
+ok 5 - persistent negative restore pause at terminal preserves every table and cold continuation uses original row
+  ---
+  duration_ms: 1008.329333
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse allocation-ref without any remote writes
+ok 6 - exact original protocol controls refuse allocation-ref without any remote writes
+  ---
+  duration_ms: 488.518292
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse allocation-identity without any remote writes
+ok 7 - exact original protocol controls refuse allocation-identity without any remote writes
+  ---
+  duration_ms: 496.994708
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse restore-extra without any remote writes
+ok 8 - exact original protocol controls refuse restore-extra without any remote writes
+  ---
+  duration_ms: 489.616167
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse restore-database without any remote writes
+ok 9 - exact original protocol controls refuse restore-database without any remote writes
+  ---
+  duration_ms: 492.252583
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5449.030792
