@@ -25,3 +25,14 @@ Root identified consent/control changes between selection, asynchronous preparat
 ## Limits
 
 No cloud CI, real provider/account, model, installation, deployment or large-scale execution is part of this review. The one qualified 129-group execution remains overall FAIL and consumed. Its post-publication cleanup successor has separate small native evidence; no 129 retry or capacity success is inferred.
+
+
+## Integration continuation — 2026-10-24
+
+Root integrated the complete fixed lifecycle package `da37aeeb` as `1d23560e`, after the actual SourcePurgeJournal, strict Topic entry, incognito/frame denial, successful restore notification and Settings consumer corrections. The author final seven-file Node batch is 148/148; prior failed assertions are retained. Actual Source purge with the current Filter owner still refuses safely. This is not a successful permanent-delete qualification. No invalid CONSENT request was given a new side effect; SET_ENABLED remains capture enablement. The original provider binding is checked at each request, and original publication checkpoints now fence known pause/binding invalidation.
+
+Manual Prompt exact packages `0ff6f0ff`, `85ec447e`, `a657aa8e`, `39b546c8` are integrated through `181dde29`. Original dual control observations and exact gate/control checks now reject changes across asynchronous review and final commit. A lost reply says the result is unconfirmed, retains the draft and disables automatic resubmission. Disposed panes cannot receive late completion/error updates. The affected 15/15 UI result is reused; 23 original owner native bodies and the finite DOM helper are prepared, not yet executed. The default worker does not acquire a Prompt journal merely because the owner module exists.
+
+A separate checkpoint producer is under independent review. Real Google/OneDrive transports with synthetic HTTP have exercised A close, fresh B cloud-only recovery, cold editing, re-publication and fresh C recovery. Those author Node passes do not close the identified pending-dispatch and delayed local-journal-write races. Root and reviewer requested deterministic pause/cut changes while a provider GET or local set is held; a test that pauses after POST has dispatched does not answer that concern. The producer is not integrated or enabled while these findings remain unresolved.
+
+Remote main `0ce10a79f65ca9c811a32c1b0e6db2d833b85f9a` and PR313 `02144bccf5e0e0b6842aaa4e7c6958cedecdfde1` were reread unchanged. The former is already an ancestor of this integration branch. No deployment, account, cloud run, native batch or spent scale opportunity was invoked by this continuation record.

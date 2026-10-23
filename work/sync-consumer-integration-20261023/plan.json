@@ -1,0 +1,32 @@
+{
+  "owning": [
+    "browser-native-sync-working-negative-group.test.mjs",
+    "browser-native-sync-selected-purge-group.test.mjs",
+    "browser-native-sync-source-purge-group.test.mjs",
+    "browser-native-sync-source-purge-closure.test.mjs",
+    "manual-prompt-conflict-consumer.test.mjs",
+    "manual-prompt-conflict-view.test.mjs",
+    "manual-prompt-conflict-surface.test.mjs",
+    "cpv1-09-prompt-security.test.mjs",
+    "cpv1-09-prompt-surface.test.mjs",
+    "prompt-surface-cancel-close.test.mjs",
+    "cpv1-09-prompt-service.test.mjs",
+    "sync-local-lifecycle.test.mjs",
+    "settings-sync.test.mjs",
+    "browser-native-sync-publications.test.mjs",
+    "browser-native-sync-google-drive.test.mjs",
+    "browser-native-sync-onedrive.test.mjs",
+    "application-startup-events.test.mjs",
+    "application-store-selection.test.mjs"
+  ],
+  "native": [
+    "native-sync/working-negative-group-native.test.mjs",
+    "native-sync/manual-prompt-conflict-chrome.test.mjs",
+    "native-sync/sync-local-lifecycle-chrome.test.mjs"
+  ],
+  "artifacts": [
+    "qa-working-negative-group-native",
+    "qa-manual-prompt-conflict-native",
+    "qa-sync-local-lifecycle"
+  ]
+}
