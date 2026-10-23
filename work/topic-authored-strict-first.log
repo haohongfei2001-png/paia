@@ -1,0 +1,56 @@
+TAP version 13
+# Subtest: typed authored response travels through the original source-owned adapter for both original facets
+ok 1 - typed authored response travels through the original source-owned adapter for both original facets
+  ---
+  duration_ms: 286.97175
+  type: 'test'
+  ...
+# Subtest: original Topic formation owner retains exact authored identity with an independent Topic processing call and receipt
+ok 2 - original Topic formation owner retains exact authored identity with an independent Topic processing call and receipt
+  ---
+  duration_ms: 81.765291
+  type: 'test'
+  ...
+# Subtest: genuine independent Topic authority commits under original closed final authority
+not ok 3 - genuine independent Topic authority commits under original closed final authority
+  ---
+  duration_ms: 23.815083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:31:32'
+  failureType: 'testCodeFailure'
+  error: 'UNAVAILABLE'
+  code: 'UNAVAILABLE'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/contracts.js:6:52)
+    need (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing-authority.js:16:43)
+    new TopicProcessingAuthority (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing-authority.js:73:3)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:32:506)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: genuine independent Topic authority revocation at original terminal rolls back
+not ok 4 - genuine independent Topic authority revocation at original terminal rolls back
+  ---
+  duration_ms: 26.630042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:31:32'
+  failureType: 'testCodeFailure'
+  error: 'UNAVAILABLE'
+  code: 'UNAVAILABLE'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/contracts.js:6:52)
+    need (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing-authority.js:16:43)
+    new TopicProcessingAuthority (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing-authority.js:73:3)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:32:506)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 2
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 446.080334

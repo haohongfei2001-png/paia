@@ -1,0 +1,216 @@
+TAP version 13
+# Subtest: real original authored creation and placement yield typed current human evidence, never Input or Source
+not ok 1 - real original authored creation and placement yield typed current human evidence, never Input or Source
+  ---
+  duration_ms: 44.971209
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:10:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(m)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: ~
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:10:169)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: typed authored assessment rejects input-citation
+not ok 2 - typed authored assessment rejects input-citation
+  ---
+  duration_ms: 26.614375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:150'
+  failureType: 'testCodeFailure'
+  error: "Cannot destructure property 'material' of '(intermediate value)' as it is null."
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:234)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: typed authored assessment rejects foreign-entry
+not ok 3 - typed authored assessment rejects foreign-entry
+  ---
+  duration_ms: 19.758875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:150'
+  failureType: 'testCodeFailure'
+  error: "Cannot destructure property 'material' of '(intermediate value)' as it is null."
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:234)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: typed authored assessment rejects foreign-topic
+not ok 4 - typed authored assessment rejects foreign-topic
+  ---
+  duration_ms: 19.1835
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:150'
+  failureType: 'testCodeFailure'
+  error: "Cannot destructure property 'material' of '(intermediate value)' as it is null."
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:234)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: typed authored assessment rejects missing-body
+not ok 5 - typed authored assessment rejects missing-body
+  ---
+  duration_ms: 21.112709
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:150'
+  failureType: 'testCodeFailure'
+  error: "Cannot destructure property 'material' of '(intermediate value)' as it is null."
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:234)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: typed authored assessment rejects past-end
+not ok 6 - typed authored assessment rejects past-end
+  ---
+  duration_ms: 18.22075
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:150'
+  failureType: 'testCodeFailure'
+  error: "Cannot destructure property 'material' of '(intermediate value)' as it is null."
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:234)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: typed authored assessment rejects negative-start
+not ok 7 - typed authored assessment rejects negative-start
+  ---
+  duration_ms: 15.986458
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:150'
+  failureType: 'testCodeFailure'
+  error: "Cannot destructure property 'material' of '(intermediate value)' as it is null."
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:234)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: typed authored assessment rejects gap
+not ok 8 - typed authored assessment rejects gap
+  ---
+  duration_ms: 16.824292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:150'
+  failureType: 'testCodeFailure'
+  error: "Cannot destructure property 'material' of '(intermediate value)' as it is null."
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:234)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: typed authored assessment rejects new-identity
+not ok 9 - typed authored assessment rejects new-identity
+  ---
+  duration_ms: 18.563792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:150'
+  failureType: 'testCodeFailure'
+  error: "Cannot destructure property 'material' of '(intermediate value)' as it is null."
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:234)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: typed authored assessment rejects extra-field
+not ok 10 - typed authored assessment rejects extra-field
+  ---
+  duration_ms: 16.317333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:150'
+  failureType: 'testCodeFailure'
+  error: "Cannot destructure property 'material' of '(intermediate value)' as it is null."
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:11:234)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: all selected authored fields, including a cleared field, remain exact owner evidence
+not ok 11 - all selected authored fields, including a cleared field, remain exact owner evidence
+  ---
+  duration_ms: 21.136375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:12:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot destructure property 'material' of '(intermediate value)' as it is null."
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:12:524)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: original authored owner proof rejects unconfirmed-name
+not ok 12 - original authored owner proof rejects unconfirmed-name
+  ---
+  duration_ms: 16.744291
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:13:90'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/idb-repository.js:22:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/idb-repository.js:427:823)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:13:177)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: original authored owner proof rejects removed-entry
+ok 13 - original authored owner proof rejects removed-entry
+  ---
+  duration_ms: 15.138791
+  type: 'test'
+  ...
+# Subtest: original authored owner proof rejects hidden-source
+ok 14 - original authored owner proof rejects hidden-source
+  ---
+  duration_ms: 16.197541
+  type: 'test'
+  ...
+# Subtest: original authored owner proof rejects unlogged-body
+ok 15 - original authored owner proof rejects unlogged-body
+  ---
+  duration_ms: 16.629833
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 3
+# fail 12
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 440.993958

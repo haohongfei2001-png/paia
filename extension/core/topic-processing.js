@@ -84,6 +84,7 @@ export class TopicProcessingGuard {
   readTopicProcessingAuthority(cap,this.store,t,request);record.budget=budget;record.uses.push(Object.freeze({cap,request,epoch,restoreEpoch:held.scope.restoreEpoch}));
   return epoch;
  }
+ processingMode(t){return processingMode(this,t);}
  assertProcessingCurrent(t){return processingCurrent(this,t);}
  assertProcessingFacts(t,options){return processingFacts(this,t,options);}
  registerProcessingFinalFence(t,{qualification=null}={}){

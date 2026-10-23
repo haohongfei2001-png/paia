@@ -1,0 +1,50 @@
+TAP version 13
+# Subtest: genuine independent Topic authority commits under original closed final authority
+not ok 1 - genuine independent Topic authority commits under original closed final authority
+  ---
+  duration_ms: 41.940958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:31:32'
+  failureType: 'testCodeFailure'
+  error: 'STALE_BASE'
+  code: 'STALE_BASE'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/contracts.js:6:52)
+    need (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing-authority.js:16:43)
+    TopicProcessingAuthority.authorize (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing-authority.js:88:171)
+    async TopicProcessingGuard.processing (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing.js:71:20)
+    async TopicProcessingGuard.authority (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing.js:107:25)
+    async TopicProcessingGuard.check (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing.js:138:17)
+    async file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-formation.js:74:146
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/idb-repository.js:427:20)
+    async file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/indexed-store.js:192:11
+  ...
+# Subtest: genuine independent Topic authority revocation at original terminal rolls back
+not ok 2 - genuine independent Topic authority revocation at original terminal rolls back
+  ---
+  duration_ms: 21.903417
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/topic-authored-reconciliation.test.mjs:31:32'
+  failureType: 'testCodeFailure'
+  error: 'STALE_BASE'
+  code: 'STALE_BASE'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/ai-usage/contracts.js:6:52)
+    need (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing-authority.js:16:43)
+    TopicProcessingAuthority.authorize (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing-authority.js:88:171)
+    async TopicProcessingGuard.processing (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing.js:71:20)
+    async TopicProcessingGuard.authority (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing.js:107:25)
+    async TopicProcessingGuard.check (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-processing.js:138:17)
+    async file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/topic-formation.js:74:146
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/idb-repository.js:427:20)
+    async file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/indexed-store.js:192:11
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 167.329958

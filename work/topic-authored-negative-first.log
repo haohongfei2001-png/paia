@@ -1,0 +1,268 @@
+TAP version 13
+# Subtest: typed authored lineage rejects inputId
+ok 1 - typed authored lineage rejects inputId
+  ---
+  duration_ms: 53.764583
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects sourceRecordIds
+ok 2 - typed authored lineage rejects sourceRecordIds
+  ---
+  duration_ms: 25.817667
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects selected-note
+ok 3 - typed authored lineage rejects selected-note
+  ---
+  duration_ms: 23.246625
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects fake-birth
+ok 4 - typed authored lineage rejects fake-birth
+  ---
+  duration_ms: 31.688791
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects fake-membership
+ok 5 - typed authored lineage rejects fake-membership
+  ---
+  duration_ms: 29.605333
+  type: 'test'
+  ...
+# Subtest: typed authored Topic and Context share one response but retain separate original owners and exact ACKs
+ok 6 - typed authored Topic and Context share one response but retain separate original owners and exact ACKs
+  ---
+  duration_ms: 204.574375
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects denied-topic
+ok 7 - typed authored Topic independent guard rejects denied-topic
+  ---
+  duration_ms: 42.945583
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects revoked-topic-response
+ok 8 - typed authored Topic independent guard rejects revoked-topic-response
+  ---
+  duration_ms: 105.178833
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects wrong-topic-field-grant
+ok 9 - typed authored Topic independent guard rejects wrong-topic-field-grant
+  ---
+  duration_ms: 37.138708
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects wrong-author-field-grant
+ok 10 - typed authored Topic independent guard rejects wrong-author-field-grant
+  ---
+  duration_ms: 39.867209
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects entry-drift
+ok 11 - typed authored Topic independent guard rejects entry-drift
+  ---
+  duration_ms: 87.888917
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects topic-drift
+ok 12 - typed authored Topic independent guard rejects topic-drift
+  ---
+  duration_ms: 93.481791
+  type: 'test'
+  ...
+# Subtest: typed authored Topic ACK abort rolls back its owner receipt and replay reuses one physical response
+ok 13 - typed authored Topic ACK abort rolls back its owner receipt and replay reuses one physical response
+  ---
+  duration_ms: 178.399833
+  type: 'test'
+  ...
+# Subtest: typed authored response travels through the original source-owned adapter for both original facets
+ok 14 - typed authored response travels through the original source-owned adapter for both original facets
+  ---
+  duration_ms: 160.616125
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema is bounded and independently decodes typed Entry evidence
+ok 15 - source-owned authored schema is bounded and independently decodes typed Entry evidence
+  ---
+  duration_ms: 2.372083
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses foreign-entry
+ok 16 - source-owned authored schema refuses foreign-entry
+  ---
+  duration_ms: 0.428125
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses foreign-topic
+ok 17 - source-owned authored schema refuses foreign-topic
+  ---
+  duration_ms: 0.248
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses input-citation
+ok 18 - source-owned authored schema refuses input-citation
+  ---
+  duration_ms: 0.267792
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses partial-field
+ok 19 - source-owned authored schema refuses partial-field
+  ---
+  duration_ms: 1.030209
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses stale-name
+ok 20 - source-owned authored schema refuses stale-name
+  ---
+  duration_ms: 0.243417
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses stale-fields
+ok 21 - source-owned authored schema refuses stale-fields
+  ---
+  duration_ms: 0.309542
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses top-input-citation
+ok 22 - source-owned authored schema refuses top-input-citation
+  ---
+  duration_ms: 0.291167
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses extra-permission
+ok 23 - source-owned authored schema refuses extra-permission
+  ---
+  duration_ms: 0.519125
+  type: 'test'
+  ...
+# Subtest: source-owned unresolved authored identity yields exact Topic DEFER without inventing a new identity
+ok 24 - source-owned unresolved authored identity yields exact Topic DEFER without inventing a new identity
+  ---
+  duration_ms: 0.559791
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects input-citation
+ok 25 - typed authored assessment rejects input-citation
+  ---
+  duration_ms: 44.636417
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects foreign-entry
+ok 26 - typed authored assessment rejects foreign-entry
+  ---
+  duration_ms: 21.811542
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects foreign-topic
+ok 27 - typed authored assessment rejects foreign-topic
+  ---
+  duration_ms: 21.958
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects missing-body
+ok 28 - typed authored assessment rejects missing-body
+  ---
+  duration_ms: 20.80475
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects past-end
+ok 29 - typed authored assessment rejects past-end
+  ---
+  duration_ms: 21.401708
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects negative-start
+ok 30 - typed authored assessment rejects negative-start
+  ---
+  duration_ms: 20.669083
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects gap
+ok 31 - typed authored assessment rejects gap
+  ---
+  duration_ms: 18.474042
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects new-identity
+ok 32 - typed authored assessment rejects new-identity
+  ---
+  duration_ms: 18.172875
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects extra-field
+ok 33 - typed authored assessment rejects extra-field
+  ---
+  duration_ms: 21.948417
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale entry before original receipt publication
+ok 34 - authored Topic refuses stale entry before original receipt publication
+  ---
+  duration_ms: 21.770542
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale title before original receipt publication
+ok 35 - authored Topic refuses stale title before original receipt publication
+  ---
+  duration_ms: 22.630416
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale placement before original receipt publication
+ok 36 - authored Topic refuses stale placement before original receipt publication
+  ---
+  duration_ms: 22.516084
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale journal before original receipt publication
+ok 37 - authored Topic refuses stale journal before original receipt publication
+  ---
+  duration_ms: 21.385791
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale processing before original receipt publication
+ok 38 - authored Topic refuses stale processing before original receipt publication
+  ---
+  duration_ms: 19.603167
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale abort before original receipt publication
+ok 39 - authored Topic refuses stale abort before original receipt publication
+  ---
+  duration_ms: 19.939292
+  type: 'test'
+  ...
+# Subtest: authored Topic original transaction rolls back receipt-abort
+ok 40 - authored Topic original transaction rolls back receipt-abort
+  ---
+  duration_ms: 23.488875
+  type: 'test'
+  ...
+# Subtest: authored Topic original transaction rolls back terminal-entry
+ok 41 - authored Topic original transaction rolls back terminal-entry
+  ---
+  duration_ms: 23.90225
+  type: 'test'
+  ...
+# Subtest: authored Topic original transaction rolls back terminal-topic
+ok 42 - authored Topic original transaction rolls back terminal-topic
+  ---
+  duration_ms: 22.682333
+  type: 'test'
+  ...
+# Subtest: original Input formation still rejects empty input scope
+ok 43 - original Input formation still rejects empty input scope
+  ---
+  duration_ms: 19.204792
+  type: 'test'
+  ...
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1254.287333
