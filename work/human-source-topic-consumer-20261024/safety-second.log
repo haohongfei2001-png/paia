@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: source-derived original Human placement survives whole checkpoint and destination original edits
+ok 1 - source-derived original Human placement survives whole checkpoint and destination original edits
+  ---
+  duration_ms: 536.708375
+  type: 'test'
+  ...
+# Subtest: original Input addToTopics whole binding is one receipt and survives checkpoint
+ok 2 - original Input addToTopics whole binding is one receipt and survives checkpoint
+  ---
+  duration_ms: 388.019041
+  type: 'test'
+  ...
+# Subtest: original Input addToTopics excerpt is one receipt and survives checkpoint
+ok 3 - original Input addToTopics excerpt is one receipt and survives checkpoint
+  ---
+  duration_ms: 398.038625
+  type: 'test'
+  ...
+# Subtest: original twenty-topic maximum, duplicate and over-limit reject without any write
+ok 4 - original twenty-topic maximum, duplicate and over-limit reject without any write
+  ---
+  duration_ms: 427.268583
+  type: 'test'
+  ...
+# Subtest: prepared exact Input selection rechecks Source, topics and atomic receipt before original mutation
+ok 5 - prepared exact Input selection rechecks Source, topics and atomic receipt before original mutation
+  ---
+  duration_ms: 48.302667
+  type: 'test'
+  ...
+# Subtest: source-linked placement rechecks provenance and rejects without partial membership
+ok 6 - source-linked placement rechecks provenance and rejects without partial membership
+  ---
+  duration_ms: 66.477916
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2018.53825

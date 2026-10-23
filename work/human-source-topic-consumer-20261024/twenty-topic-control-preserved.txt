@@ -1,0 +1,5 @@
+test('twenty-topic selection retains the existing ancestor bound; duplicate and over-limit reject atomically',async t=>{
+ const a=await device(t,'SYNTHETIC_A'),topicIds=[];for(let i=0;i<20;i++)topicIds.push((await a.s.createTopic({name:'SYNTHETIC Topic '+i,operationId:crypto.randomUUID()})).id);await a.s.capture(capture((await a.s.status()).epoch));const input=(await a.s.snapshot()).library.blocks[0],r={operationId:crypto.randomUUID(),kind:'input',id:input.id,expectedRevision:input.revision,topicIds};const before=await all(a.s);
+ for(const ids of [[topicIds[0],topicIds[0]],[...topicIds,crypto.randomUUID()]]){await assert.rejects(()=>a.s.addToTopics({...r,topicIds:ids}));assert.deepEqual(await all(a.s),before);}
+ await assert.rejects(()=>a.s.addToTopics(r),{code:'BNS_HUMAN_GRAPH_LIMIT'});assert.deepEqual(await all(a.s),before);
+});

@@ -1,0 +1,55 @@
+TAP version 13
+# Subtest: source-derived original Human placement survives whole checkpoint and destination original edits
+ok 1 - source-derived original Human placement survives whole checkpoint and destination original edits
+  ---
+  duration_ms: 745.1495
+  type: 'test'
+  ...
+# Subtest: original Input addToTopics whole binding is one receipt and survives checkpoint
+ok 2 - original Input addToTopics whole binding is one receipt and survives checkpoint
+  ---
+  duration_ms: 528.794791
+  type: 'test'
+  ...
+# Subtest: original Input addToTopics excerpt is one receipt and survives checkpoint
+ok 3 - original Input addToTopics excerpt is one receipt and survives checkpoint
+  ---
+  duration_ms: 521.373459
+  type: 'test'
+  ...
+# Subtest: original twenty-topic maximum, duplicate and over-limit reject without any write
+not ok 4 - original twenty-topic maximum, duplicate and over-limit reject without any write
+  ---
+  duration_ms: 342.758417
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:25:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_GRAPH_LIMIT'
+  code: 'BNS_HUMAN_GRAPH_LIMIT'
+  stack: |-
+    HumanLibrarySyncJournal.execute (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-journal.js:66:314)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:28:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: prepared exact Input selection rechecks Source, topics and atomic receipt before original mutation
+ok 5 - prepared exact Input selection rechecks Source, topics and atomic receipt before original mutation
+  ---
+  duration_ms: 53.077584
+  type: 'test'
+  ...
+# Subtest: source-linked placement rechecks provenance and rejects without partial membership
+ok 6 - source-linked placement rechecks provenance and rejects without partial membership
+  ---
+  duration_ms: 63.4945
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2431.983

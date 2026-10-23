@@ -2,28 +2,38 @@ import {keys,fail,idOK,prefix,entrySnapshot,markHuman,refreshEntryIndex,keyedHas
 import {inputProjection} from './thought-evidence.js';
 import {bindingSource,applyBinding,bindingRead} from './thought-binding.js';
 import {journal,nextSequence} from './thought-journal.js';
-const validSpan=(body,span)=>{if(!span||!Number.isSafeInteger(span.start)||!Number.isSafeInteger(span.end)||span.start<0||span.end>body.length||span.end<=span.start)return false;const bounds=new Set([0,body.length,...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(body)].map(x=>typeof x==='number'?x:x.index));return bounds.has(span.start)&&bounds.has(span.end);};
+export const validInputTopicSpan=(body,span)=>{if(!span||!Number.isSafeInteger(span.start)||!Number.isSafeInteger(span.end)||span.start<0||span.end>body.length||span.end<=span.start)return false;const bounds=new Set([0,body.length,...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(body)].map(x=>typeof x==='number'?x:x.index));return bounds.has(span.start)&&bounds.has(span.end);};
 async function topicsFor(s,t,ids){const topics=[];for(const id of ids){const row=await s.canonicalTopic(t,id);if(row.id!==id||row.lifecycle!=='active'||row.layoutJobId)fail();topics.push(row);}return topics;}
 async function place(s,t,row,topics,operationId,sectionId){for(const topic of topics){const old=await t.get('placements',JSON.stringify([topic.id,topic.activeLayoutGeneration,row.id]));if(old?.lifecycle==='active')continue;const r=await s.placeEntryInTransaction(t,{entryId:row.id,topicId:topic.id,...(sectionId?{sectionId}:{}),expectedEntryRevision:row.revision,expectedTopicRevision:topic.organizationRevision,...(old?{expectedPlacementRevision:old.revision}:{}),operationId});if(r.conflict)fail();Object.assign(row,await t.get('thoughts',row.id));await s.touchTopic(t,await t.get('topics',topic.id));}return {id:row.id,revision:row.revision};}
 export async function addToTopics(s,r){
  keys(r,['operationId','kind','id','expectedRevision','span','topicIds'],['operationId','kind','id','expectedRevision','topicIds']);if(!['input','thought'].includes(r.kind)||!idOK(r.id)||!Array.isArray(r.topicIds)||!r.topicIds.length||r.topicIds.length>20||new Set(r.topicIds).size!==r.topicIds.length||r.topicIds.some(x=>!idOK(x)))fail();
+ if(s.humanLibraryJournal&&r.kind==='input')return s.humanLibraryJournal.execute(s,'source-add-to-topics',r);
  const previous=await s.priorOperation(r);if(previous)return previous;
  if(r.kind==='thought'&&r.span)return addThoughtExcerpt(s,r);
  if(r.kind==='thought')return s.operation(r,async t=>{const row=await s.readableEntry(t,r.id);if(row.lifecycle!=='active'||row.revision!==r.expectedRevision||r.span) return {conflict:true};return place(s,t,row,await topicsFor(s,t,r.topicIds),r.operationId);});
- const p=await s.run(()=>s.repository.transaction(false,t=>inputProjection(s,t,r.id)));if(!p||p.block.revision!==r.expectedRevision)return {conflict:true,sourceChanged:true};const span=r.span||{start:0,end:p.body.length};if(!validSpan(p.body,span))fail();
+ const p=await s.run(()=>s.repository.transaction(false,t=>inputProjection(s,t,r.id)));if(!p||p.block.revision!==r.expectedRevision)return {conflict:true,sourceChanged:true};const span=r.span||{start:0,end:p.body.length};if(!validInputTopicSpan(p.body,span))fail();
  const evidence=await s.evidenceFor([{inputId:r.id,role:'primary',selectedFields:['body']}]);const body=p.body.slice(span.start,span.end),full=span.start===0&&span.end===p.body.length;
  // The operation receipt covers the user's exact selection, not a generated body.
  const internal={operationId:r.operationId,actor:'user',body,type:'idea',formation:'explicit',evidence};
- const hooks={before:async(t)=>{const live=await inputProjection(s,t,r.id);if(!live||live.block.revision!==r.expectedRevision)fail();await topicsFor(s,t,r.topicIds);
+ return s.createEntry(internal,{...inputTopicHooks(s,r,p,span,body,full),receiptRequest:r});
+}
+function inputTopicHooks(s,r,p,span,body,full){
+ return {before:async(t)=>{const live=await inputProjection(s,t,r.id);if(!live||live.block.revision!==r.expectedRevision)fail();await topicsFor(s,t,r.topicIds);
   const refs=await t.all('provenance','byInputVersion',prefix([r.id]));for(const ref of refs){if(ref.role==='context_only'||ref.contributionType!=='exact_excerpt'||ref.basedOnContentRevision!==p.contentRevision||ref.span?.start!==span.start||ref.span?.end!==span.end)continue;const row=await s.readableEntry(t,ref.ownerId);if(row.lifecycle==='active'&&row.thoughtText===body){return place(s,t,row,await topicsFor(s,t,r.topicIds),r.operationId);}}return null;},after:async(t,row)=>{
   row.provenanceType='input_original';applyBinding(row,full?{bodyBinding:'input',workingInputId:r.id,bindingRevision:p.contentRevision,bindingLength:p.body.length}:{bodyBinding:'thought'});
   for(const ref of await t.all('provenance','byOwner',prefix(['entry',row.id]))){ref.contributionType='exact_excerpt';ref.span={field:'body',...span,full};await t.put('provenance',ref);}await t.put('thoughts',row);await place(s,t,row,await topicsFor(s,t,r.topicIds),r.operationId);
  }};
- // Reuse the existing creation transaction with an explicit receipt identity.
- return s.createEntry(internal,{...hooks,receiptRequest:r});
 }
+// The named compound owner keeps one receipt and one original creation transaction.
+export async function addInputToTopicsInTransaction(s,t,r,{projection,evidence,exactSignature}){
+ if(r.kind!=='input'||!Array.isArray(evidence)||evidence.length!==1||evidence[0].inputId!==r.id||evidence[0].role!=='primary'||JSON.stringify(evidence[0].selectedFields)!=='["body"]')fail();
+ const live=await inputProjection(s,t,r.id);if(!live||JSON.stringify(live)!==JSON.stringify(projection)||live.block.revision!==r.expectedRevision)fail();
+ const span=r.span||{start:0,end:live.body.length};if(!validInputTopicSpan(live.body,span))fail();const body=live.body.slice(span.start,span.end),full=span.start===0&&span.end===live.body.length;
+ return s.createEntryInTransaction(t,{operationId:r.operationId,actor:'user',body,type:'idea',formation:'explicit',evidence},{evidence,nonContext:evidence,generator:null,exactSignature,hooks:inputTopicHooks(s,r,live,span,body,full)});
+}
+
 async function addThoughtExcerpt(s,r){
- const original=await s.entry(r.id);if(original.lifecycle!=='active'||original.revision!==r.expectedRevision)return {conflict:true};if(!validSpan(original.body,r.span))fail();
+ const original=await s.entry(r.id);if(original.lifecycle!=='active'||original.revision!==r.expectedRevision)return {conflict:true};if(!validInputTopicSpan(original.body,r.span))fail();
  const body=original.body.slice(r.span.start,r.span.end),deps=await s.entryDependencies(r.id),specs=deps.map(d=>({inputId:d.inputId,role:d.roles.includes('primary')?'primary':d.roles.includes('supporting')?'supporting':'context_only',selectedFields:d.selectedFields}));
  const evidence=await s.evidenceFor(specs,{independentContext:true}),secret=await s.run(()=>s.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key')).value,['meta']));
  // The existing exact-key index identifies this precise explicit selection.
