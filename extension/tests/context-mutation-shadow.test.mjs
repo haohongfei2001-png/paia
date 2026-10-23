@@ -34,3 +34,9 @@ test('actual typed metadata and physical rows pass only the Context snapshot com
  const automatic=new Map(meta.map(r=>[r.id,structuredClone(r)]));automatic.get('context-cards:v1').items[0].origin='automatic';assert.throws(()=>assertCurrentContextSnapshot(a.core,scope,plan,raw,automatic),{code:'BNS_CONTEXT_LINEAGE_UNAVAILABLE'});
  const changed=new Map(meta.map(r=>[r.id,structuredClone(r)])),mapping=await a.core.read('contextMutationEpoch',c.itemId);changed.set(mapping.id,{...mapping,epoch:'SYNTHETIC wrong epoch'});assert.throws(()=>assertCurrentContextSnapshot(a.core,scope,plan,raw,changed));assert.deepEqual(await a.s.repository.transaction(false,t=>t.all('meta')),meta);
 });
+import {captureCurrentContextLineage,measureCurrentContextLineage,fenceCurrentContextLineage} from '../core/browser-native-sync/context-current-lineage.js';
+test('a forged native cut cannot qualify automatic Context or create retained lineage',async t=>{
+ const a=await device(t),raw={groupMeta:[{id:'context-cards:v1',items:[{origin:'automatic'}]}],points:{}};
+ await assert.rejects(captureCurrentContextLineage({},a.s,a.core,{}, {},raw),{code:'BNS_HUMAN_PROJECTION_REQUIRED'});
+ assert.equal(measureCurrentContextLineage(raw),null);await assert.rejects(fenceCurrentContextLineage(a.core,a.s,{}, {},raw),{code:'BNS_CONTEXT_LINEAGE_UNAVAILABLE'});
+});

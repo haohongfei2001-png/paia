@@ -1,4 +1,4 @@
-import {originalContextMutationPreparation,requireContextMutationProtocolOwner,executeOriginalContextMutationApplication,finalizeOriginalContextMutationApplication,releaseOriginalContextMutationApplication} from './context-mutation-journal.js';
+import {originalContextMutationPreparation,requireContextMutationProtocolOwner,executeOriginalContextMutationApplication,finalizeOriginalContextMutationApplication,releaseOriginalContextMutationApplication} from './context-mutation-journal-owner.js';
 import {executeOriginalContextGroupStep} from './context-mutation-group.js';
 import {requireOriginalPromptBindingResolution} from './prompt-journal.js';
 import {promptCorrectionEnvelope} from './prompt-correction-binding.js';

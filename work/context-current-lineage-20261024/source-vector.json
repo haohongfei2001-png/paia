@@ -1,0 +1,13 @@
+{
+  "extension/core/browser-native-sync/context-current-lineage.js": "3449cb4474ee61d497c3185e56d906174e53a34e981a37c62b179f62fc79224e",
+  "extension/core/browser-native-sync/context-mutation-journal-owner.js": "9f5498871ea5820dda56efd9df9398fc5f6702e52493b697d0643a9807978234",
+  "extension/core/browser-native-sync/context-mutation-journal.js": "40fbe2d5ad6174561da7a22189a8f33059a858964fdbf880c88ffdc45579fa3b",
+  "extension/core/browser-native-sync/core.js": "01cf12af598e954e4a0f3f75aeaea8e99b8a9cd18cbdea70fa08ce511daca38e",
+  "extension/core/browser-native-sync/human-library-plan.js": "466238ebc1f55c8e9c120e6842ed50c0c786cfee0956f47ec1569b8395ae1b39",
+  "extension/core/browser-native-sync/manual-context-current-snapshot.js": "234b6f3e09953dfa26c0c9f7288127edaf67d2880b6a5d8a99fa31903246f015",
+  "extension/core/context-cards.js": "9afae22b3d04c93379d5e82edc90aa8db392111b50bc79880378803aeef959b4",
+  "extension/core/context-item-lineage.js": "ad7ec8328a73e4ef7b31b8c923f6fdc53912b9bb892ffdc0253f97451eaef53d",
+  "extension/tests/context-limits-cold-entry.test.mjs": "9106be4ec17754d5dfbf68835a1e89387e58029b2ee2d75af02979d644607115",
+  "extension/tests/context-mutation-journal.test.mjs": "b74803dfab834b21c3a4e6c4fa14db6a2e6710d984b67ffe3588d782ca4d5f6b",
+  "extension/tests/context-mutation-shadow.test.mjs": "e29a42c1b06707e1b396a346055b048cbe485ad38fc89adcdeda1ab510c55e49"
+}

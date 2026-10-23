@@ -1,3 +1,4 @@
+import {captureCurrentContextLineage,measureCurrentContextLineage,fenceCurrentContextLineage,releaseCurrentContextLineage} from './context-current-lineage.js';
 import {projectOriginalWorkingHistory} from './input-working-commit.js';
 import {sourceLinkedDescriptor,portableSourceLinkedEvidence} from './source-linked-evidence.js';
 import {validateEvidence,checkEvidenceInTransaction,planEvidenceProjection} from '../thought-evidence.js';
@@ -1371,8 +1372,8 @@ function mixedNativeQueryView(r){
  return {rows:raw.rows,points,prefixes,placementOrder:raw.rows.topics.map(topic=>({topicId:topic.id,keys:indexed('placements','byTopicOrder',[topic.id,topic.activeLayoutGeneration,0])})),receiptOrder:raw.rows.thoughts.map(entry=>({ownerId:entry.id,keys:indexed('operationReceipts','byOwner',['thought-library',entry.id])}))};
 }
 function projectionFailure(primary,errors){return errors.length?new AggregateError([primary,...errors],'Projection primary and cleanup failures',{cause:primary}):primary;}
-function projectionDrop(r){r.localControlRow=null;r.controlObservation=null;if(r.mixedSearchProof){releaseOriginalMixedNativeSearch(r.mixedSearchProof);r.mixedSearchProof=null;}r.mixedSearchQueue=null;r.mixedRestoredPrefix=null;r.mixedRestoredPhase=null;r.failedRequest=null;r.raw=null;r.group=null;r.encoderResult=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
-function projectionRevoke(p){p.revoked=true;if(p.frames===0&&!p.released){p.released=true;p.raw=null;p.group=null;p.encoderResult=null;p.controlValues=null;releaseHumanQualificationLease(p.ticket);p.ticket=null;}}
+function projectionDrop(r){releaseCurrentContextLineage(r.raw);r.localControlRow=null;r.controlObservation=null;if(r.mixedSearchProof){releaseOriginalMixedNativeSearch(r.mixedSearchProof);r.mixedSearchProof=null;}r.mixedSearchQueue=null;r.mixedRestoredPrefix=null;r.mixedRestoredPhase=null;r.failedRequest=null;r.raw=null;r.group=null;r.encoderResult=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
+function projectionRevoke(p){p.revoked=true;if(p.frames===0&&!p.released){p.released=true;releaseCurrentContextLineage(p.raw);p.raw=null;p.group=null;p.encoderResult=null;p.controlValues=null;releaseHumanQualificationLease(p.ticket);p.ticket=null;}}
 // Original mixed Scope construction will consume the already authenticated,
 // frozen full native cut. No caller-supplied secret/DTO and no Store.run tail
 // replacement is admitted. Only initial readonly compilation inspection uses
@@ -1734,6 +1735,19 @@ async function projectionCompileInitialMixedScope(r){
  // trees and a second copy of the already unwound construction scratch.
  r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))-projectionAliasCharge(currentGroupOwner.measureOriginalMixedScopeBorrowedOperations(r.core,scope,plan))+projectionTreeCharge(hidden)+2048;r.group={...r.group,scope};
  projectionReserve(r);projectionFence(r);r.phase='mixed-canonical-qualifying';
+ // Actual automatic lineage is independently read/fenced. Prepay full native
+ // domain rows, read-scope maps, projection/hash/equality temporaries before
+ // any additional reader allocates; do not grant a separate Context pool.
+ const contextRow=r.raw.groupMeta.find(row=>row.id==='context-cards:v1');
+ if(contextRow?.items.some(item=>item.origin==='automatic')){
+  let trees=0,peak=0;for(const [name,rows]of Object.entries(r.raw.rows)){if(name==='meta')continue;const m=projectionRowMeasure(r,rows);trees+=projectionTreeCharge(m);peak=Math.max(peak,projectionCanonicalCharge(m));}
+  for(const row of r.raw.rows.meta)if(!row.id.startsWith(r.core.prefix)){const m=projectionRowMeasure(r,row);trees+=projectionTreeCharge(m);peak=Math.max(peak,projectionCanonicalCharge(m));}
+  const cm=projectionRowMeasure(r,contextRow);r.contextScratch=8*trees+8*projectionTreeCharge(cm)+4*peak+4*projectionCanonicalCharge(cm)+4096*256+256*1024;
+  projectionReserve(r,r.contextScratch);await captureCurrentContextLineage(r.nonce,r.store,r.core,scope,plan,r.raw);projectionCurrent(r);projectionFence(r);
+  const retained=measureCurrentContextLineage(r.raw);r.contextOwned=projectionTreeCharge(retained)+4096;r.owned+=r.contextOwned;projectionReserve(r,r.contextScratch);
+  await fenceCurrentContextLineage(r.core,r.store,scope,plan,r.raw);projectionCurrent(r);projectionFence(r);projectionReserve(r);
+ }
+
  projectionReserve(r,32*1024);await prepareOriginalMixedModeBaseline(r.core,r.store,scope,plan,r.raw,r.nonce,restored);projectionCurrent(r);projectionFence(r);projectionReserve(r);
  const searchScratch=mixedCurrentSearchScratch(r);r.semantic=searchScratch.query;r.mixedSearchScratch=searchScratch.search;projectionReserve(r,r.semantic);projectionQualify(r,true);projectionCurrent(r);
  const searchCounts=originalMixedNativeSearchCounts(r.mixedSearchProof);
@@ -1861,7 +1875,7 @@ async function captureCurrentProjection(store,core,group,sourceWorking=false,mix
   // lifetime before transferring that cap; complete native Search rows stay.
   if(mixedExport){releaseOriginalMixedNativeSearch(r.mixedSearchProof);r.mixedSearchProof=null;r.mixedQueryMetaIds=null;r.mixedSearchQueue=null;r.owned-=r.mixedSearchOwned;r.mixedSearchOwned=0;projectionReserve(r);}
   if(PROJECTION_FRAME+r.owned>4*1024*1024){try{fail('BNS_HUMAN_GRAPH_LIMIT');}catch(error){error.message+=' '+JSON.stringify({limit:4*1024*1024,charge:PROJECTION_FRAME+r.owned,owned:r.owned,phase:'retained-admission'});throw error;}}ticket=retainHumanQualificationLease(work,PROJECTION_FRAME+r.owned);
-  cap=Object.freeze({});const p={store,storeAssert,core,binding,tail:r.tail,control:r.control,controlValues:r.controlValues,controlObservation:r.controlObservation,localControlRow:r.localControlRow,raw:r.raw,ticket,frames:0,revoked:false,released:false,group:r.group,sourceWorking,mixedIndexInspection:r.mixedIndexInspection};
+  cap=Object.freeze({});const p={store,storeAssert,core,binding,tail:r.tail,control:r.control,controlValues:r.controlValues,controlObservation:r.controlObservation,localControlRow:r.localControlRow,raw:r.raw,ticket,frames:0,revoked:false,released:false,group:r.group,sourceWorking,mixedIndexInspection:r.mixedIndexInspection,contextScratch:r.contextScratch??0};
   currentProjectionCaps.set(cap,p);r.raw=null;r.controlValues=null;r.localControlRow=null;r.controlObservation=null;return cap;
  }catch(error){primary=error;failed=true;throw projectionFailure(primary,r?.cleanupErrors??[]);}
  finally{
@@ -1886,7 +1900,7 @@ async function requireCurrentNativeGroupProjection(cap,p){
   if('value'in Object.prototype)projectionRequired();projectionReserve(r);projectionFence(r);await projectionObserveControl(r,false);r.raw=projectionSourceWorkingRaw(p.mixedIndexInspection);currentProjectionWorks.set(r.nonce,r);
   await openHumanProjectionNativeRead(p.core,r.nonce);projectionCurrent(r);
   if(r.phase!=='observed'||!r.nativeDrained)projectionRequired();await projectionObserveControl(r,false);projectionQualifyPublication(r);projectionRowMeasure(r,r.raw);projectionDeepFreeze(r.raw);
-  if(!projectionGroupCutEqual(r,r.raw,p.raw))fail('BNS_HUMAN_CHANGED');projectionFence(r);return true;
+  if(!projectionGroupCutEqual(r,r.raw,p.raw))fail('BNS_HUMAN_CHANGED');projectionFence(r);if(p.contextScratch){projectionReserve(r,p.contextScratch);await fenceCurrentContextLineage(p.core,p.store,p.group.scope,p.group.plan,p.raw);projectionCurrent(r);projectionFence(r);}return true;
  }catch(error){throw projectionFailure(error,r.cleanupErrors);}
  finally{
   if(r.nativeOpened&&(!r.nativeDrained||r.listenersCleared===false)){

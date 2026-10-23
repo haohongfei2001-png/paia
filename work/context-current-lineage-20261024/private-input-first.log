@@ -1,0 +1,164 @@
+TAP version 13
+# Subtest: actual original Context put commits canonical/outbox and real receiver materializes same literal body
+ok 1 - actual original Context put commits canonical/outbox and real receiver materializes same literal body
+  ---
+  duration_ms: 84.661875
+  type: 'test'
+  ...
+# Subtest: actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+ok 2 - actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+  ---
+  duration_ms: 128.134416
+  type: 'test'
+  ...
+# Subtest: a split group and direct generic remote operation cannot write any canonical or protocol row
+ok 3 - a split group and direct generic remote operation cannot write any canonical or protocol row
+  ---
+  duration_ms: 34.511167
+  type: 'test'
+  ...
+# Subtest: existing original manual per-card ancestor remains exact while next move crosses the old codec type
+ok 4 - existing original manual per-card ancestor remains exact while next move crosses the old codec type
+  ---
+  duration_ms: 44.534875
+  type: 'test'
+  ...
+# Subtest: explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+ok 5 - explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+  ---
+  duration_ms: 49.426625
+  type: 'test'
+  ...
+# Subtest: real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+ok 6 - real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+  ---
+  duration_ms: 105.42475
+  type: 'test'
+  ...
+# Subtest: cold repository reopen retains original move receipt and allows undo then edit
+ok 7 - cold repository reopen retains original move receipt and allows undo then edit
+  ---
+  duration_ms: 47.30825
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on receipt write failure
+ok 8 - original transaction rolls canonical and all protocol rows back on receipt write failure
+  ---
+  duration_ms: 31.411208
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on protocol write failure
+ok 9 - original transaction rolls canonical and all protocol rows back on protocol write failure
+  ---
+  duration_ms: 32.405834
+  type: 'test'
+  ...
+# Subtest: prepared original group cannot survive a late independent local Context edit
+ok 10 - prepared original group cannot survive a late independent local Context edit
+  ---
+  duration_ms: 40.149833
+  type: 'test'
+  ...
+# Subtest: cloned preparation and fabricated service cannot mint or consume the original owner capability
+ok 11 - cloned preparation and fabricated service cannot mint or consume the original owner capability
+  ---
+  duration_ms: 31.355875
+  type: 'test'
+  ...
+# Subtest: sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+ok 12 - sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+  ---
+  duration_ms: 43.656375
+  type: 'test'
+  ...
+# Subtest: late restore epoch write after canonical and protocol apply aborts the whole original transaction
+ok 13 - late restore epoch write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 35.443917
+  type: 'test'
+  ...
+# Subtest: late typed head write after canonical and protocol apply aborts the whole original transaction
+ok 14 - late typed head write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 36.422584
+  type: 'test'
+  ...
+# Subtest: automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+ok 15 - automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+  ---
+  duration_ms: 63.469417
+  type: 'test'
+  ...
+# Subtest: original prepared Context is disposed when write-rejected bypasses commit
+ok 16 - original prepared Context is disposed when write-rejected bypasses commit
+  ---
+  duration_ms: 58.486083
+  type: 'test'
+  ...
+# Subtest: original prepared Context is disposed when admission-stale bypasses commit
+ok 17 - original prepared Context is disposed when admission-stale bypasses commit
+  ---
+  duration_ms: 58.534208
+  type: 'test'
+  ...
+# Subtest: original prepared Context is disposed when duplicate bypasses commit
+ok 18 - original prepared Context is disposed when duplicate bypasses commit
+  ---
+  duration_ms: 57.165875
+  type: 'test'
+  ...
+# Subtest: bootstrap write rejection releases its original preparation
+ok 19 - bootstrap write rejection releases its original preparation
+  ---
+  duration_ms: 42.146958
+  type: 'test'
+  ...
+# Subtest: private automatic lineage meters retained Input text and denies cloned or released captures
+not ok 20 - private automatic lineage meters retained Input text and denies cloned or released captures
+  ---
+  duration_ms: 38.711167
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-journal.test.mjs:96:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SOURCE_WORKING_PHYSICAL_INVALID'
+  code: 'BNS_SOURCE_WORKING_PHYSICAL_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/value.js:5:32)
+    required (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/source-working-physical.js:10:20)
+    shape (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/source-working-physical.js:14:40)
+    visit (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/source-working-physical.js:42:41)
+    visit (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/source-working-physical.js:43:85)
+    measureSourceWorkingPhysicalTree (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/source-working-physical.js:49:2)
+    add (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/context-item-lineage.js:56:28)
+    measureContextLineageRetention (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/context-item-lineage.js:60:36)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-journal.test.mjs:98:80)
+    async Test.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: captured automatic Input text is rechecked even if a late raw write does not advance owner metadata
+not ok 21 - captured automatic Input text is rechecked even if a late raw write does not advance owner metadata
+  ---
+  duration_ms: 42.828708
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-journal.test.mjs:103:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'CONTEXT_INVALIDATED'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-journal.test.mjs:107:6)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 19
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1226.618625

@@ -72,3 +72,37 @@ for(const changed of ['restore epoch','typed head'])test('late '+changed+' write
 test('automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage',async t=>{
  const a=await device(t),b=await device(t),f=await automatic(a),r=await a.journal.bootstrapItem(a.service,f.command.itemId),before=await snapshot(b);await assert.rejects(b.journal.receive(b.service,await group(a,r.operationId)),e=>e.code==='BNS_CONTEXT_LINEAGE_UNAVAILABLE');assert.deepEqual(await snapshot(b),before);
 });
+for(const mode of ['write-rejected','admission-stale','duplicate'])test('original prepared Context is disposed when '+mode+' bypasses commit',async t=>{
+ const a=await device(t),f=await automatic(a);await a.journal.bootstrapItem(a.service,f.command.itemId);
+ const c=put({itemId:f.command.itemId,expectedRevision:1,body:'SYNTHETIC pending adoption'}),originalWrite=a.s.write,originalPrepare=a.journal.restoreFence.prepare;
+ let prepared=null;
+ const interceptedWrite=async function(fn){
+  if(mode==='write-rejected')throw Error('SYNTHETIC admission rejected');
+  if(mode==='admission-stale')await originalWrite.call(this,t=>t.put('meta',{id:'recovery-restore-epoch',value:'SYNTHETIC_changed'}));
+  else {const digest=await hashText(JSON.stringify(c));await originalWrite.call(this,t=>t.put('operationReceipts',{id:'context:'+c.operationId,namespace:'context-cards',schemaVersion:1,ownerId:c.itemId,createdAt:this.clock(),digest,epoch:c.epoch,result:{ok:true,syntheticDuplicate:true}}));}
+  return originalWrite.call(this,fn);
+ };
+ a.journal.restoreFence.prepare=async function(...args){prepared=await originalPrepare.apply(this,args);a.s.write=interceptedWrite;return prepared;};
+ try{if(mode==='duplicate')assert.equal((await a.service.change(c)).syntheticDuplicate,true);else await assert.rejects(a.service.change(c));}finally{a.s.write=originalWrite;a.journal.restoreFence.prepare=originalPrepare;}
+ assert.ok(prepared);await assert.rejects(a.journal.commit(null,prepared),{code:'BNS_CONTEXT_PREPARATION_RELEASED'});
+});
+test('bootstrap write rejection releases its original preparation',async t=>{
+ const a=await device(t);await automatic(a);const item=(await read(a)).items[0],originalWrite=a.s.write,originalPrepare=a.journal.restoreFence.prepare;let prepared;
+ a.journal.restoreFence.prepare=async function(...args){prepared=await originalPrepare.apply(this,args);a.s.write=async()=>{throw Error('SYNTHETIC bootstrap denied');};return prepared;};
+ try{await assert.rejects(a.journal.bootstrapItem(a.service,item.id));}finally{a.s.write=originalWrite;a.journal.restoreFence.prepare=originalPrepare;}
+ await assert.rejects(a.journal.commit(null,prepared),{code:'BNS_CONTEXT_PREPARATION_RELEASED'});
+});
+import {readableContextItems,fenceContextLineage,releaseContextLineage,measureContextLineageRetention} from '../core/context-item-lineage.js';
+test('private automatic lineage meters retained Input text and denies cloned or released captures',async t=>{
+ const a=await device(t);await automatic(a);const row=await read(a),result=await readableContextItems(a.s,row.items,{epoch:'initial',rowSerialized:JSON.stringify(row),retainAuthoredCapture:true});
+ assert.equal(result.items.length,1);assert.ok(result.captured);const measured=measureContextLineageRetention(result.captured);
+ assert.deepEqual(Object.keys(measured),['B','T','V','E']);assert.ok(measured.T>='SYNTHETIC eligible Context source'.length);assert.ok(measured.B>0&&measured.V>0&&measured.E>0);assert.ok(Object.isFrozen(measured));
+ assert.throws(()=>measureContextLineageRetention({...result.captured}),{code:'CONTEXT_INVALIDATED'});await fenceContextLineage(a.s,result.captured);
+ releaseContextLineage(result.captured);assert.throws(()=>measureContextLineageRetention(result.captured),{code:'CONTEXT_INVALIDATED'});
+});
+test('captured automatic Input text is rechecked even if a late raw write does not advance owner metadata',async t=>{
+ const a=await device(t),f=await automatic(a),row=await read(a),result=await readableContextItems(a.s,row.items,{epoch:'initial',retainAuthoredCapture:true});
+ const state=await a.s.repository.transaction(false,t=>t.get('blocks',f.input.id));
+ const tx=a.s.repository.db.transaction(['blocks'],'readwrite'),done=new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error);});tx.objectStore('blocks').put({...state,value:{...state.value,libraryText:'SYNTHETIC late replacement'}});await done;
+ try{await assert.rejects(fenceContextLineage(a.s,result.captured),{code:'CONTEXT_INVALIDATED'});}finally{releaseContextLineage(result.captured);}
+});
