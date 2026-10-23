@@ -1,0 +1,29 @@
+TAP version 13
+# Subtest: actual Settings and worker local Sync plus bounded Prompt pane source
+not ok 1 - actual Settings and worker local Sync plus bounded Prompt pane source
+  ---
+  duration_ms: 8128.159
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:21:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    page.evaluate: Error: {"ok":false,"error":"STORAGE_FAILED"}
+        at eval (eval at evaluate (:311:30), <anonymous>:1:97)
+        at async <anonymous>:337:30 REPOSITORY_DIAGNOSTIC null
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    eval (eval at evaluate (:311:30), <anonymous>:1:97)
+    async <anonymous>:337:30
+    rpc (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:68:54)
+    runSyncLifecycleNative (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:74:264)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:41:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13200.503792

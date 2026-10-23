@@ -1,0 +1,29 @@
+TAP version 13
+# Subtest: actual Settings and worker local Sync plus bounded Prompt pane source
+not ok 1 - actual Settings and worker local Sync plus bounded Prompt pane source
+  ---
+  duration_ms: 8084.337916
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:21:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    page.evaluate: Error: {"ok":false,"error":"STORAGE_FAILED"}
+        at eval (eval at evaluate (:311:30), <anonymous>:1:97)
+        at async <anonymous>:337:30 REPOSITORY_DIAGNOSTIC {"repository":null,"handler":{"type":"PAIA_PROMPT_QUERY","name":"SyncError","code":"BNS_OWNER_CHANGED","frames":["    at fail (chrome-extension://oidcffiphaaldjloecfiajcifgbgphef/core/browser-native-sync/value.js:5:32)","    at PromptSyncJournal.assertManualConflict (chrome-extension://oidcffiphaaldjloecfiajcifgbgphef/core/browser-native-sync/prompt-journal.js:94:525)","    at async PromptSyncJournal.projectCorrections (chrome-extension://oidcffiphaaldjloecfiajcifgbgphef/core/browser-native-sync/prompt-journal.js:137:615)","    at async #snapshot (chrome-extension://oidcffiphaaldjloecfiajcifgbgphef/core/prompt-reuse-service.js:92:147)","    at async PromptReuseService.query (chrome-extension://oidcffiphaaldjloecfiajcifgbgphef/core/prompt-reuse-service.js:260:90)"]},"promptFence":{"changed":["generation"],"beforeGeneration":7,"afterGeneration":8}}
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    eval (eval at evaluate (:311:30), <anonymous>:1:97)
+    async <anonymous>:337:30
+    rpc (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:69:54)
+    runSyncLifecycleNative (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:75:264)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:41:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13149.498416

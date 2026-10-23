@@ -1,0 +1,4 @@
+Unpublished build retained: /Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/checkpoint-prompt-integration-20261024/.release.building-pmxux5kq
+FAIL: 1 package guardrail issue(s), 23776 checks
+- core/browser-native-sync/source-purge-protocol-controls.js: unexpected remote URL literal
+Current release failed package guardrails

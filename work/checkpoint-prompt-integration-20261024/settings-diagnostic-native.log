@@ -1,0 +1,29 @@
+TAP version 13
+# Subtest: actual Settings and worker local Sync plus bounded Prompt pane source
+not ok 1 - actual Settings and worker local Sync plus bounded Prompt pane source
+  ---
+  duration_ms: 6421.77225
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:21:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    page.evaluate: Error: SYNC_ACTION_ACK_{"command":"NOW","count":1,"ok":false,"error":"BNS_GROUP_CANONICAL_UNREPRESENTED"}
+        at Object.complete (eval at evaluate (:311:30), <anonymous>:1:491)
+        at async <anonymous>:337:30 SCOPE_DIAGNOSTIC {"guard":{"line":223},"families":null}
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.complete (eval at evaluate (:311:30), <anonymous>:1:491)
+    async <anonymous>:337:30
+    clickAcknowledged (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:61:52)
+    async runSyncLifecycleNative (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:74:19)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:41:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11496.477542

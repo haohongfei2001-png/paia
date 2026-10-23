@@ -1,0 +1,132 @@
+[
+  {
+    "log": "continued-native.log",
+    "tests": "4",
+    "pass": "2",
+    "fail": "2",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "51519.637916"
+  },
+  {
+    "log": "continued-node.log",
+    "tests": "27",
+    "pass": "27",
+    "fail": "0",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "18046.691709"
+  },
+  {
+    "log": "node.log",
+    "tests": "460",
+    "pass": "460",
+    "fail": "0",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "55504.340584"
+  },
+  {
+    "log": "settings-ack-native.log",
+    "tests": "2",
+    "pass": "0",
+    "fail": "2",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "17219.77625"
+  },
+  {
+    "log": "settings-default-memory-native.log",
+    "tests": "2",
+    "pass": "0",
+    "fail": "2",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "20787.52325"
+  },
+  {
+    "log": "settings-diagnostic-native.log",
+    "tests": "1",
+    "pass": "0",
+    "fail": "1",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "11496.477542"
+  },
+  {
+    "log": "settings-fence-complete-native.log",
+    "tests": "1",
+    "pass": "0",
+    "fail": "1",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "13149.498416"
+  },
+  {
+    "log": "settings-fence-native.log",
+    "tests": "1",
+    "pass": "0",
+    "fail": "1",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "16139.313334"
+  },
+  {
+    "log": "settings-final-native.log",
+    "tests": "2",
+    "pass": "2",
+    "fail": "0",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "37904.052917"
+  },
+  {
+    "log": "settings-handler-native.log",
+    "tests": "1",
+    "pass": "0",
+    "fail": "1",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "13129.382709"
+  },
+  {
+    "log": "settings-metadata-native.log",
+    "tests": "1",
+    "pass": "0",
+    "fail": "1",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "11153.279334"
+  },
+  {
+    "log": "settings-repository-native.log",
+    "tests": "1",
+    "pass": "0",
+    "fail": "1",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "13200.503792"
+  },
+  {
+    "log": "settings-settled-native.log",
+    "tests": "2",
+    "pass": "0",
+    "fail": "2",
+    "cancelled": "0",
+    "skipped": "0",
+    "todo": "0",
+    "duration_ms": "25665.401125"
+  }
+]

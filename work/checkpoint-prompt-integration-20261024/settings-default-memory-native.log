@@ -1,0 +1,48 @@
+TAP version 13
+# Subtest: actual Settings and worker local Sync plus bounded Prompt pane source
+not ok 1 - actual Settings and worker local Sync plus bounded Prompt pane source
+  ---
+  duration_ms: 7987.448375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:21:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    page.evaluate: Error: {"ok":false,"error":"STORAGE_FAILED"}
+        at eval (eval at evaluate (:311:30), <anonymous>:1:97)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    eval (eval at evaluate (:311:30), <anonymous>:1:97)
+    async <anonymous>:337:30
+    rpc (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:67:31)
+    runSyncLifecycleNative (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:73:264)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:41:17)
+  ...
+# Subtest: actual Settings and worker local Sync plus bounded Prompt pane release
+not ok 2 - actual Settings and worker local Sync plus bounded Prompt pane release
+  ---
+  duration_ms: 7714.84575
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:21:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    page.evaluate: Error: {"ok":false,"error":"STORAGE_FAILED"}
+        at eval (eval at evaluate (:311:30), <anonymous>:1:97)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    eval (eval at evaluate (:311:30), <anonymous>:1:97)
+    async <anonymous>:337:30
+    rpc (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:67:31)
+    runSyncLifecycleNative (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:73:264)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:41:17)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 20787.52325

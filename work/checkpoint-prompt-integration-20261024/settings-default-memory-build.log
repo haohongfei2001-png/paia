@@ -1,0 +1,10 @@
+PASS: 23808 package guardrails across 663 runtime resources
+Static audit only; actual logged-in Chrome verification requires separate recorded evidence.
+RELEASE_PRODUCT_GUARD_PASS 687 files
+{
+  "output": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/checkpoint-prompt-integration-20261024/release-default-memory",
+  "version": "0.55.9",
+  "versionName": "v0.55.9 Development",
+  "files": 687,
+  "reused": false
+}

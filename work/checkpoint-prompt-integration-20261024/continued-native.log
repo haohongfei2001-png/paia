@@ -1,0 +1,54 @@
+TAP version 13
+# Subtest: actual MV3 original recoverable checkpoint publication source
+ok 1 - actual MV3 original recoverable checkpoint publication source
+  ---
+  duration_ms: 14479.040459
+  type: 'test'
+  ...
+# Subtest: actual MV3 original recoverable checkpoint publication release
+ok 2 - actual MV3 original recoverable checkpoint publication release
+  ---
+  duration_ms: 14296.61625
+  type: 'test'
+  ...
+# Subtest: actual Settings and worker local Sync plus bounded Prompt pane source
+not ok 3 - actual Settings and worker local Sync plus bounded Prompt pane source
+  ---
+  duration_ms: 6585.705917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:21:43'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of null (reading 'kind')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    runSyncLifecycleNative (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:60:199)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:41:17)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: actual Settings and worker local Sync plus bounded Prompt pane release
+not ok 4 - actual Settings and worker local Sync plus bounded Prompt pane release
+  ---
+  duration_ms: 6053.004
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:21:43'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of null (reading 'kind')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    runSyncLifecycleNative (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs:60:199)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/sync-local-lifecycle-chrome.test.mjs:41:17)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 2
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 51519.637916

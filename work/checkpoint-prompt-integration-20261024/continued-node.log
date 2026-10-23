@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: google all deleted negative only publishes → A closes → B cloud discovery → cold → C
+ok 1 - google all deleted negative only publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 966.843625
+  type: 'test'
+  ...
+# Subtest: google surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+ok 2 - google surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 1946.882084
+  type: 'test'
+  ...
+# Subtest: onedrive all deleted negative only publishes → A closes → B cloud discovery → cold → C
+ok 3 - onedrive all deleted negative only publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 1075.744708
+  type: 'test'
+  ...
+# Subtest: onedrive surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+ok 4 - onedrive surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 2446.456375
+  type: 'test'
+  ...
+# Subtest: google original confirmed positive ancestor is retained by exact purge redaction and discovered without timestamps
+ok 5 - google original confirmed positive ancestor is retained by exact purge redaction and discovered without timestamps
+  ---
+  duration_ms: 1016.244
+  type: 'test'
+  ...
+# Subtest: onedrive original confirmed positive ancestor is retained by exact purge redaction and discovered without timestamps
+ok 6 - onedrive original confirmed positive ancestor is retained by exact purge redaction and discovered without timestamps
+  ---
+  duration_ms: 1265.781167
+  type: 'test'
+  ...
+# Subtest: google unknown original upload then real purge and cold publish never repeats POST or PUT
+ok 7 - google unknown original upload then real purge and cold publish never repeats POST or PUT
+  ---
+  duration_ms: 161.603583
+  type: 'test'
+  ...
+# Subtest: onedrive unknown original upload then real purge and cold publish never repeats POST or PUT
+ok 8 - onedrive unknown original upload then real purge and cold publish never repeats POST or PUT
+  ---
+  duration_ms: 158.777334
+  type: 'test'
+  ...
+# Subtest: google negative publication pause at final adapter read fences the first write
+ok 9 - google negative publication pause at final adapter read fences the first write
+  ---
+  duration_ms: 165.931291
+  type: 'test'
+  ...
+# Subtest: onedrive negative publication pause at final adapter read fences the first write
+ok 10 - onedrive negative publication pause at final adapter read fences the first write
+  ---
+  duration_ms: 157.170667
+  type: 'test'
+  ...
+# Subtest: persistent negative restore pause at progress preserves every table and cold continuation uses original row
+ok 11 - persistent negative restore pause at progress preserves every table and cold continuation uses original row
+  ---
+  duration_ms: 919.52475
+  type: 'test'
+  ...
+# Subtest: persistent negative restore pause at activate preserves every table and cold continuation uses original row
+ok 12 - persistent negative restore pause at activate preserves every table and cold continuation uses original row
+  ---
+  duration_ms: 982.805959
+  type: 'test'
+  ...
+# Subtest: persistent negative restore pause at terminal preserves every table and cold continuation uses original row
+ok 13 - persistent negative restore pause at terminal preserves every table and cold continuation uses original row
+  ---
+  duration_ms: 1033.98725
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse allocation-ref without any remote writes
+ok 14 - exact original protocol controls refuse allocation-ref without any remote writes
+  ---
+  duration_ms: 500.195875
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse allocation-identity without any remote writes
+ok 15 - exact original protocol controls refuse allocation-identity without any remote writes
+  ---
+  duration_ms: 502.0475
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse restore-extra without any remote writes
+ok 16 - exact original protocol controls refuse restore-extra without any remote writes
+  ---
+  duration_ms: 510.697292
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse restore-database without any remote writes
+ok 17 - exact original protocol controls refuse restore-database without any remote writes
+  ---
+  duration_ms: 495.903458
+  type: 'test'
+  ...
+# Subtest: pause after the original activation callback is still observed by the final read fence
+ok 18 - pause after the original activation callback is still observed by the final read fence
+  ---
+  duration_ms: 517.091042
+  type: 'test'
+  ...
+# Subtest: cold durable negative stage refuses changed-target without changing any table
+ok 19 - cold durable negative stage refuses changed-target without changing any table
+  ---
+  duration_ms: 523.898458
+  type: 'test'
+  ...
+# Subtest: cold durable negative stage refuses wrong-revisions without changing any table
+ok 20 - cold durable negative stage refuses wrong-revisions without changing any table
+  ---
+  duration_ms: 490.461042
+  type: 'test'
+  ...
+# Subtest: cold durable negative stage refuses false-activated without changing any table
+ok 21 - cold durable negative stage refuses false-activated without changing any table
+  ---
+  duration_ms: 489.068334
+  type: 'test'
+  ...
+# Subtest: google actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+ok 22 - google actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+  ---
+  duration_ms: 338.8235
+  type: 'test'
+  ...
+# Subtest: onedrive actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+ok 23 - onedrive actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+  ---
+  duration_ms: 263.634375
+  type: 'test'
+  ...
+# Subtest: purge refuses changed consumerPreference owner proof and preserves every table
+ok 24 - purge refuses changed consumerPreference owner proof and preserves every table
+  ---
+  duration_ms: 151.367625
+  type: 'test'
+  ...
+# Subtest: purge refuses changed promptPreferences owner proof and preserves every table
+ok 25 - purge refuses changed promptPreferences owner proof and preserves every table
+  ---
+  duration_ms: 155.122708
+  type: 'test'
+  ...
+# Subtest: purge refuses changed promptBinding owner proof and preserves every table
+ok 26 - purge refuses changed promptBinding owner proof and preserves every table
+  ---
+  duration_ms: 157.974541
+  type: 'test'
+  ...
+# Subtest: actual worker unknown upload permits local purge, then cold owner cannot resend deleted cut or replace receipt
+ok 27 - actual worker unknown upload permits local purge, then cold owner cannot resend deleted cut or replace receipt
+  ---
+  duration_ms: 412.54175
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18046.691709
