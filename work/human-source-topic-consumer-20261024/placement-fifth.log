@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: source-derived original Human placement survives whole checkpoint and destination original edits
+ok 1 - source-derived original Human placement survives whole checkpoint and destination original edits
+  ---
+  duration_ms: 548.295333
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 671.519584

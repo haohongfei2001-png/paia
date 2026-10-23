@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: original twenty-topic maximum, duplicate and over-limit reject without any write
+not ok 1 - original twenty-topic maximum, duplicate and over-limit reject without any write
+  ---
+  duration_ms: 414.158334
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:25:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_GRAPH_LIMIT'
+  code: 'BNS_HUMAN_GRAPH_LIMIT'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    BrowserNativeSyncCore.requireHumanAncestry (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:373:393)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:169:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:523:253)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:169:66)
+    async BrowserNativeSyncCore.prepareLocal (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:242:19)
+    async BrowserNativeSyncCore.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:262:15)
+    async HumanLibrarySyncJournal.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-journal.js:38:18)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:28:17)
+    async Test.run (node:internal/test_runner/test:1054:7)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 552.980042

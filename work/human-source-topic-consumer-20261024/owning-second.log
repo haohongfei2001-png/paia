@@ -1,0 +1,569 @@
+TAP version 13
+# Subtest: native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+ok 1 - native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+  ---
+  duration_ms: 109.113416
+  type: 'test'
+  ...
+# Subtest: actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+ok 2 - actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+  ---
+  duration_ms: 152.070583
+  type: 'test'
+  ...
+# Subtest: missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+ok 3 - missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+  ---
+  duration_ms: 51.426959
+  type: 'test'
+  ...
+# Subtest: operation budget counts all ancestry rather than current heads
+ok 4 - operation budget counts all ancestry rather than current heads
+  ---
+  duration_ms: 42.76275
+  type: 'test'
+  ...
+# Subtest: actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+ok 5 - actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+  ---
+  duration_ms: 82.382875
+  type: 'test'
+  ...
+# Subtest: fourMiB operation bytes include all retained payloads, not only final current text
+ok 6 - fourMiB operation bytes include all retained payloads, not only final current text
+  ---
+  duration_ms: 740.056667
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled note rather than claiming protocol coverage
+ok 7 - full inventory rejects actual unjournaled note rather than claiming protocol coverage
+  ---
+  duration_ms: 59.587042
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+ok 8 - full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+  ---
+  duration_ms: 46.885167
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+ok 9 - full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+  ---
+  duration_ms: 45.891375
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+ok 10 - full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+  ---
+  duration_ms: 38.554042
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+ok 11 - full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+  ---
+  duration_ms: 40.298542
+  type: 'test'
+  ...
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 12 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 246.18825
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 13 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 600.206875
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 14 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 560.3295
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 15 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 422.834417
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 16 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 376.262375
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 17 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 274.242167
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 18 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 384.0365
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 19 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 306.292708
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 20 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 309.889125
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 21 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 381.760875
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 22 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 339.354792
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 23 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 138.192
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 24 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 46.428875
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 25 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 572.854041
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":117.55525000000034,"reads":2705,"writes":1161}}
+# Subtest: exact128 retained operations restore and the129th has explicit paged scope admission
+ok 26 - exact128 retained operations restore and the129th has explicit paged scope admission
+  ---
+  duration_ms: 1054.341042
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 27 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 23.993417
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 28 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 30.178792
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 29 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 28.959125
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 30 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 28.781125
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 31 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 28.802125
+  type: 'test'
+  ...
+# Subtest: incoming Topic history cannot carry sender-local indexed completion, including nested identity leaves
+ok 32 - incoming Topic history cannot carry sender-local indexed completion, including nested identity leaves
+  ---
+  duration_ms: 85.412959
+  type: 'test'
+  ...
+# Subtest: resealed remote completion tag refuses before original receive and leaves every store unchanged
+ok 33 - resealed remote completion tag refuses before original receive and leaves every store unchanged
+  ---
+  duration_ms: 106.0255
+  type: 'test'
+  ...
+# Subtest: actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+ok 34 - actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+  ---
+  duration_ms: 668.342833
+  type: 'test'
+  ...
+# Subtest: actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+ok 35 - actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+  ---
+  duration_ms: 300.904541
+  type: 'test'
+  ...
+# Subtest: actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+ok 36 - actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+  ---
+  duration_ms: 535.249875
+  type: 'test'
+  ...
+# Subtest: real bound create/edit/lifecycle owners publish required members through original segments and duplicate ACK adds nothing
+ok 37 - real bound create/edit/lifecycle owners publish required members through original segments and duplicate ACK adds nothing
+  ---
+  duration_ms: 496.195375
+  type: 'test'
+  ...
+# Subtest: actual owner and its outbox roll back together after protocol write failure
+ok 38 - actual owner and its outbox roll back together after protocol write failure
+  ---
+  duration_ms: 40.5965
+  type: 'test'
+  ...
+# Subtest: real bound named Topic/Section/placement/move/fixed/remove/restore/identity consumers remain atomic
+ok 39 - real bound named Topic/Section/placement/move/fixed/remove/restore/identity consumers remain atomic
+  ---
+  duration_ms: 699.987958
+  type: 'test'
+  ...
+# Subtest: private receiver replays actual owners across installation keys and local sequences, preserves coalesced history, duplicate after edit is zero write
+ok 40 - private receiver replays actual owners across installation keys and local sequences, preserves coalesced history, duplicate after edit is zero write
+  ---
+  duration_ms: 233.029292
+  type: 'test'
+  ...
+# Subtest: partial/swapped/semantic tampered/local-counter tampered groups and invalid options refuse with all actual stores unchanged
+ok 41 - partial/swapped/semantic tampered/local-counter tampered groups and invalid options refuse with all actual stores unchanged
+  ---
+  duration_ms: 57.523958
+  type: 'test'
+  ...
+# Subtest: remote actual canonical/domain history/Core/mapping writes all roll back on final ACK failure; prepared owner edit refuses
+ok 42 - remote actual canonical/domain history/Core/mapping writes all roll back on final ACK failure; prepared owner edit refuses
+  ---
+  duration_ms: 58.290042
+  type: 'test'
+  ...
+# Subtest: one global 128-operation ancestry budget includes every parent commit and its member closure before producer writes
+ok 43 - one global 128-operation ancestry budget includes every parent commit and its member closure before producer writes
+  ---
+  duration_ms: 1047.395084
+  type: 'test'
+  ...
+# Subtest: actual receiver can edit and republish to original producer despite different physical sequences
+ok 44 - actual receiver can edit and republish to original producer despite different physical sequences
+  ---
+  duration_ms: 108.681417
+  type: 'test'
+  ...
+# Subtest: current grouped checkpoint refuses an unjournaled human edit before publication with every store unchanged
+ok 45 - current grouped checkpoint refuses an unjournaled human edit before publication with every store unchanged
+  ---
+  duration_ms: 47.988584
+  type: 'test'
+  ...
+# Subtest: private prepared receiver refuses a real intervening canonical owner change and an unbound capability before any ACK
+ok 46 - private prepared receiver refuses a real intervening canonical owner change and an unbound capability before any ACK
+  ---
+  duration_ms: 74.302667
+  type: 'test'
+  ...
+# Subtest: original source-linked creation plan consumes exact original provenance/dependency and edit owner
+ok 47 - original source-linked creation plan consumes exact original provenance/dependency and edit owner
+  ---
+  duration_ms: 116.3195
+  type: 'test'
+  ...
+# Subtest: source edit after preparation refuses original create without any additional writes
+ok 48 - source edit after preparation refuses original create without any additional writes
+  ---
+  duration_ms: 52.709959
+  type: 'test'
+  ...
+# Subtest: linked owner keeps creation, provenance, dependency and history in one rollback boundary
+ok 49 - linked owner keeps creation, provenance, dependency and history in one rollback boundary
+  ---
+  duration_ms: 53.222708
+  type: 'test'
+  ...
+# Subtest: stale Source is not admitted for linked edit
+ok 50 - stale Source is not admitted for linked edit
+  ---
+  duration_ms: 61.746667
+  type: 'test'
+  ...
+# Subtest: retained dependency mismatch refuses linked edit without writes
+ok 51 - retained dependency mismatch refuses linked edit without writes
+  ---
+  duration_ms: 53.471583
+  type: 'test'
+  ...
+# Subtest: portable Source edge rebinds local tokens after real bootstrap into independent B
+ok 52 - portable Source edge rebinds local tokens after real bootstrap into independent B
+  ---
+  duration_ms: 117.971209
+  type: 'test'
+  ...
+# Subtest: source-linked typed journal exports portable edge and receives create/edit through original B owner
+ok 53 - source-linked typed journal exports portable edge and receives create/edit through original B owner
+  ---
+  duration_ms: 176.458583
+  type: 'test'
+  ...
+# Subtest: single Source and source-linked create/edit restore as one original owner graph on cold B
+ok 54 - single Source and source-linked create/edit restore as one original owner graph on cold B
+  ---
+  duration_ms: 1070.564375
+  type: 'test'
+  ...
+# Subtest: journal refuses Source-linked capture whose original Source protocol is absent
+ok 55 - journal refuses Source-linked capture whose original Source protocol is absent
+  ---
+  duration_ms: 20.452584
+  type: 'test'
+  ...
+# Subtest: linked removal and explicit restore preserve portable negative intent and protected history across cold B
+not ok 56 - linked removal and explicit restore preserve portable negative intent and protected history across cold B
+  ---
+  duration_ms: 192.688542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-entry-plan.test.mjs:58:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:523:1002)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:170:66)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:280:48
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: linked lifecycle original transaction rolls suppression and history back after owner execution
+ok 57 - linked lifecycle original transaction rolls suppression and history back after owner execution
+  ---
+  duration_ms: 32.751084
+  type: 'test'
+  ...
+# Subtest: source-derived original Human placement survives whole checkpoint and destination original edits
+ok 58 - source-derived original Human placement survives whole checkpoint and destination original edits
+  ---
+  duration_ms: 1066.017
+  type: 'test'
+  ...
+# Subtest: original Input addToTopics whole binding is one receipt and survives checkpoint
+ok 59 - original Input addToTopics whole binding is one receipt and survives checkpoint
+  ---
+  duration_ms: 1311.838791
+  type: 'test'
+  ...
+# Subtest: original Input addToTopics excerpt is one receipt and survives checkpoint
+ok 60 - original Input addToTopics excerpt is one receipt and survives checkpoint
+  ---
+  duration_ms: 1387.58875
+  type: 'test'
+  ...
+# Subtest: prepared exact Input selection rechecks Source, topics and atomic receipt before original mutation
+ok 61 - prepared exact Input selection rechecks Source, topics and atomic receipt before original mutation
+  ---
+  duration_ms: 49.438291
+  type: 'test'
+  ...
+# Subtest: source-linked placement rechecks provenance and rejects without partial membership
+ok 62 - source-linked placement rechecks provenance and rejects without partial membership
+  ---
+  duration_ms: 60.10375
+  type: 'test'
+  ...
+# Subtest: Input compound owner rolls back body, membership, provenance, receipt and outbox together
+not ok 63 - Input compound owner rolls back body, membership, provenance, receipt and outbox together
+  ---
+  duration_ms: 61.228084
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:33:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'STORAGE_FAILED'
+    -   code: 'SYNTHETIC_ABORT'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'SYNTHETIC_ABORT'
+  actual:
+  error: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:27:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:523:1205)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:203:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:34:551)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Input exact selection preserves receipt collisions, invalid bounds and original topic constraints
+ok 64 - Input exact selection preserves receipt collisions, invalid bounds and original topic constraints
+  ---
+  duration_ms: 74.843875
+  type: 'test'
+  ...
+# Subtest: UX-R3 new Backup round trip retains binding, independent body, history and layout while reverse editing stays off
+ok 65 - UX-R3 new Backup round trip retains binding, independent body, history and layout while reverse editing stays off
+  ---
+  duration_ms: 193.491958
+  type: 'test'
+  ...
+# Subtest: UX-R3 old backup and interrupted metadata batches resume without changing body, revision, identity or grants
+ok 66 - UX-R3 old backup and interrupted metadata batches resume without changing body, revision, identity or grants
+  ---
+  duration_ms: 165.894916
+  type: 'test'
+  ...
+# Subtest: UX-R3 topic position uses shared bounded device metadata, validates placement/revision and stays out of Backup
+ok 67 - UX-R3 topic position uses shared bounded device metadata, validates placement/revision and stays out of Backup
+  ---
+  duration_ms: 69.535375
+  type: 'test'
+  ...
+# Subtest: UX-R3 multi-topic transaction rejects changed source or unavailable target without partial creation/placement
+ok 68 - UX-R3 multi-topic transaction rejects changed source or unavailable target without partial creation/placement
+  ---
+  duration_ms: 52.28075
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: UX-R3 explicit Thought excerpt reuses exact selection only, preserves source restrictions and never binds to Input
+ok 69 - CURRENT B-02 refusal + historical fixture: UX-R3 explicit Thought excerpt reuses exact selection only, preserves source restrictions and never binds to Input
+  ---
+  duration_ms: 96.964
+  type: 'test'
+  ...
+# Subtest: UX-R3 Backup rejects unknown binding and malformed live metadata without downgrading fields
+ok 70 - UX-R3 Backup rejects unknown binding and malformed live metadata without downgrading fields
+  ---
+  duration_ms: 57.002041
+  type: 'test'
+  ...
+# Subtest: UX-R3 removed Topic positions resolve to the next safe neighbor in either time order, including legacy anchors
+ok 71 - UX-R3 removed Topic positions resolve to the next safe neighbor in either time order, including legacy anchors
+  ---
+  duration_ms: 371.840875
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: UX-R3 purged Topic anchor keeps only an ordering point and never resumes at the cleared quote
+ok 72 - CURRENT B-02 refusal + historical fixture: UX-R3 purged Topic anchor keeps only an ordering point and never resumes at the cleared quote
+  ---
+  duration_ms: 160.39175
+  type: 'test'
+  ...
+# Subtest: VS-04 Topic removal and restore preserve Source and Archive Input independently
+ok 73 - VS-04 Topic removal and restore preserve Source and Archive Input independently
+  ---
+  duration_ms: 62.585708
+  type: 'test'
+  ...
+# Subtest: older successful acknowledgement retains newer literal text and its textarea
+ok 74 - older successful acknowledgement retains newer literal text and its textarea
+  ---
+  duration_ms: 1.645625
+  type: 'test'
+  ...
+# Subtest: older successful acknowledgement cannot close a reopened compose owner
+ok 75 - older successful acknowledgement cannot close a reopened compose owner
+  ---
+  duration_ms: 0.482792
+  type: 'test'
+  ...
+# Subtest: older failure cannot write into reopened feedback
+ok 76 - older failure cannot write into reopened feedback
+  ---
+  duration_ms: 0.447
+  type: 'test'
+  ...
+# Subtest: acknowledged unchanged payload cannot resubmit after IME settles
+ok 77 - acknowledged unchanged payload cannot resubmit after IME settles
+  ---
+  duration_ms: 0.46025
+  type: 'test'
+  ...
+# Subtest: unknown outcome remains sticky across failed reconciliation and changed current text
+ok 78 - unknown outcome remains sticky across failed reconciliation and changed current text
+  ---
+  duration_ms: 0.614583
+  type: 'test'
+  ...
+# Subtest: malformed acknowledgement is uncertain and reuses the exact earlier operation
+ok 79 - malformed acknowledgement is uncertain and reuses the exact earlier operation
+  ---
+  duration_ms: 0.436833
+  type: 'test'
+  ...
+# Subtest: well-formed definitive failure keeps existing failure copy and exact draft
+ok 80 - well-formed definitive failure keeps existing failure copy and exact draft
+  ---
+  duration_ms: 0.441416
+  type: 'test'
+  ...
+# Subtest: late Topic-list continuation cannot append controls or focus into a newer composer
+ok 81 - late Topic-list continuation cannot append controls or focus into a newer composer
+  ---
+  duration_ms: 0.474416
+  type: 'test'
+  ...
+# Subtest: late Topic-read failure cannot change newer feedback or focus
+ok 82 - late Topic-read failure cannot change newer feedback or focus
+  ---
+  duration_ms: 0.494333
+  type: 'test'
+  ...
+# Subtest: held Add acknowledgement cannot close a newer draft
+ok 83 - held Add acknowledgement cannot close a newer draft
+  ---
+  duration_ms: 0.924708
+  type: 'test'
+  ...
+# Subtest: held Restore acknowledgement cannot close a newer draft
+ok 84 - held Restore acknowledgement cannot close a newer draft
+  ---
+  duration_ms: 0.62075
+  type: 'test'
+  ...
+# Subtest: retired generic Topic creation has no composer control or write and preserves the current draft
+ok 85 - retired generic Topic creation has no composer control or write and preserves the current draft
+  ---
+  duration_ms: 0.3725
+  type: 'test'
+  ...
+# Subtest: retired Topic creation never grants a route around IME or an unknown independent Thought save
+ok 86 - retired Topic creation never grants a route around IME or an unknown independent Thought save
+  ---
+  duration_ms: 0.5375
+  type: 'test'
+  ...
+# Subtest: legacy response compose arguments cannot expose relationship controls or emit a relationship
+ok 87 - legacy response compose arguments cannot expose relationship controls or emit a relationship
+  ---
+  duration_ms: 0.31125
+  type: 'test'
+  ...
+1..87
+# tests 87
+# suites 0
+# pass 85
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6349.393917

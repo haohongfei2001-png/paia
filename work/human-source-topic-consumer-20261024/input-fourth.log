@@ -1,0 +1,42 @@
+TAP version 13
+# Subtest: source-derived original Human placement survives whole checkpoint and destination original edits
+ok 1 - source-derived original Human placement survives whole checkpoint and destination original edits
+  ---
+  duration_ms: 611.733875
+  type: 'test'
+  ...
+# Subtest: original Input addToTopics whole binding is one receipt and survives checkpoint
+ok 2 - original Input addToTopics whole binding is one receipt and survives checkpoint
+  ---
+  duration_ms: 445.136083
+  type: 'test'
+  ...
+# Subtest: original Input addToTopics excerpt is one receipt and survives checkpoint
+not ok 3 - original Input addToTopics excerpt is one receipt and survives checkpoint
+  ---
+  duration_ms: 370.793333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:19:35'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_COMMIT_INVALID'
+  code: 'BNS_HUMAN_COMMIT_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    restoreHumanRequest (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-request.js:22:128)
+    async prepareHumanGraphNamedPlan (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-plan.js:444:267)
+    async prepareGroupApplication (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-group.js:29:188)
+    async GroupedCheckpointRestore.activate (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:275:26)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:23:371)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 2
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1552.33275

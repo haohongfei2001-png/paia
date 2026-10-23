@@ -1,0 +1,56 @@
+TAP version 13
+# Subtest: source-derived original Human placement survives whole checkpoint and destination original edits
+ok 1 - source-derived original Human placement survives whole checkpoint and destination original edits
+  ---
+  duration_ms: 554.214875
+  type: 'test'
+  ...
+# Subtest: original Input addToTopics whole binding is one receipt and survives checkpoint
+not ok 2 - original Input addToTopics whole binding is one receipt and survives checkpoint
+  ---
+  duration_ms: 42.693375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:19:35'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_CODEC_INVALID'
+  code: 'BNS_HUMAN_CODEC_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    validateHumanLibraryEntity (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-codec.js:26:118)
+    portableHumanEntity (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-codec.js:61:9)
+    portablePlanned (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-journal.js:20:83)
+    HumanLibrarySyncJournal.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-journal.js:33:163)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:21:17)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: original Input addToTopics excerpt is one receipt and survives checkpoint
+not ok 3 - original Input addToTopics excerpt is one receipt and survives checkpoint
+  ---
+  duration_ms: 45.4735
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:19:35'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_CODEC_INVALID'
+  code: 'BNS_HUMAN_CODEC_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    validateHumanLibraryEntity (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-codec.js:26:118)
+    portableHumanEntity (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-codec.js:61:9)
+    portablePlanned (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-journal.js:20:83)
+    HumanLibrarySyncJournal.prepare (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-journal.js:33:163)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:21:17)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 1
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 764.208041

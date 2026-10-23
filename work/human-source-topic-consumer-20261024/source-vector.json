@@ -1,0 +1,42 @@
+{
+  "base": "00e91c4ce6dc346ccf073e3437b7a0b81ca62b6c",
+  "requireHumanAncestryUnchanged": true,
+  "files": [
+    {
+      "path": "extension/core/browser-native-sync/core.js",
+      "sha256": "c5dcd42cbc1b8f791ddd066848a76557430be2b02401be9bfedc8f44612b2578"
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-codec.js",
+      "sha256": "87a110b41882dcf884200e162c84362873d4d2c64e43eaf5dca357c564bb3c07"
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-journal.js",
+      "sha256": "b3c700b8df25ab8c9c4739d1c4b0500c702a6d7fa8830dc87a649b16843f1156"
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-plan.js",
+      "sha256": "742cf5c10d5a50a54002c9eef933a3cef4847b490bb3c8bdd2237786f9f36e0b"
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-request.js",
+      "sha256": "687d161c5a853e0c3b46233b98c7bc601d210ef4ba8b074eeae7e030a42d0a13"
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-scope.js",
+      "sha256": "7e586099318ddb55a2514788e00b09edfd14ec21e1eaadfcc07beb626cf619c2"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-linked-evidence.js",
+      "sha256": "043b892f7841cfffec304062fc658a6e2bea07ca88b10d3f53eb8ac2a9b3bbf8"
+    },
+    {
+      "path": "extension/core/topic-actions.js",
+      "sha256": "50f75029a4523feeb71658b52c57dfd41c00a39bbecacd39bb57cdec37810cdf"
+    },
+    {
+      "path": "extension/tests/human-source-placement.test.mjs",
+      "sha256": "0feeb15d550d1a53a073eeeb5e7aaac6c0a79dcf97328f931dbd4b37f051a1f1"
+    }
+  ]
+}

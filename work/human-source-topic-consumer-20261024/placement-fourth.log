@@ -1,0 +1,30 @@
+TAP version 13
+# Subtest: source-derived original Human placement survives whole checkpoint and destination original edits
+not ok 1 - source-derived original Human placement survives whole checkpoint and destination original edits
+  ---
+  duration_ms: 267.464416
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:13:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_UNSUPPORTED'
+  code: 'BNS_HUMAN_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    Object.prepareHumanPlacementPlan (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-plan.js:242:586)
+    async prepareHumanGraphNamedPlan (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-plan.js:408:618)
+    async prepareGroupApplication (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-group.js:29:188)
+    async GroupedCheckpointRestore.activate (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:275:26)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-placement.test.mjs:16:394)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 389.062042
