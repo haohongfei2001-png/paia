@@ -135,7 +135,7 @@ jobs:
     needs: mode
     if: needs.mode.outputs.full == 'true'
     name: Current Browser ${{ matrix.index }}/10
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 18
     strategy:
       fail-fast: false
@@ -196,10 +196,17 @@ jobs:
                   if updated != text:
                       path.write_text(updated)
           PYAPT
-      - name: Provide Chinese glyph coverage for actual visual evidence
+      - name: Resolve browser fonts from fresh signed indexes
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk
+          # Private per-job state; no Actions cache restore or save is enabled.
+          PAIA_FONT_STATE="$RUNNER_TEMP/paia-browser-fonts-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ matrix.index }}"
+          echo "PAIA_FONT_STATE=$PAIA_FONT_STATE" >> "$GITHUB_ENV"
+          python3 scripts/prepare-browser-fonts.py plan --state "$PAIA_FONT_STATE"
+      - name: Provide Chinese glyph coverage for actual visual evidence
+        env:
+          PAIA_FONT_CACHE_MATCHED_KEY: ''
+        run: |
+          python3 scripts/prepare-browser-fonts.py install --state "$PAIA_FONT_STATE" --cache "$PAIA_FONT_STATE/private/debs"
           fc-list :lang=zh | grep -q .
           mkdir -p work
           for family in 'Noto Serif CJK SC' 'Noto Sans CJK SC' 'WenQuanYi Zen Hei'; do

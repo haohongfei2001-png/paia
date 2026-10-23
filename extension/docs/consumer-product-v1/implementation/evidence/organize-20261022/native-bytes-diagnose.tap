@@ -1,0 +1,17 @@
+TAP version 13
+# Subtest: probe 1/12000
+ok 1 - probe 1/12000
+  ---
+  duration_ms: 3696.615875
+  type: 'test'
+  ...
+# {"count":1,"size":12000,"result":{"error":"INVALID_OUTPUT","phase":"stopped","requestCount":1},"report":{"chargeBytes":364185,"charges":513,"scopeBytes":29623,"scopeCharges":48,"failure":{"code":"INVALID_OUTPUT","stack":"Error: INVALID_OUTPUT\\n    at reject (chrome-extension://nebjmhojkiphabmmdpmmhlehpgbinali/core/organizer/contracts.js:6:34)\\n    at build (chrome-extension://nebjmhojkiphabmmdpmmhlehpgbinali/core/organizer/ai-incremental-v2.js:36:58)\\n    at mergeIncrementalChildren (chrome-extension://nebjmhojkiphabmmdpmmhlehpgbinali/core/organizer/ai-incremental-v2.js:87:9)\\n    at mergeIncrementalV3 (chrome-extension://nebjmhojkiphabmmdpmmhlehpgbinali/core/organizer/ai-incremental-v3.js:55:15)\\n    at \#finishV3 (chrome-extension://nebjmhojkiphabmmdpmmhlehpgbinali/core/organizer/local-organize-session.js:387:19)\\n    at async \#runService (chrome-extension://nebjmhojkiphabmmdpmmhlehpgbinali/core/organizer/local-organize-session.js:331:38)\\n    at async LocalOrganizeSession.run (chrome-extension://nebjmhojkiphabmmdpmmhlehpgbinali/core/organizer/local-organize-session.js:238:28)\\n    at async Object.handle (chrome-extension://nebjmhojkiphabmmdpmmhlehpgbinali/core/organizer/configured-organize-runner.js:35:62)\\n    at async handle (chrome-extension://nebjmhojkiphabmmdpmmhlehpgbinali/background/service-worker.js:410:259)"}},"physical":1}
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4131.634709

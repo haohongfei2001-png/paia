@@ -12,7 +12,7 @@ import {aiCandidateKey} from '../../../extension/core/organizer/ai-candidate.js'
 const source=fileURLToPath(new URL('../../../extension/',import.meta.url));
 const registry='core/ai-usage/organize-service-configuration.js';
 const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin=`chrome-extension://${id}/`;
-const ui={id,url:origin+'ui/archive.html'};
+const ui={id,url:origin+'ui/archive.html',frameId:0,documentId:'SYNTHETIC-original-document',tab:{id:7,windowId:9,incognito:false}};
 
 async function files(root,relative=''){
  const result=[];
@@ -54,16 +54,20 @@ async function worker(t,f,{configured=true}={}){
  const storage={...f.storage,setAccessLevel:async options=>isolation.push(options),getBytesInUse:async()=>0};
  globalThis.chrome={runtime:{id,getURL:path=>origin+path,getManifest:()=>({version:'0.55.0'}),sendMessage:async message=>notices.push(message),onMessage:{addListener:fn=>{assert.equal(listener,undefined,'one original worker RPC listener');listener=fn;}}},storage:{local:storage,session:{setAccessLevel:async()=>{},get:async()=>({}),set:async()=>{},remove:async()=>{}}}};
  toolbarRegistrationFixture(globalThis.chrome);
+ const onUpdated=new Set(),onRemoved=new Set();
+ const event=listeners=>({addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)});
+ globalThis.chrome.tabs={get:async tabId=>{assert.equal(tabId,ui.tab.id);return {...ui.tab,url:ui.url};},onUpdated:event(onUpdated),onRemoved:event(onRemoved)};
+ globalThis.chrome.runtime.getContexts=async()=>[{contextType:'TAB',documentId:ui.documentId,documentUrl:ui.url,tabId:ui.tab.id,windowId:ui.tab.windowId,frameId:0,incognito:false}];
  await import(pathToFileURL(join(root,'background/service-worker.js')).href);
  assert.equal(typeof listener,'function');
  const send=(request,sender=ui)=>new Promise(resolve=>assert.equal(listener(request,sender,resolve),true,'original asynchronous runtime.onMessage contract'));
  const read=()=>send({type:'GET_AI_PRESENTATION_STATUS',options:{topicId:f.topic.id}});
  const initial=await read();assert.equal(initial.ok,true,JSON.stringify(initial));
  assert.deepEqual(isolation,[{accessLevel:'TRUSTED_CONTEXTS'}]);
- return {send,read,notices};
+ return {send,read,notices,close:()=>{for(const fn of onRemoved)fn(ui.tab.id);}};
 }
 
-for(const count of [1,40])test(`actual worker RPC (${count} entries): signed service, candidate CAS, original adoption and settled spend`,async t=>{
+for(const count of [1,40])test(`actual worker RPC (${count} entries): signed service, Current publication, original edit CAS and settled spend`,async t=>{
  const f=await organizeServiceFixture(t,{count}),w=await worker(t,f);
  // The original worker may maintain the derived search-index watermark.
  const humanEntry=({indexedSearchVersion,...entry})=>entry;
@@ -87,7 +91,7 @@ for(const count of [1,40])test(`actual worker RPC (${count} entries): signed ser
  const injected=await w.send({...request,configuration:{origin:'https://untrusted.invalid'}});
  assert.equal(injected.ok,false);assert.equal(injected.error,'INVALID_REQUEST');assert.equal(f.calls.length,0);
  const result=await w.send(request);
- assert.equal(result.ok,true,JSON.stringify(result));assert.equal(result.data.completed,true,JSON.stringify(result));assert.equal(result.data.candidateCreated,true);
+ assert.equal(result.ok,true,JSON.stringify(result));assert.equal(result.data.completed,true,JSON.stringify(result));assert.equal(result.data.currentPublished,true);
  assert.equal(f.physical(),Math.ceil(count/20));assert.equal(result.data.requestCount,f.physical());
  const jobs=await rows(f.s,'organizerJobs'),usage=await rows(f.s,'organizerUsage');
  assert.equal(jobs.length,1);assert.equal(jobs[0].state,'COMMITTED');assert.equal(jobs[0].routeVersion,f.configuration.routeVersion);
@@ -103,18 +107,17 @@ for(const count of [1,40])test(`actual worker RPC (${count} entries): signed ser
  assert.doesNotMatch(JSON.stringify({jobs,usage}),/SYNTHETIC organize evidence|principalToken|entitlementToken/);
  assert.doesNotMatch(JSON.stringify(calls('/api/results')),/SYNTHETIC organize evidence/);
 
- const before=await w.read(),candidate=before.data.topics[0].candidate;
- assert.ok(candidate);assert.equal(candidate.stale,false);assert.equal(before.data.topics[0].presentation,null);
- const edit={topicId:f.topic.id,expectedRevision:candidate.expectedRevision,expectedCandidateKey:aiCandidateKey(candidate),candidateDecisions:Object.fromEntries(candidate.changedFields.map(field=>[field,'adopt'])),operationId:crypto.randomUUID()};
- const stale=await w.send({type:'EDIT_AI_PRESENTATION',edit:{...edit,expectedCandidateKey:edit.expectedCandidateKey+'SYNTHETIC-stale'}});
- assert.equal(stale.ok,false);assert.equal(stale.error,'STALE_BASE');
- assert.deepEqual((await w.read()).data.topics[0].candidate,candidate);assert.equal((await w.read()).data.topics[0].presentation,null);
- const adopted=await w.send({type:'EDIT_AI_PRESENTATION',edit});
- assert.equal(adopted.ok,true,JSON.stringify(adopted));assert.equal(adopted.data.hasCurrent,true);assert.deepEqual(adopted.data.adopted,candidate.changedFields);assert.equal(adopted.data.revision,candidate.expectedRevision+1);
+ const before=await w.read(),current=before.data.topics[0].presentation;
+ assert.ok(current);assert.equal(current.stale,false);assert.equal(current.revision,1);assert.equal(before.data.topics[0].candidate,null);
+ const revisions=(await rows(f.s,'revisions')).filter(r=>r.kind==='ai_presentation');assert.equal(revisions.length,1);assert.equal(revisions[0].actor,'ai');
+ const edit={topicId:f.topic.id,expectedRevision:current.revision,field:'currentView',value:current.currentView+'\nSYNTHETIC human addition',operationId:crypto.randomUUID()};
+ const stale=await w.send({type:'EDIT_AI_PRESENTATION',edit:{...edit,expectedRevision:0}});
+ assert.equal(stale.ok,false);assert.equal(stale.error,'STALE_BASE');assert.deepEqual((await w.read()).data.topics[0].presentation,current);
+ const edited=await w.send({type:'EDIT_AI_PRESENTATION',edit});assert.equal(edited.ok,true,JSON.stringify(edited));assert.equal(edited.data.revision,2);assert.deepEqual(await w.send({type:'EDIT_AI_PRESENTATION',edit}),edited);
  const after=await w.read();assert.equal(after.data.serviceAvailable,true);assert.equal(after.data.topics[0].candidate,null);
  for(const entry of entriesBefore)assert.ok(after.data.topics[0].presentation.currentView.includes(entry.body));
- assert.deepEqual((await Promise.all(f.entries.map(e=>f.s.entry(e.id)))).map(humanEntry),entriesBefore,'derivative adoption cannot edit human Entry bodies or revisions');
- assert.equal(f.physical(),Math.ceil(count/20),'status, rejected CAS and original adoption never dispatch another provider');
+ assert.deepEqual((await Promise.all(f.entries.map(e=>f.s.entry(e.id)))).map(humanEntry),entriesBefore,'derivative publication cannot edit human Entry bodies or revisions');
+ assert.equal(f.physical(),Math.ceil(count/20),'status, rejected CAS and original edit never dispatch another provider');
  assert.equal(calls('/api/results').length,1);assert.ok(w.notices.some(message=>message.type==='ARCHIVE_CHANGED'&&message.cause==='EDIT_AI_PRESENTATION'));
 });
 
@@ -127,5 +130,15 @@ test('untouched packaged worker registry remains unavailable and public messages
   const update=await w.send({type:'UPDATE_AI_PRESENTATION',topicId:f.topic.id,userActionId:crypto.randomUUID(),scopeBinding:'a'.repeat(64),...supplied});
   assert.deepEqual(update,{ok:false,phase:'message_handler',error:'AI_SERVICE_UNAVAILABLE'});
  }
+ assert.equal(f.calls.length,0);assert.equal(f.physical(),0);assert.deepEqual(await rows(f.s,'organizerUsage'),[]);assert.deepEqual(await rows(f.s,'organizerJobs'),[]);
+});
+
+for(const kind of ['document','frame','closed'])test('configured original worker refuses a '+kind+' scope ticket before dispatch',async t=>{
+ const f=await organizeServiceFixture(t),w=await worker(t,f);
+ const scoped=await w.send({type:'GET_AI_PRESENTATION_SCOPE',options:{topicId:f.topic.id}});
+ assert.equal(scoped.ok,true,JSON.stringify(scoped));
+ const sender=structuredClone(ui);if(kind==='document')sender.documentId='SYNTHETIC-other-document';if(kind==='frame')sender.frameId=2;if(kind==='closed')w.close();
+ const result=await w.send({type:'UPDATE_AI_PRESENTATION',topicId:f.topic.id,userActionId:crypto.randomUUID(),scopeBinding:scoped.data.scopeBinding},sender);
+ assert.equal(result.ok,true,JSON.stringify(result));assert.equal(result.data.error,'UNAVAILABLE');
  assert.equal(f.calls.length,0);assert.equal(f.physical(),0);assert.deepEqual(await rows(f.s,'organizerUsage'),[]);assert.deepEqual(await rows(f.s,'organizerJobs'),[]);
 });

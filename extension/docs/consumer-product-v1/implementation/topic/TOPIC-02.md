@@ -232,6 +232,40 @@ its heading is transient, create orphan Sections, or change existing manually
 named containers. Production commit/replay tests verify the exact body, existing
 Input body binding, provenance and absence of Topic/Section/Placement creation.
 
+## Lifecycle terminal authority addendum — isolated correctness candidate
+
+The lifecycle owner now tracks its original preparation privately across both
+read transactions and every processing admission in the original write. Uniform
+genuine `TopicProcessingAuthority` uses register the existing closed final fence
+before conflict/no-op returns or mutation. Repository validates that exact all-use
+collection and original work ledger after the surrounding Topic/search/history,
+receipt, navigation/semantic and backup finalizers. It does not renew the issuer,
+replace the ledger, capture a permissive post-write baseline, or undo a committed
+transition in another transaction.
+
+The historical direct resolver DTO contract remains supported, including its
+100-Input preparation bound. Uniform legacy calls have no synchronous original
+issuer capability and therefore **do not gain a strict terminal guarantee**.
+Genuine authority retains its existing 20-Input/8-Topic bound; no limit is clipped
+or expanded. Mixed use, either direction of a prepare/write mode switch, copied
+or untracked preparation, and changed preparation-owner references refuse before
+lifecycle mutation. Once the original write mode is selected, additional
+processing admission is closed, including for the legacy path. Other consumers
+of the ordinary `TopicProcessingGuard.prepare` API are unchanged.
+
+The exact expected lifecycle write is still produced by the original CAS,
+`setTopicLifecycle`, search and journal owners. The existing surrounding
+LibraryDocuments owner may update derived activity/count metadata even for a
+receipted no-op; those original effects are not relabeled as a lifecycle change
+or suppressed by this repair. The authority fence checks original capabilities
+rather than rerunning pre-write generation equality against the operation's own
+expected writes. It supplies no new general own-mutation permission.
+
+No automatic dormancy age, observation policy, runner, default issuer, new
+identity, storage schema, access grant or external/paid operation is introduced.
+Native Source/release, independent review and exact candidate/main certification
+remain separate gates. See [the scoped candidate receipt](TOPIC-02-LIFECYCLE-TERMINAL-AUTHORITY.md).
+
 ## Verification and remaining gates
 
 Current owning suite: 34 passed, 0 failed, 0 skipped. It exercises actual

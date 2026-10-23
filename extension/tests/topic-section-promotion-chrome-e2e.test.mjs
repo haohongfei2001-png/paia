@@ -6,6 +6,7 @@ import {resolve,join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {mkdtemp,rm,mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {readPromotionSearchWork} from './harness/promotion-search-settlement.mjs';
 import {thoughtPrimary,openThoughtMenu} from './harness/current-thought-navigation.mjs';
 const root=resolve('.'),TYPE='PAIA_LIBRARY_SECTION_PROMOTION',digest=value=>createHash('sha256').update(value).digest('hex');
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(value=>chrome.runtime.sendMessage(value),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
@@ -15,7 +16,7 @@ for(const variant of ['source','release'])test('TOPIC-05.5 actual manual Section
  const borrowed=process.env.TOPIC_PROMOTION_RELEASE_PATH,release=variant==='release'?borrowed||await mkdtemp(join(tmpdir(),'paia-manual-promotion-')):null;
  if(release&&!borrowed)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe',cwd:root});
  const head=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),paths=tracked(),before=await vector(root,paths),packaged=release?await vector(release):null;
- const h=await FakeChatGPT.start({extensionPath:release||root,headless:true}),p=h.archive,out=join(root,'work/topic-section-promotion'),cases=[];let failures=0;
+ const h=await FakeChatGPT.start({extensionPath:release||root,headless:true}),p=h.archive,out=join(root,'work/topic-section-promotion'),cases=[],searchSettlement=[];let failures=0;
  const check=async(name,run)=>{await t.test(name,async()=>{try{await run();cases.push({name,status:'PASS'});}catch(error){failures++;cases.push({name,status:'FAIL'});try{const diagnostic=await p.evaluate(()=>({status:document.getElementById('save-status')?.textContent,error:document.getElementById('error')?.textContent,notice:document.getElementById('notice')?.textContent,route:history.state?.paiaReader,dialogOpen:document.getElementById('library-dialog')?.open,rpcs:globalThis.__promotionRPCs}));await mkdir(out,{recursive:true});await writeFile(join(out,variant+'-failure-'+cases.length+'.json'),JSON.stringify(diagnostic,null,2));}catch{}throw error;}});if(failures)throw Error('Manual promotion fixture stopped after '+name);};
  try{
   await p.setViewportSize({width:1280,height:900});await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
@@ -36,7 +37,11 @@ for(const variant of ['source','release'])test('TOPIC-05.5 actual manual Section
   await p.evaluate(()=>{globalThis.__promotionRPCs=[];const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async request=>{const row=request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'?{command:request.command,phase:'sent'}:null;if(row){__promotionRPCs.push(row);if(__promotionRPCs.length>96)__promotionRPCs.shift();}try{const result=await send(request);if(row)Object.assign(row,{phase:'returned',ok:result?.ok,error:result?.error,resultPhase:result?.phase,state:result?.data?.state});return result;}catch(error){if(row)row.phase='rejected';throw error;}};});await section.waitFor();const parentURL=p.url(),parentRoute=()=>p.evaluate(async()=>{const {RouteHistory}=await import('./route-history.js');const route=new RouteHistory().decode(history.state?.paiaReader);return route?{view:route.view,topicId:route.topicId}:null;});assert.deepEqual(await parentRoute(),{view:'thoughts',topicId:f.topicId});
   // Fixture writes create real dependency/search work. Finish that existing
   // work before attributing any of the 37-store differences to Preview/Cancel.
-  await eventually(async()=>{const status=await rpc(p,'GET_LIBRARY_FOUNDATION_STATUS');return status.pendingInvalidations===0&&status.pendingCleanupJobs===0;},'fixture dependency and search invalidations finish before the no-write baseline');
+  await eventually(async()=>{
+   const status=await rpc(p,'GET_LIBRARY_FOUNDATION_STATUS'),search=await p.evaluate(readPromotionSearchWork);
+   searchSettlement.push({pendingInvalidations:status.pendingInvalidations,pendingCleanupJobs:status.pendingCleanupJobs,...search});
+   return status.pendingInvalidations===0&&status.pendingCleanupJobs===0&&search.pendingSearch===0&&search.rebuildComplete;
+  },'fixture dependency and search invalidations finish before the no-write baseline');
   await check('whole actual owner preview and cancellation leave all37/SDK exact',async()=>{
    const before=await whole();assert.equal(Object.keys(before.data).length,37);await open();await p.locator('#library-form input[name="name"]').fill('SYNTHETIC cancelled independent Topic');await p.locator('#library-form button[type="submit"]').click();await p.getByRole('button',{name:'确认移动并创建主题',exact:true}).waitFor();assert.equal(await p.locator('#library-dialog-content ol li').count(),2);assert.match(await p.locator('#library-dialog-content').textContent(),/新主题的外部访问关闭/);assert.equal(await p.locator('#library-dialog').evaluate(dialog=>{const host=dialog.querySelector('#library-dialog-content'),form=dialog.querySelector('#library-form');return host.nextElementSibling===form&&host.querySelectorAll('p').length===2&&host.querySelectorAll('ol li').length===2&&form.querySelectorAll('button[type="submit"]').length===1;}),true,'the complete preview precedes the same original confirmation form');await mkdir(out,{recursive:true});await p.screenshot({path:join(out,variant+'-whole-section-preview.png'),fullPage:true});await p.locator('#library-dialog-close').click();await settled();assert.deepEqual(await whole(),before);
   });
@@ -69,6 +74,6 @@ for(const variant of ['source','release'])test('TOPIC-05.5 actual manual Section
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{
   try{await mkdir(out,{recursive:true});const after=await vector(root,paths),packedAfter=release?await vector(release):null;assert.deepEqual(after,before);assert.deepEqual(packedAfter,packaged);assert.equal(execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),head);
-  await writeFile(join(out,variant+'.json'),JSON.stringify({head,variant,cases,failures,sourceVector:before,sourceUnchanged:true,releaseVector:packaged,releaseUnchanged:true,headless:true,network:h.externalRequests,extensionNetwork:h.extensionNetworkRequests,fullSync:false,AI:false},null,2));}finally{await h.close();if(release&&!borrowed)await rm(release,{recursive:true,force:true});}
+  await writeFile(join(out,variant+'.json'),JSON.stringify({head,variant,cases,failures,searchSettlement,sourceVector:before,sourceUnchanged:true,releaseVector:packaged,releaseUnchanged:true,headless:true,network:h.externalRequests,extensionNetwork:h.extensionNetworkRequests,fullSync:false,AI:false},null,2));}finally{await h.close();if(release&&!borrowed)await rm(release,{recursive:true,force:true});}
  }
 });

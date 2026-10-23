@@ -28,13 +28,40 @@ export function createOrganizeServiceClient(configuration){
  }catch{return null;}
  const transport=(factory,path)=>factory({endpoint:c.origin+path,...(c.fetch?{fetch:c.fetch}:{})}),declarations=transport(createClientDeclarationTransport,'/api/declarations'),reservations=transport(createClientReservationTransport,'/api/reservations'),results=transport(createClientResultTransport,'/api/results'),status=transport(createClientOperationStatusTransport,'/api/operation-status');
  if([declarations,reservations,results,status].some(x=>!x))return null;
- let disposed=false;const active=new Set(),current=()=>{if(disposed)fail('UNAVAILABLE');};
+ let disposed=false;const active=new Set(),sourceOperations=new WeakMap(),current=()=>{if(disposed)fail('UNAVAILABLE');};
  async function preflight(t,topicId){
   const previous=await t.get('meta',FLIGHT+topicId);if(!previous)return;
   const job=await t.get('organizerJobs',previous.jobId);if(!job||!terminal.has(job.state)||!job.domainResultReceipt)fail('OUTCOME_UNKNOWN');
   // A local cancellation never releases a service hold. All original child
   // settlements/cancel ACKs must exist before a different explicit operation.
   for(const childId of job.childIds){const r=await t.get('organizerUsage','aiu:attempt:'+childId);if(r?.executionKind!=='server-backed'||r.financialSettlement?.state!=='SETTLED'&&!savedFinancialCancellation(r))fail('OUTCOME_UNKNOWN');}
+ }
+ async function createSourceStage(childIdentity,{assertCurrent,chargeRetainedBytes,live,requireLive}){
+  let manifest=null,measurement=null,request=null,proofs=null,authorization=null,reservation=null;
+  const qualified=()=>live()&&measurement!==null&&c.isCurrentTokenizer(measurement)===true;
+  const acceptMeasurement=value=>{requireLive();const measured=readQwenTokenMeasurement(manifest,value);if(!integer(measured.inputTokens)||c.isCurrentTokenizer(measured)!==true)fail('UNAVAILABLE');measurement=measured;return measured;};
+  const owner=createQwenQualifiedRequestOwner({clock:c.clock,
+   resolveProfile:async q=>{requireLive();const next=readQwenProfileManifest(await c.readProfile(q));requireLive();if(next.profile.contractVersion!==c.profile.contractVersion||next.profile.routeVersion!==c.routeVersion||next.profile.model.resolutionVersion!==c.profile.modelVersion||await hashText(canonical(next.wire))!==c.profile.promptVersion)fail('UNAVAILABLE');requireLive();manifest=next;return next;},
+   authorizePayload:async q=>{requireLive();if(!qualified()||!authorization||!equal(q.childIdentity,childIdentity)||!equal(q.reservationRequest,request)||q.payloadDigest!==authorization.payloadDigest||Object.hasOwn(q,'payload'))fail('STALE_BASE');return structuredClone(authorization);},
+   tokenize:q=>{requireLive();return Promise.resolve(c.tokenize(q)).then(acceptMeasurement);},
+   readReservation:async r=>{requireLive();if(!equal(r,request))fail('STALE_BASE');const observation=await status.query({request,...proofs});requireLive();if(!observedClientOperationStatus(observation,status)||!observation.reservation)fail('OUTCOME_UNKNOWN');reservation=observation.reservation;return structuredClone(reservation);},
+   readCurrentBinding:()=>({now:c.clock(),profile:c.currentProfile(),authorization:qualified()?authorization:null,tokenizer:qualified()?measurement:null,reservation}),
+   preparedContent:{assertMaterialCurrent:assertCurrent,isCurrent:live,chargeRetainedBytes}
+  });
+  try{
+   // Resolve profile in the original Qwen owner before protected body capture.
+   const control=await owner.prepareWireControls({childIdentity,outputCap:ENVELOPES.AI_ORGANIZE.output,stream:false});requireLive();
+   if(control.status!=='CONTROLS_PREPARED')fail(control.reason??'UNAVAILABLE');
+   const stage={owner,control,childIdentity,captured:false,request:null,proofs:null,declaration:null,
+    async authorize(next,measured){
+     requireLive();if(request!==null||!measurement||measured.inputTokens!==measurement.inputTokens||!equal(measured.childIdentity,childIdentity))fail('STALE_BASE');
+     request=freeze(snapshot(next));proofs=freeze(snapshot(await c.readProofs(structuredClone(request)),{maxBytes:24576,maxKeys:2,maxDepth:1,maxString:8192}));requireLive();
+     if(!exact(proofs,['principalToken','entitlementToken'])||!Object.values(proofs).every(x=>typeof x==='string'&&x.length>0&&x.length<=8192))fail('UNAVAILABLE');
+     authorization=freeze({authorizationId:'organize:'+childIdentity.childOperationId,childIdentity:structuredClone(childIdentity),reservationRequest:structuredClone(request),payloadDigest:measured.payloadDigest,expiresAt:Math.min(manifest.profile.validity.expiresAt,measurement.expiresAt)});
+     stage.request=request;stage.proofs=proofs;
+    }
+   };return stage;
+  }catch(error){owner.dispose();throw error;}
  }
  const client={
   sessionOptions:Object.freeze({resolveAuthority:c.resolveAuthority,profile:c.profile,routeVersion:c.routeVersion,incrementalVersion:3}),
@@ -56,6 +83,65 @@ export function createOrganizeServiceClient(configuration){
    })();const flight={origin:c.origin,task};map.set(topicId,flight);task.finally(()=>{if(map.get(topicId)===flight)map.delete(topicId);}).catch(()=>{});return task;
   },
   async assertCanPlan(foundation,topicId){current();await foundation.read(t=>preflight(t,topicId));},
+  // This source-only preparation owns no Entry/Working payload. The original
+  // session captures each child synchronously inside its existing independent
+  // material grant; only the fixed branded Qwen owner receives that DTO.
+  async prepareSourceControls(foundation,job,childMetadata,{topicId,assertCurrent,assertBeforeSend,isCurrent,chargeRetainedBytes}){
+   current();const old=await foundation.status(job.id);
+   if(old.state!=='PLANNED'||old.attempts.length||childMetadata.length!==job.childIds.length)fail('OUTCOME_UNKNOWN');
+   const stages=[],live=()=>!disposed&&isCurrent()===true,requireLive=()=>{current();if(!live())fail('CANCELLED');};
+   const operation={providers:[],dispose(){for(const stage of stages)stage.owner.dispose();active.delete(operation);sourceOperations.delete(operation);}};
+   sourceOperations.set(operation,{foundation,job,topicId,stages,assertCurrent,assertBeforeSend,requireLive,registered:false});active.add(operation);
+   try{
+    for(const [index,metadata]of childMetadata.entries()){
+     requireLive();
+     const childIdentity=Object.fromEntries(['logicalJobId','childOperationId','type','contractVersion','routeVersion','automaticRetries'].map(k=>[k,metadata[k]]));
+     if(childIdentity.logicalJobId!==job.id||childIdentity.childOperationId!==job.childIds[index])fail('RESULT_BINDING_MISMATCH');
+     // Each stage is created in a separate metadata-only scope. No closure can
+     // retain a validation payload, stage.input or an immutable wire envelope.
+     const stage=await createSourceStage(childIdentity,{assertCurrent,chargeRetainedBytes,live,requireLive});
+     stages.push(stage);
+    }
+    requireLive();return operation;
+   }catch(error){operation.dispose();throw error;}
+  },
+  captureSourceChild(operation,index,payload,lifecycle){
+   const state=sourceOperations.get(operation),stage=state?.stages[index];
+   if(!state||!stage||stage.captured)fail('UNAVAILABLE');state.requireLive();
+   const result=stage.owner.capturePreparedWire(stage.control,payload,lifecycle);
+   if(result.status!=='CAPTURED')fail(result.reason??'UNAVAILABLE');stage.captured=true;state.requireLive();
+  },
+  async finishSourcePreparation(operation){
+   const state=sourceOperations.get(operation);if(!state)fail('UNAVAILABLE');
+   const {foundation,job,topicId,stages,assertCurrent,assertBeforeSend,requireLive}=state;
+   try{
+    for(const stage of stages){
+     requireLive();if(!stage.captured)fail('UNAVAILABLE');
+     const measured=await stage.owner.finishPreparedMeasurement(stage.control);requireLive();
+     if(measured.status!=='MEASURED')fail(measured.reason??'UNAVAILABLE');
+     const request=await foundation.serverRequest(job.id,stage.childIdentity.childOperationId,{inputTokens:measured.inputTokens,outputCap:measured.outputCap,maxCompletionTokens:measured.maxCompletionTokens});requireLive();
+     await stage.authorize(request,measured);requireLive();
+     stage.declaration=await stage.owner.declarePrepared(stage.control,request);requireLive();
+     if(stage.declaration.status!=='DECLARED_LOCAL')fail(stage.declaration.reason??'UNAVAILABLE');
+    }
+    // Preserve original all-children-qualified-before-first-publish ordering,
+    // preflight anti-remint, financial owners and durable metadata identities.
+    await foundation.write(async t=>{await preflight(t,topicId);const stored=await foundation.job(t,job.id);await foundation.current(t,stored);requireLive();await t.put('meta',{id:FLIGHT+topicId,version:1,jobId:job.id,origin:c.origin,organizeRequestKey:stored.organizeRequestKey,requests:stages.map(s=>structuredClone(clientDeclarationRequestData(s.request)))});});requireLive();
+    for(const stage of stages){
+     await assertCurrent();requireLive();if((await stage.owner.publishDeclaration(stage.declaration,stage.proofs,declarations)).status!=='PUBLISHED_CLIENT_DECLARATION')fail('OUTCOME_UNKNOWN');requireLive();
+     await assertCurrent();requireLive();if((await stage.owner.reserveDeclaration(stage.declaration,reservations)).status!=='RESERVED_SERVICE')fail('OUTCOME_UNKNOWN');requireLive();
+     const bound=await stage.owner.bindPrepared(stage.control);requireLive();if(bound.status!=='BOUND_LOCAL')fail(bound.reason??'OUTCOME_UNKNOWN');
+     let provider;const send=c.fetch??globalThis.fetch,providers=createClientProviderTransport({endpoint:c.origin+'/api/provider',fetch:async request=>{
+      const requireLocalCurrent=await assertBeforeSend();if(request.signal.aborted||typeof requireLocalCurrent!=='function')fail('CANCELLED');const binding=qwenFoundationProviderData(provider);if(!binding)fail('UNAVAILABLE');binding.current();requireLocalCurrent();return send(request);
+     }});
+     provider=stage.owner.foundationProvider(bound,providers);if(!provider)fail('UNAVAILABLE');operation.providers.push(provider);
+    }
+    await foundation.reserveServer(job.id,operation.providers);state.registered=true;requireLive();return operation;
+   }catch(error){
+    if(state.registered)try{await foundation.cancelServer(job.id);}catch{/* Preserve original unknown financial holds. */}
+    operation.dispose();throw error;
+   }
+  },
   async prepare(foundation,job,children,{topicId,assertCurrent,assertBeforeSend,isCurrent}){
    current();await assertCurrent();const old=await foundation.status(job.id);
    if(old.state!=='PLANNED'||old.attempts.length||children.length!==job.childIds.length)fail('OUTCOME_UNKNOWN');

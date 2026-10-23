@@ -1,3 +1,4 @@
+import {beginOriginalOrganizeMaterialRead,clearOriginalOrganizeMaterialRead,sealOriginalOrganizeMaterialProof,readOriginalOrganizeScopeReader,assertOriginalOrganizeScopeReaderFacts,requireOriginalOrganizeCommitScopeReader,registerOriginalOrganizeCandidateWrite} from '../../background/organize-processing-policy.js';
 import {isIncrementalV3,planIncrementalV3,editIncrementalV3,legacyV2Generation} from './ai-incremental-v3.js';
 import {canonical as manifestCanonical,digest as manifestDigestOf,unitKey} from '../ai-usage/contracts.js';
 import {isIncrementalV2,planIncrementalV2,editIncrementalField} from './ai-incremental-v2.js';
@@ -20,7 +21,7 @@ import {aiCandidateKey,createAIPresentationCandidate,publicAIPresentationCandida
 import {AI_FIELDS,AI_LIST_FIELDS,AI_SCHEMA_VERSION,isStoredAIPresentation,presentationContent,validateAIPresentation} from './ai-contract.js';
 import {validateDeepSeekRequest,DEEPSEEK_MODEL} from './deepseek.js';
 import {hashText} from '../dedupe.js';
-import {journal,receipt,saveReceipt} from '../thought-journal.js';
+import {journal,receipt,saveReceipt,planJournalRevision} from '../thought-journal.js';
 export {validateAIPresentation};
 // AI generation and adoption target only this derivative metadata family.
 // Adoption never grants write-back authority over Source, Working Input or
@@ -30,7 +31,7 @@ const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const safe=e=>SAFE_ERRORS.has(e?.code)?e.code:'INTERNAL_RUNTIME_ERROR';
 // Trusted projection only. Neither provider nor UI receives repository handles,
 // Source snapshots, Input identifiers, hidden Inputs, titles/URLs or raw history.
-async function topicSnapshot(s,t,topic,{limit=null,summaryOnly=false,entryIds=null}={}){
+async function topicSnapshot(s,t,topic,{limit=null,summaryOnly=false,entryIds=null,currentOnly=false}={}){
  if(!validTopicGeneration(topic.activeLayoutGeneration))reject('STALE_BASE');
  const scanned=await t.all('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),limit===null?undefined:limit+1),placements=limit===null?scanned:scanned.slice(0,limit);
  const entries=[],versions={},scopeVersions={},incrementalVersions={},inputVersions={},unavailable=[],excluded=[],seen=new Set(),filter=await t.get('meta','smart-filter');
@@ -40,22 +41,22 @@ async function topicSnapshot(s,t,topic,{limit=null,summaryOnly=false,entryIds=nu
   if(!allowed){excluded.push(row.id);continue;}Object.assign(inputVersions,inputs);versions[row.id]=JSON.stringify([row.revision,row.dependencyRevision||0,tokens]);
   const time=await expressionTime(s,t,row);scopeVersions[row.id]=JSON.stringify([versions[row.id],time,placement.revision,placement.membershipAuthorship||null]);
   incrementalVersions[row.id]=JSON.stringify([scopeVersions[row.id],placement.sectionId,placement.order,placement.rank,provenance,deps]);
-  entries.push(summaryOnly?{id:row.id}:{...await entryTime(t,row.id),expressionTime:time,id:row.id,body:row.thoughtText,type:row.type,userEdited:row.userEdited,protections:row.protections,createdAt:row.createdAt,updatedAt:row.updatedAt});
+  entries.push(summaryOnly?{id:row.id}:currentOnly?{id:row.id,body:row.thoughtText}:{...await entryTime(t,row.id),expressionTime:time,id:row.id,body:row.thoughtText,type:row.type,userEdited:row.userEdited,protections:row.protections,createdAt:row.createdAt,updatedAt:row.updatedAt});
  }
  return {entries,versions,scopeVersions,incrementalVersions,inputVersions,unavailable,excluded,intendedCount:seen.size,truncated:limit!==null&&scanned.length>limit,scanned:placements.length};
 }
 const sourceBinding=(topic,epoch,policy)=>({organizationRevision:topic.organizationRevision,generation:topic.generation??topic.activeLayoutGeneration,epoch:String(epoch??''),coverage:JSON.stringify([topic.intendedCount,topic.excluded||[],topic.unavailable||[]]),policy});
 async function sourcePolicy(t){const filter=await t.get('meta','smart-filter'),config=await t.get('meta','memory:config');return JSON.stringify({filterMode:filter?.mode??'off',externalAccess:config?.externalAccess===true,localOnly:config?.localOnly===true});}
-async function candidateBinding(s,t,topic,current,epoch,v2=false){
+async function candidateBinding(s,t,topic,current,epoch,v2=false,qualified=null){
  const policy=await sourcePolicy(t);if(!v2)return sourceBinding({...topic,...current},epoch,policy);
- const restore=(await t.get('meta','recovery-restore-epoch'))?.value??'initial',style=readAIStyle((await s.control(t)).preferences,restore);
+ const restore=(await t.get('meta','recovery-restore-epoch'))?.value??'initial',style=readAIStyle((await organizeControls(s,t,qualified)).preferences,restore);
  return sourceBinding({...topic,...current},epoch,JSON.stringify([policy,restore,style]));
 }
-async function cacheSnapshot(s,t,topic,current){
+async function cacheSnapshot(s,t,topic,current,qualified=null){
  const gate=await t.get('meta','gate'),restore=await t.get('meta','recovery-restore-epoch'),recovering=await t.get('meta','backup-recovery-settings');
  const sections=await t.all('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]));
  const evidenceVersion=organizeCacheEvidenceVersion({topicId:topic.id,name:topic.name,organizationRevision:topic.organizationRevision,generation:topic.activeLayoutGeneration,gateEpoch:gate?.epoch??null,restoreEpoch:restore?.value??'initial',policy:await sourcePolicy(t),scopeVersions:current.scopeVersions,inputVersions:current.inputVersions,sections:sections.map(row=>({id:row.id,revision:row.revision,name:row.name??row.title??'',rank:row.rank})),coverage:{intendedCount:current.intendedCount,excluded:current.excluded,unavailable:current.unavailable}});
- const selected=readAIStyle((await s.control(t)).preferences,restore?.value??'initial');
+ const selected=readAIStyle((await organizeControls(s,t,qualified)).preferences,restore?.value??'initial');
  return {topicId:topic.id,evidenceVersion,style:selected,complete:!recovering&&!current.truncated&&!current.unavailable.length&&!current.excluded.length};
 }
 // Internal transaction owner for future qualified writers and synthetic tests.
@@ -64,12 +65,12 @@ export async function readOrganizeCacheSnapshotInTransaction(s,t,topicId){
  const topic=await s.canonicalTopic(t,topicId),current=await topicSnapshot(s,t,topic,{summaryOnly:true});
  return cacheSnapshot(s,t,topic,current);
 }
-async function topicState(s,t,topic,cp,epoch,{summaryOnly=false,expectedProfile=null}={}){
- const current=await topicSnapshot(s,t,topic,{summaryOnly}),rawPrior=cp.topicVersions?.[topic.id]||{},stored=await t.get('meta',ROW+topic.id),allowed=new Set(current.entries.map(x=>x.id));
- const readable=stored&&stored.topicId===topic.id&&isStoredAIPresentation(stored,allowed),none=isBaseNoneEnvelope(stored),binding=await candidateBinding(s,t,topic,current,epoch,[3,4].includes(stored?.candidate?.schemaVersion)),candidate=readable||none?publicAIPresentationCandidate(stored,allowed,[3,4].includes(stored.candidate?.schemaVersion)?current.incrementalVersions:stored.candidate?.schemaVersion===1?current.versions:current.scopeVersions,binding):null;
+async function topicState(s,t,topic,cp,epoch,{summaryOnly=false,expectedProfile=null,qualified=null,currentOnly=false}={}){
+ const current=await topicSnapshot(s,t,topic,{summaryOnly,currentOnly}),rawPrior=cp.topicVersions?.[topic.id]||{},stored=await t.get('meta',ROW+topic.id),allowed=new Set(current.entries.map(x=>x.id));
+ const readable=stored&&stored.topicId===topic.id&&isStoredAIPresentation(stored,allowed),none=isBaseNoneEnvelope(stored),binding=await candidateBinding(s,t,topic,current,epoch,[3,4].includes(stored?.candidate?.schemaVersion),qualified),candidate=readable||none?publicAIPresentationCandidate(stored,allowed,[3,4].includes(stored.candidate?.schemaVersion)?current.incrementalVersions:stored.candidate?.schemaVersion===1?current.versions:current.scopeVersions,binding):null;
  const resetCandidate=!!stored?.candidate&&(!candidate||candidate.stale),baseline=stored?.basedOnCheckpoint?.entryVersions,prior=resetCandidate?(baseline&&typeof baseline==='object'&&!Array.isArray(baseline)?baseline:{}):readable||none||!current.entries.length?rawPrior:{};
  const changed=current.entries.filter(e=>prior[e.id]!==current.versions[e.id]),removed=Object.keys(prior).filter(id=>!allowed.has(id));
- const cacheQualification=qualifyOrganizeCache({stored,readable,ownerPending:changed.length>0||removed.length>0,snapshot:readable&&stored?.cacheBinding?await cacheSnapshot(s,t,topic,current):null,expectedProfile});
+ const cacheQualification=qualifyOrganizeCache({stored,readable,ownerPending:changed.length>0||removed.length>0,snapshot:readable&&stored?.cacheBinding?await cacheSnapshot(s,t,topic,current,qualified):null,expectedProfile});
  return {...current,cacheQualification,id:topic.id,name:topic.name,organizationRevision:topic.organizationRevision,generation:topic.activeLayoutGeneration,binding,prior,storedRevision:stored?.revision||0,stored,emptyCurrent:none,userDraft:!readable&&!none?userAIDraft(stored):null,presentation:readable?stored:null,candidate,changed,removed,pending:changed.length>0||removed.length>0||!!stored&&(!readable&&!none||stored.needsUpdate===true),stale:!!stored&&(!readable&&!none||stored.needsUpdate===true||changed.length>0||removed.length>0)};
 }
 // UX-R2 reuses the canonical pending-delta tokens without loading every topic's
@@ -251,18 +252,40 @@ export async function searchSavedAI(s,{query,cursor=null,limit=40}={}){
  }));
 }
 
+function organizeControls(s,t,qualified){return qualified?readOriginalOrganizeScopeReader(qualified.cap,s,qualified.transaction).controls:s.control(t);}
+
 // Internal local feature lifecycle. No worker route exposes these transaction APIs.
-export async function readLocalOrganizeScopeInTransaction(s,t,topicId,expectedProfile=null,incrementalVersion=1,physicalChildren=1,refreshStyle=false){
+export async function readLocalOrganizeScopeInTransaction(s,t,topicId,expectedProfile=null,incrementalVersion=1,physicalChildren=1,refreshStyle=false,scopeReader=null){
+ return readLocalOrganizeMaterial(s,t,topicId,expectedProfile,incrementalVersion,physicalChildren,refreshStyle,scopeReader,false);
+}
+// Fixed current owner: the same qualification, proof and limits, without the
+// entry chronology/display objects that a service-current assertion never uses.
+// A public DTO cannot select this path without the original transaction cap.
+export async function readLocalOrganizeCurrentInTransaction(s,t,prepared,scopeReader){
+ const view=readOriginalOrganizeScopeReader(scopeReader,s,t);
+ if(view.topicId!==prepared.topic.id)reject('STALE_BASE');
+ const current=await readLocalOrganizeMaterial(s,t,prepared.topic.id,prepared.profile,prepared.incrementalVersion,prepared.physicalChildren,prepared.refreshStyle,scopeReader,true);
+ if(current.proof!==prepared.proof)reject('STALE_BASE');
+ readOriginalOrganizeScopeReader(scopeReader,s,t);assertOriginalOrganizeScopeReaderFacts(scopeReader,s,t);return current;
+}
+async function readLocalOrganizeMaterial(s,t,topicId,expectedProfile,incrementalVersion,physicalChildren,refreshStyle,scopeReader,currentOnly){
+ const originalTransaction=t,qualified=scopeReader===null?null:{cap:scopeReader,transaction:t};
+ if(qualified){const view=readOriginalOrganizeScopeReader(scopeReader,s,t);if(view.topicId!==topicId)reject('STALE_BASE');beginOriginalOrganizeMaterialRead(scopeReader,s,t);t=view.reader;}
+ try{
  const gate=await t.get('meta','gate'),restore=await t.get('meta','recovery-restore-epoch'),cp=await t.get('meta',CHECKPOINT)||{id:CHECKPOINT,view:'ai',version:3,inputVersions:{},topicVersions:{},lastSequence:0};
  if(!gate?.enabled||await t.get('meta','backup-recovery-settings'))reject('UNAVAILABLE');
- const topic=await topicState(s,t,await s.canonicalTopic(t,topicId),cp,gate.epoch,{expectedProfile}),style=readAIStyle((await s.control(t)).preferences,restore?.value??'initial');
+ if(qualified){const control=readOriginalOrganizeScopeReader(scopeReader,s,originalTransaction).controls;if(control.settings.enabled!==true||control.settings.epoch!==gate.epoch||!readAIStyle(control.preferences,restore?.value??'initial').available)reject('STALE_BASE');}
+ const topic=await topicState(s,t,await s.canonicalTopic(t,topicId),cp,gate.epoch,{expectedProfile,qualified,currentOnly}),style=readAIStyle((await organizeControls(s,t,qualified)).preferences,restore?.value??'initial');
  if(!style.available||topic.userDraft||topic.candidate||topic.unavailable.length||topic.excluded.length)reject('STALE_BASE');
  const incremental=incrementalVersion===3?planIncrementalV3(topic,style,expectedProfile,JSON.stringify([gate.epoch,restore?.value??'initial',style,await sourcePolicy(t)]),{refreshStyle}):incrementalVersion===2?planIncrementalV2(topic,style,expectedProfile,JSON.stringify([gate.epoch,restore?.value??'initial',style,await sourcePolicy(t)])):null,selected=incremental?incremental.selected:topic.entries;
  if(!Number.isInteger(physicalChildren)||physicalChildren<1||physicalChildren>4||physicalChildren>1&&incrementalVersion<2)reject('INVALID_REQUEST');
  if(!topic.entries.length||selected.length>100||selected.length>s.organizerBudget.limits.maxInputs*physicalChildren||bytes(selected.map(e=>e.body))>s.organizerBudget.limits.maxContentBytes*physicalChildren)reject('BUDGET_EXCEEDED');
- const inputs=selected.map(e=>({ref:e.id,revision:topic.versions[e.id],text:e.body})),cache=await cacheSnapshot(s,t,await s.canonicalTopic(t,topicId),topic);
+ const inputs=selected.map(e=>({ref:e.id,revision:topic.versions[e.id],text:e.body})),cache=await cacheSnapshot(s,t,await s.canonicalTopic(t,topicId),topic,qualified);
  if(!cache.complete||!cache.evidenceVersion)reject('STALE_BASE');
- return {topic,incremental,incrementalVersion,physicalChildren,refreshStyle,profile:expectedProfile,gateEpoch:gate.epoch,cachePresentation:topic.cacheQualification.reusable?publicTopic(topic):null,checkpoint:cp,inputs,evidenceVersion:cache.evidenceVersion,style:{version:1,value:style.value,policyVersion:'AIOS-1.0',expectedRevision:style.revision,expectedEpoch:style.epoch},proof:JSON.stringify([topic.id,topic.name,topic.binding,topic.scopeVersions,topic.stored,cp,gate,restore?.value??'initial',style,cache.evidenceVersion,incrementalVersion,refreshStyle,incrementalVersion>=2?topic.incrementalVersions:null])};
+ const proofFields=[topic.id,topic.name,topic.binding,topic.scopeVersions,topic.stored,cp,gate,restore?.value??'initial',style,cache.evidenceVersion,incrementalVersion,refreshStyle,incrementalVersion>=2?topic.incrementalVersions:null],proof=qualified?sealOriginalOrganizeMaterialProof(scopeReader,s,originalTransaction,proofFields):JSON.stringify(proofFields);
+ const prepared=currentOnly?{topic:{id:topic.id},incremental:!!incremental,inputs,style:{version:1,value:style.value,policyVersion:'AIOS-1.0',expectedRevision:style.revision,expectedEpoch:style.epoch},proof}:{topic,incremental,incrementalVersion,physicalChildren,refreshStyle,profile:expectedProfile,gateEpoch:gate.epoch,cachePresentation:topic.cacheQualification.reusable?publicTopic(topic):null,checkpoint:cp,inputs,evidenceVersion:cache.evidenceVersion,style:{version:1,value:style.value,policyVersion:'AIOS-1.0',expectedRevision:style.revision,expectedEpoch:style.epoch},proof};
+ if(qualified){readOriginalOrganizeScopeReader(scopeReader,s,originalTransaction);assertOriginalOrganizeScopeReaderFacts(scopeReader,s,originalTransaction);}return prepared;
+ }finally{if(qualified)clearOriginalOrganizeMaterialRead(scopeReader,s,originalTransaction);}
 }
 // IDB evidence/restore/policy share the surrounding readonly transaction. Local
 // preferences use this store's serialized control snapshot; recheck it after
@@ -275,10 +298,19 @@ const cacheControlMatches=(value,prepared)=>{const style=readAIStyle(value?.pref
 // Same serialized local controls, rechecked synchronously after the caller's
 // final await. This is not cross-process or cross-storage atomic authority.
 export const localOrganizeCacheControlsCurrent=(s,prepared)=>cacheControlMatches(s.pendingControl||s.controlCache,prepared);
-export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,result,candidateId,qualification=null,manifestDigest=null,baseGeneration=null}){
- const current=await readLocalOrganizeScopeInTransaction(s,t,prepared.topic.id,prepared.profile,prepared.incrementalVersion,prepared.physicalChildren,prepared.refreshStyle);if(current.proof!==prepared.proof)reject('STALE_BASE');
- const topic=current.topic,old=topic.stored,cp=current.checkpoint,candidate=createAIPresentationCandidate(topic.presentation,result,{createdAt:s.clock(),materialVersions:prepared.incrementalVersion>=2?topic.incrementalVersions:topic.scopeVersions,sourceBinding:await candidateBinding(s,t,topic,topic,current.gateEpoch,prepared.incrementalVersion>=2),candidateId,manifestDigest,baseGeneration});
- if(candidate){const base=topic.presentation?old:{id:ROW+topic.id,topicId:topic.id,envelopeVersion:1,currentState:'none',revision:0,recoveryGeneration:isBaseNoneEnvelope(old)?old.recoveryGeneration:candidateId,...(isBaseNoneEnvelope(old)&&old.recoveryPurgeRevision!==undefined?{recoveryPurgeRevision:old.recoveryPurgeRevision}:{}),basedOnCheckpoint:old?.basedOnCheckpoint||{entryVersions:{}}};await t.put('meta',{...base,candidate,needsUpdate:false,stale:false});await candidateFence(t,topic.id,candidate);}
+export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,result,candidateId,qualification=null,manifestDigest=null,baseGeneration=null,scopeReader=null}){
+ const qualified=scopeReader===null?null:{cap:scopeReader,transaction:t};if(qualified){requireOriginalOrganizeCommitScopeReader(scopeReader,s,t);if(prepared.incrementalVersion!==3)reject('UNAVAILABLE');}
+ const current=await readLocalOrganizeScopeInTransaction(s,t,prepared.topic.id,prepared.profile,prepared.incrementalVersion,prepared.physicalChildren,prepared.refreshStyle,scopeReader);if(current.proof!==prepared.proof)reject('STALE_BASE');
+ if(qualified&&qualification?.jobId)return commitFreshOrganizeCurrent(s,t,{prepared,result,current,qualification,manifestDigest,scopeReader});
+ const topic=current.topic,old=topic.stored,cp=current.checkpoint,candidate=createAIPresentationCandidate(topic.presentation,result,{createdAt:s.clock(),materialVersions:prepared.incrementalVersion>=2?topic.incrementalVersions:topic.scopeVersions,sourceBinding:await candidateBinding(s,qualified?requireOriginalOrganizeCommitScopeReader(scopeReader,s,t).reader:t,topic,topic,current.gateEpoch,prepared.incrementalVersion>=2,qualified),candidateId,manifestDigest,baseGeneration});
+ if(candidate){const base=topic.presentation?old:{id:ROW+topic.id,topicId:topic.id,envelopeVersion:1,currentState:'none',revision:0,recoveryGeneration:isBaseNoneEnvelope(old)?old.recoveryGeneration:candidateId,...(isBaseNoneEnvelope(old)&&old.recoveryPurgeRevision!==undefined?{recoveryPurgeRevision:old.recoveryPurgeRevision}:{}),basedOnCheckpoint:old?.basedOnCheckpoint||{entryVersions:{}}};if(qualified){
+   const reader=requireOriginalOrganizeCommitScopeReader(scopeReader,s,t).reader,after={...base,candidate,needsUpdate:false,stale:false},fence={id:'ai-presentation-candidate-fence:'+topic.id,entityKind:'organizer_metadata',ownerKind:'ai_presentation_candidate',ownerId:topic.id,statusKey:1,sourceRecordIds:await sourceIdsForEntries(reader,candidate.proposal?.evidenceEntryIds)};
+   // Mint the exact expected after-images before the first original put. No
+   // caller can supply a write-intent capability or replace its planned values.
+   const intent=Object.freeze({}),view=freezeCandidateWrite({writes:[{table:'meta',key:after.id,before:old,after},{table:'libraryMigrationItems',key:fence.id,after:fence}]});
+   const record={store:s,transaction:t,scopeReader,view,applied:false};originalCandidateWriteIntents.set(intent,record);registerOriginalOrganizeCandidateWrite(scopeReader,s,t,intent);
+   await t.put('meta',after);await t.put('libraryMigrationItems',fence);record.applied=true;
+  }else{await t.put('meta',{...base,candidate,needsUpdate:false,stale:false});await candidateFence(t,topic.id,candidate);}}
  if(prepared.incrementalVersion<2)await t.put('meta',{...cp,version:3,topicVersions:{...cp.topicVersions,[topic.id]:topic.versions},inputVersions:await acknowledgedInputs(s,t,cp,topic,topic.versions),updatedAt:s.clock()});
  let cacheProof=null;
  if(![3,4].includes(candidate?.schemaVersion)&&candidate?.baseKind==='none'&&qualification?.childId===candidateId&&validOrganizeCacheProfile(qualification.profile)){
@@ -296,6 +328,45 @@ export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,re
  let lifecycleToken=null;
  if(candidate&&qualification?.jobId){lifecycleToken=Object.freeze({});if(localLifecycleProofs.size>=32)localLifecycleProofs.delete(localLifecycleProofs.keys().next().value);localLifecycleProofs.set(lifecycleToken,{store:s,jobId:qualification.jobId,topicId:topic.id,confirmed:false});}
  return {candidateCreated:!!candidate,cacheProof,lifecycleToken,lifecycleKey:candidate?aiCandidateKey(candidate):null};
+}
+
+// Only the genuine action/processing cap enters this owner. Historical
+// candidate adoption remains a separate user-decision operation above.
+async function commitFreshOrganizeCurrent(s,t,{prepared,result,current,qualification,manifestDigest,scopeReader}){
+ const {topic,checkpoint:cp}=current,old=topic.stored,reader=requireOriginalOrganizeCommitScopeReader(scopeReader,s,t).reader;
+ const job=await t.get('organizerJobs',qualification.jobId),generations=Object.values(result?.manifest?.generations||{}),fresh=generations.filter(g=>g.kind==='local-committed-v1'&&g.jobId===qualification.jobId);
+ if(prepared.incrementalVersion!==3||!isIncrementalV3(result)||!isStoredAIPresentation(result,new Set(topic.entries.map(e=>e.id)))||job?.type!=='AI_ORGANIZE'||job.state==='COMMITTED'||job.cancelEpoch!==0||fresh.length!==1||!equal(fresh[0].children.map(c=>c.childId),job.childIds)||!equal(result.protections,old?.protections||{})||!equal(fresh[0].profile,prepared.profile)||fresh[0].control!==prepared.incremental.control||!new RegExp('^[a-f0-9]{64}$').test(manifestDigest||''))reject('STALE_BASE');
+ for(const child of fresh[0].children){const attempt=await t.get('organizerUsage','aiu:attempt:'+child.childId);if(attempt?.jobId!==job.id||attempt.state!=='RESPONSE_RECORDED'||attempt.operationReceiptId!==child.operationReceiptId)reject('STALE_BASE');}
+ for(const field of AI_FIELDS)if(old?.protections?.[field]&&(!equal(old.projection[field],result.projection[field])||!equal(old.manifest.blocks.filter(b=>b.field===field),result.manifest.blocks.filter(b=>b.field===field))||!equal(old.manifest.fields?.[field],result.manifest.fields[field])))reject('STALE_BASE');
+ const comparable=row=>row&&({projection:row.projection,protections:row.protections,fields:Object.fromEntries(AI_FIELDS.map(f=>[f,row.manifest.fields[f].style])),blocks:row.manifest.blocks.map(({id,generation,...block})=>block)});
+ const changed=!old||!isIncrementalV3(old)||!equal(comparable(old),comparable(result)),revision=(old?.revision||0)+(changed?1:0),at=s.clock(),receiptId='ai-presentation-current:'+job.id;
+ if(await t.get('operationReceipts',receiptId))reject('STALE_BASE');
+ const receiptRow={id:receiptId,namespace:'ai-presentation',ownerId:topic.id,operationSequence:0,createdAt:at,digest:manifestDigest,result:{jobId:job.id,topicId:topic.id,currentPublished:changed,changed,revision}};
+ const writes=[];let next=old;
+ if(changed){
+  next={...old,...structuredClone(result),id:ROW+topic.id,revision,recoveryGeneration:old?.recoveryGeneration||job.id,basedOnCheckpoint:{entryVersions:structuredClone(topic.versions)},needsUpdate:false,stale:false,updatedAt:at};
+  delete next.envelopeVersion;delete next.currentState;delete next.cacheBinding;
+  // Exact validated Current, never candidate presence, may establish a cache.
+  // Human-owned/mixed results deliberately remain non-reusable.
+  if(!Object.values(next.protections).some(Boolean))next.cacheBinding={version:1,topicId:topic.id,presentationRevision:revision,profile:structuredClone(prepared.profile),style:{value:prepared.style.value,policyVersion:prepared.style.policyVersion},evidenceVersion:prepared.evidenceVersion};
+  const evidenceEntryIds=[...new Set([...(old?.evidenceEntryIds||[]),...next.evidenceEntryIds])],sourceRecordIds=await sourceIdsForEntries(reader,evidenceEntryIds),sequenceBefore=await t.get('meta','revision-sequence'),sequence=(sequenceBefore?.value||0)+1,id=s.uuid();
+  if(!Number.isSafeInteger(sequence)||sequence<1)reject('STALE_BASE');
+  const snapshot=row=>row?{presentationVersion:row.presentationVersion,projection:row.projection,manifest:row.manifest}:null;
+  const journalPlan=planJournalRevision({kind:'ai_presentation',entityId:topic.id,documentId:topic.id,before:snapshot(topic.presentation),after:snapshot(next),fieldMask:AI_FIELDS,actor:'ai',reason:'ai_update',important:true,operationId:job.id,baseRevision:old?.revision||0,afterRevision:revision,sourceRecordIds,evidenceEntryIds},null,at),journalRow={...journalPlan.row,id,sequence,listKey:[journalPlan.entityKey,sequence],documentList:[topic.id,sequence]};
+  const fence={id:'ai-presentation-fence:'+topic.id,entityKind:'organizer_metadata',ownerKind:'ai_presentation',ownerId:topic.id,statusKey:1,sourceRecordIds};
+  writes.push({table:'meta',key:next.id,before:old,after:next},{table:'libraryMigrationItems',key:fence.id,after:fence},{table:'meta',key:'revision-sequence',before:sequenceBefore,after:{id:'revision-sequence',value:sequence}},{table:'revisions',key:id,after:journalRow});
+ }
+ // This Topic's checkpoint only. Do not traverse other Topics or acknowledge
+ // their Input work through the legacy cross-Topic adoption helper.
+ const checkpointBefore=await reader.get('meta',CHECKPOINT),checkpointAfter={...cp,topicVersions:{...cp.topicVersions,[topic.id]:structuredClone(topic.versions)}};
+ if(!equal(checkpointBefore,checkpointAfter))writes.push({table:'meta',key:CHECKPOINT,before:checkpointBefore,after:checkpointAfter});
+ writes.push({table:'operationReceipts',key:receiptId,after:receiptRow});
+ const intent=Object.freeze({}),view=freezeCandidateWrite({kind:'fresh-current',topicId:topic.id,jobId:job.id,changed,writes}),record={store:s,transaction:t,scopeReader,view,applied:false};
+ originalCandidateWriteIntents.set(intent,record);registerOriginalOrganizeCandidateWrite(scopeReader,s,t,intent);
+ for(const write of writes)await t.put(write.table,write.after);
+ if(changed)await s.pruneEntity(t,'ai_presentation:'+topic.id);
+ record.applied=true;requireOriginalOrganizeCommitScopeReader(scopeReader,s,t);
+ return {...receiptRow.result,candidateCreated:false,cacheProof:null,lifecycleToken:null,lifecycleKey:null};
 }
 
 // Process-local capabilities only: globally bounded, never exported in DTOs or
@@ -358,4 +429,26 @@ async function verifyAtomicCacheProof(s,t,token,p,job,row){
   }
  }
  return atomicCacheProofCurrent(s,token,p);
+}
+
+// Exact planned writes minted only by the original candidate committer.
+const originalCandidateWriteIntents=new WeakMap();
+export function originalOrganizeWriteShape(view,topicId){
+ const writes=view?.writes;if(!Array.isArray(writes))return false;
+ if(view.kind!=='fresh-current')return writes.length===2&&writes[0].table==='meta'&&writes[0].key===ROW+topicId&&writes[1].table==='libraryMigrationItems'&&writes[1].key==='ai-presentation-candidate-fence:'+topicId;
+ if(view.topicId!==topicId||typeof view.jobId!=='string'||typeof view.changed!=='boolean'||new Set(writes.map(w=>JSON.stringify([w.table,w.key]))).size!==writes.length)return false;
+ const fixed=view.changed?4:0;if(writes.length!==fixed+1&&writes.length!==fixed+2)return false;
+ if(view.changed){const [current,fence,sequence,revision]=writes;
+  if(current.table!=='meta'||current.key!==ROW+topicId||fence.table!=='libraryMigrationItems'||fence.key!=='ai-presentation-fence:'+topicId||sequence.table!=='meta'||sequence.key!=='revision-sequence'||revision.table!=='revisions'||revision.key!==revision.after.id||revision.after.kind!=='ai_presentation'||revision.after.entityId!==topicId||revision.after.actor!=='ai'||revision.after.operationId!==view.jobId||revision.after.afterRevision!==current.after.revision)return false;
+ }
+ if(writes.length===fixed+2&&(writes[fixed].table!=='meta'||writes[fixed].key!==CHECKPOINT))return false;
+ const last=writes.at(-1);return last.table==='operationReceipts'&&last.key==='ai-presentation-current:'+view.jobId&&last.after.namespace==='ai-presentation'&&last.after.ownerId===topicId&&last.after.result.jobId===view.jobId&&last.after.result.changed===view.changed;
+}
+const freezeCandidateWrite=value=>{if(value&&typeof value==='object'){for(const key of Object.keys(value))freezeCandidateWrite(value[key]);Object.freeze(value);}return value;};
+export function readOriginalOrganizeCandidateWriteIntent(intent,store,transaction,scopeReader,requireApplied=false){
+ const r=originalCandidateWriteIntents.get(intent);if(!r||r.store!==store||r.transaction!==transaction||r.scopeReader!==scopeReader||requireApplied&&!r.applied)reject('STALE_BASE');return r.view;
+}
+export function sameOriginalOrganizeCandidateWrite(actual,expected){
+ if(Object.is(actual,expected))return true;if(actual===null||expected===null||typeof actual!=='object'||typeof expected!=='object'||Array.isArray(actual)!==Array.isArray(expected))return false;
+ const keys=Reflect.ownKeys(expected);if(Reflect.ownKeys(actual).length!==keys.length)return false;return keys.every(key=>{const d=Object.getOwnPropertyDescriptor(actual,key);return d&&Object.hasOwn(d,'value')&&sameOriginalOrganizeCandidateWrite(d.value,expected[key]);});
 }

@@ -85,8 +85,29 @@ function prepare(options,kind){
 // now/inputTokens are explicit fixture observations, not a trusted clock/tokenizer.
 // childIdentity is the six neutral identity fields of Foundation.childRequest;
 // this compiler never dispatches it or replaces its evidence/permission owner.
+function validAt(profile,now){
+ if(!integer(now)||now<profile.validity.verifiedAt||now>=profile.validity.expiresAt||profile.validity.revoked)stop('VALIDITY_UNAVAILABLE');
+}
+function freezeMetadata(value){if(value&&typeof value==='object'){for(const child of Object.values(value))freezeMetadata(child);Object.freeze(value);}return value;}
+// Both entry points use this original controls/binding calculation. Preparation
+// omits only the as-yet unmeasured input comparison; it never supplies a guessed
+// count, mints a financial request or claims a qualified input bound.
+function controls(profile,o,sourceKind,checkInput){
+ const c=o.childIdentity;
+ if(!exact(c,['logicalJobId','childOperationId','type','contractVersion','routeVersion','automaticRetries'])||!['logicalJobId','childOperationId','contractVersion','routeVersion'].every(key=>token(c[key]))||c.type!==profile.jobType||c.contractVersion!==profile.contractVersion||c.routeVersion!==profile.routeVersion||c.automaticRetries!==0)stop('CHILD_BINDING_MISMATCH');
+ validAt(profile,o.now);
+ if((checkInput&&!integer(o.inputTokens))||!positive(o.outputCap)||typeof o.stream!=='boolean')stop('REQUEST_BOUND');
+ const envelope=ENVELOPES[c.type],limits={...profile.qualifiedLimits,inputTokens:Math.min(envelope.input,profile.qualifiedLimits.inputTokens),billableOutputCap:Math.min(envelope.output,profile.qualifiedLimits.billableOutputCap,o.outputCap)};
+ const t=profile.thinking,headroom=Math.max(10,t.overshootHeadroom);
+ if((checkInput&&o.inputTokens>limits.inputTokens)||o.outputCap>envelope.output||t.requestedMaxCompletionTokens>limits.billableOutputCap-headroom)stop('REQUEST_BOUND');
+ const b=binding(profile,c.childOperationId,limits);if(!readableBinding(b))stop('PARSER_BINDING_UNAVAILABLE');
+ return {status:'COMPILED_PARTIAL',reason:'NONE',sourceKind,qualification:'NOT_ESTABLISHED',wireComplete:false,inputBoundQualified:false,financialAuthority:false,dispatchAllowed:false,
+  childIdentity:structuredClone(c),profileId:profile.id,endpoint:structuredClone(profile.endpoint),model:structuredClone(profile.model),apiProfileId:profile.apiProfileId,tokenizerProfileId:profile.tokenizerProfileId,decodingPolicyId:profile.decodingPolicyId,responseSchemaDigest:profile.responseSchemaDigest,qualityReceiptRefs:[...profile.qualityReceiptRefs],
+  thinkingPolicy:structuredClone(t),billableOutputCap:limits.billableOutputCap,headroom,
+  requestControls:{stream:o.stream,max_completion_tokens:t.requestedMaxCompletionTokens,...(o.stream?{stream_options:{include_usage:true}}:{})},binding:b};
+}
 function createControlsCompiler(options,kind,sourceKind){
- let profile,initialReason='PROFILE_UNAVAILABLE';
+ let profile,initialReason='PROFILE_UNAVAILABLE',prepared=new WeakMap();
  try{profile=prepare(options,kind);}catch(e){initialReason=failures.has(e)?e.reason:'PROFILE_UNAVAILABLE';}
  return Object.freeze({
   compile(options){
@@ -94,21 +115,33 @@ function createControlsCompiler(options,kind,sourceKind){
    try{
     const o=snapshot(options);
     if(!exact(o,['childIdentity','inputTokens','outputCap','stream','now']))stop('REQUEST_UNAVAILABLE');
-    const c=o.childIdentity;
-    if(!exact(c,['logicalJobId','childOperationId','type','contractVersion','routeVersion','automaticRetries'])||!['logicalJobId','childOperationId','contractVersion','routeVersion'].every(key=>token(c[key]))||c.type!==profile.jobType||c.contractVersion!==profile.contractVersion||c.routeVersion!==profile.routeVersion||c.automaticRetries!==0)stop('CHILD_BINDING_MISMATCH');
-    if(!integer(o.now)||o.now<profile.validity.verifiedAt||o.now>=profile.validity.expiresAt||profile.validity.revoked)stop('VALIDITY_UNAVAILABLE');
-    if(!integer(o.inputTokens)||!positive(o.outputCap)||typeof o.stream!=='boolean')stop('REQUEST_BOUND');
-    const envelope=ENVELOPES[c.type],limits={...profile.qualifiedLimits,inputTokens:Math.min(envelope.input,profile.qualifiedLimits.inputTokens),billableOutputCap:Math.min(envelope.output,profile.qualifiedLimits.billableOutputCap,o.outputCap)};
-    const t=profile.thinking,headroom=Math.max(10,t.overshootHeadroom);
-    if(o.inputTokens>limits.inputTokens||o.outputCap>envelope.output||t.requestedMaxCompletionTokens>limits.billableOutputCap-headroom)stop('REQUEST_BOUND');
-    const b=binding(profile,c.childOperationId,limits);if(!readableBinding(b))stop('PARSER_BINDING_UNAVAILABLE');
-    return {status:'COMPILED_PARTIAL',reason:'NONE',sourceKind,qualification:'NOT_ESTABLISHED',wireComplete:false,inputBoundQualified:false,financialAuthority:false,dispatchAllowed:false,
-     childIdentity:structuredClone(c),profileId:profile.id,endpoint:structuredClone(profile.endpoint),model:structuredClone(profile.model),apiProfileId:profile.apiProfileId,tokenizerProfileId:profile.tokenizerProfileId,decodingPolicyId:profile.decodingPolicyId,responseSchemaDigest:profile.responseSchemaDigest,qualityReceiptRefs:[...profile.qualityReceiptRefs],
-     thinkingPolicy:structuredClone(t),billableOutputCap:limits.billableOutputCap,headroom,
-     requestControls:{stream:o.stream,max_completion_tokens:t.requestedMaxCompletionTokens,...(o.stream?{stream_options:{include_usage:true}}:{})},binding:b};
+    return controls(profile,o,sourceKind,true);
    }catch(e){return unavailable(failures.has(e)?e.reason:'REQUEST_UNAVAILABLE',sourceKind);}
   },
-  dispose(){profile=null;initialReason='PROFILE_DISPOSED';}
+  prepareControls(options){
+   if(!profile)return unavailable(initialReason,sourceKind);
+   try{
+    const o=snapshot(options);
+    if(!exact(o,['childIdentity','outputCap','stream','now']))stop('REQUEST_UNAVAILABLE');
+    const compiled=freezeMetadata(controls(profile,o,sourceKind,false));
+    const handle=freezeMetadata({...compiled,status:'CONTROLS_PREPARED'});
+    prepared.set(handle,{compiled,preparedAt:o.now});return handle;
+   }catch(e){return unavailable(failures.has(e)?e.reason:'REQUEST_UNAVAILABLE',sourceKind);}
+  },
+  finishInputBound(handle,options){
+   if(!profile)return unavailable(initialReason,sourceKind);
+   try{
+    const record=prepared.get(handle);if(!record)stop('CONTROL_HANDLE_UNAVAILABLE');
+    // Claim once before inspecting caller metadata, including reentrant traps.
+    // Failure/expiry cannot restore a previously used preparation.
+    prepared.delete(handle);
+    const o=snapshot(options);if(!exact(o,['inputTokens','now']))stop('REQUEST_UNAVAILABLE');
+    validAt(profile,o.now);if(o.now<record.preparedAt)stop('VALIDITY_UNAVAILABLE');
+    if(!integer(o.inputTokens)||o.inputTokens>record.compiled.binding.limits.inputTokens)stop('REQUEST_BOUND');
+    return structuredClone(record.compiled);
+   }catch(e){return unavailable(failures.has(e)?e.reason:'REQUEST_UNAVAILABLE',sourceKind);}
+  },
+  dispose(){profile=null;prepared=new WeakMap();initialReason='PROFILE_DISPOSED';}
  });
 }
 

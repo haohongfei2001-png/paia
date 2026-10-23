@@ -1,0 +1,51 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {setup} from './harness/thought-m1.mjs';
+import {OrganizerStore} from '../core/organizer/store.js';
+import {ManualSectionPromotionService} from '../core/topic-promotion-manual.js';
+import {searchBatch, planSearchPostings} from '../core/library-search.js';
+import {STORAGE_KEY} from '../core/constants.js';
+import {readPromotionSearchWork} from './harness/promotion-search-settlement.mjs';
+import {IDBFactory} from './vendor/fake-indexeddb/build/esm/index.js';
+
+test('promotion search probe refuses a missing database without creating one', async () => {
+ const factory = new IDBFactory();
+ await assert.rejects(readPromotionSearchWork(factory, 'absent-synthetic'));
+ assert.deepEqual(await factory.databases(), []);
+});
+
+test('promotion fixture foundation status can be idle while original manual Entry search work remains', async t => {
+ const {s, storage, indexedDB} = await setup(OrganizerStore);
+ t.after(() => s.repository.close());
+ const op = () => crypto.randomUUID();
+ const topic = await s.createTopic({name:'SYNTHETIC original parent', operationId:op()});
+ const section = await s.createSection({topicId:topic.id, title:'SYNTHETIC named Section', expectedTopicRevision:(await s.topic(topic.id)).organizationRevision, operationId:op()});
+ await s.drainInvalidations(); await s.drainLibraryMaintenance();
+ const manual = await s.continueThinking({topicId:topic.id, sectionId:section.sectionId, body:'SYNTHETIC own independent body\n\nExact untouched text.', operationId:op()});
+ const whole = async () => ({data:await s.repository.transaction(false, async tx => Object.fromEntries(await Promise.all(s.repository.stores.map(async name => [name, await tx.all(name)])))), sdk:await storage.get(STORAGE_KEY)});
+ const status = await s.libraryStatus();
+ assert.equal(status.pendingInvalidations, 0); assert.equal(status.pendingCleanupJobs, 0);
+ const before = await whole(); assert.equal(Object.keys(before.data).length, 37);
+ assert.deepEqual(await readPromotionSearchWork(indexedDB, s.repository.name), {pendingSearch:1, rebuildComplete:true});
+ assert.deepEqual(await whole(), before, 'the admission probe is read-only across every store and SDK');
+ const service = new ManualSectionPromotionService(s);
+ const prepared = await service.prepare({topicId:topic.id, sectionId:section.sectionId, selection:'whole_section', name:'SYNTHETIC cancelled', operationId:op()});
+ service.cancel(prepared);
+ assert.deepEqual(await whole(), before, 'actual prepare/cancel do not consume the pending search job or write anything');
+ await searchBatch(s);
+ const after = await whole(), expected = structuredClone(before);
+ const entry = expected.data.thoughts.find(row => row.id === manual.id), job = expected.data.libraryMigrationItems.find(row => row.entityKind === 'search' && row.ownerId === manual.id);
+ assert.ok(job); assert.equal(job.version, '0:0:active:0');
+ const postings = planSearchPostings('entry', entry);
+ assert.equal(postings.length, 8);
+ assert.deepEqual(postings.map(p=>p.tokenHash), ['4680c6f8','5c618ff5','946895a4','a515afbf','bde64e3e','c05c0344','dbaa7975','faf0de9a'], 'the exact eight hashes in the retained cloud failure');
+ expected.data.libraryMigrationItems = expected.data.libraryMigrationItems.filter(row => row.id !== job.id);
+ expected.data.librarySearchTerms.push(...postings.map(p => ({id:JSON.stringify(['entry', manual.id, p.field, p.tokenHash]), ownerKind:'entry', ownerId:manual.id, ...p, version:job.version, tokenizerVersion:1, sourceRecordIds:[]})));
+ expected.data.librarySearchTerms.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+ entry.indexedSearchVersion = job.version;
+ assert.deepEqual(after, expected, 'only the original search owner explains the exact three-table delta; all other fields and SDK stay exact');
+ assert.deepEqual(await readPromotionSearchWork(indexedDB, s.repository.name), {pendingSearch:0, rebuildComplete:true});
+ assert.deepEqual(await whole(), after);
+ await s.rebuildLibrarySearch();
+ assert.deepEqual(await readPromotionSearchWork(indexedDB, s.repository.name), {pendingSearch:0, rebuildComplete:false}, 'an empty queue does not qualify an unfinished rebuild');
+});

@@ -1,10 +1,11 @@
 // Four whole files added by the approved UI convergence. Historical route
 // assertions retain their original96-file census separately from actual100.
 export const APPROVED_UI_BROWSER_FILES=Object.freeze(['archive-year-chrome-e2e.test.mjs','topic-year-chrome-e2e.test.mjs','topic-selected-section-chrome-e2e.test.mjs','nib-approved-fixed-chrome-e2e.test.mjs']);
+export const TOPIC_LIFECYCLE_BROWSER='cpv1-topic-02-lifecycle-chrome-e2e.test.mjs';
 const approvedUIBrowser=new Set(APPROVED_UI_BROWSER_FILES);
 const browserName=file=>file.replaceAll('\\','/').split('/').at(-1);
 // Only for frozen historical census assertions, never the execution filter.
-export const isPreviousCurrentBrowser=file=>group(file)==='browser E2E'&&!approvedUIBrowser.has(browserName(file));
+export const isPreviousCurrentBrowser=file=>group(file)==='browser E2E'&&!approvedUIBrowser.has(browserName(file))&&browserName(file)!==TOPIC_LIFECYCLE_BROWSER;
 const promotion='topic-section-promotion-chrome-e2e.test.mjs';
 const NIB_BROWSER=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'];
 const pendingHistory='uir-04-pending-history-chrome-e2e.test.mjs';
@@ -115,7 +116,7 @@ const next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
 const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const IAH_FILES=['iah11-result-presentation-chrome-e2e.test.mjs','iah11-selected-acceptance-chrome-e2e.test.mjs'];
 const AI_BROWSER='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
-const CURRENT_BROWSER=new Set([...APPROVED_UI_BROWSER_FILES,promotion,...NIB_BROWSER,topicReturn,removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,preferencePublication,settingsData,
+const CURRENT_BROWSER=new Set([TOPIC_LIFECYCLE_BROWSER,...APPROVED_UI_BROWSER_FILES,promotion,...NIB_BROWSER,topicReturn,removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,preferencePublication,settingsData,
  'cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs',
  'cpv1-topic-05-4-section-chrome-e2e.test.mjs',
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
@@ -176,6 +177,15 @@ export function group(file) {
 export function testShard(file,position,total,category){
  file=file.replaceAll('\\','/');
  const currentName=browserName(file);
+ // Explicit whole-file admission. The prior 100 current roots keep every
+ // existing 4/5/6/7/9/10 assignment and Context stays alone on shard 10.
+ // Main Full39601938203 shard 5 log span was 804.5s. The new Source/release
+ // parents retain their 120s limits; this is a capacity proposal pending
+ // exact-head native measurement, not a guaranteed fit or accepted evidence.
+ if(category==='browser E2E'&&currentName===TOPIC_LIFECYCLE_BROWSER){
+  if(total===10)return 5;
+  if([4,5,6,7,9].includes(total))return 4;
+ }
  if(category==='browser E2E'&&approvedUIBrowser.has(currentName)){
   // Full39007610360: Context alone took~696s after Archive; adding all four
   // new owners exhausted10's unchanged18m budget. Only these new whole files
@@ -225,7 +235,11 @@ export function testShard(file,position,total,category){
  // and Section writing (~53–54s) from7 to4 (875/764s measured job totals).
  // Preserve all100 roots, every Source/release case, ten jobs, concurrency1,
  // historical4–9 routes and18m. These timings plan capacity, not a PASS.
- if(category==='browser E2E'&&total===10){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_TEN_UNADMITTED:'+name);return name==='context-cards-chrome-e2e.test.mjs'?10:name==='cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'?1:name==='cpv1-02-4-reader-chrome-e2e.test.mjs'?3:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?8:name==='nib-v4-settings-entry-chrome-e2e.test.mjs'||name==='topic-section-writing-chrome-e2e.test.mjs'?4:name==='ans-01-reader-surfaces-chrome-e2e.test.mjs'?4:shard;}
+ // PR313 approved scope: move whole Maintenance4->3 and Reconnect3->4.
+ // Prior 149.56s/28.33s spans guide balance, not a timing guarantee; the
+ // larger Maintenance and Topic lifecycle remain complete and unmeasured here.
+ // Keep 101 roots, Context alone on10, historical4-9 routes, ten jobs and18m.
+ if(category==='browser E2E'&&total===10){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_TEN_UNADMITTED:'+name);return name==='cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs'?3:name==='cpv1-01-2-reconnect-chrome-e2e.test.mjs'?4:name==='context-cards-chrome-e2e.test.mjs'?10:name==='cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'?1:name==='cpv1-02-4-reader-chrome-e2e.test.mjs'?3:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?8:name==='nib-v4-settings-entry-chrome-e2e.test.mjs'||name==='topic-section-writing-chrome-e2e.test.mjs'?4:name==='ans-01-reader-surfaces-chrome-e2e.test.mjs'?4:shard;}
  if(category==='browser E2E'&&total===9){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_NINE_UNADMITTED:'+name);return shard;}
  // Full37830791787: shard1 cancelled at18m with two tail files unreported.
  // Reader/Revisit costs257s; shard6 native636s leaves measured capacity.

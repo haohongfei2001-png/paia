@@ -93,7 +93,7 @@ export async function maintenanceExistingContextQualification(store,t,handle,{pu
 // inside this child. No sibling Input body is acquired or hashed to discover
 // eligibility. Whole mirrors have precisely the selected Input's body; other
 // Entry prose requires its own authored/bound/Entry-field selection.
-async function topicClosure(h,t,topicId){
+async function topicClosure(h,t,topicId,topicEntries=new Set()){
  const topic=await t.get('topics',topicId);need(topic&&['active','dormant'].includes(topic.lifecycle)&&!topic.redirectTo&&!topic.layoutJobId&&!topic.identity?.noRecreation);
  const binding=await new ContextTopicAccessService(h.store).prospective(t,topic,h.admission.epoch);need(binding);
  const placements=await t.all('placements','byTopicOrder',prefix([topicId,topic.activeLayoutGeneration,0]));need(placements.length<=CONTEXT_TOPIC_SCOPE_LIMITS.refs,'BUDGET_EXCEEDED');
@@ -105,7 +105,7 @@ async function topicClosure(h,t,topicId){
   const ids=new Set([...(e.inputRefs||[]).map(x=>x.inputBlockId),...deps.map(d=>d.inputId),...(e.bodyBinding==='input'?[e.workingInputId]:[])]);
   need([...ids].every(id=>h.scope.inputs.some(i=>i.inputId===id)),'UNAVAILABLE');
   need(deps.every(d=>d.selectedFields?.every(f=>h.scope.inputs.find(i=>i.inputId===d.inputId)?.selectedFields.includes(f))),'UNAVAILABLE');
-  if(e.bodyBinding!=='input')need(h.scope.authoredEntries.some(x=>x.entryId===e.id)||h.scope.entries.some(x=>x.entryId===e.id&&x.revision===e.revision&&x.selectedFields.includes('body')),'UNAVAILABLE');
+  if(e.bodyBinding!=='input')need(topicEntries.has(e.id)||h.scope.authoredEntries.some(x=>x.entryId===e.id)||h.scope.entries.some(x=>x.entryId===e.id&&x.revision===e.revision&&x.selectedFields.includes('body')),'UNAVAILABLE');
   entries.push(values(e,['id','revision','lifecycle','freshness','staleReasons','bodyBinding','workingInputId','bindingRevision','bindingLength','sourceRecordIds','inputRefs','provenanceType','integrity']));dependencies.push(...deps);
   provenance.push(...await t.all('provenance','byOwner',prefix(['entry',e.id])));
  }
@@ -236,7 +236,7 @@ function expectedClosure(before,writes){
  return expected;
 }
 const closureEqual=(a,b)=>equal({...a,...Object.fromEntries(['placements','entries','dependencies','provenance'].map(k=>[k,[...a[k]].sort((x,y)=>x.id.localeCompare(y.id))]))},{...b,...Object.fromEntries(['placements','entries','dependencies','provenance'].map(k=>[k,[...b[k]].sort((x,y)=>x.id.localeCompare(y.id))]))});
-export async function assertMaintenanceExistingContext(store,t,handle,{settledItems=[],phase='prepared',publications=[]}={}){
+export async function assertMaintenanceExistingContext(store,t,handle,{settledItems=[],phase='prepared',publications=[],topicPublication=null}={}){
  const h=state(handle);need(h.store===store&&['prepared','settlement'].includes(phase)&&list(settledItems,MAINTENANCE_EXISTING_CONTEXT_LIMITS.items));live(h);
  const published=publishedExpected(h,t,publications),admission=await contextLineageAdmission(store,t,h.admission.epoch);need(admission.gate===h.admission.gate&&((!h.selected.length||h.captured&&!h.items.length)||admission.authority===published.authority));
  const row=await t.get('meta',CONTEXT_CARDS_ROW),settled=new Map();for(const x of settledItems){need(x&&x.itemId===x.item?.id&&!settled.has(x.itemId)&&h.items.some(v=>v.original.id===x.itemId));settled.set(x.itemId,x.item);}
@@ -244,7 +244,18 @@ export async function assertMaintenanceExistingContext(store,t,handle,{settledIt
  for(const x of h.items){const actual=row?.items?.find(i=>i.id===x.original.id),expected=settled.get(x.original.id)||x.original;need(actual&&equal(actual,expected));need(equal(contextTemporalProjection(x.original),Object.hasOwn(x.dto,'temporal')?{temporal:x.dto.temporal,temporalStatus:x.dto.temporalStatus}:null));}
  if(h.snapshot){
   const current=await sourceSnapshot(h,contextScopeTransactionReader(store,t,h.budget),h.snapshot.sources.inputs.map(x=>x.inputId));need(equal(current,h.snapshot.sources));
-  for(const before of h.snapshot.closures){const now=await topicClosure(h,contextScopeTransactionReader(store,t,h.budget),before.topicId);need(sameContextTopicBinding(before.binding,now.binding));
+  // A Topic may atomically publish its own new excerpt and ACK without
+  // granting Context its fields. Only the exact original owner's staged
+  // publication admits new metadata here; Context qualification never uses
+  // this exception. Keep the full sent graph/source/human fences below.
+  const topicEntries=new Set();
+  if(topicPublication){
+   need(phase==='settlement'&&publications.at(-1)===topicPublication);
+   const publication=topicPublicationOwner.readTopicFormationPublication(topicPublication,store,{transaction:t});need(publication);
+   const prior=new Set(h.snapshot.closures.flatMap(c=>c.entries.map(e=>e.id)));
+   for(const write of publication.writes)if(write.store==='thoughts'&&write.value&&!prior.has(write.id))topicEntries.add(write.id);
+  }
+  for(const before of h.snapshot.closures){const now=await topicClosure(h,contextScopeTransactionReader(store,t,h.budget),before.topicId,topicEntries);need(sameContextTopicBinding(before.binding,now.binding));
    need(closureEqual(expectedClosure(before,published.writes),now));
   }
   if(phase==='prepared'&&!publications.length)await fenceContextLineage(store,h.lineage,{transaction:t});

@@ -1,0 +1,550 @@
+TAP version 13
+# Subtest: post-Topic exact local qualification valid retains one physical call and exact original ACK boundary
+ok 1 - post-Topic exact local qualification valid retains one physical call and exact original ACK boundary
+  ---
+  duration_ms: 2490.16
+  type: 'test'
+  ...
+# Subtest: post-Topic exact local qualification body retains one physical call and exact original ACK boundary
+ok 2 - post-Topic exact local qualification body retains one physical call and exact original ACK boundary
+  ---
+  duration_ms: 1861.265459
+  type: 'test'
+  ...
+# Subtest: post-Topic exact local qualification title retains one physical call and exact original ACK boundary
+ok 3 - post-Topic exact local qualification title retains one physical call and exact original ACK boundary
+  ---
+  duration_ms: 2016.941417
+  type: 'test'
+  ...
+# Subtest: post-Topic exact local qualification note retains one physical call and exact original ACK boundary
+ok 4 - post-Topic exact local qualification note retains one physical call and exact original ACK boundary
+  ---
+  duration_ms: 2012.460416
+  type: 'test'
+  ...
+# Subtest: post-Topic exact local qualification epoch retains one physical call and exact original ACK boundary
+ok 5 - post-Topic exact local qualification epoch retains one physical call and exact original ACK boundary
+  ---
+  duration_ms: 3319.849333
+  type: 'test'
+  ...
+# Subtest: post-Topic exact local qualification expiry retains one physical call and exact original ACK boundary
+ok 6 - post-Topic exact local qualification expiry retains one physical call and exact original ACK boundary
+  ---
+  duration_ms: 2176.293833
+  type: 'test'
+  ...
+# Subtest: post-Topic exact local qualification revoke retains one physical call and exact original ACK boundary
+ok 7 - post-Topic exact local qualification revoke retains one physical call and exact original ACK boundary
+  ---
+  duration_ms: 2180.4425
+  type: 'test'
+  ...
+# Subtest: post-Topic exact local qualification mid-field expiry retains one physical call and exact original ACK boundary
+ok 8 - post-Topic exact local qualification mid-field expiry retains one physical call and exact original ACK boundary
+  ---
+  duration_ms: 2069.153292
+  type: 'test'
+  ...
+# Subtest: later original human placement on a newly published Entry cannot enter the old child qualification
+ok 9 - later original human placement on a newly published Entry cannot enter the old child qualification
+  ---
+  duration_ms: 650.215792
+  type: 'test'
+  ...
+# Subtest: Topic joined ACK rollback cannot publish qualification and its original validated retry uses one paid response
+ok 10 - Topic joined ACK rollback cannot publish qualification and its original validated retry uses one paid response
+  ---
+  duration_ms: 690.41775
+  type: 'test'
+  ...
+# Subtest: known financial response survives revoked content check with zero decode and released original handles false
+ok 11 - known financial response survives revoked content check with zero decode and released original handles false
+  ---
+  duration_ms: 474.604791
+  type: 'test'
+  ...
+# Subtest: known financial response survives revoked content check with zero decode and released original handles true
+ok 12 - known financial response survives revoked content check with zero decode and released original handles true
+  ---
+  duration_ms: 690.520666
+  type: 'test'
+  ...
+# (node:28494) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: retained storage continuation lifecycle: retry-before-expiry
+ok 13 - retained storage continuation lifecycle: retry-before-expiry
+  ---
+  duration_ms: 624.149458
+  type: 'test'
+  ...
+# Subtest: retained storage continuation lifecycle: expiry-next-access
+ok 14 - retained storage continuation lifecycle: expiry-next-access
+  ---
+  duration_ms: 446.312459
+  type: 'test'
+  ...
+# Subtest: retained storage continuation lifecycle: clock-rollback
+ok 15 - retained storage continuation lifecycle: clock-rollback
+  ---
+  duration_ms: 489.792708
+  type: 'test'
+  ...
+# Subtest: retained storage continuation lifecycle: idle-revoke
+ok 16 - retained storage continuation lifecycle: idle-revoke
+  ---
+  duration_ms: 364.113625
+  type: 'test'
+  ...
+# Subtest: retained storage continuation lifecycle: idle-dispose
+ok 17 - retained storage continuation lifecycle: idle-dispose
+  ---
+  duration_ms: 351.187542
+  type: 'test'
+  ...
+# Subtest: qualified fixture-schema refuses before declaration, reservation or paid request
+ok 18 - qualified fixture-schema refuses before declaration, reservation or paid request
+  ---
+  duration_ms: 264.510083
+  type: 'test'
+  ...
+# Subtest: qualified changed-source-bound refuses before declaration, reservation or paid request
+ok 19 - qualified changed-source-bound refuses before declaration, reservation or paid request
+  ---
+  duration_ms: 194.215583
+  type: 'test'
+  ...
+# Subtest: qualified getter refuses before declaration, reservation or paid request
+ok 20 - qualified getter refuses before declaration, reservation or paid request
+  ---
+  duration_ms: 152.6245
+  type: 'test'
+  ...
+# Subtest: signed source response cannot swap logicalJobId while retaining financial settlement
+ok 21 - signed source response cannot swap logicalJobId while retaining financial settlement
+  ---
+  duration_ms: 748.154375
+  type: 'test'
+  ...
+# Subtest: signed source response cannot swap childOperationId while retaining financial settlement
+ok 22 - signed source response cannot swap childOperationId while retaining financial settlement
+  ---
+  duration_ms: 534.89425
+  type: 'test'
+  ...
+# Subtest: source Context unknown-topic cannot ACK or undo the real Topic result
+ok 23 - source Context unknown-topic cannot ACK or undo the real Topic result
+  ---
+  duration_ms: 564.353334
+  type: 'test'
+  ...
+# Subtest: source Context duplicate-coverage cannot ACK or undo the real Topic result
+ok 24 - source Context duplicate-coverage cannot ACK or undo the real Topic result
+  ---
+  duration_ms: 539.360958
+  type: 'test'
+  ...
+# Subtest: source Context missing-coverage cannot ACK or undo the real Topic result
+ok 25 - source Context missing-coverage cannot ACK or undo the real Topic result
+  ---
+  duration_ms: 491.049
+  type: 'test'
+  ...
+# Subtest: source Context new-item-sentinel cannot ACK or undo the real Topic result
+ok 26 - source Context new-item-sentinel cannot ACK or undo the real Topic result
+  ---
+  duration_ms: 482.535875
+  type: 'test'
+  ...
+# Subtest: source Context temporal-sentinel cannot ACK or undo the real Topic result
+ok 27 - source Context temporal-sentinel cannot ACK or undo the real Topic result
+  ---
+  duration_ms: 535.894791
+  type: 'test'
+  ...
+# Subtest: a provider result reference cannot use a candidate or invent an uncommitted Topic
+ok 28 - a provider result reference cannot use a candidate or invent an uncommitted Topic
+  ---
+  duration_ms: 624.18475
+  type: 'test'
+  ...
+# Subtest: signed source all-facet DEFER records exact original deferred units and never redispatches
+ok 29 - signed source all-facet DEFER records exact original deferred units and never redispatches
+  ---
+  duration_ms: 517.949916
+  type: 'test'
+  ...
+# Subtest: signed source mixed ADD and DEFER commits only supported Context units once
+ok 30 - signed source mixed ADD and DEFER commits only supported Context units once
+  ---
+  duration_ms: 789.656042
+  type: 'test'
+  ...
+# Subtest: missing existing Item state UPDATE defers exact Context without discovering unrelated Items
+ok 31 - missing existing Item state UPDATE defers exact Context without discovering unrelated Items
+  ---
+  duration_ms: 483.810375
+  type: 'test'
+  ...
+# Subtest: missing existing Item state NO_CHANGE defers exact Context without discovering unrelated Items
+ok 32 - missing existing Item state NO_CHANGE defers exact Context without discovering unrelated Items
+  ---
+  duration_ms: 570.9295
+  type: 'test'
+  ...
+# Subtest: missing existing Item state REMOVE_CANDIDATE defers exact Context without discovering unrelated Items
+ok 33 - missing existing Item state REMOVE_CANDIDATE defers exact Context without discovering unrelated Items
+  ---
+  duration_ms: 557.428375
+  type: 'test'
+  ...
+# Subtest: actual selected human Context correction travels through source wire and original protected owner
+ok 34 - actual selected human Context correction travels through source wire and original protected owner
+  ---
+  duration_ms: 1900.229792
+  type: 'test'
+  ...
+# Subtest: source bound human fields preserve exact human Entry and Placement while original Context consumes both proofs
+ok 35 - source bound human fields preserve exact human Entry and Placement while original Context consumes both proofs
+  ---
+  duration_ms: 2540.35375
+  type: 'test'
+  ...
+# Subtest: post-response topic-name cannot lend fresh interpretation to an older source Topic assessment
+ok 36 - post-response topic-name cannot lend fresh interpretation to an older source Topic assessment
+  ---
+  duration_ms: 1143.997208
+  type: 'test'
+  ...
+# Subtest: post-response section-title cannot lend fresh interpretation to an older source Topic assessment
+ok 37 - post-response section-title cannot lend fresh interpretation to an older source Topic assessment
+  ---
+  duration_ms: 1156.868083
+  type: 'test'
+  ...
+# Subtest: ordinary signed source UPDATE maps the sent existing Item through exact original owner and ACK
+ok 38 - ordinary signed source UPDATE maps the sent existing Item through exact original owner and ACK
+  ---
+  duration_ms: 1156.352
+  type: 'test'
+  ...
+# Subtest: ordinary signed source NO_CHANGE maps the sent existing Item through exact original owner and ACK
+ok 39 - ordinary signed source NO_CHANGE maps the sent existing Item through exact original owner and ACK
+  ---
+  duration_ms: 1083.154542
+  type: 'test'
+  ...
+# Subtest: ordinary signed source REMOVE_CANDIDATE maps the sent existing Item through exact original owner and ACK
+ok 40 - ordinary signed source REMOVE_CANDIDATE maps the sent existing Item through exact original owner and ACK
+  ---
+  duration_ms: 1017.695791
+  type: 'test'
+  ...
+# Subtest: signed existing expectedRevision mismatch cannot commit or ACK the pending Context
+ok 41 - signed existing expectedRevision mismatch cannot commit or ACK the pending Context
+  ---
+  duration_ms: 1006.369958
+  type: 'test'
+  ...
+# Subtest: signed existing card mismatch cannot commit or ACK the pending Context
+ok 42 - signed existing card mismatch cannot commit or ACK the pending Context
+  ---
+  duration_ms: 927.159667
+  type: 'test'
+  ...
+# Subtest: independent grant omitting existing Item fields refuses before any service or provider call
+ok 43 - independent grant omitting existing Item fields refuses before any service or provider call
+  ---
+  duration_ms: 236.383959
+  type: 'test'
+  ...
+# Subtest: revoked existing Item grant discards settled provider output without Context mutation, ACK or paid retry
+ok 44 - revoked existing Item grant discards settled provider output without Context mutation, ACK or paid retry
+  ---
+  duration_ms: 973.996416
+  type: 'test'
+  ...
+# Subtest: signed NO_CHANGE checks only the selected real prior subset and leaves the other exact unit deferred
+ok 45 - signed NO_CHANGE checks only the selected real prior subset and leaves the other exact unit deferred
+  ---
+  duration_ms: 1407.726208
+  type: 'test'
+  ...
+# Subtest: signed REMOVE_CANDIDATE with partial old lineage defers rather than invalidating or over-ACKing
+ok 46 - signed REMOVE_CANDIDATE with partial old lineage defers rather than invalidating or over-ACKing
+  ---
+  duration_ms: 1375.11325
+  type: 'test'
+  ...
+# Subtest: existing UPDATE final transaction mutation race rolls back Item, receipt and ACK together
+ok 47 - existing UPDATE final transaction mutation race rolls back Item, receipt and ACK together
+  ---
+  duration_ms: 1174.708459
+  type: 'test'
+  ...
+# Subtest: existing UPDATE storage rollback retains validated local CAS retry with exactly one physical provider request
+ok 48 - existing UPDATE storage rollback retains validated local CAS retry with exactly one physical provider request
+  ---
+  duration_ms: 977.864125
+  type: 'test'
+  ...
+# Subtest: signed existing Now UPDATE without explicit time clears the previous deadline through original owner
+ok 49 - signed existing Now UPDATE without explicit time clears the previous deadline through original owner
+  ---
+  duration_ms: 1301.997709
+  type: 'test'
+  ...
+# Subtest: Now expiry between source send and original commit invalidates the sent interpretation without replay
+ok 50 - Now expiry between source send and original commit invalidates the sent interpretation without replay
+  ---
+  duration_ms: 3533.13725
+  type: 'test'
+  ...
+# Subtest: original human put after source response wins over stale existing baseline
+ok 51 - original human put after source response wins over stale existing baseline
+  ---
+  duration_ms: 1019.910458
+  type: 'test'
+  ...
+# Subtest: original human delete after source response wins over stale existing baseline
+ok 52 - original human delete after source response wins over stale existing baseline
+  ---
+  duration_ms: 976.834166
+  type: 'test'
+  ...
+# Subtest: invalidated existing Item cannot revive from the same evidence identity
+ok 53 - invalidated existing Item cannot revive from the same evidence identity
+  ---
+  duration_ms: 1294.335083
+  type: 'test'
+  ...
+# Subtest: invalidated existing Item revives only with a changed selected evidence identity
+ok 54 - invalidated existing Item revives only with a changed selected evidence identity
+  ---
+  duration_ms: 1237.165083
+  type: 'test'
+  ...
+# Subtest: two physical source children with the same c0 display ref keep exact separate existing baselines
+ok 55 - two physical source children with the same c0 display ref keep exact separate existing baselines
+  ---
+  duration_ms: 13570.739458
+  type: 'test'
+  ...
+# Subtest: two physical source children with the same c0 display ref cannot borrow the first target
+ok 56 - two physical source children with the same c0 display ref cannot borrow the first target
+  ---
+  duration_ms: 15261.8495
+  type: 'test'
+  ...
+# Subtest: signed existing human topic UPDATE preserves the exact selected human interpretation
+ok 57 - signed existing human topic UPDATE preserves the exact selected human interpretation
+  ---
+  duration_ms: 2579.853292
+  type: 'test'
+  ...
+# Subtest: signed existing human topic UPDATE defers when its exact structural unit is omitted
+ok 58 - signed existing human topic UPDATE defers when its exact structural unit is omitted
+  ---
+  duration_ms: 2317.327166
+  type: 'test'
+  ...
+# Subtest: signed existing human section UPDATE preserves the exact selected human interpretation
+ok 59 - signed existing human section UPDATE preserves the exact selected human interpretation
+  ---
+  duration_ms: 2616.214125
+  type: 'test'
+  ...
+# Subtest: signed existing human section UPDATE defers when its exact structural unit is omitted
+ok 60 - signed existing human section UPDATE defers when its exact structural unit is omitted
+  ---
+  duration_ms: 2336.006958
+  type: 'test'
+  ...
+# Subtest: extra same-Input membership inserted after genuine Topic ACK cannot become existing Context settlement authority
+ok 61 - extra same-Input membership inserted after genuine Topic ACK cannot become existing Context settlement authority
+  ---
+  duration_ms: 1377.55625
+  type: 'test'
+  ...
+# Subtest: NO_CHANGE cannot borrow a sent Item to ACK an unrelated newly selected Input
+ok 62 - NO_CHANGE cannot borrow a sent Item to ACK an unrelated newly selected Input
+  ---
+  duration_ms: 1882.876167
+  type: 'test'
+  ...
+# Subtest: same-child ungranted partial-excerpt commits only independently authorized Topic before refusing Context UPDATE
+ok 63 - same-child ungranted partial-excerpt commits only independently authorized Topic before refusing Context UPDATE
+  ---
+  duration_ms: 1696.251625
+  type: 'test'
+  ...
+# Subtest: same-child ungranted partial-excerpt commits only independently authorized Topic before refusing Context NO_CHANGE
+ok 64 - same-child ungranted partial-excerpt commits only independently authorized Topic before refusing Context NO_CHANGE
+  ---
+  duration_ms: 1503.449875
+  type: 'test'
+  ...
+# Subtest: partial-excerpt Topic final source still rolls back original mutation and ACK
+ok 65 - partial-excerpt Topic final source still rolls back original mutation and ACK
+  ---
+  duration_ms: 1493.086125
+  type: 'test'
+  ...
+# Subtest: partial-excerpt Topic final protected still rolls back original mutation and ACK
+ok 66 - partial-excerpt Topic final protected still rolls back original mutation and ACK
+  ---
+  duration_ms: 1614.688
+  type: 'test'
+  ...
+# Subtest: partial-excerpt Topic final revoke still rolls back original mutation and ACK
+ok 67 - partial-excerpt Topic final revoke still rolls back original mutation and ACK
+  ---
+  duration_ms: 1254.951625
+  type: 'test'
+  ...
+# Subtest: partial-excerpt Topic final graph still rolls back original mutation and ACK
+ok 68 - partial-excerpt Topic final graph still rolls back original mutation and ACK
+  ---
+  duration_ms: 1700.664
+  type: 'test'
+  ...
+# Subtest: partial-excerpt Topic final ack-abort still rolls back original mutation and ACK
+ok 69 - partial-excerpt Topic final ack-abort still rolls back original mutation and ACK
+  ---
+  duration_ms: 1478.709916
+  type: 'test'
+  ...
+# Subtest: same-child signed Topic adds an independently selected new Input mirror before existing Context UPDATE
+ok 70 - same-child signed Topic adds an independently selected new Input mirror before existing Context UPDATE
+  ---
+  duration_ms: 1893.845958
+  type: 'test'
+  ...
+# Subtest: same-child signed Topic adds an independently selected new Input mirror before existing Context NO_CHANGE
+ok 71 - same-child signed Topic adds an independently selected new Input mirror before existing Context NO_CHANGE
+  ---
+  duration_ms: 2007.823167
+  type: 'test'
+  ...
+# Subtest: new selected graph Input body drift at existing Context receipt cannot ACK
+ok 72 - new selected graph Input body drift at existing Context receipt cannot ACK
+  ---
+  duration_ms: 1940.677416
+  type: 'test'
+  ...
+# Subtest: new selected graph Input source drift at existing Context receipt cannot ACK
+ok 73 - new selected graph Input source drift at existing Context receipt cannot ACK
+  ---
+  duration_ms: 1751.992542
+  type: 'test'
+  ...
+# Subtest: new selected graph Input body drift at existing Context ack cannot ACK
+ok 74 - new selected graph Input body drift at existing Context ack cannot ACK
+  ---
+  duration_ms: 1579.596708
+  type: 'test'
+  ...
+# Subtest: new selected graph Input source drift at existing Context ack cannot ACK
+ok 75 - new selected graph Input source drift at existing Context ack cannot ACK
+  ---
+  duration_ms: 1294.833334
+  type: 'test'
+  ...
+# Subtest: new selected graph Input body drift at existing Context counter cannot ACK
+ok 76 - new selected graph Input body drift at existing Context counter cannot ACK
+  ---
+  duration_ms: 1557.942292
+  type: 'test'
+  ...
+# Subtest: new selected graph Input source drift at existing Context counter cannot ACK
+ok 77 - new selected graph Input source drift at existing Context counter cannot ACK
+  ---
+  duration_ms: 1894.232417
+  type: 'test'
+  ...
+# Subtest: current signed Context DEFER fences the original receipt after its last put: unchanged positive
+ok 78 - current signed Context DEFER fences the original receipt after its last put: unchanged positive
+  ---
+  duration_ms: 921.780084
+  type: 'test'
+  ...
+# {"drift":false,"puts":1,"injected":false,"deferred":1,"receiptUnchanged":true,"state":"PARTIAL","facets":[{"facet":"topic","units":2,"state":"COMMITTED"},{"facet":"context","units":1,"state":"COMMITTED"},{"facet":"context","units":1,"state":"DEFERRED"}]}
+# Subtest: current signed Context DEFER fences the original receipt after its last put: receipt drift
+ok 79 - current signed Context DEFER fences the original receipt after its last put: receipt drift
+  ---
+  duration_ms: 1011.316208
+  type: 'test'
+  ...
+# {"drift":true,"puts":1,"injected":true,"deferred":0,"receiptUnchanged":true,"state":"PARTIAL","facets":[{"facet":"topic","units":2,"state":"COMMITTED"},{"facet":"context","units":2,"state":"FAILED","reason":"STALE_BASE"}]}
+# Subtest: current signed Context DEFER original terminal boundary: ledger
+ok 80 - current signed Context DEFER original terminal boundary: ledger
+  ---
+  duration_ms: 1307.125959
+  type: 'test'
+  ...
+# {"mode":"ledger","observations":{"first":[{"before":6364,"after":6365}],"terminal":[6366],"tailBefore":6365,"puts":1,"getters":0,"held":false,"authorityDrift":false,"seams":1,"contextCalls":1},"state":"PARTIAL","facets":[{"facet":"topic","units":2,"state":"COMMITTED"},{"facet":"context","units":1,"state":"COMMITTED"},{"facet":"context","units":1,"state":"DEFERRED"}],"physical":1}
+# Subtest: current signed Context DEFER original terminal boundary: budget-exhaustion
+ok 81 - current signed Context DEFER original terminal boundary: budget-exhaustion
+  ---
+  duration_ms: 1042.267542
+  type: 'test'
+  ...
+# {"mode":"budget-exhaustion","observations":{"first":[{"before":6364,"after":6365}],"terminal":[],"tailBefore":131072,"puts":1,"getters":0,"held":false,"authorityDrift":false,"seams":1,"contextCalls":1},"state":"PARTIAL","facets":[{"facet":"topic","units":2,"state":"COMMITTED"},{"facet":"context","units":2,"state":"FAILED","reason":"BUDGET_EXCEEDED"}],"physical":1}
+# Subtest: current signed Context DEFER original terminal boundary: store-getter
+ok 82 - current signed Context DEFER original terminal boundary: store-getter
+  ---
+  duration_ms: 1068.200667
+  type: 'test'
+  ...
+# {"mode":"store-getter","observations":{"first":[{"before":6364,"after":6365}],"terminal":[6366],"tailBefore":6365,"puts":1,"getters":0,"held":false,"authorityDrift":false,"seams":1,"contextCalls":1},"state":"PARTIAL","facets":[{"facet":"topic","units":2,"state":"COMMITTED"},{"facet":"context","units":2,"state":"FAILED","reason":"STALE_BASE"}],"physical":1}
+# Subtest: current signed Context DEFER original terminal boundary: db-getter
+ok 83 - current signed Context DEFER original terminal boundary: db-getter
+  ---
+  duration_ms: 1095.126958
+  type: 'test'
+  ...
+# {"mode":"db-getter","observations":{"first":[{"before":6364,"after":6365}],"terminal":[6366],"tailBefore":6365,"puts":1,"getters":0,"held":false,"authorityDrift":false,"seams":1,"contextCalls":1},"state":"PARTIAL","facets":[{"facet":"topic","units":2,"state":"COMMITTED"},{"facet":"context","units":2,"state":"FAILED","reason":"STALE_BASE"}],"physical":1}
+# Subtest: current signed Context DEFER original terminal boundary: dispose
+ok 84 - current signed Context DEFER original terminal boundary: dispose
+  ---
+  duration_ms: 953.844208
+  type: 'test'
+  ...
+# {"mode":"dispose","observations":{"first":[{"before":6364,"after":6365}],"terminal":[6366],"tailBefore":6365,"puts":1,"getters":0,"held":true,"authorityDrift":false,"seams":1,"contextCalls":1},"state":"UNAVAILABLE","facets":[{"facet":"topic","units":2,"state":"COMMITTED"}],"physical":1}
+# Subtest: current signed Context DEFER original terminal boundary: signal
+ok 85 - current signed Context DEFER original terminal boundary: signal
+  ---
+  duration_ms: 1043.893
+  type: 'test'
+  ...
+# {"mode":"signal","observations":{"first":[{"before":6364,"after":6365}],"terminal":[6366],"tailBefore":6365,"puts":1,"getters":0,"held":true,"authorityDrift":false,"seams":1,"contextCalls":1},"state":"UNAVAILABLE","facets":[{"facet":"topic","units":2,"state":"COMMITTED"}],"physical":1}
+# Subtest: current signed Context DEFER original terminal boundary: authority-await
+ok 86 - current signed Context DEFER original terminal boundary: authority-await
+  ---
+  duration_ms: 1077.786458
+  type: 'test'
+  ...
+# {"mode":"authority-await","observations":{"first":[{"before":6364,"after":6365}],"terminal":[6366],"tailBefore":6365,"puts":1,"getters":0,"held":false,"authorityDrift":true,"seams":1,"contextCalls":1},"state":"PARTIAL","facets":[{"facet":"topic","units":2,"state":"COMMITTED"},{"facet":"context","units":2,"state":"FAILED","reason":"STALE_BASE"}],"physical":1}
+# Subtest: current signed Context DEFER original terminal boundary: storage-retry
+ok 87 - current signed Context DEFER original terminal boundary: storage-retry
+  ---
+  duration_ms: 1036.094208
+  type: 'test'
+  ...
+# {"mode":"storage-retry","observations":{"first":[{"before":6364,"after":6365}],"terminal":[],"tailBefore":6365,"puts":1,"getters":0,"held":false,"authorityDrift":false,"seams":1,"contextCalls":1},"state":"PARTIAL","facets":[{"facet":"topic","units":2,"state":"COMMITTED"},{"facet":"context","units":2,"state":"FAILED","reason":"STORAGE_FAILED"}],"physical":1}
+# Subtest: current Context DEFER fixed seam rejects foreign scope, job, facet and callback overrides
+ok 88 - current Context DEFER fixed seam rejects foreign scope, job, facet and callback overrides
+  ---
+  duration_ms: 1005.473042
+  type: 'test'
+  ...
+1..88
+# tests 88
+# suites 0
+# pass 88
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 114002.132833
