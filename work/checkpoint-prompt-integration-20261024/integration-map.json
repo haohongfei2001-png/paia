@@ -1,0 +1,163 @@
+[
+  {
+    "source": "337ac1c1c126b3bff83cbc58e589575679aa8e31",
+    "integrated": "8ba66094f160da355c512877a1c205cc262edb99",
+    "exactFiles": [
+      {
+        "path": "extension/core/browser-native-sync/source-purge-journal.js",
+        "sha256": "50fb3d20763bc7061fdfab91cd7c66604f1c9ed9c40d6de5467334bd1d37b4d2"
+      },
+      {
+        "path": "extension/core/smart-filter-store-owner.js",
+        "sha256": "0c01a569bd54d9a53ea57eb9f60a826985b38151956daae97a2740cce1cdc9ca"
+      },
+      {
+        "path": "extension/tests/browser-native-sync-source-purge-filter.test.mjs",
+        "sha256": "c48c1b69a8f5a04edd45bddd7cfd7a3712ef13f73543a11ead7a2112cfd55090"
+      },
+      {
+        "path": "work/source-purge-filter-consumer-20261024/REPORT.md",
+        "sha256": "65db6d4475388b063dc9f1b66666d939326e3b9fdc5e3edfa0a31ac511bc3ee3"
+      },
+      {
+        "path": "work/source-purge-filter-consumer-20261024/SHA256SUMS",
+        "sha256": "7c92e3d14199af0e9345e6db70822624fb42a5b3f6e2309a67058328d2ef8b4e"
+      },
+      {
+        "path": "work/source-purge-filter-consumer-20261024/before.log",
+        "sha256": "90bd3287ed97765caf2ae38cbfff924a7f16820d2149b7b0b9b0b6fc49f28216"
+      },
+      {
+        "path": "work/source-purge-filter-consumer-20261024/owning.log",
+        "sha256": "34c3946d8c430cb693fdae69ec9af38fa2f358c8dd29057f09767b840b04f728"
+      },
+      {
+        "path": "work/source-purge-filter-consumer-20261024/source-vector.json",
+        "sha256": "af91426aef8e7504cc4f00646f87067634c24bd1218c6be16bd44212244857ac"
+      }
+    ]
+  },
+  {
+    "source": "f296dd30247b809490b61797e5e0a3dfbcb8acbc",
+    "integrated": "d4b1c389032378c305014bc3c5bf8973ec4b69ed",
+    "exactFiles": [
+      {
+        "path": "extension/tests/sync-local-lifecycle.test.mjs",
+        "sha256": "ad3c7614149db8358fcaee58149b6d8d126744349899831b7ac24e268e132132"
+      },
+      {
+        "path": "work/sync-prompt-consumer-20261024/PURGE-SHA256SUMS",
+        "sha256": "a1dd8eca70d2fc5a0f5980f82c1ad19afc3fdded05418bb31b2188e36786f922"
+      },
+      {
+        "path": "work/sync-prompt-consumer-20261024/PURGE-WORKER.md",
+        "sha256": "19bb9254aafc9f7aea521977b37c7f83a5ce2a249181ad92608da97f21cc258d"
+      },
+      {
+        "path": "work/sync-prompt-consumer-20261024/purge-worker-final.log",
+        "sha256": "fe01a7c823e5942abc3c4ce2b9c7d957e0541d99c9b9f88af232f44b94c0a578"
+      },
+      {
+        "path": "work/sync-prompt-consumer-20261024/purge-worker-first.log",
+        "sha256": "c884a99d1e5ddf4f854d6794089e4fcf966c74b197607b2d5569afbfd1653ef6"
+      }
+    ]
+  },
+  {
+    "source": "7228f20812a2ba38747e51e33b10af6bb57a1f8c",
+    "integrated": "4d837de495ba9aeea54423a3b74d4e4a2c5698ba",
+    "exactFiles": [
+      {
+        "path": "extension/core/browser-native-sync/checkpoint-publication.js",
+        "sha256": "40ea2a8eb569e46e4e19bc6eb38a5313e813227296c3de3a214e09b653c9d5e3"
+      },
+      {
+        "path": "extension/core/browser-native-sync/group-checkpoint.js",
+        "sha256": "65f80fc179ce901a6c9eadbe8328a9d9d49fa26edd9491965419aa41a6b54cae"
+      },
+      {
+        "path": "extension/core/browser-native-sync/providers/google-drive.js",
+        "sha256": "7463b96cad7b5cba33d7eaf5824aa8aa087bd0e2c156b6802eb28d9c7824c773"
+      },
+      {
+        "path": "extension/core/browser-native-sync/providers/onedrive.js",
+        "sha256": "7c8c037e9bf8f039f9447d99d638d5366a269e17a014acd2fa047c4d3e0c2464"
+      },
+      {
+        "path": "extension/tests/checkpoint-publication.test.mjs",
+        "sha256": "91bf855eca179b9ade506a523e89dee5437a3d366cf43f4e8a5cec5a219dbad6"
+      },
+      {
+        "path": "extension/tests/harness/checkpoint-publication-http.mjs",
+        "sha256": "e10a56ff3d9afb3a86eb2eb5fa9d060201cff1f1e26189872602b12adfe71868"
+      },
+      {
+        "path": "extension/tests/native-sync/checkpoint-publication-fixture.mjs",
+        "sha256": "a4013c8579875de0d7b95349e58fea6bba55d43ba5d04b250f5260d5ebf394a8"
+      },
+      {
+        "path": "extension/tests/native-sync/checkpoint-publication-native.test.mjs",
+        "sha256": "2ca3a15ddb1d8b80d023629fb4addc07e9e3f5b74f1351ff5ac10307ccb8fcb8"
+      },
+      {
+        "path": "work/recoverable-checkpoint-publication-20261024/REPORT.md",
+        "sha256": "0c10b9cf95ca8db7668f4c355ead7f623a692bab5553a72471a61b9834ee3da3"
+      },
+      {
+        "path": "work/recoverable-checkpoint-publication-20261024/SHA256SUMS",
+        "sha256": "facdb284bd035efe333f70e4f2434199d56acc6c83b307e14fbec7f33193e28b"
+      },
+      {
+        "path": "work/recoverable-checkpoint-publication-20261024/dispatch-fix.log",
+        "sha256": "1c2980d7bc6bf059da0553129deb54350ccf8b6a9cdc14a609ee1e97616416d4"
+      },
+      {
+        "path": "work/recoverable-checkpoint-publication-20261024/fence-targeted.log",
+        "sha256": "dfad82a4fb33f9729160f0fcf39736f248110b819ab6e8261b116a55d98f1975"
+      },
+      {
+        "path": "work/recoverable-checkpoint-publication-20261024/fenced.log",
+        "sha256": "0e4d9d48c684503f874573c83d00b054088490588d5611bbf030ec4d7da1e674"
+      },
+      {
+        "path": "work/recoverable-checkpoint-publication-20261024/final-owning.log",
+        "sha256": "8efab175c1187ffe9a36059fca2d6bd0da28a839b7a0d121f45f81534c7a28d2"
+      },
+      {
+        "path": "work/recoverable-checkpoint-publication-20261024/first.log",
+        "sha256": "5130f52d370b93fde85d025a90b92ebfe34b92d2bf206e6e116db555e37a37ac"
+      },
+      {
+        "path": "work/recoverable-checkpoint-publication-20261024/second.log",
+        "sha256": "d22ff27fbcc0183ed3e59c7cfa9682cd6d2099420f25a7af6cf64a7843f25482"
+      },
+      {
+        "path": "work/recoverable-checkpoint-publication-20261024/source-vector.json",
+        "sha256": "45c33290b86ed3b26afbaa3e41ca7c65d063a2e2582b54fe8208dfe44a412076"
+      },
+      {
+        "path": "work/recoverable-checkpoint-publication-20261024/third.log",
+        "sha256": "0dd0abb2fbbd4c9691ad9004ce0e45a86e707b2df90d17fb0cd8c87789ccd330"
+      }
+    ]
+  },
+  {
+    "author": "acaffbc39394fc9dd5e0f4adf79f28949cab0575",
+    "integrated": "24de34d4",
+    "execution": "NOT_RUN",
+    "files": {
+      "extension/tests/native-sync/checkpoint-publication-fixture.mjs": "a73f05cf8a21acdd9b1527273d9f6aa01839a39d4d85169185d9477fc542b2df",
+      "extension/tests/native-sync/checkpoint-publication-native.test.mjs": "88a5af2c49de2e30878c26d2486b35203a280cf11fce2e1686cba567a70d350a",
+      "work/checkpoint-native-consumer-20261024/REPORT.md": "f74d42f7ddae511ba13e03c2e7876e276596f0529d7eb2935b8cfde2f39508f8",
+      "work/checkpoint-native-consumer-20261024/SHA256SUMS": "c90b65e056b7b3d39135f1b3d7053cbf502e576843e903c7df8b6a7ed19057c7",
+      "work/checkpoint-native-consumer-20261024/first-fixture.mjs": "79cc85c4b601c955c549d56dbed409e49cb9b68b58a3aaed096a05e64a232954",
+      "work/checkpoint-native-consumer-20261024/source-vector.txt": "1e28e8afc20e7e48bbdb7e6a2fe1a78ca61f8bc9353973b571aa526e87b574de",
+      "work/checkpoint-native-consumer-20261024/static-check.mjs": "70677f1a138f4455044c6df8ca4b482928a0472f15087632a6a274b3d8d59574",
+      "work/checkpoint-native-consumer-20261024/static.log": "a14515ed9d28e557552bb2ba78b348d4028ffa95b82dcb5205b232fc96a18f74",
+      "work/checkpoint-native-consumer-20261024/synthetic-64.log": "57c88591ecbf753b1370a07b2425208fb4ea45394afb9b82176485371382b9ec",
+      "work/checkpoint-native-consumer-20261024/synthetic-check.mjs": "6b8f28e3ad0c99c6e456fd6e09bb9f510d21b5fbf9238aa4f4a1fd283f86373e",
+      "work/checkpoint-native-consumer-20261024/synthetic-final.log": "f38bae89fb2e07c4c653529bf4da1cfc4db3b487943f2a112f5925b9df69f7b1",
+      "work/checkpoint-native-consumer-20261024/synthetic-first.log": "5c51fe23751890129d4c9d9ae9110184e14c03f4bfba1b204305115a72ab1853"
+    }
+  }
+]

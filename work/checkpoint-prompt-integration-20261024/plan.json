@@ -1,0 +1,27 @@
+{
+  "state": "DRAFT_PENDING_FINAL_RUNTIME",
+  "owning": [
+    "checkpoint-publication.test.mjs",
+    "browser-native-sync-core.test.mjs",
+    "browser-native-sync-google-drive.test.mjs",
+    "browser-native-sync-onedrive.test.mjs",
+    "browser-native-sync-local-recovery.test.mjs",
+    "browser-native-sync-group-checkpoint-plan.test.mjs",
+    "browser-native-sync-group-checkpoint-audit.test.mjs",
+    "browser-native-sync-manual-owners.test.mjs",
+    "browser-native-sync-prompt-conflict-owner.test.mjs",
+    "prompt-correction-sync-owner.test.mjs",
+    "manual-prompt-conflict-consumer.test.mjs",
+    "sync-local-lifecycle.test.mjs",
+    "settings-sync.test.mjs",
+    "browser-native-sync-source-purge-filter.test.mjs"
+  ],
+  "native": [
+    "native-sync/checkpoint-publication-native.test.mjs",
+    "native-sync/sync-local-lifecycle-chrome.test.mjs"
+  ],
+  "artifacts": [
+    "qa-checkpoint-publication",
+    "qa-sync-local-lifecycle"
+  ]
+}
