@@ -1,0 +1,83 @@
+{
+  "variant": "source",
+  "scope": "manual-prompt-conflict",
+  "head": "548a91f7c38b2891f7cc6a2b8bd5c7636315e72c",
+  "result": "PASS",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "c1e56dcf2c437fc48cba61f06009deb01549d2c05550b36928715035d55c4c43",
+  "hashes": {
+    "core/browser-native-sync/core.js": "77dee7e562f58bb770198b4d482d110f814d92db003acaa7a9d41c671f8905d4",
+    "core/browser-native-sync/prompt-journal.js": "092c9032d4e5fdbfc06ace7c5ed852397e38482dfff58119c402a0f3415b1576",
+    "core/browser-native-sync/prompt-correction-binding.js": "35b7b94bfaff9978bbe058bb80a9a691dd67f3b06e031ffc288e81f7390c52b9",
+    "core/browser-native-sync/consumer-publication-state.js": "21825c0c8c8591af32667cd0db59ca669d9af52aa0083aae04eceb9e1f2fa31b",
+    "core/browser-native-sync/group-page-reader.js": "bdce1b9f5ef4ae55afa16f828c5be620126148297cd7ecc9d22801d8adcf9d8a",
+    "core/prompt-reuse-service.js": "795d2a8e906237610ab6c92ed9ce7ca517bd39f897bc9a82dd1ff1efc178bf2c",
+    "core/prompt-reuse-preferences.js": "cc068313114d2a2e70071c52e68d46506c8f4b79cc703e81f34b41b6dd8776af",
+    "core/idb-repository.js": "bec31f23933f984510d2691272007e901c5f2b1e02ff30e8101c919258f1d00d",
+    "core/indexed-store.js": "ee6530ea0720ffac3743f2899780df9b2ddd9563c84e8797bb61ee17aa54c012",
+    "core/organizer/store.js": "9fe10d693377721fbf6e8c557609cb1d3dcd68873c686cb8b58c2123af78d23b",
+    "background/prompt-reuse-commands.js": "48968727e67d50aa5fc1d20e77da933bf081f07a0ebbc1db01adab6548e2cf57",
+    "background/prompt-surface.js": "f8ea4bda4c67d812344f8e79c50f04d32678929e2407580d4cc9643bb4b4c6ee",
+    "ui/prompt-surface.js": "e085b84ece5d4a570845e9f95bd3f75b44cccf1f27db7e9122263b6c5f2483ea",
+    "ui/prompt-conflict-view.js": "61e7c8715fc9ab19d417eb5a19171cf0b75a976a198ec2134b78e6cc7d0645cc"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    "explicit local resolves exact two parents, canonical proof and outbox together",
+    "explicit other resolves exact two parents, canonical proof and outbox together",
+    "explicit manual resolves exact two parents, canonical proof and outbox together",
+    "explicit both resolves exact two parents, canonical proof and outbox together",
+    "unrelated pins conflict is retained without whole-aggregate choice",
+    "unrelated other-body conflict is retained without whole-aggregate choice",
+    "unrelated hidden conflict is retained without whole-aggregate choice",
+    "unrelated split conflict is retained without whole-aggregate choice",
+    "unrelated binding-proof conflict is retained without whole-aggregate choice",
+    "review head change cannot commit stale human decision",
+    "review epoch change cannot commit stale human decision",
+    "review namespace change cannot commit stale human decision",
+    "review revision change cannot commit stale human decision",
+    "review proof change cannot commit stale human decision",
+    "review generation change cannot commit stale human decision",
+    "corrupt committed operation fails digest validation before displaying an offer",
+    "proof-failure rolls back preferences, heads, proof and outbox",
+    "late-owner-write rolls back preferences, heads, proof and outbox",
+    "forged token, sender, unsupported text, replaced journal and consent all refuse without writes",
+    "ordinary local service exposes no resolution offer without its original journal",
+    "original control change after prepare refuses before the write; an old offer cannot be renewed",
+    "late gate change in the write rolls back the entire resolution",
+    "late control-cache change in the write rolls back the entire resolution"
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "4f61909e-568a-47ab-b327-5f8bfeae8d9b",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "4f61909e-568a-47ab-b327-5f8bfeae8d9b",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}

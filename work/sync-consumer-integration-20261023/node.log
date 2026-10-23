@@ -1,0 +1,1900 @@
+TAP version 13
+# Subtest: fixed startup relays register before owners and never replay stale events
+ok 1 - fixed startup relays register before owners and never replay stale events
+  ---
+  duration_ms: 0.597583
+  type: 'test'
+  ...
+# Subtest: original owners can remove their private invalidation listeners without altering native registration
+ok 2 - original owners can remove their private invalidation listeners without altering native registration
+  ---
+  duration_ms: 0.133333
+  type: 'test'
+  ...
+# Subtest: one owner exception does not suppress another original invalidation
+ok 3 - one owner exception does not suppress another original invalidation
+  ---
+  duration_ms: 0.075792
+  type: 'test'
+  ...
+# Subtest: optional unsupported event surfaces remain unsupported
+ok 4 - optional unsupported event surfaces remain unsupported
+  ---
+  duration_ms: 0.478375
+  type: 'test'
+  ...
+# Subtest: default source configuration preserves the ordinary original Organizer store
+ok 5 - default source configuration preserves the ordinary original Organizer store
+  ---
+  duration_ms: 19.27625
+  type: 'test'
+  ...
+# Subtest: first published generation selects original Organizer and cold reopens owner edits
+ok 6 - first published generation selects original Organizer and cold reopens owner edits
+  ---
+  duration_ms: 481.820583
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default empty without replacing or migrating it
+ok 7 - enabled selection refuses existing default empty without replacing or migrating it
+  ---
+  duration_ms: 419.025459
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default content without replacing or migrating it
+ok 8 - enabled selection refuses existing default content without replacing or migrating it
+  ---
+  duration_ms: 426.811625
+  type: 'test'
+  ...
+# Subtest: enabled missing registry refuses without creating registry target or fallback
+ok 9 - enabled missing registry refuses without creating registry target or fallback
+  ---
+  duration_ms: 0.16975
+  type: 'test'
+  ...
+# Subtest: enabled corrupt registry fails without silently opening default
+ok 10 - enabled corrupt registry fails without silently opening default
+  ---
+  duration_ms: 402.364125
+  type: 'test'
+  ...
+# Subtest: enabled corrupt target fails without silently opening default
+ok 11 - enabled corrupt target fails without silently opening default
+  ---
+  duration_ms: 400.779083
+  type: 'test'
+  ...
+# Subtest: enabled corrupt receipt fails without silently opening default
+ok 12 - enabled corrupt receipt fails without silently opening default
+  ---
+  duration_ms: 396.322583
+  type: 'test'
+  ...
+# Subtest: default database appearing before final selection check rejects the selected store
+ok 13 - default database appearing before final selection check rejects the selected store
+  ---
+  duration_ms: 400.126292
+  type: 'test'
+  ...
+# Subtest: caller database factory constructor and malformed configuration cannot choose an application store
+ok 14 - caller database factory constructor and malformed configuration cannot choose an application store
+  ---
+  duration_ms: 0.272958
+  type: 'test'
+  ...
+# Subtest: enabled selection requires database enumeration and never falls back
+ok 15 - enabled selection requires database enumeration and never falls back
+  ---
+  duration_ms: 0.057667
+  type: 'test'
+  ...
+# Subtest: selected original Organizer retains the exact AI filter authority without granting it default permission
+ok 16 - selected original Organizer retains the exact AI filter authority without granting it default permission
+  ---
+  duration_ms: 402.292958
+  type: 'test'
+  ...
+# Subtest: actual configured worker builds its original services on the selected Organizer without a fallback store
+ok 17 - actual configured worker builds its original services on the selected Organizer without a fallback store
+  ---
+  duration_ms: 1492.897417
+  type: 'test'
+  ...
+# Subtest: configured application requires exact retired checkpoint copies and never silently cleans them
+ok 18 - configured application requires exact retired checkpoint copies and never silently cleans them
+  ---
+  duration_ms: 411.254583
+  type: 'test'
+  ...
+# Subtest: contained immutable publication and fresh discovery preserve exact bytes with durable retry ID
+ok 19 - contained immutable publication and fresh discovery preserve exact bytes with durable retry ID
+  ---
+  duration_ms: 32.01425
+  type: 'test'
+  ...
+# Subtest: lost create completion survives adapter/core restart without allocating or uploading a second object
+ok 20 - lost create completion survives adapter/core restart without allocating or uploading a second object
+  ---
+  duration_ms: 17.431875
+  type: 'test'
+  ...
+# Subtest: wrong bytes are rejected before any remote request or local allocation
+ok 21 - wrong bytes are rejected before any remote request or local allocation
+  ---
+  duration_ms: 12.710375
+  type: 'test'
+  ...
+# Subtest: reject remote spaces corruption and preserve foreign objects
+ok 22 - reject remote spaces corruption and preserve foreign objects
+  ---
+  duration_ms: 13.980833
+  type: 'test'
+  ...
+# Subtest: reject remote dataset corruption and preserve foreign objects
+ok 23 - reject remote dataset corruption and preserve foreign objects
+  ---
+  duration_ms: 12.303875
+  type: 'test'
+  ...
+# Subtest: reject remote bytes corruption and preserve foreign objects
+ok 24 - reject remote bytes corruption and preserve foreign objects
+  ---
+  duration_ms: 12.918833
+  type: 'test'
+  ...
+# Subtest: reject remote size corruption and preserve foreign objects
+ok 25 - reject remote size corruption and preserve foreign objects
+  ---
+  duration_ms: 13.62925
+  type: 'test'
+  ...
+# Subtest: reject remote kind corruption and preserve foreign objects
+ok 26 - reject remote kind corruption and preserve foreign objects
+  ---
+  duration_ms: 11.861458
+  type: 'test'
+  ...
+# Subtest: HTTP 401 maps safely with no hidden retry
+ok 27 - HTTP 401 maps safely with no hidden retry
+  ---
+  duration_ms: 11.407791
+  type: 'test'
+  ...
+# Subtest: HTTP 403 maps safely with no hidden retry
+ok 28 - HTTP 403 maps safely with no hidden retry
+  ---
+  duration_ms: 11.599459
+  type: 'test'
+  ...
+# Subtest: HTTP 429 maps safely with no hidden retry
+ok 29 - HTTP 429 maps safely with no hidden retry
+  ---
+  duration_ms: 10.144458
+  type: 'test'
+  ...
+# Subtest: HTTP 500 maps safely with no hidden retry
+ok 30 - HTTP 500 maps safely with no hidden retry
+  ---
+  duration_ms: 10.17975
+  type: 'test'
+  ...
+# Subtest: HTTP 404 maps safely with no hidden retry
+ok 31 - HTTP 404 maps safely with no hidden retry
+  ---
+  duration_ms: 11.92025
+  type: 'test'
+  ...
+# Subtest: account generation changes while request is held fence late bytes; close settles a held host
+ok 32 - account generation changes while request is held fence late bytes; close settles a held host
+  ---
+  duration_ms: 10.380583
+  type: 'test'
+  ...
+# Subtest: held host times out once and cannot trigger a blind write retry
+ok 33 - held host times out once and cannot trigger a blind write retry
+  ---
+  duration_ms: 30.374042
+  type: 'test'
+  ...
+# Subtest: checkpoint pagination, invalid cursor and incomplete listing are bounded
+ok 34 - checkpoint pagination, invalid cursor and incomplete listing are bounded
+  ---
+  duration_ms: 15.825833
+  type: 'test'
+  ...
+# Subtest: core namespace swap invalidates transport and never reuses another generation allocation
+ok 35 - core namespace swap invalidates transport and never reuses another generation allocation
+  ---
+  duration_ms: 12.188792
+  type: 'test'
+  ...
+# Subtest: Google contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+ok 36 - Google contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+  ---
+  duration_ms: 142.56475
+  type: 'test'
+  ...
+# Subtest: broad scopes, credential-bearing binding and injected list query are refused
+ok 37 - broad scopes, credential-bearing binding and injected list query are refused
+  ---
+  duration_ms: 9.957167
+  type: 'test'
+  ...
+# Subtest: concurrent publishers atomically share durable allocation; create collision requires exact readback
+ok 38 - concurrent publishers atomically share durable allocation; create collision requires exact readback
+  ---
+  duration_ms: 13.17625
+  type: 'test'
+  ...
+# Subtest: lost local reservation commit acknowledgement cannot publish before durable identity is recovered
+ok 39 - lost local reservation commit acknowledgement cannot publish before durable identity is recovered
+  ---
+  duration_ms: 10.949166
+  type: 'test'
+  ...
+# Subtest: oversized host response is refused before a copy or JSON parse
+ok 40 - oversized host response is refused before a copy or JSON parse
+  ---
+  duration_ms: 9.807917
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape ""
+ok 41 - reject invalid OAuth client ID shape ""
+  ---
+  duration_ms: 11.169917
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape " "
+ok 42 - reject invalid OAuth client ID shape " "
+  ---
+  duration_ms: 9.449458
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape "https://000000000000.apps.googleusercontent.com"
+ok 43 - reject invalid OAuth client ID shape "https://000000000000.apps.googleusercontent.com"
+  ---
+  duration_ms: 9.431292
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape "000000000000.apps.googleusercontent.com\\n"
+ok 44 - reject invalid OAuth client ID shape "000000000000.apps.googleusercontent.com\\n"
+  ---
+  duration_ms: 10.783
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape "1111111111111111111111111111111111111111111111111111111"
+ok 45 - reject invalid OAuth client ID shape "1111111111111111111111111111111111111111111111111111111"
+  ---
+  duration_ms: 10.097042
+  type: 'test'
+  ...
+# Subtest: held committed POST close remains unknown and reuses original durable ID
+ok 46 - held committed POST close remains unknown and reuses original durable ID
+  ---
+  duration_ms: 10.495875
+  type: 'test'
+  ...
+# Subtest: held committed POST identity remains unknown and reuses original durable ID
+ok 47 - held committed POST identity remains unknown and reuses original durable ID
+  ---
+  duration_ms: 11.954875
+  type: 'test'
+  ...
+# Subtest: one public operation has a total deadline; slow empty pages cannot multiply the timeout
+ok 48 - one public operation has a total deadline; slow empty pages cannot multiply the timeout
+  ---
+  duration_ms: 45.045875
+  type: 'test'
+  ...
+# Subtest: aggregate received bytes stop bounded pages before an unbounded rescan
+ok 49 - aggregate received bytes stop bounded pages before an unbounded rescan
+  ---
+  duration_ms: 17.473208
+  type: 'test'
+  ...
+# Subtest: allowed 404 response still enforces its byte ceiling before parse or write progress
+ok 50 - allowed 404 response still enforces its byte ceiling before parse or write progress
+  ---
+  duration_ms: 15.768083
+  type: 'test'
+  ...
+# Subtest: allowed 409 response still enforces its byte ceiling before parse or write progress
+ok 51 - allowed 409 response still enforces its byte ceiling before parse or write progress
+  ---
+  duration_ms: 10.497208
+  type: 'test'
+  ...
+# Subtest: original publication retry after pre-dispatch interruption resumes same cut through provider absence
+ok 52 - original publication retry after pre-dispatch interruption resumes same cut through provider absence
+  ---
+  duration_ms: 37.124291
+  type: 'test'
+  ...
+# Subtest: original publication missing verified cut blocks permanently without silently recreating remote data
+ok 53 - original publication missing verified cut blocks permanently without silently recreating remote data
+  ---
+  duration_ms: 35.616208
+  type: 'test'
+  ...
+# Subtest: same logical Google duplicates require complete pagination and exact readback, divergent=false
+ok 54 - same logical Google duplicates require complete pagination and exact readback, divergent=false
+  ---
+  duration_ms: 11.61625
+  type: 'test'
+  ...
+# Subtest: same logical Google duplicates require complete pagination and exact readback, divergent=true
+ok 55 - same logical Google duplicates require complete pagination and exact readback, divergent=true
+  ---
+  duration_ms: 12.5875
+  type: 'test'
+  ...
+# Subtest: a valid first Google match cannot hide failed continuation discovery
+ok 56 - a valid first Google match cannot hide failed continuation discovery
+  ---
+  duration_ms: 10.902667
+  type: 'test'
+  ...
+# Subtest: contained immutable upload session uses fail conflict and unsigned assets, exact read-back and restart reuse
+ok 57 - contained immutable upload session uses fail conflict and unsigned assets, exact read-back and restart reuse
+  ---
+  duration_ms: 30.669334
+  type: 'test'
+  ...
+# Subtest: lost upload result is read back by same immutable name after adapter restart, no duplicate PUT
+ok 58 - lost upload result is read back by same immutable name after adapter restart, no duplicate PUT
+  ---
+  duration_ms: 14.064584
+  type: 'test'
+  ...
+# Subtest: lost session creation refuses blind retry with no recoverable expiry or completed object
+ok 59 - lost session creation refuses blind retry with no recoverable expiry or completed object
+  ---
+  duration_ms: 11.83325
+  type: 'test'
+  ...
+# Subtest: wrong object bytes are rejected before root access or allocation
+ok 60 - wrong object bytes are rejected before root access or allocation
+  ---
+  duration_ms: 12.812667
+  type: 'test'
+  ...
+# Subtest: reject unqualified scope without request
+ok 61 - reject unqualified scope without request
+  ---
+  duration_ms: 11.09
+  type: 'test'
+  ...
+# Subtest: reject unqualified tenant without request
+ok 62 - reject unqualified tenant without request
+  ---
+  duration_ms: 10.681166
+  type: 'test'
+  ...
+# Subtest: reject unqualified client without request
+ok 63 - reject unqualified client without request
+  ---
+  duration_ms: 12.953625
+  type: 'test'
+  ...
+# Subtest: reject remote parent and preserve all remote objects
+ok 64 - reject remote parent and preserve all remote objects
+  ---
+  duration_ms: 12.608166
+  type: 'test'
+  ...
+# Subtest: reject remote drive and preserve all remote objects
+ok 65 - reject remote drive and preserve all remote objects
+  ---
+  duration_ms: 12.814791
+  type: 'test'
+  ...
+# Subtest: reject remote remoteItem and preserve all remote objects
+ok 66 - reject remote remoteItem and preserve all remote objects
+  ---
+  duration_ms: 13.033625
+  type: 'test'
+  ...
+# Subtest: reject remote size and preserve all remote objects
+ok 67 - reject remote size and preserve all remote objects
+  ---
+  duration_ms: 11.74775
+  type: 'test'
+  ...
+# Subtest: reject remote etag and preserve all remote objects
+ok 68 - reject remote etag and preserve all remote objects
+  ---
+  duration_ms: 13.798625
+  type: 'test'
+  ...
+# Subtest: reject remote download-host and preserve all remote objects
+ok 69 - reject remote download-host and preserve all remote objects
+  ---
+  duration_ms: 17.656208
+  type: 'test'
+  ...
+# Subtest: reject remote bytes and preserve all remote objects
+ok 70 - reject remote bytes and preserve all remote objects
+  ---
+  duration_ms: 12.162916
+  type: 'test'
+  ...
+# Subtest: typed HTTP 401 stops with no retry and no provider message
+ok 71 - typed HTTP 401 stops with no retry and no provider message
+  ---
+  duration_ms: 10.57875
+  type: 'test'
+  ...
+# Subtest: typed HTTP 403 stops with no retry and no provider message
+ok 72 - typed HTTP 403 stops with no retry and no provider message
+  ---
+  duration_ms: 11.570334
+  type: 'test'
+  ...
+# Subtest: typed HTTP 429 stops with no retry and no provider message
+ok 73 - typed HTTP 429 stops with no retry and no provider message
+  ---
+  duration_ms: 11.253917
+  type: 'test'
+  ...
+# Subtest: typed HTTP 507 stops with no retry and no provider message
+ok 74 - typed HTTP 507 stops with no retry and no provider message
+  ---
+  duration_ms: 9.902917
+  type: 'test'
+  ...
+# Subtest: typed HTTP 500 stops with no retry and no provider message
+ok 75 - typed HTTP 500 stops with no retry and no provider message
+  ---
+  duration_ms: 11.271959
+  type: 'test'
+  ...
+# Subtest: held request close fences late results and settles once
+ok 76 - held request close fences late results and settles once
+  ---
+  duration_ms: 10.008958
+  type: 'test'
+  ...
+# Subtest: held request deadline has no retry
+ok 77 - held request deadline has no retry
+  ---
+  duration_ms: 30.74875
+  type: 'test'
+  ...
+# Subtest: changed appRoot cannot retarget existing transport
+ok 78 - changed appRoot cannot retarget existing transport
+  ---
+  duration_ms: 13.021541
+  type: 'test'
+  ...
+# Subtest: foreign files ignored, grouped discovery bounded and cursor cannot escape AppFolder
+ok 79 - foreign files ignored, grouped discovery bounded and cursor cannot escape AppFolder
+  ---
+  duration_ms: 15.645583
+  type: 'test'
+  ...
+# Subtest: OneDrive contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+ok 80 - OneDrive contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+  ---
+  duration_ms: 144.517084
+  type: 'test'
+  ...
+# Subtest: account invalidation after dispatched session is unknown and never retargeted
+ok 81 - account invalidation after dispatched session is unknown and never retargeted
+  ---
+  duration_ms: 11.625042
+  type: 'test'
+  ...
+# Subtest: account invalidation after dispatched upload is unknown and never retargeted
+ok 82 - account invalidation after dispatched upload is unknown and never retargeted
+  ---
+  duration_ms: 10.086083
+  type: 'test'
+  ...
+# Subtest: concurrent callers cannot create a second outstanding upload attempt
+ok 83 - concurrent callers cannot create a second outstanding upload attempt
+  ---
+  duration_ms: 11.478833
+  type: 'test'
+  ...
+# Subtest: oversized allowed 409 is rejected before copying or proceeding to upload
+ok 84 - oversized allowed 409 is rejected before copying or proceeding to upload
+  ---
+  duration_ms: 11.813958
+  type: 'test'
+  ...
+# Subtest: user edits between download and final metadata deny bytes without overwriting remote file
+ok 85 - user edits between download and final metadata deny bytes without overwriting remote file
+  ---
+  duration_ms: 11.221041
+  type: 'test'
+  ...
+# Subtest: provider signed upload http is refused before user bytes leave
+ok 86 - provider signed upload http is refused before user bytes leave
+  ---
+  duration_ms: 10.139958
+  type: 'test'
+  ...
+# Subtest: provider signed upload userinfo is refused before user bytes leave
+ok 87 - provider signed upload userinfo is refused before user bytes leave
+  ---
+  duration_ms: 13.140416
+  type: 'test'
+  ...
+# Subtest: provider signed upload arbitrary-host is refused before user bytes leave
+ok 88 - provider signed upload arbitrary-host is refused before user bytes leave
+  ---
+  duration_ms: 10.716708
+  type: 'test'
+  ...
+# Subtest: provider signed upload suffix-trick is refused before user bytes leave
+ok 89 - provider signed upload suffix-trick is refused before user bytes leave
+  ---
+  duration_ms: 10.338542
+  type: 'test'
+  ...
+# Subtest: forged next page cannot add query, change root, or send credentials outside exact endpoint
+ok 90 - forged next page cannot add query, change root, or send credentials outside exact endpoint
+  ---
+  duration_ms: 10.6805
+  type: 'test'
+  ...
+# Subtest: original publication retry after pre-dispatch interruption resumes same cut through provider absence
+ok 91 - original publication retry after pre-dispatch interruption resumes same cut through provider absence
+  ---
+  duration_ms: 39.3295
+  type: 'test'
+  ...
+# Subtest: original publication missing verified cut blocks permanently without silently recreating remote data
+ok 92 - original publication missing verified cut blocks permanently without silently recreating remote data
+  ---
+  duration_ms: 36.69625
+  type: 'test'
+  ...
+# Subtest: original publication missing-object reconciliation never retries an unknown OneDrive session POST
+ok 93 - original publication missing-object reconciliation never retries an unknown OneDrive session POST
+  ---
+  duration_ms: 27.909
+  type: 'test'
+  ...
+# Subtest: BNS publication cut, configuration and object IDs survive restart and exclude later edits
+ok 94 - BNS publication cut, configuration and object IDs survive restart and exclude later edits
+  ---
+  duration_ms: 22.187125
+  type: 'test'
+  ...
+# Subtest: BNS unknown upload outcome reconciles the same logical identity, written=true
+ok 95 - BNS unknown upload outcome reconciles the same logical identity, written=true
+  ---
+  duration_ms: 10.686209
+  type: 'test'
+  ...
+# Subtest: BNS unknown upload outcome reconciles the same logical identity, written=false
+ok 96 - BNS unknown upload outcome reconciles the same logical identity, written=false
+  ---
+  duration_ms: 9.538917
+  type: 'test'
+  ...
+# Subtest: BNS streamed progress may stop and resume without retaining a whole-dataset receipt list
+ok 97 - BNS streamed progress may stop and resume without retaining a whole-dataset receipt list
+  ---
+  duration_ms: 26.561
+  type: 'test'
+  ...
+# Subtest: BNS preparation failure rolls back reservations, identity and active index atomically
+ok 98 - BNS preparation failure rolls back reservations, identity and active index atomically
+  ---
+  duration_ms: 4.967958
+  type: 'test'
+  ...
+# Subtest: BNS only one prepared publication can reserve the same cut and primitive ack cannot bypass it
+ok 99 - BNS only one prepared publication can reserve the same cut and primitive ack cannot bypass it
+  ---
+  duration_ms: 5.103417
+  type: 'test'
+  ...
+# Subtest: BNS local acknowledgement failure preserves queue and exact receipt retry
+ok 100 - BNS local acknowledgement failure preserves queue and exact receipt retry
+  ---
+  duration_ms: 9.209667
+  type: 'test'
+  ...
+# Subtest: BNS missing previously verified remote data is blocked before delayed local acknowledgement
+ok 101 - BNS missing previously verified remote data is blocked before delayed local acknowledgement
+  ---
+  duration_ms: 7.05375
+  type: 'test'
+  ...
+# Subtest: BNS corrupt same-ID object is quarantined without overwrite or false queue acknowledgement
+ok 102 - BNS corrupt same-ID object is quarantined without overwrite or false queue acknowledgement
+  ---
+  duration_ms: 5.244917
+  type: 'test'
+  ...
+# Subtest: BNS partial remote dependency loss cannot be acknowledged as a complete descriptor
+ok 103 - BNS partial remote dependency loss cannot be acknowledged as a complete descriptor
+  ---
+  duration_ms: 27.152542
+  type: 'test'
+  ...
+# Subtest: BNS purge during upload marks the old body cut obsolete and never publishes its descriptor
+ok 104 - BNS purge during upload marks the old body cut obsolete and never publishes its descriptor
+  ---
+  duration_ms: 25.587167
+  type: 'test'
+  ...
+# Subtest: BNS active publication prevents restore namespace loss and confirmed ID cannot retarget later generation
+ok 105 - BNS active publication prevents restore namespace loss and confirmed ID cannot retarget later generation
+  ---
+  duration_ms: 11.079958
+  type: 'test'
+  ...
+# Subtest: BNS pending catalogue and reservation scan are bounded, with explicit continuation
+ok 106 - BNS pending catalogue and reservation scan are bounded, with explicit continuation
+  ---
+  duration_ms: 6.179792
+  type: 'test'
+  ...
+# Subtest: BNS duplicate publication ID with changed packing and modified durable blueprint fail closed
+ok 107 - BNS duplicate publication ID with changed packing and modified durable blueprint fail closed
+  ---
+  duration_ms: 6.075458
+  type: 'test'
+  ...
+# Subtest: BNS concurrent restart publishers deduplicate immutable objects and atomic confirmation
+ok 108 - BNS concurrent restart publishers deduplicate immutable objects and atomic confirmation
+  ---
+  duration_ms: 6.982
+  type: 'test'
+  ...
+# Subtest: BNS an in-flight success cannot clear a concurrently recorded integrity block
+ok 109 - BNS an in-flight success cannot clear a concurrently recorded integrity block
+  ---
+  duration_ms: 5.283791
+  type: 'test'
+  ...
+# Subtest: BNS unqualified chunk profiles and malformed reservations are rejected before upload
+ok 110 - BNS unqualified chunk profiles and malformed reservations are rejected before upload
+  ---
+  duration_ms: 3.008417
+  type: 'test'
+  ...
+# Subtest: BNS transport error bodies are neither persisted nor returned by the publication boundary
+ok 111 - BNS transport error bodies are neither persisted nor returned by the publication boundary
+  ---
+  duration_ms: 4.333541
+  type: 'test'
+  ...
+# Subtest: BNS purge while a publication iterator is suspended cannot publish its later descriptor
+ok 112 - BNS purge while a publication iterator is suspended cannot publish its later descriptor
+  ---
+  duration_ms: 6.47575
+  type: 'test'
+  ...
+# Subtest: BNS obsolete retirement atomically releases surviving reservations and retains every possible object without bodies
+ok 113 - BNS obsolete retirement atomically releases surviving reservations and retains every possible object without bodies
+  ---
+  duration_ms: 12.1235
+  type: 'test'
+  ...
+# Subtest: BNS retirement cannot clear an integrity block or retire a merely prepared cut
+ok 114 - BNS retirement cannot clear an integrity block or retire a merely prepared cut
+  ---
+  duration_ms: 4.948209
+  type: 'test'
+  ...
+# Subtest: BNS old suspended publisher cannot advance or acknowledge after obsolete retirement
+ok 115 - BNS old suspended publisher cannot advance or acknowledge after obsolete retirement
+  ---
+  duration_ms: 6.117792
+  type: 'test'
+  ...
+# Subtest: BNS retired opaque object ledger survives namespace restore and cannot retarget its old publication ID
+ok 116 - BNS retired opaque object ledger survives namespace restore and cannot retarget its old publication ID
+  ---
+  duration_ms: 11.024833
+  type: 'test'
+  ...
+# Subtest: BNS late in-flight descriptor completion remains retained and cannot create a publication acknowledgement
+ok 117 - BNS late in-flight descriptor completion remains retained and cannot create a publication acknowledgement
+  ---
+  duration_ms: 6.488291
+  type: 'test'
+  ...
+# Subtest: cold selected original-group exports permanent denial, merges a complete successor, edits and cold reopens
+ok 118 - cold selected original-group exports permanent denial, merges a complete successor, edits and cold reopens
+  ---
+  duration_ms: 783.999292
+  type: 'test'
+  ...
+# Subtest: selected destination imports an independent cold negative while keeping original local cleanup and controls
+ok 119 - selected destination imports an independent cold negative while keeping original local cleanup and controls
+  ---
+  duration_ms: 869.154708
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses unbound without transport publication or local changes
+ok 120 - selected checkpoint refuses unbound without transport publication or local changes
+  ---
+  duration_ms: 402.990791
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses completed without transport publication or local changes
+ok 121 - selected checkpoint refuses completed without transport publication or local changes
+  ---
+  duration_ms: 408.027709
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses gate without transport publication or local changes
+ok 122 - selected checkpoint refuses gate without transport publication or local changes
+  ---
+  duration_ms: 404.120791
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses resident-copy without transport publication or local changes
+ok 123 - selected checkpoint refuses resident-copy without transport publication or local changes
+  ---
+  duration_ms: 405.97825
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses unknown-namespace without transport publication or local changes
+ok 124 - selected checkpoint refuses unknown-namespace without transport publication or local changes
+  ---
+  duration_ms: 411.700959
+  type: 'test'
+  ...
+# Subtest: registry selection changed after staging refuses activation with local data unchanged
+ok 125 - registry selection changed after staging refuses activation with local data unchanged
+  ---
+  duration_ms: 489.698417
+  type: 'test'
+  ...
+# Subtest: late gate mutation rolls back selected positive-negative merge
+ok 126 - late gate mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 659.238334
+  type: 'test'
+  ...
+# Subtest: late completed mutation rolls back selected positive-negative merge
+ok 127 - late completed mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 675.99325
+  type: 'test'
+  ...
+# Subtest: late deny mutation rolls back selected positive-negative merge
+ok 128 - late deny mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 673.664209
+  type: 'test'
+  ...
+# Subtest: late outbox mutation rolls back selected positive-negative merge
+ok 129 - late outbox mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 708.287375
+  type: 'test'
+  ...
+# Subtest: unsupported same-producer post-publication Source cannot be mistaken for the sealed original graph
+ok 130 - unsupported same-producer post-publication Source cannot be mistaken for the sealed original graph
+  ---
+  duration_ms: 464.260667
+  type: 'test'
+  ...
+# Subtest: real positive Source plus permanent deletion compile as disjoint exact protocol closure
+ok 131 - real positive Source plus permanent deletion compile as disjoint exact protocol closure
+  ---
+  duration_ms: 228.269334
+  type: 'test'
+  ...
+# Subtest: two original permanent deletions and remaining independent Source retain each complete negative group
+ok 132 - two original permanent deletions and remaining independent Source retain each complete negative group
+  ---
+  duration_ms: 564.559416
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-original without changing canonical or protocol state
+ok 133 - closure refuses drop-original without changing canonical or protocol state
+  ---
+  duration_ms: 167.019666
+  type: 'test'
+  ...
+# Subtest: closure refuses old-body without changing canonical or protocol state
+ok 134 - closure refuses old-body without changing canonical or protocol state
+  ---
+  duration_ms: 166.310042
+  type: 'test'
+  ...
+# Subtest: closure refuses false-redaction without changing canonical or protocol state
+ok 135 - closure refuses false-redaction without changing canonical or protocol state
+  ---
+  duration_ms: 168.0125
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-purge without changing canonical or protocol state
+ok 136 - closure refuses drop-purge without changing canonical or protocol state
+  ---
+  duration_ms: 162.930333
+  type: 'test'
+  ...
+# Subtest: closure refuses head without changing canonical or protocol state
+ok 137 - closure refuses head without changing canonical or protocol state
+  ---
+  duration_ms: 166.091042
+  type: 'test'
+  ...
+# Subtest: closure refuses stale-head without changing canonical or protocol state
+ok 138 - closure refuses stale-head without changing canonical or protocol state
+  ---
+  duration_ms: 173.725583
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-frontier without changing canonical or protocol state
+ok 139 - closure refuses drop-frontier without changing canonical or protocol state
+  ---
+  duration_ms: 167.607834
+  type: 'test'
+  ...
+# Subtest: closure refuses frontier-hole without changing canonical or protocol state
+ok 140 - closure refuses frontier-hole without changing canonical or protocol state
+  ---
+  duration_ms: 165.6515
+  type: 'test'
+  ...
+# Subtest: closure refuses extra-head without changing canonical or protocol state
+ok 141 - closure refuses extra-head without changing canonical or protocol state
+  ---
+  duration_ms: 168.072917
+  type: 'test'
+  ...
+# Subtest: closure refuses duplicate without changing canonical or protocol state
+ok 142 - closure refuses duplicate without changing canonical or protocol state
+  ---
+  duration_ms: 165.10525
+  type: 'test'
+  ...
+# Subtest: closure refuses unknown-item without changing canonical or protocol state
+ok 143 - closure refuses unknown-item without changing canonical or protocol state
+  ---
+  duration_ms: 165.0305
+  type: 'test'
+  ...
+# Subtest: closure refuses unknown-field without changing canonical or protocol state
+ok 144 - closure refuses unknown-field without changing canonical or protocol state
+  ---
+  duration_ms: 164.081
+  type: 'test'
+  ...
+# Subtest: independently valid positive creation cannot share the negative Source identity
+ok 145 - independently valid positive creation cannot share the negative Source identity
+  ---
+  duration_ms: 192.316292
+  type: 'test'
+  ...
+# Subtest: cloned result and changed Core do not carry original compiler identity
+ok 146 - cloned result and changed Core do not carry original compiler identity
+  ---
+  duration_ms: 177.152959
+  type: 'test'
+  ...
+# Subtest: caller edits during awaited digest cannot alter the original detached closure
+ok 147 - caller edits during awaited digest cannot alter the original detached closure
+  ---
+  duration_ms: 162.98775
+  type: 'test'
+  ...
+# Subtest: mixed compilation does not widen the original negative-only checkpoint publisher
+ok 148 - mixed compilation does not widen the original negative-only checkpoint publisher
+  ---
+  duration_ms: 171.194084
+  type: 'test'
+  ...
+# Subtest: Core rebinding during digest invalidates the closure rather than adopting later identity
+ok 149 - Core rebinding during digest invalidates the closure rather than adopting later identity
+  ---
+  duration_ms: 164.533584
+  type: 'test'
+  ...
+# Subtest: closure rejects oversized input before clone, digest or canonical mutation
+ok 150 - closure rejects oversized input before clone, digest or canonical mutation
+  ---
+  duration_ms: 166.45
+  type: 'test'
+  ...
+# Subtest: closure refuses accessor-bearing input without invoking the accessor
+ok 151 - closure refuses accessor-bearing input without invoking the accessor
+  ---
+  duration_ms: 165.7395
+  type: 'test'
+  ...
+# Subtest: complete original positive and permanent negative Source checkpoint activates atomically and re-exports
+ok 152 - complete original positive and permanent negative Source checkpoint activates atomically and re-exports
+  ---
+  duration_ms: 468.2665
+  type: 'test'
+  ...
+# Subtest: existing permanent denial and queued local work survive a complete checkpoint successor
+ok 153 - existing permanent denial and queued local work survive a complete checkpoint successor
+  ---
+  duration_ms: 450.643792
+  type: 'test'
+  ...
+# Subtest: independent local positive Source and outbox are preserved while incoming positive and negative apply
+ok 154 - independent local positive Source and outbox are preserved while incoming positive and negative apply
+  ---
+  duration_ms: 303.595625
+  type: 'test'
+  ...
+# Subtest: atomic rollback preserves every table on owner-failure
+ok 155 - atomic rollback preserves every table on owner-failure
+  ---
+  duration_ms: 267.495666
+  type: 'test'
+  ...
+# Subtest: atomic rollback preserves every table on owner-extra-row
+ok 156 - atomic rollback preserves every table on owner-extra-row
+  ---
+  duration_ms: 275.20825
+  type: 'test'
+  ...
+# Subtest: atomic rollback preserves every table on post-callback-extra-row
+ok 157 - atomic rollback preserves every table on post-callback-extra-row
+  ---
+  duration_ms: 275.710167
+  type: 'test'
+  ...
+# Subtest: atomic rollback preserves every table on semantic-terminal-extra-row
+ok 158 - atomic rollback preserves every table on semantic-terminal-extra-row
+  ---
+  duration_ms: 271.985916
+  type: 'test'
+  ...
+# Subtest: concurrent ordinary local edit after validation refuses entire staged restore
+ok 159 - concurrent ordinary local edit after validation refuses entire staged restore
+  ---
+  duration_ms: 264.122833
+  type: 'test'
+  ...
+# Subtest: read-only stage refuses a checkpoint intersecting a live old Source rather than deleting it
+ok 160 - read-only stage refuses a checkpoint intersecting a live old Source rather than deleting it
+  ---
+  duration_ms: 250.94575
+  type: 'test'
+  ...
+# Subtest: caller/Core rebinding after validation cannot apply prepared negative capabilities
+ok 161 - caller/Core rebinding after validation cannot apply prepared negative capabilities
+  ---
+  duration_ms: 248.366917
+  type: 'test'
+  ...
+# Subtest: ordinary grouped consumer keeps its existing negative refusal
+ok 162 - ordinary grouped consumer keeps its existing negative refusal
+  ---
+  duration_ms: 268.673916
+  type: 'test'
+  ...
+# Subtest: cold reopen consumes restored positive Source and retains permanent denial across a real Working edit
+ok 163 - cold reopen consumes restored positive Source and retains permanent denial across a real Working edit
+  ---
+  duration_ms: 278.378584
+  type: 'test'
+  ...
+# Subtest: new cold negative combines with existing genuine local cleanup and re-exports both without losing outbox
+ok 164 - new cold negative combines with existing genuine local cleanup and re-exports both without losing outbox
+  ---
+  duration_ms: 618.254875
+  type: 'test'
+  ...
+# Subtest: current cut refuses extra-protocol before any external get
+ok 165 - current cut refuses extra-protocol before any external get
+  ---
+  duration_ms: 260.888208
+  type: 'test'
+  ...
+# Subtest: current cut refuses missing-deny before any external get
+ok 166 - current cut refuses missing-deny before any external get
+  ---
+  duration_ms: 263.030208
+  type: 'test'
+  ...
+# Subtest: current cut refuses wrong-frontier before any external get
+ok 167 - current cut refuses wrong-frontier before any external get
+  ---
+  duration_ms: 261.890791
+  type: 'test'
+  ...
+# Subtest: current cut refuses invented-generation before any external get
+ok 168 - current cut refuses invented-generation before any external get
+  ---
+  duration_ms: 259.6
+  type: 'test'
+  ...
+# Subtest: current cut refuses unrepresented-human before any external get
+ok 169 - current cut refuses unrepresented-human before any external get
+  ---
+  duration_ms: 268.578625
+  type: 'test'
+  ...
+# Subtest: settings revocation after owner callback still aborts all positive and negative writes
+ok 170 - settings revocation after owner callback still aborts all positive and negative writes
+  ---
+  duration_ms: 243.442834
+  type: 'test'
+  ...
+# Subtest: replacement staging invalidates an older unresolved reader instead of overwriting the new plan
+ok 171 - replacement staging invalidates an older unresolved reader instead of overwriting the new plan
+  ---
+  duration_ms: 256.481791
+  type: 'test'
+  ...
+# Subtest: fresh repeated import and same-instance replay leave every row unchanged
+ok 172 - fresh repeated import and same-instance replay leave every row unchanged
+  ---
+  duration_ms: 309.34625
+  type: 'test'
+  ...
+# Subtest: an ordinary local capture during export prevents publication of a stale checkpoint result
+ok 173 - an ordinary local capture during export prevents publication of a stale checkpoint result
+  ---
+  duration_ms: 257.057666
+  type: 'test'
+  ...
+# Subtest: selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+ok 174 - selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+  ---
+  duration_ms: 831.438833
+  type: 'test'
+  ...
+# Subtest: existing selected edited Source receives complete Working and denial while preserving its local edit and controls
+ok 175 - existing selected edited Source receives complete Working and denial while preserving its local edit and controls
+  ---
+  duration_ms: 1049.348542
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on owner-extra-row
+ok 176 - Working negative atomic consumer rolls back every table on owner-extra-row
+  ---
+  duration_ms: 555.820333
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on owner-throws
+ok 177 - Working negative atomic consumer rolls back every table on owner-throws
+  ---
+  duration_ms: 534.542708
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on working-map
+ok 178 - Working negative atomic consumer rolls back every table on working-map
+  ---
+  duration_ms: 557.67875
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on invalid-event
+ok 179 - Working negative atomic consumer rolls back every table on invalid-event
+  ---
+  duration_ms: 543.3505
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on lost-denial
+ok 180 - Working negative atomic consumer rolls back every table on lost-denial
+  ---
+  duration_ms: 551.290958
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on semantic-terminal
+ok 181 - Working negative atomic consumer rolls back every table on semantic-terminal
+  ---
+  duration_ms: 549.225875
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented body before transport publication
+ok 182 - Working export rejects unrepresented body before transport publication
+  ---
+  duration_ms: 502.803292
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented history before transport publication
+ok 183 - Working export rejects unrepresented history before transport publication
+  ---
+  duration_ms: 507.306292
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented working-map before transport publication
+ok 184 - Working export rejects unrepresented working-map before transport publication
+  ---
+  duration_ms: 503.019375
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented filter before transport publication
+ok 185 - Working export rejects unrepresented filter before transport publication
+  ---
+  duration_ms: 502.379875
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented receipt before transport publication
+ok 186 - Working export rejects unrepresented receipt before transport publication
+  ---
+  duration_ms: 499.689958
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented extra-owner before transport publication
+ok 187 - Working export rejects unrepresented extra-owner before transport publication
+  ---
+  duration_ms: 519.366209
+  type: 'test'
+  ...
+# Subtest: local human Working divergence cannot be overwritten by a foreign sibling checkpoint
+ok 188 - local human Working divergence cannot be overwritten by a foreign sibling checkpoint
+  ---
+  duration_ms: 709.7065
+  type: 'test'
+  ...
+# Subtest: original allocation order 0 survives Working negative reverse qualification
+ok 189 - original allocation order 0 survives Working negative reverse qualification
+  ---
+  duration_ms: 551.790667
+  type: 'test'
+  ...
+# Subtest: original allocation order 1 survives Working negative reverse qualification
+ok 190 - original allocation order 1 survives Working negative reverse qualification
+  ---
+  duration_ms: 550.76275
+  type: 'test'
+  ...
+# Subtest: unmodified repeated Working negative checkpoint is idempotent after exact local owner binding
+ok 191 - unmodified repeated Working negative checkpoint is idempotent after exact local owner binding
+  ---
+  duration_ms: 633.539375
+  type: 'test'
+  ...
+# Subtest: host content and forged extension locations cannot query the library or trigger insertion
+ok 192 - host content and forged extension locations cannot query the library or trigger insertion
+  ---
+  duration_ms: 1.175542
+  type: 'test'
+  ...
+# Subtest: only explicitly selected text reaches top frame; duplicate operation never repeats insertion
+ok 193 - only explicitly selected text reaches top frame; duplicate operation never repeats insertion
+  ---
+  duration_ms: 5.792292
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: null
+ok 194 - unverified acknowledgement is never successful or automatically retried: null
+  ---
+  duration_ms: 0.162875
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: {"status":"inserted"}
+ok 195 - unverified acknowledgement is never successful or automatically retried: {"status":"inserted"}
+  ---
+  duration_ms: 0.122458
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: {"status":"uncertain"}
+ok 196 - unverified acknowledgement is never successful or automatically retried: {"status":"uncertain"}
+  ---
+  duration_ms: 0.156625
+  type: 'test'
+  ...
+# Subtest: unverified acknowledgement is never successful or automatically retried: {"status":"failed","reason":"insertion_rejected"}
+ok 197 - unverified acknowledgement is never successful or automatically retried: {"status":"failed","reason":"insertion_rejected"}
+  ---
+  duration_ms: 0.085292
+  type: 'test'
+  ...
+# Subtest: consent, stale selected text and tab navigation fail before sending
+ok 198 - consent, stale selected text and tab navigation fail before sending
+  ---
+  duration_ms: 0.1215
+  type: 'test'
+  ...
+# Subtest: clipboard success waits for browser acknowledgement; rejection does not report copied
+ok 199 - clipboard success waits for browser acknowledgement; rejection does not report copied
+  ---
+  duration_ms: 0.082625
+  type: 'test'
+  ...
+# Subtest: new Stage 1/2 runtime has no network, send, reply, website storage, page bridge or raw HTML write
+ok 200 - new Stage 1/2 runtime has no network, send, reply, website storage, page bridge or raw HTML write
+  ---
+  duration_ms: 6.213167
+  type: 'test'
+  ...
+# Subtest: editing reuse text never changes Source, Working Input, history or other archive authority
+ok 201 - editing reuse text never changes Source, Working Input, history or other archive authority
+  ---
+  duration_ms: 64.679916
+  type: 'test'
+  ...
+# Subtest: pin/reorder/unpin and reversible hide preserve manual order through new capture
+ok 202 - pin/reorder/unpin and reversible hide preserve manual order through new capture
+  ---
+  duration_ms: 72.273458
+  type: 'test'
+  ...
+# Subtest: split correction survives service restart and never immediately remerges identical inputs
+ok 203 - split correction survives service restart and never immediately remerges identical inputs
+  ---
+  duration_ms: 38.326584
+  type: 'test'
+  ...
+# Subtest: current Working Input, removal, explicit AI exclusion and tombstones govern every release
+ok 204 - current Working Input, removal, explicit AI exclusion and tombstones govern every release
+  ---
+  duration_ms: 40.150166
+  type: 'test'
+  ...
+# Subtest: purge removes automatic evidence, while explicit independent template survives by contract
+ok 205 - purge removes automatic evidence, while explicit independent template survives by contract
+  ---
+  duration_ms: 46.673958
+  type: 'test'
+  ...
+# Subtest: assistant role, removed and filtered inputs never seed an automatic family
+ok 206 - assistant role, removed and filtered inputs never seed an automatic family
+  ---
+  duration_ms: 24.788667
+  type: 'test'
+  ...
+# Subtest: stale preference writes and invalid manual orders fail without dropping saved work
+ok 207 - stale preference writes and invalid manual orders fail without dropping saved work
+  ---
+  duration_ms: 33.791
+  type: 'test'
+  ...
+# Subtest: strict Backup round trip retains edited template, pins/hide/split without a new store or grants
+ok 208 - strict Backup round trip retains edited template, pins/hide/split without a new store or grants
+  ---
+  duration_ms: 73.007417
+  type: 'test'
+  ...
+# Subtest: backup empty/merge cannot silently overwrite independent template work
+ok 209 - backup empty/merge cannot silently overwrite independent template work
+  ---
+  duration_ms: 30.988083
+  type: 'test'
+  ...
+# Subtest: removed input and purge fences veto old automatic read-back, without resurrecting through rebuild
+ok 210 - removed input and purge fences veto old automatic read-back, without resurrecting through rebuild
+  ---
+  duration_ms: 35.951
+  type: 'test'
+  ...
+# Subtest: storage abort preserves overrides and archive; a changed release generation is rejected
+ok 211 - storage abort preserves overrides and archive; a changed release generation is rejected
+  ---
+  duration_ms: 43.170542
+  type: 'test'
+  ...
+# Subtest: explicit independent-template delete removes hidden/pinned work, stale release and new Backup without touching history
+ok 212 - explicit independent-template delete removes hidden/pinned work, stale release and new Backup without touching history
+  ---
+  duration_ms: 111.102541
+  type: 'test'
+  ...
+# Subtest: delete refuses any family with current members, but permits its independent edited template after support loss
+ok 213 - delete refuses any family with current members, but permits its independent edited template after support loss
+  ---
+  duration_ms: 104.278833
+  type: 'test'
+  ...
+# Subtest: delete frees a full bounded override slot; hide does not; unrelated manual order survives
+ok 214 - delete frees a full bounded override slot; hide does not; unrelated manual order survives
+  ---
+  duration_ms: 119.893458
+  type: 'test'
+  ...
+# Subtest: stale or aborted delete preserves the template, pin and archive atomically
+ok 215 - stale or aborted delete preserves the template, pin and archive atomically
+  ---
+  duration_ms: 36.914208
+  type: 'test'
+  ...
+# Subtest: surface reorder retains the complete manual order including hidden pins
+ok 216 - surface reorder retains the complete manual order including hidden pins
+  ---
+  duration_ms: 47.852667
+  type: 'test'
+  ...
+# Subtest: surface frames require exact origin, nonce, current host, positive frame and consent
+ok 217 - surface frames require exact origin, nonce, current host, positive frame and consent
+  ---
+  duration_ms: 1.616708
+  type: 'test'
+  ...
+# Subtest: host gets only geometry; frame insertion is forcibly bound to its own tab and cannot query arbitrary capabilities
+ok 218 - host gets only geometry; frame insertion is forcibly bound to its own tab and cannot query arbitrary capabilities
+  ---
+  duration_ms: 0.400417
+  type: 'test'
+  ...
+# Subtest: position is bounded device-only metadata, with no website or archive body storage
+ok 219 - position is bounded device-only metadata, with no website or archive body storage
+  ---
+  duration_ms: 0.203584
+  type: 'test'
+  ...
+# Subtest: safe geometry clamps orb and card, excludes native composer controls at 320px and expanded scale
+ok 220 - safe geometry clamps orb and card, excludes native composer controls at 320px and expanded scale
+  ---
+  duration_ms: 8.063333
+  type: 'test'
+  ...
+# Subtest: surface publishes only one static extension frame, no host library bridge or new privileged host
+ok 221 - surface publishes only one static extension frame, no host library bridge or new privileged host
+  ---
+  duration_ms: 1.533583
+  type: 'test'
+  ...
+# Subtest: popup diagnostic is consent-only, exact-view authorized and returns bounded metadata
+ok 222 - popup diagnostic is consent-only, exact-view authorized and returns bounded metadata
+  ---
+  duration_ms: 0.439959
+  type: 'test'
+  ...
+# Subtest: open geometry uses one visible anchor, projects the attached card into safe bands and restores without drift
+ok 223 - open geometry uses one visible anchor, projects the attached card into safe bands and restores without drift
+  ---
+  duration_ms: 0.775792
+  type: 'test'
+  ...
+# Subtest: SPA geometry save binds the initial sender URL to the exact live document, without authorizing stale navigation
+ok 224 - SPA geometry save binds the initial sender URL to the exact live document, without authorizing stale navigation
+  ---
+  duration_ms: 0.266709
+  type: 'test'
+  ...
+# Subtest: open surface preserves legacy metadata without moving the common composer anchor
+ok 225 - open surface preserves legacy metadata without moving the common composer anchor
+  ---
+  duration_ms: 0.616708
+  type: 'test'
+  ...
+# Subtest: saved open anchor remains viewport-bounded when scrolling moves the composer outside the viewport
+ok 226 - saved open anchor remains viewport-bounded when scrolling moves the composer outside the viewport
+  ---
+  duration_ms: 0.735125
+  type: 'test'
+  ...
+# Subtest: initial host mount stays hidden until held first geometry frame: composer top 8
+ok 227 - initial host mount stays hidden until held first geometry frame: composer top 8
+  ---
+  duration_ms: 1.507208
+  type: 'test'
+  ...
+# Subtest: initial host mount stays hidden until held first geometry frame: composer top 700
+ok 228 - initial host mount stays hidden until held first geometry frame: composer top 700
+  ---
+  duration_ms: 0.680541
+  type: 'test'
+  ...
+# Subtest: disposing the host cancels its pending presentation timer and removes composer activity listeners
+ok 229 - disposing the host cancels its pending presentation timer and removes composer activity listeners
+  ---
+  duration_ms: 0.676916
+  type: 'test'
+  ...
+# Subtest: open orb requests the private card close policy instead of only focusing or destroying its frame
+ok 230 - open orb requests the private card close policy instead of only focusing or destroying its frame
+  ---
+  duration_ms: 0.73325
+  type: 'test'
+  ...
+# Subtest: orb drag click suppression ends with its gesture and keyboard activation still requests closure
+ok 231 - orb drag click suppression ends with its gesture and keyboard activation still requests closure
+  ---
+  duration_ms: 1.009292
+  type: 'test'
+  ...
+# Subtest: orb drag temporarily excludes the iframe from hit testing and every terminal path releases capture once
+ok 232 - orb drag temporarily excludes the iframe from hit testing and every terminal path releases capture once
+  ---
+  duration_ms: 4.7565
+  type: 'test'
+  ...
+# Subtest: host close request is nonce-only and bound to the exact active top document, consent and live card
+ok 233 - host close request is nonce-only and bound to the exact active top document, consent and live card
+  ---
+  duration_ms: 0.363042
+  type: 'test'
+  ...
+# Subtest: host close request rejects navigation or consent changes during its live probe; SPA uses the live document
+ok 234 - host close request rejects navigation or consent changes during its live probe; SPA uses the live document
+  ---
+  duration_ms: 0.163666
+  type: 'test'
+  ...
+# Subtest: approved double-card presentation uses one persistent circle and accessible owner
+ok 235 - approved double-card presentation uses one persistent circle and accessible owner
+  ---
+  duration_ms: 0.732666
+  type: 'test'
+  ...
+# Subtest: authenticated measure is geometry-only, bounded, exact-shaped and nonce-bound
+ok 236 - authenticated measure is geometry-only, bounded, exact-shaped and nonce-bound
+  ---
+  duration_ms: 0.977291
+  type: 'test'
+  ...
+# Subtest: host measurement accepts only current private nonce and preserves the frame
+ok 237 - host measurement accepts only current private nonce and preserves the frame
+  ---
+  duration_ms: 0.755375
+  type: 'test'
+  ...
+# Subtest: measure acknowledgements follow layout and cannot authorize a superseded nonce or generation
+ok 238 - measure acknowledgements follow layout and cannot authorize a superseded nonce or generation
+  ---
+  duration_ms: 0.574792
+  type: 'test'
+  ...
+# Subtest: surface exposes only normalized display preferences through the original read-only meta owner
+ok 239 - surface exposes only normalized display preferences through the original read-only meta owner
+  ---
+  duration_ms: 0.199083
+  type: 'test'
+  ...
+# Subtest: private query exposes only a strict automatic-presentation boolean and never host suggestion bodies
+ok 240 - private query exposes only a strict automatic-presentation boolean and never host suggestion bodies
+  ---
+  duration_ms: 0.520167
+  type: 'test'
+  ...
+# Subtest: first collapsed host reads only display choices and cannot persist them as geometry
+ok 241 - first collapsed host reads only display choices and cannot persist them as geometry
+  ---
+  duration_ms: 0.07325
+  type: 'test'
+  ...
+# Subtest: display-only activation never reinitializes an open private editor; consent activation retains its guard
+ok 242 - display-only activation never reinitializes an open private editor; consent activation retains its guard
+  ---
+  duration_ms: 1.950541
+  type: 'test'
+  ...
+# Subtest: initial connected orb already has the saved accessible language and theme before its first animation frame
+ok 243 - initial connected orb already has the saved accessible language and theme before its first animation frame
+  ---
+  duration_ms: 0.505208
+  type: 'test'
+  ...
+# Subtest: only an authenticated private frame selects a strict device-local collapsed form
+ok 244 - only an authenticated private frame selects a strict device-local collapsed form
+  ---
+  duration_ms: 0.296708
+  type: 'test'
+  ...
+# Subtest: private close relays only the original nonce-bound host form, never a child-selected or stale form
+ok 245 - private close relays only the original nonce-bound host form, never a child-selected or stale form
+  ---
+  duration_ms: 0.360375
+  type: 'test'
+  ...
+# Subtest: explicit local resolves exact two parents, canonical proof and outbox together
+ok 246 - explicit local resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 58.8775
+  type: 'test'
+  ...
+# Subtest: explicit other resolves exact two parents, canonical proof and outbox together
+ok 247 - explicit other resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 30.691917
+  type: 'test'
+  ...
+# Subtest: explicit manual resolves exact two parents, canonical proof and outbox together
+ok 248 - explicit manual resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 28.862833
+  type: 'test'
+  ...
+# Subtest: explicit both resolves exact two parents, canonical proof and outbox together
+ok 249 - explicit both resolves exact two parents, canonical proof and outbox together
+  ---
+  duration_ms: 27.706625
+  type: 'test'
+  ...
+# Subtest: unrelated pins conflict is retained without whole-aggregate choice
+ok 250 - unrelated pins conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 16.054625
+  type: 'test'
+  ...
+# Subtest: unrelated other-body conflict is retained without whole-aggregate choice
+ok 251 - unrelated other-body conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 16.973458
+  type: 'test'
+  ...
+# Subtest: unrelated hidden conflict is retained without whole-aggregate choice
+ok 252 - unrelated hidden conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 16.432792
+  type: 'test'
+  ...
+# Subtest: unrelated split conflict is retained without whole-aggregate choice
+ok 253 - unrelated split conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 14.939083
+  type: 'test'
+  ...
+# Subtest: unrelated binding-proof conflict is retained without whole-aggregate choice
+ok 254 - unrelated binding-proof conflict is retained without whole-aggregate choice
+  ---
+  duration_ms: 17.450834
+  type: 'test'
+  ...
+# Subtest: review head change cannot commit stale human decision
+ok 255 - review head change cannot commit stale human decision
+  ---
+  duration_ms: 20.627167
+  type: 'test'
+  ...
+# Subtest: review epoch change cannot commit stale human decision
+ok 256 - review epoch change cannot commit stale human decision
+  ---
+  duration_ms: 18.34425
+  type: 'test'
+  ...
+# Subtest: review namespace change cannot commit stale human decision
+ok 257 - review namespace change cannot commit stale human decision
+  ---
+  duration_ms: 17.682416
+  type: 'test'
+  ...
+# Subtest: review revision change cannot commit stale human decision
+ok 258 - review revision change cannot commit stale human decision
+  ---
+  duration_ms: 18.391625
+  type: 'test'
+  ...
+# Subtest: review proof change cannot commit stale human decision
+ok 259 - review proof change cannot commit stale human decision
+  ---
+  duration_ms: 25.184625
+  type: 'test'
+  ...
+# Subtest: review generation change cannot commit stale human decision
+ok 260 - review generation change cannot commit stale human decision
+  ---
+  duration_ms: 26.470875
+  type: 'test'
+  ...
+# Subtest: corrupt committed operation fails digest validation before displaying an offer
+ok 261 - corrupt committed operation fails digest validation before displaying an offer
+  ---
+  duration_ms: 14.426042
+  type: 'test'
+  ...
+# Subtest: proof-failure rolls back preferences, heads, proof and outbox
+ok 262 - proof-failure rolls back preferences, heads, proof and outbox
+  ---
+  duration_ms: 21.200458
+  type: 'test'
+  ...
+# Subtest: late-owner-write rolls back preferences, heads, proof and outbox
+ok 263 - late-owner-write rolls back preferences, heads, proof and outbox
+  ---
+  duration_ms: 20.566209
+  type: 'test'
+  ...
+# Subtest: forged token, sender, unsupported text, replaced journal and consent all refuse without writes
+ok 264 - forged token, sender, unsupported text, replaced journal and consent all refuse without writes
+  ---
+  duration_ms: 22.74375
+  type: 'test'
+  ...
+# Subtest: ordinary local service exposes no resolution offer without its original journal
+ok 265 - ordinary local service exposes no resolution offer without its original journal
+  ---
+  duration_ms: 20.356917
+  type: 'test'
+  ...
+# Subtest: original control change after prepare refuses before the write; an old offer cannot be renewed
+ok 266 - original control change after prepare refuses before the write; an old offer cannot be renewed
+  ---
+  duration_ms: 20.911708
+  type: 'test'
+  ...
+# Subtest: late gate change in the write rolls back the entire resolution
+ok 267 - late gate change in the write rolls back the entire resolution
+  ---
+  duration_ms: 22.66675
+  type: 'test'
+  ...
+# Subtest: late control-cache change in the write rolls back the entire resolution
+ok 268 - late control-cache change in the write rolls back the entire resolution
+  ---
+  duration_ms: 19.799542
+  type: 'test'
+  ...
+# Subtest: private surface rechecks offer after host/display awaits; host never receives either body
+ok 269 - private surface rechecks offer after host/display awaits; host never receives either body
+  ---
+  duration_ms: 1.127917
+  type: 'test'
+  ...
+# Subtest: one authorized resolution dispatch emits one change only after success; host cannot resolve
+ok 270 - one authorized resolution dispatch emits one change only after success; host cannot resolve
+  ---
+  duration_ms: 0.166208
+  type: 'test'
+  ...
+# Subtest: both literal bodies stay visible and manual unchanged CRLF stays exact
+ok 271 - both literal bodies stay visible and manual unchanged CRLF stays exact
+  ---
+  duration_ms: 5.992958
+  type: 'test'
+  ...
+# Subtest: composition and deferred decision do not submit; both selection is explicit
+ok 272 - composition and deferred decision do not submit; both selection is explicit
+  ---
+  duration_ms: 0.123208
+  type: 'test'
+  ...
+# Subtest: failure preserves edited body, disables stale resolution, and does not retry
+ok 273 - failure preserves edited body, disables stale resolution, and does not retry
+  ---
+  duration_ms: 0.089125
+  type: 'test'
+  ...
+# Subtest: rejected submit leaves draft and allows only explicit later cancellation
+ok 274 - rejected submit leaves draft and allows only explicit later cancellation
+  ---
+  duration_ms: 0.217542
+  type: 'test'
+  ...
+# Subtest: committed replyLoss is unconfirmed, retains draft and never resubmits
+ok 275 - committed replyLoss is unconfirmed, retains draft and never resubmits
+  ---
+  duration_ms: 0.224291
+  type: 'test'
+  ...
+# Subtest: committed doneFailure is unconfirmed, retains draft and never resubmits
+ok 276 - committed doneFailure is unconfirmed, retains draft and never resubmits
+  ---
+  duration_ms: 0.085166
+  type: 'test'
+  ...
+# Subtest: disposed pending ACK never updates detached pane or calls completion
+ok 277 - disposed pending ACK never updates detached pane or calls completion
+  ---
+  duration_ms: 0.143541
+  type: 'test'
+  ...
+# Subtest: disposed pending rejection never updates detached pane or calls completion
+ok 278 - disposed pending rejection never updates detached pane or calls completion
+  ---
+  duration_ms: 0.058875
+  type: 'test'
+  ...
+# Subtest: detached original pane without pagehide also refuses late completion
+ok 279 - detached original pane without pagehide also refuses late completion
+  ---
+  duration_ms: 0.223333
+  type: 'test'
+  ...
+# Subtest: Cancel starts the original refresh; an immediate host Close is deliberately refused until its query settles
+ok 280 - Cancel starts the original refresh; an immediate host Close is deliberately refused until its query settles
+  ---
+  duration_ms: 2.205959
+  type: 'test'
+  ...
+# Subtest: an original query failure releases pending without saving or auto-closing; one later explicit Close remains valid
+ok 281 - an original query failure releases pending without saving or auto-closing; one later explicit Close remains valid
+  ---
+  duration_ms: 0.717
+  type: 'test'
+  ...
+# Subtest: dirty and active IME guards still reject Close without any query or write
+ok 282 - dirty and active IME guards still reject Close without any query or write
+  ---
+  duration_ms: 0.140375
+  type: 'test'
+  ...
+# Subtest: native helper waits for the original query, retains one frame and performs exactly one acknowledged host gesture
+ok 283 - native helper waits for the original query, retains one frame and performs exactly one acknowledged host gesture
+  ---
+  duration_ms: 0.785416
+  type: 'test'
+  ...
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 284 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 2.78425
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 285 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 1.041083
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 286 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 0.598042
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 287 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 0.436292
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 288 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 0.522709
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 289 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.342541
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 290 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 0.961792
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 291 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.284375
+  type: 'test'
+  ...
+# Subtest: shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+ok 292 - shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+  ---
+  duration_ms: 0.810042
+  type: 'test'
+  ...
+# Subtest: pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+ok 293 - pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+  ---
+  duration_ms: 39.042792
+  type: 'test'
+  ...
+# Subtest: same actual store journals feed original durable publication; no whole archive completion claim
+ok 294 - same actual store journals feed original durable publication; no whole archive completion claim
+  ---
+  duration_ms: 70.173125
+  type: 'test'
+  ...
+# Subtest: lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+ok 295 - lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+  ---
+  duration_ms: 53.188958
+  type: 'test'
+  ...
+# Subtest: pause during committed POST fences late response and explicit same task continuation first reconciles it
+ok 296 - pause during committed POST fences late response and explicit same task continuation first reconciles it
+  ---
+  duration_ms: 44.377042
+  type: 'test'
+  ...
+# Subtest: binding generation change and foreign account block old pending upload without retargeting it
+ok 297 - binding generation change and foreign account block old pending upload without retargeting it
+  ---
+  duration_ms: 49.822375
+  type: 'test'
+  ...
+# Subtest: durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+ok 298 - durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+  ---
+  duration_ms: 24.395208
+  type: 'test'
+  ...
+# Subtest: second owner and state changes are refused, malformed provider binding never installs journals
+ok 299 - second owner and state changes are refused, malformed provider binding never installs journals
+  ---
+  duration_ms: 11.977417
+  type: 'test'
+  ...
+# Subtest: wrong task command does not mutate pending identity or conceal original failure
+ok 300 - wrong task command does not mutate pending identity or conceal original failure
+  ---
+  duration_ms: 29.33825
+  type: 'test'
+  ...
+# Subtest: existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+ok 301 - existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+  ---
+  duration_ms: 100.023375
+  type: 'test'
+  ...
+# Subtest: suspend cancellation reconciles local state without IO or automatic continuation
+ok 302 - suspend cancellation reconciles local state without IO or automatic continuation
+  ---
+  duration_ms: 39.539291
+  type: 'test'
+  ...
+# Subtest: cold recovery of original confirmed publication receipt needs no remote request
+ok 303 - cold recovery of original confirmed publication receipt needs no remote request
+  ---
+  duration_ms: 43.612458
+  type: 'test'
+  ...
+# Subtest: remote loss after original verified cut never causes silently recreating it
+ok 304 - remote loss after original verified cut never causes silently recreating it
+  ---
+  duration_ms: 43.086875
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=false
+ok 305 - actual worker synchronous events and same-store command consumer, configured=false
+  ---
+  duration_ms: 71.752125
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=true
+ok 306 - actual worker synchronous events and same-store command consumer, configured=true
+  ---
+  duration_ms: 75.826375
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=restore
+ok 307 - actual worker synchronous events and same-store command consumer, configured=restore
+  ---
+  duration_ms: 114.316
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge
+ok 308 - actual worker synchronous events and same-store command consumer, configured=purge
+  ---
+  duration_ms: 79.337083
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge-unknown
+ok 309 - actual worker synchronous events and same-store command consumer, configured=purge-unknown
+  ---
+  duration_ms: 76.740541
+  type: 'test'
+  ...
+# Subtest: OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+ok 310 - OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+  ---
+  duration_ms: 37.027583
+  type: 'test'
+  ...
+# Subtest: interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+ok 311 - interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+  ---
+  duration_ms: 87.716125
+  type: 'test'
+  ...
+# Subtest: configured capture owner always includes original permanent-denial journal
+ok 312 - configured capture owner always includes original permanent-denial journal
+  ---
+  duration_ms: 12.46175
+  type: 'test'
+  ...
+# Subtest: Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+ok 313 - Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+  ---
+  duration_ms: 0.223666
+  type: 'test'
+  ...
+# Subtest: configured actions still require original consent; status and stop remain non-transferring
+ok 314 - configured actions still require original consent; status and stop remain non-transferring
+  ---
+  duration_ms: 13.229375
+  type: 'test'
+  ...
+# Subtest: explicit pause during original preparation fences its transaction checkpoint before any transfer
+ok 315 - explicit pause during original preparation fences its transaction checkpoint before any transfer
+  ---
+  duration_ms: 26.820334
+  type: 'test'
+  ...
+1..315
+# tests 315
+# suites 0
+# pass 315
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 39848.808334
