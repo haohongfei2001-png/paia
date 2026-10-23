@@ -1,0 +1,9 @@
+{
+  "extension/core/browser-native-sync/canonical-generation-human-restore.js": "bdbccefe45160a15e143df281e703d74c5cbf9836efc3a05266affabbf9b5523",
+  "extension/core/browser-native-sync/human-library-group.js": "32222df5009911879fd035021b3411e5c4fd6cff9b464fa1d94949538a5388b5",
+  "extension/core/browser-native-sync/human-library-plan.js": "7e20bac9f79d69719c1407853fb6bd095a0ddf03f3cfeba726845e9b8f0c9f84",
+  "extension/core/browser-native-sync/human-library-search-proof.js": "105c65d9b2d9793accb9df6026bb70063822958dabf2fe741953db9eccbb9f76",
+  "extension/core/ia-store-owner.js": "7e687234e1f41a73a73adde30e9445af381b887ee27b3118bbe67e077f0b67c2",
+  "extension/core/library-documents-owner.js": "7bd13c65dac04a3a2bedf904507997603aa57dbddaf53021e807c7ad34c6e419",
+  "extension/tests/canonical-generation-human-restore.test.mjs": "650122821eed5a88ec9fe46417e1b29913a5672ca81a67bbe3b89d48f302ed3b"
+}

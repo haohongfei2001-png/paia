@@ -1,3 +1,5 @@
+import {isOriginalHumanGenerationTransaction} from './human-library-group.js';
+import {readGroupRows} from './group-page-reader.js';
 import {ownerVersion,planSearchQueueLocator,planSearchPostings,planSearchPostingRow} from '../library-search.js';
 import {humanSearchPlanWitness,branchRawMeasure,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeSearchInputs} from './human-library-plan.js';
 import {bytes,clone,equal,fail} from './value.js';
@@ -14,7 +16,7 @@ async function read(store,core,t){
  const raw={coreIdentity:{datasetId:core.datasetId,deviceId:core.deviceId,prefix:core.prefix,fixedNamespace:core.fixedNamespace},namespace:await core.bind(t),rows:{}};
  for(const [name,limit]of Object.entries(limits)){
   if(await t.count(name)>limit)fail('BNS_HUMAN_GRAPH_LIMIT');
-  raw.rows[name]=sort(await t.all(name));
+  raw.rows[name]=sort(isOriginalHumanGenerationTransaction(t)?await readGroupRows(t,name):await t.all(name));
  }
  raw.rebuild=await t.get('meta','library-search-rebuild')??null;
  if(bytes(raw).length>4*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');

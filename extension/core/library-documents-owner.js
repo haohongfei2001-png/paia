@@ -1,3 +1,5 @@
+import {isOriginalHumanGenerationTransaction} from './browser-native-sync/human-library-group.js';
+async function generationPlacementRows(store,t,id){if(!isOriginalHumanGenerationTransaction(t))return t.all('placements','byEntry',prefix([id]));const rows=[];let after=null;do{const page=await t.rangePage('placements','byEntry',prefix([id]),after,100);rows.push(...page.rows.map(x=>x.value));after=page.next;}while(after!==null);return rows;}
 import {ArchiveError} from './constants.js';
 import {humanClock,humanPreparedGeneration} from './browser-native-sync/human-library-allocation.js';
 import {removedPlacements,restoreRemovedPlacement} from './removed-placements.js';
@@ -79,7 +81,7 @@ export function originalLibraryDocumentsConstructor(){
   for(const id of [request.topicId,...(request.changes?.name!==undefined||request.name!==undefined?[request.id]:[])].filter(Boolean)){const topic=await t.get('topics',id);if(topic?.layoutJobId&&!request.layoutInternal)return {conflict:true,organizationBusy:true};}
   const result=await fn(t);if(result.conflict)return result;
   const ids=new Set([result.id,request.entryId,...(result.items||[]).map(x=>x.id)].filter(Boolean));
-  for(const id of ids){const e=await t.get('thoughts',id);if(e?.storageSchema===2){await queueSearch(t,'entry',e);for(const p of await t.all('placements','byEntry',prefix([id]))){const topic=await t.get('topics',p.topicId);if(topic?.activeLayoutGeneration===p.layoutGeneration)await this.touchTopic(t,topic);}}const topic=await t.get('topics',id);if(topic){await queueSearch(t,'topic',topic);await this.touchTopic(t,topic);}}
+  for(const id of ids){const e=await t.get('thoughts',id);if(e?.storageSchema===2){await queueSearch(t,'entry',e);for(const p of await generationPlacementRows(this,t,id)){const topic=await t.get('topics',p.topicId);if(topic?.activeLayoutGeneration===p.layoutGeneration)await this.touchTopic(t,topic);}}const topic=await t.get('topics',id);if(topic){await queueSearch(t,'topic',topic);await this.touchTopic(t,topic);}}
   if(request.topicId){const topic=await t.get('topics',request.topicId);if(topic)await this.touchTopic(t,topic);}
   const sectionId=result.sectionId||request.sectionId;if(sectionId){const topic=await t.get('topics',request.topicId||result.id);if(topic){const row=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,sectionId]));if(row)await queueSearch(t,'section',row);}}
   return result;

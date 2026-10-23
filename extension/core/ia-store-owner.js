@@ -1,3 +1,4 @@
+import {isOriginalHumanGenerationTransaction} from './browser-native-sync/human-library-group.js';
 import {humanPruneTime} from './browser-native-sync/human-library-allocation.js';
 import {sourceAppendPlan} from './browser-native-sync/source-append-plan.js';
 import {initialSourcePlan} from './browser-native-sync/source-bootstrap-plan.js';
@@ -85,7 +86,7 @@ export function originalIAConstructor(){
   // Per-entity traversal, newest first; preserve ALL younger entries OR latest 20 important.
   const workingTime=this.inputWorkingJournal?.pruneTime(t)??null,humanTime=this.humanLibraryJournal?.pruneTime(t)??humanPruneTime(this,t);if(workingTime!==null&&humanTime!==null)throw new ArchiveError('BNS_HISTORY_OWNER_CONFLICT');
   const tx=t.tx.objectStore('revisions'),range=prefix([key]),cutoff=Date.parse(humanTime??workingTime??this.clock())-REVISION_POLICY.days*86400000;let important=0;
-  if(bounded){
+  if(bounded||isOriginalHumanGenerationTransaction(t)){
    // Explicit bounded lifecycle path: the same newest-first retention rule,
    // using original Repository reads/deletes so its private work limit meters
    // each physical row and operand. No history is exposed to the evaluator.

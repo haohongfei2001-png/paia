@@ -1,0 +1,4 @@
+Node: /Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node (22.23.3)
+--test canonical-generation-human-restore, canonical-generation-checkpoint-stage, canonical-generation-publication, browser-native-sync-human-library-group, browser-native-sync-human-library-journal, browser-native-sync-human-library-search-proof, browser-native-sync-human-library-indexed-journal, browser-native-sync-human-library-derived-refusal (extension/tests/*.test.mjs)
+Result: 107/107, exit0, fail/cancel/skip/todo=0, TAP 4043.667542 ms
+No runtime edits after this execution.
