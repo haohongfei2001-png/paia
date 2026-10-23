@@ -2,7 +2,7 @@ import {validateSourceLinkedDescriptor} from './source-linked-evidence.js';
 import {planHumanEntryEvidence} from '../thought-store-owner.js';
 import {originalCurrentMixedGroupCore} from './group-checkpoint-plan.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
-import {localHumanTopicIdentity,localHumanSuppression} from './human-library-identity.js';
+import {localHumanTopicIdentity,localHumanSuppression,localSourceSuppression} from './human-library-identity.js';
 import {requireGroupHumanCompilationInput} from './group-checkpoint-scope.js';
 import {normalizePhysical} from './human-library-journal.js';
 import {keyedHash} from '../thought-model.js';
@@ -22,7 +22,7 @@ export function measureOriginalMixedWireNames(plan){
  return Object.freeze(measureSourceWorkingPhysicalTree([...names.values()]));
 }
 export function compileHumanScope(plan){
- const linked=plan.groups.some(group=>group.type==='humanLibraryCommit'&&group.prepared.members.some(op=>op.value.entityType==='sourceLink'));const maps=Object.fromEntries([...Object.keys(types),'history',...(linked?['sourceLink']:[])].map(type=>[type,new Map()])),names=new Map(),mixed=originalCurrentMixedGroupCore(plan);
+ const linked=plan.groups.some(group=>group.type==='humanLibraryCommit'&&group.prepared.members.some(op=>op.value.entityType==='sourceLink'));const maps=Object.fromEntries([...Object.keys(types),'history',...(linked?['sourceLink']:[]),...(plan.groups.some(group=>group.type==='humanLibraryCommit'&&group.prepared.members.some(op=>op.value.entityType==='sourceSuppression'))?['sourceSuppression']:[])].map(type=>[type,new Map()])),names=new Map(),mixed=originalCurrentMixedGroupCore(plan);
  for(const group of plan.groups)if(group.type==='humanLibraryCommit')for(const op of group.prepared.members){const {entityType:type,after}=op.value;maps[type].set(after.id,mixed?after:clone(after));if(type==='topic')observeHumanScopeNames(names,after);}
  return {rows:Object.fromEntries(Object.entries(maps).map(([type,map])=>[type,sort([...map.values()])])),names:[...names.values()].sort((a,b)=>a.name.localeCompare(b.name))};
 }
@@ -36,7 +36,7 @@ export async function prepareHumanScopeProof(store,scope,wire,nativeMixedCompila
  // A failed compilation must not abandon a later live crypto operand. Keep
  // the original native work ticket through each actual keyed-hash settlement
  // and authenticate its current cut before starting the next suppression.
- const suppression=[];for(const row of rows.suppression){suppression.push(await localHumanSuppression(row,secret));current();}rows.suppression=suppression;
+ const suppression=[];for(const row of rows.suppression){suppression.push(await localHumanSuppression(row,secret));current();}for(const row of rows.sourceSuppression??[])suppression.push(await localSourceSuppression(row,secret));rows.suppression=sort(suppression);
  const names=[];for(const row of wire.names){const token=await keyedHash(secret,['personal-topic-name-v1',row.name]);current();names.push({id:'personalTopicName:'+token,version:1,topicIds:row.topicIds});}
  const normalized=Object.fromEntries(Object.entries(rows).map(([type,items])=>[type,items.map(row=>normalizePhysical(type,row))]));if(proofs.get(scope)!==previous)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');proofs.set(scope,{store,secret,rows:normalized,names:sort(names),pairs:sort(rows.keepSeparate),linkedEpoch,provenance:sort(provenance),dependencies:sort(dependencies)});
  return normalized.history;

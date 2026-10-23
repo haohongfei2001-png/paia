@@ -1,14 +1,14 @@
-import {validateSourceLinkedDescriptor} from './source-linked-evidence.js';
+import {validateSourceLinkedDescriptor,validateSourceLinkedEvidence} from './source-linked-evidence.js';
 import {validateHumanAllocationEvents} from './human-library-allocation.js';
 import {validateHumanRequestOrder} from './human-library-request.js';
 import {keyedHash} from '../thought-model.js';
 import {clone,exact,plain,identifier,hash,count,fail,equal} from './value.js';
-import {validatePortableHumanIdentity,portableHumanTopicIdentity,portableHumanSuppression} from './human-library-identity.js';
+import {validatePortableHumanIdentity,portableHumanTopicIdentity,portableHumanSuppression,portableSourceSuppression} from './human-library-identity.js';
 import {safeJSON} from '../backup-format.js';
 // This required family is a typed description, not permission to write domain
 // rows. Only a complete, revalidated named-owner plan may materialize it.
-export const HUMAN_LIBRARY_TYPES=Object.freeze(['entry','topic','section','placement','history','suppression','keepSeparate','sourceLink']);
-export const HUMAN_LIBRARY_KINDS=Object.freeze(['topic','topic-edit','section','section-edit','entry','entry-edit','source-entry','source-entry-edit','entry-remove','entry-restore','placement','move','fixed','topic-lifecycle','keep']);
+export const HUMAN_LIBRARY_TYPES=Object.freeze(['entry','topic','section','placement','history','suppression','keepSeparate','sourceLink','sourceSuppression']);
+export const HUMAN_LIBRARY_KINDS=Object.freeze(['topic','topic-edit','section','section-edit','entry','entry-edit','source-entry','source-entry-edit','source-entry-remove','source-entry-restore','entry-remove','entry-restore','placement','move','fixed','topic-lifecycle','keep']);
 const all=(v,k)=>exact(v,k)&&Object.keys(v).length===k.length;
 const fields={
  entry:'id storageSchema title thoughtText note family type formation origin revision contentRevision fieldRevisions organizationRevision dependencyRevision createdAt updatedAt createdSequence updatedSequence hasHumanAction userEdited protections authorship organizationIntents lifecycle freshness integrity staleReasons sourceRecordIds inputRefs topics types bodyBinding provenanceType lifecycleKey activeKey listKey negativeUpdatedSequence searchVersion thoughtEditedAt',
@@ -19,6 +19,7 @@ const fields={
  suppression:'id deletedEntryId lineageId removedAt operationId status scopeVersion scopeTokens evidenceVersionTokens noveltyRuleVersion signatureInput',
  keepSeparate:'id sourceId targetId actor revision scope at',
  sourceLink:'id version evidence provenanceId generationId at',
+ sourceSuppression:'id deletedEntryId lineageId removedAt operationId status scopeVersion noveltyRuleVersion signatureInput sourceEvidence',
 };
 const forbidLocal=(value,depth=0)=>{if(depth>32)fail('BNS_HUMAN_CODEC_INVALID');if(!value||typeof value!=='object')return;for(const [key,item]of Object.entries(value)){if(['indexedSearchVersion','exactSignature','exactKey','nameToken','scopeToken','versionToken','recoveryPurgeRevision','recoveryGeneration','thought-suppression-key'].includes(key))fail('BNS_HUMAN_CODEC_INVALID');forbidLocal(item,depth+1);}};
 export function validateHumanLibraryEntity(type,value){
@@ -33,6 +34,7 @@ export function validateHumanLibraryEntity(type,value){
  if(type==='history'&&(!['library_entry','topic','section','placement','membership_intent'].includes(value.kind)||!identifier(value.entityId)||!identifier(value.operationId)||value.actor!=='user'||!Array.isArray(value.fieldMask)||!value.fieldMask.length||!Array.isArray(value.sourceRecordIds)||value.sourceRecordIds.length>1||value.sourceRecordIds.some(id=>!identifier(id))||value.sourceRecordIds.length&&value.kind!=='library_entry'||!count(value.sequence)||typeof value.important!=='boolean'||typeof value.at!=='string'||!Number.isFinite(Date.parse(value.at))))fail('BNS_HUMAN_CODEC_INVALID');
  if(type==='suppression'&&(!identifier(value.deletedEntryId)||value.lineageId!==value.deletedEntryId||!identifier(value.operationId)||!['active','restored'].includes(value.status)||value.scopeVersion!==1||value.noveltyRuleVersion!==1||!Array.isArray(value.scopeTokens)||value.scopeTokens.length||!Array.isArray(value.evidenceVersionTokens)||value.evidenceVersionTokens.length||!all(value.signatureInput,['body','type'])||typeof value.signatureInput.body!=='string'||typeof value.signatureInput.type!=='string'))fail('BNS_HUMAN_CODEC_INVALID');
  if(type==='sourceLink')validateSourceLinkedDescriptor(value);
+ if(type==='sourceSuppression'){validateSourceLinkedEvidence(value.sourceEvidence);validateHumanLibraryEntity('suppression',{...Object.fromEntries(Object.entries(value).filter(([key])=>key!=='sourceEvidence')),scopeTokens:[],evidenceVersionTokens:[]});}
  if(type==='keepSeparate'&&(!identifier(value.sourceId)||!identifier(value.targetId)||value.sourceId===value.targetId||value.actor!=='user'||value.revision!==1||value.scope!=='identity'||typeof value.at!=='string'||!Number.isFinite(Date.parse(value.at))))fail('BNS_HUMAN_CODEC_INVALID');return value;
 }
 export function validateHumanLibraryMember(v){
@@ -53,6 +55,7 @@ export async function portableHumanEntity(type,row,histories,secret){
  if(type==='entry'){if(value.exactSignature!==await keyedHash(secret,['body',value.type,value.thoughtText]))fail('BNS_HUMAN_IDENTITY_UNPROVEN');delete value.exactSignature;}
  if(type==='topic')value.identity=await portableHumanTopicIdentity(row,histories,secret);
  if(type==='history'&&value.kind==='topic'){for(const side of ['before','after'])if(value[side])value[side]={...value[side],identity:await portableHumanTopicIdentity(value[side],histories,secret)};}
+ if(type==='sourceSuppression')return validateHumanLibraryEntity(type,await portableSourceSuppression(row,histories,secret));
  if(type==='suppression')return validateHumanLibraryEntity(type,await portableHumanSuppression(row,histories,secret));
  return validateHumanLibraryEntity(type,value);
 }
