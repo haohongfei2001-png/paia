@@ -24,8 +24,9 @@ const handles=new WeakMap(),seals=new WeakMap(),bases=new WeakMap(),repositoryAu
 export function readOriginalPublicationRepositoryAuthority(token,repository,scope){
  const r=repositoryAuthorities.get(token);if(!r)return null;if(r.repository!==repository||r.name!==repository.name||r.factory!==repository.factory||scope!==null&&(repository.db!==scope.tx.db||r.scope!==null&&r.scope!==scope))fail('GENERATION_REPOSITORY_WRITE_DENIED');if(scope!==null&&r.scope===null)r.scope=scope;return r.authority;
 }
-async function publicationTransaction(repository,fn,stores=['meta'],kind='publication'){
- const token=Object.freeze(Object.create(null));repositoryAuthorities.set(token,{repository,name:repository.name,factory:repository.factory,scope:null,authority:Object.freeze({kind})});try{return await originalGenerationRepositoryTransaction(repository,token,fn,stores);}finally{repositoryAuthorities.delete(token);}
+export function readOriginalPublicationClosureWork(token,repository,scope){const r=repositoryAuthorities.get(token);if(!r?.qualified)return null;readOriginalPublicationRepositoryAuthority(token,repository,scope);if(r.authority.kind!=='publication-phased-human-seal')fail('GENERATION_REPOSITORY_WRITE_DENIED');return phasedHuman.readOriginalPhasedHumanPublicationClosureWork(r.qualified.restore,r.qualified.proof,repository,scope);}
+async function publicationTransaction(repository,fn,stores=['meta'],kind='publication',qualified=null){
+ const token=Object.freeze(Object.create(null));repositoryAuthorities.set(token,{repository,name:repository.name,factory:repository.factory,scope:null,qualified,authority:Object.freeze({kind})});try{return await originalGenerationRepositoryTransaction(repository,token,fn,stores);}finally{repositoryAuthorities.delete(token);}
 }
 
 const fail=(code='GENERATION_INVALID')=>{throw new ArchiveError(code);};
@@ -132,7 +133,7 @@ export class CanonicalGenerationPublication {
    const qualification={id:qualifiedGraph,version:1,kind:human==='phased'?'original-phased-human':human?'original-human':'original-group',identity:held.identity,seal:selected,sourceBase:packet.sourceBase};if(await t.get('meta',qualifiedGraph))fail('GENERATION_CHANGED');await t.put('meta',qualification);
    let actual;try{actual=await validate(restore,proof,t);}catch(error){if(error instanceof SyncError)validationError=error;throw error;}if(!equal(actual,{manifestId:selected.manifestId,graphDigest:selected.graphDigest,generationIdentity:held.identity}))fail('GENERATION_CHANGED');
    const after={...before,phase:'sealed',seal:selected};await t.put('meta',after);sealPoint(held.repository,t,after.id,after);sealPoint(held.repository,t,qualifiedGraph,qualification);return after;
-  },held.repository.stores,human==='phased'?'publication-phased-human-seal':'publication-seal').catch(error=>{throw validationError??error;});if(human==='phased')phasedHuman.completeOriginalPhasedHumanPublication(restore,proof);const token=Object.freeze(Object.create(null));seals.set(token,{owner:this,handle,gate,base:this.sourceBaseSnapshot(base)});return token;
+  },held.repository.stores,human==='phased'?'publication-phased-human-seal':'publication-seal',human==='phased'?{restore,proof}:null).catch(error=>{throw validationError??error;});if(human==='phased')phasedHuman.completeOriginalPhasedHumanPublication(restore,proof);const token=Object.freeze(Object.create(null));seals.set(token,{owner:this,handle,gate,base:this.sourceBaseSnapshot(base)});return token;
  }
  async stagingWrite(handle,fn,authority=null,stores=undefined){return this.#writeGeneration(handle,'staging',fn,authority,stores);}
  async activeWrite(handle,fn){return this.#writeGeneration(handle,'active',fn);}

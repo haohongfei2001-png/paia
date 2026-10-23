@@ -1,5 +1,5 @@
-import {originalPhasedHumanReadWork,settleOriginalPhasedHumanReadWork} from './browser-native-sync/canonical-generation-phased-human.js';
-import {prepareOriginalActiveRepositoryWrite,releaseOriginalActiveRepositoryWrite} from './browser-native-sync/canonical-generation-publication.js';
+import {originalPhasedHumanReadWork,settleOriginalPhasedHumanReadWork,readOriginalPhasedHumanClosureWork} from './browser-native-sync/canonical-generation-phased-human.js';
+import {prepareOriginalActiveRepositoryWrite,releaseOriginalActiveRepositoryWrite,readOriginalPublicationClosureWork} from './browser-native-sync/canonical-generation-publication.js';
 import {CANONICAL_REPOSITORY_PROTECTION,CANONICAL_REPOSITORY_GATE,readOriginalGenerationRepositoryAuthority,originalGenerationRepositoryAdmission,originalGenerationRepositoryMutation,originalGenerationRepositorySettlement} from './browser-native-sync/canonical-generation-repository-gate.js';
 import {measureSourceWorkingPhysicalTree} from './browser-native-sync/source-working-physical.js';
 import {sampleOriginalOrganizeMaterialFinalFacts,requireOriginalOrganizeMaterialFinalFacts} from '../background/organize-processing-policy.js';
@@ -102,15 +102,18 @@ function workCheck(record){const b=record?.workLimit;if(b&&(workClock()-b.starte
 function workCharge(scope,refs=0,value,hasValue=false){
  const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx),b=record?.workLimit;if(!b)return;if(record.scope!==scope||!sameScope(record))workRefuse(record);
  workCheck(record);b.refs+=refs;workCheck(record);
- if(hasValue){try{b.bytes+=measureSourceWorkingPhysicalTree(value,b.byteLimit).B;}catch{workRefuse(record);}workCheck(record);}
+ if(hasValue){try{b.bytes+=measureSourceWorkingPhysicalTree(value,Math.min(2*1024*1024,b.byteLimit)).B;}catch{workRefuse(record);}workCheck(record);}
 }
 function workResult(scope,value){workCharge(scope,0,value,true);return value;}
 function workRow(scope,value){workCharge(scope,1,value,true);return value;}
 function finiteWorkQuery(scope,limit){if(repositoryScopes.get(scope)?.workLimit&&(!Number.isSafeInteger(limit)||limit<1||limit>100))workRefuse(repositoryScopes.get(scope));}
 export function registerRepositoryWorkLimit(repository,scope,limits){return registerOriginalWorkLimit(repository,scope,limits,false);}
-function registerOriginalWorkLimit(repository,scope,{references=4096,bytes=2*1024*1024,ms=30000}={},readonly=false){
+function registerOriginalWorkLimit(repository,scope,{references=4096,bytes,ms=30000}={},readonly=false){
  const record=scopeRecord(repository,scope);requireRepositoryTransactionDataMethods(repository,scope);
- if(record.phase!=='callback'||record.identity.mode!==(readonly?'readonly':'readwrite')||record.terminalFailed||!Number.isSafeInteger(references)||references<1||references>4096||!Number.isSafeInteger(bytes)||bytes<1||bytes>2*1024*1024||!Number.isFinite(ms)||ms<=0||ms>30000)workRefuse(record);
+ // Only admission from the fixed original owner can install this private ceiling.
+ // Omitted internal limits preserve that ceiling; explicit limits only tighten.
+ if(bytes===undefined)bytes=record.qualifiedRecoveryWork?.bytes??2*1024*1024;
+ if(record.phase!=='callback'||record.identity.mode!==(readonly?'readonly':'readwrite')||record.terminalFailed||!Number.isSafeInteger(references)||references<1||references>4096||!Number.isSafeInteger(bytes)||bytes<1||bytes>(record.qualifiedRecoveryWork?.bytes??2*1024*1024)||!Number.isFinite(ms)||ms<=0||ms>30000)workRefuse(record);
  // Re-registration may tighten limits but never reset consumption or the clock.
  if(record.workLimit){const b=record.workLimit;b.references=Math.min(b.references,references);b.byteLimit=Math.min(b.byteLimit,bytes);b.ms=Math.min(b.ms,ms);}
  else record.workLimit={started:workClock(),references,byteLimit:bytes,ms,refs:0,bytes:0};workCheck(record);
@@ -134,7 +137,8 @@ function requireShadowMutation(scope,table,key,method){
 async function beginShadowWrite(repository,scope,record,token){
  const authority=readOriginalGenerationRepositoryAuthority(token,repository,scope);let marker,timer;try{marker=await Promise.race([scope.get('meta',CANONICAL_REPOSITORY_PROTECTION),new Promise((_,reject)=>{timer=setTimeout(()=>{record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}reject(new ArchiveError('BNS_GROUP_RESOURCE_LIMIT'));},30000);})]);}finally{clearTimeout(timer);}
  if(marker==null&&authority?.kind!=='checkpoint-install')return;
- registerRepositoryWorkLimit(repository,scope);record.workLimit.started=record.started;workCharge(scope,1,CANONICAL_REPOSITORY_PROTECTION,true);workResult(scope,marker);workCheck(record);registerRepositoryWorkLimit(repository,scope);
+ record.qualifiedRecoveryWork=readOriginalPhasedHumanClosureWork(token,repository,scope)??readOriginalPublicationClosureWork(token,repository,scope);
+ registerRepositoryWorkLimit(repository,scope,record.qualifiedRecoveryWork??undefined);record.workLimit.started=record.started;workCharge(scope,1,CANONICAL_REPOSITORY_PROTECTION,true);workResult(scope,marker);workCheck(record);registerRepositoryWorkLimit(repository,scope,record.qualifiedRecoveryWork??undefined);
  const gate=await scope.get('meta',CANONICAL_REPOSITORY_GATE);originalGenerationRepositoryAdmission(authority,marker,gate,record.identity.database.name);
  record.shadow={token,authority,marker:marker??null,gate};
  if(authority.kind==='active-library'){
