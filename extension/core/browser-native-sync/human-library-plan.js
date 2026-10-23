@@ -110,7 +110,7 @@ export function humanEntryPlan(cap){const p=plans.get(cap);if(p?.kind!=='entry')
 export async function requireHumanEntryPlan(t,cap,store,core){const p=plans.get(cap);if(p?.kind!=='entry'||p.store!==store||p.core!==core)fail('BNS_HUMAN_PLAN_REQUIRED');if(!equal(await base(store,core,t),p.entry)||await t.get('operationReceipts',p.request.operationId)||await t.get('thoughts',p.row.id))fail('BNS_HUMAN_CHANGED');for(const h of p.history)if(await t.get('revisions',h.id))fail('BNS_HUMAN_CHANGED');if(p.sourceBound){await checkEvidenceInTransaction(store,t,p.evidence);for(const row of p.provenance)if(await t.get('provenance',row.id))fail('BNS_HUMAN_CHANGED');for(const row of p.dependencies)if(await t.get('dependencies',row.id))fail('BNS_HUMAN_CHANGED');}return p.allocation;}
 
 async function editReadSet(t,id){
- const history=await t.rangePage('revisions','byList',prefix(['library_entry:'+id]),null,129);if(history.next||history.rows.length>128)fail('BNS_HUMAN_HISTORY_LIMIT');
+ const history={rows:(await boundedRows(t,'revisions','byList',prefix(['library_entry:'+id]),'BNS_HUMAN_HISTORY_LIMIT')).map(value=>({value}))};
  const placementRows=await boundedRows(t,'placements','byEntry',prefix([id])),topics=[];for(const topicId of [...new Set(placementRows.map(p=>p.topicId))])topics.push({row:await t.get('topics',topicId)??null,index:await t.get('meta','thought-read-index:v1:topic:'+topicId)??null});
  return {row:await t.get('thoughts',id)??null,history:history.rows.map(x=>x.value),placements:placementRows.length,placementRows,topics,epoch:(await t.get('meta','thought-epoch'))?.value||0,provenance:await t.count('provenance','byOwner',prefix(['entry',id])),dependencies:await t.count('dependencies','byTarget',prefix(['entry',id]))};
 }
@@ -200,7 +200,7 @@ export async function prepareHumanSectionPlan(store,core,request,entry){
 export function humanSectionPlan(cap){const p=plans.get(cap);if(p?.kind!=='section')fail('BNS_HUMAN_PLAN_REQUIRED');return {topic:clone(p.topic),section:clone(p.section),history:clone(p.history),result:clone(p.result),operationReceipt:clone(p.operationReceipt),events:clone(p.events)};}
 export async function requireHumanSectionPlan(t,cap,store,core){const p=plans.get(cap);if(p?.kind!=='section'||p.store!==store||p.core!==core)fail('BNS_HUMAN_PLAN_REQUIRED');if(!equal(await base(store,core,t),p.entry)||!equal(await sectionReadSet(t,p.topic.id),p.before.read)||await t.get('operationReceipts',p.request.operationId)||await t.get('sections',p.section.id))fail('BNS_HUMAN_CHANGED');for(const h of p.history)if(await t.get('revisions',h.id))fail('BNS_HUMAN_CHANGED');return p.allocation;}
 
-async function boundedRows(t,store,index,range){const page=await t.rangePage(store,index,range,null,129);if(page.next||page.rows.length>128)fail('BNS_HUMAN_GRAPH_LIMIT');return page.rows.map(x=>x.value);}
+async function boundedRows(t,store,index,range,code='BNS_HUMAN_GRAPH_LIMIT'){const rows=[];let after=null;do{const page=await t.rangePage(store,index,range,after,100);for(const item of page.rows){if(rows.length===128)fail(code);rows.push(item.value);}after=page.next;}while(after!==null);return rows;}
 async function placementReadSet(t,r){
  const entry=await t.get('thoughts',r.entryId)??null,placements=await boundedRows(t,'placements','byEntry',prefix([r.entryId])),topics=[];
  for(const id of [...new Set([...placements.map(p=>p.topicId),r.topicId])])topics.push({row:await t.get('topics',id)??null,index:await t.get('meta','thought-read-index:v1:topic:'+id)??null});

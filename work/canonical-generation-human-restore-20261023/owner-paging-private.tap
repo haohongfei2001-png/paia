@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: generation Human steps consume original actual receiver and cold-resume without publishing partial target
+not ok 1 - generation Human steps consume original actual receiver and cold-resume without publishing partial target
+  ---
+  duration_ms: 244.43375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-human-restore.test.mjs:21:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_GENERATION_CHANGED'
+  code: 'BNS_HUMAN_GENERATION_CHANGED'
+  stack: |-
+    Object.plan (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/browser-native-sync/canonical-generation-human-restore.js:26:187)
+    plan.next (<anonymous>)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/idb-repository.js:197:34)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/idb-repository.js:451:404)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/browser-native-sync/core.js:154:66)
+    async tx (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/browser-native-sync/canonical-generation-human-restore.js:28:49)
+    async CanonicalGenerationHumanRestore.step (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/browser-native-sync/canonical-generation-human-restore.js:41:16)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-human-restore.test.mjs:22:39)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 396.206958

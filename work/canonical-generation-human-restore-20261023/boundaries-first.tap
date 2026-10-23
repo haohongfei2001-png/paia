@@ -1,0 +1,145 @@
+TAP version 13
+# Subtest: generation Human steps consume original actual receiver and cold-resume without publishing partial target
+ok 1 - generation Human steps consume original actual receiver and cold-resume without publishing partial target
+  ---
+  duration_ms: 347.7225
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: cursor
+ok 2 - generation Human rollback: cursor
+  ---
+  duration_ms: 114.970333
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: owner_receipt
+ok 3 - generation Human rollback: owner_receipt
+  ---
+  duration_ms: 104.826833
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: human_body
+ok 4 - generation Human rollback: human_body
+  ---
+  duration_ms: 101.691792
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: history
+ok 5 - generation Human rollback: history
+  ---
+  duration_ms: 121.878084
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: gate
+ok 6 - generation Human rollback: gate
+  ---
+  duration_ms: 106.047792
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: extra_member
+ok 7 - generation Human rollback: extra_member
+  ---
+  duration_ms: 109.901
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: backup
+ok 8 - generation Human rollback: backup
+  ---
+  duration_ms: 96.477833
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: oversized
+ok 9 - generation Human rollback: oversized
+  ---
+  duration_ms: 108.674208
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: fault
+ok 10 - generation Human rollback: fault
+  ---
+  duration_ms: 112.687542
+  type: 'test'
+  ...
+# Subtest: generation Human lost committed response resumes next exact group
+ok 11 - generation Human lost committed response resumes next exact group
+  ---
+  duration_ms: 178.185709
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects version drift
+ok 12 - generation Human final receipt rejects version drift
+  ---
+  duration_ms: 190.545083
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects index drift
+ok 13 - generation Human final receipt rejects index drift
+  ---
+  duration_ms: 208.762166
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects manifestId drift
+ok 14 - generation Human final receipt rejects manifestId drift
+  ---
+  duration_ms: 183.638875
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects graphDigest drift
+ok 15 - generation Human final receipt rejects graphDigest drift
+  ---
+  duration_ms: 214.274458
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects generationIdentity drift
+ok 16 - generation Human final receipt rejects generationIdentity drift
+  ---
+  duration_ms: 201.6875
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects sourceBase drift
+ok 17 - generation Human final receipt rejects sourceBase drift
+  ---
+  duration_ms: 190.753584
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects domainOperationId drift
+ok 18 - generation Human final receipt rejects domainOperationId drift
+  ---
+  duration_ms: 185.916416
+  type: 'test'
+  ...
+# Subtest: generation Human rejects unknown protocol rows before resuming
+ok 19 - generation Human rejects unknown protocol rows before resuming
+  ---
+  duration_ms: 128.852458
+  type: 'test'
+  ...
+# Subtest: generation Human refuses forged checkpoint proof and revoked original consent
+not ok 20 - generation Human refuses forged checkpoint proof and revoked original consent
+  ---
+  duration_ms: 83.303208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-human-restore.test.mjs:40:1'
+  failureType: 'testCodeFailure'
+  error: 'INVALID_REQUEST'
+  code: 'INVALID_REQUEST'
+  stack: |-
+    LibraryDocumentsStore.consent (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/indexed-store.js:281:61)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/canonical-generation-human-restore.test.mjs:40:256)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: generation Human fixed original activation requires completed prepared original restore
+ok 21 - generation Human fixed original activation requires completed prepared original restore
+  ---
+  duration_ms: 338.133916
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 20
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3609.538542
