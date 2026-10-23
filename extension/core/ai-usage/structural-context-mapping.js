@@ -4,26 +4,37 @@ import {inputProjection} from '../thought-evidence.js';
 import {prefix,revisionOK,idOK} from '../thought-model.js';
 import {equal} from './contracts.js';
 
-// Deliberately finite: an actual human Section title edit, or the companion
+// Deliberately finite: an actual human Section title edit/restore, or the companion
 // selected Topic-name mapper, with complete current manual membership and
 // <=16 complete original Input mirrors. This is Context
 // interpretation, never Topic formation or authority to rewrite organization.
-// Empty membership, cosmetic/baseline/restore/layout/type/formation/derived/unknown cases
+// Empty membership, cosmetic/baseline/layout/type/formation/derived/unknown cases
 // remain pending. Labels never stand in for evidence bodies or independent facts.
 export const STRUCTURAL_CONTEXT_LIMIT=16;
+// A restored title is independently human-confirmed current Context material.
+// It does not inherit the separate Topic rename-reconciliation capability.
+// This positive ephemeral brand adds no persistent proof/schema field, and a
+// copied or caller-constructed mapping cannot acquire Topic eligibility.
+const topicReconciliationMappings=new WeakSet();
+export const structuralContextAllowsTopic=m=>!!m&&topicReconciliationMappings.has(m);
 const sectionSnapshot=row=>{const {searchVersion,...value}=row||{};return value;};
 const normalized=x=>typeof x==='string'?x.trim().replace(/\s+/g,' '):null;
 export async function readStructuralContext(store,t,d){
- if(d?.kind==='topic')return readTopicContext(store,t,d);
+ if(d?.kind==='topic'){const mapping=await readTopicContext(store,t,d);if(mapping)topicReconciliationMappings.add(mapping);return mapping;}
  if(d?.kind!=='section'||d.removed||d.fenceOnly||d.independent||!idOK(d.entityId)||!idOK(d.topicId))return null;
  const row=await t.get('sections',d.recordId),topic=await t.get('topics',d.topicId),j=await t.get('revisions',d.journalId);
  if(!row||row.id!==JSON.stringify([d.topicId,d.layoutGeneration,d.entityId])||row.sectionId!==d.entityId||row.topicId!==d.topicId||row.layoutGeneration!==d.layoutGeneration||row.revision!==d.revision||row.lifecycle!=='active'||row.activeKey!==0||row.redirectTo||!topic||topic.lifecycle!=='active'||topic.redirectTo||topic.layoutJobId||topic.identity?.noRecreation||topic.activeLayoutGeneration!==d.layoutGeneration||!revisionOK(topic.revision)||!revisionOK(topic.organizationRevision))return null;
- if(j?.kind!=='section'||j.actor!=='user'||j.reason!=='rename'||j.important!==true||j.entityId!==d.entityId||j.documentId!==d.topicId||j.entityKey!=='section:'+d.entityId||!equal(j.fieldMask,['title'])||!equal(sectionSnapshot(j.after),sectionSnapshot(row))||j.afterRevision!==row.revision||!revisionOK(j.baseRevision)||j.afterRevision!==j.baseRevision+1||j.before?.revision!==j.baseRevision||!j.before||j.before.id!==row.id||j.before.lifecycle!=='active'||normalized(j.before.title)===normalized(row.title)||typeof row.title!=='string'||row.title.length>300||!idOK(j.operationId)||!equal([...(j.sourceRecordIds||[])].sort(),d.sourceRecordIds)||!await store.sourcePresent(t,j.sourceRecordIds||[]))return null;
+ if(j?.kind!=='section'||j.actor!=='user'||!['rename','restore'].includes(j.reason)||j.important!==true||j.entityId!==d.entityId||j.documentId!==d.topicId||j.entityKey!=='section:'+d.entityId||!equal(j.fieldMask,['title'])||!equal(sectionSnapshot(j.after),sectionSnapshot(row))||j.afterRevision!==row.revision||!revisionOK(j.baseRevision)||j.afterRevision!==j.baseRevision+1||j.before?.revision!==j.baseRevision||!j.before||j.before.id!==row.id||j.before.lifecycle!=='active'||normalized(j.before.title)===normalized(row.title)||typeof row.title!=='string'||row.title.length>300||!idOK(j.operationId)||!equal([...(j.sourceRecordIds||[])].sort(),d.sourceRecordIds)||!await store.sourcePresent(t,j.sourceRecordIds||[]))return null;
  const latest=await t.edge('revisions','byList',prefix(['section:'+d.entityId]),'prev');
  const human=row.authorship?.title,protection=row.protections?.title;
  if(latest?.id!==j.id||human?.actor!=='user'||human.everHumanConfirmed!==true||human.operationId!==j.operationId||protection?.locked!==true||protection.operationId!==j.operationId||protection.at!==human.at||protection.reason!=='user_edit')return null;
  const receipt=await t.get('operationReceipts',j.operationId);
  if(receipt?.namespace!=='thought-library'||receipt.ownerId!==row.sectionId||receipt.result?.id!==row.sectionId||receipt.result.revision!==row.revision||!equal(sectionSnapshot(planHumanSectionEdit(j.before,{title:row.title,operationId:j.operationId},human.at)),sectionSnapshot(row)))return null;
+ // Restoration consumes the current human-confirmed title only. It does not
+ // replay the historical target or acquire that target's old semantic bodies.
+ // The current journal/revision/owner receipt and exact human edit transition
+ // must all close before the existing complete membership/source checks.
+ if(j.reason==='restore'&&(receipt.id!==j.operationId||receipt.schemaVersion!==1||!Number.isSafeInteger(receipt.operationSequence)||receipt.operationSequence<1||typeof receipt.createdAt!=='string'||!Number.isFinite(Date.parse(receipt.createdAt))||typeof receipt.digest!=='string'||!/^([a-f0-9]{64})$/.test(receipt.digest)||!equal(receipt.result,{id:row.sectionId,revision:row.revision})))return null;
  const range=prefix([row.topicId,row.layoutGeneration,row.sectionId,0]),count=await t.count('placements','bySectionOrder',range);
  if(!Number.isSafeInteger(count)||count<1||count>Math.min(STRUCTURAL_CONTEXT_LIMIT,store.organizerBudget.limits.maxInputs))return null;
  const placements=await t.all('placements','bySectionOrder',range,STRUCTURAL_CONTEXT_LIMIT+1);if(placements.length!==count)return null;
@@ -42,7 +53,8 @@ export async function readStructuralContext(store,t,d){
  if((j.sourceRecordIds||[]).some(id=>!sources.has(id)))return null;
  entries.sort((a,b)=>a.entryId.localeCompare(b.entryId));
  if(new Set(entries.map(e=>e.entryId)).size!==count||sources.size>20)return null;
- return {sectionId:row.sectionId,recordId:row.id,sectionRevision:row.revision,layoutGeneration:row.layoutGeneration,topicId:topic.id,topicRevision:topic.revision,topicOrganizationRevision:topic.organizationRevision,journalId:j.id,operationId:j.operationId,selectedFields:['title'],entries,sourceRecordIds:[...sources].sort()};
+ const mapping={sectionId:row.sectionId,recordId:row.id,sectionRevision:row.revision,layoutGeneration:row.layoutGeneration,topicId:topic.id,topicRevision:topic.revision,topicOrganizationRevision:topic.organizationRevision,journalId:j.id,operationId:j.operationId,selectedFields:['title'],entries,sourceRecordIds:[...sources].sort()};
+ if(j.reason==='rename')topicReconciliationMappings.add(mapping);return mapping;
 }
 export function structuralContextScope(mapping){const {sourceRecordIds,...scope}=mapping;return structuredClone(scope);}
 export function structuralContextMaterial(mapping,view){
