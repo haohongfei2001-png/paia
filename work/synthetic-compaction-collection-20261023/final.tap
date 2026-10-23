@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: test-only collector refuses provider/map construction and public plan substitution
+ok 1 - test-only collector refuses provider/map construction and public plan substitution
+  ---
+  duration_ms: 96.595459
+  type: 'test'
+  ...
+# Subtest: unfinished real restore pin retains complete descriptors until explicit finish, then cold restore and original edit survive collection
+ok 2 - unfinished real restore pin retains complete descriptors until explicit finish, then cold restore and original edit survive collection
+  ---
+  duration_ms: 113.279292
+  type: 'test'
+  ...
+# Subtest: collection rejects pin change after qualification starts without deleting anything
+ok 3 - collection rejects pin change after qualification starts without deleting anything
+  ---
+  duration_ms: 50.53
+  type: 'test'
+  ...
+# Subtest: collection rejects object change after qualification starts without deleting anything
+ok 4 - collection rejects object change after qualification starts without deleting anything
+  ---
+  duration_ms: 49.226667
+  type: 'test'
+  ...
+# Subtest: collection rejects released-pin change after qualification starts without deleting anything
+ok 5 - collection rejects released-pin change after qualification starts without deleting anything
+  ---
+  duration_ms: 51.455834
+  type: 'test'
+  ...
+# Subtest: uncovered descriptor closure remains readable after collection
+ok 6 - uncovered descriptor closure remains readable after collection
+  ---
+  duration_ms: 51.733
+  type: 'test'
+  ...
+# Subtest: actual original Prompt branches remain unresolved through collection and stale return cannot choose a winner
+ok 7 - actual original Prompt branches remain unresolved through collection and stale return cannot choose a winner
+  ---
+  duration_ms: 91.576083
+  type: 'test'
+  ...
+# Subtest: original Core body-free fence survives actual collection and stale protocol replay
+ok 8 - original Core body-free fence survives actual collection and stale protocol replay
+  ---
+  duration_ms: 98.52275
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 772.523625

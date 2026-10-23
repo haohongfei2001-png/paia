@@ -1,0 +1,24 @@
+{
+  "head": "215b0ddf993afb5528b70526d1efbf3f8c5aa44e",
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "extension/tests/browser-native-sync-synthetic-collection.test.mjs"
+  ],
+  "node": "v22.23.3",
+  "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+  "before": {
+    "extension/tests/browser-native-sync-synthetic-collection.test.mjs": "1fd038ddf8a83ed88a7addd541aff70b90e94dfea85d406fa0353fda49e279ba",
+    "extension/tests/harness/synthetic-compaction-transport.mjs": "09824357a55c646ecb5b91ad0678cd19151df4f741817f73945531b6ddc21b74",
+    "extension/core/browser-native-sync/compaction.js": "399bdaf8690eedd80a080351c556547ef1ee996a29edbbbe6381a099d9fc9465"
+  },
+  "after": {
+    "extension/tests/browser-native-sync-synthetic-collection.test.mjs": "1fd038ddf8a83ed88a7addd541aff70b90e94dfea85d406fa0353fda49e279ba",
+    "extension/tests/harness/synthetic-compaction-transport.mjs": "09824357a55c646ecb5b91ad0678cd19151df4f741817f73945531b6ddc21b74",
+    "extension/core/browser-native-sync/compaction.js": "399bdaf8690eedd80a080351c556547ef1ee996a29edbbbe6381a099d9fc9465"
+  },
+  "exit": 0,
+  "wall_ms": 920.2393329906045
+}
