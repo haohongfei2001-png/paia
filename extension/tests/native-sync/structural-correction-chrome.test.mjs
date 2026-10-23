@@ -25,7 +25,13 @@ for(const variant of ['source','release'])test('structural Context correction or
   receipt.owningSha256={};
   for(const file of ['ai-cost-03-structural-context.test.mjs','ai-cost-03-topic-context.test.mjs']){
    let text=await readFile(join(root,'tests',file),'utf8');receipt.owningSha256[file]=hash(text);
-   text=replace(text,"import test from 'node:test';","import test from './native-bridge.mjs';");text=replace(text,"import assert from 'node:assert/strict';","import {assert} from './native-bridge.mjs';");text=replace(text,"'../../services/ai-gateway/tests/maintenance-source-response-fixture.mjs'","'./maintenance-source-response-fixture.mjs'");await writeFile(join(tests,file),text);
+   text=replace(text,"import test from 'node:test';","import test from './native-bridge.mjs';");text=replace(text,"import assert from 'node:assert/strict';","import {assert} from './native-bridge.mjs';");text=replace(text,"'../../services/ai-gateway/tests/maintenance-source-response-fixture.mjs'","'./maintenance-source-response-fixture.mjs'");
+   // MV3 workers prohibit dynamic import. Resolve only these exact three
+   // original test imports statically; owning assertions/runtime are unchanged.
+   for(const [n,path]of ['../core/ai-usage/maintenance-service-response.js','./maintenance-source-response-fixture.mjs','../core/ai-usage/maintenance-payload.js'].entries()){
+    text=replace(text,"await import('"+path+"')",'await Promise.resolve(nativeModule'+n+')');text="import * as nativeModule"+n+" from '"+path+"';\n"+text;
+   }
+   assert.equal(text.includes('import('),false,'no unreviewed dynamic imports remain');await writeFile(join(tests,file),text);
   }
   const worker=join(extension.path,'background/service-worker.js');await writeFile(worker,(await readFile(worker,'utf8'))+"\nimport '../tests/ai-cost-03-structural-context.test.mjs';\nimport '../tests/ai-cost-03-topic-context.test.mjs';\nimport {runCorrectionCases} from '../tests/native-bridge.mjs';\nconst nativePrevious=globalThis.__bnsNative;globalThis.__bnsNative={...nativePrevious,run(command,args){return command==='structural-context-matrix'?runCorrectionCases(args.prefix):nativePrevious.run(command,args);}};\n");
   receipt.hashes=Object.fromEntries(await Promise.all(runtime.map(async p=>[p,hash(await readFile(join(extension.path,p)))])));
