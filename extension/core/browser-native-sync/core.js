@@ -1,3 +1,6 @@
+import {assertTopicFormationOperation} from './topic-formation-codec.js';
+import {requireOriginalFormationProtocolOwner} from './topic-formation-journal.js';
+import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {requireOriginalTopicActivityProtocolOwner} from './topic-activity-journal.js';
 import {assertTopicActivityOperation} from './topic-activity-codec.js';
 import {requireSourcePurgeProtocolOwner} from './source-purge-journal.js';
@@ -56,7 +59,8 @@ export async function validateOperation(operation){
  if(operation.kind==='purge'){if(operation.actor!=='user'||operation.value!==null)fail('BNS_PURGE_INVALID');}
  else{await validateEntityAsync(operation.type,operation.value,operation.codecVersion);if(operation.value.id!==operation.entityId)fail('BNS_ENTITY_MISMATCH');}
  if(operation.type==='topicActivity')assertTopicActivityOperation(operation);
- if(operation.actor==='activity'&&operation.type!=='topicActivity')fail('BNS_ACTOR_AUTHORITY');
+ if(operation.type==='topicFormation')assertTopicFormationOperation(operation);
+ if(operation.actor==='activity'&&!['topicActivity','topicFormation'].includes(operation.type))fail('BNS_ACTOR_AUTHORITY');
  if(operation.type==='savedWorkBootstrap'&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length||operation.value.payload.datasetId!==operation.datasetId))fail('BNS_SAVED_WORK_OPERATION');
  if(operation.type==='savedWorkSuccessor'&&(operation.kind!=='put'||operation.actor!=='user'||operation.parents.length>1||operation.value.before.datasetId!==operation.datasetId))fail('BNS_SAVED_WORK_OPERATION');
  if(operation.type==='consumerPreference')assertConsumerPreferenceOperation(operation);
@@ -273,6 +277,7 @@ export class BrowserNativeSyncCore {
  }
  async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null,appendCapability=null,humanCapability=null,humanRetentionCapability=null}={}){
   if(operation.type==='topicActivity')requireOriginalTopicActivityProtocolOwner(t,this,operation,origin);
+  if(operation.type==='topicFormation')requireOriginalFormationProtocolOwner(t,this,operation,origin);
   const sourcePurge=operation.type==='sourcePurgeIntent'||operation.kind==='purge'&&['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type);
   if(sourcePurge)requireSourcePurgeProtocolOwner(t,this,operation,origin);
   if(['savedWorkBootstrap','savedWorkSuccessor'].includes(operation.type))requireSavedWorkProtocolOwner(t,this,operation,origin);
@@ -391,6 +396,22 @@ export class BrowserNativeSyncCore {
   }
   await this.transaction(false,async t=>{if(await this.bind(t)!==this.fixedNamespace||(await t.primaryRangePage('meta',{prefix:this.prefix+'generation:'+this.fixedNamespace+':',limit:1})).rows.length)fail('BNS_HUMAN_RESTORE_REQUIRED');},['meta']);
   checkGroupPageBudget(budget);const freeze=x=>{if(x&&typeof x==='object'){for(const y of Object.values(x))freeze(y);Object.freeze(x);}return x;};for(const prepared of result){freeze(prepared);this.#humanPrepared.add(prepared);}return Object.freeze(result);
+ }
+ // An actual nonempty graph continuation, never an empty-restore exception.
+ // Existing protocol rows/heads are read from this Core and every new group
+ // advances that exact generation. Domain mutation still requires its original
+ // named-owner plan and the normal commitHumanReceive checks below.
+ async prepareHumanIncrementalProtocols(basePlan,groups){
+  requireOriginalGroupCheckpointPlan(this,basePlan);if(this.fixedNamespace!==null||!Array.isArray(groups)||!groups.length||groups.length>128)fail('BNS_HUMAN_RESTORE_REQUIRED');
+  const snapshot=clone(groups.map(g=>({id:g.id,type:g.type,operations:g.operations})));if(bytes(snapshot).length>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');
+  const base=basePlan.groups.flatMap(g=>g.operations),seen=new Map(base.map(op=>[op.revisionId,op])),heads=new Map(basePlan.heads.map(h=>[JSON.stringify([h.type,h.entityId]),h])),ids=new Set(base.map(op=>op.operationId)),sequences=new Set(base.map(op=>JSON.stringify([op.deviceId,op.sequence])));
+  const cut=await this.transaction(false,async t=>{const namespace=await this.bind(t),generation=(await this.get(t,'generation'))?.value||0;if(generation!==base.length)fail('BNS_HUMAN_OWNER_CHANGED');for(const op of base){const row=await this.get(t,'revision',op.revisionId),receipt=await this.get(t,'receipt',op.operationId);if(row?.redacted||!equal(row?.operation,op)||receipt?.digest!==op.revisionId)fail('BNS_HUMAN_ANCESTRY_REQUIRED');}for(const head of basePlan.heads){const row=await this.get(t,'head',head.type,head.entityId);if(!row||!equal({type:row.type,entityId:row.entityId,revisions:row.revisions,purged:row.purged,fence:row.fence},head))fail('BNS_HUMAN_OWNER_CHANGED');}return {namespace,generation};},['meta']);
+  const result=[];let generation=cut.generation;
+  for(const group of snapshot){if(group.type!=='humanLibraryCommit')fail('BNS_HUMAN_COMMIT_INVALID');const verified=await validateHumanCommitGroup(group.operations,this.datasetId);if(verified.descriptor.revisionId!==group.id)fail('BNS_HUMAN_COMMIT_INVALID');
+   for(const op of [...verified.members,verified.descriptor]){const key=JSON.stringify([op.type,op.entityId]),head=heads.get(key),seq=JSON.stringify([op.deviceId,op.sequence]);if(op.deviceId===this.deviceId||seen.has(op.revisionId)||ids.has(op.operationId)||sequences.has(seq)||head?.purged||!equal(head?.revisions??[],op.parents))fail('BNS_HUMAN_OWNER_CHANGED');for(const id of op.parents){const parent=seen.get(id);if(!parent||parent.type!==op.type||parent.entityId!==op.entityId)fail('BNS_HUMAN_ANCESTRY_REQUIRED');}if(op.type==='humanLibraryMember'&&(op.parents.length>1||!equal(op.parents.length?seen.get(op.parents[0]).value.after:null,op.value.before)))fail('BNS_HUMAN_OWNER_CHANGED');seen.set(op.revisionId,op);ids.add(op.operationId);sequences.add(seq);heads.set(key,{revisions:[op.revisionId],purged:false});}
+   result.push({descriptor:verified.descriptor,members:verified.members,namespace:cut.namespace,generation});generation+=group.operations.length;
+  }
+  const freeze=x=>{if(x&&typeof x==='object'){for(const value of Object.values(x))freeze(value);Object.freeze(x);}return x;};for(const prepared of result){freeze(prepared);this.#humanPrepared.add(prepared);}return Object.freeze(result);
  }
  async commitHumanReceive(t,prepared,writeOwner){
   if(!this.#humanPrepared.has(prepared)||typeof writeOwner!=='function')fail('BNS_PREPARATION_REQUIRED');const prior=await this.get(t,'receipt',prepared.descriptor.operationId);if(prior){if(prior.digest!==prepared.descriptor.revisionId)fail('BNS_OPERATION_COLLISION');return {state:'duplicate'};}

@@ -1,8 +1,9 @@
+import {requireSourcePurgeRemainingCanonicalProof} from './source-purge-negative.js';
 import {prepareSavedWorkScope,requireSavedWorkScope} from './saved-work-bootstrap.js';
 import {readGroupRows} from './group-page-reader.js';
 import {compareMixedConfiguration,consumeMixedPublicationMetadata} from './mixed-configuration.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
-import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations,originalMixedRestoredReplay,measureMixedRestoredExpectation} from './mixed-restored-allocation.js';
+import {prepareMixedRestoredAllocationProof,requireOriginalMixedAllocationProof,assertMixedRestoredPhysicalAllocations,originalMixedRestoredReplay,measureMixedRestoredExpectation} from './mixed-restored-allocation.js';
 import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeControl,requireOriginalMixedNativeBodiesConsumed,requireOriginalMixedScopeCompilationCurrent,retainOriginalMixedRestoredScopeProof,reserveOriginalMixedKeyedScopePhase} from './human-library-plan.js';
 import {assertMixedCurrentSourceDerivedRows} from './mixed-current-source-derived.js';
 import {assertMixedInitialPhysicalAllocations,assertMixedInitialHumanPhysicalAllocations} from './mixed-initial-allocation.js';
@@ -186,13 +187,14 @@ export async function prepareOriginalMixedWireOwnerScope(core,plan){
  requireOriginalCurrentMixedGroupPlan(core,plan);const {scope}=await compileOriginalWireScope(plan);requireOriginalCurrentMixedGroupPlan(core,plan);return scope.ownerScope;
 }
 function requireCompiledGroupScope(scope){const p=originalScopes.get(scope);if(!p||p.phase!=='ready'||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||p.core&&Object.entries(p.coreBinding).some(([key,value])=>p.core[key]!==value))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');return p;}
-export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
+export async function prepareGroupScope(plan,{store,nativeMixedCompilation,mixedAllocationProof}={}){
  const originalCore=originalGroupCheckpointCoreOrNull(plan);if(!originalCore&&plan.groups.some(group=>['topicDesired','promptBinding','consumerPreference','savedWorkBootstrap'].includes(group.type)||group.type==='promptPreferences'&&(group.operations[0].value.splits.length||group.operations[0].value.pins.some(id=>id.startsWith('pf:'))||group.operations[0].value.overrides.some(row=>row.id.startsWith('pf:')||row.representative!==undefined))))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  const {scope,human}=await compileOriginalWireScope(plan),p={plan:new ScopeWeakRef(plan),core:originalCore,consumerOperations:finalConsumerPreferenceOperations(plan),expected:scope.expected,ownerScope:scope.ownerScope,phase:'preparing',humanWire:human,mixedCore:originalCurrentMixedGroupCore(plan)};p.coreBinding=p.core?{repository:p.core.repository,datasetId:p.core.datasetId,prefix:p.core.prefix,fixedNamespace:p.core.fixedNamespace}:null;if(!p.core&&plan.groups.some(g=>g.type==='topicDesired'))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScopes.set(scope,p);
  try{
-  if(p.mixedCore&&store){
+  if(mixedAllocationProof!==undefined){if(!p.mixedCore||!store||nativeMixedCompilation!==undefined)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');p.restoredAllocation=requireOriginalMixedAllocationProof(p.mixedCore,plan,mixedAllocationProof);}
+  else if(p.mixedCore&&store){
    const meta=nativeMixedCompilation!==undefined?borrowOriginalMixedScopeCompilationMeta(nativeMixedCompilation,store,scope,human):await store.run(()=>store.repository.transaction(false,async t=>{if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all('meta');},['meta']));
-   measureSourceWorkingPhysicalTree(meta);freezeScope(meta);if(meta.some(row=>row.id===p.mixedCore.prefix+'active')){p.restoredAllocation=await prepareMixedRestoredAllocationProof(p.mixedCore,plan,meta,...(nativeMixedCompilation!==undefined?[{nonce:nativeMixedCompilation,store,scope}]:[]));if(nativeMixedCompilation!==undefined)retainOriginalMixedRestoredScopeProof(nativeMixedCompilation,store,scope,plan);}
+   measureSourceWorkingPhysicalTree(meta);freezeScope(meta);if(meta.some(row=>row.id===p.mixedCore.prefix+'active'||row.id.startsWith(p.mixedCore.prefix+'generation:')&&row.id.endsWith(':mixedTimeline:'))){p.restoredAllocation=await prepareMixedRestoredAllocationProof(p.mixedCore,plan,meta,...(nativeMixedCompilation!==undefined?[{nonce:nativeMixedCompilation,store,scope}]:[]));if(nativeMixedCompilation!==undefined)retainOriginalMixedRestoredScopeProof(nativeMixedCompilation,store,scope,plan);}
   }
   if(scope.expected.savedWork)await prepareSavedWorkScope(store,originalCore,scope,plan);
   if(human){if(nativeMixedCompilation!==undefined)reserveOriginalMixedKeyedScopePhase(nativeMixedCompilation,store,scope,plan);await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);}freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;
@@ -329,4 +331,21 @@ export function measureOriginalMixedScopeBorrowedOperations(core,scope,plan){
 export function measureOriginalMixedPreparingWireScope(core,scope,plan,store,nonce){
  requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const p=originalScopes.get(scope);if(!p||p.mixedCore!==core||scopeDeref.call(p.plan)!==plan||p.phase!=='preparing')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  return Object.freeze({scope:measureSourceWorkingPhysicalTree(scope),human:measureSourceWorkingPhysicalTree(p.humanWire),borrowedHuman:scope.expected.humanLibrary===p.humanWire,borrowedOperations:mixedScopeBorrowedOperationTrees(plan,scope)});
+}
+
+// Read-only comparison of the remaining original Source groups. The negative
+// inventory owner reads the real transaction and binds this exact view; a
+// supplied filtered snapshot cannot acquire this qualification.
+export async function requireSourcePurgeRemainingScope(store,t,scope,view,proof){
+ await requireSourcePurgeRemainingCanonicalProof(proof,store,t,scope,view);const original=requireCompiledGroupScope(scope),plan=scopeDeref.call(original.plan);if(!plan||plan.groups.some(group=>group.type!=='sourceBootstrapCommit')||hasHumanScope(scope)||scope.expected.savedWork)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const c=await store.control(t);if(!equal(c.preferences,consumerDisplayPreferences([]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ for(const [name,rows]of Object.entries(view))if(!represented.has(name)&&!ephemeralStores.has(name)&&rows.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ for(const row of view.meta){const key=row.id;if(key.startsWith(original.core.prefix))continue;if(key===CONTEXT_CARDS_ROW||key===PROMPT_REUSE_ROW||counters.has(key))continue;
+  if(key===CONTEXT_TOPIC_ACCESS_ROW){await requireLocalTopicChoicesRepresented(t,original.core,[]);continue;}
+  if(key==='smart-filter'){if(row.mode!=='light'||row.policyEpoch!==0)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(backupMetaAllowed(key))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ }
+ const actual={};for(const name of ['records','blocks','documents','libraryDocuments'])actual[name]=sort(view[name].map(row=>clone(row.value)));for(const name of ['times','inputStates','revisions','filterIntents'])actual[name]=sort(view[name].map(row=>clone(row)));
+ const context=await readContextCards(t);actual.context=sort(context.items);actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));await requireConsumerPreferenceOwners(t,store,original.core,[]);await readTopicDesiredOwners(t,original.core,[]);actual.prompt=projectEntity('promptPreferences',await readPromptPreferences(t));if(await t.get('meta',PROMPT_CORRECTION_BINDING_ROW))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ return compareGroupCanonicalValues(scope,actual,null);
 }

@@ -1,3 +1,4 @@
+import {mixedTimelineKey,readMixedMergeChronology} from './mixed-merge-chronology.js';
 import {reserveOriginalMixedRestoredPrefixPhase} from './human-library-plan.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedHumanPhysicalExpectation,assertMixedHumanPhysicalExpectation} from './mixed-human-physical.js';
@@ -15,6 +16,7 @@ const proofs=new WeakMap(),refuse=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
 export async function prepareMixedRestoredAllocationProof(core,plan,meta,native){
  if(arguments.length!==3&&arguments.length!==4)refuse();requireOriginalCurrentMixedGroupPlan(core,plan);
  if(core.fixedNamespace!==null||!Array.isArray(meta)||meta.length>4096)refuse();
+ const ns=meta.find(r=>r.id===core.prefix+'active')?.namespace??'initial';if(meta.some(r=>r.id===mixedTimelineKey(core,ns))){if(native)fail('BNS_HUMAN_PROJECTION_REQUIRED');return prepareMergedAllocation(core,plan,meta);}
  const active=meta.find(row=>row.id===core.prefix+'active'),completed=meta.filter(row=>row.id.startsWith(core.prefix+'generation:')&&row.id.endsWith(':restore:'));
  if(!active||completed.length!==1||meta.some(row=>row.id==='recovery-restore-epoch'))refuse();
  if(native)reserveOriginalMixedRestoredPrefixPhase(native.nonce,native.store,native.scope,plan,'control');
@@ -61,24 +63,24 @@ export async function prepareMixedRestoredAllocationProof(core,plan,meta,native)
 
 export function assertMixedRestoredPhysicalAllocations(core,scope,plan,rows,meta,cap,humanRows){
  if(arguments.length!==7)refuse();requireOriginalCurrentMixedGroupScope(core,scope,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();
- const byId=new Map(meta.map(row=>[row.id,row]));if(byId.size!==meta.length||!equal(byId.get(p.active.id),p.active)||!equal(byId.get(p.completed.id),p.completed)||meta.filter(row=>row.id.startsWith(core.prefix+'generation:')&&row.id.endsWith(':restore:')).length!==1||byId.has('recovery-restore-epoch'))refuse();
+ const byId=new Map(meta.map(row=>[row.id,row]));if(p.chronology){if(byId.size!==meta.length||byId.has('recovery-restore-epoch'))refuse();for(const row of p.controls)if(!equal(byId.get(row.id),row))refuse();if(!equal(meta.filter(r=>r.id.startsWith(core.prefix+'generation:')&&r.id.endsWith(':restore:')).map(r=>r.id).sort(),p.restoreIds))refuse();}else if(byId.size!==meta.length||!equal(byId.get(p.active.id),p.active)||!equal(byId.get(p.completed.id),p.completed)||meta.filter(row=>row.id.startsWith(core.prefix+'generation:')&&row.id.endsWith(':restore:')).length!==1||byId.has('recovery-restore-epoch'))refuse();
  if(rows.inputStates.length!==p.inputs.size||rows.revisions.length!==p.history.size||!equal(byId.get('input-delta-sequence'),{id:'input-delta-sequence',value:p.delta})||!equal(byId.get('revision-sequence'),{id:'revision-sequence',value:p.revision}))refuse();
  for(const state of rows.inputStates)if(state.deltaSequence!==p.inputs.get(state.id))refuse();
  const seen=new Set();for(const row of rows.revisions){if(!count(row.sequence)||row.sequence<1||row.sequence!==p.history.get(row.id)||seen.has(row.sequence)||!equal(row.listKey,[row.entityKey,row.sequence])||!equal(row.documentList,[row.documentId,row.sequence]))refuse();seen.add(row.sequence);}
- const key=(kind,...parts)=>protocolPhysicalId(core.prefix,p.active.namespace,kind,parts);
+ const key=(kind,...parts)=>protocolPhysicalId(core.prefix,p.namespace??p.active.namespace,kind,parts);
  for(const head of plan.heads)if(head.type==='inputWorkingMember'&&head.entityId.startsWith('input:')){
   const id=head.entityId.slice(6);if(head.revisions.length!==1||!equal(byId.get(key('workingOwner',id)),{id:key('workingOwner',id),revisionId:head.revisions[0],deltaSequence:p.inputs.get(id)}))refuse();
  }else if(head.type==='inputWorkingMember'&&head.entityId.startsWith('revision:')){
   const id=head.entityId.slice(9);if(head.revisions.length!==1||!equal(byId.get(key('workingHistory',id)),{id:key('workingHistory',id),revisionId:head.revisions[0],sequence:p.history.get(id)}))refuse();
  }
- assertMixedHumanPhysicalExpectation(core,scope,plan,humanRows,meta,p.human,p.history,p.active.namespace);return true;
+ assertMixedHumanPhysicalExpectation(core,scope,plan,humanRows,meta,p.human,p.history,p.namespace??p.active.namespace);return true;
 }
 
 // Borrow immutable authenticated replay order only. No native cut, mutable
 // allocator map, metadata exemption or provider/write capability is returned.
 export function originalMixedRestoredReplay(core,scope,plan,cap){
  requireOriginalCurrentMixedGroupScope(core,scope,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();
- return Object.freeze({active:p.active,completedId:p.completed.id,transactions:Object.freeze([p.prefixGroups,...p.tail.map(group=>Object.freeze([group]))]),historySequence:id=>p.history.get(id)});
+ return Object.freeze({active:p.active,completedId:p.completed?.id,transactions:p.chronology?.transactions??Object.freeze([p.prefixGroups,...p.tail.map(group=>Object.freeze([group]))]),historySequence:id=>p.history.get(id),...(p.chronology?{merged:true,namespace:p.namespace,timeline:p.chronology.timeline,extra:p.chronology.extra}:{})});
 }
 export function measureMixedRestoredExpectation(core,scope,plan,cap){
  requireOriginalCurrentMixedGroupPlan(core,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();
@@ -89,3 +91,31 @@ export function measureMixedRestoredExpectation(core,scope,plan,cap){
  // of borrowed complete Plan/member rows and already owned public Scope.
  total.E+=p.inputs.size+p.history.size+p.human.entries.size+p.human.topics.size+p.human.receipts.size+p.prefixGroups.length+p.tail.length+64;return Object.freeze(total);
 }
+
+async function prepareMergedAllocation(core,plan,meta){
+ const chronology=await readMixedMergeChronology(core,plan,{meta}),inputs=new Map(),history=new Map();let delta=0,revision=0;
+ for(let index=0;index<chronology.transactions.length;index++)for(const group of chronology.transactions[index]){
+  const local=group.operations.every(op=>op.deviceId===core.deviceId);
+  if(['sourceBootstrapCommit','sourceAppendCommit'].includes(group.type)){
+   const state=group.prepared.members.find(op=>op.value.entityType==='inputState')?.value.entity,baseline=group.prepared.members.find(op=>op.value.entityType==='baselineRevision')?.value.entity;
+   if(!state||!baseline||inputs.has(state.id)||history.has(baseline.id))refuse();inputs.set(state.id,++delta);history.set(baseline.id,++revision);
+   if(local&&(state.deltaSequence!==delta||baseline.sequence!==revision))refuse();
+  }else if(group.type==='inputWorkingCommit'){
+   const state=group.prepared.members.find(op=>op.value.entityType==='inputState')?.value.entity;if(!state||!inputs.has(state.id))refuse();inputs.set(state.id,++delta);if(local&&state.deltaSequence!==delta)refuse();
+   for(const op of group.prepared.members)if(op.value.entityType==='revision'){const h=op.value.entity;if(!history.has(h.id))history.set(h.id,++revision);if(local&&h.sequence!==history.get(h.id))refuse();}
+  }else if(group.type==='humanLibraryCommit'){
+   for(const op of group.prepared.members)if(op.value.entityType==='history'){const h=op.value.after;if(!history.has(h.id))history.set(h.id,++revision);if(local&&h.sequence!==history.get(h.id))refuse();}
+  }else if(!['promptPreferences','promptBinding','consumerPreference','topicDesired','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type))refuse();
+ }
+ const active=chronology.active,completed=meta.find(r=>r.id===chronology.completedId),controls=[...(active?[active,completed]:[]),chronology.timeline,...chronology.extra];if(controls.some(x=>!x))refuse();
+ const cap=Object.freeze({});proofs.set(cap,{core,plan,active,completed,chronology,namespace:chronology.namespace,controls:clone(controls),restoreIds:meta.filter(r=>r.id.startsWith(core.prefix+'generation:')&&r.id.endsWith(':restore:')).map(r=>r.id).sort(),inputs,history,delta,revision,human:prepareMixedHumanPhysicalExpectation(chronology.transactions.flat(),core.deviceId)});return cap;
+}
+
+// Immutable original chronology for a generic original-owner merge preflight.
+// No row contents, native capture or writer authority is exposed.
+export function originalMixedAllocationTransactions(core,plan,cap){requireOriginalCurrentMixedGroupPlan(core,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();return p.chronology?.transactions??Object.freeze([p.prefixGroups,...p.tail.map(g=>Object.freeze([g]))]);}
+
+// A pre-write merge may prepare the exact expected allocation before its
+// control receipt exists. This private identity is only an operand for the
+// original Scope comparison; matching current rows are still mandatory.
+export function requireOriginalMixedAllocationProof(core,plan,cap){requireOriginalCurrentMixedGroupPlan(core,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();return cap;}

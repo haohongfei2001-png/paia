@@ -1,3 +1,4 @@
+import {prepareMixedNonemptyMerge,prepareMixedNonemptyResult,requireMixedNonemptyBase,sealMixedNonemptyResult} from './mixed-nonempty-merge.js';
 import {prepareSourceWorkingMerge,prepareSourceWorkingMergeResult,requireSourceWorkingMergeBase,requireSourceWorkingMergeResult,sealSourceWorkingMerge} from './source-working-merge.js';
 import {requireOriginalLibraryDocumentsGenerationMethods} from '../library-documents-owner.js';
 import {requireNoSourcePurgeDeny} from './source-purge-journal.js';
@@ -7,7 +8,7 @@ import {prepareSavedWorkGroupApplication,applySavedWorkGroupStep,sealSavedWorkGr
 import {groupOperationPages,createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget,readGroupRows} from './group-page-reader.js';
 import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,captureMixedCurrentGroupProjection,requireMixedCurrentGroupProjection,encodeMixedCurrentGroupCheckpoint,publishMixedCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
 import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-working-commit.js';
-import {prepareHumanGroupApplication,requireHumanGroupApplication,applyHumanGroupStep} from './human-library-group.js';
+import {prepareHumanGroupApplication,prepareHumanIncrementalGroupApplication,requireHumanGroupApplication,applyHumanGroupStep} from './human-library-group.js';
 import {FilterIntentSyncJournal,prepareRestoredFilterSources,prepareFilterApplication} from './filter-intent-journal.js';
 import {manualSyncOwners} from './manual-owners.js';
 import {contextDesiredMaterializer} from './context-desired-journal-owner.js';
@@ -245,7 +246,7 @@ export class GroupedCheckpointRestore{
   await this.store.run(()=>this.live.transaction(false,async t=>{if(!equal(await authority(this.store,this.live,t),state.savedMerge?.base??state.base))fail('BNS_RESTORE_LOCAL_CHANGED');}));
   const localOperations=await allOperations(this.live);
   if(state.canonicalGeneration&&localOperations.length)fail('BNS_GENERATION_TARGET_NOT_EMPTY');
-  if(localOperations.length)return plan.groups.some(g=>g.type==='savedWorkBootstrap')?this.mergeSaved(state,plan,localOperations):plan.groups.every(g=>['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(g.type))?this.mergeSourceWorking(state,plan,localOperations):this.mergeManual(state,plan,localOperations);
+  if(localOperations.length)return plan.groups.some(g=>g.type==='savedWorkBootstrap')?this.mergeSaved(state,plan,localOperations):plan.groups.every(g=>['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(g.type))?this.mergeSourceWorking(state,plan,localOperations):plan.groups.some(g=>g.type==='sourceBootstrapCommit')&&plan.groups.some(g=>g.type==='humanLibraryCommit')?this.mergeMixed(state,plan,localOperations):this.mergeManual(state,plan,localOperations);
   const filter=new FilterIntentSyncJournal(replay),working=new InputWorkingCommitReceiver(this.store,replay,{filterJournal:filter}),manual=manualSyncOwners(replay),desired=contextDesiredMaterializer(replay),topicDesired=topicDesiredMaterializer(replay),consumerOperations=finalConsumerPreferenceOperations(plan);
   const sourceProof=await prepareRestoredFilterSources(canonical.expected.records.map(row=>({...row})));
   const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan),savedApplication=await prepareSavedWorkGroupApplication(this.store,replay,plan,this.stage,state);
@@ -302,6 +303,23 @@ export class GroupedCheckpointRestore{
    await this.live.put(t,'mergeCommit',[this.restoreId],{version:1,restoreId:this.restoreId,namespace:p.namespace,epoch:state.base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:p.merged.digest,receipts});await t.put('meta',p.timeline);
    await this.stage.put(t,'restore',[],{...withoutId(state),phase:'merged',mergeNamespace:p.namespace,mergeDigest:p.merged.digest,mergeReceipts:receipts});
    const seal=await requireSourceWorkingMergeResult(this.store,this.live,this.stage,t,p,comparison);await sealSourceWorkingMerge(this.store,this.live,this.stage,t,started,p.semantic,seal);await this.checkpoint('before-source-working-commit',t);current();return {state:'activated',namespace:p.namespace,merged:true};
+  },{ms:Math.max(1,Math.floor(30000-(performance.now()-started)))});
+ }
+ async mergeMixed(state,remotePlan,localOperations){
+  const started=performance.now(),p=await prepareMixedNonemptyMerge(this.store,this.live,this.stage,localOperations,remotePlan,this.restoreId),filter=new FilterIntentSyncJournal(this.live),working=new InputWorkingCommitReceiver(this.store,this.live,{filterJournal:filter}),sources=await prepareRestoredFilterSources(p.afterScope.expected.records),applications=[];
+  for(const g of p.incoming){if(g.type==='sourceBootstrapCommit')applications.push([g,await prepareBootstrapApplication(this.store,this.live,g.operations)]);else if(g.type==='sourceAppendCommit'){const anchor=p.merged.groups.find(x=>x.id===g.prepared.descriptor.value.bootstrap.revisionId);applications.push([g,await prepareAppendApplication(this.store,this.live,g.operations,anchor.operations)]);}else if(g.type==='inputWorkingCommit')applications.push([g,await prepareWorkingApplication(working,g.operations)]);else applications.push([g,null]);}
+  const humanApplication=p.incoming.some(g=>g.type==='humanLibraryCommit')?await prepareHumanIncrementalGroupApplication(this.store,this.live,p.beforePlan,p.incoming):null;
+  const manual=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.base.namespace==='initial'?null:state.base.namespace});manual.materialize=manualSyncOwners(manual).materialize;
+  const receipts=remotePlan.groups.flatMap(g=>g.operations).map(o=>({operationId:o.operationId,revisionId:o.revisionId,deviceId:o.deviceId,sequence:o.sequence}));
+  const mergeReceipt={id:this.live.prefix+'generation:'+p.namespace+':mergeCommit:'+encodeURIComponent(this.restoreId),version:1,restoreId:this.restoreId,namespace:p.namespace,epoch:state.base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:p.merged.digest,receipts},resultProof=await prepareMixedNonemptyResult(this.store,this.live,p,mergeReceipt,humanApplication);
+  return this.store.foundationWrite(async t=>{
+   if(!equal(await this.stage.get(t,'restore'),state)||!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');await requireNoSourcePurgeDeny(this.live,t);await requireConsumerPublicationSettled(t);await this.store.qualifyControlPublicationRead(t);await requireMixedNonemptyBase(this.store,this.live,this.stage,t,p);
+   for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
+   if(humanApplication)await requireHumanGroupApplication(t,humanApplication);
+   for(const[g,cap]of applications){if(g.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,g.id);else if(g.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(g.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(g.type==='inputWorkingCommit')await working.applyRestored(t,cap,sources);else if((await manual.applyInTransaction(t,g.operations[0])).state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');await this.checkpoint('mixed-applied-group',g.id);}
+   if(await this.live.get(t,'mergeCommit',this.restoreId))fail('BNS_RESTORE_ID_COLLISION');
+   await this.live.put(t,'mergeCommit',[this.restoreId],{version:1,restoreId:this.restoreId,namespace:p.namespace,epoch:state.base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:p.merged.digest,receipts});await t.put('meta',p.timeline);await this.stage.put(t,'restore',[],{...withoutId(state),phase:'merged',mergeNamespace:p.namespace,mergeDigest:p.merged.digest,mergeReceipts:receipts});
+   await sealMixedNonemptyResult(this.store,this.live,this.stage,t,p,started,resultProof);await this.checkpoint('before-mixed-commit',t);return {state:'activated',namespace:p.namespace,merged:true};
   },{ms:Math.max(1,Math.floor(30000-(performance.now()-started)))});
  }
  // Incremental saved recovery keeps the live namespace and commits one real

@@ -13,7 +13,7 @@ const refuse=()=>fail('BNS_RESTORE_LOCAL_CHANGED');
 const freeze=value=>{if(value&&typeof value==='object'){for(const next of Object.values(value))freeze(next);Object.freeze(value);}return value;};
 export async function sourceWorkingMergeSnapshot(store,core,stage,t){
  if(store.repository!==core.repository||stage.repository!==core.repository)refuse();const rows={};let retained=0;for(const name of core.repository.stores){rows[name]=await readGroupRows(t,name);for(const row of rows[name]){retained+=measureSourceWorkingPhysicalTree(row).B;if(retained>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');}}
- const prefix=stage.prefix+'generation:'+stage.fixedNamespace+':',raw={...rows};rows.meta=rows.meta.filter(row=>!row.id.startsWith(prefix));freeze(rows);rawSnapshots.set(rows,raw);return rows;
+ const prefix=stage.prefix+'generation:'+stage.fixedNamespace+':',raw={...rows};rows.meta=rows.meta.filter(row=>!row.id.startsWith(prefix));freeze(rows);freeze(raw);rawSnapshots.set(rows,raw);return rows;
 }
 export async function prepareSourceWorkingMerge(store,core,stage,operations,remotePlan,restoreId){
  const plan=await prepareCurrentSourceWorkingGroupCheckpointPlan(core,operations),scope=await prepareGroupScope(plan),rows=await store.run(()=>core.transaction(false,t=>sourceWorkingMergeSnapshot(store,core,stage,t))),active=rows.meta.find(r=>r.id===core.prefix+'active'),namespace=active?.namespace??'initial';let replay;
@@ -71,3 +71,17 @@ export async function sealSourceWorkingMerge(store,core,stage,t,started,semantic
  const semanticRows=[...semantic.known,...semantic.dirty,semantic.sequence,...(semantic.humanFence?[semantic.humanFence]:[])];counts.push({table:'meta',key:IDBKeyRange.bound('aiu:delta:','aiu:delta:\uffff'),value:semanticRows.length});for(const row of semanticRows)points.push({table:'meta',key:row.id,value:retain(row)});
  current();registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){for(const c of counts)if((yield {method:'count',table:c.table,...(c.key?{key:c.key}:{})})!==c.value)refuse();for(const p of points)if(!equalSourceWorkingPhysicalTree((yield {method:'get',table:p.table,key:p.key})??null,p.value))refuse();return true;}});
 }
+
+// Both snapshots must originate from this module's original real-repository
+// capture. Verify the entire staged namespace before sealing the consuming
+// merge; a later raw snapshot cannot authorize a changed manifest or cursor.
+export function requireOriginalMergeStageTransition(core,stage,before,after,receipt,digest){
+ const original=rawSnapshots.get(before),current=rawSnapshots.get(after);if(!original||!current||stage.repository!==core.repository)refuse();
+ const prefix=stage.prefix+'generation:'+stage.fixedNamespace+':',id=prefix+'restore:',old=original.meta.find(r=>r.id===id);if(!old)refuse();
+ const expected=original.meta.filter(r=>r.id.startsWith(prefix)).map(r=>r.id===id?{...old,phase:'merged',mergeNamespace:receipt.namespace,mergeDigest:digest,mergeReceipts:receipt.receipts}:r);
+ if(!equalSourceWorkingPhysicalTree(current.meta.filter(r=>r.id.startsWith(prefix)),expected))refuse();
+}
+
+// Read-only reuse of the exact already captured real transaction cut; no new
+// authority or unvalidated caller snapshot is accepted.
+export function originalMergeRawSnapshot(snapshot){const raw=rawSnapshots.get(snapshot);if(!raw)refuse();return raw;}
