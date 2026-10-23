@@ -34,8 +34,8 @@ globalThis.__localSyncNative={ready,remote:syntheticRemote,async inspect(){await
   const repositoryPath=join(extension.path,'core/idb-repository.js'),repositoryOriginal=await readFile(repositoryPath,'utf8'),catchMarker='catch(e){try{tx.abort();}catch{}await done.catch(()=>{});',repositoryInstrumented=repositoryOriginal.replace(catchMarker,"catch(e){globalThis.__syncRepositoryDiagnostic={name:e?.name??null,code:e?.code??null,frames:String(e?.stack??'').split('\\n').slice(1,9)};try{tx.abort();}catch{}await done.catch(()=>{});");assert.notEqual(repositoryInstrumented,repositoryOriginal);await writeFile(repositoryPath,repositoryInstrumented);
   assert.notEqual(modified,original);await writeFile(path,modified);diagnostic={originalSha256:sha(original),instrumentedSha256:sha(modified),repositoryOriginalSha256:sha(repositoryOriginal),repositoryInstrumentedSha256:sha(repositoryInstrumented),scope:'fixed guard line and error code/name/stack frames without message or content'};
  }
- const worker=await readFile(workerPath,'utf8');await writeFile(configPath,config);await writeFile(workerPath,worker+bridge);
- return {diagnostic,configurationSha256:sha(config),originalWorkerSha256:sha(worker),bridgeSha256:sha(bridge),syntheticHttpSha256:sha(adapted),claim:'PREPARED_ONLY_NO_NATIVE_RESULT'};
+ const originalWorker=await readFile(workerPath,'utf8'),worker=process.env.PAIA_SYNC_NATIVE_DIAGNOSTIC==='1'?originalWorker.replace('  handle(request, sender)\n',"  handle(request, sender).catch(error=>{globalThis.__syncHandlerDiagnostic={type:request.type,name:error?.name??null,code:error?.code??null,frames:String(error?.stack??'').split('\\n').slice(1,10)};throw error;})\n"):originalWorker;await writeFile(configPath,config);await writeFile(workerPath,worker+bridge);
+ return {diagnostic,configurationSha256:sha(config),originalWorkerSha256:sha(originalWorker),instrumentedWorkerSha256:sha(worker),bridgeSha256:sha(bridge),syntheticHttpSha256:sha(adapted),claim:'PREPARED_ONLY_NO_NATIVE_RESULT'};
 }
 export async function runSyncLifecycleNative(h,{device='A'}={}){
  // This uses the visible original Settings modal inside the headless harness,
@@ -65,7 +65,7 @@ export async function runSyncLifecycleNative(h,{device='A'}={}){
  };
 
  await button('RESUME').waitFor({state:'visible'});
- const rpc=async(type,extra={})=>{try{return await p.evaluate(async({type,extra})=>{const r=await chrome.runtime.sendMessage({type,...extra});if(!r?.ok)throw Error(JSON.stringify(r));return r.data;},{type,extra});}catch(error){if(process.env.PAIA_SYNC_NATIVE_DIAGNOSTIC==='1')error.message+=' REPOSITORY_DIAGNOSTIC '+JSON.stringify(await worker().evaluate(()=>globalThis.__syncRepositoryDiagnostic??null));throw error;}};
+ const rpc=async(type,extra={})=>{try{return await p.evaluate(async({type,extra})=>{const r=await chrome.runtime.sendMessage({type,...extra});if(!r?.ok)throw Error(JSON.stringify(r));return r.data;},{type,extra});}catch(error){if(process.env.PAIA_SYNC_NATIVE_DIAGNOSTIC==='1')error.message+=' REPOSITORY_DIAGNOSTIC '+JSON.stringify(await worker().evaluate(()=>({repository:globalThis.__syncRepositoryDiagnostic??null,handler:globalThis.__syncHandlerDiagnostic??null})));throw error;}};
  let manual;
  if(device==='A'){await rpc('UPDATE_PREFERENCES',{changes:{language:'en',appearance:'dark',fontSize:'large',readingWidth:'wide',timeDisplay:'date_only',timeEmphasis:'standard'}});await rpc('FILTER_MODE',{mode:'off'});const q=await rpc('PAIA_PROMPT_QUERY');manual=await rpc('PAIA_PROMPT_CHANGE',{change:{action:'create',revision:q.revision,text:'SYNTHETIC original manual work'}});}
  await clickAcknowledged('RESUME');await button('NOW').waitFor({state:'visible'});
