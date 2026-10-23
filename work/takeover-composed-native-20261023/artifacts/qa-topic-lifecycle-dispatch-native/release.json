@@ -1,0 +1,225 @@
+{
+  "variant": "release",
+  "scope": "explicit-policy-original-owner-local-only",
+  "head": "07bf8b94f5bf68cd2a16c6b359bc03bace6c3b0e",
+  "result": "PASS",
+  "schedulerActivated": false,
+  "syncEnabled": false,
+  "owningSha256": "c471f3a44bc285c785976e34e16ea3c052cae439204829a4611da02a874a26ed",
+  "originalSetupSha256": "b94c97d11f3058195f3318bb7235875373c7e2e30fa181abbc34b3747b21a6a5",
+  "hashes": {
+    "core/topic-lifecycle-dispatch.js": "e2a2abba56652b662fb66efebfe1b41c62c8830bb9cda1cee6d794d5a1d1ef95",
+    "core/ai-usage/local-maintenance-session.js": "f4f5a445fb51caf7e967177f90c61ee678efe75c0a933b2700d956b2220af9c3",
+    "core/topic-lifecycle.js": "2e07c20257148fad7a41aa2fe853a5f19916e5ef04ffa57fb2edcaf076bdce33",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "a974ce3fe86cc2363b95977d099766120968f41bc3bce645f10ee63929a1ca85",
+    "core/indexed-store.js": "b6d844b62249d99142ff000fc20fab1670af27a5c6155fefe2bd134bc74ee173",
+    "core/library-documents-owner.js": "6b0c4f02f8beca3755de39d3ab6c21eadf657803c36fe31aacf04015b8c51d05",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "39b5e96ceb945add2de2462987b29af140319667f8ebf0b42605f93140a8f8a2",
+    "core/thought-journal.js": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  },
+  "originalHashes": {
+    "core/topic-lifecycle-dispatch.js": "e2a2abba56652b662fb66efebfe1b41c62c8830bb9cda1cee6d794d5a1d1ef95",
+    "core/ai-usage/local-maintenance-session.js": "f4f5a445fb51caf7e967177f90c61ee678efe75c0a933b2700d956b2220af9c3",
+    "core/topic-lifecycle.js": "2e07c20257148fad7a41aa2fe853a5f19916e5ef04ffa57fb2edcaf076bdce33",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "a974ce3fe86cc2363b95977d099766120968f41bc3bce645f10ee63929a1ca85",
+    "core/indexed-store.js": "b6d844b62249d99142ff000fc20fab1670af27a5c6155fefe2bd134bc74ee173",
+    "core/library-documents-owner.js": "6b0c4f02f8beca3755de39d3ab6c21eadf657803c36fe31aacf04015b8c51d05",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "39b5e96ceb945add2de2462987b29af140319667f8ebf0b42605f93140a8f8a2",
+    "core/thought-journal.js": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    {
+      "name": "original prepared structural handle dispatches exactly its selected Topic with shared genuine issuer budget",
+      "state": "PASS",
+      "assertions": 11
+    },
+    {
+      "name": "public handle, copied capability and another store cannot mint lifecycle selection",
+      "state": "PASS",
+      "assertions": 9
+    },
+    {
+      "name": "stable original action receipt reconciles lost delivery after commit across adapter reconstruction",
+      "state": "PASS",
+      "assertions": 5
+    },
+    {
+      "name": "original revoke refuses or rolls back with accurate unresolved item",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "original dispose refuses or rolls back with accurate unresolved item",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "original storage refuses or rolls back with accurate unresolved item",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "original legacy refuses or rolls back with accurate unresolved item",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "same dispatch reentry deduplicates and session model run cannot race local lifecycle",
+      "state": "PASS",
+      "assertions": 6
+    },
+    {
+      "name": "explicit clock regression is deferred, close never starts another original action",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "all Topics in one original prepared handle are dispatched without silently truncating the selection",
+      "state": "PASS",
+      "assertions": 6
+    },
+    {
+      "name": "a later selected Topic failure retains prior settlement and the exact unresolved action",
+      "state": "PASS",
+      "assertions": 10
+    },
+    {
+      "name": "actual Input-only prepared handle cannot select an arbitrary existing Topic",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "late-dispose after original backup finalizer rolls the selected dispatch back",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "late-grant after original backup finalizer rolls the selected dispatch back",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "late-receipt after original backup finalizer rolls the selected dispatch back",
+      "state": "PASS",
+      "assertions": 5
+    },
+    {
+      "name": "late-source after original backup finalizer rolls the selected dispatch back",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "original receipt observer distinguishes transaction identity and multiple original receipts",
+      "state": "PASS",
+      "assertions": 6
+    },
+    {
+      "name": "failed original receipt put unbinds its observer without changing later receipt behavior",
+      "state": "PASS",
+      "assertions": 2
+    }
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "lifecycle-native-1",
+      "lifecycle-native-10",
+      "lifecycle-native-11",
+      "lifecycle-native-12",
+      "lifecycle-native-13",
+      "lifecycle-native-14",
+      "lifecycle-native-15",
+      "lifecycle-native-16",
+      "lifecycle-native-17",
+      "lifecycle-native-18",
+      "lifecycle-native-2",
+      "lifecycle-native-3",
+      "lifecycle-native-4",
+      "lifecycle-native-5",
+      "lifecycle-native-6",
+      "lifecycle-native-7",
+      "lifecycle-native-8",
+      "lifecycle-native-9",
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "833bdb24-f4f2-4396-a2dc-0457e6abc2cd",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "833bdb24-f4f2-4396-a2dc-0457e6abc2cd",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "lifecycle-native-1",
+            "lifecycle-native-10",
+            "lifecycle-native-11",
+            "lifecycle-native-12",
+            "lifecycle-native-13",
+            "lifecycle-native-14",
+            "lifecycle-native-15",
+            "lifecycle-native-16",
+            "lifecycle-native-17",
+            "lifecycle-native-18",
+            "lifecycle-native-2",
+            "lifecycle-native-3",
+            "lifecycle-native-4",
+            "lifecycle-native-5",
+            "lifecycle-native-6",
+            "lifecycle-native-7",
+            "lifecycle-native-8",
+            "lifecycle-native-9",
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  },
+  "afterHashes": {
+    "core/topic-lifecycle-dispatch.js": "e2a2abba56652b662fb66efebfe1b41c62c8830bb9cda1cee6d794d5a1d1ef95",
+    "core/ai-usage/local-maintenance-session.js": "f4f5a445fb51caf7e967177f90c61ee678efe75c0a933b2700d956b2220af9c3",
+    "core/topic-lifecycle.js": "2e07c20257148fad7a41aa2fe853a5f19916e5ef04ffa57fb2edcaf076bdce33",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "a974ce3fe86cc2363b95977d099766120968f41bc3bce645f10ee63929a1ca85",
+    "core/indexed-store.js": "b6d844b62249d99142ff000fc20fab1670af27a5c6155fefe2bd134bc74ee173",
+    "core/library-documents-owner.js": "6b0c4f02f8beca3755de39d3ab6c21eadf657803c36fe31aacf04015b8c51d05",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "39b5e96ceb945add2de2462987b29af140319667f8ebf0b42605f93140a8f8a2",
+    "core/thought-journal.js": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  }
+}

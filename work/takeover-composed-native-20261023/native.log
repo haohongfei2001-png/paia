@@ -1,0 +1,122 @@
+TAP version 13
+# Subtest: mixed Context correction original native owners source
+not ok 1 - mixed Context correction original native owners source
+  ---
+  duration_ms: 32551.609291
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/mixed-correction-chrome.test.mjs:12:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: compound fields original body+note with bound: TypeError: assert.match is not a function
+        at Object.fn (chrome-extension://fpiddbegglijdamoghpbeekcblffmbpl/tests/ai-cost-03-bound-entry-fields.test.mjs:307:228)
+        at async runCorrectionCases (chrome-extension://fpiddbegglijdamoghpbeekcblffmbpl/tests/native-bridge.mjs:24:7)
+        at async <anonymous>:337:30
+        at Object.fn (chrome-extension://fpiddbegglijdamoghpbeekcblffmbpl/tests/ai-cost-03-bound-entry-fields.test.mjs:307:228)
+        at async runCorrectionCases (chrome-extension://fpiddbegglijdamoghpbeekcblffmbpl/tests/native-bridge.mjs:24:7)
+        at async <anonymous>:337:30
+        at runCorrectionCases (chrome-extension://fpiddbegglijdamoghpbeekcblffmbpl/tests/native-bridge.mjs:25:18)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.fn (chrome-extension://fpiddbegglijdamoghpbeekcblffmbpl/tests/ai-cost-03-bound-entry-fields.test.mjs:307:228)
+    async runCorrectionCases (chrome-extension://fpiddbegglijdamoghpbeekcblffmbpl/tests/native-bridge.mjs:24:7)
+    async <anonymous>:337:30
+    Object.fn (chrome-extension://fpiddbegglijdamoghpbeekcblffmbpl/tests/ai-cost-03-bound-entry-fields.test.mjs:307:228)
+    async runCorrectionCases (chrome-extension://fpiddbegglijdamoghpbeekcblffmbpl/tests/native-bridge.mjs:24:7)
+    async <anonymous>:337:30
+    runCorrectionCases (chrome-extension://fpiddbegglijdamoghpbeekcblffmbpl/tests/native-bridge.mjs:25:18)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/mixed-correction-chrome.test.mjs:40:105)
+  ...
+# Subtest: mixed Context correction original native owners release
+not ok 2 - mixed Context correction original native owners release
+  ---
+  duration_ms: 29665.683333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/mixed-correction-chrome.test.mjs:12:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: compound fields original body+note with bound: TypeError: assert.match is not a function
+        at Object.fn (chrome-extension://njoamihbdejppkkhhbiijbkkjgkolidg/tests/ai-cost-03-bound-entry-fields.test.mjs:307:228)
+        at async runCorrectionCases (chrome-extension://njoamihbdejppkkhhbiijbkkjgkolidg/tests/native-bridge.mjs:24:7)
+        at async <anonymous>:337:30
+        at Object.fn (chrome-extension://njoamihbdejppkkhhbiijbkkjgkolidg/tests/ai-cost-03-bound-entry-fields.test.mjs:307:228)
+        at async runCorrectionCases (chrome-extension://njoamihbdejppkkhhbiijbkkjgkolidg/tests/native-bridge.mjs:24:7)
+        at async <anonymous>:337:30
+        at runCorrectionCases (chrome-extension://njoamihbdejppkkhhbiijbkkjgkolidg/tests/native-bridge.mjs:25:18)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.fn (chrome-extension://njoamihbdejppkkhhbiijbkkjgkolidg/tests/ai-cost-03-bound-entry-fields.test.mjs:307:228)
+    async runCorrectionCases (chrome-extension://njoamihbdejppkkhhbiijbkkjgkolidg/tests/native-bridge.mjs:24:7)
+    async <anonymous>:337:30
+    Object.fn (chrome-extension://njoamihbdejppkkhhbiijbkkjgkolidg/tests/ai-cost-03-bound-entry-fields.test.mjs:307:228)
+    async runCorrectionCases (chrome-extension://njoamihbdejppkkhhbiijbkkjgkolidg/tests/native-bridge.mjs:24:7)
+    async <anonymous>:337:30
+    runCorrectionCases (chrome-extension://njoamihbdejppkkhhbiijbkkjgkolidg/tests/native-bridge.mjs:25:18)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/mixed-correction-chrome.test.mjs:40:105)
+  ...
+# Subtest: BNS saved AI typed successor native source
+not ok 3 - BNS saved AI typed successor native source
+  ---
+  duration_ms: 31305.483
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/saved-successor-chrome.test.mjs:12:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    locator.waitFor: Timeout 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#enable-consent') to be visible[22m
+    [2m    63 × locator resolved to hidden <button disabled type="button" class="primary" id="enable-consent">开始保存</button>[22m
+    
+  code: 'ERR_TEST_FAILURE'
+  name: 'TimeoutError'
+  stack: |-
+    FakeChatGPT.start (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/harness/fake-chatgpt.mjs:129:48)
+    async startNative (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:76:13)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/saved-successor-chrome.test.mjs:26:11)
+  ...
+# Subtest: BNS saved AI typed successor native release
+not ok 4 - BNS saved AI typed successor native release
+  ---
+  duration_ms: 31140.626875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/saved-successor-chrome.test.mjs:12:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    locator.waitFor: Timeout 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#enable-consent') to be visible[22m
+    [2m    63 × locator resolved to hidden <button disabled type="button" class="primary" id="enable-consent">开始保存</button>[22m
+    
+  code: 'ERR_TEST_FAILURE'
+  name: 'TimeoutError'
+  stack: |-
+    FakeChatGPT.start (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/harness/fake-chatgpt.mjs:129:48)
+    async startNative (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:76:13)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/saved-successor-chrome.test.mjs:26:11)
+  ...
+# Subtest: prepared maintenance lifecycle dispatch native source
+ok 5 - prepared maintenance lifecycle dispatch native source
+  ---
+  duration_ms: 4952.162375
+  type: 'test'
+  ...
+# Subtest: prepared maintenance lifecycle dispatch native release
+ok 6 - prepared maintenance lifecycle dispatch native release
+  ---
+  duration_ms: 4799.981167
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 2
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 149374.471292

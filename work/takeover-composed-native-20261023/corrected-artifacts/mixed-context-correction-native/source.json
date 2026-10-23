@@ -1,0 +1,151 @@
+{
+  "variant": "source",
+  "result": "PASS",
+  "head": "71e202cad2ede7a3a993ec259be9a5f93ab758b2",
+  "selection": "original mixed-family and compound-field/Section correction cases only",
+  "fullOwningFile": false,
+  "helperSha256": "b94c97d11f3058195f3318bb7235875373c7e2e30fa181abbc34b3747b21a6a5",
+  "owningSha256": {
+    "ai-cost-03-bound-entry-fields.test.mjs": "1a0c05b2439ffcdb87c499f04cc8c04e3d9af0584c0cd148de7ad70803bfb134"
+  },
+  "hashes": {
+    "core/ai-usage/context-correction.js": "155826d1dfb2238b96ed58ddd0300d516bb75a315e2a7ce98c3eec39dec2eead",
+    "core/ai-usage/local-maintenance-session.js": "f4f5a445fb51caf7e967177f90c61ee678efe75c0a933b2700d956b2220af9c3",
+    "core/ai-usage/maintenance-payload.js": "5e18381b377282917a05d2debdda5cedf2d1479c9dd43dc0fe9224238a7073e8",
+    "core/ai-usage/maintenance-qualification.js": "b4ef0ab20073777246efa8de5acfcaa65dca3deb3100681a5e48abf17528f1d5",
+    "core/idb-repository.js": "a974ce3fe86cc2363b95977d099766120968f41bc3bce645f10ee63929a1ca85"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": {
+    "mixed Context correction ": [
+      "mixed Context correction original bound with authored edit",
+      "mixed Context correction original bound with authored restore",
+      "mixed Context correction original plain with authored edit",
+      "mixed Context correction original plain with authored restore",
+      "mixed Context correction original response adapter none",
+      "mixed Context correction original response adapter foreign-item",
+      "mixed Context correction original response adapter unknown-field",
+      "mixed Context correction ACK rollback replays exact retained response once",
+      "mixed Context correction two paired and two authored owners remain separate",
+      "mixed Context correction rejects cross-topic before any material grant",
+      "mixed Context correction rejects invalidated before any material grant",
+      "mixed Context correction independent input scope is required",
+      "mixed Context correction independent bound scope is required",
+      "mixed Context correction independent authored scope is required",
+      "mixed Context correction independent authored-field scope is required",
+      "mixed Context correction independent context scope is required",
+      "mixed Context correction independent qualification-author scope is required",
+      "mixed Context correction independent qualification-bound scope is required",
+      "mixed Context correction independent qualification-history scope is required",
+      "mixed Context correction independent qualification-title scope is required",
+      "mixed Context correction independent qualification-note scope is required",
+      "mixed Context correction independent revoke scope is required",
+      "mixed Context correction provider closes bound-note",
+      "mixed Context correction provider closes input",
+      "mixed Context correction provider closes source",
+      "mixed Context correction provider closes authored-body",
+      "mixed Context correction provider closes authored-note",
+      "mixed Context correction provider closes authored-history",
+      "mixed Context correction provider closes authored-membership",
+      "mixed Context correction provider closes receipt",
+      "mixed Context correction provider closes revoke",
+      "mixed Context correction backup closes bound-note",
+      "mixed Context correction backup closes input",
+      "mixed Context correction backup closes source",
+      "mixed Context correction backup closes authored-body",
+      "mixed Context correction backup closes authored-note",
+      "mixed Context correction backup closes authored-history",
+      "mixed Context correction backup closes authored-membership",
+      "mixed Context correction backup closes receipt",
+      "mixed Context correction backup closes revoke",
+      "mixed Context correction unpaired plain body alongside bound",
+      "mixed Context correction unpaired plain body alongside bound and authored",
+      "mixed Context correction DTO requires complete exact sets for all three independent families"
+    ],
+    "compound ": [
+      "compound fields original body+note with independent authored owner",
+      "compound fields original note with independent authored owner",
+      "compound fields original body+note with bound",
+      "compound fields original body+note with bound and authored",
+      "compound structure original Section with plain",
+      "compound structure original Section with bound",
+      "compound structure original Section with plain and authored",
+      "compound structure original Section with bound and authored",
+      "compound qualifier note-only rejects omitted input-field",
+      "compound qualifier note-only rejects omitted qualification-field",
+      "compound qualifier note-only rejects omitted structure",
+      "compound qualifier note-only rejects omitted authored",
+      "compound qualifier note-only rejects omitted bound",
+      "compound qualifier note-only rejects omitted context",
+      "compound qualifier bound-note rejects omitted input-field",
+      "compound qualifier bound-note rejects omitted qualification-field",
+      "compound qualifier bound-note rejects omitted structure",
+      "compound qualifier bound-note rejects omitted authored",
+      "compound qualifier bound-note rejects omitted bound",
+      "compound qualifier bound-note rejects omitted context",
+      "compound qualifier section-mixed rejects omitted input-field",
+      "compound qualifier section-mixed rejects omitted qualification-field",
+      "compound qualifier section-mixed rejects omitted structure",
+      "compound qualifier section-mixed rejects omitted authored",
+      "compound qualifier section-mixed rejects omitted bound",
+      "compound qualifier section-mixed rejects omitted context",
+      "compound terminal provider rejects input-note",
+      "compound terminal provider rejects section-title",
+      "compound terminal provider rejects section-history",
+      "compound terminal provider rejects section-receipt",
+      "compound terminal provider rejects section-member",
+      "compound terminal provider rejects bound-note",
+      "compound terminal provider rejects authored-note",
+      "compound terminal provider rejects source",
+      "compound terminal provider rejects revoke",
+      "compound terminal backup rejects input-note",
+      "compound terminal backup rejects section-title",
+      "compound terminal backup rejects section-history",
+      "compound terminal backup rejects section-receipt",
+      "compound terminal backup rejects section-member",
+      "compound terminal backup rejects bound-note",
+      "compound terminal backup rejects authored-note",
+      "compound terminal backup rejects source",
+      "compound terminal backup rejects revoke",
+      "compound original source adapter and ACK replay note-only",
+      "compound original source adapter and ACK replay body-note",
+      "compound original source adapter and ACK replay section-mixed",
+      "compound bound note-only Input cannot satisfy original full body owner pair",
+      "compound Topic structure original owner refuses edited bound member",
+      "compound Topic structure original owner refuses source-free authored member",
+      "compound DTO closes structural member fields and every independent family"
+    ]
+  },
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "31d55508-5e71-433a-926d-4c86c083a7af",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "31d55508-5e71-433a-926d-4c86c083a7af",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}

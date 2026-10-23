@@ -1,0 +1,10 @@
+PASS: 21978 package guardrails across 625 runtime resources
+Static audit only; actual logged-in Chrome verification requires separate recorded evidence.
+RELEASE_PRODUCT_GUARD_PASS 649 files
+{
+  "output": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/takeover-composed-native-20261023/release",
+  "version": "0.55.9",
+  "versionName": "v0.55.9 Development",
+  "files": 649,
+  "reused": false
+}

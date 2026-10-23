@@ -1,0 +1,28 @@
+{
+  "variant": "release",
+  "scope": "finite-Source-plus-saved-AI-typed-successor-cold-recovery",
+  "head": "07bf8b94f5bf68cd2a16c6b359bc03bace6c3b0e",
+  "result": "FAIL",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "a7041f2ca8e0891217339d5f3fcf5673859f4f6dcd5cbd7fac876407cc75fb1f",
+  "hashes": {
+    "core/idb-repository.js": "a974ce3fe86cc2363b95977d099766120968f41bc3bce645f10ee63929a1ca85",
+    "core/browser-native-sync/core.js": "8f4ee8d8cc4df027e19268570b7d58881b86a2a30526d7f64eee40c8971ff674",
+    "core/browser-native-sync/group-checkpoint.js": "5543f7e2fc8db6468550e02fb19e85031b6727e64f2e45f25f8e0f234e180ff1",
+    "core/browser-native-sync/group-checkpoint-plan.js": "c499e761e6a505d2280b3422299396d95b100f9496b48c33c295fc198b5be24b",
+    "core/browser-native-sync/group-checkpoint-scope.js": "583dfc90784f60196b51420e10cf153e7cf464c59057fb5c42dbf5df71f319fa",
+    "core/browser-native-sync/saved-work-bootstrap.js": "23ac3b4b3bb461be8ec750fb90f38f1cf9325a9325d8198da2ae46c3af346ebe",
+    "core/browser-native-sync/saved-work-payload.js": "2698aa8e40bcb0a5f1065ec54ab41b1783e8386784b95e5688e2ab88289ca53e",
+    "core/browser-native-sync/saved-work-receive.js": "33e4262a16f5878b3e73b535ffec0a71f146ec65b86f9bc315a24b2e49ac89b3",
+    "core/browser-native-sync/source-bootstrap-receive.js": "746335aff261833e4e6da777618dd80f9f90b41193a91c1cdf0275cc0b1ff301",
+    "core/library-documents-store.js": "63f7e9dec5c31e076cfa48e865b1fa7ef1e804ac12ba2d25c3c1d8faff69931a",
+    "core/indexed-store.js": "b6d844b62249d99142ff000fc20fab1670af27a5c6155fefe2bd134bc74ee173",
+    "core/browser-native-sync/saved-work-journal.js": "cc95c92d6d986136a397695f900a1010863ba345e0f806375084f24161830679",
+    "core/browser-native-sync/saved-work-successor-codec.js": "a21ed7d2b4f4cc028169a49a8d29c4cc7c1bb397cf2fb154996b2f7b75d478f1",
+    "core/browser-native-sync/human-library-plan.js": "22f6eb961c3c463396eaa619d42844f0d6d2ff05ed0dcb966f2d8ae0720455ba",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/thought-journal.js": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4"
+  },
+  "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#enable-consent') to be visible\u001b[22m\n\u001b[2m    63 × locator resolved to hidden <button disabled type=\"button\" class=\"primary\" id=\"enable-consent\">开始保存</button>\u001b[22m\n"
+}

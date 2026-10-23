@@ -1,0 +1,8 @@
+/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/takeover-composed-native-20261023/generated-saved-fixture.mjs:16
+import {sealOperation} from '../core/browser-native-sync/core.js';
+        ^^^^^^^^^^^^^
+
+SyntaxError: Identifier 'sealOperation' has already been declared
+    at checkSyntax (node:internal/main/check_syntax:74:5)
+
+Node.js v22.23.3

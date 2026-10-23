@@ -1,0 +1,2146 @@
+TAP version 13
+# Subtest: bound human Entry title/note commit with separately qualified original Input body
+ok 1 - bound human Entry title/note commit with separately qualified original Input body
+  ---
+  duration_ms: 123.587792
+  type: 'test'
+  ...
+# Subtest: bound title alone and explicit clearing retain exact original field authority
+ok 2 - bound title alone and explicit clearing retain exact original field authority
+  ---
+  duration_ms: 77.985083
+  type: 'test'
+  ...
+# Subtest: bound note alone and explicit clearing retain exact original field authority
+ok 3 - bound note alone and explicit clearing retain exact original field authority
+  ---
+  duration_ms: 61.896834
+  type: 'test'
+  ...
+# Subtest: bound coalesced title ABA and paired remove/restore require fresh evidence
+ok 4 - bound coalesced title ABA and paired remove/restore require fresh evidence
+  ---
+  duration_ms: 83.541334
+  type: 'test'
+  ...
+# Subtest: bound coalesced note ABA and paired remove/restore require fresh evidence
+ok 5 - bound coalesced note ABA and paired remove/restore require fresh evidence
+  ---
+  duration_ms: 82.948583
+  type: 'test'
+  ...
+# Subtest: current Input body edits retain Entry field authority and independently refresh body evidence
+ok 6 - current Input body edits retain Entry field authority and independently refresh body evidence
+  ---
+  duration_ms: 61.176333
+  type: 'test'
+  ...
+# Subtest: Entry note and Input note never share a field identity or permission
+ok 7 - Entry note and Input note never share a field identity or permission
+  ---
+  duration_ms: 57.185583
+  type: 'test'
+  ...
+# Subtest: bound owner rejects operation
+ok 8 - bound owner rejects operation
+  ---
+  duration_ms: 42.46025
+  type: 'test'
+  ...
+# Subtest: bound owner rejects protection
+ok 9 - bound owner rejects protection
+  ---
+  duration_ms: 41.903083
+  type: 'test'
+  ...
+# Subtest: bound owner rejects revision-zero
+ok 10 - bound owner rejects revision-zero
+  ---
+  duration_ms: 39.0865
+  type: 'test'
+  ...
+# Subtest: bound owner rejects revision-extra
+ok 11 - bound owner rejects revision-extra
+  ---
+  duration_ms: 40.300875
+  type: 'test'
+  ...
+# Subtest: bound owner rejects current-text
+ok 12 - bound owner rejects current-text
+  ---
+  duration_ms: 38.959541
+  type: 'test'
+  ...
+# Subtest: bound owner rejects mask
+ok 13 - bound owner rejects mask
+  ---
+  duration_ms: 39.720792
+  type: 'test'
+  ...
+# Subtest: bound owner rejects missing-link
+ok 14 - bound owner rejects missing-link
+  ---
+  duration_ms: 38.724708
+  type: 'test'
+  ...
+# Subtest: bound owner rejects missing-birth
+ok 15 - bound owner rejects missing-birth
+  ---
+  duration_ms: 46.059583
+  type: 'test'
+  ...
+# Subtest: bound owner rejects birth-actor
+ok 16 - bound owner rejects birth-actor
+  ---
+  duration_ms: 39.797125
+  type: 'test'
+  ...
+# Subtest: bound owner rejects source-closure
+ok 17 - bound owner rejects source-closure
+  ---
+  duration_ms: 41.859959
+  type: 'test'
+  ...
+# Subtest: bound owner rejects detached
+ok 18 - bound owner rejects detached
+  ---
+  duration_ms: 39.906584
+  type: 'test'
+  ...
+# Subtest: bound owner rejects derived
+ok 19 - bound owner rejects derived
+  ---
+  duration_ms: 38.02725
+  type: 'test'
+  ...
+# Subtest: bound owner rejects context-only
+ok 20 - bound owner rejects context-only
+  ---
+  duration_ms: 40.115542
+  type: 'test'
+  ...
+# Subtest: bound owner rejects missing-provenance
+ok 21 - bound owner rejects missing-provenance
+  ---
+  duration_ms: 40.818875
+  type: 'test'
+  ...
+# Subtest: bound owner rejects partial-span
+ok 22 - bound owner rejects partial-span
+  ---
+  duration_ms: 41.449708
+  type: 'test'
+  ...
+# Subtest: bound owner rejects unknown-dependency
+ok 23 - bound owner rejects unknown-dependency
+  ---
+  duration_ms: 39.124583
+  type: 'test'
+  ...
+# Subtest: bound owner rejects missing-source
+ok 24 - bound owner rejects missing-source
+  ---
+  duration_ms: 40.133209
+  type: 'test'
+  ...
+# Subtest: bound owner rejects excluded-input
+ok 25 - bound owner rejects excluded-input
+  ---
+  duration_ms: 38.084375
+  type: 'test'
+  ...
+# Subtest: bound owner rejects removed-input
+ok 26 - bound owner rejects removed-input
+  ---
+  duration_ms: 38.990667
+  type: 'test'
+  ...
+# Subtest: bound owner rejects human-membership
+ok 27 - bound owner rejects human-membership
+  ---
+  duration_ms: 37.490333
+  type: 'test'
+  ...
+# Subtest: bound owner rejects section
+ok 28 - bound owner rejects section
+  ---
+  duration_ms: 39.688458
+  type: 'test'
+  ...
+# Subtest: bound owner rejects second-membership
+ok 29 - bound owner rejects second-membership
+  ---
+  duration_ms: 47.44575
+  type: 'test'
+  ...
+# Subtest: bound owner rejects type-edit
+ok 30 - bound owner rejects type-edit
+  ---
+  duration_ms: 39.21575
+  type: 'test'
+  ...
+# Subtest: bound restore proof refuses missing-removal
+ok 31 - bound restore proof refuses missing-removal
+  ---
+  duration_ms: 43.149042
+  type: 'test'
+  ...
+# Subtest: bound restore proof refuses unpaired-restore
+ok 32 - bound restore proof refuses unpaired-restore
+  ---
+  duration_ms: 42.453709
+  type: 'test'
+  ...
+# Subtest: bound restore proof refuses restore-mask
+ok 33 - bound restore proof refuses restore-mask
+  ---
+  duration_ms: 43.485167
+  type: 'test'
+  ...
+# Subtest: bound restore proof refuses restore-op-ABA
+ok 34 - bound restore proof refuses restore-op-ABA
+  ---
+  duration_ms: 43.546459
+  type: 'test'
+  ...
+# Subtest: bound Context refuses missing-input evidence without writing
+ok 35 - bound Context refuses missing-input evidence without writing
+  ---
+  duration_ms: 40.052125
+  type: 'test'
+  ...
+# Subtest: bound Context refuses wrong-input evidence without writing
+ok 36 - bound Context refuses wrong-input evidence without writing
+  ---
+  duration_ms: 38.374292
+  type: 'test'
+  ...
+# Subtest: bound Context refuses input-note-only evidence without writing
+ok 37 - bound Context refuses input-note-only evidence without writing
+  ---
+  duration_ms: 40.870917
+  type: 'test'
+  ...
+# Subtest: bound Context refuses wrong-topic evidence without writing
+ok 38 - bound Context refuses wrong-topic evidence without writing
+  ---
+  duration_ms: 38.472375
+  type: 'test'
+  ...
+# Subtest: bound Context refuses wrong-removal evidence without writing
+ok 39 - bound Context refuses wrong-removal evidence without writing
+  ---
+  duration_ms: 42.218958
+  type: 'test'
+  ...
+# Subtest: bound Context refuses forged-source evidence without writing
+ok 40 - bound Context refuses forged-source evidence without writing
+  ---
+  duration_ms: 48.855375
+  type: 'test'
+  ...
+# Subtest: bound Context refuses body-field evidence without writing
+ok 41 - bound Context refuses body-field evidence without writing
+  ---
+  duration_ms: 37.299167
+  type: 'test'
+  ...
+# Subtest: bound Context refuses missing-digest evidence without writing
+ok 42 - bound Context refuses missing-digest evidence without writing
+  ---
+  duration_ms: 38.46875
+  type: 'test'
+  ...
+# Subtest: bound Context refuses narrow-fields evidence without writing
+ok 43 - bound Context refuses narrow-fields evidence without writing
+  ---
+  duration_ms: 45.087292
+  type: 'test'
+  ...
+# Subtest: bound denied processing permission hashes no selected human text
+ok 44 - bound denied processing permission hashes no selected human text
+  ---
+  duration_ms: 39.5235
+  type: 'test'
+  ...
+# Subtest: bound missing-bound processing permission hashes no selected human text
+ok 45 - bound missing-bound processing permission hashes no selected human text
+  ---
+  duration_ms: 41.457625
+  type: 'test'
+  ...
+# Subtest: bound wrong-entry processing permission hashes no selected human text
+ok 46 - bound wrong-entry processing permission hashes no selected human text
+  ---
+  duration_ms: 43.284125
+  type: 'test'
+  ...
+# Subtest: bound wrong-input processing permission hashes no selected human text
+ok 47 - bound wrong-input processing permission hashes no selected human text
+  ---
+  duration_ms: 44.30775
+  type: 'test'
+  ...
+# Subtest: bound wrong-fields processing permission hashes no selected human text
+ok 48 - bound wrong-fields processing permission hashes no selected human text
+  ---
+  duration_ms: 42.906042
+  type: 'test'
+  ...
+# Subtest: old title-only grant does not hash a newly added ungranted Entry note
+ok 49 - old title-only grant does not hash a newly added ungranted Entry note
+  ---
+  duration_ms: 55.385917
+  type: 'test'
+  ...
+# Subtest: late bound field drift at hash rolls back Context and receipt
+ok 50 - late bound field drift at hash rolls back Context and receipt
+  ---
+  duration_ms: 59.354333
+  type: 'test'
+  ...
+# Subtest: late bound field drift at commit rolls back Context and receipt
+ok 51 - late bound field drift at commit rolls back Context and receipt
+  ---
+  duration_ms: 51.552625
+  type: 'test'
+  ...
+# Subtest: bound automatic Context remains source-dependent through purge and never becomes source-free
+ok 52 - bound automatic Context remains source-dependent through purge and never becomes source-free
+  ---
+  duration_ms: 59.654583
+  type: 'test'
+  ...
+# Subtest: original indexed journal and membership reads share the existing work budget
+ok 53 - original indexed journal and membership reads share the existing work budget
+  ---
+  duration_ms: 41.328083
+  type: 'test'
+  ...
+# Subtest: bound field selections reject sparse decorated duplicate reordered and body masks
+ok 54 - bound field selections reject sparse decorated duplicate reordered and body masks
+  ---
+  duration_ms: 0.070458
+  type: 'test'
+  ...
+# Subtest: bound NO_CHANGE receipts exact checked evidence without rewriting Item or provenance
+ok 55 - bound NO_CHANGE receipts exact checked evidence without rewriting Item or provenance
+  ---
+  duration_ms: 65.183
+  type: 'test'
+  ...
+# Subtest: bound invalidation needs changed qualified fields before reactivation
+ok 56 - bound invalidation needs changed qualified fields before reactivation
+  ---
+  duration_ms: 106.499583
+  type: 'test'
+  ...
+# Subtest: a stale bound Item does not suppress separately authorized current fields
+ok 57 - a stale bound Item does not suppress separately authorized current fields
+  ---
+  duration_ms: 78.797083
+  type: 'test'
+  ...
+# Subtest: a stale old Topic lineage does not suppress a new exact human-selected Topic
+ok 58 - a stale old Topic lineage does not suppress a new exact human-selected Topic
+  ---
+  duration_ms: 82.13325
+  type: 'test'
+  ...
+# Subtest: current Entry and Placement descriptors require their own retained journal identity
+ok 59 - current Entry and Placement descriptors require their own retained journal identity
+  ---
+  duration_ms: 46.001792
+  type: 'test'
+  ...
+# Subtest: original mirror body mismatch cannot be authorized by valid human Entry fields
+ok 60 - original mirror body mismatch cannot be authorized by valid human Entry fields
+  ---
+  duration_ms: 46.511
+  type: 'test'
+  ...
+# Subtest: bound original history undo and redo retain title authority
+ok 61 - bound original history undo and redo retain title authority
+  ---
+  duration_ms: 75.689583
+  type: 'test'
+  ...
+# Subtest: bound original history undo and redo retain note authority
+ok 62 - bound original history undo and redo retain note authority
+  ---
+  duration_ms: 76.380834
+  type: 'test'
+  ...
+# Subtest: bound reverse shared-body plus title edit proves both original journals
+ok 63 - bound reverse shared-body plus title edit proves both original journals
+  ---
+  duration_ms: 59.327958
+  type: 'test'
+  ...
+# Subtest: bound reverse shared-body plus note edit proves both original journals
+ok 64 - bound reverse shared-body plus note edit proves both original journals
+  ---
+  duration_ms: 57.316375
+  type: 'test'
+  ...
+# Subtest: bound combined shared edit refuses forged operation pair
+ok 65 - bound combined shared edit refuses forged operation pair
+  ---
+  duration_ms: 44.223833
+  type: 'test'
+  ...
+# Subtest: bound combined shared edit refuses forged body pair
+ok 66 - bound combined shared edit refuses forged body pair
+  ---
+  duration_ms: 43.558041
+  type: 'test'
+  ...
+# Subtest: bound combined shared edit refuses forged receipt pair
+ok 67 - bound combined shared edit refuses forged receipt pair
+  ---
+  duration_ms: 43.056375
+  type: 'test'
+  ...
+# Subtest: bound combined shared edit refuses forged mask pair
+ok 68 - bound combined shared edit refuses forged mask pair
+  ---
+  duration_ms: 43.334125
+  type: 'test'
+  ...
+# Subtest: bound combined shared edit refuses forged overlap pair
+ok 69 - bound combined shared edit refuses forged overlap pair
+  ---
+  duration_ms: 42.500959
+  type: 'test'
+  ...
+# Subtest: bound original Library batch title plus history undo/redo qualifies
+ok 70 - bound original Library batch title plus history undo/redo qualifies
+  ---
+  duration_ms: 77.707209
+  type: 'test'
+  ...
+# Subtest: bound original Library batch shared body and title plus history undo/redo qualifies
+ok 71 - bound original Library batch shared body and title plus history undo/redo qualifies
+  ---
+  duration_ms: 84.011
+  type: 'test'
+  ...
+# Subtest: bound original Library batch note plus history undo/redo qualifies
+ok 72 - bound original Library batch note plus history undo/redo qualifies
+  ---
+  duration_ms: 82.525584
+  type: 'test'
+  ...
+# Subtest: bound original Library batch shared body and note plus history undo/redo qualifies
+ok 73 - bound original Library batch shared body and note plus history undo/redo qualifies
+  ---
+  duration_ms: 88.382
+  type: 'test'
+  ...
+# Subtest: bound original restoreLibraryRevision title preserves its original user_edit authority
+ok 74 - bound original restoreLibraryRevision title preserves its original user_edit authority
+  ---
+  duration_ms: 59.828708
+  type: 'test'
+  ...
+# Subtest: bound original restoreLibraryRevision note preserves its original user_edit authority
+ok 75 - bound original restoreLibraryRevision note preserves its original user_edit authority
+  ---
+  duration_ms: 62.444625
+  type: 'test'
+  ...
+# Subtest: bound merged original batch refuses forged receipt proof
+ok 76 - bound merged original batch refuses forged receipt proof
+  ---
+  duration_ms: 43.871
+  type: 'test'
+  ...
+# Subtest: bound merged original batch refuses forged receipt-field proof
+ok 77 - bound merged original batch refuses forged receipt-field proof
+  ---
+  duration_ms: 44.68075
+  type: 'test'
+  ...
+# Subtest: bound merged original batch refuses forged operation proof
+ok 78 - bound merged original batch refuses forged operation proof
+  ---
+  duration_ms: 41.5155
+  type: 'test'
+  ...
+# Subtest: bound merged original batch refuses forged mask proof
+ok 79 - bound merged original batch refuses forged mask proof
+  ---
+  duration_ms: 42.928833
+  type: 'test'
+  ...
+# Subtest: bound merged original batch refuses forged body proof
+ok 80 - bound merged original batch refuses forged body proof
+  ---
+  duration_ms: 44.171125
+  type: 'test'
+  ...
+# Subtest: bound Context correction original edit retains complete independent material and protected human owner
+ok 81 - bound Context correction original edit retains complete independent material and protected human owner
+  ---
+  duration_ms: 479.406125
+  type: 'test'
+  ...
+# Subtest: bound Context correction original restore retains complete independent material and protected human owner
+ok 82 - bound Context correction original restore retains complete independent material and protected human owner
+  ---
+  duration_ms: 465.520792
+  type: 'test'
+  ...
+# Subtest: bound Context correction accepts exact original note only with separate Input body
+ok 83 - bound Context correction accepts exact original note only with separate Input body
+  ---
+  duration_ms: 451.79075
+  type: 'test'
+  ...
+# Subtest: bound Context correction accepts exact original title only with separate Input body
+ok 84 - bound Context correction accepts exact original title only with separate Input body
+  ---
+  duration_ms: 478.838458
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent processing grant before dispatch
+ok 85 - bound Context correction refuses independent processing grant before dispatch
+  ---
+  duration_ms: 69.395041
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent input grant before dispatch
+ok 86 - bound Context correction refuses independent input grant before dispatch
+  ---
+  duration_ms: 68.15425
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent bound grant before dispatch
+ok 87 - bound Context correction refuses independent bound grant before dispatch
+  ---
+  duration_ms: 77.464375
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent context grant before dispatch
+ok 88 - bound Context correction refuses independent context grant before dispatch
+  ---
+  duration_ms: 77.852042
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent qualification-history grant before dispatch
+ok 89 - bound Context correction refuses independent qualification-history grant before dispatch
+  ---
+  duration_ms: 85.836292
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent qualification-title grant before dispatch
+ok 90 - bound Context correction refuses independent qualification-title grant before dispatch
+  ---
+  duration_ms: 70.397625
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent qualification-note grant before dispatch
+ok 91 - bound Context correction refuses independent qualification-note grant before dispatch
+  ---
+  duration_ms: 69.391542
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects note without ACK or human write
+ok 92 - bound Context correction provider rejects note without ACK or human write
+  ---
+  duration_ms: 396.249167
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects title without ACK or human write
+ok 93 - bound Context correction provider rejects title without ACK or human write
+  ---
+  duration_ms: 383.525708
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects input without ACK or human write
+ok 94 - bound Context correction provider rejects input without ACK or human write
+  ---
+  duration_ms: 374.939083
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects source without ACK or human write
+ok 95 - bound Context correction provider rejects source without ACK or human write
+  ---
+  duration_ms: 370.250291
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects history without ACK or human write
+ok 96 - bound Context correction provider rejects history without ACK or human write
+  ---
+  duration_ms: 382.894
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects section without ACK or human write
+ok 97 - bound Context correction provider rejects section without ACK or human write
+  ---
+  duration_ms: 364.759167
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects placement-journal without ACK or human write
+ok 98 - bound Context correction provider rejects placement-journal without ACK or human write
+  ---
+  duration_ms: 394.914375
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects membership without ACK or human write
+ok 99 - bound Context correction provider rejects membership without ACK or human write
+  ---
+  duration_ms: 372.654708
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects revoke without ACK or human write
+ok 100 - bound Context correction provider rejects revoke without ACK or human write
+  ---
+  duration_ms: 366.7725
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects note without ACK or human write
+ok 101 - bound Context correction backup rejects note without ACK or human write
+  ---
+  duration_ms: 458.931583
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects title without ACK or human write
+ok 102 - bound Context correction backup rejects title without ACK or human write
+  ---
+  duration_ms: 446.907125
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects input without ACK or human write
+ok 103 - bound Context correction backup rejects input without ACK or human write
+  ---
+  duration_ms: 456.656542
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects source without ACK or human write
+ok 104 - bound Context correction backup rejects source without ACK or human write
+  ---
+  duration_ms: 447.024959
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects history without ACK or human write
+ok 105 - bound Context correction backup rejects history without ACK or human write
+  ---
+  duration_ms: 470.90175
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects section without ACK or human write
+ok 106 - bound Context correction backup rejects section without ACK or human write
+  ---
+  duration_ms: 444.879541
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects placement-journal without ACK or human write
+ok 107 - bound Context correction backup rejects placement-journal without ACK or human write
+  ---
+  duration_ms: 451.495125
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects membership without ACK or human write
+ok 108 - bound Context correction backup rejects membership without ACK or human write
+  ---
+  duration_ms: 449.625833
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects revoke without ACK or human write
+ok 109 - bound Context correction backup rejects revoke without ACK or human write
+  ---
+  duration_ms: 487.572083
+  type: 'test'
+  ...
+# Subtest: bound Context correction original response adapter none
+ok 110 - bound Context correction original response adapter none
+  ---
+  duration_ms: 463.866042
+  type: 'test'
+  ...
+# Subtest: bound Context correction original response adapter foreign-item
+ok 111 - bound Context correction original response adapter foreign-item
+  ---
+  duration_ms: 381.088291
+  type: 'test'
+  ...
+# Subtest: bound Context correction original response adapter unknown-field
+ok 112 - bound Context correction original response adapter unknown-field
+  ---
+  duration_ms: 374.968125
+  type: 'test'
+  ...
+# Subtest: bound Context correction ACK rollback replays retained response with one provider attempt
+ok 113 - bound Context correction ACK rollback replays retained response with one provider attempt
+  ---
+  duration_ms: 534.055709
+  type: 'test'
+  ...
+# Subtest: bound Context correction important original history none closes at native tail
+ok 114 - bound Context correction important original history none closes at native tail
+  ---
+  duration_ms: 500.751791
+  type: 'test'
+  ...
+# Subtest: bound Context correction important original history receipt closes at native tail
+ok 115 - bound Context correction important original history receipt closes at native tail
+  ---
+  duration_ms: 492.167334
+  type: 'test'
+  ...
+# Subtest: bound Context correction rejects retained selected-fields lineage before dispatch
+ok 116 - bound Context correction rejects retained selected-fields lineage before dispatch
+  ---
+  duration_ms: 62.813458
+  type: 'test'
+  ...
+# Subtest: bound Context correction rejects retained digest lineage before dispatch
+ok 117 - bound Context correction rejects retained digest lineage before dispatch
+  ---
+  duration_ms: 133.297042
+  type: 'test'
+  ...
+# Subtest: bound Context correction rejects retained foreign-input lineage before dispatch
+ok 118 - bound Context correction rejects retained foreign-input lineage before dispatch
+  ---
+  duration_ms: 59.395375
+  type: 'test'
+  ...
+# Subtest: bound Context correction rejects retained missing-input lineage before dispatch
+ok 119 - bound Context correction rejects retained missing-input lineage before dispatch
+  ---
+  duration_ms: 58.206125
+  type: 'test'
+  ...
+# Subtest: bound Context correction rejects retained human-kind lineage before dispatch
+ok 120 - bound Context correction rejects retained human-kind lineage before dispatch
+  ---
+  duration_ms: 64.599375
+  type: 'test'
+  ...
+# Subtest: bound Context correction DTO rejects extra material, copied field scope and Topic coverage
+ok 121 - bound Context correction DTO rejects extra material, copied field scope and Topic coverage
+  ---
+  duration_ms: 451.898125
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction original edit qualifies every paired owner
+ok 122 - multi bound Context correction original edit qualifies every paired owner
+  ---
+  duration_ms: 747.74775
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction original restore qualifies every paired owner
+ok 123 - multi bound Context correction original restore qualifies every paired owner
+  ---
+  duration_ms: 773.791292
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction preserves eight pair original evidence ceiling
+ok 124 - multi bound Context correction preserves eight pair original evidence ceiling
+  ---
+  duration_ms: 2954.997208
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair input
+ok 125 - multi bound Context correction independent second pair input
+  ---
+  duration_ms: 102.310042
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair bound
+ok 126 - multi bound Context correction independent second pair bound
+  ---
+  duration_ms: 99.419625
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair context
+ok 127 - multi bound Context correction independent second pair context
+  ---
+  duration_ms: 104.657792
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair qualification-entry
+ok 128 - multi bound Context correction independent second pair qualification-entry
+  ---
+  duration_ms: 98.496333
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair qualification-history
+ok 129 - multi bound Context correction independent second pair qualification-history
+  ---
+  duration_ms: 98.378084
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair qualification-title
+ok 130 - multi bound Context correction independent second pair qualification-title
+  ---
+  duration_ms: 101.510791
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair qualification-note
+ok 131 - multi bound Context correction independent second pair qualification-note
+  ---
+  duration_ms: 101.690083
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair note
+ok 132 - multi bound Context correction provider second pair note
+  ---
+  duration_ms: 642.512625
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair title
+ok 133 - multi bound Context correction provider second pair title
+  ---
+  duration_ms: 644.757208
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair input
+ok 134 - multi bound Context correction provider second pair input
+  ---
+  duration_ms: 635.660625
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair source
+ok 135 - multi bound Context correction provider second pair source
+  ---
+  duration_ms: 614.926708
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair history
+ok 136 - multi bound Context correction provider second pair history
+  ---
+  duration_ms: 646.636458
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair placement-journal
+ok 137 - multi bound Context correction provider second pair placement-journal
+  ---
+  duration_ms: 668.80325
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair membership
+ok 138 - multi bound Context correction provider second pair membership
+  ---
+  duration_ms: 616.881416
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair revoke
+ok 139 - multi bound Context correction provider second pair revoke
+  ---
+  duration_ms: 593.496875
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair note
+ok 140 - multi bound Context correction backup second pair note
+  ---
+  duration_ms: 796.15775
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair title
+ok 141 - multi bound Context correction backup second pair title
+  ---
+  duration_ms: 777.361458
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair input
+ok 142 - multi bound Context correction backup second pair input
+  ---
+  duration_ms: 753.955334
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair source
+ok 143 - multi bound Context correction backup second pair source
+  ---
+  duration_ms: 1032.734875
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair history
+ok 144 - multi bound Context correction backup second pair history
+  ---
+  duration_ms: 758.890459
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair placement-journal
+ok 145 - multi bound Context correction backup second pair placement-journal
+  ---
+  duration_ms: 745.64425
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair membership
+ok 146 - multi bound Context correction backup second pair membership
+  ---
+  duration_ms: 775.564875
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair revoke
+ok 147 - multi bound Context correction backup second pair revoke
+  ---
+  duration_ms: 747.288625
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction original response adapter none
+ok 148 - multi bound Context correction original response adapter none
+  ---
+  duration_ms: 985.152083
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction original response adapter foreign-item
+ok 149 - multi bound Context correction original response adapter foreign-item
+  ---
+  duration_ms: 619.2835
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction original response adapter unknown-field
+ok 150 - multi bound Context correction original response adapter unknown-field
+  ---
+  duration_ms: 646.419
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction ACK rollback replays exact retained response once
+ok 151 - multi bound Context correction ACK rollback replays exact retained response once
+  ---
+  duration_ms: 1088.670459
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained selected-fields before dispatch
+ok 152 - multi bound Context correction rejects second retained selected-fields before dispatch
+  ---
+  duration_ms: 143.560708
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained digest before dispatch
+ok 153 - multi bound Context correction rejects second retained digest before dispatch
+  ---
+  duration_ms: 272.679041
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained foreign-input before dispatch
+ok 154 - multi bound Context correction rejects second retained foreign-input before dispatch
+  ---
+  duration_ms: 107.518042
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained missing-input before dispatch
+ok 155 - multi bound Context correction rejects second retained missing-input before dispatch
+  ---
+  duration_ms: 94.131542
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained human-kind before dispatch
+ok 156 - multi bound Context correction rejects second retained human-kind before dispatch
+  ---
+  duration_ms: 94.145875
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained duplicate-bound before dispatch
+ok 157 - multi bound Context correction rejects second retained duplicate-bound before dispatch
+  ---
+  duration_ms: 90.351167
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained invalidated before dispatch
+ok 158 - multi bound Context correction rejects second retained invalidated before dispatch
+  ---
+  duration_ms: 91.658917
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction DTO closes exact paired sets and independent coverage
+ok 159 - multi bound Context correction DTO closes exact paired sets and independent coverage
+  ---
+  duration_ms: 865.608459
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction nine pairs retain original sixteen evidence refusal
+ok 160 - multi bound Context correction nine pairs retain original sixteen evidence refusal
+  ---
+  duration_ms: 331.574334
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original bound with authored edit
+ok 161 - mixed Context correction original bound with authored edit
+  ---
+  duration_ms: 723.535167
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original bound with authored restore
+ok 162 - mixed Context correction original bound with authored restore
+  ---
+  duration_ms: 702.053666
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original plain with authored edit
+ok 163 - mixed Context correction original plain with authored edit
+  ---
+  duration_ms: 745.929
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original plain with authored restore
+ok 164 - mixed Context correction original plain with authored restore
+  ---
+  duration_ms: 625.703166
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original response adapter none
+ok 165 - mixed Context correction original response adapter none
+  ---
+  duration_ms: 1107.562542
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original response adapter foreign-item
+ok 166 - mixed Context correction original response adapter foreign-item
+  ---
+  duration_ms: 878.129583
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original response adapter unknown-field
+ok 167 - mixed Context correction original response adapter unknown-field
+  ---
+  duration_ms: 1292.978417
+  type: 'test'
+  ...
+# Subtest: mixed Context correction ACK rollback replays exact retained response once
+ok 168 - mixed Context correction ACK rollback replays exact retained response once
+  ---
+  duration_ms: 1572.058208
+  type: 'test'
+  ...
+# Subtest: mixed Context correction two paired and two authored owners remain separate
+ok 169 - mixed Context correction two paired and two authored owners remain separate
+  ---
+  duration_ms: 1144.37575
+  type: 'test'
+  ...
+# Subtest: mixed Context correction rejects cross-topic before any material grant
+ok 170 - mixed Context correction rejects cross-topic before any material grant
+  ---
+  duration_ms: 78.322125
+  type: 'test'
+  ...
+# Subtest: mixed Context correction rejects invalidated before any material grant
+ok 171 - mixed Context correction rejects invalidated before any material grant
+  ---
+  duration_ms: 80.977
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent input scope is required
+ok 172 - mixed Context correction independent input scope is required
+  ---
+  duration_ms: 89.091375
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent bound scope is required
+ok 173 - mixed Context correction independent bound scope is required
+  ---
+  duration_ms: 83.394917
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent authored scope is required
+ok 174 - mixed Context correction independent authored scope is required
+  ---
+  duration_ms: 94.41375
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent authored-field scope is required
+ok 175 - mixed Context correction independent authored-field scope is required
+  ---
+  duration_ms: 91.873958
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent context scope is required
+ok 176 - mixed Context correction independent context scope is required
+  ---
+  duration_ms: 86.310792
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent qualification-author scope is required
+ok 177 - mixed Context correction independent qualification-author scope is required
+  ---
+  duration_ms: 87.720834
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent qualification-bound scope is required
+ok 178 - mixed Context correction independent qualification-bound scope is required
+  ---
+  duration_ms: 86.555625
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent qualification-history scope is required
+ok 179 - mixed Context correction independent qualification-history scope is required
+  ---
+  duration_ms: 86.468084
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent qualification-title scope is required
+ok 180 - mixed Context correction independent qualification-title scope is required
+  ---
+  duration_ms: 92.015666
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent qualification-note scope is required
+ok 181 - mixed Context correction independent qualification-note scope is required
+  ---
+  duration_ms: 89.75475
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent revoke scope is required
+ok 182 - mixed Context correction independent revoke scope is required
+  ---
+  duration_ms: 79.009875
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes bound-note
+ok 183 - mixed Context correction provider closes bound-note
+  ---
+  duration_ms: 527.9455
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes input
+ok 184 - mixed Context correction provider closes input
+  ---
+  duration_ms: 506.653917
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes source
+ok 185 - mixed Context correction provider closes source
+  ---
+  duration_ms: 494.633458
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes authored-body
+ok 186 - mixed Context correction provider closes authored-body
+  ---
+  duration_ms: 486.078875
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes authored-note
+ok 187 - mixed Context correction provider closes authored-note
+  ---
+  duration_ms: 489.535041
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes authored-history
+ok 188 - mixed Context correction provider closes authored-history
+  ---
+  duration_ms: 480.416
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes authored-membership
+ok 189 - mixed Context correction provider closes authored-membership
+  ---
+  duration_ms: 492.603375
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes receipt
+ok 190 - mixed Context correction provider closes receipt
+  ---
+  duration_ms: 527.364166
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes revoke
+ok 191 - mixed Context correction provider closes revoke
+  ---
+  duration_ms: 489.016417
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes bound-note
+ok 192 - mixed Context correction backup closes bound-note
+  ---
+  duration_ms: 593.678542
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes input
+ok 193 - mixed Context correction backup closes input
+  ---
+  duration_ms: 606.786708
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes source
+ok 194 - mixed Context correction backup closes source
+  ---
+  duration_ms: 606.381042
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes authored-body
+ok 195 - mixed Context correction backup closes authored-body
+  ---
+  duration_ms: 609.245958
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes authored-note
+ok 196 - mixed Context correction backup closes authored-note
+  ---
+  duration_ms: 602.844125
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes authored-history
+ok 197 - mixed Context correction backup closes authored-history
+  ---
+  duration_ms: 596.342333
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes authored-membership
+ok 198 - mixed Context correction backup closes authored-membership
+  ---
+  duration_ms: 606.476917
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes receipt
+ok 199 - mixed Context correction backup closes receipt
+  ---
+  duration_ms: 596.413375
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes revoke
+ok 200 - mixed Context correction backup closes revoke
+  ---
+  duration_ms: 595.24725
+  type: 'test'
+  ...
+# Subtest: mixed Context correction unpaired plain body alongside bound
+ok 201 - mixed Context correction unpaired plain body alongside bound
+  ---
+  duration_ms: 827.052167
+  type: 'test'
+  ...
+# Subtest: mixed Context correction unpaired plain body alongside bound and authored
+ok 202 - mixed Context correction unpaired plain body alongside bound and authored
+  ---
+  duration_ms: 1068.770875
+  type: 'test'
+  ...
+# Subtest: mixed Context correction DTO requires complete exact sets for all three independent families
+ok 203 - mixed Context correction DTO requires complete exact sets for all three independent families
+  ---
+  duration_ms: 1347.129458
+  type: 'test'
+  ...
+# Subtest: compound fields original body+note with independent authored owner
+ok 204 - compound fields original body+note with independent authored owner
+  ---
+  duration_ms: 600.114041
+  type: 'test'
+  ...
+# Subtest: compound fields original note with independent authored owner
+ok 205 - compound fields original note with independent authored owner
+  ---
+  duration_ms: 584.287375
+  type: 'test'
+  ...
+# Subtest: compound fields original body+note with bound
+ok 206 - compound fields original body+note with bound
+  ---
+  duration_ms: 450.517708
+  type: 'test'
+  ...
+# Subtest: compound fields original body+note with bound and authored
+ok 207 - compound fields original body+note with bound and authored
+  ---
+  duration_ms: 620.393792
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with plain
+ok 208 - compound structure original Section with plain
+  ---
+  duration_ms: 784.2885
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with bound
+ok 209 - compound structure original Section with bound
+  ---
+  duration_ms: 726.112708
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with plain and authored
+ok 210 - compound structure original Section with plain and authored
+  ---
+  duration_ms: 1054.009542
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with bound and authored
+ok 211 - compound structure original Section with bound and authored
+  ---
+  duration_ms: 887.127125
+  type: 'test'
+  ...
+# Subtest: compound qualifier note-only rejects omitted input-field
+ok 212 - compound qualifier note-only rejects omitted input-field
+  ---
+  duration_ms: 81.870042
+  type: 'test'
+  ...
+# Subtest: compound qualifier note-only rejects omitted qualification-field
+ok 213 - compound qualifier note-only rejects omitted qualification-field
+  ---
+  duration_ms: 82.429042
+  type: 'test'
+  ...
+# Subtest: compound qualifier note-only rejects omitted structure
+ok 214 - compound qualifier note-only rejects omitted structure
+  ---
+  duration_ms: 81.087334
+  type: 'test'
+  ...
+# Subtest: compound qualifier note-only rejects omitted authored
+ok 215 - compound qualifier note-only rejects omitted authored
+  ---
+  duration_ms: 81.018
+  type: 'test'
+  ...
+# Subtest: compound qualifier note-only rejects omitted bound
+ok 216 - compound qualifier note-only rejects omitted bound
+  ---
+  duration_ms: 81.50125
+  type: 'test'
+  ...
+# Subtest: compound qualifier note-only rejects omitted context
+ok 217 - compound qualifier note-only rejects omitted context
+  ---
+  duration_ms: 90.361583
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted input-field
+ok 218 - compound qualifier bound-note rejects omitted input-field
+  ---
+  duration_ms: 88.481208
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted qualification-field
+ok 219 - compound qualifier bound-note rejects omitted qualification-field
+  ---
+  duration_ms: 88.872333
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted structure
+ok 220 - compound qualifier bound-note rejects omitted structure
+  ---
+  duration_ms: 87.22625
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted authored
+ok 221 - compound qualifier bound-note rejects omitted authored
+  ---
+  duration_ms: 85.512
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted bound
+ok 222 - compound qualifier bound-note rejects omitted bound
+  ---
+  duration_ms: 87.020042
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted context
+ok 223 - compound qualifier bound-note rejects omitted context
+  ---
+  duration_ms: 84.80475
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted input-field
+ok 224 - compound qualifier section-mixed rejects omitted input-field
+  ---
+  duration_ms: 127.266042
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted qualification-field
+ok 225 - compound qualifier section-mixed rejects omitted qualification-field
+  ---
+  duration_ms: 123.963917
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted structure
+ok 226 - compound qualifier section-mixed rejects omitted structure
+  ---
+  duration_ms: 119.456458
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted authored
+ok 227 - compound qualifier section-mixed rejects omitted authored
+  ---
+  duration_ms: 133.210708
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted bound
+ok 228 - compound qualifier section-mixed rejects omitted bound
+  ---
+  duration_ms: 121.847584
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted context
+ok 229 - compound qualifier section-mixed rejects omitted context
+  ---
+  duration_ms: 131.11775
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects input-note
+ok 230 - compound terminal provider rejects input-note
+  ---
+  duration_ms: 516.419834
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects section-title
+ok 231 - compound terminal provider rejects section-title
+  ---
+  duration_ms: 775.729917
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects section-history
+ok 232 - compound terminal provider rejects section-history
+  ---
+  duration_ms: 783.822
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects section-receipt
+ok 233 - compound terminal provider rejects section-receipt
+  ---
+  duration_ms: 763.32125
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects section-member
+ok 234 - compound terminal provider rejects section-member
+  ---
+  duration_ms: 714.5035
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects bound-note
+ok 235 - compound terminal provider rejects bound-note
+  ---
+  duration_ms: 520.795458
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects authored-note
+ok 236 - compound terminal provider rejects authored-note
+  ---
+  duration_ms: 512.237542
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects source
+ok 237 - compound terminal provider rejects source
+  ---
+  duration_ms: 534.773
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects revoke
+ok 238 - compound terminal provider rejects revoke
+  ---
+  duration_ms: 486.329083
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects input-note
+ok 239 - compound terminal backup rejects input-note
+  ---
+  duration_ms: 613.264291
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects section-title
+ok 240 - compound terminal backup rejects section-title
+  ---
+  duration_ms: 893.793417
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects section-history
+ok 241 - compound terminal backup rejects section-history
+  ---
+  duration_ms: 905.182459
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects section-receipt
+ok 242 - compound terminal backup rejects section-receipt
+  ---
+  duration_ms: 901.053084
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects section-member
+ok 243 - compound terminal backup rejects section-member
+  ---
+  duration_ms: 889.661125
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects bound-note
+ok 244 - compound terminal backup rejects bound-note
+  ---
+  duration_ms: 610.891083
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects authored-note
+ok 245 - compound terminal backup rejects authored-note
+  ---
+  duration_ms: 611.497625
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects source
+ok 246 - compound terminal backup rejects source
+  ---
+  duration_ms: 593.502791
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects revoke
+ok 247 - compound terminal backup rejects revoke
+  ---
+  duration_ms: 607.339166
+  type: 'test'
+  ...
+# Subtest: compound original source adapter and ACK replay note-only
+ok 248 - compound original source adapter and ACK replay note-only
+  ---
+  duration_ms: 715.352542
+  type: 'test'
+  ...
+# Subtest: compound original source adapter and ACK replay body-note
+ok 249 - compound original source adapter and ACK replay body-note
+  ---
+  duration_ms: 703.939833
+  type: 'test'
+  ...
+# Subtest: compound original source adapter and ACK replay section-mixed
+ok 250 - compound original source adapter and ACK replay section-mixed
+  ---
+  duration_ms: 1036.126417
+  type: 'test'
+  ...
+# Subtest: compound bound note-only Input cannot satisfy original full body owner pair
+ok 251 - compound bound note-only Input cannot satisfy original full body owner pair
+  ---
+  duration_ms: 54.239917
+  type: 'test'
+  ...
+# Subtest: compound Topic structure original owner refuses edited bound member
+ok 252 - compound Topic structure original owner refuses edited bound member
+  ---
+  duration_ms: 40.996084
+  type: 'test'
+  ...
+# Subtest: compound Topic structure original owner refuses source-free authored member
+ok 253 - compound Topic structure original owner refuses source-free authored member
+  ---
+  duration_ms: 42.974708
+  type: 'test'
+  ...
+# Subtest: compound DTO closes structural member fields and every independent family
+ok 254 - compound DTO closes structural member fields and every independent family
+  ---
+  duration_ms: 905.570041
+  type: 'test'
+  ...
+# Subtest: saved original editor records typed successor atomically after cold B restore
+ok 255 - saved original editor records typed successor atomically after cold B restore
+  ---
+  duration_ms: 458.306
+  type: 'test'
+  ...
+# Subtest: saved successor stale revision and field CAS preserve canonical and complete protocol
+ok 256 - saved successor stale revision and field CAS preserve canonical and complete protocol
+  ---
+  duration_ms: 128.813209
+  type: 'test'
+  ...
+# Subtest: saved successor lost response retries original receipt and outbox without a second edit
+ok 257 - saved successor lost response retries original receipt and outbox without a second edit
+  ---
+  duration_ms: 144.083875
+  type: 'test'
+  ...
+# Subtest: saved successor cannot weaken existing user-only Source journal or accept changed Source
+ok 258 - saved successor cannot weaken existing user-only Source journal or accept changed Source
+  ---
+  duration_ms: 132.871041
+  type: 'test'
+  ...
+# Subtest: saved successor final source failure rolls back canonical and atomic outbox
+ok 259 - saved successor final source failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 130.048
+  type: 'test'
+  ...
+# Subtest: saved successor final control failure rolls back canonical and atomic outbox
+ok 260 - saved successor final control failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 131.051667
+  type: 'test'
+  ...
+# Subtest: saved successor final frontier failure rolls back canonical and atomic outbox
+ok 261 - saved successor final frontier failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 130.6255
+  type: 'test'
+  ...
+# Subtest: saved successor final receipt failure rolls back canonical and atomic outbox
+ok 262 - saved successor final receipt failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 131.752583
+  type: 'test'
+  ...
+# Subtest: saved successor final history failure rolls back canonical and atomic outbox
+ok 263 - saved successor final history failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 132.146208
+  type: 'test'
+  ...
+# Subtest: saved successor final budget failure rolls back canonical and atomic outbox
+ok 264 - saved successor final budget failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 184.691167
+  type: 'test'
+  ...
+# Subtest: saved successor final failure failure rolls back canonical and atomic outbox
+ok 265 - saved successor final failure failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 142.828
+  type: 'test'
+  ...
+# Subtest: saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+ok 266 - saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+  ---
+  duration_ms: 215.226833
+  type: 'test'
+  ...
+# Subtest: saved successor typed Core rejects direct application without original owner capability
+ok 267 - saved successor typed Core rejects direct application without original owner capability
+  ---
+  duration_ms: 139.010167
+  type: 'test'
+  ...
+# Subtest: saved successor unrepresented ordinary edit remains an explicit refusal
+ok 268 - saved successor unrepresented ordinary edit remains an explicit refusal
+  ---
+  duration_ms: 142.178125
+  type: 'test'
+  ...
+# Subtest: saved successor typed validator and graph refuse forged request allocation origin and ancestry
+ok 269 - saved successor typed validator and graph refuse forged request allocation origin and ancestry
+  ---
+  duration_ms: 145.928667
+  type: 'test'
+  ...
+# Subtest: saved successor cold recovery applied-group fault leaves complete stage and canonical state unchanged
+ok 270 - saved successor cold recovery applied-group fault leaves complete stage and canonical state unchanged
+  ---
+  duration_ms: 210.961833
+  type: 'test'
+  ...
+# Subtest: saved successor cold recovery after-activation fault leaves complete stage and canonical state unchanged
+ok 271 - saved successor cold recovery after-activation fault leaves complete stage and canonical state unchanged
+  ---
+  duration_ms: 236.522167
+  type: 'test'
+  ...
+# Subtest: saved successor budget is admitted before the original first transaction query
+ok 272 - saved successor budget is admitted before the original first transaction query
+  ---
+  duration_ms: 121.987292
+  type: 'test'
+  ...
+# Subtest: saved original edit planner refuses duplicate physical index keys hidden at a page boundary
+ok 273 - saved original edit planner refuses duplicate physical index keys hidden at a page boundary
+  ---
+  duration_ms: 120.704916
+  type: 'test'
+  ...
+# Subtest: saved successor cold final receipt drift rolls back every canonical protocol and activated stage row
+ok 274 - saved successor cold final receipt drift rolls back every canonical protocol and activated stage row
+  ---
+  duration_ms: 232.125167
+  type: 'test'
+  ...
+# Subtest: saved coalesced typed edits preserve every operation through B to cold C and continuation
+ok 275 - saved coalesced typed edits preserve every operation through B to cold C and continuation
+  ---
+  duration_ms: 342.696417
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor missing
+ok 276 - saved coalesced continuation authenticates every original typed ancestor missing
+  ---
+  duration_ms: 172.8785
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor changed
+ok 277 - saved coalesced continuation authenticates every original typed ancestor changed
+  ---
+  duration_ms: 169.267708
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor tail
+ok 278 - saved coalesced continuation authenticates every original typed ancestor tail
+  ---
+  duration_ms: 181.739208
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit tail source rolls back original row replacement and outbox
+ok 279 - saved coalesced edit tail source rolls back original row replacement and outbox
+  ---
+  duration_ms: 152.265542
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit tail receipt rolls back original row replacement and outbox
+ok 280 - saved coalesced edit tail receipt rolls back original row replacement and outbox
+  ---
+  duration_ms: 154.587958
+  type: 'test'
+  ...
+# Subtest: saved coalesced cold final activation failure preserves every table and stage
+ok 281 - saved coalesced cold final activation failure preserves every table and stage
+  ---
+  duration_ms: 298.25775
+  type: 'test'
+  ...
+# Subtest: saved coalesced initial capture still refuses missing typed intermediate facts
+ok 282 - saved coalesced initial capture still refuses missing typed intermediate facts
+  ---
+  duration_ms: 31.2985
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority before-owner anchor-head rolls back
+ok 283 - saved coalesced ancestry authority before-owner anchor-head rolls back
+  ---
+  duration_ms: 150.287958
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority before-owner ancestor-receipt rolls back
+ok 284 - saved coalesced ancestry authority before-owner ancestor-receipt rolls back
+  ---
+  duration_ms: 147.107541
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority after-owner anchor-head rolls back
+ok 285 - saved coalesced ancestry authority after-owner anchor-head rolls back
+  ---
+  duration_ms: 153.609708
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority after-owner ancestor-receipt rolls back
+ok 286 - saved coalesced ancestry authority after-owner ancestor-receipt rolls back
+  ---
+  duration_ms: 153.181208
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit preserves a later original global history counter
+ok 287 - saved coalesced edit preserves a later original global history counter
+  ---
+  duration_ms: 156.251792
+  type: 'test'
+  ...
+# Subtest: saved typed retention uses original canonical policy and preserves a provable cold continuation
+ok 288 - saved typed retention uses original canonical policy and preserves a provable cold continuation
+  ---
+  duration_ms: 345.756791
+  type: 'test'
+  ...
+# Subtest: saved typed retention throw aborts canonical pruning and outbox together
+ok 289 - saved typed retention throw aborts canonical pruning and outbox together
+  ---
+  duration_ms: 152.564458
+  type: 'test'
+  ...
+# Subtest: saved typed retention resurrect-outside-index aborts canonical pruning and outbox together
+ok 290 - saved typed retention resurrect-outside-index aborts canonical pruning and outbox together
+  ---
+  duration_ms: 153.599667
+  type: 'test'
+  ...
+# Subtest: saved typed retention exact cutoff preserves the original important and boundary rows
+ok 291 - saved typed retention exact cutoff preserves the original important and boundary rows
+  ---
+  duration_ms: 154.0165
+  type: 'test'
+  ...
+# Subtest: saved typed retention cannot forge removed histories or restore them through cold canonical activation
+ok 292 - saved typed retention cannot forge removed histories or restore them through cold canonical activation
+  ---
+  duration_ms: 283.2635
+  type: 'test'
+  ...
+# Subtest: M1 v3 migration preserves every Source/Input/import/filter field and all stores
+ok 293 - M1 v3 migration preserves every Source/Input/import/filter field and all stores
+  ---
+  duration_ms: 38.742458
+  type: 'test'
+  ...
+# Subtest: M1 v4 migration preserves every Source/Input/import/filter field and all stores
+ok 294 - M1 v4 migration preserves every Source/Input/import/filter field and all stores
+  ---
+  duration_ms: 24.077125
+  type: 'test'
+  ...
+# Subtest: M1 actual version provenance ignores note-only changes when only body was used
+ok 295 - M1 actual version provenance ignores note-only changes when only body was used
+  ---
+  duration_ms: 29.037833
+  type: 'test'
+  ...
+# Subtest: M1 inferred auto create and stale supplied evidence are rejected
+ok 296 - M1 inferred auto create and stale supplied evidence are rejected
+  ---
+  duration_ms: 17.174167
+  type: 'test'
+  ...
+# Subtest: M1 per-field human edit protection survives undo and blocks only matching AI fields
+ok 297 - M1 per-field human edit protection survives undo and blocks only matching AI fields
+  ---
+  duration_ms: 21.302375
+  type: 'test'
+  ...
+# Subtest: M1 suppression has no body and same evidence cannot resurrect deleted result
+ok 298 - M1 suppression has no body and same evidence cannot resurrect deleted result
+  ---
+  duration_ms: 15.795291
+  type: 'test'
+  ...
+# Subtest: M1 removing the last evidence invalidates AI content but preserves authored content
+ok 299 - M1 removing the last evidence invalidates AI content but preserves authored content
+  ---
+  duration_ms: 25.17425
+  type: 'test'
+  ...
+# Subtest: M1 nonempty legacy Thought quarantine preserves payload and old revisions without inventing formation
+ok 300 - M1 nonempty legacy Thought quarantine preserves payload and old revisions without inventing formation
+  ---
+  duration_ms: 20.110584
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after thoughts commit resumes idempotently
+ok 301 - M1 migration crash after thoughts commit resumes idempotently
+  ---
+  duration_ms: 16.088958
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after dependencies commit resumes idempotently
+ok 302 - M1 migration crash after dependencies commit resumes idempotently
+  ---
+  duration_ms: 16.907292
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after verify commit resumes idempotently
+ok 303 - M1 migration crash after verify commit resumes idempotently
+  ---
+  duration_ms: 16.632375
+  type: 'test'
+  ...
+# Subtest: M1 actual note dependency becomes stale while conversation title alone does not
+ok 304 - M1 actual note dependency becomes stale while conversation title alone does not
+  ---
+  duration_ms: 18.611958
+  type: 'test'
+  ...
+# Subtest: M1 context-only cannot form an Entry or bypass removed/filtered source gates
+ok 305 - M1 context-only cannot form an Entry or bypass removed/filtered source gates
+  ---
+  duration_ms: 24.925
+  type: 'test'
+  ...
+# Subtest: M1 new non-context evidence only allows a future candidate, not resurrection
+ok 306 - M1 new non-context evidence only allows a future candidate, not resurrection
+  ---
+  duration_ms: 24.259
+  type: 'test'
+  ...
+# Subtest: M1 two-tab CAS and operation receipts survive worker replacement
+ok 307 - M1 two-tab CAS and operation receipts survive worker replacement
+  ---
+  duration_ms: 19.945
+  type: 'test'
+  ...
+# Subtest: M1 multi-source entry remains partial until its last effective evidence disappears
+ok 308 - M1 multi-source entry remains partial until its last effective evidence disappears
+  ---
+  duration_ms: 25.661125
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 purge fence immediately hides every historical payload before incremental cleanup
+ok 309 - CURRENT B-02 refusal + historical fixture: M1 purge fence immediately hides every historical payload before incremental cleanup
+  ---
+  duration_ms: 33.809417
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 purge cleans indexed payloads and referenced rewrites while preserving independent notes
+ok 310 - CURRENT B-02 refusal + historical fixture: M1 purge cleans indexed payloads and referenced rewrites while preserving independent notes
+  ---
+  duration_ms: 33.324292
+  type: 'test'
+  ...
+# Subtest: M1 Topic and persistent Section IDs survive rename, with shared Entry placement and human organization protection
+ok 311 - M1 Topic and persistent Section IDs survive rename, with shared Entry placement and human organization protection
+  ---
+  duration_ms: 22.376416
+  type: 'test'
+  ...
+# Subtest: M1 Library revision restore is a new protected CAS operation, not history rewriting
+ok 312 - M1 Library revision restore is a new protected CAS operation, not history rewriting
+  ---
+  duration_ms: 20.469083
+  type: 'test'
+  ...
+# Subtest: M1 Topic Section Placement revisions restore through current CAS and preserve human organization
+ok 313 - M1 Topic Section Placement revisions restore through current CAS and preserve human organization
+  ---
+  duration_ms: 26.376583
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 legacy source-dependent rewrites, unknown payloads and histories obey purge
+ok 314 - CURRENT B-02 refusal + historical fixture: M1 legacy source-dependent rewrites, unknown payloads and histories obey purge
+  ---
+  duration_ms: 29.236375
+  type: 'test'
+  ...
+# Subtest: M1 revision retention keeps every recent and newest 20 important; AI and user windows never coalesce
+ok 315 - M1 revision retention keeps every recent and newest 20 important; AI and user windows never coalesce
+  ---
+  duration_ms: 35.324375
+  type: 'test'
+  ...
+# Subtest: M1 forged evidence and command fields cannot modify Source/Input; empty working body has no Source fallback
+ok 316 - M1 forged evidence and command fields cannot modify Source/Input; empty working body has no Source fallback
+  ---
+  duration_ms: 16.608
+  type: 'test'
+  ...
+# Subtest: M1 invalidation interruption cursor resumes and edit cost is independent of dependency fan-out
+ok 317 - M1 invalidation interruption cursor resumes and edit cost is independent of dependency fan-out
+  ---
+  duration_ms: 254.82825
+  type: 'test'
+  ...
+# Subtest: M1 transaction abort rolls back Entry provenance revision and receipt together
+ok 318 - M1 transaction abort rolls back Entry provenance revision and receipt together
+  ---
+  duration_ms: 11.906458
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 delayed validated output and invalidation batch cannot commit across edit or purge
+ok 319 - CURRENT B-02 refusal + historical fixture: M1 delayed validated output and invalidation batch cannot commit across edit or purge
+  ---
+  duration_ms: 34.6645
+  type: 'test'
+  ...
+# Subtest: M1 all supported fields protect independently and context-only additions cannot unlock suppression
+ok 320 - M1 all supported fields protect independently and context-only additions cannot unlock suppression
+  ---
+  duration_ms: 36.858708
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 source purge survives cleanup interruption and cannot recapture or restore deleted sources
+ok 321 - CURRENT B-02 refusal + historical fixture: M1 source purge survives cleanup interruption and cannot recapture or restore deleted sources
+  ---
+  duration_ms: 32.197334
+  type: 'test'
+  ...
+# Subtest: M1 quota-like abort after payload writes leaves no partial entry or receipt
+ok 322 - M1 quota-like abort after payload writes leaves no partial entry or receipt
+  ---
+  duration_ms: 13.442667
+  type: 'test'
+  ...
+# Subtest: M1 independent authored entries allow equal and empty bodies without invented AI provenance
+ok 323 - M1 independent authored entries allow equal and empty bodies without invented AI provenance
+  ---
+  duration_ms: 16.27975
+  type: 'test'
+  ...
+# Subtest: M1 redirect identity rejects loops and stale renamed IDs; rank exhaustion fails without reordering
+ok 324 - M1 redirect identity rejects loops and stale renamed IDs; rank exhaustion fails without reordering
+  ---
+  duration_ms: 15.22525
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 untraceable quarantine revision is fenced and erased with its unknown owner on source purge
+ok 325 - CURRENT B-02 refusal + historical fixture: M1 untraceable quarantine revision is fenced and erased with its unknown owner on source purge
+  ---
+  duration_ms: 28.712667
+  type: 'test'
+  ...
+# Subtest: M1 experimental storageSchema=2 is not trusted as a completed migration or source authority
+ok 326 - M1 experimental storageSchema=2 is not trusted as a completed migration or source authority
+  ---
+  duration_ms: 13.953916
+  type: 'test'
+  ...
+# Subtest: M1 Input capture and editing continue between migration batches and after a Library mapping failure
+ok 327 - M1 Input capture and editing continue between migration batches and after a Library mapping failure
+  ---
+  duration_ms: 115.616584
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 unavailable used versions never masquerade as current Input; purge reports pending until cleanup finishes
+ok 328 - CURRENT B-02 refusal + historical fixture: M1 unavailable used versions never masquerade as current Input; purge reports pending until cleanup finishes
+  ---
+  duration_ms: 28.998417
+  type: 'test'
+  ...
+# Subtest: M1 every approved Type maps to exactly one Family; Unicode byte limit never truncates
+ok 329 - M1 every approved Type maps to exactly one Family; Unicode byte limit never truncates
+  ---
+  duration_ms: 35.432
+  type: 'test'
+  ...
+# Subtest: M1 hot 200KiB revision growth keeps all young history and suppression beyond retention
+ok 330 - M1 hot 200KiB revision growth keeps all young history and suppression beyond retention
+  ---
+  duration_ms: 178.022167
+  type: 'test'
+  ...
+# Subtest: M1 selected-note-only change cannot unlock removed Thought suppression
+ok 331 - M1 selected-note-only change cannot unlock removed Thought suppression
+  ---
+  duration_ms: 18.254167
+  type: 'test'
+  ...
+# Subtest: M1 unrelated queued jobs cannot starve purge; staged payloads are removed
+ok 332 - M1 unrelated queued jobs cannot starve purge; staged payloads are removed
+  ---
+  duration_ms: 32.416542
+  type: 'test'
+  ...
+# Subtest: M1 mapping transaction failure rolls back partial Thought/category mapping, then resumes
+ok 333 - M1 mapping transaction failure rolls back partial Thought/category mapping, then resumes
+  ---
+  duration_ms: 16.589959
+  type: 'test'
+  ...
+# Subtest: M1 ten Topic placements do not duplicate Entry body or Entry history
+ok 334 - M1 ten Topic placements do not duplicate Entry body or Entry history
+  ---
+  duration_ms: 37.936709
+  type: 'test'
+  ...
+# Subtest: M1 empty evidence body cannot authorize automatic content and empty AI output is rejected
+ok 335 - M1 empty evidence body cannot authorize automatic content and empty AI output is rejected
+  ---
+  duration_ms: 12.606709
+  type: 'test'
+  ...
+# Subtest: M1 incomplete Library activation fences Library history while Input history remains available
+ok 336 - M1 incomplete Library activation fences Library history while Input history remains available
+  ---
+  duration_ms: 11.216959
+  type: 'test'
+  ...
+# Subtest: M1 rapid Input remove/restore cannot revive an old AI Entry before or after queue consumption
+ok 337 - M1 rapid Input remove/restore cannot revive an old AI Entry before or after queue consumption
+  ---
+  duration_ms: 25.643875
+  type: 'test'
+  ...
+# Subtest: M1 supporting/context removal histories are not cleared by restoration or worker replacement
+ok 338 - M1 supporting/context removal histories are not cleared by restoration or worker replacement
+  ---
+  duration_ms: 30.746708
+  type: 'test'
+  ...
+# Subtest: original prepared structural handle dispatches exactly its selected Topic with shared genuine issuer budget
+ok 339 - original prepared structural handle dispatches exactly its selected Topic with shared genuine issuer budget
+  ---
+  duration_ms: 146.072958
+  type: 'test'
+  ...
+# Subtest: public handle, copied capability and another store cannot mint lifecycle selection
+ok 340 - public handle, copied capability and another store cannot mint lifecycle selection
+  ---
+  duration_ms: 84.796833
+  type: 'test'
+  ...
+# Subtest: stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+ok 341 - stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+  ---
+  duration_ms: 94.763916
+  type: 'test'
+  ...
+# Subtest: original revoke refuses or rolls back with accurate unresolved item
+ok 342 - original revoke refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 75.932459
+  type: 'test'
+  ...
+# Subtest: original dispose refuses or rolls back with accurate unresolved item
+ok 343 - original dispose refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 75.838208
+  type: 'test'
+  ...
+# Subtest: original storage refuses or rolls back with accurate unresolved item
+ok 344 - original storage refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 78.61975
+  type: 'test'
+  ...
+# Subtest: original legacy refuses or rolls back with accurate unresolved item
+ok 345 - original legacy refuses or rolls back with accurate unresolved item
+  ---
+  duration_ms: 75.733875
+  type: 'test'
+  ...
+# Subtest: same dispatch reentry deduplicates and session model run cannot race local lifecycle
+ok 346 - same dispatch reentry deduplicates and session model run cannot race local lifecycle
+  ---
+  duration_ms: 83.994583
+  type: 'test'
+  ...
+# Subtest: explicit clock regression is deferred, close never starts another original action
+ok 347 - explicit clock regression is deferred, close never starts another original action
+  ---
+  duration_ms: 71.762958
+  type: 'test'
+  ...
+# Subtest: all Topics in one original prepared handle are dispatched without silently truncating the selection
+ok 348 - all Topics in one original prepared handle are dispatched without silently truncating the selection
+  ---
+  duration_ms: 130.653584
+  type: 'test'
+  ...
+# Subtest: a later selected Topic failure retains prior settlement and the exact unresolved action
+ok 349 - a later selected Topic failure retains prior settlement and the exact unresolved action
+  ---
+  duration_ms: 123.545875
+  type: 'test'
+  ...
+# Subtest: actual Input-only prepared handle cannot select an arbitrary existing Topic
+ok 350 - actual Input-only prepared handle cannot select an arbitrary existing Topic
+  ---
+  duration_ms: 43.328334
+  type: 'test'
+  ...
+# Subtest: late-dispose after original backup finalizer rolls the selected dispatch back
+ok 351 - late-dispose after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 77.080583
+  type: 'test'
+  ...
+# Subtest: late-grant after original backup finalizer rolls the selected dispatch back
+ok 352 - late-grant after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 115.78725
+  type: 'test'
+  ...
+# Subtest: late-receipt after original backup finalizer rolls the selected dispatch back
+ok 353 - late-receipt after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 85.870292
+  type: 'test'
+  ...
+# Subtest: late-source after original backup finalizer rolls the selected dispatch back
+ok 354 - late-source after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 88.822167
+  type: 'test'
+  ...
+# Subtest: original receipt observer distinguishes transaction identity and multiple original receipts
+ok 355 - original receipt observer distinguishes transaction identity and multiple original receipts
+  ---
+  duration_ms: 69.276042
+  type: 'test'
+  ...
+# Subtest: failed original receipt put unbinds its observer without changing later receipt behavior
+ok 356 - failed original receipt put unbinds its observer without changing later receipt behavior
+  ---
+  duration_ms: 68.468333
+  type: 'test'
+  ...
+1..356
+# tests 356
+# suites 0
+# pass 356
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 96324.631083

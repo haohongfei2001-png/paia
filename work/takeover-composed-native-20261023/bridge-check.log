@@ -1,0 +1,1 @@
+{"controls":22,"syntax":"PASS","nativeImportModules":3,"requiredAssertionMethods":["equal","deepEqual","rejects","ok"]}
