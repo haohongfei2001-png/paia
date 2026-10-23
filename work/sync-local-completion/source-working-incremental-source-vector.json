@@ -1,0 +1,17 @@
+{
+  "base": "be57727a8cb5fdc0cc06039d5a0e1ee07670e14f",
+  "sha256": {
+    "extension/core/browser-native-sync/current-group-protocol-rows.js": "aa3cab60b475a4b232b2e5799d18107657fd8d6df00ea34d39e08df0fb7b0628",
+    "extension/core/browser-native-sync/human-library-plan.js": "e0856ce76a7ff773fa72163be9e264187634f38c005c7964b2f4f0d477afc578",
+    "extension/core/browser-native-sync/source-working-canonical.js": "c840b8d177f3d268e81e6b2dfbd02799282f175beb4f9538974a0ac2bb754d2e",
+    "extension/core/browser-native-sync/source-working-default-meta.js": "28432af790eeab5355c79dc92225026a0cd7a4f665d17008f7fd4ebcd9993132",
+    "extension/core/browser-native-sync/source-working-replay.js": "f70b91482ed2af6bb101574d291f773cf54b5e35e6b152ddb1a77659d8be8c0f",
+    "extension/core/browser-native-sync/source-working-merge.js": "06db93a9a3679e92e1a15a0707c606859f074b3e2cc09549d4c9b86bb1a1593b",
+    "extension/tests/source-working-incremental.test.mjs": "c459808965eae38f43fc8d62b7e1393bf494e58e20097e67deb702580a5ceef0",
+    "extension/tests/source-working-qualification-cost.test.mjs": "ab68535df9240f39aed639ea48a6c82cf110d52889cae6cdac91a824ce152ad1",
+    "extension/core/browser-native-sync/group-checkpoint.js (temporary composite, DO NOT merge whole file)": "8f497576b75e663caa9c542ad6e009f3ebc1a7a3c46ea044595e600bd5608fda"
+  },
+  "native": "NOT_RUN",
+  "cloud": "NOT_RUN",
+  "synthetic": "Node22.23.3, fake IndexedDB, final 136/136"
+}

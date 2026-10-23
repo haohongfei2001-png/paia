@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: existing Source device retains its local edit and outbox while receiving another Input successor
+not ok 1 - existing Source device retains its local edit and outbox while receiving another Input successor
+  ---
+  duration_ms: 925.58625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-incremental.test.mjs:21:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    refused (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/completed-group-restore-control.js:7:19)
+    fields (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/completed-group-restore-control.js:9:211)
+    assertCompletedGroupedRestoreControl (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/completed-group-restore-control.js:35:2)
+    restoredSourceWorkingReplay (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-replay.js:20:8)
+    assertSourceWorkingRestoredCanonicalAndProtocolRows (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-canonical.js:40:21)
+    assertSourceWorkingRestoredDefaultMeta (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-default-meta.js:153:21)
+    prepareSourceWorkingMerge (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-merge.js:18:24)
+    async GroupedCheckpointRestore.mergeSourceWorking (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint.js:198:121)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-incremental.test.mjs:21:695)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1035.615333

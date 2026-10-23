@@ -1,5 +1,5 @@
 import {planInitialFilter} from '../smart-filter-store-owner.js';
-import {initialSourceWorkingReplay,restoredSourceWorkingReplay} from './source-working-replay.js';
+import {initialSourceWorkingReplay,restoredSourceWorkingReplay,mergedSourceWorkingReplay} from './source-working-replay.js';
 import {checkCurrentGroupProtocolRows} from './current-group-protocol-rows.js';
 import {STORES,FILTER_STORES,IA_STORES} from '../idb-repository.js';
 import {LIBRARY_STORES} from '../thought-schema.js';
@@ -40,8 +40,12 @@ export async function assertSourceWorkingRestoredCanonicalAndProtocolRows(core,s
  const replay=await restoredSourceWorkingReplay(core,scope,plan,rows);qualifyRows(core,scope,plan,rows,{...replay,epoch:null});return replay;
 }
 
+export async function assertSourceWorkingMergedCanonicalAndProtocolRows(core,scope,plan,rows){if(arguments.length!==4)unrepresented();const replay=await mergedSourceWorkingReplay(core,scope,plan,rows);qualifyRows(core,scope,plan,rows,{...replay,epoch:null});return replay;}
+const mergedComparisons=new WeakMap();
+export async function prepareSourceWorkingMergedComparison(core,scope,plan,rows){const replay=await mergedSourceWorkingReplay(core,scope,plan,rows),cap=Object.freeze({});mergedComparisons.set(cap,{core,scope,plan,replay});return cap;}
+export function requireSourceWorkingMergedComparison(core,scope,plan,rows,cap){const bound=mergedComparisons.get(cap);if(!bound||bound.core!==core||bound.scope!==scope||bound.plan!==plan)unproven();qualifyRows(core,scope,plan,rows,{...bound.replay,epoch:null});return bound.replay;}
 function qualifyRows(core,scope,plan,rows,replay){
- const {namespace,epoch,restored,activeId,completedId,working,localWorking}=replay;
+ const {namespace,epoch,restored,activeId,completedId,working,localWorking,merged}=replay;
  requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan);
  measureSourceWorkingPhysicalTree(rows);
  const stores=sourceWorkingCurrentStores();
@@ -57,7 +61,8 @@ function qualifyRows(core,scope,plan,rows,replay){
  sameRows(rows.blocks,expected.blocks.map(value=>({id:value.id,value})));
  sameRows(rows.libraryDocuments,expected.libraryDocuments.map(value=>({id:value.id,value})));
  sameRows(rows.times,expected.times);sameRows(rows.filterIntents,expected.filterIntents);
- const {meta,key,used,take}=checkCurrentGroupProtocolRows(core,plan,rows,{namespace,epoch,restored,activeId,completedId});
+ const {meta,key,used,take}=checkCurrentGroupProtocolRows(core,plan,rows,{namespace,epoch,restored,activeId,completedId,merged});
+ if(merged)for(const row of [replay.timeline,...replay.extra]){const {id,...value}=row;take(id,value);}
  for(const input of expected.blocks){const head=plan.heads.find(h=>h.type==='inputWorkingMember'&&h.entityId==='input:'+input.id);if(head)take(key('workingOwner',input.id),{revisionId:head.revisions[0],deltaSequence:replay.inputs.get(input.id)});}
  sameRows(rows.inputStates,expected.inputStates.map(row=>({...row,deltaSequence:replay.inputs.get(row.id)})));
  if(rows.revisions.length!==expected.revisions.length)unrepresented();

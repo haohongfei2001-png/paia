@@ -1,0 +1,35 @@
+TAP version 13
+# SYNTHETIC_CALLBACK_DIAGNOSTIC BNS_GROUP_CANONICAL_UNREPRESENTED SyncError: BNS_GROUP_CANONICAL_UNREPRESENTED
+#     at fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+#     at unrepresented (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-canonical.js:19:25)
+#     at qualifyRows (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-canonical.js:79:134)
+#     at requireSourceWorkingMergedComparison (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-canonical.js:46:199)
+#     at requireSourceWorkingMergeResult (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-merge.js:32:159)
+#     at async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint.js:210:15
+#     at async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:462:20)
+#     at async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:290:185
+#     at async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:203:11
+# Subtest: two devices append independently then receive in both directions and keep next local edits exportable
+not ok 1 - two devices append independently then receive in both directions and keep next local edits exportable
+  ---
+  duration_ms: 2034.557833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-incremental.test.mjs:26:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:23:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:462:920)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2155.637166

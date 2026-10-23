@@ -45,7 +45,11 @@ test('complete original prepared entities and family arrays are priced before Sc
   const operations=[];for await(const row of x.core.rows('revision'))operations.push(row.operation);
   const third=await prepareCurrentSourceWorkingGroupCheckpointPlan(x.core,operations);
   assert.equal(third.groups.filter(g=>g.type==='inputWorkingCommit').length,3);
-  assert.throws(()=>requireSelectedCurrentSourceWorkingGroupPlan(x.core,third),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});
+  assert.doesNotThrow(()=>requireSelectedCurrentSourceWorkingGroupPlan(x.core,third));
+  const thirdScope=await prepareGroupScope(third),thirdWork=sourceWorkingScopeScratch(third);
+  assert.ok(third.operationCount<=128);assert.ok(thirdScope.expected.revisions.length<=96);
+  assert.ok(thirdWork>=scopeWork,'additional genuine Working history does not reduce prepayment');
+  for(const family of Object.values(thirdScope.expected))assert.ok(thirdWork>=canonical(measure(family))+2*tree(measure(family)),'portfolio keeps the complete family prepayment');
  }finally{await x.store.repository.close();}
 });
 test('cost meter refuses supplied physical or control getters before reading them',async()=>{

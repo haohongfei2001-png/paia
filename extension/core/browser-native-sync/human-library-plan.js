@@ -13,7 +13,7 @@ import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from '.
 import {sourceWorkingCurrentStores,sourceWorkingCurrentNonemptyStores} from './source-working-canonical.js';
 import {sourceWorkingCurrentIndexSchema,sourceWorkingPhysicalIndexKey} from './source-working-index-schema.js';
 import {mixedCurrentIndexSchema,mixedCurrentPhysicalIndexKey} from './mixed-current-index-schema.js';
-import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta,assertInitialMixedDefaultMeta,assertRestoredMixedDefaultMeta} from './source-working-default-meta.js';
+import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta,assertSourceWorkingMergedDefaultMeta,assertInitialMixedDefaultMeta,assertRestoredMixedDefaultMeta} from './source-working-default-meta.js';
 import {requireOriginalGroupCheckpointPlan,prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan,measureOriginalMixedPrefixWrappers,measureOriginalMixedRepeatedPreparedOperations,measureOriginalMixedPlanNativeOperationAliases} from './group-checkpoint-plan.js';
 import {sourceWorkingScopeScratch,sourceWorkingComparisonScratch} from './source-working-qualification-cost.js';
 import * as currentGroupOwner from './group-checkpoint-scope.js';
@@ -1203,7 +1203,7 @@ async function projectionCompileSourceWorking(r){
  // selector references and <=128 operation/local-device/Working selectors;
  // no control body is copied into these vectors. Full control encoder/digest copies
  // are independently summed below before the asynchronous identity check.
- const restoredPrefixScratch=r.raw.rows.meta.some(row=>row.id===r.core.prefix+'active')?6*projectionTreeCharge(totals)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128:0;
+ const restoredPrefixScratch=r.raw.rows.meta.some(row=>row.id===r.core.prefix+'active'||row.id.startsWith(r.core.prefix+'generation:')&&row.id.endsWith(':sourceWorkingTimeline:'))?6*projectionTreeCharge(totals)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128:0;
  const compilerScratch=5*projectionTreeCharge(totals)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128+192*1024+restoredPrefixScratch;
  projectionReserve(r,compilerScratch);const operations=[];for(const row of r.raw.groupMeta)if(row.id.startsWith(revisionPrefix))operations.push(row.operation);
  const plan=await prepareCurrentSourceWorkingGroupCheckpointPlan(r.core,operations);projectionCurrent(r);
@@ -1214,7 +1214,8 @@ async function projectionCompileSourceWorking(r){
  r.owned+=projectionTreeCharge(projectionMeasure(plan,'native'))+projectionTreeCharge(projectionMeasure(scope,'native'))+hidden;
  r.group={...r.group,plan,scope,databaseId:r.binding.databaseId};
  projectionReserve(r,compilerScratch+sourceWorkingComparisonScratch(r.raw.rows,r.controlValues,scope.expected)+completedGroupControlScratch(r.core,r.raw));
- if(r.raw.rows.meta.some(row=>row.id===r.core.prefix+'active'))await assertSourceWorkingRestoredDefaultMeta(r.core,scope,plan,r.raw.rows,r.controlValues,r.binding.databaseId);
+ if(r.raw.rows.meta.some(row=>row.id.startsWith(r.core.prefix+'generation:')&&row.id.endsWith(':sourceWorkingTimeline:')))await assertSourceWorkingMergedDefaultMeta(r.core,scope,plan,r.raw.rows,r.controlValues,r.binding.databaseId);
+ else if(r.raw.rows.meta.some(row=>row.id===r.core.prefix+'active'))await assertSourceWorkingRestoredDefaultMeta(r.core,scope,plan,r.raw.rows,r.controlValues,r.binding.databaseId);
  else assertSourceWorkingDefaultMeta(r.core,scope,plan,r.raw.rows,r.controlValues,r.binding.databaseId);
  projectionCurrent(r);projectionSourceWorkingIndexViews(r);projectionCurrent(r);projectionReserve(r);
 }

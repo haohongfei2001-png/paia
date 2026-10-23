@@ -1,0 +1,28 @@
+TAP version 13
+# PRESERVATION_META [
+#   'archive-year:v1:row:document%3A7246aa9b-f4b8-44ba-9c50-914d6e0515dd:1:000000000005:block%3Abb803b73-ad7d-413e-8a8d-2a12774353fc'
+# ] []
+# Subtest: two devices append independently then receive in both directions and keep next local edits exportable
+not ok 1 - two devices append independently then receive in both directions and keep next local edits exportable
+  ---
+  duration_ms: 2225.618916
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-incremental.test.mjs:26:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:23:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:462:920)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2509.732917

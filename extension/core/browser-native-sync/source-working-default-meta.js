@@ -1,7 +1,7 @@
 import {archiveYearKey,archiveYearMeta} from '../archive-year-index.js';
 import {consumeMixedPublicationMetadata,mixedConfigurationReplay} from './mixed-configuration.js';
 import {consumerDisplayPreferences} from './consumer-preference-restore.js';
-import {assertSourceWorkingCanonicalAndProtocolRows,assertSourceWorkingRestoredCanonicalAndProtocolRows} from './source-working-canonical.js';
+import {assertSourceWorkingCanonicalAndProtocolRows,assertSourceWorkingRestoredCanonicalAndProtocolRows,assertSourceWorkingMergedCanonicalAndProtocolRows} from './source-working-canonical.js';
 import {assertSourceWorkingSpecialScalars} from './source-working-derived.js';
 import {defaults} from '../workspace.js';
 import {CONSENT_VERSION} from '../constants.js';
@@ -51,6 +51,7 @@ export function planInitialMixedSemanticMetadata(core,scope,plan){
 export function planRestoredMixedSemanticMetadata(core,scope,plan){
  if(arguments.length!==3)refuse();const replay=originalMixedRestoredMetadataReplay(core,scope,plan);return planMixedSemanticTransactions(replay.transactions,replay.historySequence);
 }
+export function planSourceWorkingSemanticMetadata(transactions){return planMixedSemanticTransactions(transactions);}
 function planMixedSemanticTransactions(transactions,historySequence=null){
  const known=new Map(),dirty=new Map(),inputs=new Map(),journals=new Map(),context=new Map(),owners=Object.fromEntries(['thoughts','topics','sections','placements'].map(name=>[name,new Map()]));
  const tables={library_entry:'thoughts',topic:'topics',section:'sections',placement:'placements'};let sequence=0,fence=0;
@@ -153,6 +154,7 @@ export async function assertSourceWorkingRestoredDefaultMeta(core,scope,plan,row
  const replay=await assertSourceWorkingRestoredCanonicalAndProtocolRows(core,scope,plan,rows);
  qualifyLocal(core,scope,plan,rows,control,databaseId,replay);
 }
+export async function assertSourceWorkingMergedDefaultMeta(core,scope,plan,rows,control,databaseId){if(arguments.length!==6)refuse();const replay=await assertSourceWorkingMergedCanonicalAndProtocolRows(core,scope,plan,rows);qualifyLocal(core,scope,plan,rows,control,databaseId,replay);}
 function qualifyLocal(core,scope,plan,rows,control,databaseId,replay){
  const meta=new Map(rows.meta.map(row=>[row.id,row])),admitted=new Set(),working=plan.groups.filter(group=>group.type==='inputWorkingCommit').length;
  const take=(id,expected)=>{if(!equal(meta.get(id),{id,...expected}))refuse();admitted.add(id);};
