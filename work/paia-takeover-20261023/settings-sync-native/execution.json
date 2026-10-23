@@ -1,0 +1,56 @@
+{
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "--test-name-pattern=SET2 Sync availability",
+    "tests/settings-next-chrome-e2e.test.mjs"
+  ],
+  "cwd": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension",
+  "headBefore": "68bff5cd8e9d2ec02c2ed20c5e6b2026b940b750",
+  "node": "v22.23.3",
+  "python": "Python 3.12.14",
+  "playwright": "1.63.0",
+  "chrome": "Google Chrome 156.0.8078.47",
+  "headless": true,
+  "sha256Before": {
+    "extension/tests/settings-next-chrome-e2e.test.mjs": "440a1305ae8d5802f6f72afd7a3651f4063318d3068de05de305094e93319b4e",
+    "extension/tests/harness/fake-chatgpt.mjs": "2744e6a288b00052f748b6c9c612249f5051bc878d0528a5aed63926f9973189",
+    "extension/ui/settings-details.js": "aad8f65656c3e79035f016a27b8706eb0abceb88850042d8a57e7bc9a9100cda",
+    "extension/ui/settings-sync.js": "e9604547a57531cc544c2a5fa9bd6f1a7ff5df12767f389f357faba554e55027",
+    "extension/core/browser-native-sync/availability.js": "3ebe539d5fd04b2e4493552ce53dc5b20cb7098b2d8536f32c68ada797672ad9",
+    "extension/core/browser-native-sync/recovery-session.js": "30b4ae34cb73810f5c8809bd6aa19bb5f3549c546d798f7cdea28bc5a2a175d4",
+    "extension/core/browser-native-sync/group-checkpoint.js": "1a3f040a5d88c56e341d66bdb7fb9a038ecdce6a5dad6598e079145b9aff9fb3"
+  },
+  "exit": 0,
+  "wallSeconds": 5.501248458996997,
+  "headAfter": "68bff5cd8e9d2ec02c2ed20c5e6b2026b940b750",
+  "sha256After": {
+    "extension/tests/settings-next-chrome-e2e.test.mjs": "440a1305ae8d5802f6f72afd7a3651f4063318d3068de05de305094e93319b4e",
+    "extension/tests/harness/fake-chatgpt.mjs": "2744e6a288b00052f748b6c9c612249f5051bc878d0528a5aed63926f9973189",
+    "extension/ui/settings-details.js": "aad8f65656c3e79035f016a27b8706eb0abceb88850042d8a57e7bc9a9100cda",
+    "extension/ui/settings-sync.js": "e9604547a57531cc544c2a5fa9bd6f1a7ff5df12767f389f357faba554e55027",
+    "extension/core/browser-native-sync/availability.js": "3ebe539d5fd04b2e4493552ce53dc5b20cb7098b2d8536f32c68ada797672ad9",
+    "extension/core/browser-native-sync/recovery-session.js": "30b4ae34cb73810f5c8809bd6aa19bb5f3549c546d798f7cdea28bc5a2a175d4",
+    "extension/core/browser-native-sync/group-checkpoint.js": "1a3f040a5d88c56e341d66bdb7fb9a038ecdce6a5dad6598e079145b9aff9fb3"
+  },
+  "sourceStable": true,
+  "summary": {
+    "tests": 2,
+    "pass": 2,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "tapDurationMs": 5445.801084,
+    "sourceDurationMs": 2035.333583,
+    "releaseDurationMs": 3256.453042
+  },
+  "platform": "macOS arm64",
+  "environment": {
+    "PYTHON": "/opt/homebrew/bin/python3.12",
+    "PLAYWRIGHT_MODULE": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/node_modules/playwright",
+    "PAIA_HEADLESS": "1"
+  }
+}

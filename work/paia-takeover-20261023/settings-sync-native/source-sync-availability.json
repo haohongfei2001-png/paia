@@ -1,0 +1,29 @@
+{
+  "variant": "source",
+  "passed": true,
+  "productionSync": false,
+  "results": [
+    {
+      "language": "zh-CN",
+      "unavailable": true,
+      "actions": 1,
+      "localStorageUnchanged": true,
+      "geometry": {
+        "left": 16,
+        "right": 304,
+        "overflow": 0
+      }
+    },
+    {
+      "language": "en",
+      "unavailable": true,
+      "actions": 1,
+      "localStorageUnchanged": true,
+      "geometry": {
+        "left": 16,
+        "right": 304,
+        "overflow": 0
+      }
+    }
+  ]
+}

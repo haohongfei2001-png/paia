@@ -178,7 +178,7 @@ as an executed or default-gate assertion.
 | Surface and current entry | Existing implementation and behavior | Existing owning native coverage and remaining limits |
 | --- | --- | --- |
 | Prompt: supported ChatGPT composer, fixed three forms, toolbar/settings entry | `content/prompt-surface.js`, `background/prompt-surface.js`, `ui/prompt-surface.js`; original private frame, exact sender/document qualification, retained local search, selected-text insertion with no send | `nib-approved-fixed-chrome-e2e`, all six `nib-v4-*-chrome-e2e` files, `cpv1-09-prompt-surface-chrome-e2e`, `cpv1-09-prompt-insertion-chrome-e2e`, `cpv1-09-prompt-compatibility-chrome-e2e`, `cpv1-12-next-prompt-chrome-e2e`. Current-group membership exists. Synthetic old/current composer signatures and native CDP composition do not certify today's logged-in ChatGPT or physical IME. |
-| Settings: sidebar or compact navigation; Prompt entry returns to original app route | `ui/app-shell.js`, `ui/settings-preferences.js`, `ui/settings-details.js`, `ui/reader-navigation.js`; six groups, actual preference owners, compact directory/Back, local intent rejects stale restoration | `uir-04-settings-chrome-e2e`, `settings-next-chrome-e2e`, `settings-data-destinations-chrome-e2e`, `settings-preference-publication-chrome-e2e`, `nib-v4-settings-entry-chrome-e2e`. The 22-row inventory has a Sync implementation gap below (local work now resumed); six groups alone do not prove 22 working operations. |
+| Settings: sidebar or compact navigation; Prompt entry returns to original app route | `ui/app-shell.js`, `ui/settings-preferences.js`, `ui/settings-details.js`, `ui/reader-navigation.js`; six groups, actual preference owners, compact directory/Back, local intent rejects stale restoration | `uir-04-settings-chrome-e2e`, `settings-next-chrome-e2e`, `settings-data-destinations-chrome-e2e`, `settings-preference-publication-chrome-e2e`, `nib-v4-settings-entry-chrome-e2e`. The Sync destination is now mounted and its read-only unavailable state has two targeted native passes below; provider-backed Sync remains separate, so six groups alone do not prove 22 working operations. |
 | Context: sidebar `memory` / For AI and Settings AI Context destination | `ui/context-cards.js`, `ui/context-topics.js`, `ui/context-connections-view.js`; four metadata-only cards, Info/Rules/Now owned editors, Topic choices, separate connection authority; no Context search | `context-cards-chrome-e2e` includes both variants, durable edits/delete/undo, failures, composition, peer races, Topic choices, keyboard/history and approved final local reference states. `cpv1-ctx4-05-maintenance-chrome-e2e` and `desktop-vnext-context-chrome-e2e` cover their narrower owners. External AI client/transport interoperability and real grants remain separate; the local connected-state UI is not proof of an available external integration. |
 | Thought: sidebar `thoughts`, existing Topic and selected Section | `ui/topic-workspace.js`, `ui/topic-workspace-presentation.js`, `ui/topic-section-prose.js`; metadata Home, explicit selected Section, own inline writer, year progression, human content and Current publication guards | `topic-year-chrome-e2e`, `topic-selected-section-chrome-e2e`, `topic-section-writing-chrome-e2e`, `topic-section-return-position-chrome-e2e`, `topic-entry-section-move-chrome-e2e`, `topic-section-promotion-chrome-e2e`, `cpv1-topic-02-lifecycle-chrome-e2e`, `cpv1-02-dvn-topic-{root,years,content}-chrome-e2e`, `ans-07-library-root-chrome-e2e`, `ans-08-topic-continuous-chrome-e2e`. Current browser coverage exists; these are not real-provider semantic quality or long-term user-use evidence. |
 | Archive: sidebar `library`, root search/discovery, original Reader and explicit original-source destination | `ui/archive.js`, `ui/app-shell.js`, `ui/archive-year-requalification.js` and original search/editor/navigation owners; newest populated year, deliberate older-year append, no invented date for undated input, exact retained editor | `archive-year-chrome-e2e`, `cpv1-02-4-reader-chrome-e2e`, `uir-02-archive-search-reader-chrome-e2e`, `uis-01-archive-actions-chrome-e2e`, `uis-02-page-scoped-search-chrome-e2e`, `ans-01-reader-surfaces-chrome-e2e`, `ans-04-navigation-release-chrome-e2e`, capture/save/reconnect/backup owners. Root search remains; substantive Reader/Thought/Context search retirement is intentional. Current real source account, installation and sustained durability are separate. |
@@ -204,7 +204,7 @@ replace a missing row or count as completion of this inventory.
 | 10 AI & prompts | AI organize style: `#settings-ai-style-open`, `settings-ai-style.js` | `settings-ai-style-browser.mjs` is actually called by the current UIR-04 comparison helper, plus style owner/state/recovery/content-preservation Node tests. Saving style does not generate or adopt content. |
 | 11 Privacy | Hide content previews: `#r6-hide-content-previews`, `r6-settings.js` | Current Settings interaction helper and `uir-03-preview-mask-chrome-e2e`; masking does not erase explicitly opened originals or grant access. |
 | 12 Privacy | Supported websites: `#settings-supported-sites-open`, `settings-supported-sites.js` | UIR-04 native opens the real dialog at 320 px, two languages and doubled text, then verifies Escape/focus; package/supported-sites unit owner checks. |
-| 13 Data | Sync | **Not mounted in the current Settings source.** `archive.html`, `settings-preferences.js`, `settings-details.js` and `archive.js` contain no Sync row/mount. The user subsequently lifted the new-Sync pause during takeover; a separate implementation line now owns this destination. This static finding describes the pre-change integrated source, not a continuing authorization blocker. Require its actual implementation and validation before claiming 22/22. |
+| 13 Data | Sync: `#settings-sync`, mounted by `settings-details.js` and `settings-sync.js` | Integrated local package adds the truthful read-only unavailable destination. Two new Source/release `settings-next-chrome-e2e` cases prove exact Data order, both languages at 320 px, modal/keyboard/focus, unchanged storage and zero external requests. No enable/login/recovery control is exposed. Local coordinator correctness is separately tested; provider-backed Sync and real-account qualification remain unfinished. |
 | 14 Data | Import earlier inputs: `#settings-history`, `history-completion.js` | `settings-data-destinations-chrome-e2e` keyboard entry, consent-gated chooser and original dialog; original import/capture recovery owners cover their data boundaries. |
 | 15 Data | Storage space: `#settings-storage`, `settings-details.js` / `r6-settings.js` | `uir-04-data-chrome-e2e` checks estimates and missing quota truthfully; conditional repair remains a distinct confirmed-owner action. |
 | 16 Data | Restore existing PAIA backup: `#settings-backup`, `ui/backup.js` | `settings-data-destinations-chrome-e2e`, `uir-04-data-chrome-e2e`, `cpv1-01-5-backup-chrome-e2e`, `cpv1-03-backup-segments-chrome-e2e`; file preflight/preview/explicit confirmation, conflicts and cancel remain original owners. No backup generation is restored. |
@@ -234,8 +234,8 @@ at a later consolidated acceptance point; do not expand Full implicitly.
 
 ### Remaining verification, separated from implementation gaps
 
-- **Local and executable without external accounts:** feedback real-worker draft
-  journey; the dedicated eight-leaf Maintenance settings owner when warranted by
+- **Local and executable without external accounts:** the dedicated eight-leaf
+  Maintenance settings owner when warranted by
   the frozen integration; exact R3/YEAR-HARMONY screenshot comparison when the
   already authorized reference bytes are available. These are not reasons to
   freeze independent implementation or repeatedly rerun the current native batch.
@@ -251,12 +251,12 @@ at a later consolidated acceptance point; do not expand Full implicitly.
   service. Do not enable credentials, read real account data, spend paid quota or
   deploy merely to remove an unavailable label.
 - **Newly authorized independent work:** the user lifted the Sync feature pause
-  during takeover. The separate Sync line owns its UI implementation and
-  validation; do not turn that authorization into a claim of completed delivery
-  or actual connection/account/secret activation.
+  during takeover. Its first local coordinator and read-only Settings destination
+  are now integrated and independently checked. Provider implementation and
+  qualification continue separately; this does not activate any account or secret.
 
 No further definite runtime defect was established by this reachability audit.
-The stopped Sync row and the native coverage gaps above prevent an unconditional
+The unfinished provider-backed Sync and the remaining verification gaps prevent an unconditional
 whole-UI/whole-product acceptance claim; they do not invalidate the independently
 completed local owner implementations.
 
@@ -310,3 +310,56 @@ original history-read reply guarantees the actual measure path, its response is
 held, native trusted Tab chooses the original row action, and release cannot
 restore older focus. Original RPCs remain in use and exact prior header style
 is restored in `finally`. No runtime/guard/timeout/keyboard assertion is relaxed.
+
+
+## Restored structural Context native qualification
+
+On integrated runtime `19d97e316e73a5b6213f0bbbd2ed19c93d227aa3`, one targeted
+Source/release invocation of the two newly added CTX4-05 parent cases passed
+**8 native leaves + 2 parents = 10/10 TAP tests**, exit 0, with no failures,
+cancellations, skipped tests or TODO. TAP 10624.695125 ms; wall 10.682498209 s.
+Node 22.23.3, Python 3.12.14, Playwright 1.63.0 and Chrome 156.0.8078.47 ran
+on macOS arm64 using the original headless offline harness. Both HEAD and the
+eight recorded test/runtime hashes were identical before and after execution.
+
+The real original Section/Topic owner first renames and restores its field;
+the original LocalMaintenanceSession then commits exact Context coverage while
+the separate Topic obligation stays DEFERRED, even with both existing Topic
+reconciliation options enabled. The ACK negative controls abort the original
+native IndexedDB transaction, observe abort without complete, preserve all
+original table rows, and replay the recorded response without another provider
+call. Source/Input/human organization and revision history remain unchanged;
+actual app settings and network guards pass. All old owning-file cases remain
+byte-identical after removing only the new function and parent-case blocks.
+
+Evidence: `work/paia-takeover-20261023/structural-restore-native/REPORT.md`,
+`execution.json`, the original TAP, eight body-free leaf receipts and SHA256SUMS.
+This is native domain/transaction qualification, not a whole-owning-file pass,
+physical UI restore journey, live processing authorization, Linux capacity proof
+or replacement for final integrated gates. No cloud run or real model was used.
+
+
+## Settings Sync destination native qualification
+
+At integrated HEAD `68bff5cd8e9d2ec02c2ed20c5e6b2026b940b750`, the two appended
+Source/release cases passed **2/2**, exit 0, no fail/cancel/skip/todo; TAP
+5445.801084 ms and wall 5.501248458996997 s. Node 22.23.3, Python 3.12.14,
+Playwright 1.63.0 and Chrome 156.0.8078.47 used the original headless offline
+harness on macOS arm64. HEAD and seven source/test hashes remained identical.
+The real Data destination order, bilingual 320 px dialog, native keyboard/focus,
+only-Close controls, complete unchanged local-storage snapshots and zero
+external/provider requests passed. This is the truthful unavailable destination,
+not provider authentication, native recovery or completed production Sync.
+
+Independent review of exact package `d2b26b3891985f8c392ccdf64d8364bca6a30104`
+confirmed both reported risks addressed: every discovered cut uses the original
+graph compiler and the selected DAG end must exactly contain all historical
+revision items; bounded discovery waits fence late listing/get results. Missing
+or compacted history stays fail-closed. The discovery deadline does not cover
+stage/get or activation, and it does not cancel underlying transport IO. Actual
+activation still awaits its original owner; uncertain commit remains unknown.
+No remaining blocker was found within that first local package scope. Its
+separate 94/94 Node receipt was inspected, not rerun.
+
+Evidence: `work/paia-takeover-20261023/settings-sync-native/REPORT.md`,
+`execution.json`, original TAP, two body-free receipts and SHA256SUMS.
