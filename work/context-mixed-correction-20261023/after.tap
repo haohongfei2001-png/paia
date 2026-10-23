@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: mixed Context correction original bound with authored edit
+ok 1 - mixed Context correction original bound with authored edit
+  ---
+  duration_ms: 819.40625
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original bound with authored restore
+ok 2 - mixed Context correction original bound with authored restore
+  ---
+  duration_ms: 697.831375
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original plain with authored edit
+not ok 3 - mixed Context correction original plain with authored edit
+  ---
+  duration_ms: 701.61875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:250:75'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'length')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:252:299)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mixed Context correction original plain with authored restore
+not ok 4 - mixed Context correction original plain with authored restore
+  ---
+  duration_ms: 748.424917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:250:75'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'length')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:252:299)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 2
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3124.689459

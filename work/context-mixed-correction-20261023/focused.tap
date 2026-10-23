@@ -1,0 +1,268 @@
+TAP version 13
+# Subtest: mixed Context correction original bound with authored edit
+ok 1 - mixed Context correction original bound with authored edit
+  ---
+  duration_ms: 700.6955
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original bound with authored restore
+ok 2 - mixed Context correction original bound with authored restore
+  ---
+  duration_ms: 625.330541
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original plain with authored edit
+not ok 3 - mixed Context correction original plain with authored edit
+  ---
+  duration_ms: 622.087041
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:250:75'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'length')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:252:353)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mixed Context correction original plain with authored restore
+not ok 4 - mixed Context correction original plain with authored restore
+  ---
+  duration_ms: 600.336583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:250:75'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'length')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:252:353)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mixed Context correction original response adapter none
+ok 5 - mixed Context correction original response adapter none
+  ---
+  duration_ms: 1040.691917
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original response adapter foreign-item
+ok 6 - mixed Context correction original response adapter foreign-item
+  ---
+  duration_ms: 879.599959
+  type: 'test'
+  ...
+# Subtest: mixed Context correction original response adapter unknown-field
+ok 7 - mixed Context correction original response adapter unknown-field
+  ---
+  duration_ms: 834.374417
+  type: 'test'
+  ...
+# Subtest: mixed Context correction ACK rollback replays exact retained response once
+ok 8 - mixed Context correction ACK rollback replays exact retained response once
+  ---
+  duration_ms: 1214.4355
+  type: 'test'
+  ...
+# Subtest: mixed Context correction two paired and two authored owners remain separate
+ok 9 - mixed Context correction two paired and two authored owners remain separate
+  ---
+  duration_ms: 1066.41575
+  type: 'test'
+  ...
+# Subtest: mixed Context correction rejects cross-topic before any material grant
+ok 10 - mixed Context correction rejects cross-topic before any material grant
+  ---
+  duration_ms: 93.928709
+  type: 'test'
+  ...
+# Subtest: mixed Context correction rejects invalidated before any material grant
+ok 11 - mixed Context correction rejects invalidated before any material grant
+  ---
+  duration_ms: 80.746792
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent input scope is required
+ok 12 - mixed Context correction independent input scope is required
+  ---
+  duration_ms: 91.028958
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent bound scope is required
+ok 13 - mixed Context correction independent bound scope is required
+  ---
+  duration_ms: 84.679292
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent authored scope is required
+ok 14 - mixed Context correction independent authored scope is required
+  ---
+  duration_ms: 88.329583
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent authored-field scope is required
+ok 15 - mixed Context correction independent authored-field scope is required
+  ---
+  duration_ms: 92.149834
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent context scope is required
+ok 16 - mixed Context correction independent context scope is required
+  ---
+  duration_ms: 86.575292
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent qualification-author scope is required
+ok 17 - mixed Context correction independent qualification-author scope is required
+  ---
+  duration_ms: 85.78675
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent qualification-bound scope is required
+ok 18 - mixed Context correction independent qualification-bound scope is required
+  ---
+  duration_ms: 85.922875
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent qualification-history scope is required
+ok 19 - mixed Context correction independent qualification-history scope is required
+  ---
+  duration_ms: 92.414541
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent qualification-title scope is required
+ok 20 - mixed Context correction independent qualification-title scope is required
+  ---
+  duration_ms: 92.238583
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent qualification-note scope is required
+ok 21 - mixed Context correction independent qualification-note scope is required
+  ---
+  duration_ms: 100.515875
+  type: 'test'
+  ...
+# Subtest: mixed Context correction independent revoke scope is required
+ok 22 - mixed Context correction independent revoke scope is required
+  ---
+  duration_ms: 80.092167
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes bound-note
+ok 23 - mixed Context correction provider closes bound-note
+  ---
+  duration_ms: 525.022125
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes input
+ok 24 - mixed Context correction provider closes input
+  ---
+  duration_ms: 548.372
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes source
+ok 25 - mixed Context correction provider closes source
+  ---
+  duration_ms: 483.141292
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes authored-body
+ok 26 - mixed Context correction provider closes authored-body
+  ---
+  duration_ms: 492.2865
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes authored-note
+ok 27 - mixed Context correction provider closes authored-note
+  ---
+  duration_ms: 522.71775
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes authored-history
+ok 28 - mixed Context correction provider closes authored-history
+  ---
+  duration_ms: 551.911542
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes authored-membership
+ok 29 - mixed Context correction provider closes authored-membership
+  ---
+  duration_ms: 492.838417
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes receipt
+ok 30 - mixed Context correction provider closes receipt
+  ---
+  duration_ms: 528.8615
+  type: 'test'
+  ...
+# Subtest: mixed Context correction provider closes revoke
+ok 31 - mixed Context correction provider closes revoke
+  ---
+  duration_ms: 489.704209
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes bound-note
+ok 32 - mixed Context correction backup closes bound-note
+  ---
+  duration_ms: 617.488791
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes input
+ok 33 - mixed Context correction backup closes input
+  ---
+  duration_ms: 648.515542
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes source
+ok 34 - mixed Context correction backup closes source
+  ---
+  duration_ms: 610.528417
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes authored-body
+ok 35 - mixed Context correction backup closes authored-body
+  ---
+  duration_ms: 624.024
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes authored-note
+ok 36 - mixed Context correction backup closes authored-note
+  ---
+  duration_ms: 621.623917
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes authored-history
+ok 37 - mixed Context correction backup closes authored-history
+  ---
+  duration_ms: 600.795792
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes authored-membership
+ok 38 - mixed Context correction backup closes authored-membership
+  ---
+  duration_ms: 619.278417
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes receipt
+ok 39 - mixed Context correction backup closes receipt
+  ---
+  duration_ms: 605.496209
+  type: 'test'
+  ...
+# Subtest: mixed Context correction backup closes revoke
+ok 40 - mixed Context correction backup closes revoke
+  ---
+  duration_ms: 603.926625
+  type: 'test'
+  ...
+1..40
+# tests 40
+# suites 0
+# pass 38
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 19069.903708
