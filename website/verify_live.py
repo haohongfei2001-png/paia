@@ -7,6 +7,7 @@ import hashlib, json, os
 from core_checks import verify_core
 from origin_checks import verify_hero, verify_origin, verify_typography
 from presentation_checks import verify_presentation
+from refinement11_checks import demo as verify_demo11
 from atelier_checks import enabled as atelier_enabled, verify_home as verify_atelier_home
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -66,7 +67,9 @@ try:
                 def live_check(value, label):
                     checks.append({'path':relative,'viewport':width,'interaction':label,'pass':bool(value)})
                     if not value: raise AssertionError(label)
-                if not (ATELIER and Path(relative).name=='index.html'):
+                if page.locator('body').get_attribute('data-atelier-demo')=='11':
+                    verify_demo11(page,live_check,relative+str(width),deep=relative in ('demo.html','zh/demo.html'),out=OUT)
+                elif not (ATELIER and Path(relative).name=='index.html'):
                     verify_typography(page, live_check, relative)
                 else:
                     verify_atelier_home(page,live_check,relative+str(width),deep=relative in ('index.html','zh/index.html'),out=OUT)
@@ -76,7 +79,7 @@ try:
                     page.screenshot(path=str(OUT / f'live-{relative.replace("/", "-")}-{width}-hero.png'), animations='disabled')
                 if not ATELIER and Path(relative).name == 'index.html':
                     verify_presentation(page,live_check,relative,motion=True)
-                if relative in ('demo.html','zh/demo.html'):
+                if relative in ('demo.html','zh/demo.html') and page.locator('body').get_attribute('data-atelier-demo')!='11':
                     verify_core(page, live_check, en=not relative.startswith('zh/'), download_dir=OUT)
                     verify_origin(page, live_check, en=not relative.startswith('zh/'))
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')

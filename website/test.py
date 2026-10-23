@@ -18,6 +18,8 @@ from atelier_checks import enabled as atelier_enabled, verify_static as verify_a
 
 ROOT = Path(__file__).resolve().parents[1]
 ATELIER = atelier_enabled(ROOT)
+DEMO11 = 'data-atelier-demo="11"' in (ROOT/'demo.html').read_text()
+from refinement11_checks import demo as verify_demo11
 OFFLINE = '--offline-render' in sys.argv
 OUT = Path(os.environ.get('WEBSITE_TEST_OUTPUT', ROOT / 'website-test-artifacts'))
 OUT.mkdir(parents=True, exist_ok=True)
@@ -95,7 +97,7 @@ for relative in ('index.html', 'zh/index.html'):
     doc = Document(source)
     check('Watch the film' not in source and 'A PAIA user' not in source, f'{relative}: no invented film or testimonial')
     if ATELIER:
-        if 'data-atelier-version="10"' in source:
+        if any(f'data-atelier-version="{v}"' in source for v in (10,11)):
             check({'archive','thoughts','context'}.issubset({a.get('id') for _,a in doc.tags}),f'{relative}: three spaces retain distinct presentation')
         else:
             check(sum('data-pd-tab' in attrs for _, attrs in doc.tags) == 3, f'{relative}: three approved Atelier spaces')
@@ -108,7 +110,7 @@ for relative in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
     source = (ROOT / relative).read_text()
     doc = Document(source)
     styles = [urlparse(attrs['href']).path for attrs in doc.all('link') if attrs.get('rel') == 'stylesheet']
-    if ATELIER and relative.endswith('index.html'):
+    if ATELIER and (relative.endswith('index.html') or (DEMO11 and relative.endswith('demo.html'))):
         check('/assets/website/atelier/site.css' in styles, f'{relative}: reviewed Atelier visual owner loaded')
     else:
         check('/assets/website/site.css' in styles and '/assets/website/product-experience.css' in styles, f'{relative}: shared product visual system loaded')
@@ -297,6 +299,15 @@ try:
                     check(not external, f'{name}: {width}px no unsolicited external requests')
                     page.close()
                     continue
+                if DEMO11 and path.name == 'demo.html':
+                    verify_demo11(page,check,f'{name}-{width}',out=OUT if width in (1440,390) else None)
+                    if width == 320:
+                        page.add_style_tag(content='html{font-size:200%!important}')
+                        check_reflow(page,f'{name}: 320px with 200% text',name,width,'text-200')
+                    check(not errors,f'{name}: current demo no JS errors')
+                    check(not external,f'{name}: current demo no unsolicited external requests')
+                    page.close()
+                    continue
                 verify_typography(page, check, f'{name}: {width}px')
                 if path.name == 'demo.html':
                     check(page.locator('[data-thought-text]').evaluate_all('els=>els.length===4 && els.every(e=>parseFloat(getComputedStyle(e).fontSize)>=14)'), f'{name}: {width}px Topic body remains readable')
@@ -407,63 +418,80 @@ try:
                 check(title.is_visible() and title.evaluate("e=>{const s=getComputedStyle(e);return s.backgroundImage==='none'&&s.webkitTextFillColor===s.color&&!['transparent','rgba(0,0,0,0)'].includes(s.webkitTextFillColor.replaceAll(' ',''));}"), f'{locale}: high-contrast title uses visible text instead of transparent gradient fill')
                 settle_capture_top(page)
                 page.screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-hero.png'), animations='disabled')
-            # Full interaction/keyboard/permission checks continue on the
-            # unchanged demo rather than turning the homepage into a test app.
-            load(page, locale + 'demo.html')
-            page.evaluate('document.fonts.ready')
-            orb = page.locator('[data-prompt-toggle]')
-            check(orb.locator('.paia-orb').evaluate("e=>getComputedStyle(e).display==='none'"), f'{locale}: high-contrast mode hides only the decorative Orb')
-            check(orb.is_visible() and orb.evaluate("e=>{const s=getComputedStyle(e);return parseFloat(s.borderTopWidth)>=1&&s.borderTopStyle!=='none'&&s.borderTopColor===s.color&&s.color!==s.backgroundColor;}"), f'{locale}: Orb control retains a contrasting visible button boundary')
-            check(orb.evaluate("e=>getComputedStyle(e,'::after').content.includes('−')"), f'{locale}: expanded prompt control has a visible collapse symbol')
-            orb.focus()
-            page.keyboard.press('Enter')
-            check(orb.get_attribute('aria-expanded') == 'false' and not page.locator('#pc-prompt-card').is_visible() and orb.evaluate("e=>getComputedStyle(e,'::after').content.includes('+')"), f'{locale}: keyboard collapses the card and displays an expand symbol')
-            page.keyboard.press('Enter')
-            check(orb.get_attribute('aria-expanded') == 'true' and page.locator('#pc-prompt-card').is_visible() and orb.evaluate('e=>e===document.activeElement'), f'{locale}: keyboard reopens the prompt card with focus retained')
-            page.locator('.pc-prompt-scene').screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-prompt.png'), animations='disabled')
-            # The secondary scope explanation is deliberately collapsed on
-            # this homepage. Explicitly open it before inspecting its real
-            # permission controls; other pages keep their original behavior.
-            if page.locator('.ad-context-disclosure').count():
-                details = page.locator('.ad-context-disclosure')
-                if not details.evaluate('e=>e.open'):
-                    details.locator(':scope > summary').click()
-            page.locator('[data-context-clear]').click()
-            allowed = page.locator('[data-card-allow="rules"]')
-            closed = page.locator('[data-card-allow="info"]')
-            allowed.focus()
-            page.keyboard.press('Enter')
-            page.locator('[data-card-open="info"]').focus()
-            check(allowed.get_attribute('aria-pressed') == 'true' and closed.get_attribute('aria-pressed') == 'false' and allowed.inner_text() != closed.inner_text(), f'{locale}: Context permission states remain distinct in text and semantics')
-            # Engines may retain a computed medium outline width with style
-            # `none`; test the visible distinction, not that inert default.
-            check(allowed.evaluate("e=>parseFloat(getComputedStyle(e).outlineWidth)>=2&&getComputedStyle(e).outlineStyle!=='none'") and closed.evaluate("e=>getComputedStyle(e).outlineStyle==='none'||parseFloat(getComputedStyle(e).outlineWidth)===0"), f'{locale}: chosen Context permission keeps a visible non-color state outline')
-            page.close()
-            # The full small-screen trial journey moved with the simulator.
-            # Do not drop editing/IME/privacy coverage when removing home UI.
-            page = browser.new_page(viewport={'width': 390, 'height': 844})
-            load(page, locale + 'demo.html')
-            verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
-            verify_origin(page, check, en=en)
-            page.close()
-            page = browser.new_page(viewport={'width': 1280, 'height': 900})
-            errors = []
-            page.on('pageerror', lambda error: errors.append(str(error)))
-            load(page, locale + 'demo.html')
-            verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
-            verify_origin(page, check, en=en)
-            page.locator('[data-card-open="info"]').focus()
-            page.keyboard.press('Enter')
-            check(page.locator('[data-card-detail="info"]').is_visible(), f'{locale}: keyboard opens the correct card')
-            page.locator('[data-card-detail="info"] [data-context-back]').click()
-            page.locator('[data-card-allow="info"]').focus()
-            page.keyboard.press('Enter')
-            check(page.locator('[data-card-allow="info"]').get_attribute('aria-pressed') == 'true', f'{locale}: keyboard toggles explicit card state')
-            check(page.locator('[data-context-overview]').is_visible(), f'{locale}: capsule does not navigate into card')
-            if not OFFLINE:
-                check(not page.evaluate('localStorage.length || sessionStorage.length'), f'{locale}: example does not persist personal edits')
-            check(not errors, f'{locale}: interactive demo no JS errors')
-            page.close()
+            if DEMO11:
+                page.close()
+                for example_width in (1280,390):
+                    page=browser.new_page(viewport={'width':example_width,'height':950},reduced_motion='reduce')
+                    errors=[];external=[]
+                    page.on('pageerror',lambda e:errors.append(str(e)))
+                    page.on('request',lambda r:external.append(r.url) if r.method!='GET' or (r.url.startswith('http') and not r.url.startswith(origin+'/')) else None)
+                    load(page,locale+'demo.html')
+                    verify_demo11(page,check,locale+'demo-deep-'+str(example_width),deep=True)
+                    check(not errors,locale+': current demo interaction JS safety')
+                    check(not external,locale+': current demo has no transport or submission')
+                    page.close()
+                context=browser.new_context(java_script_enabled=False,viewport={'width':390,'height':844})
+                page=context.new_page();load(page,locale+'demo.html',scripts=False)
+                check(page.locator('h1').is_visible() and page.locator('#topic-prose .v8-entry-body').count()==2,locale+': current demo readable without JS')
+                context.close()
+            else:
+                # Full interaction/keyboard/permission checks continue on the
+                # unchanged demo rather than turning the homepage into a test app.
+                load(page, locale + 'demo.html')
+                page.evaluate('document.fonts.ready')
+                orb = page.locator('[data-prompt-toggle]')
+                check(orb.locator('.paia-orb').evaluate("e=>getComputedStyle(e).display==='none'"), f'{locale}: high-contrast mode hides only the decorative Orb')
+                check(orb.is_visible() and orb.evaluate("e=>{const s=getComputedStyle(e);return parseFloat(s.borderTopWidth)>=1&&s.borderTopStyle!=='none'&&s.borderTopColor===s.color&&s.color!==s.backgroundColor;}"), f'{locale}: Orb control retains a contrasting visible button boundary')
+                check(orb.evaluate("e=>getComputedStyle(e,'::after').content.includes('−')"), f'{locale}: expanded prompt control has a visible collapse symbol')
+                orb.focus()
+                page.keyboard.press('Enter')
+                check(orb.get_attribute('aria-expanded') == 'false' and not page.locator('#pc-prompt-card').is_visible() and orb.evaluate("e=>getComputedStyle(e,'::after').content.includes('+')"), f'{locale}: keyboard collapses the card and displays an expand symbol')
+                page.keyboard.press('Enter')
+                check(orb.get_attribute('aria-expanded') == 'true' and page.locator('#pc-prompt-card').is_visible() and orb.evaluate('e=>e===document.activeElement'), f'{locale}: keyboard reopens the prompt card with focus retained')
+                page.locator('.pc-prompt-scene').screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-prompt.png'), animations='disabled')
+                # The secondary scope explanation is deliberately collapsed on
+                # this homepage. Explicitly open it before inspecting its real
+                # permission controls; other pages keep their original behavior.
+                if page.locator('.ad-context-disclosure').count():
+                    details = page.locator('.ad-context-disclosure')
+                    if not details.evaluate('e=>e.open'):
+                        details.locator(':scope > summary').click()
+                page.locator('[data-context-clear]').click()
+                allowed = page.locator('[data-card-allow="rules"]')
+                closed = page.locator('[data-card-allow="info"]')
+                allowed.focus()
+                page.keyboard.press('Enter')
+                page.locator('[data-card-open="info"]').focus()
+                check(allowed.get_attribute('aria-pressed') == 'true' and closed.get_attribute('aria-pressed') == 'false' and allowed.inner_text() != closed.inner_text(), f'{locale}: Context permission states remain distinct in text and semantics')
+                # Engines may retain a computed medium outline width with style
+                # `none`; test the visible distinction, not that inert default.
+                check(allowed.evaluate("e=>parseFloat(getComputedStyle(e).outlineWidth)>=2&&getComputedStyle(e).outlineStyle!=='none'") and closed.evaluate("e=>getComputedStyle(e).outlineStyle==='none'||parseFloat(getComputedStyle(e).outlineWidth)===0"), f'{locale}: chosen Context permission keeps a visible non-color state outline')
+                page.close()
+                # The full small-screen trial journey moved with the simulator.
+                # Do not drop editing/IME/privacy coverage when removing home UI.
+                page = browser.new_page(viewport={'width': 390, 'height': 844})
+                load(page, locale + 'demo.html')
+                verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
+                verify_origin(page, check, en=en)
+                page.close()
+                page = browser.new_page(viewport={'width': 1280, 'height': 900})
+                errors = []
+                page.on('pageerror', lambda error: errors.append(str(error)))
+                load(page, locale + 'demo.html')
+                verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
+                verify_origin(page, check, en=en)
+                page.locator('[data-card-open="info"]').focus()
+                page.keyboard.press('Enter')
+                check(page.locator('[data-card-detail="info"]').is_visible(), f'{locale}: keyboard opens the correct card')
+                page.locator('[data-card-detail="info"] [data-context-back]').click()
+                page.locator('[data-card-allow="info"]').focus()
+                page.keyboard.press('Enter')
+                check(page.locator('[data-card-allow="info"]').get_attribute('aria-pressed') == 'true', f'{locale}: keyboard toggles explicit card state')
+                check(page.locator('[data-context-overview]').is_visible(), f'{locale}: capsule does not navigate into card')
+                if not OFFLINE:
+                    check(not page.evaluate('localStorage.length || sessionStorage.length'), f'{locale}: example does not persist personal edits')
+                check(not errors, f'{locale}: interactive demo no JS errors')
+                page.close()
             page = browser.new_page()
             load(page, locale + 'contact.html')
             check(page.locator('form').get_attribute('action') == 'https://formsubmit.co/haohongfei2001@gmail.com', f'{locale}: existing consented contact destination retained')
@@ -482,7 +510,7 @@ try:
             load(page, locale + 'index.html', scripts=False)
             if ATELIER:
                 check(page.locator('h1').is_visible() and page.locator('#archive').is_visible() and page.locator('#context').is_visible(), f'{locale}: static core content without JS')
-                if page.locator('body').get_attribute('data-atelier-version')=='10':
+                if page.locator('body').get_attribute('data-atelier-version') in ('10','11'):
                     check(page.locator('.p10-found-quote').is_visible(),f'{locale}: complete archive illustration without JavaScript')
                     check(page.locator('.p10-phrase').count()==3 and page.locator('.p10-mind-paper').is_visible(),f'{locale}: complete thought illustration without JavaScript')
                 else:
