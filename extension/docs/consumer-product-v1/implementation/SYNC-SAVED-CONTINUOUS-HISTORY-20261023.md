@@ -1,0 +1,17 @@
+# Saved work: retained continuous human history — 2026-10-23
+
+Base: 2d499662 (including original repository private work meter and its complete-set cursor primitive). This package extends the same finite saved Source/Entry bootstrap; it does not introduce another owner, default Sync enablement or typed successor operation.
+
+The original envelope accepts 2 through 128 retained rows: exactly one immutable AI baseline and a complete consecutive sequence of ordinary human edits. Every original row ID, operation ID, actor, source association, field mask, before/after snapshot, journal window, base/after revision and strictly increasing physical sequence is validated. Duplicate IDs/operations, omitted edits, coalesced windows, retirement/purge gaps, restore/placement/lifecycle mutations and unrepresented extra histories fail closed. The original payload and transaction resource limits still apply; 128 is an admission ceiling, not a guarantee that such a graph fits 2 MiB or 4096 physical requests.
+
+Each step reuses original planHumanEntryFields / finishHumanEntryFields and original planJournalRevision. History stores body author/protection time but does not preserve every intermediate non-body timestamp or thought allocation sequence. For a later-overwritten non-body field, journal time is only a temporary existence witness for pure computation. This value is neither written to history nor exported as a reconstructed operation. Retained body times, final field author/protection times, final Entry updated time/sequence and the complete final canonical Entry must match exactly. Every real history row is copied unchanged apart from the original receiver's local physical history allocation. Origin remains AI; provenance/generator/source evidence do not become human.
+
+The existing owner terminal fences now derive history counts from the authenticated expected history, replacing the fixed two-row count. Every expected history row remains individually fenced. Group graph/stage/protocol/Source/pointer/private budget fences are unchanged. The previously exported coordinator patch remains required; this package does not change coordinator wiring.
+
+## Actual validation
+
+Node 22.23.3, Python 3.12.14, fake IndexedDB, local synthetic data only. Focused new cases: 3/3, TAP 621.905208 ms. After adding the real extra-history terminal negative, the two original owning files executed once: **64/64**, exit 0, no fail/cancel/skip/todo, TAP **3541.620917 ms**. Logs are saved-multi-history-first.log and saved-multi-history-owning.log under work/sync-local-completion.
+
+The real owner made five edits with distinct field sets. Its six-row original history exported A, activated cold B, reexported B and activated cold C with identical canonical semantics; C could then make a new ordinary protected edit. Eight invalid variants reject before any destination database read. A real coalesced owner history is explicitly rejected. A real additional history inserted after activation causes complete canonical/protocol/stage rollback. All prior saved-owner and group negatives, including private budget diagnostics-reset and final raw Source/control/protocol fences, remain in the 64-case owning run.
+
+No browser/native/cloud/account/model/build or performance claim. This package is not full saved/adopted support. Coalesced histories require their own qualified canonical recovery design; typed successors, adopted Current/Topic membership, multiple Sources, populated Thought merges and purge remain in the continuous implementation queue.

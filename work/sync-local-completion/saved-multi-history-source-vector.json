@@ -1,0 +1,22 @@
+{
+  "base": "2d499662",
+  "coordinator": "same uncommitted original patch as budget package",
+  "files": [
+    {
+      "path": "extension/core/browser-native-sync/saved-work-payload.js",
+      "sha256": "2698aa8e40bcb0a5f1065ec54ab41b1783e8386784b95e5688e2ab88289ca53e"
+    },
+    {
+      "path": "extension/core/browser-native-sync/saved-work-bootstrap.js",
+      "sha256": "050bf214cfa7dab0602a59798ab993659295e17dd49f5114654e1587f5a569fb"
+    },
+    {
+      "path": "extension/tests/browser-native-sync-saved-group.test.mjs",
+      "sha256": "69ffbe0f1ca81166a697323eec8a6903ddc32c5bc81663a5bb6561cb62dc518b"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint.js",
+      "sha256": "043a906495a5023a63a9365fb690110f082154de98cf44a085670b8ddc20d3e8"
+    }
+  ]
+}

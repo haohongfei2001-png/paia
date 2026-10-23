@@ -62,3 +62,36 @@ test('saved group private budget survives public metrics reset and rolls back ac
  await restore.stageCheckpoint(cut.ref,r=>transport.get(r));const before=await snapshot(b.s);
  await assert.rejects(restore.activate(),{code:'BNS_GROUP_RESOURCE_LIMIT'});assert.equal(entered,true);assert.ok(attempted>0&&attempted<=4097);assert.deepEqual(await snapshot(b.s),before);
 });
+
+
+async function multiFixture(t){
+ const a=await saved(t);
+ for(const [expectedRevision,changes]of [[1,{title:'SYNTHETIC title'}],[2,{body:'SYNTHETIC third revision body'}],[3,{note:'SYNTHETIC fourth revision note'}],[4,{title:'SYNTHETIC fifth revision title'}]])await a.s.editEntry({id:a.created.id,expectedRevision,operationId:crypto.randomUUID(),changes});
+ const payload=await captureSavedWorkBootstrap(a.s,a.core,a.created.id);assert.equal(payload.history.length,6);assert.equal(payload.entry.revision,5);
+ a.operation=await publishSavedWorkBootstrap(a.s,await prepareSavedWorkPublication(a.s,a.core,a.created.id));const transport=cloud(),cut=await buildCheckpoint(a.core,transport,{grouped:{store:a.s}});return {a,payload,transport,cut};
+}
+test('saved multi-history original owners preserve five real human edits through cold B and C',async t=>{
+ const {a,transport,cut}=await multiFixture(t),b=await make(t,'synthetic-B'),restore=new StagedSyncRestore(b.core,{grouped:{store:b.s}});await restore.stageCheckpoint(cut.ref,r=>transport.get(r));await restore.activate();assert.deepEqual(semantic(await snapshot(b.s)),semantic(await snapshot(a.s)));
+ const next=await buildCheckpoint(b.core,transport,{grouped:{store:b.s},parents:[cut.ref.id]}),c=await make(t,'synthetic-C'),last=new StagedSyncRestore(c.core,{grouped:{store:c.s}});await last.stageCheckpoint(next.ref,r=>transport.get(r));await last.activate();assert.deepEqual(semantic(await snapshot(c.s)),semantic(await snapshot(a.s)));
+ await c.s.editEntry({id:a.created.id,expectedRevision:5,operationId:crypto.randomUUID(),changes:{note:'SYNTHETIC real C continuation'}});assert.equal((await snapshot(c.s)).thoughts[0].revision,6);
+});
+test('saved complete history refuses gaps forged retained attribution and revision counters before destination reads',async t=>{
+ const {payload}=await multiFixture(t),b=await make(t,'synthetic-B');
+ for(const change of [p=>p.history.splice(2,1),p=>p.history[2].actor='ai',p=>p.history[2].after.title='SYNTHETIC forged history',p=>p.history[3].after.bodyAuthorship.at='2000-01-01T00:00:00.000Z',p=>p.entry.fieldRevisions.note++,p=>p.entry.authorship.title.operationId=p.history[2].operationId,p=>p.history[4].sequence=p.history[3].sequence,p=>p.history[4].operationId=p.history[2].operationId]){
+  const altered=structuredClone(payload);change(altered);const before={...b.s.repository.metrics};await assert.rejects(prepareSavedWorkBootstrap(b.s,b.core,altered));assert.deepEqual(b.s.repository.metrics,before);
+ }
+});
+test('saved original coalesced history remains explicit unsupported instead of inventing missing operations',async t=>{
+ const a=await saved(t);for(const [expectedRevision,note]of [[1,'SYNTHETIC note two'],[2,'SYNTHETIC note three']])await a.s.editEntry({id:a.created.id,expectedRevision,operationId:crypto.randomUUID(),changes:{note}});
+ const before=await snapshot(a.s);assert.equal(before.revisions.filter(r=>r.kind==='library_entry').length,3);assert.equal(before.thoughts[0].revision,3);await assert.rejects(captureSavedWorkBootstrap(a.s,a.core,a.created.id));assert.deepEqual(await snapshot(a.s),before);
+});
+
+test('saved multi-history final fence rejects extra history after activation without acknowledging partial recovery',async t=>{
+ const {a,transport,cut}=await multiFixture(t),b=await make(t,'synthetic-B');let injected=false;
+ const restore=new StagedSyncRestore(b.core,{grouped:{store:b.s},checkpoint:async(name,tx)=>{
+  if(name!=='after-activation')return;
+  const row=(await tx.rangePage('revisions','byList',IDBKeyRange.bound(['library_entry:'+a.created.id],['library_entry:'+a.created.id,[]]),null,64)).rows.at(-1).value;
+  await tx.put('revisions',{...row,id:'synthetic-extra-history',sequence:row.sequence+1,listKey:[row.entityKey,row.sequence+1],documentList:[row.documentId,row.sequence+1]});injected=true;
+ }});
+ await restore.stageCheckpoint(cut.ref,r=>transport.get(r));const before=await snapshot(b.s);await assert.rejects(restore.activate());assert.equal(injected,true);assert.deepEqual(await snapshot(b.s),before);
+});

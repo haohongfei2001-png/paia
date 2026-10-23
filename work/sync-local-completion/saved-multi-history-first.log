@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: saved multi-history original owners preserve five real human edits through cold B and C
+ok 1 - saved multi-history original owners preserve five real human edits through cold B and C
+  ---
+  duration_ms: 338.090916
+  type: 'test'
+  ...
+# Subtest: saved complete history refuses gaps forged retained attribution and revision counters before destination reads
+ok 2 - saved complete history refuses gaps forged retained attribution and revision counters before destination reads
+  ---
+  duration_ms: 98.386875
+  type: 'test'
+  ...
+# Subtest: saved original coalesced history remains explicit unsupported instead of inventing missing operations
+ok 3 - saved original coalesced history remains explicit unsupported instead of inventing missing operations
+  ---
+  duration_ms: 31.816084
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 621.905208
