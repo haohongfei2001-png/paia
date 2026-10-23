@@ -1,3 +1,4 @@
+import {prepareContextGroupApplication,applyContextGroupStep,prepareContextGenerationPublication,requireContextGenerationPublication,releaseContextGenerationPublication} from './context-mutation-group.js';
 import {requireResolvedPromptReplayConflict} from './resolved-prompt-replay.js';
 import {observeOriginalControlPublication,requireOriginalControlObservation} from '../indexed-store.js';
 import {buildSourcePurgeGroupedCheckpoint,SourcePurgeGroupedCheckpointRestore,hasSourcePurgeDispatchCut,requireSourcePurgeDispatchCut} from './source-purge-group.js';
@@ -106,14 +107,14 @@ export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGME
  if(currentSourceWorkingProjection)return buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents);
  if(store?.repository!==core.repository)fail('BNS_GROUP_BINDING');await store.finishFoundation();
  const cut=await store.run(()=>core.transaction(false,t=>authority(store,core,t))),plan=await prepareGroupCheckpointPlan(core,await allOperations(core)),scope=await prepareGroupScope(plan,{store});
- let dispatchProof=null;
- const verifyCut=async()=>{let originalScope,calls=0,observation;const check=async()=>{if(dispatchQualification)observation=(await observeOriginalControlPublication(store)).token;return core.transaction(false,async t=>{if(++calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScope=t;if(currentHumanProjection)await requireGroupCurrentProjection(store,core,t,scope,plan);else{if(!equal(await authority(store,core,t),cut))fail('BNS_SNAPSHOT_CHANGED');await requireCommittedPlan(core,t,plan);await requireGroupScope(store,t,scope);}});};
+ let dispatchProof=null,contextPublication=null;
+ const verifyCut=async()=>{let originalScope,calls=0,observation;const check=async()=>{if(dispatchQualification)observation=(await observeOriginalControlPublication(store)).token;return core.transaction(false,async t=>{if(++calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScope=t;if(currentHumanProjection)await requireGroupCurrentProjection(store,core,t,scope,plan);else{if(!equal(await authority(store,core,t),cut))fail('BNS_SNAPSHOT_CHANGED');await requireCommittedPlan(core,t,plan);await requireGroupScope(store,t,scope);await requireContextGenerationPublication(t,store,core,plan,contextPublication);}});};
   // The native certificate pins the settled Store tail. Direct readonly Core
   // inspection leaves that tail intact; a genuine Store operation invalidates
   // it. Never rebind the tail to accommodate an intervening queued operation.
   if(currentHumanProjection){await check();if(calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');await awaitRepositoryTransactionSettled(core.repository,originalScope);requireRepositoryCommittedIdentity(core.repository,originalScope);}else{const pending=store.run(check),tail=store.tail;await pending;if(dispatchQualification){if(store.tail!==tail)fail('BNS_SNAPSHOT_CHANGED');requireOriginalControlObservation(store,observation);dispatchProof={core,store,tail,observation};}}
  };
- let currentPrepared=false;try{if(currentHumanProjection){await prepareGroupCurrentProjection(store,core,scope,plan);currentPrepared=true;}
+ let currentPrepared=false;try{contextPublication=await prepareContextGenerationPublication(store,core,plan);if(currentHumanProjection){await prepareGroupCurrentProjection(store,core,scope,plan);currentPrepared=true;}
  await verifyCut();
  const checkpoint=currentHumanProjection?await encodeGroupCurrentProjection(core,scope,plan,transport,{profile,parents}):await buildCheckpoint(core,transport,{profile,parents});
  let manifest,ref;
@@ -127,7 +128,7 @@ export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGME
  // completed current checkpoint even though its immutable object may exist.
  await verifyCut();
  const result={ref,manifest,cut:currentHumanProjection?checkpoint.cut:cut};if(dispatchQualification){checkpointDispatchCuts.set(result,dispatchProof);requireGroupedCheckpointDispatchCut(core,store,result);}return result;
- }catch(error){if(currentHumanProjection&&error?.code==='BNS_HUMAN_CHANGED')fail('BNS_SNAPSHOT_CHANGED');throw error;}finally{if(currentPrepared)releaseGroupCurrentProjection(scope);}
+ }catch(error){if(currentHumanProjection&&error?.code==='BNS_HUMAN_CHANGED')fail('BNS_SNAPSHOT_CHANGED');throw error;}finally{releaseContextGenerationPublication(contextPublication);if(currentPrepared)releaseGroupCurrentProjection(scope);}
 }
 async function manifest(ref,get,core,profile,supported){
  if(ref?.kind!=='checkpoint-manifest')fail('BNS_CHECKPOINT_INVALID');
@@ -216,7 +217,9 @@ export class GroupedCheckpointRestore{
   const items=await stageItems(this.stage);if(!equal(items,verified.items)||!equal(state.manifest,verified.manifest))fail('BNS_RESTORE_STAGE_CHANGED');
   const replay=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.replayId}),compiled=await compile(replay,items,state.manifest,this.store);
   if(compiled.plan.digest!==verified.graphDigest)fail('BNS_RESTORE_STAGE_CHANGED');
-  canonicalGenerationPublications.set(this,{proof,verified,state,replay,...compiled});
+  const contextPublication=await prepareContextGenerationPublication(this.store,replay,compiled.plan);
+  releaseContextGenerationPublication(canonicalGenerationPublications.get(this)?.contextPublication);
+  canonicalGenerationPublications.set(this,{proof,verified,state,replay,...compiled,contextPublication});
   return {state:'publication-prepared',manifestId:state.manifestId,graphDigest:state.graphDigest};
  }
  async begin(ref,get,{supported}={}){
@@ -272,7 +275,7 @@ export class GroupedCheckpointRestore{
   if(localOperations.length)return plan.groups.some(g=>g.type==='savedWorkBootstrap')?this.mergeSaved(state,plan,localOperations):plan.groups.every(g=>['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(g.type))?this.mergeSourceWorking(state,plan,localOperations):plan.groups.some(g=>g.type==='sourceBootstrapCommit')&&plan.groups.some(g=>g.type==='humanLibraryCommit')?this.mergeMixed(state,plan,localOperations):this.mergeManual(state,plan,localOperations);
   const filter=new FilterIntentSyncJournal(replay),working=new InputWorkingCommitReceiver(this.store,replay,{filterJournal:filter}),manual=manualSyncOwners(replay),desired=contextDesiredMaterializer(replay),topicDesired=topicDesiredMaterializer(replay),consumerOperations=finalConsumerPreferenceOperations(plan),bindingMaterializer=preparePromptBindingReplay(replay,plan);
   const sourceProof=await prepareRestoredFilterSources(canonical.expected.records.map(row=>({...row})));
-  const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan),savedApplication=await prepareSavedWorkGroupApplication(this.store,replay,plan,this.stage,state,humanApplication);
+  const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan),savedApplication=await prepareSavedWorkGroupApplication(this.store,replay,plan,this.stage,state,humanApplication),contextApplication=await prepareContextGroupApplication(this.store,replay,plan,{live:this.live,generationProof});
   const applications=[];for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);else if(group.type==='sourceAppendCommit'){const anchor=plan.groups.find(x=>x.id===group.prepared.descriptor.value.bootstrap.revisionId);applications.push([group,await prepareAppendApplication(this.store,replay,group.operations,anchor.operations)]);}else if(group.type==='inputWorkingCommit')applications.push([group,await prepareWorkingApplication(working,group.operations)]);else if(group.type==='filterIntent')applications.push([group,await prepareFilterApplication(filter,group.operations[0])]);else applications.push([group,null]);}
   const consumerApplication=consumerOperations.length?await prepareRestoredConsumerPreferenceApplication(this.store,replay,plan,this.stage,state):null;
   const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(replay,[]));
@@ -288,7 +291,7 @@ export class GroupedCheckpointRestore{
    await requireGroupScope(this.store,t,empty);if(humanApplication)await requireHumanGroupApplication(t,humanApplication);
    for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
    if((await t.primaryRangePage('meta',{prefix:replay.prefix+'generation:'+replay.fixedNamespace+':',limit:1})).rows.length)fail('BNS_RESTORE_STAGE_CHANGED');
-   for(const [group,cap]of applications){if(['savedWorkBootstrap','savedWorkSuccessor'].includes(group.type))await applySavedWorkGroupStep(t,savedApplication,group.id);else if(group.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,group.id);else if(group.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(group.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(group.type==='inputWorkingCommit')await working.applyRestored(t,cap,sourceProof);else if(group.type==='filterIntent')await filter.applyRestored(t,cap,sourceProof);else{replay.materialize=group.type==='contextDesired'?desired:group.type==='topicDesired'?topicDesired:group.type==='promptBinding'?bindingMaterializer:manual.materialize;const result=await replay.applyInTransaction(t,group.operations[0],{materialize:group.type!=='consumerPreference'});if(result.state!=='applied')requireResolvedPromptReplayConflict(replay,plan,group,result);}await this.checkpoint('applied-group',group.id);}
+   for(const [group,cap]of applications){if(['savedWorkBootstrap','savedWorkSuccessor'].includes(group.type))await applySavedWorkGroupStep(t,savedApplication,group.id);else if(group.type==='contextMutationCommit')await applyContextGroupStep(t,contextApplication,group.id);else if(group.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,group.id);else if(group.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(group.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(group.type==='inputWorkingCommit')await working.applyRestored(t,cap,sourceProof);else if(group.type==='filterIntent')await filter.applyRestored(t,cap,sourceProof);else{replay.materialize=group.type==='contextDesired'?desired:group.type==='topicDesired'?topicDesired:group.type==='promptBinding'?bindingMaterializer:manual.materialize;const result=await replay.applyInTransaction(t,group.operations[0],{materialize:group.type!=='consumerPreference'});if(result.state!=='applied')requireResolvedPromptReplayConflict(replay,plan,group,result);}await this.checkpoint('applied-group',group.id);}
    const publication=consumerApplication?await applyRestoredConsumerPreferenceOwners(t,consumerApplication):null;
    await requireGroupScope(this.store,t,canonical);if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');await requireStorageBudget(t,this.stage,state.replayId);
    for(const expected of plan.heads){const actual=await replay.get(t,'head',expected.type,expected.entityId);if(!actual||!equal(withoutId(actual),expected))fail('BNS_CHECKPOINT_HEAD');}
@@ -484,6 +487,7 @@ export async function requireOriginalCanonicalGenerationActivation(restore,proof
  if(now.namespace!==state.replayId||now.fence.epoch!==state.base.fence.epoch||!equal(now.settings,state.base.settings))fail('BNS_RESTORE_LOCAL_CHANGED');
  await requireConsumerPublicationSettled(t);await store.qualifyControlPublicationRead(t);
  await requireCommittedPlan(replay,t,plan);await requireGroupScope(store,t,canonical);
+ await requireContextGenerationPublication(t,store,replay,plan,held.contextPublication);
  // A bounded physical closure includes extra/removed rows and protocol facts,
  // not merely the active pointer. The publication owner owns the sole gate
  // mutation; its own terminal fence pins the new sealed gate value.

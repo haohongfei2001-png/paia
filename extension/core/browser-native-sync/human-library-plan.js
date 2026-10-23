@@ -1400,6 +1400,7 @@ function mixedWireCanonicalFamilyPeak(r,plan,humanWire,surviving=0){
  for(const group of plan.groups){
   if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){const {entityType:type,entity}=member.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions',revision:'revisions',filterIntent:'filterIntents'}[type];if(name&&!(type==='timeEvidence'&&entity.value===null))maps[name].set(entity.id,entity);}
   else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members){humanFinal.set(member.value.entityType+'\0'+member.value.after.id,member.value.after);if(member.value.entityType==='history'){maps.revisions.set(member.value.after.id,member.value.after);humanHistory.add(member.value.after.id);}}
+  else if(group.type==='contextMutationCommit')for(const member of group.prepared.members)maps.context.set(member.entityId,member.value.item);
   else{const op=group.operations[0],name=group.type==='promptPreferences'?'prompt':group.type==='promptBinding'?'promptBinding':group.type==='consumerPreference'?'consumerPreferences':group.type==='topicDesired'?'topicDesired':group.type==='contextDesired'?'desired':group.type==='filterIntent'?'filterIntents':'context';maps[name].set(op.entityId,op.value);}
  }
  let peak=projectionCanonicalCharge(humanWire)+projectionCanonicalCharge(currentHumanOwner.measureOriginalMixedWireNames(plan))+16*1024,borrowedTrees=0,removedTrees=0,normalizationTrees=0;
@@ -1555,7 +1556,7 @@ export async function captureMixedCurrentGroupProjection(store,core){
 // operands. Full Scope/Plan/raw retained trees and old Human/row peaks remain.
 // No Prompt scratch credits, larger pool or retained refund fund this phase.
 function currentContextSnapshotScratch(scope,plan,raw,mixed=false){
- const kinds=['contextItem','contextRulesItem','contextNowItem','contextDesired'];
+ const kinds=['contextItem','contextRulesItem','contextNowItem','contextDesired','contextMutationCommit'];
  let selected=false,transitionPeak=0;
  for(const group of plan.groups)if(kinds.includes(group.type)){
   selected=true;
@@ -1646,6 +1647,7 @@ function mixedCurrentSemanticScratch(r){
  for(const group of r.group.plan.groups){
   if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){const {entityType:type,entity}=member.value;if(type==='inputState')add('inputStates',entity);else if(['baselineRevision','revision'].includes(type))add('revisions',entity);}
   else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members){if(member.value.entityType==='history'){add('revisions',member.value.before);add('revisions',member.value.after);}}
+  else if(group.type==='contextMutationCommit')for(const member of group.prepared.members)add('context_item',member.value.item);
   else if(['contextItem','contextRulesItem','contextNowItem'].includes(group.type))add('context_item',group.operations[0].value);
  }
  return 8*trees+4*peak+128*1024;
@@ -1702,7 +1704,7 @@ async function projectionCompileInitialMixedScope(r){
  // the independently owned COMPLETE Plan. Price every domain input, including
  // overwritten histories and both nested sides, without allocating a DTO.
  const addWire=(value,human=false)=>{const measured=projectionRowMeasure(r,value);if(wireCount++)wire.B++;for(const key of ['B','T','V','E'])wire[key]+=measured[key];wire.E++;if(human){if(humanCount++)humanWire.B++;for(const key of ['B','T','V','E'])humanWire[key]+=measured[key];humanWire.E++;}};
- for(const group of plan.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)addWire(member.value.after,true);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members)addWire(member.value.entity);else addWire(group.operations[0].value);}
+ for(const group of plan.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)addWire(member.value.after,true);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members)addWire(member.value.entity);else if(group.type==='contextMutationCommit')for(const member of group.prepared.members)addWire(member.value.item);else addWire(group.operations[0].value);}
  // Original wire Maps/generated library/expected/normalized/family digest
  // have returned before keyed Human construction starts. Reserve their peak,
  // not their complete finished scratch PLUS the later transformation frame.

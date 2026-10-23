@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+ok 1 - NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+  ---
+  duration_ms: 1316.149584
+  type: 'test'
+  ...
+# Subtest: last typed protocol write failure rolls back canonical Context, Source, receipt and replay activation
+ok 2 - last typed protocol write failure rolls back canonical Context, Source, receipt and replay activation
+  ---
+  duration_ms: 258.398
+  type: 'test'
+  ...
+# Subtest: a cold original grouped owner requires exact revalidation and restores the same command once
+ok 3 - a cold original grouped owner requires exact revalidation and restores the same command once
+  ---
+  duration_ms: 390.078125
+  type: 'test'
+  ...
+# Subtest: changed actual Context after publication qualification cannot activate its former sealed graph
+ok 4 - changed actual Context after publication qualification cannot activate its former sealed graph
+  ---
+  duration_ms: 339.263209
+  type: 'test'
+  ...
+# Subtest: original native current Mixed remains unavailable in the non-native fixture without publishing objects
+ok 5 - original native current Mixed remains unavailable in the non-native fixture without publishing objects
+  ---
+  duration_ms: 29.297125
+  type: 'test'
+  ...
+# Subtest: actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+ok 6 - actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+  ---
+  duration_ms: 31.359041
+  type: 'test'
+  ...
+# Subtest: original three-card history, desired proofs and exact scheduling metadata pass the unwired assertion only
+ok 7 - original three-card history, desired proofs and exact scheduling metadata pass the unwired assertion only
+  ---
+  duration_ms: 84.191291
+  type: 'test'
+  ...
+# Subtest: missing or altered genuine Context known and pending descriptors refuse without storage writes
+ok 8 - missing or altered genuine Context known and pending descriptors refuse without storage writes
+  ---
+  duration_ms: 183.876542
+  type: 'test'
+  ...
+# Subtest: desired owner proof head, value and epoch cannot be substituted
+ok 9 - desired owner proof head, value and epoch cannot be substituted
+  ---
+  duration_ms: 211.704666
+  type: 'test'
+  ...
+# Subtest: optional manual anchors must form an exact valid original operation and epoch pair
+ok 10 - optional manual anchors must form an exact valid original operation and epoch pair
+  ---
+  duration_ms: 82.278291
+  type: 'test'
+  ...
+# Subtest: nonrepresented physical text, nondefault desired and global effective access refuse
+ok 11 - nonrepresented physical text, nondefault desired and global effective access refuse
+  ---
+  duration_ms: 156.89925
+  type: 'test'
+  ...
+# Subtest: component transition checks reject altered full history without claiming authentication of DTOs
+ok 12 - component transition checks reject altered full history without claiming authentication of DTOs
+  ---
+  duration_ms: 119.847875
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2495.669916

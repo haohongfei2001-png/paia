@@ -1,0 +1,37 @@
+TAP version 13
+# Subtest: NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+ok 1 - NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+  ---
+  duration_ms: 1211.71825
+  type: 'test'
+  ...
+# Subtest: original current Mixed snapshot accounts the new typed Context proofs without a wider metadata allowlist
+not ok 2 - original current Mixed snapshot accounts the new typed Context proofs without a wider metadata allowlist
+  ---
+  duration_ms: 29.752334
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-shadow.test.mjs:23:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_RETENTION_REQUIRED'
+  code: 'BNS_HUMAN_RETENTION_REQUIRED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/value.js:5:32)
+    nativeRetentionAvailable (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/human-library-plan.js:878:114)
+    captureCurrentProjection (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/human-library-plan.js:1804:54)
+    captureMixedCurrentGroupProjection (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/human-library-plan.js:1552:54)
+    buildCurrentSourceWorkingCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:88:19)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:106:35)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-shadow.test.mjs:25:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1363.166417

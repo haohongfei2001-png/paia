@@ -1,0 +1,18 @@
+{
+  "extension/core/browser-native-sync/codecs.js": "0af83b72aa2a53db804ea85da64fb09db08679637da5bfff0fc1caa6ecf3c80b",
+  "extension/core/browser-native-sync/context-mutation-codec.js": "811cbd91993a147bce84302819e0157ce148ef3317c57dc5b23f9ec1f46066c9",
+  "extension/core/browser-native-sync/context-mutation-graph.js": "1bbe04e04c5fa051602993d717b0c2603d8414af0b30cd5903713bbeb8cf9250",
+  "extension/core/browser-native-sync/context-mutation-group.js": "30a921127d2688eb35a962a7f2db82d3f496da7a70c87e2f7831e94ff7507a58",
+  "extension/core/browser-native-sync/context-mutation-journal.js": "93860c9c63bba3615c381b730dd9717cbb4633203e97c2e1f815008b7bbe5a58",
+  "extension/core/browser-native-sync/core.js": "a6eb47b68fccb9186f132f13d629ac03f66902f08c19cc448bbd59892164dbea",
+  "extension/core/browser-native-sync/group-checkpoint-plan.js": "cdd541d86aa8093bc9fcb44f6a1aa6877b9b756345e26db332d653da3dd0b9b0",
+  "extension/core/browser-native-sync/group-checkpoint-scope.js": "3be59421943f89a8d00946c6b9ab26263cec5f21e3875fec73bf351bfb08ab86",
+  "extension/core/browser-native-sync/group-checkpoint.js": "7228ebd78afd29066f444b7b7bbe0ab548c46c01b6e2dc4ded45b9592d29ee52",
+  "extension/core/browser-native-sync/human-library-plan.js": "d6a4c580db62d246827bd8c41518324adb6b9923379475d630628139fd198779",
+  "extension/core/browser-native-sync/manual-context-current-snapshot.js": "8890ccacce10f90fd2f8e8dbe537cb3c7fdaf7a2fa7a929abb64e175d0dca672",
+  "extension/core/context-cards.js": "504e51eec682e1675f5ade18d9ec7e0bae21ee9e86e6595c5bb9ffd51d8a462a",
+  "extension/tests/context-mutation-description.test.mjs": "55d70dbaabeb1d257dc7efde6b6a6e734db000ec5b2ec4c7b17f5203bceac96a",
+  "extension/tests/context-mutation-journal.test.mjs": "69d6433c2847c5d7257f7f114d0b5d28d6412e8b9ac0aeb62b3a63e3cf337d2c",
+  "extension/tests/context-mutation-shadow.test.mjs": "b4e5bbddeb801f971b152b9e44f4c4730e2af88ebc2fc4278d6056c951c91037",
+  "extension/tests/harness/context-mutation-shadow.mjs": "2b7e4557be7c4e5675b9b5f731f9f38143c8243846249a04ec716dc539b832a7"
+}
