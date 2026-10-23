@@ -11,7 +11,7 @@
     "extension/tests/browser-native-sync-source-purge-group.test.mjs": "468fe1d84b94d383098f873e1bab5b3dd8af9d600fb8b61a4762c64f1d96d094"
   },
   "nativePreparationOnly": {
-    "extension/tests/native-sync/source-purge-group-fixture.mjs": "268ec840f970e1458bf77583db7de8c9cffcba0868e625431d30ed23e7ded99e",
+    "extension/tests/native-sync/source-purge-group-fixture.mjs": "e2f41e0555c9e6fb36f2e474750b2e48d23b65fb55fbfbe1f5100791c060d03c",
     "extension/tests/native-sync/source-purge-group-native.test.mjs": "5a66cf6b597ae7cfc90f27c913577b7134356c8176de5a7225cc86e0ea8cd068"
   }
 }
