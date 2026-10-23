@@ -1,0 +1,5 @@
+{
+  "extension/core/browser-native-sync/resolved-prompt-replay.js": "c898016441244e677ed6788c8f802687066f3aefa950869a9124882d8f9660bf",
+  "extension/core/browser-native-sync/group-checkpoint.js": "7d6d881711f938d78c3a795680e20470b7f792aa47471857f02d4a17d6e1d5b8",
+  "extension/tests/resolved-prompt-replay.test.mjs": "b05d1157f1b0f742f7c78aea42230504b12f39a3e72c4c1abed8c92280e361be"
+}
