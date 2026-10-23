@@ -1,0 +1,114 @@
+TAP version 13
+# Subtest: canonical saved AI bootstrap preserves origin, exact provenance and protected history; later local edit and removal survive replay
+not ok 1 - canonical saved AI bootstrap preserves origin, exact provenance and protected history; later local edit and removal survive replay
+  ---
+  duration_ms: 81.129333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:16:1'
+  failureType: 'testCodeFailure'
+  error: 'STALE_BASE'
+  code: 'STALE_BASE'
+  stack: |-
+    refuseTerminal (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:93:8)
+    synchronousTrue (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:103:37)
+    registerRepositoryFinalReadFence (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:133:2)
+    finishSavedWorkBootstrap (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:103:2)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:427:20)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:279:123
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:192:11
+  ...
+# Subtest: unprotected AI reading output is not promoted to saved canonical work
+ok 2 - unprotected AI reading output is not promoted to saved canonical work
+  ---
+  duration_ms: 29.535125
+  type: 'test'
+  ...
+# Subtest: saved bootstrap rejects forged author, provenance, history and protections without destination writes
+ok 3 - saved bootstrap rejects forged author, provenance, history and protections without destination writes
+  ---
+  duration_ms: 110.919625
+  type: 'test'
+  ...
+# Subtest: Source changed after saved preparation refuses writes and post-owner failure rolls every table back
+not ok 4 - Source changed after saved preparation refuses writes and post-owner failure rolls every table back
+  ---
+  duration_ms: 63.000459
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:26:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:28:170)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: saved bootstrap refuses populated conflicting target and arbitrary caller capability
+not ok 5 - saved bootstrap refuses populated conflicting target and arbitrary caller capability
+  ---
+  duration_ms: 49.926666
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:31:1'
+  failureType: 'testCodeFailure'
+  error: 'STALE_BASE'
+  code: 'STALE_BASE'
+  stack: |-
+    refuseTerminal (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:93:8)
+    synchronousTrue (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:103:37)
+    registerRepositoryFinalReadFence (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:133:2)
+    finishSavedWorkBootstrap (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:103:2)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:427:20)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:279:123
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:192:11
+  ...
+# Subtest: saved preparation binds original transaction, permission and unchanged destination
+ok 6 - saved preparation binds original transaction, permission and unchanged destination
+  ---
+  duration_ms: 77.118833
+  type: 'test'
+  ...
+# Subtest: saved payload limits and missing Source proof reject before mutation
+ok 7 - saved payload limits and missing Source proof reject before mutation
+  ---
+  duration_ms: 58.314875
+  type: 'test'
+  ...
+# Subtest: final original transaction fence rejects Source drift after saved owner returned
+not ok 8 - final original transaction fence rejects Source drift after saved owner returned
+  ---
+  duration_ms: 62.2935
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:39:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:39:568)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 4
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 692.226125

@@ -1,0 +1,21 @@
+# Saved-work original owner prerequisite
+
+Status: local original-owner prerequisite, not default Sync admission or complete SYNC01 C. No codec, transport, grouped checkpoint or service-worker activation is added by this change.
+
+The original Foundation owner can restore one Source-linked, unplaced, active, thought-bound AI Entry whose actual history contains its immutable AI baseline and one ordinary non-coalesced human edit. It preserves the AI origin and generator, both exact original history records, provenance/dependency identity, and every field authorship/protection. It recalculates device-local evidence tokens and exact-body signature using the original owner. No original request is reconstructed and no original operation receipt is fabricated or imported. A distinct canonical bootstrap receipt prevents replay from resurrecting subsequent local edits/removal.
+
+Source bootstrap must already be installed through its original owner. The payload is a bounded canonical value: complete historical structure is validated before the first database read; total retained payload, prepared authority/destination, terminal facts and derived rows are capped at 2 MiB. The finite two-history/one-source/one-pair profile and bounded destination history reads stay below 4096 reads. Preparation/apply/final read sweeps retain the 30-second deadline. No external await occurs inside the final transaction fence.
+
+The private capability is bound to the original LibraryDocumentsStore, Core, repository and authentic transaction wrapper. The original repository final read fence verifies Source projections and source-protocol heads/revisions, original control publication identity, gate/library/key, preparation-time restore/thought/filter/namespace facts, bootstrap receipt and owner marker, expected sequences/generation, exact imported Entry/history/pair and all negative-space counts. The original Foundation transaction remains responsible for navigation, semantic writes, generation, strict completion and rollback.
+
+## Validation
+
+Node 22.23.3, local fake IndexedDB, synthetic data, no browser or network. Final combined owning command ran `saved-work-bootstrap.test.mjs`, `human-source-entry-plan.test.mjs`, and `thought-m1.test.mjs`: 75/75, no fail/cancel/skip/todo, TAP 1889.96775 ms. The new file alone is 18/18.
+
+The real late-write negative control first demonstrated acceptance of Source drift after the owner returned (0/1 retained). The correction rejects nine changes injected after the original backup-data-generation finalizer write: Source, gate, restore epoch, thought epoch, filter policy, bootstrap receipt, active namespace, imported target and original control settings. Each case proves that injection occurred and every physical table rolled back. Oversized history (4097 entries), forged origin and forged history author fail with unchanged repository read/write/scan metrics.
+
+Other retained runs: first 4/5 (duplicate replay met the initial overly small history bound), corrected replay 5/5; first combined owning 60/64 (synthetic native-only qualification and incorrect fixture pause API), corrected scope 7/7; terminal negative 0/1; initial terminal implementation 4/8 (used a control publication view from before the original write's normal reissue), same-transaction control-view correction 8/8; finalizer suite 18/18; final owning 75/75. Raw logs remain under work/sync-local-completion/saved-work-bootstrap-*.log. No earlier failure is overwritten by later results.
+
+## Remaining continuous queue
+
+The next implementation must admit a typed immutable saved-work envelope, bind its original Source graph dependency, and integrate the original grouped checkpoint/restore/scope. Subsequent local edits must remain attributable to the preserved AI baseline without changing origin to user or manufacturing historical request receipts. This prerequisite supports one baseline plus one ordinary edit only; coalesced/long histories, adopted Current/Topic products, placements, removed bootstrap, multiple Sources/shared Input and permanent purge need their corresponding original owners and tests. No claim of arbitrary canonical coverage, real provider qualification, native performance, Linux capacity, or whole-product delivery is made.

@@ -1,0 +1,460 @@
+TAP version 13
+# Subtest: original source-linked creation plan consumes exact original provenance/dependency and edit owner
+ok 1 - original source-linked creation plan consumes exact original provenance/dependency and edit owner
+  ---
+  duration_ms: 60.349917
+  type: 'test'
+  ...
+# Subtest: source edit after preparation refuses original create without any additional writes
+ok 2 - source edit after preparation refuses original create without any additional writes
+  ---
+  duration_ms: 23.267375
+  type: 'test'
+  ...
+# Subtest: linked owner keeps creation, provenance, dependency and history in one rollback boundary
+ok 3 - linked owner keeps creation, provenance, dependency and history in one rollback boundary
+  ---
+  duration_ms: 23.446292
+  type: 'test'
+  ...
+# Subtest: stale Source is not admitted for linked edit
+ok 4 - stale Source is not admitted for linked edit
+  ---
+  duration_ms: 31.980917
+  type: 'test'
+  ...
+# Subtest: retained dependency mismatch refuses linked edit without writes
+ok 5 - retained dependency mismatch refuses linked edit without writes
+  ---
+  duration_ms: 27.976167
+  type: 'test'
+  ...
+# Subtest: portable Source edge rebinds local tokens after real bootstrap into independent B
+ok 6 - portable Source edge rebinds local tokens after real bootstrap into independent B
+  ---
+  duration_ms: 62.461458
+  type: 'test'
+  ...
+# Subtest: source-linked typed journal exports portable edge and receives create/edit through original B owner
+ok 7 - source-linked typed journal exports portable edge and receives create/edit through original B owner
+  ---
+  duration_ms: 95.124125
+  type: 'test'
+  ...
+# Subtest: single Source and source-linked create/edit restore as one original owner graph on cold B
+ok 8 - single Source and source-linked create/edit restore as one original owner graph on cold B
+  ---
+  duration_ms: 699.82925
+  type: 'test'
+  ...
+# Subtest: journal refuses Source-linked capture whose original Source protocol is absent
+ok 9 - journal refuses Source-linked capture whose original Source protocol is absent
+  ---
+  duration_ms: 16.362708
+  type: 'test'
+  ...
+# Subtest: linked removal and explicit restore preserve portable negative intent and protected history across cold B
+ok 10 - linked removal and explicit restore preserve portable negative intent and protected history across cold B
+  ---
+  duration_ms: 488.482041
+  type: 'test'
+  ...
+# Subtest: linked lifecycle original transaction rolls suppression and history back after owner execution
+ok 11 - linked lifecycle original transaction rolls suppression and history back after owner execution
+  ---
+  duration_ms: 30.899875
+  type: 'test'
+  ...
+# Subtest: canonical saved AI bootstrap preserves origin, exact provenance and protected history; later local edit and removal survive replay
+ok 12 - canonical saved AI bootstrap preserves origin, exact provenance and protected history; later local edit and removal survive replay
+  ---
+  duration_ms: 108.774792
+  type: 'test'
+  ...
+# Subtest: unprotected AI reading output is not promoted to saved canonical work
+ok 13 - unprotected AI reading output is not promoted to saved canonical work
+  ---
+  duration_ms: 37.240959
+  type: 'test'
+  ...
+# Subtest: saved bootstrap rejects forged author, provenance, history and protections without destination writes
+ok 14 - saved bootstrap rejects forged author, provenance, history and protections without destination writes
+  ---
+  duration_ms: 64.612584
+  type: 'test'
+  ...
+# Subtest: Source changed after saved preparation refuses writes and post-owner failure rolls every table back
+ok 15 - Source changed after saved preparation refuses writes and post-owner failure rolls every table back
+  ---
+  duration_ms: 68.301667
+  type: 'test'
+  ...
+# Subtest: saved bootstrap refuses populated conflicting target and arbitrary caller capability
+ok 16 - saved bootstrap refuses populated conflicting target and arbitrary caller capability
+  ---
+  duration_ms: 61.521125
+  type: 'test'
+  ...
+# Subtest: saved preparation binds original transaction, permission and unchanged destination
+ok 17 - saved preparation binds original transaction, permission and unchanged destination
+  ---
+  duration_ms: 82.867375
+  type: 'test'
+  ...
+# Subtest: saved payload limits and missing Source proof reject before mutation
+ok 18 - saved payload limits and missing Source proof reject before mutation
+  ---
+  duration_ms: 62.329583
+  type: 'test'
+  ...
+# Subtest: final original transaction fence rejects Source drift after saved owner returned
+ok 19 - final original transaction fence rejects Source drift after saved owner returned
+  ---
+  duration_ms: 58.113958
+  type: 'test'
+  ...
+# Subtest: saved bootstrap malformed history and fields perform no destination reads
+ok 20 - saved bootstrap malformed history and fields perform no destination reads
+  ---
+  duration_ms: 57.020417
+  type: 'test'
+  ...
+# Subtest: original finalizer late source aborts the complete saved bootstrap
+ok 21 - original finalizer late source aborts the complete saved bootstrap
+  ---
+  duration_ms: 58.580958
+  type: 'test'
+  ...
+# Subtest: original finalizer late gate aborts the complete saved bootstrap
+ok 22 - original finalizer late gate aborts the complete saved bootstrap
+  ---
+  duration_ms: 54.496458
+  type: 'test'
+  ...
+# Subtest: original finalizer late restore aborts the complete saved bootstrap
+ok 23 - original finalizer late restore aborts the complete saved bootstrap
+  ---
+  duration_ms: 55.1985
+  type: 'test'
+  ...
+# Subtest: original finalizer late thought epoch aborts the complete saved bootstrap
+ok 24 - original finalizer late thought epoch aborts the complete saved bootstrap
+  ---
+  duration_ms: 53.55925
+  type: 'test'
+  ...
+# Subtest: original finalizer late filter aborts the complete saved bootstrap
+ok 25 - original finalizer late filter aborts the complete saved bootstrap
+  ---
+  duration_ms: 55.113375
+  type: 'test'
+  ...
+# Subtest: original finalizer late receipt aborts the complete saved bootstrap
+ok 26 - original finalizer late receipt aborts the complete saved bootstrap
+  ---
+  duration_ms: 50.437208
+  type: 'test'
+  ...
+# Subtest: original finalizer late namespace aborts the complete saved bootstrap
+ok 27 - original finalizer late namespace aborts the complete saved bootstrap
+  ---
+  duration_ms: 49.300291
+  type: 'test'
+  ...
+# Subtest: original finalizer late target aborts the complete saved bootstrap
+ok 28 - original finalizer late target aborts the complete saved bootstrap
+  ---
+  duration_ms: 56.560583
+  type: 'test'
+  ...
+# Subtest: original finalizer late original settings aborts the complete saved bootstrap
+ok 29 - original finalizer late original settings aborts the complete saved bootstrap
+  ---
+  duration_ms: 54.705917
+  type: 'test'
+  ...
+# Subtest: M1 v3 migration preserves every Source/Input/import/filter field and all stores
+ok 30 - M1 v3 migration preserves every Source/Input/import/filter field and all stores
+  ---
+  duration_ms: 49.513375
+  type: 'test'
+  ...
+# Subtest: M1 v4 migration preserves every Source/Input/import/filter field and all stores
+ok 31 - M1 v4 migration preserves every Source/Input/import/filter field and all stores
+  ---
+  duration_ms: 28.844458
+  type: 'test'
+  ...
+# Subtest: M1 actual version provenance ignores note-only changes when only body was used
+ok 32 - M1 actual version provenance ignores note-only changes when only body was used
+  ---
+  duration_ms: 37.044458
+  type: 'test'
+  ...
+# Subtest: M1 inferred auto create and stale supplied evidence are rejected
+ok 33 - M1 inferred auto create and stale supplied evidence are rejected
+  ---
+  duration_ms: 22.741083
+  type: 'test'
+  ...
+# Subtest: M1 per-field human edit protection survives undo and blocks only matching AI fields
+ok 34 - M1 per-field human edit protection survives undo and blocks only matching AI fields
+  ---
+  duration_ms: 25.994916
+  type: 'test'
+  ...
+# Subtest: M1 suppression has no body and same evidence cannot resurrect deleted result
+ok 35 - M1 suppression has no body and same evidence cannot resurrect deleted result
+  ---
+  duration_ms: 19.7475
+  type: 'test'
+  ...
+# Subtest: M1 removing the last evidence invalidates AI content but preserves authored content
+ok 36 - M1 removing the last evidence invalidates AI content but preserves authored content
+  ---
+  duration_ms: 31.013834
+  type: 'test'
+  ...
+# Subtest: M1 nonempty legacy Thought quarantine preserves payload and old revisions without inventing formation
+ok 37 - M1 nonempty legacy Thought quarantine preserves payload and old revisions without inventing formation
+  ---
+  duration_ms: 24.445542
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after thoughts commit resumes idempotently
+ok 38 - M1 migration crash after thoughts commit resumes idempotently
+  ---
+  duration_ms: 18.825041
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after dependencies commit resumes idempotently
+ok 39 - M1 migration crash after dependencies commit resumes idempotently
+  ---
+  duration_ms: 20.204792
+  type: 'test'
+  ...
+# Subtest: M1 migration crash after verify commit resumes idempotently
+ok 40 - M1 migration crash after verify commit resumes idempotently
+  ---
+  duration_ms: 21.008958
+  type: 'test'
+  ...
+# Subtest: M1 actual note dependency becomes stale while conversation title alone does not
+ok 41 - M1 actual note dependency becomes stale while conversation title alone does not
+  ---
+  duration_ms: 20.985
+  type: 'test'
+  ...
+# Subtest: M1 context-only cannot form an Entry or bypass removed/filtered source gates
+ok 42 - M1 context-only cannot form an Entry or bypass removed/filtered source gates
+  ---
+  duration_ms: 30.442625
+  type: 'test'
+  ...
+# Subtest: M1 new non-context evidence only allows a future candidate, not resurrection
+ok 43 - M1 new non-context evidence only allows a future candidate, not resurrection
+  ---
+  duration_ms: 29.495292
+  type: 'test'
+  ...
+# Subtest: M1 two-tab CAS and operation receipts survive worker replacement
+ok 44 - M1 two-tab CAS and operation receipts survive worker replacement
+  ---
+  duration_ms: 24.637792
+  type: 'test'
+  ...
+# Subtest: M1 multi-source entry remains partial until its last effective evidence disappears
+ok 45 - M1 multi-source entry remains partial until its last effective evidence disappears
+  ---
+  duration_ms: 30.626834
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 purge fence immediately hides every historical payload before incremental cleanup
+ok 46 - CURRENT B-02 refusal + historical fixture: M1 purge fence immediately hides every historical payload before incremental cleanup
+  ---
+  duration_ms: 38.9975
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 purge cleans indexed payloads and referenced rewrites while preserving independent notes
+ok 47 - CURRENT B-02 refusal + historical fixture: M1 purge cleans indexed payloads and referenced rewrites while preserving independent notes
+  ---
+  duration_ms: 38.269167
+  type: 'test'
+  ...
+# Subtest: M1 Topic and persistent Section IDs survive rename, with shared Entry placement and human organization protection
+ok 48 - M1 Topic and persistent Section IDs survive rename, with shared Entry placement and human organization protection
+  ---
+  duration_ms: 28.442875
+  type: 'test'
+  ...
+# Subtest: M1 Library revision restore is a new protected CAS operation, not history rewriting
+ok 49 - M1 Library revision restore is a new protected CAS operation, not history rewriting
+  ---
+  duration_ms: 30.832125
+  type: 'test'
+  ...
+# Subtest: M1 Topic Section Placement revisions restore through current CAS and preserve human organization
+ok 50 - M1 Topic Section Placement revisions restore through current CAS and preserve human organization
+  ---
+  duration_ms: 31.292417
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 legacy source-dependent rewrites, unknown payloads and histories obey purge
+ok 51 - CURRENT B-02 refusal + historical fixture: M1 legacy source-dependent rewrites, unknown payloads and histories obey purge
+  ---
+  duration_ms: 39.031583
+  type: 'test'
+  ...
+# Subtest: M1 revision retention keeps every recent and newest 20 important; AI and user windows never coalesce
+ok 52 - M1 revision retention keeps every recent and newest 20 important; AI and user windows never coalesce
+  ---
+  duration_ms: 39.543875
+  type: 'test'
+  ...
+# Subtest: M1 forged evidence and command fields cannot modify Source/Input; empty working body has no Source fallback
+ok 53 - M1 forged evidence and command fields cannot modify Source/Input; empty working body has no Source fallback
+  ---
+  duration_ms: 19.59775
+  type: 'test'
+  ...
+# Subtest: M1 invalidation interruption cursor resumes and edit cost is independent of dependency fan-out
+ok 54 - M1 invalidation interruption cursor resumes and edit cost is independent of dependency fan-out
+  ---
+  duration_ms: 272.282167
+  type: 'test'
+  ...
+# Subtest: M1 transaction abort rolls back Entry provenance revision and receipt together
+ok 55 - M1 transaction abort rolls back Entry provenance revision and receipt together
+  ---
+  duration_ms: 13.462375
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 delayed validated output and invalidation batch cannot commit across edit or purge
+ok 56 - CURRENT B-02 refusal + historical fixture: M1 delayed validated output and invalidation batch cannot commit across edit or purge
+  ---
+  duration_ms: 41.119625
+  type: 'test'
+  ...
+# Subtest: M1 all supported fields protect independently and context-only additions cannot unlock suppression
+ok 57 - M1 all supported fields protect independently and context-only additions cannot unlock suppression
+  ---
+  duration_ms: 37.58525
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 source purge survives cleanup interruption and cannot recapture or restore deleted sources
+ok 58 - CURRENT B-02 refusal + historical fixture: M1 source purge survives cleanup interruption and cannot recapture or restore deleted sources
+  ---
+  duration_ms: 35.94975
+  type: 'test'
+  ...
+# Subtest: M1 quota-like abort after payload writes leaves no partial entry or receipt
+ok 59 - M1 quota-like abort after payload writes leaves no partial entry or receipt
+  ---
+  duration_ms: 13.788125
+  type: 'test'
+  ...
+# Subtest: M1 independent authored entries allow equal and empty bodies without invented AI provenance
+ok 60 - M1 independent authored entries allow equal and empty bodies without invented AI provenance
+  ---
+  duration_ms: 16.256625
+  type: 'test'
+  ...
+# Subtest: M1 redirect identity rejects loops and stale renamed IDs; rank exhaustion fails without reordering
+ok 61 - M1 redirect identity rejects loops and stale renamed IDs; rank exhaustion fails without reordering
+  ---
+  duration_ms: 14.922417
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 untraceable quarantine revision is fenced and erased with its unknown owner on source purge
+ok 62 - CURRENT B-02 refusal + historical fixture: M1 untraceable quarantine revision is fenced and erased with its unknown owner on source purge
+  ---
+  duration_ms: 30.848625
+  type: 'test'
+  ...
+# Subtest: M1 experimental storageSchema=2 is not trusted as a completed migration or source authority
+ok 63 - M1 experimental storageSchema=2 is not trusted as a completed migration or source authority
+  ---
+  duration_ms: 15.359666
+  type: 'test'
+  ...
+# Subtest: M1 Input capture and editing continue between migration batches and after a Library mapping failure
+ok 64 - M1 Input capture and editing continue between migration batches and after a Library mapping failure
+  ---
+  duration_ms: 123.704291
+  type: 'test'
+  ...
+# Subtest: CURRENT B-02 refusal + historical fixture: M1 unavailable used versions never masquerade as current Input; purge reports pending until cleanup finishes
+ok 65 - CURRENT B-02 refusal + historical fixture: M1 unavailable used versions never masquerade as current Input; purge reports pending until cleanup finishes
+  ---
+  duration_ms: 32.659875
+  type: 'test'
+  ...
+# Subtest: M1 every approved Type maps to exactly one Family; Unicode byte limit never truncates
+ok 66 - M1 every approved Type maps to exactly one Family; Unicode byte limit never truncates
+  ---
+  duration_ms: 39.398375
+  type: 'test'
+  ...
+# Subtest: M1 hot 200KiB revision growth keeps all young history and suppression beyond retention
+ok 67 - M1 hot 200KiB revision growth keeps all young history and suppression beyond retention
+  ---
+  duration_ms: 203.229333
+  type: 'test'
+  ...
+# Subtest: M1 selected-note-only change cannot unlock removed Thought suppression
+ok 68 - M1 selected-note-only change cannot unlock removed Thought suppression
+  ---
+  duration_ms: 20.744292
+  type: 'test'
+  ...
+# Subtest: M1 unrelated queued jobs cannot starve purge; staged payloads are removed
+ok 69 - M1 unrelated queued jobs cannot starve purge; staged payloads are removed
+  ---
+  duration_ms: 31.598875
+  type: 'test'
+  ...
+# Subtest: M1 mapping transaction failure rolls back partial Thought/category mapping, then resumes
+ok 70 - M1 mapping transaction failure rolls back partial Thought/category mapping, then resumes
+  ---
+  duration_ms: 15.9625
+  type: 'test'
+  ...
+# Subtest: M1 ten Topic placements do not duplicate Entry body or Entry history
+ok 71 - M1 ten Topic placements do not duplicate Entry body or Entry history
+  ---
+  duration_ms: 37.419958
+  type: 'test'
+  ...
+# Subtest: M1 empty evidence body cannot authorize automatic content and empty AI output is rejected
+ok 72 - M1 empty evidence body cannot authorize automatic content and empty AI output is rejected
+  ---
+  duration_ms: 12.490167
+  type: 'test'
+  ...
+# Subtest: M1 incomplete Library activation fences Library history while Input history remains available
+ok 73 - M1 incomplete Library activation fences Library history while Input history remains available
+  ---
+  duration_ms: 11.212083
+  type: 'test'
+  ...
+# Subtest: M1 rapid Input remove/restore cannot revive an old AI Entry before or after queue consumption
+ok 74 - M1 rapid Input remove/restore cannot revive an old AI Entry before or after queue consumption
+  ---
+  duration_ms: 25.63925
+  type: 'test'
+  ...
+# Subtest: M1 supporting/context removal histories are not cleared by restoration or worker replacement
+ok 75 - M1 supporting/context removal histories are not cleared by restoration or worker replacement
+  ---
+  duration_ms: 31.0675
+  type: 'test'
+  ...
+1..75
+# tests 75
+# suites 0
+# pass 75
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1889.96775

@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: canonical saved AI bootstrap preserves origin, exact provenance and protected history; later local edit and removal survive replay
+ok 1 - canonical saved AI bootstrap preserves origin, exact provenance and protected history; later local edit and removal survive replay
+  ---
+  duration_ms: 89.380583
+  type: 'test'
+  ...
+# Subtest: unprotected AI reading output is not promoted to saved canonical work
+ok 2 - unprotected AI reading output is not promoted to saved canonical work
+  ---
+  duration_ms: 28.118083
+  type: 'test'
+  ...
+# Subtest: saved bootstrap rejects forged author, provenance, history and protections without destination writes
+ok 3 - saved bootstrap rejects forged author, provenance, history and protections without destination writes
+  ---
+  duration_ms: 53.41375
+  type: 'test'
+  ...
+# Subtest: Source changed after saved preparation refuses writes and post-owner failure rolls every table back
+ok 4 - Source changed after saved preparation refuses writes and post-owner failure rolls every table back
+  ---
+  duration_ms: 56.195333
+  type: 'test'
+  ...
+# Subtest: saved bootstrap refuses populated conflicting target and arbitrary caller capability
+ok 5 - saved bootstrap refuses populated conflicting target and arbitrary caller capability
+  ---
+  duration_ms: 49.854917
+  type: 'test'
+  ...
+# Subtest: saved preparation binds original transaction, permission and unchanged destination
+ok 6 - saved preparation binds original transaction, permission and unchanged destination
+  ---
+  duration_ms: 79.529541
+  type: 'test'
+  ...
+# Subtest: saved payload limits and missing Source proof reject before mutation
+ok 7 - saved payload limits and missing Source proof reject before mutation
+  ---
+  duration_ms: 56.183416
+  type: 'test'
+  ...
+# Subtest: final original transaction fence rejects Source drift after saved owner returned
+ok 8 - final original transaction fence rejects Source drift after saved owner returned
+  ---
+  duration_ms: 47.508333
+  type: 'test'
+  ...
+# Subtest: saved bootstrap malformed history and fields perform no destination reads
+ok 9 - saved bootstrap malformed history and fields perform no destination reads
+  ---
+  duration_ms: 42.700125
+  type: 'test'
+  ...
+# Subtest: original finalizer late source aborts the complete saved bootstrap
+ok 10 - original finalizer late source aborts the complete saved bootstrap
+  ---
+  duration_ms: 49.835042
+  type: 'test'
+  ...
+# Subtest: original finalizer late gate aborts the complete saved bootstrap
+ok 11 - original finalizer late gate aborts the complete saved bootstrap
+  ---
+  duration_ms: 46.464
+  type: 'test'
+  ...
+# Subtest: original finalizer late restore aborts the complete saved bootstrap
+ok 12 - original finalizer late restore aborts the complete saved bootstrap
+  ---
+  duration_ms: 46.132833
+  type: 'test'
+  ...
+# Subtest: original finalizer late thought epoch aborts the complete saved bootstrap
+ok 13 - original finalizer late thought epoch aborts the complete saved bootstrap
+  ---
+  duration_ms: 45.910083
+  type: 'test'
+  ...
+# Subtest: original finalizer late filter aborts the complete saved bootstrap
+ok 14 - original finalizer late filter aborts the complete saved bootstrap
+  ---
+  duration_ms: 45.567625
+  type: 'test'
+  ...
+# Subtest: original finalizer late receipt aborts the complete saved bootstrap
+ok 15 - original finalizer late receipt aborts the complete saved bootstrap
+  ---
+  duration_ms: 44.99175
+  type: 'test'
+  ...
+# Subtest: original finalizer late namespace aborts the complete saved bootstrap
+ok 16 - original finalizer late namespace aborts the complete saved bootstrap
+  ---
+  duration_ms: 45.465375
+  type: 'test'
+  ...
+# Subtest: original finalizer late target aborts the complete saved bootstrap
+ok 17 - original finalizer late target aborts the complete saved bootstrap
+  ---
+  duration_ms: 43.8695
+  type: 'test'
+  ...
+# Subtest: original finalizer late original settings aborts the complete saved bootstrap
+ok 18 - original finalizer late original settings aborts the complete saved bootstrap
+  ---
+  duration_ms: 45.204167
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1050.117916

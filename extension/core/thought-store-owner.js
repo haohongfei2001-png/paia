@@ -1,4 +1,5 @@
 import {sourcePresent} from './thought-source-presence.js';
+import {requireSavedWorkBootstrap,finishSavedWorkBootstrap} from './browser-native-sync/saved-work-bootstrap.js';
 import {beginHumanOperation,finishHumanOperation,releaseHumanOperation,humanOperationError} from './browser-native-sync/human-library-plan.js';
 import {humanClock,humanUuid} from './browser-native-sync/human-library-allocation.js';
 import {assertMemoryPlacementChangeAllowed} from './memory/organization-guard.js';
@@ -81,6 +82,13 @@ class LibraryFoundationStore extends SmartFilterStore {
  run(fn) {return super.run(async()=>{if(!this.foundationLoaded&&!this.foundationFailure){try{const marker=await migrateThoughtLibrary(this,{maxBatches:1});this.foundationLoaded=marker.phase==='active';}catch{this.foundationFailure=true;}}return fn();});}
  async finishFoundation(){while(!this.foundationLoaded){await this.run(()=>Promise.resolve());if(this.foundationFailure)throw new ArchiveError('STORAGE_FAILED');if(!this.foundationLoaded)await new Promise(resolve=>setTimeout(resolve,0));}if(!this.bindingsLoaded){await migrateBindings(this);this.bindingsLoaded=true;}}
  async foundationWrite(fn){await this.finishFoundation();return IndexedArchiveStore.prototype.write.call(this,fn);}
+ async applySavedWorkBootstrapInTransaction(t,cap){
+  const p=await requireSavedWorkBootstrap(t,cap,this);if(p.duplicate)return {state:'duplicate',id:p.id};
+  await t.put('thoughts',p.entry);await t.put('provenance',p.provenance);await t.put('dependencies',p.dependency);
+  for(const row of p.history)await t.put('revisions',row);
+  await t.put('meta',{id:'thought-sequence',value:p.sequence});await t.put('meta',{id:'revision-sequence',value:p.revision});
+  return finishSavedWorkBootstrap(t,cap,this);
+ }
  thoughtLayout(layout){return thoughtLayout(this,layout);}
  reverseEditSetting(enabled){return reverseSetting(this,enabled);}
  async bindingMigrationStatus(t){const {version,complete,input,thought}=await t.get('meta',BINDING_ROW)||{};return {version,complete,input,thought};}
