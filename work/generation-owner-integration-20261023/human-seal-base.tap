@@ -1,0 +1,202 @@
+TAP version 13
+# Subtest: generation Human steps consume original actual receiver and cold-resume without publishing partial target
+ok 1 - generation Human steps consume original actual receiver and cold-resume without publishing partial target
+  ---
+  duration_ms: 287.181292
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: cursor
+ok 2 - generation Human rollback: cursor
+  ---
+  duration_ms: 104.394167
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: owner_receipt
+ok 3 - generation Human rollback: owner_receipt
+  ---
+  duration_ms: 95.346291
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: human_body
+ok 4 - generation Human rollback: human_body
+  ---
+  duration_ms: 107.265709
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: history
+ok 5 - generation Human rollback: history
+  ---
+  duration_ms: 111.442958
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: gate
+ok 6 - generation Human rollback: gate
+  ---
+  duration_ms: 96.436583
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: extra_member
+ok 7 - generation Human rollback: extra_member
+  ---
+  duration_ms: 97.150875
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: backup
+ok 8 - generation Human rollback: backup
+  ---
+  duration_ms: 102.124167
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: oversized
+ok 9 - generation Human rollback: oversized
+  ---
+  duration_ms: 99.17975
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: fault
+ok 10 - generation Human rollback: fault
+  ---
+  duration_ms: 92.745584
+  type: 'test'
+  ...
+# Subtest: generation Human lost committed response resumes next exact group
+ok 11 - generation Human lost committed response resumes next exact group
+  ---
+  duration_ms: 167.237542
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects version drift
+ok 12 - generation Human final receipt rejects version drift
+  ---
+  duration_ms: 182.882916
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects index drift
+ok 13 - generation Human final receipt rejects index drift
+  ---
+  duration_ms: 199.119708
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects manifestId drift
+ok 14 - generation Human final receipt rejects manifestId drift
+  ---
+  duration_ms: 188.880042
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects graphDigest drift
+ok 15 - generation Human final receipt rejects graphDigest drift
+  ---
+  duration_ms: 195.538167
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects generationIdentity drift
+ok 16 - generation Human final receipt rejects generationIdentity drift
+  ---
+  duration_ms: 196.669459
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects sourceBase drift
+ok 17 - generation Human final receipt rejects sourceBase drift
+  ---
+  duration_ms: 190.061708
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects domainOperationId drift
+ok 18 - generation Human final receipt rejects domainOperationId drift
+  ---
+  duration_ms: 183.303333
+  type: 'test'
+  ...
+# Subtest: generation Human rejects unknown protocol rows before resuming
+ok 19 - generation Human rejects unknown protocol rows before resuming
+  ---
+  duration_ms: 107.6325
+  type: 'test'
+  ...
+# Subtest: generation Human refuses forged checkpoint proof and paused original collection
+ok 20 - generation Human refuses forged checkpoint proof and paused original collection
+  ---
+  duration_ms: 77.764083
+  type: 'test'
+  ...
+# Subtest: generation Human fixed original activation requires completed prepared original restore
+ok 21 - generation Human fixed original activation requires completed prepared original restore
+  ---
+  duration_ms: 223.528708
+  type: 'test'
+  ...
+# Subtest: generation Human pinned Core device identity cannot change during continuation
+ok 22 - generation Human pinned Core device identity cannot change during continuation
+  ---
+  duration_ms: 71.469542
+  type: 'test'
+  ...
+# Subtest: fixed Human publication seals only the actual complete canonical target and recovers first registry
+ok 23 - fixed Human publication seals only the actual complete canonical target and recovers first registry
+  ---
+  duration_ms: 219.508167
+  type: 'test'
+  ...
+# Subtest: fixed Human publication refuses incomplete without canonical or gate writes
+ok 24 - fixed Human publication refuses incomplete without canonical or gate writes
+  ---
+  duration_ms: 74.450542
+  type: 'test'
+  ...
+# Subtest: fixed Human publication refuses unprepared without canonical or gate writes
+ok 25 - fixed Human publication refuses unprepared without canonical or gate writes
+  ---
+  duration_ms: 164.472208
+  type: 'test'
+  ...
+# Subtest: fixed Human publication refuses foreign restore without canonical or gate writes
+ok 26 - fixed Human publication refuses foreign restore without canonical or gate writes
+  ---
+  duration_ms: 197.17575
+  type: 'test'
+  ...
+# Subtest: fixed Human publication refuses wrong owner route without canonical or gate writes
+ok 27 - fixed Human publication refuses wrong owner route without canonical or gate writes
+  ---
+  duration_ms: 200.778625
+  type: 'test'
+  ...
+# Subtest: fixed Human publication rechecks original canonical facts after preparation
+ok 28 - fixed Human publication rechecks original canonical facts after preparation
+  ---
+  duration_ms: 198.574583
+  type: 'test'
+  ...
+# Subtest: fixed Human publication terminal fence rolls back late physical mutation and sealed gate together
+ok 29 - fixed Human publication terminal fence rolls back late physical mutation and sealed gate together
+  ---
+  duration_ms: 219.469167
+  type: 'test'
+  ...
+# Subtest: fixed Human publication refuses an authenticated existing-active base without migration owner
+ok 30 - fixed Human publication refuses an authenticated existing-active base without migration owner
+  ---
+  duration_ms: 203.648542
+  type: 'test'
+  ...
+# Subtest: fixed Human publication cannot refresh source base changed before seal
+ok 31 - fixed Human publication cannot refresh source base changed before seal
+  ---
+  duration_ms: 204.981417
+  type: 'test'
+  ...
+# Subtest: fixed Human publication cannot refresh source base changed before reserve
+ok 32 - fixed Human publication cannot refresh source base changed before reserve
+  ---
+  duration_ms: 236.834542
+  type: 'test'
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 32
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5233.251625

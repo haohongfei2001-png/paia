@@ -30,7 +30,7 @@ nodes=[n for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast
 env={'ROOT':root,'re':re,'urlsplit':urlsplit,'local_reference':lambda ref,*a:references.append(ref),'require':lambda ok,m:failures.append(m) if not ok else None}
 exec(compile(ast.Module(body=nodes,type_ignores=[]),'original-package-audit','exec'),env)
 path=root/'core/browser-native-sync/canonical-generation-publication.js'
-env['audit_js'](path,path.read_text());assert references==['./group-checkpoint.js','./canonical-generation-checkpoint-stage.js','../constants.js','./value.js','../idb-repository.js'],references
+env['audit_js'](path,path.read_text());assert references==['./canonical-generation-human-restore.js','./group-checkpoint.js','./canonical-generation-checkpoint-stage.js','../constants.js','./value.js','../idb-repository.js'],references
 references.clear();env['audit_js'](root/'core/example.js',"const fields=['from','to','import','next']; const double=[\"from\",\"to\"]; import './a.js'; import x from\"./b.js\"; export {x} from './c.js'; const y=import('./d.js');")
 assert references==['./a.js','./b.js','./c.js','./d.js'],references
 assert not failures,failures
