@@ -1,3 +1,9 @@
+> **23 October 2026 — Atelier V10 visual narrative.** The current homepage
+> presents the archive, Thought Library, reuse and daily value through finite
+> visual sequences. Approved Context/brand/privacy artwork is retained. See
+> [website/atelier/README.md](website/atelier/README.md) and the scoped V10 receipt.
+> The independent demo, interior routes and product runtime keep their owners.
+
 > **23 October 2026 — Atelier V9 homepage.** The owner requested the current
 > conversation design be published, with an independent hero background and a
 > less rigid Thought Library presentation. The paired home templates and their

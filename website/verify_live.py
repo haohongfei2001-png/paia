@@ -23,6 +23,7 @@ paths += ['assets/website/asset-lock.json'] + list(json.loads((ROOT/'assets/webs
 if ATELIER:
     paths += [p.relative_to(ROOT).as_posix() for p in (ROOT/'assets/website/atelier').glob('*') if p.is_file()]
     paths += ['assets/website/type/atelier-serif-sc.woff2','assets/website/type/atelier-serif-sc-OFL.txt']
+    if (ROOT/'assets/website/type/atelier-editorial-v10.woff2').exists():paths += ['assets/website/type/atelier-editorial-v10.woff2']
 paths = list(dict.fromkeys(paths))
 checks = []
 try:
