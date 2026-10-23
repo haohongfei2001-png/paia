@@ -9,7 +9,7 @@ import {digest,equal,exact,fail,integer,token} from './contracts.js';
 import {DIRTY_PREFIX,KNOWN_PREFIX} from './delta.js';
 import {registerRepositoryFinalReadFence} from '../idb-repository.js';
 import {captureTopicFormationTerminal,captureTopicFormationMembers,topicFormationMemberRange,topicFormationMemberProjection} from '../topic-formation-terminal.js';
-import {assertContextScopeWorkBudgetFacts,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
+import {assertContextScopeWorkBudgetFacts,CONTEXT_TOPIC_SCOPE_LIMITS,captureContextTopicMetadataTerminal,contextTopicMetadataTerminalProjection,contextTopicTerminalControl} from '../context-topic-scope.js';
 
 // An ephemeral capability minted only by the existing human Context change
 // owner. Neither a request field, arbitrary meta write nor a replayed receipt
@@ -143,7 +143,8 @@ export async function captureContextEditMaterial(store,m,{read,signal,workBudget
   const retain=value=>{current();if(workBudget){workBudget.hashBytes+=new TextEncoder().encode(JSON.stringify(value)).length;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes)fail('BUDGET_EXCEEDED');}return value;};
   const terminalFacts=await read(t=>captureTopicFormationTerminal(store,t,m.provenance.evidence.filter(e=>!e.kind),{retain,current}));
   if(snapshot.authored)retain(snapshot.authored);retain(snapshot.memberships.map(m=>m.sections));
-  const held={mapping:m,snapshot,lineage:lineage.captured,fields,fieldDigests,terminalFacts,workBudget};await read(t=>assertContextEditMaterial(store,t,held));return held;
+  const scopeTerminal=[];for(const topicId of [...new Set(m.provenance.evidence.map(e=>e.topicId))])scopeTerminal.push(await read(t=>captureContextTopicMetadataTerminal(store,t,topicId,{retain,current})));
+  const held={mapping:m,snapshot,lineage:lineage.captured,fields,fieldDigests,terminalFacts,scopeTerminal,workBudget};await read(t=>assertContextEditMaterial(store,t,held));return held;
  }catch(error){releaseContextLineage(lineage.captured);throw error;}
 }
 export async function assertContextEditMaterial(store,t,held){
@@ -155,20 +156,23 @@ export function releaseContextEditMaterial(held){releaseContextLineage(held?.lin
 // The ordinary async recheck runs before the repository's backup/semantic tail.
 // Seal the same selected evidence and human owner facts with native requests in
 // that original transaction. Never retain the full Context row or other Items.
-export function registerContextEditFinalFence(store,t,held,isCurrent){
+export async function registerContextEditFinalFence(store,t,held,isCurrent){
  const {snapshot:s,mapping:m,workBudget:budget}=held;
  const check=()=>{isCurrent();if(budget)assertContextScopeWorkBudgetFacts(budget,{database:store.repository.db});return true;};
  const charge=()=>{check();if(budget&&++budget.reads>CONTEXT_TOPIC_SCOPE_LIMITS.reads)fail('BUDGET_EXCEEDED');};
  const get=function*(table,key){charge();const row=yield {method:'get',table,key};check();if(budget&&row){const ids=budget.seen.get(table)||new Set();ids.add(row.id);budget.seen.set(table,ids);if(ids.size>CONTEXT_TOPIC_SCOPE_LIMITS.refs)fail('BUDGET_EXCEEDED');}return row;};
  const count=function*(table,index,key){charge();const value=yield {method:'count',table,...(index?{index}:{}),key};check();return value;};
  const same=(actual,expected)=>{if(!equal(actual,expected))fail('STALE_BASE');};
+ const root=[];for(const key of ['thought-sequence','thought-epoch','input-delta-sequence','revision-sequence','backup-data-generation']){charge();const value=(await t.get('meta',key))?.value??null;if(value!==null&&!integer(value))fail('STALE_BASE');root.push({key,value:key==='backup-data-generation'&&t.backupChanged?(value||0)+1:value});}
  registerRepositoryFinalReadFence(store.repository,t,{isCurrent:check,plan:function*(){
+  for(const fact of root)same((yield*get('meta',fact.key))?.value??null,fact.value);
   same((yield*get('meta','context-cards:v1'))?.items?.find(i=>i.id===m.itemId),s.item);
   same(yield*get('operationReceipts',m.proof.receiptId),s.receipt);
   if(s.removalReceipt)same(yield*get('operationReceipts',m.proof.removalReceiptId),s.removalReceipt);
   same((yield*get('meta','recovery-restore-epoch'))?.value??'initial',m.proof.epoch);
   same(yield*get('meta','smart-filter'),s.filter);
   for(const fact of held.terminalFacts)same(fact.project(yield*get(fact.table,fact.key),check),fact.expected);
+  for(const scope of held.scopeTerminal){same(contextTopicTerminalControl(store),scope.control);for(const fact of scope.facts)same(contextTopicMetadataTerminalProjection(fact.table,yield*get(fact.table,fact.key)),fact.expected);for(const q of scope.counts)same(yield*count(q.table,q.index,q.key),q.expected);}
   for(const source of s.sources)same(yield*get('recordIndex',source.index.id),source.index);
   for(const author of s.authored||[]){const mapping=m.authoredEntries.find(x=>x.entryId===author.entry.id),entry=yield*get('thoughts',author.entry.id);if(!entry)fail('STALE_BASE');same(authoredEntrySnapshot(entry,mapping),author.entry);
    const section=yield*get('sections',author.section.id);if(!section)fail('STALE_BASE');same(metadataWithout(section,['title']),author.section);same(yield*count('revisions','byList',prefix(['placement:'+mapping.placementId])),author.placementJournalCount);same(authoredJournalSnapshot(yield*get('revisions',author.placementJournal.id)),author.placementJournal);
