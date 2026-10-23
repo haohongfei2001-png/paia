@@ -195,3 +195,31 @@ test('Section grounded active Item retains original Input-only NO_CHANGE subset 
  const f=await fixture(),specs=await evidence(f),owner=new ContextMaintenanceService(f.s,{processingVerifier:f.service.context.processingVerifier}),caller={},base={epoch:specs[0].expectedTopicBinding.epoch,itemId:op(),card:'info',associationIds:[op()]};await owner.maintain(caller,{...base,operationId:op(),expectedRevision:0,body:'SYNTHETIC selected interpretation',section:'Synthetic',evidence:specs});
  const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),plain=structuredClone(specs);for(const e of plain)delete e.humanSection;const operationId=op(),result=await owner.noChange(caller,{...base,operationId,operation:'NO_CHANGE',expectedRevision:1,evidence:plain});f.session.dispose();assert.equal(result.disposition,'no_change');assert.equal(result.revision,1);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);assert.equal((await read(f.s,'operationReceipts','context-maintenance:'+operationId)).result.disposition,'no_change');
 });
+
+test('same-Topic Section move already uses exact original Placement Context route, leaving Topic pending',async()=>{
+ const f=await fixture();
+ try{
+  const target=await f.s.createSection({topicId:f.topic.id,expectedTopicRevision:(await f.s.topic(f.topic.id)).organizationRevision,title:'SYNTHETIC destination Section',operationId:op()}),entry=await read(f.s,'thoughts',f.entry.id),placement=await read(f.s,'placements',f.p.id),operationId=op();
+  await f.s.placeEntry({topicId:f.topic.id,sectionId:target.sectionId,entryId:entry.id,expectedEntryRevision:entry.revision,expectedTopicRevision:(await f.s.topic(f.topic.id)).organizationRevision,expectedPlacementRevision:placement.revision,operationId});
+  const journal=(await rows(f.s,'revisions')).find(j=>j.operationId===operationId&&j.kind==='placement');
+  assert.equal(journal.reason,'place');assert.equal(journal.before.sectionId,f.section.sectionId);assert.equal(journal.after.sectionId,target.sectionId);assert.deepEqual(journal.fieldMask,['membership','section','order']);
+  const tables=['thoughts','topics','sections','placements'],before=await Promise.all(tables.map(n=>rows(f.s,n)));
+  const result=await f.session.run(await f.session.prepare({...f.options,cursor:'aiu:delta:pending:["placement",',limit:1}));
+  assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,1);assert.equal(f.calls[0].material.structuralSections,undefined);assert.equal(f.calls[0].material.placements[0].sectionId,target.sectionId);
+  assert.deepEqual((await acks(f)).map(x=>[x.unit.key,x.unit.facet]),[[JSON.stringify(['placement',f.p.id]),'context']]);
+  assert.ok((await rows(f.s,'organizerWorkItems')).some(x=>x.state==='DEFERRED'&&x.unit.key===JSON.stringify(['placement',f.p.id])&&x.unit.facet==='topic'));
+  assert.deepEqual(await Promise.all(tables.map(n=>rows(f.s,n))),before);
+ }finally{f.session.dispose();}
+});
+
+test('actual original Section title restore remains a distinct unsupported semantic obligation',async()=>{
+ const f=await fixture();
+ try{
+  const original=(await rows(f.s,'revisions')).find(j=>j.kind==='section'&&j.reason==='rename'&&j.entityId===f.section.sectionId),operationId=op();
+  assert.ok(original);await f.s.restoreRevision({id:original.id,expectedRevision:original.afterRevision,operationId,side:'before'});
+  const current=await read(f.s,'sections',f.section.id),journal=(await rows(f.s,'revisions')).find(j=>j.operationId===operationId&&j.kind==='section'),receipt=await read(f.s,'operationReceipts',operationId);
+  assert.equal(current.title,original.before.title);assert.equal(journal.reason,'restore');assert.deepEqual(journal.fieldMask,['title']);assert.equal(journal.baseRevision,original.afterRevision);assert.equal(journal.afterRevision,current.revision);assert.equal(receipt.namespace,'thought-library');assert.deepEqual(receipt.result,{id:f.section.sectionId,revision:current.revision});
+  assert.equal(Object.hasOwn(journal,'restoreRevisionId'),false);assert.equal(await mapped(f),null);
+  const result=await f.session.run(await f.session.prepare(f.options));assert.equal(result.state,'DEFERRED',JSON.stringify(result));assert.equal(result.remainingWork,true);assert.equal(f.calls.length,0);assert.equal((await acks(f)).length,0);
+ }finally{f.session.dispose();}
+});
