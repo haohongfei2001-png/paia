@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: original literal put descriptor carries body once and reproduces original command digest
+ok 1 - original literal put descriptor carries body once and reproduces original command digest
+  ---
+  duration_ms: 35.223875
+  type: 'test'
+  ...
+# Subtest: original cross-card move and exact old receipt undo preserve order and literal body
+ok 2 - original cross-card move and exact old receipt undo preserve order and literal body
+  ---
+  duration_ms: 22.424792
+  type: 'test'
+  ...
+# Subtest: original adjacent reorder records exactly two owner changes and preserves full group
+ok 3 - original adjacent reorder records exactly two owner changes and preserves full group
+  ---
+  duration_ms: 26.803291
+  type: 'test'
+  ...
+# Subtest: missing sibling cannot validate a two-owner mutation
+ok 4 - missing sibling cannot validate a two-owner mutation
+  ---
+  duration_ms: 19.3165
+  type: 'test'
+  ...
+# Subtest: description rejects forged body
+ok 5 - description rejects forged body
+  ---
+  duration_ms: 17.846292
+  type: 'test'
+  ...
+# Subtest: description rejects forged result
+ok 6 - description rejects forged result
+  ---
+  duration_ms: 16.31625
+  type: 'test'
+  ...
+# Subtest: description rejects forged order
+ok 7 - description rejects forged order
+  ---
+  duration_ms: 15.046625
+  type: 'test'
+  ...
+# Subtest: description rejects forged cut
+ok 8 - description rejects forged cut
+  ---
+  duration_ms: 16.079708
+  type: 'test'
+  ...
+# Subtest: description rejects forged digest
+ok 9 - description rejects forged digest
+  ---
+  duration_ms: 20.389666
+  type: 'test'
+  ...
+# Subtest: description rejects forged extra-command-key
+ok 10 - description rejects forged extra-command-key
+  ---
+  duration_ms: 17.243625
+  type: 'test'
+  ...
+# Subtest: a move receipt cannot replace original undo receipt qualification
+ok 11 - a move receipt cannot replace original undo receipt qualification
+  ---
+  duration_ms: 18.240917
+  type: 'test'
+  ...
+# Subtest: no descriptor may carry a second literal command body
+ok 12 - no descriptor may carry a second literal command body
+  ---
+  duration_ms: 16.398125
+  type: 'test'
+  ...
+# Subtest: different untouched group member rejects a previously valid reorder proof
+ok 13 - different untouched group member rejects a previously valid reorder proof
+  ---
+  duration_ms: 19.394334
+  type: 'test'
+  ...
+# Subtest: actual original Context put commits canonical/outbox and real receiver materializes same literal body
+ok 14 - actual original Context put commits canonical/outbox and real receiver materializes same literal body
+  ---
+  duration_ms: 96.423125
+  type: 'test'
+  ...
+# Subtest: actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+ok 15 - actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+  ---
+  duration_ms: 155.437375
+  type: 'test'
+  ...
+# Subtest: a split group and direct generic remote operation cannot write any canonical or protocol row
+ok 16 - a split group and direct generic remote operation cannot write any canonical or protocol row
+  ---
+  duration_ms: 39.190542
+  type: 'test'
+  ...
+# Subtest: existing original manual per-card ancestor remains exact while next move crosses the old codec type
+ok 17 - existing original manual per-card ancestor remains exact while next move crosses the old codec type
+  ---
+  duration_ms: 46.938208
+  type: 'test'
+  ...
+# Subtest: explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+ok 18 - explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+  ---
+  duration_ms: 53.346792
+  type: 'test'
+  ...
+# Subtest: real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+ok 19 - real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+  ---
+  duration_ms: 112.9735
+  type: 'test'
+  ...
+# Subtest: cold repository reopen retains original move receipt and allows undo then edit
+ok 20 - cold repository reopen retains original move receipt and allows undo then edit
+  ---
+  duration_ms: 55.833041
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on receipt write failure
+ok 21 - original transaction rolls canonical and all protocol rows back on receipt write failure
+  ---
+  duration_ms: 37.717167
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on protocol write failure
+ok 22 - original transaction rolls canonical and all protocol rows back on protocol write failure
+  ---
+  duration_ms: 37.552791
+  type: 'test'
+  ...
+# Subtest: prepared original group cannot survive a late independent local Context edit
+ok 23 - prepared original group cannot survive a late independent local Context edit
+  ---
+  duration_ms: 45.200916
+  type: 'test'
+  ...
+# Subtest: cloned preparation and fabricated service cannot mint or consume the original owner capability
+ok 24 - cloned preparation and fabricated service cannot mint or consume the original owner capability
+  ---
+  duration_ms: 39.841416
+  type: 'test'
+  ...
+# Subtest: sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+ok 25 - sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+  ---
+  duration_ms: 44.610042
+  type: 'test'
+  ...
+# Subtest: late restore epoch write after canonical and protocol apply aborts the whole original transaction
+ok 26 - late restore epoch write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 40.061041
+  type: 'test'
+  ...
+# Subtest: late typed head write after canonical and protocol apply aborts the whole original transaction
+ok 27 - late typed head write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 38.514917
+  type: 'test'
+  ...
+# Subtest: automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+ok 28 - automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+  ---
+  duration_ms: 70.838875
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1062.96575

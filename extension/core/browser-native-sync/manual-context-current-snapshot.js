@@ -1,3 +1,4 @@
+import {contextMutationItemAtEpoch,assertContextMutationPhysicalShape} from './context-mutation-codec.js';
 import {CONTEXT_CARDS_ROW,validContextCards} from '../context-cards.js';
 import {assertManualContextCurrentPhysicalShape} from './manual-context-current-shape.js';
 import {assertContextManualOperationTransition} from './context-journal.js';
@@ -13,17 +14,18 @@ const types={contextItem:'info',contextRulesItem:'rules',contextNowItem:'now'};
 const desiredKeys=['info','rules','now','inputs'];
 const refused=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
 export function hasCurrentContextOperations(plan){
- return plan.groups.some(group=>Object.hasOwn(types,group.type)||group.type==='contextDesired');
+ return plan.groups.some(group=>Object.hasOwn(types,group.type)||group.type==='contextDesired'||group.type==='contextMutationCommit');
 }
 export function assertCurrentContextSnapshot(core,scope,plan,raw,rows){
  const physical=rows.get(CONTEXT_CARDS_ROW);if(!physical)refused();
- assertManualContextCurrentPhysicalShape(physical);if(!validContextCards(physical))refused();
+ const typed=plan.groups.some(group=>group.type==='contextMutationCommit');
+ if(typed)assertContextMutationPhysicalShape(physical);else assertManualContextCurrentPhysicalShape(physical);if(!validContextCards(physical))refused();
  if(!Array.isArray(scope.expected.context)||!Array.isArray(scope.expected.desired))refused();
  const operations=plan.groups.flatMap(group=>group.operations);
  const key=(kind,...parts)=>protocolPhysicalId(core.prefix,raw.namespace,kind,parts);
  const take=(id,expected)=>{const row=rows.get(id);if(!row||!equal(row,{...expected,id}))fail('BNS_GROUP_COMMIT_UNPROVEN');rows.delete(id);};
  const epoch=raw.points['recovery-restore-epoch']?.value??null;
- if(plan.groups.some(group=>group.type==='contextDesired')){
+ if(typed||plan.groups.some(group=>group.type==='contextDesired')){
   const markerId=key('ownerRecoveryEpoch'),marker=raw.groupMeta.find(row=>row.id===markerId);
   if(!marker||!equal(marker,{id:markerId,version:1,epoch}))fail('BNS_RESTORE_EPOCH_CHANGED');
  }
@@ -41,15 +43,31 @@ export function assertCurrentContextSnapshot(core,scope,plan,raw,rows){
    assertContextDesiredOperationTransition(op,parents);
   }
  }
- const itemHeads=plan.heads.filter(head=>Object.hasOwn(types,head.type));
+ const typedHeads=plan.heads.filter(head=>head.type==='contextMutationMember');
+ const oldHeads=plan.heads.filter(head=>Object.hasOwn(types,head.type));
+ for(const head of oldHeads.filter(head=>typedHeads.some(value=>value.entityId===head.entityId))){
+  const latest=typedHeads.find(value=>value.entityId===head.entityId);let operation=operations.find(op=>op.revisionId===latest.revisions[0]),matched=false;
+  for(let n=0;operation&&n<128;n++){const previous=operation.value.previous;if(previous?.type===head.type&&previous.entityId===head.entityId&&head.revisions.length===1&&previous.revisionId===head.revisions[0]){matched=true;break;}operation=previous?.type==='contextMutationMember'?operations.find(op=>op.revisionId===previous.revisionId):null;}
+  if(!matched)fail('BNS_CONTEXT_ANCESTRY_REQUIRED');
+  const proofId=key('materializedOwner',head.type,head.entityId),validationId=key('contextValidation',head.type,head.entityId),proof=rows.get(proofId),validation=rows.get(validationId);
+  if(proof||validation){const anchor=proof&&operations.find(op=>op.revisionId===proof.revisionId);if(!anchor||anchor.type!==head.type||anchor.entityId!==head.entityId)fail('BNS_OWNER_PROOF_INVALID');take(proofId,{version:1,revisionId:anchor.revisionId,ownerRevision:anchor.value.revision});take(validationId,{version:1,epoch,revisionId:anchor.revisionId});}
+ }
+ const itemHeads=[...oldHeads.filter(head=>!typedHeads.some(value=>value.entityId===head.entityId)),...typedHeads];
+ if(typed){
+  take(key('contextMutationState'),{version:1,sequence:physical.sequence});
+  for(const group of plan.groups.filter(group=>group.type==='contextMutationCommit')){const op=group.prepared.descriptor,d=op.value;if(d.command.kind==='bootstrap')continue;take(key('contextMutationCommand',d.domainOperationId),{version:1,revisionId:op.revisionId,receipt:{id:'context:'+d.domainOperationId,namespace:'context-cards',schemaVersion:1,ownerId:d.command.itemId,digest:d.requestDigest,epoch:d.command.epoch,result:d.result}});}
+ }
+
  if(itemHeads.length!==physical.items.length||scope.expected.context.length!==physical.items.length)refused();
  for(const head of itemHeads){
   if(head.purged||head.revisions.length!==1)fail('BNS_GROUP_COMMIT_UNPROVEN');
   const operation=operations.find(op=>op.revisionId===head.revisions[0]);
   const item=physical.items.find(value=>value.id===head.entityId),expected=scope.expected.context.find(value=>value.id===head.entityId);
-  if(!operation||!item||!expected||types[head.type]!==item.card||!equal(item,operation.value)||!equal(item,expected))refused();
+  const isTyped=head.type==='contextMutationMember',wire=operation&&(isTyped?operation.value.item:operation.value);
+  if(!operation||!item||!expected||(!isTyped&&types[head.type]!==item.card)||!equal(item,isTyped?contextMutationItemAtEpoch(wire,epoch??'initial'):wire)||!equal(item,isTyped?contextMutationItemAtEpoch(expected,epoch??'initial'):expected))refused();
   const proofId=key('materializedOwner',head.type,head.entityId),validationId=key('contextValidation',head.type,head.entityId),proof=rows.get(proofId),validation=rows.get(validationId);
-  if(proof||validation){
+  if(isTyped){take(proofId,{version:1,revisionId:operation.revisionId,ownerRevision:wire.revision});take(key('contextMutationEpoch',head.entityId),{version:1,epoch:epoch??'initial',revisionId:operation.revisionId});if(validation)refused();}
+  else if(proof||validation){
    const anchor=proof&&operations.find(op=>op.revisionId===proof.revisionId);
    if(!anchor||anchor.type!==head.type||anchor.entityId!==head.entityId)fail('BNS_OWNER_PROOF_INVALID');
    take(proofId,{version:1,revisionId:anchor.revisionId,ownerRevision:anchor.value.revision});

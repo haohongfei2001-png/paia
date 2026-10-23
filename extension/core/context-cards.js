@@ -1,3 +1,4 @@
+import {isOriginalContextMutationJournal} from './browser-native-sync/context-mutation-journal.js';
 import {KNOWN_PREFIX} from './ai-usage/delta.js';
 import {prepareContextProtectionCorrection,recordContextProtectionCorrection} from './ai-usage/context-correction.js';
 import {readBoundEntryContext,boundContextEvidenceMatches,boundSelectedText} from './context-bound-entry.js';
@@ -139,15 +140,15 @@ export class ContextCardsService {
   const c=structuredClone(validateContextChange(input)),digest=await hashText(JSON.stringify(c));
   // The existing journal proves only single-Item immutable-order chains.
   // Reject before preparing or writing; local ordering cannot weaken restore.
-  if(['reorder','move'].includes(c.kind)&&this.syncJournal)fail('FEATURE_UNAVAILABLE');
+  if(['reorder','move'].includes(c.kind)&&this.syncJournal&&!isOriginalContextMutationJournal(this.syncJournal,this))fail('FEATURE_UNAVAILABLE');
   let staged=null,correction=null;
   if(['put','delete','restore'].includes(c.kind)&&c.expectedRevision>0){const captured=await this.s.run(()=>this.s.repository.transaction(false,async t=>{await this.admitted(t,c.epoch);return {before:(await this.row(t)).items.find(x=>x.id===c.itemId),removalReceipt:c.kind==='restore'?await t.get('operationReceipts','context:'+c.deletedBy):null,removalWitness:c.kind==='restore'?(await t.get('meta',KNOWN_PREFIX+JSON.stringify(['context_item',c.itemId])))?.descriptor?.contextRemoval:null};}));correction=await prepareContextProtectionCorrection(captured.before,c,digest,captured.removalReceipt,captured.removalWitness);}
   if(this.syncJournal){
-   const captured=await this.s.run(()=>this.s.repository.transaction(false,async t=>{await this.admitted(t,c.epoch);return {row:await this.row(t),receipt:await t.get('operationReceipts','context:'+c.operationId)};}));
+   const captured=await this.s.run(()=>this.s.repository.transaction(false,async t=>{await this.admitted(t,c.epoch);return {row:await this.row(t),receipt:await t.get('operationReceipts','context:'+c.operationId),priorMove:c.kind==='move'&&c.undoOf?await t.get('operationReceipts','context:'+c.undoOf):null};}));
    if(captured.receipt){const r=captured.receipt;if(r.namespace!=='context-cards'||r.digest!==digest||r.epoch!==c.epoch)fail();return r.result;}
-   const before=JSON.stringify(captured.row),at=this.s.clock(),next=structuredClone(captured.row),result=applyContextChange(next,c,()=>at);
+   const before=JSON.stringify(captured.row),at=this.s.clock(),next=structuredClone(captured.row),result=applyContextChange(next,c,()=>at,captured.priorMove);
    if(!result.ok)return result;
-   staged={before,at,prepared:await this.syncJournal.prepare(captured.row,next,c)};
+   staged={before,at,prepared:await this.syncJournal.prepare(captured.row,next,c,{service:this,at,priorMove:captured.priorMove})};
   }
   return this.s.write(async t=>{
    await this.admitted(t,c.epoch);
