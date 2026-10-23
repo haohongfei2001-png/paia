@@ -111,3 +111,41 @@ body[data-home-mode=presentation]{--hp-accent:#4779b8}
  [data-home-mode=presentation] .pc-orb-button .paia-orb{display:block!important;background:Canvas;border:1px solid CanvasText;box-shadow:none}
  [data-home-mode=presentation] .hp-composer-phrase,[data-home-mode=presentation] .hp-input-text{color:CanvasText}
 }
+
+/* SIX_SCOPED_REFINEMENTS_20261023: keep the composition, cases and identity.
+   These source/permission labels carry meaning; they are not decoration. */
+[data-home-mode=presentation] :is(.pc-record-meta time,.pc-record-meta time>span,.pc-date,.pc-origin-chip,.ad-story-date,.ad-story-entry time,.ad-story-provenance,.ad-chapter-source,.ad-document-source,[data-card-count],[data-topic-count],.hp-composer-foot>span:first-child){font-size:.6875rem;line-height:1.7;color:#516783}
+[data-home-mode=presentation] .pc-context :is(.pc-master-permission,.pc-card-permission){font-size:.6875rem;line-height:1.65;color:#3e6089}
+[data-home-mode=presentation] :is(.ad-original-cue,.ad-ai-cue){font-size:.75rem;line-height:1.65;color:#37679f}
+/* Leave the body size and all typefaces intact. Grow the frame, not clipping. */
+@media(min-width:641px){
+ [data-home-mode=presentation].hp-ready:not(.hp-static) .ad-thought-scroll{--story-view:max(min(720px,calc(100svh - 130px)),calc(var(--hp-reading-required,0px) + 16px))}
+ [data-home-mode=presentation].hp-ready:not(.hp-static) .ad-thought-scenes{height:max(min(630px,calc(100svh - 150px)),var(--hp-reading-required,0px))}
+}
+[data-home-mode=presentation] .hp-demo-caption{font-size:.75rem;line-height:1.8;color:#516783;white-space:normal}
+[data-home-mode=presentation] .hp-demo-link{color:#315f98;font-size:inherit;text-decoration:underline;text-decoration-color:#91aacd;text-underline-offset:4px;white-space:normal}
+[data-home-mode=presentation] .hp-demo-link:hover{color:#1d467e;text-decoration-color:currentColor}
+[data-home-mode=presentation] .hp-demo-link:focus-visible{outline:2px solid #3467ba;outline-offset:5px;border-radius:2px}
+[data-home-mode=presentation] .pc-plan-note .hp-demo-route{display:block;margin-top:12px}
+[data-home-mode=presentation] .pc-plan-note .hp-demo-caption{display:inline;font-size:.75rem;letter-spacing:normal;text-transform:none;color:#516783}
+[data-home-mode=presentation] .hp-context-example{max-width:100%;white-space:normal}
+[data-home-mode=presentation] .hp-availability{display:block;font-size:.75rem;line-height:1.8;color:#516783;margin-top:6px}
+[data-home-mode=presentation] .pc-sync-note{color:#516783}
+[data-home-mode=presentation] .ad-library-editorial .hp-demo-caption{display:block;margin-top:12px}
+[data-home-mode=presentation] .pc-topics .pc-section-foot{justify-content:flex-end}
+/* Explain the existing illustration: panel → selection → insertion.
+   No extra pointer, text flight, live control or automatic send. */
+[data-home-mode=presentation] .ad-prompt-scroll .pc-prompt-row{transition:background-color .18s,box-shadow .18s}
+[data-home-mode=presentation] .ad-prompt-scroll:is([data-demo-step=selected],[data-demo-step=filled]) .pc-prompt-row:first-child,
+[data-home-mode=presentation]:not(.hp-ready) .pc-prompt-row:first-child{background:#e7effb;box-shadow:inset 2px 0 #5279b4;border-radius:6px}
+[data-home-mode=presentation] .ad-prompt-scroll[data-demo-step=selected] .pc-prompt-row:first-child .pc-prompt-pick,
+[data-home-mode=presentation] .ad-prompt-scroll[data-demo-step=filled] .pc-prompt-row:first-child .pc-prompt-pick{color:#2c527f}
+[data-home-mode=presentation].hp-ready .ad-prompt-scroll[data-phase=board]:not([data-demo-step=filled]) .hp-composer-phrase{opacity:0;transform:none;transition:none}
+[data-home-mode=presentation] .ad-prompt-scroll[data-demo-step=filled] .hp-composer-phrase{opacity:1;transform:none;transition:opacity .22s}
+@media(prefers-reduced-motion:reduce){[data-home-mode=presentation] .pc-prompt-row,[data-home-mode=presentation] .hp-composer-phrase{transition:none!important}}
+@media(forced-colors:active){
+ [data-home-mode=presentation] :is(.pc-record-meta time,.pc-record-meta time>span,.pc-date,.pc-origin-chip,.ad-story-date,.ad-story-entry time,.ad-story-provenance,.ad-chapter-source,.ad-document-source,[data-card-count],[data-topic-count],.hp-composer-foot>span:first-child,.ad-original-cue,.ad-ai-cue,.hp-demo-caption,.hp-availability){color:CanvasText}
+ [data-home-mode=presentation] .hp-demo-link{color:LinkText}
+ [data-home-mode=presentation] .ad-prompt-scroll:is([data-demo-step=selected],[data-demo-step=filled]) .pc-prompt-row:first-child{outline:2px solid Highlight;outline-offset:-2px;box-shadow:none}
+}
+/* END_SIX_SCOPED_REFINEMENTS_20261023 */
