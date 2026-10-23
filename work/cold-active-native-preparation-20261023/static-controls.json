@@ -1,0 +1,14 @@
+{
+  "originalCases": 22,
+  "adaptedCases": 22,
+  "exactWhitelistedCaseBodies": true,
+  "sameFactoryStableName": true,
+  "distinctFactoryNames": true,
+  "nativeRequestsForwarded": true,
+  "nativeInventoryFiltered": true,
+  "physicalNamesPassedThrough": true,
+  "missingInventoryControlRetained": true,
+  "foreignNamesRefused": true,
+  "boundaryRefusals": 3,
+  "nativeCasesExecuted": 0
+}

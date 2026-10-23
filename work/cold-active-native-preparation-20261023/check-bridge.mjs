@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+import {nativeColdActiveLibraryFixture} from '../../extension/tests/native-sync/cold-active-library-fixture.mjs';
+const source=readFileSync('extension/tests/canonical-generation-local-library.test.mjs','utf8'),helpers=readFileSync('extension/tests/harness/thought-m1.mjs','utf8'),generated=nativeColdActiveLibraryFixture(source,helpers);
+const plain=s=>s.replace(/^import[^;\n]+;/gm,'').replace(/^export /gm,'');
+const originals=[];runInNewContext(plain(source),{test:(name,fn)=>originals.push({name,body:fn.toString()}),IDBKeyRange:{},globalThis:{}});
+const opens=[],deletes=[],inventory=[],native={open(...args){opens.push(args);return {nativeRequest:true};},deleteDatabase(name){deletes.push(name);return {nativeDelete:true};},async databases(){return inventory;}};
+const ctx={globalThis:{__bnsNative:{run(){}}},indexedDB:native};
+const adapted=runInNewContext(plain(generated)+'\ncases.map(({name,fn})=>({name,body:fn.toString()}));',ctx);
+assert.equal(originals.length,22);assert.equal(adapted.length,22);
+const adapt=body=>body.replaceAll('new LibraryDocumentsStore(','nativeStore(').replaceAll('new ArchiveRepository(','nativeRepository(').replaceAll('new IDBFactory()','nativeFactory()').replace("assert.equal(cold.store.repository.name,'SYNTHETIC-local-selection-B');","assert.equal(cold.store.repository.name,nativeName(f.factory,'SYNTHETIC-local-selection-B'));");
+for(let i=0;i<22;i++){assert.equal(adapted[i].name,originals[i].name);assert.equal(adapted[i].body,adapt(originals[i].body));}
+const factory=runInNewContext('nativeFactory()',ctx),other=runInNewContext('nativeFactory()',ctx);ctx.a=factory;ctx.b=other;
+const aName=runInNewContext("nativeName(a,'SYNTHETIC-library')",ctx),aAgain=runInNewContext("nativeName(a,'SYNTHETIC-library')",ctx),bName=runInNewContext("nativeName(b,'SYNTHETIC-library')",ctx);assert.equal(aName,aAgain);assert.notEqual(aName,bName);
+assert.equal(factory.open('SYNTHETIC-library',5).nativeRequest,true);assert.equal(factory.open(aName).nativeRequest,true);assert.deepEqual(opens,[[aName,5],[aName]]);
+inventory.push({name:aName,version:5},{name:bName,version:5},{name:'real-unowned-profile',version:5});assert.deepEqual(await factory.databases(),[{name:aName,version:5}]);assert.deepEqual(await other.databases(),[{name:bName,version:5}]);
+assert.equal(factory.deleteDatabase('SYNTHETIC-library').nativeDelete,true);assert.deepEqual(deletes,[aName]);
+assert.equal(runInNewContext("nativeOptions({indexedDB:a,name:'SYNTHETIC-library'}).indexedDB===a",ctx),true);factory.databases=undefined;assert.equal(runInNewContext("nativeOptions({indexedDB:a,name:'SYNTHETIC-library'}).indexedDB.databases",ctx),undefined);
+assert.throws(()=>factory.open('real-unowned-profile'));assert.throws(()=>factory.deleteDatabase('real-unowned-profile'));
+const changes=[s=>s.replace("import test from 'node:test';",''),s=>s.replace('new IDBFactory()','someOtherFactory()'),s=>s.replace("assert.equal(cold.store.repository.name,'SYNTHETIC-local-selection-B');",'')];for(const change of changes)assert.throws(()=>nativeColdActiveLibraryFixture(change(source),helpers));
+writeFileSync('work/cold-active-native-preparation-20261023/generated-fixture.mjs',generated);
+writeFileSync('work/cold-active-native-preparation-20261023/static-controls.json',JSON.stringify({originalCases:22,adaptedCases:22,exactWhitelistedCaseBodies:true,sameFactoryStableName:true,distinctFactoryNames:true,nativeRequestsForwarded:true,nativeInventoryFiltered:true,physicalNamesPassedThrough:true,missingInventoryControlRetained:true,foreignNamesRefused:true,boundaryRefusals:3,nativeCasesExecuted:0},null,2)+'\n');
+console.log('22 exact whitelisted case bodies; fixed scoped factory mapping and refusal controls passed; 0 native cases executed');

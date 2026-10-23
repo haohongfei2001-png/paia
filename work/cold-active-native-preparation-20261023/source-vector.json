@@ -1,0 +1,6 @@
+{
+  "extension/tests/native-sync/cold-active-library-fixture.mjs": "01dcd49aa99d3b29691e9b7d2cafe22f55813baeffe260260be82c152051fc67",
+  "extension/tests/native-sync/cold-active-library-native.test.mjs": "34789dc75edc56ef8bd655104857c78b06c87e821645fed243a5d460c5bcf01a",
+  "extension/tests/canonical-generation-local-library.test.mjs": "1a241c88d0f666d0699a9221fc98d45a28b57368b504130826bc1dd5f57667d6",
+  "extension/tests/harness/thought-m1.mjs": "b94c97d11f3058195f3318bb7235875373c7e2e30fa181abbc34b3747b21a6a5"
+}
