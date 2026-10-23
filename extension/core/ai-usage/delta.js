@@ -94,10 +94,11 @@ export async function flushSemanticWrites(t){
    if(after.topicId&&t.tx.objectStoreNames.contains('topics')){topicPresent=true;topic=await t.get('topics',after.topicId);}
   }
   if(!semanticDeltaLiveEligible(after,{ownerPresent,live,topicPresent,topic}))continue;
-  const known=await t.get('meta',KNOWN_PREFIX+key);
+  // These different keys are independent reads in this same transaction.
+  // Join both before planning; keep writes and subsequent entities sequential.
+  const [known,previous]=await Promise.all([t.get('meta',KNOWN_PREFIX+key),t.get('meta',DIRTY_PREFIX+key)]);
   // Journal replay cannot replace the newest known human revision. Transport
   // delivery order is not semantic novelty, and history deletion is not intent.
-  const previous=await t.get('meta',DIRTY_PREFIX+key);
   const planned=planSemanticDeltaWrite(before,after,known,previous,sequence);if(!planned)continue;
   changed=true;human||=after.human;const {row,dirty}=planned;sequence=row.sequence;
   await t.put('meta',row);changedEvidence.set(key,row);
