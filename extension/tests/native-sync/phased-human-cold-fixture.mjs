@@ -1,6 +1,6 @@
 // Prepared only: exact original cold and semantic cases, with no browser execution.
 export function nativePhasedHumanColdFixture(source,helpers,command){
- if(command!=='phased-human-cold-matrix')throw Error('NATIVE_OWNER_COMMAND');
+ if(!['phased-human-cold-matrix','phased-copy-retirement-matrix'].includes(command))throw Error('NATIVE_OWNER_COMMAND');
  const replace=(before,after)=>{if(source.split(before).length!==2)throw Error('NATIVE_OWNER_BOUNDARY_CHANGED: '+before);source=source.replace(before,after);};
  replace("import test from 'node:test';",'');replace("import assert from 'node:assert/strict';",'');
  replace("import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';",'');
@@ -12,7 +12,8 @@ export function nativePhasedHumanColdFixture(source,helpers,command){
  // Construct the real original owners and preserve all supplied options. Each
  // factory-isolated synthetic DB becomes a uniquely named native IDB database.
  const storeCount=source.split('new '+storeClass+'(').length-1,repositoryCount=(source.match(/new ArchiveRepository\(/g)||[]).length;
- if(storeCount!==5||repositoryCount!==5||source.split('new IDBFactory()').length!==2)throw Error('NATIVE_OWNER_CONSTRUCTORS_CHANGED');
+ const expected=command==='phased-human-cold-matrix'?[5,5,2]:[4,2,3];
+ if(storeCount!==expected[0]||repositoryCount!==expected[1]||source.split('new IDBFactory()').length!==expected[2])throw Error('NATIVE_OWNER_CONSTRUCTORS_CHANGED');
  source=source.replaceAll('new '+storeClass+'(','nativeStore(').replaceAll('new ArchiveRepository(','nativeRepository(').replaceAll('new IDBFactory()','nativeFactory()');
  const helperLines=["import {IDBFactory,IDBKeyRange} from '../vendor/fake-indexeddb/build/esm/index.js';","import {LibraryFoundationStore} from '../../core/thought-store.js';",'globalThis.IDBKeyRange=IDBKeyRange;'];
  for(const line of helperLines){if(helpers.split(line).length!==2)throw Error('NATIVE_HELPER_BOUNDARY_CHANGED');helpers=helpers.replace(line,'');}
@@ -35,7 +36,7 @@ const previous=globalThis.__bnsNative;
 globalThis.__bnsNative={...previous,async run(command,...args){
  if(command!==${JSON.stringify(command)})return previous.run(command,...args);
  const passed=[];
- const selected=cases.filter(item=>/^(explicit cold rehydration|cold original expectation|cold completed readiness|cold readonly readiness|cold publication crash|fixed phased seal rejects real late semantic-)/.test(item.name));if(selected.length!==18)throw Error('native selected count');
+ const selected=${command==='phased-copy-retirement-matrix'?'cases':"cases.filter(item=>/^(explicit cold rehydration|cold original expectation|cold completed readiness|cold readonly readiness|cold publication crash|fixed phased seal rejects real late semantic-)/.test(item.name))"};if(selected.length!==${command==='phased-copy-retirement-matrix'?13:18})throw Error('native selected count');
  for(const item of selected){const after=[];let failure;
   try{await item.fn({after(fn){if(typeof fn!=='function')throw Error('native after');after.push(fn);}});passed.push(item.name);}
   catch(error){failure=Error(item.name+': '+error.stack);}
