@@ -1,5 +1,5 @@
 import {readControlPublicationFence,CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION} from '../local-control-publication.js';
-import {validateFrozenOperation} from './core.js';
+import {validateFrozenOperation,acceptSequence} from './core.js';
 import {requireOriginalLibraryDocumentsStore} from '../library-documents-owner.js';
 import {deriveSavedWorkBootstrap as derive,portableSavedEntry as portableEntry,boundedSavedPayload as bounded,validateSavedWorkPayload} from './saved-work-payload.js';
 import {prefix} from '../thought-model.js';
@@ -123,14 +123,25 @@ export async function commitSavedWorkProtocol(t,core,cap,operation){
  const p=plans.get(cap);if(!p||p.core!==core||p.transaction!==t||operation.type!=='savedWorkBootstrap'||operation.datasetId!==core.datasetId||!equal(operation.value,{id:p.payload.entry.id,version:1,payload:p.payload}))fail('BNS_SAVED_WORK_CAPABILITY');
  if(bytes({operation,payload:p.payload,before:p.before,expected:p.expected??null,facts:p.facts?.map(f=>f.expected)??null}).length>limit)fail('BNS_SAVED_WORK_LIMIT');
  const receipt=await core.get(t,'savedWorkBootstrap',p.payload.entry.id);if(receipt?.digest!==p.wireDigest)fail('BNS_SAVED_WORK_CHANGED');
+ const intent=await savedProtocolIntent(t,core,operation,false);
  protocolApplications.set(t,{core,operation,origin:'remote'});
- try{const result=await core.applyInTransaction(t,operation,{origin:'remote',materialize:false});if(!['applied','duplicate'].includes(result.state))fail('BNS_SAVED_WORK_OPERATION');await sealSavedProtocol(t,core,operation,p.start);return result;}finally{protocolApplications.delete(t);}
+ try{const result=await core.applyInTransaction(t,operation,{origin:'remote',materialize:false});if(!['applied','duplicate'].includes(result.state))fail('BNS_SAVED_WORK_OPERATION');await sealSavedProtocol(t,core,intent,p.start);return result;}finally{protocolApplications.delete(t);}
 }
-async function sealSavedProtocol(t,core,operation,start,local=false){
- const rows=await Promise.all([core.get(t,'head',operation.type,operation.entityId),core.get(t,'revision',operation.revisionId),core.get(t,'receipt',operation.operationId)]);
- if(rows[0]?.purged||!equal(rows[0]?.revisions,[operation.revisionId])||rows[1]?.redacted||!equal(rows[1]?.operation,operation)||rows[2]?.digest!==operation.revisionId)fail('BNS_SAVED_WORK_OPERATION');
- if(local){const outbox=await core.get(t,'outbox',operation.operationId),device=await core.get(t,'device',core.deviceId);if(!outbox||!equal(outbox,{id:outbox.id,operationId:operation.operationId,revisionId:operation.revisionId,state:'queued'})||!device||!equal(device,{id:device.id,sequence:operation.sequence}))fail('BNS_SAVED_WORK_OPERATION');rows.push(outbox,device);}
- const current=()=>{if(Date.now()-start>30000)fail('BNS_SAVED_WORK_LIMIT');return true;};registerRepositoryFinalReadFence(core.repository,t,{isCurrent:current,plan:function*(){for(const row of rows)if(!equal(yield {method:'get',table:'meta',key:row.id},row))fail('BNS_SAVED_WORK_CHANGED');return true;}});
+async function savedProtocolIntent(t,core,operation,local){
+ const {type,entityId,revisionId,operationId,deviceId,sequence}=operation,receipt=await core.get(t,'receipt',operationId),frontier=await core.get(t,'frontier',deviceId),generation=await core.get(t,'generation'),device=deviceId===core.deviceId?await core.get(t,'device',deviceId):null;
+ const current=frontier?{frontier:frontier.frontier,ranges:frontier.ranges}:null,next=acceptSequence(current,sequence);
+ const values=[['head',[type,entityId],{type,entityId,revisions:[revisionId],purged:false,fence:null}],['revision',[revisionId],{operation,redacted:false}],['receipt',[operationId],{digest:revisionId,deviceId,sequence}],['sequence',[deviceId,String(sequence).padStart(16,'0')],{operationId,digest:revisionId}],['entityRevision',[type,entityId,revisionId],{revisionId}],['frontier',[deviceId],{...next,deviceId}],['generation',[],{value:(generation?.value||0)+(receipt?0:1)}]];
+ if(receipt){if(!equal(receipt,{id:receipt.id,digest:revisionId,deviceId,sequence})||!equal(current,next))fail('BNS_SAVED_WORK_OPERATION');}
+ else if(await core.get(t,'head',type,entityId)||await core.get(t,'revision',revisionId)||await core.get(t,'sequence',deviceId,String(sequence).padStart(16,'0'))||await core.get(t,'entityRevision',type,entityId,revisionId))fail('BNS_SAVED_WORK_OPERATION');
+ if(deviceId===core.deviceId)values.push(['device',[deviceId],{sequence:Math.max(device?.sequence||0,sequence)}]);
+ if(local)values.push(['outbox',[operationId],{operationId,revisionId,state:'queued'}]);
+ const points=[];for(const [kind,ids,value]of values){const id=await core.idIn(t,kind,...ids);points.push([id,{...value,id}]);}
+ for(const [kind,ids]of [['pending',[operationId]],['entityPending',[type,entityId,operationId]],['quarantine',[operationId]]]){const id=await core.idIn(t,kind,...ids);if(await t.get('meta',id))fail('BNS_SAVED_WORK_OPERATION');points.push([id,null]);}
+ return points;
+}
+async function sealSavedProtocol(t,core,points,start){
+ for(const [key,row]of points)if(!equal((await t.get('meta',key))??null,row))fail('BNS_SAVED_WORK_OPERATION');
+ const current=()=>{if(Date.now()-start>30000)fail('BNS_SAVED_WORK_LIMIT');return true;};registerRepositoryFinalReadFence(core.repository,t,{isCurrent:current,plan:function*(){for(const [key,row]of points)if(!equal((yield {method:'get',table:'meta',key})??null,row))fail('BNS_SAVED_WORK_CHANGED');return true;}});
 }
 export async function prepareSavedWorkPublication(store,core,id){
  binding(store,core);const start=Date.now(),payload=await captureSavedWorkBootstrap(store,core,id),before=await core.transaction(false,async t=>({authority:await authority(store,core,t),rows:await ownedRows(t,id),source:await sourceProof(core,t,payload.link)}));
@@ -145,10 +156,10 @@ export async function publishSavedWorkBootstrap(store,cap){
  return store.foundationWrite(async t=>{
   const now=await authority(store,core,t);if(Date.now()-p.start>30000||!equal(before,{authority:now,rows:await ownedRows(t,id),source:await sourceProof(core,t,p.payload.link)}))fail('BNS_SAVED_WORK_CHANGED');await checkEvidenceInTransaction(store,t,p.evidence);
   for(const fact of p.facts)if(!equal(fact.project(await t.get(fact.table,fact.key),()=>{}),fact.expected))fail('BNS_SAVED_WORK_CHANGED');
-  const operation=prepared.operations[0];protocolApplications.set(t,{core,operation,origin:'local'});try{await core.commitPrepared(t,prepared,{materialize:false});}finally{protocolApplications.delete(t);}
+  const operation=prepared.operations[0],intent=await savedProtocolIntent(t,core,operation,true);protocolApplications.set(t,{core,operation,origin:'local'});try{await core.commitPrepared(t,prepared,{materialize:false});}finally{protocolApplications.delete(t);}
   const points=[...before.source.rows.map(row=>['meta',row.id,row]),...before.authority.roots.map(([id,row])=>['meta',id,row]),['meta','thought-sequence',before.authority.sequence],['meta','revision-sequence',before.authority.revision],['meta','backup-data-generation',{id:'backup-data-generation',value:before.authority.generation}],['thoughts',id,p.expected.entry],['provenance',p.expected.provenance.id,p.expected.provenance],['dependencies',p.expected.dependency.id,p.expected.dependency],...p.expected.history.map(row=>['revisions',row.id,row])];
   const current=()=>{if(Date.now()-p.start>30000)fail('BNS_SAVED_WORK_LIMIT');assertOriginalControlSettingsFacts(store,now.control);return true;};
   registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){for(const fact of p.facts)if(!equal(fact.project(yield {method:'get',table:fact.table,key:fact.key},current),fact.expected))fail('BNS_SAVED_WORK_CHANGED');for(const [table,key,row]of points)if(!equal((yield {method:'get',table,key})??null,row))fail('BNS_SAVED_WORK_CHANGED');for(const [table,index,key,n]of [['revisions','byList',prefix(['library_entry:'+id]),2],['provenance','byOwner',prefix(['entry',id]),1],['dependencies','byTarget',prefix(['entry',id]),1],['placements','byEntry',prefix([id]),0],['thoughtSuppressions','byEntry',id,0],['thoughtSuppressions','byScope',p.evidence[0].scopeToken,0],['thoughtSuppressions','byExact',p.expected.entry.exactSignature,0]])if((yield {method:'count',table,index,key})!==n)fail('BNS_SAVED_WORK_CHANGED');return true;}});
-  await sealSavedProtocol(t,core,operation,p.start,true);return clone(operation);
+  await sealSavedProtocol(t,core,intent,p.start);return clone(operation);
  });
 }
