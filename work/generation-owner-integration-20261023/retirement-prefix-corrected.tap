@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: fixed copy retirement preserves original canonical export before and after and cold resumes
+ok 1 - fixed copy retirement preserves original canonical export before and after and cold resumes
+  ---
+  duration_ms: 503.532667
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+ok 2 - copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+  ---
+  duration_ms: 264.800292
+  type: 'test'
+  ...
+# Subtest: copy retirement has no arbitrary public deletion or receipt authority
+ok 3 - copy retirement has no arbitrary public deletion or receipt authority
+  ---
+  duration_ms: 240.821292
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification kind
+ok 4 - copy retirement refuses changed fixed qualification kind
+  ---
+  duration_ms: 235.110167
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification identity
+ok 5 - copy retirement refuses changed fixed qualification identity
+  ---
+  duration_ms: 279.868584
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification seal
+ok 6 - copy retirement refuses changed fixed qualification seal
+  ---
+  duration_ms: 274.955042
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification sourceBase
+ok 7 - copy retirement refuses changed fixed qualification sourceBase
+  ---
+  duration_ms: 268.001166
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses unknown copy without deleting remaining copies
+ok 8 - copy retirement refuses unknown copy without deleting remaining copies
+  ---
+  duration_ms: 277.524625
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing copy without deleting remaining copies
+ok 9 - copy retirement refuses missing copy without deleting remaining copies
+  ---
+  duration_ms: 290.539042
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses foreign marker without deleting remaining copies
+ok 10 - copy retirement refuses foreign marker without deleting remaining copies
+  ---
+  duration_ms: 276.735833
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing marker without deleting remaining copies
+ok 11 - copy retirement refuses missing marker without deleting remaining copies
+  ---
+  duration_ms: 344.296416
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses forged progress without deleting remaining copies
+ok 12 - copy retirement refuses forged progress without deleting remaining copies
+  ---
+  duration_ms: 287.312541
+  type: 'test'
+  ...
+# Subtest: copy retirement cannot use a generic metadata publication as graph qualification
+ok 13 - copy retirement cannot use a generic metadata publication as graph qualification
+  ---
+  duration_ms: 64.273916
+  type: 'test'
+  ...
+# Subtest: retirement cannot execute a caller callback or expand its fixed deletion scope
+ok 14 - retirement cannot execute a caller callback or expand its fixed deletion scope
+  ---
+  duration_ms: 279.989583
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4025.117542

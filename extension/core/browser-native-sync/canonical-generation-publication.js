@@ -1,3 +1,6 @@
+import {prepareOriginalCopyRetirement,retireOriginalCheckpointCopies} from './canonical-generation-copy-retirement.js';
+import {CANONICAL_REPOSITORY_PROTECTION,originalGenerationProtection} from './canonical-generation-repository-gate.js';
+import {createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget} from './group-page-reader.js';
 import {requireOriginalHumanGenerationActivation} from './canonical-generation-human-restore.js';
 import * as originalCheckpoint from './group-checkpoint.js';
 import * as checkpointStage from './canonical-generation-checkpoint-stage.js';
@@ -161,6 +164,22 @@ export class CanonicalGenerationPublication {
   if(!first.active)return {state:'empty'};
   const repository=this.#repository(first.active.identity),gate=await repository.transaction(false,async t=>gateData(await t.get('meta',CANONICAL_GENERATION_GATE)),['meta']);
   const last=await this.#registry.transaction(false,async t=>{if(!equal(await t.get('meta',first.active.receipt.id),first.active.receipt))fail('GENERATION_CHANGED');return rootRead(t);},['meta']);if(!equal(first,last)||!equal(gate.seal,first.active.receipt.seal)||gate.registryName!==this.#registryName||gate.phase!=='active'||gate.publicationId!==first.active.publicationId||!equal(gate.identity,first.active.identity))fail('GENERATION_CHANGED');return {state:'active',...copy(first.active)};
+ }
+ async retireCheckpointCopies(handle){
+  const started=performance.now(),budget=createGroupPageBudget(),held=this.#held(handle);
+  // The receipt is from the original registry, never a caller DTO. This is a
+  // two-database protocol: the target gate is the deletion TX linearization
+  // point; this method does not promise a globally atomic active-pointer read.
+  const root=await this.#registry.transaction(false,rootRead,['meta']);chargeGroupPageValue(budget,root);
+  if(root.pending||!root.active||!equal(root.active.identity,held.identity))fail('GENERATION_NOT_ACTIVE');
+  const receipt=receiptData(root.active.receipt);
+  const selected=await held.repository.transaction(false,async t=>{return {gate:this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity),qualification:await t.get('meta',qualifiedGraph),marker:await t.get('meta',CANONICAL_REPOSITORY_PROTECTION)};},['meta']);chargeGroupPageValue(budget,selected);
+  const {gate,qualification,marker:protection}=selected;originalGenerationProtection(protection,gate,held.repository.name);
+  if(gate.phase!=='active'||gate.publicationId!==root.active.publicationId||!equal(gate.seal,receipt.seal)||receipt.from!==null)fail('GENERATION_CHANGED');
+  const q=data(qualification,['id','version','kind','identity','seal','sourceBase']);if(q.id!==qualifiedGraph||q.version!==1||!['original-human','original-group'].includes(q.kind)||!equal(q.identity,held.identity)||!equal(q.seal,gate.seal))fail('GENERATION_GRAPH_QUALIFICATION_REQUIRED');
+  const base=data(q.sourceBase,['root','gate']),sourceRoot=rootData(base.root);if(sourceRoot.active!==null||sourceRoot.pending!==null||base.gate!==null||receipt.revision!==sourceRoot.revision+1)fail('GENERATION_CHANGED');
+  const prepared=await prepareOriginalCopyRetirement(held.repository,gate,qualification,budget,started);checkGroupPageBudget(budget);
+  return publicationTransaction(held.repository,t=>retireOriginalCheckpointCopies(held.repository,t,prepared,gate,qualification,protection,budget,started),['meta'],'checkpoint-retire');
  }
  async prepareDeletion(handle){
   const held=this.#held(handle);

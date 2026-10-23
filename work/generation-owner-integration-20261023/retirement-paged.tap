@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: fixed copy retirement preserves original canonical export before and after and cold resumes
+ok 1 - fixed copy retirement preserves original canonical export before and after and cold resumes
+  ---
+  duration_ms: 618.989375
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+ok 2 - copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+  ---
+  duration_ms: 323.315459
+  type: 'test'
+  ...
+# Subtest: copy retirement has no arbitrary public deletion or receipt authority
+ok 3 - copy retirement has no arbitrary public deletion or receipt authority
+  ---
+  duration_ms: 277.52825
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification kind
+ok 4 - copy retirement refuses changed fixed qualification kind
+  ---
+  duration_ms: 276.59575
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification identity
+ok 5 - copy retirement refuses changed fixed qualification identity
+  ---
+  duration_ms: 286.43275
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification seal
+ok 6 - copy retirement refuses changed fixed qualification seal
+  ---
+  duration_ms: 276.137459
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification sourceBase
+ok 7 - copy retirement refuses changed fixed qualification sourceBase
+  ---
+  duration_ms: 294.635083
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses unknown copy without deleting remaining copies
+ok 8 - copy retirement refuses unknown copy without deleting remaining copies
+  ---
+  duration_ms: 320.3075
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing copy without deleting remaining copies
+ok 9 - copy retirement refuses missing copy without deleting remaining copies
+  ---
+  duration_ms: 300.0745
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses foreign marker without deleting remaining copies
+ok 10 - copy retirement refuses foreign marker without deleting remaining copies
+  ---
+  duration_ms: 301.267292
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing marker without deleting remaining copies
+ok 11 - copy retirement refuses missing marker without deleting remaining copies
+  ---
+  duration_ms: 273.763916
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses forged progress without deleting remaining copies
+ok 12 - copy retirement refuses forged progress without deleting remaining copies
+  ---
+  duration_ms: 286.801834
+  type: 'test'
+  ...
+# Subtest: copy retirement cannot use a generic metadata publication as graph qualification
+ok 13 - copy retirement cannot use a generic metadata publication as graph qualification
+  ---
+  duration_ms: 65.244583
+  type: 'test'
+  ...
+# Subtest: retirement cannot execute a caller callback or expand its fixed deletion scope
+ok 14 - retirement cannot execute a caller callback or expand its fixed deletion scope
+  ---
+  duration_ms: 262.179667
+  type: 'test'
+  ...
+# Subtest: copy retirement settles only a bounded page and resumes actual remaining copies on cold reopen
+not ok 15 - copy retirement settles only a bounded page and resumes actual remaining copies on cold reopen
+  ---
+  duration_ms: 775.686792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/canonical-generation-copy-retirement.test.mjs:39:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'SYNTHETIC extra 0'
+    - undefined
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual: 'SYNTHETIC extra 0'
+  operator: 'strictEqual'
+  stack: |-
+    roundtrip (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/canonical-generation-copy-retirement.test.mjs:28:859)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/canonical-generation-copy-retirement.test.mjs:39:237)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 14
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5085.849084
