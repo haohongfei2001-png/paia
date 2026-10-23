@@ -1,0 +1,54 @@
+{
+  "head": "6fb6fc58f5d406e8b747d59a467fc6d7bcbcb9b6",
+  "tree": "2341a9ab6223eea92ecc5a00252b59545a43f8aa",
+  "variant": "source",
+  "result": {
+    "passed": true,
+    "nativeFactory": true,
+    "nativeTransactions": true,
+    "coldB": true,
+    "senderRepositoryClosed": true,
+    "coldC": true,
+    "continuation": true,
+    "exactDuplicate": true,
+    "allStoreRollback": [
+      "applied-group",
+      "before-activation",
+      "after-activation"
+    ],
+    "localTokensRecomputed": true
+  },
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "e5c5cb82-573f-425a-9fc1-8375c6b52db6",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "e5c5cb82-573f-425a-9fc1-8375c6b52db6",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  },
+  "browserVersion": "156.0.8078.47"
+}

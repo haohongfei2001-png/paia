@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "nativeFactory": true,
+  "nativeTransaction": true,
+  "sourceOwnedAdapter": true,
+  "lineage": "body",
+  "action": "edit",
+  "phase": "complete",
+  "physicalAttempts": 1,
+  "atomicRollback": false,
+  "humanTemporalPreserved": true,
+  "topicPending": true
+}

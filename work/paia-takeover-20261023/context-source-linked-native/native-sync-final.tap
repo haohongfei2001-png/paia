@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: BNS finite Source-linked cold graph native source
+ok 1 - BNS finite Source-linked cold graph native source
+  ---
+  duration_ms: 2159.017792
+  type: 'test'
+  ...
+# Subtest: BNS finite Source-linked cold graph native release
+ok 2 - BNS finite Source-linked cold graph native release
+  ---
+  duration_ms: 3562.893958
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10686.279917

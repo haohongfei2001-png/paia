@@ -404,3 +404,34 @@ Source-linked Sync grouped cold recovery, Context correction reconciliation and
 other current implementation gaps stay on the takeover queue until separately
 implemented and qualified. Production activation and cloud execution still need
 their existing authorization and budget boundaries respected.
+
+## Finite Context correction and Source-linked cold recovery
+
+At runtime `1cb7a37d` and test candidate `6fb6fc58`, the finite Source/release
+combined invocation was **20/22**: all **18 Context leaves + 2 parents passed**;
+the two new Sync cases failed their event-observation oracle. After preserving
+three small diagnostic outcomes (0/2, 0/1, 0/2), the corrected Sync-only pair
+passed **2/2**, exit 0, TAP 10686.279917 ms. Do not present these as one 22/22 run.
+Node 22.23.3, Python 3.12.14, Playwright 1.63.0, Chrome 156.0.8078.47 and original
+macOS arm64 headless harness were used; every before/after runtime/source vector
+and HEAD remained stable. Both original owning-file prefixes are unchanged.
+
+Context uses original native owners and source-owned response parsing for Now
+human edit/restore with body or body+note lineage, preserving human and temporal
+fields. Late backup-stage drift and ACK failure abort the exact native transaction
+with all-store rollback; same-response replay makes one provider call, Context
+NO_CHANGE alone settles, Topic stays pending. Independent note permission loss
+refuses before dispatch. Note-only native coverage is not claimed.
+
+Sync uses original Source bootstrap, user Source-linked create/edit, grouped
+checkpoint, native fresh B and native fresh C. Closing the sender repository,
+recomputing local keyed provenance tokens, preserving human fields, duplicate
+activation no-write, B continuation and C restore all passed. Three activation
+fault boundaries prove strict native abort/no complete and all-store rollback.
+The event oracle now awaits the same IDBTransaction's own trusted event Promise;
+it never sleeps, polls, retries, alters production synchronization or changes
+error mapping. Actual trace already showed rollback while the initial immediate
+flag assertion ran too early. Source-linked remove/restore, worker restart,
+provider/real-account, performance, whole-file or full-platform qualification
+remain separate. Evidence and all original failures:
+`work/paia-takeover-20261023/context-source-linked-native/REPORT.md` and manifest.
