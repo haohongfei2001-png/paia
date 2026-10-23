@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+ok 1 - actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+  ---
+  duration_ms: 467.790166
+  type: 'test'
+  ...
+# Subtest: actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+ok 2 - actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+  ---
+  duration_ms: 200.606542
+  type: 'test'
+  ...
+# Subtest: actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+ok 3 - actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+  ---
+  duration_ms: 390.64225
+  type: 'test'
+  ...
+# Subtest: original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+ok 4 - original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+  ---
+  duration_ms: 548.873
+  type: 'test'
+  ...
+# Subtest: mixed graph rejects a Saved creation allocation borrowed from the Human owner
+ok 5 - mixed graph rejects a Saved creation allocation borrowed from the Human owner
+  ---
+  duration_ms: 94.096875
+  type: 'test'
+  ...
+# Subtest: mixed export refuses an unjournaled Human entry and leaves original library unchanged
+ok 6 - mixed export refuses an unjournaled Human entry and leaves original library unchanged
+  ---
+  duration_ms: 107.717
+  type: 'test'
+  ...
+# Subtest: mixed Saved profile explicitly refuses structural Human groups
+ok 7 - mixed Saved profile explicitly refuses structural Human groups
+  ---
+  duration_ms: 107.263417
+  type: 'test'
+  ...
+# Subtest: mixed cold activation refuses existing local canonical Human work
+ok 8 - mixed cold activation refuses existing local canonical Human work
+  ---
+  duration_ms: 160.478625
+  type: 'test'
+  ...
+# Subtest: mixed activation failure preserves both owners and explicit retry commits exactly once
+ok 9 - mixed activation failure preserves both owners and explicit retry commits exactly once
+  ---
+  duration_ms: 284.870458
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human body drift with complete rollback
+ok 10 - mixed final native fence rejects Human body drift with complete rollback
+  ---
+  duration_ms: 250.912416
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human history drift with complete rollback
+ok 11 - mixed final native fence rejects Human history drift with complete rollback
+  ---
+  duration_ms: 209.110458
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human receipt drift with complete rollback
+ok 12 - mixed final native fence rejects Human receipt drift with complete rollback
+  ---
+  duration_ms: 183.931083
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human mapping drift with complete rollback
+ok 13 - mixed final native fence rejects Human mapping drift with complete rollback
+  ---
+  duration_ms: 190.638708
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human queue drift with complete rollback
+ok 14 - mixed final native fence rejects Human queue drift with complete rollback
+  ---
+  duration_ms: 198.431041
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects extra Human row drift with complete rollback
+ok 15 - mixed final native fence rejects extra Human row drift with complete rollback
+  ---
+  duration_ms: 207.729083
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Saved body drift with complete rollback
+ok 16 - mixed final native fence rejects Saved body drift with complete rollback
+  ---
+  duration_ms: 247.755667
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Source record drift with complete rollback
+ok 17 - mixed final native fence rejects Source record drift with complete rollback
+  ---
+  duration_ms: 206.649833
+  type: 'test'
+  ...
+# Subtest: mixed activation preserves the original private transaction budget
+ok 18 - mixed activation preserves the original private transaction budget
+  ---
+  duration_ms: 271.057667
+  type: 'test'
+  ...
+# Subtest: mixed original Human witness rejects a copied capability without opening a writer
+ok 19 - mixed original Human witness rejects a copied capability without opening a writer
+  ---
+  duration_ms: 120.180292
+  type: 'test'
+  ...
+# Subtest: existing mixed B refuses unsupported incremental receive before changing its canonical or protocol rows
+ok 20 - existing mixed B refuses unsupported incremental receive before changing its canonical or protocol rows
+  ---
+  duration_ms: 351.166667
+  type: 'test'
+  ...
+# Subtest: two original Human edits remain human-owned alongside a Saved successor on cold C
+ok 21 - two original Human edits remain human-owned alongside a Saved successor on cold C
+  ---
+  duration_ms: 433.176416
+  type: 'test'
+  ...
+# Subtest: caller entity text cannot impersonate an internal Human identity while borrowing its allocation
+ok 22 - caller entity text cannot impersonate an internal Human identity while borrowing its allocation
+  ---
+  duration_ms: 94.60775
+  type: 'test'
+  ...
+# Subtest: real merged chronology retains a complete finite allocation expectation for native ownership accounting
+ok 23 - real merged chronology retains a complete finite allocation expectation for native ownership accounting
+  ---
+  duration_ms: 974.22775
+  type: 'test'
+  ...
+# Subtest: actual restored B merged transactions preserve original semantic replay and cold C consumer
+ok 24 - actual restored B merged transactions preserve original semantic replay and cold C consumer
+  ---
+  duration_ms: 1677.835125
+  type: 'test'
+  ...
+# Subtest: actual initial A merged transactions preserve original semantic replay and cold C consumer
+ok 25 - actual initial A merged transactions preserve original semantic replay and cold C consumer
+  ---
+  duration_ms: 2088.663875
+  type: 'test'
+  ...
+# Subtest: borrowed causal subsets match the original compiler while rejecting missing dependencies and counterfeit plans
+ok 26 - borrowed causal subsets match the original compiler while rejecting missing dependencies and counterfeit plans
+  ---
+  duration_ms: 1029.528334
+  type: 'test'
+  ...
+# Subtest: subset membership is detached before real digest suspension and cannot be changed by caller
+ok 27 - subset membership is detached before real digest suspension and cannot be changed by caller
+  ---
+  duration_ms: 1166.764416
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects before chronology and preserves all37 stores
+ok 28 - merged allocation rejects before chronology and preserves all37 stores
+  ---
+  duration_ms: 929.097125
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects incoming chronology and preserves all37 stores
+ok 29 - merged allocation rejects incoming chronology and preserves all37 stores
+  ---
+  duration_ms: 1027.276042
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects partial-receipt chronology and preserves all37 stores
+ok 30 - merged allocation rejects partial-receipt chronology and preserves all37 stores
+  ---
+  duration_ms: 1063.898417
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects manifest chronology and preserves all37 stores
+ok 31 - merged allocation rejects manifest chronology and preserves all37 stores
+  ---
+  duration_ms: 983.080125
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects extra-stage chronology and preserves all37 stores
+ok 32 - merged allocation rejects extra-stage chronology and preserves all37 stores
+  ---
+  duration_ms: 886.220291
+  type: 'test'
+  ...
+# Subtest: forged native chronology nonce refuses before any second store reader or native grant
+ok 33 - forged native chronology nonce refuses before any second store reader or native grant
+  ---
+  duration_ms: 1026.907
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18599.087834

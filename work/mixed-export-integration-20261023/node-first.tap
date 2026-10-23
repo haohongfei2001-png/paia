@@ -1,0 +1,292 @@
+TAP version 13
+# Subtest: real merged chronology retains a complete finite allocation expectation for native ownership accounting
+ok 1 - real merged chronology retains a complete finite allocation expectation for native ownership accounting
+  ---
+  duration_ms: 2451.53725
+  type: 'test'
+  ...
+# Subtest: actual restored B merged transactions preserve original semantic replay and cold C consumer
+ok 2 - actual restored B merged transactions preserve original semantic replay and cold C consumer
+  ---
+  duration_ms: 3407.377375
+  type: 'test'
+  ...
+# Subtest: actual initial A merged transactions preserve original semantic replay and cold C consumer
+ok 3 - actual initial A merged transactions preserve original semantic replay and cold C consumer
+  ---
+  duration_ms: 2771.744917
+  type: 'test'
+  ...
+# Subtest: borrowed causal subsets match the original compiler while rejecting missing dependencies and counterfeit plans
+ok 4 - borrowed causal subsets match the original compiler while rejecting missing dependencies and counterfeit plans
+  ---
+  duration_ms: 1646.633
+  type: 'test'
+  ...
+# Subtest: subset membership is detached before real digest suspension and cannot be changed by caller
+ok 5 - subset membership is detached before real digest suspension and cannot be changed by caller
+  ---
+  duration_ms: 2201.565917
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects before chronology and preserves all37 stores
+ok 6 - merged allocation rejects before chronology and preserves all37 stores
+  ---
+  duration_ms: 2095.548334
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects incoming chronology and preserves all37 stores
+ok 7 - merged allocation rejects incoming chronology and preserves all37 stores
+  ---
+  duration_ms: 2058.801625
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects partial-receipt chronology and preserves all37 stores
+ok 8 - merged allocation rejects partial-receipt chronology and preserves all37 stores
+  ---
+  duration_ms: 1666.574333
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects manifest chronology and preserves all37 stores
+ok 9 - merged allocation rejects manifest chronology and preserves all37 stores
+  ---
+  duration_ms: 1759.785875
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects extra-stage chronology and preserves all37 stores
+ok 10 - merged allocation rejects extra-stage chronology and preserves all37 stores
+  ---
+  duration_ms: 2034.851417
+  type: 'test'
+  ...
+# Subtest: forged native chronology nonce refuses before any second store reader or native grant
+ok 11 - forged native chronology nonce refuses before any second store reader or native grant
+  ---
+  duration_ms: 1967.349375
+  type: 'test'
+  ...
+# Subtest: one mixed populated library preserves local Human work while receiving an independent Working edit and exports cold C
+ok 12 - one mixed populated library preserves local Human work while receiving an independent Working edit and exports cold C
+  ---
+  duration_ms: 4346.055375
+  type: 'test'
+  ...
+# Subtest: mixed merge interruption at mixed-applied-group keeps every prior table
+ok 13 - mixed merge interruption at mixed-applied-group keeps every prior table
+  ---
+  duration_ms: 2616.068125
+  type: 'test'
+  ...
+# Subtest: mixed merge interruption at before-mixed-commit keeps every prior table
+ok 14 - mixed merge interruption at before-mixed-commit keeps every prior table
+  ---
+  duration_ms: 2940.919542
+  type: 'test'
+  ...
+# Subtest: owner-return old-receipt drift is refused with complete rollback
+ok 15 - owner-return old-receipt drift is refused with complete rollback
+  ---
+  duration_ms: 2581.002375
+  type: 'test'
+  ...
+# Subtest: owner-return local-outbox drift is refused with complete rollback
+ok 16 - owner-return local-outbox drift is refused with complete rollback
+  ---
+  duration_ms: 2661.245167
+  type: 'test'
+  ...
+# Subtest: owner-return unknown-protocol drift is refused with complete rollback
+ok 17 - owner-return unknown-protocol drift is refused with complete rollback
+  ---
+  duration_ms: 2291.451459
+  type: 'test'
+  ...
+# Subtest: owner-return Human-body drift is refused with complete rollback
+ok 18 - owner-return Human-body drift is refused with complete rollback
+  ---
+  duration_ms: 2236.490417
+  type: 'test'
+  ...
+# Subtest: owner-return Human-key drift is refused with complete rollback
+ok 19 - owner-return Human-key drift is refused with complete rollback
+  ---
+  duration_ms: 2054.849917
+  type: 'test'
+  ...
+# Subtest: owner-return control drift is refused with complete rollback
+ok 20 - owner-return control drift is refused with complete rollback
+  ---
+  duration_ms: 1628.773916
+  type: 'test'
+  ...
+# Subtest: owner-return annual-index drift is refused with complete rollback
+ok 21 - owner-return annual-index drift is refused with complete rollback
+  ---
+  duration_ms: 1778.951458
+  type: 'test'
+  ...
+# Subtest: owner-return stage-cursor drift is refused with complete rollback
+ok 22 - owner-return stage-cursor drift is refused with complete rollback
+  ---
+  duration_ms: 3291.343833
+  type: 'test'
+  ...
+# Subtest: owner-return working-allocation drift is refused with complete rollback
+ok 23 - owner-return working-allocation drift is refused with complete rollback
+  ---
+  duration_ms: 2479.490542
+  type: 'test'
+  ...
+# Subtest: owner-return semantic drift is refused with complete rollback
+ok 24 - owner-return semantic drift is refused with complete rollback
+  ---
+  duration_ms: 2344.7835
+  type: 'test'
+  ...
+# Subtest: terminal old-receipt drift is refused with complete rollback
+ok 25 - terminal old-receipt drift is refused with complete rollback
+  ---
+  duration_ms: 1782.111709
+  type: 'test'
+  ...
+# Subtest: terminal local-outbox drift is refused with complete rollback
+ok 26 - terminal local-outbox drift is refused with complete rollback
+  ---
+  duration_ms: 2241.90175
+  type: 'test'
+  ...
+# Subtest: terminal unknown-protocol drift is refused with complete rollback
+ok 27 - terminal unknown-protocol drift is refused with complete rollback
+  ---
+  duration_ms: 3118.946167
+  type: 'test'
+  ...
+# Subtest: terminal Human-body drift is refused with complete rollback
+ok 28 - terminal Human-body drift is refused with complete rollback
+  ---
+  duration_ms: 3460.776958
+  type: 'test'
+  ...
+# Subtest: terminal Human-key drift is refused with complete rollback
+ok 29 - terminal Human-key drift is refused with complete rollback
+  ---
+  duration_ms: 3438.514167
+  type: 'test'
+  ...
+# Subtest: terminal control drift is refused with complete rollback
+ok 30 - terminal control drift is refused with complete rollback
+  ---
+  duration_ms: 3618.618459
+  type: 'test'
+  ...
+# Subtest: terminal annual-index drift is refused with complete rollback
+ok 31 - terminal annual-index drift is refused with complete rollback
+  ---
+  duration_ms: 2573.04325
+  type: 'test'
+  ...
+# Subtest: terminal stage-cursor drift is refused with complete rollback
+ok 32 - terminal stage-cursor drift is refused with complete rollback
+  ---
+  duration_ms: 2789.811458
+  type: 'test'
+  ...
+# Subtest: terminal working-allocation drift is refused with complete rollback
+ok 33 - terminal working-allocation drift is refused with complete rollback
+  ---
+  duration_ms: 2944.359209
+  type: 'test'
+  ...
+# Subtest: terminal semantic drift is refused with complete rollback
+ok 34 - terminal semantic drift is refused with complete rollback
+  ---
+  duration_ms: 2837.0175
+  type: 'test'
+  ...
+# Subtest: same-Input branch refuses implicit winner and keeps local Human outbox
+ok 35 - same-Input branch refuses implicit winner and keeps local Human outbox
+  ---
+  duration_ms: 2242.2905
+  type: 'test'
+  ...
+# Subtest: mixed merge actual 4097-read work refuses even if diagnostics are reset
+ok 36 - mixed merge actual 4097-read work refuses even if diagnostics are reset
+  ---
+  duration_ms: 2593.738417
+  type: 'test'
+  ...
+# Subtest: mixed chronology accepts a second independent remote edit after later local Human work
+ok 37 - mixed chronology accepts a second independent remote edit after later local Human work
+  ---
+  duration_ms: 5871.808875
+  type: 'test'
+  ...
+# Subtest: mixed same checkpoint replay does not rewrite canonical rows or queued local work
+ok 38 - mixed same checkpoint replay does not rewrite canonical rows or queued local work
+  ---
+  duration_ms: 3734.924834
+  type: 'test'
+  ...
+# Subtest: genuine new Human work from populated B returns to populated A through original owner and onward to C
+ok 39 - genuine new Human work from populated B returns to populated A through original owner and onward to C
+  ---
+  duration_ms: 3932.096542
+  type: 'test'
+  ...
+# Subtest: new Topic Section and placement return from B through real owners and preserve unrelated A content
+ok 40 - new Topic Section and placement return from B through real owners and preserve unrelated A content
+  ---
+  duration_ms: 6119.637541
+  type: 'test'
+  ...
+# Subtest: Human receive terminal interrupt refuses and restores every table
+ok 41 - Human receive terminal interrupt refuses and restores every table
+  ---
+  duration_ms: 2968.253458
+  type: 'test'
+  ...
+# Subtest: Human receive terminal search-delete refuses and restores every table
+ok 42 - Human receive terminal search-delete refuses and restores every table
+  ---
+  duration_ms: 2298.287
+  type: 'test'
+  ...
+# Subtest: Human receive terminal search-extra refuses and restores every table
+ok 43 - Human receive terminal search-extra refuses and restores every table
+  ---
+  duration_ms: 1680.352917
+  type: 'test'
+  ...
+# Subtest: Human receive terminal metadata refuses and restores every table
+ok 44 - Human receive terminal metadata refuses and restores every table
+  ---
+  duration_ms: 1654.450625
+  type: 'test'
+  ...
+# Subtest: Human receive terminal protocol refuses and restores every table
+ok 45 - Human receive terminal protocol refuses and restores every table
+  ---
+  duration_ms: 1782.14875
+  type: 'test'
+  ...
+# Subtest: Human receive terminal old-human refuses and restores every table
+ok 46 - Human receive terminal old-human refuses and restores every table
+  ---
+  duration_ms: 1581.523417
+  type: 'test'
+  ...
+# Subtest: Human original owner cannot change an existing unrelated Working receipt
+ok 47 - Human original owner cannot change an existing unrelated Working receipt
+  ---
+  duration_ms: 1674.051708
+  type: 'test'
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 125235.85475
