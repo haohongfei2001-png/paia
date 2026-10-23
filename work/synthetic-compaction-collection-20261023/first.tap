@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: test-only collector refuses provider/map construction and public plan substitution
+ok 1 - test-only collector refuses provider/map construction and public plan substitution
+  ---
+  duration_ms: 85.457875
+  type: 'test'
+  ...
+# Subtest: unfinished real restore pin retains complete descriptors until explicit finish, then cold restore and original edit survive collection
+ok 2 - unfinished real restore pin retains complete descriptors until explicit finish, then cold restore and original edit survive collection
+  ---
+  duration_ms: 111.426875
+  type: 'test'
+  ...
+# Subtest: collection rejects pin change after qualification starts without deleting anything
+ok 3 - collection rejects pin change after qualification starts without deleting anything
+  ---
+  duration_ms: 46.572625
+  type: 'test'
+  ...
+# Subtest: collection rejects object change after qualification starts without deleting anything
+ok 4 - collection rejects object change after qualification starts without deleting anything
+  ---
+  duration_ms: 42.3815
+  type: 'test'
+  ...
+# Subtest: uncovered descriptor closure remains readable after collection
+ok 5 - uncovered descriptor closure remains readable after collection
+  ---
+  duration_ms: 44.919917
+  type: 'test'
+  ...
+# Subtest: actual original Prompt branches remain unresolved through collection and stale return cannot choose a winner
+ok 6 - actual original Prompt branches remain unresolved through collection and stale return cannot choose a winner
+  ---
+  duration_ms: 71.943
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 551.049417
