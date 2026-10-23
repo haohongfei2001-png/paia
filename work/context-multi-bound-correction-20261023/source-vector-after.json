@@ -1,0 +1,18 @@
+{
+  "extension/tests/context-maintenance-no-change.test.mjs": "671da56d10e628fe70317f9eefaf5950476de88ed3a4b5ed6902456f5d344906",
+  "extension/tests/ai-cost-03-authored-context.test.mjs": "daf579c9000cc7edfc255d8da8789b5e76a25b7066ebfcc2a7da490d19351d84",
+  "extension/tests/maintenance-service-response-adapter.test.mjs": "e83cfca2ee4fb17dc6b2b839cfa4109cc976516e182fd19f033c6dfb904a5c3a",
+  "extension/tests/context-maintenance-invalidation.test.mjs": "d3bec25593efe8ecb13f0387c0a9395152e4372b633991fa82b5a556bf1f8e77",
+  "extension/tests/ai-cost-03-bound-entry-session.test.mjs": "323454c3078564c9985654957ea1471f8ffad90efae33d6423defd92995c83d7",
+  "extension/tests/ai-context-correction-local.test.mjs": "0a3a31dbb4b14f8a236222413c573b5cac599da7e0763b171dbbe8ca90645975",
+  "extension/tests/ai-maintenance-qualification-capability.test.mjs": "784f428089d3179bd33e7bda188c167fb45b20739d645674500aafc09ef29429",
+  "extension/tests/ai-cost-03-authored-fields.test.mjs": "570caf95f47cea0127a900efe3676028e23a3c5127709ac7dfb33cf21264cf68",
+  "extension/tests/ai-cost-03-structural-topic-reconciliation.test.mjs": "277044d89c1bd2fbf0e51f98c1f17dfd95cdc4db096b796d467e412374b3eaef",
+  "extension/tests/ai-maintenance-qualification-session.test.mjs": "5e55f870e1a7ef22011c88da2f781df7990dd31fdd324f84f3dc12ab0a3f5836",
+  "extension/tests/ai-maintenance-payload.test.mjs": "a9f9622a147a1e9a9d5872bbe0c6affa9f40c50058a6f3f733e408dc7203fcf0",
+  "extension/tests/ai-cost-03-structural-context.test.mjs": "61fde923909031d3a130bc6f7387be775b567525f4e200ed62ecaa129ed5e64b",
+  "extension/tests/ai-cost-03-bound-entry-fields.test.mjs": "3a748f64a64c18e942bb1ff77f93a4a7438d1b54de4ae561b26ee45f0b6322b2",
+  "extension/tests/ai-cost-03-topic-context.test.mjs": "302b3099b8f1a4cea5e586af22dc8deff59fbbfc0a83d2bf940098b536bceefd",
+  "extension/core/ai-usage/context-correction.js": "f14f5c7bdd7a413e68b8e7c1c224a75158e7e66f4f9f2f7b086029279248cdb4",
+  "extension/core/ai-usage/maintenance-payload.js": "12bb0ff751900a96d675d340fc5e3633eaca9a5bdc3493ceb614b077e3c3cdf2"
+}
