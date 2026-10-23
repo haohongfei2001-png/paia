@@ -1,0 +1,33 @@
+{
+  "base": "482abd36600d050d60f2f9b6583f32c1950aedef",
+  "files": [
+    {
+      "path": "extension/background/application-selection-commands.js",
+      "sha256": "1c89a329d4ac05f31329db85bd7fc9a9027ca603dd8d99307708c878c89fe11a"
+    },
+    {
+      "path": "extension/background/service-worker.js",
+      "sha256": "eb7ec0412606f7dfd09f194ca525b1ea1a6449e680f0b1f37c68f0ddfaf57e98"
+    },
+    {
+      "path": "extension/background/sync-local-lifecycle.js",
+      "sha256": "21f94f33f565bf222d072f5222f1cae06e954f16b209b525d697a1260729b7f9"
+    },
+    {
+      "path": "extension/ui/settings-sync.js",
+      "sha256": "75a9eb182ae54e648e9b4d08e2742372a675924f59e50565d8742ce5944cb9fe"
+    },
+    {
+      "path": "extension/tests/application-selection-consumer.test.mjs",
+      "sha256": "6f20abd4ed68da31f5f4ed935b277dfb2495bed02ecef4334549dd3ab1ace677"
+    },
+    {
+      "path": "extension/tests/settings-sync.test.mjs",
+      "sha256": "055772b0be0e0cf2ebc87fa18d55d5636878358a079345a0687e5a1aa5366c89"
+    },
+    {
+      "path": "extension/tests/harness/sync-configured-worker.mjs",
+      "sha256": "2540d5c7f3ca00f70906ed1472aa0fb7c60c060e327bcdd8f05489b6eca6c6cb"
+    }
+  ]
+}

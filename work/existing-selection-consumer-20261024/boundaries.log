@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: actual Settings → unique worker → complete existing cut → explicit confirmed restart; no transport or automatic reload
+ok 1 - actual Settings → unique worker → complete existing cut → explicit confirmed restart; no transport or automatic reload
+  ---
+  duration_ms: 639.293
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CONTINUE without initializing a second writer
+ok 2 - failed ready retains actual Settings pending CONTINUE without initializing a second writer
+  ---
+  duration_ms: 514.322791
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CANCEL without initializing a second writer
+ok 3 - failed ready retains actual Settings pending CANCEL without initializing a second writer
+  ---
+  duration_ms: 501.406625
+  type: 'test'
+  ...
+# Subtest: fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+ok 4 - fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+  ---
+  duration_ms: 444.763167
+  type: 'test'
+  ...
+# Subtest: default fixed source remains unavailable without selection controls or mutations
+ok 5 - default fixed source remains unavailable without selection controls or mutations
+  ---
+  duration_ms: 46.433375
+  type: 'test'
+  ...
+# Subtest: unknown SDK outcome remains reachable before ready, never resends or exposes restart
+ok 6 - unknown SDK outcome remains reachable before ready, never resends or exposes restart
+  ---
+  duration_ms: 500.873791
+  type: 'test'
+  ...
+# Subtest: selection cannot activate while a real original checkpoint request is in flight
+not ok 7 - selection cannot activate while a real original checkpoint request is in flight
+  ---
+  duration_ms: 493.921083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/application-selection-consumer.test.mjs:31:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'STORAGE_FAILED'
+    - 'BNS_SYNC_TASK_PENDING'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'BNS_SYNC_TASK_PENDING'
+  actual: 'STORAGE_FAILED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/application-selection-consumer.test.mjs:32:571)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 8 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 2.965125
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 9 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 1.279084
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 10 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 0.648209
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 11 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 0.528541
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 12 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 0.786834
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 13 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.319875
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 14 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 0.739125
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 15 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.317667
+  type: 'test'
+  ...
+# Subtest: configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+ok 16 - configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+  ---
+  duration_ms: 0.550292
+  type: 'test'
+  ...
+# Subtest: selection confirmation and restart are separate bilingual user clicks; selected receipt blocks ordinary Sync actions
+ok 17 - selection confirmation and restart are separate bilingual user clicks; selected receipt blocks ordinary Sync actions
+  ---
+  duration_ms: 0.906959
+  type: 'test'
+  ...
+# Subtest: selection double-click and lost response preserve unknown state without automatic activate or restart
+ok 18 - selection double-click and lost response preserve unknown state without automatic activate or restart
+  ---
+  duration_ms: 0.422958
+  type: 'test'
+  ...
+# Subtest: late selection reply after leaving Settings is ignored and malformed restart entitlement exposes no action
+ok 19 - late selection reply after leaving Settings is ignored and malformed restart entitlement exposes no action
+  ---
+  duration_ms: 0.262792
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 18
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3310.262875

@@ -1,3 +1,4 @@
+import {OriginalApplicationGenerationSelection} from '../core/browser-native-sync/application-generation-selection.js';
 import {ConsumerPreferenceSyncJournal} from '../core/browser-native-sync/consumer-preference-journal.js';
 import {CONSUMER_PREFERENCE_KEYS} from '../core/browser-native-sync/consumer-preference-codec.js';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
@@ -70,7 +71,7 @@ function checked(row){
 }
 
 class SyncLifecycle {
- #store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#busy=false;#suspended=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;
+ #store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#busy=false;#suspended=false;#selectionHeld=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;
  constructor(store,api,config,binding,bindingId,generation,core){this.#store=store;this.#api=api;this.#config=config;this.#binding=binding;this.#bindingId=bindingId;this.#generation=generation;this.#core=core;this.#journal=new PreparedPublicationJournal(core,{checkpoint:()=>this.#allowed()});}
  #hostCurrent(){try{return this.#config.isCurrent(this.#binding)===true;}catch{return false;}}
  #allowed(){if(this.#suspended||this.#blocked||this.#uncertain||!this.#row||this.#row.mode!=='active'||this.#row.bindingId!==this.#bindingId||this.#row.generation!==this.#generation||!this.#hostCurrent())fail('BNS_SYNC_PAUSED');}
@@ -118,6 +119,9 @@ class SyncLifecycle {
   const preferences=await this.#store.repository.transaction(false,readPromptPreferences,['meta']),head=await this.#core.read('head','promptPreferences',PROMPT_REUSE_ROW),binding=await this.#core.read('head','promptBinding',PROMPT_REUSE_ROW);
   if(!binding&&(head||preferences.pins.length||preferences.overrides.length||preferences.splits.length))await journal.bootstrap(service);
  }
+ applicationSelectionAvailable(){return !this.#busy&&!this.#uncertain&&!this.#suspended&&!this.#selectionHeld&&(!this.#row?.task||this.#row.task.phase==='confirmed');}
+ reserveApplicationSelection(){if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');this.#busy=true;this.#selectionHeld=true;this.#invalidate();let released=false;return safeBeforeDispatch=>{if(!released){released=true;this.#busy=false;if(safeBeforeDispatch===true)this.#selectionHeld=false;else this.suspend();}};}
+ applicationSelectionOwner(){if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');return new OriginalApplicationGenerationSelection(this.#store,this.#core,this.#api.storage.local);}
  async snapshot(){return this.#view();}
  async reconcile(){
   if(this.#busy)fail('BNS_SYNC_BUSY');if(this.#suspended)fail('BNS_SYNC_PAUSED');this.#row=await this.#read();
@@ -136,7 +140,7 @@ class SyncLifecycle {
   return this.#view();
  }
  suspend(){if(this.#suspended)return;this.#suspended=true;this.#invalidate();if(owners.get(this.#api.storage.local)===this)owners.delete(this.#api.storage.local);}
- async resumeAfterSuspend(){if(!this.#suspended)return this.snapshot();if(owners.has(this.#api.storage.local))fail('BNS_SYNC_OWNER_BUSY');this.#suspended=false;owners.set(this.#api.storage.local,this);return this.reconcile();}
+ async resumeAfterSuspend(){if(this.#selectionHeld)return this.snapshot();if(!this.#suspended)return this.snapshot();if(owners.has(this.#api.storage.local))fail('BNS_SYNC_OWNER_BUSY');this.#suspended=false;owners.set(this.#api.storage.local,this);return this.reconcile();}
  async #stop(mode){this.#blocked=true;this.#invalidate();await this.#save(row=>({...this.#initial(row),mode,error:null}));return this.#view();}
  #initial(row){return row??{version:1,bindingId:this.#bindingId,generation:this.#generation,task:null};}
  async #resume(){
@@ -208,6 +212,7 @@ class SyncLifecycle {
  }
  async handle(request,sender){
   trusted(request,sender,this.#api);
+  if(this.#selectionHeld){if(request.type==='PAIA_SYNC_STATUS')return this.snapshot();fail('BNS_SYNC_PAUSED');}
   if(request.type==='PAIA_SYNC_STATUS'){if(!this.#hostCurrent()&&this.#row){this.#blocked=true;this.#invalidate();await this.#save(row=>({...row,mode:row.mode==='disconnected'?'disconnected':'account-changed',error:'BNS_PROVIDER_BINDING_CHANGED'}));}return this.snapshot();}
   if(request.type==='PAIA_SYNC_PAUSE')return this.#stop('paused');
   if(request.type==='PAIA_SYNC_DISCONNECT')return this.#stop('disconnected');

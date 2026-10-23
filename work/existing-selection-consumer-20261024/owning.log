@@ -1,0 +1,232 @@
+TAP version 13
+# Subtest: actual Settings → unique worker → complete existing cut → explicit confirmed restart; no transport or automatic reload
+ok 1 - actual Settings → unique worker → complete existing cut → explicit confirmed restart; no transport or automatic reload
+  ---
+  duration_ms: 771.284041
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CONTINUE without initializing a second writer
+ok 2 - failed ready retains actual Settings pending CONTINUE without initializing a second writer
+  ---
+  duration_ms: 622.736083
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CANCEL without initializing a second writer
+ok 3 - failed ready retains actual Settings pending CANCEL without initializing a second writer
+  ---
+  duration_ms: 559.541041
+  type: 'test'
+  ...
+# Subtest: fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+ok 4 - fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+  ---
+  duration_ms: 483.631375
+  type: 'test'
+  ...
+# Subtest: default fixed source remains unavailable without selection controls or mutations
+ok 5 - default fixed source remains unavailable without selection controls or mutations
+  ---
+  duration_ms: 48.800666
+  type: 'test'
+  ...
+# Subtest: unknown SDK outcome remains reachable before ready, never resends or exposes restart
+ok 6 - unknown SDK outcome remains reachable before ready, never resends or exposes restart
+  ---
+  duration_ms: 547.091
+  type: 'test'
+  ...
+# Subtest: selection cannot activate while a real original checkpoint request is in flight
+ok 7 - selection cannot activate while a real original checkpoint request is in flight
+  ---
+  duration_ms: 753.249542
+  type: 'test'
+  ...
+# Subtest: default source configuration preserves the ordinary original Organizer store
+ok 8 - default source configuration preserves the ordinary original Organizer store
+  ---
+  duration_ms: 20.689041
+  type: 'test'
+  ...
+# Subtest: first published generation selects original Organizer and cold reopens owner edits
+ok 9 - first published generation selects original Organizer and cold reopens owner edits
+  ---
+  duration_ms: 498.629458
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default empty without replacing or migrating it
+ok 10 - enabled selection refuses existing default empty without replacing or migrating it
+  ---
+  duration_ms: 422.443334
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default content without replacing or migrating it
+ok 11 - enabled selection refuses existing default content without replacing or migrating it
+  ---
+  duration_ms: 435.089584
+  type: 'test'
+  ...
+# Subtest: enabled missing registry refuses without creating registry target or fallback
+ok 12 - enabled missing registry refuses without creating registry target or fallback
+  ---
+  duration_ms: 0.175167
+  type: 'test'
+  ...
+# Subtest: enabled corrupt registry fails without silently opening default
+ok 13 - enabled corrupt registry fails without silently opening default
+  ---
+  duration_ms: 409.627375
+  type: 'test'
+  ...
+# Subtest: enabled corrupt target fails without silently opening default
+ok 14 - enabled corrupt target fails without silently opening default
+  ---
+  duration_ms: 410.928292
+  type: 'test'
+  ...
+# Subtest: enabled corrupt receipt fails without silently opening default
+ok 15 - enabled corrupt receipt fails without silently opening default
+  ---
+  duration_ms: 409.810125
+  type: 'test'
+  ...
+# Subtest: default database appearing before final selection check rejects the selected store
+ok 16 - default database appearing before final selection check rejects the selected store
+  ---
+  duration_ms: 416.179875
+  type: 'test'
+  ...
+# Subtest: caller database factory constructor and malformed configuration cannot choose an application store
+ok 17 - caller database factory constructor and malformed configuration cannot choose an application store
+  ---
+  duration_ms: 0.27625
+  type: 'test'
+  ...
+# Subtest: enabled selection requires database enumeration and never falls back
+ok 18 - enabled selection requires database enumeration and never falls back
+  ---
+  duration_ms: 0.054334
+  type: 'test'
+  ...
+# Subtest: selected original Organizer retains the exact AI filter authority without granting it default permission
+ok 19 - selected original Organizer retains the exact AI filter authority without granting it default permission
+  ---
+  duration_ms: 417.341125
+  type: 'test'
+  ...
+# Subtest: actual configured worker builds its original services on the selected Organizer without a fallback store
+ok 20 - actual configured worker builds its original services on the selected Organizer without a fallback store
+  ---
+  duration_ms: 1293.070166
+  type: 'test'
+  ...
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 21 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 2.946542
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 22 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 1.22625
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 23 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 0.797541
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 24 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 0.611209
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 25 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 0.868375
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 26 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.395708
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 27 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 0.746958
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 28 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.309292
+  type: 'test'
+  ...
+# Subtest: configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+ok 29 - configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+  ---
+  duration_ms: 0.469833
+  type: 'test'
+  ...
+# Subtest: selection confirmation and restart are separate bilingual user clicks; selected receipt blocks ordinary Sync actions
+ok 30 - selection confirmation and restart are separate bilingual user clicks; selected receipt blocks ordinary Sync actions
+  ---
+  duration_ms: 0.851792
+  type: 'test'
+  ...
+# Subtest: selection double-click and lost response preserve unknown state without automatic activate or restart
+ok 31 - selection double-click and lost response preserve unknown state without automatic activate or restart
+  ---
+  duration_ms: 0.419333
+  type: 'test'
+  ...
+# Subtest: late selection reply after leaving Settings is ignored
+ok 32 - late selection reply after leaving Settings is ignored
+  ---
+  duration_ms: 0.267416
+  type: 'test'
+  ...
+# Subtest: malformed selection restart entitlement exposes no selection action
+ok 33 - malformed selection restart entitlement exposes no selection action
+  ---
+  duration_ms: 0.19525
+  type: 'test'
+  ...
+# Subtest: google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 34 - google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 1035.488917
+  type: 'test'
+  ...
+# Subtest: onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 35 - onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 1021.492416
+  type: 'test'
+  ...
+# Subtest: actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+ok 36 - actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+  ---
+  duration_ms: 77.9855
+  type: 'test'
+  ...
+# Subtest: unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+ok 37 - unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+  ---
+  duration_ms: 71.44525
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11127.276
