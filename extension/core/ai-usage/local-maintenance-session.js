@@ -223,7 +223,7 @@ export class LocalMaintenanceSession {
   };return this.#qualificationRead(request,transaction,qualify);
  }
  async #contextMapping(request,transaction=null){
-  const qualify=async transaction=>{const t=contextScopeTransactionReader(this.#store,transaction,createContextScopeWorkBudget()),found=new Map();for(const {key,descriptor:d}of request.items){if(d.kind!=='context_item')continue;const preliminary=await readContextEditMapping(this.#store,t,d,{qualifyAuthored:false});if(!preliminary)continue;const m=preliminary.authoredEntryIds?await this.#qualificationRead(request,transaction,q=>readContextEditMapping(this.#store,q,d)):preliminary;if(m)found.set(key,m);}return found;};return transaction?qualify(transaction):this.#foundation.read(qualify);
+  const qualify=async transaction=>{const t=contextScopeTransactionReader(this.#store,transaction,createContextScopeWorkBudget()),found=new Map();for(const {key,descriptor:d}of request.items){if(d.kind!=='context_item')continue;const preliminary=await readContextEditMapping(this.#store,t,d,{qualifyAuthored:false});if(!preliminary)continue;const m=preliminary.authoredEntryIds||preliminary.boundEntryIds?await this.#qualificationRead(request,transaction,q=>readContextEditMapping(this.#store,q,d)):preliminary;if(m)found.set(key,m);}return found;};return transaction?qualify(transaction):this.#foundation.read(qualify);
  }
  #contextEdits(state,units){return units.filter(u=>u.facet==='context'&&state.contextMapping?.has(u.key)).map(u=>state.contextMapping.get(u.key));}
  #selectedInputFields(state,units,inputId){const corrections=this.#contextEdits(state,units);if(!corrections.length)return ['body'];if(corrections.length!==1||units.length!==1)fail('STALE_BASE');return contextEditInputFields(corrections[0],inputId);}
@@ -401,10 +401,11 @@ export class LocalMaintenanceSession {
    for(const {key,descriptor:d}of request.items){if(!['library_entry','placement'].includes(d.kind))continue;const placement=d.kind==='placement'?await t.get('placements',d.recordId||d.entityId):null,entryId=placement?.entryId??(d.kind==='library_entry'?d.entityId:null);if(!entryId)continue;const mapped=await readBoundEntryContext(this.#store,t,entryId,d,placement?.topicId??null);if(mapped)found.set(key,mapped);}return found;};
   return this.#qualificationRead(request,transaction,qualify);
  }
- #bound(state,units){const unique=new Map();for(const u of units)if(u.facet==='context'&&state.boundMapping?.has(u.key)){const m=state.boundMapping.get(u.key),key=boundMaterialKey(m);if(unique.has(key)&&!equal(unique.get(key),m))fail('STALE_BASE');unique.set(key,m);}return [...unique.values()];}
+ #bound(state,units){const unique=new Map(),mappings=[...this.#contextEdits(state,units).flatMap(m=>m.boundEntries||[]),...units.filter(u=>u.facet==='context'&&state.boundMapping?.has(u.key)).map(u=>state.boundMapping.get(u.key))];for(const m of mappings){const key=boundMaterialKey(m);if(unique.has(key)&&!equal(unique.get(key),m))fail('STALE_BASE');unique.set(key,m);}return [...unique.values()];}
  async #checkBoundMapping(state,units,transaction){
   return this.#qualificationCheck(state,units,transaction,async transaction=>{
   const t=contextScopeTransactionReader(this.#store,transaction,state.authoredBudget);
+  for(const m of this.#contextEdits(state,units).flatMap(m=>m.boundEntries||[])){if(!equal(await readBoundEntryContext(this.#store,t,m.entryId,null,m.topicId),m))fail('STALE_BASE');const held=state.boundMaterial?.get(boundMaterialKey(m));if(held&&!equal(boundSelectedText(await t.get('thoughts',m.entryId),m.selectedFields),held.fields))fail('STALE_BASE');}
   for(const u of units)if(u.facet==='context'&&state.boundMapping?.has(u.key)){const m=state.boundMapping.get(u.key),d=state.request.items.find(i=>i.key===u.key).descriptor,now=await readBoundEntryContext(this.#store,t,m.entryId,d,d.kind==='placement'?m.topicId:null);if(!equal(now,m))fail('STALE_BASE');const held=state.boundMaterial?.get(boundMaterialKey(m));if(held&&!equal(boundSelectedText(await t.get('thoughts',m.entryId),m.selectedFields),held.fields))fail('STALE_BASE');}
   });
  }
@@ -527,7 +528,7 @@ export class LocalMaintenanceSession {
    const partitions=[];let partition=null;
    for(const item of request.items){const units=coverage.filter(u=>u.key===item.key);if(!units.length)continue;const sources=[...new Set([...item.descriptor.sourceRecordIds,...(structuralMapping.get(item.key)?.sourceRecordIds||[]),...(contextMapping.get(item.key)?.sourceRecordIds||[])])];if(sources.length>20)fail('BUDGET_EXCEEDED');
     const combined=new Set([...(partition?.sources||[]),...sources]),inputIds=this.#inputs({request,entryMapping,placementMapping,authoredMapping,boundMapping,structuralMapping,contextMapping},units),combinedInputs=new Set([...(partition?.inputs||[]),...inputIds]);
-    if(!partition||partition.units.length+units.length>50||combinedInputs.size+this.#authored({authoredMapping,contextMapping},[...(partition?.units||[]),...units]).length+this.#bound({boundMapping},[...(partition?.units||[]),...units]).length>Math.min(20,this.#store.organizerBudget.limits.maxInputs)||combined.size>20){partition={sources:new Set(),units:[],inputs:new Set()};partitions.push(partition);}
+    if(!partition||partition.units.length+units.length>50||combinedInputs.size+this.#authored({authoredMapping,contextMapping},[...(partition?.units||[]),...units]).length+this.#bound({boundMapping,contextMapping},[...(partition?.units||[]),...units]).length>Math.min(20,this.#store.organizerBudget.limits.maxInputs)||combined.size>20){partition={sources:new Set(),units:[],inputs:new Set()};partitions.push(partition);}
     for(const id of sources)partition.sources.add(id);partition.units.push(...units);for(const id of inputIds)partition.inputs.add(id);
    }return partitions;
   };
