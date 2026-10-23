@@ -1,3 +1,4 @@
+import {PromptSyncJournal} from './browser-native-sync/prompt-journal.js';
 import {requireHistoricalCandidateSession} from './ai-usage/historical-candidate-session.js';
 import {prepareInputSearchContext,prepareInputSearchArrival,matchesInputSearchArrival} from './qualified-input-search.js';
 import {PROMPT_HISTORY_SCOPE,queryPromptHistory,readPromptHistory,readPromptHistoryInTransaction,validPromptSelectionRef,selectPromptRange} from './prompt-selection.js';
@@ -47,7 +48,7 @@ const originalMethod=(value,name,expected)=>{
  return false;
 };
 export class PromptReuseService{
- #nextFamilyView;#historyCandidates;#pendingRead=null;
+ #nextFamilyView;#historyCandidates;#pendingRead=null;#manualConflictOffers=new Map();
  constructor(store,{clock=()=>Date.now(),syncJournal=null,historyCandidates=null}={}){this.s=store;this.#historyCandidates=historyCandidates===null?null:requireHistoricalCandidateSession(historyCandidates,store);this.#historyCandidates?.bindPromptOwner(()=>this.snapshot());this.clock=clock;this.#nextFamilyView=new NextFamilyView(clock);this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
  async syncCorrectionSnapshot(journal){if(!(#nextFamilyView in this)||this.syncJournal!==journal)fail();return this.#snapshot(false);}
  async snapshot(){return this.#snapshot(true);}
@@ -259,7 +260,8 @@ export class PromptReuseService{
   if(typeof includeHidden!=='boolean')fail();const serial=this.#nextFamilyView.begin(),x=await this.#querySnapshot();
   this.#nextFamilyView.publish(serial,x);
   const eligible=x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained));
-  return {revision:x.preferences.revision,generation:x.generation,manualOrder:[...x.preferences.pins],items:eligible.filter(f=>quickPromptEligible(f.text)),oversizedItems:eligible.filter(f=>!quickPromptEligible(f.text)),complete:true,...(x.unresolved?{unresolved:x.unresolved,bindingsComplete:x.bindingsComplete}:{})};
+  const manualConflict=this.syncJournal?await this.manualConflict():null;if(manualConflict?.state==='available'&&manualConflict.revision!==x.preferences.revision)changed();
+  return {...(manualConflict?{manualConflict}:{}),revision:x.preferences.revision,generation:x.generation,manualOrder:[...x.preferences.pins],items:eligible.filter(f=>quickPromptEligible(f.text)),oversizedItems:eligible.filter(f=>!quickPromptEligible(f.text)),complete:true,...(x.unresolved?{unresolved:x.unresolved,bindingsComplete:x.bindingsComplete}:{})};
  }
  async historicalCandidateStatus(){return {available:this.#historyCandidates?.available()===true};}
  async refreshHistoricalCandidates(query,source){
@@ -339,6 +341,23 @@ export class PromptReuseService{
   const current=await this.resolveSelection(selected.ref,selected.range);if(current.text!==selected.text)changed();return current;
  }
  async assertCurrent(expected){return this.s.run(()=>this.s.repository.transaction(false,async t=>{if(expected!==await generation(t)){recordPromptRefusal('final-generation-mismatch','MEMORY_STALE');changed();}},['meta']));}
+ async #manualControl(journal,work,expected=null){
+  return this.s.run(async()=>{const before=await observeOriginalPromptControlPublication(this.s);if(before.row.settings.consentVersion!==CONSENT_VERSION)throw new ArchiveError('CONSENT_REQUIRED');if(this.syncJournal!==journal||expected&&controlPublicationEncoding(before.row)!==controlPublicationEncoding(expected))changed();const result=await work(before.token);const after=await observeOriginalPromptControlPublication(this.s,before.token);if(controlPublicationEncoding(after.row)!==controlPublicationEncoding(before.row))changed();return {result,control:before.row};});
+ }
+ async manualConflict(){
+  if(!(await this.s.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
+  if(!(this.syncJournal instanceof PromptSyncJournal))return {state:'unavailable'};
+  const journal=this.syncJournal,{result:offer,control}=await this.#manualControl(journal,()=>journal.captureManualConflict(this));if(offer.state!=='available')return offer;
+  const token=crypto.randomUUID();if(this.#manualConflictOffers.size>=8)this.#manualConflictOffers.delete(this.#manualConflictOffers.keys().next().value);this.#manualConflictOffers.set(token,{journal,control,capability:offer.capability});
+  return {state:'available',token,revision:offer.revision,id:offer.id,localText:offer.localText,otherText:offer.otherText};
+ }
+ async assertManualConflictCurrent(token){const offer=this.#manualConflictOffers.get(token);if(!offer||this.syncJournal!==offer.journal)changed();await this.#manualControl(offer.journal,()=>offer.journal.assertManualConflict(this,offer.capability),offer.control);return true;}
+ async resolveManualConflict(request){
+  if(!own(request,['token','choice','text'])||typeof request.token!=='string'||typeof request.choice!=='string')fail();await this.assertManualConflictCurrent(request.token);const offer=this.#manualConflictOffers.get(request.token),prepared=await offer.journal.prepareManualResolution(this,offer.capability,request.choice,request.text);
+  // The final control observation is performed before native IDB admission.
+  // No SDK promise is introduced into the original atomic write transaction.
+  const result=await this.s.run(async()=>{const control=await observeOriginalPromptControlPublication(this.s);if(control.row.settings.consentVersion!==CONSENT_VERSION)throw new ArchiveError('CONSENT_REQUIRED');if(controlPublicationEncoding(control.row)!==controlPublicationEncoding(offer.control))changed();return this.s.repository.transaction(true,async t=>{await publicationSettled(t);if(this.syncJournal!==offer.journal)changed();return offer.journal.commitManualResolution(t,this,prepared,control);},['meta']);});this.#manualConflictOffers.delete(request.token);return result;
+ }
  async change(change){return this.#change(change);}
  async createFromHistory(ref,text,revision){
   if(!validPromptSelectionRef(ref)||ref.kind!=='history_input')fail();

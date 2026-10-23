@@ -16,6 +16,7 @@ export class PromptReuseCommands{
   if(request.type==='PAIA_PROMPT_HISTORY_QUERY'&&own(request,['type','query','cursor','searchSnapshot']))return this.service.queryHistory({query:request.query,cursor:request.cursor,searchSnapshot:request.searchSnapshot});
   if(request.type==='PAIA_PROMPT_HISTORY_SAVE'&&own(request,['type','ref','text','revision']))return this.service.createFromHistory(request.ref,request.text,request.revision);
   if(request.type==='PAIA_PROMPT_SELECTION_READ'&&own(request,['type','ref','range']))return this.service.resolveSelection(request.ref,request.range);
+  if(request.type==='PAIA_PROMPT_CONFLICT_RESOLVE'&&own(request,['type','resolution']))return this.service.resolveManualConflict(request.resolution);
   if(request.type==='PAIA_PROMPT_CHANGE'&&own(request,['type','change']))return this.service.change(request.change);
   if(request.type==='PAIA_PROMPT_TARGETS'&&own(request,['type']))return (await api.tabs.query({url:'https://chatgpt.com/*'})).filter(t=>!t.incognito).map(t=>({id:t.id,url:t.url}));
   const typed=request.type==='PAIA_PROMPT_SELECTION_INSERT';

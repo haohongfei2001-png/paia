@@ -175,7 +175,7 @@ export class PromptSurfaceCommands{
    return this.openArchiveArrival(descriptor,{tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url});
   }
   if(c.type==='members'&&own(c,['type','id']))return this.commands.service.members(c.id);
-  if(!['PAIA_PROMPT_QUERY','PAIA_PROMPT_CHANGE','PAIA_PROMPT_COPY_TEXT','PAIA_PROMPT_INSERT','PAIA_PROMPT_HISTORY_QUERY','PAIA_PROMPT_HISTORY_SAVE','PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_SELECTION_INSERT'].includes(c.type))fail();
+  if(!['PAIA_PROMPT_QUERY','PAIA_PROMPT_CHANGE','PAIA_PROMPT_CONFLICT_RESOLVE','PAIA_PROMPT_COPY_TEXT','PAIA_PROMPT_INSERT','PAIA_PROMPT_HISTORY_QUERY','PAIA_PROMPT_HISTORY_SAVE','PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_SELECTION_INSERT'].includes(c.type))fail();
   if(c.type==='PAIA_PROMPT_INSERT'||c.type==='PAIA_PROMPT_SELECTION_INSERT'){
    if(!own(c,c.type==='PAIA_PROMPT_INSERT'?['type','id','text','operationId']:['type','ref','range','operationId','target','activationKey']))fail();
    if(Object.hasOwn(c,'activationKey')&&!['Enter',' '].includes(c.activationKey))fail();
@@ -193,17 +193,17 @@ export class PromptSurfaceCommands{
    // The asynchronous host check can outlive a real Working edit. Re-read the
    // original domain owner before delivering the already-read body.
    if(c.type==='PAIA_PROMPT_SELECTION_READ')await this.commands.service.assertSelectionCurrent(result);
-   else if(c.type==='PAIA_PROMPT_QUERY')await this.commands.service.assertCurrent(result.generation);
+   else if(c.type==='PAIA_PROMPT_QUERY'){await this.commands.service.assertCurrent(result.generation);if(result.manualConflict?.state==='available')await this.commands.service.assertManualConflictCurrent(result.manualConflict.token);}
    else if(result.searchSnapshot&&!result.changed)await this.commands.service.assertCurrent(result.searchSnapshot.generation);
   }
-  if(['PAIA_PROMPT_CHANGE','PAIA_PROMPT_HISTORY_SAVE'].includes(c.type))void api.runtime.sendMessage({type:'PAIA_PROMPT_CHANGED'}).catch(()=>{});
+  if(['PAIA_PROMPT_CHANGE','PAIA_PROMPT_HISTORY_SAVE','PAIA_PROMPT_CONFLICT_RESOLVE'].includes(c.type))void api.runtime.sendMessage({type:'PAIA_PROMPT_CHANGED'}).catch(()=>{});
   if(['PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_HISTORY_QUERY'].includes(c.type)){if(typeof sender.documentId!=='string'||!sender.documentId)fail();return {...result,target:{url:tab.url,documentId:sender.documentId,nonce:r.nonce}};}
   if(c.type==='PAIA_PROMPT_COPY_TEXT'&&typeof sender.documentId==='string'&&sender.documentId)return {...result,target:{url:tab.url,documentId:sender.documentId,nonce:r.nonce}};
   if(c.type!=='PAIA_PROMPT_QUERY')return result;
   // Read only the two bounded display choices through the existing owner. No
   // settings body, control capability or alternate persistence is exposed.
   const displayPreferences=await this.readDisplayPreferences();
-  await this.currentReadTarget(readSource);await this.commands.service.assertCurrent(result.generation);
+  await this.currentReadTarget(readSource);await this.commands.service.assertCurrent(result.generation);if(result.manualConflict?.state==='available')await this.commands.service.assertManualConflictCurrent(result.manualConflict.token);
   return {...result,target:{url:tab.url,documentId:sender.documentId,nonce:r.nonce},theme:host.dark?'dark':'light',displayPreferences,surfaceForm:host.expanded===false?'capsule':'board',automaticSuggestion:host.automaticSuggestion===true};
  }
  async currentReadTarget(source){
