@@ -1,3 +1,11 @@
+# Combined local consumers — 2026-10-24
+
+Working/permanent-negative recovery, original manual Prompt conflict resolution and the real Settings/background local lifecycle are integrated. At runtime548a91f7, 315/315 complete owning Node tests and one682-file build pass. First native4/6 retains two Settings-navigation fixture failures; test-only original viewport/consent/Data-group corrections give affected Source/Release2/2 using the same build. Native Working18 and Prompt23 original bodies pass per variant; the affected actual Settings unknown-result/pause/cold-start and bounded Prompt DOM checks also pass. [Exact receipt](../../../work/sync-consumer-integration-20261023/REPORT.md). These are separate invocations, not one6/6 or whole-programme acceptance.
+
+Recoverable checkpoint publication and complete actual Prompt enrollment remain active engineering. Independent review is closing delayed-write and actual-dispatch races before integration; a baseline Source purge/Filter compatibility successor is separate from the tested runtime. Default production provider configuration stays absent. No real account, cloud run, installation, scale retry or deployment occurred. The consumed129 overallFAIL remains unchanged.
+
+## Preserved preceding checkpoint
+
 # Explicit recovery completion and local consumers — 2026-10-23
 
 Committed-publication cleanup now has an explicit cold-resumable consumer and ready-only original writer binding. The default-off fixed application startup refuses unretired generations. Five complete owning Node files passed73/73; one678-file development build; native first4/6, then test-only physical-name and random-order corrections with final affected owning8/8 and Source/Release2/2. All failed invocations are retained separately. [Exact milestone](../../../work/recovery-completion-milestone-20261023/REPORT.md). The successful small profiles do not turn the sole129 FAIL into a pass or establish Linux capacity.
