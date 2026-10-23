@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: original human restore crosses cold B and cold C with its real causal group and retained lifecycle lock
+ok 1 - original human restore crosses cold B and cold C with its real causal group and retained lifecycle lock
+  ---
+  duration_ms: 935.266209
+  type: 'test'
+  ...
+# Subtest: a restored human Topic rejects a later independently authorized inactivity without canonical or activity protocol writes
+ok 2 - a restored human Topic rejects a later independently authorized inactivity without canonical or activity protocol writes
+  ---
+  duration_ms: 569.05475
+  type: 'test'
+  ...
+# Subtest: the restored lock is not an independent processing grant; revoked issuer still rejects with every store unchanged
+ok 3 - the restored lock is not an independent processing grant; revoked issuer still rejects with every store unchanged
+  ---
+  duration_ms: 106.592625
+  type: 'test'
+  ...
+# Subtest: original human restoration duplicate and lost return retain one exact causal event
+ok 4 - original human restoration duplicate and lost return retain one exact causal event
+  ---
+  duration_ms: 92.970625
+  type: 'test'
+  ...
+# Subtest: human restore source ACK failure atomically rolls back canonical members, history and protocol
+ok 5 - human restore source ACK failure atomically rolls back canonical members, history and protocol
+  ---
+  duration_ms: 100.512125
+  type: 'test'
+  ...
+# Subtest: human restore receiver ACK failure atomically rolls back canonical members, history and protocol
+ok 6 - human restore receiver ACK failure atomically rolls back canonical members, history and protocol
+  ---
+  duration_ms: 434.24825
+  type: 'test'
+  ...
+# Subtest: two genuine human restores from the same removed base cannot silently replace the accepted causal branch
+ok 7 - two genuine human restores from the same removed base cannot silently replace the accepted causal branch
+  ---
+  duration_ms: 723.335833
+  type: 'test'
+  ...
+# Subtest: an actual intervening human restore invalidates an already prepared remote restore owner
+ok 8 - an actual intervening human restore invalidates an already prepared remote restore owner
+  ---
+  duration_ms: 435.358459
+  type: 'test'
+  ...
+# Subtest: cold default store retains the human restoration lock and its original lifecycle owner veto
+ok 9 - cold default store retains the human restoration lock and its original lifecycle owner veto
+  ---
+  duration_ms: 99.315709
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3693.357958

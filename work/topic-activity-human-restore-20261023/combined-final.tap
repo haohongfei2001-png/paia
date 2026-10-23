@@ -1,0 +1,280 @@
+TAP version 13
+# Subtest: Topic removal and linked restoration preserve actual membership histories and distinct semantic times
+ok 1 - Topic removal and linked restoration preserve actual membership histories and distinct semantic times
+  ---
+  duration_ms: 112.7335
+  type: 'test'
+  ...
+# Subtest: Topic lifecycle plan rejects changed membership and rolls back a real post-history failure
+ok 2 - Topic lifecycle plan rejects changed membership and rolls back a real post-history failure
+  ---
+  duration_ms: 88.763708
+  type: 'test'
+  ...
+# Subtest: original human restore crosses cold B and cold C with its real causal group and retained lifecycle lock
+ok 3 - original human restore crosses cold B and cold C with its real causal group and retained lifecycle lock
+  ---
+  duration_ms: 1109.995875
+  type: 'test'
+  ...
+# Subtest: a restored human Topic rejects a later independently authorized inactivity without canonical or activity protocol writes
+ok 4 - a restored human Topic rejects a later independently authorized inactivity without canonical or activity protocol writes
+  ---
+  duration_ms: 566.322541
+  type: 'test'
+  ...
+# Subtest: the restored lock is not an independent processing grant; revoked issuer still rejects with every store unchanged
+ok 5 - the restored lock is not an independent processing grant; revoked issuer still rejects with every store unchanged
+  ---
+  duration_ms: 97.308833
+  type: 'test'
+  ...
+# Subtest: original human restoration duplicate and lost return retain one exact causal event
+ok 6 - original human restoration duplicate and lost return retain one exact causal event
+  ---
+  duration_ms: 127.126291
+  type: 'test'
+  ...
+# Subtest: human restore source ACK failure atomically rolls back canonical members, history and protocol
+ok 7 - human restore source ACK failure atomically rolls back canonical members, history and protocol
+  ---
+  duration_ms: 120.754
+  type: 'test'
+  ...
+# Subtest: human restore receiver ACK failure atomically rolls back canonical members, history and protocol
+ok 8 - human restore receiver ACK failure atomically rolls back canonical members, history and protocol
+  ---
+  duration_ms: 459.318125
+  type: 'test'
+  ...
+# Subtest: two genuine human restores from the same removed base cannot silently replace the accepted causal branch
+ok 9 - two genuine human restores from the same removed base cannot silently replace the accepted causal branch
+  ---
+  duration_ms: 864.35625
+  type: 'test'
+  ...
+# Subtest: an actual intervening human restore invalidates an already prepared remote restore owner
+ok 10 - an actual intervening human restore invalidates an already prepared remote restore owner
+  ---
+  duration_ms: 411.455667
+  type: 'test'
+  ...
+# Subtest: cold default store retains the human restoration lock and its original lifecycle owner veto
+ok 11 - cold default store retains the human restoration lock and its original lifecycle owner veto
+  ---
+  duration_ms: 106.983084
+  type: 'test'
+  ...
+# Subtest: original inactive owner and independent activity wire/outbox commit in one original repository transaction
+ok 12 - original inactive owner and independent activity wire/outbox commit in one original repository transaction
+  ---
+  duration_ms: 241.926375
+  type: 'test'
+  ...
+# Subtest: original backup-restored Topic accepts qualified remote activity without echo and replays exactly
+ok 13 - original backup-restored Topic accepts qualified remote activity without echo and replays exactly
+  ---
+  duration_ms: 194.784041
+  type: 'test'
+  ...
+# Subtest: late Topic identity mutation cannot acknowledge an activity wire with a different original identity
+ok 14 - late Topic identity mutation cannot acknowledge an activity wire with a different original identity
+  ---
+  duration_ms: 89.796
+  type: 'test'
+  ...
+# Subtest: activity Sync protocol head tail rejects and rolls back original owner plus outbox
+ok 15 - activity Sync protocol head tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 93.315542
+  type: 'test'
+  ...
+# Subtest: activity Sync protocol receipt tail rejects and rolls back original owner plus outbox
+ok 16 - activity Sync protocol receipt tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 82.740875
+  type: 'test'
+  ...
+# Subtest: activity Sync protocol generation tail rejects and rolls back original owner plus outbox
+ok 17 - activity Sync protocol generation tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 83.776583
+  type: 'test'
+  ...
+# Subtest: activity Sync domain receipt tail rejects and rolls back original owner plus outbox
+ok 18 - activity Sync domain receipt tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 135.888917
+  type: 'test'
+  ...
+# Subtest: activity Sync Source tail rejects and rolls back original owner plus outbox
+ok 19 - activity Sync Source tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 89.203375
+  type: 'test'
+  ...
+# Subtest: activity Sync grant tail rejects and rolls back original owner plus outbox
+ok 20 - activity Sync grant tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 76.994666
+  type: 'test'
+  ...
+# Subtest: activity Sync storage failure tail rejects and rolls back original owner plus outbox
+ok 21 - activity Sync storage failure tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 79.814292
+  type: 'test'
+  ...
+# Subtest: activity Sync private budget tail rejects and rolls back original owner plus outbox
+ok 22 - activity Sync private budget tail rejects and rolls back original owner plus outbox
+  ---
+  duration_ms: 136.186291
+  type: 'test'
+  ...
+# Subtest: activity wire cannot bypass original pin protection
+ok 23 - activity wire cannot bypass original pin protection
+  ---
+  duration_ms: 62.93375
+  type: 'test'
+  ...
+# Subtest: activity wire cannot bypass original keep protection
+ok 24 - activity wire cannot bypass original keep protection
+  ---
+  duration_ms: 61.904125
+  type: 'test'
+  ...
+# Subtest: activity wire cannot bypass original lifecycle protection
+ok 25 - activity wire cannot bypass original lifecycle protection
+  ---
+  duration_ms: 67.84825
+  type: 'test'
+  ...
+# Subtest: generic Core local and remote write paths cannot consume an activity DTO as authority
+ok 26 - generic Core local and remote write paths cannot consume an activity DTO as authority
+  ---
+  duration_ms: 124.46525
+  type: 'test'
+  ...
+# Subtest: wire schema refuses user actor, body extras, forged parents, dataset and implicit policy
+ok 27 - wire schema refuses user actor, body extras, forged parents, dataset and implicit policy
+  ---
+  duration_ms: 84.326791
+  type: 'test'
+  ...
+# Subtest: remote receive uses current independent grant and original activity eligibility, never the wire as a grant
+ok 28 - remote receive uses current independent grant and original activity eligibility, never the wire as a grant
+  ---
+  duration_ms: 113.819375
+  type: 'test'
+  ...
+# Subtest: clock regression rejects before any activity or protocol write
+ok 29 - clock regression rejects before any activity or protocol write
+  ---
+  duration_ms: 88.944875
+  type: 'test'
+  ...
+# Subtest: lost commit return resolves by durable original receipt without another activity or outbox write
+ok 30 - lost commit return resolves by durable original receipt without another activity or outbox write
+  ---
+  duration_ms: 110.093833
+  type: 'test'
+  ...
+# Subtest: independent competing activity is refused on an already settled Topic, retaining the first result
+ok 31 - independent competing activity is refused on an already settled Topic, retaining the first result
+  ---
+  duration_ms: 206.499208
+  type: 'test'
+  ...
+# Subtest: busy journal refuses reentry and close while the original qualified operation is in flight
+ok 32 - busy journal refuses reentry and close while the original qualified operation is in flight
+  ---
+  duration_ms: 90.456917
+  type: 'test'
+  ...
+# Subtest: cold service and repository reopen replays durable lifecycle plus typed receipt without another write
+ok 33 - cold service and repository reopen replays durable lifecycle plus typed receipt without another write
+  ---
+  duration_ms: 109.776458
+  type: 'test'
+  ...
+# Subtest: duplicate rejects a changed durable activity mapping instead of reporting the old success
+ok 34 - duplicate rejects a changed durable activity mapping instead of reporting the old success
+  ---
+  duration_ms: 89.00925
+  type: 'test'
+  ...
+# Subtest: remote event time cannot replace the receiver current clock qualification
+ok 35 - remote event time cannot replace the receiver current clock qualification
+  ---
+  duration_ms: 119.184875
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable revision bytes against the original typed operation
+ok 36 - duplicate checks durable revision bytes against the original typed operation
+  ---
+  duration_ms: 98.691959
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable head against the original typed operation
+ok 37 - duplicate checks durable head against the original typed operation
+  ---
+  duration_ms: 95.971459
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable receipt against the original typed operation
+ok 38 - duplicate checks durable receipt against the original typed operation
+  ---
+  duration_ms: 151.393125
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable sequence against the original typed operation
+ok 39 - duplicate checks durable sequence against the original typed operation
+  ---
+  duration_ms: 93.674542
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable entity revision against the original typed operation
+ok 40 - duplicate checks durable entity revision against the original typed operation
+  ---
+  duration_ms: 97.653916
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable marker shape against the original typed operation
+ok 41 - duplicate checks durable marker shape against the original typed operation
+  ---
+  duration_ms: 89.097208
+  type: 'test'
+  ...
+# Subtest: activity Core rejects replaced get without invoking caller code
+ok 42 - activity Core rejects replaced get without invoking caller code
+  ---
+  duration_ms: 60.413
+  type: 'test'
+  ...
+# Subtest: activity Core rejects replaced applyInTransaction without invoking caller code
+ok 43 - activity Core rejects replaced applyInTransaction without invoking caller code
+  ---
+  duration_ms: 60.594166
+  type: 'test'
+  ...
+# Subtest: activity Core rejects replaced bind without invoking caller code
+ok 44 - activity Core rejects replaced bind without invoking caller code
+  ---
+  duration_ms: 57.089625
+  type: 'test'
+  ...
+# Subtest: duplicate rechecks protocol after original domain receipt settlement
+ok 45 - duplicate rechecks protocol after original domain receipt settlement
+  ---
+  duration_ms: 86.411542
+  type: 'test'
+  ...
+1..45
+# tests 45
+# suites 0
+# pass 45
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4122.471041

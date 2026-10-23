@@ -1,0 +1,24 @@
+{
+  "baseline": "eb4dee3e8622498fc374982d432c30b24607289e",
+  "node": "v22.23.3",
+  "platform": "Darwin",
+  "machine": "arm64",
+  "engine": "fake-indexeddb",
+  "command": [
+    "node",
+    "--test",
+    "extension/tests/topic-activity-human-restore-sync.test.mjs",
+    "extension/tests/topic-activity-sync.test.mjs",
+    "extension/tests/human-graph-topic-lifecycle-plan.test.mjs"
+  ],
+  "tests": 45,
+  "pass": 45,
+  "fail": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "todo": 0,
+  "exit": 0,
+  "tapMs": 4122.471041,
+  "native": false,
+  "runtimeChanged": false
+}

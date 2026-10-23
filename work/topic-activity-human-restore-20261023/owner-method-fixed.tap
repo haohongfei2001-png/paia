@@ -1,0 +1,90 @@
+TAP version 13
+# Subtest: original human restore crosses cold B and cold C with its real causal group and retained lifecycle lock
+ok 1 - original human restore crosses cold B and cold C with its real causal group and retained lifecycle lock
+  ---
+  duration_ms: 1014.286959
+  type: 'test'
+  ...
+# Subtest: a restored human Topic rejects a later independently authorized inactivity without canonical or activity protocol writes
+not ok 2 - a restored human Topic rejects a later independently authorized inactivity without canonical or activity protocol writes
+  ---
+  duration_ms: 627.7905
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-activity-human-restore-sync.test.mjs:34:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_HUMAN_UNSUPPORTED_MUTATION'
+    -   code: 'INVALID_REQUEST'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'INVALID_REQUEST'
+  actual:
+  error: 'BNS_HUMAN_UNSUPPORTED_MUTATION'
+  stack: |-
+    OrganizerStore.operation (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/thought-store-owner.js:108:37)
+    OrganizerStore.operation (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/library-documents-owner.js:78:51)
+    #change (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/topic-lifecycle.js:39:56)
+    async TopicLifecycleService.changeInactive (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/topic-lifecycle.js:33:55)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-activity-human-restore-sync.test.mjs:34:419)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-activity-human-restore-sync.test.mjs:34:419)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: the restored lock is not an independent processing grant; revoked issuer still rejects with every store unchanged
+ok 3 - the restored lock is not an independent processing grant; revoked issuer still rejects with every store unchanged
+  ---
+  duration_ms: 110.347541
+  type: 'test'
+  ...
+# Subtest: original human restoration duplicate and lost return retain one exact causal event
+ok 4 - original human restoration duplicate and lost return retain one exact causal event
+  ---
+  duration_ms: 105.729042
+  type: 'test'
+  ...
+# Subtest: human restore source ACK failure atomically rolls back canonical members, history and protocol
+ok 5 - human restore source ACK failure atomically rolls back canonical members, history and protocol
+  ---
+  duration_ms: 97.034583
+  type: 'test'
+  ...
+# Subtest: human restore receiver ACK failure atomically rolls back canonical members, history and protocol
+ok 6 - human restore receiver ACK failure atomically rolls back canonical members, history and protocol
+  ---
+  duration_ms: 469.223583
+  type: 'test'
+  ...
+# Subtest: two genuine human restores from the same removed base cannot silently replace the accepted causal branch
+ok 7 - two genuine human restores from the same removed base cannot silently replace the accepted causal branch
+  ---
+  duration_ms: 807.325667
+  type: 'test'
+  ...
+# Subtest: an actual intervening human restore invalidates an already prepared remote restore owner
+ok 8 - an actual intervening human restore invalidates an already prepared remote restore owner
+  ---
+  duration_ms: 480.963708
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 7
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3888.605917
