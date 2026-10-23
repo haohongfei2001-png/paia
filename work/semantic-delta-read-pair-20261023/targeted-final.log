@@ -1,0 +1,300 @@
+TAP version 13
+# Subtest: actual Working Input edit cancels the existing never-dispatched job atomically
+ok 1 - actual Working Input edit cancels the existing never-dispatched job atomically
+  ---
+  duration_ms: 71.817584
+  type: 'test'
+  ...
+# Subtest: dispatched synthetic attempt remains unknown and retains reservation after real edit
+ok 2 - dispatched synthetic attempt remains unknown and retains reservation after real edit
+  ---
+  duration_ms: 42.865542
+  type: 'test'
+  ...
+# Subtest: duplicate capture and unrelated metadata do not change an existing job
+ok 3 - duplicate capture and unrelated metadata do not change an existing job
+  ---
+  duration_ms: 17.385625
+  type: 'test'
+  ...
+# Subtest: 101 active jobs overflow leaves every job and receipt untouched and current still rejects stale work
+ok 4 - 101 active jobs overflow leaves every job and receipt untouched and current still rejects stale work
+  ---
+  duration_ms: 45.337958
+  type: 'test'
+  ...
+# SYNTHETIC_INVALIDATION_COST {"jobs":100,"reads":446,"writes":115,"elapsedMs":25.844291}
+# SYNTHETIC_CAPTURE_COST {"jobs":0,"reads":97,"writes":24,"elapsedMs":3.870999999999981}
+# Subtest: at most 100 actual indexed jobs are examined; ordinary zero-job capture has no job writes
+ok 5 - at most 100 actual indexed jobs are examined; ordinary zero-job capture has no job writes
+  ---
+  duration_ms: 58.200333
+  type: 'test'
+  ...
+# Subtest: semantic cancellation write failure rolls the real canonical edit and all jobs back
+ok 6 - semantic cancellation write failure rolls the real canonical edit and all jobs back
+  ---
+  duration_ms: 12.31125
+  type: 'test'
+  ...
+# Subtest: trusted restore epoch changes cancel a never-dispatched job without provider authority
+ok 7 - trusted restore epoch changes cancel a never-dispatched job without provider authority
+  ---
+  duration_ms: 13.730041
+  type: 'test'
+  ...
+# Subtest: missing known rows and unavailable authority are not proof of semantic invalidation
+ok 8 - missing known rows and unavailable authority are not proof of semantic invalidation
+  ---
+  duration_ms: 12.232667
+  type: 'test'
+  ...
+# Subtest: a true unknown outcome retains reservation and is not repeatedly recancelled
+ok 9 - a true unknown outcome retains reservation and is not repeatedly recancelled
+  ---
+  duration_ms: 18.230417
+  type: 'test'
+  ...
+# Subtest: unrelated and duplicate writes never scan the active job index
+ok 10 - unrelated and duplicate writes never scan the active job index
+  ---
+  duration_ms: 15.095625
+  type: 'test'
+  ...
+# Subtest: invalidation read error is propagated and cannot become a successful canonical mutation
+ok 11 - invalidation read error is propagated and cannot become a successful canonical mutation
+  ---
+  duration_ms: 12.989041
+  type: 'test'
+  ...
+# Subtest: a committed local child receipt survives cancellation of an unfinished sibling
+ok 12 - a committed local child receipt survives cancellation of an unfinished sibling
+  ---
+  duration_ms: 18.235834
+  type: 'test'
+  ...
+# Subtest: a durable dispatch fence with missing receipt is not proof of a never-dispatched child
+ok 13 - a durable dispatch fence with missing receipt is not proof of a never-dispatched child
+  ---
+  duration_ms: 14.1435
+  type: 'test'
+  ...
+# Subtest: 100 legitimate scoped Organize plans do not reread unchanged evidence for each job on capture
+ok 14 - 100 legitimate scoped Organize plans do not reread unchanged evidence for each job on capture
+  ---
+  duration_ms: 2397.582292
+  type: 'test'
+  ...
+# Subtest: real committed capture is repository-bound, uncloneable and consumable once with no DTO or storage change
+ok 15 - real committed capture is repository-bound, uncloneable and consumable once with no DTO or storage change
+  ---
+  duration_ms: 33.475875
+  type: 'test'
+  ...
+# Subtest: original Working no-op, persisted operation replay and unrelated readonly results have no new receipt
+ok 16 - original Working no-op, persisted operation replay and unrelated readonly results have no new receipt
+  ---
+  duration_ms: 16.047167
+  type: 'test'
+  ...
+# Subtest: semantic receipt is absent during the transaction and native completion event, present only after original done
+ok 17 - semantic receipt is absent during the transaction and native completion event, present only after original done
+  ---
+  duration_ms: 11.414792
+  type: 'test'
+  ...
+# Subtest: abort after semantic flush planning rolls back dirty metadata and cannot bind a result
+ok 18 - abort after semantic flush planning rolls back dirty metadata and cannot bind a result
+  ---
+  duration_ms: 15.117916
+  type: 'test'
+  ...
+# Subtest: fence-only, removal and same known delta are not eligible dirty receipts
+ok 19 - fence-only, removal and same known delta are not eligible dirty receipts
+  ---
+  duration_ms: 12.896667
+  type: 'test'
+  ...
+# Subtest: original single-item fields wrapper retains one receipt and persisted replay cannot regain it
+ok 20 - original single-item fields wrapper retains one receipt and persisted replay cannot regain it
+  ---
+  duration_ms: 20.364209
+  type: 'test'
+  ...
+# Subtest: only a single own data item is aliased; no getter or arbitrary body traversal occurs
+ok 21 - only a single own data item is aliased; no getter or arbitrary body traversal occurs
+  ---
+  duration_ms: 10.50975
+  type: 'test'
+  ...
+# Subtest: semantic read pair starts both requests before either resolves and preserves per-entity writes, sequence and final receipt
+ok 22 - semantic read pair starts both requests before either resolves and preserves per-entity writes, sequence and final receipt
+  ---
+  duration_ms: 16.326375
+  type: 'test'
+  ...
+# Subtest: semantic read pair known rejection rolls back prior entity, canonical rows, metadata and receipt
+ok 23 - semantic read pair known rejection rolls back prior entity, canonical rows, metadata and receipt
+  ---
+  duration_ms: 15.488666
+  type: 'test'
+  ...
+# Subtest: semantic read pair pending rejection rolls back prior entity, canonical rows, metadata and receipt
+ok 24 - semantic read pair pending rejection rolls back prior entity, canonical rows, metadata and receipt
+  ---
+  duration_ms: 15.4285
+  type: 'test'
+  ...
+# Subtest: semantic read pair both-known-first rejection rolls back prior entity, canonical rows, metadata and receipt
+ok 25 - semantic read pair both-known-first rejection rolls back prior entity, canonical rows, metadata and receipt
+  ---
+  duration_ms: 13.895459
+  type: 'test'
+  ...
+# Subtest: semantic read pair both-pending-first rejection rolls back prior entity, canonical rows, metadata and receipt
+ok 26 - semantic read pair both-pending-first rejection rolls back prior entity, canonical rows, metadata and receipt
+  ---
+  duration_ms: 15.533083
+  type: 'test'
+  ...
+# Subtest: same-key writes coalesce and repeated real journals retain newest sequence, pending obligations and owner receipt rules
+ok 27 - same-key writes coalesce and repeated real journals retain newest sequence, pending obligations and owner receipt rules
+  ---
+  duration_ms: 14.096834
+  type: 'test'
+  ...
+# Subtest: ordinary one-Input mixed baseline validates complete original derived owners without inventing an append
+ok 28 - ordinary one-Input mixed baseline validates complete original derived owners without inventing an append
+  ---
+  duration_ms: 121.49425
+  type: 'test'
+  ...
+# Subtest: original initial Mixed flush chronology exactly consumes all AIU metadata without replacing journal descriptors by live Thoughts
+ok 29 - original initial Mixed flush chronology exactly consumes all AIU metadata without replacing journal descriptors by live Thoughts
+  ---
+  duration_ms: 107.059584
+  type: 'test'
+  ...
+# Subtest: fixed mixed compiler retains genuine append, untouched second Input, Human, Context and Prompt in one original Scope
+ok 30 - fixed mixed compiler retains genuine append, untouched second Input, Human, Context and Prompt in one original Scope
+  ---
+  duration_ms: 117.34925
+  type: 'test'
+  ...
+# Subtest: fixed mixed compiler never invokes supplied Source/Working family or new public dispatcher getters
+ok 31 - fixed mixed compiler never invokes supplied Source/Working family or new public dispatcher getters
+  ---
+  duration_ms: 81.917709
+  type: 'test'
+  ...
+# Subtest: native no-alias profile rejects sealed Topic history aliases before keyed Scope construction
+ok 32 - native no-alias profile rejects sealed Topic history aliases before keyed Scope construction
+  ---
+  duration_ms: 97.999125
+  type: 'test'
+  ...
+# Subtest: fixed mixed compiler refuses omitted append member and complete bootstrap ancestor without partial acceptance
+ok 33 - fixed mixed compiler refuses omitted append member and complete bootstrap ancestor without partial acceptance
+  ---
+  duration_ms: 89.257042
+  type: 'test'
+  ...
+# Subtest: fixed mixed compiler and all four original group validators refuse async Core rebinding without getter reads
+ok 34 - fixed mixed compiler and all four original group validators refuse async Core rebinding without getter reads
+  ---
+  duration_ms: 85.686
+  type: 'test'
+  ...
+# Subtest: original general plan cannot authenticate as the mixed compiler result
+ok 35 - original general plan cannot authenticate as the mixed compiler result
+  ---
+  duration_ms: 90.417
+  type: 'test'
+  ...
+# Subtest: async vector growth cannot create a mixed Plan beyond the original 128 operation limit
+ok 36 - async vector growth cannot create a mixed Plan beyond the original 128 operation limit
+  ---
+  duration_ms: 11.094917
+  type: 'test'
+  ...
+# Subtest: source-closed original mixed restore preserves both body owners, untouched append and manual work without duplicate writes
+ok 37 - source-closed original mixed restore preserves both body owners, untouched append and manual work without duplicate writes
+  ---
+  duration_ms: 2284.637542
+  type: 'test'
+  ...
+# Subtest: mixed derived formation rejects cross-wired Source partitions, allocator order, coerced zero and cloned authority
+ok 38 - mixed derived formation rejects cross-wired Source partitions, allocator order, coerced zero and cloned authority
+  ---
+  duration_ms: 93.381708
+  type: 'test'
+  ...
+# Subtest: mixed default and named Sections restore with original receipt allocation then accept a genuine Section-local edit back
+ok 39 - mixed default and named Sections restore with original receipt allocation then accept a genuine Section-local edit back
+  ---
+  duration_ms: 731.550292
+  type: 'test'
+  ...
+# Subtest: original mixed derived views keep exact qualified known/unknown Source time across both append positions
+ok 40 - original mixed derived views keep exact qualified known/unknown Source time across both append positions
+  ---
+  duration_ms: 335.849583
+  type: 'test'
+  ...
+# Subtest: mixed original protocol comparison rejects missing exact receipts and frontiers without relaxing its partial scope
+ok 41 - mixed original protocol comparison rejects missing exact receipts and frontiers without relaxing its partial scope
+  ---
+  duration_ms: 90.044834
+  type: 'test'
+  ...
+# Subtest: a forged native mixed compilation nonce never opens the original suppression-key reader
+ok 42 - a forged native mixed compilation nonce never opens the original suppression-key reader
+  ---
+  duration_ms: 77.423792
+  type: 'test'
+  ...
+# Subtest: original Human scope preparation leaves no later crypto work after an earlier suppression rejects
+ok 43 - original Human scope preparation leaves no later crypto work after an earlier suppression rejects
+  ---
+  duration_ms: 0.195167
+  type: 'test'
+  ...
+# Subtest: consuming original mixed Scope refuses initial delta swaps and Source/Human local-history collisions even with an unchanged sealed graph
+ok 44 - consuming original mixed Scope refuses initial delta swaps and Source/Human local-history collisions even with an unchanged sealed graph
+  ---
+  duration_ms: 332.924625
+  type: 'test'
+  ...
+# Subtest: original mixed restored allocation consumes only the authenticated import prefix before genuine local Human and untouched-B edits
+ok 45 - original mixed restored allocation consumes only the authenticated import prefix before genuine local Human and untouched-B edits
+  ---
+  duration_ms: 963.587625
+  type: 'test'
+  ...
+# Subtest: initial original mixed Scope rejects coherent Human query sequence and mapping tampering despite unchanged sealed operations
+ok 46 - initial original mixed Scope rejects coherent Human query sequence and mapping tampering despite unchanged sealed operations
+  ---
+  duration_ms: 103.671708
+  type: 'test'
+  ...
+# Subtest: initial original mixed Scope rejects altered Human domain result and extra receipt inventory without touching the whole37 cut
+ok 47 - initial original mixed Scope rejects altered Human domain result and extra receipt inventory without touching the whole37 cut
+  ---
+  duration_ms: 96.107417
+  type: 'test'
+  ...
+# Subtest: authenticated restored prefix and genuine local Human tail reject physical counters, exact domain receipt phases and unknown retries
+ok 48 - authenticated restored prefix and genuine local Human tail reject physical counters, exact domain receipt phases and unknown retries
+  ---
+  duration_ms: 696.573125
+  type: 'test'
+  ...
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9906.273916

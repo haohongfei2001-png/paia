@@ -1,0 +1,54 @@
+{
+  "baseline": "6ff2ce8d67eb94d1e342e84b0d1bfd79e185ae51",
+  "originalReceiptTestsByteExactPrefix": true,
+  "sources": [
+    {
+      "path": "extension/core/ai-usage/delta.js",
+      "sha256": "c463eb810b8bc6e56fabd0520f9736b1fed81923c37272d1e63cf4988a813114",
+      "blob": "cbed818cacce180ca9da42eba0acfcb78b77c087",
+      "unchangedFromBaseline": false
+    },
+    {
+      "path": "extension/tests/ai-usage-semantic-receipt.test.mjs",
+      "sha256": "29745dc2dbdd061e5a5128dae11eb5d69719440dad0c35457371d78f35337bf7",
+      "blob": "3ceca78ea49c2d7a1d40f38dbfaf9226650457fe",
+      "unchangedFromBaseline": false
+    },
+    {
+      "path": "extension/tests/ai-cost-semantic-invalidation.test.mjs",
+      "sha256": "df4ce75a0baf8e1d3b109bb45ebb9cafa35b8110ee2aca1a64631bdbbb34af67",
+      "blob": "0ab1a72e5eed9fc632d8006f61e61d7a6247d71f",
+      "unchangedFromBaseline": true
+    },
+    {
+      "path": "extension/tests/mixed-current-fixed-plan.test.mjs",
+      "sha256": "eaff6975d94be98c12d38e74b321a6afd825f578fde6a864605194d3d606a070",
+      "blob": "6d1105482fe0752d3b21b34321f285f533fdd043",
+      "unchangedFromBaseline": true
+    },
+    {
+      "path": "extension/core/idb-repository.js",
+      "sha256": "7bd3412686a7ea59b7d2fbacfe3fd4588f479aa6c50239ab39d5a4ae268565d1",
+      "blob": "258d1b820076ff17c11a2bc6414a92cc7c363aa2",
+      "unchangedFromBaseline": true
+    },
+    {
+      "path": "extension/core/ai-usage/semantic-invalidation.js",
+      "sha256": "c00ff65ec7323136e7f0594abfc9caac920fab9dd06cf05aad2d82053bae98e8",
+      "blob": "d8927315bb57d7279ad6de1545716c86f177902e",
+      "unchangedFromBaseline": true
+    },
+    {
+      "path": "extension/tests/harness/thought-m1.mjs",
+      "sha256": "b94c97d11f3058195f3318bb7235875373c7e2e30fa181abbc34b3747b21a6a5",
+      "blob": "02f458d2f44894fc0212330e75f011111d1415e7",
+      "unchangedFromBaseline": true
+    },
+    {
+      "path": "extension/package.json",
+      "sha256": "db8762aaaddaf503b780cc88fb764eb61ac1e97ec958d2c645d6902c34f75b7f",
+      "blob": "4940d5e08731868753952fd89ac1a7aef96000b4",
+      "unchangedFromBaseline": true
+    }
+  ]
+}

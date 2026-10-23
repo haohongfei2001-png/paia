@@ -1,0 +1,18 @@
+{
+  "startedAtUtc": "2026-10-23T01:34:18.204071+00:00",
+  "baseline": "6ff2ce8d67eb94d1e342e84b0d1bfd79e185ae51",
+  "initialStatus": "",
+  "authority": "Relayed human verbatim allow: isolated same-entity known/pending independent read pair plus targeted local failure rollback/concurrency/correctness tests; no PR update, Full, benchmark or paid actions.",
+  "sources": [
+    {
+      "path": "extension/core/ai-usage/delta.js",
+      "sha256": "18fba2d5203d66e913705dc910b23a698a281dd759b3d3f0926b3d104631f276",
+      "blob": "623d5e2e76389b3167ab0d03c1fd205afdda36d9"
+    },
+    {
+      "path": "extension/tests/ai-usage-semantic-receipt.test.mjs",
+      "sha256": "d9abe7e6ace3eb12a4e21321862d119b3e01b8c5d8bdf9047e55c6362cc6758f",
+      "blob": "3a7fae82c39a7f9e3c5de70e75dacb352673fd56"
+    }
+  ]
+}
