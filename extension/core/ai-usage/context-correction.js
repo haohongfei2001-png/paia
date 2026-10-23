@@ -1,3 +1,4 @@
+import {validStructuralContextEvidence,readStructuralContextEvidence} from './structural-context-mapping.js';
 import {readBoundEntryContext,boundContextEvidenceMatches,boundSelectedText} from '../context-bound-entry.js';
 import {readAuthoredEntryContext,authoredContextEvidenceMatches,authoredSelectedFields,authoredSelectedText} from '../context-authored-entry.js';
 import {captureContextEvidence,fenceContextLineage,releaseContextLineage,validContextMaintenance,lineageExact} from '../context-item-lineage.js';
@@ -98,7 +99,9 @@ export async function readContextEditMapping(store,t,d,{qualifyAuthored=true}={}
  }
  const evidence=item.maintenance.provenance.evidence,sources=new Set(),memory=new MemoryService(store);
  const authored=evidence.length===1&&evidence[0].kind==='humanEntry',boundSpec=evidence.find(e=>e.kind==='boundEntry'),plain=evidence.filter(e=>!e.kind),bound=evidence.length===2&&plain.length===1&&!!boundSpec&&equal(plain[0].selectedFields,['body'])&&plain[0].inputId===boundSpec.inputId&&plain[0].topicId===boundSpec.topicId&&!plain[0].humanTopic&&!plain[0].humanSection&&equal(plain[0].expectedTopicBinding,boundSpec.expectedTopicBinding);
- if(!authored&&!bound&&(!evidence.length||evidence.length>16||new Set(evidence.map(e=>e.inputId)).size!==evidence.length||evidence.some(e=>e.kind||e.humanTopic||e.humanSection||!equal(e.selectedFields,['body'])&&!equal(e.selectedFields,['body','note'])&&!equal(e.selectedFields,['note']))))return null;
+ const sectionSpec=evidence[0]?.humanSection,section=!!sectionSpec&&validStructuralContextEvidence(sectionSpec)&&sectionSpec.kind!== 'topic'&&evidence.length===new Set(sectionSpec.entries.map(e=>e.inputId)).size&&new Set(evidence.map(e=>e.inputId)).size===evidence.length&&evidence.every(e=>!e.kind&&!e.humanTopic&&equal(e.selectedFields,['body'])&&equal(e.humanSection,sectionSpec)&&e.topicId===sectionSpec.topicId&&sectionSpec.entries.some(x=>x.inputId===e.inputId&&x.inputRevision===e.contentRevision&&x.removalSequence===e.expectedRemovalSequence));
+ if(!authored&&!bound&&!section&&(!evidence.length||evidence.length>16||new Set(evidence.map(e=>e.inputId)).size!==evidence.length||evidence.some(e=>e.kind||e.humanTopic||e.humanSection||!equal(e.selectedFields,['body'])&&!equal(e.selectedFields,['body','note'])&&!equal(e.selectedFields,['note']))))return null;
+ const structuralSections=[];if(section&&qualifyAuthored){const current=await readStructuralContextEvidence(store,t,sectionSpec);if(!current)return null;structuralSections.push(current.mapping);}
  const authoredEntries=[];if(authored&&qualifyAuthored){const mapping=await readAuthoredEntryContext(store,t,evidence[0].entryId);if(!mapping||!authoredContextEvidenceMatches(evidence[0],mapping))return null;authoredEntries.push(mapping);}
  const boundEntries=[];if(bound&&qualifyAuthored){const mapping=await readBoundEntryContext(store,t,boundSpec.entryId,null,boundSpec.topicId);if(!mapping||!boundContextEvidenceMatches(boundSpec,mapping))return null;boundEntries.push(mapping);}
  for(const e of evidence.filter(e=>!e.kind)){const state=await t.get('inputStates',e.inputId),index=await t.get('blockIndex',e.inputId);
@@ -106,10 +109,10 @@ export async function readContextEditMapping(store,t,d,{qualifyAuthored=true}={}
   for(const id of e.sourceRecordIds)sources.add(id);
  }
  if(sources.size>20)return null;
- return {kind:'contextEdit',itemId:item.id,revision:item.revision,card:item.card,selectedFields:['body','section'],proof:structuredClone(p),associationIds:[...item.maintenance.associationIds],provenance:structuredClone(item.maintenance.provenance),sourceRecordIds:[...sources].sort(),...(authored?{authoredEntryIds:[evidence[0].entryId],...(qualifyAuthored?{authoredEntries}:{})}:{}),...(bound?{boundEntryIds:[boundSpec.entryId],...(qualifyAuthored?{boundEntries}:{})}:{})};
+ return {kind:'contextEdit',itemId:item.id,revision:item.revision,card:item.card,selectedFields:['body','section'],proof:structuredClone(p),associationIds:[...item.maintenance.associationIds],provenance:structuredClone(item.maintenance.provenance),sourceRecordIds:[...sources].sort(),...(authored?{authoredEntryIds:[evidence[0].entryId],...(qualifyAuthored?{authoredEntries}:{})}:{}),...(bound?{boundEntryIds:[boundSpec.entryId],...(qualifyAuthored?{boundEntries}:{})}:{}),...(section?{structuralSectionIds:[sectionSpec.sectionId],...(qualifyAuthored?{structuralSections}:{})}:{})};
 }
 export const contextEditInputFields=(m,inputId)=>{const evidence=m.provenance.evidence.find(e=>!e.kind&&e.inputId===inputId);if(!evidence)fail('STALE_BASE');return [...evidence.selectedFields];};
-export const contextEditScope=m=>({kind:m.kind,itemId:m.itemId,revision:m.revision,card:m.card,selectedFields:[...m.selectedFields],proof:structuredClone(m.proof),inputIds:m.provenance.evidence.filter(e=>!e.kind).map(e=>e.inputId).sort(),...(m.authoredEntryIds?{authoredEntryIds:[...m.authoredEntryIds]}:{}),...(m.boundEntryIds?{boundEntryIds:[...m.boundEntryIds]}:{}),...(m.provenance.evidence.some(e=>!e.kind&&e.selectedFields.includes('note'))?{inputFields:m.provenance.evidence.filter(e=>!e.kind).map(e=>({inputId:e.inputId,selectedFields:[...e.selectedFields]})).sort((a,b)=>a.inputId.localeCompare(b.inputId))}:{})});
+export const contextEditScope=m=>({kind:m.kind,itemId:m.itemId,revision:m.revision,card:m.card,selectedFields:[...m.selectedFields],proof:structuredClone(m.proof),inputIds:m.provenance.evidence.filter(e=>!e.kind).map(e=>e.inputId).sort(),...(m.authoredEntryIds?{authoredEntryIds:[...m.authoredEntryIds]}:{}),...(m.boundEntryIds?{boundEntryIds:[...m.boundEntryIds]}:{}),...(m.structuralSectionIds?{structuralSectionIds:[...m.structuralSectionIds]}:{}),...(m.provenance.evidence.some(e=>!e.kind&&e.selectedFields.includes('note'))?{inputFields:m.provenance.evidence.filter(e=>!e.kind).map(e=>({inputId:e.inputId,selectedFields:[...e.selectedFields]})).sort((a,b)=>a.inputId.localeCompare(b.inputId))}:{})});
 export const contextEditEvidence=m=>m.provenance.evidence.map(e=>{if(e.kind)return structuredClone(e);const {contentRevision,sourceRecordIds,sourceIdentityTokens,...spec}=e;return structuredClone(spec);});
 const editDescriptor=m=>({kind:'context_item',entityId:m.itemId,revision:m.revision,contextEdit:m.proof});
 const metadataWithout=(row,fields)=>Object.fromEntries(Object.keys(row).filter(key=>!fields.includes(key)).map(key=>[key,row[key]]));
@@ -121,7 +124,8 @@ const authoredJournalSnapshot=row=>row?({...metadataWithout(row,['before','after
 async function editSnapshot(store,t,m){
  if(!equal(await readContextEditMapping(store,t,editDescriptor(m)),m))fail('STALE_BASE');
  const item=(await t.get('meta','context-cards:v1')).items.find(i=>i.id===m.itemId),receipt=await t.get('operationReceipts',m.proof.receiptId),inputs=[],topics=[],memberships=[],sources=[],legacy=[],legacyIndex=[];
- const filter=await t.get('meta','smart-filter'),authored=[],bound=[];
+ const filter=await t.get('meta','smart-filter'),authored=[],bound=[],structures=[];
+ for(const mapping of m.structuralSections||[]){const section=await t.get('sections',mapping.recordId),journal=await t.get('revisions',mapping.journalId),receipt=await t.get('operationReceipts',mapping.operationId),journals=[];for(const e of mapping.entries){const key='placement:'+e.placementId,row=await t.edge('revisions','byList',prefix([key]),'prev');if(!row)fail('STALE_BASE');journals.push({key,count:await t.count('revisions','byList',prefix([key])),row:authoredJournalSnapshot(row)});}structures.push({section,journal:authoredJournalSnapshot(journal),receipt,journals,members:await captureTopicFormationMembers(t,mapping.entries.map(e=>e.entryId))});}
  for(const [kind,mappings]of [['authored',m.authoredEntries||[]],['bound',m.boundEntries||[]]])for(const mapping of mappings){
   const entry=await t.get('thoughts',mapping.entryId),entityKey='library_entry:'+mapping.entryId,journals=await t.all('revisions','byList',prefix([entityKey])),section=await t.get('sections',JSON.stringify([mapping.topicId,mapping.layoutGeneration,mapping.sectionId])),placementKey='placement:'+mapping.placementId,placementJournal=await t.edge('revisions','byList',prefix([placementKey]),'prev'),placementJournalCount=await t.count('revisions','byList',prefix([placementKey]));if(!section||!placementJournal)fail('STALE_BASE');
   const receipts=[];if(kind==='bound')for(const id of [...new Set(journals.filter(j=>j.important||j.reason==='edit').map(j=>j.operationId))])receipts.push({id,value:await t.get('operationReceipts',id)??null});
@@ -138,7 +142,7 @@ async function editSnapshot(store,t,m){
  // Original legacy restrictions are part of the final transaction fence too.
  // The reader supplied by the session charges these bounded local reads.
  await t.scanPrimary('meta','memory:',row=>{legacyIndex.push({id:row.id,kind:row.kind});if(['config','topic','section','entry','input'].includes(row.kind))legacy.push(row);});
- return {item,receipt,...(m.proof.kind==='restore'?{removalReceipt:await t.get('operationReceipts',m.proof.removalReceiptId)}:{}),inputs,topics,memberships,sources,legacy,legacyIndex,filter,...(authored.length?{authored}:{}),...(bound.length?{bound}:{})};
+ return {item,receipt,...(m.proof.kind==='restore'?{removalReceipt:await t.get('operationReceipts',m.proof.removalReceiptId)}:{}),inputs,topics,memberships,sources,legacy,legacyIndex,filter,...(authored.length?{authored}:{}),...(bound.length?{bound}:{}),...(structures.length?{structures}:{})};
 }
 export async function captureContextEditMaterial(store,m,{read,signal,workBudget=null}){
  const lineage=await captureContextEvidence(store,contextEditEvidence(m),{epoch:m.proof.epoch,signal,workBudget});
@@ -150,7 +154,7 @@ export async function captureContextEditMaterial(store,m,{read,signal,workBudget
   const current=()=>{if(signal?.aborted)fail('UNAVAILABLE');if(workBudget)assertContextScopeWorkBudgetFacts(workBudget,{database:store.repository.db});return true;};
   const retain=value=>{current();if(workBudget){workBudget.hashBytes+=new TextEncoder().encode(JSON.stringify(value)).length;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes)fail('BUDGET_EXCEEDED');}return value;};
   const terminalFacts=await read(t=>captureTopicFormationTerminal(store,t,m.provenance.evidence.filter(e=>!e.kind),{retain,current}));
-  if(snapshot.authored)retain(snapshot.authored);if(snapshot.bound)retain(snapshot.bound);retain(snapshot.memberships.map(m=>m.sections));
+  if(snapshot.authored)retain(snapshot.authored);if(snapshot.bound)retain(snapshot.bound);if(snapshot.structures)retain(snapshot.structures);retain(snapshot.memberships.map(m=>m.sections));
   const scopeTerminal=[];for(const topicId of [...new Set(m.provenance.evidence.map(e=>e.topicId))])scopeTerminal.push(await read(t=>captureContextTopicMetadataTerminal(store,t,topicId,{retain,current})));
   const held={mapping:m,snapshot,lineage:lineage.captured,fields,fieldDigests,terminalFacts,scopeTerminal,workBudget};await read(t=>assertContextEditMaterial(store,t,held));return held;
  }catch(error){releaseContextLineage(lineage.captured);throw error;}
@@ -187,6 +191,7 @@ export async function registerContextEditFinalFence(store,t,held,isCurrent){
    same(yield*count('revisions','byList',prefix(['library_entry:'+entry.id])),author.journals.length);for(const row of author.journals)same(authoredJournalSnapshot(yield*get('revisions',row.id)),row);
    for(const member of author.members)for(const {table,rows}of member.collections){const {index,key}=topicFormationMemberRange(table,member.entryId);same(yield*count(table,index,key),rows.length);for(const row of rows)same(topicFormationMemberProjection(table,yield*get(table,row.id)),row);}
   }
+  for(const structure of s.structures||[]){same(yield*get('sections',structure.section.id),structure.section);same(authoredJournalSnapshot(yield*get('revisions',structure.journal.id)),structure.journal);same(yield*get('operationReceipts',structure.receipt.id),structure.receipt);for(const j of structure.journals){same(yield*count('revisions','byList',prefix([j.key])),j.count);same(authoredJournalSnapshot(yield*get('revisions',j.row.id)),j.row);}for(const member of structure.members)for(const {table,rows}of member.collections){const {index,key}=topicFormationMemberRange(table,member.entryId);same(yield*count(table,index,key),rows.length);for(const row of rows)same(topicFormationMemberProjection(table,yield*get(table,row.id)),row);}}
   for(let n=0;n<s.topics.length;n++){
    const topic=s.topics[n],actual=yield*get('topics',topic.id);if(!actual)fail('STALE_BASE');same(metadataWithout(actual,['name','nameKey','summary']),topic);
    const {placements,entries,sections}=s.memberships[n];same(yield*count('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration])),sections.length);for(const section of sections){const actual=yield*get('sections',section.id);if(!actual)fail('STALE_BASE');same(metadataWithout(actual,['title']),section);}

@@ -1,0 +1,9 @@
+{
+  "extension/core/ai-usage/context-correction.js": "6e929caf0d088249529ef79b2d4ad1c0c554c3b66efbbf05fee927ef18ac29ee",
+  "extension/core/ai-usage/local-maintenance-session.js": "a46e005cd6c1a31e1b2daf3cf48fad4eaa90f9974b57bc21390fc2f591fcdca8",
+  "extension/core/ai-usage/maintenance-payload.js": "968a4f6c440ea396f80749d53eba1dc10811111f0942da55ce35f6744cc8bf0e",
+  "extension/core/ai-usage/maintenance-qualification.js": "d405323bea9a6110ea79239120dc7060ad962c2b02f8b27fefe15de1d9a4aa0f",
+  "extension/core/ai-usage/structural-context-mapping.js": "857f8f88f4950a26bc6d6de77cab5af0ad0206cc05128d8c81e0d990945ae01e",
+  "extension/core/ai-usage/maintenance-service-response.js": "7d78d25dbae0fdd0b08bb1558f13f2dcc8b87808d56b007d301a1fe12b420ce0",
+  "extension/tests/ai-cost-03-structural-context.test.mjs": "01a29d912d9778a8ac6d923bf0349310ddfdaf698f186fa3076e385d1b682389"
+}
