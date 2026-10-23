@@ -1,4 +1,5 @@
 import {sourcePresent} from './thought-source-presence.js';
+import {requireSavedWorkBootstrap,finishSavedWorkBootstrap} from './browser-native-sync/saved-work-bootstrap.js';
 import {beginHumanOperation,finishHumanOperation,releaseHumanOperation,humanOperationError} from './browser-native-sync/human-library-plan.js';
 import {humanClock,humanUuid} from './browser-native-sync/human-library-allocation.js';
 import {assertMemoryPlacementChangeAllowed} from './memory/organization-guard.js';
@@ -38,6 +39,14 @@ export function planHumanEntryCreation(request,{id,at,sequence,exactSignature,ev
  refreshEntryIndex(row);return row;
 }
 
+// Original evidence rows shared by named planning and the real writer. Tokens
+// remain local; this pure computation grants no write or transport authority.
+export function planHumanEntryEvidence(request,e,{id,generationId,entryId,at,generator}) {
+ const provenance={id,ownerKind:'entry',ownerId:entryId,generationId,inputId:e.inputId,basedOnContentRevision:e.basedOnContentRevision,actualVersion:{inputRevision:e.basedOnContentRevision,projectionVersion:1,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests},role:e.role,contributionType:e.role==='context_only'?'context':request.formation==='synthesized'?'combination':'paraphrase',formation:request.formation,generatedAt:at,generator,inputAuthorshipAtUse:'working_input',entryFieldAuthorshipAtCommit:request.actor,sourceRecordIds:e.sourceRecordIds,sourceIdentityTokens:e.sourceIdentityTokens,scopeToken:e.scopeToken,versionToken:e.versionToken,availability:'resolvable',contributionKey:JSON.stringify([entryId,e.inputId,e.basedOnContentRevision,e.role,generationId])};
+ const dependency={id:JSON.stringify([e.inputId,'entry',entryId]),inputId:e.inputId,inputList:[e.inputId,entryId],thoughtId:entryId,targetKind:'entry',targetId:entryId,eligibilityEpochAtUse:e.epoch,basedOnContentRevision:e.basedOnContentRevision,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests,validatedAgainstContentRevision:e.basedOnContentRevision,status:'valid',roles:[e.role],sourceRecordIds:e.sourceRecordIds,scopeToken:e.scopeToken,versionToken:e.versionToken};
+ return {provenance,dependency};
+}
+
 export function planHumanEntryRemoval(row,request,evidence,{suppressionId,removedAt}) {
  const entry=structuredClone(row),suppression={id:suppressionId,deletedEntryId:row.id,lineageId:row.id,removedAt,operationId:request.operationId,status:'active',scopeVersion:1,scopeTokens:[...new Set(evidence.filter(e=>e.role!=='context_only').map(e=>e.scopeToken))],evidenceVersionTokens:[...new Set(evidence.filter(e=>e.role!=='context_only').map(e=>e.versionToken))],exactSignature:row.exactSignature,noveltyRuleVersion:1};
  entry.lifecycle='removed';entry.revision++;refreshEntryIndex(entry);return {entry,suppression};
@@ -73,6 +82,13 @@ class LibraryFoundationStore extends SmartFilterStore {
  run(fn) {return super.run(async()=>{if(!this.foundationLoaded&&!this.foundationFailure){try{const marker=await migrateThoughtLibrary(this,{maxBatches:1});this.foundationLoaded=marker.phase==='active';}catch{this.foundationFailure=true;}}return fn();});}
  async finishFoundation(){while(!this.foundationLoaded){await this.run(()=>Promise.resolve());if(this.foundationFailure)throw new ArchiveError('STORAGE_FAILED');if(!this.foundationLoaded)await new Promise(resolve=>setTimeout(resolve,0));}if(!this.bindingsLoaded){await migrateBindings(this);this.bindingsLoaded=true;}}
  async foundationWrite(fn){await this.finishFoundation();return IndexedArchiveStore.prototype.write.call(this,fn);}
+ async applySavedWorkBootstrapInTransaction(t,cap){
+  const p=await requireSavedWorkBootstrap(t,cap,this);if(p.duplicate)return {state:'duplicate',id:p.id};
+  await t.put('thoughts',p.entry);await t.put('provenance',p.provenance);await t.put('dependencies',p.dependency);
+  for(const row of p.history)await t.put('revisions',row);
+  await t.put('meta',{id:'thought-sequence',value:p.sequence});await t.put('meta',{id:'revision-sequence',value:p.revision});
+  return finishSavedWorkBootstrap(t,cap,this);
+ }
  thoughtLayout(layout){return thoughtLayout(this,layout);}
  reverseEditSetting(enabled){return reverseSetting(this,enabled);}
  async bindingMigrationStatus(t){const {version,complete,input,thought}=await t.get('meta',BINDING_ROW)||{};return {version,complete,input,thought};}
@@ -152,8 +168,8 @@ class LibraryFoundationStore extends SmartFilterStore {
    const id=humanUuid(this,t),at=humanClock(this,t),sequence=await nextSequence(t),human=request.actor==='user';
    const row=planHumanEntryCreation(request,{id,at,sequence,exactSignature,evidence,nonContext});await t.put('thoughts',row);
    const generationId=humanUuid(this,t);for(const e of evidence) {
-    const p={id:this.uuid(),ownerKind:'entry',ownerId:id,generationId,inputId:e.inputId,basedOnContentRevision:e.basedOnContentRevision,actualVersion:{inputRevision:e.basedOnContentRevision,projectionVersion:1,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests},role:e.role,contributionType:e.role==='context_only'?'context':request.formation==='synthesized'?'combination':'paraphrase',formation:request.formation,generatedAt:at,generator,inputAuthorshipAtUse:'working_input',entryFieldAuthorshipAtCommit:request.actor,sourceRecordIds:e.sourceRecordIds,sourceIdentityTokens:e.sourceIdentityTokens,scopeToken:e.scopeToken,versionToken:e.versionToken,availability:'resolvable',contributionKey:JSON.stringify([id,e.inputId,e.basedOnContentRevision,e.role,generationId])};
-    await t.put('provenance',p);await t.put('dependencies',{id:JSON.stringify([e.inputId,'entry',id]),inputId:e.inputId,inputList:[e.inputId,id],thoughtId:id,targetKind:'entry',targetId:id,eligibilityEpochAtUse:e.epoch,basedOnContentRevision:e.basedOnContentRevision,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests,validatedAgainstContentRevision:e.basedOnContentRevision,status:'valid',roles:[e.role],sourceRecordIds:e.sourceRecordIds,scopeToken:e.scopeToken,versionToken:e.versionToken});
+    const {provenance,dependency}=planHumanEntryEvidence(request,e,{id:humanUuid(this,t),generationId,entryId:id,at,generator});
+    await t.put('provenance',provenance);await t.put('dependencies',dependency);
    }
    await hooks.after?.(t,row,evidence);await t.put('thoughts',row);
    await journal(this,t,{kind:'library_entry',entityId:id,before:entrySnapshot(row),after:entrySnapshot(row),fieldMask:ENTRY_FIELDS,actor:request.actor,reason:'baseline',important:true,operationId:request.operationId,baseRevision:0,afterRevision:0,sourceRecordIds:row.sourceRecordIds});

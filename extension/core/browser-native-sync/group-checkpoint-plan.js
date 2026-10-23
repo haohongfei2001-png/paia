@@ -1,3 +1,4 @@
+import {groupOperationPages,createGroupPageBudget,checkGroupPageBudget} from './group-page-reader.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {CORE_LIMITS,validateOperation,validateFrozenOperation,validateHumanCommitGroup,prepareOriginalSourceWorkingReceive,prepareOriginalCurrentMixedGroupReceive,requireOriginalSourceWorkingCore} from './core.js';
 import {bytes,digest,fail,equal} from './value.js';
@@ -51,15 +52,17 @@ export function requireSelectedCurrentSourceWorkingGroupPlan(core,plan){
 // protocol rows. Domain capabilities are minted by the existing strict owners.
 async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorking){
  const binding={core,datasetId:core.datasetId,repository:core.repository,prefix:core.prefix,fixedNamespace:core.fixedNamespace,currentSourceWorking};
- if(!Array.isArray(input)||input.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');
+ if(currentSourceWorking&&(!Array.isArray(input)||input.length>CORE_LIMITS.batch))fail('BNS_GROUP_RESOURCE_LIMIT');
+ const pageBudget=currentSourceWorking||Array.isArray(input)&&input.length<=CORE_LIMITS.batch?null:createGroupPageBudget();
  let size=0;const operations=[],byRevision=new Map(),byId=new Map(),sequences=new Set();
  // Recheck each iteration: validation awaits must not let a growing vector
- // bypass the original 128-operation bound checked at entry.
- for(const candidate of input){
-  if(operations.length>=CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');
+ // bypass its selected finite profile. Private native and legacy small arrays
+ // retain the original batch envelope; paged graphs share a new work ticket.
+ for await(const page of pageBudget?groupOperationPages(input,{budget:pageBudget}):[input])for(const candidate of page){
+  if(!pageBudget&&operations.length>=CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');
   const operationBytes=bytes(candidate).length;size+=operationBytes;if(size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
   const op=currentSourceWorking==='mixed'?await validateFrozenOperation(candidate):await validateOperation(candidate);originalOperationSizes.set(op,operationBytes);
-  if(currentSourceWorking)requireOriginalSourceWorkingCore(core);
+  if(currentSourceWorking)requireOriginalSourceWorkingCore(core);else if(pageBudget)checkGroupPageBudget(pageBudget);
   if(op.datasetId!==core.datasetId)fail('BNS_DATASET_MISMATCH');
   if(currentSourceWorking===true&&!['sourceBootstrapCommit','sourceBootstrapMember','inputWorkingCommit','inputWorkingMember'].includes(op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   if(op.kind!=='put'||!members.has(op.type)&&!singles.has(op.type)&&!Object.hasOwn(families,op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
@@ -87,7 +90,7 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
   groups.push(group);
  }
  if(claimed.size!==operations.length)fail('BNS_GROUP_INCOMPLETE');
- return finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads);
+ const plan=await finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads);if(pageBudget)checkGroupPageBudget(pageBudget);return plan;
 }
 async function finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads){
  const currentSourceWorking=binding.currentSourceWorking;
@@ -117,7 +120,13 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
  // complete parent order and execute them first, so the original local history
  // allocator starts from the actual captured empty installation, never a
  // predicted foreign-owner counter. Existing non-Human dependencies stay intact.
- const human=groups.filter(group=>group.type==='humanLibraryCommit');for(const group of human)if([...group.dependencies].some(id=>!human.some(other=>other.id===id)))fail('BNS_HUMAN_UNSUPPORTED');for(const group of groups)if(group.type!=='humanLibraryCommit')for(const other of human)group.dependencies.add(other.id);
+ const human=groups.filter(group=>group.type==='humanLibraryCommit'),linked=human.filter(group=>group.prepared.descriptor.value.kind.startsWith('source-'));
+ if(linked.length){
+  if(binding.currentSourceWorking||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1||groups.some(group=>!['humanLibraryCommit','sourceBootstrapCommit'].includes(group.type)))fail('BNS_HUMAN_UNSUPPORTED');
+  for(const group of linked){const link=group.prepared.members.find(op=>op.value.entityType==='sourceLink');depend(group,createdInputs.get(link.value.after.evidence.inputId));}
+  for(const group of groups)if(group.type==='sourceBootstrapCommit')for(const other of human.filter(g=>!linked.includes(g)))group.dependencies.add(other.id);
+ }else{for(const group of human)if([...group.dependencies].some(id=>!human.some(other=>other.id===id)))fail('BNS_HUMAN_UNSUPPORTED');for(const group of groups)if(group.type!=='humanLibraryCommit')for(const other of human)group.dependencies.add(other.id);}
+
  const done=new Set(),ordered=[];
  while(ordered.length<groups.length){const ready=groups.filter(group=>!done.has(group.id)&&[...group.dependencies].every(id=>done.has(id))).sort((a,b)=>a.id.localeCompare(b.id));if(!ready.length)fail('BNS_GROUP_CAUSAL_GAP');for(const group of ready){done.add(group.id);ordered.push({...group,dependencies:[...group.dependencies].sort()});}}
  // Exact ordering commitment is independent of received object/page order.

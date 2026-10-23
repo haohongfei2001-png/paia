@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "nativeFactory": true,
+  "nativeTransaction": true,
+  "kind": "placement",
+  "phase": "topic-ack-abort",
+  "physicalAttempts": 1,
+  "topicAuthorityCalls": 116,
+  "atomicRollback": true,
+  "allHumanRowsPreserved": true,
+  "sourceOwnedAdapter": true
+}

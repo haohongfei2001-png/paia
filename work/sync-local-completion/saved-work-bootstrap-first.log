@@ -1,0 +1,56 @@
+TAP version 13
+# Subtest: canonical saved AI bootstrap preserves origin, exact provenance and protected history; later local edit and removal survive replay
+not ok 1 - canonical saved AI bootstrap preserves origin, exact provenance and protected history; later local edit and removal survive replay
+  ---
+  duration_ms: 88.419292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:16:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SAVED_WORK_UNSUPPORTED'
+  code: 'BNS_SAVED_WORK_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    bad (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:16:15)
+    page (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:21:133)
+    async ownedRows (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:22:87)
+    async destination (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:63:15)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:66:286
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:151:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:427:20)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:151:66)
+    async prepareSavedWorkBootstrap (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:66:194)
+  ...
+# Subtest: unprotected AI reading output is not promoted to saved canonical work
+ok 2 - unprotected AI reading output is not promoted to saved canonical work
+  ---
+  duration_ms: 33.6335
+  type: 'test'
+  ...
+# Subtest: saved bootstrap rejects forged author, provenance, history and protections without destination writes
+ok 3 - saved bootstrap rejects forged author, provenance, history and protections without destination writes
+  ---
+  duration_ms: 66.003542
+  type: 'test'
+  ...
+# Subtest: Source changed after saved preparation refuses writes and post-owner failure rolls every table back
+ok 4 - Source changed after saved preparation refuses writes and post-owner failure rolls every table back
+  ---
+  duration_ms: 58.818625
+  type: 'test'
+  ...
+# Subtest: saved bootstrap refuses populated conflicting target and arbitrary caller capability
+ok 5 - saved bootstrap refuses populated conflicting target and arbitrary caller capability
+  ---
+  duration_ms: 52.154834
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 439.814459

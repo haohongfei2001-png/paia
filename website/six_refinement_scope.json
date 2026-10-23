@@ -1,0 +1,743 @@
+{
+  "baseline": "5e3c426aead5ad698330fa4201ab17b0c21878b1",
+  "intent": "Six agreed refinements only; preserve all content, style identity and independent demo owners.",
+  "edits": {
+    "website/build.py": {
+      "before_sha": "565a8b9f1b37292e3b290305b0dca79c19c80c40526122fb71153aba27b27c92",
+      "changes": [
+        {
+          "start": 53,
+          "end": 54,
+          "before": [
+            "        presentation_assets = '\\n<link rel=\"stylesheet\" href=\"/assets/website/home-presentation.css?v=20261013a\"><script src=\"/assets/website/home-presentation.js?v=20261013a\" defer></script>' if page == 'index.html' else ''\n"
+          ],
+          "after": [
+            "        presentation_assets = '\\n<link rel=\"stylesheet\" href=\"/assets/website/home-presentation.css?v=20261023-six\"><script src=\"/assets/website/home-presentation.js?v=20261023-six\" defer></script>' if page == 'index.html' else ''\n"
+          ]
+        }
+      ]
+    },
+    "website/presentation_home.py": {
+      "before_sha": "e7b56e7f31904c96d6bb09ac0d5b06a74ade21e55aaba23da59ed1dd58243544",
+      "changes": [
+        {
+          "start": 76,
+          "end": 124,
+          "before": [],
+          "after": [
+            "\n",
+            "def refine_reading_and_routes(source,t,a):\n",
+            "    \"\"\"Six owner-approved refinements; no new story, simulator or service.\"\"\"\n",
+            "    # Retain the Topic name and sections; remove only duplicate guide labels.\n",
+            "    source=_remove(source,classes=('pc-topic-root-head','pc-topic-footer'))\n",
+            "    parsed=Fragments(source);toolbar=parsed.one('pc-topic-toolbar')\n",
+            "    old=parsed.outer(toolbar)\n",
+            "    source=parsed.swap(toolbar,_remove(old,classes=('pc-local-tag',)))\n",
+            "    source=source.replace('data-home-presentation data-locale=',\n",
+            "                          'data-home-presentation data-six-refinements=\"20261023\" data-locale=',1)\n",
+            "    def demonstration(anchor,label):\n",
+            "        return '<span class=\"hp-demo-caption\">'+t('界面演示','Interface illustration')+' · '+a('demo.html',label,'hp-demo-link',anchor)+'</span>'\n",
+            "    # Existing small-caption positions identify the illustration and lead to\n",
+            "    # the same section of the independent, fully interactive example.\n",
+            "    source=source.replace('<span>'+t('查找 → 编辑 → 再利用','FIND → EDIT → REUSE')+'</span>',\n",
+            "                          demonstration('#input-library',t('体验查找与编辑','Try finding and editing')),1)\n",
+            "    source=source.replace('<span>'+t('按你的方式组织','ORGANIZED ON YOUR TERMS')+'</span>','',1)\n",
+            "    parsed=Fragments(source);editorial=parsed.one('ad-library-editorial')\n",
+            "    block=parsed.outer(editorial);bp=Fragments(block);intro=bp.one('pc-intro')\n",
+            "    old=bp.outer(intro)\n",
+            "    route=demonstration('#thought-library',t('体验思想库','Explore Thought Library'))\n",
+            "    source=parsed.swap(editorial,bp.swap(intro,old[:-6]+route+'</div>'))\n",
+            "    parsed=Fragments(source);note=parsed.one('pc-plan-note')\n",
+            "    old=parsed.outer(note)\n",
+            "    source=parsed.swap(note,old[:-4]+'<span class=\"hp-demo-route\">'+demonstration('#prompt-reuse',t('体验提示词复用','Try prompt reuse'))+'</span></p>')\n",
+            "    source=source.replace('<span>'+t('对话','CONVERSATION')+'</span>',\n",
+            "                          '<span>'+t('界面演示','Interface illustration')+'</span>',1)\n",
+            "    # The illustrated pre-granted state stays illustrative; real permission\n",
+            "    # defaults and the independent demo's permission owner are unchanged.\n",
+            "    parsed=Fragments(source);badge=parsed.one('pc-master-permission')\n",
+            "    source=parsed.swap(badge,'<span class=\"pc-master-permission hp-example-state\">'+t('示例：已允许','Example: access allowed')+'</span>')\n",
+            "    parsed=Fragments(source);context=parsed.one('pc-context')\n",
+            "    ctx=parsed.outer(context);cp=Fragments(ctx);foot=cp.one('pc-section-foot')\n",
+            "    route=demonstration('#personal-context',t('体验权限控制','Explore access controls'))\n",
+            "    old=cp.outer(foot)\n",
+            "    lead=old[old.index('<span>'):old.index('</span>')+7]\n",
+            "    new=old.replace(lead,'<span class=\"hp-context-example\">'+route+'<span class=\"hp-availability\">'+t('示例状态；外部 AI 连接尚未开放。','Sample state. External AI connections are not available yet.')+'</span></span>',1)\n",
+            "    source=parsed.swap(context,cp.swap(foot,new))\n",
+            "    # Describe the real availability next to the original ecosystem mapping.\n",
+            "    source=source.replace(t('本地优先 · 按需同步','LOCAL FIRST · SYNC BY CHOICE'),\n",
+            "                          t('本地优先 · 同步尚未开放','LOCAL FIRST · SYNC NOT AVAILABLE YET'),1)\n",
+            "    source=source.replace(t('日常保存、查找、编辑与提示词复用，在本地完成。按需使用自己的浏览器云账号，在同一生态的设备间接续已同步的资料。','Everyday capture, search, editing and prompt reuse work locally. Use your own browser cloud account to continue with synced material across devices in the same ecosystem.'),\n",
+            "                          t('日常保存、查找、编辑与提示词复用，在本地完成。跨设备同步尚未开放；下方为预期的浏览器生态对应关系。','Everyday capture, search, editing and prompt reuse work locally. Cross-device sync is not available yet; the mapping below illustrates the intended browser ecosystems.'),1)\n",
+            "    source=source.replace(t('同步由你主动开启，不同浏览器生态之间不会自动互通。','Sync is your choice. Different browser ecosystems do not sync with one another automatically.'),\n",
+            "                          t('以上为功能示意，不表示当前已支持这些云端连接。不同浏览器生态不会自动互通。','This is a feature illustration, not a statement that these cloud connections are available. Browser ecosystems do not automatically sync with one another.'),1)\n",
+            "    return source\n",
+            "\n",
+            "\n"
+          ]
+        },
+        {
+          "start": 130,
+          "end": 131,
+          "before": [
+            "    return present(source,t,a)\n"
+          ],
+          "after": [
+            "    return refine_reading_and_routes(present(source,t,a),t,a)\n"
+          ]
+        }
+      ]
+    },
+    "assets/website/home-presentation.css": {
+      "before_sha": "8c81226a019d5dd57a6a3f232c551409d48ae0b97c940bff0970ca36aeb41cc0",
+      "changes": [
+        {
+          "start": 113,
+          "end": 151,
+          "before": [],
+          "after": [
+            "\n",
+            "/* SIX_SCOPED_REFINEMENTS_20261023: keep the composition, cases and identity.\n",
+            "   These source/permission labels carry meaning; they are not decoration. */\n",
+            "[data-home-mode=presentation] :is(.pc-record-meta time,.pc-record-meta time>span,.pc-date,.pc-origin-chip,.ad-story-date,.ad-story-entry time,.ad-story-provenance,.ad-chapter-source,.ad-document-source,[data-card-count],[data-topic-count],.hp-composer-foot>span:first-child){font-size:.6875rem;line-height:1.7;color:#516783}\n",
+            "[data-home-mode=presentation] .pc-context :is(.pc-master-permission,.pc-card-permission){font-size:.6875rem;line-height:1.65;color:#3e6089}\n",
+            "[data-home-mode=presentation] :is(.ad-original-cue,.ad-ai-cue){font-size:.75rem;line-height:1.65;color:#37679f}\n",
+            "/* Leave the body size and all typefaces intact. Grow the frame, not clipping. */\n",
+            "@media(min-width:641px){\n",
+            " [data-home-mode=presentation].hp-ready:not(.hp-static) .ad-thought-scroll{--story-view:max(min(720px,calc(100svh - 130px)),calc(var(--hp-reading-required,0px) + 16px))}\n",
+            " [data-home-mode=presentation].hp-ready:not(.hp-static) .ad-thought-scenes{height:max(min(630px,calc(100svh - 150px)),var(--hp-reading-required,0px))}\n",
+            "}\n",
+            "[data-home-mode=presentation] .hp-demo-caption{font-size:.75rem;line-height:1.8;color:#516783;white-space:normal}\n",
+            "[data-home-mode=presentation] .hp-demo-link{color:#315f98;font-size:inherit;text-decoration:underline;text-decoration-color:#91aacd;text-underline-offset:4px;white-space:normal}\n",
+            "[data-home-mode=presentation] .hp-demo-link:hover{color:#1d467e;text-decoration-color:currentColor}\n",
+            "[data-home-mode=presentation] .hp-demo-link:focus-visible{outline:2px solid #3467ba;outline-offset:5px;border-radius:2px}\n",
+            "[data-home-mode=presentation] .pc-plan-note .hp-demo-route{display:block;margin-top:12px}\n",
+            "[data-home-mode=presentation] .pc-plan-note .hp-demo-caption{display:inline;font-size:.75rem;letter-spacing:normal;text-transform:none;color:#516783}\n",
+            "[data-home-mode=presentation] .hp-context-example{max-width:100%;white-space:normal}\n",
+            "[data-home-mode=presentation] .hp-availability{display:block;font-size:.75rem;line-height:1.8;color:#516783;margin-top:6px}\n",
+            "[data-home-mode=presentation] .pc-sync-note{color:#516783}\n",
+            "[data-home-mode=presentation] .ad-library-editorial .hp-demo-caption{display:block;margin-top:12px}\n",
+            "[data-home-mode=presentation] .pc-topics .pc-section-foot{justify-content:flex-end}\n",
+            "/* Explain the existing illustration: panel → selection → insertion.\n",
+            "   No extra pointer, text flight, live control or automatic send. */\n",
+            "[data-home-mode=presentation] .ad-prompt-scroll .pc-prompt-row{transition:background-color .18s,box-shadow .18s}\n",
+            "[data-home-mode=presentation] .ad-prompt-scroll:is([data-demo-step=selected],[data-demo-step=filled]) .pc-prompt-row:first-child,\n",
+            "[data-home-mode=presentation]:not(.hp-ready) .pc-prompt-row:first-child{background:#e7effb;box-shadow:inset 2px 0 #5279b4;border-radius:6px}\n",
+            "[data-home-mode=presentation] .ad-prompt-scroll[data-demo-step=selected] .pc-prompt-row:first-child .pc-prompt-pick,\n",
+            "[data-home-mode=presentation] .ad-prompt-scroll[data-demo-step=filled] .pc-prompt-row:first-child .pc-prompt-pick{color:#2c527f}\n",
+            "[data-home-mode=presentation].hp-ready .ad-prompt-scroll[data-phase=board]:not([data-demo-step=filled]) .hp-composer-phrase{opacity:0;transform:none;transition:none}\n",
+            "[data-home-mode=presentation] .ad-prompt-scroll[data-demo-step=filled] .hp-composer-phrase{opacity:1;transform:none;transition:opacity .22s}\n",
+            "@media(prefers-reduced-motion:reduce){[data-home-mode=presentation] .pc-prompt-row,[data-home-mode=presentation] .hp-composer-phrase{transition:none!important}}\n",
+            "@media(forced-colors:active){\n",
+            " [data-home-mode=presentation] :is(.pc-record-meta time,.pc-record-meta time>span,.pc-date,.pc-origin-chip,.ad-story-date,.ad-story-entry time,.ad-story-provenance,.ad-chapter-source,.ad-document-source,[data-card-count],[data-topic-count],.hp-composer-foot>span:first-child,.ad-original-cue,.ad-ai-cue,.hp-demo-caption,.hp-availability){color:CanvasText}\n",
+            " [data-home-mode=presentation] .hp-demo-link{color:LinkText}\n",
+            " [data-home-mode=presentation] .ad-prompt-scroll:is([data-demo-step=selected],[data-demo-step=filled]) .pc-prompt-row:first-child{outline:2px solid Highlight;outline-offset:-2px;box-shadow:none}\n",
+            "}\n",
+            "/* END_SIX_SCOPED_REFINEMENTS_20261023 */\n"
+          ]
+        }
+      ]
+    },
+    "assets/website/home-presentation.js": {
+      "before_sha": "6f7436dbcb024e746234ea82450ac454be33d8d878d0921a0d8d7345419cfcf5",
+      "changes": [
+        {
+          "start": 0,
+          "end": 2,
+          "before": [
+            "/* Homepage owns presentation only. No editing, storage, provider or send.\n",
+            "   Independent demo.html keeps its original controllers. */\n"
+          ],
+          "after": [
+            "/* Homepage presentation only. No editing, storage, provider, input or send.\n",
+            "   The independent demo retains its original controller and real sample actions. */\n"
+          ]
+        },
+        {
+          "start": 8,
+          "end": 9,
+          "before": [],
+          "after": [
+            "  if(!thought||!prompt)return;\n"
+          ]
+        },
+        {
+          "start": 13,
+          "end": 15,
+          "before": [
+            "  let queued=false;\n"
+          ],
+          "after": [
+            "  const footer=thought.querySelector('.ad-document-source');\n",
+            "  let queued=false,layoutDirty=true,sequence=[],sequencePhase='';\n"
+          ]
+        },
+        {
+          "start": 16,
+          "end": 32,
+          "before": [
+            "  const visible=(el,show)=>{const value=String(!show);if(el.getAttribute('aria-hidden')!==value)el.setAttribute('aria-hidden',value);};\n"
+          ],
+          "after": [
+            "  const visible=(el,show)=>{if(!el)return;const value=String(!show);if(el.getAttribute('aria-hidden')!==value)el.setAttribute('aria-hidden',value);};\n",
+            "  function cancelSequence(){sequence.forEach(clearTimeout);sequence=[];}\n",
+            "  function step(value){if(prompt.dataset.demoStep!==value)prompt.dataset.demoStep=value;}\n",
+            "  function promptSequence(){\n",
+            "    const current=prompt.dataset.phase;\n",
+            "    if(reduced.matches||document.hidden){cancelSequence();step(current==='board'?'filled':'idle');sequencePhase=current;return;}\n",
+            "    if(current===sequencePhase)return;\n",
+            "    cancelSequence();sequencePhase=current;\n",
+            "    if(current!=='board'){step('idle');return;}\n",
+            "    step('show');\n",
+            "    sequence.push(setTimeout(()=>{if(prompt.dataset.phase==='board')step('selected');},260));\n",
+            "    sequence.push(setTimeout(()=>{\n",
+            "      if(prompt.dataset.phase==='board'){step('filled');visible(prompt.querySelector('.hp-composer-phrase'),true);}\n",
+            "      sequence=[];\n",
+            "    },640));\n",
+            "  }\n"
+          ]
+        },
+        {
+          "start": 43,
+          "end": 44,
+          "before": [
+            "    visible(prompt.querySelector('.hp-composer-phrase'),prompt.dataset.phase==='board');\n"
+          ],
+          "after": [
+            "    visible(prompt.querySelector('.hp-composer-phrase'),prompt.dataset.phase==='board'&&prompt.dataset.demoStep==='filled');\n"
+          ]
+        },
+        {
+          "start": 55,
+          "end": 70,
+          "before": [],
+          "after": [
+            "    if(!layoutDirty)return;\n",
+            "    layoutDirty=false;\n",
+            "    const documentBox=thought.querySelector('.ad-thought-expanded');\n",
+            "    const header=thought.querySelector('.ad-document-header');\n",
+            "    const pages=thought.querySelector('.ad-document-pages');\n",
+            "    const raw=thought.querySelector('[data-story-original]');\n",
+            "    const organized=thought.querySelector('[data-story-organized]');\n",
+            "    const s=getComputedStyle(documentBox),f=getComputedStyle(footer),p=getComputedStyle(pages);\n",
+            "    const contentHeight=element=>{\n",
+            "      return Math.max(0,...[...element.children].map(child=>child.offsetTop+child.offsetHeight+parseFloat(getComputedStyle(child).marginBottom)));\n",
+            "    };\n",
+            "    const required=Math.ceil(parseFloat(s.paddingTop)+parseFloat(s.paddingBottom)+header.offsetHeight+\n",
+            "      Math.max(contentHeight(raw),contentHeight(organized))+parseFloat(p.marginTop)+footer.offsetHeight+parseFloat(f.marginTop)+4);\n",
+            "    const value=required+'px';\n",
+            "    if(thought.style.getPropertyValue('--hp-reading-required')!==value)thought.style.setProperty('--hp-reading-required',value);\n"
+          ]
+        },
+        {
+          "start": 72,
+          "end": 73,
+          "before": [
+            "    queued=false;body.classList.toggle('hp-static',reduced.matches);\n"
+          ],
+          "after": [
+            "    queued=false;body.classList.toggle('hp-static',reduced.matches);geometry();\n"
+          ]
+        },
+        {
+          "start": 75,
+          "end": 85,
+          "before": [
+            "      phase(thought,sheet.getBoundingClientRect().top<innerHeight*.26?'organize':'open');\n",
+            "      const p=innerHeight-host.getBoundingClientRect().top;\n",
+            "      phase(prompt,p<innerHeight*.42?'orb':p<innerHeight*.82?'capsule':'board');\n"
+          ],
+          "after": [
+            "      // Use the actual end of the reading sheet, not its top. A 48px band\n",
+            "      // preserves a readable original/source state before the next result.\n",
+            "      const end=footer.getBoundingClientRect().bottom;\n",
+            "      if(end<=innerHeight-72)phase(thought,'organize');\n",
+            "      else if(end>innerHeight-24)phase(thought,'open');\n",
+            "      // The actual fixed anchor must enter the visible viewport before its\n",
+            "      // silhouette changes. Fast scrolling still reaches a complete outcome.\n",
+            "      const anchor=host.querySelector('.pc-palette-wrap').getBoundingClientRect();\n",
+            "      const seen=innerHeight-24-anchor.bottom;\n",
+            "      phase(prompt,seen<64?'orb':seen<176?'capsule':'board');\n"
+          ]
+        },
+        {
+          "start": 90,
+          "end": 91,
+          "before": [
+            "    accessibility(reduced.matches);geometry();\n"
+          ],
+          "after": [
+            "    promptSequence();accessibility(reduced.matches);\n"
+          ]
+        },
+        {
+          "start": 93,
+          "end": 94,
+          "before": [],
+          "after": [
+            "  function resize(){layoutDirty=true;schedule();}\n"
+          ]
+        },
+        {
+          "start": 96,
+          "end": 109,
+          "before": [
+            "  addEventListener('resize',schedule,{passive:true});\n",
+            "  addEventListener('pageshow',schedule);\n",
+            "  reduced.addEventListener('change',schedule);narrow.addEventListener('change',schedule);\n",
+            "  if('ResizeObserver'in window){const observer=new ResizeObserver(schedule);observer.observe(host);observer.observe(host.querySelector('.pc-composer'));}\n",
+            "  document.fonts.ready.then(schedule);schedule();\n"
+          ],
+          "after": [
+            "  addEventListener('resize',resize,{passive:true});\n",
+            "  addEventListener('pageshow',resize);\n",
+            "  document.addEventListener('visibilitychange',schedule);\n",
+            "  reduced.addEventListener('change',()=>{sequencePhase='';resize();});\n",
+            "  narrow.addEventListener('change',resize);\n",
+            "  if('ResizeObserver'in window){\n",
+            "    const observer=new ResizeObserver(resize);\n",
+            "    observer.observe(host);observer.observe(host.querySelector('.pc-composer'));\n",
+            "    observer.observe(thought.querySelector('.ad-document-header'));\n",
+            "    observer.observe(thought.querySelector('[data-story-original]'));\n",
+            "    observer.observe(thought.querySelector('[data-story-organized]'));\n",
+            "  }\n",
+            "  document.fonts.ready.then(resize);schedule();\n"
+          ]
+        }
+      ]
+    },
+    "index.html": {
+      "before_sha": "c466bf9e5841fef611b2043278a18892baa0d8a9897ca918e8df7f09c44f8c17",
+      "changes": [
+        {
+          "start": 38,
+          "end": 39,
+          "before": [
+            "<link rel=\"stylesheet\" href=\"/assets/website/home-presentation.css?v=20261013a\"><script src=\"/assets/website/home-presentation.js?v=20261013a\" defer></script>\n"
+          ],
+          "after": [
+            "<link rel=\"stylesheet\" href=\"/assets/website/home-presentation.css?v=20261023-six\"><script src=\"/assets/website/home-presentation.js?v=20261023-six\" defer></script>\n"
+          ]
+        },
+        {
+          "start": 72,
+          "end": 73,
+          "before": [
+            "</section><div class=\"paia-core art-directed art-refined\" data-home-presentation data-locale=\"en\">\n"
+          ],
+          "after": [
+            "</section><div class=\"paia-core art-directed art-refined\" data-home-presentation data-six-refinements=\"20261023\" data-locale=\"en\">\n"
+          ]
+        },
+        {
+          "start": 81,
+          "end": 84,
+          "before": [
+            "</div><div class=\"pc-section-foot\"><span>FIND → EDIT → REUSE</span><p>Working edits update linked examples. Originals stay intact.</p></div>\n",
+            "</section><section class=\"pc-section pc-topics wrap\" id=\"thought-library\" aria-labelledby=\"pc-topics-title\"><div class=\"ad-scroll-track ad-thought-scroll\" data-scroll-story=\"thought\" data-phase=\"organize\"><div class=\"ad-scroll-sticky\"><div class=\"ad-reading-spread\"><div class=\"pc-topic-stage pc-reveal\"><div class=\"ad-library-editorial\"><div class=\"pc-heading\"><div><p class=\"eyebrow\">02 / THOUGHT LIBRARY</p><h2 id=\"pc-topics-title\">Scattered ideas.<br><span class=\"ad-title-tail\">A thread of your own.</span></h2></div><div class=\"pc-intro\"><p>Bring expressions from different conversations together in your own topics and sections. Read continuously, or choose a more concise view. Your sources and decisions stay with you.</p></div></div></div><div class=\"ad-library-content\"><header class=\"pc-topic-toolbar\"><span class=\"pc-app-name\">Thought Library</span><span class=\"pc-local-tag\">TOPICS · SECTIONS · YOUR WORDS</span></header>\n",
+            "<div class=\"pc-topic-overview\" data-topic-overview><div class=\"pc-topic-root-head\"><h3>My topics</h3></div><div class=\"pc-topic-grid\"><article class=\"pc-topic-block\" data-topic-block=\"product\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M12 14h30v32H12zM18 10h30v32M19 23h16M19 30h16M19 37h10\"/></svg><h3><span>A product’s first step</span></h3><span class=\"pc-section-anchor\">Exploring a direction</span><span class=\"pc-section-anchor\">Decisions and trade-offs</span></article><article class=\"pc-topic-block\" data-topic-block=\"writing\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M15 10h24l9 9v30H15zM39 10v11h9M23 30h16M23 38h12\"/><path d=\"m11 44 5 5\"/></svg><h3><span>Writing practice</span></h3><span class=\"pc-section-anchor\">Making the point</span><span class=\"pc-section-anchor\">Editing and choosing</span></article><article class=\"pc-topic-block\" data-topic-block=\"learning\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M30 17c-6-5-14-6-23-4v33c9-2 17-1 23 4 6-5 14-6 23-4V13c-9-2-17-1-23 4Z M30 17v33M14 23l9 2M14 30l9 2M37 25l9-2M37 32l9-2\"/></svg><h3><span>Learning and understanding</span></h3><span class=\"pc-section-anchor\">Start with a question</span><span class=\"pc-section-anchor\">Find your own explanation</span></article></div></div>\n"
+          ],
+          "after": [
+            "</div><div class=\"pc-section-foot\"><span class=\"hp-demo-caption\">Interface illustration · <a class=\"hp-demo-link\" href=\"/demo.html#input-library\">Try finding and editing</a></span><p>Working edits update linked examples. Originals stay intact.</p></div>\n",
+            "</section><section class=\"pc-section pc-topics wrap\" id=\"thought-library\" aria-labelledby=\"pc-topics-title\"><div class=\"ad-scroll-track ad-thought-scroll\" data-scroll-story=\"thought\" data-phase=\"organize\"><div class=\"ad-scroll-sticky\"><div class=\"ad-reading-spread\"><div class=\"pc-topic-stage pc-reveal\"><div class=\"ad-library-editorial\"><div class=\"pc-heading\"><div><p class=\"eyebrow\">02 / THOUGHT LIBRARY</p><h2 id=\"pc-topics-title\">Scattered ideas.<br><span class=\"ad-title-tail\">A thread of your own.</span></h2></div><div class=\"pc-intro\"><p>Bring expressions from different conversations together in your own topics and sections. Read continuously, or choose a more concise view. Your sources and decisions stay with you.</p><span class=\"hp-demo-caption\">Interface illustration · <a class=\"hp-demo-link\" href=\"/demo.html#thought-library\">Explore Thought Library</a></span></div></div></div><div class=\"ad-library-content\"><header class=\"pc-topic-toolbar\"><span class=\"pc-app-name\">Thought Library</span></header>\n",
+            "<div class=\"pc-topic-overview\" data-topic-overview><div class=\"pc-topic-grid\"><article class=\"pc-topic-block\" data-topic-block=\"product\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M12 14h30v32H12zM18 10h30v32M19 23h16M19 30h16M19 37h10\"/></svg><h3><span>A product’s first step</span></h3><span class=\"pc-section-anchor\">Exploring a direction</span><span class=\"pc-section-anchor\">Decisions and trade-offs</span></article><article class=\"pc-topic-block\" data-topic-block=\"writing\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M15 10h24l9 9v30H15zM39 10v11h9M23 30h16M23 38h12\"/><path d=\"m11 44 5 5\"/></svg><h3><span>Writing practice</span></h3><span class=\"pc-section-anchor\">Making the point</span><span class=\"pc-section-anchor\">Editing and choosing</span></article><article class=\"pc-topic-block\" data-topic-block=\"learning\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M30 17c-6-5-14-6-23-4v33c9-2 17-1 23 4 6-5 14-6 23-4V13c-9-2-17-1-23 4Z M30 17v33M14 23l9 2M14 30l9 2M37 25l9-2M37 32l9-2\"/></svg><h3><span>Learning and understanding</span></h3><span class=\"pc-section-anchor\">Start with a question</span><span class=\"pc-section-anchor\">Find your own explanation</span></article></div></div>\n"
+          ]
+        },
+        {
+          "start": 85,
+          "end": 86,
+          "before": [
+            "<footer class=\"pc-topic-footer\"><span>Topics → Sections → Your words.</span><span class=\"pc-local-tag\">ONE LIBRARY. ROOM TO GROW.</span></footer></div></div><div class=\"ad-thought-scenes\">\n"
+          ],
+          "after": [
+            "</div></div><div class=\"ad-thought-scenes\">\n"
+          ]
+        },
+        {
+          "start": 98,
+          "end": 99,
+          "before": [
+            "</div></div></div><div class=\"pc-section-foot\"><span>ORGANIZED ON YOUR TERMS</span><p>Your names, moves and exclusions take priority. Multiple placements refer to the same content.</p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-prompts\" id=\"prompt-reuse\" aria-labelledby=\"pc-prompts-title\"><div class=\"ad-scroll-track ad-prompt-scroll\" data-scroll-story=\"prompt\" data-phase=\"board\"><div class=\"ad-scroll-sticky\"><div class=\"wrap pc-split\"><div class=\"ad-prompt-field\"><div class=\"ad-prompt-display\"><div class=\"pc-prompt-scene ad-host\" data-ad-host><div class=\"pc-answer\"><div class=\"pc-window-bar\"><span class=\"pc-dot\"></span><span>CONVERSATION</span><span aria-hidden=\"true\">↗</span></div><div class=\"ad-chatgpt-user\">What belongs in v1</div><div class=\"pc-answer-body\"><span class=\"pc-ai-glyph\" aria-hidden=\"true\">✳</span><p>Compare two directions: helping creators recover existing material, or adding generation features. Next, weigh them against your constraints.</p><span class=\"pc-answer-end\">Response complete <i aria-hidden=\"true\"></i></span><span class=\"ad-chatgpt-actions\" aria-hidden=\"true\"><svg viewbox=\"0 0 72 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.15\"><rect x=\"3\" y=\"5\" width=\"9\" height=\"11\" rx=\"2\"/><path d=\"M6 3h7a2 2 0 0 1 2 2v8M28 8l4-5h2v5h5l-2 8h-9zm-3 0h3v8h-3zM54 12l4 5h2v-5h5l-2-8h-9zm-3-8h3v8h-3z\"/></svg></span></div></div><div class=\"pc-palette-wrap\"><div class=\"ad-morph-track\">\n"
+          ],
+          "after": [
+            "</div></div></div><div class=\"pc-section-foot\"><p>Your names, moves and exclusions take priority. Multiple placements refer to the same content.</p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-prompts\" id=\"prompt-reuse\" aria-labelledby=\"pc-prompts-title\"><div class=\"ad-scroll-track ad-prompt-scroll\" data-scroll-story=\"prompt\" data-phase=\"board\"><div class=\"ad-scroll-sticky\"><div class=\"wrap pc-split\"><div class=\"ad-prompt-field\"><div class=\"ad-prompt-display\"><div class=\"pc-prompt-scene ad-host\" data-ad-host><div class=\"pc-answer\"><div class=\"pc-window-bar\"><span class=\"pc-dot\"></span><span>Interface illustration</span><span aria-hidden=\"true\">↗</span></div><div class=\"ad-chatgpt-user\">What belongs in v1</div><div class=\"pc-answer-body\"><span class=\"pc-ai-glyph\" aria-hidden=\"true\">✳</span><p>Compare two directions: helping creators recover existing material, or adding generation features. Next, weigh them against your constraints.</p><span class=\"pc-answer-end\">Response complete <i aria-hidden=\"true\"></i></span><span class=\"ad-chatgpt-actions\" aria-hidden=\"true\"><svg viewbox=\"0 0 72 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.15\"><rect x=\"3\" y=\"5\" width=\"9\" height=\"11\" rx=\"2\"/><path d=\"M6 3h7a2 2 0 0 1 2 2v8M28 8l4-5h2v5h5l-2 8h-9zm-3 0h3v8h-3zM54 12l4 5h2v-5h5l-2-8h-9zm-3-8h3v8h-3z\"/></svg></span></div></div><div class=\"pc-palette-wrap\"><div class=\"ad-morph-track\">\n"
+          ]
+        },
+        {
+          "start": 114,
+          "end": 115,
+          "before": [
+            "<p class=\"pc-body-copy\">Keep the phrases that help you close at hand. Open the light, translucent panel and choose a line to fill the composer. Edit, reorder or pin it when needed. You always decide when to send.</p><p class=\"pc-plan-note\"><span>OPTIONAL LOCAL SUGGESTIONS</span>After you opt in, use the latest reply to find a useful expression among your saved prompts. You review it and decide when to send.</p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-context\" id=\"personal-context\" aria-labelledby=\"pc-context-title\"><div class=\"wrap\">\n"
+          ],
+          "after": [
+            "<p class=\"pc-body-copy\">Keep the phrases that help you close at hand. Open the light, translucent panel and choose a line to fill the composer. Edit, reorder or pin it when needed. You always decide when to send.</p><p class=\"pc-plan-note\"><span>OPTIONAL LOCAL SUGGESTIONS</span>After you opt in, use the latest reply to find a useful expression among your saved prompts. You review it and decide when to send.<span class=\"hp-demo-route\"><span class=\"hp-demo-caption\">Interface illustration · <a class=\"hp-demo-link\" href=\"/demo.html#prompt-reuse\">Try prompt reuse</a></span></span></p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-context\" id=\"personal-context\" aria-labelledby=\"pc-context-title\"><div class=\"wrap\">\n"
+          ]
+        },
+        {
+          "start": 119,
+          "end": 120,
+          "before": [
+            "</div></div></div><div class=\"ad-card-deck\"><header class=\"pc-context-bar\"><span class=\"pc-app-name\">PAIA <span>/ AI CONTEXT</span></span><span class=\"pc-master-permission\">AI access: on</span></header>\n"
+          ],
+          "after": [
+            "</div></div></div><div class=\"ad-card-deck\"><header class=\"pc-context-bar\"><span class=\"pc-app-name\">PAIA <span>/ AI CONTEXT</span></span><span class=\"pc-master-permission hp-example-state\">Example: access allowed</span></header>\n"
+          ]
+        },
+        {
+          "start": 132,
+          "end": 133,
+          "before": [
+            "<div class=\"pc-section-foot\"><span>MY INFORMATION / MY RULES / MY NOW / MY INPUTS</span><p>Closed topics stay closed. Access does not fall back to your entire Input Archive.</p></div>\n"
+          ],
+          "after": [
+            "<div class=\"pc-section-foot\"><span class=\"hp-context-example\"><span class=\"hp-demo-caption\">Interface illustration · <a class=\"hp-demo-link\" href=\"/demo.html#personal-context\">Explore access controls</a></span><span class=\"hp-availability\">Sample state. External AI connections are not available yet.</span></span><p>Closed topics stay closed. Access does not fall back to your entire Input Archive.</p></div>\n"
+          ]
+        },
+        {
+          "start": 134,
+          "end": 136,
+          "before": [
+            "<div><p class=\"eyebrow\">LOCAL FIRST · SYNC BY CHOICE</p><h2 id=\"pc-sync-title\">Your archive.<br>Room to carry on.</h2></div>\n",
+            "<div><p>Everyday capture, search, editing and prompt reuse work locally. Use your own browser cloud account to continue with synced material across devices in the same ecosystem.</p>\n"
+          ],
+          "after": [
+            "<div><p class=\"eyebrow\">LOCAL FIRST · SYNC NOT AVAILABLE YET</p><h2 id=\"pc-sync-title\">Your archive.<br>Room to carry on.</h2></div>\n",
+            "<div><p>Everyday capture, search, editing and prompt reuse work locally. Cross-device sync is not available yet; the mapping below illustrates the intended browser ecosystems.</p>\n"
+          ]
+        },
+        {
+          "start": 137,
+          "end": 138,
+          "before": [
+            "<p class=\"pc-sync-note\">Sync is your choice. Different browser ecosystems do not sync with one another automatically.</p><a class=\"text-link\" href=\"/principles.html\">Data and permissions</a></div></section></div><section class=\"core-close\" data-close-brand><div class=\"core-close-inner wrap\"><div><p class=\"eyebrow\">YOUR INPUTS STAY YOURS</p><h2>Keep what you tell AI.<br>Decide what AI can use next.</h2><p>Make scattered expressions an archive of your own. Return to your words, keep developing your ideas, and decide what a connected AI may use.</p><div class=\"actions\"><a class=\"button\" href=\"/download.html\">Get PAIA <span aria-hidden=\"true\">→</span></a><a class=\"text-link\" href=\"/help.html\">Help</a></div></div><div class=\"core-close-mark\"><img src=\"/assets/website/brand/paia-logo-v1.webp\" width=\"480\" height=\"480\" alt=\"PAIA\" loading=\"lazy\" decoding=\"async\"></div></div></section></main><footer class=\"site-footer wrap\"><div class=\"footer-main\"><div class=\"footer-brand\"><a class=\"wordmark\" href=\"/\">PAIA</a><p>A place for your words to become your own body of work.</p></div><nav aria-label=\"Footer navigation\"><div><strong>PRODUCT</strong><a class=\"\" href=\"/how-it-works.html\">How it works</a><a class=\"\" href=\"/use-cases.html\">Use cases</a><a class=\"\" href=\"/demo.html\">Interactive demo</a><a class=\"\" href=\"/download.html\">Get PAIA</a></div><div><strong>RESOURCES</strong><a class=\"\" href=\"/help.html\">Help</a><a class=\"\" href=\"/about.html\">About PAIA</a><a class=\"\" href=\"/blog.html\">Product notes</a><a class=\"\" href=\"/contact.html\">Contact</a></div><div><strong>YOUR DATA</strong><a class=\"\" href=\"/principles.html\">Data & permissions</a><a class=\"\" href=\"/privacy-policy.html\">Privacy policy</a><a class=\"\" href=\"/terms.html\">Terms</a></div></nav></div><div class=\"footer-bottom\"><span class=\"copyright\">© 2026 PAIA</span><span>Your inputs stay yours.</span></div></footer>\n"
+          ],
+          "after": [
+            "<p class=\"pc-sync-note\">This is a feature illustration, not a statement that these cloud connections are available. Browser ecosystems do not automatically sync with one another.</p><a class=\"text-link\" href=\"/principles.html\">Data and permissions</a></div></section></div><section class=\"core-close\" data-close-brand><div class=\"core-close-inner wrap\"><div><p class=\"eyebrow\">YOUR INPUTS STAY YOURS</p><h2>Keep what you tell AI.<br>Decide what AI can use next.</h2><p>Make scattered expressions an archive of your own. Return to your words, keep developing your ideas, and decide what a connected AI may use.</p><div class=\"actions\"><a class=\"button\" href=\"/download.html\">Get PAIA <span aria-hidden=\"true\">→</span></a><a class=\"text-link\" href=\"/help.html\">Help</a></div></div><div class=\"core-close-mark\"><img src=\"/assets/website/brand/paia-logo-v1.webp\" width=\"480\" height=\"480\" alt=\"PAIA\" loading=\"lazy\" decoding=\"async\"></div></div></section></main><footer class=\"site-footer wrap\"><div class=\"footer-main\"><div class=\"footer-brand\"><a class=\"wordmark\" href=\"/\">PAIA</a><p>A place for your words to become your own body of work.</p></div><nav aria-label=\"Footer navigation\"><div><strong>PRODUCT</strong><a class=\"\" href=\"/how-it-works.html\">How it works</a><a class=\"\" href=\"/use-cases.html\">Use cases</a><a class=\"\" href=\"/demo.html\">Interactive demo</a><a class=\"\" href=\"/download.html\">Get PAIA</a></div><div><strong>RESOURCES</strong><a class=\"\" href=\"/help.html\">Help</a><a class=\"\" href=\"/about.html\">About PAIA</a><a class=\"\" href=\"/blog.html\">Product notes</a><a class=\"\" href=\"/contact.html\">Contact</a></div><div><strong>YOUR DATA</strong><a class=\"\" href=\"/principles.html\">Data & permissions</a><a class=\"\" href=\"/privacy-policy.html\">Privacy policy</a><a class=\"\" href=\"/terms.html\">Terms</a></div></nav></div><div class=\"footer-bottom\"><span class=\"copyright\">© 2026 PAIA</span><span>Your inputs stay yours.</span></div></footer>\n"
+          ]
+        }
+      ]
+    },
+    "en/index.html": {
+      "before_sha": "c466bf9e5841fef611b2043278a18892baa0d8a9897ca918e8df7f09c44f8c17",
+      "changes": [
+        {
+          "start": 38,
+          "end": 39,
+          "before": [
+            "<link rel=\"stylesheet\" href=\"/assets/website/home-presentation.css?v=20261013a\"><script src=\"/assets/website/home-presentation.js?v=20261013a\" defer></script>\n"
+          ],
+          "after": [
+            "<link rel=\"stylesheet\" href=\"/assets/website/home-presentation.css?v=20261023-six\"><script src=\"/assets/website/home-presentation.js?v=20261023-six\" defer></script>\n"
+          ]
+        },
+        {
+          "start": 72,
+          "end": 73,
+          "before": [
+            "</section><div class=\"paia-core art-directed art-refined\" data-home-presentation data-locale=\"en\">\n"
+          ],
+          "after": [
+            "</section><div class=\"paia-core art-directed art-refined\" data-home-presentation data-six-refinements=\"20261023\" data-locale=\"en\">\n"
+          ]
+        },
+        {
+          "start": 81,
+          "end": 84,
+          "before": [
+            "</div><div class=\"pc-section-foot\"><span>FIND → EDIT → REUSE</span><p>Working edits update linked examples. Originals stay intact.</p></div>\n",
+            "</section><section class=\"pc-section pc-topics wrap\" id=\"thought-library\" aria-labelledby=\"pc-topics-title\"><div class=\"ad-scroll-track ad-thought-scroll\" data-scroll-story=\"thought\" data-phase=\"organize\"><div class=\"ad-scroll-sticky\"><div class=\"ad-reading-spread\"><div class=\"pc-topic-stage pc-reveal\"><div class=\"ad-library-editorial\"><div class=\"pc-heading\"><div><p class=\"eyebrow\">02 / THOUGHT LIBRARY</p><h2 id=\"pc-topics-title\">Scattered ideas.<br><span class=\"ad-title-tail\">A thread of your own.</span></h2></div><div class=\"pc-intro\"><p>Bring expressions from different conversations together in your own topics and sections. Read continuously, or choose a more concise view. Your sources and decisions stay with you.</p></div></div></div><div class=\"ad-library-content\"><header class=\"pc-topic-toolbar\"><span class=\"pc-app-name\">Thought Library</span><span class=\"pc-local-tag\">TOPICS · SECTIONS · YOUR WORDS</span></header>\n",
+            "<div class=\"pc-topic-overview\" data-topic-overview><div class=\"pc-topic-root-head\"><h3>My topics</h3></div><div class=\"pc-topic-grid\"><article class=\"pc-topic-block\" data-topic-block=\"product\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M12 14h30v32H12zM18 10h30v32M19 23h16M19 30h16M19 37h10\"/></svg><h3><span>A product’s first step</span></h3><span class=\"pc-section-anchor\">Exploring a direction</span><span class=\"pc-section-anchor\">Decisions and trade-offs</span></article><article class=\"pc-topic-block\" data-topic-block=\"writing\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M15 10h24l9 9v30H15zM39 10v11h9M23 30h16M23 38h12\"/><path d=\"m11 44 5 5\"/></svg><h3><span>Writing practice</span></h3><span class=\"pc-section-anchor\">Making the point</span><span class=\"pc-section-anchor\">Editing and choosing</span></article><article class=\"pc-topic-block\" data-topic-block=\"learning\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M30 17c-6-5-14-6-23-4v33c9-2 17-1 23 4 6-5 14-6 23-4V13c-9-2-17-1-23 4Z M30 17v33M14 23l9 2M14 30l9 2M37 25l9-2M37 32l9-2\"/></svg><h3><span>Learning and understanding</span></h3><span class=\"pc-section-anchor\">Start with a question</span><span class=\"pc-section-anchor\">Find your own explanation</span></article></div></div>\n"
+          ],
+          "after": [
+            "</div><div class=\"pc-section-foot\"><span class=\"hp-demo-caption\">Interface illustration · <a class=\"hp-demo-link\" href=\"/demo.html#input-library\">Try finding and editing</a></span><p>Working edits update linked examples. Originals stay intact.</p></div>\n",
+            "</section><section class=\"pc-section pc-topics wrap\" id=\"thought-library\" aria-labelledby=\"pc-topics-title\"><div class=\"ad-scroll-track ad-thought-scroll\" data-scroll-story=\"thought\" data-phase=\"organize\"><div class=\"ad-scroll-sticky\"><div class=\"ad-reading-spread\"><div class=\"pc-topic-stage pc-reveal\"><div class=\"ad-library-editorial\"><div class=\"pc-heading\"><div><p class=\"eyebrow\">02 / THOUGHT LIBRARY</p><h2 id=\"pc-topics-title\">Scattered ideas.<br><span class=\"ad-title-tail\">A thread of your own.</span></h2></div><div class=\"pc-intro\"><p>Bring expressions from different conversations together in your own topics and sections. Read continuously, or choose a more concise view. Your sources and decisions stay with you.</p><span class=\"hp-demo-caption\">Interface illustration · <a class=\"hp-demo-link\" href=\"/demo.html#thought-library\">Explore Thought Library</a></span></div></div></div><div class=\"ad-library-content\"><header class=\"pc-topic-toolbar\"><span class=\"pc-app-name\">Thought Library</span></header>\n",
+            "<div class=\"pc-topic-overview\" data-topic-overview><div class=\"pc-topic-grid\"><article class=\"pc-topic-block\" data-topic-block=\"product\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M12 14h30v32H12zM18 10h30v32M19 23h16M19 30h16M19 37h10\"/></svg><h3><span>A product’s first step</span></h3><span class=\"pc-section-anchor\">Exploring a direction</span><span class=\"pc-section-anchor\">Decisions and trade-offs</span></article><article class=\"pc-topic-block\" data-topic-block=\"writing\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M15 10h24l9 9v30H15zM39 10v11h9M23 30h16M23 38h12\"/><path d=\"m11 44 5 5\"/></svg><h3><span>Writing practice</span></h3><span class=\"pc-section-anchor\">Making the point</span><span class=\"pc-section-anchor\">Editing and choosing</span></article><article class=\"pc-topic-block\" data-topic-block=\"learning\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M30 17c-6-5-14-6-23-4v33c9-2 17-1 23 4 6-5 14-6 23-4V13c-9-2-17-1-23 4Z M30 17v33M14 23l9 2M14 30l9 2M37 25l9-2M37 32l9-2\"/></svg><h3><span>Learning and understanding</span></h3><span class=\"pc-section-anchor\">Start with a question</span><span class=\"pc-section-anchor\">Find your own explanation</span></article></div></div>\n"
+          ]
+        },
+        {
+          "start": 85,
+          "end": 86,
+          "before": [
+            "<footer class=\"pc-topic-footer\"><span>Topics → Sections → Your words.</span><span class=\"pc-local-tag\">ONE LIBRARY. ROOM TO GROW.</span></footer></div></div><div class=\"ad-thought-scenes\">\n"
+          ],
+          "after": [
+            "</div></div><div class=\"ad-thought-scenes\">\n"
+          ]
+        },
+        {
+          "start": 98,
+          "end": 99,
+          "before": [
+            "</div></div></div><div class=\"pc-section-foot\"><span>ORGANIZED ON YOUR TERMS</span><p>Your names, moves and exclusions take priority. Multiple placements refer to the same content.</p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-prompts\" id=\"prompt-reuse\" aria-labelledby=\"pc-prompts-title\"><div class=\"ad-scroll-track ad-prompt-scroll\" data-scroll-story=\"prompt\" data-phase=\"board\"><div class=\"ad-scroll-sticky\"><div class=\"wrap pc-split\"><div class=\"ad-prompt-field\"><div class=\"ad-prompt-display\"><div class=\"pc-prompt-scene ad-host\" data-ad-host><div class=\"pc-answer\"><div class=\"pc-window-bar\"><span class=\"pc-dot\"></span><span>CONVERSATION</span><span aria-hidden=\"true\">↗</span></div><div class=\"ad-chatgpt-user\">What belongs in v1</div><div class=\"pc-answer-body\"><span class=\"pc-ai-glyph\" aria-hidden=\"true\">✳</span><p>Compare two directions: helping creators recover existing material, or adding generation features. Next, weigh them against your constraints.</p><span class=\"pc-answer-end\">Response complete <i aria-hidden=\"true\"></i></span><span class=\"ad-chatgpt-actions\" aria-hidden=\"true\"><svg viewbox=\"0 0 72 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.15\"><rect x=\"3\" y=\"5\" width=\"9\" height=\"11\" rx=\"2\"/><path d=\"M6 3h7a2 2 0 0 1 2 2v8M28 8l4-5h2v5h5l-2 8h-9zm-3 0h3v8h-3zM54 12l4 5h2v-5h5l-2-8h-9zm-3-8h3v8h-3z\"/></svg></span></div></div><div class=\"pc-palette-wrap\"><div class=\"ad-morph-track\">\n"
+          ],
+          "after": [
+            "</div></div></div><div class=\"pc-section-foot\"><p>Your names, moves and exclusions take priority. Multiple placements refer to the same content.</p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-prompts\" id=\"prompt-reuse\" aria-labelledby=\"pc-prompts-title\"><div class=\"ad-scroll-track ad-prompt-scroll\" data-scroll-story=\"prompt\" data-phase=\"board\"><div class=\"ad-scroll-sticky\"><div class=\"wrap pc-split\"><div class=\"ad-prompt-field\"><div class=\"ad-prompt-display\"><div class=\"pc-prompt-scene ad-host\" data-ad-host><div class=\"pc-answer\"><div class=\"pc-window-bar\"><span class=\"pc-dot\"></span><span>Interface illustration</span><span aria-hidden=\"true\">↗</span></div><div class=\"ad-chatgpt-user\">What belongs in v1</div><div class=\"pc-answer-body\"><span class=\"pc-ai-glyph\" aria-hidden=\"true\">✳</span><p>Compare two directions: helping creators recover existing material, or adding generation features. Next, weigh them against your constraints.</p><span class=\"pc-answer-end\">Response complete <i aria-hidden=\"true\"></i></span><span class=\"ad-chatgpt-actions\" aria-hidden=\"true\"><svg viewbox=\"0 0 72 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.15\"><rect x=\"3\" y=\"5\" width=\"9\" height=\"11\" rx=\"2\"/><path d=\"M6 3h7a2 2 0 0 1 2 2v8M28 8l4-5h2v5h5l-2 8h-9zm-3 0h3v8h-3zM54 12l4 5h2v-5h5l-2-8h-9zm-3-8h3v8h-3z\"/></svg></span></div></div><div class=\"pc-palette-wrap\"><div class=\"ad-morph-track\">\n"
+          ]
+        },
+        {
+          "start": 114,
+          "end": 115,
+          "before": [
+            "<p class=\"pc-body-copy\">Keep the phrases that help you close at hand. Open the light, translucent panel and choose a line to fill the composer. Edit, reorder or pin it when needed. You always decide when to send.</p><p class=\"pc-plan-note\"><span>OPTIONAL LOCAL SUGGESTIONS</span>After you opt in, use the latest reply to find a useful expression among your saved prompts. You review it and decide when to send.</p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-context\" id=\"personal-context\" aria-labelledby=\"pc-context-title\"><div class=\"wrap\">\n"
+          ],
+          "after": [
+            "<p class=\"pc-body-copy\">Keep the phrases that help you close at hand. Open the light, translucent panel and choose a line to fill the composer. Edit, reorder or pin it when needed. You always decide when to send.</p><p class=\"pc-plan-note\"><span>OPTIONAL LOCAL SUGGESTIONS</span>After you opt in, use the latest reply to find a useful expression among your saved prompts. You review it and decide when to send.<span class=\"hp-demo-route\"><span class=\"hp-demo-caption\">Interface illustration · <a class=\"hp-demo-link\" href=\"/demo.html#prompt-reuse\">Try prompt reuse</a></span></span></p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-context\" id=\"personal-context\" aria-labelledby=\"pc-context-title\"><div class=\"wrap\">\n"
+          ]
+        },
+        {
+          "start": 119,
+          "end": 120,
+          "before": [
+            "</div></div></div><div class=\"ad-card-deck\"><header class=\"pc-context-bar\"><span class=\"pc-app-name\">PAIA <span>/ AI CONTEXT</span></span><span class=\"pc-master-permission\">AI access: on</span></header>\n"
+          ],
+          "after": [
+            "</div></div></div><div class=\"ad-card-deck\"><header class=\"pc-context-bar\"><span class=\"pc-app-name\">PAIA <span>/ AI CONTEXT</span></span><span class=\"pc-master-permission hp-example-state\">Example: access allowed</span></header>\n"
+          ]
+        },
+        {
+          "start": 132,
+          "end": 133,
+          "before": [
+            "<div class=\"pc-section-foot\"><span>MY INFORMATION / MY RULES / MY NOW / MY INPUTS</span><p>Closed topics stay closed. Access does not fall back to your entire Input Archive.</p></div>\n"
+          ],
+          "after": [
+            "<div class=\"pc-section-foot\"><span class=\"hp-context-example\"><span class=\"hp-demo-caption\">Interface illustration · <a class=\"hp-demo-link\" href=\"/demo.html#personal-context\">Explore access controls</a></span><span class=\"hp-availability\">Sample state. External AI connections are not available yet.</span></span><p>Closed topics stay closed. Access does not fall back to your entire Input Archive.</p></div>\n"
+          ]
+        },
+        {
+          "start": 134,
+          "end": 136,
+          "before": [
+            "<div><p class=\"eyebrow\">LOCAL FIRST · SYNC BY CHOICE</p><h2 id=\"pc-sync-title\">Your archive.<br>Room to carry on.</h2></div>\n",
+            "<div><p>Everyday capture, search, editing and prompt reuse work locally. Use your own browser cloud account to continue with synced material across devices in the same ecosystem.</p>\n"
+          ],
+          "after": [
+            "<div><p class=\"eyebrow\">LOCAL FIRST · SYNC NOT AVAILABLE YET</p><h2 id=\"pc-sync-title\">Your archive.<br>Room to carry on.</h2></div>\n",
+            "<div><p>Everyday capture, search, editing and prompt reuse work locally. Cross-device sync is not available yet; the mapping below illustrates the intended browser ecosystems.</p>\n"
+          ]
+        },
+        {
+          "start": 137,
+          "end": 138,
+          "before": [
+            "<p class=\"pc-sync-note\">Sync is your choice. Different browser ecosystems do not sync with one another automatically.</p><a class=\"text-link\" href=\"/principles.html\">Data and permissions</a></div></section></div><section class=\"core-close\" data-close-brand><div class=\"core-close-inner wrap\"><div><p class=\"eyebrow\">YOUR INPUTS STAY YOURS</p><h2>Keep what you tell AI.<br>Decide what AI can use next.</h2><p>Make scattered expressions an archive of your own. Return to your words, keep developing your ideas, and decide what a connected AI may use.</p><div class=\"actions\"><a class=\"button\" href=\"/download.html\">Get PAIA <span aria-hidden=\"true\">→</span></a><a class=\"text-link\" href=\"/help.html\">Help</a></div></div><div class=\"core-close-mark\"><img src=\"/assets/website/brand/paia-logo-v1.webp\" width=\"480\" height=\"480\" alt=\"PAIA\" loading=\"lazy\" decoding=\"async\"></div></div></section></main><footer class=\"site-footer wrap\"><div class=\"footer-main\"><div class=\"footer-brand\"><a class=\"wordmark\" href=\"/\">PAIA</a><p>A place for your words to become your own body of work.</p></div><nav aria-label=\"Footer navigation\"><div><strong>PRODUCT</strong><a class=\"\" href=\"/how-it-works.html\">How it works</a><a class=\"\" href=\"/use-cases.html\">Use cases</a><a class=\"\" href=\"/demo.html\">Interactive demo</a><a class=\"\" href=\"/download.html\">Get PAIA</a></div><div><strong>RESOURCES</strong><a class=\"\" href=\"/help.html\">Help</a><a class=\"\" href=\"/about.html\">About PAIA</a><a class=\"\" href=\"/blog.html\">Product notes</a><a class=\"\" href=\"/contact.html\">Contact</a></div><div><strong>YOUR DATA</strong><a class=\"\" href=\"/principles.html\">Data & permissions</a><a class=\"\" href=\"/privacy-policy.html\">Privacy policy</a><a class=\"\" href=\"/terms.html\">Terms</a></div></nav></div><div class=\"footer-bottom\"><span class=\"copyright\">© 2026 PAIA</span><span>Your inputs stay yours.</span></div></footer>\n"
+          ],
+          "after": [
+            "<p class=\"pc-sync-note\">This is a feature illustration, not a statement that these cloud connections are available. Browser ecosystems do not automatically sync with one another.</p><a class=\"text-link\" href=\"/principles.html\">Data and permissions</a></div></section></div><section class=\"core-close\" data-close-brand><div class=\"core-close-inner wrap\"><div><p class=\"eyebrow\">YOUR INPUTS STAY YOURS</p><h2>Keep what you tell AI.<br>Decide what AI can use next.</h2><p>Make scattered expressions an archive of your own. Return to your words, keep developing your ideas, and decide what a connected AI may use.</p><div class=\"actions\"><a class=\"button\" href=\"/download.html\">Get PAIA <span aria-hidden=\"true\">→</span></a><a class=\"text-link\" href=\"/help.html\">Help</a></div></div><div class=\"core-close-mark\"><img src=\"/assets/website/brand/paia-logo-v1.webp\" width=\"480\" height=\"480\" alt=\"PAIA\" loading=\"lazy\" decoding=\"async\"></div></div></section></main><footer class=\"site-footer wrap\"><div class=\"footer-main\"><div class=\"footer-brand\"><a class=\"wordmark\" href=\"/\">PAIA</a><p>A place for your words to become your own body of work.</p></div><nav aria-label=\"Footer navigation\"><div><strong>PRODUCT</strong><a class=\"\" href=\"/how-it-works.html\">How it works</a><a class=\"\" href=\"/use-cases.html\">Use cases</a><a class=\"\" href=\"/demo.html\">Interactive demo</a><a class=\"\" href=\"/download.html\">Get PAIA</a></div><div><strong>RESOURCES</strong><a class=\"\" href=\"/help.html\">Help</a><a class=\"\" href=\"/about.html\">About PAIA</a><a class=\"\" href=\"/blog.html\">Product notes</a><a class=\"\" href=\"/contact.html\">Contact</a></div><div><strong>YOUR DATA</strong><a class=\"\" href=\"/principles.html\">Data & permissions</a><a class=\"\" href=\"/privacy-policy.html\">Privacy policy</a><a class=\"\" href=\"/terms.html\">Terms</a></div></nav></div><div class=\"footer-bottom\"><span class=\"copyright\">© 2026 PAIA</span><span>Your inputs stay yours.</span></div></footer>\n"
+          ]
+        }
+      ]
+    },
+    "zh/index.html": {
+      "before_sha": "bcb6b603b3e64629f45e272d5240fecd7bdccb9f639ae02aa180381671c7f8f7",
+      "changes": [
+        {
+          "start": 38,
+          "end": 39,
+          "before": [
+            "<link rel=\"stylesheet\" href=\"/assets/website/home-presentation.css?v=20261013a\"><script src=\"/assets/website/home-presentation.js?v=20261013a\" defer></script>\n"
+          ],
+          "after": [
+            "<link rel=\"stylesheet\" href=\"/assets/website/home-presentation.css?v=20261023-six\"><script src=\"/assets/website/home-presentation.js?v=20261023-six\" defer></script>\n"
+          ]
+        },
+        {
+          "start": 72,
+          "end": 73,
+          "before": [
+            "</section><div class=\"paia-core art-directed art-refined\" data-home-presentation data-locale=\"zh\">\n"
+          ],
+          "after": [
+            "</section><div class=\"paia-core art-directed art-refined\" data-home-presentation data-six-refinements=\"20261023\" data-locale=\"zh\">\n"
+          ]
+        },
+        {
+          "start": 81,
+          "end": 84,
+          "before": [
+            "</div><div class=\"pc-section-foot\"><span>查找 → 编辑 → 再利用</span><p>工作文字更新，关联示例随之更新；原始来源保留。</p></div>\n",
+            "</section><section class=\"pc-section pc-topics wrap\" id=\"thought-library\" aria-labelledby=\"pc-topics-title\"><div class=\"ad-scroll-track ad-thought-scroll\" data-scroll-story=\"thought\" data-phase=\"organize\"><div class=\"ad-scroll-sticky\"><div class=\"ad-reading-spread\"><div class=\"pc-topic-stage pc-reveal\"><div class=\"ad-library-editorial\"><div class=\"pc-heading\"><div><p class=\"eyebrow\">02 / THOUGHT LIBRARY</p><h2 id=\"pc-topics-title\">散落的想法，<br><span class=\"ad-title-tail\">有了自己的脉络。</span></h2></div><div class=\"pc-intro\"><p>用你自己的主题和章节，把不同对话里的表达放在一起。打开一个主题，沿着原话连续读下去；用不同详略的整理方式，保留来源和你的决定。</p></div></div></div><div class=\"ad-library-content\"><header class=\"pc-topic-toolbar\"><span class=\"pc-app-name\">Thought Library</span><span class=\"pc-local-tag\">主题 · 章节 · 原话</span></header>\n",
+            "<div class=\"pc-topic-overview\" data-topic-overview><div class=\"pc-topic-root-head\"><h3>我的主题</h3></div><div class=\"pc-topic-grid\"><article class=\"pc-topic-block\" data-topic-block=\"product\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M12 14h30v32H12zM18 10h30v32M19 23h16M19 30h16M19 37h10\"/></svg><h3><span>产品的第一步</span></h3><span class=\"pc-section-anchor\">探索方向</span><span class=\"pc-section-anchor\">判断与取舍</span></article><article class=\"pc-topic-block\" data-topic-block=\"writing\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M15 10h24l9 9v30H15zM39 10v11h9M23 30h16M23 38h12\"/><path d=\"m11 44 5 5\"/></svg><h3><span>写作习惯</span></h3><span class=\"pc-section-anchor\">先说清楚</span><span class=\"pc-section-anchor\">修改与取舍</span></article><article class=\"pc-topic-block\" data-topic-block=\"learning\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M30 17c-6-5-14-6-23-4v33c9-2 17-1 23 4 6-5 14-6 23-4V13c-9-2-17-1-23 4Z M30 17v33M14 23l9 2M14 30l9 2M37 25l9-2M37 32l9-2\"/></svg><h3><span>学习与理解</span></h3><span class=\"pc-section-anchor\">从问题开始</span><span class=\"pc-section-anchor\">形成自己的解释</span></article></div></div>\n"
+          ],
+          "after": [
+            "</div><div class=\"pc-section-foot\"><span class=\"hp-demo-caption\">界面演示 · <a class=\"hp-demo-link\" href=\"/zh/demo.html#input-library\">体验查找与编辑</a></span><p>工作文字更新，关联示例随之更新；原始来源保留。</p></div>\n",
+            "</section><section class=\"pc-section pc-topics wrap\" id=\"thought-library\" aria-labelledby=\"pc-topics-title\"><div class=\"ad-scroll-track ad-thought-scroll\" data-scroll-story=\"thought\" data-phase=\"organize\"><div class=\"ad-scroll-sticky\"><div class=\"ad-reading-spread\"><div class=\"pc-topic-stage pc-reveal\"><div class=\"ad-library-editorial\"><div class=\"pc-heading\"><div><p class=\"eyebrow\">02 / THOUGHT LIBRARY</p><h2 id=\"pc-topics-title\">散落的想法，<br><span class=\"ad-title-tail\">有了自己的脉络。</span></h2></div><div class=\"pc-intro\"><p>用你自己的主题和章节，把不同对话里的表达放在一起。打开一个主题，沿着原话连续读下去；用不同详略的整理方式，保留来源和你的决定。</p><span class=\"hp-demo-caption\">界面演示 · <a class=\"hp-demo-link\" href=\"/zh/demo.html#thought-library\">体验思想库</a></span></div></div></div><div class=\"ad-library-content\"><header class=\"pc-topic-toolbar\"><span class=\"pc-app-name\">Thought Library</span></header>\n",
+            "<div class=\"pc-topic-overview\" data-topic-overview><div class=\"pc-topic-grid\"><article class=\"pc-topic-block\" data-topic-block=\"product\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M12 14h30v32H12zM18 10h30v32M19 23h16M19 30h16M19 37h10\"/></svg><h3><span>产品的第一步</span></h3><span class=\"pc-section-anchor\">探索方向</span><span class=\"pc-section-anchor\">判断与取舍</span></article><article class=\"pc-topic-block\" data-topic-block=\"writing\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M15 10h24l9 9v30H15zM39 10v11h9M23 30h16M23 38h12\"/><path d=\"m11 44 5 5\"/></svg><h3><span>写作习惯</span></h3><span class=\"pc-section-anchor\">先说清楚</span><span class=\"pc-section-anchor\">修改与取舍</span></article><article class=\"pc-topic-block\" data-topic-block=\"learning\"><svg class=\"ad-topic-symbol\" viewbox=\"0 0 60 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" aria-hidden=\"true\"><path d=\"M30 17c-6-5-14-6-23-4v33c9-2 17-1 23 4 6-5 14-6 23-4V13c-9-2-17-1-23 4Z M30 17v33M14 23l9 2M14 30l9 2M37 25l9-2M37 32l9-2\"/></svg><h3><span>学习与理解</span></h3><span class=\"pc-section-anchor\">从问题开始</span><span class=\"pc-section-anchor\">形成自己的解释</span></article></div></div>\n"
+          ]
+        },
+        {
+          "start": 85,
+          "end": 86,
+          "before": [
+            "<footer class=\"pc-topic-footer\"><span>主题 → 章节 → 你的原话。</span><span class=\"pc-local-tag\">一个思想库，持续积累。</span></footer></div></div><div class=\"ad-thought-scenes\">\n"
+          ],
+          "after": [
+            "</div></div><div class=\"ad-thought-scenes\">\n"
+          ]
+        },
+        {
+          "start": 98,
+          "end": 99,
+          "before": [
+            "</div></div></div><div class=\"pc-section-foot\"><span>按你的方式组织</span><p>人工命名、移动和排除始终优先。多个位置引用同一份内容。</p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-prompts\" id=\"prompt-reuse\" aria-labelledby=\"pc-prompts-title\"><div class=\"ad-scroll-track ad-prompt-scroll\" data-scroll-story=\"prompt\" data-phase=\"board\"><div class=\"ad-scroll-sticky\"><div class=\"wrap pc-split\"><div class=\"ad-prompt-field\"><div class=\"ad-prompt-display\"><div class=\"pc-prompt-scene ad-host\" data-ad-host><div class=\"pc-answer\"><div class=\"pc-window-bar\"><span class=\"pc-dot\"></span><span>对话</span><span aria-hidden=\"true\">↗</span></div><div class=\"ad-chatgpt-user\">第一版应该做什么</div><div class=\"pc-answer-body\"><span class=\"pc-ai-glyph\" aria-hidden=\"true\">✳</span><p>先比较两个方向：帮助创作者找回已有素材，或继续增加生成能力。下一步，可以按你的约束做取舍。</p><span class=\"pc-answer-end\">回答结束 <i aria-hidden=\"true\"></i></span><span class=\"ad-chatgpt-actions\" aria-hidden=\"true\"><svg viewbox=\"0 0 72 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.15\"><rect x=\"3\" y=\"5\" width=\"9\" height=\"11\" rx=\"2\"/><path d=\"M6 3h7a2 2 0 0 1 2 2v8M28 8l4-5h2v5h5l-2 8h-9zm-3 0h3v8h-3zM54 12l4 5h2v-5h5l-2-8h-9zm-3-8h3v8h-3z\"/></svg></span></div></div><div class=\"pc-palette-wrap\"><div class=\"ad-morph-track\">\n"
+          ],
+          "after": [
+            "</div></div></div><div class=\"pc-section-foot\"><p>人工命名、移动和排除始终优先。多个位置引用同一份内容。</p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-prompts\" id=\"prompt-reuse\" aria-labelledby=\"pc-prompts-title\"><div class=\"ad-scroll-track ad-prompt-scroll\" data-scroll-story=\"prompt\" data-phase=\"board\"><div class=\"ad-scroll-sticky\"><div class=\"wrap pc-split\"><div class=\"ad-prompt-field\"><div class=\"ad-prompt-display\"><div class=\"pc-prompt-scene ad-host\" data-ad-host><div class=\"pc-answer\"><div class=\"pc-window-bar\"><span class=\"pc-dot\"></span><span>界面演示</span><span aria-hidden=\"true\">↗</span></div><div class=\"ad-chatgpt-user\">第一版应该做什么</div><div class=\"pc-answer-body\"><span class=\"pc-ai-glyph\" aria-hidden=\"true\">✳</span><p>先比较两个方向：帮助创作者找回已有素材，或继续增加生成能力。下一步，可以按你的约束做取舍。</p><span class=\"pc-answer-end\">回答结束 <i aria-hidden=\"true\"></i></span><span class=\"ad-chatgpt-actions\" aria-hidden=\"true\"><svg viewbox=\"0 0 72 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.15\"><rect x=\"3\" y=\"5\" width=\"9\" height=\"11\" rx=\"2\"/><path d=\"M6 3h7a2 2 0 0 1 2 2v8M28 8l4-5h2v5h5l-2 8h-9zm-3 0h3v8h-3zM54 12l4 5h2v-5h5l-2-8h-9zm-3-8h3v8h-3z\"/></svg></span></div></div><div class=\"pc-palette-wrap\"><div class=\"ad-morph-track\">\n"
+          ]
+        },
+        {
+          "start": 114,
+          "end": 115,
+          "before": [
+            "<p class=\"pc-body-copy\">那些反复帮到你的表达，不必再从旧对话里翻找。打开轻透的小面板，点一行填入；需要时再修改、排序或固定。什么时候发送，始终由你决定。</p><p class=\"pc-plan-note\"><span>可选本地建议</span>主动开启后，参考刚完成的回复，从已有提示词中选择适合接着用的表达。始终由你检查并发送。</p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-context\" id=\"personal-context\" aria-labelledby=\"pc-context-title\"><div class=\"wrap\">\n"
+          ],
+          "after": [
+            "<p class=\"pc-body-copy\">那些反复帮到你的表达，不必再从旧对话里翻找。打开轻透的小面板，点一行填入；需要时再修改、排序或固定。什么时候发送，始终由你决定。</p><p class=\"pc-plan-note\"><span>可选本地建议</span>主动开启后，参考刚完成的回复，从已有提示词中选择适合接着用的表达。始终由你检查并发送。<span class=\"hp-demo-route\"><span class=\"hp-demo-caption\">界面演示 · <a class=\"hp-demo-link\" href=\"/zh/demo.html#prompt-reuse\">体验提示词复用</a></span></span></p></div></div></div><div class=\"ad-scroll-end\" aria-hidden=\"true\"></div></div></section><section class=\"pc-section pc-context\" id=\"personal-context\" aria-labelledby=\"pc-context-title\"><div class=\"wrap\">\n"
+          ]
+        },
+        {
+          "start": 119,
+          "end": 120,
+          "before": [
+            "</div></div></div><div class=\"ad-card-deck\"><header class=\"pc-context-bar\"><span class=\"pc-app-name\">PAIA <span>/ AI CONTEXT</span></span><span class=\"pc-master-permission\">AI 访问：开</span></header>\n"
+          ],
+          "after": [
+            "</div></div></div><div class=\"ad-card-deck\"><header class=\"pc-context-bar\"><span class=\"pc-app-name\">PAIA <span>/ AI CONTEXT</span></span><span class=\"pc-master-permission hp-example-state\">示例：已允许</span></header>\n"
+          ]
+        },
+        {
+          "start": 132,
+          "end": 133,
+          "before": [
+            "<div class=\"pc-section-foot\"><span>我的信息 / 我的规则 / 我的现在 / 我的输入</span><p>未开放的主题不会被读取，也不会转而读取整个输入档案。</p></div>\n"
+          ],
+          "after": [
+            "<div class=\"pc-section-foot\"><span class=\"hp-context-example\"><span class=\"hp-demo-caption\">界面演示 · <a class=\"hp-demo-link\" href=\"/zh/demo.html#personal-context\">体验权限控制</a></span><span class=\"hp-availability\">示例状态；外部 AI 连接尚未开放。</span></span><p>未开放的主题不会被读取，也不会转而读取整个输入档案。</p></div>\n"
+          ]
+        },
+        {
+          "start": 134,
+          "end": 136,
+          "before": [
+            "<div><p class=\"eyebrow\">本地优先 · 按需同步</p><h2 id=\"pc-sync-title\">换一台设备，<br>继续自己的积累。</h2></div>\n",
+            "<div><p>日常保存、查找、编辑与提示词复用，在本地完成。按需使用自己的浏览器云账号，在同一生态的设备间接续已同步的资料。</p>\n"
+          ],
+          "after": [
+            "<div><p class=\"eyebrow\">本地优先 · 同步尚未开放</p><h2 id=\"pc-sync-title\">换一台设备，<br>继续自己的积累。</h2></div>\n",
+            "<div><p>日常保存、查找、编辑与提示词复用，在本地完成。跨设备同步尚未开放；下方为预期的浏览器生态对应关系。</p>\n"
+          ]
+        },
+        {
+          "start": 137,
+          "end": 138,
+          "before": [
+            "<p class=\"pc-sync-note\">同步由你主动开启，不同浏览器生态之间不会自动互通。</p><a class=\"text-link\" href=\"/zh/principles.html\">了解数据与权限</a></div></section></div><section class=\"core-close\" data-close-brand><div class=\"core-close-inner wrap\"><div><p class=\"eyebrow\">你的输入始终属于你</p><h2>保存你对 AI 说过的话。<br>决定下一次 AI 可以使用什么。</h2><p>把散落的表达留成自己的积累。找回原话，继续思考，把对 AI 的允许范围掌握在自己手里。</p><div class=\"actions\"><a class=\"button\" href=\"/zh/download.html\">获取 PAIA <span aria-hidden=\"true\">→</span></a><a class=\"text-link\" href=\"/zh/help.html\">使用帮助</a></div></div><div class=\"core-close-mark\"><img src=\"/assets/website/brand/paia-logo-v1.webp\" width=\"480\" height=\"480\" alt=\"PAIA\" loading=\"lazy\" decoding=\"async\"></div></div></section></main><footer class=\"site-footer wrap\"><div class=\"footer-main\"><div class=\"footer-brand\"><a class=\"wordmark\" href=\"/zh/\">PAIA</a><p>把每一次表达，留成自己的积累。</p></div><nav aria-label=\"页脚导航\"><div><strong>产品</strong><a class=\"\" href=\"/zh/how-it-works.html\">如何使用</a><a class=\"\" href=\"/zh/use-cases.html\">使用场景</a><a class=\"\" href=\"/zh/demo.html\">交互演示</a><a class=\"\" href=\"/zh/download.html\">获取 PAIA</a></div><div><strong>了解更多</strong><a class=\"\" href=\"/zh/help.html\">帮助中心</a><a class=\"\" href=\"/zh/about.html\">关于 PAIA</a><a class=\"\" href=\"/zh/blog.html\">产品文章</a><a class=\"\" href=\"/zh/contact.html\">联系</a></div><div><strong>你的数据</strong><a class=\"\" href=\"/zh/principles.html\">数据与权限</a><a class=\"\" href=\"/zh/privacy-policy.html\">隐私政策</a><a class=\"\" href=\"/zh/terms.html\">使用条款</a></div></nav></div><div class=\"footer-bottom\"><span class=\"copyright\">© 2026 PAIA</span><span>你的输入，始终属于你。</span></div></footer>\n"
+          ],
+          "after": [
+            "<p class=\"pc-sync-note\">以上为功能示意，不表示当前已支持这些云端连接。不同浏览器生态不会自动互通。</p><a class=\"text-link\" href=\"/zh/principles.html\">了解数据与权限</a></div></section></div><section class=\"core-close\" data-close-brand><div class=\"core-close-inner wrap\"><div><p class=\"eyebrow\">你的输入始终属于你</p><h2>保存你对 AI 说过的话。<br>决定下一次 AI 可以使用什么。</h2><p>把散落的表达留成自己的积累。找回原话，继续思考，把对 AI 的允许范围掌握在自己手里。</p><div class=\"actions\"><a class=\"button\" href=\"/zh/download.html\">获取 PAIA <span aria-hidden=\"true\">→</span></a><a class=\"text-link\" href=\"/zh/help.html\">使用帮助</a></div></div><div class=\"core-close-mark\"><img src=\"/assets/website/brand/paia-logo-v1.webp\" width=\"480\" height=\"480\" alt=\"PAIA\" loading=\"lazy\" decoding=\"async\"></div></div></section></main><footer class=\"site-footer wrap\"><div class=\"footer-main\"><div class=\"footer-brand\"><a class=\"wordmark\" href=\"/zh/\">PAIA</a><p>把每一次表达，留成自己的积累。</p></div><nav aria-label=\"页脚导航\"><div><strong>产品</strong><a class=\"\" href=\"/zh/how-it-works.html\">如何使用</a><a class=\"\" href=\"/zh/use-cases.html\">使用场景</a><a class=\"\" href=\"/zh/demo.html\">交互演示</a><a class=\"\" href=\"/zh/download.html\">获取 PAIA</a></div><div><strong>了解更多</strong><a class=\"\" href=\"/zh/help.html\">帮助中心</a><a class=\"\" href=\"/zh/about.html\">关于 PAIA</a><a class=\"\" href=\"/zh/blog.html\">产品文章</a><a class=\"\" href=\"/zh/contact.html\">联系</a></div><div><strong>你的数据</strong><a class=\"\" href=\"/zh/principles.html\">数据与权限</a><a class=\"\" href=\"/zh/privacy-policy.html\">隐私政策</a><a class=\"\" href=\"/zh/terms.html\">使用条款</a></div></nav></div><div class=\"footer-bottom\"><span class=\"copyright\">© 2026 PAIA</span><span>你的输入，始终属于你。</span></div></footer>\n"
+          ]
+        }
+      ]
+    }
+  },
+  "generated": {
+    "404.html": "2aa81267ed45159bc25a1dd2075a2a66f3ffb5ad36d3493a1260cb3ae09aa87a",
+    "about.html": "2efcfe42d620e83fa299948764e2d0c1f1fea58e0dfc74d3fa58a5377b676223",
+    "article-beliefs.html": "e7e5b530b40d8426184c90e8d91d136d1d29634607b3dababc4c771d8dfb9950",
+    "article-context.html": "2073bdcc469667916c844bf086bafd345149a3a51ebec6cef3d26c72922e6475",
+    "article-reuse.html": "d71d2be9106d282521c1d8a61c805f46350a7b3a062376fd24946a974c46d1f1",
+    "beta.html": "0bf4630ad9ab5c09f355b2297db3b6be0d1be70dffabf196646969a0db76743e",
+    "blog.html": "addc25a8d3c4ed14e3d2d399f8ed18ae6293a59c6cbf3ea0ef3b81df009ba1a1",
+    "contact.html": "5789fddc1e9fec6541dfe581d595807473d584c9a1b6d351a37850a92600115b",
+    "demo.html": "fcbdbca8edf740ecd5d72d42f2283a1ba9ec9ad518f59a64f60b094d8b9e7777",
+    "download.html": "cea48b498913df6027e695b567b406273243f585a60f9e8bb6cc8601436fa2d5",
+    "en/404.html": "2aa81267ed45159bc25a1dd2075a2a66f3ffb5ad36d3493a1260cb3ae09aa87a",
+    "en/about.html": "2efcfe42d620e83fa299948764e2d0c1f1fea58e0dfc74d3fa58a5377b676223",
+    "en/article-beliefs.html": "e7e5b530b40d8426184c90e8d91d136d1d29634607b3dababc4c771d8dfb9950",
+    "en/article-context.html": "2073bdcc469667916c844bf086bafd345149a3a51ebec6cef3d26c72922e6475",
+    "en/article-reuse.html": "d71d2be9106d282521c1d8a61c805f46350a7b3a062376fd24946a974c46d1f1",
+    "en/beta.html": "0bf4630ad9ab5c09f355b2297db3b6be0d1be70dffabf196646969a0db76743e",
+    "en/blog.html": "addc25a8d3c4ed14e3d2d399f8ed18ae6293a59c6cbf3ea0ef3b81df009ba1a1",
+    "en/contact.html": "5789fddc1e9fec6541dfe581d595807473d584c9a1b6d351a37850a92600115b",
+    "en/demo.html": "fcbdbca8edf740ecd5d72d42f2283a1ba9ec9ad518f59a64f60b094d8b9e7777",
+    "en/download.html": "cea48b498913df6027e695b567b406273243f585a60f9e8bb6cc8601436fa2d5",
+    "en/help.html": "556fc11aee3c9090bb1fc01362764513f40bb167458449a2f084f0df277fefaf",
+    "en/how-it-works.html": "6f98f2815071ff397de2ded3ec80b55ee2da4dc9695903d1ab28fc000e07ac18",
+    "en/index.html": "c466bf9e5841fef611b2043278a18892baa0d8a9897ca918e8df7f09c44f8c17",
+    "en/principles.html": "07c0dbbdb12c05b5c833f9616451be70fea076db69ca3bb165b4f287e772b042",
+    "en/privacy-policy.html": "06ef4bb0aeeb9ce9afa1d712ca3f7c9863cc30b01b4ac9edf04485ad2798cf6d",
+    "en/status.html": "345a701a4bc5e62219ee6118853d125baa5125dc17ec084a8431a44b68406da6",
+    "en/terms.html": "3a202933ef7323899ef6ea60566b679abf284fdb808addf19952dd5639caca72",
+    "en/thanks.html": "803c45aed3f88b8850893953646ff630df918a76a8e517b842d0a2831f6c7a63",
+    "en/use-cases.html": "41a16527a2e5f12e215ce88d6a4bcf7773b3cb82cf15b8a89d2992beb1181dde",
+    "help.html": "556fc11aee3c9090bb1fc01362764513f40bb167458449a2f084f0df277fefaf",
+    "how-it-works.html": "6f98f2815071ff397de2ded3ec80b55ee2da4dc9695903d1ab28fc000e07ac18",
+    "index.html": "c466bf9e5841fef611b2043278a18892baa0d8a9897ca918e8df7f09c44f8c17",
+    "principles.html": "07c0dbbdb12c05b5c833f9616451be70fea076db69ca3bb165b4f287e772b042",
+    "privacy-policy.html": "06ef4bb0aeeb9ce9afa1d712ca3f7c9863cc30b01b4ac9edf04485ad2798cf6d",
+    "robots.txt": "1d12c71cd6187fe4413f8c2145c92efa8356c1587e40036b8f03e48dccd27c2e",
+    "sitemap.xml": "61701abad710c523f05b656eac14cc2490b9bdb953d2cdb6facea1d8e69014ac",
+    "status.html": "345a701a4bc5e62219ee6118853d125baa5125dc17ec084a8431a44b68406da6",
+    "terms.html": "3a202933ef7323899ef6ea60566b679abf284fdb808addf19952dd5639caca72",
+    "thanks.html": "803c45aed3f88b8850893953646ff630df918a76a8e517b842d0a2831f6c7a63",
+    "use-cases.html": "41a16527a2e5f12e215ce88d6a4bcf7773b3cb82cf15b8a89d2992beb1181dde",
+    "zh/404.html": "465d70cd284e8ee9ce276f0c4e0e5d355420bcb7b3609e7cb0570779dc36a310",
+    "zh/about.html": "e206cfc0ab17cc8173af6907685920e0b41c0059c03eb08abe0ff3013637ec6e",
+    "zh/article-beliefs.html": "bbc29c389dfcdeff59bf3afa2253520df1d3d3a4909ef882070632f74fd890e8",
+    "zh/article-context.html": "0c619ef90dab8b587e0c3e3c300bbebbfddd06dbc46264f9e8f7487784afa43e",
+    "zh/article-reuse.html": "b816bca982b432a01bf3611ef6d7fcffe2fd64890eee2c5f0dc8d4e6efc6a714",
+    "zh/beta.html": "6eee425bfa005d2069ce08a2975efa33ab21a252c5ed407fb967bd830c2687ba",
+    "zh/blog.html": "d9c35082d1af6f10a67d1480de34e43dff7a678f405ea466635c7b0dcc0271f2",
+    "zh/contact.html": "030a51b75ed85f11146eb4f8b3c0be075612f509d898d5d83e73a7cf9a23a243",
+    "zh/demo.html": "a6a307da2f3942d57b033689c10cb07e9c86a9be8d640e1e04efedccd752d0da",
+    "zh/download.html": "ded97607655d89ceac3bbd179a5d329987682e1366da564c1fc09f44ba83ed81",
+    "zh/help.html": "5be78bc77e16705089f907564223ecdbe16d9d683f457afbd6a278dd43419d68",
+    "zh/how-it-works.html": "87aca94fbe4bf957f171cfdc4fc6c3cf88128ac3f3778e640770611bc8922c88",
+    "zh/index.html": "bcb6b603b3e64629f45e272d5240fecd7bdccb9f639ae02aa180381671c7f8f7",
+    "zh/principles.html": "1ad8f183aa8062794c2c406bab1fb5b6d4d728e4a3ea321e616ca512c4b4096e",
+    "zh/privacy-policy.html": "87d2c8f3d4a199954b64ab9cfcaec814a1791ab6824cd22f54a71d41a70064a9",
+    "zh/status.html": "17637e6474143e547ecaf5fec8ee36873e1ed3958e42e67710a89a7f70176d90",
+    "zh/terms.html": "4214d920173322249e66c60685900e27e99b8c00827ea74f9f7cb14444d0087c",
+    "zh/thanks.html": "fa8f5f4a24ad719e850f6f56eac8804c6743388e2298aec839a76954dbdfef25",
+    "zh/use-cases.html": "1e882cfeb6b28de7c6d5736be3d5a99a106598f34bdb912e1439f1eff62f0a90"
+  },
+  "protected": {
+    "assets/website/site.css": "ec4778913f7040408d14ac53079d8187bb4e84984539ba7198222dbb5684812a",
+    "assets/website/site.js": "11d22340f657ffeb10d06bca979059eb1765476b0c7b65f1169420e5339587ed",
+    "assets/website/home-art.css": "876ba5c7a72b63405960ff19c265ace275673ccae89931e5fb9401c257513e51",
+    "assets/website/scroll-story.css": "1aba655d2c55758c5c65537a54de056c8897c92646fe48a0f32010ae721cf6f7",
+    "assets/website/product-experience.css": "e3f14c2a92470293d87c090e8cfc48d14325c712060a8289a2086ffdc0f884b8",
+    "assets/website/home-core-v2.js": "6caf50fce2651c5649fc06ca830db73fd79935bedb3ca223a10bcb3c46090524",
+    "assets/website/brand/paia-symbol-soft-blue.svg": "1b1faffcd81ecd2a522f0d571c7532cc15a6f2d3f7d205c8edf8e0769c5394c6",
+    "assets/website/brand/paia-logo-v1.webp": "e94ce73c20a46d40aa60d33eb87065906f256527da4948062c9ff30f6923a137",
+    "website/core.py": "33c784ef0371b433021105cf820108c5cc7d10260b3901fd3e79a49cb2ebe9c3",
+    "website/core_checks.py": "c2d932387b50b4dcb44f016dca447a01a6a78db57cf7d1711b1269d9486f49ce",
+    "website/product_hero.py": "11838e7c4f461ac2ed4628f69c8b4e0ea0118ef828d937b184316aaa4041d498",
+    "website/product_sections.py": "5766693a703ed5bdc196dc1328f98666fd829c75aa3a74b1cd8387188f6ca18d",
+    "website/topic_preview.py": "5d94fefc1ab76ee826eff168284dac1427c8c3f57e83627945efe079edd16f18",
+    "website/prompt_preview.py": "65b3ab9be426af1ae993f0a34ce2c4013ef0aa1b56f01956917e62ef4489c967",
+    "website/launch_manifest.json": "000da498a194e4f22d986e4e4949e1484b7682c50ebcd5977d3a0346454ef169",
+    "website/launch_copy.json": "0b4ac2c30a5d073ec3191866e873f0f5749924cb435565109097c9f0e98e09d2"
+  },
+  "home_fragments": {
+    "en": {
+      "[data-product-hero]": "41c924b05d81d00407aa091e1dfc298581708610abc1659cc0da35895b6e5e5c",
+      "[data-close-brand]": "cba0478c8822d1e3360a33cfd740d5b30cc410632c5cc56e1e460d8d6210bc80",
+      ".hp-input-text": "404b26d0dd78fe0685a90b6add7796db28441e5a9e41699fe463482aa1e67d4a",
+      "[data-story-original]": "7120c9c75bc501a34f217b98f92176d0b7c6c534ab3649dfc9c31e3989ed218e",
+      "[data-story-organized]": "124b1895fbcf3d8a12598d644d7c6fe6bc9a4b75f0ca262652fe69bf27225f1e",
+      "[data-topic-block]": "c42772a04ca0ee83b808ab3df2fbd6c5d12f747661eb0396f14a4866a0fde74a",
+      ".pc-context-grid": "a00396d16988476253c079f50ab0f2ec951f034b7f8a2eadd737d8902d74493e",
+      ".paia-orb": "e66f5a656e7f4f116c763b8a711601500c1ec7c3bff89f68bd2bf6455d6d146b"
+    },
+    "zh": {
+      "[data-product-hero]": "9ffd2980d62b4fd5573363838720ea7cafee8d0c97c897364ea92d0b9bb3f36c",
+      "[data-close-brand]": "f5ba0eedf5549c5d4c07d7d9a5acf3d527c50ef1d031611497066d46bb289353",
+      ".hp-input-text": "0ea82e7d300cd7c6cfcb360f9dca6514cf5552297654b4c1425c83fd5afb6860",
+      "[data-story-original]": "ea4c0579415382534b10de1f7616d561b93c1c6d4dcca7c37d04ccc9bde8e769",
+      "[data-story-organized]": "0127ae654396d872f639bd907b6bd1bb23a7532a0483c85e3cfca9c521a7baed",
+      "[data-topic-block]": "ae31f92057ba4b52be30f4a7989f676009d881e6dcad816ddd621cb30a885f93",
+      ".pc-context-grid": "06f888c35afbf2e99c552a252f5914662cde306f45ec43629d7378dae9500c46",
+      ".paia-orb": "e66f5a656e7f4f116c763b8a711601500c1ec7c3bff89f68bd2bf6455d6d146b"
+    }
+  }
+}

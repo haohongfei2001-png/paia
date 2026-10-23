@@ -1,0 +1,166 @@
+TAP version 13
+# Subtest: ephemeral authorization uses exact binding and restrictive native Request settings
+ok 1 - ephemeral authorization uses exact binding and restrictive native Request settings
+  ---
+  duration_ms: 9.072875
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP redirect before buffering
+ok 2 - reject and cancel unsafe HTTP redirect before buffering
+  ---
+  duration_ms: 2.143958
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP url before buffering
+ok 3 - reject and cancel unsafe HTTP url before buffering
+  ---
+  duration_ms: 0.849042
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP opaque before buffering
+ok 4 - reject and cancel unsafe HTTP opaque before buffering
+  ---
+  duration_ms: 1.190625
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP length before buffering
+ok 5 - reject and cancel unsafe HTTP length before buffering
+  ---
+  duration_ms: 2.019959
+  type: 'test'
+  ...
+# Subtest: stream byte limit works without Content-Length and never copies the oversized chunk
+ok 6 - stream byte limit works without Content-Length and never copies the oversized chunk
+  ---
+  duration_ms: 0.6265
+  type: 'test'
+  ...
+# Subtest: chunked exact-limit response copies only admitted bytes
+ok 7 - chunked exact-limit response copies only admitted bytes
+  ---
+  duration_ms: 0.271
+  type: 'test'
+  ...
+# Subtest: invalid credential expired makes zero fetches and exposes no secret
+ok 8 - invalid credential expired makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.200083
+  type: 'test'
+  ...
+# Subtest: invalid credential identity makes zero fetches and exposes no secret
+ok 9 - invalid credential identity makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.285292
+  type: 'test'
+  ...
+# Subtest: invalid credential scope makes zero fetches and exposes no secret
+ok 10 - invalid credential scope makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.2295
+  type: 'test'
+  ...
+# Subtest: invalid credential newline makes zero fetches and exposes no secret
+ok 11 - invalid credential newline makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.075375
+  type: 'test'
+  ...
+# Subtest: invalid credential exception makes zero fetches and exposes no secret
+ok 12 - invalid credential exception makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.094791
+  type: 'test'
+  ...
+# Subtest: aborted held issuer never sends a late token
+ok 13 - aborted held issuer never sends a late token
+  ---
+  duration_ms: 0.589334
+  type: 'test'
+  ...
+# Subtest: aborted held fetch cancels its late response body
+ok 14 - aborted held fetch cancels its late response body
+  ---
+  duration_ms: 0.423
+  type: 'test'
+  ...
+# Subtest: abort during stalled body read settles and cancels without waiting for stream cancel completion
+ok 15 - abort during stalled body read settles and cancels without waiting for stream cancel completion
+  ---
+  duration_ms: 0.602417
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://evil.example/drive/v3/files
+ok 16 - reject uncontained endpoint before issuer https://evil.example/drive/v3/files
+  ---
+  duration_ms: 0.083042
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/about
+ok 17 - reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/about
+  ---
+  duration_ms: 0.152375
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/files?spaces=drive
+ok 18 - reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/files?spaces=drive
+  ---
+  duration_ms: 0.07
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/files/SYNTHETIC_file?alt=media&alt=media
+ok 19 - reject uncontained endpoint before issuer https://www.googleapis.com/drive/v3/files/SYNTHETIC_file?alt=media&alt=media
+  ---
+  duration_ms: 0.039333
+  type: 'test'
+  ...
+# Subtest: adapter consumes actual bounded HTTP capability, including staged-ID create/readback
+ok 20 - adapter consumes actual bounded HTTP capability, including staged-ID create/readback
+  ---
+  duration_ms: 29.437209
+  type: 'test'
+  ...
+# Subtest: fetch settlement and abort in one turn still cancel the unassigned response body
+ok 21 - fetch settlement and abort in one turn still cancel the unassigned response body
+  ---
+  duration_ms: 1.536042
+  type: 'test'
+  ...
+# Subtest: empty HTTP error body retains status without inventing a parse error
+ok 22 - empty HTTP error body retains status without inventing a parse error
+  ---
+  duration_ms: 0.149708
+  type: 'test'
+  ...
+# Subtest: stream exception is sanitized and cancelled without revealing secret text
+ok 23 - stream exception is sanitized and cancelled without revealing secret text
+  ---
+  duration_ms: 0.195875
+  type: 'test'
+  ...
+# Subtest: caller Authorization and query injection never reach the credential issuer
+ok 24 - caller Authorization and query injection never reach the credential issuer
+  ---
+  duration_ms: 0.154334
+  type: 'test'
+  ...
+# Subtest: request cannot swap URL or headers while credential issuer is pending
+ok 25 - request cannot swap URL or headers while credential issuer is pending
+  ---
+  duration_ms: 0.121708
+  type: 'test'
+  ...
+# Subtest: zero-byte stream cannot evade the bounded read count
+ok 26 - zero-byte stream cannot evade the bounded read count
+  ---
+  duration_ms: 20.2825
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 185.86675

@@ -1,0 +1,41 @@
+TAP version 13
+# Subtest: CTX4-05 native source human dual-facet reconciliation qualification
+    # Subtest: authored-complete
+    not ok 1 - authored-complete
+      ---
+      duration_ms: 213.263041
+      type: 'test'
+      location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166'
+      failureType: 'testCodeFailure'
+      error: |-
+        page.evaluate: Error: original two-owner commit {"state":"PARTIAL","facets":[{"facet":"topic","units":1,"state":"FAILED","reason":"INVALID_REQUEST"}],"diagnostic":[{"method":"commit","code":"INVALID_REQUEST","stack":"Error: INVALID_REQUEST\n    at fail (chrome-extension://ejcggjjidaodcblhjefdommdnbandlhp/core/thought-model.js:6:30)\n    at TopicProcessingGuard.registerProcessingFinalFence (chrome-extension://ejcggjjidaodcblhjefdommdnbandlhp/core/topic-processing.js:92:167)\n    at finalFence (chrome-extension://ejcggjjidaodcblhjefdommdnbandlhp/core/topic-formation.js:136:167)\n    at async Object.result [as callback] (chrome-extension://ejcggjjidaodcblhjefdommdnbandlhp/core/topic-formation.js:150:451)\n    at async #commit (chrome-extension://ejcggjjidaodcblhjefdommdnbandlhp/core/ai-usage/local-maintenance-session.js:917:16)\n    at async AIUsageFoundation.applyFacet (chrome-extension://ejcggjjidaodcblhjefdommdnbandlhp/core/ai-usage/foundation.js:1038:17)\n    at async ArchiveRepository.transaction (chrome-extension://ejcggjjidaodcblhjefdommdnbandlhp/core/idb-repository.js:427:20)\n    at async chrome-extension://ejcggjjidaodcblhjefdommdnbandlhp/core/indexed-store.js:279:123\n    at async chrome-extension://ejcggjjidaodcblhjefdommdnbandlhp/core/indexed-store.js:192:11"}]}
+            at check (eval at evaluate (:311:30), <anonymous>:3:35)
+            at globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:51:12)
+            at async <anonymous>:337:30
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        check (eval at evaluate (:311:30), <anonymous>:3:35)
+        globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:51:12)
+        async <anonymous>:337:30
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:236)
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166)
+      ...
+    1..1
+not ok 1 - CTX4-05 native source human dual-facet reconciliation qualification
+  ---
+  duration_ms: 1479.13875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1191:43'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1643.119792

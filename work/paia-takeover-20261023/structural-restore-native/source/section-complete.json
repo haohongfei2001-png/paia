@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "nativeFactory": true,
+  "kind": "section",
+  "phase": "complete",
+  "deltaPhysicalAttempts": 1,
+  "exactContextAck": true,
+  "topicDeferred": true,
+  "humanOwnersUnchanged": true,
+  "atomicRollback": false
+}

@@ -1,0 +1,687 @@
+TAP version 13
+# Subtest: authored baseline uses the original Context transaction and exact ACK with zero fake Input/Source
+ok 1 - authored baseline uses the original Context transaction and exact ACK with zero fake Input/Source
+  ---
+  duration_ms: 214.760875
+  type: 'test'
+  ...
+# Subtest: body-only edits retain actual birth, body revision and latest operation across coalesced placement revisions
+ok 2 - body-only edits retain actual birth, body revision and latest operation across coalesced placement revisions
+  ---
+  duration_ms: 142.289375
+  type: 'test'
+  ...
+# Subtest: authored qualification handles title
+ok 3 - authored qualification handles title
+  ---
+  duration_ms: 138.468542
+  type: 'test'
+  ...
+# Subtest: authored qualification handles note
+ok 4 - authored qualification handles note
+  ---
+  duration_ms: 150.013791
+  type: 'test'
+  ...
+# Subtest: authored qualification handles type
+ok 5 - authored qualification handles type
+  ---
+  duration_ms: 42.077458
+  type: 'test'
+  ...
+# Subtest: authored qualification handles mixed
+ok 6 - authored qualification handles mixed
+  ---
+  duration_ms: 134.869791
+  type: 'test'
+  ...
+# Subtest: authored qualification handles no-membership
+ok 7 - authored qualification handles no-membership
+  ---
+  duration_ms: 35.330875
+  type: 'test'
+  ...
+# Subtest: authored qualification handles duplicate-membership
+ok 8 - authored qualification handles duplicate-membership
+  ---
+  duration_ms: 51.449833
+  type: 'test'
+  ...
+# Subtest: authored qualification handles body-operation
+ok 9 - authored qualification handles body-operation
+  ---
+  duration_ms: 40.13625
+  type: 'test'
+  ...
+# Subtest: authored qualification handles birth
+ok 10 - authored qualification handles birth
+  ---
+  duration_ms: 38.229334
+  type: 'test'
+  ...
+# Subtest: authored qualification handles field-revision
+ok 11 - authored qualification handles field-revision
+  ---
+  duration_ms: 37.917084
+  type: 'test'
+  ...
+# Subtest: authored qualification handles provenance
+ok 12 - authored qualification handles provenance
+  ---
+  duration_ms: 37.080416
+  type: 'test'
+  ...
+# Subtest: authored qualification handles dependency
+ok 13 - authored qualification handles dependency
+  ---
+  duration_ms: 36.69825
+  type: 'test'
+  ...
+# Subtest: denied selected authored-body processing precedes material hashing and dispatch
+ok 14 - denied selected authored-body processing precedes material hashing and dispatch
+  ---
+  duration_ms: 51.498042
+  type: 'test'
+  ...
+# Subtest: native-owner ACK failure rolls back Context and resumes the retained response without another physical attempt
+ok 15 - native-owner ACK failure rolls back Context and resumes the retained response without another physical attempt
+  ---
+  duration_ms: 159.861125
+  type: 'test'
+  ...
+# Subtest: remove and restore plus A to B to A cannot resurrect old authored lineage
+ok 16 - remove and restore plus A to B to A cannot resurrect old authored lineage
+  ---
+  duration_ms: 143.3735
+  type: 'test'
+  ...
+# Subtest: transaction fence detects unjournaled authored body drift after hashing
+ok 17 - transaction fence detects unjournaled authored body drift after hashing
+  ---
+  duration_ms: 23.354541
+  type: 'test'
+  ...
+# Subtest: unknown authored physical response never replays or exposes durable body material
+ok 18 - unknown authored physical response never replays or exposes durable body material
+  ---
+  duration_ms: 88.480375
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects denied before any authored body hash
+ok 19 - authored selected-fields grant rejects denied before any authored body hash
+  ---
+  duration_ms: 60.515834
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects dropped before any authored body hash
+ok 20 - authored selected-fields grant rejects dropped before any authored body hash
+  ---
+  duration_ms: 58.426375
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects wrong-entry before any authored body hash
+ok 21 - authored selected-fields grant rejects wrong-entry before any authored body hash
+  ---
+  duration_ms: 52.430333
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects note-only before any authored body hash
+ok 22 - authored selected-fields grant rejects note-only before any authored body hash
+  ---
+  duration_ms: 51.244625
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects extra before any authored body hash
+ok 23 - authored selected-fields grant rejects extra before any authored body hash
+  ---
+  duration_ms: 51.093667
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field dropped rather than ignoring it
+ok 24 - original Context scope refuses authored-field dropped rather than ignoring it
+  ---
+  duration_ms: 83.107959
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field wrong-entry rather than ignoring it
+ok 25 - original Context scope refuses authored-field wrong-entry rather than ignoring it
+  ---
+  duration_ms: 81.420708
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field note-only rather than ignoring it
+ok 26 - original Context scope refuses authored-field note-only rather than ignoring it
+  ---
+  duration_ms: 81.812959
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field extra rather than ignoring it
+ok 27 - original Context scope refuses authored-field extra rather than ignoring it
+  ---
+  duration_ms: 82.934625
+  type: 'test'
+  ...
+# Subtest: authored helper proves all 4096 memberships, charges the original budget, and refuses overflow or incomplete pages
+ok 28 - authored helper proves all 4096 memberships, charges the original budget, and refuses overflow or incomplete pages
+  ---
+  duration_ms: 896.879542
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects inputId
+ok 29 - typed authored lineage rejects inputId
+  ---
+  duration_ms: 17.162708
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects sourceRecordIds
+ok 30 - typed authored lineage rejects sourceRecordIds
+  ---
+  duration_ms: 17.176333
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects selected-note
+ok 31 - typed authored lineage rejects selected-note
+  ---
+  duration_ms: 17.393458
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects fake-birth
+ok 32 - typed authored lineage rejects fake-birth
+  ---
+  duration_ms: 21.733166
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects fake-membership
+ok 33 - typed authored lineage rejects fake-membership
+  ---
+  duration_ms: 20.577292
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: none
+ok 34 - source purge shortcut proves authored source freedom: none
+  ---
+  duration_ms: 133.397708
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: dependency
+ok 35 - source purge shortcut proves authored source freedom: dependency
+  ---
+  duration_ms: 121.561333
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: provenance
+ok 36 - source purge shortcut proves authored source freedom: provenance
+  ---
+  duration_ms: 120.1285
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: fake-source-free
+ok 37 - source purge shortcut proves authored source freedom: fake-source-free
+  ---
+  duration_ms: 135.583333
+  type: 'test'
+  ...
+# Subtest: authored hash race rechecks body and journal before any physical request
+ok 38 - authored hash race rechecks body and journal before any physical request
+  ---
+  duration_ms: 59.84975
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late raw-body after excerpt acquisition
+ok 39 - authored basis final fence refuses late raw-body after excerpt acquisition
+  ---
+  duration_ms: 127.517166
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late owner-body after excerpt acquisition
+ok 40 - authored basis final fence refuses late owner-body after excerpt acquisition
+  ---
+  duration_ms: 128.484458
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late raw-membership after excerpt acquisition
+ok 41 - authored basis final fence refuses late raw-membership after excerpt acquisition
+  ---
+  duration_ms: 130.978917
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late owner-membership after excerpt acquisition
+ok 42 - authored basis final fence refuses late owner-membership after excerpt acquisition
+  ---
+  duration_ms: 129.598917
+  type: 'test'
+  ...
+# Subtest: authored recorded-read-failure distinguishes resumable material from unknown physical outcome
+ok 43 - authored recorded-read-failure distinguishes resumable material from unknown physical outcome
+  ---
+  duration_ms: 120.922208
+  type: 'test'
+  ...
+# Subtest: authored receipt-abort distinguishes resumable material from unknown physical outcome
+ok 44 - authored receipt-abort distinguishes resumable material from unknown physical outcome
+  ---
+  duration_ms: 86.79625
+  type: 'test'
+  ...
+# Subtest: existing-file replacement keeps authored Context history but cannot revive its old restore epoch
+ok 45 - existing-file replacement keeps authored Context history but cannot revive its old restore epoch
+  ---
+  duration_ms: 147.821833
+  type: 'test'
+  ...
+# Subtest: fresh real-owner authored lifecycle restore commits exact Context after birth
+ok 46 - fresh real-owner authored lifecycle restore commits exact Context after birth
+  ---
+  duration_ms: 150.174833
+  type: 'test'
+  ...
+# Subtest: fresh real-owner authored lifecycle restore commits exact Context after body edit
+ok 47 - fresh real-owner authored lifecycle restore commits exact Context after body edit
+  ---
+  duration_ms: 150.862125
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses reason
+ok 48 - restored authored authority refuses reason
+  ---
+  duration_ms: 45.489667
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses mask
+ok 49 - restored authored authority refuses mask
+  ---
+  duration_ms: 43.507417
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses masqueraded-edit
+ok 50 - restored authored authority refuses masqueraded-edit
+  ---
+  duration_ms: 42.52225
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses masqueraded-active-edit
+ok 51 - restored authored authority refuses masqueraded-active-edit
+  ---
+  duration_ms: 43.396208
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses important
+ok 52 - restored authored authority refuses important
+  ---
+  duration_ms: 43.04625
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses before-lifecycle
+ok 53 - restored authored authority refuses before-lifecycle
+  ---
+  duration_ms: 42.531042
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses after-lifecycle
+ok 54 - restored authored authority refuses after-lifecycle
+  ---
+  duration_ms: 43.76525
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses before-body
+ok 55 - restored authored authority refuses before-body
+  ---
+  duration_ms: 46.837583
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses after-body
+ok 56 - restored authored authority refuses after-body
+  ---
+  duration_ms: 46.0735
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses journal-operation
+ok 57 - restored authored authority refuses journal-operation
+  ---
+  duration_ms: 42.964208
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses body-operation
+ok 58 - restored authored authority refuses body-operation
+  ---
+  duration_ms: 44.274959
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses field-protection
+ok 59 - restored authored authority refuses field-protection
+  ---
+  duration_ms: 52.780792
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses protection-time
+ok 60 - restored authored authority refuses protection-time
+  ---
+  duration_ms: 44.207084
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses content-revision
+ok 61 - restored authored authority refuses content-revision
+  ---
+  duration_ms: 46.0125
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses field-revision
+ok 62 - restored authored authority refuses field-revision
+  ---
+  duration_ms: 45.185958
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses missing-removal
+ok 63 - restored authored authority refuses missing-removal
+  ---
+  duration_ms: 49.030959
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-reason
+ok 64 - restored authored authority refuses removal-reason
+  ---
+  duration_ms: 44.700667
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-mask
+ok 65 - restored authored authority refuses removal-mask
+  ---
+  duration_ms: 49.3555
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-content
+ok 66 - restored authored authority refuses removal-content
+  ---
+  duration_ms: 45.446167
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-revision
+ok 67 - restored authored authority refuses removal-revision
+  ---
+  duration_ms: 42.642875
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses missing-authority
+ok 68 - restored authored authority refuses missing-authority
+  ---
+  duration_ms: 42.208125
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses authority-content
+ok 69 - restored authored authority refuses authority-content
+  ---
+  duration_ms: 43.547875
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses missing-birth
+ok 70 - restored authored authority refuses missing-birth
+  ---
+  duration_ms: 41.481
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses dependency
+ok 71 - restored authored authority refuses dependency
+  ---
+  duration_ms: 41.273666
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses provenance
+ok 72 - restored authored authority refuses provenance
+  ---
+  duration_ms: 42.711458
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses no-membership
+ok 73 - restored authored authority refuses no-membership
+  ---
+  duration_ms: 52.028875
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses duplicate-membership
+ok 74 - restored authored authority refuses duplicate-membership
+  ---
+  duration_ms: 54.708584
+  type: 'test'
+  ...
+# Subtest: repeated genuine restores preserve body revision while refusing every older descriptor and lineage
+ok 75 - repeated genuine restores preserve body revision while refusing every older descriptor and lineage
+  ---
+  duration_ms: 198.13225
+  type: 'test'
+  ...
+# Subtest: restore never revives old authored prepared
+ok 76 - restore never revives old authored prepared
+  ---
+  duration_ms: 53.564583
+  type: 'test'
+  ...
+# Subtest: restore never revives old authored response
+ok 77 - restore never revives old authored response
+  ---
+  duration_ms: 98.519042
+  type: 'test'
+  ...
+# Subtest: restore never revives old authored grant
+ok 78 - restore never revives old authored grant
+  ---
+  duration_ms: 91.207542
+  type: 'test'
+  ...
+# Subtest: restored Context and basis reject restore/body ABA while old ACK stays historical and fresh work can commit
+ok 79 - restored Context and basis reject restore/body ABA while old ACK stays historical and fresh work can commit
+  ---
+  duration_ms: 407.924459
+  type: 'test'
+  ...
+# Subtest: restored authored hash mutation cannot ACK stale work
+ok 80 - restored authored hash mutation cannot ACK stale work
+  ---
+  duration_ms: 63.060667
+  type: 'test'
+  ...
+# Subtest: restored authored dispatch mutation cannot ACK stale work
+ok 81 - restored authored dispatch mutation cannot ACK stale work
+  ---
+  duration_ms: 90.312875
+  type: 'test'
+  ...
+# Subtest: restored authored commit mutation cannot ACK stale work
+ok 82 - restored authored commit mutation cannot ACK stale work
+  ---
+  duration_ms: 124.606291
+  type: 'test'
+  ...
+# Subtest: restored authored ACK abort rolls back the original owner and retry never redispatches
+ok 83 - restored authored ACK abort rolls back the original owner and retry never redispatches
+  ---
+  duration_ms: 174.235375
+  type: 'test'
+  ...
+# Subtest: restored authored prior DEFER stays intact on the same route
+ok 84 - restored authored prior DEFER stays intact on the same route
+  ---
+  duration_ms: 24.181625
+  type: 'test'
+  ...
+# Subtest: restored authored prior DEFER reconsiders only Context on different route
+ok 85 - restored authored prior DEFER reconsiders only Context on different route
+  ---
+  duration_ms: 131.273292
+  type: 'test'
+  ...
+# Subtest: coalesced body edits across placement changes still qualify after lifecycle restoration
+ok 86 - coalesced body edits across placement changes still qualify after lifecycle restoration
+  ---
+  duration_ms: 158.075875
+  type: 'test'
+  ...
+# Subtest: forged older restore operation cannot form a restore authority ABA
+ok 87 - forged older restore operation cannot form a restore authority ABA
+  ---
+  duration_ms: 49.186625
+  type: 'test'
+  ...
+# Subtest: restore history uses bounded indexed reads charged to the original scope budget
+ok 88 - restore history uses bounded indexed reads charged to the original scope budget
+  ---
+  duration_ms: 21.81175
+  type: 'test'
+  ...
+# Subtest: fresh restore denied processing permission retains zero hashes and dispatch
+ok 89 - fresh restore denied processing permission retains zero hashes and dispatch
+  ---
+  duration_ms: 55.735375
+  type: 'test'
+  ...
+# Subtest: fresh restore wrong-field processing permission retains zero hashes and dispatch
+ok 90 - fresh restore wrong-field processing permission retains zero hashes and dispatch
+  ---
+  duration_ms: 56.059875
+  type: 'test'
+  ...
+# Subtest: real coalesced body ABA after restoration remains eligible
+ok 91 - real coalesced body ABA after restoration remains eligible
+  ---
+  duration_ms: 151.033875
+  type: 'test'
+  ...
+# Subtest: real coalesced body ABA after restoration remains eligible through another restore
+ok 92 - real coalesced body ABA after restoration remains eligible through another restore
+  ---
+  duration_ms: 169.100875
+  type: 'test'
+  ...
+# Subtest: missing earlier-edit cannot be bridged by current body-edit authority
+ok 93 - missing earlier-edit cannot be bridged by current body-edit authority
+  ---
+  duration_ms: 52.042042
+  type: 'test'
+  ...
+# Subtest: missing earlier-edit cannot be bridged by restored body-edit authority
+ok 94 - missing earlier-edit cannot be bridged by restored body-edit authority
+  ---
+  duration_ms: 51.14975
+  type: 'test'
+  ...
+# Subtest: missing previous-restore cannot be bridged by current body-edit authority
+ok 95 - missing previous-restore cannot be bridged by current body-edit authority
+  ---
+  duration_ms: 45.902167
+  type: 'test'
+  ...
+# Subtest: missing previous-restore cannot be bridged by restored body-edit authority
+ok 96 - missing previous-restore cannot be bridged by restored body-edit authority
+  ---
+  duration_ms: 48.760125
+  type: 'test'
+  ...
+# Subtest: retained historical restore disguised as edit cannot supply authority for a later genuine restore
+ok 97 - retained historical restore disguised as edit cannot supply authority for a later genuine restore
+  ---
+  duration_ms: 47.439833
+  type: 'test'
+  ...
+# Subtest: typed authored Topic and Context share one response but retain separate original owners and exact ACKs
+ok 98 - typed authored Topic and Context share one response but retain separate original owners and exact ACKs
+  ---
+  duration_ms: 162.93975
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects denied-topic
+ok 99 - typed authored Topic independent guard rejects denied-topic
+  ---
+  duration_ms: 34.992083
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects revoked-topic-response
+ok 100 - typed authored Topic independent guard rejects revoked-topic-response
+  ---
+  duration_ms: 86.353459
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects wrong-topic-field-grant
+ok 101 - typed authored Topic independent guard rejects wrong-topic-field-grant
+  ---
+  duration_ms: 32.399167
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects wrong-author-field-grant
+ok 102 - typed authored Topic independent guard rejects wrong-author-field-grant
+  ---
+  duration_ms: 31.702375
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects entry-drift
+ok 103 - typed authored Topic independent guard rejects entry-drift
+  ---
+  duration_ms: 81.291959
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects topic-drift
+ok 104 - typed authored Topic independent guard rejects topic-drift
+  ---
+  duration_ms: 87.335958
+  type: 'test'
+  ...
+# Subtest: typed authored Topic ACK abort rolls back its owner receipt and replay reuses one physical response
+ok 105 - typed authored Topic ACK abort rolls back its owner receipt and replay reuses one physical response
+  ---
+  duration_ms: 160.652042
+  type: 'test'
+  ...
+# Subtest: typed authored response travels through the original source-owned adapter for both original facets
+ok 106 - typed authored response travels through the original source-owned adapter for both original facets
+  ---
+  duration_ms: 157.06725
+  type: 'test'
+  ...
+# Subtest: authored session genuine Topic issuer retains private qualification budget: shared
+not ok 107 - authored session genuine Topic issuer retains private qualification budget: shared
+  ---
+  duration_ms: 39.487333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/ai-cost-03-authored-context.test.mjs:253:61'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"STALE_BASE","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:c93a5173eff8c187e2b7e63fc6352bd4d1b88189a14b2bd9270056802ce898f9","facets":[]}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/ai-cost-03-authored-context.test.mjs:262:121)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: authored session genuine Topic issuer retains private qualification budget: independent-budget
+ok 108 - authored session genuine Topic issuer retains private qualification budget: independent-budget
+  ---
+  duration_ms: 35.653916
+  type: 'test'
+  ...
+# Subtest: authored session genuine Topic issuer retains private qualification budget: revoked
+ok 109 - authored session genuine Topic issuer retains private qualification budget: revoked
+  ---
+  duration_ms: 33.902834
+  type: 'test'
+  ...
+# Subtest: package allows exact inert Google Sync module URLs and rejects changed, duplicated or foreign-module URLs
+ok 110 - package allows exact inert Google Sync module URLs and rejects changed, duplicated or foreign-module URLs
+  ---
+  duration_ms: 54.699875
+  type: 'test'
+  ...
+1..110
+# tests 110
+# suites 0
+# pass 109
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9586.3815

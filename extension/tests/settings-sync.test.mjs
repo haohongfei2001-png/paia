@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
+import {PresentationNode} from './harness/presentation-dom.mjs';
+import {mountSettingsDetail} from '../ui/settings-details.js';
+import {mountSettingsSync} from '../ui/settings-sync.js';
+import {syncAvailability} from '../core/browser-native-sync/availability.js';
+test('Sync is an honest, bilingual read-only Settings destination with original modal semantics',()=>{
+ const prior=globalThis.document,body=new PresentationNode('body');let language='zh-CN';const make=tag=>{const n=new PresentationNode(tag);if(tag==='dialog'){n.showModal=()=>n.open=true;n.close=()=>n.open=false;}return n;};globalThis.document={body,documentElement:{lang:language},createElement:make,createElementNS:(_ns,tag)=>make(tag)};
+ try{const detail=mountSettingsSync({mountDetail:mountSettingsDetail,language:()=>language});body.append(detail.row);assert.equal(detail.row.id,'settings-sync');assert.equal(detail.row.getAttribute('aria-controls'),'settings-sync-dialog');assert.equal(detail.dialog.open,undefined);detail.row.listeners.get('click')();assert.equal(detail.dialog.open,true);assert.match(detail.dialog.textContent,/此版本尚未提供云端同步/);assert.equal(detail.dialog.children[1].children.length,2,'no fake connect/delete controls');language='en';detail.sync();assert.match(detail.dialog.textContent,/does not sign in, upload content or change existing data/);assert.equal(syncAvailability().canEnable,false);detail.dialog.firstElementChild.children[1].listeners.get('click')();assert.equal(detail.dialog.open,false);}finally{globalThis.document=prior;}
+});
+test('original Data group installs Sync before history import and language refresh includes its owner',async()=>{const source=await readFile(new URL('../ui/settings-details.js',import.meta.url),'utf8');assert.match(source,/dataGroup\.insertBefore\(syncDetail\.row,importDetail\.row\)/);assert.match(source,/\[syncDetail,storageDetail,siteDetail,importDetail/);const ui=await readFile(new URL('../ui/settings-sync.js',import.meta.url),'utf8');assert.doesNotMatch(ui,/fetch\(|chrome\.|request\(|LocalSyncRecoverySession/);});

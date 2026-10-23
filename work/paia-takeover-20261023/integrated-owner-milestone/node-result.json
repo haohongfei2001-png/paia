@@ -1,0 +1,32 @@
+{
+  "headAtStart": "1cb7a37d",
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "extension/tests/ai-context-edit-mapping.test.mjs",
+    "extension/tests/ai-context-correction-local.test.mjs",
+    "extension/tests/context-edit-lifecycle.test.mjs",
+    "extension/tests/context-temporal-currentness.test.mjs",
+    "extension/tests/context-temporal-status.test.mjs",
+    "extension/tests/ai-maintenance-payload.test.mjs",
+    "extension/tests/maintenance-service-response-adapter.test.mjs",
+    "extension/tests/ai-maintenance-processing-receipt.test.mjs",
+    "extension/tests/human-source-entry-plan.test.mjs",
+    "extension/tests/browser-native-sync-google-drive.test.mjs",
+    "extension/tests/browser-native-sync-google-http.test.mjs",
+    "extension/tests/browser-native-sync-onedrive.test.mjs",
+    "extension/tests/browser-native-sync-onedrive-http.test.mjs",
+    "extension/tests/browser-native-sync-package-guard.test.mjs",
+    "extension/tests/ai-cost-03-authored-context.test.mjs",
+    "extension/tests/topic-authored-reconciliation.test.mjs",
+    "extension/tests/ai-cost-03-placement-topic-reconciliation.test.mjs"
+  ],
+  "exitCode": 0,
+  "wallMs": 91624.5013329899,
+  "sourceStable": true,
+  "excludedParallelOwnedTests": [
+    "cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",
+    "native-sync/group-checkpoint-chrome.test.mjs"
+  ]
+}

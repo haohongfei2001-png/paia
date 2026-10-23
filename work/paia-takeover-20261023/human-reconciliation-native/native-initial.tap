@@ -1,0 +1,173 @@
+TAP version 13
+# Subtest: CTX4-05 native source human dual-facet reconciliation qualification
+    # Subtest: authored-complete
+    not ok 1 - authored-complete
+      ---
+      duration_ms: 335.849459
+      type: 'test'
+      location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166'
+      failureType: 'testCodeFailure'
+      error: |-
+        page.evaluate: Error: original two-owner commit
+            at check (eval at evaluate (:311:30), <anonymous>:3:35)
+            at globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:51:12)
+            at async <anonymous>:337:30
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        check (eval at evaluate (:311:30), <anonymous>:3:35)
+        globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:51:12)
+        async <anonymous>:337:30
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:236)
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166)
+      ...
+    # Subtest: authored-topic-grant-denied
+    ok 2 - authored-topic-grant-denied
+      ---
+      duration_ms: 96.073959
+      type: 'test'
+      ...
+    # Subtest: authored-topic-final-revoke
+    not ok 3 - authored-topic-final-revoke
+      ---
+      duration_ms: 226.236958
+      type: 'test'
+      location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166'
+      failureType: 'testCodeFailure'
+      error: |-
+        page.evaluate: Error: original transaction abort observed without complete
+            at check (eval at evaluate (:311:30), <anonymous>:3:35)
+            at globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:48:29)
+            at async <anonymous>:337:30
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        check (eval at evaluate (:311:30), <anonymous>:3:35)
+        globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:48:29)
+        async <anonymous>:337:30
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:236)
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166)
+      ...
+    # Subtest: authored-topic-ack-abort
+    not ok 4 - authored-topic-ack-abort
+      ---
+      duration_ms: 389.367958
+      type: 'test'
+      location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166'
+      failureType: 'testCodeFailure'
+      error: |-
+        page.evaluate: Error: original transaction abort observed without complete
+            at check (eval at evaluate (:311:30), <anonymous>:3:35)
+            at globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:48:29)
+            at async <anonymous>:337:30
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        check (eval at evaluate (:311:30), <anonymous>:3:35)
+        globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:48:29)
+        async <anonymous>:337:30
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:236)
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166)
+      ...
+    # Subtest: authored-context-ack-abort
+    not ok 5 - authored-context-ack-abort
+      ---
+      duration_ms: 227.681166
+      type: 'test'
+      location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166'
+      failureType: 'testCodeFailure'
+      error: |-
+        page.evaluate: Error: original transaction abort observed without complete
+            at check (eval at evaluate (:311:30), <anonymous>:3:35)
+            at globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:48:29)
+            at async <anonymous>:337:30
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        check (eval at evaluate (:311:30), <anonymous>:3:35)
+        globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:48:29)
+        async <anonymous>:337:30
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:236)
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166)
+      ...
+    # Subtest: placement-complete
+    ok 6 - placement-complete
+      ---
+      duration_ms: 542.174167
+      type: 'test'
+      ...
+    # Subtest: placement-topic-grant-denied
+    ok 7 - placement-topic-grant-denied
+      ---
+      duration_ms: 144.375
+      type: 'test'
+      ...
+    # Subtest: placement-topic-final-revoke
+    ok 8 - placement-topic-final-revoke
+      ---
+      duration_ms: 421.234958
+      type: 'test'
+      ...
+    # Subtest: placement-topic-ack-abort
+    ok 9 - placement-topic-ack-abort
+      ---
+      duration_ms: 554.466125
+      type: 'test'
+      ...
+    # Subtest: placement-context-ack-abort
+    not ok 10 - placement-context-ack-abort
+      ---
+      duration_ms: 466.962959
+      type: 'test'
+      location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166'
+      failureType: 'testCodeFailure'
+      error: |-
+        page.evaluate: Error: both facets roll back together
+            at check (eval at evaluate (:311:30), <anonymous>:3:35)
+            at globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:48:309)
+            at async <anonymous>:337:30
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        check (eval at evaluate (:311:30), <anonymous>:3:35)
+        globalThis.__humanReconciliationNative (eval at evaluate (:311:30), <anonymous>:48:309)
+        async <anonymous>:337:30
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:236)
+        TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1197:166)
+      ...
+    1..10
+not ok 1 - CTX4-05 native source human dual-facet reconciliation qualification
+  ---
+  duration_ms: 5036.964792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1191:43'
+  failureType: 'subtestsFailed'
+  error: '5 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: CTX4-05 native release human dual-facet reconciliation qualification
+not ok 2 - CTX4-05 native release human dual-facet reconciliation qualification
+  ---
+  duration_ms: 1517.186625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1191:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    Command failed: python3 /Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/scripts/build_current_release.py /var/folders/6f/fl5l5wdx1f1brqkw39j31wf80000gn/T/paia-ctx4-human-native-O1E9fk/release
+    Unpublished build retained: /private/var/folders/6f/fl5l5wdx1f1brqkw39j31wf80000gn/T/paia-ctx4-human-native-O1E9fk/.release.building-k_sf74fp
+    Current release failed package guardrails
+    
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    genericNodeError (node:internal/errors:983:15)
+    wrappedFn (node:internal/errors:537:14)
+    checkExecSyncError (node:child_process:916:11)
+    execFileSync (node:child_process:952:15)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs:1195:96)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 12
+# suites 0
+# pass 5
+# fail 7
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6749.851042

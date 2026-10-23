@@ -1,4 +1,4 @@
-import {captureHumanGraphReadSet,requireHumanGraphReadSet,prepareHumanGraphNamedPlan,advanceHumanGraphReadSet,humanGraphReadSetProjection,humanPlanJournalRows,executeHumanPlanInTransaction} from './human-library-plan.js';
+import {captureHumanGraphReadSet,advanceHumanGraphSource,requireHumanGraphReadSet,prepareHumanGraphNamedPlan,advanceHumanGraphReadSet,humanGraphReadSetProjection,humanPlanJournalRows,executeHumanPlanInTransaction} from './human-library-plan.js';
 import {portableHumanEntity} from './human-library-codec.js';
 import {physical,normalizePhysical} from './human-library-journal.js';
 import {clone,equal,fail} from './value.js';
@@ -8,9 +8,11 @@ const applications=new WeakMap();
 export async function prepareHumanGroupApplication(store,core,plan){
  const groups=plan.groups.filter(group=>group.type==='humanLibraryCommit');if(!groups.length)return null;
  const protocols=await core.prepareHumanRestoreProtocols(plan.groups),inventory=await captureHumanGraphReadSet(store,core),initial=humanGraphReadSetProjection(inventory);
- for(const name of ['thoughts','topics','sections','placements','thoughtSuppressions','revisions','operationReceipts','names','pairs','indices'])if(initial[name].length)fail('BNS_HUMAN_RESTORE_REQUIRED');
+ for(const name of ['thoughts','topics','sections','placements','thoughtSuppressions','revisions','operationReceipts','names','pairs','indices','provenance','dependencies'])if(initial[name].length)fail('BNS_HUMAN_RESTORE_REQUIRED');
  const mappingState=new Map(),steps=[],mappingIds=await core.transaction(false,async t=>Object.fromEntries(await Promise.all([...new Set(protocols.flatMap(item=>item.members.map(op=>op.entityId)))].map(async id=>[id,await core.idIn(t,'humanMapping',id)]))),['meta']);
- for(const group of groups){
+ const linked=groups.some(group=>group.prepared.descriptor.value.kind.startsWith('source-'));
+ for(const group of plan.groups){
+  if(group.type!=='humanLibraryCommit'){if(linked)advanceHumanGraphSource(inventory,plan,group);continue;}
   const protocol=protocols.find(item=>item.descriptor.revisionId===group.id);if(!protocol)fail('BNS_HUMAN_COMMIT_REQUIRED');const beforeState=humanGraphReadSetProjection(inventory),owner=await prepareHumanGraphNamedPlan(inventory,protocol.descriptor.value),view=humanPlanJournalRows(owner),history=new Map(beforeState.revisions.map(row=>[row.id,row]));for(const row of view.history)history.set(row.id,row);
   for(const id of [...new Set(view.rows.filter(row=>row.type==='topic').map(row=>row.after.id))])for(const row of beforeState.revisions.filter(row=>row.kind==='topic'&&row.entityId===id))if(!view.rows.some(item=>item.type==='history'&&item.after.id===row.id))view.rows.push({type:'history',before:row,after:row});
   if(view.rows.length!==protocol.members.length)fail('BNS_HUMAN_PLAN_CHANGED');const mappings=[];

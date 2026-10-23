@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: original source-linked creation plan consumes exact original provenance/dependency and edit owner
+ok 1 - original source-linked creation plan consumes exact original provenance/dependency and edit owner
+  ---
+  duration_ms: 52.814625
+  type: 'test'
+  ...
+# Subtest: source edit after preparation refuses original create without any additional writes
+ok 2 - source edit after preparation refuses original create without any additional writes
+  ---
+  duration_ms: 19.144792
+  type: 'test'
+  ...
+# Subtest: linked owner keeps creation, provenance, dependency and history in one rollback boundary
+ok 3 - linked owner keeps creation, provenance, dependency and history in one rollback boundary
+  ---
+  duration_ms: 17.928458
+  type: 'test'
+  ...
+# Subtest: stale Source is not admitted for linked edit
+ok 4 - stale Source is not admitted for linked edit
+  ---
+  duration_ms: 24.516416
+  type: 'test'
+  ...
+# Subtest: retained dependency mismatch refuses linked edit without writes
+ok 5 - retained dependency mismatch refuses linked edit without writes
+  ---
+  duration_ms: 22.911667
+  type: 'test'
+  ...
+# Subtest: portable Source edge rebinds local tokens after real bootstrap into independent B
+ok 6 - portable Source edge rebinds local tokens after real bootstrap into independent B
+  ---
+  duration_ms: 51.637458
+  type: 'test'
+  ...
+# Subtest: source-linked typed journal exports portable edge and receives create/edit through original B owner
+ok 7 - source-linked typed journal exports portable edge and receives create/edit through original B owner
+  ---
+  duration_ms: 81.587375
+  type: 'test'
+  ...
+# Subtest: single Source and source-linked create/edit restore as one original owner graph on cold B
+ok 8 - single Source and source-linked create/edit restore as one original owner graph on cold B
+  ---
+  duration_ms: 626.3445
+  type: 'test'
+  ...
+# Subtest: journal refuses Source-linked capture whose original Source protocol is absent
+ok 9 - journal refuses Source-linked capture whose original Source protocol is absent
+  ---
+  duration_ms: 13.29525
+  type: 'test'
+  ...
+# Subtest: linked removal and explicit restore preserve portable negative intent and protected history across cold B
+ok 10 - linked removal and explicit restore preserve portable negative intent and protected history across cold B
+  ---
+  duration_ms: 494.949083
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1557.508417

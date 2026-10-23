@@ -1,0 +1,196 @@
+TAP version 13
+# Subtest: contained immutable publication and fresh discovery preserve exact bytes with durable retry ID
+ok 1 - contained immutable publication and fresh discovery preserve exact bytes with durable retry ID
+  ---
+  duration_ms: 27.707875
+  type: 'test'
+  ...
+# Subtest: lost create completion survives adapter/core restart without allocating or uploading a second object
+ok 2 - lost create completion survives adapter/core restart without allocating or uploading a second object
+  ---
+  duration_ms: 13.660209
+  type: 'test'
+  ...
+# Subtest: wrong bytes are rejected before any remote request or local allocation
+ok 3 - wrong bytes are rejected before any remote request or local allocation
+  ---
+  duration_ms: 10.598875
+  type: 'test'
+  ...
+# Subtest: reject remote spaces corruption and preserve foreign objects
+ok 4 - reject remote spaces corruption and preserve foreign objects
+  ---
+  duration_ms: 12.095417
+  type: 'test'
+  ...
+# Subtest: reject remote dataset corruption and preserve foreign objects
+ok 5 - reject remote dataset corruption and preserve foreign objects
+  ---
+  duration_ms: 12.578459
+  type: 'test'
+  ...
+# Subtest: reject remote bytes corruption and preserve foreign objects
+ok 6 - reject remote bytes corruption and preserve foreign objects
+  ---
+  duration_ms: 10.894875
+  type: 'test'
+  ...
+# Subtest: reject remote size corruption and preserve foreign objects
+ok 7 - reject remote size corruption and preserve foreign objects
+  ---
+  duration_ms: 10.834583
+  type: 'test'
+  ...
+# Subtest: reject remote kind corruption and preserve foreign objects
+ok 8 - reject remote kind corruption and preserve foreign objects
+  ---
+  duration_ms: 10.006209
+  type: 'test'
+  ...
+# Subtest: HTTP 401 maps safely with no hidden retry
+ok 9 - HTTP 401 maps safely with no hidden retry
+  ---
+  duration_ms: 11.512333
+  type: 'test'
+  ...
+# Subtest: HTTP 403 maps safely with no hidden retry
+ok 10 - HTTP 403 maps safely with no hidden retry
+  ---
+  duration_ms: 9.194334
+  type: 'test'
+  ...
+# Subtest: HTTP 429 maps safely with no hidden retry
+ok 11 - HTTP 429 maps safely with no hidden retry
+  ---
+  duration_ms: 9.110167
+  type: 'test'
+  ...
+# Subtest: HTTP 500 maps safely with no hidden retry
+ok 12 - HTTP 500 maps safely with no hidden retry
+  ---
+  duration_ms: 10.749458
+  type: 'test'
+  ...
+# Subtest: HTTP 404 maps safely with no hidden retry
+ok 13 - HTTP 404 maps safely with no hidden retry
+  ---
+  duration_ms: 8.831833
+  type: 'test'
+  ...
+# Subtest: account generation changes while request is held fence late bytes; close settles a held host
+ok 14 - account generation changes while request is held fence late bytes; close settles a held host
+  ---
+  duration_ms: 8.976625
+  type: 'test'
+  ...
+# Subtest: held host times out once and cannot trigger a blind write retry
+ok 15 - held host times out once and cannot trigger a blind write retry
+  ---
+  duration_ms: 29.10025
+  type: 'test'
+  ...
+# Subtest: checkpoint pagination, invalid cursor and incomplete listing are bounded
+ok 16 - checkpoint pagination, invalid cursor and incomplete listing are bounded
+  ---
+  duration_ms: 14.3245
+  type: 'test'
+  ...
+# Subtest: core namespace swap invalidates transport and never reuses another generation allocation
+ok 17 - core namespace swap invalidates transport and never reuses another generation allocation
+  ---
+  duration_ms: 10.17875
+  type: 'test'
+  ...
+# Subtest: Google contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+ok 18 - Google contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+  ---
+  duration_ms: 161.202208
+  type: 'test'
+  ...
+# Subtest: broad scopes, credential-bearing binding and injected list query are refused
+ok 19 - broad scopes, credential-bearing binding and injected list query are refused
+  ---
+  duration_ms: 10.517417
+  type: 'test'
+  ...
+# Subtest: concurrent publishers atomically share durable allocation; create collision requires exact readback
+ok 20 - concurrent publishers atomically share durable allocation; create collision requires exact readback
+  ---
+  duration_ms: 11.352666
+  type: 'test'
+  ...
+# Subtest: lost local reservation commit acknowledgement cannot publish before durable identity is recovered
+ok 21 - lost local reservation commit acknowledgement cannot publish before durable identity is recovered
+  ---
+  duration_ms: 10.0145
+  type: 'test'
+  ...
+# Subtest: oversized host response is refused before a copy or JSON parse
+ok 22 - oversized host response is refused before a copy or JSON parse
+  ---
+  duration_ms: 9.087708
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape ""
+ok 23 - reject invalid OAuth client ID shape ""
+  ---
+  duration_ms: 10.624208
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape " "
+ok 24 - reject invalid OAuth client ID shape " "
+  ---
+  duration_ms: 8.965084
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape "https://000000000000.apps.googleusercontent.com"
+ok 25 - reject invalid OAuth client ID shape "https://000000000000.apps.googleusercontent.com"
+  ---
+  duration_ms: 9.402708
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape "000000000000.apps.googleusercontent.com\\n"
+ok 26 - reject invalid OAuth client ID shape "000000000000.apps.googleusercontent.com\\n"
+  ---
+  duration_ms: 8.587625
+  type: 'test'
+  ...
+# Subtest: reject invalid OAuth client ID shape "1111111111111111111111111111111111111111111111111111111"
+ok 27 - reject invalid OAuth client ID shape "1111111111111111111111111111111111111111111111111111111"
+  ---
+  duration_ms: 10.331791
+  type: 'test'
+  ...
+# Subtest: held committed POST close remains unknown and reuses original durable ID
+ok 28 - held committed POST close remains unknown and reuses original durable ID
+  ---
+  duration_ms: 9.666917
+  type: 'test'
+  ...
+# Subtest: held committed POST identity remains unknown and reuses original durable ID
+ok 29 - held committed POST identity remains unknown and reuses original durable ID
+  ---
+  duration_ms: 9.580625
+  type: 'test'
+  ...
+# Subtest: one public operation has a total deadline; slow empty pages cannot multiply the timeout
+ok 30 - one public operation has a total deadline; slow empty pages cannot multiply the timeout
+  ---
+  duration_ms: 42.795708
+  type: 'test'
+  ...
+# Subtest: aggregate received bytes stop bounded pages before an unbounded rescan
+ok 31 - aggregate received bytes stop bounded pages before an unbounded rescan
+  ---
+  duration_ms: 18.633458
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 688.385708

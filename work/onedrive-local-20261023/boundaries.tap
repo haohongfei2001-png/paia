@@ -1,0 +1,244 @@
+TAP version 13
+# Subtest: contained immutable upload session uses fail conflict and unsigned assets, exact read-back and restart reuse
+ok 1 - contained immutable upload session uses fail conflict and unsigned assets, exact read-back and restart reuse
+  ---
+  duration_ms: 38.961417
+  type: 'test'
+  ...
+# Subtest: lost upload result is read back by same immutable name after adapter restart, no duplicate PUT
+ok 2 - lost upload result is read back by same immutable name after adapter restart, no duplicate PUT
+  ---
+  duration_ms: 12.963458
+  type: 'test'
+  ...
+# Subtest: lost session creation refuses blind retry with no recoverable expiry or completed object
+ok 3 - lost session creation refuses blind retry with no recoverable expiry or completed object
+  ---
+  duration_ms: 12.102625
+  type: 'test'
+  ...
+# Subtest: wrong object bytes are rejected before root access or allocation
+ok 4 - wrong object bytes are rejected before root access or allocation
+  ---
+  duration_ms: 9.437208
+  type: 'test'
+  ...
+# Subtest: reject unqualified scope without request
+ok 5 - reject unqualified scope without request
+  ---
+  duration_ms: 9.236083
+  type: 'test'
+  ...
+# Subtest: reject unqualified tenant without request
+ok 6 - reject unqualified tenant without request
+  ---
+  duration_ms: 8.923959
+  type: 'test'
+  ...
+# Subtest: reject unqualified client without request
+ok 7 - reject unqualified client without request
+  ---
+  duration_ms: 9.113958
+  type: 'test'
+  ...
+# Subtest: reject remote parent and preserve all remote objects
+ok 8 - reject remote parent and preserve all remote objects
+  ---
+  duration_ms: 10.330791
+  type: 'test'
+  ...
+# Subtest: reject remote drive and preserve all remote objects
+ok 9 - reject remote drive and preserve all remote objects
+  ---
+  duration_ms: 12.232959
+  type: 'test'
+  ...
+# Subtest: reject remote remoteItem and preserve all remote objects
+ok 10 - reject remote remoteItem and preserve all remote objects
+  ---
+  duration_ms: 10.2875
+  type: 'test'
+  ...
+# Subtest: reject remote size and preserve all remote objects
+ok 11 - reject remote size and preserve all remote objects
+  ---
+  duration_ms: 10.018209
+  type: 'test'
+  ...
+# Subtest: reject remote etag and preserve all remote objects
+ok 12 - reject remote etag and preserve all remote objects
+  ---
+  duration_ms: 11.550208
+  type: 'test'
+  ...
+# Subtest: reject remote download-host and preserve all remote objects
+ok 13 - reject remote download-host and preserve all remote objects
+  ---
+  duration_ms: 10.173041
+  type: 'test'
+  ...
+# Subtest: reject remote bytes and preserve all remote objects
+ok 14 - reject remote bytes and preserve all remote objects
+  ---
+  duration_ms: 10.039291
+  type: 'test'
+  ...
+# Subtest: typed HTTP 401 stops with no retry and no provider message
+ok 15 - typed HTTP 401 stops with no retry and no provider message
+  ---
+  duration_ms: 8.629042
+  type: 'test'
+  ...
+# Subtest: typed HTTP 403 stops with no retry and no provider message
+ok 16 - typed HTTP 403 stops with no retry and no provider message
+  ---
+  duration_ms: 10.079792
+  type: 'test'
+  ...
+# Subtest: typed HTTP 429 stops with no retry and no provider message
+ok 17 - typed HTTP 429 stops with no retry and no provider message
+  ---
+  duration_ms: 8.525833
+  type: 'test'
+  ...
+# Subtest: typed HTTP 507 stops with no retry and no provider message
+ok 18 - typed HTTP 507 stops with no retry and no provider message
+  ---
+  duration_ms: 8.2825
+  type: 'test'
+  ...
+# Subtest: typed HTTP 500 stops with no retry and no provider message
+ok 19 - typed HTTP 500 stops with no retry and no provider message
+  ---
+  duration_ms: 8.11575
+  type: 'test'
+  ...
+# Subtest: held request close fences late results and settles once
+ok 20 - held request close fences late results and settles once
+  ---
+  duration_ms: 9.679791
+  type: 'test'
+  ...
+# Subtest: held request deadline has no retry
+ok 21 - held request deadline has no retry
+  ---
+  duration_ms: 28.374291
+  type: 'test'
+  ...
+# Subtest: changed appRoot cannot retarget existing transport
+ok 22 - changed appRoot cannot retarget existing transport
+  ---
+  duration_ms: 9.64375
+  type: 'test'
+  ...
+# Subtest: foreign files ignored, grouped discovery bounded and cursor cannot escape AppFolder
+ok 23 - foreign files ignored, grouped discovery bounded and cursor cannot escape AppFolder
+  ---
+  duration_ms: 15.110292
+  type: 'test'
+  ...
+# Subtest: OneDrive contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+ok 24 - OneDrive contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+  ---
+  duration_ms: 140.065417
+  type: 'test'
+  ...
+# Subtest: account invalidation after dispatched session is unknown and never retargeted
+ok 25 - account invalidation after dispatched session is unknown and never retargeted
+  ---
+  duration_ms: 9.12225
+  type: 'test'
+  ...
+# Subtest: account invalidation after dispatched upload is unknown and never retargeted
+ok 26 - account invalidation after dispatched upload is unknown and never retargeted
+  ---
+  duration_ms: 10.473458
+  type: 'test'
+  ...
+# Subtest: concurrent callers cannot create a second outstanding upload attempt
+ok 27 - concurrent callers cannot create a second outstanding upload attempt
+  ---
+  duration_ms: 9.838583
+  type: 'test'
+  ...
+# Subtest: oversized allowed 409 is rejected before copying or proceeding to upload
+not ok 28 - oversized allowed 409 is rejected before copying or proceeding to upload
+  ---
+  duration_ms: 9.129583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/tests/browser-native-sync-onedrive.test.mjs:59:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_PROVIDER_COMPLETION_UNKNOWN'
+    -   code: 'BNS_PROVIDER_RESOURCE_LIMIT'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_PROVIDER_RESOURCE_LIMIT'
+  actual:
+  error: 'BNS_PROVIDER_COMPLETION_UNKNOWN'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    #run (file:///Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/core/browser-native-sync/providers/onedrive.js:32:397)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/tests/browser-native-sync-onedrive.test.mjs:59:256)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/tests/browser-native-sync-onedrive.test.mjs:59:256)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: user edits between download and final metadata deny bytes without overwriting remote file
+ok 29 - user edits between download and final metadata deny bytes without overwriting remote file
+  ---
+  duration_ms: 12.370625
+  type: 'test'
+  ...
+# Subtest: provider signed upload http is refused before user bytes leave
+ok 30 - provider signed upload http is refused before user bytes leave
+  ---
+  duration_ms: 10.026583
+  type: 'test'
+  ...
+# Subtest: provider signed upload userinfo is refused before user bytes leave
+ok 31 - provider signed upload userinfo is refused before user bytes leave
+  ---
+  duration_ms: 8.299292
+  type: 'test'
+  ...
+# Subtest: provider signed upload arbitrary-host is refused before user bytes leave
+ok 32 - provider signed upload arbitrary-host is refused before user bytes leave
+  ---
+  duration_ms: 8.296209
+  type: 'test'
+  ...
+# Subtest: provider signed upload suffix-trick is refused before user bytes leave
+ok 33 - provider signed upload suffix-trick is refused before user bytes leave
+  ---
+  duration_ms: 8.564542
+  type: 'test'
+  ...
+# Subtest: forged next page cannot add query, change root, or send credentials outside exact endpoint
+ok 34 - forged next page cannot add query, change root, or send credentials outside exact endpoint
+  ---
+  duration_ms: 14.08875
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 33
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 683.451666

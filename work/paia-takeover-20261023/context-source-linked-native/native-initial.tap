@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: CTX4-05 native source finite Context lineage correction qualification
+    # Subtest: body-edit-complete
+    ok 1 - body-edit-complete
+      ---
+      duration_ms: 1384.878916
+      type: 'test'
+      ...
+    # Subtest: body-restore-complete
+    ok 2 - body-restore-complete
+      ---
+      duration_ms: 1437.261917
+      type: 'test'
+      ...
+    # Subtest: body-edit-late-backup
+    ok 3 - body-edit-late-backup
+      ---
+      duration_ms: 1457.87225
+      type: 'test'
+      ...
+    # Subtest: body-restore-ack-abort
+    ok 4 - body-restore-ack-abort
+      ---
+      duration_ms: 1730.274542
+      type: 'test'
+      ...
+    # Subtest: body-note-edit-complete
+    ok 5 - body-note-edit-complete
+      ---
+      duration_ms: 1469.490459
+      type: 'test'
+      ...
+    # Subtest: body-note-restore-complete
+    ok 6 - body-note-restore-complete
+      ---
+      duration_ms: 1508.412958
+      type: 'test'
+      ...
+    # Subtest: body-note-edit-late-backup
+    ok 7 - body-note-edit-late-backup
+      ---
+      duration_ms: 1473.260916
+      type: 'test'
+      ...
+    # Subtest: body-note-restore-ack-abort
+    ok 8 - body-note-restore-ack-abort
+      ---
+      duration_ms: 1977.47625
+      type: 'test'
+      ...
+    # Subtest: body-note-edit-grant-denied
+    ok 9 - body-note-edit-grant-denied
+      ---
+      duration_ms: 125.917916
+      type: 'test'
+      ...
+    1..9
+ok 1 - CTX4-05 native source finite Context lineage correction qualification
+  ---
+  duration_ms: 14047.527875
+  type: 'test'
+  ...
+# Subtest: CTX4-05 native release finite Context lineage correction qualification
+    # Subtest: body-edit-complete
+    ok 1 - body-edit-complete
+      ---
+      duration_ms: 1490.962
+      type: 'test'
+      ...
+    # Subtest: body-restore-complete
+    ok 2 - body-restore-complete
+      ---
+      duration_ms: 1510.987959
+      type: 'test'
+      ...
+    # Subtest: body-edit-late-backup
+    ok 3 - body-edit-late-backup
+      ---
+      duration_ms: 1408.62725
+      type: 'test'
+      ...
+    # Subtest: body-restore-ack-abort
+    ok 4 - body-restore-ack-abort
+      ---
+      duration_ms: 1763.633916
+      type: 'test'
+      ...
+    # Subtest: body-note-edit-complete
+    ok 5 - body-note-edit-complete
+      ---
+      duration_ms: 1491.973792
+      type: 'test'
+      ...
+    # Subtest: body-note-restore-complete
+    ok 6 - body-note-restore-complete
+      ---
+      duration_ms: 1639.384333
+      type: 'test'
+      ...
+    # Subtest: body-note-edit-late-backup
+    ok 7 - body-note-edit-late-backup
+      ---
+      duration_ms: 1649.98925
+      type: 'test'
+      ...
+    # Subtest: body-note-restore-ack-abort
+    ok 8 - body-note-restore-ack-abort
+      ---
+      duration_ms: 2002.133084
+      type: 'test'
+      ...
+    # Subtest: body-note-edit-grant-denied
+    ok 9 - body-note-edit-grant-denied
+      ---
+      duration_ms: 104.081959
+      type: 'test'
+      ...
+    1..9
+ok 2 - CTX4-05 native release finite Context lineage correction qualification
+  ---
+  duration_ms: 16123.739042
+  type: 'test'
+  ...
+# Subtest: BNS finite Source-linked cold graph native source
+not ok 3 - BNS finite Source-linked cold graph native source
+  ---
+  duration_ms: 2203.150792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/group-checkpoint-chrome.test.mjs:61:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: native activation abort without completion
+        at check (chrome-extension://hmmgbfggfkmgijlfifhnkoijihfnllag/background/bns-source-linked-fixture.mjs:11:34)
+        at Object.run (chrome-extension://hmmgbfggfkmgijlfifhnkoijihfnllag/background/bns-source-linked-fixture.mjs:26:4)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    check (chrome-extension://hmmgbfggfkmgijlfifhnkoijihfnllag/background/bns-source-linked-fixture.mjs:11:34)
+    Object.run (chrome-extension://hmmgbfggfkmgijlfifhnkoijihfnllag/background/bns-source-linked-fixture.mjs:26:4)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/group-checkpoint-chrome.test.mjs:67:58)
+  ...
+# Subtest: BNS finite Source-linked cold graph native release
+not ok 4 - BNS finite Source-linked cold graph native release
+  ---
+  duration_ms: 3329.059917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/group-checkpoint-chrome.test.mjs:61:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: native activation abort without completion
+        at check (chrome-extension://hbigdemojiipognidlcmgeookolmfomm/background/bns-source-linked-fixture.mjs:11:34)
+        at Object.run (chrome-extension://hbigdemojiipognidlcmgeookolmfomm/background/bns-source-linked-fixture.mjs:26:4)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    check (chrome-extension://hbigdemojiipognidlcmgeookolmfomm/background/bns-source-linked-fixture.mjs:11:34)
+    Object.run (chrome-extension://hbigdemojiipognidlcmgeookolmfomm/background/bns-source-linked-fixture.mjs:26:4)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/group-checkpoint-chrome.test.mjs:67:58)
+  ...
+1..4
+# tests 22
+# suites 0
+# pass 20
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40841.554291

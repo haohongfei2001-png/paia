@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "nativeFactory": true,
+  "nativeTransaction": true,
+  "kind": "authored",
+  "phase": "complete",
+  "physicalAttempts": 1,
+  "topicAuthorityCalls": 29,
+  "atomicRollback": false,
+  "allHumanRowsPreserved": true,
+  "sourceOwnedAdapter": true
+}

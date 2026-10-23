@@ -1,3 +1,4 @@
+import {measureSourceWorkingPhysicalTree} from './browser-native-sync/source-working-physical.js';
 import {sampleOriginalOrganizeMaterialFinalFacts,requireOriginalOrganizeMaterialFinalFacts} from '../background/organize-processing-policy.js';
 import {sampleOriginalOrganizeSelectionFinalFacts,requireOriginalOrganizeSelectionFinalFacts,readOriginalOrganizeSelectionAbortSignal} from './organizer/organize-processing-scope.js';
 import {requireMaintenanceProcessingPurposeFinalFacts} from '../background/maintenance-processing-consent.js';
@@ -88,6 +89,29 @@ export function requireRepositoryWriteFence(repository,token){
 }
 const repositoryScopes=new WeakMap();
 const repositoryNativeScopes=new WeakMap();
+// Optional finite work envelope belongs to the original scope, never mutable
+// diagnostics. It meters request references and physical payload operands/results,
+// including repeated reads and finalizer work; not browser heap or disk bytes.
+const workClock=globalThis.performance.now.bind(globalThis.performance);
+function workAbort(record){if(record.workLimit)record.workLimit.failed=true;record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}}
+function workRefuse(record){workAbort(record);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
+function workCheck(record){const b=record?.workLimit;if(b&&(workClock()-b.started>=b.ms||b.refs>b.references||b.bytes>b.byteLimit))workRefuse(record);}
+function workCharge(scope,refs=0,value,hasValue=false){
+ const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx),b=record?.workLimit;if(!b)return;if(record.scope!==scope||!sameScope(record))workRefuse(record);
+ workCheck(record);b.refs+=refs;workCheck(record);
+ if(hasValue){try{b.bytes+=measureSourceWorkingPhysicalTree(value,b.byteLimit).B;}catch{workRefuse(record);}workCheck(record);}
+}
+function workResult(scope,value){workCharge(scope,0,value,true);return value;}
+function workRow(scope,value){workCharge(scope,1,value,true);return value;}
+function finiteWorkQuery(scope,limit){if(repositoryScopes.get(scope)?.workLimit&&(!Number.isSafeInteger(limit)||limit<1||limit>100))workRefuse(repositoryScopes.get(scope));}
+export function registerRepositoryWorkLimit(repository,scope,{references=4096,bytes=2*1024*1024,ms=30000}={}){
+ const record=scopeRecord(repository,scope);requireRepositoryTransactionDataMethods(repository,scope);
+ if(record.phase!=='callback'||record.identity.mode!=='readwrite'||record.terminalFailed||!Number.isSafeInteger(references)||references<1||references>4096||!Number.isSafeInteger(bytes)||bytes<1||bytes>2*1024*1024||!Number.isFinite(ms)||ms<=0||ms>30000)workRefuse(record);
+ // Re-registration may tighten limits but never reset consumption or the clock.
+ if(record.workLimit){const b=record.workLimit;b.references=Math.min(b.references,references);b.byteLimit=Math.min(b.byteLimit,bytes);b.ms=Math.min(b.ms,ms);}
+ else record.workLimit={started:workClock(),references,byteLimit:bytes,ms,refs:0,bytes:0};workCheck(record);
+ clearTimeout(record.workLimit.timer);record.workLimit.timer=setTimeout(()=>{if(!record.nativeSettled)workAbort(record);},Math.max(1,record.workLimit.ms-(workClock()-record.workLimit.started)));
+}
 function refuseTerminal(record){
  record.terminalFailed=true;try{record.transaction.abort();}catch{}
  throw new ArchiveError('STALE_BASE');
@@ -95,10 +119,10 @@ function refuseTerminal(record){
 const sameScope=record=>Object.getOwnPropertyDescriptor(record.scope,'tx')?.value===record.transaction&&record.repository.db===record.identity.database;
 function requireWritableScope(scope){
  const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);
- if(record?.finalReadFences.length&&!sameScope(record))refuseTerminal(record);
+ workCheck(record);if(record?.finalReadFences.length&&!sameScope(record))refuseTerminal(record);
  if(record&&(record.phase==='terminal'||record.phase==='terminal-compatibility'||record.terminalFailed))refuseTerminal(record);
 }
-function requireReadableScope(scope){const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);if(record&&(record.terminalFailed||record.finalReadFences.length&&!sameScope(record)||record.phase==='terminal'&&!record.driverReading))refuseTerminal(record);}
+function requireReadableScope(scope){const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);workCheck(record);if(record&&(record.terminalFailed||record.finalReadFences.length&&!sameScope(record)||record.phase==='terminal'&&!record.driverReading))refuseTerminal(record);}
 function synchronousTrue(record,check){
  let value;try{value=check();}catch{refuseTerminal(record);}
  if(value!==true){try{if(value instanceof Promise)value.catch(()=>{});}catch{}refuseTerminal(record);}
@@ -179,7 +203,7 @@ async function runFinalReadFences(scope,record){
    if(typeof table!=='string'||!record.transaction.objectStoreNames.contains(table)||!['get','count'].includes(method)||Reflect.ownKeys(spec).some(k=>!['method','table','key','index'].includes(k)))refuseTerminal(record);
    current();
    if(method==='get'){if(index!==undefined||key===undefined)refuseTerminal(record);let reading;record.driverReading=true;try{reading=originalDataMethods.find(([name])=>name==='get')[1].value.call(scope,table,key);}finally{record.driverReading=false;}value=await reading;}
-   else{if(index!==undefined&&typeof index!=='string')refuseTerminal(record);scope.metrics.reads++;const target=record.transaction.objectStore(table);value=await req(index?target.index(index).count(key):target.count(key));}
+   else{if(index!==undefined&&typeof index!=='string')refuseTerminal(record);workCharge(scope,1);scope.metrics.reads++;const target=record.transaction.objectStore(table);value=workResult(scope,await req(index?target.index(index).count(key):target.count(key)));}
    current();
   }
  }
@@ -290,9 +314,9 @@ export function requireRepositoryHumanRetentionReadDrained(repository,scope,tran
 const backupDataStores=new Set(['importSources','records','blocks','documents','libraryDocuments','inputStates','inputRemovals','thoughts','topics','sections','placements','provenance','dependencies','revisions','thoughtSuppressions','entryRelations','filterInputs','filterIntents','times','tombstones','operationReceipts']);
 class Transaction {
  constructor(tx,metrics,semanticEnabled=false){this.tx=tx;this.metrics=metrics;this.semanticEnabled=semanticEnabled;}
- async has(store,key){requireReadableScope(this);this.metrics.reads++;return (await req(this.tx.objectStore(store).getKey(key)))!==undefined;}
- async get(store,key){requireReadableScope(this);this.metrics.reads++;return req(this.tx.objectStore(store).get(key));}
- async put(store,value,key){requireWritableScope(this);if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key===undefined?value?.id:key),value);await trackSemanticWrite(this,store,key===undefined?value?.id:key,value);await trackNavigationWrite(this,store,key===undefined?value?.id:key,value);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(value.id))this.backupChanged=true;requireWritableScope(this);this.metrics.writes++;return req(key===undefined?this.tx.objectStore(store).put(value):this.tx.objectStore(store).put(value,key));}
+ async has(store,key){requireReadableScope(this);workCharge(this,1,key,true);this.metrics.reads++;return workResult(this,await req(this.tx.objectStore(store).getKey(key)))!==undefined;}
+ async get(store,key){requireReadableScope(this);workCharge(this,1,key,true);this.metrics.reads++;return workResult(this,await req(this.tx.objectStore(store).get(key)));}
+ async put(store,value,key){requireWritableScope(this);if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key===undefined?value?.id:key),value);await trackSemanticWrite(this,store,key===undefined?value?.id:key,value);await trackNavigationWrite(this,store,key===undefined?value?.id:key,value);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(value.id))this.backupChanged=true;requireWritableScope(this);workCharge(this,1,value,true);this.metrics.writes++;return req(key===undefined?this.tx.objectStore(store).put(value):this.tx.objectStore(store).put(value,key));}
  async putDerivedSearchRow(store,value){
   if(!['thoughts','topics','sections'].includes(store)||!value?.id)throw fail();
   const previous=await this.get(store,value.id);
@@ -326,39 +350,39 @@ class Transaction {
   if(!same(withoutRead(previous),withoutRead(value)))throw fail();
   const changed=this.backupChanged,result=await this.put('topics',value);this.backupChanged=changed;return result;
  }
- async delete(store,key){requireWritableScope(this);if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key),null);await trackSemanticWrite(this,store,key,null);await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;requireWritableScope(this);this.metrics.writes++;return req(this.tx.objectStore(store).delete(key));}
- async clear(store){requireWritableScope(this);if(store==='blockIndex')await clearArchiveYearIndex(this);await trackSemanticClear(this,store);if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;requireWritableScope(this);return req(this.tx.objectStore(store).clear());}
- async count(store,index,key){requireReadableScope(this);return req(index?this.tx.objectStore(store).index(index).count(key):this.tx.objectStore(store).count());}
- async all(store,index,key,limit){requireReadableScope(this);this.metrics.scans++;const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);const rows=await req(target.getAll(key,limit));this.metrics.reads+=rows.length;return rows;}
- async keys(store,index,key){requireReadableScope(this);return req((index?this.tx.objectStore(store).index(index):this.tx.objectStore(store)).getAllKeys(key));}
- async edge(store,index,key,direction='next'){requireReadableScope(this);return new Promise((resolve,reject)=>{const r=this.tx.objectStore(store).index(index).openCursor(key,direction);r.onsuccess=()=>resolve(r.result?.value);r.onerror=()=>reject(fail());});}
- async rangePage(store,index,range,after,limit,direction='next'){requireReadableScope(this);return new Promise((resolve,reject)=>{const reverse=direction==='prev',rows=[],effective=after?(reverse?(range?.lower!==undefined?IDBKeyRange.bound(range.lower,after,range.lowerOpen,true):IDBKeyRange.upperBound(after,true)):(range?.upper!==undefined?IDBKeyRange.bound(after,range.upper,true,range.upperOpen):IDBKeyRange.lowerBound(after,true))):range,target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store),r=target.openCursor(effective,direction);r.onerror=()=>reject(fail());r.onsuccess=()=>{const c=r.result;if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}if(after&&(reverse?indexedKeyCompare(c.key,after)>=0:indexedKeyCompare(c.key,after)<=0)){c.continue();return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();};});}
- async indexPrimaryPage(store,index,key,{after=null,limit=100}={}){requireReadableScope(this);
+ async delete(store,key){requireWritableScope(this);if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key),null);await trackSemanticWrite(this,store,key,null);await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;requireWritableScope(this);workCharge(this,1,key,true);this.metrics.writes++;return req(this.tx.objectStore(store).delete(key));}
+ async clear(store){requireWritableScope(this);if(repositoryScopes.get(this)?.workLimit)workRefuse(repositoryScopes.get(this));if(store==='blockIndex')await clearArchiveYearIndex(this);await trackSemanticClear(this,store);if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;requireWritableScope(this);return req(this.tx.objectStore(store).clear());}
+ async count(store,index,key){requireReadableScope(this);workCharge(this,1);return workResult(this,await req(index?this.tx.objectStore(store).index(index).count(key):this.tx.objectStore(store).count()));}
+ async all(store,index,key,limit){requireReadableScope(this);finiteWorkQuery(this,limit);workCharge(this,1);this.metrics.scans++;const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);const rows=await req(target.getAll(key,limit));this.metrics.reads+=rows.length;for(const row of rows)workRow(this,row);return rows;}
+ async keys(store,index,key,limit){requireReadableScope(this);if(limit!==undefined&&(!Number.isSafeInteger(limit)||limit<1||limit>10000))throw new ArchiveError('INVALID_REQUEST');const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);if(!repositoryScopes.get(this)?.workLimit&&limit===undefined)return req(target.getAllKeys(key));workCharge(this,1);return new Promise((resolve,reject)=>{const keys=[],request=target.openKeyCursor(key);request.onerror=()=>reject(fail(request.error));request.onsuccess=()=>{try{const cursor=request.result;workCheck(repositoryScopes.get(this));if(!cursor){resolve(keys);return;}if(limit!==undefined&&keys.length===limit)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');workRow(this,cursor.primaryKey);keys.push(cursor.primaryKey);cursor.continue();}catch(error){reject(error);}};});}
+ async edge(store,index,key,direction='next'){requireReadableScope(this);workCharge(this,1);return new Promise((resolve,reject)=>{const r=this.tx.objectStore(store).index(index).openCursor(key,direction);r.onsuccess=()=>{try{resolve(workResult(this,r.result?.value));}catch(e){reject(e);}};r.onerror=()=>reject(fail());});}
+ async rangePage(store,index,range,after,limit,direction='next'){requireReadableScope(this);finiteWorkQuery(this,limit);workCharge(this,1);return new Promise((resolve,reject)=>{const reverse=direction==='prev',rows=[],effective=after?(reverse?(range?.lower!==undefined?IDBKeyRange.bound(range.lower,after,range.lowerOpen,true):IDBKeyRange.upperBound(after,true)):(range?.upper!==undefined?IDBKeyRange.bound(after,range.upper,true,range.upperOpen):IDBKeyRange.lowerBound(after,true))):range,target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store),r=target.openCursor(effective,direction);r.onerror=()=>reject(fail());r.onsuccess=()=>{const c=r.result;if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}if(after&&(reverse?indexedKeyCompare(c.key,after)>=0:indexedKeyCompare(c.key,after)<=0)){c.continue();return;}try{workRow(this,c.value);}catch(e){reject(e);return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();};});}
+ async indexPrimaryPage(store,index,key,{after=null,limit=100}={}){requireReadableScope(this);finiteWorkQuery(this,limit);workCharge(this,1);
   if(!Number.isInteger(limit)||limit<1||limit>100||after!==null&&typeof after!=='string')throw new ArchiveError('INVALID_REQUEST');
   return new Promise((resolve,reject)=>{const rows=[],r=this.tx.objectStore(store).index(index).openCursor(IDBKeyRange.only(key));r.onerror=()=>reject(fail(r.error));r.onsuccess=()=>{
    const c=r.result;if(!c){resolve({rows,next:null});return;}
    if(after!==null&&c.primaryKey<after){c.continuePrimaryKey(key,after);return;}
    if(after!==null&&c.primaryKey===after){c.continue();return;}
-   this.metrics.reads++;rows.push({key:c.primaryKey,value:c.value});this.metrics.primaryMaxBatch=Math.max(this.metrics.primaryMaxBatch||0,rows.length);
+   try{workRow(this,c.value);}catch(e){reject(e);return;}this.metrics.reads++;rows.push({key:c.primaryKey,value:c.value});this.metrics.primaryMaxBatch=Math.max(this.metrics.primaryMaxBatch||0,rows.length);
    if(rows.length===limit){resolve({rows,next:c.primaryKey});return;}c.continue();
   };});
  }
- async primaryRangePage(store,{prefix='',after=null,limit=100}={}){requireReadableScope(this);
+ async primaryRangePage(store,{prefix='',after=null,limit=100}={}){requireReadableScope(this);finiteWorkQuery(this,limit);workCharge(this,1);
   if(typeof prefix!=='string'||!Number.isInteger(limit)||limit<1||limit>100||after!==null&&(typeof after!=='string'||!after.startsWith(prefix)||after>=prefix+'\uffff'))throw new ArchiveError('INVALID_REQUEST');
   const upper=prefix+'\uffff',range=IDBKeyRange.bound(after===null?prefix:after,upper,after!==null,true),target=this.tx.objectStore(store);
   return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail(r.error));r.onsuccess=()=>{
    const c=r.result;if(!c){resolve({rows,next:null});return;}
-   this.metrics.reads++;rows.push({key:c.key,value:c.value});this.metrics.primaryMaxBatch=Math.max(this.metrics.primaryMaxBatch||0,rows.length);
+   try{workRow(this,c.value);}catch(e){reject(e);return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});this.metrics.primaryMaxBatch=Math.max(this.metrics.primaryMaxBatch||0,rows.length);
    if(rows.length<limit){c.continue();return;}
    // Peek only the next key: never materialize object limit+1.
-   const probe=target.openKeyCursor(IDBKeyRange.bound(c.key,upper,true,true));
-   probe.onerror=()=>reject(fail(probe.error));probe.onsuccess=()=>{this.metrics.primaryKeyProbes=(this.metrics.primaryKeyProbes||0)+1;resolve({rows,next:probe.result?c.key:null});};
+   try{workCharge(this,1);}catch(e){reject(e);return;}const probe=target.openKeyCursor(IDBKeyRange.bound(c.key,upper,true,true));
+   probe.onerror=()=>reject(fail(probe.error));probe.onsuccess=()=>{try{workResult(this,probe.result?.key);}catch(e){reject(e);return;}this.metrics.primaryKeyProbes=(this.metrics.primaryKeyProbes||0)+1;resolve({rows,next:probe.result?c.key:null});};
   };});
  }
- async page(store,{index,after,limit=100}={}){requireReadableScope(this);
+ async page(store,{index,after,limit=100}={}){requireReadableScope(this);finiteWorkQuery(this,limit);workCharge(this,1);
   const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);
   const range=after===undefined?undefined:IDBKeyRange.lowerBound(after,true);
-  return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail());r.onsuccess=()=>{const c=r.result;if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();};});
+  return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail());r.onsuccess=()=>{const c=r.result;if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}try{workRow(this,c.value);}catch(e){reject(e);return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();};});
  }
 }
 
@@ -424,7 +448,7 @@ export class ArchiveRepository {
   });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{const result=await fn(scope);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
+  try{const result=await fn(scope);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
   }finally{if(write)writeState.active--;}
  }
  async initialize(){

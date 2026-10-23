@@ -1,3 +1,4 @@
+import {readGroupRows} from './group-page-reader.js';
 import {compareMixedConfiguration,consumeMixedPublicationMetadata} from './mixed-configuration.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations,originalMixedRestoredReplay,measureMixedRestoredExpectation} from './mixed-restored-allocation.js';
@@ -147,7 +148,7 @@ const sort=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));
 const ephemeralStores=new Set(['recordIndex','blockIndex','sourceCounts','filterInputs','invalidations','librarySearchTerms','migrationBackup','operationReceipts']);
 const represented=new Set(['records','times','documents','libraryDocuments','blocks','inputStates','revisions','filterIntents','meta']);
 const counters=new Set(['thought-suppression-key','thought-sequence','revision-sequence','input-delta-sequence','thought-epoch']);
-const readRows=async(t,name)=>{if(await t.count(name)>128)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all(name);};
+const readRows=readGroupRows;
 // Exact portable expectations compiled from admitted typed operations, not from
 // arbitrary canonical metadata. Only each owner's named physical counters map.
 async function compileOriginalWireScope(plan){
@@ -175,7 +176,7 @@ async function compileOriginalWireScope(plan){
  // allocator normalization cannot zero portable Human history by alias.
  if(mixed&&human)delete expected.humanLibrary;const normalized=mixed?{...expected,inputStates:expected.inputStates.map(row=>({...row})),revisions:expected.revisions.map(row=>({...row}))}:clone(expected);if(mixed&&human)normalized.humanLibrary=human;for(const row of normalized.inputStates)row.deltaSequence=0;for(const row of normalized.revisions){row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const families=[];for(const [type,value]of Object.entries(normalized)){const count=Array.isArray(value)?value.length:1;families.push({type,count,digest:await digest(value)});}
- const scope={expected:normalized,ownerScope:{version:1,profile:'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}};return {scope,human};
+ const scope={expected:normalized,ownerScope:{version:plan.operationCount>128?2:1,profile:plan.operationCount>128?'paged-admitted-local-owners':'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}};return {scope,human};
 }
 // Exact original wire-family commitment only. Local keyed expectations and
 // native authority are not created by this body-free imported-prefix check.
@@ -198,10 +199,15 @@ export async function requireGroupScope(store,t,scope){
  requireCompiledGroupScope(scope);
  const c=await store.control(t);
  if(!equal(c.preferences,consumerDisplayPreferences(scope.expected.consumerPreferences??[]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
- const human=hasHumanScope(scope)?await requireHumanScope(store,t,scope):null,humanStores=new Set(['thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems']);
+ const human=hasHumanScope(scope)?await requireHumanScope(store,t,scope):null,humanStores=new Set(['thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems','provenance','dependencies']);
  for(const name of t.tx.objectStoreNames)if(!represented.has(name)&&!ephemeralStores.has(name)&&!(human&&humanStores.has(name))&&await t.count(name))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
- // Only key bounded metadata inspection. Never export arbitrary meta/body rows.
- const keys=await new Promise((resolve,reject)=>{const out=[],r=t.tx.objectStore('meta').openKeyCursor();r.onerror=()=>reject(r.error);r.onsuccess=()=>{const cursor=r.result;if(!cursor)return resolve(out);if(out.length===10000)return reject(Object.assign(new Error('BNS_GROUP_RESOURCE_LIMIT'),{code:'BNS_GROUP_RESOURCE_LIMIT'}));out.push(cursor.key);cursor.continue();};});
+ // Inspect every canonical metadata key, but do not walk the selected Core's
+ // immutable protocol namespace as if it were owner data. That closed bns:v1
+ // prefix cannot match backupMetaAllowed; its graph is proven independently.
+ // Other namespaces and every canonical prefix remain in the two exact ranges.
+ const corePrefix=originalScopes.get(scope).core.prefix;
+ const keys=[...await t.keys('meta',null,IDBKeyRange.upperBound(corePrefix,true),10000),...await t.keys('meta',null,IDBKeyRange.lowerBound(corePrefix+'\uffff'),10000)];
+ if(keys.length>10000)fail('BNS_GROUP_RESOURCE_LIMIT');
  for(const key of keys){
   if(human?.allowed.has(key))continue;
   if(key===CONTEXT_CARDS_ROW||key===PROMPT_REUSE_ROW||counters.has(key))continue;
@@ -225,7 +231,7 @@ export async function requireGroupScope(store,t,scope){
  const bound=originalScopes.get(scope),consumer=await requireConsumerPreferenceOwners(t,store,bound.core,bound.consumerOperations);if(scope.expected.consumerPreferences)actual.consumerPreferences=consumer;
  const topicDesired=await readTopicDesiredOwners(t,bound.core,scope.expected.topicDesired??[]);if(scope.expected.topicDesired)actual.topicDesired=topicDesired;
  actual.prompt=projectEntity('promptPreferences',await readPromptPreferences(t));const companion=await t.get('meta',PROMPT_CORRECTION_BINDING_ROW);if(scope.expected.promptBinding)actual.promptBinding=physicalPromptCompanion(companion,actual.prompt);else if(companion)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
- if(human){const revisions=await t.all('revisions'),sequence=await t.get('meta','revision-sequence');if((sequence?.value||0)!==Math.max(0,...revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(human){const revisions=actual.revisions,sequence=await t.get('meta','revision-sequence');if((sequence?.value||0)!==Math.max(0,...revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
  return compareGroupCanonicalValues(scope,actual,human);
 }
 // Human bodies/history are checked by their original owner before this outer

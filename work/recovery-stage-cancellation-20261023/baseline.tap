@@ -1,0 +1,86 @@
+TAP version 13
+# Subtest: pause settles held staging before host completion and late bytes cannot change original destination
+not ok 1 - pause settles held staging before host completion and late bytes cannot change original destination
+  ---
+  duration_ms: 125.240292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/tests/browser-native-sync-local-recovery.test.mjs:95:39'
+  failureType: 'testCodeFailure'
+  error: |-
+    pause/close must settle without releasing the injected transport
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/tests/browser-native-sync-local-recovery.test.mjs:98:51)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: close settles held staging before host completion and late bytes cannot change original destination
+not ok 2 - close settles held staging before host completion and late bytes cannot change original destination
+  ---
+  duration_ms: 62.763125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/tests/browser-native-sync-local-recovery.test.mjs:95:39'
+  failureType: 'testCodeFailure'
+  error: |-
+    pause/close must settle without releasing the injected transport
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/tests/browser-native-sync-local-recovery.test.mjs:98:51)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: staging deadline bounds held object and permits original durable-stage resume
+not ok 3 - staging deadline bounds held object and permits original durable-stage resume
+  ---
+  duration_ms: 337.405791
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/tests/browser-native-sync-local-recovery.test.mjs:103:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + Comparison {}
+    - Comparison {
+    -   code: 'BNS_RECOVERY_READ_LIMIT'
+    - }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_RECOVERY_READ_LIMIT'
+  actual:
+  error: 'test-only ceiling: staging did not settle'
+  stack: |-
+    Timeout.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/tests/browser-native-sync-local-recovery.test.mjs:105:102)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-onedrive-local/paia/extension/tests/browser-native-sync-local-recovery.test.mjs:105:6)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 0
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 686.459459

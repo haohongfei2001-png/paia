@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: typed saved publication and cold receive retain immutable AI provenance and exact original wire receipt
+ok 1 - typed saved publication and cold receive retain immutable AI provenance and exact original wire receipt
+  ---
+  duration_ms: 129.865958
+  type: 'test'
+  ...
+# Subtest: typed saved wire cannot bypass owner through ordinary Core receive or local commit
+ok 2 - typed saved wire cannot bypass owner through ordinary Core receive or local commit
+  ---
+  duration_ms: 63.64275
+  type: 'test'
+  ...
+# Subtest: typed saved publication rejects local edit after preparation without protocol or outbox write
+ok 3 - typed saved publication rejects local edit after preparation without protocol or outbox write
+  ---
+  duration_ms: 42.733084
+  type: 'test'
+  ...
+# Subtest: typed saved protocol write failure rolls canonical Source, Entry and every receipt back
+ok 4 - typed saved protocol write failure rolls canonical Source, Entry and every receipt back
+  ---
+  duration_ms: 79.186
+  type: 'test'
+  ...
+# Subtest: typed saved publication original terminal fence rejects late source change
+ok 5 - typed saved publication original terminal fence rejects late source change
+  ---
+  duration_ms: 40.840959
+  type: 'test'
+  ...
+# Subtest: typed saved publication original terminal fence rejects late outbox change
+ok 6 - typed saved publication original terminal fence rejects late outbox change
+  ---
+  duration_ms: 42.071833
+  type: 'test'
+  ...
+# Subtest: saved typed receive terminal proof rejects late protocol sequence
+ok 7 - saved typed receive terminal proof rejects late protocol sequence
+  ---
+  duration_ms: 70.756667
+  type: 'test'
+  ...
+# Subtest: saved typed receive terminal proof rejects late protocol frontier
+ok 8 - saved typed receive terminal proof rejects late protocol frontier
+  ---
+  duration_ms: 71.148375
+  type: 'test'
+  ...
+# Subtest: saved typed receive terminal proof rejects late protocol generation
+ok 9 - saved typed receive terminal proof rejects late protocol generation
+  ---
+  duration_ms: 68.912875
+  type: 'test'
+  ...
+# Subtest: saved typed receive terminal proof rejects late protocol entityRevision
+ok 10 - saved typed receive terminal proof rejects late protocol entityRevision
+  ---
+  duration_ms: 73.337625
+  type: 'test'
+  ...
+# Subtest: saved typed receive terminal proof rejects late protocol receipt
+ok 11 - saved typed receive terminal proof rejects late protocol receipt
+  ---
+  duration_ms: 72.309583
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 908.888583

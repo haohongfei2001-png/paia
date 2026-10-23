@@ -1,0 +1,50 @@
+TAP version 13
+# Subtest: BNS finite Source-linked cold graph native source
+not ok 1 - BNS finite Source-linked cold graph native source
+  ---
+  duration_ms: 2017.657709
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/group-checkpoint-chrome.test.mjs:61:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: native activation abort without completion {"point":"applied-group","rejected":true,"reached":true,"aborted":false,"completed":false,"hitAt":1,"events":[{"event":"open","native":true},{"event":"abort","trusted":true}],"hookError":null,"rollbackExact":true,"rejection":{"code":"STORAGE_FAILED","message":"STORAGE_FAILED","stack":"Error: STORAGE_FAILED\n    at fail (chrome-extension://ejhjpiebllgaekfbkihdlcldleobenlb/core/idb-repository.js:22:40)\n    at ArchiveRepository.transaction (chrome-extension://ejhjpiebllgaekfbkihdlcldleobenlb/core/idb-repository.js:427:823)\n    at async BrowserNativeSyncCore.transaction (chrome-extension://ejhjpiebllgaekfbkihdlcldleobenlb/core/browser-native-sync/core.js:151:66)\n    at async chrome-extension://ejhjpiebllgaekfbkihdlcldleobenlb/core/browser-native-sync/group-checkpoint.js:162:48\n    at async chrome-extension://ejhjpiebllgaekfbkihdlcldleobenlb/core/indexed-store.js:192:11"}}
+        at check (chrome-extension://ejhjpiebllgaekfbkihdlcldleobenlb/background/bns-source-linked-fixture.mjs:11:34)
+        at Object.run (chrome-extension://ejhjpiebllgaekfbkihdlcldleobenlb/background/bns-source-linked-fixture.mjs:26:4)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    check (chrome-extension://ejhjpiebllgaekfbkihdlcldleobenlb/background/bns-source-linked-fixture.mjs:11:34)
+    Object.run (chrome-extension://ejhjpiebllgaekfbkihdlcldleobenlb/background/bns-source-linked-fixture.mjs:26:4)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/group-checkpoint-chrome.test.mjs:67:58)
+  ...
+# Subtest: BNS finite Source-linked cold graph native release
+not ok 2 - BNS finite Source-linked cold graph native release
+  ---
+  duration_ms: 3065.596167
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/group-checkpoint-chrome.test.mjs:61:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: native activation abort without completion {"point":"applied-group","rejected":true,"reached":true,"aborted":false,"completed":false,"hitAt":1,"events":[{"event":"open","native":true},{"event":"abort","trusted":true}],"hookError":null,"rollbackExact":true,"rejection":{"code":"STORAGE_FAILED","message":"STORAGE_FAILED","stack":"Error: STORAGE_FAILED\n    at fail (chrome-extension://hdadipkgoggcagkaejplmhjadhonjemo/core/idb-repository.js:22:40)\n    at ArchiveRepository.transaction (chrome-extension://hdadipkgoggcagkaejplmhjadhonjemo/core/idb-repository.js:427:823)\n    at async BrowserNativeSyncCore.transaction (chrome-extension://hdadipkgoggcagkaejplmhjadhonjemo/core/browser-native-sync/core.js:151:66)\n    at async chrome-extension://hdadipkgoggcagkaejplmhjadhonjemo/core/browser-native-sync/group-checkpoint.js:162:48\n    at async chrome-extension://hdadipkgoggcagkaejplmhjadhonjemo/core/indexed-store.js:192:11"}}
+        at check (chrome-extension://hdadipkgoggcagkaejplmhjadhonjemo/background/bns-source-linked-fixture.mjs:11:34)
+        at Object.run (chrome-extension://hdadipkgoggcagkaejplmhjadhonjemo/background/bns-source-linked-fixture.mjs:26:4)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    check (chrome-extension://hdadipkgoggcagkaejplmhjadhonjemo/background/bns-source-linked-fixture.mjs:11:34)
+    Object.run (chrome-extension://hdadipkgoggcagkaejplmhjadhonjemo/background/bns-source-linked-fixture.mjs:26:4)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/group-checkpoint-chrome.test.mjs:67:58)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10094.995042

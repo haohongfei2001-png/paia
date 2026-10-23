@@ -1,0 +1,80 @@
+TAP version 13
+# Subtest: coverage admission precedes every expensive suite and retains the browser1 owning check
+not ok 1 - coverage admission precedes every expensive suite and retains the browser1 owning check
+  ---
+  duration_ms: 4.091958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/d5-full-browser-partition.test.mjs:34:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /persist-credentials: false/. Input:
+    
+    '    name: Select verification depth\n' +
+      "    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false\n" +
+      '    runs-on: ubuntu-latest\n' +
+      '    outputs:\n' +
+      '      full: ${{ steps.depth.outputs.full }}\n' +
+      '    steps:\n' +
+      '      - id: depth\n' +
+      '        name: Select round integration or full certification\n' +
+      '        env:\n' +
+      '          EVENT_NAME: ${{ github.event_name }}\n' +
+      '          PR_BODY: ${{ github.event.pull_request.body }}\n' +
+      '          HEAD_MESSAGE: ${{ github.event.head_commit.message }}\n' +
+      '        run: |\n' +
+      '          full=false\n' +
+      '          if [ "$EVENT_NAME" = workflow_dispatch ]; then\n' +
+      '            full=true\n' +
+      `          elif printf '%s' "$PR_BODY" | grep -q 'PAIA_FULL_CERTIFICATION'; then\n` +
+      '            full=true\n' +
+      `          elif printf '%s' "$HEAD_MESSAGE" | grep -q 'PAIA_FULL_CERTIFICATION'; then\n` +
+      '            full=true\n' +
+      '          fi\n' +
+      '          echo "full=$full" >> "$GITHUB_OUTPUT"\n' +
+      '          echo "verification_depth=$([ "$full" = true ] && echo full || echo round-integration)"\n' +
+      '\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+        name: Select verification depth
+        if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+        runs-on: ubuntu-latest
+        outputs:
+          full: ${{ steps.depth.outputs.full }}
+        steps:
+          - id: depth
+            name: Select round integration or full certification
+            env:
+              EVENT_NAME: ${{ github.event_name }}
+              PR_BODY: ${{ github.event.pull_request.body }}
+              HEAD_MESSAGE: ${{ github.event.head_commit.message }}
+            run: |
+              full=false
+              if [ "$EVENT_NAME" = workflow_dispatch ]; then
+                full=true
+              elif printf '%s' "$PR_BODY" | grep -q 'PAIA_FULL_CERTIFICATION'; then
+                full=true
+              elif printf '%s' "$HEAD_MESSAGE" | grep -q 'PAIA_FULL_CERTIFICATION'; then
+                full=true
+              fi
+              echo "full=$full" >> "$GITHUB_OUTPUT"
+              echo "verification_depth=$([ "$full" = true ] && echo full || echo round-integration)"
+    
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/d5-full-browser-partition.test.mjs:38:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 51.3995

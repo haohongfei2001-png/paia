@@ -1,0 +1,519 @@
+TAP version 13
+# Subtest: native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+ok 1 - native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+  ---
+  duration_ms: 87.850042
+  type: 'test'
+  ...
+# Subtest: actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+ok 2 - actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+  ---
+  duration_ms: 120.958458
+  type: 'test'
+  ...
+# Subtest: missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+ok 3 - missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+  ---
+  duration_ms: 42.448875
+  type: 'test'
+  ...
+# Subtest: operation budget counts all ancestry rather than current heads
+ok 4 - operation budget counts all ancestry rather than current heads
+  ---
+  duration_ms: 32.431792
+  type: 'test'
+  ...
+# Subtest: actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+ok 5 - actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+  ---
+  duration_ms: 68.769334
+  type: 'test'
+  ...
+# Subtest: fourMiB operation bytes include all retained payloads, not only final current text
+ok 6 - fourMiB operation bytes include all retained payloads, not only final current text
+  ---
+  duration_ms: 743.78475
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled note rather than claiming protocol coverage
+ok 7 - full inventory rejects actual unjournaled note rather than claiming protocol coverage
+  ---
+  duration_ms: 37.9495
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+ok 8 - full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+  ---
+  duration_ms: 39.275375
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+ok 9 - full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+  ---
+  duration_ms: 40.037417
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+ok 10 - full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+  ---
+  duration_ms: 35.622375
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+ok 11 - full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+  ---
+  duration_ms: 24.728417
+  type: 'test'
+  ...
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 12 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 191.673
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 13 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 531.647625
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 14 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 452.789125
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 15 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 378.031125
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 16 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 386.893417
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 17 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 285.177083
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 18 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 227.509166
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 19 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 228.094375
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 20 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 243.027791
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 21 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 240.537
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 22 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 276.005375
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 23 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 126.1315
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 24 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 46.268417
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 25 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 528.388833
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":115.39129200000025,"reads":2683,"writes":1161}}
+# Subtest: exact128 retained operations restore and the129th has explicit paged scope admission
+ok 26 - exact128 retained operations restore and the129th has explicit paged scope admission
+  ---
+  duration_ms: 996.063875
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 27 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 21.86675
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 28 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 28.230917
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 29 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 26.871833
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 30 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 26.565292
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 31 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 27.4505
+  type: 'test'
+  ...
+# Subtest: grouped compaction consumes actual original-owner graphs, closes A, collects covered objects and restores B
+ok 32 - grouped compaction consumes actual original-owner graphs, closes A, collects covered objects and restores B
+  ---
+  duration_ms: 771.87325
+  type: 'test'
+  ...
+# Subtest: active restore pin protects its complete covered object closure
+ok 33 - active restore pin protects its complete covered object closure
+  ---
+  duration_ms: 282.922709
+  type: 'test'
+  ...
+# Subtest: partial fake collection leaves both complete generations and unpublished tail usable after restart
+ok 34 - partial fake collection leaves both complete generations and unpublished tail usable after restart
+  ---
+  duration_ms: 352.766666
+  type: 'test'
+  ...
+# Subtest: grouped tail reconciliation during planning invalidates the previous retention proof
+ok 35 - grouped tail reconciliation during planning invalidates the previous retention proof
+  ---
+  duration_ms: 195.206583
+  type: 'test'
+  ...
+# Subtest: grouped compaction refuses missing staged items rather than treating empty receipts as covered
+ok 36 - grouped compaction refuses missing staged items rather than treating empty receipts as covered
+  ---
+  duration_ms: 183.394208
+  type: 'test'
+  ...
+# Subtest: change during the last remote manifest verification is caught before returning a collection plan
+ok 37 - change during the last remote manifest verification is caught before returning a collection plan
+  ---
+  duration_ms: 234.009917
+  type: 'test'
+  ...
+# {"syntheticPaging":{"entries":129,"history":129,"operations":387}}
+# Subtest: 129 original Human Entry rows stage across pages but over-budget atomic activation rolls back
+not ok 38 - 129 original Human Entry rows stage across pages but over-budget atomic activation rolls back
+  ---
+  duration_ms: 3192.102042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-paging.test.mjs:13:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    chargeGroupPageBytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:235)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:11:131)
+    checkpointItems (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/checkpoints.js:88:152)
+    async GroupedCheckpointRestore.stageCheckpoint (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-checkpoint.js:134:31)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-paging.test.mjs:21:72)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+ok 39 - original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+  ---
+  duration_ms: 17.8605
+  type: 'test'
+  ...
+# Subtest: paged reader rejects backwards before accepting a forged page
+ok 40 - paged reader rejects backwards before accepting a forged page
+  ---
+  duration_ms: 0.25475
+  type: 'test'
+  ...
+# Subtest: paged reader rejects foreign-key before accepting a forged page
+ok 41 - paged reader rejects foreign-key before accepting a forged page
+  ---
+  duration_ms: 0.04325
+  type: 'test'
+  ...
+# Subtest: paged reader rejects false-next before accepting a forged page
+ok 42 - paged reader rejects false-next before accepting a forged page
+  ---
+  duration_ms: 0.101292
+  type: 'test'
+  ...
+# Subtest: paged reader rejects oversize-page before accepting a forged page
+ok 43 - paged reader rejects oversize-page before accepting a forged page
+  ---
+  duration_ms: 0.052125
+  type: 'test'
+  ...
+# Subtest: operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+ok 44 - operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+  ---
+  duration_ms: 11.731584
+  type: 'test'
+  ...
+# Subtest: paged work deadline is checked after a held page settles and accepts no row
+ok 45 - paged work deadline is checked after a held page settles and accepts no row
+  ---
+  duration_ms: 0.1385
+  type: 'test'
+  ...
+# {"syntheticPrompt129Transactions":[{"write":true,"reads":2503,"writes":1163}]}
+# Subtest: 129 genuine Prompt history operations cross pages into one original canonical owner row
+ok 46 - 129 genuine Prompt history operations cross pages into one original canonical owner row
+  ---
+  duration_ms: 941.332333
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects refs and rolls back despite public metrics mutation
+ok 47 - private transaction budget rejects refs and rolls back despite public metrics mutation
+  ---
+  duration_ms: 11.950875
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects bytes and rolls back despite public metrics mutation
+ok 48 - private transaction budget rejects bytes and rolls back despite public metrics mutation
+  ---
+  duration_ms: 11.289708
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects reset and rolls back despite public metrics mutation
+ok 49 - private transaction budget rejects reset and rolls back despite public metrics mutation
+  ---
+  duration_ms: 10.953083
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects cursor and rolls back despite public metrics mutation
+ok 50 - private transaction budget rejects cursor and rolls back despite public metrics mutation
+  ---
+  duration_ms: 13.131167
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects late-finalizer and rolls back despite public metrics mutation
+ok 51 - private transaction budget rejects late-finalizer and rolls back despite public metrics mutation
+  ---
+  duration_ms: 12.557167
+  type: 'test'
+  ...
+# Subtest: private work envelope rejects a borrowed scope and cannot be removed by catching its error
+ok 52 - private work envelope rejects a borrowed scope and cannot be removed by catching its error
+  ---
+  duration_ms: 10.655583
+  type: 'test'
+  ...
+# Subtest: private transaction deadline aborts while an injected continuation is held
+not ok 53 - private transaction deadline aborts while an injected continuation is held
+  ---
+  duration_ms: 15.726375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-paging.test.mjs:79:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: paged manifest admission is explicit and still bounded; unknown and mixed profiles refuse
+not ok 54 - paged manifest admission is explicit and still bounded; unknown and mixed profiles refuse
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-paging.test.mjs:85:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+ok 55 - actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+  ---
+  duration_ms: 540.774875
+  type: 'test'
+  ...
+# Subtest: actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+ok 56 - actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+  ---
+  duration_ms: 237.377875
+  type: 'test'
+  ...
+# Subtest: actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+ok 57 - actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+  ---
+  duration_ms: 465.900834
+  type: 'test'
+  ...
+# Subtest: original closed terminal read plan permits legal owner writes and runs after actual finalizers
+ok 58 - original closed terminal read plan permits legal owner writes and runs after actual finalizers
+  ---
+  duration_ms: 40.84075
+  type: 'test'
+  ...
+# Subtest: terminal put rejection remains sticky when a second fence catches it
+ok 59 - terminal put rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 31.384625
+  type: 'test'
+  ...
+# Subtest: terminal delete rejection remains sticky when a second fence catches it
+ok 60 - terminal delete rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 25.298375
+  type: 'test'
+  ...
+# Subtest: terminal clear rejection remains sticky when a second fence catches it
+ok 61 - terminal clear rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 20.140625
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-plan before a non-IDB promise can commit
+ok 62 - terminal rejects async-plan before a non-IDB promise can commit
+  ---
+  duration_ms: 23.32
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-step before a non-IDB promise can commit
+ok 63 - terminal rejects async-step before a non-IDB promise can commit
+  ---
+  duration_ms: 20.425958
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-current before a non-IDB promise can commit
+ok 64 - terminal rejects async-current before a non-IDB promise can commit
+  ---
+  duration_ms: 18.796416
+  type: 'test'
+  ...
+# Subtest: terminal rejects truthy-current before a non-IDB promise can commit
+ok 65 - terminal rejects truthy-current before a non-IDB promise can commit
+  ---
+  duration_ms: 20.948167
+  type: 'test'
+  ...
+# Subtest: terminal rejects throw-current before a non-IDB promise can commit
+ok 66 - terminal rejects throw-current before a non-IDB promise can commit
+  ---
+  duration_ms: 22.984583
+  type: 'test'
+  ...
+# Subtest: late terminal registration cannot replace an already checked first fence even when caught
+ok 67 - late terminal registration cannot replace an already checked first fence even when caught
+  ---
+  duration_ms: 20.615166
+  type: 'test'
+  ...
+# Subtest: completed, foreign, copied and readonly scopes never register a terminal capability
+ok 68 - completed, foreign, copied and readonly scopes never register a terminal capability
+  ---
+  duration_ms: 35.974084
+  type: 'test'
+  ...
+# Subtest: all prior synchronous currentness predicates are checked after the final second-fence read
+ok 69 - all prior synchronous currentness predicates are checked after the final second-fence read
+  ---
+  duration_ms: 17.264916
+  type: 'test'
+  ...
+# Subtest: exact primary range count is bounded metadata and does not count the whole store
+ok 70 - exact primary range count is bounded metadata and does not count the whole store
+  ---
+  duration_ms: 16.830167
+  type: 'test'
+  ...
+# Subtest: late finalizer registration refusal is sticky outside the owner callback
+ok 71 - late finalizer registration refusal is sticky outside the owner callback
+  ---
+  duration_ms: 18.590792
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via get
+ok 72 - terminal comparator cannot escape the closed plan via get
+  ---
+  duration_ms: 15.747916
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via all
+ok 73 - terminal comparator cannot escape the closed plan via all
+  ---
+  duration_ms: 17.824958
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via count
+ok 74 - terminal comparator cannot escape the closed plan via count
+  ---
+  duration_ms: 17.923375
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via putDerivedSearchRow
+ok 75 - terminal comparator cannot escape the closed plan via putDerivedSearchRow
+  ---
+  duration_ms: 17.452875
+  type: 'test'
+  ...
+# Subtest: an unbounded all request is not a supported closed terminal operation
+ok 76 - an unbounded all request is not a supported closed terminal operation
+  ---
+  duration_ms: 17.14675
+  type: 'test'
+  ...
+# Subtest: a registered scope cannot replace its original native transaction behind a closed get
+ok 77 - a registered scope cannot replace its original native transaction behind a closed get
+  ---
+  duration_ms: 18.187958
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject accessor properties without acquiring their value
+ok 78 - closed terminal specs reject accessor properties without acquiring their value
+  ---
+  duration_ms: 17.970042
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject inherited properties without acquiring their value
+ok 79 - closed terminal specs reject inherited properties without acquiring their value
+  ---
+  duration_ms: 18.192041
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject symbol properties without acquiring their value
+ok 80 - closed terminal specs reject symbol properties without acquiring their value
+  ---
+  duration_ms: 20.020916
+  type: 'test'
+  ...
+1..80
+# tests 80
+# suites 0
+# pass 77
+# fail 1
+# cancelled 2
+# skipped 0
+# todo 0
+# duration_ms 5439.150709

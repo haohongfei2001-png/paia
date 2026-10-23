@@ -1,0 +1,28 @@
+{
+  "head": "0897127e67902141a43b94ea18f44998235a2fc5",
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs",
+    "tests/topic-entry-section-move-chrome-e2e.test.mjs",
+    "tests/settings-next-chrome-e2e.test.mjs",
+    "tests/context-cards-chrome-e2e.test.mjs",
+    "tests/nib-v4-search-chrome-e2e.test.mjs",
+    "../services/ai-gateway/tests/organize-source-native.test.mjs",
+    "../services/ai-gateway/tests/organize-worker-ui-native.test.mjs",
+    "../services/ai-gateway/tests/organize-fresh-current-native.test.mjs",
+    "../services/ai-gateway/tests/organize-source-native-budget.test.mjs"
+  ],
+  "cwd": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension",
+  "started": 1792720617.553974,
+  "node": "v22.23.3",
+  "chrome": "Google Chrome 156.0.8078.47",
+  "python": "Python 3.12.14",
+  "playwright": "1.63.0",
+  "headless": true,
+  "exit": 1,
+  "wallSeconds": 659.9631230831146,
+  "sourceStable": false
+}

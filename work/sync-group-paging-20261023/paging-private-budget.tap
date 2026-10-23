@@ -1,0 +1,97 @@
+TAP version 13
+# {"syntheticPaging":{"entries":129,"history":129,"operations":387}}
+# {"syntheticPagingRejectedActivation":{"reads":849,"writes":0}}
+# Subtest: 129 original Human Entry rows stage across pages but over-budget atomic activation rolls back
+ok 1 - 129 original Human Entry rows stage across pages but over-budget atomic activation rolls back
+  ---
+  duration_ms: 17932.24875
+  type: 'test'
+  ...
+# Subtest: original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+ok 2 - original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+  ---
+  duration_ms: 19.07575
+  type: 'test'
+  ...
+# Subtest: paged reader rejects backwards before accepting a forged page
+ok 3 - paged reader rejects backwards before accepting a forged page
+  ---
+  duration_ms: 0.137959
+  type: 'test'
+  ...
+# Subtest: paged reader rejects foreign-key before accepting a forged page
+ok 4 - paged reader rejects foreign-key before accepting a forged page
+  ---
+  duration_ms: 0.038042
+  type: 'test'
+  ...
+# Subtest: paged reader rejects false-next before accepting a forged page
+ok 5 - paged reader rejects false-next before accepting a forged page
+  ---
+  duration_ms: 0.032
+  type: 'test'
+  ...
+# Subtest: paged reader rejects oversize-page before accepting a forged page
+ok 6 - paged reader rejects oversize-page before accepting a forged page
+  ---
+  duration_ms: 0.058791
+  type: 'test'
+  ...
+# Subtest: operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+ok 7 - operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+  ---
+  duration_ms: 13.075458
+  type: 'test'
+  ...
+# Subtest: paged work deadline is checked after a held page settles and accepts no row
+ok 8 - paged work deadline is checked after a held page settles and accepts no row
+  ---
+  duration_ms: 0.15275
+  type: 'test'
+  ...
+# {"syntheticPrompt129Transactions":[{"write":true,"reads":2503,"writes":1163}]}
+# Subtest: 129 genuine Prompt history operations cross pages into one original canonical owner row
+ok 9 - 129 genuine Prompt history operations cross pages into one original canonical owner row
+  ---
+  duration_ms: 902.148917
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects refs and rolls back despite public metrics mutation
+ok 10 - private transaction budget rejects refs and rolls back despite public metrics mutation
+  ---
+  duration_ms: 11.019041
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects bytes and rolls back despite public metrics mutation
+ok 11 - private transaction budget rejects bytes and rolls back despite public metrics mutation
+  ---
+  duration_ms: 10.336292
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects reset and rolls back despite public metrics mutation
+ok 12 - private transaction budget rejects reset and rolls back despite public metrics mutation
+  ---
+  duration_ms: 11.462916
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects cursor and rolls back despite public metrics mutation
+ok 13 - private transaction budget rejects cursor and rolls back despite public metrics mutation
+  ---
+  duration_ms: 9.956375
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects late-finalizer and rolls back despite public metrics mutation
+ok 14 - private transaction budget rejects late-finalizer and rolls back despite public metrics mutation
+  ---
+  duration_ms: 11.379333
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 19037.20825

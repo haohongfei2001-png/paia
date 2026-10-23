@@ -1,0 +1,81 @@
+TAP version 13
+# Subtest: 129 genuine Prompt history operations cross pages into one original canonical owner row
+not ok 1 - 129 genuine Prompt history operations cross pages into one original canonical owner row
+  ---
+  duration_ms: 924.328542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-paging.test.mjs:50:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:451:717)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/core.js:152:66)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-checkpoint.js:164:48
+    async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/indexed-store.js:192:11
+  ...
+# Subtest: private transaction budget rejects refs and rolls back despite public metrics mutation
+ok 2 - private transaction budget rejects refs and rolls back despite public metrics mutation
+  ---
+  duration_ms: 13.614167
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects bytes and rolls back despite public metrics mutation
+ok 3 - private transaction budget rejects bytes and rolls back despite public metrics mutation
+  ---
+  duration_ms: 12.879208
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects reset and rolls back despite public metrics mutation
+ok 4 - private transaction budget rejects reset and rolls back despite public metrics mutation
+  ---
+  duration_ms: 12.981125
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects cursor and rolls back despite public metrics mutation
+ok 5 - private transaction budget rejects cursor and rolls back despite public metrics mutation
+  ---
+  duration_ms: 11.234541
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects late-finalizer and rolls back despite public metrics mutation
+ok 6 - private transaction budget rejects late-finalizer and rolls back despite public metrics mutation
+  ---
+  duration_ms: 13.106458
+  type: 'test'
+  ...
+# Subtest: private work envelope rejects a borrowed scope and cannot be removed by catching its error
+ok 7 - private work envelope rejects a borrowed scope and cannot be removed by catching its error
+  ---
+  duration_ms: 10.585291
+  type: 'test'
+  ...
+# Subtest: private transaction deadline rejects the next request after synchronous delayed continuation
+ok 8 - private transaction deadline rejects the next request after synchronous delayed continuation
+  ---
+  duration_ms: 20.972084
+  type: 'test'
+  ...
+# Subtest: paged manifest admission is explicit and still bounded; unknown and mixed profiles refuse
+ok 9 - paged manifest admission is explicit and still bounded; unknown and mixed profiles refuse
+  ---
+  duration_ms: 0.375834
+  type: 'test'
+  ...
+# Subtest: 65 genuine Human Entries fit staging but paged activation refuses private transaction work and rolls back every store
+ok 10 - 65 genuine Human Entries fit staging but paged activation refuses private transaction work and rolls back every store
+  ---
+  duration_ms: 5039.970625
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 9
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6207.300875

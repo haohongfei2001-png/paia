@@ -361,7 +361,7 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     test(not on('[data-card-allow="inputs"]'), 'opening a topic does not open parent card')
     test(changed not in page.locator('[data-context-preview]').inner_text(), 'closed My Inputs denies an open topic')
     test(page.locator('[data-topic-allow="product"] [data-topic-access-state]').inner_text() == ('Open' if en else '已开放'), 'closed parent never labels a retained topic AI-readable')
-    test(page.locator('[data-topic-allow="product"] .pc-topic-name').inner_text() == ('Building a quoting tool' if en else '做一个报价工具'), 'the whole permission pill retains its Topic identity')
+    test(page.locator('[data-topic-allow="product"] .pc-topic-name').inner_text() == ('A product’s first step' if en else '产品的第一步'), 'the whole permission pill retains its Topic identity')
     back('inputs')
     page.locator('[data-card-allow="inputs"]').click()
     preview = page.locator('[data-context-preview]').inner_text()

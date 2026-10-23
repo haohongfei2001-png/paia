@@ -1,0 +1,936 @@
+TAP version 13
+# Subtest: fresh Current source native human field survives real UI incremental publication
+ok 1 - fresh Current source native human field survives real UI incremental publication
+  ---
+  duration_ms: 3568.28475
+  type: 'test'
+  ...
+# {"variant":"source","native":true,"currentRevision":3,"humanProtected":true,"physical":2}
+# Subtest: fresh Current release native human field survives real UI incremental publication
+ok 2 - fresh Current release native human field survives real UI incremental publication
+  ---
+  duration_ms: 4962.783708
+  type: 'test'
+  ...
+# {"variant":"release","native":true,"currentRevision":3,"humanProtected":true,"physical":2}
+# Subtest: protected pending source native Current keeps no-delta distinct and sends no model request
+ok 3 - protected pending source native Current keeps no-delta distinct and sends no model request
+  ---
+  duration_ms: 2651.121292
+  type: 'test'
+  ...
+# {"variant":"source","native":true,"pairedStates":["NO_DELTA","PROTECTED_FIELDS"],"physical":1,"productionHashes":{"core/organizer/ai-incremental-v2.js":"b438dd7efb6be28627e0cec5e49a530d84711b69771c0b3682c2c71e80b55fa2","core/organizer/ai-incremental-v3.js":"de8ba0ee9f9b610e0abc4d073c640f55197552ec9f5d04371753dc27e82c5fb1","core/organizer/local-organize-session.js":"6788b8b8986ced8407f6e495b7677d16695c00b76c6250cb5fe56d3181b80663","core/organizer/configured-organize-runner.js":"e077ba4d083316cccd135e0d15815a2bda8451b3e5da6d9a1e9ebd4c35d3b298","ui/common.js":"18924138062d23a48bddeb1249e6c7ff672e98bf49bea0ee78146b0d91c0d546","ui/topic-workspace.js":"e1458220267fd51454c5a05186d7e329057b4bbe4ab59e1c430475e79d267d75"},"stagedHashes":{"core/organizer/ai-incremental-v2.js":"b438dd7efb6be28627e0cec5e49a530d84711b69771c0b3682c2c71e80b55fa2","core/organizer/ai-incremental-v3.js":"de8ba0ee9f9b610e0abc4d073c640f55197552ec9f5d04371753dc27e82c5fb1","core/organizer/local-organize-session.js":"6788b8b8986ced8407f6e495b7677d16695c00b76c6250cb5fe56d3181b80663","core/organizer/configured-organize-runner.js":"889b92903f6f4b60cc84000ba850d9708a4fd2eb5b97ef86f623db766a9a0613","ui/common.js":"18924138062d23a48bddeb1249e6c7ff672e98bf49bea0ee78146b0d91c0d546","ui/topic-workspace.js":"e1458220267fd51454c5a05186d7e329057b4bbe4ab59e1c430475e79d267d75"},"unchangedAfter":true}
+# Subtest: protected pending release native Current keeps no-delta distinct and sends no model request
+ok 4 - protected pending release native Current keeps no-delta distinct and sends no model request
+  ---
+  duration_ms: 2642.178125
+  type: 'test'
+  ...
+# {"variant":"release","native":true,"pairedStates":["NO_DELTA","PROTECTED_FIELDS"],"physical":1,"productionHashes":{"core/organizer/ai-incremental-v2.js":"b438dd7efb6be28627e0cec5e49a530d84711b69771c0b3682c2c71e80b55fa2","core/organizer/ai-incremental-v3.js":"de8ba0ee9f9b610e0abc4d073c640f55197552ec9f5d04371753dc27e82c5fb1","core/organizer/local-organize-session.js":"6788b8b8986ced8407f6e495b7677d16695c00b76c6250cb5fe56d3181b80663","core/organizer/configured-organize-runner.js":"e077ba4d083316cccd135e0d15815a2bda8451b3e5da6d9a1e9ebd4c35d3b298","ui/common.js":"18924138062d23a48bddeb1249e6c7ff672e98bf49bea0ee78146b0d91c0d546","ui/topic-workspace.js":"e1458220267fd51454c5a05186d7e329057b4bbe4ab59e1c430475e79d267d75"},"stagedHashes":{"core/organizer/ai-incremental-v2.js":"b438dd7efb6be28627e0cec5e49a530d84711b69771c0b3682c2c71e80b55fa2","core/organizer/ai-incremental-v3.js":"de8ba0ee9f9b610e0abc4d073c640f55197552ec9f5d04371753dc27e82c5fb1","core/organizer/local-organize-session.js":"6788b8b8986ced8407f6e495b7677d16695c00b76c6250cb5fe56d3181b80663","core/organizer/configured-organize-runner.js":"889b92903f6f4b60cc84000ba850d9708a4fd2eb5b97ef86f623db766a9a0613","ui/common.js":"18924138062d23a48bddeb1249e6c7ff672e98bf49bea0ee78146b0d91c0d546","ui/topic-workspace.js":"e1458220267fd51454c5a05186d7e329057b4bbe4ab59e1c430475e79d267d75"},"unchangedAfter":true}
+# Subtest: native actual metadata cumulative read bound source
+ok 5 - native actual metadata cumulative read bound source
+  ---
+  duration_ms: 1935.863542
+  type: 'test'
+  ...
+# {"variant":"source","requests":4096,"passes":454,"error":"BUDGET_EXCEEDED","refused":true,"current":false,"elapsed":446.5}
+# Subtest: native actual metadata cumulative read bound release
+ok 6 - native actual metadata cumulative read bound release
+  ---
+  duration_ms: 3582.197709
+  type: 'test'
+  ...
+# {"variant":"release","requests":4096,"passes":454,"error":"BUDGET_EXCEEDED","refused":true,"current":false,"elapsed":450.90000000596046}
+# Subtest: native actual authorized material cumulative 2MiB bound source
+ok 7 - native actual authorized material cumulative 2MiB bound source
+  ---
+  duration_ms: 1520.65225
+  type: 'test'
+  ...
+# {"variant":"source","passes":10,"bodyBytes":100030,"materialDebits":21,"materialBytes":2129967,"lastDebitBytes":102697,"requests":584,"error":"BUDGET_EXCEEDED","byteOwner":true,"refused":true,"current":false}
+# Subtest: native actual authorized material cumulative 2MiB bound release
+ok 8 - native actual authorized material cumulative 2MiB bound release
+  ---
+  duration_ms: 1480.228167
+  type: 'test'
+  ...
+# {"variant":"release","passes":10,"bodyBytes":100030,"materialDebits":21,"materialBytes":2129967,"lastDebitBytes":102697,"requests":608,"error":"BUDGET_EXCEEDED","byteOwner":true,"refused":true,"current":false}
+# Subtest: Organize signed native source original sender and atomic result
+ok 9 - Organize signed native source original sender and atomic result
+  ---
+  duration_ms: 1755.832625
+  type: 'test'
+  ...
+# {"variant":"source","browser":"156.0.8078.47","native":true,"senders":2,"physical":1,"job":"COMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize signed native release original sender and atomic result
+ok 10 - Organize signed native release original sender and atomic result
+  ---
+  duration_ms: 3375.32025
+  type: 'test'
+  ...
+# {"variant":"release","browser":"156.0.8078.47","native":true,"senders":2,"physical":1,"job":"COMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native source last Topic fence control
+ok 11 - Organize native source last Topic fence control
+  ---
+  duration_ms: 2878.405708
+  type: 'test'
+  ...
+# {"variant":"source","mode":"control","terminal":{"attached":1,"hit":0,"events":[{"kind":"complete","trusted":true}]},"physical":2,"job":"COMMITTED"}
+# Subtest: Organize native source last Topic fence synchronous
+ok 12 - Organize native source last Topic fence synchronous
+  ---
+  duration_ms: 2907.850542
+  type: 'test'
+  ...
+# {"variant":"source","mode":"synchronous","terminal":{"attached":1,"hit":1,"events":[{"kind":"invalidate"},{"kind":"abort","trusted":true}]},"physical":2,"job":"RESPONSE_RECORDED"}
+# Subtest: Organize native source last Topic fence queued
+ok 13 - Organize native source last Topic fence queued
+  ---
+  duration_ms: 2818.26475
+  type: 'test'
+  ...
+# {"variant":"source","mode":"queued","terminal":{"attached":1,"hit":1,"events":[{"kind":"invalidate"},{"kind":"abort","trusted":true}]},"physical":2,"job":"RESPONSE_RECORDED"}
+# Subtest: Organize native release last Topic fence control
+ok 14 - Organize native release last Topic fence control
+  ---
+  duration_ms: 2665.90625
+  type: 'test'
+  ...
+# {"variant":"release","mode":"control","terminal":{"attached":1,"hit":0,"events":[{"kind":"complete","trusted":true}]},"physical":2,"job":"COMMITTED"}
+# Subtest: Organize native release last Topic fence synchronous
+ok 15 - Organize native release last Topic fence synchronous
+  ---
+  duration_ms: 2618.492625
+  type: 'test'
+  ...
+# {"variant":"release","mode":"synchronous","terminal":{"attached":1,"hit":1,"events":[{"kind":"invalidate"},{"kind":"abort","trusted":true}]},"physical":2,"job":"RESPONSE_RECORDED"}
+# Subtest: Organize native release last Topic fence queued
+ok 16 - Organize native release last Topic fence queued
+  ---
+  duration_ms: 2552.404791
+  type: 'test'
+  ...
+# {"variant":"release","mode":"queued","terminal":{"attached":1,"hit":1,"events":[{"kind":"invalidate"},{"kind":"abort","trusted":true}]},"physical":2,"job":"RESPONSE_RECORDED"}
+# Subtest: Organize native source held provider invalidate
+ok 17 - Organize native source held provider invalidate
+  ---
+  duration_ms: 1669.687625
+  type: 'test'
+  ...
+# {"variant":"source","mode":"invalidate","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native source held provider close
+ok 18 - Organize native source held provider close
+  ---
+  duration_ms: 1776.24075
+  type: 'test'
+  ...
+# {"variant":"source","mode":"close","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native source held provider edit
+ok 19 - Organize native source held provider edit
+  ---
+  duration_ms: 2570.418375
+  type: 'test'
+  ...
+# {"variant":"source","mode":"edit","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native source held provider undo
+ok 20 - Organize native source held provider undo
+  ---
+  duration_ms: 2576.564458
+  type: 'test'
+  ...
+# {"variant":"source","mode":"undo","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native release held provider invalidate
+ok 21 - Organize native release held provider invalidate
+  ---
+  duration_ms: 1566.766208
+  type: 'test'
+  ...
+# {"variant":"release","mode":"invalidate","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native release held provider close
+ok 22 - Organize native release held provider close
+  ---
+  duration_ms: 1649.177459
+  type: 'test'
+  ...
+# {"variant":"release","mode":"close","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native release held provider edit
+ok 23 - Organize native release held provider edit
+  ---
+  duration_ms: 2717.158167
+  type: 'test'
+  ...
+# {"variant":"release","mode":"edit","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native release held provider undo
+ok 24 - Organize native release held provider undo
+  ---
+  duration_ms: 2755.477458
+  type: 'test'
+  ...
+# {"variant":"release","mode":"undo","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native real 30-second selection expiry and separate 35-second HTTP abort
+ok 25 - Organize native real 30-second selection expiry and separate 35-second HTTP abort
+  ---
+  duration_ms: 37224.333625
+  type: 'test'
+  ...
+# {"elapsed":35144.19700000001,"job":"OUTCOME_UNKNOWN","bridge":{"requests":6,"aborts":1,"errors":[]}}
+# Subtest: Organize native retained CAS result needs fresh action after real first deadline and no extra provider
+ok 26 - Organize native retained CAS result needs fresh action after real first deadline and no extra provider
+  ---
+  duration_ms: 32173.861625
+  type: 'test'
+  ...
+# {"elapsed":30178.097832999993,"sameJob":true,"physical":1}
+# Subtest: configured original source UI click reaches original worker action and saved Current
+ok 27 - configured original source UI click reaches original worker action and saved Current
+  ---
+  duration_ms: 2264.528375
+  type: 'test'
+  ...
+# {"variant":"source","trustedClick":true,"originalWorker":true,"physical":1,"current":true}
+# Subtest: configured original release UI click reaches original worker action and saved Current
+ok 28 - configured original release UI click reaches original worker action and saved Current
+  ---
+  duration_ms: 3828.524042
+  type: 'test'
+  ...
+# {"variant":"release","trustedClick":true,"originalWorker":true,"physical":1,"current":true}
+# Subtest: configured original source UI stop refuses a late result without another attempt
+ok 29 - configured original source UI stop refuses a late result without another attempt
+  ---
+  duration_ms: 2120.324167
+  type: 'test'
+  ...
+# {"variant":"source","stopped":true,"candidate":false,"physical":1,"status":"上一次请求结果未知，为避免重复收费已暂停。请核对当前内容后，再决定是否重试生成 AI整理"}
+# Subtest: configured original release UI stop refuses a late result without another attempt
+ok 30 - configured original release UI stop refuses a late result without another attempt
+  ---
+  duration_ms: 2113.803583
+  type: 'test'
+  ...
+# {"variant":"release","stopped":true,"candidate":false,"physical":1,"status":"上一次请求结果未知，为避免重复收费已暂停。请核对当前内容后，再决定是否重试生成 AI整理"}
+# Subtest: Context actual opened native drawers obey original geometry source
+ok 31 - Context actual opened native drawers obey original geometry source
+  ---
+  duration_ms: 4541.258834
+  type: 'test'
+  ...
+# Subtest: Context actual opened native drawers obey original geometry release
+ok 32 - Context actual opened native drawers obey original geometry release
+  ---
+  duration_ms: 5753.366208
+  type: 'test'
+  ...
+# Subtest: CTX4 real four-card durable edit/delete/undo, failure, IME, concurrency and shell source
+ok 33 - CTX4 real four-card durable edit/delete/undo, failure, IME, concurrency and shell source
+  ---
+  duration_ms: 11782.513708
+  type: 'test'
+  ...
+# Subtest: CTX4 real four-card durable edit/delete/undo, failure, IME, concurrency and shell release
+ok 34 - CTX4 real four-card durable edit/delete/undo, failure, IME, concurrency and shell release
+  ---
+  duration_ms: 12652.772416
+  type: 'test'
+  ...
+# CTX4-02 source {"label":"setup","elapsedMs":1}
+# CTX4-02 source {"label":"three-card creation","elapsedMs":2371}
+# CTX4-02 source {"label":"open info","elapsedMs":2371}
+# CTX4-02 source {"label":"opened info","elapsedMs":2442}
+# CTX4-02 source {"label":"home click","elapsedMs":2506}
+# CTX4-02 source {"label":"home ready","elapsedMs":2572}
+# CTX4-02 source {"label":"open rules","elapsedMs":2573}
+# CTX4-02 source {"label":"opened rules","elapsedMs":2634}
+# CTX4-02 source {"label":"home click","elapsedMs":2683}
+# CTX4-02 source {"label":"home ready","elapsedMs":2733}
+# CTX4-02 source {"label":"open now","elapsedMs":2735}
+# CTX4-02 source {"label":"opened now","elapsedMs":2784}
+# CTX4-02 source {"label":"home click","elapsedMs":2831}
+# CTX4-02 source {"label":"home ready","elapsedMs":2888}
+# CTX4-02 source {"label":"compact committed acknowledgement pending","elapsedMs":2893}
+# CTX4-02 source {"label":"open info","elapsedMs":2899}
+# CTX4-02 source {"label":"opened info","elapsedMs":2952}
+# CTX4-02 source {"label":"open info","elapsedMs":3218}
+# CTX4-02 source {"label":"opened info","elapsedMs":3268}
+# CTX4-02 source {"label":"home click","elapsedMs":3272}
+# CTX4-02 source {"label":"home ready","elapsedMs":3340}
+# CTX4-02 source {"label":"editing undo deletion IME failure","elapsedMs":3349}
+# CTX4-02 source {"label":"open rules","elapsedMs":3351}
+# CTX4-02 source {"label":"opened rules","elapsedMs":3401}
+# CTX4-02 source {"label":"manual edit dispatch rules","elapsedMs":3401}
+# CTX4-02 source {"label":"manual edit committed rules","elapsedMs":3519}
+# CTX4-02 source {"label":"manual undo dispatch rules","elapsedMs":3545}
+# CTX4-02 source {"label":"manual undo committed rules","elapsedMs":3690}
+# CTX4-02 source {"label":"home click","elapsedMs":5347}
+# CTX4-02 source {"label":"home ready","elapsedMs":5403}
+# CTX4-02 source {"label":"open now","elapsedMs":5403}
+# CTX4-02 source {"label":"opened now","elapsedMs":5452}
+# CTX4-02 source {"label":"manual edit dispatch now","elapsedMs":5453}
+# CTX4-02 source {"label":"manual edit committed now","elapsedMs":5466}
+# CTX4-02 source {"label":"manual undo dispatch now","elapsedMs":5491}
+# CTX4-02 source {"label":"manual undo committed now","elapsedMs":5636}
+# CTX4-02 source {"label":"home click","elapsedMs":7286}
+# CTX4-02 source {"label":"home ready","elapsedMs":7336}
+# CTX4-02 source {"label":"recovery","elapsedMs":7336}
+# CTX4-02 source {"label":"open info","elapsedMs":7353}
+# CTX4-02 source {"label":"opened info","elapsedMs":7403}
+# CTX4-02 source {"label":"home click","elapsedMs":7417}
+# CTX4-02 source {"label":"home ready","elapsedMs":7469}
+# CTX4-02 source {"label":"open rules","elapsedMs":7469}
+# CTX4-02 source {"label":"opened rules","elapsedMs":7520}
+# CTX4-02 source {"label":"home click","elapsedMs":7534}
+# CTX4-02 source {"label":"home ready","elapsedMs":7585}
+# CTX4-02 source {"label":"open now","elapsedMs":7586}
+# CTX4-02 source {"label":"opened now","elapsedMs":7636}
+# CTX4-02 source {"label":"home click","elapsedMs":7653}
+# CTX4-02 source {"label":"home ready","elapsedMs":7700}
+# CTX4-02 source {"label":"access and connections","elapsedMs":7800}
+# CTX4-02 source {"label":"populated cards off and responsive Home","elapsedMs":8210}
+# CTX4-02 source {"label":"open info","elapsedMs":9383}
+# CTX4-02 source {"label":"opened info","elapsedMs":9436}
+# CTX4-02 source {"label":"home click","elapsedMs":12946}
+# CTX4-02 source {"label":"home ready","elapsedMs":13008}
+# CTX4-02 source {"label":"open info","elapsedMs":13055}
+# CTX4-02 source {"label":"opened info","elapsedMs":13122}
+# CTX4-02 source {"label":"home click","elapsedMs":13124}
+# CTX4-02 source {"label":"home ready","elapsedMs":13186}
+# CTX4-02 source {"label":"tablet coarse controls","elapsedMs":13186}
+# CTX4-02 source {"label":"coarse setup home","elapsedMs":13201}
+# CTX4-02 source {"label":"coarse ready home","elapsedMs":13204}
+# CTX4-02 source {"label":"coarse setup info","elapsedMs":13386}
+# CTX4-02 source {"label":"coarse ready info","elapsedMs":13387}
+# CTX4-02 source {"label":"coarse setup home","elapsedMs":13654}
+# CTX4-02 source {"label":"coarse ready home","elapsedMs":13659}
+# CTX4-02 source {"label":"home click","elapsedMs":14530}
+# CTX4-02 source {"label":"home ready","elapsedMs":14641}
+# CTX4-02 source {"label":"visual and long fixtures","elapsedMs":14777}
+# CTX4-02 source {"label":"open rules","elapsedMs":14897}
+# CTX4-02 source {"label":"opened rules","elapsedMs":14951}
+# CTX4-02 source {"label":"home click","elapsedMs":15128}
+# CTX4-02 source {"label":"home ready","elapsedMs":15185}
+# CTX4-02 source {"label":"open now","elapsedMs":15310}
+# CTX4-02 source {"label":"opened now","elapsedMs":15368}
+# CTX4-02 source {"label":"home click","elapsedMs":15524}
+# CTX4-02 source {"label":"home ready","elapsedMs":15589}
+# CTX4-02 source {"label":"scroll and history","elapsedMs":15684}
+# CTX4-02 source {"label":"open rules","elapsedMs":15684}
+# CTX4-02 source {"label":"opened rules","elapsedMs":15756}
+# CTX4-02 source {"label":"home click","elapsedMs":16129}
+# CTX4-02 source {"label":"home ready","elapsedMs":16188}
+# CTX4-02 source {"label":"open now","elapsedMs":16188}
+# CTX4-02 source {"label":"opened now","elapsedMs":16272}
+# CTX4-02 source {"label":"home click","elapsedMs":16646}
+# CTX4-02 source {"label":"home ready","elapsedMs":16701}
+# CTX4-02 source {"label":"held transition false","elapsedMs":16701}
+# CTX4-02 source {"label":"open rules","elapsedMs":16701}
+# CTX4-02 source {"label":"opened rules","elapsedMs":16773}
+# CTX4-02 source {"label":"snapshot held false","elapsedMs":16914}
+# CTX4-02 source {"label":"release snapshot false","elapsedMs":16931}
+# CTX4-02 source {"label":"held transition true","elapsedMs":16943}
+# CTX4-02 source {"label":"open rules","elapsedMs":16943}
+# CTX4-02 source {"label":"opened rules","elapsedMs":17023}
+# CTX4-02 source {"label":"snapshot held true","elapsedMs":17163}
+# CTX4-02 source {"label":"release snapshot true","elapsedMs":17179}
+# CTX4-02 source {"label":"failed target retry","elapsedMs":17237}
+# CTX4-02 source {"label":"home click","elapsedMs":17428}
+# CTX4-02 source {"label":"home ready","elapsedMs":17485}
+# CTX4-02 source {"label":"dark and reflow","elapsedMs":17485}
+# CTX4-02 source {"label":"open rules","elapsedMs":17486}
+# CTX4-02 source {"label":"opened rules","elapsedMs":17556}
+# CTX4-02 source {"label":"final invariants","elapsedMs":18143}
+# Subtest: CTX4-02 all local cards, isolated recovery, access and page return source
+ok 35 - CTX4-02 all local cards, isolated recovery, access and page return source
+  ---
+  duration_ms: 19313.466208
+  type: 'test'
+  ...
+# CTX4-02 release {"label":"setup","elapsedMs":1}
+# CTX4-02 release {"label":"three-card creation","elapsedMs":2340}
+# CTX4-02 release {"label":"open info","elapsedMs":2340}
+# CTX4-02 release {"label":"opened info","elapsedMs":2393}
+# CTX4-02 release {"label":"home click","elapsedMs":2457}
+# CTX4-02 release {"label":"home ready","elapsedMs":2521}
+# CTX4-02 release {"label":"open rules","elapsedMs":2523}
+# CTX4-02 release {"label":"opened rules","elapsedMs":2572}
+# CTX4-02 release {"label":"home click","elapsedMs":2617}
+# CTX4-02 release {"label":"home ready","elapsedMs":2672}
+# CTX4-02 release {"label":"open now","elapsedMs":2673}
+# CTX4-02 release {"label":"opened now","elapsedMs":2722}
+# CTX4-02 release {"label":"home click","elapsedMs":2769}
+# CTX4-02 release {"label":"home ready","elapsedMs":2823}
+# CTX4-02 release {"label":"compact committed acknowledgement pending","elapsedMs":2827}
+# CTX4-02 release {"label":"open info","elapsedMs":2832}
+# CTX4-02 release {"label":"opened info","elapsedMs":2888}
+# CTX4-02 release {"label":"open info","elapsedMs":3105}
+# CTX4-02 release {"label":"opened info","elapsedMs":3154}
+# CTX4-02 release {"label":"home click","elapsedMs":3158}
+# CTX4-02 release {"label":"home ready","elapsedMs":3222}
+# CTX4-02 release {"label":"editing undo deletion IME failure","elapsedMs":3228}
+# CTX4-02 release {"label":"open rules","elapsedMs":3228}
+# CTX4-02 release {"label":"opened rules","elapsedMs":3289}
+# CTX4-02 release {"label":"manual edit dispatch rules","elapsedMs":3289}
+# CTX4-02 release {"label":"manual edit committed rules","elapsedMs":3303}
+# CTX4-02 release {"label":"manual undo dispatch rules","elapsedMs":3329}
+# CTX4-02 release {"label":"manual undo committed rules","elapsedMs":3473}
+# CTX4-02 release {"label":"home click","elapsedMs":5225}
+# CTX4-02 release {"label":"home ready","elapsedMs":5276}
+# CTX4-02 release {"label":"open now","elapsedMs":5276}
+# CTX4-02 release {"label":"opened now","elapsedMs":5343}
+# CTX4-02 release {"label":"manual edit dispatch now","elapsedMs":5343}
+# CTX4-02 release {"label":"manual edit committed now","elapsedMs":5460}
+# CTX4-02 release {"label":"manual undo dispatch now","elapsedMs":5495}
+# CTX4-02 release {"label":"manual undo committed now","elapsedMs":5641}
+# CTX4-02 release {"label":"home click","elapsedMs":7337}
+# CTX4-02 release {"label":"home ready","elapsedMs":7390}
+# CTX4-02 release {"label":"recovery","elapsedMs":7390}
+# CTX4-02 release {"label":"open info","elapsedMs":7403}
+# CTX4-02 release {"label":"opened info","elapsedMs":7440}
+# CTX4-02 release {"label":"home click","elapsedMs":7454}
+# CTX4-02 release {"label":"home ready","elapsedMs":7503}
+# CTX4-02 release {"label":"open rules","elapsedMs":7503}
+# CTX4-02 release {"label":"opened rules","elapsedMs":7554}
+# CTX4-02 release {"label":"home click","elapsedMs":7566}
+# CTX4-02 release {"label":"home ready","elapsedMs":7620}
+# CTX4-02 release {"label":"open now","elapsedMs":7621}
+# CTX4-02 release {"label":"opened now","elapsedMs":7672}
+# CTX4-02 release {"label":"home click","elapsedMs":7688}
+# CTX4-02 release {"label":"home ready","elapsedMs":7737}
+# CTX4-02 release {"label":"access and connections","elapsedMs":7938}
+# CTX4-02 release {"label":"populated cards off and responsive Home","elapsedMs":8434}
+# CTX4-02 release {"label":"open info","elapsedMs":9573}
+# CTX4-02 release {"label":"opened info","elapsedMs":9621}
+# CTX4-02 release {"label":"home click","elapsedMs":13084}
+# CTX4-02 release {"label":"home ready","elapsedMs":13146}
+# CTX4-02 release {"label":"open info","elapsedMs":13193}
+# CTX4-02 release {"label":"opened info","elapsedMs":13258}
+# CTX4-02 release {"label":"home click","elapsedMs":13259}
+# CTX4-02 release {"label":"home ready","elapsedMs":13323}
+# CTX4-02 release {"label":"tablet coarse controls","elapsedMs":13324}
+# CTX4-02 release {"label":"coarse setup home","elapsedMs":13349}
+# CTX4-02 release {"label":"coarse ready home","elapsedMs":13352}
+# CTX4-02 release {"label":"coarse setup info","elapsedMs":13573}
+# CTX4-02 release {"label":"coarse ready info","elapsedMs":13575}
+# CTX4-02 release {"label":"coarse setup home","elapsedMs":13859}
+# CTX4-02 release {"label":"coarse ready home","elapsedMs":13861}
+# CTX4-02 release {"label":"home click","elapsedMs":14750}
+# CTX4-02 release {"label":"home ready","elapsedMs":14895}
+# CTX4-02 release {"label":"visual and long fixtures","elapsedMs":15029}
+# CTX4-02 release {"label":"open rules","elapsedMs":15195}
+# CTX4-02 release {"label":"opened rules","elapsedMs":15259}
+# CTX4-02 release {"label":"home click","elapsedMs":15438}
+# CTX4-02 release {"label":"home ready","elapsedMs":15490}
+# CTX4-02 release {"label":"open now","elapsedMs":15696}
+# CTX4-02 release {"label":"opened now","elapsedMs":15756}
+# CTX4-02 release {"label":"home click","elapsedMs":15930}
+# CTX4-02 release {"label":"home ready","elapsedMs":15988}
+# CTX4-02 release {"label":"scroll and history","elapsedMs":16087}
+# CTX4-02 release {"label":"open rules","elapsedMs":16087}
+# CTX4-02 release {"label":"opened rules","elapsedMs":16159}
+# CTX4-02 release {"label":"home click","elapsedMs":16530}
+# CTX4-02 release {"label":"home ready","elapsedMs":16586}
+# CTX4-02 release {"label":"open now","elapsedMs":16587}
+# CTX4-02 release {"label":"opened now","elapsedMs":16659}
+# CTX4-02 release {"label":"home click","elapsedMs":17037}
+# CTX4-02 release {"label":"home ready","elapsedMs":17090}
+# CTX4-02 release {"label":"held transition false","elapsedMs":17091}
+# CTX4-02 release {"label":"open rules","elapsedMs":17091}
+# CTX4-02 release {"label":"opened rules","elapsedMs":17160}
+# CTX4-02 release {"label":"snapshot held false","elapsedMs":17302}
+# CTX4-02 release {"label":"release snapshot false","elapsedMs":17314}
+# CTX4-02 release {"label":"held transition true","elapsedMs":17324}
+# CTX4-02 release {"label":"open rules","elapsedMs":17325}
+# CTX4-02 release {"label":"opened rules","elapsedMs":17409}
+# CTX4-02 release {"label":"snapshot held true","elapsedMs":17551}
+# CTX4-02 release {"label":"release snapshot true","elapsedMs":17567}
+# CTX4-02 release {"label":"failed target retry","elapsedMs":17625}
+# CTX4-02 release {"label":"home click","elapsedMs":17817}
+# CTX4-02 release {"label":"home ready","elapsedMs":17877}
+# CTX4-02 release {"label":"dark and reflow","elapsedMs":17878}
+# CTX4-02 release {"label":"open rules","elapsedMs":17878}
+# CTX4-02 release {"label":"opened rules","elapsedMs":17960}
+# CTX4-02 release {"label":"final invariants","elapsedMs":18572}
+# Subtest: CTX4-02 all local cards, isolated recovery, access and page return release
+ok 36 - CTX4-02 all local cards, isolated recovery, access and page return release
+  ---
+  duration_ms: 21228.145208
+  type: 'test'
+  ...
+# Subtest: CTX4-03 real Topic choices, complete directory, keyboard, failure and history source
+ok 37 - CTX4-03 real Topic choices, complete directory, keyboard, failure and history source
+  ---
+  duration_ms: 15015.913041
+  type: 'test'
+  ...
+# Subtest: CTX4-03 real Topic choices, complete directory, keyboard, failure and history release
+ok 38 - CTX4-03 real Topic choices, complete directory, keyboard, failure and history release
+  ---
+  duration_ms: 16697.32125
+  type: 'test'
+  ...
+# Subtest: CTX4 original older snapshot after acknowledged save cannot roll back or conflict source
+ok 39 - CTX4 original older snapshot after acknowledged save cannot roll back or conflict source
+  ---
+  duration_ms: 1954.107416
+  type: 'test'
+  ...
+# Subtest: CTX4 original older snapshot after acknowledged save cannot roll back or conflict release
+ok 40 - CTX4 original older snapshot after acknowledged save cannot roll back or conflict release
+  ---
+  duration_ms: 3491.927125
+  type: 'test'
+  ...
+# Subtest: CTX4 save feedback retains real failures and never acknowledges new composition source
+ok 41 - CTX4 save feedback retains real failures and never acknowledges new composition source
+  ---
+  duration_ms: 6223.620916
+  type: 'test'
+  ...
+# Subtest: CTX4 save feedback retains real failures and never acknowledges new composition release
+ok 42 - CTX4 save feedback retains real failures and never acknowledges new composition release
+  ---
+  duration_ms: 7634.828958
+  type: 'test'
+  ...
+# Subtest: CTX4-07 approved final reference local equivalent states source
+ok 43 - CTX4-07 approved final reference local equivalent states source
+  ---
+  duration_ms: 16160.673583
+  type: 'test'
+  ...
+# Subtest: CTX4-07 approved final reference local equivalent states release
+ok 44 - CTX4-07 approved final reference local equivalent states release
+  ---
+  duration_ms: 18132.411666
+  type: 'test'
+  ...
+# Subtest: Now real deadline is a same-revision read-only native status source
+ok 45 - Now real deadline is a same-revision read-only native status source
+  ---
+  duration_ms: 12169.987375
+  type: 'test'
+  ...
+# Subtest: Now expiry cannot overwrite pending-native-draft or steal its native owner source
+ok 46 - Now expiry cannot overwrite pending-native-draft or steal its native owner source
+  ---
+  duration_ms: 11852.699708
+  type: 'test'
+  ...
+# Subtest: Now expiry cannot overwrite ime or steal its native owner source
+ok 47 - Now expiry cannot overwrite ime or steal its native owner source
+  ---
+  duration_ms: 11752.213542
+  type: 'test'
+  ...
+# Subtest: Now explicit move protects temporal provenance without automatic expiry source
+ok 48 - Now explicit move protects temporal provenance without automatic expiry source
+  ---
+  duration_ms: 11318.921792
+  type: 'test'
+  ...
+# Subtest: Now explicit reorder protects temporal provenance without automatic expiry source
+ok 49 - Now explicit reorder protects temporal provenance without automatic expiry source
+  ---
+  duration_ms: 11560.706208
+  type: 'test'
+  ...
+# Subtest: Now current B-02 refusal and historical Source purge retire the timer and reject an older actual snapshot source
+ok 50 - Now current B-02 refusal and historical Source purge retire the timer and reject an older actual snapshot source
+  ---
+  duration_ms: 17426.723875
+  type: 'test'
+  ...
+# Subtest: Now real deadline is a same-revision read-only native status release
+ok 51 - Now real deadline is a same-revision read-only native status release
+  ---
+  duration_ms: 13196.071666
+  type: 'test'
+  ...
+# Subtest: Now expiry cannot overwrite pending-native-draft or steal its native owner release
+ok 52 - Now expiry cannot overwrite pending-native-draft or steal its native owner release
+  ---
+  duration_ms: 11509.069208
+  type: 'test'
+  ...
+# Subtest: Now expiry cannot overwrite ime or steal its native owner release
+ok 53 - Now expiry cannot overwrite ime or steal its native owner release
+  ---
+  duration_ms: 11438.103958
+  type: 'test'
+  ...
+# Subtest: Now explicit move protects temporal provenance without automatic expiry release
+ok 54 - Now explicit move protects temporal provenance without automatic expiry release
+  ---
+  duration_ms: 11214.14925
+  type: 'test'
+  ...
+# Subtest: Now explicit reorder protects temporal provenance without automatic expiry release
+ok 55 - Now explicit reorder protects temporal provenance without automatic expiry release
+  ---
+  duration_ms: 11301.212209
+  type: 'test'
+  ...
+# Subtest: Now current B-02 refusal and historical Source purge retire the timer and reject an older actual snapshot release
+ok 56 - Now current B-02 refusal and historical Source purge retire the timer and reject an older actual snapshot release
+  ---
+  duration_ms: 16388.868709
+  type: 'test'
+  ...
+# AI_NATIVE_ORGANIZE_LIFECYCLE source {"nativeFactory":true,"results":[{"adopted":[true,true,true,true,true,true,true,true,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":1,"abort":false,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":null,"capacityCode":null,"rollback":null,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]},{"adopted":[true,false,false,false,false,false,false,false,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":1,"abort":true,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":"STORAGE_FAILED","capacityCode":"UNAVAILABLE","rollback":true,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]},{"adopted":[true,true,true,true,true,true,true,true,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":2,"abort":false,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":null,"capacityCode":null,"rollback":null,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]},{"adopted":[true,false,false,false,false,false,false,false,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":2,"abort":true,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":"STORAGE_FAILED","capacityCode":"UNAVAILABLE","rollback":true,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]},{"adopted":[true,true,true,true,true,true,true,true,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":3,"abort":false,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":null,"capacityCode":null,"rollback":null,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]},{"adopted":[true,false,false,false,false,false,false,false,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":3,"abort":true,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":"STORAGE_FAILED","capacityCode":"UNAVAILABLE","rollback":true,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]}]}
+# AI_NATIVE_ORGANIZE_PROVIDER source {"nativeFactory":true,"results":[{"version":1,"children":1,"stop":"timeout","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":1,"children":1,"stop":"timeout","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":1,"children":1,"stop":"dispose","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":1,"children":1,"stop":"dispose","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":2,"children":1,"stop":"timeout","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":2,"children":1,"stop":"timeout","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":2,"children":1,"stop":"dispose","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":2,"children":1,"stop":"dispose","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":3,"children":1,"stop":"timeout","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":3,"children":1,"stop":"timeout","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":3,"children":1,"stop":"dispose","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":3,"children":1,"stop":"dispose","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":2,"children":2,"stop":"timeout","late":"resolve","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"},{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":2,"children":2,"stop":"timeout","late":"reject","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"},{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":2,"children":2,"stop":"dispose","late":"resolve","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"},{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":2,"children":2,"stop":"dispose","late":"reject","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"},{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":3,"children":2,"stop":"timeout","late":"resolve","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"},{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":3,"children":2,"stop":"timeout","late":"reject","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"},{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":3,"children":2,"stop":"dispose","late":"resolve","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"},{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":3,"children":2,"stop":"dispose","late":"reject","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"},{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"}],"acks":0,"retryCode":"UNAVAILABLE"}]}
+# AI_NATIVE_BOUNDED_ASSIST source {"nativeFactory":true,"results":[{"stop":"timeout","late":"resolve","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"OUTCOME_UNKNOWN","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"timeout","late":"reject","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"OUTCOME_UNKNOWN","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"dispose","late":"resolve","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"dispose","late":"reject","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"dismiss","late":"resolve","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"dismiss","late":"reject","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"revoke","late":"resolve","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"revoke","late":"reject","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true}]}
+# AI_NATIVE_FINAL_INSERT_AUTHORITY source {"results":[{"change":"edit","result":{"status":"failed","reason":"stale_assist"}},{"change":"revoke","result":{"status":"failed","reason":"stale_assist"}}],"calls":2}
+# AI_NATIVE_PRIVATE_ASSIST source {"native":true,"zeroContext":true,"oneAttempt":true,"bodyFree":true,"conditionGuard":true,"selection":true,"imeReplayDenied":true,"draftChangedDenied":true,"uncertainReplayDenied":true,"latestMutationDenied":true,"pagehide":true,"consentDenied":true,"send":0}
+# Subtest: AI-COST-05/06 source complete Organize and Assist lifecycle
+ok 57 - AI-COST-05/06 source complete Organize and Assist lifecycle
+  ---
+  duration_ms: 8873.519167
+  type: 'test'
+  ...
+# AI_NATIVE_ORGANIZE_LIFECYCLE release {"nativeFactory":true,"results":[{"adopted":[true,true,true,true,true,true,true,true,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":1,"abort":false,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":null,"capacityCode":null,"rollback":null,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]},{"adopted":[true,false,false,false,false,false,false,false,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":1,"abort":true,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":"STORAGE_FAILED","capacityCode":"UNAVAILABLE","rollback":true,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]},{"adopted":[true,true,true,true,true,true,true,true,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":2,"abort":false,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":null,"capacityCode":null,"rollback":null,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]},{"adopted":[true,false,false,false,false,false,false,false,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":2,"abort":true,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":"STORAGE_FAILED","capacityCode":"UNAVAILABLE","rollback":true,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]},{"adopted":[true,true,true,true,true,true,true,true,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":3,"abort":false,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":null,"capacityCode":null,"rollback":null,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]},{"adopted":[true,false,false,false,false,false,false,false,true],"replayCalls":0,"replayState":null,"replayKeys":[],"version":3,"abort":true,"calls":9,"states":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"abortCode":"STORAGE_FAILED","capacityCode":"UNAVAILABLE","rollback":true,"retiredCode":"CANCELLED","replayUnchanged":true,"attempts":[1,1,1,1,1,1,1,1,1],"jobs":["COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED","COMMITTED"]}]}
+# AI_NATIVE_ORGANIZE_PROVIDER release {"nativeFactory":true,"results":[{"version":1,"children":1,"stop":"timeout","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":1,"children":1,"stop":"timeout","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":1,"children":1,"stop":"dispose","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":1,"children":1,"stop":"dispose","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":2,"children":1,"stop":"timeout","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":2,"children":1,"stop":"timeout","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":2,"children":1,"stop":"dispose","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":2,"children":1,"stop":"dispose","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":3,"children":1,"stop":"timeout","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":3,"children":1,"stop":"timeout","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":3,"children":1,"stop":"dispose","late":"resolve","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":3,"children":1,"stop":"dispose","late":"reject","state":"OUTCOME_UNKNOWN","calls":1,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":2,"children":2,"stop":"timeout","late":"resolve","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"},{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":2,"children":2,"stop":"timeout","late":"reject","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"},{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":2,"children":2,"stop":"dispose","late":"resolve","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"},{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":2,"children":2,"stop":"dispose","late":"reject","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"},{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":3,"children":2,"stop":"timeout","late":"resolve","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"},{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":3,"children":2,"stop":"timeout","late":"reject","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"},{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"OUTCOME_UNKNOWN"},{"version":3,"children":2,"stop":"dispose","late":"resolve","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"},{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"},{"version":3,"children":2,"stop":"dispose","late":"reject","state":"OUTCOME_UNKNOWN","calls":2,"reads":0,"aborted":true,"timeout":25,"unchanged":true,"writesUnchanged":true,"attempts":[{"attemptCount":1,"state":"RESPONSE_RECORDED","spendState":"UNSETTLED"},{"attemptCount":1,"state":"OUTCOME_UNKNOWN","spendState":"RESERVATION_RETAINED"}],"acks":0,"retryCode":"UNAVAILABLE"}]}
+# AI_NATIVE_BOUNDED_ASSIST release {"nativeFactory":true,"results":[{"stop":"timeout","late":"resolve","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"OUTCOME_UNKNOWN","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"timeout","late":"reject","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"OUTCOME_UNKNOWN","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"dispose","late":"resolve","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"dispose","late":"reject","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"dismiss","late":"resolve","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"dismiss","late":"reject","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"revoke","late":"resolve","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true},{"stop":"revoke","late":"reject","calls":1,"deadline":25,"timer":{"captured":true,"armed":true,"cancelled":true},"aborted":true,"published":false,"code":"STALE_BASE","resultDenied":true,"inserts":0,"unchanged":true,"jobs":["OUTCOME_UNKNOWN"],"attempts":[["OUTCOME_UNKNOWN",1,"RESERVATION_RETAINED"]],"acks":0,"bodyFree":true}]}
+# AI_NATIVE_FINAL_INSERT_AUTHORITY release {"results":[{"change":"edit","result":{"status":"failed","reason":"stale_assist"}},{"change":"revoke","result":{"status":"failed","reason":"stale_assist"}}],"calls":2}
+# AI_NATIVE_PRIVATE_ASSIST release {"native":true,"zeroContext":true,"oneAttempt":true,"bodyFree":true,"conditionGuard":true,"selection":true,"imeReplayDenied":true,"draftChangedDenied":true,"uncertainReplayDenied":true,"latestMutationDenied":true,"pagehide":true,"consentDenied":true,"send":0}
+# Subtest: AI-COST-05/06 release complete Organize and Assist lifecycle
+ok 58 - AI-COST-05/06 release complete Organize and Assist lifecycle
+  ---
+  duration_ms: 10337.131709
+  type: 'test'
+  ...
+# AI_NATIVE_BOUNDED_COST source {"cardinality":{"jobs":100,"items":10000,"attempts":0},"zero":{"name":"capture-zero-jobs","ms":9.699999988079071,"reads":86,"writes":24,"scans":11},"captureCost":{"name":"capture-100-jobs-times-100-items","ms":34.5,"reads":188,"writes":24,"scans":11},"edit":{"name":"edit-100-jobs-times-100-items","ms":130.79999999701977,"reads":445,"writes":115,"scans":1},"cancelled":100,"defaultAuthorityMissing":true}
+# AI_NATIVE_DEFER_HISTORY source {"nativeFactory":true,"activeBefore":102,"error":"STORAGE_FAILED","removed":2,"abortUnchanged":true,"status":"CANDIDATE_ONLY","cleanup":{"scanned":100,"archived":100,"nextCursor":"aiu:defer:[\\"aiu:job:f9c29e1884216cbb506401456b779822b7cd1a2aaa10366c2a1d0eeb7c7e23f9\\",\\"[\\\\\\"[\\\\\\\\\\\\\\"input\\\\\\\\\\\\\\",\\\\\\\\\\\\\\"block:1b581da7-7541-49e7-8ead-b62ccdf0ee16\\\\\\\\\\\\\\"]\\\\\\",\\\\\\"topic\\\\\\",\\\\\\"synthetic-defer\\\\\\"]\\"]"},"historyCount":100,"preserved":true,"jobsUnchanged":true,"usageUnchanged":true,"recordsUnchanged":true,"inputsUnchanged":true,"malformedReason":"DEFER_SCAN_BOUND","malformedUnchanged":true}
+# AI_NATIVE_STYLE_BINDING source {"nativeFactory":true,"aState":"PLANNED","bState":"PLANNED","ackDelta":1,"ackAPreserved":true,"stale":"STALE_BASE","newJob":true,"sameSemantic":true,"failure":"STALE_BASE","preferenceUnchanged":true,"controlUnchanged":true,"coverageUnchanged":true,"domainAbsent":true,"attempts":0}
+# AI_NATIVE_ASSIST_INTENT source {"nativeFactory":true,"singleJob":true,"a":"PLANNED","b":"PLANNED","c":"PLANNED","distinct":3,"ackDelta":1,"oldAckPreserved":true,"stale":"STALE_BASE","failure":"UNAVAILABLE","rollback":true,"domainAbsent":true}
+# AI_NATIVE_CHILD_SCOPE source {"nativeFactory":true,"results":[{"partial":false,"requests":[{"keys":["[\\"input\\",\\"block:077df697-8a53-4b5e-ad35-8b48aa7cdbad\\"]","[\\"input\\",\\"block:1257fcbe-3839-4bc8-9156-e498f96e5d3a\\"]","[\\"input\\",\\"block:139e2dee-d82d-47e8-93ea-9282b38f8892\\"]","[\\"input\\",\\"block:1ddb4535-8ffc-4918-8e3c-adf1980e5df5\\"]","[\\"input\\",\\"block:1e937fb4-b2ad-416d-a7a9-0427fa551895\\"]","[\\"input\\",\\"block:1ef90c2b-f85d-4c35-b09d-c39482176875\\"]","[\\"input\\",\\"block:2f539b71-6e4b-44a8-a086-04b7d96a774f\\"]","[\\"input\\",\\"block:33345384-359c-4427-aaf5-7e9234c8457c\\"]","[\\"input\\",\\"block:3d9ca3f6-db3c-4809-bd43-c835c4d4a2bd\\"]","[\\"input\\",\\"block:3e1dec6a-8955-4227-922a-7ac96d264166\\"]","[\\"input\\",\\"block:5c75ae34-5e43-40b7-8a5b-ca003884bc79\\"]","[\\"input\\",\\"block:635e6571-e249-4dbe-84ea-eff7bbf366d5\\"]","[\\"input\\",\\"block:65b749c3-2ea5-47c7-a9c0-45f83f9fbd4f\\"]","[\\"input\\",\\"block:66da9ebf-e4b2-4510-85ff-ec33ec951d95\\"]","[\\"input\\",\\"block:695eb3e9-4066-40cd-96fb-dc154e6cc48c\\"]","[\\"input\\",\\"block:7f4c31b4-88b7-4a9d-902a-c38334a88449\\"]","[\\"input\\",\\"block:8964bdfb-c46c-4715-b715-540dfb04e8fc\\"]","[\\"input\\",\\"block:8eaa2297-8c4d-447e-b6d0-a35450f82cef\\"]","[\\"input\\",\\"block:8fdc7303-e9ef-49f2-ae3c-9696b74dd2cb\\"]","[\\"input\\",\\"block:901e5360-8877-4129-82da-95260ae114eb\\"]","[\\"input\\",\\"block:93cbc666-94d2-486e-8768-8e79dcde423b\\"]","[\\"input\\",\\"block:949a6083-7636-4b0c-96ea-33e83af76573\\"]","[\\"input\\",\\"block:960edef7-eb56-40c9-b87e-6559f3528c2e\\"]","[\\"input\\",\\"block:9ea767be-c1c3-4b65-9f71-f6e9ae22915c\\"]","[\\"input\\",\\"block:a9e2a9df-27a1-4b99-b7b3-46d74e424582\\"]"],"evidence":["[\\"input\\",\\"block:077df697-8a53-4b5e-ad35-8b48aa7cdbad\\"]","[\\"input\\",\\"block:1257fcbe-3839-4bc8-9156-e498f96e5d3a\\"]","[\\"input\\",\\"block:139e2dee-d82d-47e8-93ea-9282b38f8892\\"]","[\\"input\\",\\"block:1ddb4535-8ffc-4918-8e3c-adf1980e5df5\\"]","[\\"input\\",\\"block:1e937fb4-b2ad-416d-a7a9-0427fa551895\\"]","[\\"input\\",\\"block:1ef90c2b-f85d-4c35-b09d-c39482176875\\"]","[\\"input\\",\\"block:2f539b71-6e4b-44a8-a086-04b7d96a774f\\"]","[\\"input\\",\\"block:33345384-359c-4427-aaf5-7e9234c8457c\\"]","[\\"input\\",\\"block:3d9ca3f6-db3c-4809-bd43-c835c4d4a2bd\\"]","[\\"input\\",\\"block:3e1dec6a-8955-4227-922a-7ac96d264166\\"]","[\\"input\\",\\"block:5c75ae34-5e43-40b7-8a5b-ca003884bc79\\"]","[\\"input\\",\\"block:635e6571-e249-4dbe-84ea-eff7bbf366d5\\"]","[\\"input\\",\\"block:65b749c3-2ea5-47c7-a9c0-45f83f9fbd4f\\"]","[\\"input\\",\\"block:66da9ebf-e4b2-4510-85ff-ec33ec951d95\\"]","[\\"input\\",\\"block:695eb3e9-4066-40cd-96fb-dc154e6cc48c\\"]","[\\"input\\",\\"block:7f4c31b4-88b7-4a9d-902a-c38334a88449\\"]","[\\"input\\",\\"block:8964bdfb-c46c-4715-b715-540dfb04e8fc\\"]","[\\"input\\",\\"block:8eaa2297-8c4d-447e-b6d0-a35450f82cef\\"]","[\\"input\\",\\"block:8fdc7303-e9ef-49f2-ae3c-9696b74dd2cb\\"]","[\\"input\\",\\"block:901e5360-8877-4129-82da-95260ae114eb\\"]","[\\"input\\",\\"block:93cbc666-94d2-486e-8768-8e79dcde423b\\"]","[\\"input\\",\\"block:949a6083-7636-4b0c-96ea-33e83af76573\\"]","[\\"input\\",\\"block:960edef7-eb56-40c9-b87e-6559f3528c2e\\"]","[\\"input\\",\\"block:9ea767be-c1c3-4b65-9f71-f6e9ae22915c\\"]","[\\"input\\",\\"block:a9e2a9df-27a1-4b99-b7b3-46d74e424582\\"]"],"completedAbsent":true},{"keys":["[\\"input\\",\\"block:ab16998b-aea4-4537-bfd9-f1b20501bef2\\"]","[\\"input\\",\\"block:b85b97da-4fdb-4094-a079-d15d8b0aee40\\"]","[\\"input\\",\\"block:bd53af3a-7e9e-4d37-82e1-3ac4b5f86f30\\"]","[\\"input\\",\\"block:c92a46fd-4869-411c-b575-2ed0cf00e46f\\"]","[\\"input\\",\\"block:d3a1c1f5-9c4f-476f-9911-848ca68f086a\\"]","[\\"input\\",\\"block:e528a7aa-8cae-490f-9869-8638799efc40\\"]","[\\"input\\",\\"block:ea5e97a2-d6e6-4f63-adc4-d11efbc73764\\"]","[\\"input\\",\\"block:eb0aad4e-7a78-4275-8aee-df9ef6d8b653\\"]","[\\"input\\",\\"block:eb391022-99ee-42bd-87f9-712e7fb4a982\\"]","[\\"input\\",\\"block:f12155eb-766c-4fe6-809c-84d629a27fae\\"]","[\\"input\\",\\"block:f607ed1e-be1b-4631-b0e5-0e1c9a4b1ae2\\"]","[\\"input\\",\\"block:feb755fe-5fb1-4d4b-aef1-43e1244144bf\\"]"],"evidence":["[\\"input\\",\\"block:ab16998b-aea4-4537-bfd9-f1b20501bef2\\"]","[\\"input\\",\\"block:b85b97da-4fdb-4094-a079-d15d8b0aee40\\"]","[\\"input\\",\\"block:bd53af3a-7e9e-4d37-82e1-3ac4b5f86f30\\"]","[\\"input\\",\\"block:c92a46fd-4869-411c-b575-2ed0cf00e46f\\"]","[\\"input\\",\\"block:d3a1c1f5-9c4f-476f-9911-848ca68f086a\\"]","[\\"input\\",\\"block:e528a7aa-8cae-490f-9869-8638799efc40\\"]","[\\"input\\",\\"block:ea5e97a2-d6e6-4f63-adc4-d11efbc73764\\"]","[\\"input\\",\\"block:eb0aad4e-7a78-4275-8aee-df9ef6d8b653\\"]","[\\"input\\",\\"block:eb391022-99ee-42bd-87f9-712e7fb4a982\\"]","[\\"input\\",\\"block:f12155eb-766c-4fe6-809c-84d629a27fae\\"]","[\\"input\\",\\"block:f607ed1e-be1b-4631-b0e5-0e1c9a4b1ae2\\"]","[\\"input\\",\\"block:feb755fe-5fb1-4d4b-aef1-43e1244144bf\\"]"],"completedAbsent":true}],"attempts":2},{"partial":true,"requests":[{"keys":["[\\"input\\",\\"block:bdf3322f-5292-461e-a567-9dc04f55e066\\"]"],"evidence":["[\\"input\\",\\"block:bdf3322f-5292-461e-a567-9dc04f55e066\\"]"],"completedAbsent":true}],"attempts":1}]}
+# AI_NATIVE_LOCAL_ORGANIZE source {"nativeFactory":true,"results":[{"reentered":[["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"]],"usageUnchanged":true,"abort":false,"error":null,"rollback":null,"adoptionAbort":null,"adoptionRollback":null,"cacheStates":["exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact"],"publicProfile":"profile_unavailable","calls":1,"state":"COMMITTED","repeated":"COMMITTED","acks":1,"candidateOnly":true,"saved":true,"hasHistory":true,"protectedUnchanged":true},{"reentered":[["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"]],"usageUnchanged":true,"abort":true,"error":"STORAGE_FAILED","rollback":true,"adoptionAbort":"STORAGE_FAILED","adoptionRollback":true,"cacheStates":["exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact"],"publicProfile":"profile_unavailable","calls":1,"state":"COMMITTED","repeated":"COMMITTED","acks":1,"candidateOnly":true,"saved":true,"hasHistory":true,"protectedUnchanged":true}]}
+# AI_NATIVE_INCREMENTAL_V2 source {"nativeFactory":true,"results":[{"payloadSizes":[20,20,20,20,20,20,20,20,20,20,5],"calls":11,"retained":true,"unchanged":true,"rollback":true,"abortCode":"STORAGE_FAILED","styleRoundtrip":{"state":"NO_DELTA","writes":0,"unchanged":true,"calls":10},"refs":205,"lines":205,"noDelta":"NO_DELTA","history":true},{"payloadSizes":[20,20,7,3],"calls":4,"retained":true,"unchanged":true,"rollback":true,"abortCode":"STORAGE_FAILED","styleRoundtrip":{"state":"NO_DELTA","writes":0,"unchanged":true,"calls":3},"refs":50,"lines":50,"noDelta":"NO_DELTA","history":true}]}
+# AI_NATIVE_MULTICHILD_V2 source {"nativeFactory":true,"results":[{"n":60,"sizes":[20,20,20],"unique":60,"rejectedFifth":"INVALID_REQUEST","beforeAttempts":0,"abortCode":"STORAGE_FAILED","rollback":true,"state":"COMMITTED","refs":60,"attempts":[1,1,1],"receiptStates":["COMMITTED","COMMITTED","COMMITTED"],"ackCount":60,"unchanged":true,"cacheExact":false},{"n":80,"sizes":[20,20,20,20],"unique":80,"rejectedFifth":"INVALID_REQUEST","beforeAttempts":0,"abortCode":"STORAGE_FAILED","rollback":true,"state":"COMMITTED","refs":80,"attempts":[1,1,1,1],"receiptStates":["COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"ackCount":80,"unchanged":true,"cacheExact":false}]}
+# AI_NATIVE_PROTECTED_STYLE_V3 source {"nativeFactory":true,"identical":true,"changed":8,"mixed":["original","concise"],"mixedStale":true,"trace":{"phase":"protected-refusal-complete","protectedFields":["blockSummary","currentView","decisions","judgments","keyInformation","openQuestions","possibleEvolution","preferences"],"providerBefore":2,"before":{"jobs":2,"attempts":2,"acks":4},"ackHits":0,"handle":{"state":"NO_DELTA","jobIdPresent":false,"blockedReason":"PROTECTED_FIELDS"},"abortCode":"UNAVAILABLE","after":{"jobs":2,"attempts":2,"acks":4},"providerAfter":2,"currentUnchanged":true,"allRowsUnchanged":true},"sizes":[2,2]}
+# AI_NATIVE_LEGACY_OWNER_CONTROLS source [{"mode":"style-ACK","handleState":"PLANNED","jobIdPresent":true,"protectedBefore":false,"sizes":[2,2],"code":"STORAGE_FAILED","hits":1,"rollback":true,"nativeFactory":true,"state":"COMMITTED","identical":true,"changed":8,"sameBlocks":false,"refs":2,"generations":1,"allCommitted":true,"noDelta":null,"cacheExact":null,"cacheRowsUnchanged":null,"style":"concise","proposalVersion":4},{"mode":"legacy-dispose","handleState":"PLANNED","jobIdPresent":true,"protectedBefore":false,"sizes":[2,1],"code":"STALE_BASE","hits":1,"rollback":true,"nativeFactory":true,"disposed":true},{"mode":"delta-cache","handleState":"PLANNED","jobIdPresent":true,"protectedBefore":false,"sizes":[2,1],"nativeFactory":true,"state":"COMMITTED","identical":false,"changed":1,"sameBlocks":true,"refs":3,"generations":2,"allCommitted":true,"noDelta":"NO_DELTA","cacheExact":false,"cacheRowsUnchanged":true,"style":"original","proposalVersion":4}]
+# AI_NATIVE_EXACT_MULTICHILD_CACHE source {"nativeFactory":true,"results":[{"children":2,"style":"original","fault":"ack-hole","completion":"dispose","state":"COMMITTED","schema":4,"base":"none","generations":1,"exact":"exact","sizes":[20,20],"cached":[["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true]],"writes":0,"unchanged":true,"faultCode":"STORAGE_FAILED","sawCandidateWrite":true,"faultStamped":false,"faultRollback":true,"completionCode":"UNAVAILABLE","completionChanged":true,"completionUnchanged":true,"attempts":[1,1],"receiptStates":["COMMITTED","COMMITTED"],"acks":40},{"children":3,"style":"balanced","fault":"unknown","completion":"style","state":"COMMITTED","schema":4,"base":"none","generations":1,"exact":"exact","sizes":[20,20,20],"cached":[["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true]],"writes":0,"unchanged":true,"faultCode":"STORAGE_FAILED","sawCandidateWrite":true,"faultStamped":false,"faultRollback":true,"completionCode":"STALE_BASE","completionChanged":true,"completionUnchanged":true,"attempts":[1,1,1],"receiptStates":["COMMITTED","COMMITTED","COMMITTED"],"acks":60},{"children":4,"style":"concise","fault":"malformed","completion":null,"state":"COMMITTED","schema":4,"base":"none","generations":1,"exact":"exact","sizes":[20,20,20,20],"cached":[["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true]],"writes":0,"unchanged":true,"faultCode":"STORAGE_FAILED","sawCandidateWrite":true,"faultStamped":false,"faultRollback":true,"completionCode":null,"completionChanged":false,"completionUnchanged":null,"attempts":[1,1,1,1],"receiptStates":["COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"acks":80}]}
+# Subtest: AI-COST-01 source native IndexedDB atomic delta, facet holes and page-reload unknown-attempt fence
+ok 59 - AI-COST-01 source native IndexedDB atomic delta, facet holes and page-reload unknown-attempt fence
+  ---
+  duration_ms: 25196.358125
+  type: 'test'
+  ...
+# AI_NATIVE_BOUNDED_COST release {"cardinality":{"jobs":100,"items":10000,"attempts":0},"zero":{"name":"capture-zero-jobs","ms":6.800000011920929,"reads":86,"writes":24,"scans":11},"captureCost":{"name":"capture-100-jobs-times-100-items","ms":35.599999994039536,"reads":188,"writes":24,"scans":11},"edit":{"name":"edit-100-jobs-times-100-items","ms":153.80000001192093,"reads":445,"writes":115,"scans":1},"cancelled":100,"defaultAuthorityMissing":true}
+# AI_NATIVE_DEFER_HISTORY release {"nativeFactory":true,"activeBefore":102,"error":"STORAGE_FAILED","removed":2,"abortUnchanged":true,"status":"CANDIDATE_ONLY","cleanup":{"scanned":100,"archived":100,"nextCursor":"aiu:defer:[\\"aiu:job:fbe7719803e2cb19175881092963e9be35abb9f099345e143bc6bf91b2e26b3b\\",\\"[\\\\\\"[\\\\\\\\\\\\\\"input\\\\\\\\\\\\\\",\\\\\\\\\\\\\\"block:99e73f7b-30d5-4d2b-9dcd-d33a34d25dd1\\\\\\\\\\\\\\"]\\\\\\",\\\\\\"topic\\\\\\",\\\\\\"synthetic-defer\\\\\\"]\\"]"},"historyCount":100,"preserved":true,"jobsUnchanged":true,"usageUnchanged":true,"recordsUnchanged":true,"inputsUnchanged":true,"malformedReason":"DEFER_SCAN_BOUND","malformedUnchanged":true}
+# AI_NATIVE_STYLE_BINDING release {"nativeFactory":true,"aState":"PLANNED","bState":"PLANNED","ackDelta":1,"ackAPreserved":true,"stale":"STALE_BASE","newJob":true,"sameSemantic":true,"failure":"STALE_BASE","preferenceUnchanged":true,"controlUnchanged":true,"coverageUnchanged":true,"domainAbsent":true,"attempts":0}
+# AI_NATIVE_ASSIST_INTENT release {"nativeFactory":true,"singleJob":true,"a":"PLANNED","b":"PLANNED","c":"PLANNED","distinct":3,"ackDelta":1,"oldAckPreserved":true,"stale":"STALE_BASE","failure":"UNAVAILABLE","rollback":true,"domainAbsent":true}
+# AI_NATIVE_CHILD_SCOPE release {"nativeFactory":true,"results":[{"partial":false,"requests":[{"keys":["[\\"input\\",\\"block:0f7bc61b-de74-44b2-ada7-204d96bf7562\\"]","[\\"input\\",\\"block:18d257f1-3347-4f63-84d7-d30350719e64\\"]","[\\"input\\",\\"block:22bfb615-f251-4947-a40c-1a306f5f6df8\\"]","[\\"input\\",\\"block:252c7d76-c38f-4264-b72c-713a131e4817\\"]","[\\"input\\",\\"block:282a931a-7d02-4419-9ac6-efd5cf1736e6\\"]","[\\"input\\",\\"block:286e5362-5db0-49ed-88f2-9d279f34288d\\"]","[\\"input\\",\\"block:2feb634d-b352-44a5-bb17-9fd70db5746d\\"]","[\\"input\\",\\"block:33f0175f-a475-43d3-834f-456c2b72b93c\\"]","[\\"input\\",\\"block:379d814c-da7b-4b45-8241-a3df9a3eb3f1\\"]","[\\"input\\",\\"block:39becf96-1dbe-421b-b3b3-b506c4d6ce50\\"]","[\\"input\\",\\"block:3f9dc9b3-80a9-44d7-9673-f46602b19d3a\\"]","[\\"input\\",\\"block:510564f4-7db3-4f48-b9eb-bc322791a58e\\"]","[\\"input\\",\\"block:58058803-baf1-4752-96a7-7360bfa36167\\"]","[\\"input\\",\\"block:5baa29da-2c23-4d76-a119-0c8842a6c24f\\"]","[\\"input\\",\\"block:65f584dd-9fce-4a38-96b6-42f59bbe0c88\\"]","[\\"input\\",\\"block:794ca5a8-50d0-4e0d-99df-79f0283371ad\\"]","[\\"input\\",\\"block:883e9ac4-b077-4e08-a7e2-0f921ed44a13\\"]","[\\"input\\",\\"block:985ceaa7-2963-4a0b-a056-92c1cb098e0c\\"]","[\\"input\\",\\"block:9a1d96a7-b3c9-4a06-b547-104a1dcc5705\\"]","[\\"input\\",\\"block:9bdb876e-31c1-438d-896a-daae5a0bf5a8\\"]","[\\"input\\",\\"block:9deb3516-24b4-48d7-97e4-20dc08b49639\\"]","[\\"input\\",\\"block:abf6439e-b790-401f-9803-bfdcb703d45d\\"]","[\\"input\\",\\"block:aeaefc39-b496-4043-8eb1-5bd71f40021a\\"]","[\\"input\\",\\"block:b01ab5e4-d30c-467d-9fa5-2bd8de219dd0\\"]","[\\"input\\",\\"block:b55565f8-c2d7-45a9-8c96-2fac9ba498fa\\"]"],"evidence":["[\\"input\\",\\"block:0f7bc61b-de74-44b2-ada7-204d96bf7562\\"]","[\\"input\\",\\"block:18d257f1-3347-4f63-84d7-d30350719e64\\"]","[\\"input\\",\\"block:22bfb615-f251-4947-a40c-1a306f5f6df8\\"]","[\\"input\\",\\"block:252c7d76-c38f-4264-b72c-713a131e4817\\"]","[\\"input\\",\\"block:282a931a-7d02-4419-9ac6-efd5cf1736e6\\"]","[\\"input\\",\\"block:286e5362-5db0-49ed-88f2-9d279f34288d\\"]","[\\"input\\",\\"block:2feb634d-b352-44a5-bb17-9fd70db5746d\\"]","[\\"input\\",\\"block:33f0175f-a475-43d3-834f-456c2b72b93c\\"]","[\\"input\\",\\"block:379d814c-da7b-4b45-8241-a3df9a3eb3f1\\"]","[\\"input\\",\\"block:39becf96-1dbe-421b-b3b3-b506c4d6ce50\\"]","[\\"input\\",\\"block:3f9dc9b3-80a9-44d7-9673-f46602b19d3a\\"]","[\\"input\\",\\"block:510564f4-7db3-4f48-b9eb-bc322791a58e\\"]","[\\"input\\",\\"block:58058803-baf1-4752-96a7-7360bfa36167\\"]","[\\"input\\",\\"block:5baa29da-2c23-4d76-a119-0c8842a6c24f\\"]","[\\"input\\",\\"block:65f584dd-9fce-4a38-96b6-42f59bbe0c88\\"]","[\\"input\\",\\"block:794ca5a8-50d0-4e0d-99df-79f0283371ad\\"]","[\\"input\\",\\"block:883e9ac4-b077-4e08-a7e2-0f921ed44a13\\"]","[\\"input\\",\\"block:985ceaa7-2963-4a0b-a056-92c1cb098e0c\\"]","[\\"input\\",\\"block:9a1d96a7-b3c9-4a06-b547-104a1dcc5705\\"]","[\\"input\\",\\"block:9bdb876e-31c1-438d-896a-daae5a0bf5a8\\"]","[\\"input\\",\\"block:9deb3516-24b4-48d7-97e4-20dc08b49639\\"]","[\\"input\\",\\"block:abf6439e-b790-401f-9803-bfdcb703d45d\\"]","[\\"input\\",\\"block:aeaefc39-b496-4043-8eb1-5bd71f40021a\\"]","[\\"input\\",\\"block:b01ab5e4-d30c-467d-9fa5-2bd8de219dd0\\"]","[\\"input\\",\\"block:b55565f8-c2d7-45a9-8c96-2fac9ba498fa\\"]"],"completedAbsent":true},{"keys":["[\\"input\\",\\"block:b768deff-0f5e-4c20-b6c4-26e5937e1ef1\\"]","[\\"input\\",\\"block:c8d1406d-c5c0-4666-a08e-080fc63af8d1\\"]","[\\"input\\",\\"block:c95eec2a-af38-4f6a-a042-931136d09e11\\"]","[\\"input\\",\\"block:cb01b271-7f63-4328-a4a4-b0cad20f52a4\\"]","[\\"input\\",\\"block:cf1f6c8d-ed56-4500-9aa9-6e9e0dc2ffbf\\"]","[\\"input\\",\\"block:d4a86903-c4ff-4ae9-b73f-835f0913d8b3\\"]","[\\"input\\",\\"block:d825e793-0904-4845-ad88-5d3beb1a440c\\"]","[\\"input\\",\\"block:dd819ea8-ff69-4367-8e02-513ac0d73e3d\\"]","[\\"input\\",\\"block:e52a313a-f698-465c-a701-612e048485eb\\"]","[\\"input\\",\\"block:e8e716c0-4ca3-4e11-82f6-31dea3bb7d16\\"]","[\\"input\\",\\"block:ea650afe-58a5-420b-826a-b2898e969042\\"]","[\\"input\\",\\"block:f3ea071f-a423-4c91-b5b6-698c56ba26ca\\"]"],"evidence":["[\\"input\\",\\"block:b768deff-0f5e-4c20-b6c4-26e5937e1ef1\\"]","[\\"input\\",\\"block:c8d1406d-c5c0-4666-a08e-080fc63af8d1\\"]","[\\"input\\",\\"block:c95eec2a-af38-4f6a-a042-931136d09e11\\"]","[\\"input\\",\\"block:cb01b271-7f63-4328-a4a4-b0cad20f52a4\\"]","[\\"input\\",\\"block:cf1f6c8d-ed56-4500-9aa9-6e9e0dc2ffbf\\"]","[\\"input\\",\\"block:d4a86903-c4ff-4ae9-b73f-835f0913d8b3\\"]","[\\"input\\",\\"block:d825e793-0904-4845-ad88-5d3beb1a440c\\"]","[\\"input\\",\\"block:dd819ea8-ff69-4367-8e02-513ac0d73e3d\\"]","[\\"input\\",\\"block:e52a313a-f698-465c-a701-612e048485eb\\"]","[\\"input\\",\\"block:e8e716c0-4ca3-4e11-82f6-31dea3bb7d16\\"]","[\\"input\\",\\"block:ea650afe-58a5-420b-826a-b2898e969042\\"]","[\\"input\\",\\"block:f3ea071f-a423-4c91-b5b6-698c56ba26ca\\"]"],"completedAbsent":true}],"attempts":2},{"partial":true,"requests":[{"keys":["[\\"input\\",\\"block:0d393cac-0eb5-4ad9-88aa-ecce4a9a17d2\\"]"],"evidence":["[\\"input\\",\\"block:0d393cac-0eb5-4ad9-88aa-ecce4a9a17d2\\"]"],"completedAbsent":true}],"attempts":1}]}
+# AI_NATIVE_LOCAL_ORGANIZE release {"nativeFactory":true,"results":[{"reentered":[["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"]],"usageUnchanged":true,"abort":false,"error":null,"rollback":null,"adoptionAbort":null,"adoptionRollback":null,"cacheStates":["exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact"],"publicProfile":"profile_unavailable","calls":1,"state":"COMMITTED","repeated":"COMMITTED","acks":1,"candidateOnly":true,"saved":true,"hasHistory":true,"protectedUnchanged":true},{"reentered":[["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"],["CACHED","CACHED","SYNTHETIC é😀 native Organize"]],"usageUnchanged":true,"abort":true,"error":"STORAGE_FAILED","rollback":true,"adoptionAbort":"STORAGE_FAILED","adoptionRollback":true,"cacheStates":["exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact","exact"],"publicProfile":"profile_unavailable","calls":1,"state":"COMMITTED","repeated":"COMMITTED","acks":1,"candidateOnly":true,"saved":true,"hasHistory":true,"protectedUnchanged":true}]}
+# AI_NATIVE_INCREMENTAL_V2 release {"nativeFactory":true,"results":[{"payloadSizes":[20,20,20,20,20,20,20,20,20,20,5],"calls":11,"retained":true,"unchanged":true,"rollback":true,"abortCode":"STORAGE_FAILED","styleRoundtrip":{"state":"NO_DELTA","writes":0,"unchanged":true,"calls":10},"refs":205,"lines":205,"noDelta":"NO_DELTA","history":true},{"payloadSizes":[20,20,7,3],"calls":4,"retained":true,"unchanged":true,"rollback":true,"abortCode":"STORAGE_FAILED","styleRoundtrip":{"state":"NO_DELTA","writes":0,"unchanged":true,"calls":3},"refs":50,"lines":50,"noDelta":"NO_DELTA","history":true}]}
+# AI_NATIVE_MULTICHILD_V2 release {"nativeFactory":true,"results":[{"n":60,"sizes":[20,20,20],"unique":60,"rejectedFifth":"INVALID_REQUEST","beforeAttempts":0,"abortCode":"STORAGE_FAILED","rollback":true,"state":"COMMITTED","refs":60,"attempts":[1,1,1],"receiptStates":["COMMITTED","COMMITTED","COMMITTED"],"ackCount":60,"unchanged":true,"cacheExact":false},{"n":80,"sizes":[20,20,20,20],"unique":80,"rejectedFifth":"INVALID_REQUEST","beforeAttempts":0,"abortCode":"STORAGE_FAILED","rollback":true,"state":"COMMITTED","refs":80,"attempts":[1,1,1,1],"receiptStates":["COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"ackCount":80,"unchanged":true,"cacheExact":false}]}
+# AI_NATIVE_PROTECTED_STYLE_V3 release {"nativeFactory":true,"identical":true,"changed":8,"mixed":["original","concise"],"mixedStale":true,"trace":{"phase":"protected-refusal-complete","protectedFields":["blockSummary","currentView","decisions","judgments","keyInformation","openQuestions","possibleEvolution","preferences"],"providerBefore":2,"before":{"jobs":2,"attempts":2,"acks":4},"ackHits":0,"handle":{"state":"NO_DELTA","jobIdPresent":false,"blockedReason":"PROTECTED_FIELDS"},"abortCode":"UNAVAILABLE","after":{"jobs":2,"attempts":2,"acks":4},"providerAfter":2,"currentUnchanged":true,"allRowsUnchanged":true},"sizes":[2,2]}
+# AI_NATIVE_LEGACY_OWNER_CONTROLS release [{"mode":"style-ACK","handleState":"PLANNED","jobIdPresent":true,"protectedBefore":false,"sizes":[2,2],"code":"STORAGE_FAILED","hits":1,"rollback":true,"nativeFactory":true,"state":"COMMITTED","identical":true,"changed":8,"sameBlocks":false,"refs":2,"generations":1,"allCommitted":true,"noDelta":null,"cacheExact":null,"cacheRowsUnchanged":null,"style":"concise","proposalVersion":4},{"mode":"legacy-dispose","handleState":"PLANNED","jobIdPresent":true,"protectedBefore":false,"sizes":[2,1],"code":"STALE_BASE","hits":1,"rollback":true,"nativeFactory":true,"disposed":true},{"mode":"delta-cache","handleState":"PLANNED","jobIdPresent":true,"protectedBefore":false,"sizes":[2,1],"nativeFactory":true,"state":"COMMITTED","identical":false,"changed":1,"sameBlocks":true,"refs":3,"generations":2,"allCommitted":true,"noDelta":"NO_DELTA","cacheExact":false,"cacheRowsUnchanged":true,"style":"original","proposalVersion":4}]
+# AI_NATIVE_EXACT_MULTICHILD_CACHE release {"nativeFactory":true,"results":[{"children":2,"style":"original","fault":"ack-hole","completion":"dispose","state":"COMMITTED","schema":4,"base":"none","generations":1,"exact":"exact","sizes":[20,20],"cached":[["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true]],"writes":0,"unchanged":true,"faultCode":"STORAGE_FAILED","sawCandidateWrite":true,"faultStamped":false,"faultRollback":true,"completionCode":"UNAVAILABLE","completionChanged":true,"completionUnchanged":true,"attempts":[1,1],"receiptStates":["COMMITTED","COMMITTED"],"acks":40},{"children":3,"style":"balanced","fault":"unknown","completion":"style","state":"COMMITTED","schema":4,"base":"none","generations":1,"exact":"exact","sizes":[20,20,20],"cached":[["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true]],"writes":0,"unchanged":true,"faultCode":"STORAGE_FAILED","sawCandidateWrite":true,"faultStamped":false,"faultRollback":true,"completionCode":"STALE_BASE","completionChanged":true,"completionUnchanged":true,"attempts":[1,1,1],"receiptStates":["COMMITTED","COMMITTED","COMMITTED"],"acks":60},{"children":4,"style":"concise","fault":"malformed","completion":null,"state":"COMMITTED","schema":4,"base":"none","generations":1,"exact":"exact","sizes":[20,20,20,20],"cached":[["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true],["CACHED","CACHED",true,true]],"writes":0,"unchanged":true,"faultCode":"STORAGE_FAILED","sawCandidateWrite":true,"faultStamped":false,"faultRollback":true,"completionCode":null,"completionChanged":false,"completionUnchanged":null,"attempts":[1,1,1,1],"receiptStates":["COMMITTED","COMMITTED","COMMITTED","COMMITTED"],"acks":80}]}
+# Subtest: AI-COST-01 release native IndexedDB atomic delta, facet holes and page-reload unknown-attempt fence
+ok 60 - AI-COST-01 release native IndexedDB atomic delta, facet holes and page-reload unknown-attempt fence
+  ---
+  duration_ms: 27775.405333
+  type: 'test'
+  ...
+# Subtest: NIB S1 original query and selection UI source
+    # Subtest: explicit empty SEARCH never becomes a complete-history feed and IME defers its reader
+    ok 1 - explicit empty SEARCH never becomes a complete-history feed and IME defers its reader
+      ---
+      duration_ms: 256.349292
+      type: 'test'
+      ...
+    # Subtest: all rare Inputs use original qualified Archive order, complete paging and fixed-width rows
+    ok 2 - all rare Inputs use original qualified Archive order, complete paging and fixed-width rows
+      ---
+      duration_ms: 1005.722792
+      type: 'test'
+      ...
+    # Subtest: multiline current Input opens original exact body and native pointer selection inserts only that range
+    ok 3 - multiline current Input opens original exact body and native pointer selection inserts only that range
+      ---
+      duration_ms: 912.571416
+      type: 'test'
+      ...
+    # Subtest: invalid Unicode boundary refuses native current reader rather than falling back to whole body
+    ok 4 - invalid Unicode boundary refuses native current reader rather than falling back to whole body
+      ---
+      duration_ms: 38.054417
+      type: 'test'
+      ...
+    # Subtest: late qualified copy after genuine Working edit cannot reach copy payload or resurrect old body
+    ok 5 - late qualified copy after genuine Working edit cannot reach copy payload or resurrect old body
+      ---
+      duration_ms: 770.777667
+      type: 'test'
+      ...
+    # Subtest: explicit history edit saves independent Prompt work without changing original Source or Working
+    ok 6 - explicit history edit saves independent Prompt work without changing original Source or Working
+      ---
+      duration_ms: 1167.32075
+      type: 'test'
+      ...
+    # Subtest: SEARCH applies explicit appearance/language without rebuilding the original unsaved editor
+    ok 7 - SEARCH applies explicit appearance/language without rebuilding the original unsaved editor
+      ---
+      duration_ms: 680.64625
+      type: 'test'
+      ...
+    # Subtest: original representative chooser is reachable at the same width and preserves independently edited priority
+    ok 8 - original representative chooser is reachable at the same width and preserves independently edited priority
+      ---
+      duration_ms: 6626.522833
+      type: 'test'
+      ...
+    # Subtest: late or owner-refused representative members cannot reappear after genuine Working invalidation
+    ok 9 - late or owner-refused representative members cannot reappear after genuine Working invalidation
+      ---
+      duration_ms: 1879.830916
+      type: 'test'
+      ...
+    # Subtest: first Up and last Down are disabled while valid movement keeps every hidden pin in canonical order
+    ok 10 - first Up and last Down are disabled while valid movement keeps every hidden pin in canonical order
+      ---
+      duration_ms: 1257.295292
+      type: 'test'
+      ...
+    # Subtest: a deep original search check and active second page return with the same relative result and focus
+    ok 11 - a deep original search check and active second page return with the same relative result and focus
+      ---
+      duration_ms: 1836.919125
+      type: 'test'
+      ...
+    # Subtest: a held original layout ACK cannot take focus back from a newer trusted keyboard choice
+    ok 12 - a held original layout ACK cannot take focus back from a newer trusted keyboard choice
+      ---
+      duration_ms: 752.09125
+      type: 'test'
+      ...
+    # Subtest: all four original modes retain exact narrow widths including the 400 and 401 boundary
+    ok 13 - all four original modes retain exact narrow widths including the 400 and 401 boundary
+      ---
+      duration_ms: 7999.665833
+      type: 'test'
+      ...
+    # Subtest: cross-paragraph original Unicode selection survives native Tab to Copy and explicit Clear restores whole text
+    ok 14 - cross-paragraph original Unicode selection survives native Tab to Copy and explicit Clear restores whole text
+      ---
+      duration_ms: 1400.865083
+      type: 'test'
+      ...
+    # Subtest: reopening requalifies a changed original Input without painting its previous body while the real reader is held
+    ok 15 - reopening requalifies a changed original Input without painting its previous body while the real reader is held
+      ---
+      duration_ms: 752.59225
+      type: 'test'
+      ...
+    # Subtest: Clear stays empty SEARCH and the candidate PAIA link does not borrow the remembered query
+    ok 16 - Clear stays empty SEARCH and the candidate PAIA link does not borrow the remembered query
+      ---
+      duration_ms: 924.085208
+      type: 'test'
+      ...
+    1..16
+ok 61 - NIB S1 original query and selection UI source
+  ---
+  duration_ms: 34285.392417
+  type: 'test'
+  ...
+# Subtest: NIB S1 original query and selection UI release
+    # Subtest: explicit empty SEARCH never becomes a complete-history feed and IME defers its reader
+    ok 1 - explicit empty SEARCH never becomes a complete-history feed and IME defers its reader
+      ---
+      duration_ms: 222.368583
+      type: 'test'
+      ...
+    # Subtest: all rare Inputs use original qualified Archive order, complete paging and fixed-width rows
+    ok 2 - all rare Inputs use original qualified Archive order, complete paging and fixed-width rows
+      ---
+      duration_ms: 984.702667
+      type: 'test'
+      ...
+    # Subtest: multiline current Input opens original exact body and native pointer selection inserts only that range
+    ok 3 - multiline current Input opens original exact body and native pointer selection inserts only that range
+      ---
+      duration_ms: 933.964458
+      type: 'test'
+      ...
+    # Subtest: invalid Unicode boundary refuses native current reader rather than falling back to whole body
+    ok 4 - invalid Unicode boundary refuses native current reader rather than falling back to whole body
+      ---
+      duration_ms: 35.449875
+      type: 'test'
+      ...
+    # Subtest: late qualified copy after genuine Working edit cannot reach copy payload or resurrect old body
+    ok 5 - late qualified copy after genuine Working edit cannot reach copy payload or resurrect old body
+      ---
+      duration_ms: 774.003166
+      type: 'test'
+      ...
+    # Subtest: explicit history edit saves independent Prompt work without changing original Source or Working
+    ok 6 - explicit history edit saves independent Prompt work without changing original Source or Working
+      ---
+      duration_ms: 1138.645
+      type: 'test'
+      ...
+    # Subtest: SEARCH applies explicit appearance/language without rebuilding the original unsaved editor
+    ok 7 - SEARCH applies explicit appearance/language without rebuilding the original unsaved editor
+      ---
+      duration_ms: 707.132083
+      type: 'test'
+      ...
+    # Subtest: original representative chooser is reachable at the same width and preserves independently edited priority
+    ok 8 - original representative chooser is reachable at the same width and preserves independently edited priority
+      ---
+      duration_ms: 6590.233625
+      type: 'test'
+      ...
+    # Subtest: late or owner-refused representative members cannot reappear after genuine Working invalidation
+    ok 9 - late or owner-refused representative members cannot reappear after genuine Working invalidation
+      ---
+      duration_ms: 1765.511791
+      type: 'test'
+      ...
+    # Subtest: first Up and last Down are disabled while valid movement keeps every hidden pin in canonical order
+    ok 10 - first Up and last Down are disabled while valid movement keeps every hidden pin in canonical order
+      ---
+      duration_ms: 1304.074417
+      type: 'test'
+      ...
+    # Subtest: a deep original search check and active second page return with the same relative result and focus
+    ok 11 - a deep original search check and active second page return with the same relative result and focus
+      ---
+      duration_ms: 1609.251
+      type: 'test'
+      ...
+# a held original layout ACK cannot take focus back from a newer trusted keyboard choice AssertionError [ERR_ASSERTION]: synthetic expected state
+#     at eventually (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/harness/fake-chatgpt.mjs:16:109)
+#     at async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/nib-v4-search-chrome-e2e.test.mjs:163:118
+#     at async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/nib-v4-search-chrome-e2e.test.mjs:51:153)
+#     at async Test.run (node:internal/test_runner/test:1054:7)
+#     at async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/nib-v4-search-chrome-e2e.test.mjs:160:3)
+#     at async Test.run (node:internal/test_runner/test:1054:7)
+#     at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+    # Subtest: a held original layout ACK cannot take focus back from a newer trusted keyboard choice
+    not ok 12 - a held original layout ACK cannot take focus back from a newer trusted keyboard choice
+      ---
+      duration_ms: 14821.371958
+      type: 'test'
+      location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/nib-v4-search-chrome-e2e.test.mjs:51:89'
+      failureType: 'testCodeFailure'
+      error: 'synthetic expected state'
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      operator: 'fail'
+      stack: |-
+        eventually (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/harness/fake-chatgpt.mjs:16:109)
+        async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/nib-v4-search-chrome-e2e.test.mjs:163:118
+        async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/nib-v4-search-chrome-e2e.test.mjs:51:153)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/nib-v4-search-chrome-e2e.test.mjs:160:3)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: all four original modes retain exact narrow widths including the 400 and 401 boundary
+    ok 13 - all four original modes retain exact narrow widths including the 400 and 401 boundary
+      ---
+      duration_ms: 8130.591625
+      type: 'test'
+      ...
+    # Subtest: cross-paragraph original Unicode selection survives native Tab to Copy and explicit Clear restores whole text
+    ok 14 - cross-paragraph original Unicode selection survives native Tab to Copy and explicit Clear restores whole text
+      ---
+      duration_ms: 1437.122709
+      type: 'test'
+      ...
+    # Subtest: reopening requalifies a changed original Input without painting its previous body while the real reader is held
+    ok 15 - reopening requalifies a changed original Input without painting its previous body while the real reader is held
+      ---
+      duration_ms: 683.69925
+      type: 'test'
+      ...
+    # Subtest: Clear stays empty SEARCH and the candidate PAIA link does not borrow the remembered query
+    ok 16 - Clear stays empty SEARCH and the candidate PAIA link does not borrow the remembered query
+      ---
+      duration_ms: 943.409583
+      type: 'test'
+      ...
+    1..16
+not ok 62 - NIB S1 original query and selection UI release
+  ---
+  duration_ms: 49400.051667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/nib-v4-search-chrome-e2e.test.mjs:45:85'
+  failureType: 'testCodeFailure'
+  error: |-
+    all original and current qualification cases must pass
+    
+    15 !== 16
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 16
+  actual: 15
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/nib-v4-search-chrome-e2e.test.mjs:184:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# SET2_NEXT_COMPACT {"variant":"source","geometry":{"x":16,"right":304,"width":288,"overflow":0,"pageOverflow":0}}
+# Subtest: SET2-03 source consent and shared persistent-preference owner
+ok 63 - SET2-03 source consent and shared persistent-preference owner
+  ---
+  duration_ms: 5062.68575
+  type: 'test'
+  ...
+# SET2_NEXT_COMPACT {"variant":"release","geometry":{"x":16,"right":304,"width":288,"overflow":0,"pageOverflow":0}}
+# Subtest: SET2-03 release consent and shared persistent-preference owner
+ok 64 - SET2-03 release consent and shared persistent-preference owner
+  ---
+  duration_ms: 6039.803709
+  type: 'test'
+  ...
+# Subtest: SET2 restore intent source held original read preserves native Reading selection
+ok 65 - SET2 restore intent source held original read preserves native Reading selection
+  ---
+  duration_ms: 2308.148583
+  type: 'test'
+  ...
+# Subtest: SET2 restore intent release held original read preserves native Reading selection
+ok 66 - SET2 restore intent release held original read preserves native Reading selection
+  ---
+  duration_ms: 3818.416125
+  type: 'test'
+  ...
+# Subtest: whole Entry move and existing restore source
+ok 67 - whole Entry move and existing restore source
+  ---
+  duration_ms: 5918.62425
+  type: 'test'
+  ...
+# Subtest: whole Entry move and existing restore release
+ok 68 - whole Entry move and existing restore release
+  ---
+  duration_ms: 7362.370458
+  type: 'test'
+  ...
+# Subtest: Entry seed original publication rejects unadmitted source without replay
+ok 69 - Entry seed original publication rejects unadmitted source without replay
+  ---
+  duration_ms: 1233.954709
+  type: 'test'
+  ...
+# Subtest: Entry seed original publication rejects unadmitted release without replay
+ok 70 - Entry seed original publication rejects unadmitted release without replay
+  ---
+  duration_ms: 2579.118959
+  type: 'test'
+  ...
+1..70
+# tests 102
+# suites 0
+# pass 100
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 659826.196125

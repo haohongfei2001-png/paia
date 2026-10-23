@@ -5,8 +5,6 @@ import sys
 sys.dont_write_bytecode = True
 from home import render as render_home
 from launch_copy import product_copy
-from continuity_data import sample_mapping
-from continuity import render_cases, render_how
 from launch_pages import download as render_download, help_page as render_help, contact as render_contact, installation
 from pages import render_pages
 from product_pages import render_demo, render_trust, render_status, render_about
@@ -26,12 +24,7 @@ EMAIL='haohongfei2001@gmail.com'
 def build(lang):
     en=lang=='en'
     prefix='/' if en else '/zh/'
-    example_copy = sample_mapping(lang)
-    def t(zh,eng):
-        value = product_copy(zh,eng,en)
-        for old,new in sorted(example_copy.items(),key=lambda pair:-len(pair[0])):
-            value = value.replace(old,new)
-        return value
+    def t(zh,eng): return product_copy(zh,eng,en)
     def link(page='index.html',anchor=''):
         page = {'beta.html':'download.html', 'status.html':'help.html'}.get(page,page)
         return prefix + ('' if page=='index.html' else page) + anchor
@@ -40,11 +33,14 @@ def build(lang):
             page, label = 'demo.html', t('查看演示','View demo') + ' <span aria-hidden="true">↗</span>'
         return f'<a class="{cls}" href="{link(page,anchor)}">{label}</a>'
     def button(page,label,cls='button',anchor=''):
-        if page in ('beta.html','download.html') and not installation()['chrome_store_url']:
-            page, label = 'demo.html', (t('查看演示','View demo') if 'button-small' in cls else t('体验交互演示','Try the interactive demo'))
         if label in ('体验 PAIA', 'Explore PAIA'):
             page, label = 'download.html', t('添加到 Chrome','Add to Chrome')
-        return a(page,label+' <span aria-hidden="true">→</span>',cls,anchor)
+        pending = (page in ('beta.html','download.html') and label in ('添加到 Chrome','Add to Chrome')
+                   and not installation()['chrome_store_url'])
+        if pending:
+            label = t('获取 PAIA','Get PAIA')
+        html = a(page,label+' <span aria-hidden="true">→</span>',cls,anchor)
+        return html.replace('<a ', '<a data-install-entry="pending" ', 1) if pending else html
     def head(page,title,desc,noindex=False):
         page = {'beta.html':'download.html', 'status.html':'help.html'}.get(page,page)
         url=BASE+link(page)
@@ -52,10 +48,10 @@ def build(lang):
         enurl=BASE+'/'+('' if page=='index.html' else page)
         product_css = '<link rel="stylesheet" href="/assets/website/product-experience.css?v=20261021brand">\n' if page in ('index.html','demo.html') else ''
         if page == 'demo.html':
-            product_css += '<script src="/assets/website/home-core-v2.js?v=continuity-v2" defer></script>\n'
+            product_css += '<script src="/assets/website/home-core-v2.js?v=20261009a" defer></script>\n'
         if page == 'index.html':
-            product_css += '<link rel="stylesheet" href="/assets/website/home-art.css?v=20261013b">\n'
-        presentation_assets = '\n<link rel="stylesheet" href="/assets/website/home-presentation.css?v=20261013a"><link rel="stylesheet" href="/assets/website/continuity.css?v=continuity-v2"><script src="/assets/website/continuity.js?v=continuity-v2" defer></script>' if page == 'index.html' else ('\n<link rel="stylesheet" href="/assets/website/continuity.css?v=continuity-v2">' if page in ('use-cases.html','how-it-works.html') else '')
+            product_css += '<link rel="stylesheet" href="/assets/website/home-art.css?v=20261013b"><link rel="stylesheet" href="/assets/website/scroll-story.css?v=20261013b">\n'
+        presentation_assets = '\n<link rel="stylesheet" href="/assets/website/home-presentation.css?v=20261023-six"><script src="/assets/website/home-presentation.js?v=20261023-six" defer></script>' if page == 'index.html' else ''
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>
@@ -91,9 +87,9 @@ def build(lang):
 <link rel="stylesheet" href="/assets/website/interior.css?v=20261009a">
 {product_css}
 <link rel="stylesheet" href="/assets/website/launch.css?v=20261013a">
-<script src="/assets/website/site.js?v={"20261022a" if page=="index.html" else "20261022a"}" defer></script>{presentation_assets}
+<script src="/assets/website/site.js?v=20261023-evidence" defer></script>{presentation_assets}
 </head>
-<body data-page="{page}" data-language="{lang}" data-install-available="{str(bool(installation()['chrome_store_url'])).lower()}"{' data-home-mode="presentation" data-site-revision="continuity-v2"' if page=='index.html' else ''}>
+<body data-page="{page}" data-language="{lang}"{' data-home-mode="presentation"' if page=='index.html' else ''}>
 <a class="skip-link" href="#main">{t('跳到正文','Skip to content')}</a>'''
     def header(page):
         canonical_page = {'beta.html':'download.html', 'status.html':'help.html'}.get(page,page)
@@ -104,7 +100,7 @@ def build(lang):
 <div class="brand-lockup"><a class="wordmark" href="{prefix}" aria-label="{t('PAIA 首页','PAIA home')}"><img class="header-brand-mark" src="/assets/website/brand/paia-symbol-soft-blue.svg" width="32" height="32" alt="" aria-hidden="true">PAIA</a></div>
 <nav class="desktop-nav" aria-label="{t('主导航','Main navigation')}">{nav}</nav>
 <div class="header-actions"><a class="language" href="{other}" lang="{'zh-CN' if en else 'en'}" hreflang="{'zh-Hans' if en else 'en'}">{t('EN','中文')}</a>{button('beta.html',t('申请内测','Request beta'),'button button-small')}</div>
-<details class="mobile-menu"><summary aria-label="{t('打开导航菜单','Open navigation menu')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg></summary><nav aria-label="{t('移动端导航','Mobile navigation')}">{nav}{a('demo.html',t('体验示例','Explore an example'))}</nav></details>
+<details class="mobile-menu"><summary aria-label="{t('打开导航菜单','Open navigation menu')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg></summary><nav aria-label="{t('移动端导航','Mobile navigation')}">{nav}{a('demo.html',t('体验示例','Explore an example'))}{a('status.html',t('当前状态','Current status'))}</nav></details>
 </div></header>'''
     def footer():
         return f'''<footer class="site-footer wrap"><div class="footer-main"><div class="footer-brand"><a class="wordmark" href="{prefix}">PAIA</a><p>{t('把每一次表达，留成自己的积累。', 'A place for your words to become your own body of work.')}</p></div><nav aria-label="{t('页脚导航','Footer navigation')}"><div><strong>{t('产品','PRODUCT')}</strong>{a('how-it-works.html',t('如何使用','How it works'))}{a('use-cases.html',t('使用场景','Use cases'))}{a('demo.html',t('交互演示','Interactive demo'))}{a('download.html',t('获取 PAIA','Get PAIA'))}</div><div><strong>{t('了解更多','RESOURCES')}</strong>{a('help.html',t('帮助中心','Help'))}{a('about.html',t('关于 PAIA','About PAIA'))}{a('blog.html',t('产品文章','Product notes'))}{a('contact.html',t('联系','Contact'))}</div><div><strong>{t('你的数据','YOUR DATA')}</strong>{a('principles.html',t('数据与权限','Data & permissions'))}{a('privacy-policy.html',t('隐私政策','Privacy policy'))}{a('terms.html',t('使用条款','Terms'))}</div></nav></div><div class="footer-bottom"><span class="copyright">© 2026 PAIA</span><span>{t('你的输入，始终属于你。','Your inputs stay yours.')}</span></div></footer>'''
@@ -125,8 +121,6 @@ def build(lang):
     shell('index.html',t('PAIA — 个人 AI 输入档案','PAIA — Personal AI input archive'),t('保存、找回和编辑你对 AI 说过的话。用个人主题组织思考，复用自己的提示词，并自主控制 AI 的访问范围。','Keep, find and edit what you tell AI. Organize ongoing ideas around your topics, reuse your own prompts, and control what AI may access.'),home)
 
     for route,title,description,body in render_pages(t,a,button,invitation):
-        if route == 'use-cases.html': body = render_cases(t,a,button,invitation)
-        if route == 'how-it-works.html': body = render_how(t,a,button,invitation)
         shell(route,title,description,body)
 
     demo=render_demo(t,a,button)

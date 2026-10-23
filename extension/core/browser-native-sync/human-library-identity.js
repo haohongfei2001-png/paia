@@ -1,3 +1,4 @@
+import {validateSourceLinkedEvidence} from './source-linked-evidence.js';
 import {keyedHash,validateFields} from '../thought-model.js';
 import {clone,exact,equal,identifier,count,hash,fail} from './value.js';
 const tokenFor=(secret,name)=>keyedHash(secret,['personal-topic-name-v1',String(name).normalize('NFKC').toLocaleLowerCase().trim()]);
@@ -28,9 +29,10 @@ export async function localHumanTopicIdentity(name,portable,secret){
 
 // Suppression signatures are installation-keyed. Carry the exact original
 // removal's proven body/type, never infer them from a later edited Entry.
-export async function portableHumanSuppression(row,histories,secret){
- validateHumanSuppression(row);if(!Array.isArray(histories)||histories.length>128)fail('BNS_HUMAN_SUPPRESSION_UNSUPPORTED');
- const candidates=histories.filter(h=>h.kind==='library_entry'&&h.entityId===row.deletedEntryId&&h.operationId===row.operationId&&h.actor==='user'&&h.reason==='remove'&&h.important===true&&h.after?.lifecycle==='removed'&&Array.isArray(h.sourceRecordIds)&&h.sourceRecordIds.length===0&&typeof h.before?.body==='string'&&typeof h.before?.type==='string');let input=null;
+export async function portableHumanSuppression(row,histories,secret){return suppressionPortable(row,histories,secret,[]);}
+async function suppressionPortable(row,histories,secret,sourceRecordIds){
+ validateHumanSuppression(row,sourceRecordIds.length===1);if(!Array.isArray(histories)||histories.length>128)fail('BNS_HUMAN_SUPPRESSION_UNSUPPORTED');
+ const candidates=histories.filter(h=>h.kind==='library_entry'&&h.entityId===row.deletedEntryId&&h.operationId===row.operationId&&h.actor==='user'&&h.reason==='remove'&&h.important===true&&h.after?.lifecycle==='removed'&&Array.isArray(h.sourceRecordIds)&&equal(h.sourceRecordIds,sourceRecordIds)&&typeof h.before?.body==='string'&&typeof h.before?.type==='string');let input=null;
  for(const h of candidates){const candidate={body:h.before.body,type:h.before.type};if(await keyedHash(secret,['body',candidate.type,candidate.body])!==row.exactSignature)continue;if(input&&!equal(input,candidate))fail('BNS_HUMAN_SUPPRESSION_UNPROVEN');input=candidate;}
  if(!input)fail('BNS_HUMAN_SUPPRESSION_UNPROVEN');const {exactSignature,...portable}=clone(row);return {...portable,signatureInput:input};
 }
@@ -39,6 +41,16 @@ export async function localHumanSuppression(portable,secret){
  const {signatureInput,...row}=clone(portable);try{validateFields(signatureInput);}catch{fail('BNS_HUMAN_SUPPRESSION_UNSUPPORTED');}const mapped={...row,exactSignature:await keyedHash(secret,['body',signatureInput.type,signatureInput.body])};validateHumanSuppression(mapped);return mapped;
 }
 
-function validateHumanSuppression(row){
- if(!exact(row,['id','deletedEntryId','lineageId','removedAt','operationId','status','scopeVersion','scopeTokens','evidenceVersionTokens','exactSignature','noveltyRuleVersion'])||![row.id,row.deletedEntryId,row.lineageId,row.operationId].every(identifier)||row.lineageId!==row.deletedEntryId||!stamp(row.removedAt)||!['active','restored'].includes(row.status)||row.scopeVersion!==1||row.noveltyRuleVersion!==1||!Array.isArray(row.scopeTokens)||row.scopeTokens.length||!Array.isArray(row.evidenceVersionTokens)||row.evidenceVersionTokens.length||!hash(row.exactSignature))fail('BNS_HUMAN_SUPPRESSION_UNSUPPORTED');
+function validateHumanSuppression(row,scoped=false){
+ if(!exact(row,['id','deletedEntryId','lineageId','removedAt','operationId','status','scopeVersion','scopeTokens','evidenceVersionTokens','exactSignature','noveltyRuleVersion'])||![row.id,row.deletedEntryId,row.lineageId,row.operationId].every(identifier)||row.lineageId!==row.deletedEntryId||!stamp(row.removedAt)||!['active','restored'].includes(row.status)||row.scopeVersion!==1||row.noveltyRuleVersion!==1||!Array.isArray(row.scopeTokens)||row.scopeTokens.length!==(scoped?1:0)||row.scopeTokens.some(x=>!hash(x))||!Array.isArray(row.evidenceVersionTokens)||row.evidenceVersionTokens.length!==(scoped?1:0)||row.evidenceVersionTokens.some(x=>!hash(x))||!hash(row.exactSignature))fail('BNS_HUMAN_SUPPRESSION_UNSUPPORTED');
+}
+
+// Only the original single-edge removal can expose this portable negative
+// intent. The keyed suppression tokens are reconstructed, never transported.
+export async function portableSourceSuppression(value,histories,secret){
+ const {sourceEvidence,...row}=clone(value),edge=validateSourceLinkedEvidence(sourceEvidence),scopeToken=await keyedHash(secret,['scope',edge.sourceIdentityTokens]),versionToken=await keyedHash(secret,['version',scopeToken,edge.fieldDigests]);if(!equal(row.scopeTokens,[scopeToken])||!equal(row.evidenceVersionTokens,[versionToken]))fail('BNS_HUMAN_SUPPRESSION_UNPROVEN');
+ const {scopeTokens,evidenceVersionTokens,...portable}=await suppressionPortable(row,histories,secret,edge.sourceRecordIds);return {...portable,sourceEvidence:edge};
+}
+export async function localSourceSuppression(value,secret){
+ const {sourceEvidence,signatureInput,...base}=clone(value),edge=validateSourceLinkedEvidence(sourceEvidence);if(!exact(signatureInput,['body','type'])||Object.keys(signatureInput).length!==2)fail('BNS_HUMAN_SUPPRESSION_UNSUPPORTED');try{validateFields(signatureInput);}catch{fail('BNS_HUMAN_SUPPRESSION_UNSUPPORTED');}const scopeToken=await keyedHash(secret,['scope',edge.sourceIdentityTokens]),row={...base,scopeTokens:[scopeToken],evidenceVersionTokens:[await keyedHash(secret,['version',scopeToken,edge.fieldDigests])],exactSignature:await keyedHash(secret,['body',signatureInput.type,signatureInput.body])};validateHumanSuppression(row,true);return row;
 }

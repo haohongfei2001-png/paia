@@ -1,0 +1,7 @@
+71db13f13ed19a8080d5eb258ed2da100a0391df669594f0bb2d5f4a774f96c0  extension/core/browser-native-sync/providers/google-drive-http.js
+b7cdde611629d62d9ed9090548039573d23f6a8663c9121f552c4010cd88a912  extension/tests/browser-native-sync-google-http.test.mjs
+94451a7eafafd8bbc73903fc974a2573583396d21504dcafda12bdb5dd1889d5  extension/docs/consumer-product-v1/implementation/SYNC-GOOGLE-HTTP-LOCAL-20261023.md
+a9bda1de06f24a717bbd9ec41a2d6e1995465258f352335136461b23a37faa34  work/paia-takeover-20261023/google-http-bounded-final.tap
+05c19090679b98e50fe725199d7bfb4c3a2ea40d56ac1008b3ba5869568ac2ae  work/paia-takeover-20261023/google-http-final.tap
+fa88db0b68893e20333bc840fc9f2d20eda0edd904de89e90ae3615ea9f97f45  work/paia-takeover-20261023/google-http-first.tap
+51e36594894a64cae182d7a684ca00aefff331a7d9cc00d8fe60660de368e31b  work/paia-takeover-20261023/google-http-second.tap

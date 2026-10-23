@@ -1,0 +1,6 @@
+{
+  "extension/core/browser-native-sync/providers/google-drive.js": "fdb2f5a2357d950d5b994328185b5a804a3ea08b8be0d9f8eb1bef445bfef2ff",
+  "extension/core/browser-native-sync/providers/onedrive.js": "a62ec71ae1e9ce6f20dce6efb70251652b8ec7f76e3cb3e05b94e74e0186ea1b",
+  "extension/tests/browser-native-sync-google-drive.test.mjs": "d87471eca912da6e3ad30aaa4d94c4d2716f8bdd3d9f080770e38adc187f55ff",
+  "extension/tests/browser-native-sync-onedrive.test.mjs": "a3f579828498b9afe1e70976094247aed1dd6624f0062ae037fd54c8a557c151"
+}

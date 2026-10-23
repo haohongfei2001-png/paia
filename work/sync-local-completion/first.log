@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: local discovery traverses empty pages and restores original Source/Working with sender closed
+ok 1 - local discovery traverses empty pages and restores original Source/Working with sender closed
+  ---
+  duration_ms: 146.982916
+  type: 'test'
+  ...
+# Subtest: missing or corrupt transport bytes never activate; restart resumes original durable stage
+ok 2 - missing or corrupt transport bytes never activate; restart resumes original durable stage
+  ---
+  duration_ms: 104.094167
+  type: 'test'
+  ...
+# Subtest: pause during held transport rejects late completion and preserves original destination
+ok 3 - pause during held transport rejects late completion and preserves original destination
+  ---
+  duration_ms: 101.3195
+  type: 'test'
+  ...
+# Subtest: activation rollback and local edits keep their original exact owner fences
+ok 4 - activation rollback and local edits keep their original exact owner fences
+  ---
+  duration_ms: 108.365833
+  type: 'test'
+  ...
+# Subtest: discovery refuses missing instead of selecting an arbitrary checkpoint
+ok 5 - discovery refuses missing instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 61.711375
+  type: 'test'
+  ...
+# Subtest: discovery refuses multiple instead of selecting an arbitrary checkpoint
+ok 6 - discovery refuses multiple instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 53.110333
+  type: 'test'
+  ...
+# Subtest: discovery refuses cycle instead of selecting an arbitrary checkpoint
+ok 7 - discovery refuses cycle instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 51.850167
+  type: 'test'
+  ...
+# Subtest: discovery refuses malformed instead of selecting an arbitrary checkpoint
+ok 8 - discovery refuses malformed instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 51.396208
+  type: 'test'
+  ...
+# Subtest: Sync is an honest, bilingual read-only Settings destination with original modal semantics
+ok 9 - Sync is an honest, bilingual read-only Settings destination with original modal semantics
+  ---
+  duration_ms: 0.81225
+  type: 'test'
+  ...
+# Subtest: original Data group installs Sync before history import and language refresh includes its owner
+ok 10 - original Data group installs Sync before history import and language refresh includes its owner
+  ---
+  duration_ms: 1.908791
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 850.586625

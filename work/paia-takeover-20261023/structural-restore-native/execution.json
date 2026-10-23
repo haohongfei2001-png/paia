@@ -1,0 +1,53 @@
+{
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "--test-name-pattern=structural restore Context qualification",
+    "tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs"
+  ],
+  "cwd": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension",
+  "headBefore": "19d97e316e73a5b6213f0bbbd2ed19c93d227aa3",
+  "node": "v22.23.3",
+  "python": "Python 3.12.14",
+  "playwright": "1.63.0",
+  "chrome": "Google Chrome 156.0.8078.47",
+  "headless": true,
+  "sha256Before": {
+    "extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs": "4f6b7ebde7131a6d1342048e35948aa3ff1dff74bbe9adc5f59f782f78bc5ce7",
+    "extension/tests/harness/fake-chatgpt.mjs": "2744e6a288b00052f748b6c9c612249f5051bc878d0528a5aed63926f9973189",
+    "extension/core/ai-usage/structural-context-mapping.js": "857f8f88f4950a26bc6d6de77cab5af0ad0206cc05128d8c81e0d990945ae01e",
+    "extension/core/ai-usage/topic-context-mapping.js": "5960b0b6d1b3774b01758d422a66e586b71133f5592d14b0ad6659a9e2360ba3",
+    "extension/core/ai-usage/local-maintenance-session.js": "6a5445019f9fcf52814ef0fd317b90ad0e02ec93b96840209736a702d4d4d50d",
+    "extension/core/ai-usage/foundation.js": "e1b47de38fb3cda89519ac2d3ed011a98fc1d0e4cfcca81997727921efa323b1",
+    "extension/core/context-maintenance.js": "0ff1de158a395dac3c26b6657edb2c23c83e93a3f63a7a99a63a87eb0c8a527c",
+    "extension/core/idb-repository.js": "7bd3412686a7ea59b7d2fbacfe3fd4588f479aa6c50239ab39d5a4ae268565d1"
+  },
+  "exit": 0,
+  "wallSeconds": 10.682498209003825,
+  "headAfter": "19d97e316e73a5b6213f0bbbd2ed19c93d227aa3",
+  "sha256After": {
+    "extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs": "4f6b7ebde7131a6d1342048e35948aa3ff1dff74bbe9adc5f59f782f78bc5ce7",
+    "extension/tests/harness/fake-chatgpt.mjs": "2744e6a288b00052f748b6c9c612249f5051bc878d0528a5aed63926f9973189",
+    "extension/core/ai-usage/structural-context-mapping.js": "857f8f88f4950a26bc6d6de77cab5af0ad0206cc05128d8c81e0d990945ae01e",
+    "extension/core/ai-usage/topic-context-mapping.js": "5960b0b6d1b3774b01758d422a66e586b71133f5592d14b0ad6659a9e2360ba3",
+    "extension/core/ai-usage/local-maintenance-session.js": "6a5445019f9fcf52814ef0fd317b90ad0e02ec93b96840209736a702d4d4d50d",
+    "extension/core/ai-usage/foundation.js": "e1b47de38fb3cda89519ac2d3ed011a98fc1d0e4cfcca81997727921efa323b1",
+    "extension/core/context-maintenance.js": "0ff1de158a395dac3c26b6657edb2c23c83e93a3f63a7a99a63a87eb0c8a527c",
+    "extension/core/idb-repository.js": "7bd3412686a7ea59b7d2fbacfe3fd4588f479aa6c50239ab39d5a4ae268565d1"
+  },
+  "sourceStable": true,
+  "result": {
+    "tests": 10,
+    "nativeLeaves": 8,
+    "parents": 2,
+    "pass": 10,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "tapMilliseconds": 10624.695125
+  },
+  "scope": "Only newly appended structural restore Context qualification Source/Release cases; not full owning file, Linux capacity, physical UI or live service acceptance."
+}

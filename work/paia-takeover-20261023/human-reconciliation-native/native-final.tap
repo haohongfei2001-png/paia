@@ -1,0 +1,144 @@
+TAP version 13
+# Subtest: CTX4-05 native source human dual-facet reconciliation qualification
+    # Subtest: authored-complete
+    ok 1 - authored-complete
+      ---
+      duration_ms: 345.632208
+      type: 'test'
+      ...
+    # Subtest: authored-topic-grant-denied
+    ok 2 - authored-topic-grant-denied
+      ---
+      duration_ms: 141.747542
+      type: 'test'
+      ...
+    # Subtest: authored-topic-final-revoke
+    ok 3 - authored-topic-final-revoke
+      ---
+      duration_ms: 217.962459
+      type: 'test'
+      ...
+    # Subtest: authored-topic-ack-abort
+    ok 4 - authored-topic-ack-abort
+      ---
+      duration_ms: 395.444375
+      type: 'test'
+      ...
+    # Subtest: authored-context-ack-abort
+    ok 5 - authored-context-ack-abort
+      ---
+      duration_ms: 391.383833
+      type: 'test'
+      ...
+    # Subtest: placement-complete
+    ok 6 - placement-complete
+      ---
+      duration_ms: 494.8395
+      type: 'test'
+      ...
+    # Subtest: placement-topic-grant-denied
+    ok 7 - placement-topic-grant-denied
+      ---
+      duration_ms: 126.740666
+      type: 'test'
+      ...
+    # Subtest: placement-topic-final-revoke
+    ok 8 - placement-topic-final-revoke
+      ---
+      duration_ms: 431.564834
+      type: 'test'
+      ...
+    # Subtest: placement-topic-ack-abort
+    ok 9 - placement-topic-ack-abort
+      ---
+      duration_ms: 527.668583
+      type: 'test'
+      ...
+    # Subtest: placement-context-ack-abort
+    ok 10 - placement-context-ack-abort
+      ---
+      duration_ms: 548.247208
+      type: 'test'
+      ...
+    1..10
+ok 1 - CTX4-05 native source human dual-facet reconciliation qualification
+  ---
+  duration_ms: 4932.342917
+  type: 'test'
+  ...
+# Subtest: CTX4-05 native release human dual-facet reconciliation qualification
+    # Subtest: authored-complete
+    ok 1 - authored-complete
+      ---
+      duration_ms: 422.123083
+      type: 'test'
+      ...
+    # Subtest: authored-topic-grant-denied
+    ok 2 - authored-topic-grant-denied
+      ---
+      duration_ms: 86.9275
+      type: 'test'
+      ...
+    # Subtest: authored-topic-final-revoke
+    ok 3 - authored-topic-final-revoke
+      ---
+      duration_ms: 227.158125
+      type: 'test'
+      ...
+    # Subtest: authored-topic-ack-abort
+    ok 4 - authored-topic-ack-abort
+      ---
+      duration_ms: 330.547
+      type: 'test'
+      ...
+    # Subtest: authored-context-ack-abort
+    ok 5 - authored-context-ack-abort
+      ---
+      duration_ms: 384.130667
+      type: 'test'
+      ...
+    # Subtest: placement-complete
+    ok 6 - placement-complete
+      ---
+      duration_ms: 490.935625
+      type: 'test'
+      ...
+    # Subtest: placement-topic-grant-denied
+    ok 7 - placement-topic-grant-denied
+      ---
+      duration_ms: 116.510416
+      type: 'test'
+      ...
+    # Subtest: placement-topic-final-revoke
+    ok 8 - placement-topic-final-revoke
+      ---
+      duration_ms: 555.591459
+      type: 'test'
+      ...
+    # Subtest: placement-topic-ack-abort
+    ok 9 - placement-topic-ack-abort
+      ---
+      duration_ms: 646.462583
+      type: 'test'
+      ...
+    # Subtest: placement-context-ack-abort
+    ok 10 - placement-context-ack-abort
+      ---
+      duration_ms: 625.382375
+      type: 'test'
+      ...
+    1..10
+ok 2 - CTX4-05 native release human dual-facet reconciliation qualification
+  ---
+  duration_ms: 6617.238666
+  type: 'test'
+  ...
+1..2
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11730.940917

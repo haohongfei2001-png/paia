@@ -250,6 +250,18 @@ test('typed authored response travels through the original source-owned adapter 
  try{const result=await f.session.run(await f.session.prepare(f.selected));assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,1);assert.deepEqual((await ack(f)).map(a=>a.unit.facet).sort(),['context','topic']);}finally{f.session.dispose();source.dispose();}
 });
 
+for(const mode of ['shared','independent-budget','revoked'])test('authored session genuine Topic issuer retains private qualification budget: '+mode,async()=>{
+ const {TopicProcessingAuthority}=await import('../core/topic-processing-authority.js'),f=await fixture(),revocation=new AbortController(),expiresAt=Date.now()+60000,issuers=new Map(),caller=Object.freeze({id:op()}),receipts=new WeakSet();
+ enableAuthoredTopic(f);
+ const processing={resolve:async(_t,scope)=>{const r=Object.freeze({version:1,store:f.s,caller,scope,epoch:'synthetic-owned-topic',processing:true,expiresAt,revocationSignal:revocation.signal});receipts.add(r);return r;},isCurrent:r=>receipts.has(r)&&!revocation.signal.aborted};
+ let seen=0;f.session.dispose();f.service.topic.resolveProcessing=(t,r,options)=>{
+  assert.deepEqual(Object.keys(options),['workBudget']);assert.equal(Object.isFrozen(options),true);assert.ok(options.workBudget);seen++;
+  let issuer=issuers.get(options.workBudget);if(!issuer){issuer=new TopicProcessingAuthority(f.s,{processing,caller,binding:{operationId:op()},workBudget:mode==='independent-budget'?createContextScopeWorkBudget({database:f.s.repository.db}):options.workBudget});issuers.set(options.workBudget,issuer);}
+  return issuer.authorize(t,r);
+ };f.session=f.make();if(mode==='revoked')f.state.providerHook=()=>revocation.abort();
+ try{const result=await f.session.run(await f.session.prepare(f.selected));assert.ok(seen>0);if(mode==='shared'){assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal((await ack(f)).filter(r=>r.unit.facet==='topic').length,1);}else{assert.notEqual(result.processedState,'COMMITTED');assert.equal((await ack(f)).filter(r=>r.unit.facet==='topic').length,0);}}finally{f.session.dispose();for(const issuer of issuers.values())issuer.release();}
+});
+
 async function authoredCorrectionFixture({restore=false,fields=false}={}){
  const f=await fixture();if(fields){let e=await read(f.s,'thoughts',f.entry.id);await f.s.editEntry({id:e.id,expectedRevision:e.revision,operationId:op(),changes:{title:'SYNTHETIC selected human title',note:'SYNTHETIC selected human note'}});}
  assert.equal((await f.session.run(await f.session.prepare(f.selected))).processedState,'COMMITTED');f.session.dispose();

@@ -1,0 +1,15 @@
+{
+  "extension/core/browser-native-sync/checkpoints.js": "6b1e4009b80b99fc657c2eba39f55f4177b4854b0ca4211ec52ea5c8f1d4304d",
+  "extension/core/browser-native-sync/compaction.js": "399bdaf8690eedd80a080351c556547ef1ee996a29edbbbe6381a099d9fc9465",
+  "extension/core/browser-native-sync/core.js": "8d434054f9ba572e3157613c294a88fb0ef63abb9aa4aca6b8575f360aecf4bb",
+  "extension/core/browser-native-sync/group-checkpoint-manifest.js": "ae3d313cb869feba9356875129fb45ea5ed7abe80b4c534921382be7173c31e2",
+  "extension/core/browser-native-sync/group-checkpoint-plan.js": "8b50db44c4cb253245f7c7f5b0fd45d3a0df49378a2a451c8898e43170c631cb",
+  "extension/core/browser-native-sync/group-checkpoint-scope.js": "361d2e7d1e544fcef16c322dea0f7307a90d0fa37465f941105486e1da6f73a6",
+  "extension/core/browser-native-sync/group-checkpoint.js": "8bcfb5299a09790319ec58f2794e03303903142085aa5897a7b2e882d0048558",
+  "extension/core/browser-native-sync/human-library-scope.js": "086ca4c31e10ade4ada5cbc17de00281d3db5aa24b5e016f7cb305b5cc6032d5",
+  "extension/core/idb-repository.js": "4d9e50e11852b1c29b16ba56860925f36636432b1c05701a6f10d47418c028ca",
+  "extension/tests/browser-native-sync-group-checkpoint-plan.test.mjs": "836141c255fa49de641a0169eb5ba4b1e7cfd27134c47103399ac50e834db99b",
+  "extension/tests/browser-native-sync-group-checkpoint-restore.test.mjs": "fab838635046113dc29049ea6e7019231dda7f387ec7f17f0042081450e9c101",
+  "extension/core/browser-native-sync/group-page-reader.js": "bdce1b9f5ef4ae55afa16f828c5be620126148297cd7ecc9d22801d8adcf9d8a",
+  "extension/tests/browser-native-sync-group-paging.test.mjs": "6eb50427db9e72e421b67b68402a29f4a879f4078806b57ae568f68e3891a6e2"
+}

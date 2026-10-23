@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+ok 1 - native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+  ---
+  duration_ms: 53.536917
+  type: 'test'
+  ...
+# Subtest: actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+ok 2 - actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+  ---
+  duration_ms: 81.38075
+  type: 'test'
+  ...
+# Subtest: missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+ok 3 - missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+  ---
+  duration_ms: 30.128167
+  type: 'test'
+  ...
+# Subtest: operation budget counts all ancestry rather than current heads
+ok 4 - operation budget counts all ancestry rather than current heads
+  ---
+  duration_ms: 25.657041
+  type: 'test'
+  ...
+# Subtest: actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+ok 5 - actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+  ---
+  duration_ms: 48.59925
+  type: 'test'
+  ...
+# Subtest: fourMiB operation bytes include all retained payloads, not only final current text
+ok 6 - fourMiB operation bytes include all retained payloads, not only final current text
+  ---
+  duration_ms: 735.1605
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled note rather than claiming protocol coverage
+ok 7 - full inventory rejects actual unjournaled note rather than claiming protocol coverage
+  ---
+  duration_ms: 27.054958
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+ok 8 - full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+  ---
+  duration_ms: 28.173542
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+ok 9 - full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+  ---
+  duration_ms: 27.861375
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+ok 10 - full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+  ---
+  duration_ms: 23.76025
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+ok 11 - full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+  ---
+  duration_ms: 20.6685
+  type: 'test'
+  ...
+# Subtest: grouped compaction consumes actual original-owner graphs, closes A, collects covered objects and restores B
+ok 12 - grouped compaction consumes actual original-owner graphs, closes A, collects covered objects and restores B
+  ---
+  duration_ms: 494.751666
+  type: 'test'
+  ...
+# Subtest: active restore pin protects its complete covered object closure
+ok 13 - active restore pin protects its complete covered object closure
+  ---
+  duration_ms: 193.349958
+  type: 'test'
+  ...
+# Subtest: partial fake collection leaves both complete generations and unpublished tail usable after restart
+ok 14 - partial fake collection leaves both complete generations and unpublished tail usable after restart
+  ---
+  duration_ms: 292.871833
+  type: 'test'
+  ...
+# Subtest: grouped tail reconciliation during planning invalidates the previous retention proof
+ok 15 - grouped tail reconciliation during planning invalidates the previous retention proof
+  ---
+  duration_ms: 180.7225
+  type: 'test'
+  ...
+# Subtest: grouped compaction refuses missing staged items rather than treating empty receipts as covered
+ok 16 - grouped compaction refuses missing staged items rather than treating empty receipts as covered
+  ---
+  duration_ms: 155.062
+  type: 'test'
+  ...
+# Subtest: change during the last remote manifest verification is caught before returning a collection plan
+ok 17 - change during the last remote manifest verification is caught before returning a collection plan
+  ---
+  duration_ms: 177.432375
+  type: 'test'
+  ...
+# Subtest: actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+ok 18 - actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+  ---
+  duration_ms: 371.735042
+  type: 'test'
+  ...
+# Subtest: actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+ok 19 - actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+  ---
+  duration_ms: 163.975792
+  type: 'test'
+  ...
+# Subtest: actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+ok 20 - actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+  ---
+  duration_ms: 343.693125
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1608.398709

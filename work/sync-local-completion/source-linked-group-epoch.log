@@ -1,0 +1,30 @@
+TAP version 13
+# Subtest: single Source and source-linked create/edit restore as one original owner graph on cold B
+not ok 1 - single Source and source-linked create/edit restore as one original owner graph on cold B
+  ---
+  duration_ms: 214.441208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/human-source-entry-plan.test.mjs:44:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_COMMIT_INVALID'
+  code: 'BNS_HUMAN_COMMIT_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    restoreHumanRequest (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/human-library-request.js:20:128)
+    async prepareHumanGraphNamedPlan (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/human-library-plan.js:380:267)
+    async prepareHumanGroupApplication (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/human-library-group.js:16:188)
+    async GroupedCheckpointRestore.activate (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint.js:158:26)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/human-source-entry-plan.test.mjs:47:449)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 366.143375

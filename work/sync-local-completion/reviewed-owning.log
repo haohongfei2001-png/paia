@@ -1,0 +1,575 @@
+TAP version 13
+# Subtest: AUDIT existing checkpoint fails closed for a real complete bootstrap, not a successful restore
+ok 1 - AUDIT existing checkpoint fails closed for a real complete bootstrap, not a successful restore
+  ---
+  duration_ms: 72.396916
+  type: 'test'
+  ...
+# Subtest: AUDIT protocol-only committed staging receipts make the existing complete receive primitive duplicate
+ok 2 - AUDIT protocol-only committed staging receipts make the existing complete receive primitive duplicate
+  ---
+  duration_ms: 36.039833
+  type: 'test'
+  ...
+# Subtest: AUDIT protocol checkpoint is not an inventory of unjournaled canonical source
+ok 3 - AUDIT protocol checkpoint is not an inventory of unjournaled canonical source
+  ---
+  duration_ms: 15.829916
+  type: 'test'
+  ...
+# Subtest: frozen actual 0.32 reader refuses required grouped scope before any stage write, without Git history or network
+ok 4 - frozen actual 0.32 reader refuses required grouped scope before any stage write, without Git history or network
+  ---
+  duration_ms: 76.050542
+  type: 'test'
+  ...
+# Subtest: native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+ok 5 - native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+  ---
+  duration_ms: 44.530333
+  type: 'test'
+  ...
+# Subtest: actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+ok 6 - actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+  ---
+  duration_ms: 64.599584
+  type: 'test'
+  ...
+# Subtest: missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+ok 7 - missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+  ---
+  duration_ms: 42.548083
+  type: 'test'
+  ...
+# Subtest: operation budget counts all ancestry rather than current heads
+ok 8 - operation budget counts all ancestry rather than current heads
+  ---
+  duration_ms: 35.709125
+  type: 'test'
+  ...
+# Subtest: actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+ok 9 - actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+  ---
+  duration_ms: 57.448
+  type: 'test'
+  ...
+# Subtest: fourMiB operation bytes include all retained payloads, not only final current text
+ok 10 - fourMiB operation bytes include all retained payloads, not only final current text
+  ---
+  duration_ms: 722.044916
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled note rather than claiming protocol coverage
+ok 11 - full inventory rejects actual unjournaled note rather than claiming protocol coverage
+  ---
+  duration_ms: 24.304792
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+ok 12 - full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+  ---
+  duration_ms: 24.97125
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+ok 13 - full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+  ---
+  duration_ms: 26.873375
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+ok 14 - full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+  ---
+  duration_ms: 22.8175
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+ok 15 - full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+  ---
+  duration_ms: 20.043667
+  type: 'test'
+  ...
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 16 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 104.494542
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 17 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 280.993166
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 18 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 277.291458
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 19 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 298.750292
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 20 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 294.834542
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 21 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 213.859917
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 22 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 219.666166
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 23 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 208.191417
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 24 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 208.47825
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 25 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 223.771333
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 26 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 253.665583
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 27 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 112.927792
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 28 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 38.284333
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 29 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 465.381333
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":124.39137500000015,"reads":2683,"writes":1161}}
+# Subtest: exact128 retained operations restore, the129th refuses, and bounded transaction work is measured
+ok 30 - exact128 retained operations restore, the129th refuses, and bounded transaction work is measured
+  ---
+  duration_ms: 953.174666
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 31 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 23.645625
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 32 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 29.137583
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 33 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 27.85
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 34 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 26.926792
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 35 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 27.047667
+  type: 'test'
+  ...
+# Subtest: local discovery traverses empty pages and restores original Source/Working with sender closed
+ok 36 - local discovery traverses empty pages and restores original Source/Working with sender closed
+  ---
+  duration_ms: 182.979584
+  type: 'test'
+  ...
+# Subtest: missing or corrupt transport bytes never activate; restart resumes original durable stage
+ok 37 - missing or corrupt transport bytes never activate; restart resumes original durable stage
+  ---
+  duration_ms: 110.962875
+  type: 'test'
+  ...
+# Subtest: pause during held transport rejects late completion and preserves original destination
+ok 38 - pause during held transport rejects late completion and preserves original destination
+  ---
+  duration_ms: 116.816583
+  type: 'test'
+  ...
+# Subtest: activation rollback and local edits keep their original exact owner fences
+ok 39 - activation rollback and local edits keep their original exact owner fences
+  ---
+  duration_ms: 126.761458
+  type: 'test'
+  ...
+# Subtest: discovery refuses missing instead of selecting an arbitrary checkpoint
+ok 40 - discovery refuses missing instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 61.605917
+  type: 'test'
+  ...
+# Subtest: discovery refuses multiple instead of selecting an arbitrary checkpoint
+ok 41 - discovery refuses multiple instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 59.417208
+  type: 'test'
+  ...
+# Subtest: discovery refuses cycle instead of selecting an arbitrary checkpoint
+ok 42 - discovery refuses cycle instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 55.898208
+  type: 'test'
+  ...
+# Subtest: discovery refuses malformed instead of selecting an arbitrary checkpoint
+ok 43 - discovery refuses malformed instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 53.77225
+  type: 'test'
+  ...
+# Subtest: historical checkpoints select the authenticated unique causal descendant, not list order
+ok 44 - historical checkpoints select the authenticated unique causal descendant, not list order
+  ---
+  duration_ms: 161.871875
+  type: 'test'
+  ...
+# Subtest: two genuine incomparable checkpoints cannot be silently chosen
+ok 45 - two genuine incomparable checkpoints cannot be silently chosen
+  ---
+  duration_ms: 91.557083
+  type: 'test'
+  ...
+# Subtest: pause after the real activation commit preserves the confirmed restored outcome
+ok 46 - pause after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 96.311792
+  type: 'test'
+  ...
+# Subtest: close after the real activation commit preserves the confirmed restored outcome
+ok 47 - close after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 127.931417
+  type: 'test'
+  ...
+# Subtest: pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+ok 48 - pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+  ---
+  duration_ms: 134.073167
+  type: 'test'
+  ...
+# Subtest: lost post-commit response stays settlement-unknown until original durable activation proof is checked
+ok 49 - lost post-commit response stays settlement-unknown until original durable activation proof is checked
+  ---
+  duration_ms: 156.4345
+  type: 'test'
+  ...
+# Subtest: discovery enforces cumulative object budget before fetching or activating
+ok 50 - discovery enforces cumulative object budget before fetching or activating
+  ---
+  duration_ms: 55.840084
+  type: 'test'
+  ...
+# Subtest: claimed parent alone cannot make an older valid cut supersede newer canonical revisions
+ok 51 - claimed parent alone cannot make an older valid cut supersede newer canonical revisions
+  ---
+  duration_ms: 105.37725
+  type: 'test'
+  ...
+# Subtest: discovery deadline settles held listing and fences late completion
+ok 52 - discovery deadline settles held listing and fences late completion
+  ---
+  duration_ms: 84.730041
+  type: 'test'
+  ...
+# Subtest: discovery deadline settles held object and fences late completion
+ok 53 - discovery deadline settles held object and fences late completion
+  ---
+  duration_ms: 82.324292
+  type: 'test'
+  ...
+# Subtest: pause settles a held discovery without pretending to cancel underlying transport
+ok 54 - pause settles a held discovery without pretending to cancel underlying transport
+  ---
+  duration_ms: 52.791
+  type: 'test'
+  ...
+# Subtest: close settles a held discovery without pretending to cancel underlying transport
+ok 55 - close settles a held discovery without pretending to cancel underlying transport
+  ---
+  duration_ms: 50.033833
+  type: 'test'
+  ...
+# Subtest: stage rejects transport length mismatch before the object reader copies bytes
+ok 56 - stage rejects transport length mismatch before the object reader copies bytes
+  ---
+  duration_ms: 59.268791
+  type: 'test'
+  ...
+# Subtest: discover rejects transport length mismatch before the object reader copies bytes
+ok 57 - discover rejects transport length mismatch before the object reader copies bytes
+  ---
+  duration_ms: 58.664917
+  type: 'test'
+  ...
+# Subtest: actual backup same-value replacement invalidates persistent Prompt journal even after reconstruction
+ok 58 - actual backup same-value replacement invalidates persistent Prompt journal even after reconstruction
+  ---
+  duration_ms: 48.566209
+  type: 'test'
+  ...
+# Subtest: actual backup changed replacement invalidates persistent Prompt journal even after reconstruction
+ok 59 - actual backup changed replacement invalidates persistent Prompt journal even after reconstruction
+  ---
+  duration_ms: 21.889875
+  type: 'test'
+  ...
+# Subtest: actual backup replacement invalidates manual Context while local-only access remains usable
+ok 60 - actual backup replacement invalidates manual Context while local-only access remains usable
+  ---
+  duration_ms: 20.55475
+  type: 'test'
+  ...
+# Subtest: prompt prepared operation refuses actual restore between prepare and commit atomically
+ok 61 - prompt prepared operation refuses actual restore between prepare and commit atomically
+  ---
+  duration_ms: 21.02825
+  type: 'test'
+  ...
+# Subtest: context prepared operation refuses actual restore between prepare and commit atomically
+ok 62 - context prepared operation refuses actual restore between prepare and commit atomically
+  ---
+  duration_ms: 21.2
+  type: 'test'
+  ...
+# Subtest: malformed persistent marker fails closed {"version":2,"epoch":null}
+ok 63 - malformed persistent marker fails closed {"version":2,"epoch":null}
+  ---
+  duration_ms: 12.32325
+  type: 'test'
+  ...
+# Subtest: malformed persistent marker fails closed {"version":1,"epoch":""}
+ok 64 - malformed persistent marker fails closed {"version":1,"epoch":""}
+  ---
+  duration_ms: 10.287333
+  type: 'test'
+  ...
+# Subtest: malformed persistent marker fails closed {"version":1}
+ok 65 - malformed persistent marker fails closed {"version":1}
+  ---
+  duration_ms: 10.601125
+  type: 'test'
+  ...
+# Subtest: malformed persistent marker fails closed {"version":1,"epoch":null,"extra":true}
+ok 66 - malformed persistent marker fails closed {"version":1,"epoch":null,"extra":true}
+  ---
+  duration_ms: 12.6385
+  type: 'test'
+  ...
+# Subtest: legacy head without marker cannot bind itself to a post-restore epoch
+ok 67 - legacy head without marker cannot bind itself to a post-restore epoch
+  ---
+  duration_ms: 16.726084
+  type: 'test'
+  ...
+# Subtest: explicit fresh namespace bootstrap binds current epoch but old prepared namespace never follows it
+ok 68 - explicit fresh namespace bootstrap binds current epoch but old prepared namespace never follows it
+  ---
+  duration_ms: 18.048208
+  type: 'test'
+  ...
+# Subtest: first marker write rolls back with canonical/outbox failure
+ok 69 - first marker write rolls back with canonical/outbox failure
+  ---
+  duration_ms: 11.611
+  type: 'test'
+  ...
+# Subtest: staged namespace activation does not implicitly authorize a restored nonempty epoch
+ok 70 - staged namespace activation does not implicitly authorize a restored nonempty epoch
+  ---
+  duration_ms: 29.504417
+  type: 'test'
+  ...
+# Subtest: first-use acceptance waits for the original durable consent acknowledgement
+ok 71 - first-use acceptance waits for the original durable consent acknowledgement
+  ---
+  duration_ms: 0.709375
+  type: 'test'
+  ...
+# Subtest: lost first-use consent acknowledgement reconciles canonical on without another grant
+ok 72 - lost first-use consent acknowledgement reconciles canonical on without another grant
+  ---
+  duration_ms: 0.141667
+  type: 'test'
+  ...
+# Subtest: unconfirmed first-use grant retains canonical refusal and failure
+ok 73 - unconfirmed first-use grant retains canonical refusal and failure
+  ---
+  duration_ms: 0.066
+  type: 'test'
+  ...
+# Subtest: lost grant and failed reconciliation stay unavailable until an explicit successful read
+ok 74 - lost grant and failed reconciliation stay unavailable until an explicit successful read
+  ---
+  duration_ms: 0.165666
+  type: 'test'
+  ...
+# Subtest: all persisted font/width choices and legacy date-only survive reading without a write
+ok 75 - all persisted font/width choices and legacy date-only survive reading without a write
+  ---
+  duration_ms: 0.253416
+  type: 'test'
+  ...
+# Subtest: focused initiating select receives confirmed value only after acknowledgement
+ok 76 - focused initiating select receives confirmed value only after acknowledgement
+  ---
+  duration_ms: 0.116708
+  type: 'test'
+  ...
+# Subtest: failed preference write reconciles real state and keeps visible failure feedback
+ok 77 - failed preference write reconciles real state and keeps visible failure feedback
+  ---
+  duration_ms: 0.092375
+  type: 'test'
+  ...
+# Subtest: failed write and failed reconciliation retain previously confirmed choice
+ok 78 - failed write and failed reconciliation retain previously confirmed choice
+  ---
+  duration_ms: 0.055875
+  type: 'test'
+  ...
+# Subtest: read before a write cannot overwrite its newer acknowledged value
+ok 79 - read before a write cannot overwrite its newer acknowledged value
+  ---
+  duration_ms: 0.190709
+  type: 'test'
+  ...
+# Subtest: cross-tab refresh during write is deferred then reads canonical preferences
+ok 80 - cross-tab refresh during write is deferred then reads canonical preferences
+  ---
+  duration_ms: 0.305958
+  type: 'test'
+  ...
+# Subtest: capture requires consent and exact command acknowledgement
+ok 81 - capture requires consent and exact command acknowledgement
+  ---
+  duration_ms: 0.428625
+  type: 'test'
+  ...
+# Subtest: malformed acknowledgement cannot optimistically apply a preference
+ok 82 - malformed acknowledgement cannot optimistically apply a preference
+  ---
+  duration_ms: 0.056416
+  type: 'test'
+  ...
+# Subtest: read failure is distinct from a confirmed off value
+ok 83 - read failure is distinct from a confirmed off value
+  ---
+  duration_ms: 0.043334
+  type: 'test'
+  ...
+# Subtest: only the five local preference keys can be changed
+ok 84 - only the five local preference keys can be changed
+  ---
+  duration_ms: 0.046042
+  type: 'test'
+  ...
+# Subtest: disable-induced focus is repaired but newer user focus wins
+ok 85 - disable-induced focus is repaired but newer user focus wins
+  ---
+  duration_ms: 0.048708
+  type: 'test'
+  ...
+# Subtest: Settings history summary follows the resolved locale for empty, completed, partial and failed reads
+ok 86 - Settings history summary follows the resolved locale for empty, completed, partial and failed reads
+  ---
+  duration_ms: 23.357541
+  type: 'test'
+  ...
+# Subtest: Settings latest-import owner contains malformed summary failures and keeps locale changes local
+ok 87 - Settings latest-import owner contains malformed summary failures and keeps locale changes local
+  ---
+  duration_ms: 0.638833
+  type: 'test'
+  ...
+# Subtest: Settings locale and reopen leave History labels with their existing owner
+ok 88 - Settings locale and reopen leave History labels with their existing owner
+  ---
+  duration_ms: 4.374958
+  type: 'test'
+  ...
+# Subtest: read-only Settings destinations retain content and use labeled native dialogs without mounting side effects
+ok 89 - read-only Settings destinations retain content and use labeled native dialogs without mounting side effects
+  ---
+  duration_ms: 1.052375
+  type: 'test'
+  ...
+# Subtest: guarded detail close and native Escape share one held owner acknowledgement
+ok 90 - guarded detail close and native Escape share one held owner acknowledgement
+  ---
+  duration_ms: 1.242125
+  type: 'test'
+  ...
+# Subtest: busy refusal and rejected close acknowledgement retain the original detail for explicit retry
+ok 91 - busy refusal and rejected close acknowledgement retain the original detail for explicit retry
+  ---
+  duration_ms: 0.381625
+  type: 'test'
+  ...
+# Subtest: destination presentation preserves the actual existing button listener and changes no owner state
+ok 92 - destination presentation preserves the actual existing button listener and changes no owner state
+  ---
+  duration_ms: 0.195
+  type: 'test'
+  ...
+# Subtest: Sync is an honest, bilingual read-only Settings destination with original modal semantics
+ok 93 - Sync is an honest, bilingual read-only Settings destination with original modal semantics
+  ---
+  duration_ms: 0.818
+  type: 'test'
+  ...
+# Subtest: original Data group installs Sync before history import and language refresh includes its owner
+ok 94 - original Data group installs Sync before history import and language refresh includes its owner
+  ---
+  duration_ms: 1.727042
+  type: 'test'
+  ...
+1..94
+# tests 94
+# suites 0
+# pass 94
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8737.137541

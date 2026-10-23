@@ -1,6 +1,9 @@
+import {readGroupRows,groupTablePages} from './group-page-reader.js';
+import {validateSourceLinkedDescriptor} from './source-linked-evidence.js';
+import {planHumanEntryEvidence} from '../thought-store-owner.js';
 import {originalCurrentMixedGroupCore} from './group-checkpoint-plan.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
-import {localHumanTopicIdentity,localHumanSuppression} from './human-library-identity.js';
+import {localHumanTopicIdentity,localHumanSuppression,localSourceSuppression} from './human-library-identity.js';
 import {requireGroupHumanCompilationInput} from './group-checkpoint-scope.js';
 import {normalizePhysical} from './human-library-journal.js';
 import {keyedHash} from '../thought-model.js';
@@ -20,21 +23,23 @@ export function measureOriginalMixedWireNames(plan){
  return Object.freeze(measureSourceWorkingPhysicalTree([...names.values()]));
 }
 export function compileHumanScope(plan){
- const maps=Object.fromEntries([...Object.keys(types),'history'].map(type=>[type,new Map()])),names=new Map(),mixed=originalCurrentMixedGroupCore(plan);
+ const linked=plan.groups.some(group=>group.type==='humanLibraryCommit'&&group.prepared.members.some(op=>op.value.entityType==='sourceLink'));const maps=Object.fromEntries([...Object.keys(types),'history',...(linked?['sourceLink']:[]),...(plan.groups.some(group=>group.type==='humanLibraryCommit'&&group.prepared.members.some(op=>op.value.entityType==='sourceSuppression'))?['sourceSuppression']:[])].map(type=>[type,new Map()])),names=new Map(),mixed=originalCurrentMixedGroupCore(plan);
  for(const group of plan.groups)if(group.type==='humanLibraryCommit')for(const op of group.prepared.members){const {entityType:type,after}=op.value;maps[type].set(after.id,mixed?after:clone(after));if(type==='topic')observeHumanScopeNames(names,after);}
  return {rows:Object.fromEntries(Object.entries(maps).map(([type,map])=>[type,sort([...map.values()])])),names:[...names.values()].sort((a,b)=>a.name.localeCompare(b.name))};
 }
 export async function prepareHumanScopeProof(store,scope,wire,nativeMixedCompilation){
  requireGroupHumanCompilationInput(scope,wire);
  if(!store)fail('BNS_GROUP_BINDING');const previous=proofs.get(scope);if(preparations.has(scope)||previous?.projectionOpening||previous?.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');preparations.add(scope);try{const native=nativeMixedCompilation!==undefined,secret=native?borrowOriginalMixedScopeCompilationSecret(nativeMixedCompilation,store,scope,wire):await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key'))?.value,['meta']));if(!Array.isArray(secret))fail('BNS_HUMAN_BINDING_REQUIRED');const current=()=>{if(native)requireOriginalMixedScopeCompilationCurrent(nativeMixedCompilation,store,scope);};current();
+ const links=wire.rows.sourceLink??[];if(native&&links.length)fail('BNS_HUMAN_UNSUPPORTED');const linkedEpoch=links.length?await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-epoch'))?.value||0,['meta'])):null,provenance=[],dependencies=[];
+ for(const value of links){const link=validateSourceLinkedDescriptor(value),e=link.evidence,scopeToken=await keyedHash(secret,['scope',e.sourceIdentityTokens]),evidence={...clone(e),scopeToken,versionToken:await keyedHash(secret,['version',scopeToken,e.fieldDigests]),epoch:linkedEpoch},pair=planHumanEntryEvidence({actor:'user',formation:'explicit'},evidence,{id:link.provenanceId,generationId:link.generationId,entryId:link.id,at:link.at,generator:null});provenance.push(pair.provenance);dependencies.push(pair.dependency);}
  const rows=clone(wire.rows);for(const row of rows.entry){row.exactSignature=await keyedHash(secret,['body',row.type,row.thoughtText]);current();}for(const row of rows.topic){row.identity=(await localHumanTopicIdentity(row.name,row.identity,secret)).identity;current();}
  for(const row of rows.history)if(row.kind==='topic')for(const side of ['before','after'])if(row[side]){row[side].identity=(await localHumanTopicIdentity(row[side].name,row[side].identity,secret)).identity;current();}
  // A failed compilation must not abandon a later live crypto operand. Keep
  // the original native work ticket through each actual keyed-hash settlement
  // and authenticate its current cut before starting the next suppression.
- const suppression=[];for(const row of rows.suppression){suppression.push(await localHumanSuppression(row,secret));current();}rows.suppression=suppression;
+ const suppression=[];for(const row of rows.suppression){suppression.push(await localHumanSuppression(row,secret));current();}for(const row of rows.sourceSuppression??[])suppression.push(await localSourceSuppression(row,secret));rows.suppression=sort(suppression);
  const names=[];for(const row of wire.names){const token=await keyedHash(secret,['personal-topic-name-v1',row.name]);current();names.push({id:'personalTopicName:'+token,version:1,topicIds:row.topicIds});}
- const normalized=Object.fromEntries(Object.entries(rows).map(([type,items])=>[type,items.map(row=>normalizePhysical(type,row))]));if(proofs.get(scope)!==previous)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');proofs.set(scope,{store,secret,rows:normalized,names:sort(names),pairs:sort(rows.keepSeparate)});
+ const normalized=Object.fromEntries(Object.entries(rows).map(([type,items])=>[type,items.map(row=>normalizePhysical(type,row))]));if(proofs.get(scope)!==previous)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');proofs.set(scope,{store,secret,rows:normalized,names:sort(names),pairs:sort(rows.keepSeparate),linkedEpoch,provenance:sort(provenance),dependencies:sort(dependencies)});
  return normalized.history;
  }finally{preparations.delete(scope);}
 }
@@ -122,13 +127,14 @@ export async function requireHumanScope(store,t,scope){
   return {allowed:new Set([...p.projectionIds,...p.names.map(row=>row.id),...p.pairs.map(row=>row.id)]),history:p.rows.history};
  }
  if(!equal((await t.get('meta','thought-suppression-key'))?.value,p.secret))fail('BNS_HUMAN_CHANGED');
- for(const [type,name]of Object.entries(types)){if(type==='keepSeparate')continue;if(await t.count(name)>128)fail('BNS_GROUP_RESOURCE_LIMIT');const rows=sort(await t.all(name));for(const row of rows){if(type==='entry'&&(!count(row.createdSequence)||row.createdSequence<1||!count(row.updatedSequence)||row.updatedSequence<1||row.negativeUpdatedSequence!==-row.updatedSequence)||type==='topic'&&(!Number.isSafeInteger(row.negativeUpdatedSequence)||row.negativeUpdatedSequence>=0))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}if(!equal(rows.map(row=>normalizePhysical(type,row)),p.rows[type]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
- const names=[],pairs=[],allowed=new Set();let after=null;do{const page=await t.page('meta',{after:after??undefined,limit:100});for(const {value}of page.rows){if(value.id.startsWith('personalTopicName:'))names.push(value);else if(value.id.startsWith('topicKeepSeparate:'))pairs.push(value);else if(value.id.startsWith('thought-read-index:'))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');if(names.length+pairs.length>128)fail('BNS_GROUP_RESOURCE_LIMIT');}after=page.next;}while(after);
+ for(const [type,name]of Object.entries(types)){if(type==='keepSeparate')continue;const rows=sort(await readGroupRows(t,name));for(const row of rows){if(type==='entry'&&(!count(row.createdSequence)||row.createdSequence<1||!count(row.updatedSequence)||row.updatedSequence<1||row.negativeUpdatedSequence!==-row.updatedSequence)||type==='topic'&&(!Number.isSafeInteger(row.negativeUpdatedSequence)||row.negativeUpdatedSequence>=0))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}if(!equal(rows.map(row=>normalizePhysical(type,row)),p.rows[type]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(p.linkedEpoch!==null&&((await t.get('meta','thought-epoch'))?.value||0)!==p.linkedEpoch)fail('BNS_HUMAN_CHANGED');for(const [name,expected]of [['provenance',p.provenance],['dependencies',p.dependencies]]){if(!equal(sort(await readGroupRows(t,name)),expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ const names=await readGroupRows(t,'meta',{prefix:'personalTopicName:'}),pairs=await readGroupRows(t,'meta',{prefix:'topicKeepSeparate:'}),allowed=new Set();for await(const page of groupTablePages(t,'meta',{prefix:'thought-read-index:'}))if(page.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  if(!equal(sort(names),p.names)||!equal(sort(pairs),p.pairs))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');for(const row of [...names,...pairs])allowed.add(row.id);
  // Only untouched original search queue locators are admitted in this first
  // group seam. Indexed/posting/projection qualification remains a separate
  // actual-owner design; no arbitrary derivative store is exempted.
- if(await t.count('librarySearchTerms')||await t.count('libraryMigrationItems')>128)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');for(const row of await t.all('libraryMigrationItems')){const owner=p.rows[row.ownerKind]?.find(item=>item.id===row.ownerId);if(!owner||!['entry','topic','section'].includes(row.ownerKind)||!equal(row,{id:JSON.stringify(['search',row.ownerKind,row.ownerId]),entityKind:'search',statusKey:0,ownerKind:row.ownerKind,ownerId:row.ownerId,version:ownerVersion(row.ownerKind,owner),phase:'delete',offset:0,sourceRecordIds:[]}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(await t.count('librarySearchTerms'))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');for(const row of await readGroupRows(t,'libraryMigrationItems')){const owner=p.rows[row.ownerKind]?.find(item=>item.id===row.ownerId);if(!owner||!['entry','topic','section'].includes(row.ownerKind)||!equal(row,{id:JSON.stringify(['search',row.ownerKind,row.ownerId]),entityKind:'search',statusKey:0,ownerKind:row.ownerKind,ownerId:row.ownerId,version:ownerVersion(row.ownerKind,owner),phase:'delete',offset:0,sourceRecordIds:owner.sourceRecordIds??[]}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
  return {allowed,history:p.rows.history};
 }
 export async function requireHumanCurrentGroupScope(store,t,scope,plan){

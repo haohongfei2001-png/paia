@@ -1,0 +1,39 @@
+{
+  "headAtPostRun": "0897127e67902141a43b94ea18f44998235a2fc5",
+  "scope": "two newly appended Feedback native cases only; no whole owning-file pass claim",
+  "originalOwningFilePrefixUnchanged": true,
+  "initial": {
+    "pass": 0,
+    "fail": 2,
+    "reason": "incorrect expectation that CDP compositionend isTrusted=true"
+  },
+  "final": {
+    "pass": 2,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "exit": 0,
+    "tapMs": 7602.624292
+  },
+  "observedIME": [
+    {
+      "type": "compositionstart",
+      "trusted": true
+    },
+    {
+      "type": "compositionend",
+      "trusted": false
+    }
+  ],
+  "sha256After": {
+    "extension/tests/ux-r1-shell-chrome-e2e.test.mjs": "6cc9acf192076931f83350dc4a6330332a9d20ee91bd7b70f60e56c3d9cab31e",
+    "extension/ui/settings-feedback.js": "f435e0caabf1882a899e33999601cbc3ff48b35c1a3875589bfbc909723c1b36",
+    "extension/ui/settings-about.js": "e06b50ec4b8f224f0eec3c34402d0692f621298b00fe7d38050d0e47b9d1961b",
+    "extension/background/service-worker.js": "8d9409e13493fa39e58cedb9fee6581fb015a8751d147bc5fb01c4070f88eccf",
+    "extension/core/recovery-draft.js": "4e1a87e12fc3ce0a1f2d9b3e5a245bb7e9f0081005547f380957c57743eb53a7",
+    "extension/tests/harness/fake-chatgpt.mjs": "2744e6a288b00052f748b6c9c612249f5051bc878d0528a5aed63926f9973189",
+    "extension/work/feedback-native-takeover-20261023/native-initial-ime-assumption.tap": "0292ac874c9ecbefdaf3393da6eb7cb6aa83fc6678c93d8ca2c921c76ca2a048",
+    "extension/work/feedback-native-takeover-20261023/native-final.tap": "b160968b9b82113b77a984de86273ccc76df63f872bce06e974abe8e5becb00d"
+  }
+}

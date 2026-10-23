@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: SET2 Sync availability source original Settings destination remains read-only
+ok 1 - SET2 Sync availability source original Settings destination remains read-only
+  ---
+  duration_ms: 2035.333583
+  type: 'test'
+  ...
+# Subtest: SET2 Sync availability release original Settings destination remains read-only
+ok 2 - SET2 Sync availability release original Settings destination remains read-only
+  ---
+  duration_ms: 3256.453042
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5445.801084

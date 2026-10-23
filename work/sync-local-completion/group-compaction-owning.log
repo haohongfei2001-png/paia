@@ -1,0 +1,233 @@
+TAP version 13
+# Subtest: BNS compaction requires two complete comparable generations and retains uncovered tails/pins
+ok 1 - BNS compaction requires two complete comparable generations and retains uncovered tails/pins
+  ---
+  duration_ms: 42.887041
+  type: 'test'
+  ...
+# Subtest: BNS compaction refuses retaining a pre-purge body and stale device operations stay fenced
+ok 2 - BNS compaction refuses retaining a pre-purge body and stale device operations stay fenced
+  ---
+  duration_ms: 26.496375
+  type: 'test'
+  ...
+# Subtest: BNS compaction cannot borrow later tail receipts from an older checkpoint manifest
+ok 3 - BNS compaction cannot borrow later tail receipts from an older checkpoint manifest
+  ---
+  duration_ms: 32.498375
+  type: 'test'
+  ...
+# Subtest: BNS concurrent tail generation change invalidates in-progress compaction proof
+ok 4 - BNS concurrent tail generation change invalidates in-progress compaction proof
+  ---
+  duration_ms: 17.331875
+  type: 'test'
+  ...
+# Subtest: BNS shared chunks required by uncovered descriptors survive global compaction planning
+ok 5 - BNS shared chunks required by uncovered descriptors survive global compaction planning
+  ---
+  duration_ms: 70.5225
+  type: 'test'
+  ...
+# Subtest: BNS shared chunks required by pinned descriptors survive global compaction planning
+ok 6 - BNS shared chunks required by pinned descriptors survive global compaction planning
+  ---
+  duration_ms: 86.270541
+  type: 'test'
+  ...
+# Subtest: BNS a pinned checkpoint root still traverses and protects its complete descendant graph
+ok 7 - BNS a pinned checkpoint root still traverses and protects its complete descendant graph
+  ---
+  duration_ms: 93.432542
+  type: 'test'
+  ...
+# Subtest: BNS missing or corrupt retained manifest refuses compaction false
+ok 8 - BNS missing or corrupt retained manifest refuses compaction false
+  ---
+  duration_ms: 11.63425
+  type: 'test'
+  ...
+# Subtest: BNS missing or corrupt retained manifest refuses compaction true
+ok 9 - BNS missing or corrupt retained manifest refuses compaction true
+  ---
+  duration_ms: 13.055167
+  type: 'test'
+  ...
+# Subtest: BNS caller mutation cannot substitute an uncovered descriptor after covered validation
+ok 10 - BNS caller mutation cannot substitute an uncovered descriptor after covered validation
+  ---
+  duration_ms: 13.082208
+  type: 'test'
+  ...
+# Subtest: BNS entire descriptor inventory and pins are captured before the first await
+ok 11 - BNS entire descriptor inventory and pins are captured before the first await
+  ---
+  duration_ms: 15.558
+  type: 'test'
+  ...
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 12 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 123.945792
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 13 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 375.329209
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 14 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 337.216084
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 15 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 311.700542
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 16 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 347.481916
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 17 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 238.614625
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 18 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 220.247042
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 19 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 237.984166
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 20 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 231.4565
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 21 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 224.410708
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 22 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 252.735708
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 23 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 110.990292
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 24 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 54.310042
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 25 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 465.390375
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":113.39541700000063,"reads":2683,"writes":1161}}
+# Subtest: exact128 retained operations restore, the129th refuses, and bounded transaction work is measured
+ok 26 - exact128 retained operations restore, the129th refuses, and bounded transaction work is measured
+  ---
+  duration_ms: 900.982792
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 27 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 19.739083
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 28 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 27.80025
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 29 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 26.986833
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 30 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 28.814458
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 31 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 27.550917
+  type: 'test'
+  ...
+# Subtest: grouped compaction consumes actual original-owner graphs, closes A, collects covered objects and restores B
+ok 32 - grouped compaction consumes actual original-owner graphs, closes A, collects covered objects and restores B
+  ---
+  duration_ms: 411.190417
+  type: 'test'
+  ...
+# Subtest: active restore pin protects its complete covered object closure
+ok 33 - active restore pin protects its complete covered object closure
+  ---
+  duration_ms: 164.193292
+  type: 'test'
+  ...
+# Subtest: partial fake collection leaves both complete generations and unpublished tail usable after restart
+ok 34 - partial fake collection leaves both complete generations and unpublished tail usable after restart
+  ---
+  duration_ms: 254.343542
+  type: 'test'
+  ...
+# Subtest: grouped tail reconciliation during planning invalidates the previous retention proof
+ok 35 - grouped tail reconciliation during planning invalidates the previous retention proof
+  ---
+  duration_ms: 164.609167
+  type: 'test'
+  ...
+# Subtest: grouped compaction refuses missing staged items rather than treating empty receipts as covered
+ok 36 - grouped compaction refuses missing staged items rather than treating empty receipts as covered
+  ---
+  duration_ms: 146.820208
+  type: 'test'
+  ...
+# Subtest: change during the last remote manifest verification is caught before returning a collection plan
+ok 37 - change during the last remote manifest verification is caught before returning a collection plan
+  ---
+  duration_ms: 170.50075
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6644.744042

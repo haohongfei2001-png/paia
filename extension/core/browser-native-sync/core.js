@@ -1,3 +1,5 @@
+import {createGroupPageBudget,chargeGroupPageBytes,checkGroupPageBudget} from './group-page-reader.js';
+import {requireSavedWorkProtocolOwner} from './saved-work-bootstrap.js';
 import {requireConsumerPublicationSettled} from './consumer-publication-state.js';
 import {assertTopicDesiredOperation} from './topic-desired-codec.js';
 import {protocolKey as key,protocolPhysicalId} from './physical-key.js';
@@ -50,6 +52,7 @@ export async function validateOperation(operation){
  if(!exact(operation,opFields)||Object.keys(operation).length!==opFields.length||operation.protocol!==1||!opaque(operation.datasetId)||!opaque(operation.deviceId)||!opaque(operation.operationId)||!count(operation.sequence)||operation.sequence<1||!identifier(operation.entityId)||!Object.hasOwn(CODECS,operation.type)||operation.codecVersion!==CODECS[operation.type].version||!['put','purge'].includes(operation.kind)||!['user','source','bootstrap'].includes(operation.actor)||!Array.isArray(operation.parents)||operation.parents.length>CORE_LIMITS.parents||operation.parents.some(x=>!hash(x))||new Set(operation.parents).size!==operation.parents.length||!hash(operation.revisionId))fail('BNS_OPERATION_INVALID');
  if(operation.kind==='purge'){if(operation.actor!=='user'||operation.value!==null)fail('BNS_PURGE_INVALID');}
  else{await validateEntityAsync(operation.type,operation.value,operation.codecVersion);if(operation.value.id!==operation.entityId)fail('BNS_ENTITY_MISMATCH');}
+ if(operation.type==='savedWorkBootstrap'&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length||operation.value.payload.datasetId!==operation.datasetId))fail('BNS_SAVED_WORK_OPERATION');
  if(operation.type==='consumerPreference')assertConsumerPreferenceOperation(operation);
  if(operation.type==='topicDesired')assertTopicDesiredOperation(operation);
  if(['sourceAppendMember','sourceAppendCommit'].includes(operation.type)&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length))fail('BNS_SOURCE_APPEND_INVALID');
@@ -82,6 +85,9 @@ export async function validateHumanCommitGroup(input,datasetId,immutable=false){
   const descriptors=operations.filter(op=>op.type==='humanLibraryCommit');if(descriptors.length!==1)fail('BNS_HUMAN_COMMIT_REQUIRED');const descriptor=descriptors[0],members=operations.filter(op=>op!==descriptor),v=descriptor.value;
   if(descriptor.parents.length||v.id!==descriptor.entityId||v.deviceId!==descriptor.deviceId||v.datasetId!==descriptor.datasetId||members.length!==v.members.length||new Set(operations.map(op=>op.operationId)).size!==operations.length||new Set(operations.map(op=>op.sequence)).size!==operations.length)fail('BNS_HUMAN_COMMIT_INVALID');
   const ordered=[];for(const ref of v.members){const hits=members.filter(op=>op.type===ref.type&&op.entityId===ref.entityId&&op.revisionId===ref.revisionId&&op.operationId===ref.operationId);if(hits.length!==1)fail('BNS_HUMAN_COMMIT_INCOMPLETE');const op=hits[0],m=op.value;if(op.deviceId!==descriptor.deviceId||m.deviceId!==v.deviceId||m.datasetId!==v.datasetId||m.logicalCommitId!==v.id||m.domainOperationId!==v.domainOperationId||m.requestDigest!==v.requestDigest)fail('BNS_HUMAN_COMMIT_INVALID');ordered.push(op);}
+  const linked=v.kind.startsWith('source-entry'),links=ordered.filter(op=>op.value.entityType==='sourceLink'),entries=ordered.filter(op=>op.value.entityType==='entry'&&op.value.after.provenanceType==='input_derived');
+  if(linked){if(links.length!==1||entries.length!==1||ordered.some(op=>!['entry','sourceLink','history','sourceSuppression'].includes(op.value.entityType)))fail('BNS_HUMAN_COMMIT_INVALID');const edge=links[0].value,row=entries[0].value;if(ordered.some(op=>op.value.entityType==='sourceSuppression'&&(!['source-entry-remove','source-entry-restore'].includes(v.kind)||op.value.after.deletedEntryId!==edge.after.id||!equal(op.value.after.sourceEvidence,edge.after.evidence)))||(v.kind==='source-entry'?!equal(v.request.evidence,[edge.after.evidence]):v.request.id!==edge.after.id)||edge.after.id!==row.after.id||!equal(row.after.sourceRecordIds,edge.after.evidence.sourceRecordIds)||!equal(row.after.inputRefs,[{inputBlockId:edge.after.evidence.inputId,basedOnContentRevision:edge.after.evidence.basedOnContentRevision}])||(v.kind==='source-entry'?(edge.before!==null||row.before!==null):(!equal(edge.before,edge.after)||row.before===null)))fail('BNS_HUMAN_COMMIT_INVALID');}
+  else if(links.length||entries.length||ordered.some(op=>op.value.entityType==='sourceSuppression')||ordered.some(op=>op.value.entityType==='history'&&op.value.after.sourceRecordIds.length))fail('BNS_HUMAN_COMMIT_INVALID');
   return {descriptor,members:ordered,operations};
 }
 
@@ -259,6 +265,7 @@ export class BrowserNativeSyncCore {
   return false;
  }
  async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null,appendCapability=null,humanCapability=null,humanRetentionCapability=null}={}){
+  if(operation.type==='savedWorkBootstrap')requireSavedWorkProtocolOwner(t,this,operation,origin);
   const scope=requireRepositoryTransactionScope(this.repository,t),activeRetention=humanRetentionTransactions.get(scope.token);
   if(activeRetention&&(activeRetention.wrapper!==t||activeRetention.core!==this||activeRetention.repository!==this.repository||activeRetention.database!==scope.database||scope.database!==this.repository.db||scope.mode!=='readwrite'||this.boundTransactions.get(t)!==activeRetention.namespace||activeRetention.phase!=='apply'||origin!=='remote'||materialize!==false||humanRetentionCapability!==activeRetention||!activeRetention.operations?.includes(operation)))throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
   if(activeRetention){requireRepositoryTransactionDataMethods(this.repository,t);requireOriginalHumanRetentionCoreDataMethods(this);}
@@ -347,10 +354,21 @@ export class BrowserNativeSyncCore {
  // This mints no generic materializer: each Human group still needs the exact
  // original named-owner capability and final current heads/generation checks.
  async prepareHumanRestoreProtocols(groups){
-  if(!this.fixedNamespace||!Array.isArray(groups))fail('BNS_HUMAN_RESTORE_REQUIRED');const input=groups.flatMap(group=>group.operations||[]);
-  if(input.length>CORE_LIMITS.batch||input.reduce((n,op)=>n+bytes(op).length,0)>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');
-  const seen=new Map(),ids=new Set(),sequences=new Set(),heads=new Map(),result=[];let generation=0;
+  if(!this.fixedNamespace||!Array.isArray(groups))fail('BNS_HUMAN_RESTORE_REQUIRED');
+  // Detach and charge the exact consumed values before the first asynchronous
+  // validation. The caller's array and nested operations must never be reread
+  // after a digest await, even when the original graph was within its budget.
+  const budget=createGroupPageBudget(),snapshot=[];
+  if(groups.length>4096)fail('BNS_GROUP_RESOURCE_LIMIT');
   for(const group of groups){
+   const operations=group?.operations;if(!Array.isArray(operations)||operations.length>CORE_LIMITS.batch)fail('BNS_HUMAN_GRAPH_LIMIT');
+   const encoded=canonical({id:group.id,type:group.type,operations}),copy=JSON.parse(encoded);
+   chargeGroupPageBytes(budget,bytes(encoded).length);
+   for(const operation of copy.operations)chargeGroupPageBytes(budget,0);
+   snapshot.push(copy);
+  }
+  const seen=new Map(),ids=new Set(),sequences=new Set(),heads=new Map(),result=[];let generation=0;
+  for(const group of snapshot){
    if(!Array.isArray(group.operations)||!group.operations.length)fail('BNS_HUMAN_COMMIT_INVALID');
    for(const raw of group.operations){const op=await validateOperation(raw),seq=JSON.stringify([op.deviceId,op.sequence]);if(op.datasetId!==this.datasetId)fail('BNS_DATASET_MISMATCH');if(seen.has(op.revisionId)||ids.has(op.operationId)||sequences.has(seq))fail('BNS_GROUP_DUPLICATE');ids.add(op.operationId);sequences.add(seq);
     for(const id of op.parents){const parent=seen.get(id);if(!parent||parent.type!==op.type||parent.entityId!==op.entityId)fail('BNS_HUMAN_ANCESTRY_REQUIRED');}
@@ -362,7 +380,7 @@ export class BrowserNativeSyncCore {
    generation+=group.operations.length;
   }
   await this.transaction(false,async t=>{if(await this.bind(t)!==this.fixedNamespace||(await t.primaryRangePage('meta',{prefix:this.prefix+'generation:'+this.fixedNamespace+':',limit:1})).rows.length)fail('BNS_HUMAN_RESTORE_REQUIRED');},['meta']);
-  const freeze=x=>{if(x&&typeof x==='object'){for(const y of Object.values(x))freeze(y);Object.freeze(x);}return x;};for(const prepared of result){freeze(prepared);this.#humanPrepared.add(prepared);}return Object.freeze(result);
+  checkGroupPageBudget(budget);const freeze=x=>{if(x&&typeof x==='object'){for(const y of Object.values(x))freeze(y);Object.freeze(x);}return x;};for(const prepared of result){freeze(prepared);this.#humanPrepared.add(prepared);}return Object.freeze(result);
  }
  async commitHumanReceive(t,prepared,writeOwner){
   if(!this.#humanPrepared.has(prepared)||typeof writeOwner!=='function')fail('BNS_PREPARATION_REQUIRED');const prior=await this.get(t,'receipt',prepared.descriptor.operationId);if(prior){if(prior.digest!==prepared.descriptor.revisionId)fail('BNS_OPERATION_COLLISION');return {state:'duplicate'};}

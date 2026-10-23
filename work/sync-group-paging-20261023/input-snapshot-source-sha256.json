@@ -1,0 +1,4 @@
+{
+  "extension/core/browser-native-sync/core.js": "3c89cf3082559ce3c1193296118caca2c93fe3ad101d0c1b49c5a11869165dc8",
+  "extension/tests/browser-native-sync-group-paging.test.mjs": "489edefbb6ec3f40e884a8ae0f93726eea4a6fe8c5f6bb0a03d61ae6e230d67a"
+}

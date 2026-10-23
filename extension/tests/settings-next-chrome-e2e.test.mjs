@@ -146,3 +146,35 @@ for(const variant of ['source','release'])test('SET2 restore intent '+variant+' 
   try{const geometry=await h?.archive.evaluate(()=>globalThis.__settingsRestoreGeometry?.snapshot()||null);await mkdir(out,{recursive:true});await writeSettingsRestoreDiagnostic(join(out,variant+'-restore-layout-diagnostic.json'),JSON.stringify({variant,instrumented:true,geometry},null,2)+'\n');}catch{console.error('SET2_RESTORE_GEOMETRY_WRITE_FAILED');}
   if(h){await h.archive.evaluate(()=>{try{globalThis.__settingsRestoreGeometry?.restore();}finally{globalThis.__settingsRestoreRead?.restore();}}).catch(()=>{});await h.close();}if(release)await rm(release,{recursive:true,force:true});}
 });
+
+// The Sync destination is a build-availability view, never a provider activation
+// or a local recovery entry. These finite cases preserve all original SET2 tests.
+for(const variant of ['source','release'])test('SET2 Sync availability '+variant+' original Settings destination remains read-only',{timeout:90000},async()=>{
+ const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-set2-sync-release-')):null;let h;
+ if(release)execFileSync('python3',['scripts/build_current_release.py',release],{cwd:root,stdio:'pipe'});
+ try{
+  h=await FakeChatGPT.start({extensionPath:release||root,headless:true});const page=h.archive;
+  await page.locator('#enable-consent').click();await eventually(()=>page.evaluate(async()=>{const r=await chrome.runtime.sendMessage({type:'GET_STATUS'});return r.ok&&r.data.enabled;}),'original consent acknowledgement');
+  await page.locator('.sidebar-bottom [data-view="settings"]').click();const results=[];
+  for(const language of ['zh-CN','en']){
+   await chooseConsumerGroup(page,'reading');await page.locator('#ux-language').selectOption(language);await eventually(()=>page.locator('html').getAttribute('lang').then(x=>x===language));
+   await chooseConsumerGroup(page,'data');await page.setViewportSize({width:320,height:900});
+   const row=page.locator('#settings-sync'),dialog=page.locator('#settings-sync-dialog'),close=dialog.locator('.ux-settings-detail-close');
+   assert.deepEqual(await page.locator('[data-group="data"] > .ux-settings-destination').evaluateAll(nodes=>nodes.map(node=>node.id)),['settings-sync','settings-history','settings-storage','settings-backup','settings-removed','settings-source-records'],'exact original Data destination order with the admitted Sync row');
+   assert.equal(await row.count(),1);assert.equal(await row.getAttribute('aria-controls'),'settings-sync-dialog');assert.equal(await row.isEnabled(),true);
+   const before=await page.evaluate(()=>chrome.storage.local.get(null));await row.focus();await page.keyboard.press('Space');await dialog.waitFor({state:'visible'});
+   assert.equal(await dialog.locator('.ux-settings-sync-content').getAttribute('data-sync-state'),'unavailable');
+   assert.equal(await page.locator('#settings-sync-state').innerText(),language==='zh-CN'?'此版本尚未提供云端同步。':'Cloud sync is not available in this version.');
+   assert.match(await page.locator('#settings-sync-scope').innerText(),language==='zh-CN'?/不会登录账号、上传内容或更改已有数据/:/does not sign in, upload content or change existing data/);
+   assert.equal(await dialog.locator('button').count(),1,'only the original close action, no activation or recovery controls');assert.equal(await dialog.locator('input,select,textarea,a[href]').count(),0);
+   assert.equal(await close.evaluate(node=>document.activeElement===node),true,'original modal initial focus');await page.keyboard.press('Tab');assert.equal(await close.evaluate(node=>document.activeElement===node),true,'one-action modal contains native Tab');
+   const geometry=await dialog.evaluate(node=>{const r=node.getBoundingClientRect();return {left:r.left,right:r.right,overflow:node.scrollWidth-node.clientWidth};});assert.ok(geometry.left>=0&&geometry.right<=320&&geometry.overflow<=2,'narrow Sync detail stays readable');
+   await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});assert.equal(await row.evaluate(node=>document.activeElement===node),true,'native Escape returns to Sync row');
+   assert.deepEqual(await page.evaluate(()=>chrome.storage.local.get(null)),before,'opening and closing Sync preserves every local preference/permission row');
+   await row.click();await dialog.waitFor({state:'visible'});await close.click();await dialog.waitFor({state:'hidden'});assert.deepEqual(await page.evaluate(()=>chrome.storage.local.get(null)),before);
+   results.push({language,unavailable:true,actions:1,localStorageUnchanged:true,geometry});
+  }
+  assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
+  await mkdir(out,{recursive:true});await writeSettingsRestoreDiagnostic(join(out,variant+'-sync-availability.json'),JSON.stringify({variant,passed:true,productionSync:false,results},null,2)+'\n');
+ }finally{if(h)await h.close();if(release)await rm(release,{recursive:true,force:true});}
+});

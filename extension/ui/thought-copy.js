@@ -1,5 +1,6 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ 'AI整理 ':'AI organization ', 'AI整理':'AI organization', '思想库显示':'Thought Library display',
  '已核对原请求，确认未写入。':'The original request was checked. Confirmation did not write.',
  'AI 提议，确认后才会移动。':'AI proposal. Nothing moves until you confirm.',
  '提议依据：':'Proposal basis: ',
@@ -178,10 +179,10 @@ export function watchThoughtCopy(){
  const reverse=new Map(Object.entries(english).map(([zh,en])=>[en,zh]));
  const apply=()=>{
   // These roots contain product controls only, never topic names or body text.
-  for(const root of document.querySelectorAll('#topic-create-section,#thought-home-tools,#thought-root-source,#thought-empty,#create-entry,#library-unplaced,.reader-selection,.topic-section-actions,.topic-entry-move')){
+  for(const root of document.querySelectorAll('#library-view-switch,#topic-create-section,#thought-home-tools,#thought-root-source,#thought-empty,#create-entry,#library-unplaced,.reader-selection,.topic-section-actions,.topic-entry-move')){
    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
    while(node=walker.nextNode()){const key=reverse.get(node.data)||node.data;if(Object.hasOwn(english,key))node.data=thoughtCopy(key);}
-   for(const element of root.querySelectorAll('[aria-label],[placeholder]'))for(const attribute of ['aria-label','placeholder']){const label=element.getAttribute(attribute),key=reverse.get(label)||label;if(Object.hasOwn(english,key))element.setAttribute(attribute,thoughtCopy(key));}
+   for(const element of [root,...root.querySelectorAll('[aria-label],[placeholder]')])for(const attribute of ['aria-label','placeholder']){const label=element.getAttribute?.(attribute),key=reverse.get(label)||label;if(Object.hasOwn(english,key))element.setAttribute(attribute,thoughtCopy(key));}
   }
  };
  new MutationObserver(apply).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});apply();

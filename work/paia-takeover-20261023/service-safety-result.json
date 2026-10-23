@@ -1,0 +1,32 @@
+{
+  "files": [
+    "services/ai-gateway/tests/maintenance-source-response-path.test.mjs",
+    "services/ai-gateway/tests/organize-original-action-client-path.test.mjs",
+    "services/ai-gateway/tests/organize-source-bounded-two-child.test.mjs",
+    "services/ai-gateway/tests/organize-source-large-bounded-response.test.mjs",
+    "services/ai-gateway/tests/organize-source-single-wire-boundaries.test.mjs",
+    "services/ai-gateway/tests/organize-source-terminal-abort.test.mjs",
+    "services/ai-gateway/tests/organize-worker-rpc.test.mjs",
+    "extension/tests/privacy-product.test.mjs",
+    "extension/tests/backup-current-version.test.mjs",
+    "extension/tests/browser-harness-resolution.test.mjs"
+  ],
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=2",
+    "--test-reporter=tap",
+    "services/ai-gateway/tests/maintenance-source-response-path.test.mjs",
+    "services/ai-gateway/tests/organize-original-action-client-path.test.mjs",
+    "services/ai-gateway/tests/organize-source-bounded-two-child.test.mjs",
+    "services/ai-gateway/tests/organize-source-large-bounded-response.test.mjs",
+    "services/ai-gateway/tests/organize-source-single-wire-boundaries.test.mjs",
+    "services/ai-gateway/tests/organize-source-terminal-abort.test.mjs",
+    "services/ai-gateway/tests/organize-worker-rpc.test.mjs",
+    "extension/tests/privacy-product.test.mjs",
+    "extension/tests/backup-current-version.test.mjs",
+    "extension/tests/browser-harness-resolution.test.mjs"
+  ],
+  "exit": 0,
+  "wallSeconds": 101.6342511177063
+}

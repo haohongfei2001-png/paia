@@ -1,0 +1,216 @@
+TAP version 13
+# Subtest: NIB S1 original query and selection UI source
+    # Subtest: explicit empty SEARCH never becomes a complete-history feed and IME defers its reader
+    ok 1 - explicit empty SEARCH never becomes a complete-history feed and IME defers its reader
+      ---
+      duration_ms: 241.602
+      type: 'test'
+      ...
+    # Subtest: all rare Inputs use original qualified Archive order, complete paging and fixed-width rows
+    ok 2 - all rare Inputs use original qualified Archive order, complete paging and fixed-width rows
+      ---
+      duration_ms: 924.309958
+      type: 'test'
+      ...
+    # Subtest: multiline current Input opens original exact body and native pointer selection inserts only that range
+    ok 3 - multiline current Input opens original exact body and native pointer selection inserts only that range
+      ---
+      duration_ms: 913.254667
+      type: 'test'
+      ...
+    # Subtest: invalid Unicode boundary refuses native current reader rather than falling back to whole body
+    ok 4 - invalid Unicode boundary refuses native current reader rather than falling back to whole body
+      ---
+      duration_ms: 36.740458
+      type: 'test'
+      ...
+    # Subtest: late qualified copy after genuine Working edit cannot reach copy payload or resurrect old body
+    ok 5 - late qualified copy after genuine Working edit cannot reach copy payload or resurrect old body
+      ---
+      duration_ms: 784.989625
+      type: 'test'
+      ...
+    # Subtest: explicit history edit saves independent Prompt work without changing original Source or Working
+    ok 6 - explicit history edit saves independent Prompt work without changing original Source or Working
+      ---
+      duration_ms: 1212.897292
+      type: 'test'
+      ...
+    # Subtest: SEARCH applies explicit appearance/language without rebuilding the original unsaved editor
+    ok 7 - SEARCH applies explicit appearance/language without rebuilding the original unsaved editor
+      ---
+      duration_ms: 687.829458
+      type: 'test'
+      ...
+    # Subtest: original representative chooser is reachable at the same width and preserves independently edited priority
+    ok 8 - original representative chooser is reachable at the same width and preserves independently edited priority
+      ---
+      duration_ms: 6919.620042
+      type: 'test'
+      ...
+    # Subtest: late or owner-refused representative members cannot reappear after genuine Working invalidation
+    ok 9 - late or owner-refused representative members cannot reappear after genuine Working invalidation
+      ---
+      duration_ms: 1863.957167
+      type: 'test'
+      ...
+    # Subtest: first Up and last Down are disabled while valid movement keeps every hidden pin in canonical order
+    ok 10 - first Up and last Down are disabled while valid movement keeps every hidden pin in canonical order
+      ---
+      duration_ms: 1435.33925
+      type: 'test'
+      ...
+    # Subtest: a deep original search check and active second page return with the same relative result and focus
+    ok 11 - a deep original search check and active second page return with the same relative result and focus
+      ---
+      duration_ms: 1746.522375
+      type: 'test'
+      ...
+    # Subtest: a held original layout ACK cannot take focus back from a newer trusted keyboard choice
+    ok 12 - a held original layout ACK cannot take focus back from a newer trusted keyboard choice
+      ---
+      duration_ms: 750.59575
+      type: 'test'
+      ...
+    # Subtest: all four original modes retain exact narrow widths including the 400 and 401 boundary
+    ok 13 - all four original modes retain exact narrow widths including the 400 and 401 boundary
+      ---
+      duration_ms: 8033.008958
+      type: 'test'
+      ...
+    # Subtest: cross-paragraph original Unicode selection survives native Tab to Copy and explicit Clear restores whole text
+    ok 14 - cross-paragraph original Unicode selection survives native Tab to Copy and explicit Clear restores whole text
+      ---
+      duration_ms: 1420.482875
+      type: 'test'
+      ...
+    # Subtest: reopening requalifies a changed original Input without painting its previous body while the real reader is held
+    ok 15 - reopening requalifies a changed original Input without painting its previous body while the real reader is held
+      ---
+      duration_ms: 678.041417
+      type: 'test'
+      ...
+    # Subtest: Clear stays empty SEARCH and the candidate PAIA link does not borrow the remembered query
+    ok 16 - Clear stays empty SEARCH and the candidate PAIA link does not borrow the remembered query
+      ---
+      duration_ms: 936.108958
+      type: 'test'
+      ...
+    1..16
+ok 1 - NIB S1 original query and selection UI source
+  ---
+  duration_ms: 34552.032625
+  type: 'test'
+  ...
+# Subtest: NIB S1 original query and selection UI release
+    # Subtest: explicit empty SEARCH never becomes a complete-history feed and IME defers its reader
+    ok 1 - explicit empty SEARCH never becomes a complete-history feed and IME defers its reader
+      ---
+      duration_ms: 241.482375
+      type: 'test'
+      ...
+    # Subtest: all rare Inputs use original qualified Archive order, complete paging and fixed-width rows
+    ok 2 - all rare Inputs use original qualified Archive order, complete paging and fixed-width rows
+      ---
+      duration_ms: 904.079625
+      type: 'test'
+      ...
+    # Subtest: multiline current Input opens original exact body and native pointer selection inserts only that range
+    ok 3 - multiline current Input opens original exact body and native pointer selection inserts only that range
+      ---
+      duration_ms: 914.527833
+      type: 'test'
+      ...
+    # Subtest: invalid Unicode boundary refuses native current reader rather than falling back to whole body
+    ok 4 - invalid Unicode boundary refuses native current reader rather than falling back to whole body
+      ---
+      duration_ms: 33.998333
+      type: 'test'
+      ...
+    # Subtest: late qualified copy after genuine Working edit cannot reach copy payload or resurrect old body
+    ok 5 - late qualified copy after genuine Working edit cannot reach copy payload or resurrect old body
+      ---
+      duration_ms: 773.75975
+      type: 'test'
+      ...
+    # Subtest: explicit history edit saves independent Prompt work without changing original Source or Working
+    ok 6 - explicit history edit saves independent Prompt work without changing original Source or Working
+      ---
+      duration_ms: 1183.947541
+      type: 'test'
+      ...
+    # Subtest: SEARCH applies explicit appearance/language without rebuilding the original unsaved editor
+    ok 7 - SEARCH applies explicit appearance/language without rebuilding the original unsaved editor
+      ---
+      duration_ms: 692.987583
+      type: 'test'
+      ...
+    # Subtest: original representative chooser is reachable at the same width and preserves independently edited priority
+    ok 8 - original representative chooser is reachable at the same width and preserves independently edited priority
+      ---
+      duration_ms: 6524.85775
+      type: 'test'
+      ...
+    # Subtest: late or owner-refused representative members cannot reappear after genuine Working invalidation
+    ok 9 - late or owner-refused representative members cannot reappear after genuine Working invalidation
+      ---
+      duration_ms: 1835.304333
+      type: 'test'
+      ...
+    # Subtest: first Up and last Down are disabled while valid movement keeps every hidden pin in canonical order
+    ok 10 - first Up and last Down are disabled while valid movement keeps every hidden pin in canonical order
+      ---
+      duration_ms: 1241.2895
+      type: 'test'
+      ...
+    # Subtest: a deep original search check and active second page return with the same relative result and focus
+    ok 11 - a deep original search check and active second page return with the same relative result and focus
+      ---
+      duration_ms: 1704.898041
+      type: 'test'
+      ...
+    # Subtest: a held original layout ACK cannot take focus back from a newer trusted keyboard choice
+    ok 12 - a held original layout ACK cannot take focus back from a newer trusted keyboard choice
+      ---
+      duration_ms: 752.292375
+      type: 'test'
+      ...
+    # Subtest: all four original modes retain exact narrow widths including the 400 and 401 boundary
+    ok 13 - all four original modes retain exact narrow widths including the 400 and 401 boundary
+      ---
+      duration_ms: 7766.231958
+      type: 'test'
+      ...
+    # Subtest: cross-paragraph original Unicode selection survives native Tab to Copy and explicit Clear restores whole text
+    ok 14 - cross-paragraph original Unicode selection survives native Tab to Copy and explicit Clear restores whole text
+      ---
+      duration_ms: 1518.366292
+      type: 'test'
+      ...
+    # Subtest: reopening requalifies a changed original Input without painting its previous body while the real reader is held
+    ok 15 - reopening requalifies a changed original Input without painting its previous body while the real reader is held
+      ---
+      duration_ms: 764.7745
+      type: 'test'
+      ...
+    # Subtest: Clear stays empty SEARCH and the candidate PAIA link does not borrow the remembered query
+    ok 16 - Clear stays empty SEARCH and the candidate PAIA link does not borrow the remembered query
+      ---
+      duration_ms: 939.552958
+      type: 'test'
+      ...
+    1..16
+ok 2 - NIB S1 original query and selection UI release
+  ---
+  duration_ms: 35246.781708
+  type: 'test'
+  ...
+1..2
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 74982.524

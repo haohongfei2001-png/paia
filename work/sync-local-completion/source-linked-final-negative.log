@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: incoming Topic history cannot carry sender-local indexed completion, including nested identity leaves
+ok 1 - incoming Topic history cannot carry sender-local indexed completion, including nested identity leaves
+  ---
+  duration_ms: 93.142875
+  type: 'test'
+  ...
+# Subtest: resealed remote completion tag refuses before original receive and leaves every store unchanged
+ok 2 - resealed remote completion tag refuses before original receive and leaves every store unchanged
+  ---
+  duration_ms: 76.008541
+  type: 'test'
+  ...
+# Subtest: original indexed sender edit receives without transmitting completion; receiver indexed=false
+ok 3 - original indexed sender edit receives without transmitting completion; receiver indexed=false
+  ---
+  duration_ms: 181.865125
+  type: 'test'
+  ...
+# Subtest: original indexed sender edit receives without transmitting completion; receiver indexed=true
+ok 4 - original indexed sender edit receives without transmitting completion; receiver indexed=true
+  ---
+  duration_ms: 100.107041
+  type: 'test'
+  ...
+# Subtest: actual search-only race after prepare refuses the whole journal transaction without canonical/outbox changes
+ok 5 - actual search-only race after prepare refuses the whole journal transaction without canonical/outbox changes
+  ---
+  duration_ms: 41.117834
+  type: 'test'
+  ...
+# Subtest: actual completed owners qualify through one readonly capture, empty/cloned capabilities have no authority
+ok 6 - actual completed owners qualify through one readonly capture, empty/cloned capabilities have no authority
+  ---
+  duration_ms: 125.242125
+  type: 'test'
+  ...
+# Subtest: original planned canonical and exact pre-queue Topic history phases omit only proven copied local completion
+ok 7 - original planned canonical and exact pre-queue Topic history phases omit only proven copied local completion
+  ---
+  duration_ms: 44.87475
+  type: 'test'
+  ...
+# Subtest: untouched exact queues stay admissible and future plan remains original, no future posting state is invented
+ok 8 - untouched exact queues stay admissible and future plan remains original, no future posting state is invented
+  ---
+  duration_ms: 34.687791
+  type: 'test'
+  ...
+# Subtest: 450-token original partial write and old-index partial delete refuse without any additional writes
+ok 9 - 450-token original partial write and old-index partial delete refuse without any additional writes
+  ---
+  duration_ms: 136.072834
+  type: 'test'
+  ...
+# Subtest: exact complete posting oracle rejects missing/extra/body-containing/foreign rows and preserves actual stores
+ok 10 - exact complete posting oracle rejects missing/extra/body-containing/foreign rows and preserves actual stores
+  ---
+  duration_ms: 108.507291
+  type: 'test'
+  ...
+# Subtest: actual local search-only drift between prepare and final transaction aborts even an already-started canonical write
+ok 11 - actual local search-only drift between prepare and final transaction aborts even an already-started canonical write
+  ---
+  duration_ms: 26.684
+  type: 'test'
+  ...
+# Subtest: original incomplete rebuild refuses and only exact completed rebuild metadata can qualify
+ok 12 - original incomplete rebuild refuses and only exact completed rebuild metadata can qualify
+  ---
+  duration_ms: 33.104791
+  type: 'test'
+  ...
+# Subtest: actual device identity change cannot reuse a captured completion proof or project a named plan
+ok 13 - actual device identity change cannot reuse a captured completion proof or project a named plan
+  ---
+  duration_ms: 24.542166
+  type: 'test'
+  ...
+# Subtest: a physically identical second actual database cannot reuse a captured database-lifetime capability
+ok 14 - a physically identical second actual database cannot reuse a captured database-lifetime capability
+  ---
+  duration_ms: 29.903041
+  type: 'test'
+  ...
+# Subtest: original source-linked creation plan consumes exact original provenance/dependency and edit owner
+ok 15 - original source-linked creation plan consumes exact original provenance/dependency and edit owner
+  ---
+  duration_ms: 114.913167
+  type: 'test'
+  ...
+# Subtest: source edit after preparation refuses original create without any additional writes
+ok 16 - source edit after preparation refuses original create without any additional writes
+  ---
+  duration_ms: 33.624667
+  type: 'test'
+  ...
+# Subtest: linked owner keeps creation, provenance, dependency and history in one rollback boundary
+ok 17 - linked owner keeps creation, provenance, dependency and history in one rollback boundary
+  ---
+  duration_ms: 32.428667
+  type: 'test'
+  ...
+# Subtest: stale Source is not admitted for linked edit
+ok 18 - stale Source is not admitted for linked edit
+  ---
+  duration_ms: 37.758541
+  type: 'test'
+  ...
+# Subtest: retained dependency mismatch refuses linked edit without writes
+ok 19 - retained dependency mismatch refuses linked edit without writes
+  ---
+  duration_ms: 33.35575
+  type: 'test'
+  ...
+# Subtest: portable Source edge rebinds local tokens after real bootstrap into independent B
+ok 20 - portable Source edge rebinds local tokens after real bootstrap into independent B
+  ---
+  duration_ms: 76.578708
+  type: 'test'
+  ...
+# Subtest: source-linked typed journal exports portable edge and receives create/edit through original B owner
+ok 21 - source-linked typed journal exports portable edge and receives create/edit through original B owner
+  ---
+  duration_ms: 101.1555
+  type: 'test'
+  ...
+# Subtest: single Source and source-linked create/edit restore as one original owner graph on cold B
+ok 22 - single Source and source-linked create/edit restore as one original owner graph on cold B
+  ---
+  duration_ms: 708.213166
+  type: 'test'
+  ...
+# Subtest: journal refuses Source-linked capture whose original Source protocol is absent
+ok 23 - journal refuses Source-linked capture whose original Source protocol is absent
+  ---
+  duration_ms: 15.48125
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1292.002458
