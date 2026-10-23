@@ -1,0 +1,10 @@
+78c6ba9185b3bc33329e4a4dd79751789d3228c48681189714461b8822799226  extension/core/browser-native-sync/providers/google-drive.js
+27accf944f6d1a5473e40eafb896bf377c4a37b5259593013d65cc42bcc56775  extension/tests/browser-native-sync-google-drive.test.mjs
+fb73a9805cd5cb988edd75dabb7ea179e68f6708128175aefb5dbf7ca16ecdf7  extension/docs/consumer-product-v1/implementation/SYNC-GOOGLE-APPDATA-LOCAL-20261023.md
+e5c0c5cca1e5b574921b8dfb19b359a100f9db6c12964cda2d7cbdd06d728342  work/paia-takeover-20261023/google-drive-bounded-final.tap
+326fb78a9a85732ca16ed272862c961d3a6311ee760115f43f57d8d0e14c3a5d  work/paia-takeover-20261023/google-drive-client-binding.tap
+8425a00b00019c83a1fcb971e18c9839cd016b32ff343096f81c38b421d244e3  work/paia-takeover-20261023/google-drive-final.tap
+4badea56c333fb91e104ea835ea726eb26103092d121609e6f9af90b4444cacd  work/paia-takeover-20261023/google-drive-first.tap
+e09d3ada969bc6c091ae66de86890dfb2183bad75bc15c3ef6fe1d1dda5c562f  work/paia-takeover-20261023/google-drive-review-final.tap
+c308fc85bbf1dc15f331ecb2fde1d1f4a1812f4f117bbea54f707de802fcd650  work/paia-takeover-20261023/google-drive-reviewed-final.tap
+962db48ff45893b59251572b9dea9bd8566b879bfd4220b5eba707a33d9fb172  work/paia-takeover-20261023/google-drive-second.tap
