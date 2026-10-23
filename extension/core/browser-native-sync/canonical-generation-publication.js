@@ -3,7 +3,7 @@ import * as originalCheckpoint from './group-checkpoint.js';
 import * as checkpointStage from './canonical-generation-checkpoint-stage.js';
 import {ArchiveError} from '../constants.js';
 import {SyncError} from './value.js';
-import {ArchiveRepository,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
+import {ArchiveRepository,originalGenerationRepositoryTransaction,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
 
 // Opt-in publication infrastructure. This module does not validate a canonical
 // graph, switch the application's repository, publish chrome.local or delete a
@@ -12,7 +12,14 @@ export const CANONICAL_GENERATION_REGISTRY='canonical-generation:registry:v1';
 export const CANONICAL_GENERATION_GATE='canonical-generation:gate:v1';
 const qualifiedGraph='canonical-generation:qualified-graph:v1';
 const receipts='canonical-generation:receipt:',deletions='canonical-generation:deletion:',invalidations='canonical-generation:invalidated:',catalog='canonical-generation:catalog:';
-const handles=new WeakMap(),seals=new WeakMap(),bases=new WeakMap();
+const handles=new WeakMap(),seals=new WeakMap(),bases=new WeakMap(),repositoryAuthorities=new WeakMap();
+export function readOriginalPublicationRepositoryAuthority(token,repository,scope){
+ const r=repositoryAuthorities.get(token);if(!r)return null;if(r.repository!==repository||r.name!==repository.name||r.factory!==repository.factory||scope!==null&&(repository.db!==scope.tx.db||r.scope!==null&&r.scope!==scope))fail('GENERATION_REPOSITORY_WRITE_DENIED');if(scope!==null&&r.scope===null)r.scope=scope;return r.authority;
+}
+async function publicationTransaction(repository,fn,stores=['meta'],kind='publication'){
+ const token=Object.freeze(Object.create(null));repositoryAuthorities.set(token,{repository,name:repository.name,factory:repository.factory,scope:null,authority:Object.freeze({kind})});try{return await originalGenerationRepositoryTransaction(repository,token,fn,stores);}finally{repositoryAuthorities.delete(token);}
+}
+
 const fail=(code='GENERATION_INVALID')=>{throw new ArchiveError(code);};
 const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b),copy=x=>structuredClone(x);
 const id=x=>typeof x==='string'&&/^[A-Za-z0-9_-]{8,128}$/.test(x);
@@ -42,7 +49,7 @@ function rootData(value){
 const rootRead=async t=>{const root=rootData(await t.get('meta',CANONICAL_GENERATION_REGISTRY));if(root.active&&!equal(await t.get('meta',root.active.receipt.id),root.active.receipt))fail('GENERATION_CHANGED');return root;};
 function sealPoint(repository,t,key,expected){registerRepositoryFinalReadFence(repository,t,{isCurrent:()=>true,plan:function*(){if(!equal((yield {method:'get',table:'meta',key})??null,expected))fail('GENERATION_CHANGED');return true;}});}
 function sealRoot(repository,t,root){sealPoint(repository,t,root.id,root);if(root.active)sealPoint(repository,t,root.active.receipt.id,root.active.receipt);}
-async function write(repository,fn){return repository.transaction(true,async t=>{registerRepositoryWorkLimit(repository,t);return fn(t);},['meta']);}
+async function write(repository,fn){return publicationTransaction(repository,async t=>{registerRepositoryWorkLimit(repository,t);return fn(t);},['meta']);}
 const receiptValue=(pending,revision)=>({id:receipts+pending.operationId,version:1,operationId:pending.operationId,revision,from:pending.from?.identity??null,to:pending.to,seal:pending.seal});
 
 export class CanonicalGenerationPublication {
@@ -59,12 +66,12 @@ export class CanonicalGenerationPublication {
   await this.#registry.open();await repository.open();this.#bound(this.#registry);this.#bound(repository);
   const entries=[['generation',ident.generationId],['database',ident.databaseId],['name',ident.databaseName]].map(([kind,key])=>({id:catalog+kind+':'+key,version:1,identity:ident}));
   await write(this.#registry,async t=>{if(await t.get('meta',deletions+ident.generationId))fail('GENERATION_DELETED');for(const row of entries){const prior=await t.get('meta',row.id);if(prior&&!equal(prior,row))fail('GENERATION_COLLISION');if(!prior)await t.put('meta',row);sealPoint(this.#registry,t,row.id,row);}});
-  await repository.transaction(true,async t=>{registerRepositoryWorkLimit(repository,t);const existing=await t.get('meta',CANONICAL_GENERATION_GATE);if(existing){this.#gate(existing,ident);return;}
+  await publicationTransaction(repository,async t=>{registerRepositoryWorkLimit(repository,t);const existing=await t.get('meta',CANONICAL_GENERATION_GATE);if(existing){this.#gate(existing,ident);return;}
    // New publication databases must be empty. The original schema owner may
    // create its exact DDL marker on a new thought-library database.
    for(const table of repository.stores){const count=await t.count(table);if(table==='meta'&&count===1){const ddl=await t.get('meta','thought-ddl');if(ddl?.id==='thought-ddl'&&ddl.fromVersion===0&&ddl.toVersion===5&&Object.keys(ddl).length===3)continue;}if(count)fail('GENERATION_NOT_EMPTY');}
    const gate={id:CANONICAL_GENERATION_GATE,version:1,registryName:this.#registryName,identity:ident,phase:'staging',writeRevision:0,seal:null,publicationId:null,retirementId:null};await t.put('meta',gate);sealPoint(repository,t,gate.id,gate);
-  });
+  },repository.stores);
   const handle=Object.freeze(Object.create(null)),held={owner:this,repository,identity:ident,handle};handles.set(handle,held);this.#repositories.set(ident.generationId,held);return handle;
  }
  async captureSourceBase(expected=undefined){
@@ -86,28 +93,28 @@ export class CanonicalGenerationPublication {
   const base=await this.captureSourceBase(packet.sourceBase);
   if(!equal(packet.generationIdentity,held.identity))fail('GENERATION_COLLISION');
   const selected=sealData({sealId:crypto.randomUUID(),manifestId:packet.manifestRef.id,graphDigest:packet.graphDigest});
-  let validationError;const gate=await held.repository.transaction(true,async t=>{registerRepositoryWorkLimit(held.repository,t);const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(before.phase!=='staging')fail('GENERATION_NOT_STAGING');
+  let validationError;const gate=await publicationTransaction(held.repository,async t=>{registerRepositoryWorkLimit(held.repository,t);const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(before.phase!=='staging')fail('GENERATION_NOT_STAGING');
    const qualification={id:qualifiedGraph,version:1,kind:human?'original-human':'original-group',identity:held.identity,seal:selected,sourceBase:packet.sourceBase};if(await t.get('meta',qualifiedGraph))fail('GENERATION_CHANGED');await t.put('meta',qualification);
    let actual;try{actual=await validate(restore,proof,t);}catch(error){if(error instanceof SyncError)validationError=error;throw error;}if(!equal(actual,{manifestId:selected.manifestId,graphDigest:selected.graphDigest,generationIdentity:held.identity}))fail('GENERATION_CHANGED');
    const after={...before,phase:'sealed',seal:selected};await t.put('meta',after);sealPoint(held.repository,t,after.id,after);sealPoint(held.repository,t,qualifiedGraph,qualification);return after;
-  }).catch(error=>{throw validationError??error;});const token=Object.freeze(Object.create(null));seals.set(token,{owner:this,handle,gate,base:this.sourceBaseSnapshot(base)});return token;
+  },held.repository.stores,'publication-seal').catch(error=>{throw validationError??error;});const token=Object.freeze(Object.create(null));seals.set(token,{owner:this,handle,gate,base:this.sourceBaseSnapshot(base)});return token;
  }
- async stagingWrite(handle,fn){return this.#writeGeneration(handle,'staging',fn);}
+ async stagingWrite(handle,fn,authority=null,stores=undefined){return this.#writeGeneration(handle,'staging',fn,authority,stores);}
  async activeWrite(handle,fn){return this.#writeGeneration(handle,'active',fn);}
- async #writeGeneration(handle,phase,fn){
+ async #writeGeneration(handle,phase,fn,authority=null,stores=undefined){
   const held=this.#held(handle);if(typeof fn!=='function')fail();let active=null;
   if(phase==='active'){const root=await this.#registry.transaction(false,rootRead,['meta']);if(root.pending||!equal(root.active?.identity,held.identity))fail('GENERATION_NOT_ACTIVE');active=root.active;}
-  return held.repository.transaction(true,async t=>{
+  return originalGenerationRepositoryTransaction(held.repository,authority,async t=>{
    registerRepositoryWorkLimit(held.repository,t);const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);
    if(!equal(before.identity,held.identity)||before.phase!==phase||active&&before.publicationId!==active.publicationId)fail('GENERATION_STALE_WRITE');
    if(before.writeRevision>=Number.MAX_SAFE_INTEGER)fail('GENERATION_LIMIT');
    const result=await fn(t),after={...before,writeRevision:before.writeRevision+1};
    if(!equal(await t.get('meta',CANONICAL_GENERATION_GATE),before))fail('GENERATION_CHANGED');await t.put('meta',after);sealPoint(held.repository,t,after.id,after);return result;
-  });
+  },stores);
  }
  async seal(handle,definition){
   const held=this.#held(handle),selected=sealData(definition);
-  const gate=await write(held.repository,async t=>{const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(!equal(before.identity,held.identity))fail('GENERATION_CHANGED');
+  const gate=await write(held.repository,async t=>{if(await t.get('meta','canonical-generation:repository-protection:v1')!=null)fail('GENERATION_GRAPH_QUALIFICATION_REQUIRED');const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(!equal(before.identity,held.identity))fail('GENERATION_CHANGED');
    if(before.phase==='sealed'&&equal(before.seal,selected))return before;
    if(before.phase!=='staging')fail('GENERATION_NOT_STAGING');const after={...before,phase:'sealed',seal:selected};await t.put('meta',after);sealPoint(held.repository,t,after.id,after);return after;
   });
@@ -166,3 +173,5 @@ export class CanonicalGenerationPublication {
   await write(held.repository,async t=>{const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(!equal(before.identity,held.identity))fail('GENERATION_CHANGED');const next={...before,phase:'deleting'};await t.put('meta',next);sealPoint(held.repository,t,next.id,next);});return {state:'deletion-authorized',identity:copy(permit.identity)};
  }
 }
+const originalStagingWrite=CanonicalGenerationPublication.prototype.stagingWrite;
+export function originalCheckpointStagingWrite(publication,handle,fn,authority,stores){return originalStagingWrite.call(publication,handle,fn,authority,stores);}

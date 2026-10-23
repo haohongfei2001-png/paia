@@ -1,3 +1,4 @@
+import {CANONICAL_REPOSITORY_PROTECTION,CANONICAL_REPOSITORY_GATE,readOriginalGenerationRepositoryAuthority,originalGenerationRepositoryAdmission,originalGenerationRepositoryMutation,originalGenerationRepositorySettlement} from './browser-native-sync/canonical-generation-repository-gate.js';
 import {measureSourceWorkingPhysicalTree} from './browser-native-sync/source-working-physical.js';
 import {sampleOriginalOrganizeMaterialFinalFacts,requireOriginalOrganizeMaterialFinalFacts} from '../background/organize-processing-policy.js';
 import {sampleOriginalOrganizeSelectionFinalFacts,requireOriginalOrganizeSelectionFinalFacts,readOriginalOrganizeSelectionAbortSignal} from './organizer/organize-processing-scope.js';
@@ -121,6 +122,25 @@ function requireWritableScope(scope){
  const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);
  workCheck(record);if(record?.finalReadFences.length&&!sameScope(record))refuseTerminal(record);
  if(record&&(record.phase==='terminal'||record.phase==='terminal-compatibility'||record.terminalFailed))refuseTerminal(record);
+}
+function requireShadowMutation(scope,table,key,method){
+ const r=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);if(!r)return;
+ if(r.shadow){const current=readOriginalGenerationRepositoryAuthority(r.shadow.token,r.repository,scope);if(current!==r.shadow.authority)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');originalGenerationRepositoryMutation(current,table,key,method);}
+ else if(table==='meta'&&key===CANONICAL_REPOSITORY_PROTECTION)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+}
+async function beginShadowWrite(repository,scope,record,token){
+ const authority=readOriginalGenerationRepositoryAuthority(token,repository,scope);let marker,timer;try{marker=await Promise.race([scope.get('meta',CANONICAL_REPOSITORY_PROTECTION),new Promise((_,reject)=>{timer=setTimeout(()=>{record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}reject(new ArchiveError('BNS_GROUP_RESOURCE_LIMIT'));},30000);})]);}finally{clearTimeout(timer);}
+ if(marker==null&&authority?.kind!=='checkpoint-install')return;
+ registerRepositoryWorkLimit(repository,scope);record.workLimit.started=record.started;workCharge(scope,1,CANONICAL_REPOSITORY_PROTECTION,true);workResult(scope,marker);workCheck(record);registerRepositoryWorkLimit(repository,scope);
+ const gate=await scope.get('meta',CANONICAL_REPOSITORY_GATE);originalGenerationRepositoryAdmission(authority,marker,gate,record.identity.database.name);
+ record.shadow={token,authority,marker:marker??null,gate};
+}
+async function finishShadowWrite(repository,scope,record){
+ const marker=await scope.get('meta',CANONICAL_REPOSITORY_PROTECTION),s=record.shadow;
+ if(!s){if(marker!=null)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');registerRepositoryFinalReadFence(repository,scope,{isCurrent:()=>true,plan:function*(){if((yield {method:'get',table:'meta',key:CANONICAL_REPOSITORY_PROTECTION})!=null)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');return true;}});return;}
+ if(readOriginalGenerationRepositoryAuthority(s.token,repository,scope)!==s.authority||s.marker&&JSON.stringify(marker)!==JSON.stringify(s.marker))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ const gate=await scope.get('meta',CANONICAL_REPOSITORY_GATE);originalGenerationRepositorySettlement(s.authority,marker,s.gate,gate,record.identity.database.name);
+ registerRepositoryFinalReadFence(repository,scope,{isCurrent:()=>readOriginalGenerationRepositoryAuthority(s.token,repository,scope)===s.authority,plan:function*(){if(JSON.stringify(yield {method:'get',table:'meta',key:CANONICAL_REPOSITORY_PROTECTION})!==JSON.stringify(marker)||JSON.stringify(yield {method:'get',table:'meta',key:CANONICAL_REPOSITORY_GATE})!==JSON.stringify(gate))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');return true;}});
 }
 function requireReadableScope(scope){const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);workCheck(record);if(record&&(record.terminalFailed||record.finalReadFences.length&&!sameScope(record)||record.phase==='terminal'&&!record.driverReading))refuseTerminal(record);}
 function synchronousTrue(record,check){
@@ -316,7 +336,7 @@ class Transaction {
  constructor(tx,metrics,semanticEnabled=false){this.tx=tx;this.metrics=metrics;this.semanticEnabled=semanticEnabled;}
  async has(store,key){requireReadableScope(this);workCharge(this,1,key,true);this.metrics.reads++;return workResult(this,await req(this.tx.objectStore(store).getKey(key)))!==undefined;}
  async get(store,key){requireReadableScope(this);workCharge(this,1,key,true);this.metrics.reads++;return workResult(this,await req(this.tx.objectStore(store).get(key)));}
- async put(store,value,key){requireWritableScope(this);if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key===undefined?value?.id:key),value);await trackSemanticWrite(this,store,key===undefined?value?.id:key,value);await trackNavigationWrite(this,store,key===undefined?value?.id:key,value);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(value.id))this.backupChanged=true;requireWritableScope(this);workCharge(this,1,value,true);this.metrics.writes++;return req(key===undefined?this.tx.objectStore(store).put(value):this.tx.objectStore(store).put(value,key));}
+ async put(store,value,key){requireWritableScope(this);requireShadowMutation(this,store,key===undefined?value?.id:key,'put');if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key===undefined?value?.id:key),value);await trackSemanticWrite(this,store,key===undefined?value?.id:key,value);await trackNavigationWrite(this,store,key===undefined?value?.id:key,value);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(value.id))this.backupChanged=true;requireWritableScope(this);workCharge(this,1,value,true);this.metrics.writes++;return req(key===undefined?this.tx.objectStore(store).put(value):this.tx.objectStore(store).put(value,key));}
  async putDerivedSearchRow(store,value){
   if(!['thoughts','topics','sections'].includes(store)||!value?.id)throw fail();
   const previous=await this.get(store,value.id);
@@ -350,8 +370,8 @@ class Transaction {
   if(!same(withoutRead(previous),withoutRead(value)))throw fail();
   const changed=this.backupChanged,result=await this.put('topics',value);this.backupChanged=changed;return result;
  }
- async delete(store,key){requireWritableScope(this);if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key),null);await trackSemanticWrite(this,store,key,null);await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;requireWritableScope(this);workCharge(this,1,key,true);this.metrics.writes++;return req(this.tx.objectStore(store).delete(key));}
- async clear(store){requireWritableScope(this);if(repositoryScopes.get(this)?.workLimit)workRefuse(repositoryScopes.get(this));if(store==='blockIndex')await clearArchiveYearIndex(this);await trackSemanticClear(this,store);if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;requireWritableScope(this);return req(this.tx.objectStore(store).clear());}
+ async delete(store,key){requireWritableScope(this);requireShadowMutation(this,store,key,'delete');if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key),null);await trackSemanticWrite(this,store,key,null);await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;requireWritableScope(this);workCharge(this,1,key,true);this.metrics.writes++;return req(this.tx.objectStore(store).delete(key));}
+ async clear(store){requireWritableScope(this);requireShadowMutation(this,store,null,'clear');if(repositoryScopes.get(this)?.workLimit)workRefuse(repositoryScopes.get(this));if(store==='blockIndex')await clearArchiveYearIndex(this);await trackSemanticClear(this,store);if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;requireWritableScope(this);return req(this.tx.objectStore(store).clear());}
  async count(store,index,key){requireReadableScope(this);workCharge(this,1);return workResult(this,await req(index?this.tx.objectStore(store).index(index).count(key):this.tx.objectStore(store).count()));}
  async all(store,index,key,limit){
   requireReadableScope(this);const record=repositoryScopes.get(this),stream=!!record?.workLimit&&limit===undefined;
@@ -430,14 +450,14 @@ export class ArchiveRepository {
    r.onerror=()=>reject(fail());r.onblocked=()=>{blocked=true;reject(fail());};r.onsuccess=()=>{const db=r.result;if(blocked){db.close();return;}db.onversionchange=()=>{db.close();this.db=null;};resolve(db);};
   });
  }
- async transaction(write,fn,stores=this.stores){
+ async transaction(write,fn,stores=this.stores,shadowAuthority=null){
   const writeState=repositoryWrites.get(this);if(!writeState)throw fail();
   if(write){writeState.generation=Object.freeze({});writeState.active++;}
   try{
   await this.open();if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
   const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
   const native=nativeTransactionEvidence(tx);
-  let release;const record={scope,phase:'callback',terminalFailed:false,finalReadFences:[],organizeAbortBindings:null,repository:this,transaction:tx,transactionAbort:native?nativeTransactionAbort:tx.abort,dataPrototype:originalPrototypeOf(scope),nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
+  let release;const record={scope,started:workClock(),phase:'callback',terminalFailed:false,finalReadFences:[],organizeAbortBindings:null,repository:this,transaction:tx,transactionAbort:native?nativeTransactionAbort:tx.abort,dataPrototype:originalPrototypeOf(scope),nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
   repositoryScopes.set(scope,record);repositoryNativeScopes.set(tx,record);
   const maybeRelease=()=>{if(record.nativeSettled&&record.unwound)release();};
   const done=new Promise((resolve,reject)=>{
@@ -459,7 +479,7 @@ export class ArchiveRepository {
   });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{const result=await fn(scope);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
+  try{if(write)await beginShadowWrite(this,scope,record,shadowAuthority);const result=await fn(scope);if(write)await finishShadowWrite(this,scope,record);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
   }finally{if(write)writeState.active--;}
  }
  async initialize(){
@@ -551,4 +571,18 @@ export function originalRepositoryTransactionOwner(repository){
  if(!repositoryWrites.has(repository)||originalPrototypeOf(promptTransactionPrototype)!==promptTransactionParent||!promptTransactionDescriptor(originalOwnDescriptor(promptTransactionPrototype,'transaction'),promptTransactionMethod))return false;
  for(let owner=repository;owner;owner=originalPrototypeOf(owner)){const descriptor=originalOwnDescriptor(owner,'transaction');if(descriptor)return promptTransactionDescriptor(descriptor,promptTransactionMethod);}
  return false;
+}
+
+// Fixed generation consumers bypass instance wrappers; the opaque authority is
+// bound once to the original native scope and never returned to their callers.
+export async function originalGenerationRepositoryTransaction(repository,token,fn,stores){
+ if(!repositoryWrites.has(repository))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ const authority=readOriginalGenerationRepositoryAuthority(token,repository,null);
+ if(authority?.kind!=='checkpoint-install'){
+  const marker=await promptTransactionMethod.value.call(repository,false,t=>t.get('meta',CANONICAL_REPOSITORY_PROTECTION),['meta']);
+  // No capability crosses an existing unmarked repository wrapper. A concurrent
+  // installation is rechecked by the actual write admission and fails closed.
+  if(marker==null)return repository.transaction(true,fn,stores);
+ }
+ return promptTransactionMethod.value.call(repository,true,fn,stores,token);
 }

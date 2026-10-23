@@ -1,0 +1,9 @@
+{
+  "extension/core/idb-repository.js": "1336d6be6979a6bebb1f868bd24ffbec584294e8ac6b7e26fb5ffa34ff282896",
+  "extension/core/browser-native-sync/canonical-generation-repository-gate.js": "dc8dbd176a634c58918922a5ed4870a919acb5200845a5960910b6b0c1894e18",
+  "extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js": "96c4f445283cf1711ebfd9e7a81142d86a540416fd95571ca5d473a6678eb811",
+  "extension/core/browser-native-sync/canonical-generation-human-restore.js": "cc84377922fd4009ed069e12cf6926120868ea528a144cb373fb3ab064565a6c",
+  "extension/core/browser-native-sync/canonical-generation-publication.js": "cb97ef791a9efb11b781fb09a65b2d8018bc788e5f0e1b482d89c8ec67d387ce",
+  "extension/tests/canonical-generation-repository-gate.test.mjs": "a6108b78d1f23bb8269060ae8d46599a73d44a9b8f0d2246e13337e31c08fe5d",
+  "extension/tests/canonical-generation-checkpoint-stage.test.mjs": "ca12e1cce404e11eea12b4edbd78af7af6e5d99baca179dbe9fac7a111709028"
+}
