@@ -1,0 +1,160 @@
+TAP version 13
+# Subtest: local discovery traverses empty pages and restores original Source/Working with sender closed
+ok 1 - local discovery traverses empty pages and restores original Source/Working with sender closed
+  ---
+  duration_ms: 525.296584
+  type: 'test'
+  ...
+# Subtest: missing or corrupt transport bytes never activate; restart resumes original durable stage
+ok 2 - missing or corrupt transport bytes never activate; restart resumes original durable stage
+  ---
+  duration_ms: 295.872291
+  type: 'test'
+  ...
+# Subtest: pause during held transport rejects late completion and preserves original destination
+ok 3 - pause during held transport rejects late completion and preserves original destination
+  ---
+  duration_ms: 259.32975
+  type: 'test'
+  ...
+# Subtest: activation rollback and local edits keep their original exact owner fences
+ok 4 - activation rollback and local edits keep their original exact owner fences
+  ---
+  duration_ms: 278.68375
+  type: 'test'
+  ...
+# Subtest: discovery refuses missing instead of selecting an arbitrary checkpoint
+ok 5 - discovery refuses missing instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 111.340959
+  type: 'test'
+  ...
+# Subtest: discovery refuses multiple instead of selecting an arbitrary checkpoint
+ok 6 - discovery refuses multiple instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 124.499459
+  type: 'test'
+  ...
+# Subtest: discovery refuses cycle instead of selecting an arbitrary checkpoint
+ok 7 - discovery refuses cycle instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 90.736542
+  type: 'test'
+  ...
+# Subtest: discovery refuses malformed instead of selecting an arbitrary checkpoint
+ok 8 - discovery refuses malformed instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 97.432458
+  type: 'test'
+  ...
+# Subtest: historical checkpoints select the authenticated unique causal descendant, not list order
+ok 9 - historical checkpoints select the authenticated unique causal descendant, not list order
+  ---
+  duration_ms: 268.349334
+  type: 'test'
+  ...
+# Subtest: two genuine incomparable checkpoints cannot be silently chosen
+ok 10 - two genuine incomparable checkpoints cannot be silently chosen
+  ---
+  duration_ms: 168.046375
+  type: 'test'
+  ...
+# Subtest: pause after the real activation commit preserves the confirmed restored outcome
+ok 11 - pause after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 165.441667
+  type: 'test'
+  ...
+# Subtest: close after the real activation commit preserves the confirmed restored outcome
+ok 12 - close after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 237.548417
+  type: 'test'
+  ...
+# Subtest: pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+ok 13 - pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+  ---
+  duration_ms: 185.240833
+  type: 'test'
+  ...
+# Subtest: lost post-commit response stays settlement-unknown until original durable activation proof is checked
+ok 14 - lost post-commit response stays settlement-unknown until original durable activation proof is checked
+  ---
+  duration_ms: 151.901125
+  type: 'test'
+  ...
+# Subtest: discovery enforces cumulative object budget before fetching or activating
+ok 15 - discovery enforces cumulative object budget before fetching or activating
+  ---
+  duration_ms: 92.211292
+  type: 'test'
+  ...
+# Subtest: claimed parent alone cannot make an older valid cut supersede newer canonical revisions
+ok 16 - claimed parent alone cannot make an older valid cut supersede newer canonical revisions
+  ---
+  duration_ms: 181.172708
+  type: 'test'
+  ...
+# Subtest: discovery deadline settles held listing and fences late completion
+ok 17 - discovery deadline settles held listing and fences late completion
+  ---
+  duration_ms: 112.302125
+  type: 'test'
+  ...
+# Subtest: discovery deadline settles held object and fences late completion
+ok 18 - discovery deadline settles held object and fences late completion
+  ---
+  duration_ms: 109.976791
+  type: 'test'
+  ...
+# Subtest: pause settles a held discovery without pretending to cancel underlying transport
+ok 19 - pause settles a held discovery without pretending to cancel underlying transport
+  ---
+  duration_ms: 90.19925
+  type: 'test'
+  ...
+# Subtest: close settles a held discovery without pretending to cancel underlying transport
+ok 20 - close settles a held discovery without pretending to cancel underlying transport
+  ---
+  duration_ms: 86.338084
+  type: 'test'
+  ...
+# Subtest: stage rejects transport length mismatch before the object reader copies bytes
+ok 21 - stage rejects transport length mismatch before the object reader copies bytes
+  ---
+  duration_ms: 80.980291
+  type: 'test'
+  ...
+# Subtest: discover rejects transport length mismatch before the object reader copies bytes
+ok 22 - discover rejects transport length mismatch before the object reader copies bytes
+  ---
+  duration_ms: 81.716958
+  type: 'test'
+  ...
+# Subtest: pause settles held staging before host completion and late bytes cannot change original destination
+ok 23 - pause settles held staging before host completion and late bytes cannot change original destination
+  ---
+  duration_ms: 154.777625
+  type: 'test'
+  ...
+# Subtest: close settles held staging before host completion and late bytes cannot change original destination
+ok 24 - close settles held staging before host completion and late bytes cannot change original destination
+  ---
+  duration_ms: 95.779042
+  type: 'test'
+  ...
+# Subtest: staging deadline bounds held object and permits original durable-stage resume
+ok 25 - staging deadline bounds held object and permits original durable-stage resume
+  ---
+  duration_ms: 250.7075
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4558.061708
