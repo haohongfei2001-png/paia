@@ -1,0 +1,8 @@
+{
+  "extension/ui/prompt-conflict-view.js": "61e7c8715fc9ab19d417eb5a19171cf0b75a976a198ec2134b78e6cc7d0645cc",
+  "extension/ui/prompt-surface.js": "e085b84ece5d4a570845e9f95bd3f75b44cccf1f27db7e9122263b6c5f2483ea",
+  "extension/tests/manual-prompt-conflict-view.test.mjs": "34ae5b8d332c97061d816b682e61ef979ace6129efb8e103070f49bfa7065622",
+  "extension/tests/prompt-surface-cancel-close.test.mjs": "a275da8c822d77b53a8fa157f8f3a0f0830c1aa2cd747ee778c1a3a854bee6d0",
+  "extension/tests/native-sync/manual-prompt-conflict-chrome.test.mjs": "645de64f838cdbb403db6b6a0c43e0e5226443bc55dfa643e10744b142c03ac8",
+  "extension/tests/harness/manual-prompt-conflict-pane-native.mjs": "a67cd4751473f66d884ea6c5ba7add7a6f542e8cfc6eac5bc3c926719097a232"
+}

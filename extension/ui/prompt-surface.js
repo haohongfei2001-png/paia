@@ -26,6 +26,7 @@ const attempted=new Set();
 
 // Translate only this surface's UI copy. Original authored bodies stay untouched.
 const copy={
+ '处理结果尚未确认；编辑仍保留。请稍后刷新核对，不会自动重试。':'The result is unconfirmed. Your edit is retained. Refresh later to check; this will not retry automatically.',
  '有一项修改需要确认':'One change needs your review','查看两个版本':'Review both versions','本机当前保留的版本':'Version currently retained here','另一版本':'Other version','手动整理后的正文':'Manually reconciled text','保留本机版本':'Keep this version','保留另一版本':'Keep the other version','两份都保留':'Keep both','保存整理后的正文':'Save reconciled text','暂不处理':'Decide later','版本已变化，请取消后刷新；编辑仍保留。':'Versions changed. Cancel and refresh; your edit is retained.','这些修改暂不能在这里处理；现有记录保持不变。':'These changes cannot be resolved here yet. Existing records remain unchanged.',
  '本轮 AI 建议':'Current AI suggestion','正在准备本轮建议；常用输入仍可使用。':'Preparing a suggestion. Saved prompts remain available.','本轮 AI 建议暂不可用；常用输入仍可使用。':'AI suggestions are unavailable. Saved prompts remain available.','请先在 PAIA 设置中分别允许本轮回复读取与远端处理。':'In PAIA settings, separately allow current-reply access and remote processing.','启用后等待当前回复完成，再明确请求建议。':'Wait for a reply to finish after enabling, then explicitly request a suggestion.','本轮没有必要的新建议。':'No new suggestion is necessary for this reply.','本轮回复或相关 Context 已变化，请重新请求。':'The current reply or relevant Context changed. Request a suggestion again.',
  '较长的常用表达':'Long expressions','仅匹配到较长表达，请在 PAIA 中继续查看。':'These matches are longer expressions. Continue in PAIA.','没有可快速复用的表达。':'No quick expressions available.','最多 150 个字符；编辑仍保留。':'At most 150 characters. Your edit is retained.','当前输入框无法原样保留 CRLF 换行，请复制原文。':'This composer cannot preserve CRLF line endings exactly. Copy the original text.','核对全文':'View full text','展开常用表达':'Expand frequent expressions','收起为胶囊':'Collapse to capsule','收起为圆球':'Collapse to orb',
@@ -64,9 +65,10 @@ let feedbackTimer,feedbackOwner=null;
 const assistFeedbackOwner=Object.freeze({});
 const tell=(text,temporary=false,owner=null)=>{feedbackOwner=owner;clearTimeout(feedbackTimer);status.dataset.quiet=String(temporary);status.replaceChildren(...(text?[copyText(text)]:[]));if(temporary)feedbackTimer=setTimeout(()=>tell(''),480);};
 async function refresh(internal=false){
+ if(disposed)return false;
  if(mode==='search'){if(!editing&&!checking)await runHistory();return;}
  if(checking||editing||(busy&&internal!==true)||drag||refreshing)return;
- refreshing=true;pending(true);const ticket=++epoch,displayTicket=++displayEpoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(q.surfaceForm)document.documentElement.dataset.surfaceForm=q.surfaceForm;automaticSuggestion=q.automaticSuggestion===true;manualConflict=q.manualConflict??null;revision=q.revision;projectionGeneration=q.generation;manualOrder=q.manualOrder;oversizedItems=q.oversizedItems||[];session.open(q);candidateTarget=q.target;attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);if(document.hasFocus?.()&&document.activeElement===document.body&&document.documentElement.dataset.surfaceForm!=='capsule')list.querySelector('.insert:not(:disabled)')?.focus();}
+ refreshing=true;pending(true);const ticket=++epoch,displayTicket=++displayEpoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(q.surfaceForm)document.documentElement.dataset.surfaceForm=q.surfaceForm;automaticSuggestion=q.automaticSuggestion===true;manualConflict=q.manualConflict??null;revision=q.revision;projectionGeneration=q.generation;manualOrder=q.manualOrder;oversizedItems=q.oversizedItems||[];session.open(q);candidateTarget=q.target;attempted.clear();render();tell('');return true;}catch{if(!disposed)tell('暂时不可用。请在 PAIA 启用授权后刷新。');return false;}finally{refreshing=false;if(!disposed){pending(false);if(document.hasFocus?.()&&document.activeElement===document.body&&document.documentElement.dataset.surfaceForm!=='capsule')list.querySelector('.insert:not(:disabled)')?.focus();}}
 }
 // The board retains one fixed ordinary rectangle in every internal view.
 // Accessibility minimums may constrain its viewport, never its content identity.
@@ -169,8 +171,8 @@ function reviewManualConflict(){
  editing=true;++epoch;parkEditor();editor.hidden=false;list.hidden=true;
  conflictChoice=mountManualPromptConflict(editor,manualConflict,{button,copy:bindCopy,blocked:()=>busy||disposed,
   resolve:resolution=>rpc({type:'PAIA_PROMPT_CONFLICT_RESOLVE',resolution}),pending,error:tell,
-  done:async()=>{conflictChoice=null;manualConflict=null;editing=false;editor.hidden=true;list.hidden=false;await refresh(true);},
-  cancel:()=>{conflictChoice=null;editing=false;editor.hidden=true;list.hidden=false;void refresh();}});
+  done:async()=>{manualConflict=null;editing=false;editor.hidden=true;list.hidden=false;const refreshed=await refresh(true);if(disposed)return;if(refreshed!==true){editing=true;editor.hidden=false;list.hidden=true;throw Error('PROMPT_REFRESH_UNCONFIRMED');}conflictChoice=null;},
+  cancel:()=>{conflictChoice?.dispose();conflictChoice=null;editing=false;editor.hidden=true;list.hidden=false;void refresh();}});
  scheduleLayout();editor.querySelector('button')?.focus();
 }
 function renderManualConflict(){
@@ -334,7 +336,7 @@ chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_ASS
 void refresh();
 // An inactive cross-origin frame retains its last focused element. Reveal controls only while this document actually owns focus.
 const reflectFocus=()=>document.documentElement.toggleAttribute('data-focused',document.hasFocus());
-window.addEventListener('pagehide',()=>{disposed=true;assistSurface?.dispose();invalidateSplit();++candidateRequest;++epoch;copyRequest=null;checkingRequest=null;++layoutTicket;});
+window.addEventListener('pagehide',()=>{disposed=true;conflictChoice?.dispose();assistSurface?.dispose();invalidateSplit();++candidateRequest;++epoch;copyRequest=null;checkingRequest=null;++layoutTicket;});
 window.addEventListener('focus',reflectFocus);window.addEventListener('blur',reflectFocus);reflectFocus();
 
 }

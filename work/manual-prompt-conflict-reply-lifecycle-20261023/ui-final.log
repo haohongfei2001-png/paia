@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: private surface rechecks offer after host/display awaits; host never receives either body
+ok 1 - private surface rechecks offer after host/display awaits; host never receives either body
+  ---
+  duration_ms: 2.41
+  type: 'test'
+  ...
+# Subtest: one authorized resolution dispatch emits one change only after success; host cannot resolve
+ok 2 - one authorized resolution dispatch emits one change only after success; host cannot resolve
+  ---
+  duration_ms: 0.299667
+  type: 'test'
+  ...
+# Subtest: both literal bodies stay visible and manual unchanged CRLF stays exact
+ok 3 - both literal bodies stay visible and manual unchanged CRLF stays exact
+  ---
+  duration_ms: 7.056084
+  type: 'test'
+  ...
+# Subtest: composition and deferred decision do not submit; both selection is explicit
+ok 4 - composition and deferred decision do not submit; both selection is explicit
+  ---
+  duration_ms: 0.168125
+  type: 'test'
+  ...
+# Subtest: failure preserves edited body, disables stale resolution, and does not retry
+ok 5 - failure preserves edited body, disables stale resolution, and does not retry
+  ---
+  duration_ms: 0.096666
+  type: 'test'
+  ...
+# Subtest: rejected submit leaves draft and allows only explicit later cancellation
+ok 6 - rejected submit leaves draft and allows only explicit later cancellation
+  ---
+  duration_ms: 0.241917
+  type: 'test'
+  ...
+# Subtest: committed replyLoss is unconfirmed, retains draft and never resubmits
+ok 7 - committed replyLoss is unconfirmed, retains draft and never resubmits
+  ---
+  duration_ms: 0.225417
+  type: 'test'
+  ...
+# Subtest: committed doneFailure is unconfirmed, retains draft and never resubmits
+ok 8 - committed doneFailure is unconfirmed, retains draft and never resubmits
+  ---
+  duration_ms: 0.087917
+  type: 'test'
+  ...
+# Subtest: disposed pending ACK never updates detached pane or calls completion
+ok 9 - disposed pending ACK never updates detached pane or calls completion
+  ---
+  duration_ms: 0.147834
+  type: 'test'
+  ...
+# Subtest: disposed pending rejection never updates detached pane or calls completion
+ok 10 - disposed pending rejection never updates detached pane or calls completion
+  ---
+  duration_ms: 0.064125
+  type: 'test'
+  ...
+# Subtest: detached original pane without pagehide also refuses late completion
+ok 11 - detached original pane without pagehide also refuses late completion
+  ---
+  duration_ms: 0.23775
+  type: 'test'
+  ...
+# Subtest: Cancel starts the original refresh; an immediate host Close is deliberately refused until its query settles
+ok 12 - Cancel starts the original refresh; an immediate host Close is deliberately refused until its query settles
+  ---
+  duration_ms: 2.634375
+  type: 'test'
+  ...
+# Subtest: an original query failure releases pending without saving or auto-closing; one later explicit Close remains valid
+ok 13 - an original query failure releases pending without saving or auto-closing; one later explicit Close remains valid
+  ---
+  duration_ms: 0.676375
+  type: 'test'
+  ...
+# Subtest: dirty and active IME guards still reject Close without any query or write
+ok 14 - dirty and active IME guards still reject Close without any query or write
+  ---
+  duration_ms: 0.159208
+  type: 'test'
+  ...
+# Subtest: native helper waits for the original query, retains one frame and performs exactly one acknowledged host gesture
+ok 15 - native helper waits for the original query, retains one frame and performs exactly one acknowledged host gesture
+  ---
+  duration_ms: 0.858709
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 227.60275
