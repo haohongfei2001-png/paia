@@ -10,19 +10,21 @@ ROOT=Path(__file__).resolve().parents[1]
 
 
 def verify_static_presentation(root,check):
+    from evidence_fix_checks import restore_confirmed_edits, verify_confirmed_fixes
+    verify_confirmed_fixes(root,check)
     from art_direction import Fragments
     from launch_checks import Text,find
     from brand_adoption_checks import restore_approved_brand
     fixture=json.loads((root/'website/presentation_invariants.json').read_text())
     for name,sha in fixture['unchanged'].items():
-        data = (root/name).read_bytes()
+        data = restore_confirmed_edits(name,(root/name).read_bytes())
         if name == 'assets/website/launch.css':
             from cool_neutral_white_checks import restore_approved_environment
             data = restore_approved_environment(root, data)
         data = restore_approved_brand(name, data)
         check(hashlib.sha256(data).hexdigest()==sha,'presentation unchanged except approved environment: '+name)
     for name,expectations in fixture['home_text'].items():
-        source=(root/name).read_text();p=Fragments(source)
+        source=restore_confirmed_edits(name,(root/name).read_bytes()).decode();p=Fragments(source)
         for selector,text in expectations.items():
             actual=[Text(p.outer(n)).value() for n in find(p,selector)]
             check(actual==text,name+': retained statement/source '+selector)
@@ -41,6 +43,8 @@ def verify_static_presentation(root,check):
 
 
 def verify_home_hero(page,check,en=True,motion=False):
+    from evidence_fix_checks import verify_home_copy
+    verify_home_copy(page,check)
     prefix='EN' if en else 'ZH'
     def test(ok,name):check(ok,prefix+' presentation hero: '+name)
     test(page.locator('[data-product-hero]').count()==1,'one approved product opening')

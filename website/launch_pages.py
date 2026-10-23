@@ -41,7 +41,7 @@ def download(t, a, button):
 
 def help_page(t, a, button):
     groups=[('start',t('安装与开始','Installing and starting'),[
-        (t('在哪里安装 PAIA？','Where can I install PAIA?'),t('从“获取 PAIA”页面进入官方安装地址。安装前核对浏览器、来源网站和权限；不要从不明来源获取扩展。','Use Get PAIA to reach the official installation address. Check the browser, supported site and permissions before installing. Do not use untrusted extension downloads.')),
+        (t('在哪里安装 PAIA？','Where can I install PAIA?'),(t('从“获取 PAIA”页面进入官方安装地址。安装前核对浏览器、来源网站和权限；不要从不明来源获取扩展。','Use Get PAIA to reach the official installation address. Check the browser, supported site and permissions before installing. Do not use untrusted extension downloads.') if installation()['chrome_store_url'] else t('公开安装入口尚未开放。可以先体验网页演示；正式发布后，官方安装入口会在“获取 PAIA”页面提供。请勿从不明来源安装扩展。','Public installation is not open yet. You can try the web demo. Once released, the official installation entry will appear on Get PAIA. Do not install extensions from untrusted sources.'))),
         (t('从什么环境开始？','Which environment should I use?'),t('从桌面 Chrome 和 ChatGPT 网页版开始。手机可以浏览官网和操作演示，但不等于在手机上安装桌面扩展。','Start with Chrome on desktop and ChatGPT on the web. You can browse this site and try its demo on a phone; that does not install a desktop extension on your phone.')),
         (t('安装后就会保存全部聊天吗？','Does installation save every conversation?'),t('不会。保存需要你主动开启，面向受支持页面中已发送的用户文字。不会因此自动收集完整账号历史、全部 AI 回复、任意网页或未发送的草稿。','No. Capture is opt-in and applies to sent user text on supported pages. It does not automatically collect your full account history, all AI replies, arbitrary webpages or unsent drafts.')),
     ]),('inputs',t('保存与找回','Keeping and finding'),[

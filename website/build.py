@@ -5,7 +5,7 @@ import sys
 sys.dont_write_bytecode = True
 from home import render as render_home
 from launch_copy import product_copy
-from launch_pages import download as render_download, help_page as render_help, contact as render_contact
+from launch_pages import download as render_download, help_page as render_help, contact as render_contact, installation
 from pages import render_pages
 from product_pages import render_demo, render_trust, render_status, render_about
 ROOT=Path(__file__).resolve().parents[1]
@@ -35,7 +35,12 @@ def build(lang):
     def button(page,label,cls='button',anchor=''):
         if label in ('体验 PAIA', 'Explore PAIA'):
             page, label = 'download.html', t('添加到 Chrome','Add to Chrome')
-        return a(page,label+' <span aria-hidden="true">→</span>',cls,anchor)
+        pending = (page in ('beta.html','download.html') and label in ('添加到 Chrome','Add to Chrome')
+                   and not installation()['chrome_store_url'])
+        if pending:
+            label = t('获取 PAIA','Get PAIA')
+        html = a(page,label+' <span aria-hidden="true">→</span>',cls,anchor)
+        return html.replace('<a ', '<a data-install-entry="pending" ', 1) if pending else html
     def head(page,title,desc,noindex=False):
         page = {'beta.html':'download.html', 'status.html':'help.html'}.get(page,page)
         url=BASE+link(page)
@@ -82,7 +87,7 @@ def build(lang):
 <link rel="stylesheet" href="/assets/website/interior.css?v=20261009a">
 {product_css}
 <link rel="stylesheet" href="/assets/website/launch.css?v=20261013a">
-<script src="/assets/website/site.js?v={"20261013p" if page=="index.html" else "20261013c"}" defer></script>{presentation_assets}
+<script src="/assets/website/site.js?v=20261023-evidence" defer></script>{presentation_assets}
 </head>
 <body data-page="{page}" data-language="{lang}"{' data-home-mode="presentation"' if page=='index.html' else ''}>
 <a class="skip-link" href="#main">{t('跳到正文','Skip to content')}</a>'''

@@ -32,9 +32,10 @@ def find(nodes,selector):
     return parents or []
 
 def verify_static_publication(root,check):
+    from evidence_fix_checks import restore_confirmed_edits
     original=json.loads((root/'website/launch_invariants.json').read_text())
     for relative,entries in original['home'].items():
-        parsed=Fragments((root/relative).read_text())
+        parsed=Fragments(restore_confirmed_edits(relative,(root/relative).read_bytes()).decode())
         for selector,expected in entries.items():
             mapped = selector
             if 'data-home-mode="presentation"' in parsed.source:

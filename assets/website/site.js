@@ -190,7 +190,7 @@
     if (actions) {
       const button = document.createElement('button'); button.type = 'button';
       button.className = 'ed-desktop-link';
-      button.textContent = t('在电脑上使用', 'Use on desktop');
+      button.textContent = t('复制获取链接', 'Copy link');
       button.setAttribute('aria-controls', 'ed-link-feedback');
       const feedback = document.createElement('div'); feedback.id = 'ed-link-feedback';
       feedback.className = 'ed-copy-feedback'; feedback.hidden = true;
