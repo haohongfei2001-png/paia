@@ -6,7 +6,7 @@ from html.parser import HTMLParser
 import hashlib,json,re
 
 def enabled(root):
-    return 'data-atelier-version="9"' in (root/'index.html').read_text()
+    return any(f'data-atelier-version="{v}"' in (root/'index.html').read_text() for v in (9,10))
 
 class Tags(HTMLParser):
     def __init__(self,text):
@@ -14,6 +14,9 @@ class Tags(HTMLParser):
     def handle_starttag(self,t,a):self.items.append((t,dict(a)))
 
 def verify_static(root,check):
+    if 'data-atelier-version="10"' in (root/'index.html').read_text():
+        from presentation10_checks import static
+        return static(root,check)
     baseline=json.loads((root/'website/atelier/preserved-files.json').read_text())
     for path,digest in baseline['files'].items():
         check(hashlib.sha256((root/path).read_bytes()).hexdigest()==digest,'Atelier: preserved '+path)
@@ -37,6 +40,9 @@ def verify_static(root,check):
     check((root/'assets/website/type/atelier-serif-sc-OFL.txt').exists(),'Atelier: licensed locally hosted CJK heading font')
 
 def verify_home(page,check,label,deep=False,out=None):
+    if page.locator("body").get_attribute("data-atelier-version")=="10":
+        from presentation10_checks import home
+        return home(page,check,label,deep,out)
     page.wait_for_selector('body[data-atelier-ready="true"]')
     page.evaluate('document.fonts.ready')
     check(page.locator('h1').count()==1 and page.locator('h1').is_visible(),label+': one readable primary heading')
