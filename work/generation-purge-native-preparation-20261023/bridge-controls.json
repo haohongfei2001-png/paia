@@ -19,7 +19,31 @@
   },
   {
     "name": "human-generation",
-    "originalCases": 32,
+    "originalCases": 34,
+    "exactAdaptedCaseBodies": true,
+    "refusalControls": 3
+  },
+  {
+    "name": "saved-incremental",
+    "originalCases": 21,
+    "exactAdaptedCaseBodies": true,
+    "refusalControls": 3
+  },
+  {
+    "name": "repository-gate",
+    "originalCases": 27,
+    "exactAdaptedCaseBodies": true,
+    "refusalControls": 3
+  },
+  {
+    "name": "copy-retirement",
+    "originalCases": 15,
+    "exactAdaptedCaseBodies": true,
+    "refusalControls": 3
+  },
+  {
+    "name": "source-portfolio",
+    "originalCases": 8,
     "exactAdaptedCaseBodies": true,
     "refusalControls": 3
   }

@@ -83,6 +83,14 @@ for(const timing of ['before seal','before reserve'])test('fixed Human publicati
  const f=await fixture(t);await complete(f);await f.restore.preparePublication(f.proof);const seal=timing==='before reserve'?await f.publication.sealOriginalHumanCheckpoint(f.handle,f.restore,f.proof):null;const active=await publishMetadata(f,t),before=await snapshot(f.store),registry=await f.registry.transaction(false,tx=>tx.all('meta'),['meta']);await assert.rejects(seal?f.publication.reserve(seal,'synthetic_later_publish'):f.publication.sealOriginalHumanCheckpoint(f.handle,f.restore,f.proof),{code:'GENERATION_CHANGED'});assert.deepEqual(await snapshot(f.store),before);assert.deepEqual(await f.publication.active(),active);assert.deepEqual(await f.registry.transaction(false,tx=>tx.all('meta'),['meta']),registry);
 });
 
+
+test('fixed Human graph qualification is bodyfree and cannot be substituted before seal',async t=>{
+ const f=await fixture(t);await complete(f);await f.restore.preparePublication(f.proof);const id='canonical-generation:qualified-graph:v1';await f.store.repository.transaction(true,tx=>tx.put('meta',{id,version:1,kind:'forged'}),['meta']);const before=await snapshot(f.store);await assert.rejects(f.publication.sealOriginalHumanCheckpoint(f.handle,f.restore,f.proof),{code:'GENERATION_CHANGED'});assert.deepEqual(await snapshot(f.store),before);
+});
+test('fixed Human durable graph qualification binds the exact sealed identity without body copies',async t=>{
+ const f=await fixture(t);await complete(f);const ready=await f.restore.preparePublication(f.proof);await f.publication.sealOriginalHumanCheckpoint(f.handle,f.restore,f.proof);const rows=await snapshot(f.store),q=rows.meta.find(r=>r.id==='canonical-generation:qualified-graph:v1'),gate=rows.meta.find(r=>r.id==='canonical-generation:gate:v1');assert.deepEqual(Object.keys(q).sort(),['id','identity','kind','seal','sourceBase','version']);assert.equal(q.kind,'original-human');assert.deepEqual(q.identity,ready.generationIdentity);assert.deepEqual(q.seal,gate.seal);assert.equal(q.seal.manifestId,ready.manifestId);assert.equal(q.seal.graphDigest,ready.graphDigest);assert.equal(q.sourceBase.root.active,null);
+});
+
 const previous=globalThis.__bnsNative;
 globalThis.__bnsNative={...previous,async run(command,...args){
  if(command!=="human-generation-matrix")return previous.run(command,...args);
