@@ -34,7 +34,7 @@ def find(nodes,selector):
 def verify_static_publication(root,check):
     from evidence_fix_checks import restore_confirmed_edits
     original=json.loads((root/'website/launch_invariants.json').read_text())
-    if not any(f'data-atelier-version="{v}"' in (root/'index.html').read_text() for v in (9,10)):
+    if not any(f'data-atelier-version="{v}"' in (root/'index.html').read_text() for v in (9,10,11)):
         for relative,entries in original['home'].items():
             parsed=Fragments(restore_confirmed_edits(relative,(root/relative).read_bytes()).decode())
             for selector,expected in entries.items():

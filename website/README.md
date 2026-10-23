@@ -1,3 +1,5 @@
+> Current homepage and product example: **V11**. See [atelier/REFINEMENT_V11.md](atelier/REFINEMENT_V11.md). Earlier notes below describe their original release.
+
 > Current home: **Atelier V10**, presentation-led, with optional independent demo.
 > See [atelier/README.md](atelier/README.md) and [the V10 receipt](receipts/ATELIER_V10_2026-10-23.md).
 
