@@ -24,6 +24,7 @@ const credential=()=>{const b=crypto.getRandomValues(new Uint8Array(32));return 
 // The principal is an explicitly paired local PAIA profile, NOT an attested
 // ChatGPT account. Every data read still uses the original Context read owner.
 export class ContextConnections {
+ #selectionHold=null;#nativeTasks=new Set();
  #api;#store;#configuration;#row=null;#ports=new Map();#callers=new WeakMap();#receipts=new WeakMap();#tail=Promise.resolve();#pendingWrite=null;#disposed=false;#storageListener;#permissionListener;#lastClock=Date.now();#epochGeneration=0;#denials=new Map();#service;#adapter;#suspending=false;#checkpoint=null;#witness=null;#commands=0;#blocked=new Set();#automaticBlocked=false;
  constructor(store,api,{configuration=readContextConnectionConfiguration()}={}){
   this.#api=api;this.#store=store;this.#configuration=qualifyContextConnectionConfiguration(configuration);
@@ -84,7 +85,7 @@ export class ContextConnections {
  }
  async #permission(){if(!this.#configuration||this.#disposed||await this.#api.permissions?.contains?.({permissions:['nativeMessaging']})!==true)fail('FEATURE_UNAVAILABLE');}
  async pair({expectedRevision,port,authorizationPolicyId=null},{replaceStale=false}={}){
-  if(this.#suspending)fail('CONTEXT_INVALIDATED');if(!revision(expectedRevision)||!Number.isSafeInteger(port)||port<1024||port>65535)fail();if(typeof replaceStale!=='boolean')fail();let ticket=this.#ticket();
+  if(this.#suspending||this.#selectionHold)fail('CONTEXT_INVALIDATED');if(!revision(expectedRevision)||!Number.isSafeInteger(port)||port<1024||port>65535)fail();if(typeof replaceStale!=='boolean')fail();let ticket=this.#ticket();
   return this.#command(async()=>{
    await this.#permission();this.#assertTicket(ticket);const {row,epoch,stale}=await this.#load();if(stale&&replaceStale){if(this.#epochGeneration!==ticket.epoch+1)fail('CONTEXT_INVALIDATED');ticket=this.#ticket();}this.#assertTicket(ticket);if(stale&&!replaceStale||replaceStale&&!stale)fail('CONTEXT_INVALIDATED');if((row?.revision??0)!==expectedRevision)fail('STALE_BASE');const retained=stale?[]:row?.connections.filter(c=>c.state!=='revoked')??[];if(retained.length>=8||retained.some(c=>c.port===port))fail('RESOURCE_LIMIT');
    const authorization=this.#authorize(authorizationPolicyId),token=credential(),credentialHash=await hash(token),id=crypto.randomUUID(),connection={id,target:'chatgpt',state:'enabled',generation:1,credentialHash,expiresAt:this.#leaseEnd(authorization),port,...(authorization?{authorization,resumeState:'dirty'}:{})};
@@ -95,7 +96,7 @@ export class ContextConnections {
   });
  }
  async change({id,action,expectedRevision,authorizationPolicyId=null}){
-  if(this.#suspending)fail('CONTEXT_INVALIDATED');if(!uuid(id)||!['pause','revoke','reconnect'].includes(action)||!revision(expectedRevision))fail();
+  if(this.#suspending||this.#selectionHold)fail('CONTEXT_INVALIDATED');if(!uuid(id)||!['pause','revoke','reconnect'].includes(action)||!revision(expectedRevision))fail();
   // Restrictions apply before the first await, even if persistence later fails.
   if(action!=='reconnect'){if(this.#blocked.size<32)this.#blocked.add(id);else this.#automaticBlocked=true;if(!this.#denials.has(id)&&this.#denials.size>=32)this.invalidate();this.#denials.set(id,(this.#denials.get(id)||0)+1);this.#close(id);}const ticket=this.#ticket(id);
   return this.#command(async()=>{
@@ -120,7 +121,7 @@ export class ContextConnections {
  // callbacks do not guarantee async completion: unacknowledged/dirty state is
  // never promoted by recovery. This is not an automatic clean-crash fiction.
  checkpointForSuspend(){
-  if(this.#checkpoint)return this.#checkpoint;if(this.#disposed)return Promise.resolve({checkpointed:0});
+  if(this.#selectionHold)return Promise.reject(new ArchiveError('CONTEXT_INVALIDATED'));if(this.#checkpoint)return this.#checkpoint;if(this.#disposed)return Promise.resolve({checkpointed:0});
   const expected=structuredClone(this.#row),selected=(this.#commands?[]:[...this.#ports.values()]).filter(state=>this.#live(state)).map(state=>state.connectionId).filter(id=>expected?.connections.find(c=>c.id===id)?.authorization);
   this.#suspending=true;this.#epochGeneration++;const ticket=this.#ticket();for(const id of [...this.#ports.keys()])this.#close(id);
   const task=this.#serial(async()=>{
@@ -129,9 +130,9 @@ export class ContextConnections {
    if(checkpointed){next.revision++;await this.#persist(next,ticket);}return {checkpointed};
   });this.#checkpoint=task;return task;
  }
- async resumeAfterSuspend(){if(!this.#suspending)return {resumed:0};let confirmed=true;try{await this.#checkpoint;}catch{confirmed=false;}this.#checkpoint=null;this.#suspending=false;return confirmed?this.resumeAuthorized():{resumed:0};}
+ async resumeAfterSuspend(){if(this.#selectionHold)return {resumed:0};if(!this.#suspending)return {resumed:0};let confirmed=true;try{await this.#checkpoint;}catch{confirmed=false;}this.#checkpoint=null;this.#suspending=false;return confirmed?this.resumeAuthorized():{resumed:0};}
  async resumeAuthorized(){
-  if(!this.#configuration?.authorizationPolicy||this.#disposed||this.#suspending||this.#automaticBlocked)return {resumed:0};const epoch=this.#epochGeneration,denials=new Map(this.#denials);
+  if(!this.#configuration?.authorizationPolicy||this.#disposed||this.#suspending||this.#selectionHold||this.#automaticBlocked)return {resumed:0};const epoch=this.#epochGeneration,denials=new Map(this.#denials);
   return this.#serial(async()=>{
    let resumed=0;await this.#permission();this.#assertTicket({epoch});const {row,stale,uncertain}=await this.#load();this.#assertTicket({epoch});if(stale||uncertain||!row)return {resumed};
    for(const c of row.connections)if(c.state==='enabled'&&c.resumeState==='clean')this.#assertTicket({epoch,denial:denials.get(c.id)||0},c.id);
@@ -140,7 +141,7 @@ export class ContextConnections {
   });
  }
  async #resumeOne(id,ticket,expectedState=null){
-  this.#assertTicket(ticket,id);if(this.#automaticBlocked||this.#blocked.has(id))return false;await this.#permission();this.#assertTicket(ticket,id);if(expectedState&&!this.#live(expectedState))fail('CONTEXT_INVALIDATED');
+  this.#assertTicket(ticket,id);if(this.#selectionHold||this.#automaticBlocked||this.#blocked.has(id))return false;await this.#permission();this.#assertTicket(ticket,id);if(expectedState&&!this.#live(expectedState))fail('CONTEXT_INVALIDATED');
   const {row,stale,uncertain}=await this.#load();this.#assertTicket(ticket,id);if(stale||uncertain||!row)fail('CONTEXT_INVALIDATED');const current=row.connections.find(c=>c.id===id);
   if(!current||current.state!=='enabled'||!this.#authorizationCurrent(current.authorization)||!expectedState&&current.resumeState!=='clean')return false;
   if(expectedState&&(this.#ports.get(id)!==expectedState||current.generation!==expectedState.generation))fail('CONTEXT_INVALIDATED');if(!expectedState&&this.#live(this.#ports.get(id)))return false;
@@ -161,13 +162,13 @@ export class ContextConnections {
   // reusing this connection ID. Bind every lifecycle callback to this object.
   const retire=()=>{if(this.#ports.get(connection.id)===state)this.#close(connection.id);};
   port.onDisconnect.addListener(retire);
-  port.onMessage.addListener(message=>{void this.#message(state,message,send).catch(retire);});
+  port.onMessage.addListener(message=>{const task=this.#message(state,message,send).catch(retire);this.#nativeTasks.add(task);void task.finally(()=>this.#nativeTasks.delete(task));});
   state.timer=setTimeout(retire,5000);
  }
  #live(state){
   const now=Date.now();if(now<this.#lastClock){this.invalidate();return false;}this.#lastClock=now;
   const c=this.#row?.connections.find(c=>c.id===state?.connectionId);
-  return !this.#suspending&&!!state&&this.#allowed(state.ticket,state.connectionId)&&this.#ready()&&state.current&&state.ready&&this.#ports.get(state.connectionId)===state&&state.expiresAt>now&&this.#row?.databaseId===this.#store.databaseId&&this.#row.profileId===state.profileId&&this.#row.restoreEpoch===state.restoreEpoch&&c?.state==='enabled'&&c.generation===state.generation&&c.expiresAt===state.expiresAt&&(!c.authorization||this.#authorizationCurrent(c.authorization)&&this.#witness?.phase==='settled'&&same(this.#witness.row,this.#row));
+  return !this.#suspending&&!this.#selectionHold&&!!state&&this.#allowed(state.ticket,state.connectionId)&&this.#ready()&&state.current&&state.ready&&this.#ports.get(state.connectionId)===state&&state.expiresAt>now&&this.#row?.databaseId===this.#store.databaseId&&this.#row.profileId===state.profileId&&this.#row.restoreEpoch===state.restoreEpoch&&c?.state==='enabled'&&c.generation===state.generation&&c.expiresAt===state.expiresAt&&(!c.authorization||this.#authorizationCurrent(c.authorization)&&this.#witness?.phase==='settled'&&same(this.#witness.row,this.#row));
  }
  async #verify(caller,store){
   const state=this.#callers.get(caller);if(store!==this.#store||!this.#live(state))return null;
@@ -181,6 +182,7 @@ export class ContextConnections {
  #current(caller,receipt,store){const state=this.#callers.get(caller),original=this.#receipts.get(caller);return store===this.#store&&this.#live(state)&&!!original&&receipt.store===store&&['version','connectionId','accountId','authorizationGeneration','expiresAt','readable','online'].every(k=>receipt[k]===original[k]);}
  async #message(state,message,send){
   if(!state.current||!this.#allowed(state.ticket,state.connectionId)||this.#ports.get(state.connectionId)!==state||!plain(message)||message.version!==1)fail();
+  if(this.#selectionHold&&!state.retiring)return;
   if(message.type==='hello'){
    const enhanced=exact(message,['version','type','hostNonce','handover'])&&message.handover==='closed-listener-ack-v1';if(state.hostNonce||!enhanced&&!exact(message,['version','type','hostNonce'])||!uuid(message.hostNonce))fail();state.hostNonce=message.hostNonce;state.handover=enhanced?message.handover:null;
    const connection=this.#row?.connections.find(c=>c.id===state.connectionId);if(!connection||connection.authorization&&!enhanced||connection.generation!==state.generation||await this.#epoch()!==state.restoreEpoch||!state.current)fail();
@@ -205,5 +207,22 @@ export class ContextConnections {
   catch{if(this.#live(state)&&!controller.signal.aborted)send({version:1,type:'result',hostNonce:state.hostNonce,generation:state.generation,requestId:message.requestId,unavailable:true});}
   finally{state.requests.delete(message.requestId);}
  }
+ // Stop intake without publishing a clean suspend witness or changing pairing.
+ // Existing native transports retire only through their exact close ACK.
+ async holdForApplicationSelection(){
+  if(this.#disposed||this.#suspending||this.#checkpoint||this.#selectionHold)fail('CONTEXT_INVALIDATED');
+  const token=Object.freeze(Object.create(null)),hold={token,epoch:this.#epochGeneration,repository:this.#store.repository,database:this.#store.repository.db,row:null,ready:false};this.#selectionHold=hold;
+  try{
+   await this.#tail;
+   if(this.#selectionHold!==hold||hold.epoch!==this.#epochGeneration)fail('CONTEXT_INVALIDATED');
+   for(const [id,state]of [...this.#ports]){clearTimeout(state.renewTimer);await this.#handover(id,state.ticket);}
+   await Promise.all([...this.#nativeTasks]);
+   const {row,stale,uncertain}=await this.#load();if(stale||uncertain)fail('CONTEXT_INVALIDATED');
+   hold.row=structuredClone(row);hold.ready=true;if(!this.applicationSelectionHeld(token))fail('CONTEXT_INVALIDATED');return token;
+  }catch(error){if(this.#selectionHold===hold)this.#selectionHold=null;throw error;}
+ }
+ applicationSelectionHeld(token){const h=this.#selectionHold;return !!h&&h.token===token&&h.ready&&!this.#disposed&&!this.#suspending&&!this.#checkpoint&&!this.#commands&&!this.#pendingWrite&&!this.#nativeTasks.size&&!this.#ports.size&&h.epoch===this.#epochGeneration&&h.repository===this.#store.repository&&h.database===this.#store.repository.db&&same(h.row,this.#row);}
+ async fenceApplicationSelection(token){if(!this.applicationSelectionHeld(token))fail('CONTEXT_INVALIDATED');const {row,stale,uncertain}=await this.#load();if(stale||uncertain||!same(row,this.#selectionHold?.row)||!this.applicationSelectionHeld(token))fail('CONTEXT_INVALIDATED');return true;}
+ releaseApplicationSelection(token){if(this.#selectionHold?.token!==token)return false;this.#selectionHold=null;return true;}
  dispose(){if(this.#disposed)return;this.#disposed=true;this.invalidate();this.#api.storage?.onChanged?.removeListener(this.#storageListener);this.#api.permissions?.onRemoved?.removeListener(this.#permissionListener);}
 }
