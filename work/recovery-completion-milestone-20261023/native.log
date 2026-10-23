@@ -1,0 +1,102 @@
+TAP version 13
+# Subtest: BNS generation/purge native canonical-recovery-completion source
+not ok 1 - BNS generation/purge native canonical-recovery-completion source
+  ---
+  duration_ms: 2375.575833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/canonical-recovery-completion-chrome.test.mjs:13:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: fixed cold completion opens original selected store without binding or deleting until explicit advance: Error: equal
+        at Object.equal (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-assert.mjs:14:44)
+        at Object.fn (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-fixture.mjs:51:106)
+        at async Object.run (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-fixture.mjs:82:7)
+        at async <anonymous>:337:30
+        at Object.equal (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-assert.mjs:14:44)
+        at Object.fn (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-fixture.mjs:51:106)
+        at async Object.run (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-fixture.mjs:82:7)
+        at async <anonymous>:337:30
+        at Object.run (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-fixture.mjs:83:24)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.equal (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-assert.mjs:14:44)
+    Object.fn (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-fixture.mjs:51:106)
+    async Object.run (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-fixture.mjs:82:7)
+    async <anonymous>:337:30
+    Object.equal (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-assert.mjs:14:44)
+    Object.fn (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-fixture.mjs:51:106)
+    async Object.run (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-fixture.mjs:82:7)
+    async <anonymous>:337:30
+    Object.run (chrome-extension://kihnfkooejlfohfdidbiffdickfehgef/background/generation-purge-fixture.mjs:83:24)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/canonical-recovery-completion-chrome.test.mjs:27:105)
+  ...
+# Subtest: BNS generation/purge native canonical-recovery-completion release
+not ok 2 - BNS generation/purge native canonical-recovery-completion release
+  ---
+  duration_ms: 2047.822041
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/canonical-recovery-completion-chrome.test.mjs:13:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: fixed cold completion opens original selected store without binding or deleting until explicit advance: Error: equal
+        at Object.equal (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-assert.mjs:14:44)
+        at Object.fn (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-fixture.mjs:51:106)
+        at async Object.run (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-fixture.mjs:82:7)
+        at async <anonymous>:337:30
+        at Object.equal (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-assert.mjs:14:44)
+        at Object.fn (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-fixture.mjs:51:106)
+        at async Object.run (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-fixture.mjs:82:7)
+        at async <anonymous>:337:30
+        at Object.run (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-fixture.mjs:83:24)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.equal (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-assert.mjs:14:44)
+    Object.fn (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-fixture.mjs:51:106)
+    async Object.run (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-fixture.mjs:82:7)
+    async <anonymous>:337:30
+    Object.equal (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-assert.mjs:14:44)
+    Object.fn (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-fixture.mjs:51:106)
+    async Object.run (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-fixture.mjs:82:7)
+    async <anonymous>:337:30
+    Object.run (chrome-extension://ibojonfhhmfcaboceekoclcpaegjbbbf/background/generation-purge-fixture.mjs:83:24)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/canonical-recovery-completion-chrome.test.mjs:27:105)
+  ...
+# Subtest: BNS generation/purge native qualified-human-retirement source
+ok 3 - BNS generation/purge native qualified-human-retirement source
+  ---
+  duration_ms: 2814.433542
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native qualified-human-retirement release
+ok 4 - BNS generation/purge native qualified-human-retirement release
+  ---
+  duration_ms: 2472.474125
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native selected-purge-group source
+ok 5 - BNS generation/purge native selected-purge-group source
+  ---
+  duration_ms: 10179.572375
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native selected-purge-group release
+ok 6 - BNS generation/purge native selected-purge-group release
+  ---
+  duration_ms: 13049.495834
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 4
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 47896.319625

@@ -1,0 +1,78 @@
+TAP version 13
+# Subtest: BNS generation/purge native canonical-recovery-completion source
+not ok 1 - BNS generation/purge native canonical-recovery-completion source
+  ---
+  duration_ms: 2185.083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/canonical-recovery-completion-chrome.test.mjs:13:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: fixed cold completion opens original selected store without binding or deleting until explicit advance: Error: equal
+        at Object.equal (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-assert.mjs:14:44)
+        at Object.fn (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-fixture.mjs:52:308)
+        at async Object.run (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-fixture.mjs:82:7)
+        at async <anonymous>:337:30
+        at Object.equal (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-assert.mjs:14:44)
+        at Object.fn (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-fixture.mjs:52:308)
+        at async Object.run (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-fixture.mjs:82:7)
+        at async <anonymous>:337:30
+        at Object.run (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-fixture.mjs:83:24)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.equal (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-assert.mjs:14:44)
+    Object.fn (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-fixture.mjs:52:308)
+    async Object.run (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-fixture.mjs:82:7)
+    async <anonymous>:337:30
+    Object.equal (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-assert.mjs:14:44)
+    Object.fn (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-fixture.mjs:52:308)
+    async Object.run (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-fixture.mjs:82:7)
+    async <anonymous>:337:30
+    Object.run (chrome-extension://kdnjglcdhoinapdohmdkkecmhbcepmag/background/generation-purge-fixture.mjs:83:24)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/canonical-recovery-completion-chrome.test.mjs:27:105)
+  ...
+# Subtest: BNS generation/purge native canonical-recovery-completion release
+not ok 2 - BNS generation/purge native canonical-recovery-completion release
+  ---
+  duration_ms: 2106.533584
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/canonical-recovery-completion-chrome.test.mjs:13:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: fixed cold completion opens original selected store without binding or deleting until explicit advance: Error: equal
+        at Object.equal (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-assert.mjs:14:44)
+        at Object.fn (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-fixture.mjs:52:308)
+        at async Object.run (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-fixture.mjs:82:7)
+        at async <anonymous>:337:30
+        at Object.equal (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-assert.mjs:14:44)
+        at Object.fn (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-fixture.mjs:52:308)
+        at async Object.run (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-fixture.mjs:82:7)
+        at async <anonymous>:337:30
+        at Object.run (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-fixture.mjs:83:24)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.equal (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-assert.mjs:14:44)
+    Object.fn (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-fixture.mjs:52:308)
+    async Object.run (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-fixture.mjs:82:7)
+    async <anonymous>:337:30
+    Object.equal (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-assert.mjs:14:44)
+    Object.fn (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-fixture.mjs:52:308)
+    async Object.run (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-fixture.mjs:82:7)
+    async <anonymous>:337:30
+    Object.run (chrome-extension://fhahbjgoglnmgogjfncegcljjafiejof/background/generation-purge-fixture.mjs:83:24)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/canonical-recovery-completion-chrome.test.mjs:27:105)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9283.189791

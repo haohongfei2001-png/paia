@@ -1,3 +1,11 @@
+# Explicit recovery completion and local consumers — 2026-10-23
+
+Committed-publication cleanup now has an explicit cold-resumable consumer and ready-only original writer binding. The default-off fixed application startup refuses unretired generations. Five complete owning Node files passed73/73; one678-file development build; native first4/6, then test-only physical-name and random-order corrections with final affected owning8/8 and Source/Release2/2. All failed invocations are retained separately. [Exact milestone](../../../work/recovery-completion-milestone-20261023/REPORT.md). The successful small profiles do not turn the sole129 FAIL into a pass or establish Linux capacity.
+
+Parallel local implementation continues on background Sync lifecycle, surviving Working plus permanent Source negative recovery, and explicit human manual Prompt conflict resolution. Default production Sync remains off; real identity/provider/platform and final acceptance gates remain open. No cloud/large-run allowance is reset. Earlier status sections below are historical where superseded here.
+
+## Preserved preceding checkpoint
+
 # Qualified recovery milestone and remaining local work — 2026-10-23
 
 The one authorized 129-group local recovery has executed and **failed overall**, without retry. It completed its 64-group cold reopen, all 129 original owners, complete raw final validation and durable publication. The following ordinary edit was refused with `BNS_GROUP_RESOURCE_LIMIT`. The recovery ledger remained below the approved 64 MiB / 120 s; ordinary budgets remain unchanged. This execution allowance is consumed. [Complete evidence and limitations](../../../work/qualified-human-recovery-once-20261023/ONCE-REPORT.md).
