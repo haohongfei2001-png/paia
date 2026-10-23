@@ -115,3 +115,30 @@ for(const allowed of [404,409])test('allowed '+allowed+' response still enforces
  const {core}=await fresh(t),cloud=fakeDrive(),o=await object();let copies=0;const raw=new Uint8Array(65537);raw.slice=()=>{copies++;throw Error('must not copy');};
  const request=async r=>{if(allowed===404&&/files\/SYNTHETIC_file_/.test(r.url)||allowed===409&&r.method==='POST')return {status:allowed,body:raw};return cloud.request(r);};await assert.rejects(adapter(core,cloud,{request}).putImmutable(o.ref,o.bytes),{code:'BNS_PROVIDER_RESPONSE_INVALID'});assert.equal(copies,0);assert.equal(cloud.files.size,0);
 });
+
+// Original publication owner integration: transport absence has protocol meaning.
+import {PreparedPublicationJournal} from '../core/browser-native-sync/publications.js';
+async function prepareSourceCut(t){const x=await fresh(t);x.s.sourceBootstrapJournal=new SourceBootstrapJournal(x.core);await x.s.capture(capture((await x.s.status()).epoch));const journal=new PreparedPublicationJournal(x.core),cut=await journal.prepare();return {...x,journal,cut};}
+test('original publication retry after pre-dispatch interruption resumes same cut through provider absence',async t=>{
+ const {core,journal,cut}=await prepareSourceCut(t),cloud=fakeDrive(),out=adapter(core,cloud);let failOnce=true;
+ const beforeWrite={get:r=>out.get(r),putImmutable:async(r,b)=>{if(failOnce){failOnce=false;throw Error('synthetic pre-dispatch interruption');}return out.putImmutable(r,b);}};
+ await assert.rejects(journal.run(cut.publicationId,beforeWrite),{code:'BNS_TRANSPORT_UNKNOWN'});assert.equal(cloud.files.size,0);
+ const receipt=await new PreparedPublicationJournal(core).run(cut.publicationId,adapter(core,cloud));assert.equal(receipt.state,'confirmed');const queued=[];for await(const row of core.outbox())queued.push(row);assert.equal(queued.length,0);
+});
+test('original publication missing verified cut blocks permanently without silently recreating remote data',async t=>{
+ const {core,cut}=await prepareSourceCut(t),cloud=fakeDrive(),out=adapter(core,cloud);let stop=true;const journal=new PreparedPublicationJournal(core,{checkpoint:async stage=>{if(stage==='publication-before-ack'&&stop)throw Error('synthetic lost local acknowledgement');}});
+ await assert.rejects(journal.run(cut.publicationId,out),{code:'BNS_TRANSPORT_UNKNOWN'});assert.ok(cloud.files.size);const writes=cloud.requests.filter(r=>r.method==='POST'||r.method==='PUT').length;cloud.files.clear();stop=false;
+ await assert.rejects(journal.run(cut.publicationId,adapter(core,cloud)),{code:'BNS_OBJECT_NOT_FOUND'});assert.equal((await journal.state(cut.publicationId)).state,'blocked_remote_missing');assert.equal(cloud.requests.filter(r=>r.method==='POST'||r.method==='PUT').length,writes);assert.equal(await core.read('publicationReceipt',cut.publicationId),undefined);
+});
+
+for(const divergent of [false,true])test('same logical Google duplicates require complete pagination and exact readback, divergent='+divergent,async t=>{
+ const {core}=await fresh(t),cloud=fakeDrive(),o=await object();await adapter(core,cloud).putImmutable(o.ref,o.bytes);const first=[...cloud.files.values()][0],second={...structuredClone(first),id:'SYNTHETIC_duplicate'};if(divergent)second.raw[0]^=1;cloud.files.set(second.id,second);
+ const request=async r=>{const result=await cloud.request(r),u=new URL(r.url);if(u.pathname==='/drive/v3/files'){const rows=[...cloud.files.values()].map(({raw,...v})=>v);result.body=encode(u.searchParams.has('pageToken')?{files:[rows[1]]}:{files:[rows[0]],nextPageToken:'1'});}return result;};
+ const out=adapter(core,cloud,{request});if(divergent)await assert.rejects(out.get(o.ref),{code:'BNS_OBJECT_INTEGRITY'});else assert.deepEqual(await out.get(o.ref),o.bytes);assert.ok(cloud.requests.some(r=>new URL(r.url).searchParams.has('pageToken')));assert.equal(cloud.requests.filter(r=>r.method==='POST').length,1);
+});
+
+test('a valid first Google match cannot hide failed continuation discovery',async t=>{
+ const {core}=await fresh(t),cloud=fakeDrive(),o=await object();await adapter(core,cloud).putImmutable(o.ref,o.bytes);
+ const request=async r=>{const u=new URL(r.url);if(u.pathname==='/drive/v3/files'&&u.searchParams.has('pageToken'))return {status:503,body:encode({})};const result=await cloud.request(r);if(u.pathname==='/drive/v3/files'){const body=JSON.parse(new TextDecoder().decode(result.body));body.nextPageToken='SYNTHETIC_more';result.body=encode(body);}return result;};
+ await assert.rejects(adapter(core,cloud,{request}).get(o.ref),{code:'BNS_PROVIDER_UNAVAILABLE'});assert.equal(cloud.requests.filter(r=>r.method==='POST').length,1);
+});

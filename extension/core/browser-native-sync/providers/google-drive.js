@@ -71,7 +71,20 @@ export class GoogleDriveAppDataTransport {
   return {rows,nextCursor:result.nextPageToken??null};
  }
  async #listCheckpoints(options={}){if(!exact(options,['cursor','limit']))fail('BNS_PROVIDER_PAGE_INVALID');const page=await this.#list({cursor:options.cursor??null,limit:options.limit??100,checkpoints:true});return {items:page.rows.map(row=>row.ref),nextCursor:page.nextCursor};}
- async #find(ref){let cursor=null;const seen=new Set();for(let n=0;n<16;n++){const page=await this.#list({cursor,ref});if(page.rows.length)return page.rows[0].file;cursor=page.nextCursor;if(cursor===null)return null;if(seen.has(cursor))fail('BNS_PROVIDER_PAGE_INVALID');seen.add(cursor);}fail('BNS_PROVIDER_PAGE_LIMIT');}
+ async #find(ref){
+  let cursor=null;const seen=new Set(),files=new Set();
+  for(let n=0;n<16;n++){
+   const page=await this.#list({cursor,ref});for(const row of page.rows)files.add(row.file);cursor=page.nextCursor;
+   if(cursor===null){
+    // Drive names/properties are not unique. A first hit cannot conceal a
+    // divergent physical duplicate on a later page. Preserve every file.
+    if(files.size>1)for(const file of files)if(await this.#read(file,ref)===null)fail('BNS_OBJECT_NOT_FOUND');
+    return files.values().next().value??null;
+   }
+   if(seen.has(cursor))fail('BNS_PROVIDER_PAGE_INVALID');seen.add(cursor);
+  }
+  fail('BNS_PROVIDER_PAGE_LIMIT');
+ }
  async #read(file,ref){
   if(!fileId(file))fail('BNS_PROVIDER_CONTAINMENT');const url=new URL(`${API}/${file}`);url.searchParams.set('fields',FIELDS);
   const response=await this.#http('GET',url.href,{allow:[404]});if(response.status===404)return null;
@@ -79,7 +92,7 @@ export class GoogleDriveAppDataTransport {
   const raw=(await this.#http('GET',`${API}/${file}?alt=media`,{limit:ref.encodedBytes})).body;
   if(raw.length!==ref.encodedBytes||await digest(raw)!==ref.digest)fail('BNS_OBJECT_INTEGRITY');await this.#guard();return raw;
  }
- async #get(reference){const ref=clone(reference);assertProtocolObjectReference(ref);const file=await this.#find(ref);if(file===null)fail('BNS_PROVIDER_MISSING');const raw=await this.#read(file,ref);if(raw===null)fail('BNS_PROVIDER_MISSING');return raw;}
+ async #get(reference){const ref=clone(reference);assertProtocolObjectReference(ref);const file=await this.#find(ref);if(file===null)fail('BNS_OBJECT_NOT_FOUND');const raw=await this.#read(file,ref);if(raw===null)fail('BNS_OBJECT_NOT_FOUND');return raw;}
  async #reservation(ref,proposed=null){
   const identity=await this.#identity,namespace=await this.#namespace;await this.#guard();
   return this.#core.transaction(proposed!==null,async t=>{
