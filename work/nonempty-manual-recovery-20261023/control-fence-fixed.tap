@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: manual merge original control publication rejects same-key local-control-publication:revision drift at finalizer tail
+ok 1 - manual merge original control publication rejects same-key local-control-publication:revision drift at finalizer tail
+  ---
+  duration_ms: 114.04825
+  type: 'test'
+  ...
+# Subtest: manual merge original control publication rejects same-key migration drift at finalizer tail
+ok 2 - manual merge original control publication rejects same-key migration drift at finalizer tail
+  ---
+  duration_ms: 76.524958
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 303.944375

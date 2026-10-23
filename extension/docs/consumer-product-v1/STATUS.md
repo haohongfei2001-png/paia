@@ -45,6 +45,15 @@ resource plan is required before more restricted cloud execution. Original
 human-content/data protections, processing/access separation, paid-call and
 credential limits, recovery safeguards and budget limits remain effective.
 
+Latest integrated checkpoint6452a3a7 adds authored/bound Context correction,
+complete original selected metadata fences, bounded Sync paging, typed saved-AI
+publication/receive and finite nonempty Context/Prompt recovery. The coherent
+Node combination is331/331; subsequent Source/release native batch is30/30,
+with642-file Development packaging. Exact scopes and source identity are in the
+acceptance matrix; these are separate commands, not a programme-wide pass.
+Saved-work grouped recovery, structural Context correction, bounded lifecycle
+consumption and broader Sync/visual qualification continue in parallel.
+
 All preceding STATUS text is preserved below as dated evidence. Its old
 ownership, next-task, PR and missing-code pointers are not current execution
 instructions where superseded by this entry and later owning receipts.

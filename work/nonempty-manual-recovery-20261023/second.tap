@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+ok 1 - original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+  ---
+  duration_ms: 146.493625
+  type: 'test'
+  ...
+# Subtest: same Context fork retains both devices unchanged and refuses unresolved conflict
+ok 2 - same Context fork retains both devices unchanged and refuses unresolved conflict
+  ---
+  duration_ms: 56.509875
+  type: 'test'
+  ...
+# Subtest: late local edit after stage remains intact and blocks merge
+ok 3 - late local edit after stage remains intact and blocks merge
+  ---
+  duration_ms: 56.51475
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+ok 4 - nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 72.553041
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+ok 5 - nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 68.876666
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+ok 6 - nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 73.624292
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 623.539667

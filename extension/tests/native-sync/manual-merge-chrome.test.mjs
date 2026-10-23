@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {join} from 'node:path';
+import {join,isAbsolute} from 'node:path';
 import {tmpdir} from 'node:os';
 import {instrumentedExtension,root,startNative} from './storage-harness.mjs';
 import {nativeManualMergeFixture} from './manual-merge-fixture.mjs';
@@ -14,8 +14,9 @@ for(const variant of ['source','release'])test('BNS nonempty finite manual recov
  const receipt={variant,scope:'finite-manual-Context-Prompt-only-nonempty-merge',head:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),result:'IN_PROGRESS',fullSyncQualification:false,providerActivation:false};
  await mkdir(output,{recursive:true});
  try{
-  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',join(directory,'release')],{cwd:root,stdio:'pipe'});
-  extension=await instrumentedExtension(variant==='source'?root:join(directory,'release'));
+  const release=process.env.PAIA_NATIVE_RELEASE_PATH||join(directory,'release');
+  if(variant==='release'){assert.equal(isAbsolute(release),true);if(!process.env.PAIA_NATIVE_RELEASE_PATH)execFileSync(process.env.PYTHON||'python3',['scripts/build_current_release.py',release],{cwd:root,stdio:'pipe'});}
+  extension=await instrumentedExtension(variant==='source'?root:release);
   const owning=await readFile(join(root,'tests/browser-native-sync-nonempty-manual-recovery.test.mjs'),'utf8');receipt.owningSha256=createHash('sha256').update(owning).digest('hex');
   await writeFile(join(extension.path,'background/bns-manual-merge-fixture.mjs'),nativeManualMergeFixture(owning));
   const worker=join(extension.path,'background/service-worker.js'),original=await readFile(worker,'utf8'),marker="import './bns-native-storage-fixture.mjs';";assert.equal(original.split(marker).length,2);await writeFile(worker,original.replace(marker,marker+"\nimport './bns-manual-merge-fixture.mjs';"));

@@ -1,0 +1,755 @@
+TAP version 13
+# Subtest: rules actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+ok 1 - rules actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+  ---
+  duration_ms: 97.272625
+  type: 'test'
+  ...
+# Subtest: rules real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+ok 2 - rules real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+  ---
+  duration_ms: 90.626541
+  type: 'test'
+  ...
+# Subtest: rules actual journal abort rolls back canonical, outbox and command receipt
+ok 3 - rules actual journal abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 29.714417
+  type: 'test'
+  ...
+# Subtest: rules actual receipt abort rolls back canonical, outbox and command receipt
+ok 4 - rules actual receipt abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 30.534791
+  type: 'test'
+  ...
+# Subtest: rules receive refuses unmanaged canonical owner without protocol side effects
+ok 5 - rules receive refuses unmanaged canonical owner without protocol side effects
+  ---
+  duration_ms: 46.339125
+  type: 'test'
+  ...
+# Subtest: rules receive refuses edited canonical owner without protocol side effects
+ok 6 - rules receive refuses edited canonical owner without protocol side effects
+  ---
+  duration_ms: 65.100333
+  type: 'test'
+  ...
+# Subtest: rules receive refuses deleted-same-body canonical owner without protocol side effects
+ok 7 - rules receive refuses deleted-same-body canonical owner without protocol side effects
+  ---
+  duration_ms: 49.812541
+  type: 'test'
+  ...
+# Subtest: rules remote receive preserves unrelated Item and enabled local access exactly
+ok 8 - rules remote receive preserves unrelated Item and enabled local access exactly
+  ---
+  duration_ms: 44.670958
+  type: 'test'
+  ...
+# Subtest: rules staged restore proves whole chain and activation abort leaves old generation untouched
+ok 9 - rules staged restore proves whole chain and activation abort leaves old generation untouched
+  ---
+  duration_ms: 56.424292
+  type: 'test'
+  ...
+# Subtest: rules invalid restore transition cannot smuggle a different body through a removed predecessor
+ok 10 - rules invalid restore transition cannot smuggle a different body through a removed predecessor
+  ---
+  duration_ms: 42.677375
+  type: 'test'
+  ...
+# Subtest: rules bootstrap preserves existing manual Context and supports fresh exact restore
+ok 11 - rules bootstrap preserves existing manual Context and supports fresh exact restore
+  ---
+  duration_ms: 38.156583
+  type: 'test'
+  ...
+# Subtest: rules bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+ok 12 - rules bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+  ---
+  duration_ms: 18.328667
+  type: 'test'
+  ...
+# Subtest: rules manual Context unmaterialized ancestry still rejects 129 atomically
+ok 13 - rules manual Context unmaterialized ancestry still rejects 129 atomically
+  ---
+  duration_ms: 992.404083
+  type: 'test'
+  ...
+# Subtest: rules existing Item change rejects same-value head advancement after validation before prepare
+ok 14 - rules existing Item change rejects same-value head advancement after validation before prepare
+  ---
+  duration_ms: 22.488208
+  type: 'test'
+  ...
+# Subtest: rules exact codec scope and old reader coverage remain conservative
+ok 15 - rules exact codec scope and old reader coverage remain conservative
+  ---
+  duration_ms: 52.225792
+  type: 'test'
+  ...
+# Subtest: rules access stays local; purge and cross-card same ID never overwrite owner
+ok 16 - rules access stays local; purge and cross-card same ID never overwrite owner
+  ---
+  duration_ms: 45.586292
+  type: 'test'
+  ...
+# Subtest: rules mixed Info Rules Now checkpoint restores all exact Items with local access off
+ok 17 - rules mixed Info Rules Now checkpoint restores all exact Items with local access off
+  ---
+  duration_ms: 40.866416
+  type: 'test'
+  ...
+# Subtest: now actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+ok 18 - now actual optional owner commits Item, local receipt and outbox once; default owner unchanged
+  ---
+  duration_ms: 24.919875
+  type: 'test'
+  ...
+# Subtest: now real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+ok 19 - now real edit delete restore chain retains revisions/deletedBy and old delivery cannot resurrect
+  ---
+  duration_ms: 53.446
+  type: 'test'
+  ...
+# Subtest: now actual journal abort rolls back canonical, outbox and command receipt
+ok 20 - now actual journal abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 15.683875
+  type: 'test'
+  ...
+# Subtest: now actual receipt abort rolls back canonical, outbox and command receipt
+ok 21 - now actual receipt abort rolls back canonical, outbox and command receipt
+  ---
+  duration_ms: 12.386
+  type: 'test'
+  ...
+# Subtest: now receive refuses unmanaged canonical owner without protocol side effects
+ok 22 - now receive refuses unmanaged canonical owner without protocol side effects
+  ---
+  duration_ms: 30.420708
+  type: 'test'
+  ...
+# Subtest: now receive refuses edited canonical owner without protocol side effects
+ok 23 - now receive refuses edited canonical owner without protocol side effects
+  ---
+  duration_ms: 29.549625
+  type: 'test'
+  ...
+# Subtest: now receive refuses deleted-same-body canonical owner without protocol side effects
+ok 24 - now receive refuses deleted-same-body canonical owner without protocol side effects
+  ---
+  duration_ms: 30.601625
+  type: 'test'
+  ...
+# Subtest: now remote receive preserves unrelated Item and enabled local access exactly
+ok 25 - now remote receive preserves unrelated Item and enabled local access exactly
+  ---
+  duration_ms: 26.955292
+  type: 'test'
+  ...
+# Subtest: now staged restore proves whole chain and activation abort leaves old generation untouched
+ok 26 - now staged restore proves whole chain and activation abort leaves old generation untouched
+  ---
+  duration_ms: 34.671083
+  type: 'test'
+  ...
+# Subtest: now invalid restore transition cannot smuggle a different body through a removed predecessor
+ok 27 - now invalid restore transition cannot smuggle a different body through a removed predecessor
+  ---
+  duration_ms: 34.994542
+  type: 'test'
+  ...
+# Subtest: now bootstrap preserves existing manual Context and supports fresh exact restore
+ok 28 - now bootstrap preserves existing manual Context and supports fresh exact restore
+  ---
+  duration_ms: 28.508917
+  type: 'test'
+  ...
+# Subtest: now bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+ok 29 - now bootstrap rejects a concurrent same-value head installed between owner validation and prepare
+  ---
+  duration_ms: 14.219166
+  type: 'test'
+  ...
+# Subtest: now manual Context unmaterialized ancestry still rejects 129 atomically
+ok 30 - now manual Context unmaterialized ancestry still rejects 129 atomically
+  ---
+  duration_ms: 776.396542
+  type: 'test'
+  ...
+# Subtest: now existing Item change rejects same-value head advancement after validation before prepare
+ok 31 - now existing Item change rejects same-value head advancement after validation before prepare
+  ---
+  duration_ms: 15.470041
+  type: 'test'
+  ...
+# Subtest: now exact codec scope and old reader coverage remain conservative
+ok 32 - now exact codec scope and old reader coverage remain conservative
+  ---
+  duration_ms: 15.093291
+  type: 'test'
+  ...
+# Subtest: now access stays local; purge and cross-card same ID never overwrite owner
+ok 33 - now access stays local; purge and cross-card same ID never overwrite owner
+  ---
+  duration_ms: 40.091916
+  type: 'test'
+  ...
+# Subtest: now mixed Info Rules Now checkpoint restores all exact Items with local access off
+ok 34 - now mixed Info Rules Now checkpoint restores all exact Items with local access off
+  ---
+  duration_ms: 37.140958
+  type: 'test'
+  ...
+# Subtest: native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+ok 35 - native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+  ---
+  duration_ms: 83.215083
+  type: 'test'
+  ...
+# Subtest: actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+ok 36 - actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+  ---
+  duration_ms: 133.838458
+  type: 'test'
+  ...
+# Subtest: missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+ok 37 - missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+  ---
+  duration_ms: 44.4955
+  type: 'test'
+  ...
+# Subtest: operation budget counts all ancestry rather than current heads
+ok 38 - operation budget counts all ancestry rather than current heads
+  ---
+  duration_ms: 31.492375
+  type: 'test'
+  ...
+# Subtest: actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+ok 39 - actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+  ---
+  duration_ms: 78.043166
+  type: 'test'
+  ...
+# Subtest: fourMiB operation bytes include all retained payloads, not only final current text
+ok 40 - fourMiB operation bytes include all retained payloads, not only final current text
+  ---
+  duration_ms: 758.569084
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled note rather than claiming protocol coverage
+ok 41 - full inventory rejects actual unjournaled note rather than claiming protocol coverage
+  ---
+  duration_ms: 36.039917
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+ok 42 - full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+  ---
+  duration_ms: 32.977291
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+ok 43 - full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+  ---
+  duration_ms: 32.867417
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+ok 44 - full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+  ---
+  duration_ms: 28.905125
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+ok 45 - full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+  ---
+  duration_ms: 27.300166
+  type: 'test'
+  ...
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 46 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 207.739333
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 47 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 473.262667
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 48 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 419.48675
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 49 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 410.546709
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 50 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 425.298
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 51 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 255.689083
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 52 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 239.776875
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 53 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 244.913292
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 54 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 248.191958
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 55 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 263.234958
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 56 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 260.430458
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 57 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 114.597666
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 58 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 38.793875
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 59 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 497.806875
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":112.71741699999984,"reads":2701,"writes":1161}}
+# Subtest: exact128 retained operations restore, the129th refuses, and bounded transaction work is measured
+ok 60 - exact128 retained operations restore, the129th refuses, and bounded transaction work is measured
+  ---
+  duration_ms: 905.616375
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 61 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 20.531208
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 62 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 27.482167
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 63 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 27.865209
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 64 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 26.547458
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 65 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 27.395
+  type: 'test'
+  ...
+# Subtest: local discovery traverses empty pages and restores original Source/Working with sender closed
+ok 66 - local discovery traverses empty pages and restores original Source/Working with sender closed
+  ---
+  duration_ms: 311.199625
+  type: 'test'
+  ...
+# Subtest: missing or corrupt transport bytes never activate; restart resumes original durable stage
+ok 67 - missing or corrupt transport bytes never activate; restart resumes original durable stage
+  ---
+  duration_ms: 195.017375
+  type: 'test'
+  ...
+# Subtest: pause during held transport rejects late completion and preserves original destination
+ok 68 - pause during held transport rejects late completion and preserves original destination
+  ---
+  duration_ms: 156.17875
+  type: 'test'
+  ...
+# Subtest: activation rollback and local edits keep their original exact owner fences
+ok 69 - activation rollback and local edits keep their original exact owner fences
+  ---
+  duration_ms: 157.843333
+  type: 'test'
+  ...
+# Subtest: discovery refuses missing instead of selecting an arbitrary checkpoint
+ok 70 - discovery refuses missing instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 94.800875
+  type: 'test'
+  ...
+# Subtest: discovery refuses multiple instead of selecting an arbitrary checkpoint
+ok 71 - discovery refuses multiple instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 89.474625
+  type: 'test'
+  ...
+# Subtest: discovery refuses cycle instead of selecting an arbitrary checkpoint
+ok 72 - discovery refuses cycle instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 82.610167
+  type: 'test'
+  ...
+# Subtest: discovery refuses malformed instead of selecting an arbitrary checkpoint
+ok 73 - discovery refuses malformed instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 76.631125
+  type: 'test'
+  ...
+# Subtest: historical checkpoints select the authenticated unique causal descendant, not list order
+ok 74 - historical checkpoints select the authenticated unique causal descendant, not list order
+  ---
+  duration_ms: 221.561625
+  type: 'test'
+  ...
+# Subtest: two genuine incomparable checkpoints cannot be silently chosen
+ok 75 - two genuine incomparable checkpoints cannot be silently chosen
+  ---
+  duration_ms: 119.41275
+  type: 'test'
+  ...
+# Subtest: pause after the real activation commit preserves the confirmed restored outcome
+ok 76 - pause after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 144.839208
+  type: 'test'
+  ...
+# Subtest: close after the real activation commit preserves the confirmed restored outcome
+ok 77 - close after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 137.211583
+  type: 'test'
+  ...
+# Subtest: pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+ok 78 - pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+  ---
+  duration_ms: 159.264334
+  type: 'test'
+  ...
+# Subtest: lost post-commit response stays settlement-unknown until original durable activation proof is checked
+ok 79 - lost post-commit response stays settlement-unknown until original durable activation proof is checked
+  ---
+  duration_ms: 120.468084
+  type: 'test'
+  ...
+# Subtest: discovery enforces cumulative object budget before fetching or activating
+ok 80 - discovery enforces cumulative object budget before fetching or activating
+  ---
+  duration_ms: 61.257916
+  type: 'test'
+  ...
+# Subtest: claimed parent alone cannot make an older valid cut supersede newer canonical revisions
+ok 81 - claimed parent alone cannot make an older valid cut supersede newer canonical revisions
+  ---
+  duration_ms: 108.793
+  type: 'test'
+  ...
+# Subtest: discovery deadline settles held listing and fences late completion
+ok 82 - discovery deadline settles held listing and fences late completion
+  ---
+  duration_ms: 89.55575
+  type: 'test'
+  ...
+# Subtest: discovery deadline settles held object and fences late completion
+ok 83 - discovery deadline settles held object and fences late completion
+  ---
+  duration_ms: 92.319167
+  type: 'test'
+  ...
+# Subtest: pause settles a held discovery without pretending to cancel underlying transport
+ok 84 - pause settles a held discovery without pretending to cancel underlying transport
+  ---
+  duration_ms: 61.514833
+  type: 'test'
+  ...
+# Subtest: close settles a held discovery without pretending to cancel underlying transport
+ok 85 - close settles a held discovery without pretending to cancel underlying transport
+  ---
+  duration_ms: 62.815625
+  type: 'test'
+  ...
+# Subtest: stage rejects transport length mismatch before the object reader copies bytes
+ok 86 - stage rejects transport length mismatch before the object reader copies bytes
+  ---
+  duration_ms: 61.2875
+  type: 'test'
+  ...
+# Subtest: discover rejects transport length mismatch before the object reader copies bytes
+ok 87 - discover rejects transport length mismatch before the object reader copies bytes
+  ---
+  duration_ms: 60.280916
+  type: 'test'
+  ...
+# Subtest: pause settles held staging before host completion and late bytes cannot change original destination
+ok 88 - pause settles held staging before host completion and late bytes cannot change original destination
+  ---
+  duration_ms: 116.646958
+  type: 'test'
+  ...
+# Subtest: close settles held staging before host completion and late bytes cannot change original destination
+ok 89 - close settles held staging before host completion and late bytes cannot change original destination
+  ---
+  duration_ms: 65.988917
+  type: 'test'
+  ...
+# Subtest: staging deadline bounds held object and permits original durable-stage resume
+ok 90 - staging deadline bounds held object and permits original durable-stage resume
+  ---
+  duration_ms: 192.83775
+  type: 'test'
+  ...
+# Subtest: late prior-stage bytes cannot disturb a new confirmed recovery after pause and resume
+ok 91 - late prior-stage bytes cannot disturb a new confirmed recovery after pause and resume
+  ---
+  duration_ms: 116.640667
+  type: 'test'
+  ...
+# Subtest: one Core dispatches four real owners with one sequence and conservative readiness
+ok 92 - one Core dispatches four real owners with one sequence and conservative readiness
+  ---
+  duration_ms: 128.32775
+  type: 'test'
+  ...
+# Subtest: mixed staged restore rolls all canonical domains and active namespace back together
+ok 93 - mixed staged restore rolls all canonical domains and active namespace back together
+  ---
+  duration_ms: 98.658625
+  type: 'test'
+  ...
+# Subtest: mixed activation refuses unmanaged prompt and preserves every meta row
+ok 94 - mixed activation refuses unmanaged prompt and preserves every meta row
+  ---
+  duration_ms: 79.27875
+  type: 'test'
+  ...
+# Subtest: mixed activation refuses unmanaged context and preserves every meta row
+ok 95 - mixed activation refuses unmanaged context and preserves every meta row
+  ---
+  duration_ms: 75.644833
+  type: 'test'
+  ...
+# Subtest: shared Core rejects concurrent prepared state from another domain without partial owner write
+ok 96 - shared Core rejects concurrent prepared state from another domain without partial owner write
+  ---
+  duration_ms: 40.66175
+  type: 'test'
+  ...
+# Subtest: mixed receive rolls earlier Prompt materialization back when a Context owner rejects
+ok 97 - mixed receive rolls earlier Prompt materialization back when a Context owner rejects
+  ---
+  duration_ms: 54.966417
+  type: 'test'
+  ...
+# Subtest: dispatcher refuses non-admitted types without invoking any transaction write
+ok 98 - dispatcher refuses non-admitted types without invoking any transaction write
+  ---
+  duration_ms: 16.682709
+  type: 'test'
+  ...
+# Subtest: independently journaled nonempty initial B keeps its existing namespace and manual Context
+ok 99 - independently journaled nonempty initial B keeps its existing namespace and manual Context
+  ---
+  duration_ms: 151.784875
+  type: 'test'
+  ...
+# Subtest: original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+ok 100 - original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+  ---
+  duration_ms: 219.946167
+  type: 'test'
+  ...
+# Subtest: same Context fork retains both devices unchanged and refuses unresolved conflict
+ok 101 - same Context fork retains both devices unchanged and refuses unresolved conflict
+  ---
+  duration_ms: 98.335833
+  type: 'test'
+  ...
+# Subtest: late local edit after stage remains intact and blocks merge
+ok 102 - late local edit after stage remains intact and blocks merge
+  ---
+  duration_ms: 94.982416
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+ok 103 - nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 112.28075
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+ok 104 - nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 105.413292
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+ok 105 - nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 126.175125
+  type: 'test'
+  ...
+# Subtest: old cut cannot resurrect a removed Context and explicit restoration remains causal
+ok 106 - old cut cannot resurrect a removed Context and explicit restoration remains causal
+  ---
+  duration_ms: 165.153458
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal context drift with complete rollback
+ok 107 - closed original Repository fence rejects post-seal context drift with complete rollback
+  ---
+  duration_ms: 90.006459
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal prompt drift with complete rollback
+ok 108 - closed original Repository fence rejects post-seal prompt drift with complete rollback
+  ---
+  duration_ms: 88.601291
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal new-meta drift with complete rollback
+ok 109 - closed original Repository fence rejects post-seal new-meta drift with complete rollback
+  ---
+  duration_ms: 82.257292
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal receipt drift with complete rollback
+ok 110 - closed original Repository fence rejects post-seal receipt drift with complete rollback
+  ---
+  duration_ms: 78.519875
+  type: 'test'
+  ...
+# Subtest: lost acknowledgement confirmation requires original durable protocol receipts after cleanup
+ok 111 - lost acknowledgement confirmation requires original durable protocol receipts after cleanup
+  ---
+  duration_ms: 79.883334
+  type: 'test'
+  ...
+# Subtest: original backup finalizer cannot change Context after the merge callback and before native commit
+ok 112 - original backup finalizer cannot change Context after the merge callback and before native commit
+  ---
+  duration_ms: 82.274875
+  type: 'test'
+  ...
+# Subtest: retained merge snapshot refuses more than 2 MiB without any canonical or protocol commit
+ok 113 - retained merge snapshot refuses more than 2 MiB without any canonical or protocol commit
+  ---
+  duration_ms: 129.142041
+  type: 'test'
+  ...
+# Subtest: actual original activated control refuses before cleanup and validates only after bounded cleanup without any write
+ok 114 - actual original activated control refuses before cleanup and validates only after bounded cleanup without any write
+  ---
+  duration_ms: 219.38525
+  type: 'test'
+  ...
+# Subtest: original historical counters can precede a later current plan, without becoming current-plan authority
+ok 115 - original historical counters can precede a later current plan, without becoming current-plan authority
+  ---
+  duration_ms: 0.440792
+  type: 'test'
+  ...
+# Subtest: incomplete phases, cleanup cursors and partial namespaces remain denied
+ok 116 - incomplete phases, cleanup cursors and partial namespaces remain denied
+  ---
+  duration_ms: 0.504708
+  type: 'test'
+  ...
+# Subtest: stage key, replay, active manifest, graph and receipt counts must bind exactly
+ok 117 - stage key, replay, active manifest, graph and receipt counts must bind exactly
+  ---
+  duration_ms: 0.661458
+  type: 'test'
+  ...
+# Subtest: base namespace, original fence, consent and actual recovery epoch are checked independently
+ok 118 - base namespace, original fence, consent and actual recovery epoch are checked independently
+  ---
+  duration_ms: 0.993833
+  type: 'test'
+  ...
+# Subtest: original immutable identity detects an altered valid manifest rather than trusting copied digest fields
+ok 119 - original immutable identity detects an altered valid manifest rather than trusting copied digest fields
+  ---
+  duration_ms: 0.820916
+  type: 'test'
+  ...
+# Subtest: valid gzip reference is refused by this finite local control profile without reading a transport
+ok 120 - valid gzip reference is refused by this finite local control profile without reading a transport
+  ---
+  duration_ms: 4.42425
+  type: 'test'
+  ...
+# Subtest: unknown fields and malformed original manifest/coverage remain denied
+ok 121 - unknown fields and malformed original manifest/coverage remain denied
+  ---
+  duration_ms: 0.488166
+  type: 'test'
+  ...
+# Subtest: accessors, hidden/symbol fields and sparse nested arrays are refused before getter execution
+ok 122 - accessors, hidden/symbol fields and sparse nested arrays are refused before getter execution
+  ---
+  duration_ms: 0.558125
+  type: 'test'
+  ...
+# Subtest: mutable or inherited data cannot cross the asynchronous original hash boundary
+ok 123 - mutable or inherited data cannot cross the asynchronous original hash boundary
+  ---
+  duration_ms: 0.289167
+  type: 'test'
+  ...
+# Subtest: original manifest refusal short-circuits before reading Core dataset identity
+ok 124 - original manifest refusal short-circuits before reading Core dataset identity
+  ---
+  duration_ms: 0.165333
+  type: 'test'
+  ...
+1..124
+# tests 124
+# suites 0
+# pass 124
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5303.145292

@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "nativeFactory": true,
+  "nativeTransaction": true,
+  "sourceOwnedAdapter": true,
+  "kind": "authored",
+  "action": "edit",
+  "phase": "grant-denied",
+  "physicalAttempts": 0,
+  "topicAuthorityCalls": 0,
+  "atomicRollback": false,
+  "humanContentPreserved": true,
+  "topicPending": true
+}

@@ -1,0 +1,205 @@
+TAP version 13
+# Subtest: original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+ok 1 - original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+  ---
+  duration_ms: 140.100459
+  type: 'test'
+  ...
+# Subtest: same Context fork retains both devices unchanged and refuses unresolved conflict
+ok 2 - same Context fork retains both devices unchanged and refuses unresolved conflict
+  ---
+  duration_ms: 55.859541
+  type: 'test'
+  ...
+# Subtest: late local edit after stage remains intact and blocks merge
+ok 3 - late local edit after stage remains intact and blocks merge
+  ---
+  duration_ms: 55.853208
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+ok 4 - nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 70.357
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+ok 5 - nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 69.354084
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+ok 6 - nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 75.5645
+  type: 'test'
+  ...
+# Subtest: old cut cannot resurrect a removed Context and explicit restoration remains causal
+ok 7 - old cut cannot resurrect a removed Context and explicit restoration remains causal
+  ---
+  duration_ms: 106.42325
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal context drift with complete rollback
+not ok 8 - closed original Repository fence rejects post-seal context drift with complete rollback
+  ---
+  duration_ms: 59.204916
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:37:65'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'STORAGE_FAILED'
+    -   code: 'BNS_RESTORE_LOCAL_CHANGED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_RESTORE_LOCAL_CHANGED'
+  actual:
+  error: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:22:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:823)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:37:891)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: closed original Repository fence rejects post-seal prompt drift with complete rollback
+not ok 9 - closed original Repository fence rejects post-seal prompt drift with complete rollback
+  ---
+  duration_ms: 59.235583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:37:65'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'STORAGE_FAILED'
+    -   code: 'BNS_RESTORE_LOCAL_CHANGED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_RESTORE_LOCAL_CHANGED'
+  actual:
+  error: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:22:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:823)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:37:891)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: closed original Repository fence rejects post-seal new-meta drift with complete rollback
+not ok 10 - closed original Repository fence rejects post-seal new-meta drift with complete rollback
+  ---
+  duration_ms: 58.482459
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:37:65'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'STORAGE_FAILED'
+    -   code: 'BNS_RESTORE_LOCAL_CHANGED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_RESTORE_LOCAL_CHANGED'
+  actual:
+  error: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:22:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:823)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:37:891)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: closed original Repository fence rejects post-seal receipt drift with complete rollback
+not ok 11 - closed original Repository fence rejects post-seal receipt drift with complete rollback
+  ---
+  duration_ms: 71.461584
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:37:65'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'STORAGE_FAILED'
+    -   code: 'BNS_RESTORE_LOCAL_CHANGED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_RESTORE_LOCAL_CHANGED'
+  actual:
+  error: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:22:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:823)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:37:891)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lost acknowledgement confirmation requires original durable protocol receipts after cleanup
+not ok 12 - lost acknowledgement confirmation requires original durable protocol receipts after cleanup
+  ---
+  duration_ms: 65.322042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:38:1'
+  failureType: 'unhandledRejection'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:22:40)
+    request.onerror (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:23:124)
+    invokeEventListeners (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/vendor/fake-indexeddb/build/esm/lib/FakeEventTarget.js:44:25)
+    FDBRequest.dispatchEvent (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/vendor/fake-indexeddb/build/esm/lib/FakeEventTarget.js:85:7)
+    FDBTransaction._abort (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/vendor/fake-indexeddb/build/esm/FDBTransaction.js:52:19)
+    FDBTransaction.abort (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/vendor/fake-indexeddb/build/esm/FDBTransaction.js:71:10)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:624)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:38:311)
+    async Test.run (node:internal/test_runner/test:1054:7)
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 7
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1033.161334

@@ -1,0 +1,189 @@
+TAP version 13
+# Subtest: original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+not ok 1 - original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+  ---
+  duration_ms: 102.085125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:26:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+    compareGroupCanonicalValues (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:245:29)
+    requireGroupScope (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:229:9)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:167:4
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:20)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:162:48
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  ...
+# Subtest: same Context fork retains both devices unchanged and refuses unresolved conflict
+not ok 2 - same Context fork retains both devices unchanged and refuses unresolved conflict
+  ---
+  duration_ms: 65.31175
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:33:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+    -   code: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  actual:
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+    compareGroupCanonicalValues (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:245:29)
+    requireGroupScope (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:229:9)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:167:4
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:20)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:162:48
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:33:319)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late local edit after stage remains intact and blocks merge
+ok 3 - late local edit after stage remains intact and blocks merge
+  ---
+  duration_ms: 57.776916
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+not ok 4 - nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 73.186375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:35:87'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+    -   code: 'STORAGE_FAILED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'STORAGE_FAILED'
+  actual:
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+    compareGroupCanonicalValues (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:245:29)
+    requireGroupScope (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:229:9)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:167:4
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:20)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:162:48
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:35:387)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+not ok 5 - nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 56.10275
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:35:87'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+    -   code: 'STORAGE_FAILED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'STORAGE_FAILED'
+  actual:
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+    compareGroupCanonicalValues (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:245:29)
+    requireGroupScope (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:229:9)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:167:4
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:20)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:162:48
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:35:387)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+not ok 6 - nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 57.531625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:35:87'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+    -   code: 'STORAGE_FAILED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'STORAGE_FAILED'
+  actual:
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+    compareGroupCanonicalValues (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:245:29)
+    requireGroupScope (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:229:9)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:167:4
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:20)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:162:48
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:35:387)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 1
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 567.803083

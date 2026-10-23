@@ -439,3 +439,32 @@ remain separate. Evidence and all original failures:
 ## Integrated local build milestone at3511dbe8
 
 [Milestone report](PAIA-LOCAL-INTEGRATION-MILESTONE-20261023.md) records the complete898/898 Node combination, subsequent157/157 provider and183/183 recovery batches separately, and the637-file0.55.9 Development build with source/release package audits. No totals are summed across overlapping runs. Native Context20 passing results and final Sync2/2 retain their separate commands and earlier failed batch. Whole-plan, Full/Linux, real provider, visual/physical and installation qualification remain open.
+
+
+## Typed corrections and nonempty manual recovery at6452a3a7
+
+The integrated manual/paging/saved/Core/Source/Thought Node combination passes
+331/331 across16 whole owning files (TAP30312.541333ms). The exact command,
+original negative controls and before/after hashes are retained in
+[the recovery report](../../../../work/nonempty-manual-recovery-20261023/REPORT.md).
+It does not supersede earlier failed invocations or certify the later Context
+changes merely because they share the branch.
+
+The next single Source/release native invocation on6452a3a7 passes30/30,
+TAP77164.181083ms:26 authored/bound Context leaves+2 parents and2 manual recovery
+parents, each executing22 original assertions. Context uses separate original
+Input and human-field/history grants, exact typed source adapter and preserved
+human content; late history/scope/important-receipt mutation aborts, ACK failure
+rolls back all native stores, and replay does not redispatch. Manual recovery
+preserves B's Context/Prompt and local outbox, joins compatible causal histories,
+rejects forks, retains removals, seals exact terminal facts and independent ACK
+proof, and is consumed by cold C. Both variants use native IndexedDB and isolated
+synthetic data, no network calls, original headless harnesses. Full hashes/HEAD
+remain stable; test-only shared-build selection is recorded in the vector.
+
+The one642-file0.55.9 Development build passes original package/release guards.
+Node22.23.3/Python3.12.14/Playwright1.63.0/Chrome156.0.8078.47/macOS arm64 only.
+Source/release identity, exact commands, all raw TAP and body-free native receipts
+are in the report and its SHA256SUMS. Whole Sync families, production lifecycle,
+Full/Linux, actual provider/model/SQL, visual/physical and installation gates
+remain open; no earlier cloud failure or cancelled capacity diagnosis is cleared.

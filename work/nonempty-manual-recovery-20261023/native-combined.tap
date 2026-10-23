@@ -1,0 +1,192 @@
+TAP version 13
+# Subtest: BNS nonempty finite manual recovery native source
+ok 1 - BNS nonempty finite manual recovery native source
+  ---
+  duration_ms: 4939.710375
+  type: 'test'
+  ...
+# Subtest: BNS nonempty finite manual recovery native release
+ok 2 - BNS nonempty finite manual recovery native release
+  ---
+  duration_ms: 4293.517292
+  type: 'test'
+  ...
+# Subtest: Context typed correction source original native owners
+    # Subtest: authored-edit-complete
+    ok 1 - authored-edit-complete
+      ---
+      duration_ms: 1721.942
+      type: 'test'
+      ...
+    # Subtest: authored-restore-complete
+    ok 2 - authored-restore-complete
+      ---
+      duration_ms: 1720.000541
+      type: 'test'
+      ...
+    # Subtest: authored-edit-late-history
+    ok 3 - authored-edit-late-history
+      ---
+      duration_ms: 1623.139
+      type: 'test'
+      ...
+    # Subtest: authored-edit-late-scope
+    ok 4 - authored-edit-late-scope
+      ---
+      duration_ms: 1748.000291
+      type: 'test'
+      ...
+    # Subtest: authored-restore-ack-abort
+    ok 5 - authored-restore-ack-abort
+      ---
+      duration_ms: 2013.698458
+      type: 'test'
+      ...
+    # Subtest: authored-edit-grant-denied
+    ok 6 - authored-edit-grant-denied
+      ---
+      duration_ms: 117.355667
+      type: 'test'
+      ...
+    # Subtest: bound-edit-complete
+    ok 7 - bound-edit-complete
+      ---
+      duration_ms: 3456.795167
+      type: 'test'
+      ...
+    # Subtest: bound-restore-complete
+    ok 8 - bound-restore-complete
+      ---
+      duration_ms: 3591.132375
+      type: 'test'
+      ...
+    # Subtest: bound-edit-late-history
+    ok 9 - bound-edit-late-history
+      ---
+      duration_ms: 3287.058875
+      type: 'test'
+      ...
+    # Subtest: bound-edit-late-scope
+    ok 10 - bound-edit-late-scope
+      ---
+      duration_ms: 3242.348959
+      type: 'test'
+      ...
+    # Subtest: bound-restore-ack-abort
+    ok 11 - bound-restore-ack-abort
+      ---
+      duration_ms: 3871.660792
+      type: 'test'
+      ...
+    # Subtest: bound-edit-grant-denied
+    ok 12 - bound-edit-grant-denied
+      ---
+      duration_ms: 169.863417
+      type: 'test'
+      ...
+    # Subtest: bound-edit-late-receipt
+    ok 13 - bound-edit-late-receipt
+      ---
+      duration_ms: 4028.306209
+      type: 'test'
+      ...
+    1..13
+ok 3 - Context typed correction source original native owners
+  ---
+  duration_ms: 31933.156667
+  type: 'test'
+  ...
+# Subtest: Context typed correction release original native owners
+    # Subtest: authored-edit-complete
+    ok 1 - authored-edit-complete
+      ---
+      duration_ms: 1658.075667
+      type: 'test'
+      ...
+    # Subtest: authored-restore-complete
+    ok 2 - authored-restore-complete
+      ---
+      duration_ms: 1689.654125
+      type: 'test'
+      ...
+    # Subtest: authored-edit-late-history
+    ok 3 - authored-edit-late-history
+      ---
+      duration_ms: 1552.701625
+      type: 'test'
+      ...
+    # Subtest: authored-edit-late-scope
+    ok 4 - authored-edit-late-scope
+      ---
+      duration_ms: 1539.650958
+      type: 'test'
+      ...
+    # Subtest: authored-restore-ack-abort
+    ok 5 - authored-restore-ack-abort
+      ---
+      duration_ms: 1948.748625
+      type: 'test'
+      ...
+    # Subtest: authored-edit-grant-denied
+    ok 6 - authored-edit-grant-denied
+      ---
+      duration_ms: 105.337042
+      type: 'test'
+      ...
+    # Subtest: bound-edit-complete
+    ok 7 - bound-edit-complete
+      ---
+      duration_ms: 3326.299417
+      type: 'test'
+      ...
+    # Subtest: bound-restore-complete
+    ok 8 - bound-restore-complete
+      ---
+      duration_ms: 3491.19675
+      type: 'test'
+      ...
+    # Subtest: bound-edit-late-history
+    ok 9 - bound-edit-late-history
+      ---
+      duration_ms: 3243.00025
+      type: 'test'
+      ...
+    # Subtest: bound-edit-late-scope
+    ok 10 - bound-edit-late-scope
+      ---
+      duration_ms: 3257.190375
+      type: 'test'
+      ...
+    # Subtest: bound-restore-ack-abort
+    ok 11 - bound-restore-ack-abort
+      ---
+      duration_ms: 3819.253292
+      type: 'test'
+      ...
+    # Subtest: bound-edit-grant-denied
+    ok 12 - bound-edit-grant-denied
+      ---
+      duration_ms: 157.453167
+      type: 'test'
+      ...
+    # Subtest: bound-edit-late-receipt
+    ok 13 - bound-edit-late-receipt
+      ---
+      duration_ms: 3841.552167
+      type: 'test'
+      ...
+    1..13
+ok 4 - Context typed correction release original native owners
+  ---
+  duration_ms: 30796.778334
+  type: 'test'
+  ...
+1..4
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 77164.181083

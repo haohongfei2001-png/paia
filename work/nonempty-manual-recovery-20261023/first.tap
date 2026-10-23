@@ -1,0 +1,117 @@
+TAP version 13
+# Subtest: original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+not ok 1 - original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+  ---
+  duration_ms: 130.87
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:26:1'
+  failureType: 'testCodeFailure'
+  error: 'STALE_BASE'
+  code: 'STALE_BASE'
+  stack: |-
+    refuseTerminal (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:93:8)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:177:222)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:410)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  ...
+# Subtest: same Context fork retains both devices unchanged and refuses unresolved conflict
+ok 2 - same Context fork retains both devices unchanged and refuses unresolved conflict
+  ---
+  duration_ms: 78.92075
+  type: 'test'
+  ...
+# Subtest: late local edit after stage remains intact and blocks merge
+not ok 3 - late local edit after stage remains intact and blocks merge
+  ---
+  duration_ms: 72.714709
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:34:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+    -   code: 'BNS_RESTORE_LOCAL_CHANGED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_RESTORE_LOCAL_CHANGED'
+  actual:
+  error: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+    prepareGroupCheckpointPlanInternal (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-plan.js:72:64)
+    async GroupedCheckpointRestore.mergeManual (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:199:16)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:34:240)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:34:240)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+not ok 4 - nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 78.777167
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:35:87'
+  failureType: 'testCodeFailure'
+  error: 'STALE_BASE'
+  code: 'STALE_BASE'
+  stack: |-
+    refuseTerminal (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:93:8)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:177:222)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:410)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  ...
+# Subtest: nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+not ok 5 - nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 70.337625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:35:87'
+  failureType: 'testCodeFailure'
+  error: 'STALE_BASE'
+  code: 'STALE_BASE'
+  stack: |-
+    refuseTerminal (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:93:8)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:177:222)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:410)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  ...
+# Subtest: nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+not ok 6 - nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 76.18325
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:35:87'
+  failureType: 'testCodeFailure'
+  error: 'STALE_BASE'
+  code: 'STALE_BASE'
+  stack: |-
+    refuseTerminal (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:93:8)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:177:222)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:427:410)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:151:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:192:11
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 1
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 693.477959

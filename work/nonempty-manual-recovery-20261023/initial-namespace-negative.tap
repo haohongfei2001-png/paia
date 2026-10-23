@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: independently journaled nonempty initial B keeps its existing namespace and manual Context
+not ok 1 - independently journaled nonempty initial B keeps its existing namespace and manual Context
+  ---
+  duration_ms: 64.552917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:26:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_NAMESPACE_INVALID'
+  code: 'BNS_NAMESPACE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+    new BrowserNativeSyncCore (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:148:43)
+    GroupedCheckpointRestore.mergeManual (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:202:14)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:26:349)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 208.089917

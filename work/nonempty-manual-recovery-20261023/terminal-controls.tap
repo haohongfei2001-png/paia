@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+ok 1 - original recovery merges distinct owners into nonempty B, preserves namespace and outbox, then cold C consumes both
+  ---
+  duration_ms: 138.118834
+  type: 'test'
+  ...
+# Subtest: same Context fork retains both devices unchanged and refuses unresolved conflict
+ok 2 - same Context fork retains both devices unchanged and refuses unresolved conflict
+  ---
+  duration_ms: 57.184875
+  type: 'test'
+  ...
+# Subtest: late local edit after stage remains intact and blocks merge
+ok 3 - late local edit after stage remains intact and blocks merge
+  ---
+  duration_ms: 55.802375
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+ok 4 - nonempty merge failure at applied-merge-group rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 79.018083
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+ok 5 - nonempty merge failure at before-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 68.011916
+  type: 'test'
+  ...
+# Subtest: nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+ok 6 - nonempty merge failure at after-merge-commit rolls back all canonical/protocol/receipt rows
+  ---
+  duration_ms: 72.710166
+  type: 'test'
+  ...
+# Subtest: old cut cannot resurrect a removed Context and explicit restoration remains causal
+ok 7 - old cut cannot resurrect a removed Context and explicit restoration remains causal
+  ---
+  duration_ms: 109.782209
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal context drift with complete rollback
+ok 8 - closed original Repository fence rejects post-seal context drift with complete rollback
+  ---
+  duration_ms: 59.373292
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal prompt drift with complete rollback
+ok 9 - closed original Repository fence rejects post-seal prompt drift with complete rollback
+  ---
+  duration_ms: 60.144
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal new-meta drift with complete rollback
+ok 10 - closed original Repository fence rejects post-seal new-meta drift with complete rollback
+  ---
+  duration_ms: 59.067541
+  type: 'test'
+  ...
+# Subtest: closed original Repository fence rejects post-seal receipt drift with complete rollback
+ok 11 - closed original Repository fence rejects post-seal receipt drift with complete rollback
+  ---
+  duration_ms: 58.248166
+  type: 'test'
+  ...
+# Subtest: lost acknowledgement confirmation requires original durable protocol receipts after cleanup
+ok 12 - lost acknowledgement confirmation requires original durable protocol receipts after cleanup
+  ---
+  duration_ms: 60.560042
+  type: 'test'
+  ...
+# Subtest: original backup finalizer cannot change Context after the merge callback and before native commit
+not ok 13 - original backup finalizer cannot change Context after the merge callback and before native commit
+  ---
+  duration_ms: 57.776375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:39:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'STORAGE_FAILED'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/browser-native-sync-nonempty-manual-recovery.test.mjs:39:633)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retained merge snapshot refuses more than 2 MiB without any canonical or protocol commit
+ok 14 - retained merge snapshot refuses more than 2 MiB without any canonical or protocol commit
+  ---
+  duration_ms: 72.866292
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 13
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1150.83725

@@ -31,14 +31,16 @@ concrete grouped decision, with budget and stop conditions.
 
 ## 2. Baseline and integration identity
 
-- Refreshed remote main: `73fa457a1c9b5b060ff362e15777354aa37d49cc`.
+- Last verified remote main: `3bbd033b760701b5267a813d23ea94d26760c3b0`,
+  preserved by normal merge `42d2d9d1`; its twelve website paths do not change extension runtime.
 - Preserved handoff candidate: `b0a10565fc590416fd9287b6abc3870fe7c8f2e4`;
   semantic read-pair implementation `f745013c121391488002116e28b061dd796c94ef`.
 - Frozen unmerged PR313 acceptance head:
   `02144bccf5e0e0b6842aaa4e7c6958cedecdfde1`.
 - Current local integration branch: `codex/paia-takeover-integration-20261023`.
-  At this document's preparation checkpoint, its head was
-  `0897127e67902141a43b94ea18f44998235a2fc5`. This is an intermediate identity,
+  The initial inventory checkpoint was `0897127e67902141a43b94ea18f44998235a2fc5`.
+  Current composed source checkpoint is `6452a3a7` (Context bound, saved-work
+  typed protocol, bounded paging and finite nonempty manual recovery). This is an intermediate identity,
   **not** the final reviewed/tested deliverable; root records the final identity
   after the shared batch is frozen.
 - That checkpoint preserves latest-main history and normally merges the frozen
@@ -105,7 +107,13 @@ feature; an unconfigured real service is not a passing product capability.
 | Q7 — SYNC01–06, local development resumed | Existing Core, Source/Working/Human/Prompt/Context codecs, mixed-current projection, portable configuration, journals, conflicts and bounded recovery | Dedicated Sync owner audits actual A/B/C gaps and completes local Settings entry, original-owner coordination and synthetic recovery. Existing mixed-current/configuration successors must not be reimplemented from stale plan prose. | Original A/B/C dependency order and fake transport synthetic corpora; no real Chrome/Drive, Edge/OneDrive, Safari/CloudKit, credential or user-data activation. Physical lost-device proof remains separate. |
 | Q8 — final release and actual use | Existing package/updater/backup owners and every applicable historical acceptance requirement | Root combines the above at a meaningful milestone, records final source/tree/package hashes, review, evidence reuse limits, pending external choices, use/update/rollback instructions. | Required integrated/cloud gates cannot be invented or bypassed. Human/device/live-service/installation acceptance is completed or precisely held; no full-product claim while known data-risk or required coverage remains. |
 
-## 4.1 Finite unsupported-facet work, not a blanket policy hold
+## 4.1 Historical gap inventory at the initial takeover checkpoint
+
+The rows in this section are retained pre-implementation observations, not the
+current task queue. Use §4.2 and the latest current-delta section below before
+assigning work. In particular Authored/Placement Topic consumers, structural
+restoration, and plain/note/authored/bound Context corrections now have separate
+implementation receipts; do not redevelop them from these historical rows.
 
 Authority: AI Usage Architecture §§3–5 and the retained 10/18 inventory. The
 required outcome is a proven original-owner local NO_CHANGE, a bounded semantic
@@ -309,3 +317,44 @@ through unfulfilled gates, and it is not a claim that all seven plans are done.
 ## 8. Latest integrated progress —3511dbe8
 
 The [local milestone](PAIA-LOCAL-INTEGRATION-MILESTONE-20261023.md) supersedes older missing-code wording for plain Input Context body/body+note/note-only corrections, Source-linked human Entry create/edit/remove/restore, local OneDrive transport/HTTP, provider-publication error composition and held-stage cancellation. It does not close complete Context typed-lineage coverage or SYNC01 C/full lifecycle/scale. Root continues integration; Context and Sync authors own disjoint successors, and the independent review line validates bounds/terminal rollback before integration. The637-file runnable development build is retained without replacing the installed product.
+
+
+## Current delta after the 6452a3a7 composition
+
+- **Context:** authored correction and complete selected metadata closure are
+  integrated at b39cd733/21542621/5ba96a0f. Bound Entry correction follows at
+  12614efd with independent Input and original human-field/history authority.
+  Agent owning verification is 834/834, not a root native or Full result. A
+  coherent Source/release authored+bound native batch is prepared at6452a3a7;
+  its actual result will be recorded separately. Structural-lineage corrections
+  are the next finite implementation; mixed and invalidated old-evidence cases
+  remain individually qualified or refused, without broadening read permission.
+- **Sync:** bounded paging/private original Repository metering and detached
+  charged Human restore graphs are integrated at114082bd/934da5d7. One Prompt
+  row with129 revisions is qualified by the existing synthetic consumer;
+ 129 physical owner rows and a phased atomic publication architecture remain
+  open. Oversized staging/activation rejects with complete rollback.
+- **Sync saved AI work:** dbcc878b through2ef5a3e4 implement original Source-first
+  bootstrap and typed real publication/receive with complete terminal protocol
+  intents. This finite path is one original AI baseline plus one human edit;
+  grouped checkpoint consumption is still in progress. Adopted Current, long
+  history, mixed families, and nonempty saved-work targets are not complete.
+- **Nonempty manual recovery:** ca17c10b/32e0d49a preserve local manual
+  Context/Prompt and outbox in the same namespace, union original causal
+  operations, reject forks and seal an independent durable merge receipt.
+ 16 combined complete owning files on2ef5a3e4 plus the recorded32e0 source diff
+  pass331/331, no failure/cancellation/skip/todo; source vectors stayed stable.
+  This does not enable arbitrary nonempty library merges or conflict resolution.
+- **Topic lifecycle:** implement a versioned, explicitly policy-injected local
+  consumer using only selected body-free activity facts and original qualified
+  lifecycle owner; no production scheduler or unapproved90-day policy is enabled.
+- **Other lanes:** preserve current R3/Settings/Archive/Thought work. The next
+  shared UI milestone is synthetic visual/keyboard/narrow/text-scaling validation
+  of the composed build; actual discrepancies drive fixes. Do not infer new
+  missing code from obsolete pending inventories.
+
+The current task owner continues these independent packages. Full/Linux,
+physical devices, real identity/model/provider/tokenizer/SQL, cross-source
+additional old-body authority and deployment/installation remain separate exact
+qualification or authorization boundaries. Existing constrained run allowances
+are not reset by this composition.

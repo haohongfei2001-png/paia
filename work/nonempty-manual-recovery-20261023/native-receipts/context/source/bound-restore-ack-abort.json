@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "nativeFactory": true,
+  "nativeTransaction": true,
+  "sourceOwnedAdapter": true,
+  "kind": "bound",
+  "action": "restore",
+  "phase": "ack-abort",
+  "physicalAttempts": 1,
+  "topicAuthorityCalls": 62,
+  "atomicRollback": true,
+  "humanContentPreserved": true,
+  "topicPending": true
+}
