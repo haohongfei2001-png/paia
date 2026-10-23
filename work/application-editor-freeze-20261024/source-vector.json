@@ -1,0 +1,5 @@
+{
+  "extension/background/application-editor-guard.js": "395320254a7db3f8965f07df9d7e50af1d367494b0b45296356616faae5ac5a0",
+  "extension/ui/application-editor-guard.js": "5c6cdf27726e7cf645ff8e953d5562ce7329fb0f90564ab233ea5845366d01a6",
+  "extension/tests/application-editor-guard.test.mjs": "bed9f1c4c743ae763b18014a0fbe2d6087aa6767516c84b80b0ba50db083ea12"
+}
