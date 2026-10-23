@@ -1,3 +1,10 @@
+import {planInitialFilter} from '../smart-filter-store-owner.js';
+import {archiveYearPrefix,archiveYearMeta} from '../archive-year-index.js';
+import {prepareGroupCheckpointPlan} from './group-checkpoint-plan.js';
+import {prepareGroupScope,requireGroupScope} from './group-checkpoint-scope.js';
+import {readGroupRows} from './group-page-reader.js';
+import {recordIndex,blockIndex,sourceCount,chatOf} from '../idb-repository.js';
+import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {PreparedPublicationJournal} from './publications.js';
 import {assertProtocolObjectReference} from './segments.js';
 import {acceptSequence,validateOperation} from './core.js';
@@ -40,6 +47,32 @@ async function confirmedPublicationRows(core,all,namespace){
  }
  return allowed;
 }
+async function portfolioRows(t){
+ const all={};let retained=0;for(const name of t.tx.objectStoreNames){all[name]=await readGroupRows(t,name);for(const row of all[name]){retained+=measureSourceWorkingPhysicalTree(row).B;if(retained>2*1024*1024)denied();}}return all;
+}
+function verifyPortfolioIndexes(raw,groups){
+ const n=groups.length,metadata=new Map(raw.meta.map(row=>[row.id,row]));
+ for(const name of ['recordIndex','blockIndex','documents'])if(raw[name].length!==n||new Set(raw[name].map(r=>r.sequence)).size!==n||raw[name].some(r=>!Number.isSafeInteger(r.sequence)||r.sequence<0||r.sequence>=n))denied();
+ for(const name of ['inputStates','revisions']){const key=name==='inputStates'?'deltaSequence':'sequence';if(raw[name].length!==n||new Set(raw[name].map(r=>r[key])).size!==n||raw[name].some(r=>!Number.isSafeInteger(r[key])||r[key]<1||r[key]>n))denied();}
+ for(const [id,value]of [['sequence',{records:n,blocks:n,documents:n}],['input-delta-sequence',{value:n}],['revision-sequence',{value:n}]])if(!equal(metadata.get(id),{id,...value}))denied();
+ if(raw.sourceCounts.length!==n||raw.filterInputs.length!==n||['invalidations','operationReceipts','librarySearchTerms','migrationBackup'].some(name=>raw[name].length))denied();
+ for(const group of groups){const e=initialSourcePlan(group.capability),r=e.source,b=e.input,ri=raw.recordIndex.find(row=>row.id===r.id),bi=raw.blockIndex.find(row=>row.id===b.id),doc=raw.documents.find(row=>row.id===b.documentId),count=sourceCount(b.documentId,r.sourceKey,[r],[b],r.chatId);
+  if(!equal(raw.filterInputs.find(row=>row.id===b.id),planInitialFilter(b,raw.inputStates.find(row=>row.id===b.id))))denied();
+  if(!ri||!bi||!doc||!equalSourceWorkingPhysicalTree(ri,recordIndex(r,ri.sequence))||!equalSourceWorkingPhysicalTree(bi,blockIndex(b,bi.sequence,[r]))||!equalSourceWorkingPhysicalTree(raw.sourceCounts.find(row=>row.id===count.id),count))denied();
+  const expected={id:doc.id,chatKey:chatOf(r),sequence:doc.sequence,displayKey:[-(Date.parse(e.inputDocument.source.lastSourceSentAt)||0),doc.id],value:e.inputDocument.source};for(const view of ['library','archive','excluded'])if(count.views.includes(JSON.stringify([doc.id,view])))expected[view+'Display']=[-(Date.parse(count[view+'Last'][1]===0?count[view+'Last'][2]:null)||0),doc.id];
+  if(!equalSourceWorkingPhysicalTree(doc,expected))denied();
+ }
+}
+async function preparePortfolio(store,core,before,plan){
+ if(plan.groups.length===1)return null;const scope=await prepareGroupScope(plan);
+ return core.transaction(false,async t=>{if(!equal(await authority(store,core,t),before.authority)||!equal(await rows(t,'bns:v1:'),before.rows))denied();await requireGroupScope(store,t,scope);const raw=await portfolioRows(t);verifyPortfolioIndexes(raw,plan.groups);return raw;});
+}
+function remainingPortfolio(p){
+ if(!p.portfolio)return null;const result=Object.fromEntries(Object.entries(p.portfolio).filter(([name])=>name!=='meta').map(([name,rows])=>[name,new Map(rows.map(row=>[row.id,structuredClone(row)]))]));
+ for(const [table,id]of [['records',p.intent.sourceId],['recordIndex',p.intent.sourceId],['blocks',p.intent.inputId],['blockIndex',p.intent.inputId],['times',p.intent.sourceKey],['documents',p.intent.documentId],['libraryDocuments',p.intent.documentId],['sourceCounts',JSON.stringify([p.intent.documentId,p.intent.sourceKey])],['filterInputs',p.intent.inputId]])result[table].delete(id);
+ for(const [table,id,row]of p.cleanupPoints.values())if(table!=='meta')result[table].set(id,row);result.tombstones.set(p.tombstone.id,p.tombstone);
+ return Object.fromEntries(Object.entries(result).map(([name,map])=>[name,[...map.values()].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0)]));
+}
 export async function prepareOriginalSourcePurge(store,id,key){
  if(store.sourcePurgeJournal===null)return null;
  const journal=store.sourcePurgeJournal,core=binding(store,journal),start=Date.now();
@@ -51,16 +84,20 @@ export async function prepareOriginalSourcePurge(store,id,key){
  const publicationRows=await confirmedPublicationRows(core,before.rows,before.namespace);
  for(const row of before.rows){if(row.id===core.prefix+'active'||publicationRows.has(row.id))continue;if(!row.id.startsWith(generationPrefix)||!allowedKinds.has(row.id.slice(generationPrefix.length).split(':')[0]))denied();}
  const revisions=before.rows.filter(row=>row.id.startsWith(generationPrefix+'revision:'));
- if(revisions.length!==7||revisions.some(row=>row.redacted||!['sourceBootstrapMember','sourceBootstrapCommit'].includes(row.operation?.type)))denied();
- const operations=[];for(const row of revisions)operations.push(await validateOperation(row.operation));
- const verified=await core.prepareSourceBootstrapReceive(operations),v=verified.descriptor.value,entities=Object.fromEntries(verified.members.map(op=>[op.value.entityType,op.value.entity]));
- const initial=initialSourcePlan(await prepareInitialSourcePlan(entities));if(v.sourceId!==id||v.sourceKey!==key||initial.source.id!==id||initial.source.sourceKey!==key)denied();
+ if(!revisions.length||revisions.length%7||revisions.length>128||revisions.some(row=>row.redacted||!['sourceBootstrapMember','sourceBootstrapCommit'].includes(row.operation?.type)))denied();
+ const allOperations=[];for(const row of revisions)allOperations.push(await validateOperation(row.operation));
+ const plan=await prepareGroupCheckpointPlan(core,allOperations);if(plan.groups.some(group=>group.type!=='sourceBootstrapCommit'))denied();
+ // Every group must be its original complete, independent creation. A shared
+ // document/chat, reused entity or orphan member cannot authorize deletion.
+ const identities=new Map();for(const group of plan.groups){const e=initialSourcePlan(group.capability);for(const [kind,value]of [['source',e.source.id],['sourceKey',e.source.sourceKey],['chat',chatOf(e.source)],['document',e.inputDocument.id],['input',e.input.id],['history',e.baselineRevision.id]]){const k=kind+':'+value;if(identities.has(k))denied();identities.set(k,group.id);}}
+ const matches=plan.groups.filter(group=>group.prepared.descriptor.value.sourceId===id&&group.prepared.descriptor.value.sourceKey===key);if(matches.length!==1)denied();const selectedGroup=matches[0],operations=allOperations.filter(op=>selectedGroup.operations.some(member=>member.revisionId===op.revisionId)),verified=selectedGroup.prepared,v=verified.descriptor.value,initial=initialSourcePlan(selectedGroup.capability);if(initial.source.id!==id||initial.source.sourceKey!==key)denied();
+ const portfolio=await preparePortfolio(store,core,before,plan);
  const byId=new Map(before.rows.map(row=>[row.id,row]));
- for(const op of operations){const ids=await core.transaction(false,async t=>({head:await core.idIn(t,'head',op.type,op.entityId),receipt:await core.idIn(t,'receipt',op.operationId),sequence:await core.idIn(t,'sequence',op.deviceId,String(op.sequence).padStart(16,'0'))}));if(!equal(byId.get(ids.head),{id:ids.head,type:op.type,entityId:op.entityId,revisions:[op.revisionId],purged:false,fence:null})||!equal(byId.get(ids.receipt),{id:ids.receipt,digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence})||!equal(byId.get(ids.sequence),{id:ids.sequence,operationId:op.operationId,digest:op.revisionId}))denied();}
- if(before.rows.filter(row=>row.id.startsWith(generationPrefix+'head:')).length!==7)denied();
+ for(const op of allOperations){const ids=await core.transaction(false,async t=>({head:await core.idIn(t,'head',op.type,op.entityId),receipt:await core.idIn(t,'receipt',op.operationId),sequence:await core.idIn(t,'sequence',op.deviceId,String(op.sequence).padStart(16,'0'))}));if(!equal(byId.get(ids.head),{id:ids.head,type:op.type,entityId:op.entityId,revisions:[op.revisionId],purged:false,fence:null})||!equal(byId.get(ids.receipt),{id:ids.receipt,digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence})||!equal(byId.get(ids.sequence),{id:ids.sequence,operationId:op.operationId,digest:op.revisionId}))denied();}
+ if(before.rows.filter(row=>row.id.startsWith(generationPrefix+'head:')).length!==allOperations.length)denied();
  const exactProtocol=new Map(),set=async(kind,ids,data)=>{const rid=await core.transaction(false,t=>core.idIn(t,kind,...ids),['meta']);exactProtocol.set(rid,{...data,id:rid});},frontiers=new Map();
- for(const op of operations){await set('revision',[op.revisionId],{operation:op,redacted:false});await set('head',[op.type,op.entityId],{type:op.type,entityId:op.entityId,revisions:[op.revisionId],purged:false,fence:null});await set('receipt',[op.operationId],{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence});await set('sequence',[op.deviceId,String(op.sequence).padStart(16,'0')],{operationId:op.operationId,digest:op.revisionId});await set('entityRevision',[op.type,op.entityId,op.revisionId],{revisionId:op.revisionId});const outboxId=await core.transaction(false,t=>core.idIn(t,'outbox',op.operationId),['meta']);if(byId.has(outboxId))exactProtocol.set(outboxId,{id:outboxId,operationId:op.operationId,revisionId:op.revisionId,state:'queued'});frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));}
- for(const [deviceId,f]of frontiers)await set('frontier',[deviceId],{...f,deviceId});await set('generation',[],{value:7});const ownOps=operations.filter(op=>op.deviceId===core.deviceId);if(ownOps.length)await set('device',[core.deviceId],{sequence:Math.max(...ownOps.map(op=>op.sequence))});
+ for(const op of allOperations){await set('revision',[op.revisionId],{operation:op,redacted:false});await set('head',[op.type,op.entityId],{type:op.type,entityId:op.entityId,revisions:[op.revisionId],purged:false,fence:null});await set('receipt',[op.operationId],{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence});await set('sequence',[op.deviceId,String(op.sequence).padStart(16,'0')],{operationId:op.operationId,digest:op.revisionId});await set('entityRevision',[op.type,op.entityId,op.revisionId],{revisionId:op.revisionId});const outboxId=await core.transaction(false,t=>core.idIn(t,'outbox',op.operationId),['meta']);if(byId.has(outboxId))exactProtocol.set(outboxId,{id:outboxId,operationId:op.operationId,revisionId:op.revisionId,state:'queued'});frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));}
+ for(const [deviceId,f]of frontiers)await set('frontier',[deviceId],{...f,deviceId});await set('generation',[],{value:allOperations.length});const ownOps=allOperations.filter(op=>op.deviceId===core.deviceId);if(ownOps.length)await set('device',[core.deviceId],{sequence:Math.max(...ownOps.map(op=>op.sequence))});
  const marker=before.rows.find(row=>row.id===generationPrefix+'ownerRecoveryEpoch:');if(marker){if(!exact(marker,['id','version','epoch'])||Object.keys(marker).length!==3||marker.version!==1||marker.epoch!==null&&(typeof marker.epoch!=='string'||marker.epoch.length>512))denied();exactProtocol.set(marker.id,marker);}
  for(const row of before.rows)if(!publicationRows.has(row.id)){if(row.id===core.prefix+'active'){if(!exact(row,['id','namespace','manifestId'])||Object.keys(row).length!==3||row.namespace!==before.namespace||!/^([a-f0-9]{64})$/.test(row.manifestId))denied();}else if(!equal(row,exactProtocol.get(row.id)))denied();}
  for(const [rid,row]of exactProtocol)if(!equal(byId.get(rid),row))denied();
@@ -68,10 +105,10 @@ export async function prepareOriginalSourcePurge(store,id,key){
  const changes=operations.map(op=>({type:op.type,entityId:op.entityId,kind:'purge',expectedParents:[op.revisionId]})),operationIds=Array.from({length:8},()=>crypto.randomUUID()),first=await core.prepare(changes,{operationIds:operationIds.slice(0,7)});
  const intent={id:key,version:1,datasetId:core.datasetId,sourceId:id,sourceKey:key,documentId:v.documentId,inputId:v.inputId,baselineId:v.baselineId,at:store.clock(),targets:operations.map((op,i)=>({before:{...op,value:null},purgeRevisionId:first.operations[i].revisionId,purgeOperationId:first.operations[i].operationId,purgeSequence:first.operations[i].sequence}))};validateSourcePurgeIntent(intent);
  const prepared=await core.prepare([...changes,{type:'sourcePurgeIntent',entityId:key,expectedParents:[],value:intent}],{operationIds});
- if(!equal(prepared.operations.slice(0,7),first.operations)||Date.now()-start>30000||bytes({before,operations,prepared}).length>2*1024*1024)denied();
+ if(!equal(prepared.operations.slice(0,7),first.operations)||Date.now()-start>30000||bytes({before,operations,prepared}).length+(portfolio?measureSourceWorkingPhysicalTree(portfolio).B:0)>2*1024*1024)denied();
  const remote=incoming.get(journal);let selectedPrepared=prepared,selectedIntent=intent,origin='local';
  if(remote){if(remote.intent.sourceId!==id||remote.intent.sourceKey!==key||!equal(remote.intent.targets.map(x=>x.before),operations.map(op=>({...op,value:null}))))denied();selectedPrepared={...prepared,operations:remote.operations};selectedIntent=remote.intent;origin='remote';}
- const cap=Object.freeze({});plans.set(cap,{store,journal,core,start,before,operations,prepared:selectedPrepared,intent:selectedIntent,origin,transaction:null,expected:null});return cap;
+ const cap=Object.freeze({});plans.set(cap,{store,journal,core,start,before,portfolio,operations,prepared:selectedPrepared,intent:selectedIntent,origin,transaction:null,expected:null});return cap;
 }
 function selected(store,cap){const p=plans.get(cap);if(!p||p.store!==store||binding(store,p.journal)!==p.core||Date.now()-p.start>30000)denied();return p;}
 async function expectedProtocol(t,p){
@@ -91,6 +128,7 @@ async function expectedProtocol(t,p){
 }
 export async function beginOriginalSourcePurge(t,store,cap){
  if(cap===null)return;const p=selected(store,cap),current=await authority(store,p.core,t);if(!equal(current,p.before.authority)||await p.core.bind(t)!==p.before.namespace||!equal(await rows(t,'bns:v1:'),p.before.rows))denied();
+ if(p.portfolio&&!equalSourceWorkingPhysicalTree(await portfolioRows(t),p.portfolio))denied();
  p.expected=await expectedProtocol(t,p);p.transaction=t;p.cleanupPoints=new Map();p.cleanupJobs=0;p.cleanupEvents=0;p.cleanupStates=0;
  if(!p.cold){const epoch=await t.get('meta','thought-epoch');if(epoch&&!equal(epoch,{id:'thought-epoch',value:epoch.value})||epoch&&!Number.isSafeInteger(epoch.value))denied();p.cleanupSequence=epoch?.value||0;maintenance.set(t,cap);}
  const deny=p.expected.get(p.core.prefix+'sourcePurgeDeny:'+p.intent.sourceKey);await t.put('meta',deny);
@@ -118,7 +156,11 @@ export async function finishOriginalSourcePurge(t,store,cap){
  if(!p.cold&&(p.cleanupJobs!==1||p.cleanupEvents!==1||!p.cleanupPoints.has('inputStates:'+p.intent.inputId)))denied();
  const points=[...p.cleanupPoints.values(),['tombstones',tombstone.id,tombstone],['records',p.intent.sourceId,null],['recordIndex',p.intent.sourceId,null],['blocks',p.intent.inputId,null],['blockIndex',p.intent.inputId,null],['times',p.intent.sourceKey,null],...expected.map(row=>['meta',row.id,row]),...p.before.authority.roots.map(([id,row])=>['meta',id,row])];
  for(const [table,key,row]of points)if(!equal((await t.get(table,key))??null,row))denied();
- const current=()=>{selected(store,cap);assertOriginalControlSettingsFacts(store,p.before.authority.control);return true;};registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){for(const [table,key,row]of points)if(!equal((yield {method:'get',table,key})??null,row))denied();if((yield {method:'count',table:'meta',key:prefixRange('bns:v1:')})!==expected.length)denied();if((yield {method:'count',table:'meta',key:prefixRange(residentCheckpointPrefix)})!==0)denied();return true;}});
+ const retained=remainingPortfolio(p),counts=[],metaRanges=[];if(retained){const raw=await portfolioRows(t);for(const [table,expectedRows]of Object.entries(retained)){if(!equalSourceWorkingPhysicalTree(raw[table],expectedRows))denied();counts.push([table,expectedRows.length]);for(const row of expectedRows)points.push([table,row.id,row]);}
+  for(const id of ['sequence','input-delta-sequence','revision-sequence','thought-suppression-key','gate'])points.push(['meta',id,p.portfolio.meta.find(row=>row.id===id)??null]);
+  for(const doc of retained.documents){const prefix=archiveYearPrefix(doc.id),rows=p.portfolio.meta.filter(row=>row.id.startsWith(prefix)),marker=archiveYearMeta(doc.id);metaRanges.push([prefixRange(prefix),rows.length]);for(const row of rows)points.push(['meta',row.id,row]);points.push(['meta',marker,p.portfolio.meta.find(row=>row.id===marker)??null]);}
+ }
+ const current=()=>{selected(store,cap);assertOriginalControlSettingsFacts(store,p.before.authority.control);return true;};registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){for(const [key,value]of metaRanges)if((yield {method:'count',table:'meta',key})!==value)denied();for(const [table,value]of counts)if((yield {method:'count',table})!==value)denied();for(const [table,key,row]of points)if(!equalSourceWorkingPhysicalTree((yield {method:'get',table,key})??null,row))denied();if((yield {method:'count',table:'meta',key:prefixRange('bns:v1:')})!==expected.length)denied();if((yield {method:'count',table:'meta',key:prefixRange(residentCheckpointPrefix)})!==0)denied();return true;}});
 }
 
 export async function prepareSourcePurgeRemote(input,core){

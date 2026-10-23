@@ -1,0 +1,27 @@
+TAP version 13
+# Subtest: original purge selects one of two independent Source bootstrap groups and preserves the other
+not ok 1 - original purge selects one of two independent Source bootstrap groups and preserves the other
+  ---
+  duration_ms: 86.004834
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge-multi.test.mjs:14:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SOURCE_PURGE_UNSUPPORTED'
+  code: 'BNS_SOURCE_PURGE_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    denied (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-purge-journal.js:13:18)
+    prepareOriginalSourcePurge (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-purge-journal.js:54:143)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:412:19
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 255.815542

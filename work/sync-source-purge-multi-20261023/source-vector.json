@@ -1,0 +1,4 @@
+{
+  "extension/core/browser-native-sync/source-purge-journal.js": "ea05f5c998f671856fe97bc469cbad84d39b84708e12dc4ed986edc55c146af9",
+  "extension/tests/browser-native-sync-source-purge-multi.test.mjs": "0ae842aea99c042e9d0d2be4d776ce0bcf0beed9f6253876abe1dbadac1c6fd4"
+}

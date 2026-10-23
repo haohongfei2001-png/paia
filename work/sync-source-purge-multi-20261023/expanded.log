@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: original purge selects one of two independent Source bootstrap groups and preserves the other
+ok 1 - original purge selects one of two independent Source bootstrap groups and preserves the other
+  ---
+  duration_ms: 286.855834
+  type: 'test'
+  ...
+# Subtest: live second device preserves received and local Sources and outbox while consuming only selected remote purge
+ok 2 - live second device preserves received and local Sources and outbox while consuming only selected remote purge
+  ---
+  duration_ms: 459.955042
+  type: 'test'
+  ...
+# Subtest: late record mutation of an unselected Source rolls back the entire purge
+ok 3 - late record mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 255.011959
+  type: 'test'
+  ...
+# Subtest: late record-index mutation of an unselected Source rolls back the entire purge
+ok 4 - late record-index mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 189.814291
+  type: 'test'
+  ...
+# Subtest: late input mutation of an unselected Source rolls back the entire purge
+ok 5 - late input mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 192.939709
+  type: 'test'
+  ...
+# Subtest: late input-index mutation of an unselected Source rolls back the entire purge
+ok 6 - late input-index mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 186.457709
+  type: 'test'
+  ...
+# Subtest: late document mutation of an unselected Source rolls back the entire purge
+ok 7 - late document mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 178.061666
+  type: 'test'
+  ...
+# Subtest: late source-count mutation of an unselected Source rolls back the entire purge
+ok 8 - late source-count mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 188.5055
+  type: 'test'
+  ...
+# Subtest: late history mutation of an unselected Source rolls back the entire purge
+ok 9 - late history mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 170.509875
+  type: 'test'
+  ...
+# Subtest: late outbox mutation of an unselected Source rolls back the entire purge
+ok 10 - late outbox mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 159.3745
+  type: 'test'
+  ...
+# Subtest: late archive-index mutation of an unselected Source rolls back the entire purge
+ok 11 - late archive-index mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 161.401125
+  type: 'test'
+  ...
+# Subtest: late unexpected-row mutation of an unselected Source rolls back the entire purge
+ok 12 - late unexpected-row mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 155.633375
+  type: 'test'
+  ...
+# Subtest: unselected orphan protocol invalidity rejects before deleting either Source
+ok 13 - unselected orphan protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 52.168666
+  type: 'test'
+  ...
+# Subtest: unselected fork protocol invalidity rejects before deleting either Source
+ok 14 - unselected fork protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 85.6265
+  type: 'test'
+  ...
+# Subtest: unselected reused-member protocol invalidity rejects before deleting either Source
+ok 15 - unselected reused-member protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 64.925042
+  type: 'test'
+  ...
+# Subtest: unselected generation protocol invalidity rejects before deleting either Source
+ok 16 - unselected generation protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 94.001417
+  type: 'test'
+  ...
+# Subtest: unselected frontier protocol invalidity rejects before deleting either Source
+ok 17 - unselected frontier protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 87.73075
+  type: 'test'
+  ...
+# Subtest: unselected device protocol invalidity rejects before deleting either Source
+ok 18 - unselected device protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 83.173
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3241.818083
