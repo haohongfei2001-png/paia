@@ -1,0 +1,36 @@
+TAP version 13
+# SYNTHETIC_WORK_REFUSAL {"refs":472,"references":4096,"bytes":128593,"byteLimit":2097152,"elapsed":11.228625000000022,"ms":30000} Error: work refusal location
+#     at workRefuse (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:101:233)
+#     at finiteWorkQuery (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:110:133)
+#     at Transaction.rangePage (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:425:93)
+#     at lifecycleReadSet (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-plan.js:199:87)
+#     at async requireHumanEntryLifecyclePlan (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-plan.js:213:266)
+#     at async beginHumanOperation (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-plan.js:184:809)
+#     at async LibraryDocumentsStore.operationInTransaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/thought-store-owner.js:113:242)
+#     at async executeHumanPlanInTransaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-plan.js:351:809)
+#     at async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/human-library-group.js:47:61
+#     at async BrowserNativeSyncCore.commitHumanReceive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:438:84)
+# Subtest: linked removal and explicit restore preserve portable negative intent and protected history across cold B
+not ok 1 - linked removal and explicit restore preserve portable negative intent and protected history across cold B
+  ---
+  duration_ms: 203.257875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/human-source-entry-plan.test.mjs:58:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:523:1002)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:170:66)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/group-checkpoint.js:280:48
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 315.359916

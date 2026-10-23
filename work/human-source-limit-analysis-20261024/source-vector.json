@@ -1,0 +1,14 @@
+{
+  "parent": "3ab92f5f5d89c1a4df671bcc7665e9c505192f3e",
+  "repositorySourceRestored": true,
+  "files": [
+    {
+      "path": "extension/core/browser-native-sync/human-library-plan.js",
+      "sha256": "f6d0ed235715752ba1180e89d646aa8d3037a6d1ccccc2998613c18901c91a34"
+    },
+    {
+      "path": "extension/tests/human-source-entry-plan.test.mjs",
+      "sha256": "6f4b95eeab7edafe87ac02b94794fc1a392e02e6873e40830225babb35e7b175"
+    }
+  ]
+}
