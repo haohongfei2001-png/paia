@@ -1,0 +1,6 @@
+{
+  "extension/core/browser-native-sync/source-purge-journal.js": "dc77e32d5f525e0dc0fd4cc5a99d90eeb1421503cd135258de863e753dea0bc3",
+  "extension/tests/canonical-generation-negative-recovery.test.mjs": "53a0f26e05920ab3c97b9d4ef56e142344fa8519db737425c5d49e02c314fde8",
+  "extension/tests/browser-native-sync-source-purge.test.mjs": "f61d5234a74ccb063c7833b57bfffbd23770ee13ddc583ca0092ffbc1af809af",
+  "extension/tests/browser-native-sync-source-purge-multi.test.mjs": "2996ea64d545b073bf48b0607d187ace884b1178f1f02a6c967a72daf1d70314"
+}

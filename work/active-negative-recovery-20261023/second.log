@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: cold selected library permanently ignores old Source, receives independent Source, edits and reopens
+not ok 1 - cold selected library permanently ignores old Source, receives independent Source, edits and reopens
+  ---
+  duration_ms: 573.600209
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/canonical-generation-negative-recovery.test.mjs:37:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:25:67)
+    file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+    file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:29:100)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 699.3195
