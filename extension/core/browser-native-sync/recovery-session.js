@@ -44,7 +44,7 @@ export class LocalSyncRecoverySession {
    const get=async reference=>{this.#check(serial);const raw=await this.#readUntil(()=>this.#transport.get(clone(reference)),deadline,serial,'BNS_RECOVERY_READ_LIMIT');this.#check(serial);return this.#transportBytes(reference,raw);};
    const result=await this.#restore.stageCheckpoint(detached,get);this.#check(serial);if(performance.now()>=deadline)fail('BNS_RECOVERY_READ_LIMIT');
    // A previous activation still requires the original replay/epoch proof.
-   this.#state=result.phase==='activated'?'confirmation-needed':'validated';
+   this.#state=['activated','merged'].includes(result.phase)?'confirmation-needed':'validated';
   });
  }
  async activate(){
@@ -60,7 +60,7 @@ export class LocalSyncRecoverySession {
  async resumeStored(){
   return this.#run('reading',async serial=>{
    const row=await this.#restore.stage.read('restore');this.#check(serial);if(!row?.manifestRef)fail('BNS_RESTORE_NOT_READY');
-   this.#ref=clone(row.manifestRef);this.#state=['validated','publishing','activated'].includes(row.phase)?'confirmation-needed':'incomplete';
+   this.#ref=clone(row.manifestRef);this.#state=['validated','publishing','activated','merged'].includes(row.phase)?'confirmation-needed':'incomplete';
   });
  }
  async continueStored(){await this.resumeStored();return this.recover(this.#ref);}

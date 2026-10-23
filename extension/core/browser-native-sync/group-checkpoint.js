@@ -18,6 +18,7 @@ import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
 import {awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity} from '../idb-repository.js';
 import {finalConsumerPreferenceOperations,prepareRestoredConsumerPreferenceApplication,applyRestoredConsumerPreferenceOwners} from './consumer-preference-restore.js';
 import {CONSUMER_PUBLICATION_PENDING_ID,requireConsumerPublicationSettled} from './consumer-publication-state.js';
+import {sealManualMergeTransaction} from './manual-merge-terminal.js';
 import {topicDesiredMaterializer} from './topic-desired-journal.js';
 const own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
 const withoutId=({id,...row})=>row;
@@ -128,7 +129,7 @@ export class GroupedCheckpointRestore{
   }));
  }
  async stageCheckpoint(ref,get,options={}){
-  let state=await this.begin(ref,get,options);if(['activated','validated','publishing'].includes(state.phase))return state;
+  let state=await this.begin(ref,get,options);if(['activated','merged','validated','publishing'].includes(state.phase))return state;
   let index=0;for await(const item of checkpointItems(state.manifest,get,{profile:this.profile})){
    const at=index++;if(at<state.received)continue;
    await this.stage.transaction(true,async t=>{const current=await this.stage.get(t,'restore');if(current.phase!=='staging'||current.received!==at)fail('BNS_RESTORE_STAGE_CHANGED');if(!equal(await authority(this.store,this.live,t),current.base))fail('BNS_RESTORE_LOCAL_CHANGED');await this.stage.put(t,'groupItem',[String(at).padStart(4,'0')],{item});await this.stage.put(t,'restore',[],{...withoutId(current),received:at+1});await requireStorageBudget(t,this.stage,current.replayId);},['meta']);await this.checkpoint('staged-item',index);
@@ -138,7 +139,8 @@ export class GroupedCheckpointRestore{
   await this.stage.transaction(true,async t=>{const current=await this.stage.get(t,'restore');if(current.phase!=='staging'||current.received!==items.length||items.length!==current.manifest.itemCount)fail('BNS_RESTORE_STAGE_CHANGED');await this.stage.put(t,'restore',[],{...withoutId(current),phase:'validated',graphDigest:compiled.plan.digest});},['meta']);return this.stage.read('restore');
  }
  async activate(){
-  const state=await this.stage.read('restore');if(!state||!['validated','activated','publishing'].includes(state.phase))fail('BNS_RESTORE_NOT_READY');
+  const state=await this.stage.read('restore');if(!state||!['validated','activated','merged','publishing'].includes(state.phase))fail('BNS_RESTORE_NOT_READY');
+  if(state.phase==='merged')return this.confirmManualMerge(state);
   if(state.phase==='publishing'){
    if(!this.store.consumerPreferenceJournal)fail('BNS_CONSUMER_PREFERENCE_OWNER_REQUIRED');
    await this.store.consumerPreferenceJournal.recover(this.store);
@@ -153,6 +155,9 @@ export class GroupedCheckpointRestore{
   const items=[];for await(const row of this.stage.rows('groupItem'))items.push(row.item);
   const replay=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.replayId}),{plan,canonical,frontiers}=await compile(replay,items,state.manifest,this.store);
   if(plan.digest!==state.graphDigest)fail('BNS_RESTORE_STAGE_CHANGED');
+  await this.store.run(()=>this.live.transaction(false,async t=>{if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');}));
+  const localOperations=await allOperations(this.live);
+  if(localOperations.length)return this.mergeManual(state,plan,localOperations);
   const filter=new FilterIntentSyncJournal(replay),working=new InputWorkingCommitReceiver(this.store,replay,{filterJournal:filter}),manual=manualSyncOwners(replay),desired=contextDesiredMaterializer(replay),topicDesired=topicDesiredMaterializer(replay),consumerOperations=finalConsumerPreferenceOperations(plan);
   const sourceProof=await prepareRestoredFilterSources(canonical.expected.records.map(row=>({...row})));
   const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan);
@@ -179,14 +184,60 @@ export class GroupedCheckpointRestore{
    await this.checkpoint('after-activation',t);return {state:publishing?'publishing':'activated',namespace:state.replayId};
   });if(result.state==='publishing'){await this.store.publish();return {state:'activated',namespace:state.replayId};}return result;});
  }
+ // A bounded first nonempty consumer: merge only the four original manual
+ // owners. All other populated families still require their named merge owner.
+ // Keep the live namespace, local outbox and private ranking. Never clear the
+ // canonical database or activate an incoming snapshot over local work.
+ async mergeManual(state,remotePlan,localOperations){
+  const started=performance.now(),allowed=new Set(['promptPreferences','contextItem','contextRulesItem','contextNowItem']);
+  const localPlan=await prepareGroupCheckpointPlan(this.live,localOperations);
+  if([...localPlan.groups,...remotePlan.groups].some(g=>!allowed.has(g.type)))fail('BNS_GROUP_MERGE_OWNER_UNSUPPORTED');
+  const combined=new Map(localOperations.map(op=>[op.revisionId,op]));
+  for(const g of remotePlan.groups)for(const op of g.operations){const old=combined.get(op.revisionId);if(old&&!equal(old,op))fail('BNS_GROUP_DUPLICATE');combined.set(op.revisionId,op);}
+  const operations=[...combined.values()];if(bytes(operations).length>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');
+  // Original graph compiler rejects same-field forks, missing ancestors and
+  // sequence collisions before any write. No timestamp selects a winner.
+  const merged=await prepareGroupCheckpointPlan(this.live,operations),before=await prepareGroupScope(localPlan,{store:this.store}),after=await prepareGroupScope(merged,{store:this.store});
+  const known=new Set(localOperations.map(op=>op.revisionId)),incoming=merged.groups.filter(g=>!known.has(g.id));
+  const core=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.base.namespace==='initial'?null:state.base.namespace});core.materialize=manualSyncOwners(core).materialize;
+  const receipts=remotePlan.groups.map(g=>{const o=g.operations[0];return {operationId:o.operationId,revisionId:o.revisionId,deviceId:o.deviceId,sequence:o.sequence};});
+  return this.store.run(()=>this.live.transaction(true,async t=>{
+   const current=await this.stage.get(t,'restore');if(!equal(current,state))fail('BNS_RESTORE_STAGE_CHANGED');
+   if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');
+   await requireConsumerPublicationSettled(t);await this.store.qualifyControlPublicationRead(t);
+   await requireCommittedPlan(this.live,t,localPlan);await requireGroupScope(this.store,t,before);
+   for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
+   for(const group of incoming){if(performance.now()-started>=30000||t.metrics.reads+t.metrics.writes>=4096)fail('BNS_GROUP_RESOURCE_LIMIT');const result=await core.applyInTransaction(t,group.operations[0]);if(result.state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');await this.checkpoint('applied-merge-group',group.id);}
+   await this.checkpoint('before-merge-commit',t);
+   await requireCommittedPlan(this.live,t,merged);await requireGroupScope(this.store,t,after);
+   const expected={...state.base,generation:state.base.generation+incoming.length};if(!equal(await authority(this.store,this.live,t),expected))fail('BNS_RESTORE_LOCAL_CHANGED');
+   if(await core.get(t,'mergeCommit',this.restoreId))fail('BNS_RESTORE_ID_COLLISION');
+   await core.put(t,'mergeCommit',[this.restoreId],{version:1,restoreId:this.restoreId,namespace:state.base.namespace,epoch:state.base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:merged.digest,receipts});
+   await this.stage.put(t,'restore',[],{...withoutId(state),phase:'merged',mergeNamespace:state.base.namespace,mergeDigest:merged.digest,mergeReceipts:receipts});
+   await sealManualMergeTransaction(this.store,this.live,t,{started,stage:this.stage});
+   await this.checkpoint('after-merge-commit',t);
+   return {state:'activated',namespace:state.base.namespace,merged:true};
+  }));
+ }
+ async confirmManualMerge(state){
+  return this.store.run(()=>this.live.transaction(false,async t=>{
+   if(!equal(await this.stage.get(t,'restore'),state)||await this.live.bind(t)!==state.mergeNamespace||await readRestoreEpoch(t)!==state.base.fence.epoch)fail('BNS_RESTORE_LOCAL_CHANGED');
+   await requireConsumerPublicationSettled(t);
+   if(!Array.isArray(state.mergeReceipts)||state.mergeReceipts.length>128)fail('BNS_RESTORE_STAGE_CHANGED');
+   const committed=await this.live.get(t,'mergeCommit',this.restoreId);
+   if(!committed||!equal(withoutId(committed),{version:1,restoreId:this.restoreId,namespace:state.mergeNamespace,epoch:state.base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:state.mergeDigest,receipts:state.mergeReceipts}))fail('BNS_GROUP_COMMIT_UNPROVEN');
+   for(const o of state.mergeReceipts){const receipt=await this.live.get(t,'receipt',o.operationId),sequence=await this.live.get(t,'sequence',o.deviceId,String(o.sequence).padStart(16,'0'));if(!receipt||!sequence||!equal(withoutId(receipt),{digest:o.revisionId,deviceId:o.deviceId,sequence:o.sequence})||!equal(withoutId(sequence),{operationId:o.operationId,digest:o.revisionId}))fail('BNS_GROUP_COMMIT_UNPROVEN');}
+   return {state:'activated',namespace:state.mergeNamespace,merged:true};
+  }));
+ }
  async cleanup({abandon=false,limit=100}={}){
   if(typeof abandon!=='boolean'||!Number.isSafeInteger(limit)||limit<1||limit>100)fail('BNS_GROUP_CLEANUP_INVALID');
   return this.stage.transaction(true,async t=>{
    const row=await this.stage.get(t,'restore');if(!row)fail('BNS_RESTORE_NOT_READY');
    const active=await t.get('meta',this.live.prefix+'active');
-   if(!['activated','abandoned'].includes(row.phase)&&!abandon)fail('BNS_RESTORE_NOT_READY');
+   if(!['activated','merged','abandoned'].includes(row.phase)&&!abandon)fail('BNS_RESTORE_NOT_READY');
    if(row.phase!=='activated'&&active?.namespace===row.replayId)fail('BNS_RESTORE_STAGE_CHANGED');
-   const next={...withoutId(row),phase:row.phase==='activated'?'activated':'abandoned'},names=row.phase==='activated'?[this.stage.fixedNamespace]:[this.stage.fixedNamespace,row.replayId];
+   const next={...withoutId(row),phase:['activated','merged'].includes(row.phase)?row.phase:'abandoned'},names=['activated','merged'].includes(row.phase)?[this.stage.fixedNamespace]:[this.stage.fixedNamespace,row.replayId];
    if(next.cleanup?.complete)return {state:'cleaned',deleted:0,complete:true};
    let namespace=next.cleanup?.namespace??0,after=next.cleanup?.after??null,deleted=0;
    while(namespace<names.length&&deleted<limit){
