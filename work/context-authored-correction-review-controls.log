@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: authored correction independent qualification refuses omitted history
+ok 1 - authored correction independent qualification refuses omitted history
+  ---
+  duration_ms: 238.489708
+  type: 'test'
+  ...
+# Subtest: authored correction independent qualification refuses omitted title
+ok 2 - authored correction independent qualification refuses omitted title
+  ---
+  duration_ms: 160.510125
+  type: 'test'
+  ...
+# Subtest: authored correction independent qualification refuses omitted note
+ok 3 - authored correction independent qualification refuses omitted note
+  ---
+  duration_ms: 159.297875
+  type: 'test'
+  ...
+# Subtest: authored correction rejects retained evidence selected-fields inconsistent with original owner receipt
+ok 4 - authored correction rejects retained evidence selected-fields inconsistent with original owner receipt
+  ---
+  duration_ms: 147.450375
+  type: 'test'
+  ...
+# Subtest: authored correction rejects retained evidence field-digest inconsistent with original owner receipt
+ok 5 - authored correction rejects retained evidence field-digest inconsistent with original owner receipt
+  ---
+  duration_ms: 185.780125
+  type: 'test'
+  ...
+# Subtest: authored correction closed fence refuses late placements replacement at unchanged count
+ok 6 - authored correction closed fence refuses late placements replacement at unchanged count
+  ---
+  duration_ms: 383.970791
+  type: 'test'
+  ...
+# Subtest: authored correction closed fence refuses late revisions replacement at unchanged count
+ok 7 - authored correction closed fence refuses late revisions replacement at unchanged count
+  ---
+  duration_ms: 365.994667
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1746.98325
