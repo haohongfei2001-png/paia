@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: actual Settings keeps original complete-cut preparation read-only while cross-page editor protection is unavailable
+ok 1 - actual Settings keeps original complete-cut preparation read-only while cross-page editor protection is unavailable
+  ---
+  duration_ms: 652.067875
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CONTINUE without initializing a second writer
+ok 2 - failed ready retains actual Settings pending CONTINUE without initializing a second writer
+  ---
+  duration_ms: 548.027875
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CANCEL without initializing a second writer
+ok 3 - failed ready retains actual Settings pending CANCEL without initializing a second writer
+  ---
+  duration_ms: 551.905334
+  type: 'test'
+  ...
+# Subtest: fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+ok 4 - fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+  ---
+  duration_ms: 448.983834
+  type: 'test'
+  ...
+# Subtest: default fixed source remains unavailable without selection controls or mutations
+ok 5 - default fixed source remains unavailable without selection controls or mutations
+  ---
+  duration_ms: 46.221292
+  type: 'test'
+  ...
+# Subtest: unknown SDK outcome remains reachable before ready, never resends or exposes restart
+ok 6 - unknown SDK outcome remains reachable before ready, never resends or exposes restart
+  ---
+  duration_ms: 496.8095
+  type: 'test'
+  ...
+# Subtest: selection cannot activate while a real original checkpoint request is in flight
+ok 7 - selection cannot activate while a real original checkpoint request is in flight
+  ---
+  duration_ms: 715.076292
+  type: 'test'
+  ...
+# Subtest: without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+ok 8 - without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+  ---
+  duration_ms: 654.441333
+  type: 'test'
+  ...
+# Subtest: a prepared interrupted operation cannot bypass the editor gate through continue before ready
+ok 9 - a prepared interrupted operation cannot bypass the editor gate through continue before ready
+  ---
+  duration_ms: 552.644333
+  type: 'test'
+  ...
+# Subtest: even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+ok 10 - even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+  ---
+  duration_ms: 581.950625
+  type: 'test'
+  ...
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 11 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 3.258875
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 12 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 1.096958
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 13 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 0.695792
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 14 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 0.961
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 15 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 1.582584
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 16 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.453834
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 17 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 0.869625
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 18 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.355125
+  type: 'test'
+  ...
+# Subtest: configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+ok 19 - configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+  ---
+  duration_ms: 0.513375
+  type: 'test'
+  ...
+# Subtest: all selection states keep activation, continued switching and restart unavailable without an original cross-page editor guard
+ok 20 - all selection states keep activation, continued switching and restart unavailable without an original cross-page editor guard
+  ---
+  duration_ms: 1.249167
+  type: 'test'
+  ...
+# Subtest: safe cancellation retains double-click and unknown-response guards without automatic replay
+ok 21 - safe cancellation retains double-click and unknown-response guards without automatic replay
+  ---
+  duration_ms: 0.450416
+  type: 'test'
+  ...
+# Subtest: late cancellation reply after leaving Settings is ignored
+ok 22 - late cancellation reply after leaving Settings is ignored
+  ---
+  duration_ms: 0.271167
+  type: 'test'
+  ...
+# Subtest: malformed selection restart entitlement exposes no selection action
+ok 23 - malformed selection restart entitlement exposes no selection action
+  ---
+  duration_ms: 0.471083
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3595.28375
