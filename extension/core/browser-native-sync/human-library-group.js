@@ -39,7 +39,7 @@ async function prepareGroupApplication(store,core,plan,basePlan,working=null){
   for(const row of view.rows){const table={entry:'thoughts',topic:'topics',section:'sections'}[row.type];if(!table)continue;const old=beforeState[table].find(r=>r.id===row.after.id),version=ownerVersion(row.type,row.after);if(old?.searchVersion!==version){const queue=planSearchQueueLocator(row.type,row.after,version);searchChanges.set(queue.id,queue);}}
   steps.push({id:group.id,owner,protocol,mappings});advanceHumanGraphReadSet(inventory,owner);
  }
- const cap=Object.freeze({});applications.set(cap,{store,core,plan,inventory,steps,searchChanges:[...searchChanges.values()],incremental:!!basePlan,expected:basePlan?humanGraphReadSetProjection(inventory):null});return cap;
+ const cap=Object.freeze({});applications.set(cap,{store,core,plan,basePlan,inventory,steps,searchChanges:[...searchChanges.values()],incremental:!!basePlan,expected:basePlan?humanGraphReadSetProjection(inventory):null});return cap;
 }
 export async function requireHumanGroupApplication(t,cap){const a=applications.get(cap);if(!a)fail('BNS_PREPARATION_REQUIRED');await requireHumanGraphReadSet(t,a.inventory);}
 export async function applyHumanGroupStep(t,cap,id){
@@ -74,5 +74,15 @@ export function originalHumanSavedApplicationWitness(store,core,plan,cap){
  if(a.steps.some(step=>!['entry','entry-edit'].includes(step.protocol.descriptor.value.kind)))fail('BNS_SAVED_WORK_UNSUPPORTED');
  const state=humanGraphReadSetProjection(a.inventory);
  return {state,search:clone(a.searchChanges),mappings:a.steps.flatMap(step=>step.mappings).map(row=>({id:row.id,after:clone(row.after)}))};
+}
+// A Saved mixed receiver may consume only this original single Human owner.
+// Bind the private application to both compiled cuts, never a caller's DTO.
+export function originalHumanSavedIncrementalWitness(store,core,before,after,cap){
+ const a=applications.get(cap);if(!a||a.store!==store||a.core!==core||a.basePlan!==before||!a.incremental||a.steps.length!==1)fail('BNS_PREPARATION_REQUIRED');
+ requireOriginalGroupCheckpointPlan(core,before);requireOriginalGroupCheckpointPlan(core,after);
+ const step=a.steps[0];if(!['entry','entry-edit'].includes(step.protocol.descriptor.value.kind)||step.protocol.members.some(op=>!['entry','history'].includes(op.value.entityType)))fail('BNS_SAVED_WORK_UNSUPPORTED');
+ const operations=[...step.protocol.members,step.protocol.descriptor],order=rows=>[...rows].sort((x,y)=>x.revisionId.localeCompare(y.revisionId));
+ if(!equal(order(after.groups.flatMap(g=>g.operations)),order([...before.groups.flatMap(g=>g.operations),...operations])))fail('BNS_PREPARATION_REQUIRED');
+ return clone({state:a.expected,search:a.searchChanges,mappings:step.mappings,operations});
 }
 export function readOriginalHumanGenerationStepExpectation(cap){const p=generationSteps.get(cap);if(!p)fail('BNS_HUMAN_GENERATION_SCOPE');requireOriginalGroupCheckpointPlan(p.core,p.plan);return readOriginalHumanReceiveExpectation(p.journal,p.prepared);}

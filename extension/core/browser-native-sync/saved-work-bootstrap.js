@@ -1,7 +1,7 @@
 import {physical as humanPhysical} from './human-library-journal.js';
 import {deltaDescription,observeSemanticChange,planSemanticDeltaWrite,KNOWN_PREFIX,DIRTY_PREFIX,DELTA_COUNTER,HUMAN_FENCE} from '../ai-usage/delta.js';
 import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from './source-working-physical.js';
-import {originalHumanSavedApplicationWitness} from './human-library-group.js';
+import {originalHumanSavedApplicationWitness,originalHumanSavedIncrementalWitness} from './human-library-group.js';
 import {originalHumanSavedScopePartition} from './human-library-scope.js';
 import {bindHumanReplayEntry} from './human-library-allocation.js';
 import {savedEditRequest,normalizeSavedPayload,validateSavedSuccessor,deriveSavedSuccessor,restoreSavedHistoryOrder} from './saved-work-successor-codec.js';
@@ -94,7 +94,7 @@ export async function requireSavedWorkBootstrap(t,cap,store){
 export async function finishSavedWorkBootstrap(t,cap,store){
  const p=plans.get(cap);if(!p||p.store!==store||p.duplicate||p.transaction!==t)fail('BNS_SAVED_WORK_CAPABILITY');const actual=await ownedRows(t,p.payload.entry.id);
  if(!equal(actual,{entry:p.expected.entry,history:p.expected.history,provenance:[p.expected.provenance],dependencies:[p.expected.dependency],placements:0,suppressions:0}))fail('BNS_SAVED_WORK_CHANGED');
- await p.core.put(t,'savedWorkBootstrap',[p.payload.entry.id],{version:1,digest:p.wireDigest});if(!p.before.authority.fence.marker)await p.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:p.before.authority.fence.epoch});
+ if(p.physicalMapping)await p.core.put(t,'savedPhysical',[p.payload.entry.id],p.physicalMapping);await p.core.put(t,'savedWorkBootstrap',[p.payload.entry.id],{version:1,digest:p.wireDigest});if(!p.before.authority.fence.marker)await p.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:p.before.authority.fence.epoch});
  const receiptKey=await p.core.idIn(t,'savedWorkBootstrap',p.payload.entry.id),markerKey=await p.core.idIn(t,'ownerRecoveryEpoch');
  const points=[...p.before.destination.source.rows.map(row=>['meta',row.id,row]),['meta',receiptKey,{id:receiptKey,version:1,digest:p.wireDigest}],['meta',markerKey,{id:markerKey,version:1,epoch:p.before.authority.fence.epoch}],...p.before.authority.roots.map(([id,row])=>['meta',id,p.group&&id===p.core.prefix+'active'?p.group.active:row]),...(p.group?[['meta',p.group.terminal.id,p.group.terminal]]:[]),['meta','thought-sequence',{id:'thought-sequence',value:p.group?.finalSequence??Math.max(p.before.authority.sequence?.value||0,p.expected.entry.updatedSequence)}],['meta','revision-sequence',{id:'revision-sequence',value:p.group?.finalRevision??p.expected.history.at(-1).sequence}],['meta','backup-data-generation',{id:'backup-data-generation',value:p.before.authority.generation+1}],['thoughts',p.expected.entry.id,p.expected.entry],['provenance',p.expected.provenance.id,p.expected.provenance],['dependencies',p.expected.dependency.id,p.expected.dependency],...p.expected.history.map(h=>['revisions',h.id,h])];
  const check=()=>{if(Date.now()-p.start>30000)fail('BNS_SAVED_WORK_LIMIT');assertOriginalControlSettingsFacts(store,p.currentControl);return true;};
@@ -203,15 +203,20 @@ export async function prepareSavedWorkGroupApplication(store,core,plan,stage,sta
  // Every member is prepared against the same actual empty installation before
  // writes. Only this branded complete graph derives intervening owner counters.
  for(const group of saved){const operation=await prepareSavedWorkProtocol(group.operations[0]),chain=savedPlanOperations(core,plan,operation.entityId),last=chain.at(-1),finalPayload=last.type==='savedWorkSuccessor'?last.value.after:operation.value.payload,member=await prepareSourceSavedWorkBootstrap(store,core,finalPayload,source.capability,source.operations,startedAt,plan),p=plans.get(member);
-  if(members.has(operation.entityId)||human?.state.thoughts.some(row=>row.id===p.expected.entry.id||row.createdSequence===p.expected.entry.createdSequence))fail('BNS_SAVED_WORK_COLLISION');if(baseline===null){baseline=clone(p.before.authority);sequence=human?human.state.base.sequence:p.before.authority.sequence;revision=human?{id:'revision-sequence',value:(human.state.base.revision?.value||0)+1}:p.before.authority.revision;}else if(!equal(p.before.authority,baseline))fail('BNS_SAVED_WORK_CHANGED');
+  if(members.has(operation.entityId)||human?.state.thoughts.some(row=>row.id===p.expected.entry.id))fail('BNS_SAVED_WORK_COLLISION');if(baseline===null){baseline=clone(p.before.authority);sequence=human?human.state.base.sequence:p.before.authority.sequence;revision=human?{id:'revision-sequence',value:(human.state.base.revision?.value||0)+1}:p.before.authority.revision;}else if(!equal(p.before.authority,baseline))fail('BNS_SAVED_WORK_CHANGED');
   for(const row of p.expected.history){if(historyIds.has(row.id)||row.id===initialSourcePlan(source.capability).baselineRevision.id)bad();historyIds.add(row.id);}if(provenanceIds.has(p.expected.provenance.id))bad();provenanceIds.add(p.expected.provenance.id);
   p.before.destination.thoughts=members.size+(human?.state.thoughts.length||0);p.before.authority.sequence=sequence;p.before.authority.revision=revision;
+  // The graph compiler has already rejected shared WIRE allocations. Only
+  // genuine Human cold replay may create a new LOCAL collision; preserve the
+  // wire identity and bind the fresh monotonic local allocation before writes.
+  const wireExpected=clone(finalPayload);if(human&&[...human.state.thoughts,...[...members.values()].map(cap=>plans.get(cap).expected.entry)].some(row=>row.createdSequence===p.expected.entry.createdSequence)){const created=(sequence?.value||0)+1,updated=Math.max(created+1,p.expected.entry.updatedSequence);if(!Number.isSafeInteger(created)||!Number.isSafeInteger(updated))fail('BNS_SAVED_WORK_LIMIT');p.expected.entry={...p.expected.entry,createdSequence:created,updatedSequence:updated,negativeUpdatedSequence:-updated};p.physicalWire=wireExpected;}
   p.expected.history=p.expected.history.map((row,i)=>({...row,sequence:(revision?.value||0)+i+1,listKey:[row.entityKey,(revision?.value||0)+i+1],documentList:[row.documentId,(revision?.value||0)+i+1]}));
+  if(p.physicalWire)p.physicalMapping={version:2,revisionId:last.revisionId,wire:savedPhysical(p.physicalWire,2),local:savedPhysical(p.expected,2)};
   sequence={id:'thought-sequence',value:Math.max(sequence?.value||0,p.expected.entry.updatedSequence)};revision={id:'revision-sequence',value:p.expected.history.at(-1).sequence};
   p.wireDigest=await digest(operation.value.payload);retained+=bytes({before:p.before,payload:p.payload,expected:p.expected}).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');members.set(operation.entityId,member);
  }
  const mappingRows=new Map();for(const row of human?.mappings||[]){const id=protocolPhysicalId(core.prefix,core.fixedNamespace,'humanMapping',[row.id]);mappingRows.set(id,{...row.after,id});}
- const protocol=[...savedGroupProtocolIntent(core,plan),...mappingRows.entries(),...stageRows.map(row=>[row.id,row])],active={id:core.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:plan.digest},terminal={...clone(state),phase:'activated'};
+ const protocol=[...savedGroupProtocolIntent(core,plan),...[...members.values()].flatMap(cap=>{const p=plans.get(cap);if(!p.physicalMapping)return [];const id=protocolPhysicalId(core.prefix,core.fixedNamespace,'savedPhysical',[p.expected.entry.id]);return [[id,{id,...p.physicalMapping}]];}),...mappingRows.entries(),...stageRows.map(row=>[row.id,row])],active={id:core.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:plan.digest},terminal={...clone(state),phase:'activated'};
  retained+=bytes({state,protocol,plan,human}).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');
  for(const member of members.values())plans.get(member).group={plan,stage,state,active,terminal,entryCount:members.size+(human?.state.thoughts.length||0),finalSequence:sequence.value,finalRevision:revision.value};
  const search=human?.search||[];
@@ -324,14 +329,14 @@ async function prepareSavedEdit(store,core,input,incoming){
  const expected={entry:derived.expected.entry,history:derived.expected.history,provenance:[derived.expected.provenance],dependencies:[derived.expected.dependency],placements:0,suppressions:0};
  const mapping=await core.read('savedPhysical',request.id)??null;requireSavedPhysical(mapping,previous.operation.revisionId,r,expected);
  if(!equal({...r,entry:savedSemanticEntry(r.entry),history:normalizedSavedHistory(r.history)},{...expected,entry:savedSemanticEntry(expected.entry),history:normalizedSavedHistory(expected.history)}))fail('BNS_SAVED_WORK_CHANGED');
- const payload=bounded({...clone(derived.payload),entry:portableEntry(r.entry),history:r.history});
+ const payload=bounded({...clone(derived.payload),entry:{...portableEntry(r.entry),createdSequence:derived.expected.entry.createdSequence},history:r.history});
  if(incoming&&!equal(normalizeSavedPayload(payload),normalizeSavedPayload(incoming.value.before)))fail('BNS_SAVED_WORK_CONFLICT');
  const entry=await humanPlanEntry(store,core);if(incoming)bindHumanReplayEntry(entry,incoming.value.events,incoming.value.allocation);const owner=await prepareSavedEntryEditPlan(store,core,request,entry);if(owner.conflict)return owner;if(owner.duplicate)fail('BNS_SAVED_WORK_COLLISION');
- const view=humanEntryEditPlan(owner),after={...clone(payload),entry:portableEntry(view.entry),history:clone(view.history)},events=view.events,allocation={domainCount:events.filter(e=>e.role==='domain').length,indexGenerationCount:events.filter(e=>e.role==='index-generation').length};
+ const view=humanEntryEditPlan(owner),after={...clone(payload),entry:{...portableEntry(view.entry),createdSequence:payload.entry.createdSequence},history:clone(view.history)},events=view.events,allocation={domainCount:events.filter(e=>e.role==='domain').length,indexGenerationCount:events.filter(e=>e.role==='index-generation').length};
  const value={id:request.id,version:1,anchor:anchor.operation.revisionId,before:payload,after,request,events,allocation,sequenceBefore:entry.sequence?.value||0,revisionBefore:entry.revision?.value||0};await validateSavedSuccessor(value);
  if(incoming&&!equal(normalizeSavedPayload(after),normalizeSavedPayload(incoming.value.after)))fail('BNS_SAVED_WORK_CHANGED');
  const prepared=incoming?{operations:[incoming]}:await core.prepare([{type:'savedWorkSuccessor',expectedParents:head?.revisions||[],value}],{actor:'user'}),before=await core.transaction(false,async t=>({authority:await authority(store,core,t),rows:await ownedRows(t,request.id),source:await sourceProof(core,t,payload.link)}));
- if(!equal(before.rows.entry, {...payload.entry,exactSignature:before.rows.entry.exactSignature})||!equal(before.rows.history,payload.history)||!equal(before.authority.sequence,entry.sequence)||!equal(before.authority.revision,entry.revision))fail('BNS_SAVED_WORK_CHANGED');
+ if(!equal(before.rows.entry, {...payload.entry,createdSequence:r.entry.createdSequence,exactSignature:before.rows.entry.exactSignature})||!equal(before.rows.history,payload.history)||!equal(before.authority.sequence,entry.sequence)||!equal(before.authority.revision,entry.revision))fail('BNS_SAVED_WORK_CHANGED');
  const evidence=await restoreSourceLinkedEvidence(store,payload.link.evidence);let retained=bytes({value,before,prepared,view,ancestry,lineage}).length;
  const current=()=>{if(Date.now()-start>30000||retained>limit)fail('BNS_SAVED_WORK_LIMIT');};current();
  const facts=await core.transaction(false,t=>captureTopicFormationTerminal(store,t,evidence,{current,retain:x=>{retained+=bytes(x).length;current();return clone(x);}}));
@@ -351,7 +356,7 @@ export async function commitSavedWorkEdit(t,cap,store){
  const result=await executeHumanPlanInTransaction(t,p.owner);
  protocolApplications.set(t,{core,operation,origin:p.incoming?'remote':'local'});try{if(p.incoming){const applied=await core.applyInTransaction(t,operation,{origin:'remote',materialize:false});if(applied.state!=='applied')fail('BNS_SAVED_WORK_OPERATION');}else await core.commitPrepared(t,p.prepared,{materialize:false});}finally{protocolApplications.delete(t);}
  const marker={version:1,requestDigest:p.requestDigest,result:clone(result),protocolOperationId:operation.operationId,revisionId:operation.revisionId},key=await core.idIn(t,'savedEditReceipt',request.operationId);if(await t.get('meta',key))fail('BNS_SAVED_WORK_COLLISION');await core.put(t,'savedEditReceipt',[request.operationId],marker);
- const physical={version:1,revisionId:operation.revisionId,wire:savedPhysical(operation.value.after),local:savedPhysical({entry:view.entry,history:view.history})},physicalKey=await core.idIn(t,'savedPhysical',request.id);await core.put(t,'savedPhysical',[request.id],physical);
+ const version=p.mapping?.version===2?2:1,physical={version,revisionId:operation.revisionId,wire:savedPhysical(operation.value.after,version),local:savedPhysical({entry:view.entry,history:view.history},version)},physicalKey=await core.idIn(t,'savedPhysical',request.id);await core.put(t,'savedPhysical',[request.id],physical);
  const points=[...(p.outbox??[]).map(row=>['meta',row.id,row]),['meta',physicalKey,{id:physicalKey,...physical}],...before.source.rows.map(row=>['meta',row.id,row]),...before.authority.roots.map(([id,row])=>['meta',id,row]),...new Map([...p.ancestry,...p.lineage].map(row=>[row.id,row])).values()].map(x=>Array.isArray(x)?x:['meta',x.id,x]);
  const previousSuccessorHead=p.lineage.find(row=>row.type==='savedWorkSuccessor'&&Array.isArray(row.revisions));if(previousSuccessorHead){const index=points.findIndex(([table,id])=>table==='meta'&&id===previousSuccessorHead.id);points.splice(index,1);}
  points.push(['meta',key,{...marker,id:key}],['meta','thought-sequence',{id:'thought-sequence',value:view.operationReceipt.operationSequence}],['meta','revision-sequence',{id:'revision-sequence',value:view.revisionSequence}],['meta','backup-data-generation',{id:'backup-data-generation',value:before.authority.generation+1}],['thoughts',view.entry.id,view.entry],['operationReceipts',request.operationId,view.operationReceipt],...before.rows.provenance.map(row=>['provenance',row.id,row]),...before.rows.dependencies.map(row=>['dependencies',row.id,row]),...view.history.map(row=>['revisions',row.id,row]),...before.rows.history.filter(row=>!view.history.some(current=>current.id===row.id)).map(row=>['revisions',row.id,null]));
@@ -364,11 +369,11 @@ export async function commitSavedWorkEdit(t,cap,store){
  }});await sealSavedProtocol(t,core,intent,p.start);return result;
 }
 
-function savedSemanticEntry(entry){const row=clone(entry);if(row){delete row.updatedSequence;delete row.negativeUpdatedSequence;}return row;}
-function savedPhysical(payload){return {updatedSequence:payload.entry.updatedSequence,negativeUpdatedSequence:payload.entry.negativeUpdatedSequence,history:payload.history.map(row=>({id:row.id,sequence:row.sequence,listKey:clone(row.listKey),documentList:clone(row.documentList)}))};}
+function savedSemanticEntry(entry){const row=clone(entry);if(row){delete row.createdSequence;delete row.updatedSequence;delete row.negativeUpdatedSequence;}return row;}
+function savedPhysical(payload,version=1){return {...(version===2?{createdSequence:payload.entry.createdSequence}:{}),updatedSequence:payload.entry.updatedSequence,negativeUpdatedSequence:payload.entry.negativeUpdatedSequence,history:payload.history.map(row=>({id:row.id,sequence:row.sequence,listKey:clone(row.listKey),documentList:clone(row.documentList)}))};}
 function requireSavedPhysical(mapping,revisionId,actual,wire){
- if(mapping){if(!equal(mapping,{id:mapping.id,version:1,revisionId,wire:savedPhysical(wire),local:savedPhysical(actual)}))fail('BNS_SAVED_WORK_CHANGED');}
- else if(actual.entry?.updatedSequence!==wire.entry?.updatedSequence||actual.entry?.negativeUpdatedSequence!==wire.entry?.negativeUpdatedSequence)fail('BNS_SAVED_WORK_CHANGED');
+ if(mapping){const version=mapping.version;if(![1,2].includes(version)||version===1&&actual.entry?.createdSequence!==wire.entry?.createdSequence||version===2&&!(actual.entry?.createdSequence>wire.entry?.createdSequence)||!equal(mapping,{id:mapping.id,version,revisionId,wire:savedPhysical(wire,version),local:savedPhysical(actual,version)}))fail('BNS_SAVED_WORK_CHANGED');}
+ else if(actual.entry?.createdSequence!==wire.entry?.createdSequence||actual.entry?.updatedSequence!==wire.entry?.updatedSequence||actual.entry?.negativeUpdatedSequence!==wire.entry?.negativeUpdatedSequence)fail('BNS_SAVED_WORK_CHANGED');
 }
 
 // Final closure for an existing populated saved cut after a checked incremental
@@ -400,13 +405,28 @@ export function originalSavedHumanScopePartition(scope,store){
 // A finite existing mixed cut keeps every non-target physical row. Its expected
 // delta is constructed BEFORE the original Saved writer from its private plan;
 // a post-owner snapshot cannot turn corruption into a new preservation baseline.
+// Protocol rows for the private original Human plan, projected sequentially
+// before the writer. Local outbox/device rows are never overwritten by receive.
+async function projectHumanSavedProtocol(t,core,operations,meta,put){
+ const get=async(kind,...ids)=>meta.get(await core.idIn(t,kind,...ids));
+ const set=async(kind,ids,value)=>{const key=await core.idIn(t,kind,...ids);put('meta',key,{...value,id:key});};
+ for(const operation of operations){
+  const {type,entityId,revisionId,operationId,deviceId,sequence}=operation;
+  if(deviceId===core.deviceId||await get('receipt',operationId)||await get('revision',revisionId)||await get('sequence',deviceId,String(sequence).padStart(16,'0'))||await get('entityRevision',type,entityId,revisionId))fail('BNS_SAVED_WORK_OPERATION');
+  const head=await get('head',type,entityId);if(head?.purged||!equal(head?.revisions??[],operation.parents))fail('BNS_SAVED_WORK_OPERATION');
+  for(const [kind,ids]of [['pending',[operationId]],['entityPending',[type,entityId,operationId]],['quarantine',[operationId]],['outbox',[operationId]]])if(await get(kind,...ids))fail('BNS_SAVED_WORK_OPERATION');
+  const frontier=await get('frontier',deviceId),next=acceptSequence(frontier?{frontier:frontier.frontier,ranges:frontier.ranges}:null,sequence),generation=await get('generation');
+  for(const [kind,ids,value]of [['head',[type,entityId],{type,entityId,revisions:[revisionId],purged:false,fence:null}],['revision',[revisionId],{operation,redacted:false}],['receipt',[operationId],{digest:revisionId,deviceId,sequence}],['sequence',[deviceId,String(sequence).padStart(16,'0')],{operationId,digest:revisionId}],['entityRevision',[type,entityId,revisionId],{revisionId}],['frontier',[deviceId],{...next,deviceId}],['generation',[],{value:(generation?.value||0)+1}]])await set(kind,ids,value);
+ }
+}
 const mixedRetentions=new WeakMap();
-export async function prepareSavedMixedRetention(store,core,t,scope,edit,stage,afterScope=scope){
- const human=originalHumanSavedScopePartition(scope,store);if(!human)return null;
+export async function prepareSavedMixedRetention(store,core,t,scope,edit,stage,afterScope=scope,humanApplication=null){
+ const human=originalHumanSavedScopePartition(scope,store);if(!human&&!humanApplication)return null;
  const owner=savedScopes.get(scope),p=edit?savedEdits.get(edit):null;
  if(!owner||owner.store!==store||owner.core!==core||edit&&(!p||p.store!==store||p.core!==core||!p.incoming))fail('BNS_SAVED_WORK_CAPABILITY');
  const afterOwner=savedScopes.get(afterScope);if(!afterOwner||afterOwner.store!==store||afterOwner.core!==core||!originalHumanSavedScopePartition(afterScope,store))fail('BNS_SAVED_WORK_CAPABILITY');
- const operations=owner.plan.groups.flatMap(g=>g.operations),next=afterOwner.plan.groups.flatMap(g=>g.operations),expected=[...operations,...(p?[p.prepared.operations[0]]:[])],ordered=rows=>[...rows].sort((a,b)=>a.revisionId.localeCompare(b.revisionId));
+ if(p&&humanApplication)fail('BNS_SAVED_WORK_CAPABILITY');const h=humanApplication?originalHumanSavedIncrementalWitness(store,core,owner.plan,afterOwner.plan,humanApplication):null;
+ const operations=owner.plan.groups.flatMap(g=>g.operations),next=afterOwner.plan.groups.flatMap(g=>g.operations),expected=[...operations,...(p?[p.prepared.operations[0]]:h?h.operations:[])],ordered=rows=>[...rows].sort((a,b)=>a.revisionId.localeCompare(b.revisionId));
  if(!equal(ordered(next),ordered(expected)))fail('BNS_SAVED_WORK_CAPABILITY');
  requireOriginalGroupCheckpointPlan(core,afterOwner.plan);requireOriginalGroupCheckpointPlan(core,owner.plan);requireRepositoryTransactionScope(store.repository,t);requireRepositoryTransactionDataMethods(store.repository,t);
  const database=store.repository.db,start=Date.now(),tables=new Map();let retained=0;
@@ -424,18 +444,30 @@ export async function prepareSavedMixedRetention(store,core,t,scope,edit,stage,a
  // are not an unqualified second writer in this exact retention proof.
  if(t.semanticChanges?.size||t.aiUsageBoundaryChanged)fail('BNS_SAVED_WORK_UNSUPPORTED');
  const put=(table,key,row)=>{current();const map=tables.get(table);if(!map)fail('BNS_SAVED_WORK_CAPABILITY');if(row===null)map.delete(key);else{retained+=measureSourceWorkingPhysicalTree(row).B;current();map.set(key,clone(row));}};
+ const changes=new Map();
  if(p){
   const {view,request}=p,operation=p.prepared.operations[0],meta=tables.get('meta');
   for(const [key,row]of await savedProtocolIntent(t,core,operation,false))put('meta',key,row);
   const markerKey=await core.idIn(t,'savedEditReceipt',request.operationId),physicalKey=await core.idIn(t,'savedPhysical',request.id);
   put('meta',markerKey,{id:markerKey,version:1,requestDigest:p.requestDigest,result:clone(view.result),protocolOperationId:operation.operationId,revisionId:operation.revisionId});
-  put('meta',physicalKey,{id:physicalKey,version:1,revisionId:operation.revisionId,wire:savedPhysical(operation.value.after),local:savedPhysical({entry:view.entry,history:view.history})});
+  const version=p.mapping?.version===2?2:1;put('meta',physicalKey,{id:physicalKey,version,revisionId:operation.revisionId,wire:savedPhysical(operation.value.after,version),local:savedPhysical({entry:view.entry,history:view.history},version)});
   put('meta','thought-sequence',{id:'thought-sequence',value:view.operationReceipt.operationSequence});put('meta','revision-sequence',{id:'revision-sequence',value:view.revisionSequence});put('meta','backup-data-generation',{id:'backup-data-generation',value:p.before.authority.generation+1});
-  const prior=tables.get('thoughts').get(request.id),changes=new Map(),oldHistory=tables.get('revisions');
+  const prior=tables.get('thoughts').get(request.id),oldHistory=tables.get('revisions');
   for(const row of view.history)observeSemanticChange(changes,deltaDescription('revisions',oldHistory.get(row.id)),deltaDescription('revisions',row));
   put('thoughts',request.id,view.entry);put('operationReceipts',request.operationId,view.operationReceipt);
   for(const row of p.before.rows.history)if(!view.history.some(r=>r.id===row.id))put('revisions',row.id,null);for(const row of view.history)put('revisions',row.id,row);
   if(prior.searchVersion!==ownerVersion('entry',view.entry)){const queue=planSearchQueueLocator('entry',view.entry);put('libraryMigrationItems',queue.id,queue);}
+ }
+ if(h){
+  const oldHistory=tables.get('revisions');for(const row of h.state.revisions)observeSemanticChange(changes,deltaDescription('revisions',oldHistory.get(row.id)),deltaDescription('revisions',row));
+  for(const name of ['thoughts','topics','sections','placements','thoughtSuppressions','revisions','operationReceipts','provenance','dependencies']){const rows=h.state[name],keys=new Set(rows.map(row=>row.id));for(const key of tables.get(name).keys())if(!keys.has(key))put(name,key,null);for(const row of rows)put(name,row.id,row);}
+  for(const row of [...h.state.names,...h.state.pairs,...h.state.indices])put('meta',row.id,row);for(const row of h.search)put('libraryMigrationItems',row.id,row);
+  for(const mapping of h.mappings){const key=await core.idIn(t,'humanMapping',mapping.id);if(!equal(tables.get('meta').get(key)??null,mapping.before))fail('BNS_HUMAN_MAPPING_CHANGED');put('meta',key,{id:key,...mapping.after});}
+  for(const row of [h.state.base.sequence,h.state.base.revision])if(row)put('meta',row.id,row);
+  const backup=tables.get('meta').get('backup-data-generation');put('meta','backup-data-generation',{id:'backup-data-generation',value:(backup?.value||0)+1});
+  await projectHumanSavedProtocol(t,core,h.operations,tables.get('meta'),put);
+ }
+ if(p||h){const meta=tables.get('meta');
   if(t.semanticEnabled){let sequence=meta.get(DELTA_COUNTER)?.value||0,humanChanged=false;const changedEvidence=new Map();
    for(const {before,after}of changes.values()){const planned=planSemanticDeltaWrite(before,after,meta.get(KNOWN_PREFIX+after.key),meta.get(DIRTY_PREFIX+after.key),sequence);if(!planned)continue;sequence=planned.row.sequence;humanChanged||=after.human;put('meta',planned.row.id,planned.row);changedEvidence.set(after.key,planned.row);put('meta',DIRTY_PREFIX+after.key,planned.dirty);}
    if(sequence!==(meta.get(DELTA_COUNTER)?.value||0))put('meta',DELTA_COUNTER,{id:DELTA_COUNTER,value:sequence});if(humanChanged)put('meta',HUMAN_FENCE,{id:HUMAN_FENCE,value:(meta.get(HUMAN_FENCE)?.value||0)+1});

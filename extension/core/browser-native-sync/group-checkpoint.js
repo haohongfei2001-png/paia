@@ -342,26 +342,26 @@ export class GroupedCheckpointRestore{
   let localPlan=await prepareGroupCheckpointPlan(this.live,localOperations);if([...localPlan.groups,...remotePlan.groups].some(g=>!allowed.has(g.type)))fail('BNS_GROUP_MERGE_OWNER_UNSUPPORTED');
   const combined=new Map(localOperations.map(op=>[op.revisionId,op]));for(const g of remotePlan.groups)for(const op of g.operations){const old=combined.get(op.revisionId);if(old&&!equal(old,op))fail('BNS_GROUP_DUPLICATE');combined.set(op.revisionId,op);}
   if(bytes([...combined.values()]).length>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');const merged=await prepareGroupCheckpointPlan(this.live,[...combined.values()]),known=new Set(localOperations.map(op=>op.revisionId)),incoming=merged.groups.filter(g=>g.operations.some(op=>!known.has(op.revisionId)));
-  if(incoming.some(g=>g.type!=='savedWorkSuccessor'||g.operations.length!==1))fail('BNS_GROUP_MERGE_OWNER_UNSUPPORTED');if(state.savedMerge&&state.savedMerge.digest!==merged.digest)fail('BNS_RESTORE_LOCAL_CHANGED');
+  if(incoming.some(g=>g.type==='savedWorkSuccessor'?g.operations.length!==1:g.type!=='humanLibraryCommit'||!['entry','entry-edit'].includes(g.prepared.descriptor.value.kind)))fail('BNS_GROUP_MERGE_OWNER_UNSUPPORTED');if(state.savedMerge&&state.savedMerge.digest!==merged.digest)fail('BNS_RESTORE_LOCAL_CHANGED');
   const remoteOperations=remotePlan.groups.flatMap(g=>g.operations),receipts=remoteOperations.map(o=>({operationId:o.operationId,revisionId:o.revisionId,deviceId:o.deviceId,sequence:o.sequence}));
   for(let index=0;index<Math.max(1,incoming.length);index++){
-   current();const group=incoming[index],operation=group?.operations[0],prepared=operation?await prepareSavedWorkReceive(this.store,this.live,operation):null;if(prepared?.conflict||prepared?.duplicate)fail('BNS_RESTORE_LOCAL_CHANGED');
-   const nextPlan=operation?await prepareGroupCheckpointPlan(this.live,[...localOperations,operation]):localPlan,before=await prepareGroupScope(localPlan,{store:this.store}),after=await prepareGroupScope(nextPlan,{store:this.store}),complete=index===incoming.length-1||!incoming.length,previous=state;
+   current();const group=incoming[index],stepOperations=group?.operations??[],operation=group?.type==='savedWorkSuccessor'?group.operations[0]:null,humanApplication=group?.type==='humanLibraryCommit'?await prepareHumanIncrementalGroupApplication(this.store,this.live,localPlan,[group]):null,prepared=operation?await prepareSavedWorkReceive(this.store,this.live,operation):null;if(prepared?.conflict||prepared?.duplicate)fail('BNS_RESTORE_LOCAL_CHANGED');
+   const nextPlan=group?await prepareGroupCheckpointPlan(this.live,[...localOperations,...stepOperations]):localPlan,before=await prepareGroupScope(localPlan,{store:this.store}),after=await prepareGroupScope(nextPlan,{store:this.store}),complete=index===incoming.length-1||!incoming.length,previous=state;
    const result=await this.store.foundationWrite(async t=>{
     current();if(!equal(await this.stage.get(t,'restore'),previous)||!equal(await authority(this.store,this.live,t),previous.savedMerge?.base??previous.base))fail('BNS_RESTORE_LOCAL_CHANGED');
     await requireNoSourcePurgeDeny(this.live,t);await requireConsumerPublicationSettled(t);await this.store.qualifyControlPublicationRead(t);await requireCommittedPlan(this.live,t,localPlan);
-    const retention=await prepareSavedMixedRetention(this.store,this.live,t,before,prepared,this.stage,after);await requireGroupScope(this.store,t,before,retention);
+    if(humanApplication)await requireHumanGroupApplication(t,humanApplication);const retention=await prepareSavedMixedRetention(this.store,this.live,t,before,prepared,this.stage,after,humanApplication);await requireGroupScope(this.store,t,before,retention);
     for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
-    if(operation)await commitSavedWorkEdit(t,prepared,this.store);
+    if(operation)await commitSavedWorkEdit(t,prepared,this.store);else if(humanApplication)await applyHumanGroupStep(t,humanApplication,group.id);
     await requireCommittedPlan(this.live,t,nextPlan);await requireGroupScope(this.store,t,after,retention);await sealSavedWorkCurrentScope(this.store,this.live,t,after);
-    const base=await authority(this.store,this.live,t),nextBase={...base,ownerGeneration:base.ownerGeneration+(t.backupChanged?1:0)},completed=[...(previous.savedMerge?.completed??[]),...(operation?[operation.revisionId]:[])];
+    const base=await authority(this.store,this.live,t),nextBase={...base,ownerGeneration:base.ownerGeneration+(t.backupChanged?1:0)},completed=[...(previous.savedMerge?.completed??[]),...stepOperations.map(op=>op.revisionId)];
     const next={...withoutId(previous),phase:complete?'merged':'merging-saved',savedMerge:{digest:merged.digest,completed,base:nextBase}};
     const intents=[],merge=complete?{version:1,restoreId:this.restoreId,namespace:base.namespace,epoch:base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:merged.digest,receipts}:null;
     if(complete){if(await this.live.get(t,'mergeCommit',this.restoreId))fail('BNS_RESTORE_ID_COLLISION');intents.push({id:await this.live.idIn(t,'mergeCommit',this.restoreId),...merge});Object.assign(next,{mergeNamespace:base.namespace,mergeDigest:merged.digest,mergeReceipts:receipts});}
     intents.push({id:await this.stage.idIn(t,'restore'),...next});await sealSavedMixedRetention(this.store,this.live,t,retention,this.stage,intents);await sealSavedWorkMergeProgress(this.store,this.live,t,this.stage,started,intents);await this.checkpoint('before-saved-step-commit',t);
     if(merge)await this.live.put(t,'mergeCommit',[this.restoreId],merge);await this.stage.put(t,'restore',[],next);await this.checkpoint('after-saved-step-commit',t);current();return {state:complete?'activated':'partial',namespace:base.namespace,merged:complete};
    },{ms:Math.max(1,Math.floor(30000-(performance.now()-started)))});
-   state=await this.stage.read('restore');await this.checkpoint('saved-step-settled',operation?.revisionId??null);current();if(complete)return result;localOperations.push(operation);localPlan=nextPlan;
+   state=await this.stage.read('restore');await this.checkpoint('saved-step-settled',group?.id??null);current();if(complete)return result;localOperations.push(...stepOperations);localPlan=nextPlan;
   }
  }
  // A bounded first nonempty consumer: merge only the four original manual
