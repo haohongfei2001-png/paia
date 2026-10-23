@@ -1,3 +1,4 @@
+import {requireCurrentContextLineage} from './context-current-lineage.js';
 import {contextMutationItemAtEpoch,assertContextMutationPhysicalShape} from './context-mutation-codec.js';
 import {CONTEXT_CARDS_ROW,validContextCards} from '../context-cards.js';
 import {assertManualContextCurrentPhysicalShape} from './manual-context-current-shape.js';
@@ -19,10 +20,9 @@ export function hasCurrentContextOperations(plan){
 export function assertCurrentContextSnapshot(core,scope,plan,raw,rows){
  const physical=rows.get(CONTEXT_CARDS_ROW);if(!physical)refused();
  const typed=plan.groups.some(group=>group.type==='contextMutationCommit');
- // This original native-current profile still qualifies manual Context only.
- // Ordinary NOW and shadow publication use the separate original lineage
- // capture/fence; a pure physical comparator cannot replace that authority.
- if(typed&&physical.items?.some(item=>item.origin==='automatic'))fail('BNS_CONTEXT_LINEAGE_UNAVAILABLE');
+ // Automatic values require the separately captured original native-cut
+ // lineage capability. A pure physical comparator cannot create that authority.
+ if(typed&&physical.items?.some(item=>item.origin==='automatic'))requireCurrentContextLineage(core,scope,plan,raw);
  if(typed)assertContextMutationPhysicalShape(physical);else assertManualContextCurrentPhysicalShape(physical);if(!validContextCards(physical))refused();
  if(!Array.isArray(scope.expected.context)||!Array.isArray(scope.expected.desired))refused();
  const operations=plan.groups.flatMap(group=>group.operations);

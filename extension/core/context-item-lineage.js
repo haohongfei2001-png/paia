@@ -1,3 +1,4 @@
+import {measureSourceWorkingPhysicalTree} from './browser-native-sync/source-working-physical.js';
 import {CONTEXT_LINEAGE_LIMITS} from './context-limits.js';
 export {CONTEXT_LINEAGE_LIMITS} from './context-limits.js';
 import {validStructuralContextEvidence,readStructuralContextEvidence,structuralContextProperty} from './ai-usage/structural-context-mapping.js';
@@ -47,6 +48,18 @@ const structureOf=s=>s.humanTopic||s.humanSection;
 const structuralPairs=xs=>xs.every(s=>!structureOf(s)||structureOf(s).entries.every(e=>xs.some(x=>x.inputId===e.inputId&&same(structureOf(x),structureOf(s)))));
 const boundPairs=xs=>xs.every(e=>e?.kind!=='boundEntry'||xs.some(input=>input&&inputEvidence(input)&&input.inputId===e.inputId&&input.topicId===e.topicId&&Array.isArray(input.selectedFields)&&input.selectedFields.includes('body')&&input.expectedRemovalSequence===e.expectedRemovalSequence&&same(input.expectedTopicBinding,e.expectedTopicBinding)&&(!input.sourceRecordIds||same(input.sourceRecordIds,e.sourceRecordIds)&&same(input.sourceIdentityTokens,e.sourceIdentityTokens))));
 export function releaseContextLineage(captured){authoredCaptures.delete(captured);}
+// Numeric-only accounting of privately retained lineage. Raw rows/text and the
+// source identity never leave this owner; cloned or released captures refuse.
+export function measureContextLineageRetention(captured){
+ const held=authoredCaptures.get(captured);need(held);
+ const total={B:0,T:0,V:0,E:0};
+ const add=value=>{const m=measureSourceWorkingPhysicalTree(value);for(const k of ['B','T','V','E'])total[k]+=m[k];};
+ for(const map of [held.inputs,held.rows,held.structures])for(const [key,value]of map){add(key);add(value);total.V++;total.E+=2;}
+ add({authority:captured.authority,gate:captured.gate,epoch:captured.epoch});
+ // Original budget retains only read identities and fixed scalar counters.
+ for(const [table,ids]of held.budget.seen){add(table);total.V++;for(const id of ids){add(id);total.E++;}}total.V+=8;total.E+=32;
+ return Object.freeze(total);
+}
 export function contextLineageBudgetReader(store,transaction,captured){const held=authoredCaptures.get(captured);return held?contextScopeTransactionReader(store,transaction,held.budget):transaction;}
 const specKeys=x=>['topicId','inputId','selectedFields','fieldDigests','expectedTopicBinding','expectedRemovalSequence',...(Object.hasOwn(x||{},'humanSection')?['humanSection']:[]),...(Object.hasOwn(x||{},'humanTopic')?['humanTopic']:[])];
 export function validContextEvidenceSpec(x){
@@ -86,6 +99,12 @@ export async function fenceContextLineage(store,captured,{transaction=null,rowSe
   const now=await contextLineageAdmission(store,t,captured.epoch);
   need(now.authority===captured.authority&&now.gate===captured.gate);
   if(rowSerialized!==null)need(JSON.stringify(await t.get('meta','context-cards:v1'))===rowSerialized);
+  const privateCapture=authoredCaptures.get(captured);
+  if(privateCapture?.inputs.size){const memory=new MemoryService(store),filter=await t.get('meta','smart-filter');for(const [id,held]of privateCapture.inputs){
+   const current=await inputProjection(store,t,id);need(current&&current.contentRevision===held.contentRevision&&current.lastRemovalSequence===held.removalSequence&&same(current.sourceRecordIds,held.sourceRecordIds)&&same([...new Set(current.identities)].sort(),held.sourceIdentityTokens));
+   for(const [field,text]of Object.entries(held.text))need(current[field]===text);
+   need(!await store.isFiltered(t,current.block,filter)&&await memory.safeSources(t,current.sourceRecordIds));
+  }}
   for(const held of authoredCaptures.get(captured)?.structures?.values()||[]){const current=await readStructuralContextEvidence(store,t,held.spec);need(current&&same(current.mapping,held.mapping)&&same(current.fields,held.fields)&&same(current.inputs,held.inputs));}
   for(const held of authoredCaptures.get(captured)?.rows.values()||[]){const entryId=held.mapping.entryId,bound=held.mapping.kind==='boundEntry';need(same(bound?await readBoundEntryContext(store,t,entryId,null,held.mapping.topicId):await readAuthoredEntryContext(store,t,entryId),held.mapping));need(same(bound?boundSelectedText(await t.get('thoughts',entryId),held.mapping.selectedFields):authoredSelectedText(await t.get('thoughts',entryId),authoredSelectedFields(held.mapping)),held.fields));}
  };
@@ -152,10 +171,10 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
   }
   return {rows,authored,structures};
  },undefined,database);
- authoredCaptures.set(captured,{rows:material.authored,structures:material.structures,budget:workBudget});
+ authoredCaptures.set(captured,{inputs:new Map([...material.rows].filter(([,value])=>value)),rows:material.authored,structures:material.structures,budget:workBudget});
  try{
   // WebCrypto runs only after the material transaction has definitively closed.
-  for(const row of material.rows.values())if(row)for(const field of Object.keys(row.text)){need(!workBudget.signal?.aborted);row.hashes[field]=await hashText(row.text[field]);row.text[field]='';need(!workBudget.signal?.aborted);}
+  for(const row of material.rows.values())if(row)for(const field of Object.keys(row.text)){need(!workBudget.signal?.aborted);row.hashes[field]=await hashText(row.text[field]);need(!workBudget.signal?.aborted);}
   for(const held of [...material.authored.values(),...material.structures.values()])for(const [field,text]of Object.entries(held.fields)){need(!workBudget.signal?.aborted);held.fieldDigests[field]=await hashText(text);need(!workBudget.signal?.aborted);}
   await fenceContextLineage(store,captured);
   const results=groups.map(group=>{
@@ -172,7 +191,7 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
    return {eligible,evidence};
   });
   return {captured,results};
- }catch(error){releaseContextLineage(captured);throw error;}finally{for(const row of material.rows.values())if(row)row.text={};}
+ }catch(error){releaseContextLineage(captured);throw error;}
 }
 export async function captureContextEvidence(store,evidence,{epoch,expectedAuthority=null,signal=null,workBudget=null}={}){
  need(validContextEvidenceSpecs(evidence));
@@ -195,7 +214,7 @@ export async function readableContextItems(store,items,{epoch,expectedAuthority=
   for(let index=0;index<automatic.length;){
    const batch=[],topics=new Set(),inputs=new Set();
    while(index<automatic.length){const item=automatic[index],ts=new Set(topics),ins=new Set(inputs);for(const e of item.maintenance.provenance.evidence){ts.add(e.topicId);ins.add(contextEvidenceKey(e));}if(batch.length&&(ts.size>CONTEXT_LINEAGE_LIMITS.readTopics||ins.size>CONTEXT_LINEAGE_LIMITS.readInputs))break;batch.push(item);for(const id of ts)topics.add(id);for(const id of ins)inputs.add(id);index++;}
-   const assessed=await assess(store,batch.map(x=>x.maintenance.provenance),{epoch,expectedAuthority:captured?.authority??expectedAuthority,workBudget});if(captured){const held=authoredCaptures.get(captured).rows;for(const [id,value]of authoredCaptures.get(assessed.captured).rows)held.set(id,value);for(const [id,value]of authoredCaptures.get(assessed.captured).structures)authoredCaptures.get(captured).structures.set(id,value);releaseContextLineage(assessed.captured);}else captured=assessed.captured;
+   const assessed=await assess(store,batch.map(x=>x.maintenance.provenance),{epoch,expectedAuthority:captured?.authority??expectedAuthority,workBudget});if(captured){const target=authoredCaptures.get(captured);for(const [id,value]of authoredCaptures.get(assessed.captured).inputs)target.inputs.set(id,value);const held=target.rows;for(const [id,value]of authoredCaptures.get(assessed.captured).rows)held.set(id,value);for(const [id,value]of authoredCaptures.get(assessed.captured).structures)authoredCaptures.get(captured).structures.set(id,value);releaseContextLineage(assessed.captured);}else captured=assessed.captured;
    for(let i=0;i<batch.length;i++)if(assessed.results[i].eligible)allowed.add(batch[i].id);
   }
   await fenceContextLineage(store,captured,{rowSerialized});if(!retainAuthoredCapture)releaseContextLineage(captured);

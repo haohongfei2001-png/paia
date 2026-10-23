@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: actual original Context put commits canonical/outbox and real receiver materializes same literal body
+ok 1 - actual original Context put commits canonical/outbox and real receiver materializes same literal body
+  ---
+  duration_ms: 85.305291
+  type: 'test'
+  ...
+# Subtest: actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+ok 2 - actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+  ---
+  duration_ms: 127.240083
+  type: 'test'
+  ...
+# Subtest: a split group and direct generic remote operation cannot write any canonical or protocol row
+ok 3 - a split group and direct generic remote operation cannot write any canonical or protocol row
+  ---
+  duration_ms: 33.8695
+  type: 'test'
+  ...
+# Subtest: existing original manual per-card ancestor remains exact while next move crosses the old codec type
+ok 4 - existing original manual per-card ancestor remains exact while next move crosses the old codec type
+  ---
+  duration_ms: 43.995416
+  type: 'test'
+  ...
+# Subtest: explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+ok 5 - explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+  ---
+  duration_ms: 50.995458
+  type: 'test'
+  ...
+# Subtest: real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+ok 6 - real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+  ---
+  duration_ms: 103.836625
+  type: 'test'
+  ...
+# Subtest: cold repository reopen retains original move receipt and allows undo then edit
+ok 7 - cold repository reopen retains original move receipt and allows undo then edit
+  ---
+  duration_ms: 47.245167
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on receipt write failure
+ok 8 - original transaction rolls canonical and all protocol rows back on receipt write failure
+  ---
+  duration_ms: 32.111417
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on protocol write failure
+ok 9 - original transaction rolls canonical and all protocol rows back on protocol write failure
+  ---
+  duration_ms: 33.0935
+  type: 'test'
+  ...
+# Subtest: prepared original group cannot survive a late independent local Context edit
+ok 10 - prepared original group cannot survive a late independent local Context edit
+  ---
+  duration_ms: 40.399709
+  type: 'test'
+  ...
+# Subtest: cloned preparation and fabricated service cannot mint or consume the original owner capability
+ok 11 - cloned preparation and fabricated service cannot mint or consume the original owner capability
+  ---
+  duration_ms: 31.702
+  type: 'test'
+  ...
+# Subtest: sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+ok 12 - sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+  ---
+  duration_ms: 39.577125
+  type: 'test'
+  ...
+# Subtest: late restore epoch write after canonical and protocol apply aborts the whole original transaction
+ok 13 - late restore epoch write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 40.003417
+  type: 'test'
+  ...
+# Subtest: late typed head write after canonical and protocol apply aborts the whole original transaction
+ok 14 - late typed head write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 35.897334
+  type: 'test'
+  ...
+# Subtest: automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+ok 15 - automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+  ---
+  duration_ms: 62.785541
+  type: 'test'
+  ...
+# Subtest: original prepared Context is disposed when write-rejected bypasses commit
+ok 16 - original prepared Context is disposed when write-rejected bypasses commit
+  ---
+  duration_ms: 57.285583
+  type: 'test'
+  ...
+# Subtest: original prepared Context is disposed when admission-stale bypasses commit
+ok 17 - original prepared Context is disposed when admission-stale bypasses commit
+  ---
+  duration_ms: 56.812208
+  type: 'test'
+  ...
+# Subtest: original prepared Context is disposed when duplicate bypasses commit
+ok 18 - original prepared Context is disposed when duplicate bypasses commit
+  ---
+  duration_ms: 55.635833
+  type: 'test'
+  ...
+# Subtest: bootstrap write rejection releases its original preparation
+ok 19 - bootstrap write rejection releases its original preparation
+  ---
+  duration_ms: 42.688166
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1145.533958

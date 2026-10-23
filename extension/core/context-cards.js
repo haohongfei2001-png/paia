@@ -1,4 +1,4 @@
-import {isOriginalContextMutationJournal} from './browser-native-sync/context-mutation-journal.js';
+import {isOriginalContextMutationJournal,releaseOriginalContextMutationPreparation} from './browser-native-sync/context-mutation-journal-owner.js';
 import {KNOWN_PREFIX} from './ai-usage/delta.js';
 import {prepareContextProtectionCorrection,recordContextProtectionCorrection} from './ai-usage/context-correction.js';
 import {readBoundEntryContext,boundContextEvidenceMatches,boundSelectedText} from './context-bound-entry.js';
@@ -148,9 +148,9 @@ export class ContextCardsService {
    if(captured.receipt){const r=captured.receipt;if(r.namespace!=='context-cards'||r.digest!==digest||r.epoch!==c.epoch)fail();return r.result;}
    const before=JSON.stringify(captured.row),at=this.s.clock(),next=structuredClone(captured.row),result=applyContextChange(next,c,()=>at,captured.priorMove);
    if(!result.ok)return result;
-   staged={before,at,prepared:await this.syncJournal.prepare(captured.row,next,c,{service:this,at,priorMove:captured.priorMove})};
+   const journal=this.syncJournal;staged={before,at,journal,prepared:await journal.prepare(captured.row,next,c,{service:this,at,priorMove:captured.priorMove})};
   }
-  return this.s.write(async t=>{
+  try{return await this.s.write(async t=>{
    await this.admitted(t,c.epoch);
    const receipt=await t.get('operationReceipts','context:'+c.operationId);
    if(receipt){if(receipt.namespace!=='context-cards'||receipt.digest!==digest||receipt.epoch!==c.epoch)fail();return receipt.result;}
@@ -167,7 +167,7 @@ export class ContextCardsService {
    await t.put('operationReceipts',committedReceipt);
    if(correction)await recordContextProtectionCorrection(t,correction,correctionBefore,row.items.find(x=>x.id===c.itemId),committedReceipt);
    return result;
-  });
+  });}finally{if(staged)releaseOriginalContextMutationPreparation(staged.journal,this,staged.prepared);}
  }
  async outcome(query){
   if(!exact(query,['operationId','digest','epoch'])||!uuid(query.operationId)||!bounded(query.epoch,128)||!/^[a-f0-9]{64}$/.test(query.digest))fail();

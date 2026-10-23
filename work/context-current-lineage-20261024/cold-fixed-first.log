@@ -1,0 +1,220 @@
+TAP version 13
+# Subtest: original cold entry context-item-lineage.js resolves the one unchanged Context limits owner
+ok 1 - original cold entry context-item-lineage.js resolves the one unchanged Context limits owner
+  ---
+  duration_ms: 125.576083
+  type: 'test'
+  ...
+# Subtest: original cold entry context-read.js resolves the one unchanged Context limits owner
+ok 2 - original cold entry context-read.js resolves the one unchanged Context limits owner
+  ---
+  duration_ms: 113.514209
+  type: 'test'
+  ...
+# Subtest: original cold entry ai-usage/assist-section-relevance.js resolves the one unchanged Context limits owner
+ok 3 - original cold entry ai-usage/assist-section-relevance.js resolves the one unchanged Context limits owner
+  ---
+  duration_ms: 111.0735
+  type: 'test'
+  ...
+# Subtest: original cold entry ai-usage/maintenance-existing-context.js resolves the one unchanged Context limits owner
+ok 4 - original cold entry ai-usage/maintenance-existing-context.js resolves the one unchanged Context limits owner
+  ---
+  duration_ms: 106.514625
+  type: 'test'
+  ...
+# Subtest: original cold entry browser-native-sync/context-journal.js resolves the one unchanged Context limits owner
+ok 5 - original cold entry browser-native-sync/context-journal.js resolves the one unchanged Context limits owner
+  ---
+  duration_ms: 108.007208
+  type: 'test'
+  ...
+# Subtest: original cold entry browser-native-sync/manual-context-current-shape.js resolves the one unchanged Context limits owner
+ok 6 - original cold entry browser-native-sync/manual-context-current-shape.js resolves the one unchanged Context limits owner
+  ---
+  duration_ms: 109.576
+  type: 'test'
+  ...
+# Subtest: original limits have one dependency-free declaration with unchanged public re-exports
+ok 7 - original limits have one dependency-free declaration with unchanged public re-exports
+  ---
+  duration_ms: 0.508875
+  type: 'test'
+  ...
+# Subtest: actual original Context put commits canonical/outbox and real receiver materializes same literal body
+ok 8 - actual original Context put commits canonical/outbox and real receiver materializes same literal body
+  ---
+  duration_ms: 106.94525
+  type: 'test'
+  ...
+# Subtest: actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+ok 9 - actual two owner reorder, cross-card move and undo preserve their original receipts through receive
+  ---
+  duration_ms: 153.462834
+  type: 'test'
+  ...
+# Subtest: a split group and direct generic remote operation cannot write any canonical or protocol row
+ok 10 - a split group and direct generic remote operation cannot write any canonical or protocol row
+  ---
+  duration_ms: 41.752709
+  type: 'test'
+  ...
+# Subtest: existing original manual per-card ancestor remains exact while next move crosses the old codec type
+ok 11 - existing original manual per-card ancestor remains exact while next move crosses the old codec type
+  ---
+  duration_ms: 55.273625
+  type: 'test'
+  ...
+# Subtest: explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+ok 12 - explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+  ---
+  duration_ms: 59.585167
+  type: 'test'
+  ...
+# Subtest: real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+ok 13 - real automatic maintenance, human adoption and mixed adjacent reorder retain exact original lineage
+  ---
+  duration_ms: 130.969083
+  type: 'test'
+  ...
+# Subtest: cold repository reopen retains original move receipt and allows undo then edit
+ok 14 - cold repository reopen retains original move receipt and allows undo then edit
+  ---
+  duration_ms: 56.26425
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on receipt write failure
+ok 15 - original transaction rolls canonical and all protocol rows back on receipt write failure
+  ---
+  duration_ms: 34.756125
+  type: 'test'
+  ...
+# Subtest: original transaction rolls canonical and all protocol rows back on protocol write failure
+ok 16 - original transaction rolls canonical and all protocol rows back on protocol write failure
+  ---
+  duration_ms: 36.017
+  type: 'test'
+  ...
+# Subtest: prepared original group cannot survive a late independent local Context edit
+ok 17 - prepared original group cannot survive a late independent local Context edit
+  ---
+  duration_ms: 45.683792
+  type: 'test'
+  ...
+# Subtest: cloned preparation and fabricated service cannot mint or consume the original owner capability
+ok 18 - cloned preparation and fabricated service cannot mint or consume the original owner capability
+  ---
+  duration_ms: 35.606208
+  type: 'test'
+  ...
+# Subtest: sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+ok 19 - sealed whole graph compiles exact original Context cuts and refuses a missing unchanged predecessor
+  ---
+  duration_ms: 44.40125
+  type: 'test'
+  ...
+# Subtest: late restore epoch write after canonical and protocol apply aborts the whole original transaction
+ok 20 - late restore epoch write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 44.106875
+  type: 'test'
+  ...
+# Subtest: late typed head write after canonical and protocol apply aborts the whole original transaction
+ok 21 - late typed head write after canonical and protocol apply aborts the whole original transaction
+  ---
+  duration_ms: 41.139667
+  type: 'test'
+  ...
+# Subtest: automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+ok 22 - automatic bootstrap cannot materialize on another installation without its original Source and Topic lineage
+  ---
+  duration_ms: 76.499667
+  type: 'test'
+  ...
+# Subtest: original prepared Context is disposed when write-rejected bypasses commit
+ok 23 - original prepared Context is disposed when write-rejected bypasses commit
+  ---
+  duration_ms: 66.988041
+  type: 'test'
+  ...
+# Subtest: original prepared Context is disposed when admission-stale bypasses commit
+ok 24 - original prepared Context is disposed when admission-stale bypasses commit
+  ---
+  duration_ms: 67.263584
+  type: 'test'
+  ...
+# Subtest: original prepared Context is disposed when duplicate bypasses commit
+ok 25 - original prepared Context is disposed when duplicate bypasses commit
+  ---
+  duration_ms: 62.401625
+  type: 'test'
+  ...
+# Subtest: bootstrap write rejection releases its original preparation
+ok 26 - bootstrap write rejection releases its original preparation
+  ---
+  duration_ms: 46.812292
+  type: 'test'
+  ...
+# Subtest: private automatic lineage meters retained Input text and denies cloned or released captures
+ok 27 - private automatic lineage meters retained Input text and denies cloned or released captures
+  ---
+  duration_ms: 46.346958
+  type: 'test'
+  ...
+# Subtest: captured automatic Input text is rechecked even if a late raw write does not advance owner metadata
+ok 28 - captured automatic Input text is rechecked even if a late raw write does not advance owner metadata
+  ---
+  duration_ms: 43.25175
+  type: 'test'
+  ...
+# Subtest: NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+ok 29 - NOW real adapter → closed A → protected shadow → publish → cold original Context move/reorder/undo/edit → fresh C
+  ---
+  duration_ms: 1386.156917
+  type: 'test'
+  ...
+# Subtest: last typed protocol write failure rolls back canonical Context, Source, receipt and replay activation
+ok 30 - last typed protocol write failure rolls back canonical Context, Source, receipt and replay activation
+  ---
+  duration_ms: 257.248666
+  type: 'test'
+  ...
+# Subtest: a cold original grouped owner requires exact revalidation and restores the same command once
+ok 31 - a cold original grouped owner requires exact revalidation and restores the same command once
+  ---
+  duration_ms: 393.503916
+  type: 'test'
+  ...
+# Subtest: changed actual Context after publication qualification cannot activate its former sealed graph
+ok 32 - changed actual Context after publication qualification cannot activate its former sealed graph
+  ---
+  duration_ms: 346.762333
+  type: 'test'
+  ...
+# Subtest: original native current Mixed remains unavailable in the non-native fixture without publishing objects
+ok 33 - original native current Mixed remains unavailable in the non-native fixture without publishing objects
+  ---
+  duration_ms: 27.986458
+  type: 'test'
+  ...
+# Subtest: actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+ok 34 - actual typed metadata and physical rows pass only the Context snapshot component and altered epoch proof refuses
+  ---
+  duration_ms: 30.620125
+  type: 'test'
+  ...
+# Subtest: a forged native cut cannot qualify automatic Context or create retained lineage
+ok 35 - a forged native cut cannot qualify automatic Context or create retained lineage
+  ---
+  duration_ms: 10.387458
+  type: 'test'
+  ...
+1..35
+# tests 35
+# suites 0
+# pass 35
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2603.515166
