@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: genuine human Context edit uses current original Input and independently selected Context fields, then protected original owner ACKs only Context
+ok 1 - genuine human Context edit uses current original Input and independently selected Context fields, then protected original owner ACKs only Context
+  ---
+  duration_ms: 341.335375
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: context-access
+ok 2 - Context correction closes original scope metadata at native tail: context-access
+  ---
+  duration_ms: 282.38325
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: name-registry
+ok 3 - Context correction closes original scope metadata at native tail: name-registry
+  ---
+  duration_ms: 291.428834
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: binding
+ok 4 - Context correction closes original scope metadata at native tail: binding
+  ---
+  duration_ms: 271.537167
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: library
+ok 5 - Context correction closes original scope metadata at native tail: library
+  ---
+  duration_ms: 267.611916
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: root-sequence
+ok 6 - Context correction closes original scope metadata at native tail: root-sequence
+  ---
+  duration_ms: 279.401125
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: none
+ok 7 - Context correction seals complete original shared scope: none
+  ---
+  duration_ms: 299.610875
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-topic
+ok 8 - Context correction seals complete original shared scope: related-topic
+  ---
+  duration_ms: 277.098083
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-section
+ok 9 - Context correction seals complete original shared scope: related-section
+  ---
+  duration_ms: 340.17225
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-registry
+ok 10 - Context correction seals complete original shared scope: related-registry
+  ---
+  duration_ms: 309.771917
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-receipt
+ok 11 - Context correction seals complete original shared scope: related-receipt
+  ---
+  duration_ms: 302.427541
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: dependency-set
+ok 12 - Context correction seals complete original shared scope: dependency-set
+  ---
+  duration_ms: 321.42475
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: provenance-set
+ok 13 - Context correction seals complete original shared scope: provenance-set
+  ---
+  duration_ms: 297.875916
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3989.413333

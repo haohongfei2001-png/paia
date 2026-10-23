@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: Context correction seals complete original shared scope: none
+ok 1 - Context correction seals complete original shared scope: none
+  ---
+  duration_ms: 369.638208
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-topic
+ok 2 - Context correction seals complete original shared scope: related-topic
+  ---
+  duration_ms: 300.911042
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-section
+ok 3 - Context correction seals complete original shared scope: related-section
+  ---
+  duration_ms: 284.203958
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-registry
+ok 4 - Context correction seals complete original shared scope: related-registry
+  ---
+  duration_ms: 286.17225
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-receipt
+ok 5 - Context correction seals complete original shared scope: related-receipt
+  ---
+  duration_ms: 275.700541
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: dependency-set
+ok 6 - Context correction seals complete original shared scope: dependency-set
+  ---
+  duration_ms: 277.999375
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: provenance-set
+ok 7 - Context correction seals complete original shared scope: provenance-set
+  ---
+  duration_ms: 289.352709
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2187.573083

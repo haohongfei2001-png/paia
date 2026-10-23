@@ -1,0 +1,4288 @@
+TAP version 13
+# Subtest: original Context owner protection-only correction settles exact local facets without provider or window
+ok 1 - original Context owner protection-only correction settles exact local facets without provider or window
+  ---
+  duration_ms: 208.667542
+  type: 'test'
+  ...
+# Subtest: same-revision body drift cannot reuse protection-only witness
+ok 2 - same-revision body drift cannot reuse protection-only witness
+  ---
+  duration_ms: 134.136667
+  type: 'test'
+  ...
+# Subtest: same-revision section drift cannot reuse protection-only witness
+ok 3 - same-revision section drift cannot reuse protection-only witness
+  ---
+  duration_ms: 99.066208
+  type: 'test'
+  ...
+# Subtest: same-revision order drift cannot reuse protection-only witness
+ok 4 - same-revision order drift cannot reuse protection-only witness
+  ---
+  duration_ms: 83.185375
+  type: 'test'
+  ...
+# Subtest: same-revision card drift cannot reuse protection-only witness
+ok 5 - same-revision card drift cannot reuse protection-only witness
+  ---
+  duration_ms: 79.582833
+  type: 'test'
+  ...
+# Subtest: same-revision createdAt drift cannot reuse protection-only witness
+ok 6 - same-revision createdAt drift cannot reuse protection-only witness
+  ---
+  duration_ms: 90.585459
+  type: 'test'
+  ...
+# Subtest: same-revision maintenance drift cannot reuse protection-only witness
+ok 7 - same-revision maintenance drift cannot reuse protection-only witness
+  ---
+  duration_ms: 88.673125
+  type: 'test'
+  ...
+# Subtest: receipt missing refuses exact local resolution
+ok 8 - receipt missing refuses exact local resolution
+  ---
+  duration_ms: 78.747291
+  type: 'test'
+  ...
+# Subtest: receipt digest refuses exact local resolution
+ok 9 - receipt digest refuses exact local resolution
+  ---
+  duration_ms: 88.41775
+  type: 'test'
+  ...
+# Subtest: receipt owner refuses exact local resolution
+ok 10 - receipt owner refuses exact local resolution
+  ---
+  duration_ms: 74.999916
+  type: 'test'
+  ...
+# Subtest: receipt revision refuses exact local resolution
+ok 11 - receipt revision refuses exact local resolution
+  ---
+  duration_ms: 75.423917
+  type: 'test'
+  ...
+# Subtest: receipt epoch refuses exact local resolution
+ok 12 - receipt epoch refuses exact local resolution
+  ---
+  duration_ms: 72.628833
+  type: 'test'
+  ...
+# Subtest: real body edit after protection, manual creation and cosmetics remain interpretation obligations
+ok 13 - real body edit after protection, manual creation and cosmetics remain interpretation obligations
+  ---
+  duration_ms: 287.706416
+  type: 'test'
+  ...
+# Subtest: direct canonical protection and copied original receipt cannot mint an owner witness
+ok 14 - direct canonical protection and copied original receipt cannot mint an owner witness
+  ---
+  duration_ms: 121.848042
+  type: 'test'
+  ...
+# Subtest: old pending Context obligation prevents protection-only witness minting
+ok 15 - old pending Context obligation prevents protection-only witness minting
+  ---
+  duration_ms: 63.73575
+  type: 'test'
+  ...
+# Subtest: local storage after ack rolls back every checked facet
+ok 16 - local storage after ack rolls back every checked facet
+  ---
+  duration_ms: 105.355083
+  type: 'test'
+  ...
+# Subtest: local revoke after ack rolls back every checked facet
+ok 17 - local revoke after ack rolls back every checked facet
+  ---
+  duration_ms: 77.733542
+  type: 'test'
+  ...
+# Subtest: local restore after ack rolls back every checked facet
+ok 18 - local restore after ack rolls back every checked facet
+  ---
+  duration_ms: 80.064542
+  type: 'test'
+  ...
+# Subtest: local body after ack rolls back every checked facet
+ok 19 - local body after ack rolls back every checked facet
+  ---
+  duration_ms: 75.582416
+  type: 'test'
+  ...
+# Subtest: local delete after ack rolls back every checked facet
+ok 20 - local delete after ack rolls back every checked facet
+  ---
+  duration_ms: 73.714958
+  type: 'test'
+  ...
+# Subtest: local gate after ack rolls back every checked facet
+ok 21 - local gate after ack rolls back every checked facet
+  ---
+  duration_ms: 72.636917
+  type: 'test'
+  ...
+# Subtest: local dispose after ack rolls back every checked facet
+ok 22 - local dispose after ack rolls back every checked facet
+  ---
+  duration_ms: 78.829875
+  type: 'test'
+  ...
+# Subtest: local storage after usage rolls back every checked facet
+ok 23 - local storage after usage rolls back every checked facet
+  ---
+  duration_ms: 72.081583
+  type: 'test'
+  ...
+# Subtest: local revoke after usage rolls back every checked facet
+ok 24 - local revoke after usage rolls back every checked facet
+  ---
+  duration_ms: 95.448584
+  type: 'test'
+  ...
+# Subtest: local restore after usage rolls back every checked facet
+ok 25 - local restore after usage rolls back every checked facet
+  ---
+  duration_ms: 81.987459
+  type: 'test'
+  ...
+# Subtest: local body after usage rolls back every checked facet
+ok 26 - local body after usage rolls back every checked facet
+  ---
+  duration_ms: 76.356167
+  type: 'test'
+  ...
+# Subtest: local delete after usage rolls back every checked facet
+ok 27 - local delete after usage rolls back every checked facet
+  ---
+  duration_ms: 210.407416
+  type: 'test'
+  ...
+# Subtest: local gate after usage rolls back every checked facet
+ok 28 - local gate after usage rolls back every checked facet
+  ---
+  duration_ms: 73.511167
+  type: 'test'
+  ...
+# Subtest: local dispose after usage rolls back every checked facet
+ok 29 - local dispose after usage rolls back every checked facet
+  ---
+  duration_ms: 70.296791
+  type: 'test'
+  ...
+# Subtest: local storage after job rolls back every checked facet
+ok 30 - local storage after job rolls back every checked facet
+  ---
+  duration_ms: 85.339125
+  type: 'test'
+  ...
+# Subtest: local revoke after job rolls back every checked facet
+ok 31 - local revoke after job rolls back every checked facet
+  ---
+  duration_ms: 76.0055
+  type: 'test'
+  ...
+# Subtest: local restore after job rolls back every checked facet
+ok 32 - local restore after job rolls back every checked facet
+  ---
+  duration_ms: 86.295
+  type: 'test'
+  ...
+# Subtest: local body after job rolls back every checked facet
+ok 33 - local body after job rolls back every checked facet
+  ---
+  duration_ms: 79.236584
+  type: 'test'
+  ...
+# Subtest: local delete after job rolls back every checked facet
+ok 34 - local delete after job rolls back every checked facet
+  ---
+  duration_ms: 83.193625
+  type: 'test'
+  ...
+# Subtest: local gate after job rolls back every checked facet
+ok 35 - local gate after job rolls back every checked facet
+  ---
+  duration_ms: 79.136292
+  type: 'test'
+  ...
+# Subtest: local dispose after job rolls back every checked facet
+ok 36 - local dispose after job rolls back every checked facet
+  ---
+  duration_ms: 80.4675
+  type: 'test'
+  ...
+# Subtest: local storage after counter rolls back every checked facet
+ok 37 - local storage after counter rolls back every checked facet
+  ---
+  duration_ms: 73.261
+  type: 'test'
+  ...
+# Subtest: local revoke after counter rolls back every checked facet
+ok 38 - local revoke after counter rolls back every checked facet
+  ---
+  duration_ms: 78.231291
+  type: 'test'
+  ...
+# Subtest: local restore after counter rolls back every checked facet
+ok 39 - local restore after counter rolls back every checked facet
+  ---
+  duration_ms: 97.092583
+  type: 'test'
+  ...
+# Subtest: local body after counter rolls back every checked facet
+ok 40 - local body after counter rolls back every checked facet
+  ---
+  duration_ms: 78.805667
+  type: 'test'
+  ...
+# Subtest: local delete after counter rolls back every checked facet
+ok 41 - local delete after counter rolls back every checked facet
+  ---
+  duration_ms: 75.782083
+  type: 'test'
+  ...
+# Subtest: local gate after counter rolls back every checked facet
+ok 42 - local gate after counter rolls back every checked facet
+  ---
+  duration_ms: 98.485458
+  type: 'test'
+  ...
+# Subtest: local dispose after counter rolls back every checked facet
+ok 43 - local dispose after counter rolls back every checked facet
+  ---
+  duration_ms: 94.2195
+  type: 'test'
+  ...
+# Subtest: restart and duplicate human command preserve original receipt and resolve only once
+ok 44 - restart and duplicate human command preserve original receipt and resolve only once
+  ---
+  duration_ms: 82.677333
+  type: 'test'
+  ...
+# Subtest: new Store after restart consumes the persisted metadata-only proof
+ok 45 - new Store after restart consumes the persisted metadata-only proof
+  ---
+  duration_ms: 75.490708
+  type: 'test'
+  ...
+# Subtest: original owner rechecks exact full preimage after the semantic digest await
+ok 46 - original owner rechecks exact full preimage after the semantic digest await
+  ---
+  duration_ms: 75.771125
+  type: 'test'
+  ...
+# Subtest: a mixed page locally settles only the protection correction and retains manual body work
+ok 47 - a mixed page locally settles only the protection correction and retains manual body work
+  ---
+  duration_ms: 71.799125
+  type: 'test'
+  ...
+# Subtest: an older sent attempt cannot be rebound or rewritten by local correction settlement
+ok 48 - an older sent attempt cannot be rebound or rewritten by local correction settlement
+  ---
+  duration_ms: 82.193375
+  type: 'test'
+  ...
+# Subtest: independent: correction final settlement fence survives the final authority await
+ok 49 - independent: correction final settlement fence survives the final authority await
+  ---
+  duration_ms: 109.444458
+  type: 'test'
+  ...
+# Subtest: independent: capture is rechecked after qualifier digest await
+ok 50 - independent: capture is rechecked after qualifier digest await
+  ---
+  duration_ms: 120.870041
+  type: 'test'
+  ...
+# Subtest: independent: same-revision provenance drift cannot become local NO_CHANGE
+ok 51 - independent: same-revision provenance drift cannot become local NO_CHANGE
+  ---
+  duration_ms: 138.72
+  type: 'test'
+  ...
+# Subtest: independent: same-revision temporal drift cannot become local NO_CHANGE
+ok 52 - independent: same-revision temporal drift cannot become local NO_CHANGE
+  ---
+  duration_ms: 94.2145
+  type: 'test'
+  ...
+# Subtest: independent: a human DTO cannot supply the local witness
+ok 53 - independent: a human DTO cannot supply the local witness
+  ---
+  duration_ms: 101.398
+  type: 'test'
+  ...
+# Subtest: independent: a completed one-facet job leaves only the remaining correction facet eligible
+ok 54 - independent: a completed one-facet job leaves only the remaining correction facet eligible
+  ---
+  duration_ms: 102.179583
+  type: 'test'
+  ...
+# Subtest: independent authority missing cannot grant local settlement
+ok 55 - independent authority missing cannot grant local settlement
+  ---
+  duration_ms: 88.403542
+  type: 'test'
+  ...
+# Subtest: independent authority denied cannot grant local settlement
+ok 56 - independent authority denied cannot grant local settlement
+  ---
+  duration_ms: 108.195542
+  type: 'test'
+  ...
+# Subtest: independent authority wrong-scope cannot grant local settlement
+ok 57 - independent authority wrong-scope cannot grant local settlement
+  ---
+  duration_ms: 74.964333
+  type: 'test'
+  ...
+# Subtest: independent receipt namespace cannot grant local settlement
+ok 58 - independent receipt namespace cannot grant local settlement
+  ---
+  duration_ms: 68.167208
+  type: 'test'
+  ...
+# Subtest: independent receipt schemaVersion cannot grant local settlement
+ok 59 - independent receipt schemaVersion cannot grant local settlement
+  ---
+  duration_ms: 61.615291
+  type: 'test'
+  ...
+# Subtest: independent receipt result-item cannot grant local settlement
+ok 60 - independent receipt result-item cannot grant local settlement
+  ---
+  duration_ms: 71.798584
+  type: 'test'
+  ...
+# Subtest: independent receipt result-extra cannot grant local settlement
+ok 61 - independent receipt result-extra cannot grant local settlement
+  ---
+  duration_ms: 74.96875
+  type: 'test'
+  ...
+# Subtest: independent receipt result-false cannot grant local settlement
+ok 62 - independent receipt result-false cannot grant local settlement
+  ---
+  duration_ms: 74.251667
+  type: 'test'
+  ...
+# Subtest: independent receipt replay for a different automatic owner cannot mint a proof
+ok 63 - independent receipt replay for a different automatic owner cannot mint a proof
+  ---
+  duration_ms: 90.615958
+  type: 'test'
+  ...
+# Subtest: last required committer authority await precedes the complete body fence
+ok 64 - last required committer authority await precedes the complete body fence
+  ---
+  duration_ms: 50.256375
+  type: 'test'
+  ...
+# Subtest: last required committer authority await precedes the complete receipt fence
+ok 65 - last required committer authority await precedes the complete receipt fence
+  ---
+  duration_ms: 46.8815
+  type: 'test'
+  ...
+# Subtest: last required committer authority await precedes the complete restore fence
+ok 66 - last required committer authority await precedes the complete restore fence
+  ---
+  duration_ms: 48.791667
+  type: 'test'
+  ...
+# Subtest: local subset requires the trusted committer snapshot final fence
+ok 67 - local subset requires the trusted committer snapshot final fence
+  ---
+  duration_ms: 51.281709
+  type: 'test'
+  ...
+# Subtest: local subset requires the trusted committer synchronous final fence
+ok 68 - local subset requires the trusted committer synchronous final fence
+  ---
+  duration_ms: 43.82525
+  type: 'test'
+  ...
+# Subtest: genuine human Context edit uses current original Input and independently selected Context fields, then protected original owner ACKs only Context
+ok 69 - genuine human Context edit uses current original Input and independently selected Context fields, then protected original owner ACKs only Context
+  ---
+  duration_ms: 780.080917
+  type: 'test'
+  ...
+# Subtest: current human restoration rechecks the original complete lineage and settles only protected Context
+ok 70 - current human restoration rechecks the original complete lineage and settles only protected Context
+  ---
+  duration_ms: 570.290333
+  type: 'test'
+  ...
+# Subtest: independent denied permission neither hashes selected Context nor dispatches
+ok 71 - independent denied permission neither hashes selected Context nor dispatches
+  ---
+  duration_ms: 89.967416
+  type: 'test'
+  ...
+# Subtest: independent original-input-denied permission neither hashes selected Context nor dispatches
+ok 72 - independent original-input-denied permission neither hashes selected Context nor dispatches
+  ---
+  duration_ms: 88.351375
+  type: 'test'
+  ...
+# Subtest: independent missing-context permission neither hashes selected Context nor dispatches
+ok 73 - independent missing-context permission neither hashes selected Context nor dispatches
+  ---
+  duration_ms: 87.802208
+  type: 'test'
+  ...
+# Subtest: independent missing-input permission neither hashes selected Context nor dispatches
+ok 74 - independent missing-input permission neither hashes selected Context nor dispatches
+  ---
+  duration_ms: 117.501333
+  type: 'test'
+  ...
+# Subtest: independent body-only permission neither hashes selected Context nor dispatches
+ok 75 - independent body-only permission neither hashes selected Context nor dispatches
+  ---
+  duration_ms: 87.28225
+  type: 'test'
+  ...
+# Subtest: independent wrong-item permission neither hashes selected Context nor dispatches
+ok 76 - independent wrong-item permission neither hashes selected Context nor dispatches
+  ---
+  duration_ms: 90.338042
+  type: 'test'
+  ...
+# Subtest: independent wrong-revision permission neither hashes selected Context nor dispatches
+ok 77 - independent wrong-revision permission neither hashes selected Context nor dispatches
+  ---
+  duration_ms: 87.9935
+  type: 'test'
+  ...
+# Subtest: independent wrong-proof permission neither hashes selected Context nor dispatches
+ok 78 - independent wrong-proof permission neither hashes selected Context nor dispatches
+  ---
+  duration_ms: 80.87725
+  type: 'test'
+  ...
+# Subtest: current input-body cannot dispatch copied or stale Context meaning
+ok 79 - current input-body cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 172.986042
+  type: 'test'
+  ...
+# Subtest: current input-excluded cannot dispatch copied or stale Context meaning
+ok 80 - current input-excluded cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 104.804542
+  type: 'test'
+  ...
+# Subtest: current input-state cannot dispatch copied or stale Context meaning
+ok 81 - current input-state cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 87.164458
+  type: 'test'
+  ...
+# Subtest: current source-purge cannot dispatch copied or stale Context meaning
+ok 82 - current source-purge cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 75.155833
+  type: 'test'
+  ...
+# Subtest: current source-missing cannot dispatch copied or stale Context meaning
+ok 83 - current source-missing cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 208.659875
+  type: 'test'
+  ...
+# Subtest: current source-hidden cannot dispatch copied or stale Context meaning
+ok 84 - current source-hidden cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 74.428959
+  type: 'test'
+  ...
+# Subtest: current context-body cannot dispatch copied or stale Context meaning
+ok 85 - current context-body cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 185.680167
+  type: 'test'
+  ...
+# Subtest: current context-order cannot dispatch copied or stale Context meaning
+ok 86 - current context-order cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 188.532042
+  type: 'test'
+  ...
+# Subtest: current context-provenance cannot dispatch copied or stale Context meaning
+ok 87 - current context-provenance cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 178.174708
+  type: 'test'
+  ...
+# Subtest: current context-delete cannot dispatch copied or stale Context meaning
+ok 88 - current context-delete cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 91.861584
+  type: 'test'
+  ...
+# Subtest: current receipt cannot dispatch copied or stale Context meaning
+ok 89 - current receipt cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 74.328042
+  type: 'test'
+  ...
+# Subtest: current restore cannot dispatch copied or stale Context meaning
+ok 90 - current restore cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 82.885583
+  type: 'test'
+  ...
+# Subtest: current legacy-input cannot dispatch copied or stale Context meaning
+ok 91 - current legacy-input cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 180.106583
+  type: 'test'
+  ...
+# Subtest: current placement cannot dispatch copied or stale Context meaning
+ok 92 - current placement cannot dispatch copied or stale Context meaning
+  ---
+  duration_ms: 95.248833
+  type: 'test'
+  ...
+# Subtest: held selected Context digest input-excluded prevents dispatch
+ok 93 - held selected Context digest input-excluded prevents dispatch
+  ---
+  duration_ms: 245.008375
+  type: 'test'
+  ...
+# Subtest: held selected Context digest source-purge prevents dispatch
+ok 94 - held selected Context digest source-purge prevents dispatch
+  ---
+  duration_ms: 209.993083
+  type: 'test'
+  ...
+# Subtest: held selected Context digest context-body prevents dispatch
+ok 95 - held selected Context digest context-body prevents dispatch
+  ---
+  duration_ms: 267.4445
+  type: 'test'
+  ...
+# Subtest: held selected Context digest revoke prevents dispatch
+ok 96 - held selected Context digest revoke prevents dispatch
+  ---
+  duration_ms: 313.382125
+  type: 'test'
+  ...
+# Subtest: held actual provider input-excluded rejects stale response and never replays
+ok 97 - held actual provider input-excluded rejects stale response and never replays
+  ---
+  duration_ms: 583.822417
+  type: 'test'
+  ...
+# Subtest: held actual provider source-purge rejects stale response and never replays
+ok 98 - held actual provider source-purge rejects stale response and never replays
+  ---
+  duration_ms: 389.634833
+  type: 'test'
+  ...
+# Subtest: held actual provider context-body rejects stale response and never replays
+ok 99 - held actual provider context-body rejects stale response and never replays
+  ---
+  duration_ms: 304.9785
+  type: 'test'
+  ...
+# Subtest: held actual provider revoke rejects stale response and never replays
+ok 100 - held actual provider revoke rejects stale response and never replays
+  ---
+  duration_ms: 226.164917
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects input-body after exact ACK is staged
+ok 101 - last joint settlement rejects input-body after exact ACK is staged
+  ---
+  duration_ms: 319.02775
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects input-excluded after exact ACK is staged
+ok 102 - last joint settlement rejects input-excluded after exact ACK is staged
+  ---
+  duration_ms: 315.986959
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects input-state after exact ACK is staged
+ok 103 - last joint settlement rejects input-state after exact ACK is staged
+  ---
+  duration_ms: 371.601041
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects source-purge after exact ACK is staged
+ok 104 - last joint settlement rejects source-purge after exact ACK is staged
+  ---
+  duration_ms: 336.852917
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects source-missing after exact ACK is staged
+ok 105 - last joint settlement rejects source-missing after exact ACK is staged
+  ---
+  duration_ms: 333.506042
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects source-hidden after exact ACK is staged
+ok 106 - last joint settlement rejects source-hidden after exact ACK is staged
+  ---
+  duration_ms: 315.590334
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects source-body after exact ACK is staged
+ok 107 - last joint settlement rejects source-body after exact ACK is staged
+  ---
+  duration_ms: 323.202292
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects context-body after exact ACK is staged
+ok 108 - last joint settlement rejects context-body after exact ACK is staged
+  ---
+  duration_ms: 323.380958
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects context-order after exact ACK is staged
+ok 109 - last joint settlement rejects context-order after exact ACK is staged
+  ---
+  duration_ms: 295.512042
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects context-provenance after exact ACK is staged
+ok 110 - last joint settlement rejects context-provenance after exact ACK is staged
+  ---
+  duration_ms: 300.041125
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects context-delete after exact ACK is staged
+ok 111 - last joint settlement rejects context-delete after exact ACK is staged
+  ---
+  duration_ms: 324.587542
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects receipt after exact ACK is staged
+ok 112 - last joint settlement rejects receipt after exact ACK is staged
+  ---
+  duration_ms: 322.595208
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects restore after exact ACK is staged
+ok 113 - last joint settlement rejects restore after exact ACK is staged
+  ---
+  duration_ms: 298.7825
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects legacy-input after exact ACK is staged
+ok 114 - last joint settlement rejects legacy-input after exact ACK is staged
+  ---
+  duration_ms: 463.440625
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects placement after exact ACK is staged
+ok 115 - last joint settlement rejects placement after exact ACK is staged
+  ---
+  duration_ms: 360.656833
+  type: 'test'
+  ...
+# Subtest: last joint settlement rejects revoke after exact ACK is staged
+ok 116 - last joint settlement rejects revoke after exact ACK is staged
+  ---
+  duration_ms: 308.731917
+  type: 'test'
+  ...
+# Subtest: original repeated protected second-body edit retains lineage and current receipt
+ok 117 - original repeated protected second-body edit retains lineage and current receipt
+  ---
+  duration_ms: 296.675334
+  type: 'test'
+  ...
+# Subtest: original repeated protected section edit retains lineage and current receipt
+ok 118 - original repeated protected section edit retains lineage and current receipt
+  ---
+  duration_ms: 301.199334
+  type: 'test'
+  ...
+# Subtest: original repeated protected clear-to-replacement edit retains lineage and current receipt
+ok 119 - original repeated protected clear-to-replacement edit retains lineage and current receipt
+  ---
+  duration_ms: 296.976
+  type: 'test'
+  ...
+# Subtest: unsupported cosmetic stays pending without a fabricated Context ACK
+ok 120 - unsupported cosmetic stays pending without a fabricated Context ACK
+  ---
+  duration_ms: 44.395875
+  type: 'test'
+  ...
+# Subtest: unsupported unchanged stays pending without a fabricated Context ACK
+ok 121 - unsupported unchanged stays pending without a fabricated Context ACK
+  ---
+  duration_ms: 59.411875
+  type: 'test'
+  ...
+# Subtest: unsupported manual stays pending without a fabricated Context ACK
+ok 122 - unsupported manual stays pending without a fabricated Context ACK
+  ---
+  duration_ms: 46.524958
+  type: 'test'
+  ...
+# Subtest: unsupported restore-missing-removal-receipt stays pending without a fabricated Context ACK
+ok 123 - unsupported restore-missing-removal-receipt stays pending without a fabricated Context ACK
+  ---
+  duration_ms: 49.424125
+  type: 'test'
+  ...
+# Subtest: adapter new-item cannot turn correction into unrelated result
+ok 124 - adapter new-item cannot turn correction into unrelated result
+  ---
+  duration_ms: 237.769166
+  type: 'test'
+  ...
+# Subtest: adapter wrong-item cannot turn correction into unrelated result
+ok 125 - adapter wrong-item cannot turn correction into unrelated result
+  ---
+  duration_ms: 236.940791
+  type: 'test'
+  ...
+# Subtest: adapter missing-evidence cannot turn correction into unrelated result
+ok 126 - adapter missing-evidence cannot turn correction into unrelated result
+  ---
+  duration_ms: 229.234042
+  type: 'test'
+  ...
+# Subtest: adapter wrong-field cannot turn correction into unrelated result
+ok 127 - adapter wrong-field cannot turn correction into unrelated result
+  ---
+  duration_ms: 239.9965
+  type: 'test'
+  ...
+# Subtest: adapter new-association cannot turn correction into unrelated result
+ok 128 - adapter new-association cannot turn correction into unrelated result
+  ---
+  duration_ms: 240.40875
+  type: 'test'
+  ...
+# Subtest: adapter NO_CHANGE cannot turn correction into unrelated result
+ok 129 - adapter NO_CHANGE cannot turn correction into unrelated result
+  ---
+  duration_ms: 227.998833
+  type: 'test'
+  ...
+# Subtest: adapter REMOVE_CANDIDATE cannot turn correction into unrelated result
+ok 130 - adapter REMOVE_CANDIDATE cannot turn correction into unrelated result
+  ---
+  duration_ms: 227.375334
+  type: 'test'
+  ...
+# Subtest: final asynchronous authority callback cannot publish unchecked original Context or Input drift
+ok 131 - final asynchronous authority callback cannot publish unchecked original Context or Input drift
+  ---
+  duration_ms: 295.930542
+  type: 'test'
+  ...
+# Subtest: mixed page selects one complete Context correction and leaves unrelated obligations at incoming boundary
+ok 132 - mixed page selects one complete Context correction and leaves unrelated obligations at incoming boundary
+  ---
+  duration_ms: 438.939208
+  type: 'test'
+  ...
+# Subtest: repeat settled handle and same revision after restart cannot dispatch or ACK correction twice
+ok 133 - repeat settled handle and same revision after restart cannot dispatch or ACK correction twice
+  ---
+  duration_ms: 305.479083
+  type: 'test'
+  ...
+# Subtest: original final Input material transaction joins the input-excluded Context fence before provider
+ok 134 - original final Input material transaction joins the input-excluded Context fence before provider
+  ---
+  duration_ms: 301.47975
+  type: 'test'
+  ...
+# Subtest: original final Input material transaction joins the source-purge Context fence before provider
+ok 135 - original final Input material transaction joins the source-purge Context fence before provider
+  ---
+  duration_ms: 221.315041
+  type: 'test'
+  ...
+# Subtest: original final Input material transaction joins the context-body Context fence before provider
+ok 136 - original final Input material transaction joins the context-body Context fence before provider
+  ---
+  duration_ms: 231.387958
+  type: 'test'
+  ...
+# Subtest: real input-edit during held provider keeps original human work and zero ACK
+ok 137 - real input-edit during held provider keeps original human work and zero ACK
+  ---
+  duration_ms: 267.700833
+  type: 'test'
+  ...
+# Subtest: real input-exclusion during held provider keeps original human work and zero ACK
+ok 138 - real input-exclusion during held provider keeps original human work and zero ACK
+  ---
+  duration_ms: 243.525584
+  type: 'test'
+  ...
+# Subtest: real source-trash during held provider keeps original human work and zero ACK
+ok 139 - real source-trash during held provider keeps original human work and zero ACK
+  ---
+  duration_ms: 300.245917
+  type: 'test'
+  ...
+# Subtest: real context-edit during held provider keeps original human work and zero ACK
+ok 140 - real context-edit during held provider keeps original human work and zero ACK
+  ---
+  duration_ms: 408.533875
+  type: 'test'
+  ...
+# Subtest: source purge remains with the original B-02 protected human owner
+ok 141 - source purge remains with the original B-02 protected human owner
+  ---
+  duration_ms: 56.940375
+  type: 'test'
+  ...
+# Subtest: old Context correction DEFER does not retry on the same route
+ok 142 - old Context correction DEFER does not retry on the same route
+  ---
+  duration_ms: 41.995709
+  type: 'test'
+  ...
+# Subtest: old Context correction DEFER requalifies only Context on a different admitted route
+ok 143 - old Context correction DEFER requalifies only Context on a different admitted route
+  ---
+  duration_ms: 371.811459
+  type: 'test'
+  ...
+# Subtest: old Context restoration DEFER does not retry on the same route
+ok 144 - old Context restoration DEFER does not retry on the same route
+  ---
+  duration_ms: 44.747125
+  type: 'test'
+  ...
+# Subtest: old Context restoration DEFER requalifies only Context on a different admitted route
+ok 145 - old Context restoration DEFER requalifies only Context on a different admitted route
+  ---
+  duration_ms: 321.845458
+  type: 'test'
+  ...
+# Subtest: same-revision Item timestamp drift cannot launder current human correction
+ok 146 - same-revision Item timestamp drift cannot launder current human correction
+  ---
+  duration_ms: 42.128583
+  type: 'test'
+  ...
+# Subtest: malformed original human receipt missing-time stays pending before transmission
+ok 147 - malformed original human receipt missing-time stays pending before transmission
+  ---
+  duration_ms: 44.410208
+  type: 'test'
+  ...
+# Subtest: malformed original human receipt invalid-time stays pending before transmission
+ok 148 - malformed original human receipt invalid-time stays pending before transmission
+  ---
+  duration_ms: 40.888291
+  type: 'test'
+  ...
+# Subtest: malformed original human receipt nonstring-time stays pending before transmission
+ok 149 - malformed original human receipt nonstring-time stays pending before transmission
+  ---
+  duration_ms: 43.573083
+  type: 'test'
+  ...
+# Subtest: malformed original human receipt overlong-time stays pending before transmission
+ok 150 - malformed original human receipt overlong-time stays pending before transmission
+  ---
+  duration_ms: 42.32925
+  type: 'test'
+  ...
+# Subtest: malformed original human receipt extra-field stays pending before transmission
+ok 151 - malformed original human receipt extra-field stays pending before transmission
+  ---
+  duration_ms: 42.157667
+  type: 'test'
+  ...
+# Subtest: malformed original human receipt extra-undefined-field stays pending before transmission
+ok 152 - malformed original human receipt extra-undefined-field stays pending before transmission
+  ---
+  duration_ms: 40.778708
+  type: 'test'
+  ...
+# Subtest: malformed original human receipt extra-result-field stays pending before transmission
+ok 153 - malformed original human receipt extra-result-field stays pending before transmission
+  ---
+  duration_ms: 60.092875
+  type: 'test'
+  ...
+# Subtest: malformed original human receipt extra-undefined-result-field stays pending before transmission
+ok 154 - malformed original human receipt extra-undefined-result-field stays pending before transmission
+  ---
+  duration_ms: 46.711
+  type: 'test'
+  ...
+# Subtest: original human receipt read with mismatched id cannot qualify Context mapping
+ok 155 - original human receipt read with mismatched id cannot qualify Context mapping
+  ---
+  duration_ms: 64.529958
+  type: 'test'
+  ...
+# Subtest: original receipt accepts bounded valid utc-string timestamp
+ok 156 - original receipt accepts bounded valid utc-string timestamp
+  ---
+  duration_ms: 326.398083
+  type: 'test'
+  ...
+# Subtest: original receipt accepts bounded valid 64-characters timestamp
+ok 157 - original receipt accepts bounded valid 64-characters timestamp
+  ---
+  duration_ms: 316.340292
+  type: 'test'
+  ...
+# Subtest: receipt shape drift at held-provider cannot acknowledge Context correction
+ok 158 - receipt shape drift at held-provider cannot acknowledge Context correction
+  ---
+  duration_ms: 315.834792
+  type: 'test'
+  ...
+# Subtest: receipt shape drift at final-settlement cannot acknowledge Context correction
+ok 159 - receipt shape drift at final-settlement cannot acknowledge Context correction
+  ---
+  duration_ms: 279.633542
+  type: 'test'
+  ...
+# Subtest: restoring an unedited automatic info Item uses its current human restore, never local creation ACK
+ok 160 - restoring an unedited automatic info Item uses its current human restore, never local creation ACK
+  ---
+  duration_ms: 302.682708
+  type: 'test'
+  ...
+# Subtest: restoring an unedited automatic rules Item uses its current human restore, never local creation ACK
+ok 161 - restoring an unedited automatic rules Item uses its current human restore, never local creation ACK
+  ---
+  duration_ms: 299.776667
+  type: 'test'
+  ...
+# Subtest: restoring an unedited automatic now Item uses its current human restore, never local creation ACK
+ok 162 - restoring an unedited automatic now Item uses its current human restore, never local creation ACK
+  ---
+  duration_ms: 294.668209
+  type: 'test'
+  ...
+# Subtest: current restore rejects missing original deletion receipt before provider
+ok 163 - current restore rejects missing original deletion receipt before provider
+  ---
+  duration_ms: 44.497666
+  type: 'test'
+  ...
+# Subtest: current restore rejects namespace original deletion receipt before provider
+ok 164 - current restore rejects namespace original deletion receipt before provider
+  ---
+  duration_ms: 43.575959
+  type: 'test'
+  ...
+# Subtest: current restore rejects schemaVersion original deletion receipt before provider
+ok 165 - current restore rejects schemaVersion original deletion receipt before provider
+  ---
+  duration_ms: 43.870125
+  type: 'test'
+  ...
+# Subtest: current restore rejects id original deletion receipt before provider
+ok 166 - current restore rejects id original deletion receipt before provider
+  ---
+  duration_ms: 45.539667
+  type: 'test'
+  ...
+# Subtest: current restore rejects owner original deletion receipt before provider
+ok 167 - current restore rejects owner original deletion receipt before provider
+  ---
+  duration_ms: 42.317833
+  type: 'test'
+  ...
+# Subtest: current restore rejects epoch original deletion receipt before provider
+ok 168 - current restore rejects epoch original deletion receipt before provider
+  ---
+  duration_ms: 49.88625
+  type: 'test'
+  ...
+# Subtest: current restore rejects digest original deletion receipt before provider
+ok 169 - current restore rejects digest original deletion receipt before provider
+  ---
+  duration_ms: 46.945042
+  type: 'test'
+  ...
+# Subtest: current restore rejects revision original deletion receipt before provider
+ok 170 - current restore rejects revision original deletion receipt before provider
+  ---
+  duration_ms: 48.801167
+  type: 'test'
+  ...
+# Subtest: current restore rejects future-revision original deletion receipt before provider
+ok 171 - current restore rejects future-revision original deletion receipt before provider
+  ---
+  duration_ms: 48.331208
+  type: 'test'
+  ...
+# Subtest: current restore rejects lifecycle original deletion receipt before provider
+ok 172 - current restore rejects lifecycle original deletion receipt before provider
+  ---
+  duration_ms: 59.511083
+  type: 'test'
+  ...
+# Subtest: current restore rejects deletedBy original deletion receipt before provider
+ok 173 - current restore rejects deletedBy original deletion receipt before provider
+  ---
+  duration_ms: 46.740292
+  type: 'test'
+  ...
+# Subtest: current restore rejects createdAt original deletion receipt before provider
+ok 174 - current restore rejects createdAt original deletion receipt before provider
+  ---
+  duration_ms: 43.510584
+  type: 'test'
+  ...
+# Subtest: current restore rejects unknown original deletion receipt before provider
+ok 175 - current restore rejects unknown original deletion receipt before provider
+  ---
+  duration_ms: 44.921917
+  type: 'test'
+  ...
+# Subtest: current restore rejects undefined-extra original deletion receipt before provider
+ok 176 - current restore rejects undefined-extra original deletion receipt before provider
+  ---
+  duration_ms: 42.917792
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for input-body
+ok 177 - restoration retains original currentness refusal for input-body
+  ---
+  duration_ms: 114.613333
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for input-excluded
+ok 178 - restoration retains original currentness refusal for input-excluded
+  ---
+  duration_ms: 57.906875
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for input-state
+ok 179 - restoration retains original currentness refusal for input-state
+  ---
+  duration_ms: 53.277417
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for source-purge
+ok 180 - restoration retains original currentness refusal for source-purge
+  ---
+  duration_ms: 53.180833
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for source-missing
+ok 181 - restoration retains original currentness refusal for source-missing
+  ---
+  duration_ms: 52.9175
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for source-hidden
+ok 182 - restoration retains original currentness refusal for source-hidden
+  ---
+  duration_ms: 79.712458
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for source-body
+ok 183 - restoration retains original currentness refusal for source-body
+  ---
+  duration_ms: 71.73775
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for context-body
+ok 184 - restoration retains original currentness refusal for context-body
+  ---
+  duration_ms: 109.389541
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for context-order
+ok 185 - restoration retains original currentness refusal for context-order
+  ---
+  duration_ms: 110.649541
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for context-provenance
+ok 186 - restoration retains original currentness refusal for context-provenance
+  ---
+  duration_ms: 98.542458
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for context-delete
+ok 187 - restoration retains original currentness refusal for context-delete
+  ---
+  duration_ms: 50.430459
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for restore
+ok 188 - restoration retains original currentness refusal for restore
+  ---
+  duration_ms: 49.198083
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for legacy-input
+ok 189 - restoration retains original currentness refusal for legacy-input
+  ---
+  duration_ms: 90.522875
+  type: 'test'
+  ...
+# Subtest: restoration retains original currentness refusal for placement
+ok 190 - restoration retains original currentness refusal for placement
+  ---
+  duration_ms: 51.106333
+  type: 'test'
+  ...
+# Subtest: original restore preparer cannot mint from missing-removal removal authority
+ok 191 - original restore preparer cannot mint from missing-removal removal authority
+  ---
+  duration_ms: 48.439
+  type: 'test'
+  ...
+# Subtest: original restore preparer cannot mint from wrong-owner removal authority
+ok 192 - original restore preparer cannot mint from wrong-owner removal authority
+  ---
+  duration_ms: 51.645875
+  type: 'test'
+  ...
+# Subtest: original restore preparer cannot mint from wrong-revision removal authority
+ok 193 - original restore preparer cannot mint from wrong-revision removal authority
+  ---
+  duration_ms: 47.740375
+  type: 'test'
+  ...
+# Subtest: original restore preparer cannot mint from fake-active removal authority
+ok 194 - original restore preparer cannot mint from fake-active removal authority
+  ---
+  duration_ms: 46.5835
+  type: 'test'
+  ...
+# Subtest: original restore preparer cannot mint from another-item removal authority
+ok 195 - original restore preparer cannot mint from another-item removal authority
+  ---
+  duration_ms: 57.3195
+  type: 'test'
+  ...
+# Subtest: original restore preparer cannot mint from other-source removal authority
+ok 196 - original restore preparer cannot mint from other-source removal authority
+  ---
+  duration_ms: 45.119791
+  type: 'test'
+  ...
+# Subtest: duplicate human restoration keeps its original receipt and settles exact Context at most once
+ok 197 - duplicate human restoration keeps its original receipt and settles exact Context at most once
+  ---
+  duration_ms: 304.552708
+  type: 'test'
+  ...
+# Subtest: last restoration authority await cannot publish removal-receipt drift
+ok 198 - last restoration authority await cannot publish removal-receipt drift
+  ---
+  duration_ms: 279.818541
+  type: 'test'
+  ...
+# Subtest: last restoration authority await cannot publish restore-receipt drift
+ok 199 - last restoration authority await cannot publish restore-receipt drift
+  ---
+  duration_ms: 283.0085
+  type: 'test'
+  ...
+# Subtest: last restoration authority await cannot publish body drift
+ok 200 - last restoration authority await cannot publish body drift
+  ---
+  duration_ms: 284.979709
+  type: 'test'
+  ...
+# Subtest: last restoration authority await cannot publish source drift
+ok 201 - last restoration authority await cannot publish source drift
+  ---
+  duration_ms: 278.609417
+  type: 'test'
+  ...
+# Subtest: last restoration authority await cannot publish revoke drift
+ok 202 - last restoration authority await cannot publish revoke drift
+  ---
+  duration_ms: 278.942083
+  type: 'test'
+  ...
+# Subtest: a valid deletion receipt cannot authorize changed human body before restoration
+ok 203 - a valid deletion receipt cannot authorize changed human body before restoration
+  ---
+  duration_ms: 57.989875
+  type: 'test'
+  ...
+# Subtest: restore refuses missing-legacy-proof removal witness instead of guessing historical completion
+ok 204 - restore refuses missing-legacy-proof removal witness instead of guessing historical completion
+  ---
+  duration_ms: 43.862917
+  type: 'test'
+  ...
+# Subtest: restore refuses digest removal witness instead of guessing historical completion
+ok 205 - restore refuses digest removal witness instead of guessing historical completion
+  ---
+  duration_ms: 44.41875
+  type: 'test'
+  ...
+# Subtest: restore refuses revision removal witness instead of guessing historical completion
+ok 206 - restore refuses revision removal witness instead of guessing historical completion
+  ---
+  duration_ms: 42.128209
+  type: 'test'
+  ...
+# Subtest: restore refuses receipt removal witness instead of guessing historical completion
+ok 207 - restore refuses receipt removal witness instead of guessing historical completion
+  ---
+  duration_ms: 45.456167
+  type: 'test'
+  ...
+# Subtest: restore refuses epoch removal witness instead of guessing historical completion
+ok 208 - restore refuses epoch removal witness instead of guessing historical completion
+  ---
+  duration_ms: 45.80175
+  type: 'test'
+  ...
+# Subtest: restore refuses unknown removal witness instead of guessing historical completion
+ok 209 - restore refuses unknown removal witness instead of guessing historical completion
+  ---
+  duration_ms: 73.038958
+  type: 'test'
+  ...
+# Subtest: restore refuses other-item removal witness instead of guessing historical completion
+ok 210 - restore refuses other-item removal witness instead of guessing historical completion
+  ---
+  duration_ms: 81.811125
+  type: 'test'
+  ...
+# Subtest: the same deletion receipt cannot authenticate another live Source lineage before restore
+ok 211 - the same deletion receipt cannot authenticate another live Source lineage before restore
+  ---
+  duration_ms: 69.173625
+  type: 'test'
+  ...
+# Subtest: original delete digest await cannot mint after body drift
+ok 212 - original delete digest await cannot mint after body drift
+  ---
+  duration_ms: 43.155042
+  type: 'test'
+  ...
+# Subtest: original delete digest await cannot mint after order drift
+ok 213 - original delete digest await cannot mint after order drift
+  ---
+  duration_ms: 45.29725
+  type: 'test'
+  ...
+# Subtest: original restore digest await cannot mint after body drift
+ok 214 - original restore digest await cannot mint after body drift
+  ---
+  duration_ms: 43.28475
+  type: 'test'
+  ...
+# Subtest: original restore digest await cannot mint after receipt drift
+ok 215 - original restore digest await cannot mint after receipt drift
+  ---
+  duration_ms: 45.811583
+  type: 'test'
+  ...
+# Subtest: original restore digest await cannot mint after witness drift
+ok 216 - original restore digest await cannot mint after witness drift
+  ---
+  duration_ms: 44.285417
+  type: 'test'
+  ...
+# Subtest: held restoration provider cannot settle body drift or replay
+ok 217 - held restoration provider cannot settle body drift or replay
+  ---
+  duration_ms: 275.216042
+  type: 'test'
+  ...
+# Subtest: held restoration provider cannot settle removal-receipt drift or replay
+ok 218 - held restoration provider cannot settle removal-receipt drift or replay
+  ---
+  duration_ms: 274.291292
+  type: 'test'
+  ...
+# Subtest: held restoration provider cannot settle source drift or replay
+ok 219 - held restoration provider cannot settle source drift or replay
+  ---
+  duration_ms: 237.406333
+  type: 'test'
+  ...
+# Subtest: held restoration provider cannot settle revoke drift or replay
+ok 220 - held restoration provider cannot settle revoke drift or replay
+  ---
+  duration_ms: 265.787875
+  type: 'test'
+  ...
+# Subtest: restoration witnesses and both human receipts remain nonportable metadata, not Sync grants
+ok 221 - restoration witnesses and both human receipts remain nonportable metadata, not Sync grants
+  ---
+  duration_ms: 39.246125
+  type: 'test'
+  ...
+# Subtest: restoration needs independent denied authority and never locally settles
+ok 222 - restoration needs independent denied authority and never locally settles
+  ---
+  duration_ms: 49.184125
+  type: 'test'
+  ...
+# Subtest: restoration needs independent original-input-denied authority and never locally settles
+ok 223 - restoration needs independent original-input-denied authority and never locally settles
+  ---
+  duration_ms: 58.279084
+  type: 'test'
+  ...
+# Subtest: restoration needs independent missing-context authority and never locally settles
+ok 224 - restoration needs independent missing-context authority and never locally settles
+  ---
+  duration_ms: 48.255083
+  type: 'test'
+  ...
+# Subtest: restoration needs independent missing-input authority and never locally settles
+ok 225 - restoration needs independent missing-input authority and never locally settles
+  ---
+  duration_ms: 49.00825
+  type: 'test'
+  ...
+# Subtest: restoration needs independent wrong-removal-proof authority and never locally settles
+ok 226 - restoration needs independent wrong-removal-proof authority and never locally settles
+  ---
+  duration_ms: 54.829792
+  type: 'test'
+  ...
+# Subtest: old same-Item deletion digest cannot replace the next adjacent removal revision
+ok 227 - old same-Item deletion digest cannot replace the next adjacent removal revision
+  ---
+  duration_ms: 46.330709
+  type: 'test'
+  ...
+# Subtest: restore digest await rejects undefined-extra receipt shape drift
+ok 228 - restore digest await rejects undefined-extra receipt shape drift
+  ---
+  duration_ms: 42.724917
+  type: 'test'
+  ...
+# Subtest: restore digest await rejects undefined-extra witness shape drift
+ok 229 - restore digest await rejects undefined-extra witness shape drift
+  ---
+  duration_ms: 44.016541
+  type: 'test'
+  ...
+# Subtest: temporal Context edit expired reconciles through original protected owner without changing time metadata
+ok 230 - temporal Context edit expired reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 296.329625
+  type: 'test'
+  ...
+# Subtest: temporal Context edit future reconciles through original protected owner without changing time metadata
+ok 231 - temporal Context edit future reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 300.696
+  type: 'test'
+  ...
+# Subtest: temporal Context edit unknown reconciles through original protected owner without changing time metadata
+ok 232 - temporal Context edit unknown reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 306.548417
+  type: 'test'
+  ...
+# Subtest: temporal Context restore expired reconciles through original protected owner without changing time metadata
+ok 233 - temporal Context restore expired reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 304.187334
+  type: 'test'
+  ...
+# Subtest: temporal Context restore future reconciles through original protected owner without changing time metadata
+ok 234 - temporal Context restore future reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 308.043833
+  type: 'test'
+  ...
+# Subtest: temporal Context restore unknown reconciles through original protected owner without changing time metadata
+ok 235 - temporal Context restore unknown reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 300.886166
+  type: 'test'
+  ...
+# Subtest: temporal correction before rejects deadline and retains the original obligation
+ok 236 - temporal correction before rejects deadline and retains the original obligation
+  ---
+  duration_ms: 114.785625
+  type: 'test'
+  ...
+# Subtest: temporal correction before rejects temporal-scope and retains the original obligation
+ok 237 - temporal correction before rejects temporal-scope and retains the original obligation
+  ---
+  duration_ms: 106.308
+  type: 'test'
+  ...
+# Subtest: temporal correction before rejects receipt and retains the original obligation
+ok 238 - temporal correction before rejects receipt and retains the original obligation
+  ---
+  duration_ms: 41.714708
+  type: 'test'
+  ...
+# Subtest: temporal correction before rejects source-purge and retains the original obligation
+ok 239 - temporal correction before rejects source-purge and retains the original obligation
+  ---
+  duration_ms: 41.180584
+  type: 'test'
+  ...
+# Subtest: temporal correction before rejects revoke and retains the original obligation
+ok 240 - temporal correction before rejects revoke and retains the original obligation
+  ---
+  duration_ms: 43.724042
+  type: 'test'
+  ...
+# Subtest: temporal correction response rejects deadline and retains the original obligation
+ok 241 - temporal correction response rejects deadline and retains the original obligation
+  ---
+  duration_ms: 262.494875
+  type: 'test'
+  ...
+# Subtest: temporal correction response rejects temporal-scope and retains the original obligation
+ok 242 - temporal correction response rejects temporal-scope and retains the original obligation
+  ---
+  duration_ms: 259.662958
+  type: 'test'
+  ...
+# Subtest: temporal correction response rejects receipt and retains the original obligation
+ok 243 - temporal correction response rejects receipt and retains the original obligation
+  ---
+  duration_ms: 272.675458
+  type: 'test'
+  ...
+# Subtest: temporal correction response rejects source-purge and retains the original obligation
+ok 244 - temporal correction response rejects source-purge and retains the original obligation
+  ---
+  duration_ms: 229.837792
+  type: 'test'
+  ...
+# Subtest: temporal correction response rejects revoke and retains the original obligation
+ok 245 - temporal correction response rejects revoke and retains the original obligation
+  ---
+  duration_ms: 216.605125
+  type: 'test'
+  ...
+# Subtest: temporal correction settlement rejects deadline and retains the original obligation
+ok 246 - temporal correction settlement rejects deadline and retains the original obligation
+  ---
+  duration_ms: 270.1675
+  type: 'test'
+  ...
+# Subtest: temporal correction settlement rejects temporal-scope and retains the original obligation
+ok 247 - temporal correction settlement rejects temporal-scope and retains the original obligation
+  ---
+  duration_ms: 272.021458
+  type: 'test'
+  ...
+# Subtest: temporal correction settlement rejects receipt and retains the original obligation
+ok 248 - temporal correction settlement rejects receipt and retains the original obligation
+  ---
+  duration_ms: 257.907833
+  type: 'test'
+  ...
+# Subtest: temporal correction settlement rejects source-purge and retains the original obligation
+ok 249 - temporal correction settlement rejects source-purge and retains the original obligation
+  ---
+  duration_ms: 266.035708
+  type: 'test'
+  ...
+# Subtest: temporal correction settlement rejects revoke and retains the original obligation
+ok 250 - temporal correction settlement rejects revoke and retains the original obligation
+  ---
+  duration_ms: 265.9085
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects deadline and retains the original obligation
+ok 251 - temporal correction backup rejects deadline and retains the original obligation
+  ---
+  duration_ms: 292.284084
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects temporal-scope and retains the original obligation
+ok 252 - temporal correction backup rejects temporal-scope and retains the original obligation
+  ---
+  duration_ms: 272.496208
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects receipt and retains the original obligation
+ok 253 - temporal correction backup rejects receipt and retains the original obligation
+  ---
+  duration_ms: 309.776584
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects source-purge and retains the original obligation
+ok 254 - temporal correction backup rejects source-purge and retains the original obligation
+  ---
+  duration_ms: 277.409667
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects revoke and retains the original obligation
+ok 255 - temporal correction backup rejects revoke and retains the original obligation
+  ---
+  duration_ms: 294.638666
+  type: 'test'
+  ...
+# Subtest: temporal correction ACK abort rolls back and retries the same physical response
+ok 256 - temporal correction ACK abort rolls back and retries the same physical response
+  ---
+  duration_ms: 340.205042
+  type: 'test'
+  ...
+# Subtest: temporal correction cannot borrow context-field authorization
+ok 257 - temporal correction cannot borrow context-field authorization
+  ---
+  duration_ms: 42.831416
+  type: 'test'
+  ...
+# Subtest: temporal correction cannot borrow input-field authorization
+ok 258 - temporal correction cannot borrow input-field authorization
+  ---
+  duration_ms: 44.00375
+  type: 'test'
+  ...
+# Subtest: temporal correction cannot borrow processing authorization
+ok 259 - temporal correction cannot borrow processing authorization
+  ---
+  duration_ms: 41.363083
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects input-body after backup generation is staged
+ok 260 - closed Context correction fence rejects input-body after backup generation is staged
+  ---
+  duration_ms: 283.201083
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects input-excluded after backup generation is staged
+ok 261 - closed Context correction fence rejects input-excluded after backup generation is staged
+  ---
+  duration_ms: 271.109
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects input-state after backup generation is staged
+ok 262 - closed Context correction fence rejects input-state after backup generation is staged
+  ---
+  duration_ms: 343.822542
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects source-purge after backup generation is staged
+ok 263 - closed Context correction fence rejects source-purge after backup generation is staged
+  ---
+  duration_ms: 557.882
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects source-missing after backup generation is staged
+ok 264 - closed Context correction fence rejects source-missing after backup generation is staged
+  ---
+  duration_ms: 356.497667
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects source-hidden after backup generation is staged
+ok 265 - closed Context correction fence rejects source-hidden after backup generation is staged
+  ---
+  duration_ms: 274.488833
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects source-body after backup generation is staged
+ok 266 - closed Context correction fence rejects source-body after backup generation is staged
+  ---
+  duration_ms: 278.788417
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects context-body after backup generation is staged
+ok 267 - closed Context correction fence rejects context-body after backup generation is staged
+  ---
+  duration_ms: 284.667792
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects context-order after backup generation is staged
+ok 268 - closed Context correction fence rejects context-order after backup generation is staged
+  ---
+  duration_ms: 294.323959
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects context-provenance after backup generation is staged
+ok 269 - closed Context correction fence rejects context-provenance after backup generation is staged
+  ---
+  duration_ms: 282.290917
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects context-delete after backup generation is staged
+ok 270 - closed Context correction fence rejects context-delete after backup generation is staged
+  ---
+  duration_ms: 294.567041
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects receipt after backup generation is staged
+ok 271 - closed Context correction fence rejects receipt after backup generation is staged
+  ---
+  duration_ms: 281.562792
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects restore after backup generation is staged
+ok 272 - closed Context correction fence rejects restore after backup generation is staged
+  ---
+  duration_ms: 274.647667
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects legacy-input after backup generation is staged
+ok 273 - closed Context correction fence rejects legacy-input after backup generation is staged
+  ---
+  duration_ms: 291.28625
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects placement after backup generation is staged
+ok 274 - closed Context correction fence rejects placement after backup generation is staged
+  ---
+  duration_ms: 280.31575
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects revoke after backup generation is staged
+ok 275 - closed Context correction fence rejects revoke after backup generation is staged
+  ---
+  duration_ms: 266.022125
+  type: 'test'
+  ...
+# Subtest: closed restored Context fence rejects legacy-same-count collection substitution
+ok 276 - closed restored Context fence rejects legacy-same-count collection substitution
+  ---
+  duration_ms: 338.940666
+  type: 'test'
+  ...
+# Subtest: closed restored Context fence rejects membership-added collection substitution
+ok 277 - closed restored Context fence rejects membership-added collection substitution
+  ---
+  duration_ms: 282.899292
+  type: 'test'
+  ...
+# Subtest: closed restored Context fence rejects removal-receipt collection substitution
+ok 278 - closed restored Context fence rejects removal-receipt collection substitution
+  ---
+  duration_ms: 282.367
+  type: 'test'
+  ...
+# Subtest: complete body and note Context edit retains exact original fields with independent note permission
+ok 279 - complete body and note Context edit retains exact original fields with independent note permission
+  ---
+  duration_ms: 286.979333
+  type: 'test'
+  ...
+# Subtest: complete body and note Context restore retains exact original fields with independent note permission
+ok 280 - complete body and note Context restore retains exact original fields with independent note permission
+  ---
+  duration_ms: 284.474333
+  type: 'test'
+  ...
+# Subtest: exact body+note correction refuses independent note grant loss before selected note hashing
+ok 281 - exact body+note correction refuses independent note grant loss before selected note hashing
+  ---
+  duration_ms: 43.548375
+  type: 'test'
+  ...
+# Subtest: exact body+note correction refuses independent context grant loss before selected note hashing
+ok 282 - exact body+note correction refuses independent context grant loss before selected note hashing
+  ---
+  duration_ms: 52.162167
+  type: 'test'
+  ...
+# Subtest: exact body+note correction refuses independent extra-input grant loss before selected note hashing
+ok 283 - exact body+note correction refuses independent extra-input grant loss before selected note hashing
+  ---
+  duration_ms: 45.561042
+  type: 'test'
+  ...
+# Subtest: exact body+note correction refuses independent processing grant loss before selected note hashing
+ok 284 - exact body+note correction refuses independent processing grant loss before selected note hashing
+  ---
+  duration_ms: 43.745583
+  type: 'test'
+  ...
+# Subtest: exact note correction refuses independent note grant loss before selected note hashing
+ok 285 - exact note correction refuses independent note grant loss before selected note hashing
+  ---
+  duration_ms: 41.898625
+  type: 'test'
+  ...
+# Subtest: exact note correction refuses independent context grant loss before selected note hashing
+ok 286 - exact note correction refuses independent context grant loss before selected note hashing
+  ---
+  duration_ms: 41.95675
+  type: 'test'
+  ...
+# Subtest: exact note correction refuses independent extra-input grant loss before selected note hashing
+ok 287 - exact note correction refuses independent extra-input grant loss before selected note hashing
+  ---
+  duration_ms: 42.463917
+  type: 'test'
+  ...
+# Subtest: exact note correction refuses independent processing grant loss before selected note hashing
+ok 288 - exact note correction refuses independent processing grant loss before selected note hashing
+  ---
+  duration_ms: 40.286083
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage before rejects note without a Context ACK
+ok 289 - complete body+note lineage before rejects note without a Context ACK
+  ---
+  duration_ms: 93.869959
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage before rejects source-purge without a Context ACK
+ok 290 - complete body+note lineage before rejects source-purge without a Context ACK
+  ---
+  duration_ms: 38.358583
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage before rejects receipt without a Context ACK
+ok 291 - complete body+note lineage before rejects receipt without a Context ACK
+  ---
+  duration_ms: 36.777708
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage before rejects revoke without a Context ACK
+ok 292 - complete body+note lineage before rejects revoke without a Context ACK
+  ---
+  duration_ms: 40.152417
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage provider rejects note without a Context ACK
+ok 293 - complete body+note lineage provider rejects note without a Context ACK
+  ---
+  duration_ms: 239.058125
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage provider rejects source-purge without a Context ACK
+ok 294 - complete body+note lineage provider rejects source-purge without a Context ACK
+  ---
+  duration_ms: 216.415
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage provider rejects receipt without a Context ACK
+ok 295 - complete body+note lineage provider rejects receipt without a Context ACK
+  ---
+  duration_ms: 241.156542
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage provider rejects revoke without a Context ACK
+ok 296 - complete body+note lineage provider rejects revoke without a Context ACK
+  ---
+  duration_ms: 213.143125
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage settlement rejects note without a Context ACK
+ok 297 - complete body+note lineage settlement rejects note without a Context ACK
+  ---
+  duration_ms: 257.191416
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage settlement rejects source-purge without a Context ACK
+ok 298 - complete body+note lineage settlement rejects source-purge without a Context ACK
+  ---
+  duration_ms: 260.418792
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage settlement rejects receipt without a Context ACK
+ok 299 - complete body+note lineage settlement rejects receipt without a Context ACK
+  ---
+  duration_ms: 257.422375
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage settlement rejects revoke without a Context ACK
+ok 300 - complete body+note lineage settlement rejects revoke without a Context ACK
+  ---
+  duration_ms: 256.661
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage backup rejects note without a Context ACK
+ok 301 - complete body+note lineage backup rejects note without a Context ACK
+  ---
+  duration_ms: 350.091625
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage backup rejects source-purge without a Context ACK
+ok 302 - complete body+note lineage backup rejects source-purge without a Context ACK
+  ---
+  duration_ms: 281.64375
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage backup rejects receipt without a Context ACK
+ok 303 - complete body+note lineage backup rejects receipt without a Context ACK
+  ---
+  duration_ms: 316.033333
+  type: 'test'
+  ...
+# Subtest: complete body+note lineage backup rejects revoke without a Context ACK
+ok 304 - complete body+note lineage backup rejects revoke without a Context ACK
+  ---
+  duration_ms: 284.049625
+  type: 'test'
+  ...
+# Subtest: complete note lineage before rejects note without a Context ACK
+ok 305 - complete note lineage before rejects note without a Context ACK
+  ---
+  duration_ms: 102.3525
+  type: 'test'
+  ...
+# Subtest: complete note lineage before rejects source-purge without a Context ACK
+ok 306 - complete note lineage before rejects source-purge without a Context ACK
+  ---
+  duration_ms: 40.062542
+  type: 'test'
+  ...
+# Subtest: complete note lineage before rejects receipt without a Context ACK
+ok 307 - complete note lineage before rejects receipt without a Context ACK
+  ---
+  duration_ms: 39.082875
+  type: 'test'
+  ...
+# Subtest: complete note lineage before rejects revoke without a Context ACK
+ok 308 - complete note lineage before rejects revoke without a Context ACK
+  ---
+  duration_ms: 43.687708
+  type: 'test'
+  ...
+# Subtest: complete note lineage provider rejects note without a Context ACK
+ok 309 - complete note lineage provider rejects note without a Context ACK
+  ---
+  duration_ms: 260.908167
+  type: 'test'
+  ...
+# Subtest: complete note lineage provider rejects source-purge without a Context ACK
+ok 310 - complete note lineage provider rejects source-purge without a Context ACK
+  ---
+  duration_ms: 222.336958
+  type: 'test'
+  ...
+# Subtest: complete note lineage provider rejects receipt without a Context ACK
+ok 311 - complete note lineage provider rejects receipt without a Context ACK
+  ---
+  duration_ms: 242.47275
+  type: 'test'
+  ...
+# Subtest: complete note lineage provider rejects revoke without a Context ACK
+ok 312 - complete note lineage provider rejects revoke without a Context ACK
+  ---
+  duration_ms: 209.499917
+  type: 'test'
+  ...
+# Subtest: complete note lineage settlement rejects note without a Context ACK
+ok 313 - complete note lineage settlement rejects note without a Context ACK
+  ---
+  duration_ms: 260.66325
+  type: 'test'
+  ...
+# Subtest: complete note lineage settlement rejects source-purge without a Context ACK
+ok 314 - complete note lineage settlement rejects source-purge without a Context ACK
+  ---
+  duration_ms: 261.5965
+  type: 'test'
+  ...
+# Subtest: complete note lineage settlement rejects receipt without a Context ACK
+ok 315 - complete note lineage settlement rejects receipt without a Context ACK
+  ---
+  duration_ms: 262.159875
+  type: 'test'
+  ...
+# Subtest: complete note lineage settlement rejects revoke without a Context ACK
+ok 316 - complete note lineage settlement rejects revoke without a Context ACK
+  ---
+  duration_ms: 268.363291
+  type: 'test'
+  ...
+# Subtest: complete note lineage backup rejects note without a Context ACK
+ok 317 - complete note lineage backup rejects note without a Context ACK
+  ---
+  duration_ms: 302.9215
+  type: 'test'
+  ...
+# Subtest: complete note lineage backup rejects source-purge without a Context ACK
+ok 318 - complete note lineage backup rejects source-purge without a Context ACK
+  ---
+  duration_ms: 270.291458
+  type: 'test'
+  ...
+# Subtest: complete note lineage backup rejects receipt without a Context ACK
+ok 319 - complete note lineage backup rejects receipt without a Context ACK
+  ---
+  duration_ms: 268.784292
+  type: 'test'
+  ...
+# Subtest: complete note lineage backup rejects revoke without a Context ACK
+ok 320 - complete note lineage backup rejects revoke without a Context ACK
+  ---
+  duration_ms: 270.339334
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete body+note correction none
+ok 321 - original source response adapter carries complete body+note correction none
+  ---
+  duration_ms: 302.331416
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete body+note correction foreign-item
+ok 322 - original source response adapter carries complete body+note correction foreign-item
+  ---
+  duration_ms: 264.287417
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete body+note correction unknown-field
+ok 323 - original source response adapter carries complete body+note correction unknown-field
+  ---
+  duration_ms: 242.863292
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete note correction none
+ok 324 - original source response adapter carries complete note correction none
+  ---
+  duration_ms: 291.027041
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete note correction foreign-item
+ok 325 - original source response adapter carries complete note correction foreign-item
+  ---
+  duration_ms: 218.95025
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete note correction unknown-field
+ok 326 - original source response adapter carries complete note correction unknown-field
+  ---
+  duration_ms: 212.106459
+  type: 'test'
+  ...
+# Subtest: complete body+note correction ACK failure retries one physical response with unchanged human fields
+ok 327 - complete body+note correction ACK failure retries one physical response with unchanged human fields
+  ---
+  duration_ms: 346.292084
+  type: 'test'
+  ...
+# Subtest: complete note correction ACK failure retries one physical response with unchanged human fields
+ok 328 - complete note correction ACK failure retries one physical response with unchanged human fields
+  ---
+  duration_ms: 328.584333
+  type: 'test'
+  ...
+# Subtest: note-only original Context edit sends only its independently selected note field
+ok 329 - note-only original Context edit sends only its independently selected note field
+  ---
+  duration_ms: 271.465583
+  type: 'test'
+  ...
+# Subtest: note-only original Context restore sends only its independently selected note field
+ok 330 - note-only original Context restore sends only its independently selected note field
+  ---
+  duration_ms: 287.065292
+  type: 'test'
+  ...
+# Subtest: plain Input correction tail retains original current Section eligibility
+ok 331 - plain Input correction tail retains original current Section eligibility
+  ---
+  duration_ms: 265.244834
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: context-access
+ok 332 - Context correction closes original scope metadata at native tail: context-access
+  ---
+  duration_ms: 270.020083
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: name-registry
+ok 333 - Context correction closes original scope metadata at native tail: name-registry
+  ---
+  duration_ms: 277.388666
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: binding
+ok 334 - Context correction closes original scope metadata at native tail: binding
+  ---
+  duration_ms: 276.546917
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: library
+ok 335 - Context correction closes original scope metadata at native tail: library
+  ---
+  duration_ms: 267.178459
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: root-sequence
+ok 336 - Context correction closes original scope metadata at native tail: root-sequence
+  ---
+  duration_ms: 267.289208
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: none
+ok 337 - Context correction seals complete original shared scope: none
+  ---
+  duration_ms: 281.683875
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-topic
+ok 338 - Context correction seals complete original shared scope: related-topic
+  ---
+  duration_ms: 295.0865
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-section
+ok 339 - Context correction seals complete original shared scope: related-section
+  ---
+  duration_ms: 286.5445
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-registry
+ok 340 - Context correction seals complete original shared scope: related-registry
+  ---
+  duration_ms: 289.302
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: related-receipt
+ok 341 - Context correction seals complete original shared scope: related-receipt
+  ---
+  duration_ms: 295.341416
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: dependency-set
+ok 342 - Context correction seals complete original shared scope: dependency-set
+  ---
+  duration_ms: 298.465125
+  type: 'test'
+  ...
+# Subtest: Context correction seals complete original shared scope: provenance-set
+ok 343 - Context correction seals complete original shared scope: provenance-set
+  ---
+  duration_ms: 294.213875
+  type: 'test'
+  ...
+# Subtest: authored baseline uses the original Context transaction and exact ACK with zero fake Input/Source
+ok 344 - authored baseline uses the original Context transaction and exact ACK with zero fake Input/Source
+  ---
+  duration_ms: 503.551083
+  type: 'test'
+  ...
+# Subtest: body-only edits retain actual birth, body revision and latest operation across coalesced placement revisions
+ok 345 - body-only edits retain actual birth, body revision and latest operation across coalesced placement revisions
+  ---
+  duration_ms: 315.463875
+  type: 'test'
+  ...
+# Subtest: authored qualification handles title
+ok 346 - authored qualification handles title
+  ---
+  duration_ms: 279.258125
+  type: 'test'
+  ...
+# Subtest: authored qualification handles note
+ok 347 - authored qualification handles note
+  ---
+  duration_ms: 268.29825
+  type: 'test'
+  ...
+# Subtest: authored qualification handles type
+ok 348 - authored qualification handles type
+  ---
+  duration_ms: 76.813875
+  type: 'test'
+  ...
+# Subtest: authored qualification handles mixed
+ok 349 - authored qualification handles mixed
+  ---
+  duration_ms: 246.737125
+  type: 'test'
+  ...
+# Subtest: authored qualification handles no-membership
+ok 350 - authored qualification handles no-membership
+  ---
+  duration_ms: 73.30275
+  type: 'test'
+  ...
+# Subtest: authored qualification handles duplicate-membership
+ok 351 - authored qualification handles duplicate-membership
+  ---
+  duration_ms: 98.591709
+  type: 'test'
+  ...
+# Subtest: authored qualification handles body-operation
+ok 352 - authored qualification handles body-operation
+  ---
+  duration_ms: 76.951708
+  type: 'test'
+  ...
+# Subtest: authored qualification handles birth
+ok 353 - authored qualification handles birth
+  ---
+  duration_ms: 66.94525
+  type: 'test'
+  ...
+# Subtest: authored qualification handles field-revision
+ok 354 - authored qualification handles field-revision
+  ---
+  duration_ms: 68.617
+  type: 'test'
+  ...
+# Subtest: authored qualification handles provenance
+ok 355 - authored qualification handles provenance
+  ---
+  duration_ms: 69.921208
+  type: 'test'
+  ...
+# Subtest: authored qualification handles dependency
+ok 356 - authored qualification handles dependency
+  ---
+  duration_ms: 71.705625
+  type: 'test'
+  ...
+# Subtest: denied selected authored-body processing precedes material hashing and dispatch
+ok 357 - denied selected authored-body processing precedes material hashing and dispatch
+  ---
+  duration_ms: 104.312958
+  type: 'test'
+  ...
+# Subtest: native-owner ACK failure rolls back Context and resumes the retained response without another physical attempt
+ok 358 - native-owner ACK failure rolls back Context and resumes the retained response without another physical attempt
+  ---
+  duration_ms: 420.950125
+  type: 'test'
+  ...
+# Subtest: remove and restore plus A to B to A cannot resurrect old authored lineage
+ok 359 - remove and restore plus A to B to A cannot resurrect old authored lineage
+  ---
+  duration_ms: 248.826625
+  type: 'test'
+  ...
+# Subtest: transaction fence detects unjournaled authored body drift after hashing
+ok 360 - transaction fence detects unjournaled authored body drift after hashing
+  ---
+  duration_ms: 43.571333
+  type: 'test'
+  ...
+# Subtest: unknown authored physical response never replays or exposes durable body material
+ok 361 - unknown authored physical response never replays or exposes durable body material
+  ---
+  duration_ms: 175.238416
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects denied before any authored body hash
+ok 362 - authored selected-fields grant rejects denied before any authored body hash
+  ---
+  duration_ms: 103.15675
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects dropped before any authored body hash
+ok 363 - authored selected-fields grant rejects dropped before any authored body hash
+  ---
+  duration_ms: 103.416125
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects wrong-entry before any authored body hash
+ok 364 - authored selected-fields grant rejects wrong-entry before any authored body hash
+  ---
+  duration_ms: 101.766125
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects note-only before any authored body hash
+ok 365 - authored selected-fields grant rejects note-only before any authored body hash
+  ---
+  duration_ms: 104.724917
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects extra before any authored body hash
+ok 366 - authored selected-fields grant rejects extra before any authored body hash
+  ---
+  duration_ms: 127.405625
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field dropped rather than ignoring it
+ok 367 - original Context scope refuses authored-field dropped rather than ignoring it
+  ---
+  duration_ms: 175.121291
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field wrong-entry rather than ignoring it
+ok 368 - original Context scope refuses authored-field wrong-entry rather than ignoring it
+  ---
+  duration_ms: 194.018125
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field note-only rather than ignoring it
+ok 369 - original Context scope refuses authored-field note-only rather than ignoring it
+  ---
+  duration_ms: 172.977916
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field extra rather than ignoring it
+ok 370 - original Context scope refuses authored-field extra rather than ignoring it
+  ---
+  duration_ms: 168.044333
+  type: 'test'
+  ...
+# Subtest: authored helper proves all 4096 memberships, charges the original budget, and refuses overflow or incomplete pages
+ok 371 - authored helper proves all 4096 memberships, charges the original budget, and refuses overflow or incomplete pages
+  ---
+  duration_ms: 1740.893209
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects inputId
+ok 372 - typed authored lineage rejects inputId
+  ---
+  duration_ms: 18.992416
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects sourceRecordIds
+ok 373 - typed authored lineage rejects sourceRecordIds
+  ---
+  duration_ms: 19.926375
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects selected-note
+ok 374 - typed authored lineage rejects selected-note
+  ---
+  duration_ms: 19.897125
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects fake-birth
+ok 375 - typed authored lineage rejects fake-birth
+  ---
+  duration_ms: 23.780875
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects fake-membership
+ok 376 - typed authored lineage rejects fake-membership
+  ---
+  duration_ms: 23.076042
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: none
+ok 377 - source purge shortcut proves authored source freedom: none
+  ---
+  duration_ms: 143.560542
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: dependency
+ok 378 - source purge shortcut proves authored source freedom: dependency
+  ---
+  duration_ms: 144.472875
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: provenance
+ok 379 - source purge shortcut proves authored source freedom: provenance
+  ---
+  duration_ms: 152.742958
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: fake-source-free
+ok 380 - source purge shortcut proves authored source freedom: fake-source-free
+  ---
+  duration_ms: 139.9315
+  type: 'test'
+  ...
+# Subtest: authored hash race rechecks body and journal before any physical request
+ok 381 - authored hash race rechecks body and journal before any physical request
+  ---
+  duration_ms: 63.598583
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late raw-body after excerpt acquisition
+ok 382 - authored basis final fence refuses late raw-body after excerpt acquisition
+  ---
+  duration_ms: 185.057542
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late owner-body after excerpt acquisition
+ok 383 - authored basis final fence refuses late owner-body after excerpt acquisition
+  ---
+  duration_ms: 195.091917
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late raw-membership after excerpt acquisition
+ok 384 - authored basis final fence refuses late raw-membership after excerpt acquisition
+  ---
+  duration_ms: 185.202958
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late owner-membership after excerpt acquisition
+ok 385 - authored basis final fence refuses late owner-membership after excerpt acquisition
+  ---
+  duration_ms: 177.889417
+  type: 'test'
+  ...
+# Subtest: authored recorded-read-failure distinguishes resumable material from unknown physical outcome
+ok 386 - authored recorded-read-failure distinguishes resumable material from unknown physical outcome
+  ---
+  duration_ms: 141.442291
+  type: 'test'
+  ...
+# Subtest: authored receipt-abort distinguishes resumable material from unknown physical outcome
+ok 387 - authored receipt-abort distinguishes resumable material from unknown physical outcome
+  ---
+  duration_ms: 131.573042
+  type: 'test'
+  ...
+# Subtest: existing-file replacement keeps authored Context history but cannot revive its old restore epoch
+ok 388 - existing-file replacement keeps authored Context history but cannot revive its old restore epoch
+  ---
+  duration_ms: 183.93575
+  type: 'test'
+  ...
+# Subtest: fresh real-owner authored lifecycle restore commits exact Context after birth
+ok 389 - fresh real-owner authored lifecycle restore commits exact Context after birth
+  ---
+  duration_ms: 179.381083
+  type: 'test'
+  ...
+# Subtest: fresh real-owner authored lifecycle restore commits exact Context after body edit
+ok 390 - fresh real-owner authored lifecycle restore commits exact Context after body edit
+  ---
+  duration_ms: 192.001625
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses reason
+ok 391 - restored authored authority refuses reason
+  ---
+  duration_ms: 52.89025
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses mask
+ok 392 - restored authored authority refuses mask
+  ---
+  duration_ms: 51.715917
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses masqueraded-edit
+ok 393 - restored authored authority refuses masqueraded-edit
+  ---
+  duration_ms: 62.763334
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses masqueraded-active-edit
+ok 394 - restored authored authority refuses masqueraded-active-edit
+  ---
+  duration_ms: 50.396084
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses important
+ok 395 - restored authored authority refuses important
+  ---
+  duration_ms: 50.740458
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses before-lifecycle
+ok 396 - restored authored authority refuses before-lifecycle
+  ---
+  duration_ms: 48.918833
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses after-lifecycle
+ok 397 - restored authored authority refuses after-lifecycle
+  ---
+  duration_ms: 61.727
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses before-body
+ok 398 - restored authored authority refuses before-body
+  ---
+  duration_ms: 53.006708
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses after-body
+ok 399 - restored authored authority refuses after-body
+  ---
+  duration_ms: 56.384667
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses journal-operation
+ok 400 - restored authored authority refuses journal-operation
+  ---
+  duration_ms: 53.910042
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses body-operation
+ok 401 - restored authored authority refuses body-operation
+  ---
+  duration_ms: 51.31225
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses field-protection
+ok 402 - restored authored authority refuses field-protection
+  ---
+  duration_ms: 49.913541
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses protection-time
+ok 403 - restored authored authority refuses protection-time
+  ---
+  duration_ms: 50.925708
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses content-revision
+ok 404 - restored authored authority refuses content-revision
+  ---
+  duration_ms: 49.295834
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses field-revision
+ok 405 - restored authored authority refuses field-revision
+  ---
+  duration_ms: 51.743291
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses missing-removal
+ok 406 - restored authored authority refuses missing-removal
+  ---
+  duration_ms: 47.22075
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-reason
+ok 407 - restored authored authority refuses removal-reason
+  ---
+  duration_ms: 48.87675
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-mask
+ok 408 - restored authored authority refuses removal-mask
+  ---
+  duration_ms: 48.09525
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-content
+ok 409 - restored authored authority refuses removal-content
+  ---
+  duration_ms: 50.576292
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-revision
+ok 410 - restored authored authority refuses removal-revision
+  ---
+  duration_ms: 53.934625
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses missing-authority
+ok 411 - restored authored authority refuses missing-authority
+  ---
+  duration_ms: 57.422625
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses authority-content
+ok 412 - restored authored authority refuses authority-content
+  ---
+  duration_ms: 59.920833
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses missing-birth
+ok 413 - restored authored authority refuses missing-birth
+  ---
+  duration_ms: 60.411625
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses dependency
+ok 414 - restored authored authority refuses dependency
+  ---
+  duration_ms: 54.587583
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses provenance
+ok 415 - restored authored authority refuses provenance
+  ---
+  duration_ms: 50.892791
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses no-membership
+ok 416 - restored authored authority refuses no-membership
+  ---
+  duration_ms: 60.565583
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses duplicate-membership
+ok 417 - restored authored authority refuses duplicate-membership
+  ---
+  duration_ms: 63.588167
+  type: 'test'
+  ...
+# Subtest: repeated genuine restores preserve body revision while refusing every older descriptor and lineage
+ok 418 - repeated genuine restores preserve body revision while refusing every older descriptor and lineage
+  ---
+  duration_ms: 252.095959
+  type: 'test'
+  ...
+# Subtest: restore never revives old authored prepared
+ok 419 - restore never revives old authored prepared
+  ---
+  duration_ms: 69.50475
+  type: 'test'
+  ...
+# Subtest: restore never revives old authored response
+ok 420 - restore never revives old authored response
+  ---
+  duration_ms: 117.246625
+  type: 'test'
+  ...
+# Subtest: restore never revives old authored grant
+ok 421 - restore never revives old authored grant
+  ---
+  duration_ms: 120.535042
+  type: 'test'
+  ...
+# Subtest: restored Context and basis reject restore/body ABA while old ACK stays historical and fresh work can commit
+ok 422 - restored Context and basis reject restore/body ABA while old ACK stays historical and fresh work can commit
+  ---
+  duration_ms: 603.307166
+  type: 'test'
+  ...
+# Subtest: restored authored hash mutation cannot ACK stale work
+ok 423 - restored authored hash mutation cannot ACK stale work
+  ---
+  duration_ms: 124.692709
+  type: 'test'
+  ...
+# Subtest: restored authored dispatch mutation cannot ACK stale work
+ok 424 - restored authored dispatch mutation cannot ACK stale work
+  ---
+  duration_ms: 115.312167
+  type: 'test'
+  ...
+# Subtest: restored authored commit mutation cannot ACK stale work
+ok 425 - restored authored commit mutation cannot ACK stale work
+  ---
+  duration_ms: 167.283708
+  type: 'test'
+  ...
+# Subtest: restored authored ACK abort rolls back the original owner and retry never redispatches
+ok 426 - restored authored ACK abort rolls back the original owner and retry never redispatches
+  ---
+  duration_ms: 204.782334
+  type: 'test'
+  ...
+# Subtest: restored authored prior DEFER stays intact on the same route
+ok 427 - restored authored prior DEFER stays intact on the same route
+  ---
+  duration_ms: 27.536792
+  type: 'test'
+  ...
+# Subtest: restored authored prior DEFER reconsiders only Context on different route
+ok 428 - restored authored prior DEFER reconsiders only Context on different route
+  ---
+  duration_ms: 143.701041
+  type: 'test'
+  ...
+# Subtest: coalesced body edits across placement changes still qualify after lifecycle restoration
+ok 429 - coalesced body edits across placement changes still qualify after lifecycle restoration
+  ---
+  duration_ms: 162.743333
+  type: 'test'
+  ...
+# Subtest: forged older restore operation cannot form a restore authority ABA
+ok 430 - forged older restore operation cannot form a restore authority ABA
+  ---
+  duration_ms: 54.90875
+  type: 'test'
+  ...
+# Subtest: restore history uses bounded indexed reads charged to the original scope budget
+ok 431 - restore history uses bounded indexed reads charged to the original scope budget
+  ---
+  duration_ms: 27.838833
+  type: 'test'
+  ...
+# Subtest: fresh restore denied processing permission retains zero hashes and dispatch
+ok 432 - fresh restore denied processing permission retains zero hashes and dispatch
+  ---
+  duration_ms: 64.946375
+  type: 'test'
+  ...
+# Subtest: fresh restore wrong-field processing permission retains zero hashes and dispatch
+ok 433 - fresh restore wrong-field processing permission retains zero hashes and dispatch
+  ---
+  duration_ms: 64.299458
+  type: 'test'
+  ...
+# Subtest: real coalesced body ABA after restoration remains eligible
+ok 434 - real coalesced body ABA after restoration remains eligible
+  ---
+  duration_ms: 171.436958
+  type: 'test'
+  ...
+# Subtest: real coalesced body ABA after restoration remains eligible through another restore
+ok 435 - real coalesced body ABA after restoration remains eligible through another restore
+  ---
+  duration_ms: 183.474166
+  type: 'test'
+  ...
+# Subtest: missing earlier-edit cannot be bridged by current body-edit authority
+ok 436 - missing earlier-edit cannot be bridged by current body-edit authority
+  ---
+  duration_ms: 67.157167
+  type: 'test'
+  ...
+# Subtest: missing earlier-edit cannot be bridged by restored body-edit authority
+ok 437 - missing earlier-edit cannot be bridged by restored body-edit authority
+  ---
+  duration_ms: 61.14875
+  type: 'test'
+  ...
+# Subtest: missing previous-restore cannot be bridged by current body-edit authority
+ok 438 - missing previous-restore cannot be bridged by current body-edit authority
+  ---
+  duration_ms: 54.956042
+  type: 'test'
+  ...
+# Subtest: missing previous-restore cannot be bridged by restored body-edit authority
+ok 439 - missing previous-restore cannot be bridged by restored body-edit authority
+  ---
+  duration_ms: 60.77325
+  type: 'test'
+  ...
+# Subtest: retained historical restore disguised as edit cannot supply authority for a later genuine restore
+ok 440 - retained historical restore disguised as edit cannot supply authority for a later genuine restore
+  ---
+  duration_ms: 55.4855
+  type: 'test'
+  ...
+# Subtest: typed authored Topic and Context share one response but retain separate original owners and exact ACKs
+ok 441 - typed authored Topic and Context share one response but retain separate original owners and exact ACKs
+  ---
+  duration_ms: 169.553916
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects denied-topic
+ok 442 - typed authored Topic independent guard rejects denied-topic
+  ---
+  duration_ms: 40.837208
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects revoked-topic-response
+ok 443 - typed authored Topic independent guard rejects revoked-topic-response
+  ---
+  duration_ms: 95.942459
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects wrong-topic-field-grant
+ok 444 - typed authored Topic independent guard rejects wrong-topic-field-grant
+  ---
+  duration_ms: 37.157875
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects wrong-author-field-grant
+ok 445 - typed authored Topic independent guard rejects wrong-author-field-grant
+  ---
+  duration_ms: 37.708916
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects entry-drift
+ok 446 - typed authored Topic independent guard rejects entry-drift
+  ---
+  duration_ms: 93.672792
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects topic-drift
+ok 447 - typed authored Topic independent guard rejects topic-drift
+  ---
+  duration_ms: 100.113542
+  type: 'test'
+  ...
+# Subtest: typed authored Topic ACK abort rolls back its owner receipt and replay reuses one physical response
+ok 448 - typed authored Topic ACK abort rolls back its owner receipt and replay reuses one physical response
+  ---
+  duration_ms: 189.866042
+  type: 'test'
+  ...
+# Subtest: typed authored response travels through the original source-owned adapter for both original facets
+ok 449 - typed authored response travels through the original source-owned adapter for both original facets
+  ---
+  duration_ms: 185.333167
+  type: 'test'
+  ...
+# Subtest: authored Context correction original owner edit body
+ok 450 - authored Context correction original owner edit body
+  ---
+  duration_ms: 369.658125
+  type: 'test'
+  ...
+# Subtest: authored Context correction original owner edit complete fields
+ok 451 - authored Context correction original owner edit complete fields
+  ---
+  duration_ms: 404.097708
+  type: 'test'
+  ...
+# Subtest: authored Context correction original owner restore body
+ok 452 - authored Context correction original owner restore body
+  ---
+  duration_ms: 483.760375
+  type: 'test'
+  ...
+# Subtest: authored Context correction original owner restore complete fields
+ok 453 - authored Context correction original owner restore complete fields
+  ---
+  duration_ms: 410.902541
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent qualification before material dispatch
+ok 454 - authored Context correction refuses independent qualification before material dispatch
+  ---
+  duration_ms: 234.646041
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent qualification-field before material dispatch
+ok 455 - authored Context correction refuses independent qualification-field before material dispatch
+  ---
+  duration_ms: 167.401458
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent author-field before material dispatch
+ok 456 - authored Context correction refuses independent author-field before material dispatch
+  ---
+  duration_ms: 162.440959
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent context-field before material dispatch
+ok 457 - authored Context correction refuses independent context-field before material dispatch
+  ---
+  duration_ms: 176.884375
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent processing before material dispatch
+ok 458 - authored Context correction refuses independent processing before material dispatch
+  ---
+  duration_ms: 186.967125
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects body atomically
+ok 459 - authored Context correction before rejects body atomically
+  ---
+  duration_ms: 163.036084
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects note atomically
+ok 460 - authored Context correction before rejects note atomically
+  ---
+  duration_ms: 181.722459
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects history atomically
+ok 461 - authored Context correction before rejects history atomically
+  ---
+  duration_ms: 199.548833
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects membership atomically
+ok 462 - authored Context correction before rejects membership atomically
+  ---
+  duration_ms: 206.475042
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects dependency atomically
+ok 463 - authored Context correction before rejects dependency atomically
+  ---
+  duration_ms: 328.652917
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects receipt atomically
+ok 464 - authored Context correction before rejects receipt atomically
+  ---
+  duration_ms: 221.232041
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects revoke atomically
+ok 465 - authored Context correction before rejects revoke atomically
+  ---
+  duration_ms: 179.189542
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects body atomically
+ok 466 - authored Context correction provider rejects body atomically
+  ---
+  duration_ms: 367.294792
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects note atomically
+ok 467 - authored Context correction provider rejects note atomically
+  ---
+  duration_ms: 359.379417
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects history atomically
+ok 468 - authored Context correction provider rejects history atomically
+  ---
+  duration_ms: 394.378583
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects membership atomically
+ok 469 - authored Context correction provider rejects membership atomically
+  ---
+  duration_ms: 388.522625
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects dependency atomically
+ok 470 - authored Context correction provider rejects dependency atomically
+  ---
+  duration_ms: 356.149583
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects receipt atomically
+ok 471 - authored Context correction provider rejects receipt atomically
+  ---
+  duration_ms: 360.984
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects revoke atomically
+ok 472 - authored Context correction provider rejects revoke atomically
+  ---
+  duration_ms: 341.033875
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects body atomically
+ok 473 - authored Context correction settlement rejects body atomically
+  ---
+  duration_ms: 376.318
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects note atomically
+ok 474 - authored Context correction settlement rejects note atomically
+  ---
+  duration_ms: 391.069834
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects history atomically
+ok 475 - authored Context correction settlement rejects history atomically
+  ---
+  duration_ms: 403.393542
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects membership atomically
+ok 476 - authored Context correction settlement rejects membership atomically
+  ---
+  duration_ms: 379.809292
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects dependency atomically
+ok 477 - authored Context correction settlement rejects dependency atomically
+  ---
+  duration_ms: 392.882167
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects receipt atomically
+ok 478 - authored Context correction settlement rejects receipt atomically
+  ---
+  duration_ms: 397.81375
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects revoke atomically
+ok 479 - authored Context correction settlement rejects revoke atomically
+  ---
+  duration_ms: 373.13
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects body atomically
+ok 480 - authored Context correction backup rejects body atomically
+  ---
+  duration_ms: 384.21925
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects note atomically
+ok 481 - authored Context correction backup rejects note atomically
+  ---
+  duration_ms: 388.984541
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects history atomically
+ok 482 - authored Context correction backup rejects history atomically
+  ---
+  duration_ms: 384.117709
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects membership atomically
+ok 483 - authored Context correction backup rejects membership atomically
+  ---
+  duration_ms: 400.571208
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects dependency atomically
+ok 484 - authored Context correction backup rejects dependency atomically
+  ---
+  duration_ms: 426.28575
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects receipt atomically
+ok 485 - authored Context correction backup rejects receipt atomically
+  ---
+  duration_ms: 391.972333
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects revoke atomically
+ok 486 - authored Context correction backup rejects revoke atomically
+  ---
+  duration_ms: 386.753167
+  type: 'test'
+  ...
+# Subtest: authored Context correction original source response adapter none
+ok 487 - authored Context correction original source response adapter none
+  ---
+  duration_ms: 424.302875
+  type: 'test'
+  ...
+# Subtest: authored Context correction original source response adapter foreign-item
+ok 488 - authored Context correction original source response adapter foreign-item
+  ---
+  duration_ms: 330.125875
+  type: 'test'
+  ...
+# Subtest: authored Context correction original source response adapter unknown-field
+ok 489 - authored Context correction original source response adapter unknown-field
+  ---
+  duration_ms: 320.513042
+  type: 'test'
+  ...
+# Subtest: authored Context correction ACK abort replays one retained response without changing human contents
+ok 490 - authored Context correction ACK abort replays one retained response without changing human contents
+  ---
+  duration_ms: 450.0665
+  type: 'test'
+  ...
+# Subtest: authored Context correction DTO rejects copied grants, extra entries, mixed Inputs and Topic coverage
+ok 491 - authored Context correction DTO rejects copied grants, extra entries, mixed Inputs and Topic coverage
+  ---
+  duration_ms: 400.59775
+  type: 'test'
+  ...
+# Subtest: authored correction independent qualification refuses omitted history
+ok 492 - authored correction independent qualification refuses omitted history
+  ---
+  duration_ms: 161.721625
+  type: 'test'
+  ...
+# Subtest: authored correction independent qualification refuses omitted title
+ok 493 - authored correction independent qualification refuses omitted title
+  ---
+  duration_ms: 162.103666
+  type: 'test'
+  ...
+# Subtest: authored correction independent qualification refuses omitted note
+ok 494 - authored correction independent qualification refuses omitted note
+  ---
+  duration_ms: 160.971917
+  type: 'test'
+  ...
+# Subtest: authored correction rejects retained evidence selected-fields inconsistent with original owner receipt
+ok 495 - authored correction rejects retained evidence selected-fields inconsistent with original owner receipt
+  ---
+  duration_ms: 151.876584
+  type: 'test'
+  ...
+# Subtest: authored correction rejects retained evidence field-digest inconsistent with original owner receipt
+ok 496 - authored correction rejects retained evidence field-digest inconsistent with original owner receipt
+  ---
+  duration_ms: 192.837625
+  type: 'test'
+  ...
+# Subtest: authored correction closed fence refuses late placements replacement at unchanged count
+ok 497 - authored correction closed fence refuses late placements replacement at unchanged count
+  ---
+  duration_ms: 387.819792
+  type: 'test'
+  ...
+# Subtest: authored correction closed fence refuses late revisions replacement at unchanged count
+ok 498 - authored correction closed fence refuses late revisions replacement at unchanged count
+  ---
+  duration_ms: 383.329125
+  type: 'test'
+  ...
+# Subtest: authored correction tail independently fences original section owner facts
+ok 499 - authored correction tail independently fences original section owner facts
+  ---
+  duration_ms: 408.783209
+  type: 'test'
+  ...
+# Subtest: authored correction tail independently fences original placement-journal owner facts
+ok 500 - authored correction tail independently fences original placement-journal owner facts
+  ---
+  duration_ms: 379.860125
+  type: 'test'
+  ...
+# Subtest: authored title baseline sends exact granted fields and commits exact Context coverage
+ok 501 - authored title baseline sends exact granted fields and commits exact Context coverage
+  ---
+  duration_ms: 475.463375
+  type: 'test'
+  ...
+# Subtest: authored note baseline sends exact granted fields and commits exact Context coverage
+ok 502 - authored note baseline sends exact granted fields and commits exact Context coverage
+  ---
+  duration_ms: 306.475583
+  type: 'test'
+  ...
+# Subtest: coalesced note then body edits cannot acknowledge the note with a body-only payload
+ok 503 - coalesced note then body edits cannot acknowledge the note with a body-only payload
+  ---
+  duration_ms: 299.269709
+  type: 'test'
+  ...
+# Subtest: explicit cleared title remains selected and hashed through whole-Entry ACK
+ok 504 - explicit cleared title remains selected and hashed through whole-Entry ACK
+  ---
+  duration_ms: 270.625959
+  type: 'test'
+  ...
+# Subtest: explicit cleared note remains selected and hashed through whole-Entry ACK
+ok 505 - explicit cleared note remains selected and hashed through whole-Entry ACK
+  ---
+  duration_ms: 227.2795
+  type: 'test'
+  ...
+# Subtest: coalesced title ABA and genuine restore keep fresh per-field authority
+ok 506 - coalesced title ABA and genuine restore keep fresh per-field authority
+  ---
+  duration_ms: 335.278167
+  type: 'test'
+  ...
+# Subtest: coalesced note ABA and genuine restore keep fresh per-field authority
+ok 507 - coalesced note ABA and genuine restore keep fresh per-field authority
+  ---
+  duration_ms: 291.294209
+  type: 'test'
+  ...
+# Subtest: coalesced combined content masks retain exact title body and note authority
+ok 508 - coalesced combined content masks retain exact title body and note authority
+  ---
+  duration_ms: 281.984958
+  type: 'test'
+  ...
+# Subtest: authored title rejects forged operation
+ok 509 - authored title rejects forged operation
+  ---
+  duration_ms: 205.825916
+  type: 'test'
+  ...
+# Subtest: authored title rejects forged revision
+ok 510 - authored title rejects forged revision
+  ---
+  duration_ms: 92.965209
+  type: 'test'
+  ...
+# Subtest: authored title rejects forged mask
+ok 511 - authored title rejects forged mask
+  ---
+  duration_ms: 74.486584
+  type: 'test'
+  ...
+# Subtest: authored title rejects forged missing-link
+ok 512 - authored title rejects forged missing-link
+  ---
+  duration_ms: 84.072291
+  type: 'test'
+  ...
+# Subtest: authored note rejects forged operation
+ok 513 - authored note rejects forged operation
+  ---
+  duration_ms: 80.143209
+  type: 'test'
+  ...
+# Subtest: authored note rejects forged revision
+ok 514 - authored note rejects forged revision
+  ---
+  duration_ms: 88.889125
+  type: 'test'
+  ...
+# Subtest: authored note rejects forged mask
+ok 515 - authored note rejects forged mask
+  ---
+  duration_ms: 81.365542
+  type: 'test'
+  ...
+# Subtest: authored note rejects forged missing-link
+ok 516 - authored note rejects forged missing-link
+  ---
+  duration_ms: 79.858667
+  type: 'test'
+  ...
+# Subtest: authored non-body evidence refuses body-only without ACK
+ok 517 - authored non-body evidence refuses body-only without ACK
+  ---
+  duration_ms: 164.912375
+  type: 'test'
+  ...
+# Subtest: authored non-body evidence refuses extra-field without ACK
+ok 518 - authored non-body evidence refuses extra-field without ACK
+  ---
+  duration_ms: 160.549459
+  type: 'test'
+  ...
+# Subtest: authored non-body evidence refuses missing-digest without ACK
+ok 519 - authored non-body evidence refuses missing-digest without ACK
+  ---
+  duration_ms: 182.686208
+  type: 'test'
+  ...
+# Subtest: authored non-body evidence refuses wrong-operation without ACK
+ok 520 - authored non-body evidence refuses wrong-operation without ACK
+  ---
+  duration_ms: 185.212667
+  type: 'test'
+  ...
+# Subtest: non-body payload grant cannot silently narrow selected fields
+ok 521 - non-body payload grant cannot silently narrow selected fields
+  ---
+  duration_ms: 121.379083
+  type: 'test'
+  ...
+# Subtest: non-body context grant cannot silently narrow selected fields
+ok 522 - non-body context grant cannot silently narrow selected fields
+  ---
+  duration_ms: 175.943625
+  type: 'test'
+  ...
+# Subtest: late title drift at hash preserves final fence and zero ACK
+ok 523 - late title drift at hash preserves final fence and zero ACK
+  ---
+  duration_ms: 107.476708
+  type: 'test'
+  ...
+# Subtest: late title drift at dispatch preserves final fence and zero ACK
+ok 524 - late title drift at dispatch preserves final fence and zero ACK
+  ---
+  duration_ms: 221.7305
+  type: 'test'
+  ...
+# Subtest: late title drift at commit preserves final fence and zero ACK
+ok 525 - late title drift at commit preserves final fence and zero ACK
+  ---
+  duration_ms: 360.621583
+  type: 'test'
+  ...
+# Subtest: late note drift at hash preserves final fence and zero ACK
+ok 526 - late note drift at hash preserves final fence and zero ACK
+  ---
+  duration_ms: 187.441333
+  type: 'test'
+  ...
+# Subtest: late note drift at dispatch preserves final fence and zero ACK
+ok 527 - late note drift at dispatch preserves final fence and zero ACK
+  ---
+  duration_ms: 227.411333
+  type: 'test'
+  ...
+# Subtest: late note drift at commit preserves final fence and zero ACK
+ok 528 - late note drift at commit preserves final fence and zero ACK
+  ---
+  duration_ms: 210.640709
+  type: 'test'
+  ...
+# Subtest: non-body provenance is body-free in receipts and remains subject to original source purge proof
+ok 529 - non-body provenance is body-free in receipts and remains subject to original source purge proof
+  ---
+  duration_ms: 262.543375
+  type: 'test'
+  ...
+# Subtest: authored selection rejects duplicate unknown sparse and decorated fields
+ok 530 - authored selection rejects duplicate unknown sparse and decorated fields
+  ---
+  duration_ms: 0.132125
+  type: 'test'
+  ...
+# Subtest: old body-only processing evidence cannot hash a newly added ungranted note
+ok 531 - old body-only processing evidence cannot hash a newly added ungranted note
+  ---
+  duration_ms: 37.672708
+  type: 'test'
+  ...
+# Subtest: stale authored Item does not hide a separately authorized current Item for the same Entry
+ok 532 - stale authored Item does not hide a separately authorized current Item for the same Entry
+  ---
+  duration_ms: 63.581125
+  type: 'test'
+  ...
+# Subtest: actual bounded Working provider request is causally consumed by original Topic and Context ACK
+ok 533 - actual bounded Working provider request is causally consumed by original Topic and Context ACK
+  ---
+  duration_ms: 572.039333
+  type: 'test'
+  ...
+# Subtest: two explicitly authorized conversations share a bounded purpose request without legacy organize gateway relaxation
+ok 534 - two explicitly authorized conversations share a bounded purpose request without legacy organize gateway relaxation
+  ---
+  duration_ms: 482.63275
+  type: 'test'
+  ...
+# Subtest: source-equal Working body is intentionally transmitted but no Source object, note or history is collected
+ok 535 - source-equal Working body is intentionally transmitted but no Source object, note or history is collected
+  ---
+  duration_ms: 325.884167
+  type: 'test'
+  ...
+# Subtest: missing original processing allowed refuses before actual dispatch attempt
+ok 536 - missing original processing allowed refuses before actual dispatch attempt
+  ---
+  duration_ms: 30.313375
+  type: 'test'
+  ...
+# Subtest: missing original processing epoch refuses before actual dispatch attempt
+ok 537 - missing original processing epoch refuses before actual dispatch attempt
+  ---
+  duration_ms: 37.729042
+  type: 'test'
+  ...
+# Subtest: missing original processing scope refuses before actual dispatch attempt
+ok 538 - missing original processing scope refuses before actual dispatch attempt
+  ---
+  duration_ms: 32.314625
+  type: 'test'
+  ...
+# Subtest: actual processing change at the final original material read blocks body dispatch
+ok 539 - actual processing change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 113.223875
+  type: 'test'
+  ...
+# Subtest: actual restore change at the final original material read blocks body dispatch
+ok 540 - actual restore change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 149.153458
+  type: 'test'
+  ...
+# Subtest: actual removed change at the final original material read blocks body dispatch
+ok 541 - actual removed change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 127.133916
+  type: 'test'
+  ...
+# Subtest: actual filter change at the final original material read blocks body dispatch
+ok 542 - actual filter change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 122.287333
+  type: 'test'
+  ...
+# Subtest: actual working change at the final original material read blocks body dispatch
+ok 543 - actual working change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 119.028
+  type: 'test'
+  ...
+# Subtest: actual source-hash change at the final original material read blocks body dispatch
+ok 544 - actual source-hash change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 122.32725
+  type: 'test'
+  ...
+# Subtest: actual topic change at the final original material read blocks body dispatch
+ok 545 - actual topic change at the final original material read blocks body dispatch
+  ---
+  duration_ms: 138.933625
+  type: 'test'
+  ...
+# Subtest: long real current Working material refuses before reserve or provider without truncation
+ok 546 - long real current Working material refuses before reserve or provider without truncation
+  ---
+  duration_ms: 68.764958
+  type: 'test'
+  ...
+# Subtest: exact original request/content budgets reject rather than truncate a legitimate material object
+ok 547 - exact original request/content budgets reject rather than truncate a legitimate material object
+  ---
+  duration_ms: 1.024666
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing missing reads no body and makes no physical attempt
+ok 548 - default-denied unified material processing missing reads no body and makes no physical attempt
+  ---
+  duration_ms: 28.575333
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing false reads no body and makes no physical attempt
+ok 549 - default-denied unified material processing false reads no body and makes no physical attempt
+  ---
+  duration_ms: 29.077125
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing revoked reads no body and makes no physical attempt
+ok 550 - default-denied unified material processing revoked reads no body and makes no physical attempt
+  ---
+  duration_ms: 27.516875
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing expired reads no body and makes no physical attempt
+ok 551 - default-denied unified material processing expired reads no body and makes no physical attempt
+  ---
+  duration_ms: 72.546709
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing store reads no body and makes no physical attempt
+ok 552 - default-denied unified material processing store reads no body and makes no physical attempt
+  ---
+  duration_ms: 119.867292
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing caller reads no body and makes no physical attempt
+ok 553 - default-denied unified material processing caller reads no body and makes no physical attempt
+  ---
+  duration_ms: 33.338833
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing principal reads no body and makes no physical attempt
+ok 554 - default-denied unified material processing principal reads no body and makes no physical attempt
+  ---
+  duration_ms: 28.269292
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing fields reads no body and makes no physical attempt
+ok 555 - default-denied unified material processing fields reads no body and makes no physical attempt
+  ---
+  duration_ms: 27.714833
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing facets reads no body and makes no physical attempt
+ok 556 - default-denied unified material processing facets reads no body and makes no physical attempt
+  ---
+  duration_ms: 27.614083
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing epoch reads no body and makes no physical attempt
+ok 557 - default-denied unified material processing epoch reads no body and makes no physical attempt
+  ---
+  duration_ms: 28.24475
+  type: 'test'
+  ...
+# Subtest: default-denied unified material processing async-current reads no body and makes no physical attempt
+ok 558 - default-denied unified material processing async-current reads no body and makes no physical attempt
+  ---
+  duration_ms: 26.850208
+  type: 'test'
+  ...
+# Subtest: unified processing epoch cannot silently change between preflight and physical call
+ok 559 - unified processing epoch cannot silently change between preflight and physical call
+  ---
+  duration_ms: 74.642458
+  type: 'test'
+  ...
+# Subtest: unified processing false during a returned actual proposal denies both domain writes and ACK
+ok 560 - unified processing false during a returned actual proposal denies both domain writes and ACK
+  ---
+  duration_ms: 143.817292
+  type: 'test'
+  ...
+# Subtest: unified processing revoked during a returned actual proposal denies both domain writes and ACK
+ok 561 - unified processing revoked during a returned actual proposal denies both domain writes and ACK
+  ---
+  duration_ms: 143.892083
+  type: 'test'
+  ...
+# Subtest: unified processing expired during a returned actual proposal denies both domain writes and ACK
+ok 562 - unified processing expired during a returned actual proposal denies both domain writes and ACK
+  ---
+  duration_ms: 138.629458
+  type: 'test'
+  ...
+# Subtest: opaque material handle current-read protects Source corruption and rejects forged/released/cancelled access
+ok 563 - opaque material handle current-read protects Source corruption and rejects forged/released/cancelled access
+  ---
+  duration_ms: 36.934208
+  type: 'test'
+  ...
+# Subtest: unified false after recorded response and before Topic write clears private capability and preserves zero ACK
+ok 564 - unified false after recorded response and before Topic write clears private capability and preserves zero ACK
+  ---
+  duration_ms: 174.236666
+  type: 'test'
+  ...
+# Subtest: unified revoked after recorded response and before Topic write clears private capability and preserves zero ACK
+ok 565 - unified revoked after recorded response and before Topic write clears private capability and preserves zero ACK
+  ---
+  duration_ms: 193.200375
+  type: 'test'
+  ...
+# Subtest: unified expired after recorded response and before Topic write clears private capability and preserves zero ACK
+ok 566 - unified expired after recorded response and before Topic write clears private capability and preserves zero ACK
+  ---
+  duration_ms: 211.728833
+  type: 'test'
+  ...
+# Subtest: partial Context continuation cannot reuse processed response after unified false
+ok 567 - partial Context continuation cannot reuse processed response after unified false
+  ---
+  duration_ms: 295.634208
+  type: 'test'
+  ...
+# Subtest: partial Context continuation cannot reuse processed response after unified revoked
+ok 568 - partial Context continuation cannot reuse processed response after unified revoked
+  ---
+  duration_ms: 396.733042
+  type: 'test'
+  ...
+# Subtest: partial Context continuation cannot reuse processed response after unified expired
+ok 569 - partial Context continuation cannot reuse processed response after unified expired
+  ---
+  duration_ms: 479.977
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses topic-facet without expanding ordinary Topic fields
+ok 570 - Context note DTO refuses topic-facet without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.425959
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses absent-selection without expanding ordinary Topic fields
+ok 571 - Context note DTO refuses absent-selection without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.159167
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses note-only-extra-body without expanding ordinary Topic fields
+ok 572 - Context note DTO refuses note-only-extra-body without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.250542
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses extra-field without expanding ordinary Topic fields
+ok 573 - Context note DTO refuses extra-field without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.086375
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses missing-note without expanding ordinary Topic fields
+ok 574 - Context note DTO refuses missing-note without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.057709
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses foreign-input without expanding ordinary Topic fields
+ok 575 - Context note DTO refuses foreign-input without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.44175
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses duplicate-input without expanding ordinary Topic fields
+ok 576 - Context note DTO refuses duplicate-input without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.096459
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses partial-selection without expanding ordinary Topic fields
+ok 577 - Context note DTO refuses partial-selection without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.152708
+  type: 'test'
+  ...
+# Subtest: capture preserves original privately branded raw and accepts the same callbacks through the original wrapper
+ok 578 - capture preserves original privately branded raw and accepts the same callbacks through the original wrapper
+  ---
+  duration_ms: 1.771917
+  type: 'test'
+  ...
+# Subtest: copy cannot use a captured processing receipt
+ok 579 - copy cannot use a captured processing receipt
+  ---
+  duration_ms: 1.453667
+  type: 'test'
+  ...
+# Subtest: unseen cannot use a captured processing receipt
+ok 580 - unseen cannot use a captured processing receipt
+  ---
+  duration_ms: 0.130125
+  type: 'test'
+  ...
+# Subtest: foreign store cannot use a captured processing receipt
+ok 581 - foreign store cannot use a captured processing receipt
+  ---
+  duration_ms: 0.087333
+  type: 'test'
+  ...
+# Subtest: foreign issuer cannot use a captured processing receipt
+ok 582 - foreign issuer cannot use a captured processing receipt
+  ---
+  duration_ms: 0.167667
+  type: 'test'
+  ...
+# Subtest: current rejects raw getter without reading changed accessors
+ok 583 - current rejects raw getter without reading changed accessors
+  ---
+  duration_ms: 0.124792
+  type: 'test'
+  ...
+# Subtest: current rejects scope getter without reading changed accessors
+ok 584 - current rejects scope getter without reading changed accessors
+  ---
+  duration_ms: 0.106042
+  type: 'test'
+  ...
+# Subtest: current rejects nested getter without reading changed accessors
+ok 585 - current rejects nested getter without reading changed accessors
+  ---
+  duration_ms: 0.080208
+  type: 'test'
+  ...
+# Subtest: current rejects nested equal replacement without reading changed accessors
+ok 586 - current rejects nested equal replacement without reading changed accessors
+  ---
+  duration_ms: 0.273375
+  type: 'test'
+  ...
+# Subtest: current rejects scope equal replacement without reading changed accessors
+ok 587 - current rejects scope equal replacement without reading changed accessors
+  ---
+  duration_ms: 0.309209
+  type: 'test'
+  ...
+# Subtest: current rejects epoch without reading changed accessors
+ok 588 - current rejects epoch without reading changed accessors
+  ---
+  duration_ms: 0.9315
+  type: 'test'
+  ...
+# Subtest: current rejects deadline extension without reading changed accessors
+ok 589 - current rejects deadline extension without reading changed accessors
+  ---
+  duration_ms: 0.223833
+  type: 'test'
+  ...
+# Subtest: current rejects revocation signal without reading changed accessors
+ok 590 - current rejects revocation signal without reading changed accessors
+  ---
+  duration_ms: 0.1365
+  type: 'test'
+  ...
+# Subtest: current rejects processing false without reading changed accessors
+ok 591 - current rejects processing false without reading changed accessors
+  ---
+  duration_ms: 0.304709
+  type: 'test'
+  ...
+# Subtest: current rejects new scope property without reading changed accessors
+ok 592 - current rejects new scope property without reading changed accessors
+  ---
+  duration_ms: 0.16625
+  type: 'test'
+  ...
+# Subtest: current rejects database without reading changed accessors
+ok 593 - current rejects database without reading changed accessors
+  ---
+  duration_ms: 0.119042
+  type: 'test'
+  ...
+# Subtest: current rejects repository without reading changed accessors
+ok 594 - current rejects repository without reading changed accessors
+  ---
+  duration_ms: 0.112209
+  type: 'test'
+  ...
+# Subtest: a frozen outer raw never makes mutable nested scope trusted
+ok 595 - a frozen outer raw never makes mutable nested scope trusted
+  ---
+  duration_ms: 0.153333
+  type: 'test'
+  ...
+# Subtest: original issuer nested getter mutation is rejected again after the synchronous callback
+ok 596 - original issuer nested getter mutation is rejected again after the synchronous callback
+  ---
+  duration_ms: 0.18325
+  type: 'test'
+  ...
+# Subtest: original issuer expiry mutation is rejected again after the synchronous callback
+ok 597 - original issuer expiry mutation is rejected again after the synchronous callback
+  ---
+  duration_ms: 0.397667
+  type: 'test'
+  ...
+# Subtest: original issuer revocation mutation is rejected again after the synchronous callback
+ok 598 - original issuer revocation mutation is rejected again after the synchronous callback
+  ---
+  duration_ms: 0.15525
+  type: 'test'
+  ...
+# Subtest: original issuer currentness false mutation is rejected again after the synchronous callback
+ok 599 - original issuer currentness false mutation is rejected again after the synchronous callback
+  ---
+  duration_ms: 0.151959
+  type: 'test'
+  ...
+# Subtest: original currentness must synchronously return true: false
+ok 600 - original currentness must synchronously return true: false
+  ---
+  duration_ms: 0.132459
+  type: 'test'
+  ...
+# Subtest: original currentness must synchronously return true: undefined
+ok 601 - original currentness must synchronously return true: undefined
+  ---
+  duration_ms: 0.116333
+  type: 'test'
+  ...
+# Subtest: original currentness must synchronously return true: [object Promise]
+ok 602 - original currentness must synchronously return true: [object Promise]
+  ---
+  duration_ms: 0.104458
+  type: 'test'
+  ...
+# Subtest: initial top accessor is refused without acquiring a getter
+ok 603 - initial top accessor is refused without acquiring a getter
+  ---
+  duration_ms: 0.108708
+  type: 'test'
+  ...
+# Subtest: initial nested accessor is refused without acquiring a getter
+ok 604 - initial nested accessor is refused without acquiring a getter
+  ---
+  duration_ms: 0.086583
+  type: 'test'
+  ...
+# Subtest: initial too deep is refused without acquiring a getter
+ok 605 - initial too deep is refused without acquiring a getter
+  ---
+  duration_ms: 0.179292
+  type: 'test'
+  ...
+# Subtest: initial too many keys is refused without acquiring a getter
+ok 606 - initial too many keys is refused without acquiring a getter
+  ---
+  duration_ms: 1.271041
+  type: 'test'
+  ...
+# Subtest: initial too many bytes is refused without acquiring a getter
+ok 607 - initial too many bytes is refused without acquiring a getter
+  ---
+  duration_ms: 0.194625
+  type: 'test'
+  ...
+# Subtest: recapturing the same original receipt cannot refresh its modified scope
+ok 608 - recapturing the same original receipt cannot refresh its modified scope
+  ---
+  duration_ms: 0.383959
+  type: 'test'
+  ...
+# Subtest: closed receipt scope rejects an extra own data key on inputs array
+ok 609 - closed receipt scope rejects an extra own data key on inputs array
+  ---
+  duration_ms: 0.198375
+  type: 'test'
+  ...
+# Subtest: closed receipt scope rejects an extra own data key on selectedFields array
+ok 610 - closed receipt scope rejects an extra own data key on selectedFields array
+  ---
+  duration_ms: 0.161667
+  type: 'test'
+  ...
+# Subtest: two original receipt issuers end with one closed descriptor-only group check: none
+ok 611 - two original receipt issuers end with one closed descriptor-only group check: none
+  ---
+  duration_ms: 3.072458
+  type: 'test'
+  ...
+# Subtest: two original receipt issuers end with one closed descriptor-only group check: earlier epoch
+ok 612 - two original receipt issuers end with one closed descriptor-only group check: earlier epoch
+  ---
+  duration_ms: 0.656041
+  type: 'test'
+  ...
+# Subtest: two original receipt issuers end with one closed descriptor-only group check: earlier accessor
+ok 613 - two original receipt issuers end with one closed descriptor-only group check: earlier accessor
+  ---
+  duration_ms: 0.167
+  type: 'test'
+  ...
+# Subtest: two original receipt issuers end with one closed descriptor-only group check: later accessor
+ok 614 - two original receipt issuers end with one closed descriptor-only group check: later accessor
+  ---
+  duration_ms: 0.092167
+  type: 'test'
+  ...
+# Subtest: receipt currentness group rejects empty
+ok 615 - receipt currentness group rejects empty
+  ---
+  duration_ms: 0.27525
+  type: 'test'
+  ...
+# Subtest: receipt currentness group rejects duplicate
+ok 616 - receipt currentness group rejects duplicate
+  ---
+  duration_ms: 0.184667
+  type: 'test'
+  ...
+# Subtest: receipt currentness group rejects too many
+ok 617 - receipt currentness group rejects too many
+  ---
+  duration_ms: 0.19225
+  type: 'test'
+  ...
+# Subtest: receipt currentness group rejects foreign
+ok 618 - receipt currentness group rejects foreign
+  ---
+  duration_ms: 0.163042
+  type: 'test'
+  ...
+# Subtest: exact metadata closure grants original same-Entry current and bounded history fields before unchanged authored validator
+ok 619 - exact metadata closure grants original same-Entry current and bounded history fields before unchanged authored validator
+  ---
+  duration_ms: 99.263917
+  type: 'test'
+  ...
+# Subtest: refused current title qualification never acquires any current or historical text
+ok 620 - refused current title qualification never acquires any current or historical text
+  ---
+  duration_ms: 66.818417
+  type: 'test'
+  ...
+# Subtest: refused before.body qualification never acquires any current or historical text
+ok 621 - refused before.body qualification never acquires any current or historical text
+  ---
+  duration_ms: 52.863125
+  type: 'test'
+  ...
+# Subtest: refused after.note qualification never acquires any current or historical text
+ok 622 - refused after.note qualification never acquires any current or historical text
+  ---
+  duration_ms: 61.205375
+  type: 'test'
+  ...
+# Subtest: expiry at original row boundary stops before current or history text getter
+ok 623 - expiry at original row boundary stops before current or history text getter
+  ---
+  duration_ms: 49.903958
+  type: 'test'
+  ...
+# Subtest: revoke at original row boundary stops before current or history text getter
+ok 624 - revoke at original row boundary stops before current or history text getter
+  ---
+  duration_ms: 54.680417
+  type: 'test'
+  ...
+# Subtest: currentness at original row boundary stops before current or history text getter
+ok 625 - currentness at original row boundary stops before current or history text getter
+  ---
+  duration_ms: 53.490416
+  type: 'test'
+  ...
+# Subtest: expiry inside first permitted getter stops before any subsequent title note or history getter
+ok 626 - expiry inside first permitted getter stops before any subsequent title note or history getter
+  ---
+  duration_ms: 43.147417
+  type: 'test'
+  ...
+# Subtest: a selected Entry grant cannot acquire an unselected sibling field
+ok 627 - a selected Entry grant cannot acquire an unselected sibling field
+  ---
+  duration_ms: 52.744167
+  type: 'test'
+  ...
+# Subtest: copied foreign-store and released qualification objects cannot guard a reader
+ok 628 - copied foreign-store and released qualification objects cannot guard a reader
+  ---
+  duration_ms: 70.70225
+  type: 'test'
+  ...
+# Subtest: qualification metadata original reader and phase forks share one exact work ledger without duplicate point-read charges
+ok 629 - qualification metadata original reader and phase forks share one exact work ledger without duplicate point-read charges
+  ---
+  duration_ms: 46.408833
+  type: 'test'
+  ...
+# Subtest: shared reads exhaustion refuses subsequent original qualification acquisition without a phase reset
+ok 630 - shared reads exhaustion refuses subsequent original qualification acquisition without a phase reset
+  ---
+  duration_ms: 57.207625
+  type: 'test'
+  ...
+# Subtest: shared hashBytes exhaustion refuses subsequent original qualification acquisition without a phase reset
+ok 631 - shared hashBytes exhaustion refuses subsequent original qualification acquisition without a phase reset
+  ---
+  duration_ms: 43.755875
+  type: 'test'
+  ...
+# Subtest: shared hashFields exhaustion refuses subsequent original qualification acquisition without a phase reset
+ok 632 - shared hashFields exhaustion refuses subsequent original qualification acquisition without a phase reset
+  ---
+  duration_ms: 39.9175
+  type: 'test'
+  ...
+# Subtest: original evidence hashing debits the same qualification ledger and checks the exact cumulative byte boundary
+ok 633 - original evidence hashing debits the same qualification ledger and checks the exact cumulative byte boundary
+  ---
+  duration_ms: 39.909041
+  type: 'test'
+  ...
+# Subtest: compact metadata request identity rejects expansion: exact subset
+ok 634 - compact metadata request identity rejects expansion: exact subset
+  ---
+  duration_ms: 34.960833
+  type: 'test'
+  ...
+# Subtest: compact metadata request identity rejects expansion: foreign item
+ok 635 - compact metadata request identity rejects expansion: foreign item
+  ---
+  duration_ms: 40.41375
+  type: 'test'
+  ...
+# Subtest: compact metadata request identity rejects expansion: changed signature
+ok 636 - compact metadata request identity rejects expansion: changed signature
+  ---
+  duration_ms: 36.13375
+  type: 'test'
+  ...
+# Subtest: compact metadata request identity rejects expansion: foreign coverage
+ok 637 - compact metadata request identity rejects expansion: foreign coverage
+  ---
+  duration_ms: 33.412584
+  type: 'test'
+  ...
+# Subtest: compact metadata request identity rejects expansion: copied capability
+ok 638 - compact metadata request identity rejects expansion: copied capability
+  ---
+  duration_ms: 36.555125
+  type: 'test'
+  ...
+# Subtest: real pre-job all purposes refusal reads no text and creates no job or provider request
+ok 639 - real pre-job all purposes refusal reads no text and creates no job or provider request
+  ---
+  duration_ms: 114.434542
+  type: 'test'
+  ...
+# Subtest: real pre-job qualification only refusal reads no text and creates no job or provider request
+ok 640 - real pre-job qualification only refusal reads no text and creates no job or provider request
+  ---
+  duration_ms: 68.25975
+  type: 'test'
+  ...
+# Subtest: real pre-job current field refusal reads no text and creates no job or provider request
+ok 641 - real pre-job current field refusal reads no text and creates no job or provider request
+  ---
+  duration_ms: 63.066417
+  type: 'test'
+  ...
+# Subtest: real pre-job history field refusal reads no text and creates no job or provider request
+ok 642 - real pre-job history field refusal reads no text and creates no job or provider request
+  ---
+  duration_ms: 62.512959
+  type: 'test'
+  ...
+# Subtest: real pre-job expired receipt refusal reads no text and creates no job or provider request
+ok 643 - real pre-job expired receipt refusal reads no text and creates no job or provider request
+  ---
+  duration_ms: 63.430417
+  type: 'test'
+  ...
+# Subtest: source schema is accepted by the original bounded Qwen validator inside its original current-binding snapshot depth
+ok 644 - source schema is accepted by the original bounded Qwen validator inside its original current-binding snapshot depth
+  ---
+  duration_ms: 2.517459
+  type: 'test'
+  ...
+# Subtest: closed source Topic maps every original claim and immediately erases its last-facet child registration
+ok 645 - closed source Topic maps every original claim and immediately erases its last-facet child registration
+  ---
+  duration_ms: 2.373667
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown envelope field and erases the failed private binding
+ok 646 - source adapter rejects unknown envelope field and erases the failed private binding
+  ---
+  duration_ms: 0.219625
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown Topic field and erases the failed private binding
+ok 647 - source adapter rejects unknown Topic field and erases the failed private binding
+  ---
+  duration_ms: 0.212125
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown Input citation and erases the failed private binding
+ok 648 - source adapter rejects unknown Input citation and erases the failed private binding
+  ---
+  duration_ms: 0.184917
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown citation index and erases the failed private binding
+ok 649 - source adapter rejects unknown citation index and erases the failed private binding
+  ---
+  duration_ms: 0.25725
+  type: 'test'
+  ...
+# Subtest: source adapter rejects duplicate/unknown relations and erases the failed private binding
+ok 650 - source adapter rejects duplicate/unknown relations and erases the failed private binding
+  ---
+  duration_ms: 0.553541
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown Entry and erases the failed private binding
+ok 651 - source adapter rejects unknown Entry and erases the failed private binding
+  ---
+  duration_ms: 1.005833
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unknown Section and erases the failed private binding
+ok 652 - source adapter rejects unknown Section and erases the failed private binding
+  ---
+  duration_ms: 1.018792
+  type: 'test'
+  ...
+# Subtest: source adapter rejects invalid empty Section sentinel and erases the failed private binding
+ok 653 - source adapter rejects invalid empty Section sentinel and erases the failed private binding
+  ---
+  duration_ms: 0.9895
+  type: 'test'
+  ...
+# Subtest: source adapter rejects invalid boundary digest sentinel and erases the failed private binding
+ok 654 - source adapter rejects invalid boundary digest sentinel and erases the failed private binding
+  ---
+  duration_ms: 0.381458
+  type: 'test'
+  ...
+# Subtest: source adapter rejects extra unused citation with unknown Input and erases the failed private binding
+ok 655 - source adapter rejects extra unused citation with unknown Input and erases the failed private binding
+  ---
+  duration_ms: 0.157333
+  type: 'test'
+  ...
+# Subtest: source adapter rejects bound exceeded and erases the failed private binding
+ok 656 - source adapter rejects bound exceeded and erases the failed private binding
+  ---
+  duration_ms: 0.126708
+  type: 'test'
+  ...
+# Subtest: source adapter rejects sparse array and erases the failed private binding
+ok 657 - source adapter rejects sparse array and erases the failed private binding
+  ---
+  duration_ms: 0.116875
+  type: 'test'
+  ...
+# Subtest: source adapter rejects accessor and erases the failed private binding
+ok 658 - source adapter rejects accessor and erases the failed private binding
+  ---
+  duration_ms: 0.106958
+  type: 'test'
+  ...
+# Subtest: source adapter rejects symbol and erases the failed private binding
+ok 659 - source adapter rejects symbol and erases the failed private binding
+  ---
+  duration_ms: 0.079458
+  type: 'test'
+  ...
+# Subtest: source adapter rejects alias and erases the failed private binding
+ok 660 - source adapter rejects alias and erases the failed private binding
+  ---
+  duration_ms: 0.094125
+  type: 'test'
+  ...
+# Subtest: source adapter rejects cyclic data and erases the failed private binding
+ok 661 - source adapter rejects cyclic data and erases the failed private binding
+  ---
+  duration_ms: 0.108167
+  type: 'test'
+  ...
+# Subtest: source adapter rejects wrong job and erases the failed private binding
+ok 662 - source adapter rejects wrong job and erases the failed private binding
+  ---
+  duration_ms: 0.121709
+  type: 'test'
+  ...
+# Subtest: source adapter rejects wrong child and erases the failed private binding
+ok 663 - source adapter rejects wrong child and erases the failed private binding
+  ---
+  duration_ms: 0.118209
+  type: 'test'
+  ...
+# Subtest: source adapter rejects missing active facet and erases the failed private binding
+ok 664 - source adapter rejects missing active facet and erases the failed private binding
+  ---
+  duration_ms: 0.121042
+  type: 'test'
+  ...
+# Subtest: source adapter rejects unpaired sentinel content and erases the failed private binding
+ok 665 - source adapter rejects unpaired sentinel content and erases the failed private binding
+  ---
+  duration_ms: 0.12375
+  type: 'test'
+  ...
+# Subtest: source adapter rejects invalid additional Entry index and erases the failed private binding
+ok 666 - source adapter rejects invalid additional Entry index and erases the failed private binding
+  ---
+  duration_ms: 0.139084
+  type: 'test'
+  ...
+# Subtest: accessor snapshots refuse without executing even a harmless getter
+ok 667 - accessor snapshots refuse without executing even a harmless getter
+  ---
+  duration_ms: 0.100583
+  type: 'test'
+  ...
+# Subtest: private correlation rejects a forged facet receipt and clears the retained sibling binding
+ok 668 - private correlation rejects a forged facet receipt and clears the retained sibling binding
+  ---
+  duration_ms: 0.28125
+  type: 'test'
+  ...
+# Subtest: revoke removes private child state without a body cache
+ok 669 - revoke removes private child state without a body cache
+  ---
+  duration_ms: 0.117542
+  type: 'test'
+  ...
+# Subtest: signal removes private child state without a body cache
+ok 670 - signal removes private child state without a body cache
+  ---
+  duration_ms: 0.186667
+  type: 'test'
+  ...
+# Subtest: release-child removes private child state without a body cache
+ok 671 - release-child removes private child state without a body cache
+  ---
+  duration_ms: 0.2665
+  type: 'test'
+  ...
+# Subtest: release-job removes private child state without a body cache
+ok 672 - release-job removes private child state without a body cache
+  ---
+  duration_ms: 0.244916
+  type: 'test'
+  ...
+# Subtest: dispose removes private child state without a body cache
+ok 673 - dispose removes private child state without a body cache
+  ---
+  duration_ms: 0.177625
+  type: 'test'
+  ...
+# Subtest: source DEFER is privately authenticated, bounded, exact, non-clonable and releases final facet state
+ok 674 - source DEFER is privately authenticated, bounded, exact, non-clonable and releases final facet state
+  ---
+  duration_ms: 0.663417
+  type: 'test'
+  ...
+# Subtest: filter result covers exact sent inputs and cannot return another unit
+ok 675 - filter result covers exact sent inputs and cannot return another unit
+  ---
+  duration_ms: 1.116167
+  type: 'test'
+  ...
+# Subtest: remote client rejects externally supplied response callbacks
+ok 676 - remote client rejects externally supplied response callbacks
+  ---
+  duration_ms: 0.459375
+  type: 'test'
+  ...
+# Subtest: remote client refuses a fixture/open schema before tokenizing, declaring or reserving
+ok 677 - remote client refuses a fixture/open schema before tokenizing, declaring or reserving
+  ---
+  duration_ms: 0.741
+  type: 'test'
+  ...
+# Subtest: throwing currentness owner releases the private child binding
+ok 678 - throwing currentness owner releases the private child binding
+  ---
+  duration_ms: 0.145792
+  type: 'test'
+  ...
+# Subtest: fresh identities cannot replace the exact sent semantic snapshot
+ok 679 - fresh identities cannot replace the exact sent semantic snapshot
+  ---
+  duration_ms: 0.149459
+  type: 'test'
+  ...
+# Subtest: fresh sections cannot replace the exact sent semantic snapshot
+ok 680 - fresh sections cannot replace the exact sent semantic snapshot
+  ---
+  duration_ms: 0.120167
+  type: 'test'
+  ...
+# Subtest: fresh constraints cannot replace the exact sent semantic snapshot
+ok 681 - fresh constraints cannot replace the exact sent semantic snapshot
+  ---
+  duration_ms: 0.118542
+  type: 'test'
+  ...
+# Subtest: fresh entries cannot replace the exact sent semantic snapshot
+ok 682 - fresh entries cannot replace the exact sent semantic snapshot
+  ---
+  duration_ms: 0.173959
+  type: 'test'
+  ...
+# Subtest: existing source UPDATE uses exact sent stable target and original associations without generating a replacement Item
+ok 683 - existing source UPDATE uses exact sent stable target and original associations without generating a replacement Item
+  ---
+  duration_ms: 557.998083
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong revision and releases private body registration
+ok 684 - existing source rejects wrong revision and releases private body registration
+  ---
+  duration_ms: 367.7665
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong card and releases private body registration
+ok 685 - existing source rejects wrong card and releases private body registration
+  ---
+  duration_ms: 326.0695
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong sent semantic body and releases private body registration
+ok 686 - existing source rejects wrong sent semantic body and releases private body registration
+  ---
+  duration_ms: 286.965166
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong display reference and releases private body registration
+ok 687 - existing source rejects wrong display reference and releases private body registration
+  ---
+  duration_ms: 309.270417
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong private epoch and releases private body registration
+ok 688 - existing source rejects wrong private epoch and releases private body registration
+  ---
+  duration_ms: 272.33
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong manual origin and releases private body registration
+ok 689 - existing source rejects wrong manual origin and releases private body registration
+  ---
+  duration_ms: 301.718042
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong protected state and releases private body registration
+ok 690 - existing source rejects wrong protected state and releases private body registration
+  ---
+  duration_ms: 397.642
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong human edited state and releases private body registration
+ok 691 - existing source rejects wrong human edited state and releases private body registration
+  ---
+  duration_ms: 290.627041
+  type: 'test'
+  ...
+# Subtest: existing source rejects wrong removed lifecycle and releases private body registration
+ok 692 - existing source rejects wrong removed lifecycle and releases private body registration
+  ---
+  duration_ms: 284.576041
+  type: 'test'
+  ...
+# Subtest: NO_CHANGE may check a real prior Input subset while the unrelated remainder stays deferred
+ok 693 - NO_CHANGE may check a real prior Input subset while the unrelated remainder stays deferred
+  ---
+  duration_ms: 409.883542
+  type: 'test'
+  ...
+# Subtest: REMOVE_CANDIDATE refuses a partial old lineage even when revision and associations are exact
+ok 694 - REMOVE_CANDIDATE refuses a partial old lineage even when revision and associations are exact
+  ---
+  duration_ms: 441.449292
+  type: 'test'
+  ...
+# Subtest: NO_CHANGE cannot substitute another Source family for the prior registered lineage
+ok 695 - NO_CHANGE cannot substitute another Source family for the prior registered lineage
+  ---
+  duration_ms: 350.750167
+  type: 'test'
+  ...
+# Subtest: REMOVE_CANDIDATE cannot substitute another Source family for the prior registered lineage
+ok 696 - REMOVE_CANDIDATE cannot substitute another Source family for the prior registered lineage
+  ---
+  duration_ms: 486.944375
+  type: 'test'
+  ...
+# Subtest: same display ref c0 in another physical child cannot target the first child Item or borrow its baseline
+ok 697 - same display ref c0 in another physical child cannot target the first child Item or borrow its baseline
+  ---
+  duration_ms: 712.025625
+  type: 'test'
+  ...
+# Subtest: only Filter semantic missing IDs create original bounded private DEFER while the sibling remains valid
+ok 698 - only Filter semantic missing IDs create original bounded private DEFER while the sibling remains valid
+  ---
+  duration_ms: 0.509833
+  type: 'test'
+  ...
+# Subtest: only Filter semantic duplicate IDs create original bounded private DEFER while the sibling remains valid
+ok 699 - only Filter semantic duplicate IDs create original bounded private DEFER while the sibling remains valid
+  ---
+  duration_ms: 0.28325
+  type: 'test'
+  ...
+# Subtest: only Filter semantic unselected IDs create original bounded private DEFER while the sibling remains valid
+ok 700 - only Filter semantic unselected IDs create original bounded private DEFER while the sibling remains valid
+  ---
+  duration_ms: 0.241666
+  type: 'test'
+  ...
+# Subtest: semantic Filter mismatch cannot convert invalid metadata inputs into DEFER
+ok 701 - semantic Filter mismatch cannot convert invalid metadata inputs into DEFER
+  ---
+  duration_ms: 0.216416
+  type: 'test'
+  ...
+# Subtest: semantic Filter mismatch cannot convert invalid metadata units into DEFER
+ok 702 - semantic Filter mismatch cannot convert invalid metadata units into DEFER
+  ---
+  duration_ms: 0.147625
+  type: 'test'
+  ...
+# Subtest: semantic Filter mismatch cannot convert invalid common currentness into DEFER
+ok 703 - semantic Filter mismatch cannot convert invalid common currentness into DEFER
+  ---
+  duration_ms: 0.078584
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema is bounded and independently decodes typed Entry evidence
+ok 704 - source-owned authored schema is bounded and independently decodes typed Entry evidence
+  ---
+  duration_ms: 0.553375
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses foreign-entry
+ok 705 - source-owned authored schema refuses foreign-entry
+  ---
+  duration_ms: 0.201625
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses foreign-topic
+ok 706 - source-owned authored schema refuses foreign-topic
+  ---
+  duration_ms: 0.131208
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses input-citation
+ok 707 - source-owned authored schema refuses input-citation
+  ---
+  duration_ms: 0.111833
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses partial-field
+ok 708 - source-owned authored schema refuses partial-field
+  ---
+  duration_ms: 0.248583
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses stale-name
+ok 709 - source-owned authored schema refuses stale-name
+  ---
+  duration_ms: 0.230333
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses stale-fields
+ok 710 - source-owned authored schema refuses stale-fields
+  ---
+  duration_ms: 0.140792
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses top-input-citation
+ok 711 - source-owned authored schema refuses top-input-citation
+  ---
+  duration_ms: 0.189042
+  type: 'test'
+  ...
+# Subtest: source-owned authored schema refuses extra-permission
+ok 712 - source-owned authored schema refuses extra-permission
+  ---
+  duration_ms: 0.24175
+  type: 'test'
+  ...
+# Subtest: source-owned unresolved authored identity yields exact Topic DEFER without inventing a new identity
+ok 713 - source-owned unresolved authored identity yields exact Topic DEFER without inventing a new identity
+  ---
+  duration_ms: 0.211625
+  type: 'test'
+  ...
+1..713
+# tests 713
+# suites 0
+# pass 713
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53579.980416

@@ -1,0 +1,778 @@
+TAP version 13
+# Subtest: genuine human Context edit uses current original Input and independently selected Context fields, then protected original owner ACKs only Context
+ok 1 - genuine human Context edit uses current original Input and independently selected Context fields, then protected original owner ACKs only Context
+  ---
+  duration_ms: 387.371958
+  type: 'test'
+  ...
+# Subtest: adapter new-item cannot turn correction into unrelated result
+ok 2 - adapter new-item cannot turn correction into unrelated result
+  ---
+  duration_ms: 277.419
+  type: 'test'
+  ...
+# Subtest: adapter wrong-item cannot turn correction into unrelated result
+ok 3 - adapter wrong-item cannot turn correction into unrelated result
+  ---
+  duration_ms: 283.577916
+  type: 'test'
+  ...
+# Subtest: adapter missing-evidence cannot turn correction into unrelated result
+ok 4 - adapter missing-evidence cannot turn correction into unrelated result
+  ---
+  duration_ms: 249.867083
+  type: 'test'
+  ...
+# Subtest: adapter wrong-field cannot turn correction into unrelated result
+ok 5 - adapter wrong-field cannot turn correction into unrelated result
+  ---
+  duration_ms: 227.171292
+  type: 'test'
+  ...
+# Subtest: adapter new-association cannot turn correction into unrelated result
+ok 6 - adapter new-association cannot turn correction into unrelated result
+  ---
+  duration_ms: 233.974959
+  type: 'test'
+  ...
+# Subtest: adapter NO_CHANGE cannot turn correction into unrelated result
+ok 7 - adapter NO_CHANGE cannot turn correction into unrelated result
+  ---
+  duration_ms: 227.71
+  type: 'test'
+  ...
+# Subtest: adapter REMOVE_CANDIDATE cannot turn correction into unrelated result
+ok 8 - adapter REMOVE_CANDIDATE cannot turn correction into unrelated result
+  ---
+  duration_ms: 234.183542
+  type: 'test'
+  ...
+# Subtest: mixed page selects one complete Context correction and leaves unrelated obligations at incoming boundary
+ok 9 - mixed page selects one complete Context correction and leaves unrelated obligations at incoming boundary
+  ---
+  duration_ms: 319.017625
+  type: 'test'
+  ...
+# Subtest: repeat settled handle and same revision after restart cannot dispatch or ACK correction twice
+ok 10 - repeat settled handle and same revision after restart cannot dispatch or ACK correction twice
+  ---
+  duration_ms: 300.309
+  type: 'test'
+  ...
+# Subtest: old Context correction DEFER does not retry on the same route
+ok 11 - old Context correction DEFER does not retry on the same route
+  ---
+  duration_ms: 40.551292
+  type: 'test'
+  ...
+# Subtest: old Context correction DEFER requalifies only Context on a different admitted route
+ok 12 - old Context correction DEFER requalifies only Context on a different admitted route
+  ---
+  duration_ms: 290.563125
+  type: 'test'
+  ...
+# Subtest: same-revision Item timestamp drift cannot launder current human correction
+ok 13 - same-revision Item timestamp drift cannot launder current human correction
+  ---
+  duration_ms: 46.616833
+  type: 'test'
+  ...
+# Subtest: receipt shape drift at held-provider cannot acknowledge Context correction
+ok 14 - receipt shape drift at held-provider cannot acknowledge Context correction
+  ---
+  duration_ms: 267.878958
+  type: 'test'
+  ...
+# Subtest: receipt shape drift at final-settlement cannot acknowledge Context correction
+ok 15 - receipt shape drift at final-settlement cannot acknowledge Context correction
+  ---
+  duration_ms: 284.119208
+  type: 'test'
+  ...
+# Subtest: temporal correction before rejects deadline and retains the original obligation
+ok 16 - temporal correction before rejects deadline and retains the original obligation
+  ---
+  duration_ms: 109.913875
+  type: 'test'
+  ...
+# Subtest: temporal correction before rejects temporal-scope and retains the original obligation
+ok 17 - temporal correction before rejects temporal-scope and retains the original obligation
+  ---
+  duration_ms: 117.109833
+  type: 'test'
+  ...
+# Subtest: temporal correction before rejects receipt and retains the original obligation
+ok 18 - temporal correction before rejects receipt and retains the original obligation
+  ---
+  duration_ms: 40.768542
+  type: 'test'
+  ...
+# Subtest: temporal correction before rejects source-purge and retains the original obligation
+ok 19 - temporal correction before rejects source-purge and retains the original obligation
+  ---
+  duration_ms: 44.565375
+  type: 'test'
+  ...
+# Subtest: temporal correction before rejects revoke and retains the original obligation
+ok 20 - temporal correction before rejects revoke and retains the original obligation
+  ---
+  duration_ms: 44.403292
+  type: 'test'
+  ...
+# Subtest: temporal correction response rejects deadline and retains the original obligation
+ok 21 - temporal correction response rejects deadline and retains the original obligation
+  ---
+  duration_ms: 272.410625
+  type: 'test'
+  ...
+# Subtest: temporal correction response rejects temporal-scope and retains the original obligation
+ok 22 - temporal correction response rejects temporal-scope and retains the original obligation
+  ---
+  duration_ms: 257.744833
+  type: 'test'
+  ...
+# Subtest: temporal correction response rejects receipt and retains the original obligation
+ok 23 - temporal correction response rejects receipt and retains the original obligation
+  ---
+  duration_ms: 263.75375
+  type: 'test'
+  ...
+# Subtest: temporal correction response rejects source-purge and retains the original obligation
+ok 24 - temporal correction response rejects source-purge and retains the original obligation
+  ---
+  duration_ms: 229.211708
+  type: 'test'
+  ...
+# Subtest: temporal correction response rejects revoke and retains the original obligation
+ok 25 - temporal correction response rejects revoke and retains the original obligation
+  ---
+  duration_ms: 221.035417
+  type: 'test'
+  ...
+# Subtest: temporal correction settlement rejects deadline and retains the original obligation
+ok 26 - temporal correction settlement rejects deadline and retains the original obligation
+  ---
+  duration_ms: 292.1475
+  type: 'test'
+  ...
+# Subtest: temporal correction settlement rejects temporal-scope and retains the original obligation
+ok 27 - temporal correction settlement rejects temporal-scope and retains the original obligation
+  ---
+  duration_ms: 346.357916
+  type: 'test'
+  ...
+# Subtest: temporal correction settlement rejects receipt and retains the original obligation
+ok 28 - temporal correction settlement rejects receipt and retains the original obligation
+  ---
+  duration_ms: 285.347792
+  type: 'test'
+  ...
+# Subtest: temporal correction settlement rejects source-purge and retains the original obligation
+ok 29 - temporal correction settlement rejects source-purge and retains the original obligation
+  ---
+  duration_ms: 274.628209
+  type: 'test'
+  ...
+# Subtest: temporal correction settlement rejects revoke and retains the original obligation
+ok 30 - temporal correction settlement rejects revoke and retains the original obligation
+  ---
+  duration_ms: 307.606042
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects deadline and retains the original obligation
+ok 31 - temporal correction backup rejects deadline and retains the original obligation
+  ---
+  duration_ms: 303.943916
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects temporal-scope and retains the original obligation
+ok 32 - temporal correction backup rejects temporal-scope and retains the original obligation
+  ---
+  duration_ms: 291.23925
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects receipt and retains the original obligation
+ok 33 - temporal correction backup rejects receipt and retains the original obligation
+  ---
+  duration_ms: 304.931625
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects source-purge and retains the original obligation
+ok 34 - temporal correction backup rejects source-purge and retains the original obligation
+  ---
+  duration_ms: 286.491375
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects revoke and retains the original obligation
+ok 35 - temporal correction backup rejects revoke and retains the original obligation
+  ---
+  duration_ms: 294.17075
+  type: 'test'
+  ...
+# Subtest: temporal correction ACK abort rolls back and retries the same physical response
+ok 36 - temporal correction ACK abort rolls back and retries the same physical response
+  ---
+  duration_ms: 388.032208
+  type: 'test'
+  ...
+# Subtest: temporal correction cannot borrow context-field authorization
+ok 37 - temporal correction cannot borrow context-field authorization
+  ---
+  duration_ms: 49.528334
+  type: 'test'
+  ...
+# Subtest: temporal correction cannot borrow input-field authorization
+ok 38 - temporal correction cannot borrow input-field authorization
+  ---
+  duration_ms: 45.191958
+  type: 'test'
+  ...
+# Subtest: temporal correction cannot borrow processing authorization
+ok 39 - temporal correction cannot borrow processing authorization
+  ---
+  duration_ms: 47.072667
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects input-body after backup generation is staged
+ok 40 - closed Context correction fence rejects input-body after backup generation is staged
+  ---
+  duration_ms: 282.622167
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects input-excluded after backup generation is staged
+ok 41 - closed Context correction fence rejects input-excluded after backup generation is staged
+  ---
+  duration_ms: 288.363959
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects input-state after backup generation is staged
+ok 42 - closed Context correction fence rejects input-state after backup generation is staged
+  ---
+  duration_ms: 299.291459
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects source-purge after backup generation is staged
+ok 43 - closed Context correction fence rejects source-purge after backup generation is staged
+  ---
+  duration_ms: 288.72875
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects source-missing after backup generation is staged
+ok 44 - closed Context correction fence rejects source-missing after backup generation is staged
+  ---
+  duration_ms: 288.264084
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects source-hidden after backup generation is staged
+ok 45 - closed Context correction fence rejects source-hidden after backup generation is staged
+  ---
+  duration_ms: 312.708167
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects source-body after backup generation is staged
+ok 46 - closed Context correction fence rejects source-body after backup generation is staged
+  ---
+  duration_ms: 382.793875
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects context-body after backup generation is staged
+ok 47 - closed Context correction fence rejects context-body after backup generation is staged
+  ---
+  duration_ms: 576.0565
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects context-order after backup generation is staged
+ok 48 - closed Context correction fence rejects context-order after backup generation is staged
+  ---
+  duration_ms: 374.150833
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects context-provenance after backup generation is staged
+ok 49 - closed Context correction fence rejects context-provenance after backup generation is staged
+  ---
+  duration_ms: 312.160792
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects context-delete after backup generation is staged
+ok 50 - closed Context correction fence rejects context-delete after backup generation is staged
+  ---
+  duration_ms: 323.318625
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects receipt after backup generation is staged
+ok 51 - closed Context correction fence rejects receipt after backup generation is staged
+  ---
+  duration_ms: 335.768084
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects restore after backup generation is staged
+ok 52 - closed Context correction fence rejects restore after backup generation is staged
+  ---
+  duration_ms: 388.205667
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects legacy-input after backup generation is staged
+ok 53 - closed Context correction fence rejects legacy-input after backup generation is staged
+  ---
+  duration_ms: 285.320708
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects placement after backup generation is staged
+ok 54 - closed Context correction fence rejects placement after backup generation is staged
+  ---
+  duration_ms: 317.427083
+  type: 'test'
+  ...
+# Subtest: closed Context correction fence rejects revoke after backup generation is staged
+ok 55 - closed Context correction fence rejects revoke after backup generation is staged
+  ---
+  duration_ms: 279.803708
+  type: 'test'
+  ...
+# Subtest: exact body+note correction refuses independent note grant loss before selected note hashing
+ok 56 - exact body+note correction refuses independent note grant loss before selected note hashing
+  ---
+  duration_ms: 49.848666
+  type: 'test'
+  ...
+# Subtest: exact body+note correction refuses independent context grant loss before selected note hashing
+ok 57 - exact body+note correction refuses independent context grant loss before selected note hashing
+  ---
+  duration_ms: 47.776666
+  type: 'test'
+  ...
+# Subtest: exact body+note correction refuses independent extra-input grant loss before selected note hashing
+ok 58 - exact body+note correction refuses independent extra-input grant loss before selected note hashing
+  ---
+  duration_ms: 47.099583
+  type: 'test'
+  ...
+# Subtest: exact body+note correction refuses independent processing grant loss before selected note hashing
+ok 59 - exact body+note correction refuses independent processing grant loss before selected note hashing
+  ---
+  duration_ms: 46.332958
+  type: 'test'
+  ...
+# Subtest: exact note correction refuses independent note grant loss before selected note hashing
+ok 60 - exact note correction refuses independent note grant loss before selected note hashing
+  ---
+  duration_ms: 47.743667
+  type: 'test'
+  ...
+# Subtest: exact note correction refuses independent context grant loss before selected note hashing
+ok 61 - exact note correction refuses independent context grant loss before selected note hashing
+  ---
+  duration_ms: 49.804125
+  type: 'test'
+  ...
+# Subtest: exact note correction refuses independent extra-input grant loss before selected note hashing
+ok 62 - exact note correction refuses independent extra-input grant loss before selected note hashing
+  ---
+  duration_ms: 46.813084
+  type: 'test'
+  ...
+# Subtest: exact note correction refuses independent processing grant loss before selected note hashing
+ok 63 - exact note correction refuses independent processing grant loss before selected note hashing
+  ---
+  duration_ms: 49.44625
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete body+note correction none
+ok 64 - original source response adapter carries complete body+note correction none
+  ---
+  duration_ms: 310.773125
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete body+note correction foreign-item
+ok 65 - original source response adapter carries complete body+note correction foreign-item
+  ---
+  duration_ms: 245.281459
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete body+note correction unknown-field
+ok 66 - original source response adapter carries complete body+note correction unknown-field
+  ---
+  duration_ms: 226.122
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete note correction none
+ok 67 - original source response adapter carries complete note correction none
+  ---
+  duration_ms: 305.179542
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete note correction foreign-item
+ok 68 - original source response adapter carries complete note correction foreign-item
+  ---
+  duration_ms: 235.648208
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete note correction unknown-field
+ok 69 - original source response adapter carries complete note correction unknown-field
+  ---
+  duration_ms: 221.117875
+  type: 'test'
+  ...
+# Subtest: complete body+note correction ACK failure retries one physical response with unchanged human fields
+ok 70 - complete body+note correction ACK failure retries one physical response with unchanged human fields
+  ---
+  duration_ms: 345.312834
+  type: 'test'
+  ...
+# Subtest: complete note correction ACK failure retries one physical response with unchanged human fields
+ok 71 - complete note correction ACK failure retries one physical response with unchanged human fields
+  ---
+  duration_ms: 332.335167
+  type: 'test'
+  ...
+# Subtest: plain Input correction tail retains original current Section eligibility
+ok 72 - plain Input correction tail retains original current Section eligibility
+  ---
+  duration_ms: 269.7045
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: context-access
+ok 73 - Context correction closes original scope metadata at native tail: context-access
+  ---
+  duration_ms: 280.024167
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: name-registry
+ok 74 - Context correction closes original scope metadata at native tail: name-registry
+  ---
+  duration_ms: 268.248208
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: binding
+ok 75 - Context correction closes original scope metadata at native tail: binding
+  ---
+  duration_ms: 277.177834
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: library
+ok 76 - Context correction closes original scope metadata at native tail: library
+  ---
+  duration_ms: 265.891708
+  type: 'test'
+  ...
+# Subtest: Context correction closes original scope metadata at native tail: root-sequence
+ok 77 - Context correction closes original scope metadata at native tail: root-sequence
+  ---
+  duration_ms: 263.620917
+  type: 'test'
+  ...
+# Subtest: authored Context correction original owner edit body
+ok 78 - authored Context correction original owner edit body
+  ---
+  duration_ms: 456.58425
+  type: 'test'
+  ...
+# Subtest: authored Context correction original owner edit complete fields
+ok 79 - authored Context correction original owner edit complete fields
+  ---
+  duration_ms: 479.056042
+  type: 'test'
+  ...
+# Subtest: authored Context correction original owner restore body
+ok 80 - authored Context correction original owner restore body
+  ---
+  duration_ms: 382.866291
+  type: 'test'
+  ...
+# Subtest: authored Context correction original owner restore complete fields
+ok 81 - authored Context correction original owner restore complete fields
+  ---
+  duration_ms: 405.472958
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent qualification before material dispatch
+ok 82 - authored Context correction refuses independent qualification before material dispatch
+  ---
+  duration_ms: 167.826833
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent qualification-field before material dispatch
+ok 83 - authored Context correction refuses independent qualification-field before material dispatch
+  ---
+  duration_ms: 169.600625
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent author-field before material dispatch
+ok 84 - authored Context correction refuses independent author-field before material dispatch
+  ---
+  duration_ms: 164.334125
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent context-field before material dispatch
+ok 85 - authored Context correction refuses independent context-field before material dispatch
+  ---
+  duration_ms: 158.724792
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent processing before material dispatch
+ok 86 - authored Context correction refuses independent processing before material dispatch
+  ---
+  duration_ms: 163.801083
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects body atomically
+ok 87 - authored Context correction before rejects body atomically
+  ---
+  duration_ms: 163.25525
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects note atomically
+ok 88 - authored Context correction before rejects note atomically
+  ---
+  duration_ms: 152.519875
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects history atomically
+ok 89 - authored Context correction before rejects history atomically
+  ---
+  duration_ms: 158.456583
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects membership atomically
+ok 90 - authored Context correction before rejects membership atomically
+  ---
+  duration_ms: 165.2135
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects dependency atomically
+ok 91 - authored Context correction before rejects dependency atomically
+  ---
+  duration_ms: 156.964042
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects receipt atomically
+ok 92 - authored Context correction before rejects receipt atomically
+  ---
+  duration_ms: 154.832417
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects revoke atomically
+ok 93 - authored Context correction before rejects revoke atomically
+  ---
+  duration_ms: 162.312208
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects body atomically
+ok 94 - authored Context correction provider rejects body atomically
+  ---
+  duration_ms: 336.728125
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects note atomically
+ok 95 - authored Context correction provider rejects note atomically
+  ---
+  duration_ms: 340.539792
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects history atomically
+ok 96 - authored Context correction provider rejects history atomically
+  ---
+  duration_ms: 336.73975
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects membership atomically
+ok 97 - authored Context correction provider rejects membership atomically
+  ---
+  duration_ms: 330.999792
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects dependency atomically
+ok 98 - authored Context correction provider rejects dependency atomically
+  ---
+  duration_ms: 333.377666
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects receipt atomically
+ok 99 - authored Context correction provider rejects receipt atomically
+  ---
+  duration_ms: 389.898208
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects revoke atomically
+ok 100 - authored Context correction provider rejects revoke atomically
+  ---
+  duration_ms: 375.73
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects body atomically
+ok 101 - authored Context correction settlement rejects body atomically
+  ---
+  duration_ms: 376.665917
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects note atomically
+ok 102 - authored Context correction settlement rejects note atomically
+  ---
+  duration_ms: 407.500292
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects history atomically
+ok 103 - authored Context correction settlement rejects history atomically
+  ---
+  duration_ms: 396.991292
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects membership atomically
+ok 104 - authored Context correction settlement rejects membership atomically
+  ---
+  duration_ms: 399.82225
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects dependency atomically
+ok 105 - authored Context correction settlement rejects dependency atomically
+  ---
+  duration_ms: 373.2615
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects receipt atomically
+ok 106 - authored Context correction settlement rejects receipt atomically
+  ---
+  duration_ms: 402.274625
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects revoke atomically
+ok 107 - authored Context correction settlement rejects revoke atomically
+  ---
+  duration_ms: 384.022709
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects body atomically
+ok 108 - authored Context correction backup rejects body atomically
+  ---
+  duration_ms: 392.108958
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects note atomically
+ok 109 - authored Context correction backup rejects note atomically
+  ---
+  duration_ms: 396.972625
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects history atomically
+ok 110 - authored Context correction backup rejects history atomically
+  ---
+  duration_ms: 385.075583
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects membership atomically
+ok 111 - authored Context correction backup rejects membership atomically
+  ---
+  duration_ms: 398.968583
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects dependency atomically
+ok 112 - authored Context correction backup rejects dependency atomically
+  ---
+  duration_ms: 480.319875
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects receipt atomically
+ok 113 - authored Context correction backup rejects receipt atomically
+  ---
+  duration_ms: 729.483667
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects revoke atomically
+ok 114 - authored Context correction backup rejects revoke atomically
+  ---
+  duration_ms: 427.396084
+  type: 'test'
+  ...
+# Subtest: authored Context correction original source response adapter none
+ok 115 - authored Context correction original source response adapter none
+  ---
+  duration_ms: 418.535042
+  type: 'test'
+  ...
+# Subtest: authored Context correction original source response adapter foreign-item
+ok 116 - authored Context correction original source response adapter foreign-item
+  ---
+  duration_ms: 379.175833
+  type: 'test'
+  ...
+# Subtest: authored Context correction original source response adapter unknown-field
+ok 117 - authored Context correction original source response adapter unknown-field
+  ---
+  duration_ms: 422.261209
+  type: 'test'
+  ...
+# Subtest: authored Context correction ACK abort replays one retained response without changing human contents
+ok 118 - authored Context correction ACK abort replays one retained response without changing human contents
+  ---
+  duration_ms: 461.136333
+  type: 'test'
+  ...
+# Subtest: authored Context correction DTO rejects copied grants, extra entries, mixed Inputs and Topic coverage
+ok 119 - authored Context correction DTO rejects copied grants, extra entries, mixed Inputs and Topic coverage
+  ---
+  duration_ms: 383.107875
+  type: 'test'
+  ...
+# Subtest: authored correction independent qualification refuses omitted history
+ok 120 - authored correction independent qualification refuses omitted history
+  ---
+  duration_ms: 160.02425
+  type: 'test'
+  ...
+# Subtest: authored correction independent qualification refuses omitted title
+ok 121 - authored correction independent qualification refuses omitted title
+  ---
+  duration_ms: 166.937292
+  type: 'test'
+  ...
+# Subtest: authored correction independent qualification refuses omitted note
+ok 122 - authored correction independent qualification refuses omitted note
+  ---
+  duration_ms: 170.073458
+  type: 'test'
+  ...
+# Subtest: authored correction rejects retained evidence selected-fields inconsistent with original owner receipt
+ok 123 - authored correction rejects retained evidence selected-fields inconsistent with original owner receipt
+  ---
+  duration_ms: 149.275792
+  type: 'test'
+  ...
+# Subtest: authored correction rejects retained evidence field-digest inconsistent with original owner receipt
+ok 124 - authored correction rejects retained evidence field-digest inconsistent with original owner receipt
+  ---
+  duration_ms: 191.954459
+  type: 'test'
+  ...
+# Subtest: authored correction closed fence refuses late placements replacement at unchanged count
+ok 125 - authored correction closed fence refuses late placements replacement at unchanged count
+  ---
+  duration_ms: 378.881875
+  type: 'test'
+  ...
+# Subtest: authored correction closed fence refuses late revisions replacement at unchanged count
+ok 126 - authored correction closed fence refuses late revisions replacement at unchanged count
+  ---
+  duration_ms: 395.693166
+  type: 'test'
+  ...
+# Subtest: authored correction tail independently fences original section owner facts
+ok 127 - authored correction tail independently fences original section owner facts
+  ---
+  duration_ms: 378.583834
+  type: 'test'
+  ...
+# Subtest: authored correction tail independently fences original placement-journal owner facts
+ok 128 - authored correction tail independently fences original placement-journal owner facts
+  ---
+  duration_ms: 372.946791
+  type: 'test'
+  ...
+1..128
+# tests 128
+# suites 0
+# pass 128
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18470.071875

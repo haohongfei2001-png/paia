@@ -1,4 +1,5 @@
 import {assertMaintenanceQualification,assertMaintenanceQualificationFacts,assertMaintenanceQualificationCapturedFacts,maintenanceQualificationReader,readMaintenanceQualificationSourcePresenceAtTransaction,assertMaintenanceQualificationSourcePresenceAtTransactionFacts,assertMaintenanceQualificationTransactionIdentity} from './ai-usage/maintenance-qualification.js';
+import {topicFormationMemberProjection} from './topic-formation-terminal.js';
 import {readAuthoredEntryContext} from './context-authored-entry.js';
 import {ContextCardsService} from './context-cards.js';
 import {hashText} from './dedupe.js';
@@ -279,6 +280,58 @@ async function scopeMetadata(store,t,topicId,admitted){
     requireFact(section?.lifecycle==='active'&&!section.redirectTo,'legacy_unavailable');
    }
  return {context,target,topics,reservations,legacyRows,topicIds,entryIds,inputIds,sections,eligible,entries};
+}
+
+// The original scope owner closes its own metadata read set. These facts are
+// neither a grant nor a second eligibility policy: scopeMetadata and admission
+// must succeed first, in this same transaction. Only named, body-free fields
+// survive; full selected material remains with its separate lineage owner.
+const terminalPick=(row,keys)=>row?Object.fromEntries(keys.filter(k=>Object.hasOwn(row,k)).map(k=>[k,structuredClone(row[k])])):null;
+export function contextTopicMetadataTerminalProjection(table,row){
+ if(!row)return null;
+ if(table==='topics')return {...topicProjection(row),defaultSectionId:row.defaultSectionId};
+ if(table==='sections'){sectionValid(row);return terminalPick(row,['id','topicId','sectionId','layoutGeneration','revision','rank','lifecycle','redirectTo']);}
+ if(table==='placements'){placementValid(row);return topicFormationMemberProjection(table,row);}
+ if(table==='thoughts'){entryValid(row);return {...terminalPick(row,['id','storageSchema','revision','contentRevision','lifecycle','freshness','hasHumanAction','origin','provenanceType','sourceRecordIds','bodyBinding','workingInputId','bindingRevision','bindingLength']),staleReasonCount:row.staleReasons.length,protections:Object.fromEntries(ENTRY_FIELDS.map(f=>[f,{locked:row.protections[f].locked}])),fieldRevisions:Object.fromEntries(ENTRY_FIELDS.map(f=>[f,row.fieldRevisions[f]])),organizationIntents:row.organizationIntents?.version===1?structuredClone(row.organizationIntents):null,inputRefs:row.inputRefs.map(ref=>terminalPick(ref,['inputBlockId','basedOnContentRevision']))};}
+ if(table==='dependencies'){dependencyValid(row,row.targetId);return topicFormationMemberProjection(table,row);}
+ if(table==='provenance')return topicFormationMemberProjection(table,row);
+ if(table==='operationReceipts'){const reservation=contextTopicOperationReservation(row);requireFact(reservation,'organization_unavailable');return {...reservation,ownerId:row.ownerId,result:structuredClone(row.result)};}
+ requireFact(table==='meta','invalid_facts');
+ if(row.id==='context-cards:v1')return terminalPick(row,['id','version','access']);
+ if(row.id.startsWith('personalTopicName:')){requireFact(validTopicNameRegistry(row),'topic_unavailable');return terminalPick(row,['id','version','topicIds']);}
+ if(row.id.startsWith('memory:')){requireFact(validateMemoryRow(row),'legacy_unavailable');return ['config','topic','section','entry','input'].includes(row.kind)?structuredClone(row):terminalPick(row,['id','kind']);}
+ if(row.id==='gate')return terminalPick(row,['id','epoch','enabled','sealed']);
+ if(row.id==='thought-library')return terminalPick(row,['id','phase','verified','sealed']);
+ if(row.id===BINDING_ROW)return terminalPick(row,['id','version','complete']);
+ if(row.id==='smart-filter')return terminalPick(row,['id','phase','mode','policyEpoch','decisionSequence',...Object.keys(FILTER_VERSIONS)]);
+ if(['thought-sequence','thought-epoch','input-delta-sequence','revision-sequence','recovery-restore-epoch','backup-data-generation'].includes(row.id))return terminalPick(row,['id','value']);
+ refuse('invalid_facts');
+}
+// IndexedStore.control uses these exact owner-held settings. Read only data
+// descriptors here so a terminal observation cannot run an injected callback.
+export function contextTopicTerminalControl(store){
+ const data=(object,key)=>{const descriptor=Object.getOwnPropertyDescriptor(object||{},key);requireFact(!descriptor||Object.hasOwn(descriptor,'value'),'stale_authority');return descriptor?.value;};
+ const control=data(store,'pendingControl')||data(store,'controlCache'),settings=data(control,'settings');
+ return ['epoch','enabled','consentVersion'].map(key=>data(settings,key));
+}
+export async function captureContextTopicMetadataTerminal(store,transaction,topicId,{retain,current}){
+ const rows=new Map(),counts=[],t=Object.create(transaction);
+ const record=(table,key,row)=>{current();const expected=contextTopicMetadataTerminalProjection(table,row),ref=JSON.stringify([table,key]);
+  if(rows.has(ref))requireFact(JSON.stringify(rows.get(ref).expected)===JSON.stringify(expected),'stale_authority');
+  else rows.set(ref,{table,key,expected:retain(expected)});return row;};
+ t.get=async(table,key)=>record(table,key,await transaction.get(table,key));
+ t.count=async(table,index,key)=>{current();const expected=await transaction.count(table,index,key);current();requireFact(revisionOK(expected)&&expected<=MAX_REFS,'scope_budget');retain({table,index,range:key?{lower:key.lower,upper:key.upper,lowerOpen:key.lowerOpen,upperOpen:key.upperOpen}:null,expected});counts.push({table,index,key,expected});return expected;};
+ // Each complete query is sealed by its own count plus every actual primary
+ // key and projected row. Replacing a row at equal count cannot pass.
+ t.scanPrimary=async(table,keyPrefix,consume)=>{const key=IDBKeyRange.bound(keyPrefix,keyPrefix+'\uffff',false,true),expected=await t.count(table,null,key);let count=0;await transaction.scanPrimary(table,keyPrefix,row=>{count++;return consume(record(table,row.id,row));});requireFact(count===expected,'incomplete_page');return count;};
+ t.scanRange=async(table,index,key,consume)=>{const expected=await t.count(table,index,key);let count=0;await transaction.scanRange(table,index,key,row=>{count++;return consume(record(table,row.id,row));});requireFact(count===expected,'incomplete_page');return count;};
+ t.all=async(table,index,key)=>{const values=[];await t.scanRange(table,index,key,row=>values.push(row));return values;};
+ const admitted=await admission(store,t);await scopeMetadata(store,t,topicId,admitted);current();
+ // Canonical counters belong to the transaction intent. They are fenced at
+ // registration, after the original owner has performed its allowed writes.
+ // They must not be silently exempted or compared to an earlier prepare phase.
+ const root=[...rows.values()].filter(f=>f.table==='meta'&&['thought-sequence','thought-epoch','input-delta-sequence','revision-sequence','backup-data-generation'].includes(f.key));
+ return {facts:[...rows.values()].filter(f=>!root.includes(f)),counts,control:contextTopicTerminalControl(store)};
 }
 
 async function scopeRead(store,budget,fn,stores){
