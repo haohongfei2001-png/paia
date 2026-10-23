@@ -67,3 +67,16 @@ import {prepareHumanSourceEntryLifecyclePlan} from '../core/browser-native-sync/
 test('linked lifecycle original transaction rolls suppression and history back after owner execution',async t=>{
  const {s,core,request}=await fixture(t),created=await executeHumanPlan(await prepareHumanSourceEntryPlan(s,core,request,await humanPlanEntry(s,core))),remove={id:created.id,operationId:crypto.randomUUID(),expectedRevision:0},plan=await prepareHumanSourceEntryLifecyclePlan(s,core,remove,await humanPlanEntry(s,core)),before=await snapshot(s);let executed=false;await assert.rejects(s.foundationWrite(async tx=>{await executeHumanPlanInTransaction(tx,plan);executed=true;throw Error('SYNTHETIC after removal');}),{code:'STORAGE_FAILED'});assert.equal(executed,true);assert.deepEqual(await snapshot(s),before);
 });
+
+import {humanEntryLifecyclePlan} from '../core/browser-native-sync/human-library-plan.js';
+import {registerRepositoryWorkLimit} from '../core/idb-repository.js';
+for(const n of [65,128,129])test(`source lifecycle suppression pagination retains exact same-key rows at ${n}`,async t=>{
+ const {s,core,request}=await fixture(t),created=await executeHumanPlan(await prepareHumanSourceEntryPlan(s,core,request,await humanPlanEntry(s,core)));
+ await executeHumanPlan(await prepareHumanSourceEntryLifecyclePlan(s,core,{id:created.id,operationId:crypto.randomUUID(),expectedRevision:0},await humanPlanEntry(s,core)));
+ await s.foundationWrite(async tx=>{const original=(await tx.all('thoughtSuppressions'))[0];for(let i=1;i<n;i++)await tx.put('thoughtSuppressions',{...original,id:'SYNTHETIC_SUPPRESSION_'+String(i).padStart(3,'0')});await tx.put('thoughtSuppressions',{...original,id:'SYNTHETIC_UNRELATED',deletedEntryId:'SYNTHETIC_OTHER_ENTRY'});});
+ const before=await snapshot(s),restore={id:created.id,operationId:crypto.randomUUID(),expectedRevision:1};
+ if(n===129){await assert.rejects(prepareHumanSourceEntryLifecyclePlan(s,core,restore,await humanPlanEntry(s,core),{restore:true}),{code:'BNS_HUMAN_HISTORY_LIMIT'});assert.deepEqual(await snapshot(s),before);return;}
+ const plan=await prepareHumanSourceEntryLifecyclePlan(s,core,restore,await humanPlanEntry(s,core),{restore:true}),view=humanEntryLifecyclePlan(plan),ids=before.thoughtSuppressions.filter(x=>x.deletedEntryId===created.id).map(x=>x.id).sort();assert.deepEqual(view.suppressions.map(x=>x.id).sort(),ids);assert.equal(new Set(view.suppressions.map(x=>x.id)).size,n);
+ if(n===65){const last=ids.at(-1);await s.foundationWrite(async tx=>{const row=await tx.get('thoughtSuppressions',last);await tx.put('thoughtSuppressions',{...row,status:'restored'});});const stable=await snapshot(s);await assert.rejects(s.foundationWrite(async tx=>{registerRepositoryWorkLimit(s.repository,tx);await executeHumanPlanInTransaction(tx,plan);}),{code:'BNS_HUMAN_CHANGED'});assert.deepEqual(await snapshot(s),stable);return;}
+ await s.foundationWrite(async tx=>{registerRepositoryWorkLimit(s.repository,tx);await executeHumanPlanInTransaction(tx,plan);});const after=await snapshot(s);assert.equal(after.thoughts[0].lifecycle,'active');assert.equal(after.thoughtSuppressions.filter(x=>x.deletedEntryId===created.id&&x.status==='restored').length,n);assert.deepEqual(after.thoughtSuppressions.find(x=>x.id==='SYNTHETIC_UNRELATED'),before.thoughtSuppressions.find(x=>x.id==='SYNTHETIC_UNRELATED'));
+});

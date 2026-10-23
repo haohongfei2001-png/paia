@@ -1,0 +1,1 @@
+function workRefuse(record){const b=record.workLimit;console.error('SYNTHETIC_WORK_REFUSAL',JSON.stringify({refs:b?.refs,references:b?.references,bytes:b?.bytes,byteLimit:b?.byteLimit,elapsed:b?workClock()-b.started:null,ms:b?.ms}),new Error('work refusal location').stack);workAbort(record);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}

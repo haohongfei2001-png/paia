@@ -197,7 +197,7 @@ export function releaseHumanOperation(t,request){if(executions.has(request))rele
 
 export function humanOperationError(request,error){return executions.has(request)&&error?.code?.startsWith('BNS_')?new ArchiveError(error.code):error;}
 
-async function lifecycleReadSet(t,id){const read=await editReadSet(t,id),page=await t.rangePage('thoughtSuppressions','byEntry',id,null,129);if(page.next||page.rows.length>128)fail('BNS_HUMAN_HISTORY_LIMIT');return {...read,suppressions:page.rows.map(x=>x.value)};}
+async function lifecycleReadSet(t,id){const read=await editReadSet(t,id),suppressions=[];let after=null;do{const page=await t.indexPrimaryPage('thoughtSuppressions','byEntry',id,{after,limit:64});suppressions.push(...page.rows.map(x=>x.value));if(suppressions.length>128)fail('BNS_HUMAN_HISTORY_LIMIT');after=page.next;}while(after!==null);if(await t.count('thoughtSuppressions','byEntry',id)!==suppressions.length)fail('BNS_HUMAN_HISTORY_LIMIT');return {...read,suppressions};}
 export function prepareHumanEntryLifecyclePlan(store,core,request,entry,options={}){return prepareEntryLifecyclePlan(store,core,request,entry,options,false);}
 export function prepareHumanSourceEntryLifecyclePlan(store,core,request,entry,options={}){return prepareEntryLifecyclePlan(store,core,clone(request),entry,options,true);}
 async function prepareEntryLifecyclePlan(store,core,request,entry,{restore=false}={},sourceBound){
