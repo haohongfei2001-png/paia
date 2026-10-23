@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: two original documents each bootstrap append and Working independently qualify the complete current cut
+ok 1 - two original documents each bootstrap append and Working independently qualify the complete current cut
+  ---
+  duration_ms: 190.11525
+  type: 'test'
+  ...
+# Subtest: multi Source append and each Working cold restore B then edit and export C retain exact ownership
+ok 2 - multi Source append and each Working cold restore B then edit and export C retain exact ownership
+  ---
+  duration_ms: 1388.245959
+  type: 'test'
+  ...
+# Subtest: multi Source qualification refuses cross-document source Working time provenance and counter substitutions
+ok 3 - multi Source qualification refuses cross-document source Working time provenance and counter substitutions
+  ---
+  duration_ms: 211.4245
+  type: 'test'
+  ...
+# Subtest: multi Source cold consumer rolls back every canonical and protocol table at applied-group
+ok 4 - multi Source cold consumer rolls back every canonical and protocol table at applied-group
+  ---
+  duration_ms: 440.043
+  type: 'test'
+  ...
+# Subtest: multi Source cold consumer rolls back every canonical and protocol table at after-activation
+ok 5 - multi Source cold consumer rolls back every canonical and protocol table at after-activation
+  ---
+  duration_ms: 523.190291
+  type: 'test'
+  ...
+# Subtest: multiple Source known and unknown times plus untouched Inputs preserve original filter and time owners
+ok 6 - multiple Source known and unknown times plus untouched Inputs preserve original filter and time owners
+  ---
+  duration_ms: 104.872625
+  type: 'test'
+  ...
+# Subtest: multiple Source append cannot borrow the other document bootstrap authority
+ok 7 - multiple Source append cannot borrow the other document bootstrap authority
+  ---
+  duration_ms: 116.040834
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3158.776083

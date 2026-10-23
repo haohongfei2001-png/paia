@@ -1200,16 +1200,17 @@ async function projectionCompileSourceWorking(r){
  // complete4096 metadata Map slots are independently reserved. Numeric slots
  // bound these original frames, not native heap/platform initial allocations.
  // Existing fixed192KiB additionally covers the <=4096 borrowed completed-control
- // selector references and <=128 operation/local-device plus <=2 Working selectors;
+ // selector references and <=128 operation/local-device/Working selectors;
  // no control body is copied into these vectors. Full control encoder/digest copies
  // are independently summed below before the asynchronous identity check.
- const compilerScratch=5*projectionTreeCharge(totals)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128+192*1024;
+ const restoredPrefixScratch=r.raw.rows.meta.some(row=>row.id===r.core.prefix+'active')?6*projectionTreeCharge(totals)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128:0;
+ const compilerScratch=5*projectionTreeCharge(totals)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128+192*1024+restoredPrefixScratch;
  projectionReserve(r,compilerScratch);const operations=[];for(const row of r.raw.groupMeta)if(row.id.startsWith(revisionPrefix))operations.push(row.operation);
  const plan=await prepareCurrentSourceWorkingGroupCheckpointPlan(r.core,operations);projectionCurrent(r);
  requireSelectedCurrentSourceWorkingGroupPlan(r.core,plan);
  projectionReserve(r,compilerScratch+sourceWorkingScopeScratch(plan));
  const scope=await currentGroupOwner.prepareGroupScope(plan);projectionCurrent(r);currentGroupOwner.requireOriginalCurrentSourceWorkingGroupScope(r.core,scope,plan);
- let hidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit')for(const member of group.prepared.members)hidden+=projectionTreeCharge(projectionMeasure(member.value.entity,'native'));
+ let hidden=0;for(const group of plan.groups)if(['sourceBootstrapCommit','sourceAppendCommit'].includes(group.type))for(const member of group.prepared.members)hidden+=projectionTreeCharge(projectionMeasure(member.value.entity,'native'));
  r.owned+=projectionTreeCharge(projectionMeasure(plan,'native'))+projectionTreeCharge(projectionMeasure(scope,'native'))+hidden;
  r.group={...r.group,plan,scope,databaseId:r.binding.databaseId};
  projectionReserve(r,compilerScratch+sourceWorkingComparisonScratch(r.raw.rows,r.controlValues,scope.expected)+completedGroupControlScratch(r.core,r.raw));

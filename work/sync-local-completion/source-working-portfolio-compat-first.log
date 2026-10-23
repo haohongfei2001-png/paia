@@ -1,0 +1,206 @@
+TAP version 13
+# Subtest: original Source/Working canonical and protocol rows with coalesced real history
+ok 1 - original Source/Working canonical and protocol rows with coalesced real history
+  ---
+  duration_ms: 219.892125
+  type: 'test'
+  ...
+# Subtest: original Source/Working canonical and protocol rows with separated real history
+ok 2 - original Source/Working canonical and protocol rows with separated real history
+  ---
+  duration_ms: 119.239
+  type: 'test'
+  ...
+# Subtest: missing original protocol receipt and altered full owner/history/namespace refuse
+ok 3 - missing original protocol receipt and altered full owner/history/namespace refuse
+  ---
+  duration_ms: 120.653166
+  type: 'test'
+  ...
+# Subtest: complete Source and Working body/provenance plus local retry and pending derivative inventory refuse unrepresented values
+ok 4 - complete Source and Working body/provenance plus local retry and pending derivative inventory refuse unrepresented values
+  ---
+  duration_ms: 144.665833
+  type: 'test'
+  ...
+# Subtest: strict Source current-native opt-in refuses truthy nonbooleans and simultaneous Human before supplied readers or transport
+ok 5 - strict Source current-native opt-in refuses truthy nonbooleans and simultaneous Human before supplied readers or transport
+  ---
+  duration_ms: 2.010375
+  type: 'test'
+  ...
+# Subtest: Source private require/encoder/publisher accept no cloned cap, DTO plan or caller body reader
+ok 6 - Source private require/encoder/publisher accept no cloned cap, DTO plan or caller body reader
+  ---
+  duration_ms: 0.229792
+  type: 'test'
+  ...
+# Subtest: original complete initial Source/Working default inventory and original semantic delta builder qualify without external authority
+ok 7 - original complete initial Source/Working default inventory and original semantic delta builder qualify without external authority
+  ---
+  duration_ms: 211.303916
+  type: 'test'
+  ...
+# Subtest: full local meta inventory refuses missing migration/secret/delta proof, unsupported pending state and unknown local keys
+ok 8 - full local meta inventory refuses missing migration/secret/delta proof, unsupported pending state and unknown local keys
+  ---
+  duration_ms: 155.802042
+  type: 'test'
+  ...
+# Subtest: original consent/control/database binding is required and consumer settings are not silently made portable
+ok 9 - original consent/control/database binding is required and consumer settings are not silently made portable
+  ---
+  duration_ms: 124.5155
+  type: 'test'
+  ...
+# Subtest: complete control meter rejects a supplied getter before reading consent or preferences
+ok 10 - complete control meter rejects a supplied getter before reading consent or preferences
+  ---
+  duration_ms: 113.96225
+  type: 'test'
+  ...
+# Subtest: original migration DDL version and Library migration copied version must agree
+ok 11 - original migration DDL version and Library migration copied version must agree
+  ---
+  duration_ms: 66.253958
+  type: 'test'
+  ...
+# Subtest: annual local cache is accepted only as exact original blockIndex projection, never an unknown prefix exemption
+ok 12 - annual local cache is accepted only as exact original blockIndex projection, never an unknown prefix exemption
+  ---
+  duration_ms: 104.582542
+  type: 'test'
+  ...
+# Subtest: actual completed annual metadata requires strict marker and complete exact local projection without making it portable
+ok 13 - actual completed annual metadata requires strict marker and complete exact local projection without making it portable
+  ---
+  duration_ms: 88.1075
+  type: 'test'
+  ...
+# Subtest: annual missing-document reads preserve the original exact Source/Working inventory qualification
+ok 14 - annual missing-document reads preserve the original exact Source/Working inventory qualification
+  ---
+  duration_ms: 57.561833
+  type: 'test'
+  ...
+# Subtest: original Source and two real Working edits retain exact original derived rows, own undefined and signed zero
+not ok 15 - original Source and two real Working edits retain exact original derived rows, own undefined and signed zero
+  ---
+  duration_ms: 193.685375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-derived.test.mjs:21:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'map')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    assertSourceWorkingDerivedRows (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-derived.js:29:73)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-derived.test.mjs:22:100)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: complete original index formation rejects missing own fields, altered provenance, stale views, sequence and signed-zero coercion
+ok 16 - complete original index formation rejects missing own fields, altered provenance, stale views, sequence and signed-zero coercion
+  ---
+  duration_ms: 111.839625
+  type: 'test'
+  ...
+# Subtest: special physical scalars are restricted to actual native derived paths and never execute getters
+ok 17 - special physical scalars are restricted to actual native derived paths and never execute getters
+  ---
+  duration_ms: 1.189834
+  type: 'test'
+  ...
+# Subtest: physical checker requires original ready Plan and Scope instead of an otherwise identical DTO
+ok 18 - physical checker requires original ready Plan and Scope instead of an otherwise identical DTO
+  ---
+  duration_ms: 107.951667
+  type: 'test'
+  ...
+# Subtest: selected Source profile rejects an async Core getter at Scope entry and rejects bootstrap-only without changing default compilation
+ok 19 - selected Source profile rejects an async Core getter at Scope entry and rejects bootstrap-only without changing default compilation
+  ---
+  duration_ms: 112.585292
+  type: 'test'
+  ...
+# Subtest: fixed original compiler preserves genuine Source bootstrap and two Working groups and original Plan identity
+ok 20 - fixed original compiler preserves genuine Source bootstrap and two Working groups and original Plan identity
+  ---
+  duration_ms: 216.43425
+  type: 'test'
+  ...
+# Subtest: fixed compiler never calls instance supplied family preparation while the original public path remains unchanged
+ok 21 - fixed compiler never calls instance supplied family preparation while the original public path remains unchanged
+  ---
+  duration_ms: 107.920708
+  type: 'test'
+  ...
+# Subtest: constructor-private Core binding rejects prototype clones, changed identity and accessor rebinding
+ok 22 - constructor-private Core binding rejects prototype clones, changed identity and accessor rebinding
+  ---
+  duration_ms: 0.204292
+  type: 'test'
+  ...
+# Subtest: fixed compiler and both original family validators refuse async accessor replacement before any getter read
+ok 23 - fixed compiler and both original family validators refuse async accessor replacement before any getter read
+  ---
+  duration_ms: 101.152458
+  type: 'test'
+  ...
+# Subtest: two original documents each bootstrap append and Working independently qualify the complete current cut
+ok 24 - two original documents each bootstrap append and Working independently qualify the complete current cut
+  ---
+  duration_ms: 390.385125
+  type: 'test'
+  ...
+# Subtest: multi Source append and each Working cold restore B then edit and export C retain exact ownership
+ok 25 - multi Source append and each Working cold restore B then edit and export C retain exact ownership
+  ---
+  duration_ms: 1594.344958
+  type: 'test'
+  ...
+# Subtest: multi Source qualification refuses cross-document source Working time provenance and counter substitutions
+ok 26 - multi Source qualification refuses cross-document source Working time provenance and counter substitutions
+  ---
+  duration_ms: 166.581625
+  type: 'test'
+  ...
+# Subtest: multi Source cold consumer rolls back every canonical and protocol table at applied-group
+ok 27 - multi Source cold consumer rolls back every canonical and protocol table at applied-group
+  ---
+  duration_ms: 412.643917
+  type: 'test'
+  ...
+# Subtest: multi Source cold consumer rolls back every canonical and protocol table at after-activation
+ok 28 - multi Source cold consumer rolls back every canonical and protocol table at after-activation
+  ---
+  duration_ms: 581.247834
+  type: 'test'
+  ...
+# Subtest: original cleaned restored Source/Working cut admits truthful local counters without imported UI receipts
+ok 29 - original cleaned restored Source/Working cut admits truthful local counters without imported UI receipts
+  ---
+  duration_ms: 425.96925
+  type: 'test'
+  ...
+# Subtest: genuine restored second Working journal edit and fresh third restore preserve complete original portable scope
+ok 30 - genuine restored second Working journal edit and fresh third restore preserve complete original portable scope
+  ---
+  duration_ms: 467.701167
+  type: 'test'
+  ...
+# Subtest: restored qualification refuses uncleaned control and complete-inventory/protocol/counter tampering
+ok 31 - restored qualification refuses uncleaned control and complete-inventory/protocol/counter tampering
+  ---
+  duration_ms: 162.420875
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 30
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3371.807

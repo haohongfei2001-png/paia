@@ -1,0 +1,42 @@
+{
+  "base": "526b7091003c3430b18b8a23ba65ed6f5f3fa4d0",
+  "runtime_and_owning": [
+    {
+      "path": "extension/core/browser-native-sync/core.js",
+      "sha256": "2b1a9a5a307090880082dc8e9cc1884e977c411237a6bc1236390c7e79c33768"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint-plan.js",
+      "sha256": "c3b4308c50d979742db12b12ddcab2ee187f32373ce4cc5fcfd487eb2aebb6da"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint-scope.js",
+      "sha256": "920bca646adcc9fb118cef5d1bd8e6323b4f4de2f99cd45c96c1607221b7ce84"
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-plan.js",
+      "sha256": "498f8a1f44ea5dae861f61d4676b98f58c50c478f789176b252b8af872cea29b"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-working-canonical.js",
+      "sha256": "7204baff14915477b91f25bede6d4ec1983cfc723939d8df305d3489f2938a66"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-working-default-meta.js",
+      "sha256": "65138b44ac8e10919aa7681e5dd8dfb2376148f9aac586f544faa33aa4286412"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-working-derived.js",
+      "sha256": "c0bb5f43bc7500d8b63e43695cc7af2dbde7b2e7d17e6f725113e6ea3febdaa3"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-working-replay.js",
+      "sha256": "b25751994d8f57907a7cd797af66dfec2aa0e042e662aa5f77bbe4f123ebbbaf"
+    },
+    {
+      "path": "extension/tests/source-working-portfolio.test.mjs",
+      "sha256": "d4672af6f1bb8787211e65c28732ba31062b3d99a1291e28c2e4d2053d90771c"
+    }
+  ],
+  "coordinator": "No new change for this package; existing uncommitted coordinator in test tree is previously delivered saved/purge/incremental integration, not part of this commit."
+}

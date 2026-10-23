@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: two original documents each bootstrap append and Working independently qualify the complete current cut
+ok 1 - two original documents each bootstrap append and Working independently qualify the complete current cut
+  ---
+  duration_ms: 159.404166
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 299.404167

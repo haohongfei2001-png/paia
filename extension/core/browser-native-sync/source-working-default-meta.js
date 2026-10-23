@@ -145,23 +145,22 @@ function qualifyMixedWorkingDerivatives(scope,plan,working,rows){
 // authenticate rows/control/databaseId and pay all original builder/Map/equality
 // frames. This pure complete inventory check creates no read or export grant.
 export function assertSourceWorkingDefaultMeta(core,scope,plan,rows,control,databaseId){
- if(arguments.length!==6)refuse();assertSourceWorkingCanonicalAndProtocolRows(core,scope,plan,rows);
- qualifyLocal(core,scope,plan,rows,control,databaseId,plan.groups.filter(group=>group.type==='inputWorkingCommit').length+1);
+ if(arguments.length!==6)refuse();const replay=assertSourceWorkingCanonicalAndProtocolRows(core,scope,plan,rows);
+ qualifyLocal(core,scope,plan,rows,control,databaseId,replay);
 }
 export async function assertSourceWorkingRestoredDefaultMeta(core,scope,plan,rows,control,databaseId){
  if(arguments.length!==6)refuse();
- const localWorking=await assertSourceWorkingRestoredCanonicalAndProtocolRows(core,scope,plan,rows);
- qualifyLocal(core,scope,plan,rows,control,databaseId,localWorking+1);
+ const replay=await assertSourceWorkingRestoredCanonicalAndProtocolRows(core,scope,plan,rows);
+ qualifyLocal(core,scope,plan,rows,control,databaseId,replay);
 }
-function qualifyLocal(core,scope,plan,rows,control,databaseId,aiSequence){
+function qualifyLocal(core,scope,plan,rows,control,databaseId,replay){
  const meta=new Map(rows.meta.map(row=>[row.id,row])),admitted=new Set(),working=plan.groups.filter(group=>group.type==='inputWorkingCommit').length;
  const take=(id,expected)=>{if(!equal(meta.get(id),{id,...expected}))refuse();admitted.add(id);};
  const read=id=>{const row=meta.get(id);if(!row)refuse();return row;};
- qualifyDefaultInfrastructure(rows,control,databaseId,take,read,{records:1,blocks:1,documents:1});
- take('thought-epoch',{value:working});take('input-delta-sequence',{value:working+1});take('revision-sequence',{value:rows.revisions.length});take(DELTA_COUNTER,{value:aiSequence});
- const generation=read('backup-data-generation');if(!count(generation.value)||generation.value<working+1)refuse();take('backup-data-generation',{value:generation.value});
- const descriptor=deltaDescription('inputStates',rows.inputStates[0]);if(!descriptor)refuse();const signature=deltaSignature(descriptor),sequence=aiSequence;
- take(KNOWN_PREFIX+descriptor.key,{version:1,descriptor,signature,sequence});take(DIRTY_PREFIX+descriptor.key,{version:1,descriptor,signature,sequence,requirements:[],pendingFacets:['topic','context']});
+ qualifyDefaultInfrastructure(rows,control,databaseId,take,read,{records:replay.records.size,blocks:replay.blocks.size,documents:replay.documents.size});
+ take('thought-epoch',{value:working});take('input-delta-sequence',{value:replay.delta});take('revision-sequence',{value:replay.revision});
+ const generation=read('backup-data-generation');if(!count(generation.value)||generation.value<(replay.restored?1+replay.transactions.slice(1).length:replay.transactions.length))refuse();take('backup-data-generation',{value:generation.value});
+ const semantic=planMixedSemanticTransactions(replay.transactions,id=>replay.history.get(id));for(const row of [...semantic.known,...semantic.dirty,semantic.sequence,...(semantic.humanFence?[semantic.humanFence]:[])]){const {id,...value}=row;take(id,value);}
  // The preceding canonical checker individually checked every original protocol
  // ID, including full operations/receipt/head/history and foreign namespaces.
  // No unvalidated protocol prefix or arbitrary local key is exempted here.

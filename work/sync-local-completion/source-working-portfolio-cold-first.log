@@ -1,0 +1,38 @@
+TAP version 13
+# Subtest: two original documents each bootstrap append and Working independently qualify the complete current cut
+ok 1 - two original documents each bootstrap append and Working independently qualify the complete current cut
+  ---
+  duration_ms: 187.725625
+  type: 'test'
+  ...
+# Subtest: multi Source append and each Working cold restore B then edit and export C retain exact ownership
+not ok 2 - multi Source append and each Working cold restore B then edit and export C retain exact ownership
+  ---
+  duration_ms: 581.210625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-portfolio.test.mjs:19:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    refused (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/completed-group-restore-control.js:7:19)
+    fields (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/completed-group-restore-control.js:9:211)
+    assertCompletedGroupedRestoreControl (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/completed-group-restore-control.js:35:2)
+    restoredSourceWorkingReplay (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-replay.js:17:8)
+    assertSourceWorkingRestoredCanonicalAndProtocolRows (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-canonical.js:39:21)
+    assertSourceWorkingRestoredDefaultMeta (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-default-meta.js:153:21)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-portfolio.test.mjs:19:447)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 998.5085

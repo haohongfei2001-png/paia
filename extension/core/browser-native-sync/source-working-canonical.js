@@ -1,3 +1,5 @@
+import {planInitialFilter} from '../smart-filter-store-owner.js';
+import {initialSourceWorkingReplay,restoredSourceWorkingReplay} from './source-working-replay.js';
 import {checkCurrentGroupProtocolRows} from './current-group-protocol-rows.js';
 import {STORES,FILTER_STORES,IA_STORES} from '../idb-repository.js';
 import {LIBRARY_STORES} from '../thought-schema.js';
@@ -28,21 +30,18 @@ function sameRows(actual,expected){
 // authenticate complete indexes, and pin the complete raw cut at every boundary.
 export function assertSourceWorkingCanonicalAndProtocolRows(core,scope,plan,rows){
  if(arguments.length!==4)unrepresented();requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan);
- qualifyRows(core,scope,plan,rows,{namespace:'initial',epoch:null,restored:false});
+ const replay=initialSourceWorkingReplay(core,scope,plan);qualifyRows(core,scope,plan,rows,{...replay,epoch:null});return replay;
 }
 // Pure qualification of the original frozen native cut. Completion authentication
 // does not read storage or grant a projection; the fixed native caller prepays
 // every immutable-control frame before this asynchronous identity check.
 export async function assertSourceWorkingRestoredCanonicalAndProtocolRows(core,scope,plan,rows){
  if(arguments.length!==4)unrepresented();requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan);measureSourceWorkingPhysicalTree(rows);if(core.fixedNamespace!==null)unrepresented();
- const active=rows.meta.find(row=>row.id===core.prefix+'active'),completed=rows.meta.filter(row=>row.id.startsWith(core.prefix+'generation:')&&row.id.endsWith(':restore:'));
- const epochRow=rows.meta.find(row=>row.id==='recovery-restore-epoch');if(epochRow||!active||completed.length!==1)unrepresented();
- const namespace=active.namespace,epoch=null;
- await assertCompletedGroupedRestoreControl(completed[0],{prefix:core.prefix,datasetId:core.datasetId,active,namespace,epoch});
- qualifyRows(core,scope,plan,rows,{namespace,epoch,restored:true,activeId:active.id,completedId:completed[0].id});
- return plan.groups.filter(group=>group.type==='inputWorkingCommit'&&group.prepared.descriptor.deviceId===core.deviceId).length;
+ const replay=await restoredSourceWorkingReplay(core,scope,plan,rows);qualifyRows(core,scope,plan,rows,{...replay,epoch:null});return replay;
 }
-function qualifyRows(core,scope,plan,rows,{namespace,epoch,restored,activeId,completedId}){
+
+function qualifyRows(core,scope,plan,rows,replay){
+ const {namespace,epoch,restored,activeId,completedId,working,localWorking}=replay;
  requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan);
  measureSourceWorkingPhysicalTree(rows);
  const stores=sourceWorkingCurrentStores();
@@ -52,33 +51,32 @@ function qualifyRows(core,scope,plan,rows,{namespace,epoch,restored,activeId,com
   for(const row of rows[name])assertSourceWorkingSpecialScalars(name,row);
  }
  if(rows.meta.length>4096)unrepresented();
- assertSourceWorkingDerivedRows(core,scope,plan,rows);
- const expected=scope.expected,input=expected.blocks[0],document=expected.documents[0],working=plan.groups.filter(group=>group.type==='inputWorkingCommit');
+ assertSourceWorkingDerivedRows(core,scope,plan,rows,replay);
+ const expected=scope.expected;
  sameRows(rows.records,expected.records.map(value=>({id:value.id,value})));
  sameRows(rows.blocks,expected.blocks.map(value=>({id:value.id,value})));
  sameRows(rows.libraryDocuments,expected.libraryDocuments.map(value=>({id:value.id,value})));
  sameRows(rows.times,expected.times);sameRows(rows.filterIntents,expected.filterIntents);
  const {meta,key,used,take}=checkCurrentGroupProtocolRows(core,plan,rows,{namespace,epoch,restored,activeId,completedId});
- const inputHead=plan.heads.find(head=>head.type==='inputWorkingMember'&&head.entityId==='input:'+input.id);if(!inputHead)unproven();
- const deltaSequence=working.length+1;take(key('workingOwner',input.id),{revisionId:inputHead.revisions[0],deltaSequence});
- sameRows(rows.inputStates,expected.inputStates.map(row=>({...row,deltaSequence})));
- const localSequences=new Set();if(rows.revisions.length!==expected.revisions.length)unrepresented();
+ for(const input of expected.blocks){const head=plan.heads.find(h=>h.type==='inputWorkingMember'&&h.entityId==='input:'+input.id);if(head)take(key('workingOwner',input.id),{revisionId:head.revisions[0],deltaSequence:replay.inputs.get(input.id)});}
+ sameRows(rows.inputStates,expected.inputStates.map(row=>({...row,deltaSequence:replay.inputs.get(row.id)})));
+ if(rows.revisions.length!==expected.revisions.length)unrepresented();
  for(const row of expected.revisions){
-  const actual=rows.revisions.find(item=>item.id===row.id),head=plan.heads.find(head=>head.type==='inputWorkingMember'&&head.entityId==='revision:'+row.id);
-  if(!actual||!head||!count(actual.sequence)||actual.sequence<1||actual.sequence>rows.revisions.length||localSequences.has(actual.sequence))unproven();localSequences.add(actual.sequence);
-  take(key('workingHistory',row.id),{revisionId:head.revisions[0],sequence:actual.sequence});
-  if(!equal(actual,{...row,sequence:actual.sequence,listKey:[row.entityKey,actual.sequence],documentList:[row.documentId,actual.sequence]}))unrepresented();
+  const actual=rows.revisions.find(item=>item.id===row.id),head=plan.heads.find(head=>head.type==='inputWorkingMember'&&head.entityId==='revision:'+row.id),sequence=replay.history.get(row.id);
+  if(!actual||!count(sequence)||sequence<1||actual.sequence!==sequence)unproven();
+  if(head)take(key('workingHistory',row.id),{revisionId:head.revisions[0],sequence});
+  if(!equal(actual,{...row,sequence,listKey:[row.entityKey,sequence],documentList:[row.documentId,sequence]}))unrepresented();
  }
  for(const row of rows.meta)if(row.id.startsWith('bns:')&&!used.has(row.id))unrepresented();
  // UI retry digests authenticate local retry evidence, not portable revision
  // digests; full request bytes are not reconstructed from a typed descriptor.
- const localWorking=restored?working.filter(group=>group.prepared.descriptor.deviceId===core.deviceId):working;
+
  if(rows.operationReceipts.length!==localWorking.length||new Set(rows.operationReceipts.map(row=>row.id)).size!==localWorking.length)unrepresented();
- for(const row of rows.operationReceipts)if(!exact(row,['id','namespace','schemaVersion','ownerId','createdAt','digest','result'])||!localWorking.some(group=>group.prepared.descriptor.entityId===row.id)||row.namespace!=='working-input'||row.schemaVersion!==1||row.ownerId!==document.id||!iso(row.createdAt)||!hash(row.digest)||!equal(row.result,{ok:true}))unrepresented();
+ for(const row of rows.operationReceipts)if(!exact(row,['id','namespace','schemaVersion','ownerId','createdAt','digest','result'])||!localWorking.some(group=>group.prepared.descriptor.entityId===row.id)||row.namespace!=='working-input'||row.schemaVersion!==1||row.ownerId!==localWorking.find(group=>group.prepared.descriptor.entityId===row.id)?.prepared.descriptor.value.documentId||!iso(row.createdAt)||!hash(row.digest)||!equal(row.result,{ok:true}))unrepresented();
  // Local pending derivatives remain local. Their exact immutable current cut
  // is pinned by the native owner; no history timestamp is invented or uploaded.
  if(rows.invalidations.length!==working.length||new Set(rows.invalidations.map(row=>row.id)).size!==working.length)unrepresented();
- const eventSequences=new Set();for(const row of rows.invalidations){if(!exact(row,['id','eventSchema','inputId','reason','contentRevision','sequence','at','stateKey','state','cursor','dependencyAck','organizerAck'])||!opaque(row.id)||row.eventSchema!==2||row.inputId!==input.id||row.reason!=='source_updated'||!count(row.sequence)||row.sequence<1||row.sequence>working.length||row.contentRevision!==row.sequence||!iso(row.at)||row.stateKey!==0||row.state!=='pending'||row.cursor!==null||row.dependencyAck!==false||row.organizerAck!==false||eventSequences.has(row.sequence))unrepresented();eventSequences.add(row.sequence);}
- if(rows.filterInputs.length!==1)unrepresented();const filter=rows.filterInputs[0];
- if(!exact(filter,['id','documentId','authorship','userEdited','filterOverride','presence','evaluationRevision','pendingKey','decision','reasonCode',...Object.keys(FILTER_VERSIONS),'basedOnContentRevision','overrideReason','overrideAt','failed'])||!equal(filter,{id:input.id,documentId:document.id,authorship:'untouched',userEdited:true,filterOverride:'keep',presence:null,evaluationRevision:working.length,pendingKey:1,decision:'keep',reasonCode:'user_protected',...FILTER_VERSIONS,basedOnContentRevision:0,overrideReason:'user_edit',overrideAt:filter.overrideAt,failed:false})||!iso(filter.overrideAt))unrepresented();
+ const matched=new Set();for(const row of rows.invalidations){const group=working.find(g=>g.prepared.descriptor.value.inputId===row.inputId&&g.prepared.members.some(m=>m.value.entityType==='inputState'&&m.value.entity.contentRevision===row.contentRevision));if(!group||matched.has(group)||!exact(row,['id','eventSchema','inputId','reason','contentRevision','sequence','at','stateKey','state','cursor','dependencyAck','organizerAck'])||!opaque(row.id)||row.eventSchema!==2||row.reason!=='source_updated'||row.sequence!==working.indexOf(group)+1||!iso(row.at)||row.stateKey!==0||row.state!=='pending'||row.cursor!==null||row.dependencyAck!==false||row.organizerAck!==false)unrepresented();matched.add(group);}
+ if(rows.filterInputs.length!==expected.blocks.length)unrepresented();const seen=new Set();for(const filter of rows.filterInputs){const input=expected.blocks.find(b=>b.id===filter.id),edits=working.filter(g=>g.prepared.descriptor.value.inputId===filter.id);if(!input||seen.has(filter.id))unrepresented();seen.add(filter.id);if(!edits.length){const initial=plan.groups.filter(g=>['sourceBootstrapCommit','sourceAppendCommit'].includes(g.type)).flatMap(g=>g.prepared.members),block=initial.find(m=>m.value.entityType==='input'&&m.value.entity.id===input.id)?.value.entity,state=initial.find(m=>m.value.entityType==='inputState'&&m.value.entity.id===input.id)?.value.entity;if(!block||!state||!equal(filter,planInitialFilter(block,state)))unrepresented();continue;}
+ if(!exact(filter,['id','documentId','authorship','userEdited','filterOverride','presence','evaluationRevision','pendingKey','decision','reasonCode',...Object.keys(FILTER_VERSIONS),'basedOnContentRevision','overrideReason','overrideAt','failed'])||!equal(filter,{id:input.id,documentId:input.documentId,authorship:'untouched',userEdited:true,filterOverride:'keep',presence:null,evaluationRevision:edits.length,pendingKey:1,decision:'keep',reasonCode:'user_protected',...FILTER_VERSIONS,basedOnContentRevision:0,overrideReason:'user_edit',overrideAt:filter.overrideAt,failed:false})||!iso(filter.overrideAt))unrepresented();}
 }

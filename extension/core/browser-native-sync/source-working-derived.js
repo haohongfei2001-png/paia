@@ -20,21 +20,24 @@ export function assertSourceWorkingSpecialScalars(store,row){
  visit(row,[]);
 }
 
-// Exact formation of the four derived families in the first initial-source
+// Exact formation of the four derived families in the bounded Source/Working
 // profile. No callback, supplied expected DTO, JSON normalization or duplicate
 // index builder: original Scope and original repository builders supply values.
 // Scope identity is not proof that the caller's rows came from native IDB.
-export function assertSourceWorkingDerivedRows(core,scope,plan,rows){
- if(arguments.length!==4)invalid();requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan);
- const source=scope.expected.records[0],block=scope.expected.blocks[0],doc=scope.expected.documents[0];
- const count=sourceCount(doc.id,source.sourceKey,[source],[block],source.chatId);
- const document={id:doc.id,chatKey:chatOf(source),sequence:0,displayKey:[-(Date.parse(doc.lastSourceSentAt)||0),doc.id],value:doc};
- for(const view of ['library','archive','excluded'])if(count[view+'Last'])document[view+'Display']=[-(Date.parse(count[view+'Last'][2])||0),doc.id];
- const expected={recordIndex:[recordIndex(source,0)],blockIndex:[blockIndex(block,0,[source])],sourceCounts:[count],documents:[document]};
+export function assertSourceWorkingDerivedRows(core,scope,plan,rows,replay){
+ if(arguments.length!==4&&arguments.length!==5)invalid();requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan);
+ const {records,blocks,documents}=scope.expected,meta=new Map((rows.meta??[]).map(row=>[row.id,row]));
+ const ordered=[...plan.groups].sort((a,b)=>Math.min(...a.operations.map(op=>op.sequence))-Math.min(...b.operations.map(op=>op.sequence)));
+ // Initial physical counters follow local capture order. Restored inventories
+ // follow the validated original graph order; replay proof checks them again.
+ const groups=replay?replay.transactions.flat():meta.has(core.prefix+'active')?plan.groups:ordered,recordOrder=[],blockOrder=[],documentOrder=[];
+ for(const group of groups)if(['sourceBootstrapCommit','sourceAppendCommit'].includes(group.type))for(const member of group.prepared.members){const {entityType,entity}=member.value;if(entityType==='source')recordOrder.push(entity.id);if(entityType==='input'){blockOrder.push(entity.id);if(!documentOrder.includes(entity.documentId))documentOrder.push(entity.documentId);}}
+ const counts=records.map(source=>{const block=blocks.find(b=>b.provenance.some(p=>p.sourceRecordId===source.id));if(!block)invalid();return sourceCount(block.documentId,source.sourceKey,records.filter(r=>r.sourceKey===source.sourceKey),blocks.filter(b=>b.documentId===block.documentId&&b.provenance.some(p=>p.sourceRecordId===source.id)),source.chatId);});
+ const expected={recordIndex:records.map(r=>recordIndex(r,recordOrder.indexOf(r.id))),blockIndex:blocks.map(b=>blockIndex(b,blockOrder.indexOf(b.id),records)),sourceCounts:counts,documents:documents.map(doc=>{const source=records.find(r=>r.chatId===doc.chatId)||records.find(r=>blocks.some(b=>b.documentId===doc.id&&b.provenance.some(p=>p.sourceRecordId===r.id)));if(!source)invalid();const related=counts.filter(c=>c.documentId===doc.id),document={id:doc.id,chatKey:chatOf(source),sequence:documentOrder.indexOf(doc.id),displayKey:[-(Date.parse(doc.lastSourceSentAt)||0),doc.id],value:doc};for(const view of ['library','archive','excluded']){const available=related.filter(c=>c.views.includes(JSON.stringify([doc.id,view])));if(available.length){const known=available.filter(c=>c[view+'Last']?.[1]===0).map(c=>c[view+'Last'][2]).sort();document[view+'Display']=[-(Date.parse(known.at(-1))||0),doc.id];}}return document;})};
  for(const name of Object.keys(expected)){
   const d=descriptor(rows,name);if(!d||!own(d,'value')||!array(d.value))invalid();
   measureSourceWorkingPhysicalTree(d.value);measureSourceWorkingPhysicalTree(expected[name]);
   for(const row of d.value)assertSourceWorkingSpecialScalars(name,row);
-  if(!equalSourceWorkingPhysicalTree(d.value,expected[name]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+  if(!equalSourceWorkingPhysicalTree([...d.value].sort((a,b)=>a.id.localeCompare(b.id)),expected[name].sort((a,b)=>a.id.localeCompare(b.id))))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  }
 }

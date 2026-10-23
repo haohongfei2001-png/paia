@@ -27,7 +27,8 @@ export function requireOriginalCurrentSourceWorkingGroupPlan(core,plan){
  if(arguments.length!==2||originalPlans.get(plan).currentSourceWorking!==true)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
 // Distinct constructor identity for the consuming mixed recovery batch. It
-// preserves the old one-Source selection rather than broadening that proof.
+// remains separate from the bounded Source/Working portfolio proof. Each
+// constructor keeps its own supported families and original owner qualification.
 export function requireOriginalCurrentMixedGroupPlan(core,plan){
  requireOriginalSourceWorkingCore(core);requireOriginalGroupCheckpointPlan(core,plan);
  if(arguments.length!==2||originalPlans.get(plan).currentSourceWorking!=='mixed')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
@@ -42,12 +43,12 @@ export function originalCurrentMixedGroupCore(plan){
 // Restrict this current-native slice before the general Scope owner allocates
 // its complete tables or digests families. The general fixed compiler remains
 // usable for broader future prerequisites; only this original native selection
-// has one Source bootstrap and one/two genuine Working commits.
+// admits only original Source bootstrap/append and genuine Working commits.
 export function requireSelectedCurrentSourceWorkingGroupPlan(core,plan){
  if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentSourceWorkingGroupPlan(core,plan);
  let source=0,working=0;
- for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')source++;else if(group.type==='inputWorkingCommit')working++;else fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');}
- if(plan.operationCount>128||source!==1||working<1||working>2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')source++;else if(group.type==='inputWorkingCommit')working++;else if(group.type!=='sourceAppendCommit')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');}
+ if(plan.operationCount>128||source<1||working<1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
 // A bounded immutable causal plan only. This module never writes canonical or
 // protocol rows. Domain capabilities are minted by the existing strict owners.
@@ -65,7 +66,7 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
   const op=currentSourceWorking==='mixed'?await validateFrozenOperation(candidate):await validateOperation(candidate);originalOperationSizes.set(op,operationBytes);
   if(currentSourceWorking)requireOriginalSourceWorkingCore(core);else if(pageBudget)checkGroupPageBudget(pageBudget);
   if(op.datasetId!==core.datasetId)fail('BNS_DATASET_MISMATCH');
-  if(currentSourceWorking===true&&!['sourceBootstrapCommit','sourceBootstrapMember','inputWorkingCommit','inputWorkingMember'].includes(op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+  if(currentSourceWorking===true&&!['sourceBootstrapCommit','sourceBootstrapMember','sourceAppendCommit','sourceAppendMember','inputWorkingCommit','inputWorkingMember'].includes(op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   if(op.kind!=='put'||!members.has(op.type)&&!singles.has(op.type)&&!Object.hasOwn(families,op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   const sequence=JSON.stringify([op.deviceId,op.sequence]);
   if(byRevision.has(op.revisionId)||byId.has(op.operationId)||sequences.has(sequence))fail('BNS_GROUP_DUPLICATE');
@@ -180,7 +181,13 @@ export async function prepareCurrentMixedGroupCheckpointPlan(core,input){
 // heads and digest are rebuilt by the SAME original causal graph owner;
 // filtering the current dependency vectors or final heads would be incorrect.
 export async function prepareOriginalCurrentMixedForeignPrefix(core,complete){
- if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,complete);if(originalPlans.get(complete).borrowedFrom)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,complete);return prepareOriginalCurrentForeignPrefix(core,complete);
+}
+export async function prepareOriginalCurrentSourceWorkingForeignPrefix(core,complete){
+ if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireSelectedCurrentSourceWorkingGroupPlan(core,complete);return prepareOriginalCurrentForeignPrefix(core,complete);
+}
+async function prepareOriginalCurrentForeignPrefix(core,complete){
+ const requirePlan=originalPlans.get(complete)?.currentSourceWorking==='mixed'?requireOriginalCurrentMixedGroupPlan:requireOriginalCurrentSourceWorkingGroupPlan;requirePlan(core,complete);if(originalPlans.get(complete).borrowedFrom)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  const binding={...originalPlans.get(complete),borrowedFrom:complete},groups=[],operations=[],byRevision=new Map(),claimed=new Map();let size=0;
  for(const original of complete.groups){
   const ours=original.operations.filter(op=>op.deviceId===core.deviceId).length;if(ours&&ours!==original.operations.length)fail('BNS_GROUP_CAUSAL_GAP');if(ours)continue;
@@ -190,7 +197,7 @@ export async function prepareOriginalCurrentMixedForeignPrefix(core,complete){
  if(!groups.length||operations.length>CORE_LIMITS.batch||size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
  const heads=new Map(),parents=new Set(operations.flatMap(op=>op.parents));for(const op of operations){const key=JSON.stringify([op.type,op.entityId]);if(!heads.has(key))heads.set(key,[]);if(!parents.has(op.revisionId))heads.get(key).push(op.revisionId);}
  for(const revisions of heads.values())if(revisions.length!==1)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
- const prefix=await finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads);requireOriginalCurrentMixedGroupPlan(core,complete);return prefix;
+ const prefix=await finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads);requirePlan(core,complete);return prefix;
 }
 export function measureOriginalMixedPrefixWrappers(core,complete,prefix){
  requireOriginalCurrentMixedGroupPlan(core,complete);requireOriginalCurrentMixedGroupPlan(core,prefix);if(originalPlans.get(prefix).borrowedFrom!==complete)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');

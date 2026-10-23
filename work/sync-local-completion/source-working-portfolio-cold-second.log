@@ -1,0 +1,35 @@
+TAP version 13
+# Subtest: two original documents each bootstrap append and Working independently qualify the complete current cut
+ok 1 - two original documents each bootstrap append and Working independently qualify the complete current cut
+  ---
+  duration_ms: 161.461458
+  type: 'test'
+  ...
+# Subtest: multi Source append and each Working cold restore B then edit and export C retain exact ownership
+not ok 2 - multi Source append and each Working cold restore B then edit and export C retain exact ownership
+  ---
+  duration_ms: 470.738709
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-portfolio.test.mjs:21:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    refuse (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-default-meta.js:19:18)
+    qualifyLocal (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-default-meta.js:162:106)
+    assertSourceWorkingRestoredDefaultMeta (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-working-default-meta.js:154:2)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-portfolio.test.mjs:21:464)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 776.595041

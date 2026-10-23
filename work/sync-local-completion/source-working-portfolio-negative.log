@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: two original documents each bootstrap append and Working independently qualify the complete current cut
+not ok 1 - two original documents each bootstrap append and Working independently qualify the complete current cut
+  ---
+  duration_ms: 126.289167
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-portfolio.test.mjs:18:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    prepareGroupCheckpointPlanInternal (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint-plan.js:68:146)
+    async state (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-portfolio.test.mjs:16:140)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/source-working-portfolio.test.mjs:18:130)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 276.072833

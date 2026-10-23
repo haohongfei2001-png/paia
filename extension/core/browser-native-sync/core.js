@@ -511,8 +511,8 @@ export class BrowserNativeSyncCore {
   const prepared={descriptor,members};const freeze=x=>{if(x&&typeof x==='object'){for(const y of Object.values(x))freeze(y);Object.freeze(x);}return x;};freeze(prepared);this.#bootstrapPrepared.add(prepared);return prepared;
  }
  async prepareCurrentSourceWorkingReceive(type,input){
-  if(arguments.length!==2||!['sourceBootstrapCommit','inputWorkingCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(this);
-  const prepared=await(type==='sourceBootstrapCommit'?this.#prepareSourceBootstrapReceive(input,true):this.#prepareWorkingReceive(input,true));requireOriginalSourceWorkingCore(this);return prepared;
+  if(arguments.length!==2||!['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(this);
+  const prepared=await(type==='sourceBootstrapCommit'?this.#prepareSourceBootstrapReceive(input,true):type==='sourceAppendCommit'?this.#prepareSourceAppendReceive(input,true):this.#prepareWorkingReceive(input,true));requireOriginalSourceWorkingCore(this);return prepared;
  }
  // Original typed preparation for the consuming mixed-current compiler. This
  // creates no native cut, transport authority or broader Source-only admission.
@@ -620,7 +620,7 @@ export function requireOriginalSourceWorkingCore(core){
  for(const [name,value]of Object.entries(binding)){const d=sourceWorkingCoreDescriptor(core,name);if(!d||!sourceWorkingCoreOwn(d,'value')||d.value!==value)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');}
 }
 export async function prepareOriginalSourceWorkingReceive(core,type,input){
- if(arguments.length!==3||!['sourceBootstrapCommit','inputWorkingCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(core);
+ if(arguments.length!==3||!['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(core);
  const value=await sourceWorkingCorePreparation.call(core,type,input);requireOriginalSourceWorkingCore(core);return value;
 }
 
