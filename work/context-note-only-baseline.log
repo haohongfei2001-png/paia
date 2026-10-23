@@ -1,0 +1,56 @@
+TAP version 13
+# Subtest: note-only original Context edit sends only its independently selected note field
+not ok 1 - note-only original Context edit sends only its independently selected note field
+  ---
+  duration_ms: 89.8295
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:379:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"c455f549-d05f-457d-9f42-6ce0a6d20e07\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:381:80)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: note-only original Context restore sends only its independently selected note field
+not ok 2 - note-only original Context restore sends only its independently selected note field
+  ---
+  duration_ms: 52.805958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:379:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"bbd26a73-07f4-45c6-8876-2aa10e499542\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:381:80)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 296.584833

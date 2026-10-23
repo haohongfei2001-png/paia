@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: genuine human Context edit uses current original Input and independently selected Context fields, then protected original owner ACKs only Context
+ok 1 - genuine human Context edit uses current original Input and independently selected Context fields, then protected original owner ACKs only Context
+  ---
+  duration_ms: 320.510792
+  type: 'test'
+  ...
+# Subtest: complete body and note Context edit retains exact original fields with independent note permission
+ok 2 - complete body and note Context edit retains exact original fields with independent note permission
+  ---
+  duration_ms: 260.399958
+  type: 'test'
+  ...
+# Subtest: complete body and note Context restore retains exact original fields with independent note permission
+ok 3 - complete body and note Context restore retains exact original fields with independent note permission
+  ---
+  duration_ms: 260.988041
+  type: 'test'
+  ...
+# Subtest: note-only original Context edit sends only its independently selected note field
+ok 4 - note-only original Context edit sends only its independently selected note field
+  ---
+  duration_ms: 243.198083
+  type: 'test'
+  ...
+# Subtest: note-only original Context restore sends only its independently selected note field
+ok 5 - note-only original Context restore sends only its independently selected note field
+  ---
+  duration_ms: 240.686833
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses topic-facet without expanding ordinary Topic fields
+ok 6 - Context note DTO refuses topic-facet without expanding ordinary Topic fields
+  ---
+  duration_ms: 1.610625
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses absent-selection without expanding ordinary Topic fields
+ok 7 - Context note DTO refuses absent-selection without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.1525
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses note-only-extra-body without expanding ordinary Topic fields
+ok 8 - Context note DTO refuses note-only-extra-body without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.0775
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses extra-field without expanding ordinary Topic fields
+ok 9 - Context note DTO refuses extra-field without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.068708
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses missing-note without expanding ordinary Topic fields
+ok 10 - Context note DTO refuses missing-note without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.116625
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses foreign-input without expanding ordinary Topic fields
+ok 11 - Context note DTO refuses foreign-input without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.064042
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses duplicate-input without expanding ordinary Topic fields
+ok 12 - Context note DTO refuses duplicate-input without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.431833
+  type: 'test'
+  ...
+# Subtest: Context note DTO refuses partial-selection without expanding ordinary Topic fields
+ok 13 - Context note DTO refuses partial-selection without expanding ordinary Topic fields
+  ---
+  duration_ms: 0.139375
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1467.819459
