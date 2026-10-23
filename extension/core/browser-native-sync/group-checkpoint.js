@@ -1,3 +1,4 @@
+import {requireOriginalLibraryDocumentsGenerationMethods} from '../library-documents-owner.js';
 import {requireNoSourcePurgeDeny} from './source-purge-journal.js';
 import {equalSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {readCanonicalCheckpointProof,requireCanonicalCheckpointProof,requireCanonicalCheckpointInputProof} from './canonical-generation-checkpoint-stage.js';
@@ -9,7 +10,7 @@ import {prepareHumanGroupApplication,requireHumanGroupApplication,applyHumanGrou
 import {FilterIntentSyncJournal,prepareRestoredFilterSources,prepareFilterApplication} from './filter-intent-journal.js';
 import {manualSyncOwners} from './manual-owners.js';
 import {contextDesiredMaterializer} from './context-desired-journal-owner.js';
-import {BrowserNativeSyncCore,acceptSequence,CORE_LIMITS} from './core.js';
+import {BrowserNativeSyncCore,requireOriginalGenerationCoreMethods,acceptSequence,CORE_LIMITS} from './core.js';
 import {buildCheckpoint,checkpointItems} from './checkpoints.js';
 import {protocolObject,readObject,SEGMENT_PROFILE,assertProtocolObjectReference} from './segments.js';
 import {prepareGroupCheckpointPlan} from './group-checkpoint-plan.js';
@@ -17,18 +18,41 @@ import {prepareGroupScope,requireGroupScope,prepareGroupCurrentProjection,requir
 import {prepareBootstrapApplication,applyBootstrapApplication} from './source-bootstrap-receive.js';
 import {prepareAppendApplication,applyAppendApplication} from './source-append-receive.js';
 import {JournalRestoreFence,readRestoreEpoch,materializePromptBinding} from './prompt-journal.js';
-import {CONSENT_VERSION} from '../constants.js';
-import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque} from './value.js';
+import {ArchiveError,CONSENT_VERSION} from '../constants.js';
+import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque,SyncError} from './value.js';
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
-import {awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
+import {originalGenerationRepositoryTransaction,requireRepositoryTransactionDataMethods,awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
 import {finalConsumerPreferenceOperations,prepareRestoredConsumerPreferenceApplication,applyRestoredConsumerPreferenceOwners} from './consumer-preference-restore.js';
 import {CONSUMER_PUBLICATION_PENDING_ID,requireConsumerPublicationSettled} from './consumer-publication-state.js';
 import {sealManualMergeTransaction} from './manual-merge-terminal.js';
 import {topicDesiredMaterializer} from './topic-desired-journal.js';
 const own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
 const withoutId=({id,...row})=>row;
-const canonicalGenerationProofs=new WeakMap(),canonicalGenerationPublications=new WeakMap(),canonicalGenerationBindings=new WeakMap();
-function originalGenerationBinding(restore){const b=canonicalGenerationBindings.get(restore);if(!b||restore.store!==b.store||restore.live!==b.live||restore.stage!==b.stage||restore.restoreId!==b.restoreId)fail('BNS_GENERATION_PROOF_REQUIRED');return b;}
+const canonicalGenerationStates=new WeakMap(),canonicalGenerationProofs=new WeakMap(),canonicalGenerationPublications=new WeakMap(),canonicalGenerationBindings=new WeakMap();
+function originalGenerationBinding(restore){const b=canonicalGenerationBindings.get(restore);if(!b||['store','live','stage','restoreId'].some(key=>Object.getOwnPropertyDescriptor(restore,key)?.value!==b[key]))fail('BNS_GENERATION_PROOF_REQUIRED');return b;}
+const generationRepositoryAuthorities=new WeakMap(),defaultCheckpoint=async()=>{};
+export function readOriginalGroupGenerationRepositoryAuthority(token,repository,scope){
+ const r=generationRepositoryAuthorities.get(token);if(!r)return null;const b=originalGenerationBinding(r.restore);
+ if(b.store.repository!==repository||b.live.repository!==repository||b.stage.repository!==repository||b.live.prefix!==r.livePrefix||b.stage.prefix!==r.stagePrefix||b.stage.fixedNamespace!==r.namespace||Object.getOwnPropertyDescriptor(r.restore,'checkpoint')?.value!==r.checkpoint||scope!==null&&r.scope!==null&&r.scope!==scope)fail('GENERATION_REPOSITORY_WRITE_DENIED');
+ if(scope!==null){requireOriginalLibraryDocumentsGenerationMethods(b.store);requireOriginalGenerationCoreMethods(b.live);requireOriginalGenerationCoreMethods(b.stage);if(r.scope===null)r.scope=scope;}return r.authority;
+}
+async function generationTerminal(restore,t){
+ // The original delta owner alone appends rebuildable body-free scheduling
+ // metadata. Canonical data, protocol receipts and all other metadata close.
+ if(t.navigationChanges?.size)fail('BNS_GENERATION_TARGET_NOT_EMPTY');
+ const {store}=originalGenerationBinding(restore),snapshots=[],ranges=[IDBKeyRange.upperBound('aiu:delta:',true),IDBKeyRange.lowerBound('aiu:delta:\uffff',true)];
+ for(const table of t.tx.objectStoreNames){
+  const rows=[];let after=null;
+  do{const page=await t.primaryRangePage(table,{after,limit:64});for(const row of page.rows){if(table==='meta'&&typeof row.key==='string'&&row.key.startsWith('aiu:delta:'))continue;let value=clone(row.value);if(table==='meta'&&row.key==='backup-data-generation'&&t.backupChanged)value={...value,value:value.value+1};rows.push([row.key,value]);}after=page.next;}while(after);
+  const counts=table==='meta'?ranges.map(key=>({key,count:rows.filter(([id])=>key.includes(id)).length})):[{count:await t.count(table)}];snapshots.push({table,counts,rows});
+ }
+ registerRepositoryFinalReadFence(store.repository,t,{isCurrent:()=>{originalGenerationBinding(restore);return true;},plan:function*(){for(const {table,counts,rows}of snapshots){for(const {key,count}of counts)if((yield {method:'count',table,...(key?{key}:{})})!==count)throw new ArchiveError('BNS_RESTORE_STAGE_CHANGED');for(const [key,value]of rows)if(!equalSourceWorkingPhysicalTree(yield {method:'get',table,key},value))throw new ArchiveError('BNS_RESTORE_STAGE_CHANGED');}return true;}});
+}
+async function generationTransaction(restore,kind,fn,stores){
+ const b=originalGenerationBinding(restore),token=Object.freeze(Object.create(null));let semantic;
+ generationRepositoryAuthorities.set(token,{restore,scope:null,livePrefix:b.live.prefix,stagePrefix:b.stage.prefix,namespace:b.stage.fixedNamespace,checkpoint:Object.getOwnPropertyDescriptor(restore,'checkpoint')?.value,authority:Object.freeze({kind:Object.getOwnPropertyDescriptor(restore,'checkpoint')?.value===defaultCheckpoint?kind:'group-debug',prefix:b.stage.prefix+'generation:'+b.stage.fixedNamespace+':'})});
+ try{return await originalGenerationRepositoryTransaction(b.store.repository,token,async t=>{registerRepositoryWorkLimit(b.store.repository,t);requireRepositoryTransactionDataMethods(b.store.repository,t);try{const result=await fn(t);await generationTerminal(restore,t);return result;}catch(e){if(e instanceof SyncError)semantic=e;throw e;}},stores);}catch(e){throw semantic??e;}finally{generationRepositoryAuthorities.delete(token);}
+}
 async function authority(store,core,t){const c=await store.control(t);if(!c.settings.enabled||c.settings.consentVersion!==CONSENT_VERSION)fail('BNS_GROUP_PERMISSION');return{namespace:await core.bind(t),generation:(await core.get(t,'generation'))?.value||0,ownerGeneration:(await t.get('meta','backup-data-generation'))?.value||0,fence:await new JournalRestoreFence(core).snapshot(t),settings:c.settings};}
 async function allOperations(core){const operations=[],budget=createGroupPageBudget();for await(const row of core.rows('revision')){if(row.redacted)fail('BNS_GROUP_OWNER_UNSUPPORTED');chargeGroupPageValue(budget,row.operation);operations.push(row.operation);}checkGroupPageBudget(budget);return operations;}
 async function stageItems(stage){return stage.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix:await stage.idIn(t,'groupItem')})).map(row=>row.item),['meta']);}
@@ -121,7 +145,7 @@ async function requireStorageBudget(t,stage,replayId){
  let total=0,rows=0;for(const namespace of [stage.fixedNamespace,replayId]){let after=null;do{const page=await t.primaryRangePage('meta',{prefix:stage.prefix+'generation:'+namespace+':',after,limit:100});for(const {value}of page.rows){rows++;if((total+=bytes(value).length)>CORE_LIMITS.batchBytes*2)fail('BNS_GROUP_RESOURCE_LIMIT');}after=page.next;}while(after);}return {rows,bytes:total};
 }
 export class GroupedCheckpointRestore{
- constructor(core,{store,restoreId,profile=SEGMENT_PROFILE,checkpoint=async()=>{}}){
+ constructor(core,{store,restoreId,profile=SEGMENT_PROFILE,checkpoint=defaultCheckpoint}){
   if(store?.repository!==core.repository||!opaque(restoreId))fail('BNS_GROUP_BINDING');this.store=store;this.live=core;this.restoreId=restoreId;this.profile=profile;this.checkpoint=checkpoint;
   this.stage=new BrowserNativeSyncCore(core.repository,{datasetId:core.datasetId,deviceId:core.deviceId,namespace:restoreId});
   canonicalGenerationBindings.set(this,{store,live:core,stage:this.stage,restoreId});
@@ -140,12 +164,12 @@ export class GroupedCheckpointRestore{
   // invisible staging database must never publish those preferences early.
   if(compiled.plan.groups.some(group=>group.type==='consumerPreference'))fail('BNS_GENERATION_CONSUMER_PUBLICATION_UNSUPPORTED');
   const binding={stateId:verified.stateId,identity:verified.generationIdentity};
-  const result=await store.run(()=>stage.transaction(true,async t=>{
+  const result=await store.run(()=>generationTransaction(this,'group-stage',async t=>{
    registerRepositoryWorkLimit(live.repository,t);
    await requireCanonicalCheckpointProof(proof,{store,core:live},t);
    const old=await stage.get(t,'restore');
    if(old){
-    if(old.manifestId!==verified.manifestRef.id||old.graphDigest!==verified.graphDigest||!equal(old.canonicalGeneration,binding)||!['validated','activated'].includes(old.phase))fail('BNS_RESTORE_ID_COLLISION');
+    if(!own(old,['id','manifestId','manifestRef','manifest','phase','base','replayId','received','graphDigest','canonicalGeneration'])||old.manifestId!==verified.manifestRef.id||old.graphDigest!==verified.graphDigest||!equal(old.canonicalGeneration,binding)||!['validated','activated'].includes(old.phase))fail('BNS_RESTORE_ID_COLLISION');
     return old;
    }
    if((await t.primaryRangePage('meta',{prefix:stage.prefix+'generation:'+stage.fixedNamespace+':',limit:1})).rows.length)fail('BNS_RESTORE_ID_COLLISION');
@@ -154,7 +178,7 @@ export class GroupedCheckpointRestore{
    const row={manifestId:verified.manifestRef.id,manifestRef:clone(verified.manifestRef),manifest:clone(verified.manifest),phase:'validated',base,replayId,received:verified.items.length,graphDigest:verified.graphDigest,canonicalGeneration:binding};
    await stage.put(t,'restore',[],row);await requireStorageBudget(t,stage,replayId);return stage.get(t,'restore');
   },['meta']));
-  canonicalGenerationProofs.set(this,proof);return result;
+  canonicalGenerationProofs.set(this,proof);canonicalGenerationStates.set(this,clone(result));return result;
  }
  // Compilation may hash protocol data, so prepare outside a live native
  // write TX. The fixed publication consumer below rechecks all owner facts
@@ -209,6 +233,7 @@ export class GroupedCheckpointRestore{
   }));
   const generationProof=canonicalGenerationProofs.get(this);
   if(state.canonicalGeneration&&!generationProof)fail('BNS_GENERATION_PROOF_REQUIRED');
+  if(generationProof&&!equal(state,canonicalGenerationStates.get(this)))fail('BNS_RESTORE_STAGE_CHANGED');
   const items=[];for await(const row of this.stage.rows('groupItem'))items.push(row.item);
   if(generationProof){
    const proofRecord=readCanonicalCheckpointProof(generationProof,{store:this.store,core:this.live});
@@ -226,7 +251,8 @@ export class GroupedCheckpointRestore{
   const applications=[];for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);else if(group.type==='sourceAppendCommit'){const anchor=plan.groups.find(x=>x.id===group.prepared.descriptor.value.bootstrap.revisionId);applications.push([group,await prepareAppendApplication(this.store,replay,group.operations,anchor.operations)]);}else if(group.type==='inputWorkingCommit')applications.push([group,await prepareWorkingApplication(working,group.operations)]);else if(group.type==='filterIntent')applications.push([group,await prepareFilterApplication(filter,group.operations[0])]);else applications.push([group,null]);}
   const consumerApplication=consumerOperations.length?await prepareRestoredConsumerPreferenceApplication(this.store,replay,plan,this.stage,state):null;
   const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(replay,[]));
-  return this.store.run(async()=>{const result=await this.live.transaction(true,async t=>{
+  const applyTransaction=generationProof?(fn=>generationTransaction(this,'group-apply',fn)):(fn=>this.live.transaction(true,fn));
+  return this.store.run(async()=>{const result=await applyTransaction(async t=>{
    if(state.manifest.ownerScope.version===2||savedApplication||generationProof)registerRepositoryWorkLimit(this.store.repository,t);
    await requireNoSourcePurgeDeny(this.live,t);
    if(generationProof)await requireCanonicalCheckpointProof(generationProof,{store:this.store,core:this.live},t);
@@ -382,6 +408,7 @@ export async function requireOriginalCanonicalGenerationActivation(restore,proof
  const held=canonicalGenerationPublications.get(restore);
  if(!held||held.proof!==proof||canonicalGenerationProofs.get(restore)!==proof)fail('BNS_GENERATION_PROOF_REQUIRED');
  const {store,live}=originalGenerationBinding(restore),{state,verified,replay,plan,canonical}=held;
+ if(await t.get('meta','canonical-generation:repository-protection:v1')){requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(live);requireOriginalGenerationCoreMethods(restore.stage);}
  registerRepositoryWorkLimit(store.repository,t);
  await requireCanonicalCheckpointInputProof(proof,{store,core:live},t);
  const active={id:live.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:state.graphDigest};

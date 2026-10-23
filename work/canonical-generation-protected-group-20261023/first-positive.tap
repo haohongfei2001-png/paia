@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+ok 1 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 225.543125
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 404.06575

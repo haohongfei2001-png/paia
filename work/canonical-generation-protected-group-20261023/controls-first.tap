@@ -1,0 +1,116 @@
+TAP version 13
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+ok 1 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 210.893625
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rebinds original proof and never duplicates canonical application
+ok 2 - protected group cold resume rebinds original proof and never duplicates canonical application
+  ---
+  duration_ms: 144.246584
+  type: 'test'
+  ...
+# Subtest: protected group never lends a transaction to custom diagnostic callback
+ok 3 - protected group never lends a transaction to custom diagnostic callback
+  ---
+  duration_ms: 82.343833
+  type: 'test'
+  ...
+# Subtest: protected group cannot acquire genuine authority using forged or foreign proof
+ok 4 - protected group cannot acquire genuine authority using forged or foreign proof
+  ---
+  duration_ms: 76.149625
+  type: 'test'
+  ...
+# Subtest: protected group keeps token away from mutable repository and Core transaction wrappers
+ok 5 - protected group keeps token away from mutable repository and Core transaction wrappers
+  ---
+  duration_ms: 122.042083
+  type: 'test'
+  ...
+# Subtest: protected original group refuses gate-phase drift without partial owner writes
+ok 6 - protected original group refuses gate-phase drift without partial owner writes
+  ---
+  duration_ms: 95.942709
+  type: 'test'
+  ...
+# Subtest: protected original group refuses checkpoint-item drift without partial owner writes
+ok 7 - protected original group refuses checkpoint-item drift without partial owner writes
+  ---
+  duration_ms: 91.191667
+  type: 'test'
+  ...
+# Subtest: protected original group refuses consent drift without partial owner writes
+ok 8 - protected original group refuses consent drift without partial owner writes
+  ---
+  duration_ms: 90.54825
+  type: 'test'
+  ...
+# Subtest: protected original group refuses restore-row drift without partial owner writes
+not ok 9 - protected original group refuses restore-row drift without partial owner writes
+  ---
+  duration_ms: 118.774875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-protected-group.test.mjs:50:91'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-protected-group.test.mjs:50:815)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: protected original group refuses purge-deny drift without partial owner writes
+ok 10 - protected original group refuses purge-deny drift without partial owner writes
+  ---
+  duration_ms: 84.745958
+  type: 'test'
+  ...
+# Subtest: protected group native terminal canonical drift rolls back original owner and receipt
+ok 11 - protected group native terminal canonical drift rolls back original owner and receipt
+  ---
+  duration_ms: 111.458542
+  type: 'test'
+  ...
+# Subtest: protected group native terminal restore-receipt drift rolls back original owner and receipt
+ok 12 - protected group native terminal restore-receipt drift rolls back original owner and receipt
+  ---
+  duration_ms: 105.476583
+  type: 'test'
+  ...
+# Subtest: protected group native terminal checkpoint-item drift rolls back original owner and receipt
+ok 13 - protected group native terminal checkpoint-item drift rolls back original owner and receipt
+  ---
+  duration_ms: 110.498583
+  type: 'test'
+  ...
+# Subtest: protected group native terminal protection drift rolls back original owner and receipt
+ok 14 - protected group native terminal protection drift rolls back original owner and receipt
+  ---
+  duration_ms: 122.136542
+  type: 'test'
+  ...
+# Subtest: protected group native terminal gate drift rolls back original owner and receipt
+ok 15 - protected group native terminal gate drift rolls back original owner and receipt
+  ---
+  duration_ms: 103.779209
+  type: 'test'
+  ...
+# Subtest: protected original graph seal retains existing-active migration refusal
+ok 16 - protected original graph seal retains existing-active migration refusal
+  ---
+  duration_ms: 113.105958
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 15
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1959.166334

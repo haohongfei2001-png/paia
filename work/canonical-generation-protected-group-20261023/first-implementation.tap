@@ -1,0 +1,27 @@
+TAP version 13
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+not ok 1 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 133.313959
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-protected-group.test.mjs:42:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_RESTORE_STAGE_CHANGED'
+  code: 'BNS_RESTORE_STAGE_CHANGED'
+  stack: |-
+    Object.plan (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/group-checkpoint.js:48:276)
+    plan.next (<anonymous>)
+    runFinalReadFences (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:217:34)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:482:523)
+    async generationTransaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/group-checkpoint.js:53:13)
+    async file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 314.705709
