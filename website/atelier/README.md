@@ -1,3 +1,5 @@
+> Current homepage and product example: **V11**. See [REFINEMENT_V11.md](REFINEMENT_V11.md). Earlier notes below describe their original release.
+
 # PAIA Atelier V10 — visual narrative homepage
 
 Owner direction, 23 October 2026: the homepage should present PAIA's value with

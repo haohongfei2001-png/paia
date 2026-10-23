@@ -1,3 +1,5 @@
+> **Atelier V11 · 2026-10-23.** Refines the accepted V10 presentation and replaces the obsolete public demo with the current product model. See [refinement notes](website/atelier/REFINEMENT_V11.md). Extension and services are unchanged.
+
 > **23 October 2026 — Atelier V10 visual narrative.** The current homepage
 > presents the archive, Thought Library, reuse and daily value through finite
 > visual sequences. Approved Context/brand/privacy artwork is retained. See

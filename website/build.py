@@ -4,7 +4,7 @@ import json
 import sys
 sys.dont_write_bytecode = True
 from home import render as render_home
-from atelier_home import render as render_atelier
+from atelier_home import render as render_atelier, render_demo as render_atelier_demo
 from launch_copy import product_copy
 from launch_pages import download as render_download, help_page as render_help, contact as render_contact, installation
 from pages import render_pages
@@ -111,6 +111,8 @@ def build(lang):
         out=head(page,title,desc,noindex)+header(page)+f'<main id="main" tabindex="-1">{body}</main>'+footer()+extra+'\n</body>\n</html>\n'
         if page == 'index.html':
             out = render_atelier(lang)
+        elif page == 'demo.html':
+            out = render_atelier_demo(lang)
         dest=ROOT/('' if en else 'zh')/page
         dest.parent.mkdir(parents=True,exist_ok=True)
         write(dest,out)
