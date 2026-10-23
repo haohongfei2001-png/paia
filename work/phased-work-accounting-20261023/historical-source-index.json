@@ -1,0 +1,44 @@
+[
+  {
+    "path": "work/canonical-generation-human-scale-20261023/phased-validation-second.tap",
+    "sha256": "c660472b4947470468a313343b7ca7be783cf3370c85fd6e2f0fc53c64a93688",
+    "excerpts": [
+      {
+        "line": 16,
+        "text": "# {\"validatedGroups\":129,\"workBytes\":12651960,\"activeMs\":713,\"tickets\":52}"
+      }
+    ]
+  },
+  {
+    "path": "work/canonical-generation-human-scale-20261023/baseline.jsonl",
+    "sha256": "c82cb8ccd0860167b2a6c528288c8605f8f7ca7f2422bcbc471db1747e79f6f6",
+    "excerpts": [
+      {
+        "line": 1,
+        "text": "{\"count\":65,\"itemCount\":391,\"transportBytes\":579982,\"state\":\"rejected\",\"phase\":\"owner-step\",\"error\":\"BNS_GROUP_RESOURCE_LIMIT\",\"stack\":\"Error: BNS_GROUP_RESOURCE_LIMIT\\n    at ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:482:836)\\n    at async tx (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-human-restore.js:45:237)\\n    at async CanonicalGenerationHumanRestore.step (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-human-restore.js:58:16)\\n    at async file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/work/canonical-generation-human-scale-20261023/baseline.mjs:18:786\",\"completed\":0,\"target\":{\"entries\":0,\"stage\":\"validated\",\"received\":391,\"cursor\":0}}"
+      },
+      {
+        "line": 2,
+        "text": "{\"count\":129,\"itemCount\":775,\"transportBytes\":1148589,\"state\":\"rejected\",\"phase\":\"authenticated-stage\",\"error\":\"BNS_GROUP_RESOURCE_LIMIT\",\"stack\":\"SyncError: BNS_GROUP_RESOURCE_LIMIT\\n    at fail (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/value.js:5:32)\\n    at chargeGroupPageBytes (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/group-page-reader.js:10:235)\\n    at chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/group-page-reader.js:11:131)\\n    at #stageCheckpoint (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:123:4)\\n    at async CanonicalGenerationCheckpointStage.stageCheckpoint (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:116:120)\\n    at async file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/work/canonical-generation-human-scale-20261023/baseline.mjs:18:582\",\"completed\":0,\"target\":{\"entries\":0,\"stage\":\"staging\",\"received\":192,\"cursor\":0}}"
+      }
+    ]
+  },
+  {
+    "path": "work/canonical-generation-semantic-closure-20261023/owning-final.tap",
+    "sha256": "111c453192f0985d71a61ba890735aa09c9e8a431747619db0fc152d27af5f82",
+    "excerpts": [
+      {
+        "line": 494,
+        "text": "# {\"ownerGroups\":129,\"last\":{\"state\":\"applying\",\"completed\":31,\"total\":129,\"workBytes\":16720921,\"activeMs\":3152,\"publicationQualified\":false},\"error\":\"BNS_GROUP_RESOURCE_LIMIT\",\"message\":\"BNS_GROUP_RESOURCE_LIMIT\",\"stack\":\"Error: BNS_GROUP_RESOURCE_LIMIT\\\\n    at ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:503:955)\\\\n    at async tx (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:34:215)\\\\n    at async \\#step (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:70:16)\\\\n    at async CanonicalGenerationPhasedHumanRestore.step (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:62:129)\\\\n    at async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:25:386)\\\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\\\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\"}"
+      },
+      {
+        "line": 511,
+        "text": "# {\"publicationGroups\":65,\"prepared\":{\"state\":\"prepared\",\"manifestId\":\"46cb954d951c377ae8ff2f94da61bf20175b02dbb66957d867638ec8b7eac7b9\",\"graphDigest\":\"9d8925b676637813aeb05dcb45a18bd8ca18202a03b126e337b3624005e30266\",\"generationIdentity\":{\"generationId\":\"synthetic_generation\",\"databaseId\":\"synthetic_database\",\"databaseName\":\"SYNTHETIC-phased-target\"},\"prepaidBytes\":1972243,\"prepaidMs\":30000}}"
+      },
+      {
+        "line": 512,
+        "text": "# {\"publicationGroups\":65,\"result\":\"BNS_GROUP_RESOURCE_LIMIT\",\"task\":{\"id\":\"canonical-generation:checkpoint:phased-task:v1\",\"version\":1,\"taskId\":\"ac5c9f05-ba37-4705-a43e-547083e473dc\",\"identity\":{\"manifestId\":\"46cb954d951c377ae8ff2f94da61bf20175b02dbb66957d867638ec8b7eac7b9\",\"generationIdentity\":{\"generationId\":\"synthetic_generation\",\"databaseId\":\"synthetic_database\",\"databaseName\":\"SYNTHETIC-phased-target\"},\"sourceBase\":{\"root\":{\"id\":\"canonical-generation:registry:v1\",\"version\":1,\"revision\":0,\"active\":null,\"pending\":null},\"gate\":null}},\"phase\":\"applying\",\"tickets\":94,\"burned\":0,\"workBytes\":16777216,\"activeMs\":34198,\"pending\":{\"sequence\":94,\"kind\":\"verify\",\"bytes\":1972243,\"ms\":30000},\"transportIds\":[\"39589ab91a6986fadc2a9dce60a78eb1a05d8aa38d46d1b4ca5dbc74825a470f\",\"f3e764980540945d79af45158b6301327a02a939d194d7155f9e3a768ff1a87c\",\"66946f26ae1b5448c980a742a86e22b567fd66971ebb16e07fc51e088f31eee6\",\"2eb7e39fa51e3ec2705484d1c861de17b0e453326bb46aa2867651e72b3c8945\"]},\"controlWork\":{\"transactions\":188,\"references\":2298,\"bytes\":964117,\"activeMs\":917.6253800000086,\"maxReferences\":17,\"maxBytes\":22827,\"maxActiveMs\":27.53308300000026}}"
+      }
+    ]
+  }
+]

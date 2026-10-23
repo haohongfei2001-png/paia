@@ -1,0 +1,2 @@
+if(hasValue){try{b.bytes+=measureSourceWorkingPhysicalTree(value,b.byteLimit).B;}catch{workRefuse(record);}workCheck(record);}
+let observedBytes=0;if(hasValue){try{observedBytes=measureSourceWorkingPhysicalTree(value,b.byteLimit).B;b.bytes+=observedBytes;}catch{workRefuse(record);}workCheck(record);}globalThis.__paiaPhaseWork?.(record,refs,observedBytes,value);

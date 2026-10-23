@@ -1,0 +1,8 @@
+{
+  "exit": 0,
+  "wallMs": 865.2553558349609,
+  "node": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+  "runtimeBefore": "759765671a8855b4d7ea061e299c7d8837b502173cf376180cf0b45662072ae1",
+  "runtimeAfter": "759765671a8855b4d7ea061e299c7d8837b502173cf376180cf0b45662072ae1",
+  "observer": "9e75f2bd71964bf2016e952940159630cce5f36b91323ac12a54b52779eba092"
+}
