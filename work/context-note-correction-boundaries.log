@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: body-note correction refuses independent note grant loss before selected note hashing
+ok 1 - body-note correction refuses independent note grant loss before selected note hashing
+  ---
+  duration_ms: 97.381291
+  type: 'test'
+  ...
+# Subtest: body-note correction refuses independent context grant loss before selected note hashing
+ok 2 - body-note correction refuses independent context grant loss before selected note hashing
+  ---
+  duration_ms: 62.146875
+  type: 'test'
+  ...
+# Subtest: body-note correction refuses independent extra-input grant loss before selected note hashing
+ok 3 - body-note correction refuses independent extra-input grant loss before selected note hashing
+  ---
+  duration_ms: 53.90725
+  type: 'test'
+  ...
+# Subtest: body-note correction refuses independent processing grant loss before selected note hashing
+ok 4 - body-note correction refuses independent processing grant loss before selected note hashing
+  ---
+  duration_ms: 51.950167
+  type: 'test'
+  ...
+# Subtest: complete note lineage before rejects note without a Context ACK
+ok 5 - complete note lineage before rejects note without a Context ACK
+  ---
+  duration_ms: 124.319209
+  type: 'test'
+  ...
+# Subtest: complete note lineage before rejects source-purge without a Context ACK
+ok 6 - complete note lineage before rejects source-purge without a Context ACK
+  ---
+  duration_ms: 48.848542
+  type: 'test'
+  ...
+# Subtest: complete note lineage before rejects receipt without a Context ACK
+ok 7 - complete note lineage before rejects receipt without a Context ACK
+  ---
+  duration_ms: 42.865167
+  type: 'test'
+  ...
+# Subtest: complete note lineage before rejects revoke without a Context ACK
+ok 8 - complete note lineage before rejects revoke without a Context ACK
+  ---
+  duration_ms: 46.624833
+  type: 'test'
+  ...
+# Subtest: complete note lineage provider rejects note without a Context ACK
+ok 9 - complete note lineage provider rejects note without a Context ACK
+  ---
+  duration_ms: 226.968125
+  type: 'test'
+  ...
+# Subtest: complete note lineage provider rejects source-purge without a Context ACK
+ok 10 - complete note lineage provider rejects source-purge without a Context ACK
+  ---
+  duration_ms: 195.4875
+  type: 'test'
+  ...
+# Subtest: complete note lineage provider rejects receipt without a Context ACK
+ok 11 - complete note lineage provider rejects receipt without a Context ACK
+  ---
+  duration_ms: 219.488792
+  type: 'test'
+  ...
+# Subtest: complete note lineage provider rejects revoke without a Context ACK
+ok 12 - complete note lineage provider rejects revoke without a Context ACK
+  ---
+  duration_ms: 184.093583
+  type: 'test'
+  ...
+# Subtest: complete note lineage settlement rejects note without a Context ACK
+ok 13 - complete note lineage settlement rejects note without a Context ACK
+  ---
+  duration_ms: 230.727584
+  type: 'test'
+  ...
+# Subtest: complete note lineage settlement rejects source-purge without a Context ACK
+ok 14 - complete note lineage settlement rejects source-purge without a Context ACK
+  ---
+  duration_ms: 238.580875
+  type: 'test'
+  ...
+# Subtest: complete note lineage settlement rejects receipt without a Context ACK
+ok 15 - complete note lineage settlement rejects receipt without a Context ACK
+  ---
+  duration_ms: 232.687833
+  type: 'test'
+  ...
+# Subtest: complete note lineage settlement rejects revoke without a Context ACK
+ok 16 - complete note lineage settlement rejects revoke without a Context ACK
+  ---
+  duration_ms: 224.918417
+  type: 'test'
+  ...
+# Subtest: complete note lineage backup rejects note without a Context ACK
+ok 17 - complete note lineage backup rejects note without a Context ACK
+  ---
+  duration_ms: 235.233917
+  type: 'test'
+  ...
+# Subtest: complete note lineage backup rejects source-purge without a Context ACK
+ok 18 - complete note lineage backup rejects source-purge without a Context ACK
+  ---
+  duration_ms: 247.014708
+  type: 'test'
+  ...
+# Subtest: complete note lineage backup rejects receipt without a Context ACK
+ok 19 - complete note lineage backup rejects receipt without a Context ACK
+  ---
+  duration_ms: 241.988958
+  type: 'test'
+  ...
+# Subtest: complete note lineage backup rejects revoke without a Context ACK
+ok 20 - complete note lineage backup rejects revoke without a Context ACK
+  ---
+  duration_ms: 241.580833
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete note correction none
+ok 21 - original source response adapter carries complete note correction none
+  ---
+  duration_ms: 244.433708
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete note correction foreign-item
+ok 22 - original source response adapter carries complete note correction foreign-item
+  ---
+  duration_ms: 196.548833
+  type: 'test'
+  ...
+# Subtest: original source response adapter carries complete note correction unknown-field
+ok 23 - original source response adapter carries complete note correction unknown-field
+  ---
+  duration_ms: 191.346375
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4029.496709
