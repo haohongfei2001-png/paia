@@ -88,6 +88,8 @@ def verify_presentation(page,check,label='home',motion=False):
     test(page.locator('.pc-context-card').evaluate_all('es=>es.every(e=>!e.querySelector("input,textarea,[data-context-text]"))'),'Context first surface is metadata only')
     test(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'no horizontal overflow')
     test(page.locator('script[src]').evaluate_all(r'es=>es.every(e=>!/(home-core-v2|home-art|scroll-story|refinement)\.js/.test(e.src))'),'no interactive product controllers requested')
+    from six_refinement_checks import verify_readability_and_routes, verify_mobile_visibility, verify_sequence
+    verify_readability_and_routes(page,check,label)
     if not motion:return
     page.emulate_media(reduced_motion='no-preference')
     width=page.viewport_size['width']
@@ -106,16 +108,10 @@ def verify_presentation(page,check,label='home',motion=False):
         test(all(abs(frames[0][k]-frames[1][k])<1 for k in ('x','width','height')),'original and organized retain one exact frame')
         test(all(abs(a[k]-anchors[0][k])<1 for a in anchors for k in (0,1)),'orb center anchored through all forms')
     else:
-        # On phones all rectangular topics are already visible in normal flow;
-        # scroll—not tabs—changes the following single reading rectangle.
-        for y_ratio,state in [(.65,'open'),(.12,'organize')]:
-            page.evaluate('(ratio)=>{const e=document.querySelector(".ad-thought-scenes");scrollTo({top:e.getBoundingClientRect().top+scrollY-innerHeight*ratio,behavior:"instant"});}',y_ratio)
-            page.wait_for_function('(state)=>document.querySelector("[data-scroll-story=thought]").dataset.phase===state',arg=state)
-            test(page.locator('.ad-thought-scenes').is_visible(),'phone reveals '+state+' without a click')
-        for ratio,state in [(.72,'orb'),(.42,'capsule'),(.12,'board')]:
-            page.evaluate('(ratio)=>{const e=document.querySelector("[data-ad-host]");scrollTo({top:e.getBoundingClientRect().top+scrollY-innerHeight*ratio,behavior:"instant"});}',ratio)
-            page.wait_for_function('(state)=>document.querySelector("[data-scroll-story=prompt]").dataset.phase===state',arg=state)
-            test(page.locator('[data-scroll-story=prompt]').get_attribute('data-phase')==state,'phone companion '+state+' from native scrolling')
+        # Owner-approved correction: assert the actual visible anchor and
+        # complete source footer, not the old defective top-based thresholds.
+        verify_mobile_visibility(page,check,label)
+    verify_sequence(page,check,label)
     # Reach finished result; scroll never mutates real inputs or permissions.
     test(page.locator('.pc-palette').is_visible(),'board outcome visible without activation')
     page.wait_for_function("getComputedStyle(document.querySelector('.hp-composer-phrase')).opacity==='1'")

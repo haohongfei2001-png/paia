@@ -51,7 +51,7 @@ def build(lang):
             product_css += '<script src="/assets/website/home-core-v2.js?v=20261009a" defer></script>\n'
         if page == 'index.html':
             product_css += '<link rel="stylesheet" href="/assets/website/home-art.css?v=20261013b"><link rel="stylesheet" href="/assets/website/scroll-story.css?v=20261013b">\n'
-        presentation_assets = '\n<link rel="stylesheet" href="/assets/website/home-presentation.css?v=20261013a"><script src="/assets/website/home-presentation.js?v=20261013a" defer></script>' if page == 'index.html' else ''
+        presentation_assets = '\n<link rel="stylesheet" href="/assets/website/home-presentation.css?v=20261023-six"><script src="/assets/website/home-presentation.js?v=20261023-six" defer></script>' if page == 'index.html' else ''
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>

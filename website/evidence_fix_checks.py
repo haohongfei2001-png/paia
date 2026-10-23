@@ -13,6 +13,8 @@ def scope():
     return json.loads(Path(__file__).with_name('evidence_fix_scope.json').read_text())
 
 def restore_confirmed_edits(name,data):
+    from six_refinement_checks import restore_for_prior_checks
+    data=restore_for_prior_checks(name,data)
     config=scope();text=data.decode('utf-8') if name.endswith(('.html','.py','.js')) else None
     if text is None:return data
     if name in config['source_patches']:
@@ -36,6 +38,8 @@ def restore_confirmed_edits(name,data):
     return text.encode('utf-8')
 
 def verify_confirmed_fixes(root,check):
+    from six_refinement_checks import verify_static
+    verify_static(root,check)
     config=scope()
     from art_direction import Fragments
     from launch_checks import find,Text
