@@ -102,3 +102,15 @@ for(const key of ['aiPresentation:synthetic-unrepresented','topicKeepSeparate:sy
  const a=await fresh('synthetic-scope-range');await a.core.transaction(true,t=>t.put('meta',{id:key,synthetic:true}));
  await assert.rejects(buildCheckpoint(a.core,{async putImmutable(){throw Error('must refuse before publish');}},{grouped:{store:a.store}}),{code:'BNS_GROUP_CANONICAL_UNREPRESENTED'});a.store.repository.close();
 });
+
+import {prepareGroupCheckpointPlan} from '../core/browser-native-sync/group-checkpoint-plan.js';
+for(const mutation of ['append-group','replace-operations'])test('Human restore consumes a detached charged graph during digest await: '+mutation,async()=>{
+ const a=await fresh('synthetic-snapshot-A'),b=await fresh('synthetic-snapshot-B');
+ for(let n=0;n<2;n++)await a.store.createEntry({actor:'user',body:'SYNTHETIC snapshot '+n,type:'idea',formation:'explicit',evidence:[],operationId:crypto.randomUUID()});
+ const operations=[];for await(const row of a.core.rows('revision'))operations.push(row.operation);
+ const plan=await prepareGroupCheckpointPlan(a.core,operations),groups=structuredClone([plan.groups[0]]),late=structuredClone(plan.groups[1]);
+ const receiver=new BrowserNativeSyncCore(b.store.repository,{datasetId,deviceId:'synthetic-snapshot-receiver',namespace:'synthetic-snapshot-stage'}),original=crypto.subtle.digest;let mutated=false;
+ crypto.subtle.digest=function(...args){if(!mutated){mutated=true;if(mutation==='append-group')groups.push(late);else groups[0].operations=Array.from({length:4097},()=>late.operations[0]);}return original.apply(this,args);};
+ try{const prepared=await receiver.prepareHumanRestoreProtocols(groups);assert.equal(mutated,true);assert.equal(mutation==='append-group'?groups.length:groups[0].operations.length,mutation==='append-group'?2:4097);assert.equal(prepared.length,1);assert.equal(prepared[0].descriptor.revisionId,plan.groups[0].id);}
+ finally{crypto.subtle.digest=original;a.store.repository.close();b.store.repository.close();}
+});

@@ -1,4 +1,4 @@
-import {groupOperationPages,createGroupPageBudget,checkGroupPageBudget} from './group-page-reader.js';
+import {createGroupPageBudget,chargeGroupPageBytes,checkGroupPageBudget} from './group-page-reader.js';
 import {requireConsumerPublicationSettled} from './consumer-publication-state.js';
 import {assertTopicDesiredOperation} from './topic-desired-codec.js';
 import {protocolKey as key,protocolPhysicalId} from './physical-key.js';
@@ -352,10 +352,20 @@ export class BrowserNativeSyncCore {
  // original named-owner capability and final current heads/generation checks.
  async prepareHumanRestoreProtocols(groups){
   if(!this.fixedNamespace||!Array.isArray(groups))fail('BNS_HUMAN_RESTORE_REQUIRED');
-  const budget=createGroupPageBudget();async function* all(){for(const group of groups){if(!Array.isArray(group.operations)||group.operations.length>CORE_LIMITS.batch)fail('BNS_HUMAN_GRAPH_LIMIT');yield* group.operations;}}
-  for await(const page of groupOperationPages(all(),{budget})){}
-  const seen=new Map(),ids=new Set(),sequences=new Set(),heads=new Map(),result=[];let generation=0;
+  // Detach and charge the exact consumed values before the first asynchronous
+  // validation. The caller's array and nested operations must never be reread
+  // after a digest await, even when the original graph was within its budget.
+  const budget=createGroupPageBudget(),snapshot=[];
+  if(groups.length>4096)fail('BNS_GROUP_RESOURCE_LIMIT');
   for(const group of groups){
+   const operations=group?.operations;if(!Array.isArray(operations)||operations.length>CORE_LIMITS.batch)fail('BNS_HUMAN_GRAPH_LIMIT');
+   const encoded=canonical({id:group.id,type:group.type,operations}),copy=JSON.parse(encoded);
+   chargeGroupPageBytes(budget,bytes(encoded).length);
+   for(const operation of copy.operations)chargeGroupPageBytes(budget,0);
+   snapshot.push(copy);
+  }
+  const seen=new Map(),ids=new Set(),sequences=new Set(),heads=new Map(),result=[];let generation=0;
+  for(const group of snapshot){
    if(!Array.isArray(group.operations)||!group.operations.length)fail('BNS_HUMAN_COMMIT_INVALID');
    for(const raw of group.operations){const op=await validateOperation(raw),seq=JSON.stringify([op.deviceId,op.sequence]);if(op.datasetId!==this.datasetId)fail('BNS_DATASET_MISMATCH');if(seen.has(op.revisionId)||ids.has(op.operationId)||sequences.has(seq))fail('BNS_GROUP_DUPLICATE');ids.add(op.operationId);sequences.add(seq);
     for(const id of op.parents){const parent=seen.get(id);if(!parent||parent.type!==op.type||parent.entityId!==op.entityId)fail('BNS_HUMAN_ANCESTRY_REQUIRED');}

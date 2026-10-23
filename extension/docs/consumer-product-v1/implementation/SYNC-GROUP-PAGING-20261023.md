@@ -44,3 +44,11 @@ The Prompt transaction callback's public diagnostic counters remain 2503 reads /
 ## Next architecture work
 
 The 129-physical-owner recovery requirement remains blocked by the single canonical activation transaction under the existing work budget. It needs a genuine bounded staging/publication design that preserves all original owner invariants, complete causal history, negative intent, current-target conflict handling and atomic visibility. Do not divide or partially publish canonical content, raise budgets, or relabel the one-row Prompt case as large-owner completion.
+
+## Follow-up: detach the charged Human restore graph
+
+Independent review found that `prepareHumanRestoreProtocols` charged caller-owned groups in one pass and reread them across asynchronous digest validation. A real two-Entry graph regression appends the second valid group from the original digest call: the baseline incorrectly prepared two groups after charging only one (0/1, `input-snapshot-baseline.tap`).
+
+Preparation now synchronously serializes and detaches each consumed `{id,type,operations}` before its first await, charges the exact snapshot bytes and both group/operation references, and validates only that private snapshot. The original 128-operation group bound, 4096-reference/2MiB/30-second total bounds, owner validation and fixed empty namespace requirement remain. No new write authority is created. Snapshot byte accounting includes the consumed group metadata, so this is deliberately more conservative than the previous operation-only meter.
+
+Targeted final runtime checks passed 3/3 (8965.24575 ms): the append regression, genuine 129-operation Prompt restore/compaction consumer, and 65-Human activation budget rollback. After extending the regression to replace the nested operations with 4097 references at the digest boundary, the two final mutation variants passed 2/2 (228.33225 ms). These are separate invocations, not a new full-suite result. The original 83/83 result belongs to the preceding commit. No native, cloud, provider or large-seed execution was performed.

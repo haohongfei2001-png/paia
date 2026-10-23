@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: Human restore consumes a detached charged graph during digest await: append-group
+ok 1 - Human restore consumes a detached charged graph during digest await: append-group
+  ---
+  duration_ms: 72.560083
+  type: 'test'
+  ...
+# Subtest: Human restore consumes a detached charged graph during digest await: replace-operations
+ok 2 - Human restore consumes a detached charged graph during digest await: replace-operations
+  ---
+  duration_ms: 42.171959
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 228.33225
