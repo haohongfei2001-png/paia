@@ -1,4 +1,4 @@
-import {requireOriginalLibraryDocumentsStore} from '../library-documents-store.js';
+import {requireOriginalLibraryDocumentsStore} from '../library-documents-owner.js';
 import {prepareOriginalCopyRetirement,retireOriginalCheckpointCopies} from './canonical-generation-copy-retirement.js';
 import {CANONICAL_REPOSITORY_PROTECTION,originalGenerationProtection} from './canonical-generation-repository-gate.js';
 import {createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget} from './group-page-reader.js';
