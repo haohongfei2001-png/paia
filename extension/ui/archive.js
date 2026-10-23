@@ -30,7 +30,8 @@ import {MemoryPanel} from './memory.js';
 import {beginLoading,setProductState,showLocalFailure,productAction} from './product-state.js';
 import {wireScopeSearchKeyboard,highlightReading,revealSearchResult} from './search-experience.js';
 import {IntegrityPanel} from './integrity.js';
-import {installSaveLifecycle} from './session-lifecycle.js';
+import {installSaveLifecycle,pendingEditor} from './session-lifecycle.js';
+import {installApplicationEditorGuard} from './application-editor-guard.js';
 import {pruneRecoveryDrafts} from './recovery-draft.js';
 import {InputReview} from './review.js';
 import {findInputPage} from './input-search.js';
@@ -685,3 +686,11 @@ installToolbarClient(chrome);
 installSectionPromotionClient(chrome);
 
 document.addEventListener('paia:settings-capture-reconciled',()=>{if(view==='settings')void refresh();});
+
+// A library switch must never discard or implicitly adopt an editor's draft.
+// The existing save controls own persistence; a pending editor refuses freezing.
+const applicationEditors=()=>[settingsFeedbackEditor(),editor,thoughts.editor,thoughts.dialogEditor,thoughts.aiEditor,...contextCards.editors.values()].filter(Boolean);
+function applicationEditorsSettled(){
+ return shellRouteReady&&!navigationInFlight&&!inputSearchInProgress&&!backupPanel.busy&&!thoughts.searching&&!thoughts.sectionEndWriter?.hasDraft()&&!thoughts.mutating&&!thoughts.departureFlush&&!thoughts.leavePublication&&!topicActions.surface&&!topicActions.inline&&!contextCards.busy&&!contextCards.movePreparing&&!contextCards.reorderPreparing&&!contextCards.searchComposing&&canLeaveSettingsCapture()&&![contextCards.accessCommit,contextCards.deleteCommit,contextCards.reorderCommit,contextCards.moveCommit].some(x=>x?.pending)&&!applicationEditors().some(e=>pendingEditor(e)||e.failed||e.conflicted)&&![...document.querySelectorAll('dialog[open]')].some(d=>d.id!=='settings-sync-dialog');
+}
+installApplicationEditorGuard({prepare(){const safe=applicationEditorsSettled();if(!safe)notify('请先在各页面保存编辑，并核对尚未确认的操作；当前草稿保持原样。');return safe;},current:applicationEditorsSettled,release(){}});

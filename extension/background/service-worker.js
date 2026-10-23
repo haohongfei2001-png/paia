@@ -1,3 +1,4 @@
+import {createApplicationEditorGuard} from './application-editor-guard.js';
 import {createApplicationSelectionCommands} from './application-selection-commands.js';
 import {createConfiguredSyncLifecycle,syncLifecycleError} from './sync-local-lifecycle.js';
 import {MaintenanceProcessingCommands,configureMaintenanceProcessingSource} from './maintenance-processing-commands.js';
@@ -173,6 +174,8 @@ chrome.runtime.onConnect?.addListener(port=>{if(port.name.startsWith('bounded-or
 // directly to a content script, including the brief worker-startup period.
 const applicationIsolation=chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
 const ready = applicationIsolation.then(initializeApplicationServices).then(()=>store.recoverControlPublication()).then(async()=>{syncLifecycle=await createConfiguredSyncLifecycle(store,chrome);await syncLifecycle.attachPromptService(promptReuse.service);await syncLifecycle.attachContextService(contextCards);if(syncSuspended)syncLifecycle.suspend();});
+const applicationEditors=createApplicationEditorGuard(chrome);
+chrome.runtime.onConnect?.addListener(port=>applicationEditors.connect(port));
 const applicationSelection=createApplicationSelectionCommands(chrome,{isolated:()=>applicationIsolation,ready:()=>ready,lifecycle:()=>syncLifecycle});
 const privacyReady=Promise.resolve(privacySession.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'}));
 privacyReady.catch(()=>{});

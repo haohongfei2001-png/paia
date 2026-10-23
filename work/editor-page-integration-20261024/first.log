@@ -1,0 +1,238 @@
+TAP version 13
+# Subtest: all original extension pages must freeze and recheck; unacknowledged owner can flush before global fence
+ok 1 - all original extension pages must freeze and recheck; unacknowledged owner can flush before global fence
+  ---
+  duration_ms: 11.842
+  type: 'test'
+  ...
+# Subtest: original owner refusing dirty never issues a freeze proof
+ok 2 - original owner refusing dirty never issues a freeze proof
+  ---
+  duration_ms: 1.491417
+  type: 'test'
+  ...
+# Subtest: original owner refusing ime never issues a freeze proof
+ok 3 - original owner refusing ime never issues a freeze proof
+  ---
+  duration_ms: 0.840667
+  type: 'test'
+  ...
+# Subtest: original owner refusing unknown never issues a freeze proof
+ok 4 - original owner refusing unknown never issues a freeze proof
+  ---
+  duration_ms: 0.837166
+  type: 'test'
+  ...
+# Subtest: original owner refusing save-failed never issues a freeze proof
+ok 5 - original owner refusing save-failed never issues a freeze proof
+  ---
+  duration_ms: 1.393334
+  type: 'test'
+  ...
+# Subtest: missing or unregistered page, duplicate/unknown document and unavailable inventory refuse
+ok 6 - missing or unregistered page, duplicate/unknown document and unavailable inventory refuse
+  ---
+  duration_ms: 0.568125
+  type: 'test'
+  ...
+# Subtest: disconnect while owner flush is pending rejects instead of treating missing page as saved
+ok 7 - disconnect while owner flush is pending rejects instead of treating missing page as saved
+  ---
+  duration_ms: 0.557625
+  type: 'test'
+  ...
+# Subtest: new document or changed inventory invalidates the held freeze
+ok 8 - new document or changed inventory invalidates the held freeze
+  ---
+  duration_ms: 0.873209
+  type: 'test'
+  ...
+# Subtest: fresh challenge rechecks original owner and input invalidation revokes the old ACK
+ok 9 - fresh challenge rechecks original owner and input invalidation revokes the old ACK
+  ---
+  duration_ms: 1.113125
+  type: 'test'
+  ...
+# Subtest: page blocks interaction during freeze and after an active disconnect without clearing text
+ok 10 - page blocks interaction during freeze and after an active disconnect without clearing text
+  ---
+  duration_ms: 0.660334
+  type: 'test'
+  ...
+# Subtest: caller objects and another issuer cannot substitute for a private extension-only freeze proof
+ok 11 - caller objects and another issuer cannot substitute for a private extension-only freeze proof
+  ---
+  duration_ms: 0.407416
+  type: 'test'
+  ...
+# Subtest: an in-flight repeated fence cannot be used as a completed private proof
+ok 12 - an in-flight repeated fence cannot be used as a completed private proof
+  ---
+  duration_ms: 0.547833
+  type: 'test'
+  ...
+# Subtest: registration unavailable or idle disconnect does not freeze ordinary editing
+ok 13 - registration unavailable or idle disconnect does not freeze ordinary editing
+  ---
+  duration_ms: 0.1955
+  type: 'test'
+  ...
+# Subtest: actual Settings keeps original complete-cut preparation read-only while cross-page editor protection is unavailable
+ok 14 - actual Settings keeps original complete-cut preparation read-only while cross-page editor protection is unavailable
+  ---
+  duration_ms: 742.902625
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CONTINUE without initializing a second writer
+ok 15 - failed ready retains actual Settings pending CONTINUE without initializing a second writer
+  ---
+  duration_ms: 605.796583
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CANCEL without initializing a second writer
+ok 16 - failed ready retains actual Settings pending CANCEL without initializing a second writer
+  ---
+  duration_ms: 557.737209
+  type: 'test'
+  ...
+# Subtest: fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+ok 17 - fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+  ---
+  duration_ms: 459.6015
+  type: 'test'
+  ...
+# Subtest: default fixed source remains unavailable without selection controls or mutations
+ok 18 - default fixed source remains unavailable without selection controls or mutations
+  ---
+  duration_ms: 45.305417
+  type: 'test'
+  ...
+# Subtest: unknown SDK outcome remains reachable before ready, never resends or exposes restart
+ok 19 - unknown SDK outcome remains reachable before ready, never resends or exposes restart
+  ---
+  duration_ms: 508.812875
+  type: 'test'
+  ...
+# Subtest: selection cannot activate while a real original checkpoint request is in flight
+ok 20 - selection cannot activate while a real original checkpoint request is in flight
+  ---
+  duration_ms: 746.605
+  type: 'test'
+  ...
+# Subtest: without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+ok 21 - without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+  ---
+  duration_ms: 745.348625
+  type: 'test'
+  ...
+# Subtest: a prepared interrupted operation cannot bypass the editor gate through continue before ready
+ok 22 - a prepared interrupted operation cannot bypass the editor gate through continue before ready
+  ---
+  duration_ms: 612.59475
+  type: 'test'
+  ...
+# Subtest: even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+ok 23 - even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+  ---
+  duration_ms: 590.111667
+  type: 'test'
+  ...
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 24 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 5.960667
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 25 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 1.408042
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 26 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 1.034791
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 27 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 1.196291
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 28 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 1.189583
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 29 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.731166
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 30 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 0.871125
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 31 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.4155
+  type: 'test'
+  ...
+# Subtest: configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+ok 32 - configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+  ---
+  duration_ms: 1.16975
+  type: 'test'
+  ...
+# Subtest: all selection states keep activation, continued switching and restart unavailable without an original cross-page editor guard
+ok 33 - all selection states keep activation, continued switching and restart unavailable without an original cross-page editor guard
+  ---
+  duration_ms: 1.865917
+  type: 'test'
+  ...
+# Subtest: safe cancellation retains double-click and unknown-response guards without automatic replay
+ok 34 - safe cancellation retains double-click and unknown-response guards without automatic replay
+  ---
+  duration_ms: 0.55875
+  type: 'test'
+  ...
+# Subtest: late cancellation reply after leaving Settings is ignored
+ok 35 - late cancellation reply after leaving Settings is ignored
+  ---
+  duration_ms: 0.401584
+  type: 'test'
+  ...
+# Subtest: malformed selection restart entitlement exposes no selection action
+ok 36 - malformed selection restart entitlement exposes no selection action
+  ---
+  duration_ms: 0.8075
+  type: 'test'
+  ...
+# Subtest: google original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+ok 37 - google original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+  ---
+  duration_ms: 624.487291
+  type: 'test'
+  ...
+# Subtest: onedrive original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+ok 38 - onedrive original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+  ---
+  duration_ms: 550.647417
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3826.761416

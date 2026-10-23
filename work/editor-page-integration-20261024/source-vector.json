@@ -1,0 +1,7 @@
+{
+  "extension/background/service-worker.js": "79f11e3eb1a3ac6538259619e7df11bfa42b5e45b417e062c09728e587d98939",
+  "extension/ui/archive.js": "e72792ec0fa3f646718f7bd4c5843186f72cff6777704114d44180fa27a099c4",
+  "extension/ui/popup.js": "6610ee4089f2aa9a9edb0542f3dc807556d1ebb5293c3c731cca8a9efdf106fa",
+  "extension/ui/prompt-surface.js": "638c57955f57c28cf653e76bb6a38a184e8bb6f075fa6f4ab9a8bbb62b2aad44",
+  "extension/ui/prompt-next.js": "dbd4d066bd1a5fd10b74bfea59074ef6bb7b110addd2d1292c5fd95569a08bf1"
+}

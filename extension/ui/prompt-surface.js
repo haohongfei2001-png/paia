@@ -1,3 +1,4 @@
+import {installApplicationEditorGuard} from './application-editor-guard.js';
 import {quickPromptEligible,promptGraphemeCount} from '../core/prompt-reuse-preferences.js';
 import {mountManualPromptConflict} from './prompt-conflict-view.js';
 import {mountPromptAssist} from './prompt-assist-view.js';
@@ -23,6 +24,7 @@ function trackActivation(button){
 }
 let refreshing=false,manualOrder=[],revision=0,hidden=false,editing=false,busy=false,composing=false,drag=null,epoch=0;
 const attempted=new Set();
+let insertionUnconfirmed=false;
 
 // Translate only this surface's UI copy. Original authored bodies stay untouched.
 const copy={
@@ -162,7 +164,7 @@ async function insert(item,b,reviewed=false,key=null){
  const selectedRange=checking?.item===item?checking.range:null;if(!selectedRange&&!quickPromptEligible(item.text)){tell('最多 150 个字符；编辑仍保留。');return;}
  attempted.add(item.id);const original=list.querySelector(`[data-id="${item.id}"] .insert`);if(original)original.disabled=true;b.disabled=true;pending(true);tell('正在插入…');
  let verified=false;
- try{const typed=true;const r=await rpc(typed?{type:'PAIA_PROMPT_SELECTION_INSERT',...(key?{activationKey:key}:{}),ref:checking?.item===item?checking.ref:selectionRef(item),range:checking?.item===item?checking.range:null,target:checking?.item===item?checking.target:mode==='search'?history.target:candidateTarget,operationId:crypto.randomUUID()}:{type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});verified=r.status==='inserted'&&r.verified===true;tell(verified?'已插入，未发送。':r.reason==='unsupported_line_endings'?'当前输入框无法原样保留 CRLF 换行，请复制原文。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch{tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
+ try{const typed=true;const r=await rpc(typed?{type:'PAIA_PROMPT_SELECTION_INSERT',...(key?{activationKey:key}:{}),ref:checking?.item===item?checking.ref:selectionRef(item),range:checking?.item===item?checking.range:null,target:checking?.item===item?checking.target:mode==='search'?history.target:candidateTarget,operationId:crypto.randomUUID()}:{type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});verified=r.status==='inserted'&&r.verified===true;if(!verified&&r.status!=='failed')insertionUnconfirmed=true;tell(verified?'已插入，未发送。':r.reason==='unsupported_line_endings'?'当前输入框无法原样保留 CRLF 换行，请复制原文。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch{insertionUnconfirmed=true;tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
  if(verified){const feedback=b.id==='capsule-use'?b:original?.closest('.row');if(feedback)feedback.dataset.inserted='true';setTimeout(()=>{if(feedback)delete feedback.dataset.inserted;attempted.delete(item.id);if(original&&currentItems().some(current=>current.id===item.id&&current.text===item.text&&!current.hidden&&quickPromptEligible(current.text)))setPendingEligibility(original,false);paintCapsule();},480);paintCapsule();leaveCheck(false);return;}
  const copy=button('复制',()=>copyWhole(item,true));status.append(copy);
 }
@@ -338,5 +340,8 @@ void refresh();
 const reflectFocus=()=>document.documentElement.toggleAttribute('data-focused',document.hasFocus());
 window.addEventListener('pagehide',()=>{disposed=true;conflictChoice?.dispose();assistSurface?.dispose();invalidateSplit();++candidateRequest;++epoch;copyRequest=null;checkingRequest=null;++layoutTicket;});
 window.addEventListener('focus',reflectFocus);window.addEventListener('blur',reflectFocus);reflectFocus();
+
+const promptSettled=()=>!disposed&&!editing&&!busy&&!composing&&!searchComposing&&!searchLoading&&!refreshing&&!drag&&!pointerGesture&&!copyRequest&&!checkingRequest&&!representativeChoice&&!splitChoice&&!conflictChoice&&!assistSurface?.active&&!insertionUnconfirmed;
+installApplicationEditorGuard({prepare:promptSettled,current:promptSettled,release(){}});
 
 }

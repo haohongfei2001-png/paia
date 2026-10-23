@@ -1,0 +1,7 @@
+# Original editor page integration
+
+Archive, Popup, Prompt and Next register their original page owners with the private worker freeze protocol. Archive refuses pending, composing, failed, conflicted editors, in-flight Context commands and other active dialogs. It neither discards nor silently adopts or saves a draft. Prompt and Next retain unconfirmed insertion state for the document lifetime; an ordinary list refresh is not an insertion receipt. Popup uses the existing acknowledged Next preference state. The ordinary worker registers the port owner. Activation, continuation and restart remain refused: extension-document proof is not proof that background and host-content work is settled.
+
+Five complete Node files passed 38/38 (TAP3826.761416ms) after initial page wiring. Subsequent Archive refinement uses the original section writer hasDraft() rather than object existence and also refuses original mutation/departure state; five syntax checks passed. No native or build result was available at this checkpoint. The included native script is prepared for one finite headless synthetic check of actual Archive+Popup registration, settled freezing and an original Context IME draft refusal. It does not activate a generation or reload the extension.
+
+The prior integration selection composition log separately passed25/25 TAP3749.12075ms on52bf5467 before this page wiring. No cloud, real data, model, deployment or consumed scale run.

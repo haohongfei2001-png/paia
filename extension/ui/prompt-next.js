@@ -1,3 +1,4 @@
+import {installApplicationEditorGuard} from './application-editor-guard.js';
 import {copyPrompt} from '../core/prompt-clipboard.js';
 const nonce=location.hash.slice(6);
 const css=document.createElement('link');css.rel='stylesheet';css.href='prompt-next.css';document.head.append(css);
@@ -8,6 +9,7 @@ const choices=document.createElement('div');choices.className='next-choices';
 const status=document.createElement('p');status.className='next-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
 const dismiss=document.createElement('button');dismiss.className='next-dismiss';dismiss.textContent='×';dismiss.setAttribute('aria-label','收起本轮建议');
 capsule.append(condition,choices,dismiss,status);document.body.append(capsule);
+let insertionUnconfirmed=false;
 let group,busy=false,remaining=12000,start=0,timer,hover=false,focus=false;
 async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_RPC',nonce,command});if(!r?.ok)throw Error('unavailable');return r.data;}
 const hide=()=>void rpc({type:'hide'}).catch(()=>{});
@@ -21,6 +23,7 @@ async function insert(choice,button){
  let result;
  try{result=await rpc({type:'insert',id:choice.id,operationId:crypto.randomUUID()});}catch{result={status:'uncertain'};}
  const success=result.status==='inserted'&&result.verified===true;
+ if(!success&&result.status!=='failed')insertionUnconfirmed=true;
  status.textContent=success?'已插入，未发送。':result.status==='failed'?'无法安全插入。请检查输入框。':'插入结果未确认。请先检查草稿，不会自动重试。';
  busy=false;dismiss.disabled=false;
  // This reply's choices are one-shot; reopening never retries an uncertain write.
@@ -36,3 +39,6 @@ try{
  for(const choice of group.choices){const button=document.createElement('button');button.type='button';button.dataset.id=choice.id;button.textContent=choice.label;button.disabled=choice.attempted;button.addEventListener('click',e=>{if(e.isTrusted)void insert(choice,button);});choices.append(button);}
  resize();timing();new ResizeObserver(resize).observe(capsule);
 }catch{hide();}
+
+const nextSettled=()=>!!group&&!busy&&!insertionUnconfirmed;
+installApplicationEditorGuard({prepare:nextSettled,current:nextSettled,release(){}});

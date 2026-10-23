@@ -1,3 +1,4 @@
+import {installApplicationEditorGuard} from './application-editor-guard.js';
 import { request, enabledLabel, statusLabel } from './common.js';
 import { normalizeUXPreferences, resolveAppearance } from './ux-r1-state.js';
 import { recoveryGuidance } from './recovery-guidance.js';
@@ -188,3 +189,6 @@ nextControl.addEventListener('change',async e=>{const enabled=e.target.checked;s
 chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local'&&changes.promptNextAutomaticPreferenceV2)void nextState.load();});
 chrome.runtime.onMessage.addListener(message=>{if(message?.type==='PAIA_PROMPT_NEXT_CHANGED')void nextState.load();});
 syncNext();await nextState.load();
+
+const popupSettled=()=>!busy&&!nextState.busy&&!nextState.pending&&!nextState.error&&!['saving','save-unknown'].includes(nextState.feedback);
+installApplicationEditorGuard({prepare:popupSettled,current:popupSettled,release(){}});
