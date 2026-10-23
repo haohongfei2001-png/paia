@@ -31,3 +31,11 @@ The six added denial controls cover preexisting and post-callback injected deny 
 ## Continuous work
 
 Multiple saved entities, nonempty incremental recovery, bounded canonical Human application, larger global graph validation and full application generation switching remain open. No native/build/cloud/large-seed/account/model/deployment execution occurred in this package. The previous cloud failures and consumed allowances remain unchanged. Use these modules only through their explicit original-owner local interfaces; this is not an installed release.
+
+## Resident authenticated-checkpoint denial follow-up
+
+A real authenticated staged checkpoint followed by the original Source bootstrap receiver reproduced a residual-body gap: local purge did not reject the checkpoint namespace. The initial negative is preserved separately in `../generation-purge-native-preparation-20261023/resident-stage-original-fail.tap` with its exact failing source snapshots. It was 0/1, not a passing test.
+
+The original purge authority now probes `canonical-generation:checkpoint:` before preparation and again within the actual local/cold receive transaction. The original terminal guard requires its count to stay zero. Duplicate receive also refuses an externally inserted state, item or page checkpoint row. It does not delete staging to produce success and does not reject unrelated bodyfree generation metadata. Original cleanup is required before retrying a purge.
+
+The seven added controls use real checkpoint staging and original receivers, plus late local/cold insertions and duplicate-state/item/page retention. Final combined owner30 and purge28 passed **58/58**, exit0, TAP4737.864541ms, wall4792.77075ms, no fail/cancel/skip/todo. Exact before/after core and owning vectors are unchanged. This is Node22.23.3 synthetic evidence, not native or whole-product qualification.

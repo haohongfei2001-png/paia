@@ -113,3 +113,30 @@ for(const consumer of ['authenticated-stage','original-group','canonical-owner']
  const action=consumer==='authenticated-stage'?()=>f.stage.stageCheckpoint(f.cut.ref,r=>f.transport.get(r)):consumer==='original-group'?()=>f.restore.stageCheckpoint(f.cut.ref,r=>f.transport.get(r)):()=>f.restore.stageCanonicalGeneration(f.proof);
  await assert.rejects(action());f.b.repository.transaction=original;assert.equal(injected,true);assert.deepEqual(await snapshot(f.b),before);
 });
+import {SourceBootstrapReceiver} from '../core/browser-native-sync/source-bootstrap-receive.js';
+import {SourcePurgeJournal,SourcePurgeReceiver} from '../core/browser-native-sync/source-purge-journal.js';
+test('original purge refuses a genuine authenticated checkpoint body still resident outside protocol namespace',async t=>{
+ const f=await fixture(t),operations=[];for await(const op of f.coreA.outbox())operations.push(op);
+ await new SourceBootstrapReceiver(f.b,f.coreB).receive(operations);f.b.sourcePurgeJournal=new SourcePurgeJournal(f.coreB);
+ const id=(await f.b.snapshot()).records[0].id,before=await snapshot(f.b);
+ await assert.rejects(f.b.purge(id,true),{code:'BNS_SOURCE_PURGE_UNSUPPORTED'});assert.deepEqual(await snapshot(f.b),before);
+});
+
+test('cold purge receiver refuses a genuine authenticated checkpoint body with no canonical Source',async t=>{
+ const f=await fixture(t);f.a.sourcePurgeJournal=new SourcePurgeJournal(f.coreA);f.b.sourcePurgeJournal=new SourcePurgeJournal(f.coreB);
+ await f.a.purge((await f.a.snapshot()).records[0].id,true);const operations=[];for await(const op of f.coreA.outbox())operations.push(op);const before=await snapshot(f.b);
+ await assert.rejects(new SourcePurgeReceiver(f.b,f.coreB).receive(operations),{code:'BNS_SOURCE_PURGE_UNSUPPORTED'});assert.deepEqual(await snapshot(f.b),before);
+});
+for(const mode of ['local','cold'])test('late resident checkpoint insertion rolls back '+mode+' original purge',async t=>{
+ const f=await fixture(t,{deferStage:true});f.a.sourcePurgeJournal=new SourcePurgeJournal(f.coreA);f.b.sourcePurgeJournal=new SourcePurgeJournal(f.coreB);
+ let target=f.a,action=()=>f.a.purge((before.records[0]).id,true);
+ if(mode==='cold'){await f.a.purge((await f.a.snapshot()).records[0].id,true);const operations=[];for await(const op of f.coreA.outbox())operations.push(op);target=f.b;action=()=>new SourcePurgeReceiver(f.b,f.coreB).receive(operations);}
+ const before=await snapshot(target),original=target.repository.transaction.bind(target.repository);let injected=false;
+ target.repository.transaction=(write,fn,stores)=>original(write,async tx=>{const result=await fn(tx);if(write&&!injected){injected=true;await tx.put('meta',{id:'canonical-generation:checkpoint:item:00000000',item:{body:'SYNTHETIC resident body'}});}return result;},stores);
+ await assert.rejects(action());target.repository.transaction=original;assert.equal(injected,true);assert.deepEqual(await snapshot(target),before);
+});
+for(const resident of ['state:v1','item:00000000','page:00000000'])test('duplicate purge acknowledgement refuses resident checkpoint '+resident,async t=>{
+ const f=await fixture(t,{deferStage:true});f.a.sourcePurgeJournal=new SourcePurgeJournal(f.coreA);f.b.sourcePurgeJournal=new SourcePurgeJournal(f.coreB);
+ await f.a.purge((await f.a.snapshot()).records[0].id,true);const operations=[];for await(const op of f.coreA.outbox())operations.push(op);const receiver=new SourcePurgeReceiver(f.b,f.coreB);await receiver.receive(operations);
+ await f.b.repository.transaction(true,tx=>tx.put('meta',{id:'canonical-generation:checkpoint:'+resident,value:'SYNTHETIC resident'}));const before=await snapshot(f.b);await assert.rejects(receiver.receive(operations),{code:'BNS_SOURCE_PURGE_UNSUPPORTED'});assert.deepEqual(await snapshot(f.b),before);
+});

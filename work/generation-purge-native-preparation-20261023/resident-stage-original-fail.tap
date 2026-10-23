@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: original purge refuses a genuine authenticated checkpoint body still resident outside protocol namespace
+not ok 1 - original purge refuses a genuine authenticated checkpoint body still resident outside protocol namespace
+  ---
+  duration_ms: 153.536292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/canonical-generation-owner-restore.test.mjs:118:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_SOURCE_PURGE_UNSUPPORTED'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/canonical-generation-owner-restore.test.mjs:122:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 305.826916

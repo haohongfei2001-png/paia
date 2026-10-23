@@ -12,9 +12,12 @@ import {CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION,readControl
 const owners=new WeakMap(),plans=new WeakMap(),applications=new WeakMap(),incoming=new WeakMap(),maintenance=new WeakMap();
 const denied=()=>fail('BNS_SOURCE_PURGE_UNSUPPORTED');
 const prefixRange=p=>IDBKeyRange.bound(p,p+'\uffff',false,true);
+const residentCheckpointPrefix='canonical-generation:checkpoint:';
+async function requireNoResidentCheckpoint(t){if((await t.primaryRangePage('meta',{prefix:residentCheckpointPrefix,limit:1})).rows.length)denied();}
 const allowedKinds=new Set(['revision','head','receipt','sequence','frontier','generation','device','outbox','entityRevision','ownerRecoveryEpoch']);
 async function rows(t,prefix){const result=[];let after=null;do{const p=await t.primaryRangePage('meta',{prefix,after,limit:64});for(const row of p.rows){result.push(row.value);if(result.length>512||bytes(result).length>2*1024*1024)denied();}after=p.next;}while(after!==null);return result;}
 async function authority(store,core,t){
+ await requireNoResidentCheckpoint(t);
  const control=await store.control(t),publication=await readControlPublicationFence(t),library=await t.get('meta','thought-library');
  if(!control.settings.enabled||control.settings.consentVersion!==CONSENT_VERSION||publication.reservation||publication.migration?.phase!=='active'||publication.migration.databaseId!==store.databaseId||library?.sealed||library?.phase!=='active'||library?.verified!==true)denied();
  return {settings:clone(control.settings),fence:await new JournalRestoreFence(core).snapshot(t),control:readOriginalControlSettings(store,t),roots:await Promise.all(['recovery-restore-epoch','migration',CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION,'thought-library',core.prefix+'active'].map(async id=>[id,await t.get('meta',id)??null])),generation:(await t.get('meta','backup-data-generation'))?.value||0};
@@ -115,7 +118,7 @@ export async function finishOriginalSourcePurge(t,store,cap){
  if(!p.cold&&(p.cleanupJobs!==1||p.cleanupEvents!==1||!p.cleanupPoints.has('inputStates:'+p.intent.inputId)))denied();
  const points=[...p.cleanupPoints.values(),['tombstones',tombstone.id,tombstone],['records',p.intent.sourceId,null],['recordIndex',p.intent.sourceId,null],['blocks',p.intent.inputId,null],['blockIndex',p.intent.inputId,null],['times',p.intent.sourceKey,null],...expected.map(row=>['meta',row.id,row]),...p.before.authority.roots.map(([id,row])=>['meta',id,row])];
  for(const [table,key,row]of points)if(!equal((await t.get(table,key))??null,row))denied();
- const current=()=>{selected(store,cap);assertOriginalControlSettingsFacts(store,p.before.authority.control);return true;};registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){for(const [table,key,row]of points)if(!equal((yield {method:'get',table,key})??null,row))denied();if((yield {method:'count',table:'meta',key:prefixRange('bns:v1:')})!==expected.length)denied();return true;}});
+ const current=()=>{selected(store,cap);assertOriginalControlSettingsFacts(store,p.before.authority.control);return true;};registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){for(const [table,key,row]of points)if(!equal((yield {method:'get',table,key})??null,row))denied();if((yield {method:'count',table:'meta',key:prefixRange('bns:v1:')})!==expected.length)denied();if((yield {method:'count',table:'meta',key:prefixRange(residentCheckpointPrefix)})!==0)denied();return true;}});
 }
 
 export async function prepareSourcePurgeRemote(input,core){
@@ -132,7 +135,7 @@ export class SourcePurgeReceiver{
  async receive(input){
   const {store,core}=this;await store.finishFoundation();const remote=await prepareSourcePurgeRemote(input,core),journal=store.sourcePurgeJournal;if(binding(store,journal)!==core)denied();
   const state=await store.run(()=>core.transaction(false,async t=>({source:await t.get('records',remote.intent.sourceId),deny:await t.get('meta',core.prefix+'sourcePurgeDeny:'+remote.intent.sourceKey)})));
-  if(state.deny){return store.run(()=>core.transaction(false,async t=>{const deny=await t.get('meta',core.prefix+'sourcePurgeDeny:'+remote.intent.sourceKey),tomb=await t.get('tombstones','source:'+remote.intent.sourceKey);if(!equal(deny,state.deny)||deny.intent!==remote.operations[7].revisionId||tomb?.value?.status!=='permanently_ignored'||await t.get('records',remote.intent.sourceId))denied();for(const op of remote.operations){const receipt=await core.get(t,'receipt',op.operationId);if(!equal(receipt,{id:receipt?.id,digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence}))denied();}return {state:'duplicate'};}));}
+  if(state.deny){return store.run(()=>core.transaction(false,async t=>{await requireNoResidentCheckpoint(t);const deny=await t.get('meta',core.prefix+'sourcePurgeDeny:'+remote.intent.sourceKey),tomb=await t.get('tombstones','source:'+remote.intent.sourceKey);if(!equal(deny,state.deny)||deny.intent!==remote.operations[7].revisionId||tomb?.value?.status!=='permanently_ignored'||await t.get('records',remote.intent.sourceId))denied();for(const op of remote.operations){const receipt=await core.get(t,'receipt',op.operationId);if(!equal(receipt,{id:receipt?.id,digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence}))denied();}return {state:'duplicate'};}));}
   if(state.source){if(incoming.has(journal))denied();incoming.set(journal,remote);try{await store.purge(remote.intent.sourceId,true);return {state:'purged'};}finally{incoming.delete(journal);}}
   return store.run(async()=>{
    const start=Date.now(),before=await core.transaction(false,async t=>({authority:await authority(store,core,t),namespace:await core.bind(t),rows:await rows(t,'bns:v1:')}));if(before.rows.length)denied();

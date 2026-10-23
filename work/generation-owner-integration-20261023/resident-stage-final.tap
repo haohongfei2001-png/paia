@@ -1,0 +1,358 @@
+TAP version 13
+# Subtest: original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+ok 1 - original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+  ---
+  duration_ms: 123.329
+  type: 'test'
+  ...
+# Subtest: original human Input gate remains a refusal with every canonical and protocol row unchanged
+ok 2 - original human Input gate remains a refusal with every canonical and protocol row unchanged
+  ---
+  duration_ms: 27.001417
+  type: 'test'
+  ...
+# Subtest: resident staging or other namespace content refuses without deleting the active Source
+ok 3 - resident staging or other namespace content refuses without deleting the active Source
+  ---
+  duration_ms: 27.130709
+  type: 'test'
+  ...
+# Subtest: actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+ok 4 - actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+  ---
+  duration_ms: 176.232542
+  type: 'test'
+  ...
+# Subtest: bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+ok 5 - bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+  ---
+  duration_ms: 168.961292
+  type: 'test'
+  ...
+# Subtest: original purge final receipt drift rolls back all canonical and protocol state
+ok 6 - original purge final receipt drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 56.537875
+  type: 'test'
+  ...
+# Subtest: original purge final frontier drift rolls back all canonical and protocol state
+ok 7 - original purge final frontier drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 55.394125
+  type: 'test'
+  ...
+# Subtest: original purge final deny drift rolls back all canonical and protocol state
+ok 8 - original purge final deny drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 60.176333
+  type: 'test'
+  ...
+# Subtest: original purge final source-resurrection drift rolls back all canonical and protocol state
+ok 9 - original purge final source-resurrection drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 55.238875
+  type: 'test'
+  ...
+# Subtest: original purge final control drift rolls back all canonical and protocol state
+ok 10 - original purge final control drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 56.493458
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-job drift rolls back all canonical and protocol state
+ok 11 - original purge final cleanup-job drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 56.956458
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-event drift rolls back all canonical and protocol state
+ok 12 - original purge final cleanup-event drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 54.736666
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-epoch drift rolls back all canonical and protocol state
+ok 13 - original purge final cleanup-epoch drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 57.979292
+  type: 'test'
+  ...
+# Subtest: original purge final tombstone drift rolls back all canonical and protocol state
+ok 14 - original purge final tombstone drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 70.255292
+  type: 'test'
+  ...
+# Subtest: original purge final budget drift rolls back all canonical and protocol state
+ok 15 - original purge final budget drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 133.567375
+  type: 'test'
+  ...
+# Subtest: original purge final failure drift rolls back all canonical and protocol state
+ok 16 - original purge final failure drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 64.571792
+  type: 'test'
+  ...
+# Subtest: checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+ok 17 - checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+  ---
+  duration_ms: 136.500542
+  type: 'test'
+  ...
+# Subtest: checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+ok 18 - checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+  ---
+  duration_ms: 72.989958
+  type: 'test'
+  ...
+# Subtest: pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+ok 19 - pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+  ---
+  duration_ms: 71.560708
+  type: 'test'
+  ...
+# Subtest: human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+ok 20 - human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+  ---
+  duration_ms: 25.45675
+  type: 'test'
+  ...
+# Subtest: original import preflight before purge cannot reintroduce deleted Source or its imported text
+ok 21 - original import preflight before purge cannot reintroduce deleted Source or its imported text
+  ---
+  duration_ms: 57.925791
+  type: 'test'
+  ...
+# Subtest: generic Core cannot mint or receive the original-owner purge protocol
+ok 22 - generic Core cannot mint or receive the original-owner purge protocol
+  ---
+  duration_ms: 66.527792
+  type: 'test'
+  ...
+# Subtest: unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+ok 23 - unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+  ---
+  duration_ms: 26.817125
+  type: 'test'
+  ...
+# Subtest: cold receive final receipt corruption rolls back denial and all protocol rows
+ok 24 - cold receive final receipt corruption rolls back denial and all protocol rows
+  ---
+  duration_ms: 83.3615
+  type: 'test'
+  ...
+# Subtest: checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+ok 25 - checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+  ---
+  duration_ms: 94.778083
+  type: 'test'
+  ...
+# Subtest: checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+ok 26 - checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+  ---
+  duration_ms: 108.694542
+  type: 'test'
+  ...
+# Subtest: transport cannot enlarge a metered reference before returning oversized bytes
+ok 27 - transport cannot enlarge a metered reference before returning oversized bytes
+  ---
+  duration_ms: 86.123125
+  type: 'test'
+  ...
+# Subtest: original maintenance observer cannot rebind the single Input state within its purge transaction
+ok 28 - original maintenance observer cannot rebind the single Input state within its purge transaction
+  ---
+  duration_ms: 41.185333
+  type: 'test'
+  ...
+# Subtest: generation authenticated graph uses original Source owner and stays invisible until separate publication
+ok 29 - generation authenticated graph uses original Source owner and stays invisible until separate publication
+  ---
+  duration_ms: 151.181625
+  type: 'test'
+  ...
+# Subtest: generation cross-database consumer preference publication is refused without local writes
+ok 30 - generation cross-database consumer preference publication is refused without local writes
+  ---
+  duration_ms: 67.3455
+  type: 'test'
+  ...
+# Subtest: generation ordinary activated receipt is not a prepared original graph seal
+ok 31 - generation ordinary activated receipt is not a prepared original graph seal
+  ---
+  duration_ms: 83.750834
+  type: 'test'
+  ...
+# Subtest: generation original seal reads the physical receipt even if stage.get is substituted
+ok 32 - generation original seal reads the physical receipt even if stage.get is substituted
+  ---
+  duration_ms: 85.589833
+  type: 'test'
+  ...
+# Subtest: generation graph seal refuses late canonical mutation and rolls back the sealed gate
+ok 33 - generation graph seal refuses late canonical mutation and rolls back the sealed gate
+  ---
+  duration_ms: 92.618167
+  type: 'test'
+  ...
+# Subtest: generation original owner applied-group failure rolls back canonical and activation receipt
+ok 34 - generation original owner applied-group failure rolls back canonical and activation receipt
+  ---
+  duration_ms: 91.813709
+  type: 'test'
+  ...
+# Subtest: generation original owner before-activation failure rolls back canonical and activation receipt
+ok 35 - generation original owner before-activation failure rolls back canonical and activation receipt
+  ---
+  duration_ms: 98.329375
+  type: 'test'
+  ...
+# Subtest: generation original owner after-activation failure rolls back canonical and activation receipt
+ok 36 - generation original owner after-activation failure rolls back canonical and activation receipt
+  ---
+  duration_ms: 93.482084
+  type: 'test'
+  ...
+# Subtest: generation restart must rebind genuine graph proof before original activation
+ok 37 - generation restart must rebind genuine graph proof before original activation
+  ---
+  duration_ms: 106.988167
+  type: 'test'
+  ...
+# Subtest: generation fake and foreign graph proofs cannot stage canonical content
+ok 38 - generation fake and foreign graph proofs cannot stage canonical content
+  ---
+  duration_ms: 54.750292
+  type: 'test'
+  ...
+# Subtest: generation late gate drift aborts the complete original owner transaction
+ok 39 - generation late gate drift aborts the complete original owner transaction
+  ---
+  duration_ms: 73.279209
+  type: 'test'
+  ...
+# Subtest: generation late authenticated-item drift aborts the complete original owner transaction
+ok 40 - generation late authenticated-item drift aborts the complete original owner transaction
+  ---
+  duration_ms: 73.116417
+  type: 'test'
+  ...
+# Subtest: generation late activation drift aborts the complete original owner transaction
+ok 41 - generation late activation drift aborts the complete original owner transaction
+  ---
+  duration_ms: 76.753458
+  type: 'test'
+  ...
+# Subtest: generation late restore-receipt drift aborts the complete original owner transaction
+ok 42 - generation late restore-receipt drift aborts the complete original owner transaction
+  ---
+  duration_ms: 75.44625
+  type: 'test'
+  ...
+# Subtest: original grouped begin detaches the manifest identity before its first await
+ok 43 - original grouped begin detaches the manifest identity before its first await
+  ---
+  duration_ms: 76.633542
+  type: 'test'
+  ...
+# Subtest: original grouped tail detaches the successor identity through held transport
+ok 44 - original grouped tail detaches the successor identity through held transport
+  ---
+  duration_ms: 100.213875
+  type: 'test'
+  ...
+# Subtest: generation existing active source requires a real negative-ledger migration owner
+ok 45 - generation existing active source requires a real negative-ledger migration owner
+  ---
+  duration_ms: 82.1255
+  type: 'test'
+  ...
+# Subtest: known purge deny blocks authenticated-stage before storing old checkpoint content
+ok 46 - known purge deny blocks authenticated-stage before storing old checkpoint content
+  ---
+  duration_ms: 39.058666
+  type: 'test'
+  ...
+# Subtest: known purge deny blocks original-group before storing old checkpoint content
+ok 47 - known purge deny blocks original-group before storing old checkpoint content
+  ---
+  duration_ms: 38.34875
+  type: 'test'
+  ...
+# Subtest: known purge deny blocks canonical-owner before storing old checkpoint content
+ok 48 - known purge deny blocks canonical-owner before storing old checkpoint content
+  ---
+  duration_ms: 53.864166
+  type: 'test'
+  ...
+# Subtest: late purge deny rolls back authenticated-stage writes at native completion
+ok 49 - late purge deny rolls back authenticated-stage writes at native completion
+  ---
+  duration_ms: 37.867167
+  type: 'test'
+  ...
+# Subtest: late purge deny rolls back original-group writes at native completion
+ok 50 - late purge deny rolls back original-group writes at native completion
+  ---
+  duration_ms: 39.682167
+  type: 'test'
+  ...
+# Subtest: late purge deny rolls back canonical-owner writes at native completion
+ok 51 - late purge deny rolls back canonical-owner writes at native completion
+  ---
+  duration_ms: 55.0855
+  type: 'test'
+  ...
+# Subtest: original purge refuses a genuine authenticated checkpoint body still resident outside protocol namespace
+ok 52 - original purge refuses a genuine authenticated checkpoint body still resident outside protocol namespace
+  ---
+  duration_ms: 58.796625
+  type: 'test'
+  ...
+# Subtest: cold purge receiver refuses a genuine authenticated checkpoint body with no canonical Source
+ok 53 - cold purge receiver refuses a genuine authenticated checkpoint body with no canonical Source
+  ---
+  duration_ms: 108.09025
+  type: 'test'
+  ...
+# Subtest: late resident checkpoint insertion rolls back local original purge
+ok 54 - late resident checkpoint insertion rolls back local original purge
+  ---
+  duration_ms: 80.419375
+  type: 'test'
+  ...
+# Subtest: late resident checkpoint insertion rolls back cold original purge
+ok 55 - late resident checkpoint insertion rolls back cold original purge
+  ---
+  duration_ms: 100.369542
+  type: 'test'
+  ...
+# Subtest: duplicate purge acknowledgement refuses resident checkpoint state:v1
+ok 56 - duplicate purge acknowledgement refuses resident checkpoint state:v1
+  ---
+  duration_ms: 100.685792
+  type: 'test'
+  ...
+# Subtest: duplicate purge acknowledgement refuses resident checkpoint item:00000000
+ok 57 - duplicate purge acknowledgement refuses resident checkpoint item:00000000
+  ---
+  duration_ms: 100.288917
+  type: 'test'
+  ...
+# Subtest: duplicate purge acknowledgement refuses resident checkpoint page:00000000
+ok 58 - duplicate purge acknowledgement refuses resident checkpoint page:00000000
+  ---
+  duration_ms: 100.353958
+  type: 'test'
+  ...
+1..58
+# tests 58
+# suites 0
+# pass 58
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4737.864541

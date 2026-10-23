@@ -1,0 +1,4 @@
+{
+  "extension/core/browser-native-sync/source-purge-journal.js": "f8a6d57570bc2e34913e2c43402cca324e2895b23eea90abb6427b3f7d01da78",
+  "extension/tests/canonical-generation-owner-restore.test.mjs": "6fe31bf77df831530c79ba13003e777d03bc1b8028dff52d9844c0c6bb90925e"
+}
