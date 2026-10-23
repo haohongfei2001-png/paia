@@ -1,0 +1,76 @@
+{
+  "variant": "source",
+  "scope": "saved-multiple",
+  "head": "cf6627f68801833a7f07709a5bfae8a15336b7eb",
+  "result": "PASS",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "bb2a670f7a6e6f86aa2a7aa5139b29cc0f7b1cadc86d82c0f5adeaa38fc82f5a",
+  "hashes": {
+    "core/browser-native-sync/saved-work-bootstrap.js": "7a7636271f4e43c13e80fde8b2b78685010f8fb6e8ca8c5f922087cd98f23046",
+    "core/browser-native-sync/group-checkpoint-plan.js": "dad085db82ac2c680b20402823e830db5378dde7ed35cb7d8cdb198132cac5ce",
+    "core/browser-native-sync/group-checkpoint-scope.js": "ee091069a5245744f101617eda1d07088afe43bb0b969639f1f4af931a9a58d7",
+    "core/library-documents-store.js": "63f7e9dec5c31e076cfa48e865b1fa7ef1e804ac12ba2d25c3c1d8faff69931a",
+    "core/idb-repository.js": "a974ce3fe86cc2363b95977d099766120968f41bc3bce645f10ee63929a1ca85",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/thought-maintenance.js": "35f099480098ac724f3de6a26f50b4991bb027c6eff05340eba5621c318833b6",
+    "core/source-purge-admission.js": "8a526a77ff393739736d19b746319ac5b844192392ecb5f53c7edf67ce294347",
+    "core/browser-native-sync/core.js": "eb0e76bbdebfbef21ea6469e9f93df8910422678ec0a2b0ca44439afc9a9f409",
+    "core/browser-native-sync/group-checkpoint.js": "bafb52579cde01bc2c1e2ede42642bac89b7743d62533ac7b14159359acf7bcb",
+    "core/browser-native-sync/canonical-generation-publication.js": "69e9d18bbe9f6cca0b9694b0d08f64ccdba9b065ffc18d837584d1735bd6100b",
+    "core/browser-native-sync/canonical-generation-checkpoint-stage.js": "653eb1cc323f0a0aa7ce7bdd80242ec35c9f9560e7df75d7e8106e9a906c14f7",
+    "core/browser-native-sync/source-purge-journal.js": "947d434d558e309588e2bf0f4c1f8a4eae8a1d9ffaf21e66525f5a61022fbb49",
+    "core/browser-native-sync/source-purge-codec.js": "bfbe850cb33a941a753e5db7f118a10b681255aa5eead304543c714a602f2360",
+    "core/browser-native-sync/source-purge-checkpoint.js": "a2c4d8c710863ffc465baa33499a2d6b00ee8d4b1c2c933143c9ee1b9aeea5a8"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    "two original saved entities restore together and retain independent typed edits through cold C",
+    "multi saved graph rejects cross-entity history collision before destination mutation",
+    "multi saved graph rejects cross-entity provenance collision before destination mutation",
+    "multi saved graph rejects cross-entity created allocation collision before destination mutation",
+    "multi saved successors cannot borrow another entity anchor or parent",
+    "multi saved interleaved coalesced edits retain each real typed event through cold C",
+    "multi saved partial member failure rolls back full scope and an explicit retry reprepares owners",
+    "multi saved raw final fence rejects first Entry drift and rolls back every table",
+    "multi saved raw final fence rejects second history drift and rolls back every table",
+    "multi saved raw final fence rejects second receipt drift and rolls back every table",
+    "multi saved raw final fence rejects thought count drift and rolls back every table",
+    "multi saved raw final fence rejects global revision drift and rolls back every table",
+    "multi saved activation remains bounded despite public metrics resets",
+    "multi saved cannot borrow the original Source baseline revision identity",
+    "multi saved refuses stale shared Source instead of exporting either protected entity"
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "dff16da3-96ab-4f37-a542-e27286d54955",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "dff16da3-96ab-4f37-a542-e27286d54955",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}

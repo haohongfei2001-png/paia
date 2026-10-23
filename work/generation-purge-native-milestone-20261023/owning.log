@@ -1,0 +1,797 @@
+TAP version 13
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 1 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 106.574375
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 2 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 314.94975
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 3 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 312.194583
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 4 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 343.170375
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 5 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 338.835167
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 6 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 248.4145
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 7 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 300.486041
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 8 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 247.032125
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 9 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 253.402292
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 10 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 302.410834
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 11 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 315.595666
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 12 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 125.785042
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 13 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 43.416208
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 14 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 650.307
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":130.22370800000044,"reads":2702,"writes":1161}}
+# Subtest: exact128 retained operations restore and the129th has explicit paged scope admission
+ok 15 - exact128 retained operations restore and the129th has explicit paged scope admission
+  ---
+  duration_ms: 1029.196458
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 16 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 24.67125
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 17 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 31.208625
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 18 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 30.480042
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 19 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 29.896542
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 20 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 30.771084
+  type: 'test'
+  ...
+# Subtest: two original saved entities restore together and retain independent typed edits through cold C
+ok 21 - two original saved entities restore together and retain independent typed edits through cold C
+  ---
+  duration_ms: 529.685708
+  type: 'test'
+  ...
+# Subtest: multi saved graph rejects cross-entity history collision before destination mutation
+ok 22 - multi saved graph rejects cross-entity history collision before destination mutation
+  ---
+  duration_ms: 138.260792
+  type: 'test'
+  ...
+# Subtest: multi saved graph rejects cross-entity provenance collision before destination mutation
+ok 23 - multi saved graph rejects cross-entity provenance collision before destination mutation
+  ---
+  duration_ms: 99.743125
+  type: 'test'
+  ...
+# Subtest: multi saved graph rejects cross-entity created allocation collision before destination mutation
+ok 24 - multi saved graph rejects cross-entity created allocation collision before destination mutation
+  ---
+  duration_ms: 107.743084
+  type: 'test'
+  ...
+# Subtest: multi saved successors cannot borrow another entity anchor or parent
+ok 25 - multi saved successors cannot borrow another entity anchor or parent
+  ---
+  duration_ms: 230.009292
+  type: 'test'
+  ...
+# Subtest: multi saved interleaved coalesced edits retain each real typed event through cold C
+ok 26 - multi saved interleaved coalesced edits retain each real typed event through cold C
+  ---
+  duration_ms: 499.328416
+  type: 'test'
+  ...
+# Subtest: multi saved partial member failure rolls back full scope and an explicit retry reprepares owners
+ok 27 - multi saved partial member failure rolls back full scope and an explicit retry reprepares owners
+  ---
+  duration_ms: 258.128375
+  type: 'test'
+  ...
+# Subtest: multi saved raw final fence rejects first Entry drift and rolls back every table
+ok 28 - multi saved raw final fence rejects first Entry drift and rolls back every table
+  ---
+  duration_ms: 175.932167
+  type: 'test'
+  ...
+# Subtest: multi saved raw final fence rejects second history drift and rolls back every table
+ok 29 - multi saved raw final fence rejects second history drift and rolls back every table
+  ---
+  duration_ms: 161.860375
+  type: 'test'
+  ...
+# Subtest: multi saved raw final fence rejects second receipt drift and rolls back every table
+ok 30 - multi saved raw final fence rejects second receipt drift and rolls back every table
+  ---
+  duration_ms: 171.649167
+  type: 'test'
+  ...
+# Subtest: multi saved raw final fence rejects thought count drift and rolls back every table
+ok 31 - multi saved raw final fence rejects thought count drift and rolls back every table
+  ---
+  duration_ms: 174.058166
+  type: 'test'
+  ...
+# Subtest: multi saved raw final fence rejects global revision drift and rolls back every table
+ok 32 - multi saved raw final fence rejects global revision drift and rolls back every table
+  ---
+  duration_ms: 190.741458
+  type: 'test'
+  ...
+# Subtest: multi saved activation remains bounded despite public metrics resets
+ok 33 - multi saved activation remains bounded despite public metrics resets
+  ---
+  duration_ms: 226.675084
+  type: 'test'
+  ...
+# Subtest: multi saved cannot borrow the original Source baseline revision identity
+ok 34 - multi saved cannot borrow the original Source baseline revision identity
+  ---
+  duration_ms: 82.452875
+  type: 'test'
+  ...
+# Subtest: multi saved refuses stale shared Source instead of exporting either protected entity
+ok 35 - multi saved refuses stale shared Source instead of exporting either protected entity
+  ---
+  duration_ms: 82.234791
+  type: 'test'
+  ...
+# Subtest: saved original editor records typed successor atomically after cold B restore
+ok 36 - saved original editor records typed successor atomically after cold B restore
+  ---
+  duration_ms: 546.258542
+  type: 'test'
+  ...
+# Subtest: saved successor stale revision and field CAS preserve canonical and complete protocol
+ok 37 - saved successor stale revision and field CAS preserve canonical and complete protocol
+  ---
+  duration_ms: 159.207417
+  type: 'test'
+  ...
+# Subtest: saved successor lost response retries original receipt and outbox without a second edit
+ok 38 - saved successor lost response retries original receipt and outbox without a second edit
+  ---
+  duration_ms: 179.625459
+  type: 'test'
+  ...
+# Subtest: saved successor cannot weaken existing user-only Source journal or accept changed Source
+ok 39 - saved successor cannot weaken existing user-only Source journal or accept changed Source
+  ---
+  duration_ms: 136.664916
+  type: 'test'
+  ...
+# Subtest: saved successor final source failure rolls back canonical and atomic outbox
+ok 40 - saved successor final source failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 141.291792
+  type: 'test'
+  ...
+# Subtest: saved successor final control failure rolls back canonical and atomic outbox
+ok 41 - saved successor final control failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 152.777625
+  type: 'test'
+  ...
+# Subtest: saved successor final frontier failure rolls back canonical and atomic outbox
+ok 42 - saved successor final frontier failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 177.006542
+  type: 'test'
+  ...
+# Subtest: saved successor final receipt failure rolls back canonical and atomic outbox
+ok 43 - saved successor final receipt failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 163.33325
+  type: 'test'
+  ...
+# Subtest: saved successor final history failure rolls back canonical and atomic outbox
+ok 44 - saved successor final history failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 146.286292
+  type: 'test'
+  ...
+# Subtest: saved successor final budget failure rolls back canonical and atomic outbox
+ok 45 - saved successor final budget failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 192.5475
+  type: 'test'
+  ...
+# Subtest: saved successor final failure failure rolls back canonical and atomic outbox
+ok 46 - saved successor final failure failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 132.774041
+  type: 'test'
+  ...
+# Subtest: saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+ok 47 - saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+  ---
+  duration_ms: 250.619959
+  type: 'test'
+  ...
+# Subtest: saved successor typed Core rejects direct application without original owner capability
+ok 48 - saved successor typed Core rejects direct application without original owner capability
+  ---
+  duration_ms: 177.318875
+  type: 'test'
+  ...
+# Subtest: saved successor unrepresented ordinary edit remains an explicit refusal
+ok 49 - saved successor unrepresented ordinary edit remains an explicit refusal
+  ---
+  duration_ms: 189.286833
+  type: 'test'
+  ...
+# Subtest: saved successor typed validator and graph refuse forged request allocation origin and ancestry
+ok 50 - saved successor typed validator and graph refuse forged request allocation origin and ancestry
+  ---
+  duration_ms: 161.883042
+  type: 'test'
+  ...
+# Subtest: saved successor cold recovery applied-group fault leaves complete stage and canonical state unchanged
+ok 51 - saved successor cold recovery applied-group fault leaves complete stage and canonical state unchanged
+  ---
+  duration_ms: 228.34575
+  type: 'test'
+  ...
+# Subtest: saved successor cold recovery after-activation fault leaves complete stage and canonical state unchanged
+ok 52 - saved successor cold recovery after-activation fault leaves complete stage and canonical state unchanged
+  ---
+  duration_ms: 267.840625
+  type: 'test'
+  ...
+# Subtest: saved successor budget is admitted before the original first transaction query
+ok 53 - saved successor budget is admitted before the original first transaction query
+  ---
+  duration_ms: 173.410333
+  type: 'test'
+  ...
+# Subtest: saved original edit planner refuses duplicate physical index keys hidden at a page boundary
+ok 54 - saved original edit planner refuses duplicate physical index keys hidden at a page boundary
+  ---
+  duration_ms: 146.0195
+  type: 'test'
+  ...
+# Subtest: saved successor cold final receipt drift rolls back every canonical protocol and activated stage row
+ok 55 - saved successor cold final receipt drift rolls back every canonical protocol and activated stage row
+  ---
+  duration_ms: 250.591375
+  type: 'test'
+  ...
+# Subtest: saved coalesced typed edits preserve every operation through B to cold C and continuation
+ok 56 - saved coalesced typed edits preserve every operation through B to cold C and continuation
+  ---
+  duration_ms: 433.631959
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor missing
+ok 57 - saved coalesced continuation authenticates every original typed ancestor missing
+  ---
+  duration_ms: 195.411042
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor changed
+ok 58 - saved coalesced continuation authenticates every original typed ancestor changed
+  ---
+  duration_ms: 173.501916
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor tail
+ok 59 - saved coalesced continuation authenticates every original typed ancestor tail
+  ---
+  duration_ms: 218.372667
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit tail source rolls back original row replacement and outbox
+ok 60 - saved coalesced edit tail source rolls back original row replacement and outbox
+  ---
+  duration_ms: 184.351834
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit tail receipt rolls back original row replacement and outbox
+ok 61 - saved coalesced edit tail receipt rolls back original row replacement and outbox
+  ---
+  duration_ms: 186.732542
+  type: 'test'
+  ...
+# Subtest: saved coalesced cold final activation failure preserves every table and stage
+ok 62 - saved coalesced cold final activation failure preserves every table and stage
+  ---
+  duration_ms: 322.298542
+  type: 'test'
+  ...
+# Subtest: saved coalesced initial capture still refuses missing typed intermediate facts
+ok 63 - saved coalesced initial capture still refuses missing typed intermediate facts
+  ---
+  duration_ms: 30.231708
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority before-owner anchor-head rolls back
+ok 64 - saved coalesced ancestry authority before-owner anchor-head rolls back
+  ---
+  duration_ms: 156.095209
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority before-owner ancestor-receipt rolls back
+ok 65 - saved coalesced ancestry authority before-owner ancestor-receipt rolls back
+  ---
+  duration_ms: 152.34175
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority after-owner anchor-head rolls back
+ok 66 - saved coalesced ancestry authority after-owner anchor-head rolls back
+  ---
+  duration_ms: 191.893791
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority after-owner ancestor-receipt rolls back
+ok 67 - saved coalesced ancestry authority after-owner ancestor-receipt rolls back
+  ---
+  duration_ms: 203.299042
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit preserves a later original global history counter
+ok 68 - saved coalesced edit preserves a later original global history counter
+  ---
+  duration_ms: 194.286292
+  type: 'test'
+  ...
+# Subtest: saved typed retention uses original canonical policy and preserves a provable cold continuation
+ok 69 - saved typed retention uses original canonical policy and preserves a provable cold continuation
+  ---
+  duration_ms: 372.130833
+  type: 'test'
+  ...
+# Subtest: saved typed retention throw aborts canonical pruning and outbox together
+ok 70 - saved typed retention throw aborts canonical pruning and outbox together
+  ---
+  duration_ms: 157.018625
+  type: 'test'
+  ...
+# Subtest: saved typed retention resurrect-outside-index aborts canonical pruning and outbox together
+ok 71 - saved typed retention resurrect-outside-index aborts canonical pruning and outbox together
+  ---
+  duration_ms: 211.582542
+  type: 'test'
+  ...
+# Subtest: saved typed retention exact cutoff preserves the original important and boundary rows
+ok 72 - saved typed retention exact cutoff preserves the original important and boundary rows
+  ---
+  duration_ms: 223.585084
+  type: 'test'
+  ...
+# Subtest: saved typed retention cannot forge removed histories or restore them through cold canonical activation
+ok 73 - saved typed retention cannot forge removed histories or restore them through cold canonical activation
+  ---
+  duration_ms: 304.184792
+  type: 'test'
+  ...
+# Subtest: original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+ok 74 - original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+  ---
+  duration_ms: 109.718125
+  type: 'test'
+  ...
+# Subtest: original human Input gate remains a refusal with every canonical and protocol row unchanged
+ok 75 - original human Input gate remains a refusal with every canonical and protocol row unchanged
+  ---
+  duration_ms: 29.539791
+  type: 'test'
+  ...
+# Subtest: resident staging or other namespace content refuses without deleting the active Source
+ok 76 - resident staging or other namespace content refuses without deleting the active Source
+  ---
+  duration_ms: 32.107917
+  type: 'test'
+  ...
+# Subtest: actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+ok 77 - actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+  ---
+  duration_ms: 233.326583
+  type: 'test'
+  ...
+# Subtest: bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+ok 78 - bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+  ---
+  duration_ms: 199.296
+  type: 'test'
+  ...
+# Subtest: original purge final receipt drift rolls back all canonical and protocol state
+ok 79 - original purge final receipt drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 59.879541
+  type: 'test'
+  ...
+# Subtest: original purge final frontier drift rolls back all canonical and protocol state
+ok 80 - original purge final frontier drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 59.825458
+  type: 'test'
+  ...
+# Subtest: original purge final deny drift rolls back all canonical and protocol state
+ok 81 - original purge final deny drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 63.119417
+  type: 'test'
+  ...
+# Subtest: original purge final source-resurrection drift rolls back all canonical and protocol state
+ok 82 - original purge final source-resurrection drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 57.67025
+  type: 'test'
+  ...
+# Subtest: original purge final control drift rolls back all canonical and protocol state
+ok 83 - original purge final control drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 59.025083
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-job drift rolls back all canonical and protocol state
+ok 84 - original purge final cleanup-job drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 56.360167
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-event drift rolls back all canonical and protocol state
+ok 85 - original purge final cleanup-event drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 56.551708
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-epoch drift rolls back all canonical and protocol state
+ok 86 - original purge final cleanup-epoch drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 56.970917
+  type: 'test'
+  ...
+# Subtest: original purge final tombstone drift rolls back all canonical and protocol state
+ok 87 - original purge final tombstone drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 55.530583
+  type: 'test'
+  ...
+# Subtest: original purge final budget drift rolls back all canonical and protocol state
+ok 88 - original purge final budget drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 109.811667
+  type: 'test'
+  ...
+# Subtest: original purge final failure drift rolls back all canonical and protocol state
+ok 89 - original purge final failure drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 66.509875
+  type: 'test'
+  ...
+# Subtest: checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+ok 90 - checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+  ---
+  duration_ms: 139.197292
+  type: 'test'
+  ...
+# Subtest: checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+ok 91 - checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+  ---
+  duration_ms: 80.083
+  type: 'test'
+  ...
+# Subtest: pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+ok 92 - pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+  ---
+  duration_ms: 88.208167
+  type: 'test'
+  ...
+# Subtest: human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+ok 93 - human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+  ---
+  duration_ms: 27.588166
+  type: 'test'
+  ...
+# Subtest: original import preflight before purge cannot reintroduce deleted Source or its imported text
+ok 94 - original import preflight before purge cannot reintroduce deleted Source or its imported text
+  ---
+  duration_ms: 64.081167
+  type: 'test'
+  ...
+# Subtest: generic Core cannot mint or receive the original-owner purge protocol
+ok 95 - generic Core cannot mint or receive the original-owner purge protocol
+  ---
+  duration_ms: 74.000125
+  type: 'test'
+  ...
+# Subtest: unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+ok 96 - unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+  ---
+  duration_ms: 27.60025
+  type: 'test'
+  ...
+# Subtest: cold receive final receipt corruption rolls back denial and all protocol rows
+ok 97 - cold receive final receipt corruption rolls back denial and all protocol rows
+  ---
+  duration_ms: 86.38775
+  type: 'test'
+  ...
+# Subtest: checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+ok 98 - checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+  ---
+  duration_ms: 98.20975
+  type: 'test'
+  ...
+# Subtest: checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+ok 99 - checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+  ---
+  duration_ms: 108.269291
+  type: 'test'
+  ...
+# Subtest: transport cannot enlarge a metered reference before returning oversized bytes
+ok 100 - transport cannot enlarge a metered reference before returning oversized bytes
+  ---
+  duration_ms: 75.552417
+  type: 'test'
+  ...
+# Subtest: original maintenance observer cannot rebind the single Input state within its purge transaction
+ok 101 - original maintenance observer cannot rebind the single Input state within its purge transaction
+  ---
+  duration_ms: 39.852291
+  type: 'test'
+  ...
+# Subtest: generation authenticated graph uses original Source owner and stays invisible until separate publication
+ok 102 - generation authenticated graph uses original Source owner and stays invisible until separate publication
+  ---
+  duration_ms: 187.043708
+  type: 'test'
+  ...
+# Subtest: generation cross-database consumer preference publication is refused without local writes
+ok 103 - generation cross-database consumer preference publication is refused without local writes
+  ---
+  duration_ms: 85.242167
+  type: 'test'
+  ...
+# Subtest: generation ordinary activated receipt is not a prepared original graph seal
+ok 104 - generation ordinary activated receipt is not a prepared original graph seal
+  ---
+  duration_ms: 91.095791
+  type: 'test'
+  ...
+# Subtest: generation original seal reads the physical receipt even if stage.get is substituted
+ok 105 - generation original seal reads the physical receipt even if stage.get is substituted
+  ---
+  duration_ms: 94.817292
+  type: 'test'
+  ...
+# Subtest: generation graph seal refuses late canonical mutation and rolls back the sealed gate
+ok 106 - generation graph seal refuses late canonical mutation and rolls back the sealed gate
+  ---
+  duration_ms: 104.919209
+  type: 'test'
+  ...
+# Subtest: generation original owner applied-group failure rolls back canonical and activation receipt
+ok 107 - generation original owner applied-group failure rolls back canonical and activation receipt
+  ---
+  duration_ms: 109.216833
+  type: 'test'
+  ...
+# Subtest: generation original owner before-activation failure rolls back canonical and activation receipt
+ok 108 - generation original owner before-activation failure rolls back canonical and activation receipt
+  ---
+  duration_ms: 121.601625
+  type: 'test'
+  ...
+# Subtest: generation original owner after-activation failure rolls back canonical and activation receipt
+ok 109 - generation original owner after-activation failure rolls back canonical and activation receipt
+  ---
+  duration_ms: 100.073458
+  type: 'test'
+  ...
+# Subtest: generation restart must rebind genuine graph proof before original activation
+ok 110 - generation restart must rebind genuine graph proof before original activation
+  ---
+  duration_ms: 123.104958
+  type: 'test'
+  ...
+# Subtest: generation fake and foreign graph proofs cannot stage canonical content
+ok 111 - generation fake and foreign graph proofs cannot stage canonical content
+  ---
+  duration_ms: 84.99875
+  type: 'test'
+  ...
+# Subtest: generation late gate drift aborts the complete original owner transaction
+ok 112 - generation late gate drift aborts the complete original owner transaction
+  ---
+  duration_ms: 115.478167
+  type: 'test'
+  ...
+# Subtest: generation late authenticated-item drift aborts the complete original owner transaction
+ok 113 - generation late authenticated-item drift aborts the complete original owner transaction
+  ---
+  duration_ms: 90.299209
+  type: 'test'
+  ...
+# Subtest: generation late activation drift aborts the complete original owner transaction
+ok 114 - generation late activation drift aborts the complete original owner transaction
+  ---
+  duration_ms: 83.6035
+  type: 'test'
+  ...
+# Subtest: generation late restore-receipt drift aborts the complete original owner transaction
+ok 115 - generation late restore-receipt drift aborts the complete original owner transaction
+  ---
+  duration_ms: 79.872333
+  type: 'test'
+  ...
+# Subtest: original grouped begin detaches the manifest identity before its first await
+ok 116 - original grouped begin detaches the manifest identity before its first await
+  ---
+  duration_ms: 78.658375
+  type: 'test'
+  ...
+# Subtest: original grouped tail detaches the successor identity through held transport
+ok 117 - original grouped tail detaches the successor identity through held transport
+  ---
+  duration_ms: 111.574
+  type: 'test'
+  ...
+# Subtest: generation existing active source requires a real negative-ledger migration owner
+ok 118 - generation existing active source requires a real negative-ledger migration owner
+  ---
+  duration_ms: 87.465833
+  type: 'test'
+  ...
+# Subtest: known purge deny blocks authenticated-stage before storing old checkpoint content
+ok 119 - known purge deny blocks authenticated-stage before storing old checkpoint content
+  ---
+  duration_ms: 38.565084
+  type: 'test'
+  ...
+# Subtest: known purge deny blocks original-group before storing old checkpoint content
+ok 120 - known purge deny blocks original-group before storing old checkpoint content
+  ---
+  duration_ms: 39.727834
+  type: 'test'
+  ...
+# Subtest: known purge deny blocks canonical-owner before storing old checkpoint content
+ok 121 - known purge deny blocks canonical-owner before storing old checkpoint content
+  ---
+  duration_ms: 53.207375
+  type: 'test'
+  ...
+# Subtest: late purge deny rolls back authenticated-stage writes at native completion
+ok 122 - late purge deny rolls back authenticated-stage writes at native completion
+  ---
+  duration_ms: 45.730375
+  type: 'test'
+  ...
+# Subtest: late purge deny rolls back original-group writes at native completion
+ok 123 - late purge deny rolls back original-group writes at native completion
+  ---
+  duration_ms: 50.844708
+  type: 'test'
+  ...
+# Subtest: late purge deny rolls back canonical-owner writes at native completion
+ok 124 - late purge deny rolls back canonical-owner writes at native completion
+  ---
+  duration_ms: 76.176292
+  type: 'test'
+  ...
+# Subtest: original purge refuses a genuine authenticated checkpoint body still resident outside protocol namespace
+ok 125 - original purge refuses a genuine authenticated checkpoint body still resident outside protocol namespace
+  ---
+  duration_ms: 73.297458
+  type: 'test'
+  ...
+# Subtest: cold purge receiver refuses a genuine authenticated checkpoint body with no canonical Source
+ok 126 - cold purge receiver refuses a genuine authenticated checkpoint body with no canonical Source
+  ---
+  duration_ms: 118.685625
+  type: 'test'
+  ...
+# Subtest: late resident checkpoint insertion rolls back local original purge
+ok 127 - late resident checkpoint insertion rolls back local original purge
+  ---
+  duration_ms: 86.130125
+  type: 'test'
+  ...
+# Subtest: late resident checkpoint insertion rolls back cold original purge
+ok 128 - late resident checkpoint insertion rolls back cold original purge
+  ---
+  duration_ms: 109.747708
+  type: 'test'
+  ...
+# Subtest: duplicate purge acknowledgement refuses resident checkpoint state:v1
+ok 129 - duplicate purge acknowledgement refuses resident checkpoint state:v1
+  ---
+  duration_ms: 106.246458
+  type: 'test'
+  ...
+# Subtest: duplicate purge acknowledgement refuses resident checkpoint item:00000000
+ok 130 - duplicate purge acknowledgement refuses resident checkpoint item:00000000
+  ---
+  duration_ms: 119.233375
+  type: 'test'
+  ...
+# Subtest: duplicate purge acknowledgement refuses resident checkpoint page:00000000
+ok 131 - duplicate purge acknowledgement refuses resident checkpoint page:00000000
+  ---
+  duration_ms: 129.819417
+  type: 'test'
+  ...
+1..131
+# tests 131
+# suites 0
+# pass 131
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21677.7315

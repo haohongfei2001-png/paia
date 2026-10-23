@@ -1,0 +1,6 @@
+Unpublished build retained: /Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/generation-purge-native-milestone-20261023/.release.building-9oln1dsv
+FAIL: 3 package guardrail issue(s), 22200 checks
+- core/browser-native-sync/canonical-generation-publication.js import: missing resource ,
+- core/browser-native-sync/canonical-generation-publication.js import: missing resource ,
+- core/browser-native-sync/canonical-generation-publication.js import: missing resource ,
+Current release failed package guardrails

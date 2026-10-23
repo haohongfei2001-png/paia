@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: BNS generation/purge native generation-owner source
+ok 1 - BNS generation/purge native generation-owner source
+  ---
+  duration_ms: 5507.013375
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native generation-owner release
+ok 2 - BNS generation/purge native generation-owner release
+  ---
+  duration_ms: 4765.602042
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native source-purge source
+ok 3 - BNS generation/purge native source-purge source
+  ---
+  duration_ms: 3957.066125
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native source-purge release
+ok 4 - BNS generation/purge native source-purge release
+  ---
+  duration_ms: 4019.844125
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native saved-multiple source
+ok 5 - BNS generation/purge native saved-multiple source
+  ---
+  duration_ms: 4770.437208
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native saved-multiple release
+ok 6 - BNS generation/purge native saved-multiple release
+  ---
+  duration_ms: 4742.541833
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 32744.913542
