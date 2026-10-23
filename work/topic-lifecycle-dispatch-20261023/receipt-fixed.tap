@@ -1,0 +1,117 @@
+TAP version 13
+# Subtest: stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+not ok 1 - stable original action receipt reconciles lost delivery after commit across adapter reconstruction
+  ---
+  duration_ms: 137.53275
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:32:1'
+  failureType: 'testCodeFailure'
+  error: 'STALE_BASE'
+  code: 'STALE_BASE'
+  stack: |-
+    refuseTerminal (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:117:8)
+    registerRepositoryFinalReadFence (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:156:132)
+    store.operation.activity.workLimit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/topic-lifecycle.js:48:5)
+    async OrganizerStore.libraryOperationInTransaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/library-documents-owner.js:80:16)
+    async OrganizerStore.operationInTransaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/thought-store-owner.js:113:363)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:451:20)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/indexed-store.js:289:185
+    async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/indexed-store.js:202:11
+  ...
+# Subtest: late-dispose after original backup finalizer rolls the selected dispatch back
+not ok 2 - late-dispose after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 90.896416
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:41:80'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:41:1160)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late-grant after original backup finalizer rolls the selected dispatch back
+not ok 3 - late-grant after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 76.150042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:41:80'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:41:1160)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late-receipt after original backup finalizer rolls the selected dispatch back
+not ok 4 - late-receipt after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 75.071166
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:41:80'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:41:1160)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late-source after original backup finalizer rolls the selected dispatch back
+not ok 5 - late-source after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 78.777042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:41:80'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:41:1160)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 0
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 567.08975

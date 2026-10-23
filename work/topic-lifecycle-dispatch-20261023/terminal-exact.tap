@@ -1,0 +1,50 @@
+TAP version 13
+# Subtest: late-dispose after original backup finalizer rolls the selected dispatch back
+ok 1 - late-dispose after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 135.945625
+  type: 'test'
+  ...
+# Subtest: late-grant after original backup finalizer rolls the selected dispatch back
+ok 2 - late-grant after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 88.0295
+  type: 'test'
+  ...
+# Subtest: late-receipt after original backup finalizer rolls the selected dispatch back
+not ok 3 - late-receipt after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 91.50925
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:41:80'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(outcome.error||outcome.result.items[0].state==='deferred')
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-dispatch.test.mjs:41:1188)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late-source after original backup finalizer rolls the selected dispatch back
+ok 4 - late-source after original backup finalizer rolls the selected dispatch back
+  ---
+  duration_ms: 93.12175
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 521.214667
