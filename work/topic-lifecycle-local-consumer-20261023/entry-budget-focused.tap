@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: automatic receipt replay is physically byte-bounded before callback admission
+not ok 1 - automatic receipt replay is physically byte-bounded before callback admission
+  ---
+  duration_ms: 82.010666
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:53:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_GROUP_RESOURCE_LIMIT'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:53:430)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: original execution transaction charges publication prelude before its first receipt read
+not ok 2 - original execution transaction charges publication prelude before its first receipt read
+  ---
+  duration_ms: 27.492083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:54:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_GROUP_RESOURCE_LIMIT'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:54:181)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: original writer budget configuration only tightens and accepts no callback
+ok 3 - original writer budget configuration only tightens and accepts no callback
+  ---
+  duration_ms: 32.55625
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 1
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 306.375292

@@ -1,0 +1,152 @@
+TAP version 13
+# Subtest: explicit inactivity uses real original issuer and commits once; restarted consumer replays exact receipt
+ok 1 - explicit inactivity uses real original issuer and commits once; restarted consumer replays exact receipt
+  ---
+  duration_ms: 71.406708
+  type: 'test'
+  ...
+# Subtest: activity missing cannot write or issue a success receipt
+ok 2 - activity missing cannot write or issue a success receipt
+  ---
+  duration_ms: 26.1815
+  type: 'test'
+  ...
+# Subtest: activity recent cannot write or issue a success receipt
+ok 3 - activity recent cannot write or issue a success receipt
+  ---
+  duration_ms: 27.256
+  type: 'test'
+  ...
+# Subtest: activity future cannot write or issue a success receipt
+ok 4 - activity future cannot write or issue a success receipt
+  ---
+  duration_ms: 23.762875
+  type: 'test'
+  ...
+# Subtest: activity backwards cannot write or issue a success receipt
+ok 5 - activity backwards cannot write or issue a success receipt
+  ---
+  duration_ms: 18.921208
+  type: 'test'
+  ...
+# Subtest: original pin veto remains authoritative
+ok 6 - original pin veto remains authoritative
+  ---
+  duration_ms: 25.121667
+  type: 'test'
+  ...
+# Subtest: original keep veto remains authoritative
+ok 7 - original keep veto remains authoritative
+  ---
+  duration_ms: 25.136875
+  type: 'test'
+  ...
+# Subtest: original lifecycle veto remains authoritative
+ok 8 - original lifecycle veto remains authoritative
+  ---
+  duration_ms: 23.727375
+  type: 'test'
+  ...
+# Subtest: late activity after original backup finalizer rolls back every table
+not ok 9 - late activity after original backup finalizer rolls back every table
+  ---
+  duration_ms: 21.530208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:27:64'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:27:886)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late membership after original backup finalizer rolls back every table
+not ok 10 - late membership after original backup finalizer rolls back every table
+  ---
+  duration_ms: 22.003667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:27:64'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:27:886)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late source after original backup finalizer rolls back every table
+not ok 11 - late source after original backup finalizer rolls back every table
+  ---
+  duration_ms: 18.401458
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:27:64'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:27:886)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late grant after original backup finalizer rolls back every table
+not ok 12 - late grant after original backup finalizer rolls back every table
+  ---
+  duration_ms: 20.399083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:27:64'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/topic-lifecycle-local-consumer.test.mjs:27:886)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: legacy authority and forged budget cannot mint automatic activity capability
+ok 13 - legacy authority and forged budget cannot mint automatic activity capability
+  ---
+  duration_ms: 24.400125
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 9
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 512.243875

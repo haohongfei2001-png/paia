@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: two selected Topics preserve first committed receipt when second transaction fails
+ok 1 - two selected Topics preserve first committed receipt when second transaction fails
+  ---
+  duration_ms: 82.73975
+  type: 'test'
+  ...
+# Subtest: budget accessors are rejected at both original owner entries without evaluation
+ok 2 - budget accessors are rejected at both original owner entries without evaluation
+  ---
+  duration_ms: 21.190875
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 242.380084

@@ -1,0 +1,14 @@
+{
+  "extension/core/ia-store-owner.js": "39b5e96ceb945add2de2462987b29af140319667f8ebf0b42605f93140a8f8a2",
+  "extension/core/indexed-store.js": "b6d844b62249d99142ff000fc20fab1670af27a5c6155fefe2bd134bc74ee173",
+  "extension/core/library-documents-owner.js": "6b0c4f02f8beca3755de39d3ab6c21eadf657803c36fe31aacf04015b8c51d05",
+  "extension/core/thought-journal.js": "346f721441bd83439c91cae13358f09044f29b35cdd2ae6941cd882a7d72a53e",
+  "extension/core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+  "extension/core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+  "extension/core/topic-lifecycle.js": "cdc8fcd33845eebcb6241143bcd75a28253ae19c7acb38dcac7c813cd8335d33",
+  "extension/core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+  "extension/core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+  "extension/core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+  "extension/core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+  "extension/tests/topic-lifecycle-local-consumer.test.mjs": "2192f24747ce469a0f502cabfeda2fb5376d0b67267fb6aa7f7f076ce7e5ea50"
+}
