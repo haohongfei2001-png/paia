@@ -1,0 +1,12 @@
+To https://github.com/haohongfei2001-png/paia.git
+   80f6b64e..387fbf9b  codex/paia-takeover-integration-20261023 -> codex/paia-takeover-integration-20261023
+ * [new branch]        codex/human-source-topic-consumer-20261024 -> codex/human-source-topic-consumer-20261024
+ * [new branch]        codex/topic-lifecycle-sync-20261023 -> codex/topic-lifecycle-sync-20261023
+ * [new branch]        codex/sync-stage-cancellation-20261023 -> codex/sync-stage-cancellation-20261023
+ * [new branch]        codex/canonical-human-cold-20261023 -> codex/canonical-human-cold-20261023
+ * [new branch]        codex/saved-mixed-incremental-20261023 -> codex/saved-mixed-incremental-20261023
+ * [new branch]        codex/context-current-lineage-20261024 -> codex/context-current-lineage-20261024
+ * [new branch]        codex/sync-local-lifecycle-20261023 -> codex/sync-local-lifecycle-20261023
+ * [new branch]        codex/maintenance-section-move-context-20261023 -> codex/maintenance-section-move-context-20261023
+ * [new branch]        codex/sync-mixed-human-working-20261023 -> codex/sync-mixed-human-working-20261023
+ * [new branch]        codex/topic-lifecycle-dispatch-20261023 -> codex/topic-lifecycle-dispatch-20261023

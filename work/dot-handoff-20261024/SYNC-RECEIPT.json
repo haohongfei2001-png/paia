@@ -1,0 +1,82 @@
+{
+  "verifiedAtUTC": "2026-10-23T23:34:35.917873+00:00",
+  "branches": [
+    {
+      "branch": "codex/paia-takeover-integration-20261023",
+      "local": "387fbf9b6eeeccfc8c80b79cffbc3e9c944c1db8",
+      "remote": "387fbf9b6eeeccfc8c80b79cffbc3e9c944c1db8",
+      "equal": true
+    },
+    {
+      "branch": "codex/human-source-topic-consumer-20261024",
+      "local": "38daec6eb203d4799317585d5dd9a7aa2120b997",
+      "remote": "38daec6eb203d4799317585d5dd9a7aa2120b997",
+      "equal": true
+    },
+    {
+      "branch": "codex/topic-lifecycle-sync-20261023",
+      "local": "981bbe7dd0c9d3c6363562de2a0c1516811916bf",
+      "remote": "981bbe7dd0c9d3c6363562de2a0c1516811916bf",
+      "equal": true
+    },
+    {
+      "branch": "codex/sync-stage-cancellation-20261023",
+      "local": "fc302c24e2d5bac1adbdfc646d6ee487ea212f5e",
+      "remote": "fc302c24e2d5bac1adbdfc646d6ee487ea212f5e",
+      "equal": true
+    },
+    {
+      "branch": "codex/canonical-human-cold-20261023",
+      "local": "3a5a2ba59c12461a74d327e90461c4cef0c3dcb5",
+      "remote": "3a5a2ba59c12461a74d327e90461c4cef0c3dcb5",
+      "equal": true
+    },
+    {
+      "branch": "codex/saved-mixed-incremental-20261023",
+      "local": "d5659f0a6d9720e1210298bdb4b48658524b4599",
+      "remote": "d5659f0a6d9720e1210298bdb4b48658524b4599",
+      "equal": true
+    },
+    {
+      "branch": "codex/context-current-lineage-20261024",
+      "local": "c9fcc034fcd81f29089a7b17f67b205a37aad6a6",
+      "remote": "c9fcc034fcd81f29089a7b17f67b205a37aad6a6",
+      "equal": true
+    },
+    {
+      "branch": "codex/sync-local-lifecycle-20261023",
+      "local": "ca38c8d8bdfdc05f8b88f5be7f98333fbee7a669",
+      "remote": "ca38c8d8bdfdc05f8b88f5be7f98333fbee7a669",
+      "equal": true
+    },
+    {
+      "branch": "codex/maintenance-section-move-context-20261023",
+      "local": "5907ae90b2297d28e4f7887b0d9dbfb87de6fd48",
+      "remote": "5907ae90b2297d28e4f7887b0d9dbfb87de6fd48",
+      "equal": true
+    },
+    {
+      "branch": "codex/sync-mixed-human-working-20261023",
+      "local": "2d2236dfc7250c8f16588feb837a675fa01891ef",
+      "remote": "2d2236dfc7250c8f16588feb837a675fa01891ef",
+      "equal": true
+    },
+    {
+      "branch": "codex/topic-lifecycle-dispatch-20261023",
+      "local": "c9b2c05f151f2f431949371560953b17abaef14c",
+      "remote": "c9b2c05f151f2f431949371560953b17abaef14c",
+      "equal": true
+    }
+  ],
+  "main": {
+    "local": "0ce10a79f65ca9c811a32c1b0e6db2d833b85f9a",
+    "remote": "0ce10a79f65ca9c811a32c1b0e6db2d833b85f9a",
+    "equal": true
+  },
+  "PR313": {
+    "headRefOid": "02144bccf5e0e0b6842aaa4e7c6958cedecdfde1",
+    "state": "OPEN"
+  },
+  "originalStashesUnchanged": true,
+  "note": "Root branch will receive a subsequent documentation-only commit containing this receipt; its final identity is verified after that push. No new CI/test/build/native run was requested."
+}
