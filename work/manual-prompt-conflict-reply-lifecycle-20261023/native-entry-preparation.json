@@ -1,0 +1,14 @@
+{
+  "entry": "extension/tests/native-sync/manual-prompt-conflict-chrome.test.mjs",
+  "names": [
+    "BNS explicit manual Prompt conflict native manual-prompt-conflict source",
+    "BNS explicit manual Prompt conflict native manual-prompt-conflict release"
+  ],
+  "registered": 2,
+  "executedCallbacks": 0,
+  "browser": false,
+  "build": false,
+  "ownerCases": 23,
+  "paneHelper": "extension/tests/harness/manual-prompt-conflict-pane-native.mjs",
+  "paneExecuted": false
+}

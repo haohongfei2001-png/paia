@@ -1,0 +1,11 @@
+{
+  "source": "observed unified command output; no redirected first log",
+  "command": "Node22.23.3 prepare-entry.mjs",
+  "result": "FAIL",
+  "error": "AssertionError [ERR_ASSERTION]: true !== false",
+  "location": "prepare-entry.mjs:3:8",
+  "cause": "broad keyword check matched literal worker import marker",
+  "executedCallbacks": 0,
+  "browser": false,
+  "build": false
+}
