@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: real merged chronology retains a complete finite allocation expectation for native ownership accounting
+not ok 1 - real merged chronology retains a complete finite allocation expectation for native ownership accounting
+  ---
+  duration_ms: 845.316958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-native-chronology.test.mjs:47:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    refused (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/completed-group-restore-control.js:7:19)
+    fields (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/completed-group-restore-control.js:9:211)
+    assertCompletedGroupedRestoreControl (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/completed-group-restore-control.js:35:2)
+    readMixedMergeChronology (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/mixed-merge-chronology.js:20:211)
+    async prepareMergedAllocation (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/mixed-restored-allocation.js:96:19)
+    async proof (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-native-chronology.test.mjs:46:201)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-native-chronology.test.mjs:48:35)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1024.574167

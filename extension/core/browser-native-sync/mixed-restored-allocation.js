@@ -16,7 +16,7 @@ const proofs=new WeakMap(),refuse=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
 export async function prepareMixedRestoredAllocationProof(core,plan,meta,native){
  if(arguments.length!==3&&arguments.length!==4)refuse();requireOriginalCurrentMixedGroupPlan(core,plan);
  if(core.fixedNamespace!==null||!Array.isArray(meta)||meta.length>4096)refuse();
- const ns=meta.find(r=>r.id===core.prefix+'active')?.namespace??'initial';if(meta.some(r=>r.id===mixedTimelineKey(core,ns))){if(native)fail('BNS_HUMAN_PROJECTION_REQUIRED');return prepareMergedAllocation(core,plan,meta);}
+ const ns=meta.find(r=>r.id===core.prefix+'active')?.namespace??'initial';if(meta.some(r=>r.id===mixedTimelineKey(core,ns))){return prepareMergedAllocation(core,plan,meta,native);}
  const active=meta.find(row=>row.id===core.prefix+'active'),completed=meta.filter(row=>row.id.startsWith(core.prefix+'generation:')&&row.id.endsWith(':restore:'));
  if(!active||completed.length!==1||meta.some(row=>row.id==='recovery-restore-epoch'))refuse();
  if(native)reserveOriginalMixedRestoredPrefixPhase(native.nonce,native.store,native.scope,plan,'control');
@@ -85,15 +85,16 @@ export function originalMixedRestoredReplay(core,scope,plan,cap){
 export function measureMixedRestoredExpectation(core,scope,plan,cap){
  requireOriginalCurrentMixedGroupPlan(core,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();
  const total={B:0,T:0,V:0,E:0},add=value=>{const m=measureSourceWorkingPhysicalTree(value);for(const key of ['B','T','V','E'])total[key]+=m[key];};
- add(p.active);add(p.completed);
+ if(p.chronology){add(p.controls);add(p.restoreIds);add(p.chronology.timeline);add(p.chronology.extra);}else{add(p.active);add(p.completed);}
  for(const map of [p.inputs,p.history,p.human.entries,p.human.topics,p.human.receipts])for(const [key,value]of map)add([key,value]);
  // Stored Map/array/control wrappers have their own finite cells, independent
  // of borrowed complete Plan/member rows and already owned public Scope.
- total.E+=p.inputs.size+p.history.size+p.human.entries.size+p.human.topics.size+p.human.receipts.size+p.prefixGroups.length+p.tail.length+64;return Object.freeze(total);
+ if(p.chronology)total.V+=p.chronology.transactions.length+2;
+ total.E+=p.inputs.size+p.history.size+p.human.entries.size+p.human.topics.size+p.human.receipts.size+(p.chronology?p.chronology.transactions.reduce((n,tx)=>n+tx.length+1,0):p.prefixGroups.length+p.tail.length)+64;return Object.freeze(total);
 }
 
-async function prepareMergedAllocation(core,plan,meta){
- const chronology=await readMixedMergeChronology(core,plan,{meta}),inputs=new Map(),history=new Map();let delta=0,revision=0;
+async function prepareMergedAllocation(core,plan,meta,native){
+ const chronology=await readMixedMergeChronology(core,plan,{meta},native),inputs=new Map(),history=new Map();let delta=0,revision=0;
  for(let index=0;index<chronology.transactions.length;index++)for(const group of chronology.transactions[index]){
   const local=group.operations.every(op=>op.deviceId===core.deviceId);
   if(['sourceBootstrapCommit','sourceAppendCommit'].includes(group.type)){

@@ -1,0 +1,918 @@
+TAP version 13
+# Subtest: real merged chronology retains a complete finite allocation expectation for native ownership accounting
+ok 1 - real merged chronology retains a complete finite allocation expectation for native ownership accounting
+  ---
+  duration_ms: 773.910416
+  type: 'test'
+  ...
+# Subtest: actual restored B merged transactions preserve original semantic replay and cold C consumer
+not ok 2 - actual restored B merged transactions preserve original semantic replay and cold C consumer
+  ---
+  duration_ms: 698.915209
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-native-chronology.test.mjs:57:35'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         'info'
+    +       ],
+    +       entityId: '2171500d-1db1-4d81-8c75-44574c5147fe',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       key: '["context_item","2171500d-1db1-4d81-8c75-44574c5147fe"]',
+    +       kind: 'context_item',
+    +       lineage: [],
+    +       recordId: '2171500d-1db1-4d81-8c75-44574c5147fe',
+    +       removalEpoch: 1,
+    +       removed: false,
+    +       revision: 1,
+    +       sourceRecordIds: []
+    +     },
+    +     id: 'aiu:delta:pending:["context_item","2171500d-1db1-4d81-8c75-44574c5147fe"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 5,
+    +     signature: '{"key":"[\\"context_item\\",\\"2171500d-1db1-4d81-8c75-44574c5147fe\\"]","kind":"context_item","entityId":"2171500d-1db1-4d81-8c75-44574c5147fe","recordId":"2171500d-1db1-4d81-8c75-44574c5147fe","revision":1,"removed":false,"removalEpoch":1,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["info"],"human":true}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [],
+    +       entityId: 'block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec',
+    +       human: false,
+    +       independent: true,
+    +       inputIds: [
+    +         'block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec'
+    +       ],
+    +       key: '["input","block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec"]',
+    +       kind: 'input',
+    +       lineage: [
+    +         '["input","block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec"]'
+    +       ],
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 2,
+    +       sourceRecordIds: [
+    +         '290bef49-9d52-4e2d-bdfb-b1b64fda81ec'
+    +       ]
+    +     },
+    +     id: 'aiu:delta:pending:["input","block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 8,
+    +     signature: '{"key":"[\\"input\\",\\"block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec\\"]","kind":"input","entityId":"block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec","revision":2,"removed":false,"removalEpoch":0,"sourceRecordIds":["290bef49-9d52-4e2d-bdfb-b1b64fda81ec"],"inputIds":["block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec"],"lineage":["[\\"input\\",\\"block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec\\"]"],"independent":true,"affectedRefs":[],"human":false}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         '0416c887-fada-4c24-9fb9-6e2fa36ae59c'
+    +       ],
+    +       entityId: '0416c887-fada-4c24-9fb9-6e2fa36ae59c',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       journalId: '46432c2b-ff0b-4e99-9d6d-244147295e2d',
+    +       key: '["library_entry","0416c887-fada-4c24-9fb9-6e2fa36ae59c"]',
+    +       kind: 'library_entry',
+    +       layoutGeneration: 0,
+    +       lineage: [],
+    +       recordId: '0416c887-fada-4c24-9fb9-6e2fa36ae59c',
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 0,
+    +       sourceRecordIds: [],
+    +       topicId: null
+    +     },
+    +     id: 'aiu:delta:pending:["library_entry","0416c887-fada-4c24-9fb9-6e2fa36ae59c"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 3,
+    +     signature: '{"key":"[\\"library_entry\\",\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\"]","kind":"library_entry","entityId":"0416c887-fada-4c24-9fb9-6e2fa36ae59c","recordId":"0416c887-fada-4c24-9fb9-6e2fa36ae59c","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["0416c887-fada-4c24-9fb9-6e2fa36ae59c"],"human":true}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         '7f8e5013-f0a0-4fb5-a970-a64022397847'
+    +       ],
+    +       entityId: '7f8e5013-f0a0-4fb5-a970-a64022397847',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       journalId: '4e28fdd8-faa8-4a0e-b890-afcaf37aa0d1',
+    +       key: '["library_entry","7f8e5013-f0a0-4fb5-a970-a64022397847"]',
+    +       kind: 'library_entry',
+    +       layoutGeneration: 0,
+    +       lineage: [],
+    +       recordId: '7f8e5013-f0a0-4fb5-a970-a64022397847',
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 0,
+    +       sourceRecordIds: [],
+    +       topicId: null
+    +     },
+    +     id: 'aiu:delta:pending:["library_entry","7f8e5013-f0a0-4fb5-a970-a64022397847"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 7,
+    +     signature: '{"key":"[\\"library_entry\\",\\"7f8e5013-f0a0-4fb5-a970-a64022397847\\"]","kind":"library_entry","entityId":"7f8e5013-f0a0-4fb5-a970-a64022397847","recordId":"7f8e5013-f0a0-4fb5-a970-a64022397847","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["7f8e5013-f0a0-4fb5-a970-a64022397847"],"human":true}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         '660563b3-597a-454a-b894-42408a3bcfcb',
+    +         'c551fcb2-3805-4f8d-b806-992899febdab'
+    +       ],
+    +       entityId: '["c551fcb2-3805-4f8d-b806-992899febdab",1,"0416c887-fada-4c24-9fb9-6e2fa36ae59c"]',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       journalId: '34b0a3c4-a597-4ff9-a00a-0a1acbc7f226',
+    +       key: '["placement","[\\"c551fcb2-3805-4f8d-b806-992899febdab\\",1,\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\"]"]',
+    +       kind: 'placement',
+    +       layoutGeneration: 1,
+    +       lineage: [],
+    +       recordId: '["c551fcb2-3805-4f8d-b806-992899febdab",1,"0416c887-fada-4c24-9fb9-6e2fa36ae59c"]',
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 0,
+    +       sourceRecordIds: [],
+    +       topicId: 'c551fcb2-3805-4f8d-b806-992899febdab'
+    +     },
+    +     id: 'aiu:delta:pending:["placement","[\\"c551fcb2-3805-4f8d-b806-992899febdab\\",1,\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\"]"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 4,
+    +     signature: '{"key":"[\\"placement\\",\\"[\\\\\\"c551fcb2-3805-4f8d-b806-992899febdab\\\\\\",1,\\\\\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\\\\\"]\\"]","kind":"placement","entityId":"[\\"c551fcb2-3805-4f8d-b806-992899febdab\\",1,\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\"]","recordId":"[\\"c551fcb2-3805-4f8d-b806-992899febdab\\",1,\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\"]","topicId":"c551fcb2-3805-4f8d-b806-992899febdab","layoutGeneration":1,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["660563b3-597a-454a-b894-42408a3bcfcb","c551fcb2-3805-4f8d-b806-992899febdab"],"human":true}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         '660563b3-597a-454a-b894-42408a3bcfcb',
+    +         'c551fcb2-3805-4f8d-b806-992899febdab'
+    +       ],
+    +       entityId: '660563b3-597a-454a-b894-42408a3bcfcb',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       journalId: '1f4c8973-c631-4207-b08e-ac43a552ef98',
+    +       key: '["section","660563b3-597a-454a-b894-42408a3bcfcb"]',
+    +       kind: 'section',
+    +       layoutGeneration: 1,
+    +       lineage: [],
+    +       recordId: '["c551fcb2-3805-4f8d-b806-992899febdab",1,"660563b3-597a-454a-b894-42408a3bcfcb"]',
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 0,
+    +       sourceRecordIds: [],
+    +       topicId: 'c551fcb2-3805-4f8d-b806-992899febdab'
+    +     },
+    +     id: 'aiu:delta:pending:["section","660563b3-597a-454a-b894-42408a3bcfcb"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 2,
+    +     signature: '{"key":"[\\"section\\",\\"660563b3-597a-454a-b894-42408a3bcfcb\\"]","kind":"section","entityId":"660563b3-597a-454a-b894-42408a3bcfcb","recordId":"[\\"c551fcb2-3805-4f8d-b806-992899febdab\\",1,\\"660563b3-597a-454a-b894-42408a3bcfcb\\"]","topicId":"c551fcb2-3805-4f8d-b806-992899febdab","layoutGeneration":1,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["660563b3-597a-454a-b894-42408a3bcfcb","c551fcb2-3805-4f8d-b806-992899febdab"],"human":true}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         'c551fcb2-3805-4f8d-b806-992899febdab'
+    +       ],
+    +       entityId: 'c551fcb2-3805-4f8d-b806-992899febdab',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       journalId: '86a1d1e5-d353-41d8-84ef-ef5e914afc6a',
+    +       key: '["topic","c551fcb2-3805-4f8d-b806-992899febdab"]',
+    +       kind: 'topic',
+    +       layoutGeneration: 0,
+    +       lineage: [],
+    +       recordId: 'c551fcb2-3805-4f8d-b806-992899febdab',
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 0,
+    +       sourceRecordIds: [],
+    +       topicId: null
+    +     },
+    +     id: 'aiu:delta:pending:["topic","c551fcb2-3805-4f8d-b806-992899febdab"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 1,
+    +     signature: '{"key":"[\\"topic\\",\\"c551fcb2-3805-4f8d-b806-992899febdab\\"]","kind":"topic","entityId":"c551fcb2-3805-4f8d-b806-992899febdab","recordId":"c551fcb2-3805-4f8d-b806-992899febdab","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["c551fcb2-3805-4f8d-b806-992899febdab"],"human":true}',
+    +     version: 1
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      id: 'aiu:delta:pending:["context_item","2171500d-1db1-4d81-8c75-44574c5147fe"]'
+      version: 1
+      descriptor:
+        key: '["context_item","2171500d-1db1-4d81-8c75-44574c5147fe"]'
+        kind: 'context_item'
+        entityId: '2171500d-1db1-4d81-8c75-44574c5147fe'
+        recordId: '2171500d-1db1-4d81-8c75-44574c5147fe'
+        revision: 1
+        removed: false
+        removalEpoch: 1
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: 'info'
+        human: true
+      signature: '{"key":"[\\"context_item\\",\\"2171500d-1db1-4d81-8c75-44574c5147fe\\"]","kind":"context_item","entityId":"2171500d-1db1-4d81-8c75-44574c5147fe","recordId":"2171500d-1db1-4d81-8c75-44574c5147fe","revision":1,"removed":false,"removalEpoch":1,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["info"],"human":true}'
+      sequence: 5
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    1:
+      id: 'aiu:delta:pending:["input","block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec"]'
+      version: 1
+      descriptor:
+        key: '["input","block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec"]'
+        kind: 'input'
+        entityId: 'block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec'
+        revision: 2
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+          0: '290bef49-9d52-4e2d-bdfb-b1b64fda81ec'
+        inputIds:
+          0: 'block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec'
+        lineage:
+          0: '["input","block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec"]'
+        independent: true
+        affectedRefs:
+        human: false
+      signature: '{"key":"[\\"input\\",\\"block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec\\"]","kind":"input","entityId":"block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec","revision":2,"removed":false,"removalEpoch":0,"sourceRecordIds":["290bef49-9d52-4e2d-bdfb-b1b64fda81ec"],"inputIds":["block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec"],"lineage":["[\\"input\\",\\"block:290bef49-9d52-4e2d-bdfb-b1b64fda81ec\\"]"],"independent":true,"affectedRefs":[],"human":false}'
+      sequence: 8
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    2:
+      id: 'aiu:delta:pending:["library_entry","0416c887-fada-4c24-9fb9-6e2fa36ae59c"]'
+      version: 1
+      descriptor:
+        key: '["library_entry","0416c887-fada-4c24-9fb9-6e2fa36ae59c"]'
+        kind: 'library_entry'
+        entityId: '0416c887-fada-4c24-9fb9-6e2fa36ae59c'
+        recordId: '0416c887-fada-4c24-9fb9-6e2fa36ae59c'
+        topicId: ~
+        layoutGeneration: 0
+        revision: 0
+        journalId: '46432c2b-ff0b-4e99-9d6d-244147295e2d'
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: '0416c887-fada-4c24-9fb9-6e2fa36ae59c'
+        human: true
+      signature: '{"key":"[\\"library_entry\\",\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\"]","kind":"library_entry","entityId":"0416c887-fada-4c24-9fb9-6e2fa36ae59c","recordId":"0416c887-fada-4c24-9fb9-6e2fa36ae59c","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["0416c887-fada-4c24-9fb9-6e2fa36ae59c"],"human":true}'
+      sequence: 3
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    3:
+      id: 'aiu:delta:pending:["library_entry","7f8e5013-f0a0-4fb5-a970-a64022397847"]'
+      version: 1
+      descriptor:
+        key: '["library_entry","7f8e5013-f0a0-4fb5-a970-a64022397847"]'
+        kind: 'library_entry'
+        entityId: '7f8e5013-f0a0-4fb5-a970-a64022397847'
+        recordId: '7f8e5013-f0a0-4fb5-a970-a64022397847'
+        topicId: ~
+        layoutGeneration: 0
+        revision: 0
+        journalId: '4e28fdd8-faa8-4a0e-b890-afcaf37aa0d1'
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: '7f8e5013-f0a0-4fb5-a970-a64022397847'
+        human: true
+      signature: '{"key":"[\\"library_entry\\",\\"7f8e5013-f0a0-4fb5-a970-a64022397847\\"]","kind":"library_entry","entityId":"7f8e5013-f0a0-4fb5-a970-a64022397847","recordId":"7f8e5013-f0a0-4fb5-a970-a64022397847","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["7f8e5013-f0a0-4fb5-a970-a64022397847"],"human":true}'
+      sequence: 7
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    4:
+      id: 'aiu:delta:pending:["placement","[\\"c551fcb2-3805-4f8d-b806-992899febdab\\",1,\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\"]"]'
+      version: 1
+      descriptor:
+        key: '["placement","[\\"c551fcb2-3805-4f8d-b806-992899febdab\\",1,\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\"]"]'
+        kind: 'placement'
+        entityId: '["c551fcb2-3805-4f8d-b806-992899febdab",1,"0416c887-fada-4c24-9fb9-6e2fa36ae59c"]'
+        recordId: '["c551fcb2-3805-4f8d-b806-992899febdab",1,"0416c887-fada-4c24-9fb9-6e2fa36ae59c"]'
+        topicId: 'c551fcb2-3805-4f8d-b806-992899febdab'
+        layoutGeneration: 1
+        revision: 0
+        journalId: '34b0a3c4-a597-4ff9-a00a-0a1acbc7f226'
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: '660563b3-597a-454a-b894-42408a3bcfcb'
+          1: 'c551fcb2-3805-4f8d-b806-992899febdab'
+        human: true
+      signature: '{"key":"[\\"placement\\",\\"[\\\\\\"c551fcb2-3805-4f8d-b806-992899febdab\\\\\\",1,\\\\\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\\\\\"]\\"]","kind":"placement","entityId":"[\\"c551fcb2-3805-4f8d-b806-992899febdab\\",1,\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\"]","recordId":"[\\"c551fcb2-3805-4f8d-b806-992899febdab\\",1,\\"0416c887-fada-4c24-9fb9-6e2fa36ae59c\\"]","topicId":"c551fcb2-3805-4f8d-b806-992899febdab","layoutGeneration":1,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["660563b3-597a-454a-b894-42408a3bcfcb","c551fcb2-3805-4f8d-b806-992899febdab"],"human":true}'
+      sequence: 4
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    5:
+      id: 'aiu:delta:pending:["section","660563b3-597a-454a-b894-42408a3bcfcb"]'
+      version: 1
+      descriptor:
+        key: '["section","660563b3-597a-454a-b894-42408a3bcfcb"]'
+        kind: 'section'
+        entityId: '660563b3-597a-454a-b894-42408a3bcfcb'
+        recordId: '["c551fcb2-3805-4f8d-b806-992899febdab",1,"660563b3-597a-454a-b894-42408a3bcfcb"]'
+        topicId: 'c551fcb2-3805-4f8d-b806-992899febdab'
+        layoutGeneration: 1
+        revision: 0
+        journalId: '1f4c8973-c631-4207-b08e-ac43a552ef98'
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: '660563b3-597a-454a-b894-42408a3bcfcb'
+          1: 'c551fcb2-3805-4f8d-b806-992899febdab'
+        human: true
+      signature: '{"key":"[\\"section\\",\\"660563b3-597a-454a-b894-42408a3bcfcb\\"]","kind":"section","entityId":"660563b3-597a-454a-b894-42408a3bcfcb","recordId":"[\\"c551fcb2-3805-4f8d-b806-992899febdab\\",1,\\"660563b3-597a-454a-b894-42408a3bcfcb\\"]","topicId":"c551fcb2-3805-4f8d-b806-992899febdab","layoutGeneration":1,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["660563b3-597a-454a-b894-42408a3bcfcb","c551fcb2-3805-4f8d-b806-992899febdab"],"human":true}'
+      sequence: 2
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    6:
+      id: 'aiu:delta:pending:["topic","c551fcb2-3805-4f8d-b806-992899febdab"]'
+      version: 1
+      descriptor:
+        key: '["topic","c551fcb2-3805-4f8d-b806-992899febdab"]'
+        kind: 'topic'
+        entityId: 'c551fcb2-3805-4f8d-b806-992899febdab'
+        recordId: 'c551fcb2-3805-4f8d-b806-992899febdab'
+        topicId: ~
+        layoutGeneration: 0
+        revision: 0
+        journalId: '86a1d1e5-d353-41d8-84ef-ef5e914afc6a'
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: 'c551fcb2-3805-4f8d-b806-992899febdab'
+        human: true
+      signature: '{"key":"[\\"topic\\",\\"c551fcb2-3805-4f8d-b806-992899febdab\\"]","kind":"topic","entityId":"c551fcb2-3805-4f8d-b806-992899febdab","recordId":"c551fcb2-3805-4f8d-b806-992899febdab","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["c551fcb2-3805-4f8d-b806-992899febdab"],"human":true}'
+      sequence: 1
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-native-chronology.test.mjs:60:113)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: actual initial A merged transactions preserve original semantic replay and cold C consumer
+not ok 3 - actual initial A merged transactions preserve original semantic replay and cold C consumer
+  ---
+  duration_ms: 651.36625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-native-chronology.test.mjs:57:35'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         'info'
+    +       ],
+    +       entityId: 'c694e9b1-8919-4c8f-ae74-f28df17190e3',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       key: '["context_item","c694e9b1-8919-4c8f-ae74-f28df17190e3"]',
+    +       kind: 'context_item',
+    +       lineage: [],
+    +       recordId: 'c694e9b1-8919-4c8f-ae74-f28df17190e3',
+    +       removalEpoch: 1,
+    +       removed: false,
+    +       revision: 1,
+    +       sourceRecordIds: []
+    +     },
+    +     id: 'aiu:delta:pending:["context_item","c694e9b1-8919-4c8f-ae74-f28df17190e3"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 7,
+    +     signature: '{"key":"[\\"context_item\\",\\"c694e9b1-8919-4c8f-ae74-f28df17190e3\\"]","kind":"context_item","entityId":"c694e9b1-8919-4c8f-ae74-f28df17190e3","recordId":"c694e9b1-8919-4c8f-ae74-f28df17190e3","revision":1,"removed":false,"removalEpoch":1,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["info"],"human":true}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [],
+    +       entityId: 'block:1d7e56a4-d549-4d2a-9195-a1d4712b2144',
+    +       human: false,
+    +       independent: true,
+    +       inputIds: [
+    +         'block:1d7e56a4-d549-4d2a-9195-a1d4712b2144'
+    +       ],
+    +       key: '["input","block:1d7e56a4-d549-4d2a-9195-a1d4712b2144"]',
+    +       kind: 'input',
+    +       lineage: [
+    +         '["input","block:1d7e56a4-d549-4d2a-9195-a1d4712b2144"]'
+    +       ],
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 1,
+    +       sourceRecordIds: [
+    +         '1d7e56a4-d549-4d2a-9195-a1d4712b2144'
+    +       ]
+    +     },
+    +     id: 'aiu:delta:pending:["input","block:1d7e56a4-d549-4d2a-9195-a1d4712b2144"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 2,
+    +     signature: '{"key":"[\\"input\\",\\"block:1d7e56a4-d549-4d2a-9195-a1d4712b2144\\"]","kind":"input","entityId":"block:1d7e56a4-d549-4d2a-9195-a1d4712b2144","revision":1,"removed":false,"removalEpoch":0,"sourceRecordIds":["1d7e56a4-d549-4d2a-9195-a1d4712b2144"],"inputIds":["block:1d7e56a4-d549-4d2a-9195-a1d4712b2144"],"lineage":["[\\"input\\",\\"block:1d7e56a4-d549-4d2a-9195-a1d4712b2144\\"]"],"independent":true,"affectedRefs":[],"human":false}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         'e246027f-cb43-4c14-82e5-30966d506b06'
+    +       ],
+    +       entityId: 'e246027f-cb43-4c14-82e5-30966d506b06',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       journalId: '7d4e6422-093d-4514-a618-e53998b07598',
+    +       key: '["library_entry","e246027f-cb43-4c14-82e5-30966d506b06"]',
+    +       kind: 'library_entry',
+    +       layoutGeneration: 0,
+    +       lineage: [],
+    +       recordId: 'e246027f-cb43-4c14-82e5-30966d506b06',
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 0,
+    +       sourceRecordIds: [],
+    +       topicId: null
+    +     },
+    +     id: 'aiu:delta:pending:["library_entry","e246027f-cb43-4c14-82e5-30966d506b06"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 5,
+    +     signature: '{"key":"[\\"library_entry\\",\\"e246027f-cb43-4c14-82e5-30966d506b06\\"]","kind":"library_entry","entityId":"e246027f-cb43-4c14-82e5-30966d506b06","recordId":"e246027f-cb43-4c14-82e5-30966d506b06","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["e246027f-cb43-4c14-82e5-30966d506b06"],"human":true}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         'ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8'
+    +       ],
+    +       entityId: 'ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       journalId: 'ed599c04-d45f-46e3-b1ee-e5baa4c3151c',
+    +       key: '["library_entry","ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8"]',
+    +       kind: 'library_entry',
+    +       layoutGeneration: 0,
+    +       lineage: [],
+    +       recordId: 'ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8',
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 0,
+    +       sourceRecordIds: [],
+    +       topicId: null
+    +     },
+    +     id: 'aiu:delta:pending:["library_entry","ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 8,
+    +     signature: '{"key":"[\\"library_entry\\",\\"ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8\\"]","kind":"library_entry","entityId":"ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8","recordId":"ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8"],"human":true}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         '2fee6d85-7279-4a50-813d-fd20d69b642c',
+    +         'f4a747de-ff84-4012-8b7d-639f81976e4b'
+    +       ],
+    +       entityId: '["f4a747de-ff84-4012-8b7d-639f81976e4b",1,"e246027f-cb43-4c14-82e5-30966d506b06"]',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       journalId: '7797d8b3-caee-46d7-9884-52a9355726c7',
+    +       key: '["placement","[\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\",1,\\"e246027f-cb43-4c14-82e5-30966d506b06\\"]"]',
+    +       kind: 'placement',
+    +       layoutGeneration: 1,
+    +       lineage: [],
+    +       recordId: '["f4a747de-ff84-4012-8b7d-639f81976e4b",1,"e246027f-cb43-4c14-82e5-30966d506b06"]',
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 0,
+    +       sourceRecordIds: [],
+    +       topicId: 'f4a747de-ff84-4012-8b7d-639f81976e4b'
+    +     },
+    +     id: 'aiu:delta:pending:["placement","[\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\",1,\\"e246027f-cb43-4c14-82e5-30966d506b06\\"]"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 6,
+    +     signature: '{"key":"[\\"placement\\",\\"[\\\\\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\\\\\",1,\\\\\\"e246027f-cb43-4c14-82e5-30966d506b06\\\\\\"]\\"]","kind":"placement","entityId":"[\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\",1,\\"e246027f-cb43-4c14-82e5-30966d506b06\\"]","recordId":"[\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\",1,\\"e246027f-cb43-4c14-82e5-30966d506b06\\"]","topicId":"f4a747de-ff84-4012-8b7d-639f81976e4b","layoutGeneration":1,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["2fee6d85-7279-4a50-813d-fd20d69b642c","f4a747de-ff84-4012-8b7d-639f81976e4b"],"human":true}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         '2fee6d85-7279-4a50-813d-fd20d69b642c',
+    +         'f4a747de-ff84-4012-8b7d-639f81976e4b'
+    +       ],
+    +       entityId: '2fee6d85-7279-4a50-813d-fd20d69b642c',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       journalId: '911ce655-75cb-4cf6-bef7-6dc951eb04eb',
+    +       key: '["section","2fee6d85-7279-4a50-813d-fd20d69b642c"]',
+    +       kind: 'section',
+    +       layoutGeneration: 1,
+    +       lineage: [],
+    +       recordId: '["f4a747de-ff84-4012-8b7d-639f81976e4b",1,"2fee6d85-7279-4a50-813d-fd20d69b642c"]',
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 0,
+    +       sourceRecordIds: [],
+    +       topicId: 'f4a747de-ff84-4012-8b7d-639f81976e4b'
+    +     },
+    +     id: 'aiu:delta:pending:["section","2fee6d85-7279-4a50-813d-fd20d69b642c"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 4,
+    +     signature: '{"key":"[\\"section\\",\\"2fee6d85-7279-4a50-813d-fd20d69b642c\\"]","kind":"section","entityId":"2fee6d85-7279-4a50-813d-fd20d69b642c","recordId":"[\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\",1,\\"2fee6d85-7279-4a50-813d-fd20d69b642c\\"]","topicId":"f4a747de-ff84-4012-8b7d-639f81976e4b","layoutGeneration":1,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["2fee6d85-7279-4a50-813d-fd20d69b642c","f4a747de-ff84-4012-8b7d-639f81976e4b"],"human":true}',
+    +     version: 1
+    +   },
+    +   {
+    +     descriptor: {
+    +       affectedRefs: [
+    +         'f4a747de-ff84-4012-8b7d-639f81976e4b'
+    +       ],
+    +       entityId: 'f4a747de-ff84-4012-8b7d-639f81976e4b',
+    +       human: true,
+    +       independent: false,
+    +       inputIds: [],
+    +       journalId: '54da22d4-3c3a-4ef2-a19b-b2aa461f3b94',
+    +       key: '["topic","f4a747de-ff84-4012-8b7d-639f81976e4b"]',
+    +       kind: 'topic',
+    +       layoutGeneration: 0,
+    +       lineage: [],
+    +       recordId: 'f4a747de-ff84-4012-8b7d-639f81976e4b',
+    +       removalEpoch: 0,
+    +       removed: false,
+    +       revision: 0,
+    +       sourceRecordIds: [],
+    +       topicId: null
+    +     },
+    +     id: 'aiu:delta:pending:["topic","f4a747de-ff84-4012-8b7d-639f81976e4b"]',
+    +     pendingFacets: [
+    +       'topic',
+    +       'context'
+    +     ],
+    +     requirements: [],
+    +     sequence: 3,
+    +     signature: '{"key":"[\\"topic\\",\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\"]","kind":"topic","entityId":"f4a747de-ff84-4012-8b7d-639f81976e4b","recordId":"f4a747de-ff84-4012-8b7d-639f81976e4b","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["f4a747de-ff84-4012-8b7d-639f81976e4b"],"human":true}',
+    +     version: 1
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      id: 'aiu:delta:pending:["context_item","c694e9b1-8919-4c8f-ae74-f28df17190e3"]'
+      version: 1
+      descriptor:
+        key: '["context_item","c694e9b1-8919-4c8f-ae74-f28df17190e3"]'
+        kind: 'context_item'
+        entityId: 'c694e9b1-8919-4c8f-ae74-f28df17190e3'
+        recordId: 'c694e9b1-8919-4c8f-ae74-f28df17190e3'
+        revision: 1
+        removed: false
+        removalEpoch: 1
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: 'info'
+        human: true
+      signature: '{"key":"[\\"context_item\\",\\"c694e9b1-8919-4c8f-ae74-f28df17190e3\\"]","kind":"context_item","entityId":"c694e9b1-8919-4c8f-ae74-f28df17190e3","recordId":"c694e9b1-8919-4c8f-ae74-f28df17190e3","revision":1,"removed":false,"removalEpoch":1,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["info"],"human":true}'
+      sequence: 7
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    1:
+      id: 'aiu:delta:pending:["input","block:1d7e56a4-d549-4d2a-9195-a1d4712b2144"]'
+      version: 1
+      descriptor:
+        key: '["input","block:1d7e56a4-d549-4d2a-9195-a1d4712b2144"]'
+        kind: 'input'
+        entityId: 'block:1d7e56a4-d549-4d2a-9195-a1d4712b2144'
+        revision: 1
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+          0: '1d7e56a4-d549-4d2a-9195-a1d4712b2144'
+        inputIds:
+          0: 'block:1d7e56a4-d549-4d2a-9195-a1d4712b2144'
+        lineage:
+          0: '["input","block:1d7e56a4-d549-4d2a-9195-a1d4712b2144"]'
+        independent: true
+        affectedRefs:
+        human: false
+      signature: '{"key":"[\\"input\\",\\"block:1d7e56a4-d549-4d2a-9195-a1d4712b2144\\"]","kind":"input","entityId":"block:1d7e56a4-d549-4d2a-9195-a1d4712b2144","revision":1,"removed":false,"removalEpoch":0,"sourceRecordIds":["1d7e56a4-d549-4d2a-9195-a1d4712b2144"],"inputIds":["block:1d7e56a4-d549-4d2a-9195-a1d4712b2144"],"lineage":["[\\"input\\",\\"block:1d7e56a4-d549-4d2a-9195-a1d4712b2144\\"]"],"independent":true,"affectedRefs":[],"human":false}'
+      sequence: 2
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    2:
+      id: 'aiu:delta:pending:["library_entry","e246027f-cb43-4c14-82e5-30966d506b06"]'
+      version: 1
+      descriptor:
+        key: '["library_entry","e246027f-cb43-4c14-82e5-30966d506b06"]'
+        kind: 'library_entry'
+        entityId: 'e246027f-cb43-4c14-82e5-30966d506b06'
+        recordId: 'e246027f-cb43-4c14-82e5-30966d506b06'
+        topicId: ~
+        layoutGeneration: 0
+        revision: 0
+        journalId: '7d4e6422-093d-4514-a618-e53998b07598'
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: 'e246027f-cb43-4c14-82e5-30966d506b06'
+        human: true
+      signature: '{"key":"[\\"library_entry\\",\\"e246027f-cb43-4c14-82e5-30966d506b06\\"]","kind":"library_entry","entityId":"e246027f-cb43-4c14-82e5-30966d506b06","recordId":"e246027f-cb43-4c14-82e5-30966d506b06","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["e246027f-cb43-4c14-82e5-30966d506b06"],"human":true}'
+      sequence: 5
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    3:
+      id: 'aiu:delta:pending:["library_entry","ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8"]'
+      version: 1
+      descriptor:
+        key: '["library_entry","ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8"]'
+        kind: 'library_entry'
+        entityId: 'ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8'
+        recordId: 'ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8'
+        topicId: ~
+        layoutGeneration: 0
+        revision: 0
+        journalId: 'ed599c04-d45f-46e3-b1ee-e5baa4c3151c'
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: 'ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8'
+        human: true
+      signature: '{"key":"[\\"library_entry\\",\\"ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8\\"]","kind":"library_entry","entityId":"ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8","recordId":"ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["ed26c7f6-58c5-4bbf-bfc3-b2744c2d13c8"],"human":true}'
+      sequence: 8
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    4:
+      id: 'aiu:delta:pending:["placement","[\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\",1,\\"e246027f-cb43-4c14-82e5-30966d506b06\\"]"]'
+      version: 1
+      descriptor:
+        key: '["placement","[\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\",1,\\"e246027f-cb43-4c14-82e5-30966d506b06\\"]"]'
+        kind: 'placement'
+        entityId: '["f4a747de-ff84-4012-8b7d-639f81976e4b",1,"e246027f-cb43-4c14-82e5-30966d506b06"]'
+        recordId: '["f4a747de-ff84-4012-8b7d-639f81976e4b",1,"e246027f-cb43-4c14-82e5-30966d506b06"]'
+        topicId: 'f4a747de-ff84-4012-8b7d-639f81976e4b'
+        layoutGeneration: 1
+        revision: 0
+        journalId: '7797d8b3-caee-46d7-9884-52a9355726c7'
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: '2fee6d85-7279-4a50-813d-fd20d69b642c'
+          1: 'f4a747de-ff84-4012-8b7d-639f81976e4b'
+        human: true
+      signature: '{"key":"[\\"placement\\",\\"[\\\\\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\\\\\",1,\\\\\\"e246027f-cb43-4c14-82e5-30966d506b06\\\\\\"]\\"]","kind":"placement","entityId":"[\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\",1,\\"e246027f-cb43-4c14-82e5-30966d506b06\\"]","recordId":"[\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\",1,\\"e246027f-cb43-4c14-82e5-30966d506b06\\"]","topicId":"f4a747de-ff84-4012-8b7d-639f81976e4b","layoutGeneration":1,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["2fee6d85-7279-4a50-813d-fd20d69b642c","f4a747de-ff84-4012-8b7d-639f81976e4b"],"human":true}'
+      sequence: 6
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    5:
+      id: 'aiu:delta:pending:["section","2fee6d85-7279-4a50-813d-fd20d69b642c"]'
+      version: 1
+      descriptor:
+        key: '["section","2fee6d85-7279-4a50-813d-fd20d69b642c"]'
+        kind: 'section'
+        entityId: '2fee6d85-7279-4a50-813d-fd20d69b642c'
+        recordId: '["f4a747de-ff84-4012-8b7d-639f81976e4b",1,"2fee6d85-7279-4a50-813d-fd20d69b642c"]'
+        topicId: 'f4a747de-ff84-4012-8b7d-639f81976e4b'
+        layoutGeneration: 1
+        revision: 0
+        journalId: '911ce655-75cb-4cf6-bef7-6dc951eb04eb'
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: '2fee6d85-7279-4a50-813d-fd20d69b642c'
+          1: 'f4a747de-ff84-4012-8b7d-639f81976e4b'
+        human: true
+      signature: '{"key":"[\\"section\\",\\"2fee6d85-7279-4a50-813d-fd20d69b642c\\"]","kind":"section","entityId":"2fee6d85-7279-4a50-813d-fd20d69b642c","recordId":"[\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\",1,\\"2fee6d85-7279-4a50-813d-fd20d69b642c\\"]","topicId":"f4a747de-ff84-4012-8b7d-639f81976e4b","layoutGeneration":1,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["2fee6d85-7279-4a50-813d-fd20d69b642c","f4a747de-ff84-4012-8b7d-639f81976e4b"],"human":true}'
+      sequence: 4
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+    6:
+      id: 'aiu:delta:pending:["topic","f4a747de-ff84-4012-8b7d-639f81976e4b"]'
+      version: 1
+      descriptor:
+        key: '["topic","f4a747de-ff84-4012-8b7d-639f81976e4b"]'
+        kind: 'topic'
+        entityId: 'f4a747de-ff84-4012-8b7d-639f81976e4b'
+        recordId: 'f4a747de-ff84-4012-8b7d-639f81976e4b'
+        topicId: ~
+        layoutGeneration: 0
+        revision: 0
+        journalId: '54da22d4-3c3a-4ef2-a19b-b2aa461f3b94'
+        removed: false
+        removalEpoch: 0
+        sourceRecordIds:
+        inputIds:
+        lineage:
+        independent: false
+        affectedRefs:
+          0: 'f4a747de-ff84-4012-8b7d-639f81976e4b'
+        human: true
+      signature: '{"key":"[\\"topic\\",\\"f4a747de-ff84-4012-8b7d-639f81976e4b\\"]","kind":"topic","entityId":"f4a747de-ff84-4012-8b7d-639f81976e4b","recordId":"f4a747de-ff84-4012-8b7d-639f81976e4b","topicId":null,"layoutGeneration":0,"revision":0,"removed":false,"removalEpoch":0,"sourceRecordIds":[],"inputIds":[],"lineage":[],"independent":false,"affectedRefs":["f4a747de-ff84-4012-8b7d-639f81976e4b"],"human":true}'
+      sequence: 3
+      requirements:
+      pendingFacets:
+        0: 'topic'
+        1: 'context'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-native-chronology.test.mjs:60:113)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: borrowed causal subsets match the original compiler while rejecting missing dependencies and counterfeit plans
+ok 4 - borrowed causal subsets match the original compiler while rejecting missing dependencies and counterfeit plans
+  ---
+  duration_ms: 677.104167
+  type: 'test'
+  ...
+# Subtest: subset membership is detached before real digest suspension and cannot be changed by caller
+ok 5 - subset membership is detached before real digest suspension and cannot be changed by caller
+  ---
+  duration_ms: 687.421042
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects before chronology and preserves all37 stores
+ok 6 - merged allocation rejects before chronology and preserves all37 stores
+  ---
+  duration_ms: 663.674792
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects incoming chronology and preserves all37 stores
+ok 7 - merged allocation rejects incoming chronology and preserves all37 stores
+  ---
+  duration_ms: 685.124625
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects partial-receipt chronology and preserves all37 stores
+ok 8 - merged allocation rejects partial-receipt chronology and preserves all37 stores
+  ---
+  duration_ms: 669.524209
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects manifest chronology and preserves all37 stores
+ok 9 - merged allocation rejects manifest chronology and preserves all37 stores
+  ---
+  duration_ms: 657.878334
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects extra-stage chronology and preserves all37 stores
+ok 10 - merged allocation rejects extra-stage chronology and preserves all37 stores
+  ---
+  duration_ms: 676.376959
+  type: 'test'
+  ...
+# Subtest: forged native chronology nonce refuses before any second store reader or native grant
+ok 11 - forged native chronology nonce refuses before any second store reader or native grant
+  ---
+  duration_ms: 681.674334
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 9
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7715.756666

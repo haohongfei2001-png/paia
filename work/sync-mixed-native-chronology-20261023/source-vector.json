@@ -1,0 +1,11 @@
+{
+  "extension/core/browser-native-sync/group-checkpoint-plan.js": "aa6925b54f58ed94747644644d6366214470235270b87774de1f49c4febeaeb7",
+  "extension/core/browser-native-sync/mixed-merge-chronology.js": "fbfa4d9773c2da96fc96dd07b20a936582a04d867dc01f7ab9d583b6984e920d",
+  "extension/core/browser-native-sync/mixed-restored-allocation.js": "0102414c4e2132dd9cdaca4e658538d77250abe1e08711cd144a1d86a43c7ac4",
+  "extension/core/browser-native-sync/source-working-default-meta.js": "0cd3ef7dc09a9e8057a6228912b0733ac6b12e989fb9b773dcabc86bf94cf9a9",
+  "extension/core/browser-native-sync/human-library-plan.js": "ba995a85ac147635d2cc543bcd8ec906e16a53868a23c2df1404d53f70282715",
+  "extension/tests/mixed-native-chronology.test.mjs": "740733b58c92154d589b2627482ae689952a68cac3636ac1a6c836b52ab51137",
+  "extension/tests/native-sync/mixed-native-chronology-cases.mjs": "61bf8ff8000534b675ef1536ccd706350ac1ec4d9b934391c579c15518e0afd6",
+  "extension/tests/native-sync/mixed-native-chronology-chrome.test.mjs": "35d50904fbacce7057fec11a4a32a0ca5537fd602971946e385f8f3a937e892e",
+  "extension/tests/native-sync/generation-purge-fixture.mjs": "dbbb9201c404accd57f86ca2a0e1ec46875593774a064f3cc519629fc9142a78"
+}

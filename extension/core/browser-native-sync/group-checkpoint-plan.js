@@ -199,6 +199,23 @@ async function prepareOriginalCurrentForeignPrefix(core,complete){
  for(const revisions of heads.values())if(revisions.length!==1)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
  const prefix=await finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads);requirePlan(core,complete);return prefix;
 }
+// A pure causal subplan of one already validated complete Mixed Plan. Exact
+// group membership is snapshotted before hashing; original immutable operation,
+// family and Source capabilities stay borrowed from that same complete Plan.
+// This produces no native cut, Scope, writer or permission capability.
+export async function prepareOriginalCurrentMixedSubset(core,complete,ids){
+ if(arguments.length!==3)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,complete);
+ if(originalPlans.get(complete).borrowedFrom||!Array.isArray(ids)||!ids.length||ids.length>128)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const selected=new Set();for(let i=0;i<ids.length;i++){const d=Object.getOwnPropertyDescriptor(ids,String(i));if(!d||!Object.hasOwn(d,'value')||typeof d.value!=='string'||selected.has(d.value)||!complete.groups.some(g=>g.id===d.value))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');selected.add(d.value);}
+ const binding={...originalPlans.get(complete),borrowedFrom:complete},groups=[],operations=[],byRevision=new Map(),claimed=new Map();let size=0;
+ for(const original of complete.groups){if(!selected.has(original.id))continue;const group={id:original.id,type:original.type,operations:original.operations,prepared:original.prepared,capability:original.capability,dependencies:new Set()};groups.push(group);
+  for(const op of group.operations){const n=originalOperationSizes.get(op);if(!Number.isSafeInteger(n)||n<1||byRevision.has(op.revisionId))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');size+=n;operations.push(op);byRevision.set(op.revisionId,op);claimed.set(op.revisionId,group);}
+ }
+ if(operations.length>CORE_LIMITS.batch||size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');const parents=new Set(operations.flatMap(op=>op.parents)),heads=new Map();
+ for(const op of operations){const key=JSON.stringify([op.type,op.entityId]);if(!heads.has(key))heads.set(key,[]);if(!parents.has(op.revisionId))heads.get(key).push(op.revisionId);}for(const rows of heads.values())if(rows.length!==1)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
+ const result=await finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads);requireOriginalCurrentMixedGroupPlan(core,complete);return result;
+}
+
 export function measureOriginalMixedPrefixWrappers(core,complete,prefix){
  requireOriginalCurrentMixedGroupPlan(core,complete);requireOriginalCurrentMixedGroupPlan(core,prefix);if(originalPlans.get(prefix).borrowedFrom!==complete)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  const total=measureSourceWorkingPhysicalTree(prefix.heads);for(const group of prefix.groups){const m=measureSourceWorkingPhysicalTree({id:group.id,type:group.type,dependencies:group.dependencies});for(const key of ['B','T','V','E'])total[key]+=m[key];}

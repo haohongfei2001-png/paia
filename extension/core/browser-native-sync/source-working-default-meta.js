@@ -92,12 +92,19 @@ export function assertInitialMixedDefaultMeta(core,store,scope,plan,raw,control,
 export function assertRestoredMixedDefaultMeta(core,store,scope,plan,raw,control,databaseId,nonce){
  if(arguments.length!==8)refuse();return assertCurrentMixedDefaultMeta(core,store,scope,plan,raw,control,databaseId,nonce,true);
 }
-function assertCurrentMixedDefaultMeta(core,store,scope,plan,raw,control,databaseId,nonce,restored){
+export function assertMergedMixedDefaultMeta(core,store,scope,plan,raw,control,databaseId,nonce){
+ if(arguments.length!==8)refuse();return assertCurrentMixedDefaultMeta(core,store,scope,plan,raw,control,databaseId,nonce,raw.rows.meta.some(row=>row.id===core.prefix+'active'),true);
+}
+function assertCurrentMixedDefaultMeta(core,store,scope,plan,raw,control,databaseId,nonce,restored,merged=false){
  requireOriginalMixedNativeBodiesConsumed(nonce,store,core,scope,plan,raw,control);
- const replay=restored?originalMixedRestoredMetadataReplay(core,scope,plan):null;
+ const replay=restored||merged?originalMixedRestoredMetadataReplay(core,scope,plan):null;
+ if(merged&&(!replay.merged||replay.namespace!==raw.namespace))refuse();
  if(restored&&raw.namespace!==replay.active.namespace)refuse();
- const rows=raw.rows,{meta,key,used,take}=checkCurrentGroupProtocolRows(core,plan,rows,{namespace:raw.namespace,epoch:null,restored,activeId:replay?.active.id,completedId:replay?.completedId}),read=id=>{const row=meta.get(id);if(!row)refuse();return row;};
- const configuration=mixedConfigurationReplay(core,scope,plan,restored);
+ const rows=raw.rows,{meta,key,used,take}=checkCurrentGroupProtocolRows(core,plan,rows,{namespace:raw.namespace,epoch:null,restored,activeId:replay?.active?.id,completedId:replay?.completedId,merged}),read=id=>{const row=meta.get(id);if(!row)refuse();return row;};
+ const configuration=mixedConfigurationReplay(core,scope,plan,restored||merged);
+ // Only the exact controls authenticated by the original allocation/body
+ // proof are consumed. Unknown siblings remain in the complete metadata gate.
+ if(merged)for(const row of [replay.timeline,...replay.extra]){const {id,...value}=row;take(id,value);}
  qualifyDefaultInfrastructure(rows,control,databaseId,take,read,{records:scope.expected.records.length,blocks:scope.expected.blocks.length,documents:scope.expected.documents.length},{preferences:consumerDisplayPreferences(scope.expected.consumerPreferences??[]),mode:configuration.mode,policyEpoch:configuration.policyEpoch});
  const operations=plan.groups.flatMap(group=>group.operations);
  for(const head of plan.heads){
@@ -116,12 +123,12 @@ function assertCurrentMixedDefaultMeta(core,store,scope,plan,raw,control,databas
  // original Human body consumer. Derived IDs come only from the private query
  // owner after complete exact matching, never arbitrary prefix exemption.
  for(const id of originalMixedNativeDerivedMetaIds(nonce,store,core,scope,plan,raw))used.add(id);
- const ordered=restored?replay.transactions.flat():[...plan.groups].sort((a,b)=>Math.min(...a.operations.map(op=>op.sequence))-Math.min(...b.operations.map(op=>op.sequence))),working=ordered.filter(group=>group.type==='inputWorkingCommit');
+ const ordered=replay?replay.transactions.flat():[...plan.groups].sort((a,b)=>Math.min(...a.operations.map(op=>op.sequence))-Math.min(...b.operations.map(op=>op.sequence))),working=ordered.filter(group=>group.type==='inputWorkingCommit');
  for(const id of ['thought-sequence','input-delta-sequence','revision-sequence'])take(id,{value:read(id).value});
  take('thought-epoch',{value:working.length});
- const semantic=restored?planRestoredMixedSemanticMetadata(core,scope,plan):planInitialMixedSemanticMetadata(core,scope,plan);
+ const semantic=replay?planRestoredMixedSemanticMetadata(core,scope,plan):planInitialMixedSemanticMetadata(core,scope,plan);
  for(const row of [...semantic.known,...semantic.dirty,semantic.sequence,...(semantic.humanFence?[semantic.humanFence]:[])]){const {id,...expected}=row;take(id,expected);}
- const backupGroups=(restored?ordered.filter(group=>group.operations.every(op=>op.deviceId===core.deviceId)):ordered).filter(group=>['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit','humanLibraryCommit'].includes(group.type)||['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type)&&group.operations[0].actor==='user').length;
+ const backupGroups=(replay?ordered.filter(group=>group.operations.every(op=>op.deviceId===core.deviceId)):ordered).filter(group=>['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit','humanLibraryCommit'].includes(group.type)||['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type)&&group.operations[0].actor==='user').length;
  const generation=read('backup-data-generation');if(!count(generation.value)||generation.value<backupGroups+(restored?1:0))refuse();take(generation.id,{value:generation.value});
  qualifyMixedWorkingDerivatives(scope,plan,working,rows);
  for(const row of rows.meta)if(!used.has(row.id))refuse();return true;

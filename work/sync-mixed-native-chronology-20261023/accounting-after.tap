@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: real merged chronology retains a complete finite allocation expectation for native ownership accounting
+ok 1 - real merged chronology retains a complete finite allocation expectation for native ownership accounting
+  ---
+  duration_ms: 836.894833
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1017.025084

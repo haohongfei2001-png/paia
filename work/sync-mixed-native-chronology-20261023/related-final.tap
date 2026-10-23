@@ -1,0 +1,464 @@
+TAP version 13
+# Subtest: Source private plans borrow only actual immutable children and keep mutable inputs and readouts detached
+ok 1 - Source private plans borrow only actual immutable children and keep mutable inputs and readouts detached
+  ---
+  duration_ms: 249.753459
+  type: 'test'
+  ...
+# Subtest: Mixed Scope borrows only original immutable domain identities and clones allocator-normalized rows
+ok 2 - Mixed Scope borrows only original immutable domain identities and clones allocator-normalized rows
+  ---
+  duration_ms: 195.325792
+  type: 'test'
+  ...
+# Subtest: original mode chronology counts real changes only and original desired receipts match the original local choices
+ok 3 - original mode chronology counts real changes only and original desired receipts match the original local choices
+  ---
+  duration_ms: 133.920833
+  type: 'test'
+  ...
+# Subtest: original mixed configuration refuses a coherently inflated physical/proof revision and mode counter with all source rows unchanged
+ok 4 - original mixed configuration refuses a coherently inflated physical/proof revision and mode counter with all source rows unchanged
+  ---
+  duration_ms: 153.798583
+  type: 'test'
+  ...
+# Subtest: original mixed configuration refuses missing/stale owners and unknown additional portable owner keys
+ok 5 - original mixed configuration refuses missing/stale owners and unknown additional portable owner keys
+  ---
+  duration_ms: 175.008584
+  type: 'test'
+  ...
+# Subtest: original nonportable Topic aggregate and receipts cannot hide changed desired bits or imported local grant echoes
+ok 6 - original nonportable Topic aggregate and receipts cannot hide changed desired bits or imported local grant echoes
+  ---
+  duration_ms: 203.589334
+  type: 'test'
+  ...
+# Subtest: ordinary one-Input mixed baseline validates complete original derived owners without inventing an append
+ok 7 - ordinary one-Input mixed baseline validates complete original derived owners without inventing an append
+  ---
+  duration_ms: 204.515291
+  type: 'test'
+  ...
+# Subtest: original initial Mixed flush chronology exactly consumes all AIU metadata without replacing journal descriptors by live Thoughts
+ok 8 - original initial Mixed flush chronology exactly consumes all AIU metadata without replacing journal descriptors by live Thoughts
+  ---
+  duration_ms: 195.529916
+  type: 'test'
+  ...
+# Subtest: fixed mixed compiler retains genuine append, untouched second Input, Human, Context and Prompt in one original Scope
+ok 9 - fixed mixed compiler retains genuine append, untouched second Input, Human, Context and Prompt in one original Scope
+  ---
+  duration_ms: 165.82275
+  type: 'test'
+  ...
+# Subtest: fixed mixed compiler never invokes supplied Source/Working family or new public dispatcher getters
+ok 10 - fixed mixed compiler never invokes supplied Source/Working family or new public dispatcher getters
+  ---
+  duration_ms: 123.507292
+  type: 'test'
+  ...
+# Subtest: native no-alias profile rejects sealed Topic history aliases before keyed Scope construction
+ok 11 - native no-alias profile rejects sealed Topic history aliases before keyed Scope construction
+  ---
+  duration_ms: 156.5875
+  type: 'test'
+  ...
+# Subtest: fixed mixed compiler refuses omitted append member and complete bootstrap ancestor without partial acceptance
+ok 12 - fixed mixed compiler refuses omitted append member and complete bootstrap ancestor without partial acceptance
+  ---
+  duration_ms: 159.939958
+  type: 'test'
+  ...
+# Subtest: fixed mixed compiler and all four original group validators refuse async Core rebinding without getter reads
+ok 13 - fixed mixed compiler and all four original group validators refuse async Core rebinding without getter reads
+  ---
+  duration_ms: 124.239208
+  type: 'test'
+  ...
+# Subtest: original general plan cannot authenticate as the mixed compiler result
+ok 14 - original general plan cannot authenticate as the mixed compiler result
+  ---
+  duration_ms: 121.472167
+  type: 'test'
+  ...
+# Subtest: async vector growth cannot create a mixed Plan beyond the original 128 operation limit
+ok 15 - async vector growth cannot create a mixed Plan beyond the original 128 operation limit
+  ---
+  duration_ms: 16.174167
+  type: 'test'
+  ...
+# Subtest: source-closed original mixed restore preserves both body owners, untouched append and manual work without duplicate writes
+ok 16 - source-closed original mixed restore preserves both body owners, untouched append and manual work without duplicate writes
+  ---
+  duration_ms: 3265.837792
+  type: 'test'
+  ...
+# Subtest: mixed derived formation rejects cross-wired Source partitions, allocator order, coerced zero and cloned authority
+ok 17 - mixed derived formation rejects cross-wired Source partitions, allocator order, coerced zero and cloned authority
+  ---
+  duration_ms: 158.128916
+  type: 'test'
+  ...
+# Subtest: mixed default and named Sections restore with original receipt allocation then accept a genuine Section-local edit back
+ok 18 - mixed default and named Sections restore with original receipt allocation then accept a genuine Section-local edit back
+  ---
+  duration_ms: 1277.771333
+  type: 'test'
+  ...
+# Subtest: original mixed derived views keep exact qualified known/unknown Source time across both append positions
+ok 19 - original mixed derived views keep exact qualified known/unknown Source time across both append positions
+  ---
+  duration_ms: 487.370833
+  type: 'test'
+  ...
+# Subtest: mixed original protocol comparison rejects missing exact receipts and frontiers without relaxing its partial scope
+ok 20 - mixed original protocol comparison rejects missing exact receipts and frontiers without relaxing its partial scope
+  ---
+  duration_ms: 117.618959
+  type: 'test'
+  ...
+# Subtest: a forged native mixed compilation nonce never opens the original suppression-key reader
+ok 21 - a forged native mixed compilation nonce never opens the original suppression-key reader
+  ---
+  duration_ms: 100.966084
+  type: 'test'
+  ...
+# Subtest: original Human scope preparation leaves no later crypto work after an earlier suppression rejects
+ok 22 - original Human scope preparation leaves no later crypto work after an earlier suppression rejects
+  ---
+  duration_ms: 0.243583
+  type: 'test'
+  ...
+# Subtest: consuming original mixed Scope refuses initial delta swaps and Source/Human local-history collisions even with an unchanged sealed graph
+ok 23 - consuming original mixed Scope refuses initial delta swaps and Source/Human local-history collisions even with an unchanged sealed graph
+  ---
+  duration_ms: 387.805542
+  type: 'test'
+  ...
+# Subtest: original mixed restored allocation consumes only the authenticated import prefix before genuine local Human and untouched-B edits
+ok 24 - original mixed restored allocation consumes only the authenticated import prefix before genuine local Human and untouched-B edits
+  ---
+  duration_ms: 1390.537792
+  type: 'test'
+  ...
+# Subtest: initial original mixed Scope rejects coherent Human query sequence and mapping tampering despite unchanged sealed operations
+ok 25 - initial original mixed Scope rejects coherent Human query sequence and mapping tampering despite unchanged sealed operations
+  ---
+  duration_ms: 129.98275
+  type: 'test'
+  ...
+# Subtest: initial original mixed Scope rejects altered Human domain result and extra receipt inventory without touching the whole37 cut
+ok 26 - initial original mixed Scope rejects altered Human domain result and extra receipt inventory without touching the whole37 cut
+  ---
+  duration_ms: 110.869458
+  type: 'test'
+  ...
+# Subtest: authenticated restored prefix and genuine local Human tail reject physical counters, exact domain receipt phases and unknown retries
+ok 27 - authenticated restored prefix and genuine local Human tail reject physical counters, exact domain receipt phases and unknown retries
+  ---
+  duration_ms: 779.615208
+  type: 'test'
+  ...
+# Subtest: real merged chronology retains a complete finite allocation expectation for native ownership accounting
+ok 28 - real merged chronology retains a complete finite allocation expectation for native ownership accounting
+  ---
+  duration_ms: 972.826084
+  type: 'test'
+  ...
+# Subtest: actual restored B merged transactions preserve original semantic replay and cold C consumer
+ok 29 - actual restored B merged transactions preserve original semantic replay and cold C consumer
+  ---
+  duration_ms: 1257.863083
+  type: 'test'
+  ...
+# Subtest: actual initial A merged transactions preserve original semantic replay and cold C consumer
+ok 30 - actual initial A merged transactions preserve original semantic replay and cold C consumer
+  ---
+  duration_ms: 1267.4335
+  type: 'test'
+  ...
+# Subtest: borrowed causal subsets match the original compiler while rejecting missing dependencies and counterfeit plans
+ok 31 - borrowed causal subsets match the original compiler while rejecting missing dependencies and counterfeit plans
+  ---
+  duration_ms: 878.604916
+  type: 'test'
+  ...
+# Subtest: subset membership is detached before real digest suspension and cannot be changed by caller
+ok 32 - subset membership is detached before real digest suspension and cannot be changed by caller
+  ---
+  duration_ms: 820.191292
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects before chronology and preserves all37 stores
+ok 33 - merged allocation rejects before chronology and preserves all37 stores
+  ---
+  duration_ms: 827.866125
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects incoming chronology and preserves all37 stores
+ok 34 - merged allocation rejects incoming chronology and preserves all37 stores
+  ---
+  duration_ms: 807.344833
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects partial-receipt chronology and preserves all37 stores
+ok 35 - merged allocation rejects partial-receipt chronology and preserves all37 stores
+  ---
+  duration_ms: 810.816459
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects manifest chronology and preserves all37 stores
+ok 36 - merged allocation rejects manifest chronology and preserves all37 stores
+  ---
+  duration_ms: 1099.484583
+  type: 'test'
+  ...
+# Subtest: merged allocation rejects extra-stage chronology and preserves all37 stores
+ok 37 - merged allocation rejects extra-stage chronology and preserves all37 stores
+  ---
+  duration_ms: 990.173833
+  type: 'test'
+  ...
+# Subtest: forged native chronology nonce refuses before any second store reader or native grant
+ok 38 - forged native chronology nonce refuses before any second store reader or native grant
+  ---
+  duration_ms: 912.008625
+  type: 'test'
+  ...
+# Subtest: one mixed populated library preserves local Human work while receiving an independent Working edit and exports cold C
+ok 39 - one mixed populated library preserves local Human work while receiving an independent Working edit and exports cold C
+  ---
+  duration_ms: 1993.708125
+  type: 'test'
+  ...
+# Subtest: mixed merge interruption at mixed-applied-group keeps every prior table
+ok 40 - mixed merge interruption at mixed-applied-group keeps every prior table
+  ---
+  duration_ms: 1124.786833
+  type: 'test'
+  ...
+# Subtest: mixed merge interruption at before-mixed-commit keeps every prior table
+ok 41 - mixed merge interruption at before-mixed-commit keeps every prior table
+  ---
+  duration_ms: 1185.045333
+  type: 'test'
+  ...
+# Subtest: owner-return old-receipt drift is refused with complete rollback
+ok 42 - owner-return old-receipt drift is refused with complete rollback
+  ---
+  duration_ms: 1218.816833
+  type: 'test'
+  ...
+# Subtest: owner-return local-outbox drift is refused with complete rollback
+ok 43 - owner-return local-outbox drift is refused with complete rollback
+  ---
+  duration_ms: 1179.511833
+  type: 'test'
+  ...
+# Subtest: owner-return unknown-protocol drift is refused with complete rollback
+ok 44 - owner-return unknown-protocol drift is refused with complete rollback
+  ---
+  duration_ms: 1162.72725
+  type: 'test'
+  ...
+# Subtest: owner-return Human-body drift is refused with complete rollback
+ok 45 - owner-return Human-body drift is refused with complete rollback
+  ---
+  duration_ms: 1125.565666
+  type: 'test'
+  ...
+# Subtest: owner-return Human-key drift is refused with complete rollback
+ok 46 - owner-return Human-key drift is refused with complete rollback
+  ---
+  duration_ms: 1117.734542
+  type: 'test'
+  ...
+# Subtest: owner-return control drift is refused with complete rollback
+ok 47 - owner-return control drift is refused with complete rollback
+  ---
+  duration_ms: 922.6465
+  type: 'test'
+  ...
+# Subtest: owner-return annual-index drift is refused with complete rollback
+ok 48 - owner-return annual-index drift is refused with complete rollback
+  ---
+  duration_ms: 948.160167
+  type: 'test'
+  ...
+# Subtest: owner-return stage-cursor drift is refused with complete rollback
+not ok 49 - owner-return stage-cursor drift is refused with complete rollback
+  ---
+  duration_ms: 945.576917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-nonempty-recovery.test.mjs:51:217'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/mixed-nonempty-recovery.test.mjs:68:32)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: owner-return working-allocation drift is refused with complete rollback
+ok 50 - owner-return working-allocation drift is refused with complete rollback
+  ---
+  duration_ms: 918.528958
+  type: 'test'
+  ...
+# Subtest: owner-return semantic drift is refused with complete rollback
+ok 51 - owner-return semantic drift is refused with complete rollback
+  ---
+  duration_ms: 938.674208
+  type: 'test'
+  ...
+# Subtest: terminal old-receipt drift is refused with complete rollback
+ok 52 - terminal old-receipt drift is refused with complete rollback
+  ---
+  duration_ms: 1474.038333
+  type: 'test'
+  ...
+# Subtest: terminal local-outbox drift is refused with complete rollback
+ok 53 - terminal local-outbox drift is refused with complete rollback
+  ---
+  duration_ms: 1192.985333
+  type: 'test'
+  ...
+# Subtest: terminal unknown-protocol drift is refused with complete rollback
+ok 54 - terminal unknown-protocol drift is refused with complete rollback
+  ---
+  duration_ms: 1410.315084
+  type: 'test'
+  ...
+# Subtest: terminal Human-body drift is refused with complete rollback
+ok 55 - terminal Human-body drift is refused with complete rollback
+  ---
+  duration_ms: 1172.978583
+  type: 'test'
+  ...
+# Subtest: terminal Human-key drift is refused with complete rollback
+ok 56 - terminal Human-key drift is refused with complete rollback
+  ---
+  duration_ms: 1169.851916
+  type: 'test'
+  ...
+# Subtest: terminal control drift is refused with complete rollback
+ok 57 - terminal control drift is refused with complete rollback
+  ---
+  duration_ms: 1201.183542
+  type: 'test'
+  ...
+# Subtest: terminal annual-index drift is refused with complete rollback
+ok 58 - terminal annual-index drift is refused with complete rollback
+  ---
+  duration_ms: 1215.407666
+  type: 'test'
+  ...
+# Subtest: terminal stage-cursor drift is refused with complete rollback
+ok 59 - terminal stage-cursor drift is refused with complete rollback
+  ---
+  duration_ms: 1258.532334
+  type: 'test'
+  ...
+# Subtest: terminal working-allocation drift is refused with complete rollback
+ok 60 - terminal working-allocation drift is refused with complete rollback
+  ---
+  duration_ms: 1282.3935
+  type: 'test'
+  ...
+# Subtest: terminal semantic drift is refused with complete rollback
+ok 61 - terminal semantic drift is refused with complete rollback
+  ---
+  duration_ms: 1239.6945
+  type: 'test'
+  ...
+# Subtest: same-Input branch refuses implicit winner and keeps local Human outbox
+ok 62 - same-Input branch refuses implicit winner and keeps local Human outbox
+  ---
+  duration_ms: 1244.852916
+  type: 'test'
+  ...
+# Subtest: mixed merge actual 4097-read work refuses even if diagnostics are reset
+ok 63 - mixed merge actual 4097-read work refuses even if diagnostics are reset
+  ---
+  duration_ms: 1336.834041
+  type: 'test'
+  ...
+# Subtest: mixed chronology accepts a second independent remote edit after later local Human work
+ok 64 - mixed chronology accepts a second independent remote edit after later local Human work
+  ---
+  duration_ms: 2941.125709
+  type: 'test'
+  ...
+# Subtest: mixed same checkpoint replay does not rewrite canonical rows or queued local work
+ok 65 - mixed same checkpoint replay does not rewrite canonical rows or queued local work
+  ---
+  duration_ms: 1985.594167
+  type: 'test'
+  ...
+# Subtest: genuine new Human work from populated B returns to populated A through original owner and onward to C
+ok 66 - genuine new Human work from populated B returns to populated A through original owner and onward to C
+  ---
+  duration_ms: 1978.698375
+  type: 'test'
+  ...
+# Subtest: new Topic Section and placement return from B through real owners and preserve unrelated A content
+ok 67 - new Topic Section and placement return from B through real owners and preserve unrelated A content
+  ---
+  duration_ms: 2551.517583
+  type: 'test'
+  ...
+# Subtest: Human receive terminal interrupt refuses and restores every table
+ok 68 - Human receive terminal interrupt refuses and restores every table
+  ---
+  duration_ms: 1230.04525
+  type: 'test'
+  ...
+# Subtest: Human receive terminal search-delete refuses and restores every table
+ok 69 - Human receive terminal search-delete refuses and restores every table
+  ---
+  duration_ms: 1172.01625
+  type: 'test'
+  ...
+# Subtest: Human receive terminal search-extra refuses and restores every table
+ok 70 - Human receive terminal search-extra refuses and restores every table
+  ---
+  duration_ms: 1343.762417
+  type: 'test'
+  ...
+# Subtest: Human receive terminal metadata refuses and restores every table
+ok 71 - Human receive terminal metadata refuses and restores every table
+  ---
+  duration_ms: 1272.99075
+  type: 'test'
+  ...
+# Subtest: Human receive terminal protocol refuses and restores every table
+ok 72 - Human receive terminal protocol refuses and restores every table
+  ---
+  duration_ms: 1331.318667
+  type: 'test'
+  ...
+# Subtest: Human receive terminal old-human refuses and restores every table
+ok 73 - Human receive terminal old-human refuses and restores every table
+  ---
+  duration_ms: 1295.132625
+  type: 'test'
+  ...
+# Subtest: Human original owner cannot change an existing unrelated Working receipt
+ok 74 - Human original owner cannot change an existing unrelated Working receipt
+  ---
+  duration_ms: 1277.350375
+  type: 'test'
+  ...
+1..74
+# tests 74
+# suites 0
+# pass 73
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 70368.77525
