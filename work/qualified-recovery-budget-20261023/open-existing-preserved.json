@@ -1,0 +1,15 @@
+{
+  "base": "0264d726",
+  "blocks": {
+    "class-open-existing": {
+      "unchanged": true,
+      "sha256": "d9c6e9f7bb762b0414e9a210d3bebabf7563c876d48f24aa133bb8be75ffa9fb",
+      "bytes": 4703
+    },
+    "original-open-existing": {
+      "unchanged": true,
+      "sha256": "f4dcb2bd020a9d42e41702e0db47deb00c23858fb83f8f4eeffd3367719c884b",
+      "bytes": 279
+    }
+  }
+}

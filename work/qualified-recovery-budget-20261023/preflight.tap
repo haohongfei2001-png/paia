@@ -1,0 +1,127 @@
+TAP version 13
+# {"smallGroups":1,"validatedBytes":181545,"firstOwnerBytes":141628,"coldRevalidationBytes":95534,"coldRehydrateBytes":79609,"finalNative":{"references":114,"bytes":55501,"activeMs":23.523041000000035},"referencePreflight":114,"finalPrepaid":8388608,"totalBytes":8920271}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+ok 1 - qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+  ---
+  duration_ms: 277.131792
+  type: 'test'
+  ...
+# {"smallGroups":2,"validatedBytes":266465,"firstOwnerBytes":142236,"coldRevalidationBytes":135078,"coldRehydrateBytes":79649,"finalNative":{"references":144,"bytes":87834,"activeMs":32.263374999999996},"referencePreflight":144,"finalPrepaid":8388608,"totalBytes":9204264}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+ok 2 - qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+  ---
+  duration_ms: 304.160667
+  type: 'test'
+  ...
+# {"smallGroups":3,"validatedBytes":351260,"firstOwnerBytes":142825,"coldRevalidationBytes":174551,"coldRehydrateBytes":79651,"finalNative":{"references":174,"bytes":120141,"activeMs":37.013124999999945},"referencePreflight":174,"finalPrepaid":8388608,"totalBytes":9485462}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+ok 3 - qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+  ---
+  duration_ms: 368.36
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=false
+ok 4 - qualified start cannot refill existing v1 staging task with pending=false
+  ---
+  duration_ms: 50.177041
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=true
+ok 5 - qualified start cannot refill existing v1 staging task with pending=true
+  ---
+  duration_ms: 49.908084
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=false
+ok 6 - qualified start cannot refill existing v1 authenticated task with pending=false
+  ---
+  duration_ms: 47.141417
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=true
+ok 7 - qualified start cannot refill existing v1 authenticated task with pending=true
+  ---
+  duration_ms: 45.747125
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=false
+ok 8 - qualified start cannot refill existing v1 validated task with pending=false
+  ---
+  duration_ms: 45.928834
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=true
+ok 9 - qualified start cannot refill existing v1 validated task with pending=true
+  ---
+  duration_ms: 51.659875
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=false
+ok 10 - qualified start cannot refill existing v1 applying task with pending=false
+  ---
+  duration_ms: 48.844875
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=true
+ok 11 - qualified start cannot refill existing v1 applying task with pending=true
+  ---
+  duration_ms: 47.742875
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=false
+ok 12 - qualified start cannot refill existing v1 verified task with pending=false
+  ---
+  duration_ms: 47.812458
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=true
+ok 13 - qualified start cannot refill existing v1 verified task with pending=true
+  ---
+  duration_ms: 47.689417
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=false
+ok 14 - qualified start cannot refill existing v1 failed task with pending=false
+  ---
+  duration_ms: 48.198208
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=true
+ok 15 - qualified start cannot refill existing v1 failed task with pending=true
+  ---
+  duration_ms: 48.929166
+  type: 'test'
+  ...
+# Subtest: qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+ok 16 - qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+  ---
+  duration_ms: 0.393292
+  type: 'test'
+  ...
+# Subtest: forged tokens and public work options never admit an elevated original transaction
+ok 17 - forged tokens and public work options never admit an elevated original transaction
+  ---
+  duration_ms: 56.314208
+  type: 'test'
+  ...
+# Subtest: qualified cold revalidation burns an interrupted original publication reservation and keeps its task identity
+ok 18 - qualified cold revalidation burns an interrupted original publication reservation and keeps its task identity
+  ---
+  duration_ms: 227.591291
+  type: 'test'
+  ...
+# Subtest: a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+ok 19 - a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+  ---
+  duration_ms: 128.402666
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2120.618542

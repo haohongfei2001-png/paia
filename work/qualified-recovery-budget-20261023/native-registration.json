@@ -1,0 +1,28 @@
+{
+  "executedCallbacks": 0,
+  "count": 22,
+  "names": [
+    "qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups",
+    "qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups",
+    "qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups",
+    "qualified start cannot refill existing v1 staging task with pending=false",
+    "qualified start cannot refill existing v1 staging task with pending=true",
+    "qualified start cannot refill existing v1 authenticated task with pending=false",
+    "qualified start cannot refill existing v1 authenticated task with pending=true",
+    "qualified start cannot refill existing v1 validated task with pending=false",
+    "qualified start cannot refill existing v1 validated task with pending=true",
+    "qualified start cannot refill existing v1 applying task with pending=false",
+    "qualified start cannot refill existing v1 applying task with pending=true",
+    "qualified start cannot refill existing v1 verified task with pending=false",
+    "qualified start cannot refill existing v1 verified task with pending=true",
+    "qualified start cannot refill existing v1 failed task with pending=false",
+    "qualified start cannot refill existing v1 failed task with pending=true",
+    "qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill",
+    "forged tokens and public work options never admit an elevated original transaction",
+    "qualified cold revalidation burns an interrupted original publication reservation and keeps its task identity",
+    "a valid original prepared owner does not lend authority to a wrong repository, scope or caller token",
+    "qualified fixed final closure refuses canonical-row and never publishes",
+    "qualified fixed final closure refuses task-identity and never publishes",
+    "qualified fixed final closure refuses unexpected-row and never publishes"
+  ]
+}

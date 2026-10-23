@@ -1,0 +1,343 @@
+TAP version 13
+# Subtest: protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+ok 1 - protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+  ---
+  duration_ms: 384.753542
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects put before external callback
+ok 2 - protected original repository rejects put before external callback
+  ---
+  duration_ms: 110.555041
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects delete before external callback
+ok 3 - protected original repository rejects delete before external callback
+  ---
+  duration_ms: 101.014667
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects clear before external callback
+ok 4 - protected original repository rejects clear before external callback
+  ---
+  duration_ms: 96.216375
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects raw before external callback
+ok 5 - protected original repository rejects raw before external callback
+  ---
+  duration_ms: 102.86125
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects forged-capability before external callback
+ok 6 - protected original repository rejects forged-capability before external callback
+  ---
+  duration_ms: 99.57375
+  type: 'test'
+  ...
+# Subtest: protected gate is enforced by a cold original repository instance
+ok 7 - protected gate is enforced by a cold original repository instance
+  ---
+  duration_ms: 88.133167
+  type: 'test'
+  ...
+# Subtest: private generation authority never passes through mutable instance wrappers
+ok 8 - private generation authority never passes through mutable instance wrappers
+  ---
+  duration_ms: 119.270875
+  type: 'test'
+  ...
+# Subtest: protected public staging/active callback and metadata seal cannot acquire graph writer
+ok 9 - protected public staging/active callback and metadata seal cannot acquire graph writer
+  ---
+  duration_ms: 92.621208
+  type: 'test'
+  ...
+# Subtest: protected Human does not lend a private transaction to external diagnostic callback
+ok 10 - protected Human does not lend a private transaction to external diagnostic callback
+  ---
+  duration_ms: 96.795333
+  type: 'test'
+  ...
+# Subtest: unmarked original database preserves ordinary writes but rejects a forged protection marker
+ok 11 - unmarked original database preserves ordinary writes but rejects a forged protection marker
+  ---
+  duration_ms: 83.149125
+  type: 'test'
+  ...
+# Subtest: late raw protection marker on unmarked write is rejected and rolled back
+ok 12 - late raw protection marker on unmarked write is rejected and rolled back
+  ---
+  duration_ms: 81.745125
+  type: 'test'
+  ...
+# Subtest: protected stage resumes cold original consumer after committed page response loss
+ok 13 - protected stage resumes cold original consumer after committed page response loss
+  ---
+  duration_ms: 118.754291
+  type: 'test'
+  ...
+# Subtest: protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+ok 14 - protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+  ---
+  duration_ms: 287.541166
+  type: 'test'
+  ...
+# Subtest: protected cold attach retains registry binding and publication resumes after target-ready
+ok 15 - protected cold attach retains registry binding and publication resumes after target-ready
+  ---
+  duration_ms: 264.525375
+  type: 'test'
+  ...
+# Subtest: protection installation refuses a nonempty original target and preserves its prior human work
+ok 16 - protection installation refuses a nonempty original target and preserves its prior human work
+  ---
+  duration_ms: 79.708875
+  type: 'test'
+  ...
+# Subtest: a caller-shaped store cannot mint original protection installation authority
+ok 17 - a caller-shaped store cannot mint original protection installation authority
+  ---
+  duration_ms: 71.537875
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+ok 18 - protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+  ---
+  duration_ms: 75.744417
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+ok 19 - protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+  ---
+  duration_ms: 71.474375
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+ok 20 - protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+  ---
+  duration_ms: 71.832958
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer extra-field
+ok 21 - protection installation rejects nonempty initializer extra-field
+  ---
+  duration_ms: 72.617208
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer nested-body
+ok 22 - protection installation rejects nonempty initializer nested-body
+  ---
+  duration_ms: 69.082166
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer old-ephemeral
+ok 23 - protection installation rejects nonempty initializer old-ephemeral
+  ---
+  duration_ms: 70.187208
+  type: 'test'
+  ...
+# Subtest: protected initial marker bytes are charged before the caller can enter
+ok 24 - protected initial marker bytes are charged before the caller can enter
+  ---
+  duration_ms: 93.410334
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects identity drift
+ok 25 - cold protected marker/gate rejects identity drift
+  ---
+  duration_ms: 86.261791
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects phase drift
+ok 26 - cold protected marker/gate rejects phase drift
+  ---
+  duration_ms: 87.214083
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects mode drift
+ok 27 - cold protected marker/gate rejects mode drift
+  ---
+  duration_ms: 98.499583
+  type: 'test'
+  ...
+# Subtest: private checkpoint storage v1 survives real cold owner continuation and copy retirement
+ok 28 - private checkpoint storage v1 survives real cold owner continuation and copy retirement
+  ---
+  duration_ms: 422.315584
+  type: 'test'
+  ...
+# Subtest: private checkpoint storage v2 survives real cold owner continuation and copy retirement
+ok 29 - private checkpoint storage v2 survives real cold owner continuation and copy retirement
+  ---
+  duration_ms: 299.024042
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses version drift without migration
+ok 30 - private checkpoint cold reader refuses version drift without migration
+  ---
+  duration_ms: 63.492416
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses base64 drift without migration
+ok 31 - private checkpoint cold reader refuses base64 drift without migration
+  ---
+  duration_ms: 66.293708
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses length drift without migration
+ok 32 - private checkpoint cold reader refuses length drift without migration
+  ---
+  duration_ms: 59.406167
+  type: 'test'
+  ...
+# Subtest: private checkpoint cold reader refuses hash drift without migration
+ok 33 - private checkpoint cold reader refuses hash drift without migration
+  ---
+  duration_ms: 57.531875
+  type: 'test'
+  ...
+# {"smallGroups":1,"validatedBytes":181545,"firstOwnerBytes":141658,"coldRevalidationBytes":95534,"coldRehydrateBytes":79633,"finalNative":{"references":114,"bytes":55510,"activeMs":26.46991700000001},"referencePreflight":114,"finalPrepaid":8388608,"totalBytes":8920331}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+ok 34 - qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+  ---
+  duration_ms: 352.1055
+  type: 'test'
+  ...
+# {"smallGroups":2,"validatedBytes":266465,"firstOwnerBytes":142221,"coldRevalidationBytes":135078,"coldRehydrateBytes":79619,"finalNative":{"references":144,"bytes":87819,"activeMs":33.24966699999993},"referencePreflight":144,"finalPrepaid":8388608,"totalBytes":9204209}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+ok 35 - qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+  ---
+  duration_ms: 340.346208
+  type: 'test'
+  ...
+# {"smallGroups":3,"validatedBytes":351260,"firstOwnerBytes":142790,"coldRevalidationBytes":174551,"coldRehydrateBytes":79641,"finalNative":{"references":174,"bytes":120141,"activeMs":38.22795899999983},"referencePreflight":174,"finalPrepaid":8388608,"totalBytes":9485452}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+ok 36 - qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+  ---
+  duration_ms: 404.344292
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=false
+ok 37 - qualified start cannot refill existing v1 staging task with pending=false
+  ---
+  duration_ms: 54.589667
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=true
+ok 38 - qualified start cannot refill existing v1 staging task with pending=true
+  ---
+  duration_ms: 52.783167
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=false
+ok 39 - qualified start cannot refill existing v1 authenticated task with pending=false
+  ---
+  duration_ms: 51.377333
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=true
+ok 40 - qualified start cannot refill existing v1 authenticated task with pending=true
+  ---
+  duration_ms: 49.097209
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=false
+ok 41 - qualified start cannot refill existing v1 validated task with pending=false
+  ---
+  duration_ms: 49.16175
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=true
+ok 42 - qualified start cannot refill existing v1 validated task with pending=true
+  ---
+  duration_ms: 52.897417
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=false
+ok 43 - qualified start cannot refill existing v1 applying task with pending=false
+  ---
+  duration_ms: 48.875875
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=true
+ok 44 - qualified start cannot refill existing v1 applying task with pending=true
+  ---
+  duration_ms: 47.691041
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=false
+ok 45 - qualified start cannot refill existing v1 verified task with pending=false
+  ---
+  duration_ms: 47.158292
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=true
+ok 46 - qualified start cannot refill existing v1 verified task with pending=true
+  ---
+  duration_ms: 54.010125
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=false
+ok 47 - qualified start cannot refill existing v1 failed task with pending=false
+  ---
+  duration_ms: 56.16275
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=true
+ok 48 - qualified start cannot refill existing v1 failed task with pending=true
+  ---
+  duration_ms: 59.7095
+  type: 'test'
+  ...
+# Subtest: qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+ok 49 - qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+  ---
+  duration_ms: 0.588958
+  type: 'test'
+  ...
+# Subtest: forged tokens and public work options never admit an elevated original transaction
+ok 50 - forged tokens and public work options never admit an elevated original transaction
+  ---
+  duration_ms: 63.373167
+  type: 'test'
+  ...
+# Subtest: qualified cold revalidation burns an interrupted original publication reservation and keeps its task identity
+ok 51 - qualified cold revalidation burns an interrupted original publication reservation and keeps its task identity
+  ---
+  duration_ms: 245.276084
+  type: 'test'
+  ...
+# Subtest: a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+ok 52 - a valid original prepared owner does not lend authority to a wrong repository, scope or caller token
+  ---
+  duration_ms: 135.991625
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses canonical-row and never publishes
+ok 53 - qualified fixed final closure refuses canonical-row and never publishes
+  ---
+  duration_ms: 187.319917
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses task-identity and never publishes
+ok 54 - qualified fixed final closure refuses task-identity and never publishes
+  ---
+  duration_ms: 160.898208
+  type: 'test'
+  ...
+# Subtest: qualified fixed final closure refuses unexpected-row and never publishes
+ok 55 - qualified fixed final closure refuses unexpected-row and never publishes
+  ---
+  duration_ms: 164.161917
+  type: 'test'
+  ...
+1..55
+# tests 55
+# suites 0
+# pass 55
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3266.699542

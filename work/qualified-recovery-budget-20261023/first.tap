@@ -1,0 +1,223 @@
+TAP version 13
+# {"smallGroups":1,"validatedBytes":176144,"firstOwnerBytes":141608,"coldRevalidationBytes":90133,"coldRehydrateBytes":79593,"finalNative":{"references":114,"bytes":55495,"activeMs":22.870083999999963},"referencePreflight":114,"finalPrepaid":8388608,"totalBytes":8909429}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+ok 1 - qualified task v2 preserves exact cold closure and charged final raw references with 1 small groups
+  ---
+  duration_ms: 266.308333
+  type: 'test'
+  ...
+# {"smallGroups":2,"validatedBytes":257713,"firstOwnerBytes":142201,"coldRevalidationBytes":126326,"coldRehydrateBytes":79603,"finalNative":{"references":144,"bytes":87813,"activeMs":29.231499999999983},"referencePreflight":144,"finalPrepaid":8388608,"totalBytes":9186655}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+ok 2 - qualified task v2 preserves exact cold closure and charged final raw references with 2 small groups
+  ---
+  duration_ms: 291.205167
+  type: 'test'
+  ...
+# {"smallGroups":3,"validatedBytes":339157,"firstOwnerBytes":142825,"coldRevalidationBytes":162448,"coldRehydrateBytes":79651,"finalNative":{"references":174,"bytes":120141,"activeMs":38.31899999999996},"referencePreflight":174,"finalPrepaid":8388608,"totalBytes":9461256}
+# Subtest: qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+ok 3 - qualified task v2 preserves exact cold closure and charged final raw references with 3 small groups
+  ---
+  duration_ms: 374.444291
+  type: 'test'
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=false
+not ok 4 - qualified start cannot refill existing v1 staging task with pending=false
+  ---
+  duration_ms: 48.313291
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 staging task with pending=true
+not ok 5 - qualified start cannot refill existing v1 staging task with pending=true
+  ---
+  duration_ms: 47.401625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=false
+not ok 6 - qualified start cannot refill existing v1 authenticated task with pending=false
+  ---
+  duration_ms: 45.157917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 authenticated task with pending=true
+not ok 7 - qualified start cannot refill existing v1 authenticated task with pending=true
+  ---
+  duration_ms: 45.982792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=false
+not ok 8 - qualified start cannot refill existing v1 validated task with pending=false
+  ---
+  duration_ms: 46.021
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 validated task with pending=true
+not ok 9 - qualified start cannot refill existing v1 validated task with pending=true
+  ---
+  duration_ms: 48.493208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=false
+not ok 10 - qualified start cannot refill existing v1 applying task with pending=false
+  ---
+  duration_ms: 46.10775
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 applying task with pending=true
+not ok 11 - qualified start cannot refill existing v1 applying task with pending=true
+  ---
+  duration_ms: 47.514333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=false
+not ok 12 - qualified start cannot refill existing v1 verified task with pending=false
+  ---
+  duration_ms: 46.352875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 verified task with pending=true
+not ok 13 - qualified start cannot refill existing v1 verified task with pending=true
+  ---
+  duration_ms: 46.464042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=false
+not ok 14 - qualified start cannot refill existing v1 failed task with pending=false
+  ---
+  duration_ms: 45.927292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified start cannot refill existing v1 failed task with pending=true
+not ok 15 - qualified start cannot refill existing v1 failed task with pending=true
+  ---
+  duration_ms: 44.456417
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:29:125'
+  failureType: 'testCodeFailure'
+  error: 'f.stage.status is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/qualified-human-recovery-budget.test.mjs:30:258)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+ok 16 - qualified ledger retains phase ceilings, prepayment and lost reservation burn without refill
+  ---
+  duration_ms: 0.448375
+  type: 'test'
+  ...
+# Subtest: forged tokens and public work options never admit an elevated original transaction
+ok 17 - forged tokens and public work options never admit an elevated original transaction
+  ---
+  duration_ms: 50.969791
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 5
+# fail 12
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1705.308333
