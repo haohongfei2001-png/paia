@@ -1,0 +1,11 @@
+{
+  "base": "7228f20812a2ba38747e51e33b10af6bb57a1f8c",
+  "source": {
+    "extension/core/browser-native-sync/core.js": "940426b9bfb80527064c0c9fa7663868cfcd40f43954cac65ffd9ed8ffb7f1d7",
+    "extension/tests/prompt-companion-resolution-core.test.mjs": "a27922220da0678da31c97cd8f1fb45fa236b055c74b1a27809d4ef70a047fc5"
+  },
+  "temporarily_borrowed_dependencies": {
+    "extension/core/browser-native-sync/prompt-journal.js": "e4e6463ad83d34cbacdd86126560802d6942cb2b578de05b5cf4eb7be0e48455",
+    "extension/core/prompt-reuse-service.js": "8056c36e377120f2cfde16c9d20487f2ca972e2c20c3425a2f9bde03956059fe"
+  }
+}
