@@ -205,12 +205,13 @@ export class GroupedCheckpointRestore{
   const core=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.base.namespace==='initial'?null:state.base.namespace});core.materialize=manualSyncOwners(core).materialize;
   const receipts=remotePlan.groups.map(g=>{const o=g.operations[0];return {operationId:o.operationId,revisionId:o.revisionId,deviceId:o.deviceId,sequence:o.sequence};});
   return this.store.run(()=>this.live.transaction(true,async t=>{
+   registerRepositoryWorkLimit(this.store.repository,t,{references:4096,bytes:2*1024*1024,ms:30000-(performance.now()-started)});
    const current=await this.stage.get(t,'restore');if(!equal(current,state))fail('BNS_RESTORE_STAGE_CHANGED');
    if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');
    await requireConsumerPublicationSettled(t);await this.store.qualifyControlPublicationRead(t);
    await requireCommittedPlan(this.live,t,localPlan);await requireGroupScope(this.store,t,before);
    for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
-   for(const group of incoming){if(performance.now()-started>=30000||t.metrics.reads+t.metrics.writes>=4096)fail('BNS_GROUP_RESOURCE_LIMIT');const result=await core.applyInTransaction(t,group.operations[0]);if(result.state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');await this.checkpoint('applied-merge-group',group.id);}
+   for(const group of incoming){if(performance.now()-started>=30000)fail('BNS_GROUP_RESOURCE_LIMIT');const result=await core.applyInTransaction(t,group.operations[0]);if(result.state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');await this.checkpoint('applied-merge-group',group.id);}
    await this.checkpoint('before-merge-commit',t);
    await requireCommittedPlan(this.live,t,merged);await requireGroupScope(this.store,t,after);
    const expected={...state.base,generation:state.base.generation+incoming.length};if(!equal(await authority(this.store,this.live,t),expected))fail('BNS_RESTORE_LOCAL_CHANGED');
@@ -226,7 +227,7 @@ export class GroupedCheckpointRestore{
   return this.store.run(()=>this.live.transaction(false,async t=>{
    if(!equal(await this.stage.get(t,'restore'),state)||await this.live.bind(t)!==state.mergeNamespace||await readRestoreEpoch(t)!==state.base.fence.epoch)fail('BNS_RESTORE_LOCAL_CHANGED');
    await requireConsumerPublicationSettled(t);
-   if(!Array.isArray(state.mergeReceipts)||state.mergeReceipts.length>128)fail('BNS_RESTORE_STAGE_CHANGED');
+   if(!Array.isArray(state.mergeReceipts)||state.mergeReceipts.length>4096||bytes(state.mergeReceipts).length>2*1024*1024)fail('BNS_RESTORE_STAGE_CHANGED');
    const committed=await this.live.get(t,'mergeCommit',this.restoreId);
    if(!committed||!equal(withoutId(committed),{version:1,restoreId:this.restoreId,namespace:state.mergeNamespace,epoch:state.base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:state.mergeDigest,receipts:state.mergeReceipts}))fail('BNS_GROUP_COMMIT_UNPROVEN');
    for(const o of state.mergeReceipts){const receipt=await this.live.get(t,'receipt',o.operationId),sequence=await this.live.get(t,'sequence',o.deviceId,String(o.sequence).padStart(16,'0'));if(!receipt||!sequence||!equal(withoutId(receipt),{digest:o.revisionId,deviceId:o.deviceId,sequence:o.sequence})||!equal(withoutId(sequence),{operationId:o.operationId,digest:o.revisionId}))fail('BNS_GROUP_COMMIT_UNPROVEN');}

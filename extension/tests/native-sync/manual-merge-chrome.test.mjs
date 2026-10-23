@@ -21,7 +21,7 @@ for(const variant of ['source','release'])test('BNS nonempty finite manual recov
   const worker=join(extension.path,'background/service-worker.js'),original=await readFile(worker,'utf8'),marker="import './bns-native-storage-fixture.mjs';";assert.equal(original.split(marker).length,2);await writeFile(worker,original.replace(marker,marker+"\nimport './bns-manual-merge-fixture.mjs';"));
   receipt.hashes=Object.fromEntries(await Promise.all(files.map(async file=>[file,createHash('sha256').update(await readFile(join(extension.path,file))).digest('hex')])));
   if(variant==='source')sourceVector=receipt.hashes;else assert.deepEqual(receipt.hashes,sourceVector);
-  browser=await startNative(extension.path);receipt.browserVersion=browser.browserVersion;receipt.cases=await browser.call('manual-merge-matrix');assert.equal(receipt.cases.length,21);assert.equal(new Set(receipt.cases).size,21);
+  browser=await startNative(extension.path);receipt.browserVersion=browser.browserVersion;receipt.cases=await browser.call('manual-merge-matrix');assert.equal(receipt.cases.length,22);assert.equal(new Set(receipt.cases).size,22);
   receipt.isolation=await browser.isolation();assert.equal(receipt.isolation.nativeFactory,true);assert.equal(receipt.isolation.networkAttempts,0);assert.equal(receipt.isolation.httpRequests,0);receipt.result='PASS';
  }catch(error){receipt.result='FAIL';receipt.error=error.message;throw error;}
  finally{await writeFile(join(output,variant+'.json'),JSON.stringify(receipt,null,2));await browser?.close();await extension?.cleanup();await rm(directory,{recursive:true,force:true});}
