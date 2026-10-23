@@ -10,11 +10,14 @@ periodic handoff is retired. The current execution entry is the
 all seven current lanes, distinguishing existing implementation, actual code
 gaps, integrated validation and external activation.
 
-The refreshed main baseline is `3bbd033b760701b5267a813d23ea94d26760c3b0`,
-normally merged as `42d2d9d1` on 2026-10-23. The preceding website restoration,
-entry/mobile fixes and latest twelve-path reading/interaction refinements are
-preserved; the new main successor changes no extension/runtime paths. The
-recorded development build at `3511dbe8` remains its own exact-source evidence.
+The refreshed main baseline is `9d7200555b315e1d89509f12bf78bf62e16418ae`,
+normally merged as `5e6f4f72` on 2026-10-23. Its 23 website/document paths are
+byte-identical to that main in the integration checkout; extension runtime is
+unchanged by this merge. Earlier main identities and website receipts remain
+historical evidence. The latest runtime freeze is `872e23b0`, with the separate
+[coherent local recovery receipt](../../../work/phased-human-integration-20261023/REPORT.md):
+115/115 owning Node tests, one development build and Source/Release 8/8 native
+parents. This is not Full, Linux capacity or whole-programme acceptance.
 `codex/paia-takeover-integration-20261023` preserves that history and composes the
 frozen PR313 head `02144bccf5e0e0b6842aaa4e7c6958cedecdfde1` with exact selected
 PR312/post-Full successors and `f745013c` semantic read-pair implementation.

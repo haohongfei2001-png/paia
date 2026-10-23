@@ -31,8 +31,9 @@ concrete grouped decision, with budget and stop conditions.
 
 ## 2. Baseline and integration identity
 
-- Last verified remote main: `3bbd033b760701b5267a813d23ea94d26760c3b0`,
-  preserved by normal merge `42d2d9d1`; its twelve website paths do not change extension runtime.
+- Last verified remote main: `9d7200555b315e1d89509f12bf78bf62e16418ae`,
+  preserved by normal merge `5e6f4f72`; its 23 website/document paths do not change extension runtime.
+  Earlier main checkpoints below retain their historical identities.
 - Preserved handoff candidate: `b0a10565fc590416fd9287b6abc3870fe7c8f2e4`;
   semantic read-pair implementation `f745013c121391488002116e28b061dd796c94ef`.
 - Frozen unmerged PR313 acceptance head:
@@ -457,3 +458,12 @@ Original currentMixedProjection after authenticated merge now passes actual nati
 Seven complete owning files115/115; one669-file development build; actual Source/Release8/8 native parents (each25 simultaneousHuman/Working,34existingMixedSaved,18coldHuman,13phasedcopy-retirement original cases), stable vectors and zero network. [Evidence](../../../../work/phased-human-integration-20261023/REPORT.md). Phased cold continuation, original post-publication editing and bounded cold-resumable cleanup are implemented. Draft cleanup content assertion was corrected before final validation; all earlier failures remain. Source-free Human preparation shares one original readonly cut while commit/terminal checks remain.
 
 These supersede earlier missing-code wording for these finite consumers, not for broad data families, scale or whole-programme acceptance.65/129budget refusals remain and were not rerun. Consumed-copy retirement before publication and broader mixed families remain engineering; post-publication cleanup is not capacity proof. Current non-Sync UI/Context consumers were re-audited to avoid reimplementing superseded gaps. Independent Topic identity issuance and controlled external qualification remain separate; default production Sync stays off.
+
+
+## Current continuation after872e23b0: owned collection and remaining engineering
+
+Main9d720055 (website PR322) is preserved by normal merge5e6f4f72; all23 changed paths match main exactly. PR313 remains02144bcc and no acceptance branch or cloud run was changed. Original compaction planner plus a test-owned private Map now has actual deletion, unfinished-restore pin retention, pin/inventory race refusal, uncovered-tail retention, unresolved original Prompt branches and body-free protocol-fence replay coverage. Exact3a5a2ba5 was integrated as4c0d4d62; its complete8/8 Node evidence and test/helper/planner byte vector match, so no duplicate run/build was made. [Evidence](../../../../work/synthetic-compaction-collection-20261023/REPORT.md). This is synthetic protocol collection, not production Prompt purge or provider erasure.
+
+An additional independent readonly review of872e23b0 found no new definite blocker: original private mutation permission, task/validation controls, cold progress CAS and final count fences remain; final native fixture checks actual nonempty thoughtText and original Entry bodies. Cross-database global atomicity, arbitrary raw-IDB forgery resistance, broad scale and existing-active replacement are not inferred.
+
+The previously mentioned pre-publication body-copy consumption is an optimization candidate, **not a required separate plan deliverable**. It would move the same reads earlier and add deletion/receipt/cold reconstruction work; it is not being implemented merely to make the final transaction smaller. The scale lane instead examines actual authentication/validation/owner work before proposing a consuming change.65/129 failures remain; no enlarged cap or large repeat run. In parallel, identify and implement true existing-active reopening/replacement and populated mixed-family gaps through original owners, preserving all negative/human facts. Local engineering continues; independent identity issuance and external release gates remain distinct.
