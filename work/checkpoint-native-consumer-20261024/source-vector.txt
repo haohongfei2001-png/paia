@@ -1,0 +1,2 @@
+a73f05cf8a21acdd9b1527273d9f6aa01839a39d4d85169185d9477fc542b2df  extension/tests/native-sync/checkpoint-publication-fixture.mjs
+88a5af2c49de2e30878c26d2486b35203a280cf11fce2e1686cba567a70d350a  extension/tests/native-sync/checkpoint-publication-native.test.mjs

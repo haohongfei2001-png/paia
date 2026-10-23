@@ -1,0 +1,43 @@
+{
+  "environment": "NODE_FAKE_IDB_ONLY_NOT_NATIVE",
+  "result": {
+    "status": "SYNTHETIC_RECOVERABLE_CHECKPOINT_ONLY_NOT_COMPLETE_SYNC",
+    "cases": [
+      {
+        "name": "google-mixed",
+        "result": "PASS",
+        "assertions": 26
+      },
+      {
+        "name": "google-pause",
+        "result": "PASS",
+        "assertions": 5
+      },
+      {
+        "name": "google-purge",
+        "result": "PASS",
+        "assertions": 4
+      },
+      {
+        "name": "onedrive-mixed",
+        "result": "PASS",
+        "assertions": 26
+      },
+      {
+        "name": "onedrive-pause",
+        "result": "PASS",
+        "assertions": 5
+      },
+      {
+        "name": "onedrive-purge",
+        "result": "PASS",
+        "assertions": 4
+      }
+    ],
+    "assertions": 70,
+    "sourceOwnerAbsent": true,
+    "nativeDBReopen": true,
+    "workerRestart": false,
+    "externalNetwork": false
+  }
+}

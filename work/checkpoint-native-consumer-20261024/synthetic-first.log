@@ -1,0 +1,11 @@
+file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/native-sync/checkpoint-publication-fixture.mjs:22
+ const check=(value,label)=>{assertions++;if(!value)throw Error(label);};
+                                                          ^
+
+Error: exact original Prompt body and preferences
+    at check (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/native-sync/checkpoint-publication-fixture.mjs:22:59)
+    at equal (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/native-sync/checkpoint-publication-fixture.mjs:23:27)
+    at runCheckpointPublicationNativeCases (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/native-sync/checkpoint-publication-fixture.mjs:71:214)
+    at async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/work/checkpoint-native-consumer-20261024/synthetic-check.mjs:4:80
+
+Node.js v22.23.3
