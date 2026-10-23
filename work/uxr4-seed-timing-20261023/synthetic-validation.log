@@ -1,0 +1,4 @@
+PASS success original operation order / await / exception / body-free timing
+PASS put original operation order / await / exception / body-free timing
+PASS commit original operation order / await / exception / body-free timing
+PASS count original operation order / await / exception / body-free timing

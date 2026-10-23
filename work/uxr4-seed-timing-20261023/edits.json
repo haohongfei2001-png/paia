@@ -1,0 +1,62 @@
+[
+  {
+    "old": "page.evaluate(async()=>{",
+    "new": "page.evaluate(async()=>{\n const __now=()=>performance.now();\n const __timing={version:1,startedMs:__now(),finishedMs:null,failed:false,phases:[],batches:[]};\n globalThis.__uxr4SeedTiming=__timing;\n const __begin=name=>{const p={name,startMs:__now(),endMs:null};__timing.phases.push(p);return p;};\n const __end=p=>{p.endMs=__now();};\n try{\n"
+  },
+  {
+    "old": "   const values=",
+    "new": "   const __template=__begin('template');\n   const values="
+  },
+  {
+    "old": "   await s.repository.transaction(true,async t=>{for(const name",
+    "new": "   __end(__template);const __clear=__begin('clear');\n   await s.repository.transaction(true,async t=>{for(const name"
+  },
+  {
+    "old": "});const began=performance.now();",
+    "new": "});__end(__clear);const __seed=__begin('seed-including-final-counts');const began=performance.now();"
+  },
+  {
+    "old": "for(let start=0;start<100000;start+=500)await s.repository.transaction(true,async t=>{const writes=[];for(let i=start;i<start+500;i++){",
+    "new": "for(let start=0;start<100000;start+=500){const __batch={kind:'inputs',offset:start,units:500,transactionStartMs:__now(),callbackStartMs:null,requestsIssuedMs:null,promisesDoneMs:null,transactionDoneMs:null,objectConstructionMs:0};__timing.batches.push(__batch);await s.repository.transaction(true,async t=>{__batch.callbackStartMs=__now();const writes=[];for(let i=start;i<start+500;i++){const __construct=__now();"
+  },
+  {
+    "old": "};writes.push(t.put('inputStates'",
+    "new": "};__batch.objectConstructionMs+=__now()-__construct;writes.push(t.put('inputStates'"
+  },
+  {
+    "old": "if(i%100===0){const doc=",
+    "new": "if(i%100===0){const __docConstruct=__now();const doc="
+  },
+  {
+    "old": "docId];writes.push(t.put('documents'",
+    "new": "docId];__batch.objectConstructionMs+=__now()-__docConstruct;writes.push(t.put('documents'"
+  },
+  {
+    "old": "   }await Promise.all(writes);});await s.repository.transaction(true,t=>t.put('meta',{id:'sequence',records:100000,blocks:100000,documents:1000}));",
+    "new": "   }__batch.requestsIssuedMs=__now();await Promise.all(writes);__batch.promisesDoneMs=__now();});__batch.transactionDoneMs=__now();}const __sequence=__begin('sequence');await s.repository.transaction(true,t=>t.put('meta',{id:'sequence',records:100000,blocks:100000,documents:1000}));__end(__sequence);"
+  },
+  {
+    "old": "   const first=await s.createTopic",
+    "new": "   const __owners=__begin('topic-entry-owner-and-template-reads');const first=await s.createTopic"
+  },
+  {
+    "old": "   for(let start=0;start<5000;start+=500)await s.repository.transaction(true,async t=>{const writes=[];",
+    "new": "   __end(__owners);for(let start=0;start<5000;start+=500){const __batch={kind:'entries',offset:start,units:500,transactionStartMs:__now(),callbackStartMs:null,requestsIssuedMs:null,promisesDoneMs:null,transactionDoneMs:null,objectConstructionMs:null};__timing.batches.push(__batch);await s.repository.transaction(true,async t=>{__batch.callbackStartMs=__now();const writes=[];"
+  },
+  {
+    "old": "}await Promise.all(writes);});clearInterval(timer);",
+    "new": "}__batch.requestsIssuedMs=__now();await Promise.all(writes);__batch.promisesDoneMs=__now();});__batch.transactionDoneMs=__now();}clearInterval(timer);"
+  },
+  {
+    "old": "const counts=await s.repository.transaction(false,",
+    "new": "const __counts=__begin('final-four-counts');const counts=await s.repository.transaction(false,"
+  },
+  {
+    "old": "}));return {counts,seedMs:",
+    "new": "}));__end(__counts);__end(__seed);return {counts,seedMs:"
+  },
+  {
+    "old": "\n});}",
+    "new": "\n }catch(__error){__timing.failed=true;throw __error;}finally{__timing.finishedMs=__now();}\n});}"
+  }
+]

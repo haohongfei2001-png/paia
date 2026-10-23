@@ -1,0 +1,13 @@
+{
+  "originalSHA256": "5bb5c14924b13690dfedb6f4cdbb1cc80ec9f225bbb00ce96b6483a6823e9e7b",
+  "instrumentedSHA256": "b5e4d3c16669a9993d3816fa074b10f13cc4a05debcf855ec4b9ced17ae7d23e",
+  "reversibleOriginalBytes": true,
+  "originalAwaitCount": 25,
+  "instrumentedAwaitCount": 25,
+  "unchangedCaseAfterRemovingEvidenceExport": true,
+  "caseTimeoutMs": 300000,
+  "testCases": 1,
+  "originalCountsAndBatchBoundsPreserved": true,
+  "internalHookVsNativeCommit": "UNKNOWN; combined post-callback transaction wait",
+  "constructionMetric": "Input record/block/document object construction only; index-factory CPU remains in dispatch bucket. Entry object construction inseparable from dispatch without reordering and left UNKNOWN."
+}

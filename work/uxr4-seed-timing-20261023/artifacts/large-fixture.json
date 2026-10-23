@@ -1,0 +1,24 @@
+{
+  "seed": {
+    "counts": {
+      "inputs": 100000,
+      "documents": 1000,
+      "topics": 300,
+      "entries": 5000
+    },
+    "seedMs": 84714.5,
+    "pulses": 4081,
+    "topicId": "804d25ab-98af-4005-a4cc-1a33b9654dc9"
+  },
+  "search": {
+    "ms": 159,
+    "reads": 672,
+    "writes": 0,
+    "scans": 0,
+    "count": 40,
+    "scanned": 40,
+    "next": true
+  },
+  "retiredContextRejected": true,
+  "readCharacters": 50008
+}

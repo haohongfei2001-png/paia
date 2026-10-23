@@ -1,0 +1,10 @@
+{
+  "singleOriginalScaleRun": true,
+  "completeInputBatches": 200,
+  "completeEntryBatches": 10,
+  "completeSourceVectorUnchanged": true,
+  "observationsMonotonic": true,
+  "phaseSchemaBodyFree": true,
+  "fullConversationCount": 70,
+  "commentsUnchangedFromStart": true
+}

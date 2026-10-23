@@ -1,0 +1,30 @@
+import {openRetainedSearchComponent} from 'file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/harness/retained-search-component.mjs';
+import {settleContextCapture,assertContextUnavailable,assertNoContextSession,contextSafetySnapshot,observeContextEffects,assertNoContextEffects} from 'file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/current-context-scope-helper.mjs';
+import {seedUXLarge} from 'file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/uxr4-seed-timing-20261023/instrumented-ux-large.mjs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {FakeChatGPT} from 'file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/harness/fake-chatgpt.mjs';
+const dir=new URL('./artifacts/',import.meta.url);
+await mkdir(dir,{recursive:true});
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+async function until(fn,label='condition',attempts=120){for(let i=0;i<attempts;i++){if(await fn())return;await pause(100);}throw Error('Timed out: '+label);}
+const rpc=(p,type,fields={})=>p.evaluate(async x=>{const r=await chrome.runtime.sendMessage(x);if(!r?.ok)throw Error(JSON.stringify(r));return r.data;},{type,...fields});
+async function waitForStableDataGeneration(p,label='portable data generation settles'){
+ let previous=null,stable=0;
+ await until(async()=>{
+  const current=await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js');
+   const s=new OrganizerStore(chrome.storage.local);
+   return s.run(()=>s.repository.transaction(false,async t=>(await t.get('meta','backup-data-generation'))?.value||0,['meta']));
+  });
+  if(current===previous)stable++;else{previous=current;stable=0;}
+  return stable>=4;
+ },label,80);
+}
+async function start(messages){const h=await FakeChatGPT.start(),p=h.archive;try{await mkdir(dir,{recursive:true});await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();await until(async()=>(await rpc(p,'GET_STATUS')).consented);const chat=await h.open({id:'uxr4-synthetic',title:'UX-R4 synthetic',base:1609459200,messages:messages.map((text,i)=>({id:'uxr4-input-'+i,text}))});await until(async()=>(await h.state()).records.length===messages.length,'fixture capture');return {h,p,chat};}catch(e){await h.close();throw e;}}
+async function search(p,q){await p.evaluate(()=>{if(globalThis.__uxr4Search)return;globalThis.__uxr4Search=[];const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async(...args)=>{const result=await send(...args);if(args[0]?.type==='SEARCH_INPUTS')globalThis.__uxr4Search.push({options:args[0].options,ok:result.ok,error:result.error,count:result.data?.items?.length,cursor:result.data?.nextCursor});return result;};});assert.equal(await p.locator('#universal-search-open').isVisible(),false);assert.equal(await p.locator('#archive-select-materials').count(),0);await openRetainedSearchComponent(p,{types:['input','thought','ai']});await p.getByRole('searchbox',{name:'全局搜索'}).fill(q);await until(async()=>(await p.locator('#universal-search-dialog').getAttribute('data-query'))===q&&await p.locator('.universal-hit').count()>0,'completed query');}
+const clean=h=>{assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);};
+test('UX-R4 F-LARGE search and direct long Input reuse stay bounded; retired Context refuses full long Input without truncation',{timeout:300000},async()=>{const h=await FakeChatGPT.start(),p=h.archive;try{await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();await until(async()=>(await rpc(p,'GET_STATUS')).consented);const seed=await seedUXLarge(p);assert.deepEqual(seed.counts,{inputs:100000,documents:1000,topics:300,entries:5000});const measure=await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js');const s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();s.repository.metrics={reads:0,writes:0,scans:0};const start=performance.now(),page=await s.searchInputs({universal:true,paged:true,query:'',documentId:'document:large-501',types:['input'],limit:40});return {ms:performance.now()-start,...s.repository.metrics,count:page.items.length,scanned:page.scanned,next:!!page.nextCursor};});assert.equal(measure.count,40);assert.ok(measure.scanned<=200);assert.equal(measure.writes,0);await search(p,'Synthetic');assert.ok(await p.locator('.universal-hit').count()<=40);await p.screenshot({path:new URL('large-search.png',dir).pathname});await p.locator('.universal-close').click();const input=await rpc(p,'GET_INPUT',{id:'block:large-record-00050110'});const original=await p.evaluate(async id=>{const {OrganizerStore}=await import('../core/organizer/store.js'),store=new OrganizerStore(chrome.storage.local);return store.run(()=>store.repository.transaction(false,async t=>(await t.get('records',id)).value.originalText,['records']));},input.originalTextReference);const readable=input.libraryText??original;assert.ok(readable.includes('中'.repeat(50000)),'full long Input resolves its preserved Source without truncation or Tray');for(const action of ['create','add','task','compile','confirmReview','share']){const result=await p.evaluate(action=>chrome.runtime.sendMessage({type:'PAIA_CONTEXT_MANUAL',options:{action}}),action);assert.equal(result.error,'FEATURE_UNAVAILABLE');}assert.deepEqual(await rpc(p,'GET_INPUT',{id:input.id}),input);await writeFile(new URL('large-fixture.json',dir),JSON.stringify({seed,search:measure,retiredContextRejected:true,readCharacters:readable.length},null,2));
+ clean(h);
+ }finally{try{await writeFile(new URL('phases.json',dir),JSON.stringify(await p.evaluate(()=>globalThis.__uxr4SeedTiming??null),null,2)+'\n');}catch(__exportError){console.error('DIAGNOSTIC_EXPORT_UNAVAILABLE');}await h.close();}});

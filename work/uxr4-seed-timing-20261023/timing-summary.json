@@ -1,0 +1,135 @@
+{
+  "run": {
+    "startedAtUtc": "2026-10-23T01:21:38.379415+00:00",
+    "command": [
+      "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+      "--test",
+      "--test-concurrency=1",
+      "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/uxr4-seed-timing-20261023/diagnostic.test.mjs"
+    ],
+    "cwd": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension",
+    "environment": {
+      "PAIA_HEADLESS": "1",
+      "PAIA_TEST_CONCURRENCY": "1",
+      "PLAYWRIGHT_MODULE": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/node_modules/playwright",
+      "PYTHON": "/opt/homebrew/opt/python@3.12/bin/python3.12"
+    },
+    "node": "22.23.3",
+    "npm": "10.9.9",
+    "python": "3.12.14",
+    "playwright": "1.63.0",
+    "chrome": "156.0.8078.47",
+    "platform": "darwin-arm64",
+    "timeoutMs": 300000,
+    "maximumRuns": 1,
+    "inputs": 100000,
+    "documents": 1000,
+    "topics": 300,
+    "entries": 5000,
+    "batch": 500,
+    "exitCode": 0,
+    "wallMs": 87771.06854198792,
+    "finishedAtUtc": "2026-10-23T01:23:06.151028+00:00",
+    "sourcesUnchanged": true
+  },
+  "failed": false,
+  "phaseDurationsMs": {
+    "template": 42.70000000298023,
+    "clear": 6.5999999940395355,
+    "seed-including-final-counts": 84714.5,
+    "sequence": 3.7000000029802322,
+    "topic-entry-owner-and-template-reads": 231.70000000298023,
+    "final-four-counts": 73.29999999701977
+  },
+  "batchGroups": {
+    "inputs": {
+      "started": 200,
+      "completed": 200,
+      "completedUnits": 100000,
+      "metrics": {
+        "transactionTotalMs": {
+          "sum": 83246.69999998808,
+          "min": 251.5,
+          "max": 793.9000000059605,
+          "median": 380.34999999403954
+        },
+        "callbackEntryWaitMs": {
+          "sum": 7.099999964237213,
+          "min": 0.0,
+          "max": 0.20000000298023224,
+          "median": 0.0
+        },
+        "dispatchIncludingConstructionMs": {
+          "sum": 1013.1000000536442,
+          "min": 3.2000000029802322,
+          "max": 8.700000002980232,
+          "median": 4.700000002980232
+        },
+        "promiseWaitMs": {
+          "sum": 60054.0000000149,
+          "min": 159.20000000298023,
+          "max": 690.5999999940395,
+          "median": 268.70000000298023
+        },
+        "postPromiseRepositoryCompletionMs": {
+          "sum": 22172.499999955297,
+          "min": 84.79999999701977,
+          "max": 362.29999999701977,
+          "median": 103.90000000596046
+        },
+        "partialObjectConstructionMs": {
+          "sum": 122.49999979138374,
+          "note": "Subset of dispatch; not additive. Input record/block/document objects only. Index factories remain in dispatch. Entry construction UNKNOWN."
+        }
+      }
+    },
+    "entries": {
+      "started": 10,
+      "completed": 10,
+      "completedUnits": 5000,
+      "metrics": {
+        "transactionTotalMs": {
+          "sum": 1159.0,
+          "min": 76.70000000298023,
+          "max": 289.70000000298023,
+          "median": 94.45000000298023
+        },
+        "callbackEntryWaitMs": {
+          "sum": 0.3999999910593033,
+          "min": 0.0,
+          "max": 0.20000000298023224,
+          "median": 0.0
+        },
+        "dispatchIncludingConstructionMs": {
+          "sum": 3.5999999940395355,
+          "min": 0.09999999403953552,
+          "max": 1.1000000089406967,
+          "median": 0.20000000298023224
+        },
+        "promiseWaitMs": {
+          "sum": 1145.0999999940395,
+          "min": 75.29999999701977,
+          "max": 288.29999999701977,
+          "median": 93.20000000298023
+        },
+        "postPromiseRepositoryCompletionMs": {
+          "sum": 9.900000020861626,
+          "min": 0.7000000029802322,
+          "max": 1.2000000029802322,
+          "median": 1.0
+        },
+        "partialObjectConstructionMs": {
+          "sum": null,
+          "note": "Subset of dispatch; not additive. Input record/block/document objects only. Index factories remain in dispatch. Entry construction UNKNOWN."
+        }
+      }
+    }
+  },
+  "limitations": [
+    "One macOS arm64 Source run, not Linux or cloud capacity certification.",
+    "Observation overhead unmeasured; no second run.",
+    "Post-Promise time combines original hooks, metadata flush, generation/fences, strict native completion and continuation; individual components UNKNOWN.",
+    "No native IDB event instrumentation or root cause attribution.",
+    "Original tests and production sources unchanged."
+  ]
+}

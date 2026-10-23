@@ -1,0 +1,43 @@
+{
+  "cases": [
+    {
+      "scenario": "success",
+      "pass": true,
+      "originalTraceEqual": true,
+      "originalErrorIdentityPreserved": false,
+      "fullScaleExecuted": false,
+      "traceEvents": 88,
+      "syntheticWrites": 41
+    },
+    {
+      "scenario": "put",
+      "pass": true,
+      "originalTraceEqual": true,
+      "originalErrorIdentityPreserved": true,
+      "fullScaleExecuted": false,
+      "traceEvents": 29,
+      "syntheticWrites": 14
+    },
+    {
+      "scenario": "commit",
+      "pass": true,
+      "originalTraceEqual": true,
+      "originalErrorIdentityPreserved": true,
+      "fullScaleExecuted": false,
+      "traceEvents": 30,
+      "syntheticWrites": 14
+    },
+    {
+      "scenario": "count",
+      "pass": true,
+      "originalTraceEqual": true,
+      "originalErrorIdentityPreserved": true,
+      "fullScaleExecuted": false,
+      "traceEvents": 84,
+      "syntheticWrites": 41
+    }
+  ],
+  "realIDB": false,
+  "realBrowser": false,
+  "fullScale": false
+}
