@@ -1,3 +1,6 @@
+> Current home: **Atelier V10**, presentation-led, with optional independent demo.
+> See [atelier/README.md](atelier/README.md) and [the V10 receipt](receipts/ATELIER_V10_2026-10-23.md).
+
 > The current homepage is Atelier V9. See [atelier/README.md](atelier/README.md)
 > for its paired templates, existing-generator integration and verification.
 > The prior homepage notes below remain historical; interior/demo ownership is unchanged.

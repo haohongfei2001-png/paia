@@ -95,7 +95,10 @@ for relative in ('index.html', 'zh/index.html'):
     doc = Document(source)
     check('Watch the film' not in source and 'A PAIA user' not in source, f'{relative}: no invented film or testimonial')
     if ATELIER:
-        check(sum('data-pd-tab' in attrs for _, attrs in doc.tags) == 3, f'{relative}: three approved Atelier spaces')
+        if 'data-atelier-version="10"' in source:
+            check({'archive','thoughts','context'}.issubset({a.get('id') for _,a in doc.tags}),f'{relative}: three spaces retain distinct presentation')
+        else:
+            check(sum('data-pd-tab' in attrs for _, attrs in doc.tags) == 3, f'{relative}: three approved Atelier spaces')
     else:
         check(sum('data-product-hero' in attrs for _, attrs in doc.tags) == 1, f'{relative}: current product-led opening exists')
         check([attrs['data-hero-space'] for _, attrs in doc.tags if 'data-hero-space' in attrs] == ['archive', 'thought', 'context'], f'{relative}: three approved product spaces')
@@ -479,8 +482,12 @@ try:
             load(page, locale + 'index.html', scripts=False)
             if ATELIER:
                 check(page.locator('h1').is_visible() and page.locator('#archive').is_visible() and page.locator('#context').is_visible(), f'{locale}: static core content without JS')
-                check(page.locator('#pd-panel-thought').is_visible() and page.locator('#pd-demo').is_visible(), f'{locale}: product-led first view works without JavaScript')
-                check(page.locator('#topic-prose article').count()==2 and page.locator('#topic-prose').is_visible(), f'{locale}: complete topic presentation without JavaScript')
+                if page.locator('body').get_attribute('data-atelier-version')=='10':
+                    check(page.locator('.p10-found-quote').is_visible(),f'{locale}: complete archive illustration without JavaScript')
+                    check(page.locator('.p10-phrase').count()==3 and page.locator('.p10-mind-paper').is_visible(),f'{locale}: complete thought illustration without JavaScript')
+                else:
+                    check(page.locator('#pd-panel-thought').is_visible() and page.locator('#pd-demo').is_visible(), f'{locale}: product-led first view works without JavaScript')
+                    check(page.locator('#topic-prose article').count()==2 and page.locator('#topic-prose').is_visible(), f'{locale}: complete topic presentation without JavaScript')
             else:
                 check(page.locator('h1').is_visible() and page.locator('#input-library').is_visible() and page.locator('#personal-context').is_visible(), f'{locale}: static core content without JS')
                 check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-hero-glass]').is_visible(), f'{locale}: product-led first view works without JavaScript')
