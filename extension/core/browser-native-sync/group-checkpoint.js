@@ -299,6 +299,9 @@ export class GroupedCheckpointRestore{
    await requireSourceWorkingMergeBase(this.store,this.live,this.stage,t,p);
    for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
    for(const [g,cap]of applications){current();if(g.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(g.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else await working.applyRestored(t,cap,sources);await this.checkpoint('source-working-applied-group',g.id);}
+   // Original owners may not mutate the staged cursor or replace the prior
+   // chronology before this coordinator performs its exact transition.
+   if(!equal(await this.stage.get(t,'restore'),state)||!equal((await t.get('meta',p.timeline.id))??null,p.snapshot.meta.find(r=>r.id===p.timeline.id)??null))fail('BNS_RESTORE_STAGE_CHANGED');
    if(await this.live.get(t,'mergeCommit',this.restoreId))fail('BNS_RESTORE_ID_COLLISION');
    await this.live.put(t,'mergeCommit',[this.restoreId],{version:1,restoreId:this.restoreId,namespace:p.namespace,epoch:state.base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:p.merged.digest,receipts});await t.put('meta',p.timeline);
    await this.stage.put(t,'restore',[],{...withoutId(state),phase:'merged',mergeNamespace:p.namespace,mergeDigest:p.merged.digest,mergeReceipts:receipts});
@@ -317,6 +320,9 @@ export class GroupedCheckpointRestore{
    for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
    if(humanApplication)await requireHumanGroupApplication(t,humanApplication);
    for(const[g,cap]of applications){if(g.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,g.id);else if(g.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(g.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(g.type==='inputWorkingCommit')await working.applyRestored(t,cap,sources);else if((await manual.applyInTransaction(t,g.operations[0])).state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');await this.checkpoint('mixed-applied-group',g.id);}
+   // Original owners may not mutate the staged cursor or replace the prior
+   // chronology before this coordinator performs its exact transition.
+   if(!equal(await this.stage.get(t,'restore'),state)||!equal((await t.get('meta',p.timeline.id))??null,p.snapshot.meta.find(r=>r.id===p.timeline.id)??null))fail('BNS_RESTORE_STAGE_CHANGED');
    if(await this.live.get(t,'mergeCommit',this.restoreId))fail('BNS_RESTORE_ID_COLLISION');
    await this.live.put(t,'mergeCommit',[this.restoreId],{version:1,restoreId:this.restoreId,namespace:p.namespace,epoch:state.base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:p.merged.digest,receipts});await t.put('meta',p.timeline);await this.stage.put(t,'restore',[],{...withoutId(state),phase:'merged',mergeNamespace:p.namespace,mergeDigest:p.merged.digest,mergeReceipts:receipts});
    await sealMixedNonemptyResult(this.store,this.live,this.stage,t,p,started,resultProof);await this.checkpoint('before-mixed-commit',t);return {state:'activated',namespace:p.namespace,merged:true};
