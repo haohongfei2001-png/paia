@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: all original extension pages must freeze and recheck; unacknowledged owner can flush before global fence
+ok 1 - all original extension pages must freeze and recheck; unacknowledged owner can flush before global fence
+  ---
+  duration_ms: 7.690917
+  type: 'test'
+  ...
+# Subtest: original owner refusing dirty never issues a freeze proof
+ok 2 - original owner refusing dirty never issues a freeze proof
+  ---
+  duration_ms: 0.729667
+  type: 'test'
+  ...
+# Subtest: original owner refusing ime never issues a freeze proof
+ok 3 - original owner refusing ime never issues a freeze proof
+  ---
+  duration_ms: 0.414209
+  type: 'test'
+  ...
+# Subtest: original owner refusing unknown never issues a freeze proof
+ok 4 - original owner refusing unknown never issues a freeze proof
+  ---
+  duration_ms: 0.374334
+  type: 'test'
+  ...
+# Subtest: original owner refusing save-failed never issues a freeze proof
+ok 5 - original owner refusing save-failed never issues a freeze proof
+  ---
+  duration_ms: 0.862916
+  type: 'test'
+  ...
+# Subtest: missing or unregistered page, duplicate/unknown document and unavailable inventory refuse
+ok 6 - missing or unregistered page, duplicate/unknown document and unavailable inventory refuse
+  ---
+  duration_ms: 0.446916
+  type: 'test'
+  ...
+# Subtest: disconnect while owner flush is pending rejects instead of treating missing page as saved
+ok 7 - disconnect while owner flush is pending rejects instead of treating missing page as saved
+  ---
+  duration_ms: 0.35175
+  type: 'test'
+  ...
+# Subtest: new document or changed inventory invalidates the held freeze
+ok 8 - new document or changed inventory invalidates the held freeze
+  ---
+  duration_ms: 0.529542
+  type: 'test'
+  ...
+# Subtest: fresh challenge rechecks original owner and input invalidation revokes the old ACK
+ok 9 - fresh challenge rechecks original owner and input invalidation revokes the old ACK
+  ---
+  duration_ms: 0.529334
+  type: 'test'
+  ...
+# Subtest: page blocks interaction until registered, during freeze and after disconnect without clearing text
+ok 10 - page blocks interaction until registered, during freeze and after disconnect without clearing text
+  ---
+  duration_ms: 0.414459
+  type: 'test'
+  ...
+# Subtest: caller objects and another issuer cannot substitute for a private extension-only freeze proof
+ok 11 - caller objects and another issuer cannot substitute for a private extension-only freeze proof
+  ---
+  duration_ms: 0.345417
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 47.398291

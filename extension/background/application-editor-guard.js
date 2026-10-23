@@ -1,0 +1,63 @@
+import {ArchiveError} from '../core/constants.js';
+import {topicRootTarget} from '../core/topic-root-target.js';
+export const APPLICATION_EDITOR_PORT='paia-application-editor-guard:v1';
+const records=new WeakMap(),limit=64;
+const fail=()=>{throw new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED');};
+const exact=(value,keys)=>value&&Object.getPrototypeOf(value)===Object.prototype&&Reflect.ownKeys(value).length===keys.length&&keys.every(key=>Object.hasOwn(Object.getOwnPropertyDescriptors(value)[key]??{},'value'));
+const validId=id=>typeof id==='string'&&id.length>0&&id.length<=128;
+function page(api,url){
+ if(typeof url!=='string')return false;
+ const archive=api.runtime.getURL('ui/archive.html'),popup=api.runtime.getURL('ui/popup.html'),prompt=api.runtime.getURL('ui/prompt-surface.html');
+ return url===archive||url===popup||url.startsWith(archive+'#')&&topicRootTarget(url)!==null||url===prompt||url.startsWith(prompt+'#')&&/^#(?:next-)?[A-Za-z0-9_-]{8,128}$/.test(url.slice(prompt.length));
+}
+// This issuer proves extension-document quiescence only. It deliberately does
+// not issue a backend activation capability: content-script and background
+// writers require their own original-owner proof before composition is allowed.
+export function createApplicationEditorGuard(api){
+ const members=new Map();let generation=0,active=null,closed=false;
+ const post=(member,message)=>{try{member.port.postMessage(message);}catch{invalidate();}};
+ function invalidate(){generation++;if(active){active.valid=false;for(const member of active.members)member.reject?.(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));}}
+ function connect(port){
+  if(port?.name!==APPLICATION_EDITOR_PORT)return false;
+  const s=port.sender;
+  if(closed||s?.id!==api.runtime.id||s.tab?.incognito||!validId(s.documentId)||!page(api,s.url)||s.documentLifecycle&&s.documentLifecycle!=='active'||!Number.isInteger(s.frameId)||s.frameId<0||members.has(s.documentId)||members.size>=limit){invalidate();try{port.disconnect();}catch{}return true;}
+  invalidate();const member={port,id:s.documentId,url:s.url,frameId:s.frameId,ready:false,ack:null,check:null,resolve:null,reject:null};members.set(member.id,member);
+  const disconnect=()=>{if(members.get(member.id)===member){members.delete(member.id);invalidate();}member.reject?.(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));};
+  port.onDisconnect.addListener(disconnect);
+  port.onMessage.addListener(value=>{
+   if(exact(value,['type','version'])&&value.type==='READY'&&value.version===1&&!member.ready&&!active){member.ready=true;generation++;post(member,{type:'REGISTERED',version:1});return;}
+   if(exact(value,['type','nonce'])&&['FROZEN','DENIED','INVALIDATED'].includes(value.type)&&active&&value.nonce===active.nonce&&active.members.includes(member)){
+    if(value.type!=='FROZEN'||member.ack!==null){invalidate();return;}
+    member.ack=value.nonce;member.resolve?.();return;
+   }
+   if(exact(value,['type','nonce','challenge'])&&value.type==='CHECKED'&&active&&value.nonce===active.nonce&&value.challenge===active.challenge&&active.members.includes(member)&&member.check===null){member.check=value.challenge;member.resolve?.();return;}
+   invalidate();
+  });
+  if(active)try{port.disconnect();}catch{}
+  return true;
+ }
+ async function inventory(){
+  if(closed||typeof api.runtime.getContexts!=='function')fail();
+  const contexts=await api.runtime.getContexts({});if(!Array.isArray(contexts)||contexts.length>limit+1)fail();
+  const result=[];for(const c of contexts){if(c?.contextType==='BACKGROUND')continue;if(!c||!validId(c.documentId)||!page(api,c.documentUrl)||c.incognito!==false||!Number.isInteger(c.frameId)||c.frameId<0||result.some(x=>x.documentId===c.documentId))fail();result.push({documentId:c.documentId,url:c.documentUrl,frameId:c.frameId});}
+  result.sort((a,b)=>a.documentId.localeCompare(b.documentId));if(result.length!==members.size||!result.length)fail();
+  for(const c of result){const m=members.get(c.documentId);if(!m?.ready||m.url!==c.url||m.frameId!==c.frameId)fail();}return result;
+ }
+ const checked=(token,allowChecking=false)=>{const r=records.get(token);if(!r||r.owner!==owner||r!==active||!r.valid||r.checking&&!allowChecking||r.generation!==generation||r.members.some(m=>members.get(m.id)!==m||m.ack!==r.nonce))fail();return r;};
+ const owner=Object.freeze({connect,
+  async freezeExtensionPages(senderDocumentId){
+   if(active||closed||!validId(senderDocumentId))fail();const first=await inventory();if(active||closed||!first.some(c=>c.documentId===senderDocumentId))fail();
+   const token=Object.freeze(Object.create(null)),r={owner,valid:true,generation,nonce:crypto.randomUUID(),members:[...members.values()],inventory:first,fenced:false,challenge:null,checking:false};active=r;records.set(token,r);
+   try{
+    const waiting=Promise.all(r.members.map(member=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>{invalidate();reject(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));},30000);member.ack=null;member.resolve=()=>{clearTimeout(timer);resolve();};member.reject=error=>{clearTimeout(timer);reject(error);};})));
+    for(const member of r.members)post(member,{type:'PREPARE',nonce:r.nonce});await waiting;
+    await owner.fenceExtensionPages(token);return token;
+   }catch(error){owner.release(token);throw error;}
+  },
+  assertFrozenExtensionPages(token){checked(token);return true;},
+  async fenceExtensionPages(token){const r=checked(token);try{r.checking=true;r.fenced=true;r.challenge=crypto.randomUUID();const waiting=Promise.all(r.members.map(member=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>{invalidate();reject(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));},30000);member.check=null;member.resolve=()=>{clearTimeout(timer);resolve();};member.reject=error=>{clearTimeout(timer);reject(error);};})));for(const member of r.members)post(member,{type:'CHECK',nonce:r.nonce,challenge:r.challenge});await waiting;checked(token,true);const now=await inventory();checked(token,true);if(JSON.stringify(now)!==JSON.stringify(r.inventory)||r.members.some(m=>m.check!==r.challenge))fail();r.checking=false;return true;}catch(error){invalidate();throw error;}},
+  release(token){const r=records.get(token);if(!r||r.owner!==owner)return;records.delete(token);if(active===r){active=null;generation++;}r.valid=false;for(const member of r.members){member.resolve=null;member.reject=null;member.ack=null;post(member,{type:'RELEASE',nonce:r.nonce});}},
+  blocksMutation(sender){if(closed)return true;if(!active)return false;if(active.fenced)return true;const member=members.get(sender?.documentId);return !member||member.ack===active.nonce;},
+  close(){closed=true;invalidate();for(const m of members.values())try{m.port.disconnect();}catch{}members.clear();}
+ });return owner;
+}
