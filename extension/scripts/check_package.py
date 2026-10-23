@@ -335,6 +335,13 @@ def audit_js(path, text):
         "core/browser-native-sync/providers/google-drive-http.js": {
             "https://www.googleapis.com",
         },
+        "core/browser-native-sync/providers/onedrive.js": {
+            "https://graph.microsoft.com/v1.0/me/drive",
+            "https://graph.microsoft.com",
+        },
+        "core/browser-native-sync/providers/onedrive-http.js": {
+            "https://graph.microsoft.com",
+        },
     }.get(path.relative_to(ROOT).as_posix(), set())
     if sync_literals:
         require(sorted(m.group(1) for m in remote_literals) == sorted(sync_literals),

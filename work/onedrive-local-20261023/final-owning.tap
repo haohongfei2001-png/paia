@@ -1,0 +1,406 @@
+TAP version 13
+# Subtest: ephemeral authorization uses exact binding and restrictive native Request settings
+ok 1 - ephemeral authorization uses exact binding and restrictive native Request settings
+  ---
+  duration_ms: 9.252083
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP redirect before buffering
+ok 2 - reject and cancel unsafe HTTP redirect before buffering
+  ---
+  duration_ms: 2.440791
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP url before buffering
+ok 3 - reject and cancel unsafe HTTP url before buffering
+  ---
+  duration_ms: 1.025625
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP opaque before buffering
+ok 4 - reject and cancel unsafe HTTP opaque before buffering
+  ---
+  duration_ms: 0.493
+  type: 'test'
+  ...
+# Subtest: reject and cancel unsafe HTTP length before buffering
+ok 5 - reject and cancel unsafe HTTP length before buffering
+  ---
+  duration_ms: 1.909666
+  type: 'test'
+  ...
+# Subtest: stream byte limit works without Content-Length and never copies the oversized chunk
+ok 6 - stream byte limit works without Content-Length and never copies the oversized chunk
+  ---
+  duration_ms: 0.643084
+  type: 'test'
+  ...
+# Subtest: chunked exact-limit response copies only admitted bytes
+ok 7 - chunked exact-limit response copies only admitted bytes
+  ---
+  duration_ms: 0.280875
+  type: 'test'
+  ...
+# Subtest: invalid credential expired makes zero fetches and exposes no secret
+ok 8 - invalid credential expired makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.20175
+  type: 'test'
+  ...
+# Subtest: invalid credential identity makes zero fetches and exposes no secret
+ok 9 - invalid credential identity makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.237
+  type: 'test'
+  ...
+# Subtest: invalid credential scope makes zero fetches and exposes no secret
+ok 10 - invalid credential scope makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.236666
+  type: 'test'
+  ...
+# Subtest: invalid credential newline makes zero fetches and exposes no secret
+ok 11 - invalid credential newline makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.137291
+  type: 'test'
+  ...
+# Subtest: invalid credential exception makes zero fetches and exposes no secret
+ok 12 - invalid credential exception makes zero fetches and exposes no secret
+  ---
+  duration_ms: 0.102916
+  type: 'test'
+  ...
+# Subtest: aborted held issuer never sends a late token
+ok 13 - aborted held issuer never sends a late token
+  ---
+  duration_ms: 0.789625
+  type: 'test'
+  ...
+# Subtest: aborted held fetch cancels its late response body
+ok 14 - aborted held fetch cancels its late response body
+  ---
+  duration_ms: 0.459209
+  type: 'test'
+  ...
+# Subtest: abort during stalled body read settles and cancels without waiting for stream cancel completion
+ok 15 - abort during stalled body read settles and cancels without waiting for stream cancel completion
+  ---
+  duration_ms: 0.656125
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://evil.example/drive/v3/files
+ok 16 - reject uncontained endpoint before issuer https://evil.example/drive/v3/files
+  ---
+  duration_ms: 0.073375
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/me/drive/root/children
+ok 17 - reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/me/drive/root/children
+  ---
+  duration_ms: 0.128583
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/users/other/drive/special/approot
+ok 18 - reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/users/other/drive/special/approot
+  ---
+  duration_ms: 0.072667
+  type: 'test'
+  ...
+# Subtest: reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/me/drive/special/approot?$select=id&$select=id
+ok 19 - reject uncontained endpoint before issuer https://graph.microsoft.com/v1.0/me/drive/special/approot?$select=id&$select=id
+  ---
+  duration_ms: 0.035917
+  type: 'test'
+  ...
+# Subtest: fetch settlement and abort in one turn still cancel the unassigned response body
+ok 20 - fetch settlement and abort in one turn still cancel the unassigned response body
+  ---
+  duration_ms: 0.605292
+  type: 'test'
+  ...
+# Subtest: empty HTTP error body retains status without inventing a parse error
+ok 21 - empty HTTP error body retains status without inventing a parse error
+  ---
+  duration_ms: 0.1295
+  type: 'test'
+  ...
+# Subtest: stream exception is sanitized and cancelled without revealing secret text
+ok 22 - stream exception is sanitized and cancelled without revealing secret text
+  ---
+  duration_ms: 0.220208
+  type: 'test'
+  ...
+# Subtest: request cannot swap URL or headers while credential issuer is pending
+ok 23 - request cannot swap URL or headers while credential issuer is pending
+  ---
+  duration_ms: 0.18425
+  type: 'test'
+  ...
+# Subtest: zero-byte stream cannot evade the bounded read count
+ok 24 - zero-byte stream cannot evade the bounded read count
+  ---
+  duration_ms: 22.589375
+  type: 'test'
+  ...
+# Subtest: preauthenticated GET assets never request or send Graph token
+ok 25 - preauthenticated GET assets never request or send Graph token
+  ---
+  duration_ms: 0.224791
+  type: 'test'
+  ...
+# Subtest: preauthenticated PUT assets never request or send Graph token
+ok 26 - preauthenticated PUT assets never request or send Graph token
+  ---
+  duration_ms: 0.432958
+  type: 'test'
+  ...
+# Subtest: signed asset bearer rejected before token or fetch
+ok 27 - signed asset bearer rejected before token or fetch
+  ---
+  duration_ms: 0.091458
+  type: 'test'
+  ...
+# Subtest: signed asset wrong-host rejected before token or fetch
+ok 28 - signed asset wrong-host rejected before token or fetch
+  ---
+  duration_ms: 0.035583
+  type: 'test'
+  ...
+# Subtest: signed asset wrong-kind rejected before token or fetch
+ok 29 - signed asset wrong-kind rejected before token or fetch
+  ---
+  duration_ms: 0.02775
+  type: 'test'
+  ...
+# Subtest: signed asset wrong-range rejected before token or fetch
+ok 30 - signed asset wrong-range rejected before token or fetch
+  ---
+  duration_ms: 0.027917
+  type: 'test'
+  ...
+# Subtest: exact transport composes bounded native Request HTTP with unsigned upload/download and immutable readback
+ok 31 - exact transport composes bounded native Request HTTP with unsigned upload/download and immutable readback
+  ---
+  duration_ms: 24.969041
+  type: 'test'
+  ...
+# Subtest: contained immutable upload session uses fail conflict and unsigned assets, exact read-back and restart reuse
+ok 32 - contained immutable upload session uses fail conflict and unsigned assets, exact read-back and restart reuse
+  ---
+  duration_ms: 33.163041
+  type: 'test'
+  ...
+# Subtest: lost upload result is read back by same immutable name after adapter restart, no duplicate PUT
+ok 33 - lost upload result is read back by same immutable name after adapter restart, no duplicate PUT
+  ---
+  duration_ms: 15.583875
+  type: 'test'
+  ...
+# Subtest: lost session creation refuses blind retry with no recoverable expiry or completed object
+ok 34 - lost session creation refuses blind retry with no recoverable expiry or completed object
+  ---
+  duration_ms: 12.511875
+  type: 'test'
+  ...
+# Subtest: wrong object bytes are rejected before root access or allocation
+ok 35 - wrong object bytes are rejected before root access or allocation
+  ---
+  duration_ms: 10.069583
+  type: 'test'
+  ...
+# Subtest: reject unqualified scope without request
+ok 36 - reject unqualified scope without request
+  ---
+  duration_ms: 9.501958
+  type: 'test'
+  ...
+# Subtest: reject unqualified tenant without request
+ok 37 - reject unqualified tenant without request
+  ---
+  duration_ms: 8.975875
+  type: 'test'
+  ...
+# Subtest: reject unqualified client without request
+ok 38 - reject unqualified client without request
+  ---
+  duration_ms: 9.117
+  type: 'test'
+  ...
+# Subtest: reject remote parent and preserve all remote objects
+ok 39 - reject remote parent and preserve all remote objects
+  ---
+  duration_ms: 11.407834
+  type: 'test'
+  ...
+# Subtest: reject remote drive and preserve all remote objects
+ok 40 - reject remote drive and preserve all remote objects
+  ---
+  duration_ms: 12.37475
+  type: 'test'
+  ...
+# Subtest: reject remote remoteItem and preserve all remote objects
+ok 41 - reject remote remoteItem and preserve all remote objects
+  ---
+  duration_ms: 10.533875
+  type: 'test'
+  ...
+# Subtest: reject remote size and preserve all remote objects
+ok 42 - reject remote size and preserve all remote objects
+  ---
+  duration_ms: 9.947542
+  type: 'test'
+  ...
+# Subtest: reject remote etag and preserve all remote objects
+ok 43 - reject remote etag and preserve all remote objects
+  ---
+  duration_ms: 11.554125
+  type: 'test'
+  ...
+# Subtest: reject remote download-host and preserve all remote objects
+ok 44 - reject remote download-host and preserve all remote objects
+  ---
+  duration_ms: 10.223875
+  type: 'test'
+  ...
+# Subtest: reject remote bytes and preserve all remote objects
+ok 45 - reject remote bytes and preserve all remote objects
+  ---
+  duration_ms: 9.809
+  type: 'test'
+  ...
+# Subtest: typed HTTP 401 stops with no retry and no provider message
+ok 46 - typed HTTP 401 stops with no retry and no provider message
+  ---
+  duration_ms: 8.576625
+  type: 'test'
+  ...
+# Subtest: typed HTTP 403 stops with no retry and no provider message
+ok 47 - typed HTTP 403 stops with no retry and no provider message
+  ---
+  duration_ms: 11.727333
+  type: 'test'
+  ...
+# Subtest: typed HTTP 429 stops with no retry and no provider message
+ok 48 - typed HTTP 429 stops with no retry and no provider message
+  ---
+  duration_ms: 8.690708
+  type: 'test'
+  ...
+# Subtest: typed HTTP 507 stops with no retry and no provider message
+ok 49 - typed HTTP 507 stops with no retry and no provider message
+  ---
+  duration_ms: 9.029417
+  type: 'test'
+  ...
+# Subtest: typed HTTP 500 stops with no retry and no provider message
+ok 50 - typed HTTP 500 stops with no retry and no provider message
+  ---
+  duration_ms: 8.618833
+  type: 'test'
+  ...
+# Subtest: held request close fences late results and settles once
+ok 51 - held request close fences late results and settles once
+  ---
+  duration_ms: 8.811666
+  type: 'test'
+  ...
+# Subtest: held request deadline has no retry
+ok 52 - held request deadline has no retry
+  ---
+  duration_ms: 28.370375
+  type: 'test'
+  ...
+# Subtest: changed appRoot cannot retarget existing transport
+ok 53 - changed appRoot cannot retarget existing transport
+  ---
+  duration_ms: 9.751333
+  type: 'test'
+  ...
+# Subtest: foreign files ignored, grouped discovery bounded and cursor cannot escape AppFolder
+ok 54 - foreign files ignored, grouped discovery bounded and cursor cannot escape AppFolder
+  ---
+  duration_ms: 14.775875
+  type: 'test'
+  ...
+# Subtest: OneDrive contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+ok 55 - OneDrive contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+  ---
+  duration_ms: 146.067541
+  type: 'test'
+  ...
+# Subtest: account invalidation after dispatched session is unknown and never retargeted
+ok 56 - account invalidation after dispatched session is unknown and never retargeted
+  ---
+  duration_ms: 11.135541
+  type: 'test'
+  ...
+# Subtest: account invalidation after dispatched upload is unknown and never retargeted
+ok 57 - account invalidation after dispatched upload is unknown and never retargeted
+  ---
+  duration_ms: 12.647791
+  type: 'test'
+  ...
+# Subtest: concurrent callers cannot create a second outstanding upload attempt
+ok 58 - concurrent callers cannot create a second outstanding upload attempt
+  ---
+  duration_ms: 10.350958
+  type: 'test'
+  ...
+# Subtest: oversized allowed 409 is rejected before copying or proceeding to upload
+ok 59 - oversized allowed 409 is rejected before copying or proceeding to upload
+  ---
+  duration_ms: 9.047708
+  type: 'test'
+  ...
+# Subtest: user edits between download and final metadata deny bytes without overwriting remote file
+ok 60 - user edits between download and final metadata deny bytes without overwriting remote file
+  ---
+  duration_ms: 9.966584
+  type: 'test'
+  ...
+# Subtest: provider signed upload http is refused before user bytes leave
+ok 61 - provider signed upload http is refused before user bytes leave
+  ---
+  duration_ms: 10.039208
+  type: 'test'
+  ...
+# Subtest: provider signed upload userinfo is refused before user bytes leave
+ok 62 - provider signed upload userinfo is refused before user bytes leave
+  ---
+  duration_ms: 8.790042
+  type: 'test'
+  ...
+# Subtest: provider signed upload arbitrary-host is refused before user bytes leave
+ok 63 - provider signed upload arbitrary-host is refused before user bytes leave
+  ---
+  duration_ms: 9.786375
+  type: 'test'
+  ...
+# Subtest: provider signed upload suffix-trick is refused before user bytes leave
+ok 64 - provider signed upload suffix-trick is refused before user bytes leave
+  ---
+  duration_ms: 10.390791
+  type: 'test'
+  ...
+# Subtest: forged next page cannot add query, change root, or send credentials outside exact endpoint
+ok 65 - forged next page cannot add query, change root, or send credentials outside exact endpoint
+  ---
+  duration_ms: 14.309875
+  type: 'test'
+  ...
+# Subtest: package allows exact inert provider Sync module URLs and rejects changed, duplicated or foreign-module URLs
+ok 66 - package allows exact inert provider Sync module URLs and rejects changed, duplicated or foreign-module URLs
+  ---
+  duration_ms: 81.403334
+  type: 'test'
+  ...
+1..66
+# tests 66
+# suites 0
+# pass 66
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 643.57275
