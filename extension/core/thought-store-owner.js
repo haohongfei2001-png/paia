@@ -38,6 +38,14 @@ export function planHumanEntryCreation(request,{id,at,sequence,exactSignature,ev
  refreshEntryIndex(row);return row;
 }
 
+// Original evidence rows shared by named planning and the real writer. Tokens
+// remain local; this pure computation grants no write or transport authority.
+export function planHumanEntryEvidence(request,e,{id,generationId,entryId,at,generator}) {
+ const provenance={id,ownerKind:'entry',ownerId:entryId,generationId,inputId:e.inputId,basedOnContentRevision:e.basedOnContentRevision,actualVersion:{inputRevision:e.basedOnContentRevision,projectionVersion:1,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests},role:e.role,contributionType:e.role==='context_only'?'context':request.formation==='synthesized'?'combination':'paraphrase',formation:request.formation,generatedAt:at,generator,inputAuthorshipAtUse:'working_input',entryFieldAuthorshipAtCommit:request.actor,sourceRecordIds:e.sourceRecordIds,sourceIdentityTokens:e.sourceIdentityTokens,scopeToken:e.scopeToken,versionToken:e.versionToken,availability:'resolvable',contributionKey:JSON.stringify([entryId,e.inputId,e.basedOnContentRevision,e.role,generationId])};
+ const dependency={id:JSON.stringify([e.inputId,'entry',entryId]),inputId:e.inputId,inputList:[e.inputId,entryId],thoughtId:entryId,targetKind:'entry',targetId:entryId,eligibilityEpochAtUse:e.epoch,basedOnContentRevision:e.basedOnContentRevision,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests,validatedAgainstContentRevision:e.basedOnContentRevision,status:'valid',roles:[e.role],sourceRecordIds:e.sourceRecordIds,scopeToken:e.scopeToken,versionToken:e.versionToken};
+ return {provenance,dependency};
+}
+
 export function planHumanEntryRemoval(row,request,evidence,{suppressionId,removedAt}) {
  const entry=structuredClone(row),suppression={id:suppressionId,deletedEntryId:row.id,lineageId:row.id,removedAt,operationId:request.operationId,status:'active',scopeVersion:1,scopeTokens:[...new Set(evidence.filter(e=>e.role!=='context_only').map(e=>e.scopeToken))],evidenceVersionTokens:[...new Set(evidence.filter(e=>e.role!=='context_only').map(e=>e.versionToken))],exactSignature:row.exactSignature,noveltyRuleVersion:1};
  entry.lifecycle='removed';entry.revision++;refreshEntryIndex(entry);return {entry,suppression};
@@ -152,8 +160,8 @@ class LibraryFoundationStore extends SmartFilterStore {
    const id=humanUuid(this,t),at=humanClock(this,t),sequence=await nextSequence(t),human=request.actor==='user';
    const row=planHumanEntryCreation(request,{id,at,sequence,exactSignature,evidence,nonContext});await t.put('thoughts',row);
    const generationId=humanUuid(this,t);for(const e of evidence) {
-    const p={id:this.uuid(),ownerKind:'entry',ownerId:id,generationId,inputId:e.inputId,basedOnContentRevision:e.basedOnContentRevision,actualVersion:{inputRevision:e.basedOnContentRevision,projectionVersion:1,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests},role:e.role,contributionType:e.role==='context_only'?'context':request.formation==='synthesized'?'combination':'paraphrase',formation:request.formation,generatedAt:at,generator,inputAuthorshipAtUse:'working_input',entryFieldAuthorshipAtCommit:request.actor,sourceRecordIds:e.sourceRecordIds,sourceIdentityTokens:e.sourceIdentityTokens,scopeToken:e.scopeToken,versionToken:e.versionToken,availability:'resolvable',contributionKey:JSON.stringify([id,e.inputId,e.basedOnContentRevision,e.role,generationId])};
-    await t.put('provenance',p);await t.put('dependencies',{id:JSON.stringify([e.inputId,'entry',id]),inputId:e.inputId,inputList:[e.inputId,id],thoughtId:id,targetKind:'entry',targetId:id,eligibilityEpochAtUse:e.epoch,basedOnContentRevision:e.basedOnContentRevision,selectedFields:e.selectedFields,fieldDigests:e.fieldDigests,validatedAgainstContentRevision:e.basedOnContentRevision,status:'valid',roles:[e.role],sourceRecordIds:e.sourceRecordIds,scopeToken:e.scopeToken,versionToken:e.versionToken});
+    const {provenance,dependency}=planHumanEntryEvidence(request,e,{id:humanUuid(this,t),generationId,entryId:id,at,generator});
+    await t.put('provenance',provenance);await t.put('dependencies',dependency);
    }
    await hooks.after?.(t,row,evidence);await t.put('thoughts',row);
    await journal(this,t,{kind:'library_entry',entityId:id,before:entrySnapshot(row),after:entrySnapshot(row),fieldMask:ENTRY_FIELDS,actor:request.actor,reason:'baseline',important:true,operationId:request.operationId,baseRevision:0,afterRevision:0,sourceRecordIds:row.sourceRecordIds});

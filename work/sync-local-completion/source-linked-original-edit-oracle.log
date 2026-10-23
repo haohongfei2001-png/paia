@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: exact Git original module and entire96-module static import closure is immutable
+ok 1 - exact Git original module and entire96-module static import closure is immutable
+  ---
+  duration_ms: 13.055083
+  type: 'test'
+  ...
+# Subtest: changed Entry fields, key order, expected-field order and protected intent retain exact original plans and actual owner writes
+ok 2 - changed Entry fields, key order, expected-field order and protected intent retain exact original plans and actual owner writes
+  ---
+  duration_ms: 90.008583
+  type: 'test'
+  ...
+# Subtest: original coalescence, exact sixty-second boundary and same-value receipt preserve allocation identity and counters
+ok 3 - original coalescence, exact sixty-second boundary and same-value receipt preserve allocation identity and counters
+  ---
+  duration_ms: 85.2545
+  type: 'test'
+  ...
+# Subtest: active and stale-layout membership touches inherit complete index metadata and ordered domain/index roles
+ok 4 - active and stale-layout membership touches inherit complete index metadata and ordered domain/index roles
+  ---
+  duration_ms: 118.351291
+  type: 'test'
+  ...
+# Subtest: removed/restored original Entry and preserved important history remain exact; stale CAS and duplicate refuse or return before allocation
+ok 5 - removed/restored original Entry and preserved important history remain exact; stale CAS and duplicate refuse or return before allocation
+  ---
+  duration_ms: 71.190292
+  type: 'test'
+  ...
+# Subtest: history-retirement and final original read-set races retain fail-closed original outcomes without writes
+ok 6 - history-retirement and final original read-set races retain fail-closed original outcomes without writes
+  ---
+  duration_ms: 51.498166
+  type: 'test'
+  ...
+# Subtest: original permission and field-level CAS boundaries remain before computation and unbound capabilities cannot write
+ok 7 - original permission and field-level CAS boundaries remain before computation and unbound capabilities cannot write
+  ---
+  duration_ms: 59.530416
+  type: 'test'
+  ...
+# Subtest: original topic-edit transaction writer preserves ordered allocations and rollback
+ok 8 - original topic-edit transaction writer preserves ordered allocations and rollback
+  ---
+  duration_ms: 32.994083
+  type: 'test'
+  ...
+# Subtest: original topic-rename transaction writer preserves ordered allocations and rollback
+ok 9 - original topic-rename transaction writer preserves ordered allocations and rollback
+  ---
+  duration_ms: 18.424959
+  type: 'test'
+  ...
+# Subtest: original section-edit transaction writer preserves ordered allocations and rollback
+ok 10 - original section-edit transaction writer preserves ordered allocations and rollback
+  ---
+  duration_ms: 17.137292
+  type: 'test'
+  ...
+# Subtest: public editTopic captures the validated changes object before its first await
+ok 11 - public editTopic captures the validated changes object before its first await
+  ---
+  duration_ms: 14.339042
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 802.558375
