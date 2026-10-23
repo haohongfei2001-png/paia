@@ -1,0 +1,40 @@
+{
+  "runtimeCommit": "6cd36385",
+  "historical23Preparation": {
+    "commit": "ea0260aa",
+    "executedNativeCases": 0,
+    "sha256": {
+      "work/qualified-recovery-budget-20261023/native-registration.json": "2b7068388ff650c2d97f72082ef892443251daa4fca66e3fe13a701c003c04b2",
+      "work/qualified-recovery-budget-20261023/native-preparation.json": "a7c2c9c2d2c1f5499199c4c14b6ad4a7da42b5ee98847b20ea37e4663c8d55e9",
+      "work/qualified-recovery-budget-20261023/qualified-human-budget-matrix.mjs": "606af092c903656585e5596e07153239f14413e897a5c0a98d9b646041cd9d2f",
+      "work/qualified-recovery-budget-20261023/prepare-native.mjs": "4fd2df8947aaf344d7ef93e3acfcae3eef05dc37b2222e914751f4a89dd43a7f",
+      "work/qualified-recovery-budget-20261023/check-native.mjs": "dfe635dc731178e85948ef869e5840e525bc407be61b33209ace60fd7bf9d779",
+      "work/qualified-recovery-budget-20261023/source-vector.json": "afee02557a653cf3cc80090f06bfc5331cf21c0975a7e19113be25516e75e218",
+      "work/qualified-recovery-budget-20261023/SHA256SUMS": "35133133c513b0157290c4b4ec436697aa925d49c0af2b6c80edd19300a765f3"
+    }
+  },
+  "current32Preparation": {
+    "registration": "control-native-registration.json",
+    "generated": "control-qualified-human-budget-matrix.mjs",
+    "summary": "control-native-preparation.json",
+    "executedCallbacks": 0
+  },
+  "finalNode": {
+    "dedicated": "control-final.tap",
+    "dedicatedTests": 32,
+    "finalOwning": "control-owning-final.tap",
+    "smallTestCount": 65,
+    "composition": [
+      32,
+      27,
+      6
+    ],
+    "largeGroupsExecuted": 0
+  },
+  "retainedFailureLogs": [
+    "control-first.tap",
+    "control-second.tap",
+    "control-expanded.tap",
+    "control-review-fixed.tap"
+  ]
+}
