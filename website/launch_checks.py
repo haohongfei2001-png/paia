@@ -32,26 +32,18 @@ def find(nodes,selector):
     return parents or []
 
 def verify_static_publication(root,check):
+    from evidence_fix_checks import restore_confirmed_edits
     original=json.loads((root/'website/launch_invariants.json').read_text())
-    from value_story_checks import active, verify_static
-    from continuity_checks import active as continuity_active, verify_static as continuity_static, restored_runtime
-    if continuity_active(root):
-        continuity_static(root,check)
-    elif active(root):
-        verify_static(root,check)
-    else:
-        for relative,entries in original['home'].items():
-            parsed=Fragments((root/relative).read_text())
-            for selector,expected in entries.items():
-                mapped = selector
-                if 'data-home-mode="presentation"' in parsed.source:
-                    mapped = {'.pc-record textarea':'.hp-input-text', '[data-thought-text]':'[data-story-original] .ad-story-entry p'}.get(selector,selector)
-                actual=[Text(parsed.outer(n)).value() for n in find(parsed,mapped)]
-                check(actual==expected,relative+': original expressions/value statement retained '+selector)
+    for relative,entries in original['home'].items():
+        parsed=Fragments(restore_confirmed_edits(relative,(root/relative).read_bytes()).decode())
+        for selector,expected in entries.items():
+            mapped = selector
+            if 'data-home-mode="presentation"' in parsed.source:
+                mapped = {'.pc-record textarea':'.hp-input-text', '[data-thought-text]':'[data-story-original] .ad-story-entry p'}.get(selector,selector)
+            actual=[Text(parsed.outer(n)).value() for n in find(parsed,mapped)]
+            check(actual==expected,relative+': original expressions/value statement retained '+selector)
     for relative,sha in original['unmodified_runtime'].items():
         data=(root/relative).read_bytes()
-        if relative == 'assets/website/home-core-v2.js' and continuity_active(root):
-            data=restored_runtime(root)
         if relative == 'assets/website/product-experience.css':
             from brand_adoption_checks import restore_approved_brand
             data=restore_approved_brand(relative,data)
@@ -129,10 +121,8 @@ if __name__=='__main__':
                             check(page.locator('h1').is_visible(),tag+'visible heading')
                             check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),tag+'normal text stays in viewport')
                             if route=='index.html':
-                                refined = page.locator('body').get_attribute('data-site-revision') in ('20261022','continuity-v2')
-                                check(page.locator('.hero-actions a').first.get_attribute('href')=='/'+prefix+('demo.html' if refined else 'download.html'),tag+'primary CTA leads to an available experience')
-                                secondary='#thought-library' if page.locator('body').get_attribute('data-site-revision')=='continuity-v2' else '/'+prefix+('download.html' if refined else 'demo.html')
-                                check(page.locator('.hero-actions a').last.get_attribute('href')==secondary,tag+'secondary CTA names its destination')
+                                check(page.locator('.hero-actions a').first.get_attribute('href')=='/'+prefix+'download.html',tag+'primary CTA leads to installation entry')
+                                check(page.locator('.hero-actions a').last.get_attribute('href')=='/'+prefix+'demo.html',tag+'secondary CTA leads to demo')
                                 check(not page.locator('.pc-prompt-caption').is_visible(),tag+'removed caption stays removed')
                             if route in ('download.html','beta.html'):
                                 check(page.locator('.release-install').is_disabled(),tag+'unavailable release is not clickable')

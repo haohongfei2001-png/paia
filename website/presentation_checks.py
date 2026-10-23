@@ -10,23 +10,21 @@ ROOT=Path(__file__).resolve().parents[1]
 
 
 def verify_static_presentation(root,check):
-    from continuity_checks import active as continuity_active, verify_static as continuity_static
-    if continuity_active(root): return continuity_static(root,check)
-    from value_story_checks import active, verify_static
-    if active(root): return verify_static(root,check)
+    from evidence_fix_checks import restore_confirmed_edits, verify_confirmed_fixes
+    verify_confirmed_fixes(root,check)
     from art_direction import Fragments
     from launch_checks import Text,find
     from brand_adoption_checks import restore_approved_brand
     fixture=json.loads((root/'website/presentation_invariants.json').read_text())
     for name,sha in fixture['unchanged'].items():
-        data = (root/name).read_bytes()
+        data = restore_confirmed_edits(name,(root/name).read_bytes())
         if name == 'assets/website/launch.css':
             from cool_neutral_white_checks import restore_approved_environment
             data = restore_approved_environment(root, data)
         data = restore_approved_brand(name, data)
         check(hashlib.sha256(data).hexdigest()==sha,'presentation unchanged except approved environment: '+name)
     for name,expectations in fixture['home_text'].items():
-        source=(root/name).read_text();p=Fragments(source)
+        source=restore_confirmed_edits(name,(root/name).read_bytes()).decode();p=Fragments(source)
         for selector,text in expectations.items():
             actual=[Text(p.outer(n)).value() for n in find(p,selector)]
             check(actual==text,name+': retained statement/source '+selector)
@@ -45,12 +43,8 @@ def verify_static_presentation(root,check):
 
 
 def verify_home_hero(page,check,en=True,motion=False):
-    if page.locator("body").get_attribute("data-site-revision") == "continuity-v2":
-        from continuity_checks import verify_hero
-        return verify_hero(page,check,en,motion)
-    if page.locator("body").get_attribute("data-site-revision") == "20261022":
-        from value_story_checks import verify_hero
-        return verify_hero(page,check,en,motion)
+    from evidence_fix_checks import verify_home_copy
+    verify_home_copy(page,check)
     prefix='EN' if en else 'ZH'
     def test(ok,name):check(ok,prefix+' presentation hero: '+name)
     test(page.locator('[data-product-hero]').count()==1,'one approved product opening')
@@ -78,12 +72,6 @@ def verify_home_hero(page,check,en=True,motion=False):
 
 
 def verify_presentation(page,check,label='home',motion=False):
-    if page.locator("body").get_attribute("data-site-revision") == "continuity-v2":
-        from continuity_checks import verify_home
-        return verify_home(page,check,label,motion)
-    if page.locator("body").get_attribute("data-site-revision") == "20261022":
-        from value_story_checks import verify_home
-        return verify_home(page,check,label,motion)
     def test(ok,name):check(ok,label+': presentation '+name)
     page.wait_for_selector('body.hp-ready')
     test(page.locator('[data-home-presentation]').count()==1,'one homepage presentation')
@@ -149,10 +137,6 @@ def verify_presentation(page,check,label='home',motion=False):
 
 
 def main():
-    from continuity_checks import active as continuity_active, main as continuity_main
-    if continuity_active(ROOT): return continuity_main()
-    from value_story_checks import active, main as value_story_main
-    if active(ROOT): return value_story_main()
     from playwright.sync_api import sync_playwright
     from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler
     from threading import Thread

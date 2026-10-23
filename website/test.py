@@ -108,9 +108,8 @@ from launch_checks import verify_static_publication
 verify_static_publication(ROOT,check)
 
 
-# Select the explicitly authorized homepage generation. The 22 October value
-# story preserves original demo/source owners and replaces only old home/CTA
-# expectations; the historical frozen suite remains available for older pages.
+# Keep the current production copy/hero and all unrelated generated pages frozen.
+# This uses a committed exact baseline, not an editable candidate snapshot.
 import subprocess
 art_env = dict(os.environ, WEBSITE_ART_OUTPUT=str(OUT / 'art-direction-static'))
 art_args = ['--static-only'] if '--static-only' in sys.argv else []
@@ -224,9 +223,7 @@ def capture_scenes(page, name, width):
         page.wait_for_selector('body.hp-static')
         page.screenshot(path=str(OUT / f'{prefix}-hero.png'), animations='disabled')
         page.screenshot(path=str(OUT / f'{prefix}.png'), full_page=True, animations='disabled')
-        selectors = [('archive','.vs-retrieval'),('thought','.vs-thought-stage'),('prompt','.vs-host'),('context','.pc-context-stage')] if page.locator('body').get_attribute('data-site-revision') == '20261022' else [('archive','.pc-editor-stage'),('thought','.ad-reading-spread'),('prompt','.pc-prompt-scene'),('context','.pc-context-stage')]
-        if page.locator('body').get_attribute('data-site-revision') == 'continuity-v2': selectors = [('archive','.ct-search'),('thought','.ct-case-panel:not([hidden])'),('prompt','.ct-prompt-host'),('context','.pc-context-stage')]
-        for key, selector in selectors:
+        for key, selector in [('archive','.pc-editor-stage'),('thought','.ad-reading-spread'),('prompt','.pc-prompt-scene'),('context','.pc-context-stage')]:
             page.locator(selector).screenshot(path=str(OUT / f'{prefix}-{key}.png'),animations='disabled')
         return
     settle_capture_top(page)
@@ -300,12 +297,8 @@ try:
                         check(page.locator('.pc-context-grid').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Context cards stack for reading')
                     check(page.locator('[data-topic-reader="product"] .pc-thoughts').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Topic reading remains one continuous column')
                 if path.name == 'index.html':
-                    if page.locator('body').get_attribute('data-site-revision') == 'continuity-v2':
-                        check(page.locator('[data-hero-panel="topic"]').is_visible(),f'{name}: {width}px complete grouped result is initially visible')
-                        check(page.locator('[data-hero-view="topic"]').get_attribute('aria-pressed')=='true',f'{name}: {width}px actual view control matches initial result')
-                    else:
-                        check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-preview-panel]:visible').count() == 1, f'{name}: {width}px product preview is visible from the start')
-                        check(page.locator('[data-hero-space].hp-current-space').get_attribute('data-hero-space') == 'archive', f'{name}: {width}px Archive is the initial presentation')
+                    check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-preview-panel]:visible').count() == 1, f'{name}: {width}px product preview is visible from the start')
+                    check(page.locator('[data-hero-space].hp-current-space').get_attribute('data-hero-space') == 'archive', f'{name}: {width}px Archive is the initial presentation')
                     verify_presentation(page,check,f'{name}/{width}')
                 if width == 320 and name in ('index.html', 'zh/index.html'):
                     page.evaluate("scrollTo({top:0,behavior:'instant'})")
@@ -447,12 +440,8 @@ try:
             page = context.new_page()
             load(page, locale + 'index.html', scripts=False)
             check(page.locator('h1').is_visible() and page.locator('#input-library').is_visible() and page.locator('#personal-context').is_visible(), f'{locale}: static core content without JS')
-            if page.locator('body').get_attribute('data-site-revision') == 'continuity-v2':
-                check(page.locator('[data-hero-panel="topic"]').is_visible(),f'{locale}: original words visible without JavaScript')
-                check(page.locator('[data-case-panel=project] [data-record-id]:visible').count()==6,f'{locale}: all six source expressions readable without JavaScript')
-            else:
-                check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-hero-glass]').is_visible(), f'{locale}: product-led first view works without JavaScript')
-                check(page.locator('.vs-thought-lines' if page.locator('body').get_attribute('data-site-revision') == '20261022' else '[data-story-organized]').is_visible(), f'{locale}: complete topic presentation without JavaScript')
+            check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-hero-glass]').is_visible(), f'{locale}: product-led first view works without JavaScript')
+            check(page.locator('[data-story-organized]').is_visible(), f'{locale}: complete topic presentation without JavaScript')
             page.close()
             context.close()
         browser.close()
