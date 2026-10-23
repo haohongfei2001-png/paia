@@ -1,0 +1,30 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {setup} from './harness/thought-m1.mjs';
+import {OrganizerStore} from '../core/organizer/store.js';
+import {ContextCardsService,readContextCards} from '../core/context-cards.js';
+import {prepareContextMutationDescription,verifyContextMutationDescription,validateContextMutationCommit} from '../core/browser-native-sync/context-mutation-codec.js';
+import {digest} from '../core/browser-native-sync/value.js';
+const op=()=>crypto.randomUUID(),clone=structuredClone;
+const read=s=>s.repository.transaction(false,t=>readContextCards(t));
+const put=(extra={})=>({kind:'put',operationId:op(),epoch:'initial',itemId:op(),expectedRevision:0,body:'SYNTHETIC literal\r\nbody',section:'SYNTHETIC',card:'info',...extra});
+async function fixture(){const {s}=await setup(OrganizerStore);await s.finishFoundation();return {s,c:new ContextCardsService(s)};}
+// These refs are explicitly description-validator fixtures, not sealed Core
+// ancestry or a materializer. Full Core admission is covered separately.
+async function description(f,command){
+ const before=await read(f.s),priorMove=command.undoOf?await f.s.repository.transaction(false,t=>t.get('operationReceipts','context:'+command.undoOf)):null;
+ const result=await f.c.change(command);assert.equal(result.ok,true);const after=await read(f.s),at=after.items.find(item=>item.id===command.itemId).updatedAt;
+ const {description:value,items}=await prepareContextMutationDescription(before,after,command,at,priorMove);
+ const members=await Promise.all(items.map(async item=>{const old=before.items.find(x=>x.id===item.id);return {id:item.id,logicalCommitId:value.id,previous:old?{type:'contextItem',entityId:item.id,revisionId:'1'.repeat(64),digest:await digest(old)}:null,item};}));
+ value.members=members.map(member=>({type:'contextMutationMember',entityId:member.id,revisionId:'2'.repeat(64)}));
+ return {before,after,value,members,result};
+}
+const verify=p=>verifyContextMutationDescription(p.value,p.members,p.before);
+test('original literal put descriptor carries body once and reproduces original command digest',async()=>{const f=await fixture(),p=await description(f,put()),r=await verify(p);assert.deepEqual(r.row,p.after);assert.deepEqual(r.result,p.result);assert.equal(Object.hasOwn(p.value.command,'body'),false);assert.equal(JSON.stringify({value:p.value,members:p.members}).split('SYNTHETIC literal').length-1,1);});
+test('original cross-card move and exact old receipt undo preserve order and literal body',async()=>{const f=await fixture(),c=put();await f.c.change(c);let row=await read(f.s);const move={kind:'move',operationId:op(),epoch:'initial',itemId:c.itemId,expectedRevision:1,fromCard:'info',toCard:'rules',expectedAccess:Object.fromEntries(['global','info','rules'].map(k=>[k,row.access[k]]))};const p=await description(f,move);assert.deepEqual((await verify(p)).row,p.after);const undo={...move,operationId:op(),expectedRevision:2,fromCard:'rules',toCard:'info',undoOf:move.operationId};const q=await description(f,undo);assert.deepEqual((await verify(q)).row,q.after);assert.equal(q.after.items[0].order,0);assert.equal(q.after.items[0].body,c.body);});
+test('original adjacent reorder records exactly two owner changes and preserves full group',async()=>{const f=await fixture(),cs=[put(),put(),put()];for(const c of cs)await f.c.change(c);const p=await description(f,{kind:'reorder',operationId:op(),epoch:'initial',itemId:cs[1].itemId,expectedRevision:1,adjacentId:cs[0].itemId,adjacentRevision:1,direction:'up',card:'info',section:'SYNTHETIC'});assert.equal(p.members.length,2);assert.deepEqual((await verify(p)).row,p.after);assert.deepEqual(p.before.items[2],p.after.items[2]);});
+test('missing sibling cannot validate a two-owner mutation',async()=>{const f=await fixture(),a=put(),b=put();await f.c.change(a);await f.c.change(b);const p=await description(f,{kind:'reorder',operationId:op(),epoch:'initial',itemId:b.itemId,expectedRevision:1,adjacentId:a.itemId,adjacentRevision:1,direction:'up',card:'info',section:'SYNTHETIC'});p.members.pop();await assert.rejects(verify(p));});
+for(const mutation of ['body','result','order','cut','digest','extra-command-key'])test('description rejects forged '+mutation,async()=>{const f=await fixture(),p=await description(f,put());if(mutation==='body')p.members[0].item.body+=' changed';if(mutation==='result')p.value.result.revision++;if(mutation==='order')p.members[0].item.order++;if(mutation==='cut')p.value.before.sequence++;if(mutation==='digest')p.value.requestDigest='0'.repeat(64);if(mutation==='extra-command-key')p.value.commandKeys.push('externalAllowed');await assert.rejects(verify(p));});
+test('a move receipt cannot replace original undo receipt qualification',async()=>{const f=await fixture(),c=put();await f.c.change(c);const row=await read(f.s),move={kind:'move',operationId:op(),epoch:'initial',itemId:c.itemId,expectedRevision:1,fromCard:'info',toCard:'rules',expectedAccess:Object.fromEntries(['global','info','rules'].map(k=>[k,row.access[k]]))};await f.c.change(move);const p=await description(f,{...move,operationId:op(),expectedRevision:2,fromCard:'rules',toCard:'info',undoOf:move.operationId});p.value.priorMove.result.previousOrder=99;await assert.rejects(verify(p));});
+test('no descriptor may carry a second literal command body',async()=>{const f=await fixture(),p=await description(f,put());p.value.command.body=p.members[0].item.body;assert.throws(()=>validateContextMutationCommit(p.value));});
+test('different untouched group member rejects a previously valid reorder proof',async()=>{const f=await fixture(),cs=[put(),put(),put()];for(const c of cs)await f.c.change(c);const p=await description(f,{kind:'reorder',operationId:op(),epoch:'initial',itemId:cs[1].itemId,expectedRevision:1,adjacentId:cs[0].itemId,adjacentRevision:1,direction:'up',card:'info',section:'SYNTHETIC'});p.before=clone(p.before);p.before.items[2].body='SYNTHETIC late edit';await assert.rejects(verify(p));});

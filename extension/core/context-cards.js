@@ -26,6 +26,7 @@ const revision=v=>Number.isSafeInteger(v)&&v>=0;
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(v);
 const bounded=(v,n)=>typeof v==='string'&&v.length<=n&&!v.includes('\u0000');
 const empty=()=>({id:CONTEXT_CARDS_ROW,version:1,sequence:0,access:Object.fromEntries(['global',...CONTEXT_CARDS].map(k=>[k,{enabled:false,revision:0}])),items:[]});
+const originalContextServices=new WeakSet();
 export {empty as emptyContextCards};
 const itemValid=x=>exact(x,['id','card','body','section','revision','order','origin','protected','userEdited','lifecycle','createdAt','updatedAt','deletedBy',...(x?.origin==='automatic'?['maintenance']:[])])&&uuid(x.id)&&CONTEXT_ITEM_CARDS.includes(x.card)&&bounded(x.body,CONTEXT_LIMITS.body)&&bounded(x.section,80)&&revision(x.revision)&&x.revision>0&&revision(x.order)&&(x.origin==='manual'&&x.protected===true&&x.userEdited===true||x.origin==='automatic'&&typeof x.protected==='boolean'&&x.userEdited===x.protected&&validContextMaintenance(x.maintenance))&&(['active','removed'].includes(x.lifecycle)?!Object.hasOwn(x.maintenance||{},'invalidation'):x.lifecycle==='invalidated'&&x.origin==='automatic'&&!x.protected&&!x.userEdited&&x.deletedBy===null&&Object.hasOwn(x.maintenance,'invalidation'))&&typeof x.createdAt==='string'&&typeof x.updatedAt==='string'&&(x.deletedBy===null||uuid(x.deletedBy));
 export function validContextCards(row){
@@ -91,8 +92,18 @@ function applyContextChange(row,c,clock,priorMove=null){
    if(!validContextCards(row))fail('CONTEXT_LIMIT');
  return result;
 }
+// Pure replay of the original command rules. This creates no write/read grant
+// and accepts no journal capability: callers must still bind the real owner,
+// transaction, control and protocol ancestry independently.
+export function projectOriginalContextChange(before,command,at,priorMove=null){
+ validateContextChange(command);
+ if(command.kind==='access'||!validContextCards(before)||typeof at!=='string')fail('CONTEXT_INVALIDATED');
+ const projected=structuredClone(before),result=applyContextChange(projected,command,()=>at,priorMove);
+ if(!result.ok)fail('CONTEXT_INVALIDATED');
+ return {row:projected,result};
+}
 export class ContextCardsService {
- constructor(store,{topicSummary=null,syncJournal=null}={}){this.s=store;this.topicSummary=topicSummary;this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
+ constructor(store,{topicSummary=null,syncJournal=null}={}){this.s=store;this.topicSummary=topicSummary;this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();originalContextServices.add(this);}
  async row(t){return readContextCards(t);}
  async admitted(t,epoch){if((await this.s.control(t)).settings.consentVersion!==CONSENT_VERSION)fail('CONSENT_REQUIRED');const current=(await t.get('meta','recovery-restore-epoch'))?.value||'initial';if(epoch!==undefined&&epoch!==current)fail('CONTEXT_INVALIDATED');return current;}
  async snapshot(mode){if(mode!==undefined&&mode!=='home')fail('INVALID_REQUEST');const captured=await this.s.run(()=>this.s.repository.transaction(false,async t=>{const epoch=await this.admitted(t),row=await this.row(t);let topicChoices;
@@ -195,4 +206,16 @@ export class ContextCardsService {
    const sources=contextLineageSourceIds(captured.item);if(sources.length>2000)fail('CONTEXT_LIMIT');if(stored&&JSON.stringify(sourceRecordIds)!==JSON.stringify(sources))fail('UNAVAILABLE');return sources;
   })();
  }
+}
+const originalContextPrototype=ContextCardsService.prototype;
+const originalContextMethods=Object.getOwnPropertyDescriptors(originalContextPrototype);
+// Identity only, not an authorization or a write capability. New typed journal
+// owners cannot replace the original request/receipt/adjacency implementation.
+export function requireOriginalContextCardsService(service){
+ if(!originalContextServices.has(service)||Object.getPrototypeOf(service)!==originalContextPrototype||Reflect.ownKeys(originalContextPrototype).length!==Reflect.ownKeys(originalContextMethods).length)fail('CONTEXT_INVALIDATED');
+ for(const key of Reflect.ownKeys(originalContextMethods)){
+  const expected=originalContextMethods[key],current=Object.getOwnPropertyDescriptor(originalContextPrototype,key);
+  if(!current||['value','get','set','enumerable','configurable','writable'].some(field=>current[field]!==expected[field])||Object.hasOwn(service,key))fail('CONTEXT_INVALIDATED');
+ }
+ return true;
 }
