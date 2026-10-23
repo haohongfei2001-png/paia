@@ -1,3 +1,4 @@
+import {originalSavedHumanScopePartition} from './saved-work-bootstrap.js';
 import {readGroupRows,groupTablePages} from './group-page-reader.js';
 import {validateSourceLinkedDescriptor} from './source-linked-evidence.js';
 import {planHumanEntryEvidence} from '../thought-store-owner.js';
@@ -127,14 +128,14 @@ export async function requireHumanScope(store,t,scope){
   return {allowed:new Set([...p.projectionIds,...p.names.map(row=>row.id),...p.pairs.map(row=>row.id)]),history:p.rows.history};
  }
  if(!equal((await t.get('meta','thought-suppression-key'))?.value,p.secret))fail('BNS_HUMAN_CHANGED');
- for(const [type,name]of Object.entries(types)){if(type==='keepSeparate')continue;const rows=sort(await readGroupRows(t,name));for(const row of rows){if(type==='entry'&&(!count(row.createdSequence)||row.createdSequence<1||!count(row.updatedSequence)||row.updatedSequence<1||row.negativeUpdatedSequence!==-row.updatedSequence)||type==='topic'&&(!Number.isSafeInteger(row.negativeUpdatedSequence)||row.negativeUpdatedSequence>=0))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}if(!equal(rows.map(row=>normalizePhysical(type,row)),p.rows[type]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
- if(p.linkedEpoch!==null&&((await t.get('meta','thought-epoch'))?.value||0)!==p.linkedEpoch)fail('BNS_HUMAN_CHANGED');for(const [name,expected]of [['provenance',p.provenance],['dependencies',p.dependencies]]){if(!equal(sort(await readGroupRows(t,name)),expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ for(const [type,name]of Object.entries(types)){if(type==='keepSeparate')continue;const saved=originalSavedHumanScopePartition(scope,store),savedIds=new Set(saved?.entries||[]),rows=sort((await readGroupRows(t,name)).filter(row=>type!=='entry'||!savedIds.has(row.id)));for(const row of rows){if(type==='entry'&&(!count(row.createdSequence)||row.createdSequence<1||!count(row.updatedSequence)||row.updatedSequence<1||row.negativeUpdatedSequence!==-row.updatedSequence)||type==='topic'&&(!Number.isSafeInteger(row.negativeUpdatedSequence)||row.negativeUpdatedSequence>=0))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}if(!equal(rows.map(row=>normalizePhysical(type,row)),p.rows[type]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(p.linkedEpoch!==null&&((await t.get('meta','thought-epoch'))?.value||0)!==p.linkedEpoch)fail('BNS_HUMAN_CHANGED');for(const [name,expected]of [['provenance',p.provenance],['dependencies',p.dependencies]]){const saved=originalSavedHumanScopePartition(scope,store),ids=new Set(saved?.[name]||[]);if(!equal(sort((await readGroupRows(t,name)).filter(row=>!ids.has(row.id))),expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
  const names=await readGroupRows(t,'meta',{prefix:'personalTopicName:'}),pairs=await readGroupRows(t,'meta',{prefix:'topicKeepSeparate:'}),allowed=new Set();for await(const page of groupTablePages(t,'meta',{prefix:'thought-read-index:'}))if(page.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  if(!equal(sort(names),p.names)||!equal(sort(pairs),p.pairs))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');for(const row of [...names,...pairs])allowed.add(row.id);
  // Only untouched original search queue locators are admitted in this first
  // group seam. Indexed/posting/projection qualification remains a separate
  // actual-owner design; no arbitrary derivative store is exempted.
- if(await t.count('librarySearchTerms'))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');for(const row of await readGroupRows(t,'libraryMigrationItems')){const owner=p.rows[row.ownerKind]?.find(item=>item.id===row.ownerId);if(!owner||!['entry','topic','section'].includes(row.ownerKind)||!equal(row,{id:JSON.stringify(['search',row.ownerKind,row.ownerId]),entityKind:'search',statusKey:0,ownerKind:row.ownerKind,ownerId:row.ownerId,version:ownerVersion(row.ownerKind,owner),phase:'delete',offset:0,sourceRecordIds:owner.sourceRecordIds??[]}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(await t.count('librarySearchTerms'))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');for(const row of await readGroupRows(t,'libraryMigrationItems')){const saved=originalSavedHumanScopePartition(scope,store);if(saved?.entries.includes(row.ownerId))continue;const owner=p.rows[row.ownerKind]?.find(item=>item.id===row.ownerId);if(!owner||!['entry','topic','section'].includes(row.ownerKind)||!equal(row,{id:JSON.stringify(['search',row.ownerKind,row.ownerId]),entityKind:'search',statusKey:0,ownerKind:row.ownerKind,ownerId:row.ownerId,version:ownerVersion(row.ownerKind,owner),phase:'delete',offset:0,sourceRecordIds:owner.sourceRecordIds??[]}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
  return {allowed,history:p.rows.history};
 }
 export async function requireHumanCurrentGroupScope(store,t,scope,plan){
@@ -149,4 +150,11 @@ export async function encodeHumanCurrentGroupScope(scope,plan,transport,options)
 export async function publishHumanCurrentGroupScope(scope,plan,checkpoint,transport,options){
  const p=proofs.get(scope);if(!p||p.groupPlan!==plan||!p.projection||p.projectionOpening||preparations.has(scope))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  return publishHumanCurrentGroupCheckpoint(p.projection,scope,plan,checkpoint,transport,options);
+}
+
+// Saved may count this partition only after the original Human scope has
+// independently compiled its exact source-free Entry/history owner projection.
+export function originalHumanSavedScopePartition(scope,store){
+ const p=proofs.get(scope);if(!p)return null;if(p.store!==store||p.projection||p.projectionOpening||preparations.has(scope)||p.rows.topic.length||p.rows.section.length||p.rows.placement.length||p.rows.suppression.length||p.provenance.length||p.dependencies.length)fail('BNS_SAVED_WORK_UNSUPPORTED');
+ return {entries:p.rows.entry.map(row=>({id:row.id}))};
 }

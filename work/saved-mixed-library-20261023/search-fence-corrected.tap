@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+ok 1 - original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+  ---
+  duration_ms: 470.166
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 724.633042

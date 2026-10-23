@@ -1,0 +1,13 @@
+{
+  "extension/core/browser-native-sync/saved-work-bootstrap.js": "058a09352e919d338406ce10cff2a94a0353c8ae03349e81fed301f34025a6ed",
+  "extension/core/browser-native-sync/human-library-scope.js": "c897bb58ab460e6d7702a828b739c38717a2ec44e156c2552fc69bf05a65592f",
+  "extension/core/browser-native-sync/human-library-group.js": "75717e98fa9f8dc5400ebf3c382272d6772c01654f359bfa395b5c0ac2688ebf",
+  "extension/core/browser-native-sync/group-checkpoint-plan.js": "1fb730f52b631db65d5752c98820d9b282203fea9363ef94d68794e14dfd03de",
+  "extension/core/browser-native-sync/group-checkpoint.js": "ca10d761c51e6fa28713c2e1969d50c790cd1be70ba37babda789ba95fd24ff1",
+  "extension/tests/browser-native-sync-saved-mixed.test.mjs": "53f9097749640031a212d593cc8aef9dc4f7e74aba2a5f754681c3e4dd686ce8",
+  "extension/tests/browser-native-sync-saved-group.test.mjs": "69ffbe0f1ca81166a697323eec8a6903ddc32c5bc81663a5bb6561cb62dc518b",
+  "extension/tests/browser-native-sync-saved-successor.test.mjs": "a7041f2ca8e0891217339d5f3fcf5673859f4f6dcd5cbd7fac876407cc75fb1f",
+  "extension/tests/browser-native-sync-saved-multiple.test.mjs": "bb2a670f7a6e6f86aa2a7aa5139b29cc0f7b1cadc86d82c0f5adeaa38fc82f5a",
+  "extension/tests/browser-native-sync-saved-incremental.test.mjs": "211c5a8856af7332905f3a144d91f46e58590c5ab4f5ee2fa314d817cff0a017",
+  "extension/tests/browser-native-sync-human-library-group.test.mjs": "ade537ca7d2dd110c8de21e3cc30cc3b70d556b8d9813cf3ddfefbcbddd2088e"
+}

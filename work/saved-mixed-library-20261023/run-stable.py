@@ -1,0 +1,7 @@
+import subprocess,time,json,hashlib,pathlib,platform
+root=pathlib.Path.cwd(); out=root/'work/saved-mixed-library-20261023';node='/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node'
+files=['extension/tests/browser-native-sync-saved-mixed.test.mjs','extension/tests/browser-native-sync-saved-group.test.mjs','extension/tests/browser-native-sync-saved-successor.test.mjs','extension/tests/browser-native-sync-saved-multiple.test.mjs','extension/tests/browser-native-sync-saved-incremental.test.mjs','extension/tests/browser-native-sync-human-library-group.test.mjs']
+sources=['extension/core/browser-native-sync/'+f for f in ['saved-work-bootstrap.js','human-library-scope.js','human-library-group.js','group-checkpoint-plan.js','group-checkpoint.js']]+files
+vector=lambda:{f:hashlib.sha256((root/f).read_bytes()).hexdigest() for f in sources};before=vector();start=time.monotonic();command=[node,'--test','--test-concurrency=1',*files]
+with (out/'owning-stable.tap').open('wb') as log:r=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT)
+after=vector();(out/'owning-stable.json').write_text(json.dumps({'command':command,'exitCode':r.returncode,'wallMs':(time.monotonic()-start)*1000,'node':subprocess.check_output([node,'--version'],text=True).strip(),'platform':platform.platform(),'before':before,'after':after,'sourceUnchanged':before==after},indent=2)+'\n');print(r.returncode);print((out/'owning-stable.tap').read_text()[-700:])
