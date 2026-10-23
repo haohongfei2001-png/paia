@@ -1,5 +1,25 @@
 # Explicit phased Human generation task
 
+## Current correction: semantic closure supersedes the earlier 65-group pass
+
+The root review identified a real publication gap in the earlier milestone: the whole `aiu:delta:` interval was excluded from final metadata closure. Four real sealed-gate backend injections (sequence, known descriptor, dirty facets and an extra row) all incorrectly committed in the preserved **0/4** negative control. The historical pass below therefore does not certify the corrected consumer.
+
+The correction derives scheduling expectations before each owner write through the original `deltaDescription`, `observeSemanticChange`, `semanticDeltaLiveEligible` and `planSemanticDeltaWrite` functions, using the original private Human prewrite plan. It records known/dirty rows, the sequence and the human fence as expected points. It does not sample the resulting database as truth. Final publication now checks every metadata point and the entire metadata store count, with no semantic-prefix exclusion. All four real late mutations now roll the complete transaction back.
+
+The corrected one-group consumer still performs actual publication, cold reopen, exact Entry read, rejection of an unbound write and a subsequent original-owner write after binding. The corrected 65-group consumer completes all 65 original owners but **safely refuses publication** under the unchanged budget. Its physical state and pending task roll back exactly, the gate stays staging, and the active registry remains empty. It is not a passing 65-group restore. No budget was increased or final durable reads removed.
+
+The nine-file owning batch is **191/191**, 19,684.764708 ms, including expected resource refusals. The attempted name filter did not exclude the existing 129 control; it ran once as part of this batch and now refuses after 31 settled owners. This is disclosed rather than reported as an omitted run or a 129 pass. A final isolated accounting-interface check is **8/8**; it adds genuine-scope/foreign/fake/incomplete/duplicate and immutable-number checks, with no further scale execution.
+
+The corrected 65-group data-work ledger recorded authentication 3,409,128 B / 182 ms, graph validation 3,018,767 B / 259 ms, and original owners 8,377,078 B / 3,757 ms. Only 1,972,243 B remains for final publication; that ticket is reserved and remains pending after the real limit refusal. The 16,777,216 B task total at refusal includes that reservation, not successfully completed final work.
+
+Separately, the observed body-free control ledger (initialization plus reserve/settle through final reservation) is **188 committed transactions / 2,298 references / 964,117 B / 917.625380 ms**, maximum **17 references / 22,827 B / 27.533083 ms** per transaction. Each still enforces 4,096 references / 2 MiB / 30 seconds. These diagnostics come only from original committed transaction receipts and are process-local observations; they grant no refund or writer authority. They do not include unmetered diagnostic reads, external setup/publication calls or aborted transaction cost, so data-work plus this counter is not advertised as all process work. The approved 16 MiB ceiling applies to prepaid data work, with this independently bounded control overhead explicitly separate.
+
+The process-local live lease is keyed by repository object, not database identity. A second object on the same database can attempt to burn an outstanding reservation; exact durable task CAS and owner/final fences then reject stale work. This remains a safe interruption/availability limitation, not guaranteed cross-instance exclusion or a reason to reset the ledger. Cold owner continuation and genuine bounded 65/129 publication remain engineering work.
+
+Evidence: `work/canonical-generation-semantic-closure-20261023/` contains the original 0/4, initial corrected 5/5, corrected 65 refusal 5/6, final owning batch, accounting check and exact source vector. All earlier evidence below is retained as historical and superseded where it claims the semantic-prefix-exempt 65 result.
+
+## Historical pre-correction record
+
 Status: finite 65-group consumer implemented and locally verified; 129-group and cold partial-application recovery remain engineering work. This is a new opt-in task, not a budget reset inside the old checkpoint API. It does not select the application database or enable Sync.
 
 ## Evidence and exact scope

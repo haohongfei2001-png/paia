@@ -1,0 +1,12 @@
+{
+  "base": "b89a64cc",
+  "files": {
+    "extension/core/browser-native-sync/canonical-generation-phased-human.js": "c516279c9bb62bedf947e4eef7daaa1db6fd8e7c57d074eedfc80116ea8bafc9",
+    "extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js": "3442b63213a8c94049b368f6d8a1490377c028fb06e051dfc131aa321dabbba8",
+    "extension/core/browser-native-sync/canonical-generation-task-ledger.js": "1a5c9098ad40ac141b17047ead690aac843252a6e36cccc217fc41a60af05ac2",
+    "extension/tests/canonical-generation-phased-stage.test.mjs": "42b074f7d031e2236e6a928d40f5d2a09bf05d24f18ceeb1c0fe28276bc0074b",
+    "extension/tests/repository-committed-work.test.mjs": "65547ebe41fcc71697607c3c052be5735dc2fc4b01961d88d9711183d9a7e4a1",
+    "extension/docs/consumer-product-v1/implementation/CANONICAL-HUMAN-PHASED-TASK-20261023.md": "28aab4101ad64ed228625a2ab4c8070ca3b82597e5df2f9ee03f1b228fe8bb58"
+  },
+  "verification": "191 owning before final diagnostic test addition; 8 repository accounting after addition; no runtime edits after owning"
+}

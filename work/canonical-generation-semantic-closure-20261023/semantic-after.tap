@@ -1,0 +1,43 @@
+TAP version 13
+# {"phaseCosts":1,"authenticate":{"bytes":110251,"ms":14},"validate":{"bytes":113701,"ms":23},"owner":{"bytes":131958,"ms":49}}
+# {"publicationGroups":1,"prepared":{"state":"prepared","manifestId":"d3a2c986ba3e90ce2e16b7a95c571888ac95a30daaa328240df29973fd7c55c5","graphDigest":"9ade6e7c2152611c4e0e0cdeb571df375014845a1dcafde0cba3c53fd0583296","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"prepaidBytes":2097152,"prepaidMs":30000}}
+# {"publicationGroups":1,"task":{"id":"canonical-generation:checkpoint:phased-task:v1","version":1,"taskId":"ff4b666c-9942-46d6-a00d-55000b36fcf6","identity":{"manifestId":"d3a2c986ba3e90ce2e16b7a95c571888ac95a30daaa328240df29973fd7c55c5","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"sourceBase":{"root":{"id":"canonical-generation:registry:v1","version":1,"revision":0,"active":null,"pending":null},"gate":null}},"phase":"verified","tickets":6,"burned":0,"workBytes":2453062,"activeMs":30086,"pending":null,"transportIds":["371796f283adcb70ef16f4a5eb1714745536ef9c3fa0e5fd1cf161593aae7f4a"]},"work":{"native":{"references":113,"bytes":55153,"activeMs":28.636833999999965},"preparationBytes":907,"prepaidBytes":2097152,"prepaidMs":30000}}
+# Subtest: fixed phased publication closes 1 original Human groups atomically
+ok 1 - fixed phased publication closes 1 original Human groups atomically
+  ---
+  duration_ms: 298.750458
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-sequence mutation and rolls back the whole publication transaction
+ok 2 - fixed phased seal rejects real late semantic-sequence mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 151.536333
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-known mutation and rolls back the whole publication transaction
+ok 3 - fixed phased seal rejects real late semantic-known mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 154.199916
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-dirty mutation and rolls back the whole publication transaction
+ok 4 - fixed phased seal rejects real late semantic-dirty mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 150.335584
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late semantic-extra mutation and rolls back the whole publication transaction
+ok 5 - fixed phased seal rejects real late semantic-extra mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 128.172958
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1080.464416

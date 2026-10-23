@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: committed work includes original final reads and is an immutable numeric-only receipt
+ok 1 - committed work includes original final reads and is an immutable numeric-only receipt
+  ---
+  duration_ms: 12.874625
+  type: 'test'
+  ...
+# Subtest: committed accounting does not keep charging user pause after completion
+ok 2 - committed accounting does not keep charging user pause after completion
+  ---
+  duration_ms: 17.678584
+  type: 'test'
+  ...
+# Subtest: foreign repository and fabricated scope cannot get accounting evidence
+ok 3 - foreign repository and fabricated scope cannot get accounting evidence
+  ---
+  duration_ms: 2.849292
+  type: 'test'
+  ...
+# Subtest: unmetered transaction does not manufacture a zero-cost receipt
+ok 4 - unmetered transaction does not manufacture a zero-cost receipt
+  ---
+  duration_ms: 1.359042
+  type: 'test'
+  ...
+# Subtest: aborted native transaction cannot produce committed work
+ok 5 - aborted native transaction cannot produce committed work
+  ---
+  duration_ms: 1.776292
+  type: 'test'
+  ...
+# Subtest: failed terminal fence cannot produce committed work
+ok 6 - failed terminal fence cannot produce committed work
+  ---
+  duration_ms: 1.701291
+  type: 'test'
+  ...
+# Subtest: private resource overrun cannot be reset through public diagnostics
+ok 7 - private resource overrun cannot be reset through public diagnostics
+  ---
+  duration_ms: 1.58625
+  type: 'test'
+  ...
+# Subtest: control diagnostics count genuine completed scope once without granting task refund
+ok 8 - control diagnostics count genuine completed scope once without granting task refund
+  ---
+  duration_ms: 2.294166
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 369.736584
