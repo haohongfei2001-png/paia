@@ -1,0 +1,10 @@
+{
+  "extension/tests/native-sync/topic-formation-fixture.mjs": "4763f1879d7e8c120ebfa42106b047d47c79780c8a3e80bd0a4120c01645d10e",
+  "extension/tests/native-sync/topic-formation-chrome.test.mjs": "1de9c18bf34938ae1d945a22f7bdac0382ff27d26b4e15ecad40d92351df4545",
+  "extension/tests/native-sync/topic-formation-fixture.test.mjs": "5bb068cb0a873bb5b1cfc3853b059151acef8029329c8d5c9478894a3d07e248",
+  "extension/tests/topic-formation-sync.test.mjs": "4c051c74683c17bfd761fc2a53c460815829a10ff412d97ff4b662e106a62d55",
+  "extension/tests/native-sync/topic-lifecycle-fixture.mjs": "5e771bc404a3326445432e5c4dec29ae3ddef1a9159bd6e93f9e3437c1f35132",
+  "extension/tests/native-sync/storage-harness.mjs": "64e8b63ab7f982d12533042b5365ee307e97e7f2f20372cada9de1eda564fb0f",
+  "extension/tests/native-sync/retention-assert.mjs": "a24ce596b27ef5b2ebd9eb274e73e654252c4cdb03a64744f4f5b1404569c898",
+  "extension/tests/harness/thought-m1.mjs": "b94c97d11f3058195f3318bb7235875373c7e2e30fa181abbc34b3747b21a6a5"
+}

@@ -1,0 +1,13 @@
+# Formation Source/Release native preparation
+
+Prepared against `2f03b57d5108946fb34d16375589c3b4ab514e1c`; its separate Core/codec patch is still an integration prerequisite. This is test-only preparation. No browser, native IDB case, build, cloud, network or installation ran.
+
+New `extension/tests/native-sync/topic-formation-chrome.test.mjs` runs the complete 26-case original Formation owning file in each Source/Release variant. Its original case already contains the full independent Activity → Formation → Activity → Formation causal cycle. No case filter is used and the older independent 34-case Activity owning file is not repeated.
+
+The fixture reuses `storage-harness.mjs`, `topic-lifecycle-fixture.mjs`, `retention-assert.mjs`, and the original `topic-02`, `topic-03`, historical Backup, and thought-m1 helpers. Only Node test/assert imports, fake factory construction, and a per-storage stable unique native database name are adapted. The original setup verifies actual `IDBDatabase` and `IDBFactory`; local fixture preferences use private `chrome.storage.local` prefixes. Original case finally blocks close repositories; the outer harness closes the browser and removes only its own temporary profile/extension. Original network isolation and headless startup options are unchanged.
+
+The bridge records the owning/setup hashes and 28 production paths from the copied variant, requires exact root/Source/Release equality, checks no attempted external network, and records after-run source hashes. It requires exactly 26 unique PASS case names per variant. Failure receipts are retained in `extension/work/qa-topic-formation-native` by the original root convention.
+
+Preparation only: `topic-formation-fixture.test.mjs` **2/2**, no skipped/cancelled/failed, 47.449167 ms, Node22.23.3. The contract registers all original/generated functions without invoking them; all 26 names and every case function body match exactly after the declared constructor boundary transformation. Factory/import/setup drift controls reject. The generated fixture, generated setup, and native orchestration syntax checks pass. These results are not native execution evidence.
+
+Root should apply the shared runtime patch, integrate both feature and preparation commits, then run this owning native file within its planned shared release build using the existing absolute Node22, Python3.12, Playwright1.63 and approved headless harness settings. An existing build is supplied through `PAIA_NATIVE_RELEASE_PATH`; do not create a second build solely for this file. No actual browser command was invoked by this preparation.
