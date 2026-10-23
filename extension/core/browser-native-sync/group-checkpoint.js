@@ -1,3 +1,4 @@
+import {observeOriginalControlPublication,requireOriginalControlObservation} from '../indexed-store.js';
 import {buildSourcePurgeGroupedCheckpoint,SourcePurgeGroupedCheckpointRestore} from './source-purge-group.js';
 import {prepareMixedNonemptyMerge,prepareMixedNonemptyResult,requireMixedNonemptyBase,sealMixedNonemptyResult} from './mixed-nonempty-merge.js';
 import {prepareSourceWorkingMerge,prepareSourceWorkingMergeResult,requireSourceWorkingMergeBase,requireSourceWorkingMergeResult,sealSourceWorkingMerge} from './source-working-merge.js';
@@ -69,6 +70,15 @@ async function requireCommittedPlan(core,t,plan){
  heads.sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId])));
  if(!equal(heads,plan.heads))fail('BNS_GROUP_COMMIT_UNPROVEN');
 }
+// Private, opt-in proof from the original final committed cut. It is never
+// accepted from an RPC or caller-created snapshot. Assertion is synchronous so
+// a provider can call it in the exact frame that dispatches its HTTP request.
+const checkpointDispatchCuts=new WeakMap();
+export function requireGroupedCheckpointDispatchCut(core,store,result){
+ const proof=checkpointDispatchCuts.get(result);
+ if(!proof||proof.core!==core||proof.store!==store||store.repository!==core.repository||store.tail!==proof.tail)fail('BNS_SNAPSHOT_CHANGED');
+ requireOriginalGenerationCoreMethods(core);requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalControlObservation(store,proof.observation);return true;
+}
 async function buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents,mixed=false){
  let cap;
  try{
@@ -85,7 +95,8 @@ async function buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,
  }catch(error){if(error?.code==='BNS_HUMAN_CHANGED')fail('BNS_SNAPSHOT_CHANGED');throw error;}
  finally{if(cap)releaseHumanCurrentUnindexedProjection(cap);}
 }
-export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGMENT_PROFILE,parents=[],currentHumanProjection=false,currentSourceWorkingProjection=false,currentMixedProjection=false,sourcePurgeProjection=false}={}){
+export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGMENT_PROFILE,parents=[],currentHumanProjection=false,currentSourceWorkingProjection=false,currentMixedProjection=false,sourcePurgeProjection=false,dispatchQualification=false}={}){
+ if(typeof dispatchQualification!=='boolean'||dispatchQualification&&[currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection,sourcePurgeProjection].some(value=>value!==false))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  if(typeof sourcePurgeProjection!=='boolean')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  if(sourcePurgeProjection){if([currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection].some(value=>value!==false))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');return buildSourcePurgeGroupedCheckpoint(core,transport,{store,profile,parents});}
  if([currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection].some(value=>typeof value!=='boolean')||Number(currentHumanProjection)+Number(currentSourceWorkingProjection)+Number(currentMixedProjection)>1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
@@ -93,11 +104,12 @@ export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGME
  if(currentSourceWorkingProjection)return buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents);
  if(store?.repository!==core.repository)fail('BNS_GROUP_BINDING');await store.finishFoundation();
  const cut=await store.run(()=>core.transaction(false,t=>authority(store,core,t))),plan=await prepareGroupCheckpointPlan(core,await allOperations(core)),scope=await prepareGroupScope(plan,{store});
- const verifyCut=async()=>{let originalScope,calls=0;const check=()=>core.transaction(false,async t=>{if(++calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScope=t;if(currentHumanProjection)await requireGroupCurrentProjection(store,core,t,scope,plan);else{if(!equal(await authority(store,core,t),cut))fail('BNS_SNAPSHOT_CHANGED');await requireCommittedPlan(core,t,plan);await requireGroupScope(store,t,scope);}});
+ let dispatchProof=null;
+ const verifyCut=async()=>{let originalScope,calls=0,observation;const check=async()=>{if(dispatchQualification)observation=(await observeOriginalControlPublication(store)).token;return core.transaction(false,async t=>{if(++calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScope=t;if(currentHumanProjection)await requireGroupCurrentProjection(store,core,t,scope,plan);else{if(!equal(await authority(store,core,t),cut))fail('BNS_SNAPSHOT_CHANGED');await requireCommittedPlan(core,t,plan);await requireGroupScope(store,t,scope);}});};
   // The native certificate pins the settled Store tail. Direct readonly Core
   // inspection leaves that tail intact; a genuine Store operation invalidates
   // it. Never rebind the tail to accommodate an intervening queued operation.
-  if(currentHumanProjection){await check();if(calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');await awaitRepositoryTransactionSettled(core.repository,originalScope);requireRepositoryCommittedIdentity(core.repository,originalScope);}else await store.run(check);
+  if(currentHumanProjection){await check();if(calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');await awaitRepositoryTransactionSettled(core.repository,originalScope);requireRepositoryCommittedIdentity(core.repository,originalScope);}else{const pending=store.run(check),tail=store.tail;await pending;if(dispatchQualification){if(store.tail!==tail)fail('BNS_SNAPSHOT_CHANGED');requireOriginalControlObservation(store,observation);dispatchProof={core,store,tail,observation};}}
  };
  let currentPrepared=false;try{if(currentHumanProjection){await prepareGroupCurrentProjection(store,core,scope,plan);currentPrepared=true;}
  await verifyCut();
@@ -112,7 +124,7 @@ export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGME
  // A transport await may overlap a local edit; never advertise a stale cut as a
  // completed current checkpoint even though its immutable object may exist.
  await verifyCut();
- return {ref,manifest,cut:currentHumanProjection?checkpoint.cut:cut};
+ const result={ref,manifest,cut:currentHumanProjection?checkpoint.cut:cut};if(dispatchQualification){checkpointDispatchCuts.set(result,dispatchProof);requireGroupedCheckpointDispatchCut(core,store,result);}return result;
  }catch(error){if(currentHumanProjection&&error?.code==='BNS_HUMAN_CHANGED')fail('BNS_SNAPSHOT_CHANGED');throw error;}finally{if(currentPrepared)releaseGroupCurrentProjection(scope);}
 }
 async function manifest(ref,get,core,profile,supported){

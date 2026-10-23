@@ -1,0 +1,564 @@
+TAP version 13
+# Subtest: google original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 1 - google original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 803.954958
+  type: 'test'
+  ...
+# Subtest: google original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+not ok 2 - google original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 713.714166
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:35:73'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        {
+          activeKey: 0,
+          activeLayoutGeneration: 1,
+          countVersion: 3,
+    ...
+            legacy: false,
+    +       nameToken: '8865884288c969cf4c47a5f02bf66a50610c203a19b4deb60bc2492c68af547b',
+    -       nameToken: '888700f31fe330f62b6ead898a51144e10261cbd53afee110a0dc5bb15bb8713',
+            noRecreation: false,
+            origin: 'user',
+            revision: 0,
+            scope: null,
+            version: 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      id: '5ed6b71d-f050-47d0-a9c5-084f750d183d'
+      defaultSectionId: 'd43827ff-e386-439a-82c8-69f9edafbb49'
+      name: 'SYNTHETIC topic'
+      summary: ''
+      nameKey: 'synthetic topic'
+      revision: 0
+      organizationRevision: 1
+      activeLayoutGeneration: 1
+      activeKey: 0
+      pinKey: 1
+      pinRank: '499999999999'
+      negativeUpdatedSequence: -6
+      lifecycle: 'active'
+      createdBy: 'user'
+      createdAt: '2026-10-24T00:14:00.000Z'
+      protections:
+        title:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        body:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        note:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        type:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        formation:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        topics:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        section:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        order:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+      identity:
+        version: 1
+        revision: 0
+        origin: 'user'
+        scope: ~
+        aliases:
+        legacy: false
+        noRecreation: false
+        nameToken: '888700f31fe330f62b6ead898a51144e10261cbd53afee110a0dc5bb15bb8713'
+      searchVersion: '0:active:0'
+      updatedAt: '2026-10-24T00:31:30.000Z'
+      countVersion: 3
+  actual:
+    0:
+      id: '5ed6b71d-f050-47d0-a9c5-084f750d183d'
+      defaultSectionId: 'd43827ff-e386-439a-82c8-69f9edafbb49'
+      name: 'SYNTHETIC topic'
+      summary: ''
+      nameKey: 'synthetic topic'
+      revision: 0
+      organizationRevision: 1
+      activeLayoutGeneration: 1
+      activeKey: 0
+      pinKey: 1
+      pinRank: '499999999999'
+      negativeUpdatedSequence: -6
+      lifecycle: 'active'
+      createdBy: 'user'
+      createdAt: '2026-10-24T00:14:00.000Z'
+      protections:
+        title:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        body:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        note:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        type:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        formation:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        topics:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        section:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+        order:
+          locked: true
+          reason: 'user_created'
+          operationId: '0d690ef2-a360-46ca-a803-dd0254a58546'
+          at: '2026-10-24T00:14:00.000Z'
+      identity:
+        version: 1
+        revision: 0
+        origin: 'user'
+        scope: ~
+        aliases:
+        legacy: false
+        noRecreation: false
+        nameToken: '8865884288c969cf4c47a5f02bf66a50610c203a19b4deb60bc2492c68af547b'
+      searchVersion: '0:active:0'
+      updatedAt: '2026-10-24T00:31:30.000Z'
+      countVersion: 3
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:37:470)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: onedrive original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 3 - onedrive original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 814.997375
+  type: 'test'
+  ...
+# Subtest: onedrive original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+not ok 4 - onedrive original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 807.35
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:35:73'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        {
+          activeKey: 0,
+          activeLayoutGeneration: 1,
+          countVersion: 3,
+    ...
+            legacy: false,
+    +       nameToken: 'a70c610aea24fcef962d2b8e6be2fd41cbac69f731c0fe9e854fdba4146c6716',
+    -       nameToken: '55da845e0cca4845a3b9e1a44193e0351bc57881f03172ca73801fd99e6e93de',
+            noRecreation: false,
+            origin: 'user',
+            revision: 0,
+            scope: null,
+            version: 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      id: '0c418ee4-f1b5-4db3-98ca-56d7be1cb4c9'
+      defaultSectionId: 'adbf61be-8641-4173-b496-76c1fb48edf5'
+      name: 'SYNTHETIC topic'
+      summary: ''
+      nameKey: 'synthetic topic'
+      revision: 0
+      organizationRevision: 1
+      activeLayoutGeneration: 1
+      activeKey: 0
+      pinKey: 1
+      pinRank: '499999999999'
+      negativeUpdatedSequence: -6
+      lifecycle: 'active'
+      createdBy: 'user'
+      createdAt: '2026-10-24T00:14:00.000Z'
+      protections:
+        title:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        body:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        note:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        type:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        formation:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        topics:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        section:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        order:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+      identity:
+        version: 1
+        revision: 0
+        origin: 'user'
+        scope: ~
+        aliases:
+        legacy: false
+        noRecreation: false
+        nameToken: '55da845e0cca4845a3b9e1a44193e0351bc57881f03172ca73801fd99e6e93de'
+      searchVersion: '0:active:0'
+      updatedAt: '2026-10-24T00:31:30.000Z'
+      countVersion: 3
+  actual:
+    0:
+      id: '0c418ee4-f1b5-4db3-98ca-56d7be1cb4c9'
+      defaultSectionId: 'adbf61be-8641-4173-b496-76c1fb48edf5'
+      name: 'SYNTHETIC topic'
+      summary: ''
+      nameKey: 'synthetic topic'
+      revision: 0
+      organizationRevision: 1
+      activeLayoutGeneration: 1
+      activeKey: 0
+      pinKey: 1
+      pinRank: '499999999999'
+      negativeUpdatedSequence: -6
+      lifecycle: 'active'
+      createdBy: 'user'
+      createdAt: '2026-10-24T00:14:00.000Z'
+      protections:
+        title:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        body:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        note:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        type:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        formation:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        topics:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        section:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+        order:
+          locked: true
+          reason: 'user_created'
+          operationId: '825b5b0c-c0cf-4eea-8b4a-3ab9e460040b'
+          at: '2026-10-24T00:14:00.000Z'
+      identity:
+        version: 1
+        revision: 0
+        origin: 'user'
+        scope: ~
+        aliases:
+        legacy: false
+        noRecreation: false
+        nameToken: 'a70c610aea24fcef962d2b8e6be2fd41cbac69f731c0fe9e854fdba4146c6716'
+      searchVersion: '0:active:0'
+      updatedAt: '2026-10-24T00:31:30.000Z'
+      countVersion: 3
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:37:470)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: google lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+ok 5 - google lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+  ---
+  duration_ms: 239.549542
+  type: 'test'
+  ...
+# Subtest: onedrive lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+ok 6 - onedrive lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+  ---
+  duration_ms: 277.923125
+  type: 'test'
+  ...
+# Subtest: OneDrive lost session creation stays unknown across cold reopen, no second POST
+ok 7 - OneDrive lost session creation stays unknown across cold reopen, no second POST
+  ---
+  duration_ms: 134.7295
+  type: 'test'
+  ...
+# Subtest: prepared source edit refuses before remote write and preserves all local tables
+ok 8 - prepared source edit refuses before remote write and preserves all local tables
+  ---
+  duration_ms: 84.139459
+  type: 'test'
+  ...
+# Subtest: prepared source delete refuses before remote write and preserves all local tables
+ok 9 - prepared source delete refuses before remote write and preserves all local tables
+  ---
+  duration_ms: 107.2435
+  type: 'test'
+  ...
+# Subtest: foreign unmerged Source cannot claim causal parent merely from remote latest
+ok 10 - foreign unmerged Source cannot claim causal parent merely from remote latest
+  ---
+  duration_ms: 260.114792
+  type: 'test'
+  ...
+# Subtest: fixed original local journal committed lost ACK has one exact readback before any upload
+ok 11 - fixed original local journal committed lost ACK has one exact readback before any upload
+  ---
+  duration_ms: 57.186667
+  type: 'test'
+  ...
+# Subtest: fixed original local journal uncommitted lost ACK has one exact readback before any upload
+ok 12 - fixed original local journal uncommitted lost ACK has one exact readback before any upload
+  ---
+  duration_ms: 53.18675
+  type: 'test'
+  ...
+# Subtest: object in-flight pause records unknown and cold readback never duplicates that upload
+ok 13 - object in-flight pause records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 242.002958
+  type: 'test'
+  ...
+# Subtest: object in-flight close records unknown and cold readback never duplicates that upload
+ok 14 - object in-flight close records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 235.40475
+  type: 'test'
+  ...
+# Subtest: object in-flight binding records unknown and cold readback never duplicates that upload
+ok 15 - object in-flight binding records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 221.773042
+  type: 'test'
+  ...
+# Subtest: manifest in-flight pause records unknown and cold readback never duplicates that upload
+ok 16 - manifest in-flight pause records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 244.407875
+  type: 'test'
+  ...
+# Subtest: manifest in-flight close records unknown and cold readback never duplicates that upload
+ok 17 - manifest in-flight close records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 236.214625
+  type: 'test'
+  ...
+# Subtest: manifest in-flight binding records unknown and cold readback never duplicates that upload
+ok 18 - manifest in-flight binding records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 240.110667
+  type: 'test'
+  ...
+# Subtest: account generation change refuses old durable task before network and preserves all tables
+ok 19 - account generation change refuses old durable task before network and preserves all tables
+  ---
+  duration_ms: 60.105875
+  type: 'test'
+  ...
+# Subtest: swapped original local methods are refused without calling the replacement
+ok 20 - swapped original local methods are refused without calling the replacement
+  ---
+  duration_ms: 53.92425
+  type: 'test'
+  ...
+# Subtest: local edit after first immutable write rejects before discoverable manifest and preserves the edit
+ok 21 - local edit after first immutable write rejects before discoverable manifest and preserves the edit
+  ---
+  duration_ms: 150.568792
+  type: 'test'
+  ...
+# Subtest: missing previously verified immutable object stays blocked, no recreation
+ok 22 - missing previously verified immutable object stays blocked, no recreation
+  ---
+  duration_ms: 224.978125
+  type: 'test'
+  ...
+# Subtest: read deadline stops one explicit action, leaves ordinary library unchanged
+ok 23 - read deadline stops one explicit action, leaves ordinary library unchanged
+  ---
+  duration_ms: 41.272458
+  type: 'test'
+  ...
+# Subtest: google last pre-dispatch GET pause forbids first remote body write
+ok 24 - google last pre-dispatch GET pause forbids first remote body write
+  ---
+  duration_ms: 82.888625
+  type: 'test'
+  ...
+# Subtest: google last pre-dispatch GET delete forbids first remote body write
+ok 25 - google last pre-dispatch GET delete forbids first remote body write
+  ---
+  duration_ms: 129.688417
+  type: 'test'
+  ...
+# Subtest: onedrive last pre-dispatch GET pause forbids first remote body write
+ok 26 - onedrive last pre-dispatch GET pause forbids first remote body write
+  ---
+  duration_ms: 70.226208
+  type: 'test'
+  ...
+# Subtest: onedrive last pre-dispatch GET delete forbids first remote body write
+ok 27 - onedrive last pre-dispatch GET delete forbids first remote body write
+  ---
+  duration_ms: 129.914084
+  type: 'test'
+  ...
+# Subtest: unsettled original local set pause quarantines key until true completion
+ok 28 - unsettled original local set pause quarantines key until true completion
+  ---
+  duration_ms: 107.23825
+  type: 'test'
+  ...
+# Subtest: unsettled original local set timeout quarantines key until true completion
+ok 29 - unsettled original local set timeout quarantines key until true completion
+  ---
+  duration_ms: 325.505958
+  type: 'test'
+  ...
+# Subtest: google qualification completion after timeout cannot dispatch the first HTTP
+ok 30 - google qualification completion after timeout cannot dispatch the first HTTP
+  ---
+  duration_ms: 54.714833
+  type: 'test'
+  ...
+# Subtest: google qualification completion after close cannot dispatch the first HTTP
+ok 31 - google qualification completion after close cannot dispatch the first HTTP
+  ---
+  duration_ms: 33.105666
+  type: 'test'
+  ...
+# Subtest: onedrive qualification completion after timeout cannot dispatch the first HTTP
+ok 32 - onedrive qualification completion after timeout cannot dispatch the first HTTP
+  ---
+  duration_ms: 53.057542
+  type: 'test'
+  ...
+# Subtest: onedrive qualification completion after close cannot dispatch the first HTTP
+ok 33 - onedrive qualification completion after close cannot dispatch the first HTTP
+  ---
+  duration_ms: 32.396625
+  type: 'test'
+  ...
+# Subtest: private committed dispatch proof refuses cloned results and a later original Store operation
+ok 34 - private committed dispatch proof refuses cloned results and a later original Store operation
+  ---
+  duration_ms: 49.498875
+  type: 'test'
+  ...
+# Subtest: paused old provider GET cannot borrow resumed action work to issue POST
+ok 35 - paused old provider GET cannot borrow resumed action work to issue POST
+  ---
+  duration_ms: 112.086709
+  type: 'test'
+  ...
+# Subtest: journal cannot claim confirmed with an unverified object
+ok 36 - journal cannot claim confirmed with an unverified object
+  ---
+  duration_ms: 48.945791
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 34
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7815.267917

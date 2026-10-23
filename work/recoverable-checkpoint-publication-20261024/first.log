@@ -1,0 +1,139 @@
+TAP version 13
+# Subtest: google original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 1 - google original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 537.660375
+  type: 'test'
+  ...
+# Subtest: google original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 2 - google original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 1129.360375
+  type: 'test'
+  ...
+# Subtest: onedrive original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+not ok 3 - onedrive original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 75.831334
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:31:73'
+  failureType: 'testCodeFailure'
+  error: 'BNS_PROVIDER_COMPLETION_UNKNOWN'
+  code: 'BNS_PROVIDER_COMPLETION_UNKNOWN'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    #http (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/providers/onedrive.js:36:366)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/providers/onedrive.js:63:17
+    async #run (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/providers/onedrive.js:32:185)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:28:333)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:75:5
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:29:226)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:32:265)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: onedrive original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+not ok 4 - onedrive original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 159.733208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:31:73'
+  failureType: 'testCodeFailure'
+  error: 'BNS_PROVIDER_COMPLETION_UNKNOWN'
+  code: 'BNS_PROVIDER_COMPLETION_UNKNOWN'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    #http (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/providers/onedrive.js:36:366)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/providers/onedrive.js:63:17
+    async #run (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/providers/onedrive.js:32:185)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:28:333)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:75:5
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:29:226)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:32:265)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: google lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+ok 5 - google lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+  ---
+  duration_ms: 142.808542
+  type: 'test'
+  ...
+# Subtest: onedrive lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+not ok 6 - onedrive lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+  ---
+  duration_ms: 92.002208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:40:41'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CHECKPOINT_PUBLICATION_UNKNOWN'
+  code: 'BNS_CHECKPOINT_PUBLICATION_UNKNOWN'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:72:91
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/checkpoint-publication.js:29:226)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:41:420)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: OneDrive lost session creation stays unknown across cold reopen, no second POST
+ok 7 - OneDrive lost session creation stays unknown across cold reopen, no second POST
+  ---
+  duration_ms: 91.733875
+  type: 'test'
+  ...
+# Subtest: prepared source edit refuses before remote write and preserves all local tables
+ok 8 - prepared source edit refuses before remote write and preserves all local tables
+  ---
+  duration_ms: 79.536541
+  type: 'test'
+  ...
+# Subtest: prepared source delete refuses before remote write and preserves all local tables
+not ok 9 - prepared source delete refuses before remote write and preserves all local tables
+  ---
+  duration_ms: 43.509375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:44:41'
+  failureType: 'testCodeFailure'
+  error: 'BNS_FILTER_WRITER_UNSUPPORTED'
+  code: 'BNS_FILTER_WRITER_UNSUPPORTED'
+  stack: |-
+    LibraryDocumentsStore.purge (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/smart-filter-store-owner.js:200:78)
+    LibraryDocumentsStore.purge (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/thought-store-owner.js:99:59)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:44:405)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: foreign unmerged Source cannot claim causal parent merely from remote latest
+not ok 10 - foreign unmerged Source cannot claim causal parent merely from remote latest
+  ---
+  duration_ms: 134.951916
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:45:1'
+  failureType: 'testCodeFailure'
+  error: 'INVALID_REQUEST'
+  code: 'INVALID_REQUEST'
+  stack: |-
+    requireThat (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/validation.js:6:25)
+    file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/validation.js:28:5
+    Array.map (<anonymous>)
+    validateCapture (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/validation.js:27:37)
+    SourceBootstrapJournal.capture (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-bootstrap-journal.js:27:25)
+    LibraryDocumentsStore.sourceOperation (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:352:100)
+    LibraryDocumentsStore.sourceOperation (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/smart-filter-store-owner.js:83:28)
+    LibraryDocumentsStore.capture (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:350:31)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/checkpoint-publication.test.mjs:45:277)
+    async Test.run (node:internal/test_runner/test:1054:7)
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 5
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2664.471958

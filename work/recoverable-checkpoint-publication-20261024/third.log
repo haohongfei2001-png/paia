@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: google original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 1 - google original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 523.788375
+  type: 'test'
+  ...
+# Subtest: google original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 2 - google original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 1101.550541
+  type: 'test'
+  ...
+# Subtest: onedrive original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 3 - onedrive original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 453.577084
+  type: 'test'
+  ...
+# Subtest: onedrive original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 4 - onedrive original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 1097.777375
+  type: 'test'
+  ...
+# Subtest: google lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+ok 5 - google lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+  ---
+  duration_ms: 139.450959
+  type: 'test'
+  ...
+# Subtest: onedrive lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+ok 6 - onedrive lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+  ---
+  duration_ms: 140.171666
+  type: 'test'
+  ...
+# Subtest: OneDrive lost session creation stays unknown across cold reopen, no second POST
+ok 7 - OneDrive lost session creation stays unknown across cold reopen, no second POST
+  ---
+  duration_ms: 90.641333
+  type: 'test'
+  ...
+# Subtest: prepared source edit refuses before remote write and preserves all local tables
+ok 8 - prepared source edit refuses before remote write and preserves all local tables
+  ---
+  duration_ms: 70.680625
+  type: 'test'
+  ...
+# Subtest: prepared source delete refuses before remote write and preserves all local tables
+ok 9 - prepared source delete refuses before remote write and preserves all local tables
+  ---
+  duration_ms: 86.940958
+  type: 'test'
+  ...
+# Subtest: foreign unmerged Source cannot claim causal parent merely from remote latest
+ok 10 - foreign unmerged Source cannot claim causal parent merely from remote latest
+  ---
+  duration_ms: 160.661334
+  type: 'test'
+  ...
+# Subtest: fixed original local journal committed lost ACK has one exact readback before any upload
+ok 11 - fixed original local journal committed lost ACK has one exact readback before any upload
+  ---
+  duration_ms: 44.283667
+  type: 'test'
+  ...
+# Subtest: fixed original local journal uncommitted lost ACK has one exact readback before any upload
+ok 12 - fixed original local journal uncommitted lost ACK has one exact readback before any upload
+  ---
+  duration_ms: 43.440875
+  type: 'test'
+  ...
+# Subtest: object in-flight pause records unknown and cold readback never duplicates that upload
+ok 13 - object in-flight pause records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 141.765875
+  type: 'test'
+  ...
+# Subtest: object in-flight close records unknown and cold readback never duplicates that upload
+ok 14 - object in-flight close records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 140.835667
+  type: 'test'
+  ...
+# Subtest: object in-flight binding records unknown and cold readback never duplicates that upload
+ok 15 - object in-flight binding records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 137.709792
+  type: 'test'
+  ...
+# Subtest: manifest in-flight pause records unknown and cold readback never duplicates that upload
+ok 16 - manifest in-flight pause records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 147.6065
+  type: 'test'
+  ...
+# Subtest: manifest in-flight close records unknown and cold readback never duplicates that upload
+ok 17 - manifest in-flight close records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 145.785625
+  type: 'test'
+  ...
+# Subtest: manifest in-flight binding records unknown and cold readback never duplicates that upload
+ok 18 - manifest in-flight binding records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 145.059791
+  type: 'test'
+  ...
+# Subtest: account generation change refuses old durable task before network and preserves all tables
+ok 19 - account generation change refuses old durable task before network and preserves all tables
+  ---
+  duration_ms: 44.959917
+  type: 'test'
+  ...
+# Subtest: swapped original local methods are refused without calling the replacement
+ok 20 - swapped original local methods are refused without calling the replacement
+  ---
+  duration_ms: 42.564791
+  type: 'test'
+  ...
+# Subtest: local edit after first immutable write rejects before discoverable manifest and preserves the edit
+ok 21 - local edit after first immutable write rejects before discoverable manifest and preserves the edit
+  ---
+  duration_ms: 114.936125
+  type: 'test'
+  ...
+# Subtest: missing previously verified immutable object stays blocked, no recreation
+ok 22 - missing previously verified immutable object stays blocked, no recreation
+  ---
+  duration_ms: 139.860375
+  type: 'test'
+  ...
+# Subtest: read deadline stops one explicit action, leaves ordinary library unchanged
+ok 23 - read deadline stops one explicit action, leaves ordinary library unchanged
+  ---
+  duration_ms: 39.555792
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5326.815792
