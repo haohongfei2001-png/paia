@@ -75,3 +75,9 @@ export function readOriginalHumanReceiveExpectation(journal,prepared){const p=or
 
 const originalJournalPrototype=HumanLibrarySyncJournal.prototype,originalJournalParent=Object.getPrototypeOf(originalJournalPrototype),originalJournalDescriptors=Object.getOwnPropertyDescriptors(originalJournalPrototype);
 export function requireOriginalHumanGenerationJournal(journal,core){const p=originalJournalBindings.get(journal);if(!p||p.core!==core||Object.getPrototypeOf(journal)!==originalJournalPrototype||Object.getPrototypeOf(originalJournalPrototype)!==originalJournalParent)fail('GENERATION_REPOSITORY_WRITE_DENIED');for(const [key,value]of Object.entries(p)){const d=Object.getOwnPropertyDescriptor(journal,key);if(!d||d.value!==value||d.get||d.set)fail('GENERATION_REPOSITORY_WRITE_DENIED');}for(const [key,expected]of Object.entries(originalJournalDescriptors)){const d=Object.getOwnPropertyDescriptor(originalJournalPrototype,key);if(Object.hasOwn(journal,key)||!d||['value','get','set','writable','enumerable','configurable'].some(k=>d[k]!==expected[k]))fail('GENERATION_REPOSITORY_WRITE_DENIED');}return true;}
+
+// Capture the original methods in their defining module, after class creation.
+// Cyclic consumers import these hoisted functions without reading a class TDZ;
+// calls still use the immutable original descriptors and the private binding.
+export function prepareOriginalHumanGenerationReceive(journal,core,store,operations){requireOriginalHumanGenerationJournal(journal,core);return originalJournalDescriptors.prepareReceive.value.call(journal,store,operations);}
+export function commitOriginalHumanGenerationReceive(journal,core,t,prepared){requireOriginalHumanGenerationJournal(journal,core);return originalJournalDescriptors.commitReceiveInTransaction.value.call(journal,t,prepared);}
