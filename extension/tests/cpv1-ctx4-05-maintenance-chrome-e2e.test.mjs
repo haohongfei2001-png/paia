@@ -749,6 +749,47 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
    }finally{f.s.repository.transaction=original;session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('fixture cleanup'));r.onblocked=()=>reject(Error('blocked cleanup'));});}
   };
 
+  // Original owner restore -> canonical maintenance -> original Context owner.
+  // Native IndexedDB only; synthetic processing grants never authorize live service use.
+  globalThis.__maintenanceStructuralRestoreNative=async({kind,phase})=>{
+   assert.ok(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'original native IndexedDB');
+   const f=await maintenanceFixture(),original=f.s.repository.transaction.bind(f.s.repository);let session=f.session,hit=false,rollbackBefore=null,aborted=false,completed=false;
+   try{
+    assert.equal((await session.run(await session.prepare(options))).state,'COMMITTED');session.dispose();
+    const entry=(await read(f.s,'thoughts'))[0],topic=(await read(f.s,'topics'))[0],p=(await read(f.s,'placements'))[0];
+    await f.s.placeEntry({entryId:entry.id,topicId:topic.id,expectedEntryRevision:entry.revision,expectedTopicRevision:topic.organizationRevision,expectedPlacementRevision:p.revision,operationId:op()});
+    const section=(await read(f.s,'sections'))[0],entityId=kind==='section'?section.sectionId:topic.id,field=kind==='section'?'title':'name';
+    const renameOperation=op();
+    if(kind==='section')await f.s.editSection({topicId:topic.id,sectionId:section.sectionId,expectedRevision:section.revision,title:'SYNTHETIC native changed Section interpretation',operationId:renameOperation});
+    else await f.s.renameTopic({id:topic.id,expectedRevision:(await read(f.s,'topics',topic.id)).revision,name:'SYNTHETIC native changed Topic interpretation',operationId:renameOperation});
+    const saved=(await read(f.s,'revisions')).find(j=>j.operationId===renameOperation&&j.kind===kind),restoreOperation=op();assert.ok(saved,'original human rename journal');
+    await f.s.restoreRevision({id:saved.id,side:'before',expectedRevision:saved.afterRevision,operationId:restoreOperation});
+    const restored=await read(f.s,kind==='section'?'sections':'topics',kind==='section'?section.id:topic.id),journal=(await read(f.s,'revisions')).find(j=>j.operationId===restoreOperation&&j.kind===kind);
+    assert.equal(restored[field],saved.before[field],'real original restore selected value');assert.equal(journal.reason,'restore');assert.deepEqual(journal.fieldMask,[field]);assert.equal(restored.authorship[field].actor,'user');assert.equal(restored.protections[field].locked,true);
+    const key=JSON.stringify([kind,entityId]),owners=['records','blocks','inputStates','thoughts','topics','sections','placements','revisions','dependencies','provenance'],before=await Promise.all(owners.map(n=>read(f.s,n))),cardBefore=await read(f.s,'meta',CONTEXT_CARDS_ROW),warmCalls=f.calls.length;
+    f.service.topic.reconcileHumanNames=true;f.service.topic.reconcileHumanSections=true;
+    f.provider.execute=async request=>{assert.ok(request.coverage.every(u=>u.key===key&&u.facet==='context'),'restore receives only exact Context coverage');f.calls.push(structuredClone(request));return {accepted:true,operationReceiptId:'synthetic-restore-'+request.childOperationId,body:'SYNTHETIC native restored current interpretation'};};
+    f.service.responseAdapter.topic=async()=>{throw Error('Restored human structure must not acquire Topic reconciliation');};
+    f.service.responseAdapter.context=async(response,metadata,binding)=>{
+     const scope=await readContextTopicScope(f.s,{topicId:topic.id});assert.ok(scope.available,'current original Topic scope');const evidence=[];
+     for(const inputId of metadata.inputIds){const input=await f.s.repository.transaction(false,t=>inputProjection(f.s,t,inputId));evidence.push({topicId:topic.id,inputId,selectedFields:['body'],fieldDigests:{body:await hashText(input.body)},expectedTopicBinding:scope.binding,expectedRemovalSequence:input.lastRemovalSequence,...(kind==='section'?{humanSection:metadata.structuralSections[0]}:{humanTopic:metadata.structuralTopics[0]})});}
+     return {binding,value:[{units:metadata.units,change:{operationId:op(),epoch:scope.binding.epoch,itemId:op(),card:'info',expectedRevision:0,body:response.body,section:'Synthetic native restore',associationIds:[op()],evidence}}]};
+    };
+    let grant;session=new LocalMaintenanceSession(f.s,{...f.constructor,window:{acquire:async r=>(grant=Object.freeze({version:1,kind:'fixture',dayId:'synthetic-day',windowId:op(),reservationId:op(),tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal})),isCurrent:r=>r===grant}});
+    if(phase==='ack-abort')f.s.repository.transaction=async(write,fn,stores)=>{const saved=write?await snapshot(f.s):null;return original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,row,...rest)=>{const value=await put(n,row,...rest);if(!hit&&n==='organizerWorkItems'&&row.state==='ACKNOWLEDGED'&&row.unit?.key===key&&row.unit.facet==='context'){assert.ok(t.tx instanceof IDBTransaction,'ACK belongs to original native transaction');hit=true;rollbackBefore=saved;t.tx.addEventListener('abort',()=>{aborted=true;},{once:true});t.tx.addEventListener('complete',()=>{completed=true;},{once:true});t.tx.abort();throw Error('Synthetic native restored structure ACK abort');}return value;};}return fn(t);},stores);};
+    const handle=await session.prepare({...options,routeVersion:'synthetic-native-structural-restore-1',cursor:'aiu:delta:pending:'+JSON.stringify(['placement',p.id])});
+    let result=await session.run(handle);f.s.repository.transaction=original;
+    const acks=async()=>(await read(f.s,'organizerWorkItems')).filter(r=>r.state==='ACKNOWLEDGED'&&r.unit?.key===key);
+    if(phase==='ack-abort'){assert.ok(hit&&aborted&&!completed,'native abort without native complete');assert.ok(result.processedState!=='COMMITTED');assert.equal((await acks()).length,0);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),cardBefore,'Context result rolled back');assert.deepEqual(await snapshot(f.s),rollbackBefore,'all original native stores rolled back');result=await session.run(handle);}
+    assert.equal(result.processedState,'COMMITTED','exact restored structure Context commits');assert.equal(f.calls.length,warmCalls+1,'ACK replay consumes recorded response without another provider');assert.deepEqual((await acks()).map(r=>r.unit.facet),['context']);
+    assert.ok((await read(f.s,'organizerWorkItems')).some(r=>r.state==='DEFERRED'&&r.unit?.key===key&&r.unit.facet==='topic'),'separate Topic obligation stays pending');
+    assert.deepEqual(await Promise.all(owners.map(n=>read(f.s,n))),before,'Source, Input and complete human organization/journals unchanged');assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.length,cardBefore.items.length+1);
+    const material=f.calls.at(-1).material,selected=kind==='section'?material.structuralSections[0]:material.structuralTopics[0];assert.equal(selected[field],restored[field],'current restored human interpretation dispatched');
+    const committed=await snapshot(f.s);await session.run(handle);assert.deepEqual(await snapshot(f.s),committed,'same handle replay preserves all native tables');assert.equal(f.calls.length,warmCalls+1);
+    return {passed:true,nativeFactory:true,kind,phase,deltaPhysicalAttempts:1,exactContextAck:true,topicDeferred:true,humanOwnersUnchanged:true,atomicRollback:phase==='ack-abort'&&hit&&aborted&&!completed};
+   }finally{f.s.repository.transaction=original;session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('restore fixture cleanup'));r.onblocked=()=>reject(Error('blocked restore cleanup'));});}
+  };
+
   globalThis.__maintenanceMixedNative=async phase=>{
    assert.ok(indexedDB instanceof IDBFactory,'native IndexedDB');
    const f=await maintenanceFixture(),original=f.s.repository.transaction.bind(f.s.repository);let hit=false,rollback=false;
@@ -1059,4 +1100,23 @@ for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dorma
  }finally{
   if(harness)await harness.close();await rm(temporary,{recursive:true,force:true});
  }
+});
+
+
+// Separate finite native qualification; the existing complete owning batch above
+// remains unchanged and continues to include all of its original cases.
+for(const variant of ['source','release'])test('CTX4-05 native '+variant+' structural restore Context qualification',{timeout:120000},async t=>{
+ const output=join(root,'work','ctx4-05-structural-restore',variant),temporary=await mkdtemp(join(tmpdir(),'paia-ctx4-restore-native-'));let harness;
+ await mkdir(output,{recursive:true});
+ try{
+  const extensionPath=variant==='source'?root:join(temporary,'release');
+  if(variant==='release')execFileSync('python3',[join(root,'scripts','build_current_release.py'),extensionPath],{cwd:root,stdio:'pipe'});
+  harness=await FakeChatGPT.start({extensionPath});const page=harness.archive,settings=await page.evaluate(()=>chrome.storage.local.get(null));await installMaintenanceSession(page);
+  for(const kind of ['section','topic'])for(const phase of ['complete','ack-abort'])await t.test(kind+'-'+phase,{timeout:20000},async()=>{
+   const report=await page.evaluate(scenario=>globalThis.__maintenanceStructuralRestoreNative(scenario),{kind,phase});assert.equal(report.passed,true);
+   await writeFile(join(output,kind+'-'+phase+'.json'),JSON.stringify(report,null,2));
+  });
+  assert.deepEqual(await page.evaluate(()=>chrome.storage.local.get(null)),settings,'isolated native fixtures preserve app settings');
+  assert.equal(harness.extensionNetworkRequests,0);assert.equal(harness.externalRequests,0);assert.equal(harness.deepSeekRequests.length,0);assert.deepEqual(harness.errors,[]);
+ }finally{if(harness)await harness.close();await rm(temporary,{recursive:true,force:true});}
 });

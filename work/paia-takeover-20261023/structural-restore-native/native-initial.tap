@@ -1,0 +1,72 @@
+TAP version 13
+# Subtest: CTX4-05 native source structural restore Context qualification
+    # Subtest: section-complete
+    ok 1 - section-complete
+      ---
+      duration_ms: 748.292625
+      type: 'test'
+      ...
+    # Subtest: section-ack-abort
+    ok 2 - section-ack-abort
+      ---
+      duration_ms: 851.494292
+      type: 'test'
+      ...
+    # Subtest: topic-complete
+    ok 3 - topic-complete
+      ---
+      duration_ms: 838.014083
+      type: 'test'
+      ...
+    # Subtest: topic-ack-abort
+    ok 4 - topic-ack-abort
+      ---
+      duration_ms: 1014.230208
+      type: 'test'
+      ...
+    1..4
+ok 1 - CTX4-05 native source structural restore Context qualification
+  ---
+  duration_ms: 4711.971083
+  type: 'test'
+  ...
+# Subtest: CTX4-05 native release structural restore Context qualification
+    # Subtest: section-complete
+    ok 1 - section-complete
+      ---
+      duration_ms: 738.439834
+      type: 'test'
+      ...
+    # Subtest: section-ack-abort
+    ok 2 - section-ack-abort
+      ---
+      duration_ms: 812.878333
+      type: 'test'
+      ...
+    # Subtest: topic-complete
+    ok 3 - topic-complete
+      ---
+      duration_ms: 779.538792
+      type: 'test'
+      ...
+    # Subtest: topic-ack-abort
+    ok 4 - topic-ack-abort
+      ---
+      duration_ms: 838.660042
+      type: 'test'
+      ...
+    1..4
+ok 2 - CTX4-05 native release structural restore Context qualification
+  ---
+  duration_ms: 5758.003334
+  type: 'test'
+  ...
+1..2
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10624.695125

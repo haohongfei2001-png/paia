@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "nativeFactory": true,
+  "kind": "topic",
+  "phase": "ack-abort",
+  "deltaPhysicalAttempts": 1,
+  "exactContextAck": true,
+  "topicDeferred": true,
+  "humanOwnersUnchanged": true,
+  "atomicRollback": true
+}
