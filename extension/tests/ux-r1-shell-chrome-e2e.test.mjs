@@ -124,3 +124,67 @@ test('UX-R1 optional history import previews, confirms and reads one real import
   await assertNoNetwork(h);assert.deepEqual(h.errors,[]);
  }finally{await h?.close();await rm(dir,{recursive:true,force:true});}
 });
+
+for(const variant of ['source','release'])test(`SET2 Feedback real-worker draft lifecycle ${variant}`,{timeout:90000},async()=>{
+ const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-feedback-release-')):null;let h,worker,cdp;
+ try{
+  if(release){const {execFileSync}=await import('node:child_process');execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});}
+  h=await FakeChatGPT.start({onboarding:true,headless:true,...(release?{extensionPath:release}:{})});const p=h.archive;
+  await consent(p);await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
+  await eventually(()=>p.evaluate(()=>document.documentElement.lang==='zh-CN'));
+  const openFeedback=async()=>{
+   await p.locator('.sidebar-bottom [data-view="settings"]').click();await p.locator('#settings-panel').waitFor({state:'visible'});
+   await p.locator('[data-settings-group="about"]').click();await p.locator('#settings-about-feedback').click();
+   await p.locator('#settings-feedback-dialog').waitFor({state:'visible'});await eventually(()=>p.locator('#settings-feedback-body').isEnabled());
+  };
+  const saved=()=>p.evaluate(async()=>{
+   const {FEEDBACK_DRAFT_OWNER}=await import('../core/recovery-draft.js'),page=await chrome.runtime.sendMessage({type:'GET_PAGE',page:{view:'settings',limit:1}});
+   if(!page.ok)throw Error(page.error);const reply=await chrome.runtime.sendMessage({type:'PAIA_RECOVERY_DRAFT_LOAD',draft:{kind:'settings_feedback',ownerId:FEEDBACK_DRAFT_OWNER,epoch:page.data.recoveryEpoch}});
+   if(!reply.ok)throw Error(reply.error);return reply.data;
+  });
+  worker=h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));assert.ok(worker);
+  await worker.evaluate(()=>{
+   const area=chrome.storage.local,original=area.set;globalThis.__feedbackStorageProbe={area,original,fail:false,attempts:0};
+   area.set=function(values,...args){const probe=__feedbackStorageProbe;if(Object.hasOwn(values,'paia-recovery-draft:v1:settings_feedback:settings-feedback')){probe.attempts++;if(probe.fail)throw Error('SYNTHETIC_FEEDBACK_STORAGE_FAILURE');}return Reflect.apply(original,this,[values,...args]);};
+  });
+  await openFeedback();const field=p.locator('#settings-feedback-body'),dialog=p.locator('#settings-feedback-dialog'),status=p.locator('#settings-feedback-status');
+  const text='SYNTHETIC 反馈草稿\n exact 👩‍💻\u200b 内容';await field.fill(text);
+  await eventually(async()=>(await saved())?.operation.body===text&&/已保存在本机/.test(await status.textContent()),'original worker acknowledges exact persisted feedback');
+  const first=await saved();assert.equal(first.kind,'settings_feedback');assert.deepEqual(first.sourceRecordIds,[]);
+  assert.equal(first.operation.type,'SETTINGS_FEEDBACK_DRAFT');assert.equal(first.operation.expectedToken,null);
+  await p.locator('#settings-feedback-close').click();await dialog.waitFor({state:'hidden'});
+  await p.reload();await openFeedback();assert.equal(await field.inputValue(),text,'reload reconstructs from original worker recovery owner');
+  const before=await saved(),writes=await worker.evaluate(()=>__feedbackStorageProbe.attempts);
+  await field.focus();await field.evaluate(el=>el.setSelectionRange(el.value.length,el.value.length));
+  await field.evaluate(el=>{globalThis.__feedbackIME=[];for(const type of ['compositionstart','compositionend'])el.addEventListener(type,event=>__feedbackIME.push({type,trusted:event.isTrusted}));});
+  cdp=await p.context().newCDPSession(p);await cdp.send('Input.imeSetComposition',{text:'汉',selectionStart:1,selectionEnd:1});
+  await eventually(()=>p.locator('#settings-feedback-copy').isDisabled(),'native composition disables copy');
+  // A modal cancel request exercises the real leave owner without forcibly
+  // committing the platform's active composition by moving focus elsewhere.
+  await dialog.dispatchEvent('cancel',{cancelable:true});assert.equal(await dialog.isVisible(),true);
+  assert.match(await status.textContent(),/完成当前输入/);assert.equal(await field.inputValue(),text+'汉');
+  assert.deepEqual(await saved(),before,'active composition never persists a partial draft');assert.equal(await worker.evaluate(()=>__feedbackStorageProbe.attempts),writes);
+  await worker.evaluate(()=>__feedbackStorageProbe.fail=true);await cdp.send('Input.insertText',{text:'汉'});
+  await eventually(()=>status.textContent().then(value=>/保存未获确认/.test(value)),'actual recovery storage write fails');
+  assert.deepEqual(await saved(),before);assert.equal(await field.inputValue(),text+'汉');
+  await p.locator('#settings-feedback-close').click();assert.equal(await dialog.isVisible(),true,'failed durable save cannot close and lose the draft');
+  assert.equal(await p.locator('#settings-panel').isVisible(),true);assert.equal(await field.inputValue(),text+'汉');
+  assert.deepEqual(await saved(),before,'failed leave did not overwrite the last acknowledged body');
+  await worker.evaluate(()=>__feedbackStorageProbe.fail=false);await p.locator('#settings-feedback-retry').click();
+  await eventually(async()=>(await saved())?.operation.body===text+'汉'&&/已保存在本机/.test(await status.textContent()),'explicit retry reaches the original worker');
+  const after=await saved();assert.equal(after.operation.expectedToken,first.token);assert.notEqual(after.token,first.token);
+  const ime=await p.evaluate(()=>__feedbackIME);assert.deepEqual(ime.map(event=>event.type),['compositionstart','compositionend']);assert.equal(ime[0].trusted,true,'composition begins through the native CDP input path');
+  // Chrome may mark the CDP commit's end event untrusted. Record its actual
+  // identity, without treating this synthetic input as physical OS IME proof.
+  console.log('FEEDBACK_IME_EVENTS',JSON.stringify({variant,events:ime}));
+  assert.equal(await p.locator('#settings-feedback-mail').getAttribute('href'),'mailto:haohongfei2001@gmail.com','no draft body or diagnostics in external destination');
+  await p.locator('#settings-feedback-close').click();await dialog.waitFor({state:'hidden'});
+  await p.locator('[data-settings-group="reading"]').click();assert.equal(await p.locator('#ux-reading-width').isVisible(),true,'acknowledged close releases normal group navigation');
+  await p.reload();await openFeedback();assert.equal(await field.inputValue(),text+'汉');assert.equal((await saved()).token,after.token,'second reload needs no hidden rewrite');
+  assert.equal((await h.state()).records.length,0,'feedback is not Source material');await assertNoNetwork(h);assert.deepEqual(h.errors,[]);
+ }finally{
+  await cdp?.detach().catch(()=>{});
+  await worker?.evaluate(()=>{const probe=globalThis.__feedbackStorageProbe;if(probe){probe.area.set=probe.original;delete globalThis.__feedbackStorageProbe;}}).catch(()=>{});
+  await h?.close();if(release)await rm(release,{recursive:true,force:true});
+ }
+});

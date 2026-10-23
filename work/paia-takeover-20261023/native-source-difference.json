@@ -1,0 +1,10 @@
+{
+  "rawSourceStable": false,
+  "changedPaths": [
+    "extension/tests/harness/fake-chatgpt.mjs"
+  ],
+  "difference": "One final newline removed; all executable harness bytes and all product runtime paths unchanged. Explicit PLAYWRIGHT_MODULE used in this run.",
+  "beforeSHA256": "856e144a1ed3bf90e5b2a918a1a55729a0702792bc87ae5d2120bd5bb13a233a",
+  "afterSHA256": "2744e6a288b00052f748b6c9c612249f5051bc878d0528a5aed63926f9973189",
+  "withFinalNewlineReconstructsBefore": true
+}

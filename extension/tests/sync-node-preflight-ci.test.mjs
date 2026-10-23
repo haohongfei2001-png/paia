@@ -23,11 +23,23 @@ function restoreApprovedFonts(text){
  assert.equal(job.split(approvedFontStep).length,2);
  return before+job.replace('    runs-on: ubuntu-24.04\n','    runs-on: ubuntu-latest\n').replace(approvedFontStep,originalFontStep)+tail.slice(at);
 }
+const approvedCoveragePreflight="      - uses: actions/checkout@v4\n        with:\n          persist-credentials: false\n      - uses: actions/setup-node@v4\n        with:\n          node-version: '22'\n      - name: Validate admission before scheduling expensive suites\n        working-directory: extension\n        run: node scripts/check-ui-refresh-ci.mjs\n";
+function restoreApprovedCoveragePreflight(text){
+ const start='\n  mode:\n',end='\n  unit:\n';
+ assert.equal(text.split(start).length,2);assert.equal(text.split(end).length,2);
+ const before=text.slice(0,text.indexOf(start)+start.length),tail=text.slice(before.length),at=tail.indexOf(end),job=tail.slice(0,at);
+ const location='    steps:\n'+approvedCoveragePreflight+'      - id: depth\n';
+ assert.equal(job.split(location).length,2,'one exact coverage preflight before depth selection');
+ assert.equal(text.split(approvedCoveragePreflight).length,2,'coverage preflight is unique across workflow');
+ const historical='\n  historical_browser:\n    needs: mode\n';
+ assert.equal(text.split(historical).length,2,'historical audit also waits for coverage admission');
+ return (before+job.replace(location,'    steps:\n      - id: depth\n')+tail.slice(at)).replace(historical,'\n  historical_browser:\n');
+}
 function restoredWorkflowHash(text){
  const commands=originalNodeCommands(text),preflight=text.split('\n  sync_node_preflight:\n')[1].split('\n  sync_native_storage:\n')[0];
  assert.deepEqual(commands.map(sha),COMMAND_HASHES);
  const originalStep='      - name: Verify whole owning Node files and fixture preflight\n        run: |\n          set -o pipefail\n'+commands.map(command=>'          '+command+'\n').join('');
- let restored=restoreApprovedFonts(text).replace('\n  sync_node_preflight:\n'+preflight,'');
+ let restored=restoreApprovedFonts(restoreApprovedCoveragePreflight(text)).replace('\n  sync_node_preflight:\n'+preflight,'');
  restored=restored.replace("    needs: [mode, sync_node_preflight]\n    if: needs.mode.outputs.full == 'true' && needs.sync_node_preflight.result == 'success'","    needs: mode\n    if: needs.mode.outputs.full == 'true'");
  restored=restored.replace('      - name: Prove source and release native IndexedDB and worker durability\n',originalStep+'      - name: Prove source and release native IndexedDB and worker durability\n');
  restored=restored.replace('release, sync_node_preflight, sync_native_storage]','release, sync_native_storage]').replace('          SYNC_NODE_PREFLIGHT: ${{ needs.sync_node_preflight.result }}\n','').replace('            test "$SYNC_NODE_PREFLIGHT" = success\n','');
@@ -42,6 +54,18 @@ test('original Sync command move and exact approved font delta preserve every ot
  const native=workflow.split('\n  sync_native_storage:\n')[1].split('\n  certified:\n')[0];
  assert.match(native,/timeout-minutes: 12/);assert.match(native,/--test-concurrency=3/);assert.equal((native.match(/tests\/native-sync\/[^ ]+\.mjs/g)||[]).filter(x=>x.endsWith('test.mjs')).length>=27,true);
  assert.doesNotMatch(native,/node --test tests\/browser-native-sync-/);
+});
+test('coverage preflight normalization rejects missing, relocated, duplicated or weakened admission',()=>{
+ const changes=[
+  [approvedCoveragePreflight,''],[approvedCoveragePreflight,approvedCoveragePreflight+approvedCoveragePreflight],
+  [approvedCoveragePreflight,approvedCoveragePreflight.replace('persist-credentials: false','persist-credentials: true')],
+  [approvedCoveragePreflight,approvedCoveragePreflight.replace("node-version: '22'","node-version: '24'")],
+  [approvedCoveragePreflight,approvedCoveragePreflight.replace('run: node scripts/check-ui-refresh-ci.mjs','run: node scripts/check-ui-refresh-ci.mjs || true')],
+  [approvedCoveragePreflight,approvedCoveragePreflight.replace('        working-directory: extension','        continue-on-error: true\n        working-directory: extension')],
+  ['\n  historical_browser:\n    needs: mode\n','\n  historical_browser:\n'],
+  ['    steps:\n'+approvedCoveragePreflight+'      - id: depth\n','    steps:\n      - id: depth\n'+approvedCoveragePreflight]
+ ];
+ for(const [from,to]of changes){assert.ok(workflow.includes(from),from);assert.throws(()=>restoredWorkflowHash(workflow.replace(from,to)),from);}
 });
 test('actual full aggregate requires both real job conclusions; round mode preserves the original rule',()=>{
  assert.match(workflow,/needs: \[mode, unit, contracts, current_browser, full_suite, macos_secure_store, macos_discard_lifecycle, release, sync_node_preflight, sync_native_storage\]/);

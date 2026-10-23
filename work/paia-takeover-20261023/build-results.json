@@ -1,0 +1,54 @@
+[
+  {
+    "name": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "cwd": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia",
+    "exit": 0,
+    "wallSeconds": 0.05502486228942871
+  },
+  {
+    "name": "source-package",
+    "command": [
+      "/opt/homebrew/opt/python@3.12/bin/python3.12",
+      "scripts/check_package.py"
+    ],
+    "cwd": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension",
+    "exit": 0,
+    "wallSeconds": 1.6257529258728027
+  },
+  {
+    "name": "development",
+    "command": [
+      "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+      "scripts/check_development.mjs"
+    ],
+    "cwd": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension",
+    "exit": 0,
+    "wallSeconds": 0.028136014938354492
+  },
+  {
+    "name": "gateway-deployment-source",
+    "command": [
+      "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+      "check-deployment-source.mjs"
+    ],
+    "cwd": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/services/ai-gateway",
+    "exit": 0,
+    "wallSeconds": 0.05273914337158203
+  },
+  {
+    "name": "release-build",
+    "command": [
+      "/opt/homebrew/opt/python@3.12/bin/python3.12",
+      "scripts/build_current_release.py",
+      "work/takeover-release-20261023"
+    ],
+    "cwd": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension",
+    "exit": 0,
+    "wallSeconds": 1.7975690364837646
+  }
+]

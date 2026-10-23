@@ -31,6 +31,21 @@ function assertBrowserFonts(browser,helper){
  assert.equal((helper.match(/'--no-install-recommends', 'install', \*PACKAGES/g)||[]).length,3);
  for(const command of ["'--print-uris', '--download-only', '-y'","*apt_options(state), '--download-only', '-y'","*apt_options(state), '--no-download', '-y'"])assert.ok(helper.includes(command),command);
 }
+test('coverage admission precedes every expensive suite and retains the browser1 owning check',async()=>{
+ const workflow=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8');
+ const jobs=new Map([...workflow.matchAll(/^  ([a-z_]+):\n([\s\S]*?)(?=^  [a-z_]+:\n|$(?![\s\S]))/gm)].map(match=>[match[1],match[2]]));
+ const mode=jobs.get('mode');assert.ok(mode);
+ assert.match(mode,/persist-credentials: false/);assert.match(mode,/node-version: '22'/);
+ assert.match(mode,/name: Validate admission before scheduling expensive suites\n        working-directory: extension\n        run: node scripts\/check-ui-refresh-ci.mjs\n      - id: depth/);
+ assert.doesNotMatch(mode,/continue-on-error|npm install|npm ci|actions\/cache|\|\| true/);
+ const expensive=['unit','contracts','current_browser','full_suite','macos_secure_store','macos_discard_lifecycle','historical_browser','release','sync_node_preflight','sync_native_storage'];
+ for(const name of expensive){const job=jobs.get(name);assert.ok(job,name);const needs=job.match(/^    needs: (.+)$/m)?.[1];assert.ok(needs==='mode'||needs?.startsWith('[mode,'),name+' requires mode');}
+ assert.match(jobs.get('historical_browser'),/if: github.event_name == 'workflow_dispatch'/);
+ assert.match(jobs.get('current_browser'),/name: Verify current browser coverage contract\n        if: matrix.index == 1\n        run: node scripts\/check-ui-refresh-ci.mjs/);
+ const gate=jobs.get('certified').split('        run: |\n')[1].split('\n').map(line=>line.startsWith('          ')?line.slice(10):line).join('\n');
+ const env={...process.env,FULL:'',UNIT:'skipped',CONTRACTS:'skipped',RELEASE:'skipped'};
+ assert.throws(()=>execFileSync('bash',['-e','-c',gate],{env,stdio:'pipe'}),'failed admission cannot become a green aggregate through skipped jobs');
+});
 test('full visual jobs retain the same CJK font packages as the owning Root and retained candidates',async()=>{
  const full=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),candidate=await readFile(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8'),browser=full.split('  current_browser:')[1].split('  full_suite:')[0];
  assertBrowserFonts(browser,await readFile(new URL('../scripts/prepare-browser-fonts.py',import.meta.url),'utf8'));

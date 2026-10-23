@@ -1,0 +1,231 @@
+{
+  "name": "a held original layout ACK cannot take focus back from a newer trusted keyboard choice",
+  "state": {
+    "mode": "search",
+    "layoutPending": false,
+    "focused": {
+      "tag": "BUTTON",
+      "id": "",
+      "row": "block:29cc7fa4-ac11-4c28-bbe0-14f0b99a5170"
+    },
+    "rows": 5,
+    "checkVisible": false,
+    "refreshDisabled": false,
+    "status": "",
+    "listScroll": 0,
+    "rpcResults": [
+      {
+        "type": "PAIA_PROMPT_CHANGE",
+        "ok": false,
+        "error": "INVALID_REQUEST",
+        "at": 12420.5
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 12446.10000000894
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 12736.20000000298
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 12737.5
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 12779
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 12910.60000000894
+      },
+      {
+        "type": "members",
+        "ok": true,
+        "at": 13103.5
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 13259.40000000596
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 13265.10000000894
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 13387.10000000894
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 13441
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": false,
+        "error": "MEMORY_STALE",
+        "at": 13476.20000000298
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 13503
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": false,
+        "error": "MEMORY_STALE",
+        "at": 13540
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 13569.5
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": false,
+        "error": "MEMORY_STALE",
+        "at": 13605.29999999702
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 13635
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": false,
+        "error": "MEMORY_STALE",
+        "at": 13670.70000000298
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 13704.40000000596
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": false,
+        "error": "MEMORY_STALE",
+        "at": 13734.5
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 13761.10000000894
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": false,
+        "error": "MEMORY_STALE",
+        "at": 13789.40000000596
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 13815.20000000298
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 13818.90000000596
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 13958.90000000596
+      },
+      {
+        "type": "PAIA_PROMPT_CHANGE",
+        "ok": true,
+        "at": 14505.90000000596
+      },
+      {
+        "type": "suggestion_current",
+        "ok": true,
+        "at": 14549.20000000298
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 14564.10000000894
+      },
+      {
+        "type": "PAIA_PROMPT_QUERY",
+        "ok": true,
+        "at": 14566.40000000596
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 14740.20000000298
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 14895.60000000894
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 14897.60000000894
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 14904.29999999702
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 14932.5
+      },
+      {
+        "type": "PAIA_PROMPT_SELECTION_READ",
+        "ok": true,
+        "at": 15340.20000000298
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 15663.90000000596
+      },
+      {
+        "type": "measure",
+        "ok": true,
+        "at": 15695.5
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 16059.10000000894
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 16460.40000000596
+      },
+      {
+        "type": "PAIA_PROMPT_HISTORY_QUERY",
+        "ok": true,
+        "at": 16825.79999999702
+      }
+    ]
+  },
+  "error": "synthetic expected state",
+  "promptReadRefusals": {
+    "available": false,
+    "rows": []
+  }
+}

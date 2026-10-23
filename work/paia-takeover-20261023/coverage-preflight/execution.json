@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "tests/sync-node-preflight-ci.test.mjs",
+    "tests/d5-full-browser-partition.test.mjs",
+    "tests/cpv1-02-hosted-browser-setup.test.mjs"
+  ],
+  "cwd": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension",
+  "PYTHON": "/opt/homebrew/opt/python@3.12/bin/python3.12",
+  "exit": 0,
+  "elapsedSeconds": 5.061085000008461,
+  "sourceSHA256": {
+    ".github/workflows/paia-certification.yml": "04cb014becf07ce8b4a5cdca8e8acc08877130d9c529bac1178305e88caf655c",
+    "extension/tests/sync-node-preflight-ci.test.mjs": "00bba80f490f932393cc64e4a0cb64748c87e1e70aba10e3be2a5fce8409ef1f",
+    "extension/tests/d5-full-browser-partition.test.mjs": "ba34c126e602cc3f969edc5ca05580e71d8544adc5025da8152fe0919573e049"
+  }
+}

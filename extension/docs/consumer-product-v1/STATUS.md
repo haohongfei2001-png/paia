@@ -1,3 +1,52 @@
+# Current whole-programme takeover — 2026-10-23
+
+The user has assigned this original local Codex task sole responsibility for the
+**whole current PAIA development programme**, from implementation and debugging
+to integration preparation and final delivery. Dot has exited development,
+scheduling and review; no new technical work waits for dot. The old PR313
+periodic handoff is retired. The current execution entry is the
+[whole-plan queue](implementation/PAIA-TAKEOVER-QUEUE-20261023.md), paired with the
+[acceptance matrix](implementation/PAIA-ACCEPTANCE-MATRIX-20261023.md). Both cover
+all seven current lanes, distinguishing existing implementation, actual code
+gaps, integrated validation and external activation.
+
+The refreshed main baseline is `73fa457a1c9b5b060ff362e15777354aa37d49cc`.
+`codex/paia-takeover-integration-20261023` preserves that history and composes the
+frozen PR313 head `02144bccf5e0e0b6842aaa4e7c6958cedecdfde1` with exact selected
+PR312/post-Full successors and `f745013c` semantic read-pair implementation.
+Root records the final frozen source/tree/package and evidence separately;
+this entry does not certify every intermediate shared-worktree change or mark
+PR313/PR312 merged. The last candidate's 48 read-pair correctness checks do not
+prove native performance improvement or Linux capacity.
+
+Continue independent implementation in parallel with disjoint file ownership
+and one integration owner. Retain later completed candidate accumulation,
+promotion, Filter, Assist, Context status, idle cleanup and partial-Topic
+successors rather than reimplementing stale gaps from the historical entries
+below. Finite unsupported Maintenance facets and automatic Topic lifecycle
+wiring still need specific engineering; they are not all external-policy holds.
+Cross-source additional reading, real service/identity/model qualification and
+actual deployment/installation remain separately bounded. The user explicitly lifted the new-Sync pause on 2026-10-23 for local
+implementation and synthetic verification only; real accounts, cloud synchronization,
+credentials and user data remain excluded. R3/YEAR-HARMONY and the retained complete
+product/technical/recovery contracts continue to control design.
+
+PR313 Full `39860568299` failed, the Browser2 diagnosis was cancelled despite
+completed tests/tails and normal child exits, and all previously consumed cloud
+attempt limits remain consumed. Do not infer a stuck child or a platform cause
+without evidence. Local integration/build/native results are recorded by exact
+candidate in the acceptance matrix; they do not replace required Full,
+cross-platform, visual, real-service or human-use gates. A concrete grouped
+resource plan is required before more restricted cloud execution. Original
+human-content/data protections, processing/access separation, paid-call and
+credential limits, recovery safeguards and budget limits remain effective.
+
+All preceding STATUS text is preserved below as dated evidence. Its old
+ownership, next-task, PR and missing-code pointers are not current execution
+instructions where superseded by this entry and later owning receipts.
+
+## Preserved preceding checkpoint
+
 # First incremental main integration candidate — 2026-10-19
 
 The owner has explicitly authorized safe, independently checked batches to reach main while the remaining approved development continues. This supersedes older execution-order wording that treated completion of the entire programme as a prerequisite for every main integration. The original privacy/data-loss/financial gates and full-certification requirements are unchanged. [PR302](https://github.com/haohongfei2001-png/paia/pull/302) is the first integration candidate; it is not yet merged. The user may synchronize an actually merged main through the existing GitHub Desktop and same-path updater workflow, without uninstalling the extension or moving its private database.
