@@ -1,0 +1,5 @@
+{
+  "extension/core/smart-filter-store-owner.js": "0c01a569bd54d9a53ea57eb9f60a826985b38151956daae97a2740cce1cdc9ca",
+  "extension/core/browser-native-sync/source-purge-journal.js": "50fb3d20763bc7061fdfab91cd7c66604f1c9ed9c40d6de5467334bd1d37b4d2",
+  "extension/tests/browser-native-sync-source-purge-filter.test.mjs": "c48c1b69a8f5a04edd45bddd7cfd7a3712ef13f73543a11ead7a2112cfd55090"
+}

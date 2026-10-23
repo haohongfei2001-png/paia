@@ -3,6 +3,7 @@ import {assertCompletedGroupedRestoreControl} from './completed-group-restore-co
 import {planSourcePurgeMetadata} from './source-purge-metadata.js';
 import {sourcePurgeNegativeInventory,prepareSourcePurgeRemainingCanonical} from './source-purge-negative.js';
 import {planInitialFilter} from '../smart-filter-store-owner.js';
+import {assertOriginalFilterIntentOwner} from './filter-intent-journal.js';
 import {archiveYearPrefix,archiveYearMeta} from '../archive-year-index.js';
 import {prepareGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {prepareGroupScope,requireGroupScope,requireSourcePurgeRemainingScope} from './group-checkpoint-scope.js';
@@ -35,6 +36,22 @@ async function authority(store,core,t){
 }
 function binding(store,journal){const owner=owners.get(journal);if(!owner||Object.getPrototypeOf(journal)!==SourcePurgeJournal.prototype||journal.core!==owner.core||store.sourcePurgeJournal!==journal||store.repository!==owner.core.repository)denied();return owner.core;}
 export class SourcePurgeJournal{constructor(core){this.core=core;owners.set(this,{core});}}
+// Admission only: this cannot mint a purge plan or a transaction. The original
+// Source owner still proves the entire raw baseline and the final write fence.
+export function originalSourcePurgeFilterOwner(store){
+ try{const core=binding(store,store.sourcePurgeJournal);assertOriginalFilterIntentOwner(store.filterIntentJournal,core);return true;}catch{return false;}
+}
+export function requireOriginalSourcePurgeFilterTransaction(t,store){
+ const cap=maintenance.get(t),p=cap&&selected(store,cap);
+ if(!p||p.transaction!==t||!p.filterJournal||p.filterJournal!==store.filterIntentJournal||!originalSourcePurgeFilterOwner(store))fail('BNS_FILTER_WRITER_UNSUPPORTED');
+ requireRepositoryTransactionScope(store.repository,t);requireRepositoryTransactionDataMethods(store.repository,t);
+}
+async function requireInitialPurgeFilter(t,p){
+ if(!p.filterJournal)return;
+ if(!originalSourcePurgeFilterOwner(p.store))denied();
+ const block=(await t.get('blocks',p.intent.inputId))?.value,state=await t.get('inputStates',p.intent.inputId),row=await t.get('filterInputs',p.intent.inputId);
+ if(!block||!state||state.contentRevision!==0||block.libraryText!==null||block.note!==''||block.editedAt!==null||!equal(row,planInitialFilter(block,state))||await t.get('filterIntents',p.intent.sourceKey)||await t.get('filterIntents','legacy:'+p.intent.sourceId))denied();
+}
 // Core observes this identity; callers cannot mint it or install a transaction.
 export function requireSourcePurgeProtocolOwner(t,core,operation,origin){const p=applications.get(t);if(!p||p.core!==core||p.operation!==operation||p.origin!==origin)fail('BNS_SOURCE_PURGE_OWNER_REQUIRED');requireRepositoryTransactionScope(core.repository,t);requireRepositoryTransactionDataMethods(core.repository,t);}
 
@@ -95,7 +112,8 @@ function remainingPortfolio(p){
 }
 export async function prepareOriginalSourcePurge(store,id,key){
  if(store.sourcePurgeJournal===null)return null;
- const journal=store.sourcePurgeJournal,core=binding(store,journal),start=Date.now();
+ const journal=store.sourcePurgeJournal,core=binding(store,journal),start=Date.now(),filterJournal=store.filterIntentJournal??null;
+ if(filterJournal&&!originalSourcePurgeFilterOwner(store))denied();
  const before=await core.transaction(false,async t=>({authority:await authority(store,core,t),namespace:await core.bind(t),rows:await rows(t,'bns:v1:')}));
  activeSelections.set(before,await selectedActiveControls(store,core,before));
  const generationPrefix=core.prefix+'generation:'+before.namespace+':';
@@ -133,9 +151,9 @@ export async function prepareOriginalSourcePurge(store,id,key){
  if(!equal(prepared.operations.slice(0,7),first.operations)||Date.now()-start>30000||bytes({before,operations,prepared}).length+(portfolio?measureSourceWorkingPhysicalTree(portfolio).B:0)+(activeSelections.get(before)?measureSourceWorkingPhysicalTree(activeSelections.get(before)).B:0)>2*1024*1024)denied();
  const remote=incoming.get(journal);let selectedPrepared=prepared,selectedIntent=intent,origin='local';
  if(remote){if(remote.intent.sourceId!==id||remote.intent.sourceKey!==key||!equal(remote.intent.targets.map(x=>x.before),operations.map(op=>({...op,value:null}))))denied();selectedPrepared={...prepared,operations:remote.operations};selectedIntent=remote.intent;origin='remote';}
- const cap=Object.freeze({});plans.set(cap,{store,journal,core,start,before,portfolio,operations,prepared:selectedPrepared,intent:selectedIntent,origin,transaction:null,expected:null});return cap;
+ const cap=Object.freeze({});plans.set(cap,{store,journal,core,start,before,portfolio,operations,prepared:selectedPrepared,intent:selectedIntent,origin,filterJournal,transaction:null,expected:null});return cap;
 }
-function selected(store,cap){const p=plans.get(cap);if(!p||p.store!==store||binding(store,p.journal)!==p.core||Date.now()-p.start>30000)denied();return p;}
+function selected(store,cap){const p=plans.get(cap);if(!p||p.store!==store||binding(store,p.journal)!==p.core||Date.now()-p.start>30000)denied();if(Object.hasOwn(p,'filterJournal')&&((store.filterIntentJournal??null)!==p.filterJournal||p.filterJournal&&!originalSourcePurgeFilterOwner(store)))denied();return p;}
 async function expectedProtocol(t,p){
  const {core,prepared,before}=p,result=new Map(before.rows.map(row=>[row.id,clone(row)]));
  const put=async(kind,ids,value)=>{const id=await core.idIn(t,kind,...ids);result.set(id,{...value,id});};
@@ -154,6 +172,7 @@ async function expectedProtocol(t,p){
 export async function beginOriginalSourcePurge(t,store,cap){
  if(cap===null)return;const p=selected(store,cap),current=await authority(store,p.core,t);if(!equal(current,p.before.authority)||await p.core.bind(t)!==p.before.namespace||!equal(await rows(t,'bns:v1:'),p.before.rows))denied();
  if(p.portfolio&&!equalSourceWorkingPhysicalTree(await portfolioRows(t),p.portfolio))denied();
+ await requireInitialPurgeFilter(t,p);
  p.expected=await expectedProtocol(t,p);p.transaction=t;p.cleanupPoints=new Map();p.cleanupJobs=0;p.cleanupEvents=0;p.cleanupStates=0;
  if(!p.cold){const epoch=await t.get('meta','thought-epoch');if(epoch&&!equal(epoch,{id:'thought-epoch',value:epoch.value})||epoch&&!Number.isSafeInteger(epoch.value))denied();p.cleanupSequence=epoch?.value||0;maintenance.set(t,cap);}
  const deny=p.expected.get(p.core.prefix+'sourcePurgeDeny:'+p.intent.sourceKey);await t.put('meta',deny);
@@ -181,6 +200,7 @@ export async function finishOriginalSourcePurge(t,store,cap){
  const tombstone=await t.get('tombstones','source:'+p.intent.sourceKey);if(!p.tombstone||!equal(tombstone,p.tombstone))denied();
  if(!p.cold&&(p.cleanupJobs!==1||p.cleanupEvents!==1||!p.cleanupPoints.has('inputStates:'+p.intent.inputId)))denied();
  const points=[...p.cleanupPoints.values(),['tombstones',tombstone.id,tombstone],['records',p.intent.sourceId,null],['recordIndex',p.intent.sourceId,null],['blocks',p.intent.inputId,null],['blockIndex',p.intent.inputId,null],['times',p.intent.sourceKey,null],...expected.map(row=>['meta',row.id,row]),...p.before.authority.roots.map(([id,row])=>['meta',id,row])];
+ if(p.filterJournal)points.push(['filterInputs',p.intent.inputId,null],['filterIntents',p.intent.sourceKey,null],['filterIntents','legacy:'+p.intent.sourceId,null]);
  for(const [table,key,row]of points)if(!equal((await t.get(table,key))??null,row))denied();
  const retained=remainingPortfolio(p),counts=[],metaRanges=[];let completeMeta=null;if(retained){const metadata=await planSourcePurgeMetadata(p,retained),raw=await portfolioRows(t);if(!equalSourceWorkingPhysicalTree(raw.meta,metadata.callback))denied();completeMeta=beforeActiveTerminal(p,metadata.terminal);for(const [table,expectedRows]of Object.entries(retained)){if(!equalSourceWorkingPhysicalTree(raw[table],expectedRows))denied();counts.push([table,expectedRows.length]);for(const row of expectedRows)points.push([table,row.id,row]);}
   for(const id of ['sequence','input-delta-sequence','revision-sequence','thought-suppression-key','gate'])points.push(['meta',id,p.portfolio.meta.find(row=>row.id===id)??null]);
