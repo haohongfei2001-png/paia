@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: duplicate rejects a changed durable activity mapping instead of reporting the old success
+ok 1 - duplicate rejects a changed durable activity mapping instead of reporting the old success
+  ---
+  duration_ms: 129.44925
+  type: 'test'
+  ...
+# Subtest: remote event time cannot replace the receiver current clock qualification
+ok 2 - remote event time cannot replace the receiver current clock qualification
+  ---
+  duration_ms: 151.002458
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable revision bytes against the original typed operation
+ok 3 - duplicate checks durable revision bytes against the original typed operation
+  ---
+  duration_ms: 74.958542
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable head against the original typed operation
+ok 4 - duplicate checks durable head against the original typed operation
+  ---
+  duration_ms: 73.823084
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable receipt against the original typed operation
+ok 5 - duplicate checks durable receipt against the original typed operation
+  ---
+  duration_ms: 71.933917
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable sequence against the original typed operation
+ok 6 - duplicate checks durable sequence against the original typed operation
+  ---
+  duration_ms: 71.967625
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable entity revision against the original typed operation
+ok 7 - duplicate checks durable entity revision against the original typed operation
+  ---
+  duration_ms: 76.368958
+  type: 'test'
+  ...
+# Subtest: duplicate checks durable marker shape against the original typed operation
+ok 8 - duplicate checks durable marker shape against the original typed operation
+  ---
+  duration_ms: 70.71675
+  type: 'test'
+  ...
+# Subtest: activity Core rejects replaced get without invoking caller code
+ok 9 - activity Core rejects replaced get without invoking caller code
+  ---
+  duration_ms: 49.266333
+  type: 'test'
+  ...
+# Subtest: activity Core rejects replaced applyInTransaction without invoking caller code
+ok 10 - activity Core rejects replaced applyInTransaction without invoking caller code
+  ---
+  duration_ms: 46.897167
+  type: 'test'
+  ...
+# Subtest: activity Core rejects replaced bind without invoking caller code
+ok 11 - activity Core rejects replaced bind without invoking caller code
+  ---
+  duration_ms: 48.644959
+  type: 'test'
+  ...
+# Subtest: duplicate rechecks protocol after original domain receipt settlement
+ok 12 - duplicate rechecks protocol after original domain receipt settlement
+  ---
+  duration_ms: 72.277709
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1095.856084

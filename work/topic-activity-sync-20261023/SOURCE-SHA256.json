@@ -1,0 +1,8 @@
+{
+  "extension/core/browser-native-sync/core.js": "34a032a03f651440cf3946c54737fbb867bcfa86b8ef35d74a897db4d296f3af",
+  "extension/core/browser-native-sync/codecs.js": "fd5202d3bc7b9dcc6d41aa917b780ec2b311f9375398b03f57de81ce6af79aa3",
+  "extension/core/browser-native-sync/topic-activity-codec.js": "67b3eb0180735e137b09f99a068b80deaf73c40a849e6faf9712bd22c6caae6b",
+  "extension/core/browser-native-sync/topic-activity-journal.js": "4267967caab2d733cd2ab1b914bbf690b23ee8ba39a9408e6ac658f1b0eb355c",
+  "extension/core/topic-lifecycle.js": "5511a8dd465427e26d4419367eb64bb2d6aecc37e898ca90700a6f6d08a08653",
+  "extension/tests/topic-activity-sync.test.mjs": "b160023c39e559b6c9c30f203dc2e0582eb6a26710b35251189fce7fd73a17d9"
+}

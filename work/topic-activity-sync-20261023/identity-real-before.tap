@@ -1,0 +1,26 @@
+TAP version 13
+# Subtest: late Topic identity mutation cannot acknowledge an activity wire with a different original identity
+not ok 1 - late Topic identity mutation cannot acknowledge an activity wire with a different original identity
+  ---
+  duration_ms: 121.750875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-activity-sync.test.mjs:42:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-activity-sync.test.mjs:42:386)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 273.543375

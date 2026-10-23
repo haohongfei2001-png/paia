@@ -1,3 +1,5 @@
+import {requireOriginalTopicActivityProtocolOwner} from './topic-activity-journal.js';
+import {assertTopicActivityOperation} from './topic-activity-codec.js';
 import {requireSourcePurgeProtocolOwner} from './source-purge-journal.js';
 import {createGroupPageBudget,chargeGroupPageBytes,checkGroupPageBudget} from './group-page-reader.js';
 import {requireSavedWorkProtocolOwner} from './saved-work-bootstrap.js';
@@ -50,9 +52,11 @@ export async function sealOperation(input){
 }
 export async function validateOperation(operation){
  operation=clone(operation);
- if(!exact(operation,opFields)||Object.keys(operation).length!==opFields.length||operation.protocol!==1||!opaque(operation.datasetId)||!opaque(operation.deviceId)||!opaque(operation.operationId)||!count(operation.sequence)||operation.sequence<1||!identifier(operation.entityId)||!Object.hasOwn(CODECS,operation.type)||operation.codecVersion!==CODECS[operation.type].version||!['put','purge'].includes(operation.kind)||!['user','source','bootstrap'].includes(operation.actor)||!Array.isArray(operation.parents)||operation.parents.length>CORE_LIMITS.parents||operation.parents.some(x=>!hash(x))||new Set(operation.parents).size!==operation.parents.length||!hash(operation.revisionId))fail('BNS_OPERATION_INVALID');
+ if(!exact(operation,opFields)||Object.keys(operation).length!==opFields.length||operation.protocol!==1||!opaque(operation.datasetId)||!opaque(operation.deviceId)||!opaque(operation.operationId)||!count(operation.sequence)||operation.sequence<1||!identifier(operation.entityId)||!Object.hasOwn(CODECS,operation.type)||operation.codecVersion!==CODECS[operation.type].version||!['put','purge'].includes(operation.kind)||!['user','source','bootstrap','activity'].includes(operation.actor)||!Array.isArray(operation.parents)||operation.parents.length>CORE_LIMITS.parents||operation.parents.some(x=>!hash(x))||new Set(operation.parents).size!==operation.parents.length||!hash(operation.revisionId))fail('BNS_OPERATION_INVALID');
  if(operation.kind==='purge'){if(operation.actor!=='user'||operation.value!==null)fail('BNS_PURGE_INVALID');}
  else{await validateEntityAsync(operation.type,operation.value,operation.codecVersion);if(operation.value.id!==operation.entityId)fail('BNS_ENTITY_MISMATCH');}
+ if(operation.type==='topicActivity')assertTopicActivityOperation(operation);
+ if(operation.actor==='activity'&&operation.type!=='topicActivity')fail('BNS_ACTOR_AUTHORITY');
  if(operation.type==='savedWorkBootstrap'&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length||operation.value.payload.datasetId!==operation.datasetId))fail('BNS_SAVED_WORK_OPERATION');
  if(operation.type==='savedWorkSuccessor'&&(operation.kind!=='put'||operation.actor!=='user'||operation.parents.length>1||operation.value.before.datasetId!==operation.datasetId))fail('BNS_SAVED_WORK_OPERATION');
  if(operation.type==='consumerPreference')assertConsumerPreferenceOperation(operation);
@@ -268,6 +272,7 @@ export class BrowserNativeSyncCore {
   return false;
  }
  async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null,appendCapability=null,humanCapability=null,humanRetentionCapability=null}={}){
+  if(operation.type==='topicActivity')requireOriginalTopicActivityProtocolOwner(t,this,operation,origin);
   const sourcePurge=operation.type==='sourcePurgeIntent'||operation.kind==='purge'&&['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type);
   if(sourcePurge)requireSourcePurgeProtocolOwner(t,this,operation,origin);
   if(['savedWorkBootstrap','savedWorkSuccessor'].includes(operation.type))requireSavedWorkProtocolOwner(t,this,operation,origin);
@@ -628,4 +633,12 @@ const currentMixedCorePreparation=sourceWorkingCoreDescriptor(BrowserNativeSyncC
 export async function prepareOriginalCurrentMixedGroupReceive(core,type,input){
  if(arguments.length!==3||!['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit','humanLibraryCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(core);
  const value=await currentMixedCorePreparation.call(core,type,input);requireOriginalSourceWorkingCore(core);return value;
+}
+
+// Optional activity journal closes over original Core methods, independently
+// of ordinary injected diagnostic hooks used by other consumers.
+const topicActivityCorePrototype=BrowserNativeSyncCore.prototype,topicActivityCoreMethods=Object.getOwnPropertyNames(topicActivityCorePrototype).filter(name=>name!=='constructor').map(name=>[name,Object.getOwnPropertyDescriptor(topicActivityCorePrototype,name)]);
+export function requireOriginalTopicActivityCoreMethods(core){
+ requireOriginalSourceWorkingCore(core);
+ for(const [name,expected]of topicActivityCoreMethods){const actual=Object.getOwnPropertyDescriptor(topicActivityCorePrototype,name);if(Object.getOwnPropertyDescriptor(core,name)||!actual||['value','get','set','writable','enumerable','configurable'].some(key=>actual[key]!==expected[key]))fail('BNS_TOPIC_ACTIVITY_OWNER_REQUIRED');}
 }

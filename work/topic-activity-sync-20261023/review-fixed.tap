@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: original backup-restored Topic accepts qualified remote activity without echo and replays exactly
+ok 1 - original backup-restored Topic accepts qualified remote activity without echo and replays exactly
+  ---
+  duration_ms: 240.516542
+  type: 'test'
+  ...
+# Subtest: lost commit return resolves by durable original receipt without another activity or outbox write
+ok 2 - lost commit return resolves by durable original receipt without another activity or outbox write
+  ---
+  duration_ms: 90.354208
+  type: 'test'
+  ...
+# Subtest: cold service and repository reopen replays durable lifecycle plus typed receipt without another write
+ok 3 - cold service and repository reopen replays durable lifecycle plus typed receipt without another write
+  ---
+  duration_ms: 84.438875
+  type: 'test'
+  ...
+# Subtest: duplicate rejects a changed durable activity mapping instead of reporting the old success
+ok 4 - duplicate rejects a changed durable activity mapping instead of reporting the old success
+  ---
+  duration_ms: 78.142917
+  type: 'test'
+  ...
+# Subtest: remote event time cannot replace the receiver current clock qualification
+ok 5 - remote event time cannot replace the receiver current clock qualification
+  ---
+  duration_ms: 109.859875
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 771.324417
