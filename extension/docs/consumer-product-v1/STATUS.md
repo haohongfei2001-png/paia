@@ -10,7 +10,9 @@ periodic handoff is retired. The current execution entry is the
 all seven current lanes, distinguishing existing implementation, actual code
 gaps, integrated validation and external activation.
 
-The refreshed main baseline is `73fa457a1c9b5b060ff362e15777354aa37d49cc`.
+The refreshed main baseline is `5e3c426aead5ad698330fa4201ab17b0c21878b1`,
+normally merged into the candidate on 2026-10-23. Its website restoration and
+entry/mobile fixes are preserved; no extension/runtime paths intersected.
 `codex/paia-takeover-integration-20261023` preserves that history and composes the
 frozen PR313 head `02144bccf5e0e0b6842aaa4e7c6958cedecdfde1` with exact selected
 PR312/post-Full successors and `f745013c` semantic read-pair implementation.

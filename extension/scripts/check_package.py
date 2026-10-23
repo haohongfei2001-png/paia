@@ -324,10 +324,25 @@ def audit_js(path, text):
                 "About must retain its single verified native-anchor origin")
         require(not re.search(r"\b(?:location|window|chrome|globalThis)\s*(?:\.|\[)|\bopen\s*\(|\.\s*(?:click|submit)\s*\(|\.\s*(?:src|srcset|action)\s*=|setAttribute\s*\(\s*['\"](?:src|srcset|action)['\"]", text),
                 "About links must not navigate, load resources, or invoke privileged actions automatically")
+    # Inert, injected Sync transports only. Exact module/literal pairs do not
+    # grant host permissions or authorize OAuth, default fetch or activation.
+    sync_literals = {
+        "core/browser-native-sync/providers/google-drive.js": {
+            "https://www.googleapis.com/auth/drive.appdata",
+            "https://www.googleapis.com/drive/v3/files",
+            "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
+        },
+        "core/browser-native-sync/providers/google-drive-http.js": {
+            "https://www.googleapis.com",
+        },
+    }.get(path.relative_to(ROOT).as_posix(), set())
+    if sync_literals:
+        require(sorted(m.group(1) for m in remote_literals) == sorted(sync_literals),
+                f"{path.relative_to(ROOT)}: reviewed Sync URL set changed or duplicated")
     for match in remote_literals:
         parsed = urlsplit(match.group(1))
         approved_document_origin = about_links and match.group(1) == "https://inputarchive.com"
-        require(parsed.scheme == "https" and (parsed.netloc == "chatgpt.com" or approved_document_origin),
+        require(parsed.scheme == "https" and (parsed.netloc == "chatgpt.com" or approved_document_origin or match.group(1) in sync_literals),
                 f"{path.relative_to(ROOT)}: unexpected remote URL literal")
     for match in re.finditer(r"\b(?:chrome\s*\.\s*)?runtime\s*\.\s*getURL\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
         local_reference(match.group(1), ROOT / "manifest.json",

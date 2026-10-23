@@ -188,7 +188,17 @@ restore gaps have now progressed as follows; other finite facets remain open.
 - Google appData local injected-HTTP adapter composes original publication and
   cold-B restore,33/33 after independent-review fixes. Real OAuth/HTTP host,
   account and minimal-scope qualification remain absent; see its local report.
-- Placement Topic, other human Context correction variants, full Sync C and
+- Placement Topic reconciliation is integrated at `838c68e4`: original human
+  membership remains fixed; original selected field snapshots and receipt
+  terminal intent checks cover late writes. Its7-file400/400 is local Node
+  evidence. New Authored/Placement native verification exposed an actual trusted
+  issuer budget wiring gap; [the correction](AUTHORED-ISSUER-BUDGET-PACKAGE-20261023.md)
+  passed241/241 with original independent-budget/revocation rejection retained.
+- Google bounded HTTP capability is integrated at `d037c1e5`,26/26 after the
+  abort/late-response fixture failures. No default fetch, real issuer, login or
+  live provider is enabled. The exact package URL admission now passes21416
+  checks across614 runtime resources; native results remain separate.
+- Other human Context correction variants, full Sync C and
   provider/platform implementations remain in the continuous queue. Final
   build/native/integrated acceptance follows a coherent source freeze, not
   every incremental commit.

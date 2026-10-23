@@ -1,0 +1,1473 @@
+TAP version 13
+# Subtest: authored baseline uses the original Context transaction and exact ACK with zero fake Input/Source
+ok 1 - authored baseline uses the original Context transaction and exact ACK with zero fake Input/Source
+  ---
+  duration_ms: 264.492792
+  type: 'test'
+  ...
+# Subtest: body-only edits retain actual birth, body revision and latest operation across coalesced placement revisions
+ok 2 - body-only edits retain actual birth, body revision and latest operation across coalesced placement revisions
+  ---
+  duration_ms: 181.472958
+  type: 'test'
+  ...
+# Subtest: authored qualification handles title
+ok 3 - authored qualification handles title
+  ---
+  duration_ms: 171.375875
+  type: 'test'
+  ...
+# Subtest: authored qualification handles note
+ok 4 - authored qualification handles note
+  ---
+  duration_ms: 236.898834
+  type: 'test'
+  ...
+# Subtest: authored qualification handles type
+ok 5 - authored qualification handles type
+  ---
+  duration_ms: 47.093167
+  type: 'test'
+  ...
+# Subtest: authored qualification handles mixed
+ok 6 - authored qualification handles mixed
+  ---
+  duration_ms: 151.58275
+  type: 'test'
+  ...
+# Subtest: authored qualification handles no-membership
+ok 7 - authored qualification handles no-membership
+  ---
+  duration_ms: 52.074209
+  type: 'test'
+  ...
+# Subtest: authored qualification handles duplicate-membership
+ok 8 - authored qualification handles duplicate-membership
+  ---
+  duration_ms: 61.758125
+  type: 'test'
+  ...
+# Subtest: authored qualification handles body-operation
+ok 9 - authored qualification handles body-operation
+  ---
+  duration_ms: 44.6475
+  type: 'test'
+  ...
+# Subtest: authored qualification handles birth
+ok 10 - authored qualification handles birth
+  ---
+  duration_ms: 43.705459
+  type: 'test'
+  ...
+# Subtest: authored qualification handles field-revision
+ok 11 - authored qualification handles field-revision
+  ---
+  duration_ms: 41.838084
+  type: 'test'
+  ...
+# Subtest: authored qualification handles provenance
+ok 12 - authored qualification handles provenance
+  ---
+  duration_ms: 41.060833
+  type: 'test'
+  ...
+# Subtest: authored qualification handles dependency
+ok 13 - authored qualification handles dependency
+  ---
+  duration_ms: 43.560125
+  type: 'test'
+  ...
+# Subtest: denied selected authored-body processing precedes material hashing and dispatch
+ok 14 - denied selected authored-body processing precedes material hashing and dispatch
+  ---
+  duration_ms: 62.285333
+  type: 'test'
+  ...
+# Subtest: native-owner ACK failure rolls back Context and resumes the retained response without another physical attempt
+ok 15 - native-owner ACK failure rolls back Context and resumes the retained response without another physical attempt
+  ---
+  duration_ms: 220.333417
+  type: 'test'
+  ...
+# Subtest: remove and restore plus A to B to A cannot resurrect old authored lineage
+ok 16 - remove and restore plus A to B to A cannot resurrect old authored lineage
+  ---
+  duration_ms: 163.741375
+  type: 'test'
+  ...
+# Subtest: transaction fence detects unjournaled authored body drift after hashing
+ok 17 - transaction fence detects unjournaled authored body drift after hashing
+  ---
+  duration_ms: 27.248125
+  type: 'test'
+  ...
+# Subtest: unknown authored physical response never replays or exposes durable body material
+ok 18 - unknown authored physical response never replays or exposes durable body material
+  ---
+  duration_ms: 109.8365
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects denied before any authored body hash
+ok 19 - authored selected-fields grant rejects denied before any authored body hash
+  ---
+  duration_ms: 57.517291
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects dropped before any authored body hash
+ok 20 - authored selected-fields grant rejects dropped before any authored body hash
+  ---
+  duration_ms: 58.562875
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects wrong-entry before any authored body hash
+ok 21 - authored selected-fields grant rejects wrong-entry before any authored body hash
+  ---
+  duration_ms: 61.70575
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects note-only before any authored body hash
+ok 22 - authored selected-fields grant rejects note-only before any authored body hash
+  ---
+  duration_ms: 58.051125
+  type: 'test'
+  ...
+# Subtest: authored selected-fields grant rejects extra before any authored body hash
+ok 23 - authored selected-fields grant rejects extra before any authored body hash
+  ---
+  duration_ms: 56.173084
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field dropped rather than ignoring it
+ok 24 - original Context scope refuses authored-field dropped rather than ignoring it
+  ---
+  duration_ms: 93.11825
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field wrong-entry rather than ignoring it
+ok 25 - original Context scope refuses authored-field wrong-entry rather than ignoring it
+  ---
+  duration_ms: 91.617875
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field note-only rather than ignoring it
+ok 26 - original Context scope refuses authored-field note-only rather than ignoring it
+  ---
+  duration_ms: 91.012291
+  type: 'test'
+  ...
+# Subtest: original Context scope refuses authored-field extra rather than ignoring it
+ok 27 - original Context scope refuses authored-field extra rather than ignoring it
+  ---
+  duration_ms: 93.881125
+  type: 'test'
+  ...
+# Subtest: authored helper proves all 4096 memberships, charges the original budget, and refuses overflow or incomplete pages
+ok 28 - authored helper proves all 4096 memberships, charges the original budget, and refuses overflow or incomplete pages
+  ---
+  duration_ms: 938.875125
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects inputId
+ok 29 - typed authored lineage rejects inputId
+  ---
+  duration_ms: 18.591792
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects sourceRecordIds
+ok 30 - typed authored lineage rejects sourceRecordIds
+  ---
+  duration_ms: 19.964125
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects selected-note
+ok 31 - typed authored lineage rejects selected-note
+  ---
+  duration_ms: 23.751167
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects fake-birth
+ok 32 - typed authored lineage rejects fake-birth
+  ---
+  duration_ms: 25.795041
+  type: 'test'
+  ...
+# Subtest: typed authored lineage rejects fake-membership
+ok 33 - typed authored lineage rejects fake-membership
+  ---
+  duration_ms: 25.80925
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: none
+ok 34 - source purge shortcut proves authored source freedom: none
+  ---
+  duration_ms: 149.159541
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: dependency
+ok 35 - source purge shortcut proves authored source freedom: dependency
+  ---
+  duration_ms: 135.711958
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: provenance
+ok 36 - source purge shortcut proves authored source freedom: provenance
+  ---
+  duration_ms: 139.537125
+  type: 'test'
+  ...
+# Subtest: source purge shortcut proves authored source freedom: fake-source-free
+ok 37 - source purge shortcut proves authored source freedom: fake-source-free
+  ---
+  duration_ms: 139.501333
+  type: 'test'
+  ...
+# Subtest: authored hash race rechecks body and journal before any physical request
+ok 38 - authored hash race rechecks body and journal before any physical request
+  ---
+  duration_ms: 60.2505
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late raw-body after excerpt acquisition
+ok 39 - authored basis final fence refuses late raw-body after excerpt acquisition
+  ---
+  duration_ms: 139.024042
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late owner-body after excerpt acquisition
+ok 40 - authored basis final fence refuses late owner-body after excerpt acquisition
+  ---
+  duration_ms: 142.918334
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late raw-membership after excerpt acquisition
+ok 41 - authored basis final fence refuses late raw-membership after excerpt acquisition
+  ---
+  duration_ms: 142.535291
+  type: 'test'
+  ...
+# Subtest: authored basis final fence refuses late owner-membership after excerpt acquisition
+ok 42 - authored basis final fence refuses late owner-membership after excerpt acquisition
+  ---
+  duration_ms: 146.847708
+  type: 'test'
+  ...
+# Subtest: authored recorded-read-failure distinguishes resumable material from unknown physical outcome
+ok 43 - authored recorded-read-failure distinguishes resumable material from unknown physical outcome
+  ---
+  duration_ms: 170.281125
+  type: 'test'
+  ...
+# Subtest: authored receipt-abort distinguishes resumable material from unknown physical outcome
+ok 44 - authored receipt-abort distinguishes resumable material from unknown physical outcome
+  ---
+  duration_ms: 131.472417
+  type: 'test'
+  ...
+# Subtest: existing-file replacement keeps authored Context history but cannot revive its old restore epoch
+ok 45 - existing-file replacement keeps authored Context history but cannot revive its old restore epoch
+  ---
+  duration_ms: 166.96725
+  type: 'test'
+  ...
+# Subtest: fresh real-owner authored lifecycle restore commits exact Context after birth
+ok 46 - fresh real-owner authored lifecycle restore commits exact Context after birth
+  ---
+  duration_ms: 157.901
+  type: 'test'
+  ...
+# Subtest: fresh real-owner authored lifecycle restore commits exact Context after body edit
+ok 47 - fresh real-owner authored lifecycle restore commits exact Context after body edit
+  ---
+  duration_ms: 163.042958
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses reason
+ok 48 - restored authored authority refuses reason
+  ---
+  duration_ms: 50.611667
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses mask
+ok 49 - restored authored authority refuses mask
+  ---
+  duration_ms: 48.100125
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses masqueraded-edit
+ok 50 - restored authored authority refuses masqueraded-edit
+  ---
+  duration_ms: 47.425167
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses masqueraded-active-edit
+ok 51 - restored authored authority refuses masqueraded-active-edit
+  ---
+  duration_ms: 48.873
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses important
+ok 52 - restored authored authority refuses important
+  ---
+  duration_ms: 47.052334
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses before-lifecycle
+ok 53 - restored authored authority refuses before-lifecycle
+  ---
+  duration_ms: 48.430917
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses after-lifecycle
+ok 54 - restored authored authority refuses after-lifecycle
+  ---
+  duration_ms: 49.940958
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses before-body
+ok 55 - restored authored authority refuses before-body
+  ---
+  duration_ms: 46.644083
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses after-body
+ok 56 - restored authored authority refuses after-body
+  ---
+  duration_ms: 54.446583
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses journal-operation
+ok 57 - restored authored authority refuses journal-operation
+  ---
+  duration_ms: 50.23975
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses body-operation
+ok 58 - restored authored authority refuses body-operation
+  ---
+  duration_ms: 47.53825
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses field-protection
+ok 59 - restored authored authority refuses field-protection
+  ---
+  duration_ms: 47.2555
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses protection-time
+ok 60 - restored authored authority refuses protection-time
+  ---
+  duration_ms: 48.174667
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses content-revision
+ok 61 - restored authored authority refuses content-revision
+  ---
+  duration_ms: 48.756708
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses field-revision
+ok 62 - restored authored authority refuses field-revision
+  ---
+  duration_ms: 49.4145
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses missing-removal
+ok 63 - restored authored authority refuses missing-removal
+  ---
+  duration_ms: 47.651208
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-reason
+ok 64 - restored authored authority refuses removal-reason
+  ---
+  duration_ms: 51.640833
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-mask
+ok 65 - restored authored authority refuses removal-mask
+  ---
+  duration_ms: 48.831917
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-content
+ok 66 - restored authored authority refuses removal-content
+  ---
+  duration_ms: 47.369708
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses removal-revision
+ok 67 - restored authored authority refuses removal-revision
+  ---
+  duration_ms: 48.727042
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses missing-authority
+ok 68 - restored authored authority refuses missing-authority
+  ---
+  duration_ms: 48.430083
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses authority-content
+ok 69 - restored authored authority refuses authority-content
+  ---
+  duration_ms: 55.191042
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses missing-birth
+ok 70 - restored authored authority refuses missing-birth
+  ---
+  duration_ms: 46.723708
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses dependency
+ok 71 - restored authored authority refuses dependency
+  ---
+  duration_ms: 46.39325
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses provenance
+ok 72 - restored authored authority refuses provenance
+  ---
+  duration_ms: 47.710791
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses no-membership
+ok 73 - restored authored authority refuses no-membership
+  ---
+  duration_ms: 45.349083
+  type: 'test'
+  ...
+# Subtest: restored authored authority refuses duplicate-membership
+ok 74 - restored authored authority refuses duplicate-membership
+  ---
+  duration_ms: 61.272875
+  type: 'test'
+  ...
+# Subtest: repeated genuine restores preserve body revision while refusing every older descriptor and lineage
+ok 75 - repeated genuine restores preserve body revision while refusing every older descriptor and lineage
+  ---
+  duration_ms: 222.80725
+  type: 'test'
+  ...
+# Subtest: restore never revives old authored prepared
+ok 76 - restore never revives old authored prepared
+  ---
+  duration_ms: 60.049292
+  type: 'test'
+  ...
+# Subtest: restore never revives old authored response
+ok 77 - restore never revives old authored response
+  ---
+  duration_ms: 119.62375
+  type: 'test'
+  ...
+# Subtest: restore never revives old authored grant
+ok 78 - restore never revives old authored grant
+  ---
+  duration_ms: 101.381792
+  type: 'test'
+  ...
+# Subtest: restored Context and basis reject restore/body ABA while old ACK stays historical and fresh work can commit
+ok 79 - restored Context and basis reject restore/body ABA while old ACK stays historical and fresh work can commit
+  ---
+  duration_ms: 425.743416
+  type: 'test'
+  ...
+# Subtest: restored authored hash mutation cannot ACK stale work
+ok 80 - restored authored hash mutation cannot ACK stale work
+  ---
+  duration_ms: 73.781917
+  type: 'test'
+  ...
+# Subtest: restored authored dispatch mutation cannot ACK stale work
+ok 81 - restored authored dispatch mutation cannot ACK stale work
+  ---
+  duration_ms: 185.173541
+  type: 'test'
+  ...
+# Subtest: restored authored commit mutation cannot ACK stale work
+ok 82 - restored authored commit mutation cannot ACK stale work
+  ---
+  duration_ms: 163.7695
+  type: 'test'
+  ...
+# Subtest: restored authored ACK abort rolls back the original owner and retry never redispatches
+ok 83 - restored authored ACK abort rolls back the original owner and retry never redispatches
+  ---
+  duration_ms: 199.663792
+  type: 'test'
+  ...
+# Subtest: restored authored prior DEFER stays intact on the same route
+ok 84 - restored authored prior DEFER stays intact on the same route
+  ---
+  duration_ms: 29.246709
+  type: 'test'
+  ...
+# Subtest: restored authored prior DEFER reconsiders only Context on different route
+ok 85 - restored authored prior DEFER reconsiders only Context on different route
+  ---
+  duration_ms: 143.362209
+  type: 'test'
+  ...
+# Subtest: coalesced body edits across placement changes still qualify after lifecycle restoration
+ok 86 - coalesced body edits across placement changes still qualify after lifecycle restoration
+  ---
+  duration_ms: 159.364666
+  type: 'test'
+  ...
+# Subtest: forged older restore operation cannot form a restore authority ABA
+ok 87 - forged older restore operation cannot form a restore authority ABA
+  ---
+  duration_ms: 53.625833
+  type: 'test'
+  ...
+# Subtest: restore history uses bounded indexed reads charged to the original scope budget
+ok 88 - restore history uses bounded indexed reads charged to the original scope budget
+  ---
+  duration_ms: 23.851084
+  type: 'test'
+  ...
+# Subtest: fresh restore denied processing permission retains zero hashes and dispatch
+ok 89 - fresh restore denied processing permission retains zero hashes and dispatch
+  ---
+  duration_ms: 66.476083
+  type: 'test'
+  ...
+# Subtest: fresh restore wrong-field processing permission retains zero hashes and dispatch
+ok 90 - fresh restore wrong-field processing permission retains zero hashes and dispatch
+  ---
+  duration_ms: 78.009833
+  type: 'test'
+  ...
+# Subtest: real coalesced body ABA after restoration remains eligible
+ok 91 - real coalesced body ABA after restoration remains eligible
+  ---
+  duration_ms: 169.790459
+  type: 'test'
+  ...
+# Subtest: real coalesced body ABA after restoration remains eligible through another restore
+ok 92 - real coalesced body ABA after restoration remains eligible through another restore
+  ---
+  duration_ms: 181.301333
+  type: 'test'
+  ...
+# Subtest: missing earlier-edit cannot be bridged by current body-edit authority
+ok 93 - missing earlier-edit cannot be bridged by current body-edit authority
+  ---
+  duration_ms: 56.264209
+  type: 'test'
+  ...
+# Subtest: missing earlier-edit cannot be bridged by restored body-edit authority
+ok 94 - missing earlier-edit cannot be bridged by restored body-edit authority
+  ---
+  duration_ms: 56.336583
+  type: 'test'
+  ...
+# Subtest: missing previous-restore cannot be bridged by current body-edit authority
+ok 95 - missing previous-restore cannot be bridged by current body-edit authority
+  ---
+  duration_ms: 50.024083
+  type: 'test'
+  ...
+# Subtest: missing previous-restore cannot be bridged by restored body-edit authority
+ok 96 - missing previous-restore cannot be bridged by restored body-edit authority
+  ---
+  duration_ms: 56.487125
+  type: 'test'
+  ...
+# Subtest: retained historical restore disguised as edit cannot supply authority for a later genuine restore
+ok 97 - retained historical restore disguised as edit cannot supply authority for a later genuine restore
+  ---
+  duration_ms: 53.543834
+  type: 'test'
+  ...
+# Subtest: typed authored Topic and Context share one response but retain separate original owners and exact ACKs
+ok 98 - typed authored Topic and Context share one response but retain separate original owners and exact ACKs
+  ---
+  duration_ms: 166.431167
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects denied-topic
+ok 99 - typed authored Topic independent guard rejects denied-topic
+  ---
+  duration_ms: 38.424125
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects revoked-topic-response
+ok 100 - typed authored Topic independent guard rejects revoked-topic-response
+  ---
+  duration_ms: 91.175333
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects wrong-topic-field-grant
+ok 101 - typed authored Topic independent guard rejects wrong-topic-field-grant
+  ---
+  duration_ms: 39.868833
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects wrong-author-field-grant
+ok 102 - typed authored Topic independent guard rejects wrong-author-field-grant
+  ---
+  duration_ms: 48.914834
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects entry-drift
+ok 103 - typed authored Topic independent guard rejects entry-drift
+  ---
+  duration_ms: 97.806875
+  type: 'test'
+  ...
+# Subtest: typed authored Topic independent guard rejects topic-drift
+ok 104 - typed authored Topic independent guard rejects topic-drift
+  ---
+  duration_ms: 101.757083
+  type: 'test'
+  ...
+# Subtest: typed authored Topic ACK abort rolls back its owner receipt and replay reuses one physical response
+ok 105 - typed authored Topic ACK abort rolls back its owner receipt and replay reuses one physical response
+  ---
+  duration_ms: 184.434875
+  type: 'test'
+  ...
+# Subtest: typed authored response travels through the original source-owned adapter for both original facets
+ok 106 - typed authored response travels through the original source-owned adapter for both original facets
+  ---
+  duration_ms: 166.941916
+  type: 'test'
+  ...
+# Subtest: authored session genuine Topic issuer retains private qualification budget: shared
+not ok 107 - authored session genuine Topic issuer retains private qualification budget: shared
+  ---
+  duration_ms: 39.515334
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/ai-cost-03-authored-context.test.mjs:253:61'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"STALE_BASE","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:bb1ac84356aa7e09bfa87d4ae0d1678417960125b177edad32af0c87f41ccc09","facets":[]}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/ai-cost-03-authored-context.test.mjs:262:121)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: authored session genuine Topic issuer retains private qualification budget: independent-budget
+ok 108 - authored session genuine Topic issuer retains private qualification budget: independent-budget
+  ---
+  duration_ms: 39.598083
+  type: 'test'
+  ...
+# Subtest: authored session genuine Topic issuer retains private qualification budget: revoked
+ok 109 - authored session genuine Topic issuer retains private qualification budget: revoked
+  ---
+  duration_ms: 42.86375
+  type: 'test'
+  ...
+# Subtest: actual manual placement reconciles same Topic without changing default Section or human owners
+ok 110 - actual manual placement reconciles same Topic without changing default Section or human owners
+  ---
+  duration_ms: 421.458334
+  type: 'test'
+  ...
+# Subtest: actual manual placement reconciles same Topic without changing named Section or human owners
+ok 111 - actual manual placement reconciles same Topic without changing named Section or human owners
+  ---
+  duration_ms: 413.175959
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back name drift and exact ACK
+ok 112 - Placement Topic final receipt fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 240.062458
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back input drift and exact ACK
+ok 113 - Placement Topic final receipt fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 245.531417
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back source drift and exact ACK
+ok 114 - Placement Topic final receipt fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 263.357125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back membership drift and exact ACK
+ok 115 - Placement Topic final receipt fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 239.278917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back order drift and exact ACK
+ok 116 - Placement Topic final receipt fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 231.675791
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back section drift and exact ACK
+ok 117 - Placement Topic final receipt fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 231.149333
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back entry-revision drift and exact ACK
+ok 118 - Placement Topic final receipt fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 226.952875
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back input-revision drift and exact ACK
+ok 119 - Placement Topic final receipt fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 221.263459
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back section-revision drift and exact ACK
+ok 120 - Placement Topic final receipt fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 212.72825
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back topic-revision drift and exact ACK
+ok 121 - Placement Topic final receipt fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 220.581625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back topic-epoch drift and exact ACK
+ok 122 - Placement Topic final receipt fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 210.039125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back authority-epoch drift and exact ACK
+ok 123 - Placement Topic final receipt fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 216.405125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back processing drift and exact ACK
+ok 124 - Placement Topic final receipt fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 233.047833
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back abort drift and exact ACK
+ok 125 - Placement Topic final receipt fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 220.3435
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back source-body drift and exact ACK
+ok 126 - Placement Topic final receipt fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 233.410208
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back restore drift and exact ACK
+ok 127 - Placement Topic final receipt fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 218.562667
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back journal drift and exact ACK
+ok 128 - Placement Topic final receipt fence rolls back journal drift and exact ACK
+  ---
+  duration_ms: 223.530833
+  type: 'test'
+  ...
+# Subtest: Placement Topic final receipt fence rolls back receipt-bytes drift and exact ACK
+ok 129 - Placement Topic final receipt fence rolls back receipt-bytes drift and exact ACK
+  ---
+  duration_ms: 256.022375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back name drift and exact ACK
+ok 130 - Placement Topic final ack fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 264.838333
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back input drift and exact ACK
+ok 131 - Placement Topic final ack fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 224.923583
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back source drift and exact ACK
+ok 132 - Placement Topic final ack fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 218.780625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back membership drift and exact ACK
+ok 133 - Placement Topic final ack fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 221.633125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back order drift and exact ACK
+ok 134 - Placement Topic final ack fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 230.994041
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back section drift and exact ACK
+ok 135 - Placement Topic final ack fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 224.566208
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back entry-revision drift and exact ACK
+ok 136 - Placement Topic final ack fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 226.638917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back input-revision drift and exact ACK
+ok 137 - Placement Topic final ack fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 225.016417
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back section-revision drift and exact ACK
+ok 138 - Placement Topic final ack fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 221.667125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back topic-revision drift and exact ACK
+ok 139 - Placement Topic final ack fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 230.556792
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back topic-epoch drift and exact ACK
+ok 140 - Placement Topic final ack fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 233.256791
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back authority-epoch drift and exact ACK
+ok 141 - Placement Topic final ack fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 228.430959
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back processing drift and exact ACK
+ok 142 - Placement Topic final ack fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 225.276
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back abort drift and exact ACK
+ok 143 - Placement Topic final ack fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 319.334125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back source-body drift and exact ACK
+ok 144 - Placement Topic final ack fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 231.526833
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back restore drift and exact ACK
+ok 145 - Placement Topic final ack fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 228.392125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back journal drift and exact ACK
+ok 146 - Placement Topic final ack fence rolls back journal drift and exact ACK
+  ---
+  duration_ms: 221.271167
+  type: 'test'
+  ...
+# Subtest: Placement Topic final ack fence rolls back receipt-bytes drift and exact ACK
+ok 147 - Placement Topic final ack fence rolls back receipt-bytes drift and exact ACK
+  ---
+  duration_ms: 248.382917
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back name drift and exact ACK
+ok 148 - Placement Topic final counter fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 220.347875
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back input drift and exact ACK
+ok 149 - Placement Topic final counter fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 228.0095
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back source drift and exact ACK
+ok 150 - Placement Topic final counter fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 223.093209
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back membership drift and exact ACK
+ok 151 - Placement Topic final counter fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 237.417833
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back order drift and exact ACK
+ok 152 - Placement Topic final counter fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 230.434084
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back section drift and exact ACK
+ok 153 - Placement Topic final counter fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 222.133042
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back entry-revision drift and exact ACK
+ok 154 - Placement Topic final counter fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 221.506375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back input-revision drift and exact ACK
+ok 155 - Placement Topic final counter fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 205.789333
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back section-revision drift and exact ACK
+ok 156 - Placement Topic final counter fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 216.660584
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back topic-revision drift and exact ACK
+ok 157 - Placement Topic final counter fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 202.847
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back topic-epoch drift and exact ACK
+ok 158 - Placement Topic final counter fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 227.462
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back authority-epoch drift and exact ACK
+ok 159 - Placement Topic final counter fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 226.300708
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back processing drift and exact ACK
+ok 160 - Placement Topic final counter fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 201.218875
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back abort drift and exact ACK
+ok 161 - Placement Topic final counter fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 218.990625
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back source-body drift and exact ACK
+ok 162 - Placement Topic final counter fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 214.017125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back restore drift and exact ACK
+ok 163 - Placement Topic final counter fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 210.249667
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back journal drift and exact ACK
+ok 164 - Placement Topic final counter fence rolls back journal drift and exact ACK
+  ---
+  duration_ms: 204.370375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final counter fence rolls back receipt-bytes drift and exact ACK
+ok 165 - Placement Topic final counter fence rolls back receipt-bytes drift and exact ACK
+  ---
+  duration_ms: 218.581292
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back name drift and exact ACK
+ok 166 - Placement Topic final backup fence rolls back name drift and exact ACK
+  ---
+  duration_ms: 204.938791
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back input drift and exact ACK
+ok 167 - Placement Topic final backup fence rolls back input drift and exact ACK
+  ---
+  duration_ms: 206.694916
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back source drift and exact ACK
+ok 168 - Placement Topic final backup fence rolls back source drift and exact ACK
+  ---
+  duration_ms: 211.601667
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back membership drift and exact ACK
+ok 169 - Placement Topic final backup fence rolls back membership drift and exact ACK
+  ---
+  duration_ms: 206.435458
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back order drift and exact ACK
+ok 170 - Placement Topic final backup fence rolls back order drift and exact ACK
+  ---
+  duration_ms: 213.806166
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back section drift and exact ACK
+ok 171 - Placement Topic final backup fence rolls back section drift and exact ACK
+  ---
+  duration_ms: 205.151375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back entry-revision drift and exact ACK
+ok 172 - Placement Topic final backup fence rolls back entry-revision drift and exact ACK
+  ---
+  duration_ms: 211.721125
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back input-revision drift and exact ACK
+ok 173 - Placement Topic final backup fence rolls back input-revision drift and exact ACK
+  ---
+  duration_ms: 211.0675
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back section-revision drift and exact ACK
+ok 174 - Placement Topic final backup fence rolls back section-revision drift and exact ACK
+  ---
+  duration_ms: 212.50425
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back topic-revision drift and exact ACK
+ok 175 - Placement Topic final backup fence rolls back topic-revision drift and exact ACK
+  ---
+  duration_ms: 221.317583
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back topic-epoch drift and exact ACK
+ok 176 - Placement Topic final backup fence rolls back topic-epoch drift and exact ACK
+  ---
+  duration_ms: 203.583375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back authority-epoch drift and exact ACK
+ok 177 - Placement Topic final backup fence rolls back authority-epoch drift and exact ACK
+  ---
+  duration_ms: 229.892583
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back processing drift and exact ACK
+ok 178 - Placement Topic final backup fence rolls back processing drift and exact ACK
+  ---
+  duration_ms: 206.238875
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back abort drift and exact ACK
+ok 179 - Placement Topic final backup fence rolls back abort drift and exact ACK
+  ---
+  duration_ms: 211.801416
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back source-body drift and exact ACK
+ok 180 - Placement Topic final backup fence rolls back source-body drift and exact ACK
+  ---
+  duration_ms: 221.774375
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back restore drift and exact ACK
+ok 181 - Placement Topic final backup fence rolls back restore drift and exact ACK
+  ---
+  duration_ms: 208.585792
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back journal drift and exact ACK
+ok 182 - Placement Topic final backup fence rolls back journal drift and exact ACK
+  ---
+  duration_ms: 215.69325
+  type: 'test'
+  ...
+# Subtest: Placement Topic final backup fence rolls back receipt-bytes drift and exact ACK
+ok 183 - Placement Topic final backup fence rolls back receipt-bytes drift and exact ACK
+  ---
+  duration_ms: 213.881709
+  type: 'test'
+  ...
+# Subtest: unknown Placement Topic attempt keeps identity and never redispatches
+ok 184 - unknown Placement Topic attempt keeps identity and never redispatches
+  ---
+  duration_ms: 153.853875
+  type: 'test'
+  ...
+# Subtest: Placement Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+ok 185 - Placement Topic original transaction failure rolls back receipt and ACK, retry uses same paid response
+  ---
+  duration_ms: 281.81225
+  type: 'test'
+  ...
+# Subtest: prior Context-only route keeps same-route Topic DEFER pending
+ok 186 - prior Context-only route keeps same-route Topic DEFER pending
+  ---
+  duration_ms: 203.613042
+  type: 'test'
+  ...
+# Subtest: prior Context-only route reconsiders Topic on new qualified route only
+ok 187 - prior Context-only route reconsiders Topic on new qualified route only
+  ---
+  duration_ms: 380.824875
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent grant permission before dispatch
+ok 188 - manual placement needs complete independent grant permission before dispatch
+  ---
+  duration_ms: 48.680917
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent facet permission before dispatch
+ok 189 - manual placement needs complete independent facet permission before dispatch
+  ---
+  duration_ms: 47.777459
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent placement permission before dispatch
+ok 190 - manual placement needs complete independent placement permission before dispatch
+  ---
+  duration_ms: 57.353291
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent entry permission before dispatch
+ok 191 - manual placement needs complete independent entry permission before dispatch
+  ---
+  duration_ms: 49.484042
+  type: 'test'
+  ...
+# Subtest: manual placement needs complete independent input permission before dispatch
+ok 192 - manual placement needs complete independent input permission before dispatch
+  ---
+  duration_ms: 46.920084
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses different-name without ACK or human mutation
+ok 193 - placement Topic assessment refuses different-name without ACK or human mutation
+  ---
+  duration_ms: 178.682125
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses distinct without ACK or human mutation
+ok 194 - placement Topic assessment refuses distinct without ACK or human mutation
+  ---
+  duration_ms: 180.714875
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses ambiguous without ACK or human mutation
+ok 195 - placement Topic assessment refuses ambiguous without ACK or human mutation
+  ---
+  duration_ms: 176.924584
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses internal-aspect without ACK or human mutation
+ok 196 - placement Topic assessment refuses internal-aspect without ACK or human mutation
+  ---
+  duration_ms: 171.8355
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-evidence without ACK or human mutation
+ok 197 - placement Topic assessment refuses partial-evidence without ACK or human mutation
+  ---
+  duration_ms: 177.081375
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-relation without ACK or human mutation
+ok 198 - placement Topic assessment refuses partial-relation without ACK or human mutation
+  ---
+  duration_ms: 181.230458
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses wrong-section without ACK or human mutation
+ok 199 - placement Topic assessment refuses wrong-section without ACK or human mutation
+  ---
+  duration_ms: 173.79825
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses new-section without ACK or human mutation
+ok 200 - placement Topic assessment refuses new-section without ACK or human mutation
+  ---
+  duration_ms: 173.403417
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses missing-entry without ACK or human mutation
+ok 201 - placement Topic assessment refuses missing-entry without ACK or human mutation
+  ---
+  duration_ms: 186.091375
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses new-entry without ACK or human mutation
+ok 202 - placement Topic assessment refuses new-entry without ACK or human mutation
+  ---
+  duration_ms: 172.928625
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses extra-reference without ACK or human mutation
+ok 203 - placement Topic assessment refuses extra-reference without ACK or human mutation
+  ---
+  duration_ms: 184.938333
+  type: 'test'
+  ...
+# Subtest: placement Topic assessment refuses partial-entry without ACK or human mutation
+ok 204 - placement Topic assessment refuses partial-entry without ACK or human mutation
+  ---
+  duration_ms: 171.286209
+  type: 'test'
+  ...
+# Subtest: original Context placement does not acquire Topic capability false
+ok 205 - original Context placement does not acquire Topic capability false
+  ---
+  duration_ms: 205.877833
+  type: 'test'
+  ...
+# Subtest: original Context placement does not acquire Topic capability undefined
+ok 206 - original Context placement does not acquire Topic capability undefined
+  ---
+  duration_ms: 204.609208
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean "true"
+ok 207 - placement capability rejects non-boolean "true"
+  ---
+  duration_ms: 32.595625
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean 1
+ok 208 - placement capability rejects non-boolean 1
+  ---
+  duration_ms: 32.215416
+  type: 'test'
+  ...
+# Subtest: placement capability rejects non-boolean null
+ok 209 - placement capability rejects non-boolean null
+  ---
+  duration_ms: 31.984167
+  type: 'test'
+  ...
+# Subtest: placement genuine independent Topic authority commits with original closed owner
+ok 210 - placement genuine independent Topic authority commits with original closed owner
+  ---
+  duration_ms: 275.929542
+  type: 'test'
+  ...
+# Subtest: placement genuine independent Topic authority revocation at settlement rolls back
+ok 211 - placement genuine independent Topic authority revocation at settlement rolls back
+  ---
+  duration_ms: 218.929792
+  type: 'test'
+  ...
+# Subtest: package allows exact inert Google Sync module URLs and rejects changed, duplicated or foreign-module URLs
+ok 212 - package allows exact inert Google Sync module URLs and rejects changed, duplicated or foreign-module URLs
+  ---
+  duration_ms: 55.065333
+  type: 'test'
+  ...
+# Subtest: real original authored creation and placement yield typed current human evidence, never Input or Source
+ok 213 - real original authored creation and placement yield typed current human evidence, never Input or Source
+  ---
+  duration_ms: 49.688709
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects input-citation
+ok 214 - typed authored assessment rejects input-citation
+  ---
+  duration_ms: 25.975958
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects foreign-entry
+ok 215 - typed authored assessment rejects foreign-entry
+  ---
+  duration_ms: 32.695709
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects foreign-topic
+ok 216 - typed authored assessment rejects foreign-topic
+  ---
+  duration_ms: 24.499083
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects missing-body
+ok 217 - typed authored assessment rejects missing-body
+  ---
+  duration_ms: 27.860334
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects past-end
+ok 218 - typed authored assessment rejects past-end
+  ---
+  duration_ms: 25.819542
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects negative-start
+ok 219 - typed authored assessment rejects negative-start
+  ---
+  duration_ms: 22.60325
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects gap
+ok 220 - typed authored assessment rejects gap
+  ---
+  duration_ms: 21.138625
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects new-identity
+ok 221 - typed authored assessment rejects new-identity
+  ---
+  duration_ms: 22.880667
+  type: 'test'
+  ...
+# Subtest: typed authored assessment rejects extra-field
+ok 222 - typed authored assessment rejects extra-field
+  ---
+  duration_ms: 19.552875
+  type: 'test'
+  ...
+# Subtest: all selected authored fields, including a cleared field, remain exact owner evidence
+ok 223 - all selected authored fields, including a cleared field, remain exact owner evidence
+  ---
+  duration_ms: 26.130291
+  type: 'test'
+  ...
+# Subtest: original authored owner proof rejects source-derived-name
+ok 224 - original authored owner proof rejects source-derived-name
+  ---
+  duration_ms: 22.4905
+  type: 'test'
+  ...
+# Subtest: original authored owner proof rejects removed-entry
+ok 225 - original authored owner proof rejects removed-entry
+  ---
+  duration_ms: 18.633833
+  type: 'test'
+  ...
+# Subtest: original authored owner proof rejects hidden-source
+ok 226 - original authored owner proof rejects hidden-source
+  ---
+  duration_ms: 19.782541
+  type: 'test'
+  ...
+# Subtest: original authored owner proof rejects unlogged-body
+ok 227 - original authored owner proof rejects unlogged-body
+  ---
+  duration_ms: 19.617125
+  type: 'test'
+  ...
+# Subtest: original Topic formation owner retains exact authored identity with an independent Topic processing call and receipt
+ok 228 - original Topic formation owner retains exact authored identity with an independent Topic processing call and receipt
+  ---
+  duration_ms: 31.285833
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale entry before original receipt publication
+ok 229 - authored Topic refuses stale entry before original receipt publication
+  ---
+  duration_ms: 26.27625
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale title before original receipt publication
+ok 230 - authored Topic refuses stale title before original receipt publication
+  ---
+  duration_ms: 24.686291
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale placement before original receipt publication
+ok 231 - authored Topic refuses stale placement before original receipt publication
+  ---
+  duration_ms: 23.095916
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale journal before original receipt publication
+ok 232 - authored Topic refuses stale journal before original receipt publication
+  ---
+  duration_ms: 25.029459
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale processing before original receipt publication
+ok 233 - authored Topic refuses stale processing before original receipt publication
+  ---
+  duration_ms: 23.59775
+  type: 'test'
+  ...
+# Subtest: authored Topic refuses stale abort before original receipt publication
+ok 234 - authored Topic refuses stale abort before original receipt publication
+  ---
+  duration_ms: 26.286417
+  type: 'test'
+  ...
+# Subtest: authored Topic original transaction rolls back receipt-abort
+ok 235 - authored Topic original transaction rolls back receipt-abort
+  ---
+  duration_ms: 24.605375
+  type: 'test'
+  ...
+# Subtest: authored Topic original transaction rolls back terminal-entry
+ok 236 - authored Topic original transaction rolls back terminal-entry
+  ---
+  duration_ms: 22.548417
+  type: 'test'
+  ...
+# Subtest: authored Topic original transaction rolls back terminal-topic
+ok 237 - authored Topic original transaction rolls back terminal-topic
+  ---
+  duration_ms: 78.780667
+  type: 'test'
+  ...
+# Subtest: original Input formation still rejects empty input scope
+ok 238 - original Input formation still rejects empty input scope
+  ---
+  duration_ms: 38.72075
+  type: 'test'
+  ...
+# Subtest: genuine independent Topic authority commits under original closed final authority
+ok 239 - genuine independent Topic authority commits under original closed final authority
+  ---
+  duration_ms: 46.74825
+  type: 'test'
+  ...
+# Subtest: genuine independent Topic authority revocation at original terminal rolls back
+ok 240 - genuine independent Topic authority revocation at original terminal rolls back
+  ---
+  duration_ms: 30.533334
+  type: 'test'
+  ...
+# Subtest: authored original receipt bytes cannot change after final callback before native commit
+ok 241 - authored original receipt bytes cannot change after final callback before native commit
+  ---
+  duration_ms: 26.595625
+  type: 'test'
+  ...
+1..241
+# tests 241
+# suites 0
+# pass 240
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21471.051292
