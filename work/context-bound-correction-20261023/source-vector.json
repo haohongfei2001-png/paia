@@ -1,0 +1,8 @@
+{
+  "extension/core/ai-usage/context-correction.js": "baab71df6ee7e179d99cb2aef4bd5f83e4ea7d64ffc55f243df32738a588126d",
+  "extension/core/ai-usage/local-maintenance-session.js": "7e97153cb17cb22b1665b284fae36f886c950da2daceefcabdb365b4e533a096",
+  "extension/core/ai-usage/maintenance-payload.js": "0587099ba3836155d7d302e37e422f2dd9b59cfe9ca42a5dfef3f853dea7f416",
+  "extension/core/ai-usage/maintenance-qualification.js": "33716de292c96822810a7cf89f1e8b81793c540547486d5cf936f156a0befa6a",
+  "extension/core/ai-usage/maintenance-service-response.js": "7d78d25dbae0fdd0b08bb1558f13f2dcc8b87808d56b007d301a1fe12b420ce0",
+  "extension/tests/ai-cost-03-bound-entry-fields.test.mjs": "7d34cf791af61b17e9d7cac60d7a52287ce1fba82b293b528ef525340384fff4"
+}

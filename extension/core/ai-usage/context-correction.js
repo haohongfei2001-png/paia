@@ -1,3 +1,4 @@
+import {readBoundEntryContext,boundContextEvidenceMatches,boundSelectedText} from '../context-bound-entry.js';
 import {readAuthoredEntryContext,authoredContextEvidenceMatches,authoredSelectedFields,authoredSelectedText} from '../context-authored-entry.js';
 import {captureContextEvidence,fenceContextLineage,releaseContextLineage,validContextMaintenance,lineageExact} from '../context-item-lineage.js';
 import {inputProjection} from '../thought-evidence.js';
@@ -73,7 +74,8 @@ export async function assertContextProtectionCorrections(store,t,items,captured)
 // automatic Item never becomes
 // source-free human evidence. Its entire original plain Input field lineage must
 // remain current. A single original source-free human Entry is separately
-// qualified under its complete author fields; mixed, bound, structural and
+// qualified under its complete author fields; one full Input and its bound
+// human Entry fields use their separate original owners. Mixed, structural and
 // invalidated cases stay pending.
 // Valid temporal metadata remains frozen under the original human protection;
 // it neither becomes a new selected model field nor authorizes automatic expiry.
@@ -95,30 +97,36 @@ export async function readContextEditMapping(store,t,d,{qualifyAuthored=true}={}
   if(!humanReceipt(removal,p.removalReceiptId,item.id,p.epoch,p.removalReceiptDigest,{ok:true,itemId:item.id,revision:p.beforeRevision,lifecycle:'removed',deletedBy:p.removalReceiptId.slice('context:'.length)}))return null;
  }
  const evidence=item.maintenance.provenance.evidence,sources=new Set(),memory=new MemoryService(store);
- const authored=evidence.length===1&&evidence[0].kind==='humanEntry';
- if(!authored&&(!evidence.length||evidence.length>16||new Set(evidence.map(e=>e.inputId)).size!==evidence.length||evidence.some(e=>e.kind||e.humanTopic||e.humanSection||!equal(e.selectedFields,['body'])&&!equal(e.selectedFields,['body','note'])&&!equal(e.selectedFields,['note']))))return null;
+ const authored=evidence.length===1&&evidence[0].kind==='humanEntry',boundSpec=evidence.find(e=>e.kind==='boundEntry'),plain=evidence.filter(e=>!e.kind),bound=evidence.length===2&&plain.length===1&&!!boundSpec&&equal(plain[0].selectedFields,['body'])&&plain[0].inputId===boundSpec.inputId&&plain[0].topicId===boundSpec.topicId&&!plain[0].humanTopic&&!plain[0].humanSection&&equal(plain[0].expectedTopicBinding,boundSpec.expectedTopicBinding);
+ if(!authored&&!bound&&(!evidence.length||evidence.length>16||new Set(evidence.map(e=>e.inputId)).size!==evidence.length||evidence.some(e=>e.kind||e.humanTopic||e.humanSection||!equal(e.selectedFields,['body'])&&!equal(e.selectedFields,['body','note'])&&!equal(e.selectedFields,['note']))))return null;
  const authoredEntries=[];if(authored&&qualifyAuthored){const mapping=await readAuthoredEntryContext(store,t,evidence[0].entryId);if(!mapping||!authoredContextEvidenceMatches(evidence[0],mapping))return null;authoredEntries.push(mapping);}
+ const boundEntries=[];if(bound&&qualifyAuthored){const mapping=await readBoundEntryContext(store,t,boundSpec.entryId,null,boundSpec.topicId);if(!mapping||!boundContextEvidenceMatches(boundSpec,mapping))return null;boundEntries.push(mapping);}
  for(const e of evidence.filter(e=>!e.kind)){const state=await t.get('inputStates',e.inputId),index=await t.get('blockIndex',e.inputId);
   if(!state||state.removalState!=='active'||state.sourcePurged||state.contentRevision!==e.contentRevision||(state.lastRemovalSequence??0)!==e.expectedRemovalSequence||index?.excluded!==false||!equal([...state.sourceRecordIds].sort(),e.sourceRecordIds)||!await memory.safeSources(t,e.sourceRecordIds))return null;
   for(const id of e.sourceRecordIds)sources.add(id);
  }
  if(sources.size>20)return null;
- return {kind:'contextEdit',itemId:item.id,revision:item.revision,card:item.card,selectedFields:['body','section'],proof:structuredClone(p),associationIds:[...item.maintenance.associationIds],provenance:structuredClone(item.maintenance.provenance),sourceRecordIds:[...sources].sort(),...(authored?{authoredEntryIds:[evidence[0].entryId],...(qualifyAuthored?{authoredEntries}:{})}:{})};
+ return {kind:'contextEdit',itemId:item.id,revision:item.revision,card:item.card,selectedFields:['body','section'],proof:structuredClone(p),associationIds:[...item.maintenance.associationIds],provenance:structuredClone(item.maintenance.provenance),sourceRecordIds:[...sources].sort(),...(authored?{authoredEntryIds:[evidence[0].entryId],...(qualifyAuthored?{authoredEntries}:{})}:{}),...(bound?{boundEntryIds:[boundSpec.entryId],...(qualifyAuthored?{boundEntries}:{})}:{})};
 }
-export const contextEditInputFields=(m,inputId)=>{const evidence=m.provenance.evidence.find(e=>e.inputId===inputId);if(!evidence)fail('STALE_BASE');return [...evidence.selectedFields];};
-export const contextEditScope=m=>({kind:m.kind,itemId:m.itemId,revision:m.revision,card:m.card,selectedFields:[...m.selectedFields],proof:structuredClone(m.proof),inputIds:m.provenance.evidence.filter(e=>!e.kind).map(e=>e.inputId).sort(),...(m.authoredEntryIds?{authoredEntryIds:[...m.authoredEntryIds]}:{}),...(m.provenance.evidence.some(e=>!e.kind&&e.selectedFields.includes('note'))?{inputFields:m.provenance.evidence.filter(e=>!e.kind).map(e=>({inputId:e.inputId,selectedFields:[...e.selectedFields]})).sort((a,b)=>a.inputId.localeCompare(b.inputId))}:{})});
-export const contextEditEvidence=m=>m.provenance.evidence.map(({contentRevision,sourceRecordIds,sourceIdentityTokens,...spec})=>structuredClone(spec));
+export const contextEditInputFields=(m,inputId)=>{const evidence=m.provenance.evidence.find(e=>!e.kind&&e.inputId===inputId);if(!evidence)fail('STALE_BASE');return [...evidence.selectedFields];};
+export const contextEditScope=m=>({kind:m.kind,itemId:m.itemId,revision:m.revision,card:m.card,selectedFields:[...m.selectedFields],proof:structuredClone(m.proof),inputIds:m.provenance.evidence.filter(e=>!e.kind).map(e=>e.inputId).sort(),...(m.authoredEntryIds?{authoredEntryIds:[...m.authoredEntryIds]}:{}),...(m.boundEntryIds?{boundEntryIds:[...m.boundEntryIds]}:{}),...(m.provenance.evidence.some(e=>!e.kind&&e.selectedFields.includes('note'))?{inputFields:m.provenance.evidence.filter(e=>!e.kind).map(e=>({inputId:e.inputId,selectedFields:[...e.selectedFields]})).sort((a,b)=>a.inputId.localeCompare(b.inputId))}:{})});
+export const contextEditEvidence=m=>m.provenance.evidence.map(e=>{if(e.kind)return structuredClone(e);const {contentRevision,sourceRecordIds,sourceIdentityTokens,...spec}=e;return structuredClone(spec);});
 const editDescriptor=m=>({kind:'context_item',entityId:m.itemId,revision:m.revision,contextEdit:m.proof});
 const metadataWithout=(row,fields)=>Object.fromEntries(Object.keys(row).filter(key=>!fields.includes(key)).map(key=>[key,row[key]]));
 // Selected author bytes and the original author-history fields are held only
 // under the independent qualification. Unknown Entry text is not retained.
+const boundEntrySnapshot=(row,mapping)=>({...metadataWithout(row,['thoughtText','title','note']),fields:boundSelectedText(row,mapping.selectedFields)});
 const authoredEntrySnapshot=(row,mapping)=>({...metadataWithout(row,['thoughtText','title','note']),fields:authoredSelectedText(row,authoredSelectedFields(mapping))});
 const authoredJournalSnapshot=row=>row?({...metadataWithout(row,['before','after']),...Object.fromEntries(['before','after'].filter(side=>row[side]!==undefined).map(side=>[side,row[side]===null?null:{...row[side]}]))}):null;
 async function editSnapshot(store,t,m){
  if(!equal(await readContextEditMapping(store,t,editDescriptor(m)),m))fail('STALE_BASE');
  const item=(await t.get('meta','context-cards:v1')).items.find(i=>i.id===m.itemId),receipt=await t.get('operationReceipts',m.proof.receiptId),inputs=[],topics=[],memberships=[],sources=[],legacy=[],legacyIndex=[];
- const filter=await t.get('meta','smart-filter'),authored=[];
- for(const mapping of m.authoredEntries||[]){const entry=await t.get('thoughts',mapping.entryId),entityKey='library_entry:'+mapping.entryId,journals=await t.all('revisions','byList',prefix([entityKey]));const section=await t.get('sections',JSON.stringify([mapping.topicId,mapping.layoutGeneration,mapping.sectionId])),placementKey='placement:'+mapping.placementId,placementJournal=await t.edge('revisions','byList',prefix([placementKey]),'prev'),placementJournalCount=await t.count('revisions','byList',prefix([placementKey]));if(!section||!placementJournal)fail('STALE_BASE');authored.push({entry:authoredEntrySnapshot(entry,mapping),journals:journals.map(authoredJournalSnapshot),section:metadataWithout(section,['title']),placementJournal:authoredJournalSnapshot(placementJournal),placementJournalCount,members:await captureTopicFormationMembers(t,[mapping.entryId])});}
+ const filter=await t.get('meta','smart-filter'),authored=[],bound=[];
+ for(const [kind,mappings]of [['authored',m.authoredEntries||[]],['bound',m.boundEntries||[]]])for(const mapping of mappings){
+  const entry=await t.get('thoughts',mapping.entryId),entityKey='library_entry:'+mapping.entryId,journals=await t.all('revisions','byList',prefix([entityKey])),section=await t.get('sections',JSON.stringify([mapping.topicId,mapping.layoutGeneration,mapping.sectionId])),placementKey='placement:'+mapping.placementId,placementJournal=await t.edge('revisions','byList',prefix([placementKey]),'prev'),placementJournalCount=await t.count('revisions','byList',prefix([placementKey]));if(!section||!placementJournal)fail('STALE_BASE');
+  const receipts=[];if(kind==='bound')for(const id of [...new Set(journals.filter(j=>j.important||j.reason==='edit').map(j=>j.operationId))])receipts.push({id,value:await t.get('operationReceipts',id)??null});
+  (kind==='authored'?authored:bound).push({entry:(kind==='authored'?authoredEntrySnapshot:boundEntrySnapshot)(entry,mapping),journals:journals.map(authoredJournalSnapshot),section:metadataWithout(section,['title']),placementJournal:authoredJournalSnapshot(placementJournal),placementJournalCount,members:await captureTopicFormationMembers(t,[mapping.entryId]),...(kind==='bound'?{receipts}:{})});
+ }
  for(const e of m.provenance.evidence.filter(e=>!e.kind)){const input=await inputProjection(store,t,e.inputId);if(!input||await store.isFiltered(t,input.block,filter))fail('STALE_BASE');inputs.push({inputId:input.inputId,documentId:input.documentId,contentRevision:input.contentRevision,lastRemovalSequence:input.lastRemovalSequence,body:input.body,note:input.note,sourceRecordIds:input.sourceRecordIds,identities:input.identities});}
  for(const topicId of [...new Set(m.provenance.evidence.map(e=>e.topicId))].sort()){
   const topic=await t.get('topics',topicId);topics.push(metadataWithout(topic,['name','nameKey','summary']));
@@ -130,7 +138,7 @@ async function editSnapshot(store,t,m){
  // Original legacy restrictions are part of the final transaction fence too.
  // The reader supplied by the session charges these bounded local reads.
  await t.scanPrimary('meta','memory:',row=>{legacyIndex.push({id:row.id,kind:row.kind});if(['config','topic','section','entry','input'].includes(row.kind))legacy.push(row);});
- return {item,receipt,...(m.proof.kind==='restore'?{removalReceipt:await t.get('operationReceipts',m.proof.removalReceiptId)}:{}),inputs,topics,memberships,sources,legacy,legacyIndex,filter,...(authored.length?{authored}:{})};
+ return {item,receipt,...(m.proof.kind==='restore'?{removalReceipt:await t.get('operationReceipts',m.proof.removalReceiptId)}:{}),inputs,topics,memberships,sources,legacy,legacyIndex,filter,...(authored.length?{authored}:{}),...(bound.length?{bound}:{})};
 }
 export async function captureContextEditMaterial(store,m,{read,signal,workBudget=null}){
  const lineage=await captureContextEvidence(store,contextEditEvidence(m),{epoch:m.proof.epoch,signal,workBudget});
@@ -142,7 +150,7 @@ export async function captureContextEditMaterial(store,m,{read,signal,workBudget
   const current=()=>{if(signal?.aborted)fail('UNAVAILABLE');if(workBudget)assertContextScopeWorkBudgetFacts(workBudget,{database:store.repository.db});return true;};
   const retain=value=>{current();if(workBudget){workBudget.hashBytes+=new TextEncoder().encode(JSON.stringify(value)).length;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes)fail('BUDGET_EXCEEDED');}return value;};
   const terminalFacts=await read(t=>captureTopicFormationTerminal(store,t,m.provenance.evidence.filter(e=>!e.kind),{retain,current}));
-  if(snapshot.authored)retain(snapshot.authored);retain(snapshot.memberships.map(m=>m.sections));
+  if(snapshot.authored)retain(snapshot.authored);if(snapshot.bound)retain(snapshot.bound);retain(snapshot.memberships.map(m=>m.sections));
   const scopeTerminal=[];for(const topicId of [...new Set(m.provenance.evidence.map(e=>e.topicId))])scopeTerminal.push(await read(t=>captureContextTopicMetadataTerminal(store,t,topicId,{retain,current})));
   const held={mapping:m,snapshot,lineage:lineage.captured,fields,fieldDigests,terminalFacts,scopeTerminal,workBudget};await read(t=>assertContextEditMaterial(store,t,held));return held;
  }catch(error){releaseContextLineage(lineage.captured);throw error;}
@@ -174,7 +182,7 @@ export async function registerContextEditFinalFence(store,t,held,isCurrent){
   for(const fact of held.terminalFacts)same(fact.project(yield*get(fact.table,fact.key),check),fact.expected);
   for(const scope of held.scopeTerminal){same(contextTopicTerminalControl(store),scope.control);for(const fact of scope.facts)same(contextTopicMetadataTerminalProjection(fact.table,yield*get(fact.table,fact.key)),fact.expected);for(const q of scope.counts)same(yield*count(q.table,q.index,q.key),q.expected);}
   for(const source of s.sources)same(yield*get('recordIndex',source.index.id),source.index);
-  for(const author of s.authored||[]){const mapping=m.authoredEntries.find(x=>x.entryId===author.entry.id),entry=yield*get('thoughts',author.entry.id);if(!entry)fail('STALE_BASE');same(authoredEntrySnapshot(entry,mapping),author.entry);
+  for(const [kind,authors]of [['authored',s.authored||[]],['bound',s.bound||[]]])for(const author of authors){const mapping=(kind==='authored'?m.authoredEntries:m.boundEntries).find(x=>x.entryId===author.entry.id),entry=yield*get('thoughts',author.entry.id);if(!entry)fail('STALE_BASE');same((kind==='authored'?authoredEntrySnapshot:boundEntrySnapshot)(entry,mapping),author.entry);for(const receipt of author.receipts||[])same((yield*get('operationReceipts',receipt.id))??null,receipt.value);
    const section=yield*get('sections',author.section.id);if(!section)fail('STALE_BASE');same(metadataWithout(section,['title']),author.section);same(yield*count('revisions','byList',prefix(['placement:'+mapping.placementId])),author.placementJournalCount);same(authoredJournalSnapshot(yield*get('revisions',author.placementJournal.id)),author.placementJournal);
    same(yield*count('revisions','byList',prefix(['library_entry:'+entry.id])),author.journals.length);for(const row of author.journals)same(authoredJournalSnapshot(yield*get('revisions',row.id)),row);
    for(const member of author.members)for(const {table,rows}of member.collections){const {index,key}=topicFormationMemberRange(table,member.entryId);same(yield*count(table,index,key),rows.length);for(const row of rows)same(topicFormationMemberProjection(table,yield*get(table,row.id)),row);}

@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: bound Context correction original edit retains complete independent material and protected human owner
+ok 1 - bound Context correction original edit retains complete independent material and protected human owner
+  ---
+  duration_ms: 514.222791
+  type: 'test'
+  ...
+# Subtest: bound Context correction original restore retains complete independent material and protected human owner
+ok 2 - bound Context correction original restore retains complete independent material and protected human owner
+  ---
+  duration_ms: 451.156542
+  type: 'test'
+  ...
+# Subtest: bound Context correction accepts exact original note only with separate Input body
+ok 3 - bound Context correction accepts exact original note only with separate Input body
+  ---
+  duration_ms: 445.258917
+  type: 'test'
+  ...
+# Subtest: bound Context correction accepts exact original title only with separate Input body
+ok 4 - bound Context correction accepts exact original title only with separate Input body
+  ---
+  duration_ms: 427.57475
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent processing grant before dispatch
+ok 5 - bound Context correction refuses independent processing grant before dispatch
+  ---
+  duration_ms: 76.980959
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent input grant before dispatch
+ok 6 - bound Context correction refuses independent input grant before dispatch
+  ---
+  duration_ms: 70.948333
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent bound grant before dispatch
+ok 7 - bound Context correction refuses independent bound grant before dispatch
+  ---
+  duration_ms: 69.898375
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent context grant before dispatch
+ok 8 - bound Context correction refuses independent context grant before dispatch
+  ---
+  duration_ms: 69.979208
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent qualification-history grant before dispatch
+ok 9 - bound Context correction refuses independent qualification-history grant before dispatch
+  ---
+  duration_ms: 76.810083
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent qualification-title grant before dispatch
+ok 10 - bound Context correction refuses independent qualification-title grant before dispatch
+  ---
+  duration_ms: 71.397875
+  type: 'test'
+  ...
+# Subtest: bound Context correction refuses independent qualification-note grant before dispatch
+ok 11 - bound Context correction refuses independent qualification-note grant before dispatch
+  ---
+  duration_ms: 68.993
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects note without ACK or human write
+ok 12 - bound Context correction provider rejects note without ACK or human write
+  ---
+  duration_ms: 380.954084
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects title without ACK or human write
+ok 13 - bound Context correction provider rejects title without ACK or human write
+  ---
+  duration_ms: 382.424167
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects input without ACK or human write
+ok 14 - bound Context correction provider rejects input without ACK or human write
+  ---
+  duration_ms: 377.321875
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects source without ACK or human write
+ok 15 - bound Context correction provider rejects source without ACK or human write
+  ---
+  duration_ms: 351.177042
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects history without ACK or human write
+ok 16 - bound Context correction provider rejects history without ACK or human write
+  ---
+  duration_ms: 381.599208
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects section without ACK or human write
+ok 17 - bound Context correction provider rejects section without ACK or human write
+  ---
+  duration_ms: 353.206167
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects placement-journal without ACK or human write
+ok 18 - bound Context correction provider rejects placement-journal without ACK or human write
+  ---
+  duration_ms: 374.09825
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects membership without ACK or human write
+ok 19 - bound Context correction provider rejects membership without ACK or human write
+  ---
+  duration_ms: 363.331709
+  type: 'test'
+  ...
+# Subtest: bound Context correction provider rejects revoke without ACK or human write
+ok 20 - bound Context correction provider rejects revoke without ACK or human write
+  ---
+  duration_ms: 355.487875
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects note without ACK or human write
+ok 21 - bound Context correction backup rejects note without ACK or human write
+  ---
+  duration_ms: 451.443375
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects title without ACK or human write
+ok 22 - bound Context correction backup rejects title without ACK or human write
+  ---
+  duration_ms: 436.303167
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects input without ACK or human write
+ok 23 - bound Context correction backup rejects input without ACK or human write
+  ---
+  duration_ms: 432.192792
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects source without ACK or human write
+ok 24 - bound Context correction backup rejects source without ACK or human write
+  ---
+  duration_ms: 442.459875
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects history without ACK or human write
+ok 25 - bound Context correction backup rejects history without ACK or human write
+  ---
+  duration_ms: 444.362541
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects section without ACK or human write
+ok 26 - bound Context correction backup rejects section without ACK or human write
+  ---
+  duration_ms: 443.608292
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects placement-journal without ACK or human write
+ok 27 - bound Context correction backup rejects placement-journal without ACK or human write
+  ---
+  duration_ms: 436.140042
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects membership without ACK or human write
+ok 28 - bound Context correction backup rejects membership without ACK or human write
+  ---
+  duration_ms: 447.731292
+  type: 'test'
+  ...
+# Subtest: bound Context correction backup rejects revoke without ACK or human write
+ok 29 - bound Context correction backup rejects revoke without ACK or human write
+  ---
+  duration_ms: 437.946042
+  type: 'test'
+  ...
+# Subtest: bound Context correction original response adapter none
+ok 30 - bound Context correction original response adapter none
+  ---
+  duration_ms: 444.122541
+  type: 'test'
+  ...
+# Subtest: bound Context correction original response adapter foreign-item
+ok 31 - bound Context correction original response adapter foreign-item
+  ---
+  duration_ms: 360.05225
+  type: 'test'
+  ...
+# Subtest: bound Context correction original response adapter unknown-field
+ok 32 - bound Context correction original response adapter unknown-field
+  ---
+  duration_ms: 361.56075
+  type: 'test'
+  ...
+# Subtest: bound Context correction ACK rollback replays retained response with one provider attempt
+ok 33 - bound Context correction ACK rollback replays retained response with one provider attempt
+  ---
+  duration_ms: 517.233875
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11420.405959

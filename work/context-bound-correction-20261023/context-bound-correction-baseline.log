@@ -1,0 +1,56 @@
+TAP version 13
+# Subtest: bound Context correction original edit retains complete independent material and protected human owner
+not ok 1 - bound Context correction original edit retains complete independent material and protected human owner
+  ---
+  duration_ms: 109.1225
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:151:36'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"8305b59a-e85d-4d7a-8de4-7bd449dc0165\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:153:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: bound Context correction original restore retains complete independent material and protected human owner
+not ok 2 - bound Context correction original restore retains complete independent material and protected human owner
+  ---
+  duration_ms: 74.153458
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:151:36'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"06634b69-4b2f-496a-9868-800a8436366f\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:153:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 319.434416

@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: bound Context correction important original history none closes at native tail
+ok 1 - bound Context correction important original history none closes at native tail
+  ---
+  duration_ms: 681.678542
+  type: 'test'
+  ...
+# Subtest: bound Context correction important original history receipt closes at native tail
+ok 2 - bound Context correction important original history receipt closes at native tail
+  ---
+  duration_ms: 565.171167
+  type: 'test'
+  ...
+# Subtest: bound Context correction rejects retained selected-fields lineage before dispatch
+ok 3 - bound Context correction rejects retained selected-fields lineage before dispatch
+  ---
+  duration_ms: 73.101209
+  type: 'test'
+  ...
+# Subtest: bound Context correction rejects retained digest lineage before dispatch
+ok 4 - bound Context correction rejects retained digest lineage before dispatch
+  ---
+  duration_ms: 149.948584
+  type: 'test'
+  ...
+# Subtest: bound Context correction rejects retained foreign-input lineage before dispatch
+ok 5 - bound Context correction rejects retained foreign-input lineage before dispatch
+  ---
+  duration_ms: 67.413125
+  type: 'test'
+  ...
+# Subtest: bound Context correction rejects retained missing-input lineage before dispatch
+ok 6 - bound Context correction rejects retained missing-input lineage before dispatch
+  ---
+  duration_ms: 82.889541
+  type: 'test'
+  ...
+# Subtest: bound Context correction rejects retained human-kind lineage before dispatch
+ok 7 - bound Context correction rejects retained human-kind lineage before dispatch
+  ---
+  duration_ms: 66.071
+  type: 'test'
+  ...
+# Subtest: bound Context correction DTO rejects extra material, copied field scope and Topic coverage
+ok 8 - bound Context correction DTO rejects extra material, copied field scope and Topic coverage
+  ---
+  duration_ms: 522.063666
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2371.679417

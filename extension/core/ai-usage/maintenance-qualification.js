@@ -88,7 +88,7 @@ async function metadataClosure(store,t,request,selection={}){
  for(const {descriptor:d}of request.items){
   // Current human correction metadata selects original author references only.
   // Author bytes/history remain inaccessible until the separate scope grant.
-  if(d.kind==='context_item'){const m=await readContextEditMapping(store,t,d,{qualifyAuthored:false});for(const id of m?.authoredEntryIds||[]){await addEntry(id);historyEntries.add(id);}}
+  if(d.kind==='context_item'){const m=await readContextEditMapping(store,t,d,{qualifyAuthored:false});for(const id of [...(m?.authoredEntryIds||[]),...(m?.boundEntryIds||[])]){await addEntry(id);historyEntries.add(id);}}
   if(d.kind==='library_entry'){await addEntry(d.entityId);historyEntries.add(d.entityId);}
   if(d.kind==='placement'){const row=await t.get('placements',d.recordId||d.entityId);if(row?.id===d.entityId&&idOK(row.entryId)){await addEntry(row.entryId);historyEntries.add(row.entryId);}}
   if(['topic','section'].includes(d.kind)){
