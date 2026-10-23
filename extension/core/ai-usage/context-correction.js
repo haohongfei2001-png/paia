@@ -6,6 +6,9 @@ import {hashText} from '../dedupe.js';
 import {CONSENT_VERSION} from '../constants.js';
 import {digest,equal,exact,fail,integer,token} from './contracts.js';
 import {DIRTY_PREFIX,KNOWN_PREFIX} from './delta.js';
+import {registerRepositoryFinalReadFence} from '../idb-repository.js';
+import {captureTopicFormationTerminal} from '../topic-formation-terminal.js';
+import {assertContextScopeWorkBudgetFacts,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
 
 // An ephemeral capability minted only by the existing human Context change
 // owner. Neither a request field, arbitrary meta write nor a replayed receipt
@@ -69,6 +72,8 @@ export async function assertContextProtectionCorrections(store,t,items,captured)
 // automatic Item never becomes
 // source-free human evidence. Its entire original plain body lineage must
 // remain current; authored/bound/structural/note/invalidated cases stay pending.
+// Valid temporal metadata remains frozen under the original human protection;
+// it neither becomes a new selected model field nor authorizes automatic expiry.
 export async function readContextEditMapping(store,t,d){
  const p=d?.contextEdit;if(d?.kind!=='context_item'||d.removed||d.fenceOnly||!p)return null;
  try{exact(p,['version','kind','beforeRevision','receiptId','receiptDigest','epoch','semanticDigest','updatedAt',...(p.kind==='restore'?['removalReceiptId','removalReceiptDigest','removalSemanticDigest']:[])]);}catch{return null;}
@@ -77,7 +82,7 @@ export async function readContextEditMapping(store,t,d){
  const item=(await t.get('meta','context-cards:v1'))?.items?.find(i=>i.id===d.entityId),receipt=await t.get('operationReceipts',p.receiptId);
  // Match the original ContextCards human receipt contract, including its bounded timestamp.
  if(!lineageExact(receipt,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','result'])||receipt.id!==p.receiptId||typeof receipt.createdAt!=='string'||receipt.createdAt.length>64||!Number.isFinite(Date.parse(receipt.createdAt))||!lineageExact(receipt.result,['ok','itemId','revision','lifecycle','deletedBy']))return null;
- if(!item||item.origin!=='automatic'||item.lifecycle!=='active'||!item.protected||!item.userEdited||item.revision!==d.revision||item.updatedAt!==p.updatedAt||!validContextMaintenance(item.maintenance)||item.maintenance.invalidation||item.maintenance.temporal||item.maintenance.provenance.epoch!==p.epoch||receipt?.namespace!=='context-cards'||receipt.schemaVersion!==1||receipt.ownerId!==item.id||receipt.epoch!==p.epoch||receipt.digest!==p.receiptDigest||!equal(receipt.result,{ok:true,itemId:item.id,revision:item.revision,lifecycle:'active',deletedBy:null}))return null;
+ if(!item||item.origin!=='automatic'||item.lifecycle!=='active'||!item.protected||!item.userEdited||item.revision!==d.revision||item.updatedAt!==p.updatedAt||!validContextMaintenance(item.maintenance)||item.maintenance.invalidation||item.maintenance.provenance.epoch!==p.epoch||receipt?.namespace!=='context-cards'||receipt.schemaVersion!==1||receipt.ownerId!==item.id||receipt.epoch!==p.epoch||receipt.digest!==p.receiptDigest||!equal(receipt.result,{ok:true,itemId:item.id,revision:item.revision,lifecycle:'active',deletedBy:null}))return null;
  // Restoration is the exact original remove -> restore chain, not merely a
  // current active row or a copied human write receipt. Both receipts survive
  // the complete final snapshot fence; no text is promoted to human evidence.
@@ -101,7 +106,7 @@ const editDescriptor=m=>({kind:'context_item',entityId:m.itemId,revision:m.revis
 const metadataWithout=(row,fields)=>Object.fromEntries(Object.keys(row).filter(key=>!fields.includes(key)).map(key=>[key,row[key]]));
 async function editSnapshot(store,t,m){
  if(!equal(await readContextEditMapping(store,t,editDescriptor(m)),m))fail('STALE_BASE');
- const item=(await t.get('meta','context-cards:v1')).items.find(i=>i.id===m.itemId),receipt=await t.get('operationReceipts',m.proof.receiptId),inputs=[],topics=[],memberships=[],sources=[],legacy=[];
+ const item=(await t.get('meta','context-cards:v1')).items.find(i=>i.id===m.itemId),receipt=await t.get('operationReceipts',m.proof.receiptId),inputs=[],topics=[],memberships=[],sources=[],legacy=[],legacyIndex=[];
  const filter=await t.get('meta','smart-filter');
  for(const e of m.provenance.evidence){const input=await inputProjection(store,t,e.inputId);if(!input||await store.isFiltered(t,input.block,filter))fail('STALE_BASE');inputs.push({inputId:input.inputId,documentId:input.documentId,contentRevision:input.contentRevision,lastRemovalSequence:input.lastRemovalSequence,body:input.body,note:input.note,sourceRecordIds:input.sourceRecordIds,identities:input.identities});}
  for(const topicId of [...new Set(m.provenance.evidence.map(e=>e.topicId))].sort()){
@@ -113,8 +118,8 @@ async function editSnapshot(store,t,m){
  for(const id of m.sourceRecordIds){const row=await t.get('records',id);sources.push({index:await t.get('recordIndex',id),record:row?{id:row.id,value:{originalText:row.value?.originalText}}:row});}
  // Original legacy restrictions are part of the final transaction fence too.
  // The reader supplied by the session charges these bounded local reads.
- await t.scanPrimary('meta','memory:',row=>{if(['config','topic','section','entry','input'].includes(row.kind))legacy.push(row);});
- return {item,receipt,...(m.proof.kind==='restore'?{removalReceipt:await t.get('operationReceipts',m.proof.removalReceiptId)}:{}),inputs,topics,memberships,sources,legacy,filter};
+ await t.scanPrimary('meta','memory:',row=>{legacyIndex.push({id:row.id,kind:row.kind});if(['config','topic','section','entry','input'].includes(row.kind))legacy.push(row);});
+ return {item,receipt,...(m.proof.kind==='restore'?{removalReceipt:await t.get('operationReceipts',m.proof.removalReceiptId)}:{}),inputs,topics,memberships,sources,legacy,legacyIndex,filter};
 }
 export async function captureContextEditMaterial(store,m,{read,signal,workBudget=null}){
  const lineage=await captureContextEvidence(store,contextEditEvidence(m),{epoch:m.proof.epoch,signal,workBudget});
@@ -123,7 +128,10 @@ export async function captureContextEditMaterial(store,m,{read,signal,workBudget
   const snapshot=await read(async t=>{await fenceContextLineage(store,lineage.captured,{transaction:t});return editSnapshot(store,t,m);});
   if(await digest(semantic(snapshot.item))!==m.proof.semanticDigest||m.proof.kind==='restore'&&await digest(semantic({...snapshot.item,lifecycle:'removed',deletedBy:m.proof.removalReceiptId.slice('context:'.length)}))!==m.proof.removalSemanticDigest)fail('STALE_BASE');
   const fields={body:snapshot.item.body,section:snapshot.item.section},fieldDigests={};for(const [field,text]of Object.entries(fields))fieldDigests[field]=await hashText(text);
-  const held={mapping:m,snapshot,lineage:lineage.captured,fields,fieldDigests};await read(t=>assertContextEditMaterial(store,t,held));return held;
+  const current=()=>{if(signal?.aborted)fail('UNAVAILABLE');if(workBudget)assertContextScopeWorkBudgetFacts(workBudget,{database:store.repository.db});return true;};
+  const retain=value=>{current();if(workBudget){workBudget.hashBytes+=new TextEncoder().encode(JSON.stringify(value)).length;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes)fail('BUDGET_EXCEEDED');}return value;};
+  const terminalFacts=await read(t=>captureTopicFormationTerminal(store,t,m.provenance.evidence,{retain,current}));
+  const held={mapping:m,snapshot,lineage:lineage.captured,fields,fieldDigests,terminalFacts,workBudget};await read(t=>assertContextEditMaterial(store,t,held));return held;
  }catch(error){releaseContextLineage(lineage.captured);throw error;}
 }
 export async function assertContextEditMaterial(store,t,held){
@@ -131,3 +139,36 @@ export async function assertContextEditMaterial(store,t,held){
  if(!equal(await editSnapshot(store,t,held.mapping),held.snapshot))fail('STALE_BASE');
 }
 export function releaseContextEditMaterial(held){releaseContextLineage(held?.lineage);}
+
+// The ordinary async recheck runs before the repository's backup/semantic tail.
+// Seal the same selected evidence and human owner facts with native requests in
+// that original transaction. Never retain the full Context row or other Items.
+export function registerContextEditFinalFence(store,t,held,isCurrent){
+ const {snapshot:s,mapping:m,workBudget:budget}=held;
+ const check=()=>{isCurrent();if(budget)assertContextScopeWorkBudgetFacts(budget,{database:store.repository.db});return true;};
+ const charge=()=>{check();if(budget&&++budget.reads>CONTEXT_TOPIC_SCOPE_LIMITS.reads)fail('BUDGET_EXCEEDED');};
+ const get=function*(table,key){charge();const row=yield {method:'get',table,key};check();if(budget&&row){const ids=budget.seen.get(table)||new Set();ids.add(row.id);budget.seen.set(table,ids);if(ids.size>CONTEXT_TOPIC_SCOPE_LIMITS.refs)fail('BUDGET_EXCEEDED');}return row;};
+ const count=function*(table,index,key){charge();const value=yield {method:'count',table,...(index?{index}:{}),key};check();return value;};
+ const same=(actual,expected)=>{if(!equal(actual,expected))fail('STALE_BASE');};
+ registerRepositoryFinalReadFence(store.repository,t,{isCurrent:check,plan:function*(){
+  same((yield*get('meta','context-cards:v1'))?.items?.find(i=>i.id===m.itemId),s.item);
+  same(yield*get('operationReceipts',m.proof.receiptId),s.receipt);
+  if(s.removalReceipt)same(yield*get('operationReceipts',m.proof.removalReceiptId),s.removalReceipt);
+  same((yield*get('meta','recovery-restore-epoch'))?.value??'initial',m.proof.epoch);
+  same(yield*get('meta','smart-filter'),s.filter);
+  for(const fact of held.terminalFacts)same(fact.project(yield*get(fact.table,fact.key),check),fact.expected);
+  for(const source of s.sources)same(yield*get('recordIndex',source.index.id),source.index);
+  for(let n=0;n<s.topics.length;n++){
+   const topic=s.topics[n],actual=yield*get('topics',topic.id);if(!actual)fail('STALE_BASE');same(metadataWithout(actual,['name','nameKey','summary']),topic);
+   const {placements,entries}=s.memberships[n];same(yield*count('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0])),placements.length);
+   for(const p of placements)same(yield*get('placements',p.id),p);
+   for(const entry of entries){const actual=yield*get('thoughts',entry.id);if(!actual)fail('STALE_BASE');same(metadataWithout(actual,['thoughtText','title','note']),entry);}
+  }
+  // An exact key/kind set detects a newly inserted restriction even when an
+  // unrelated legacy row was removed to preserve the total count.
+  same(yield*count('meta',null,IDBKeyRange.bound('memory:','memory:\uffff',false,true)),s.legacyIndex.length);
+  const restrictions=new Map(s.legacy.map(row=>[row.id,row]));
+  for(const row of s.legacyIndex){const actual=yield*get('meta',row.id);if(!actual)fail('STALE_BASE');same({id:actual.id,kind:actual.kind},row);if(restrictions.has(row.id))same(actual,restrictions.get(row.id));}
+  return check();
+ }});
+}

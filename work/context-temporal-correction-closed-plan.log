@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: temporal Context edit expired reconciles through original protected owner without changing time metadata
+ok 1 - temporal Context edit expired reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 345.001167
+  type: 'test'
+  ...
+# Subtest: temporal Context edit future reconciles through original protected owner without changing time metadata
+ok 2 - temporal Context edit future reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 276.34175
+  type: 'test'
+  ...
+# Subtest: temporal Context edit unknown reconciles through original protected owner without changing time metadata
+ok 3 - temporal Context edit unknown reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 264.179209
+  type: 'test'
+  ...
+# Subtest: temporal Context restore expired reconciles through original protected owner without changing time metadata
+ok 4 - temporal Context restore expired reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 281.095291
+  type: 'test'
+  ...
+# Subtest: temporal Context restore future reconciles through original protected owner without changing time metadata
+ok 5 - temporal Context restore future reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 262.223333
+  type: 'test'
+  ...
+# Subtest: temporal Context restore unknown reconciles through original protected owner without changing time metadata
+ok 6 - temporal Context restore unknown reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 265.514666
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects deadline and retains the original obligation
+ok 7 - temporal correction backup rejects deadline and retains the original obligation
+  ---
+  duration_ms: 252.597959
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects temporal-scope and retains the original obligation
+ok 8 - temporal correction backup rejects temporal-scope and retains the original obligation
+  ---
+  duration_ms: 262.287875
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects receipt and retains the original obligation
+ok 9 - temporal correction backup rejects receipt and retains the original obligation
+  ---
+  duration_ms: 258.764583
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects source-purge and retains the original obligation
+ok 10 - temporal correction backup rejects source-purge and retains the original obligation
+  ---
+  duration_ms: 249.429708
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects revoke and retains the original obligation
+ok 11 - temporal correction backup rejects revoke and retains the original obligation
+  ---
+  duration_ms: 243.496125
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3076.503542

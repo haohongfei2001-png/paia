@@ -40,8 +40,8 @@ const usages=s=>s.repository.transaction(false,t=>t.all('organizerUsage'));
 const acks=s=>s.repository.transaction(false,async t=>(await t.all('organizerWorkItems')).filter(r=>r.state==='ACKNOWLEDGED'));
 
 import {parameters} from './harness/topic-03.mjs';
-async function editedFixture({fields=['body'],card='info',initialEdit=true}={}){
- const f=await fixture(),c=await request(f,{fields,card});await put(f,c);
+async function editedFixture({fields=['body'],card='info',initialEdit=true,temporal=undefined}={}){
+ const f=await fixture(),c=await request(f,{fields,card,...(temporal===undefined?{}:{temporal})});await put(f,c);
  const change={kind:'put',operationId:op(),epoch:c.epoch,itemId:c.itemId,card:c.card,expectedRevision:1,body:'SYNTHETIC human correction retaining derived meaning',section:c.section};if(initialEdit)await f.cards.change(change);
  const calls=[],scopes=[],controller=new AbortController(),caller=Object.freeze({id:op()}),expiresAt=Date.now()+600000,state={allowed:true,originalAllowed:true,processingHook:null,providerHook:null,adapterHook:null};
  const processing={resolve:async(_t,scope)=>{scopes.push(structuredClone(scope));return {version:1,store:f.s,caller,scope:state.processingHook?state.processingHook(structuredClone(scope)):scope,epoch:'synthetic-context-edit',processing:state.allowed,expiresAt,revocationSignal:controller.signal};},isCurrent:()=>state.allowed&&!controller.signal.aborted};
@@ -306,4 +306,42 @@ for(const field of ['receipt','witness'])test('restore digest await rejects unde
  }return result;};
  try{await f.cards.change({kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:3,deletedBy:deletion.operationId});}finally{proto.digest=original;}
  assert.equal(hit,true);const result=await f.session.run(await f.session.prepare(options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);f.session.dispose();
+});
+
+const temporalCases={expired:{temporalScope:'SYNTHETIC prior task',uncertainty:null,validUntil:'2000-01-01T00:00:00.000Z'},future:{temporalScope:'SYNTHETIC future task',uncertainty:'SYNTHETIC scope uncertainty',validUntil:'2099-01-01T00:00:00.000Z'},unknown:{temporalScope:null,uncertainty:null,validUntil:null}};
+for(const action of ['edit','restore'])for(const [time,temporal]of Object.entries(temporalCases))test('temporal Context '+action+' '+time+' reconciles through original protected owner without changing time metadata',async()=>{
+ const f=await(action==='restore'?restoredFixture:editedFixture)({card:'now',temporal}),before=await row(f);
+ try{const r=await f.session.run(await f.session.prepare(options));assert.equal(r.processedState,'COMMITTED',JSON.stringify(r));assert.equal(f.calls.length,1);assert.deepEqual(await row(f),before);assert.deepEqual((await row(f)).items.find(i=>i.id===f.c.itemId).maintenance.temporal,temporal);assert.deepEqual(f.calls[0].material.contextItems[0].fields,{body:f.change.body,section:f.change.section});assert.equal(Object.hasOwn(f.calls[0].material.contextItems[0],'temporal'),false);assert.equal((await f.cards.snapshot()).items.find(i=>i.id===f.c.itemId).temporalStatus,'unknown');const done=(await acks(f.s)).filter(a=>a.unit.key===f.key);assert.deepEqual(done.map(a=>[a.unit.facet,a.outcome]),[['context','NO_CHANGE']]);assert.deepEqual((await raw(f.s,'meta',DIRTY_PREFIX+f.key)).pendingFacets,['topic']);assert.ok((await usages(f.s)).every(a=>a.effectiveResultCount===0));}finally{f.session.dispose();}
+});
+
+for(const phase of ['before','response','settlement','backup'])for(const defect of ['deadline','temporal-scope','receipt','source-purge','revoke'])test('temporal correction '+phase+' rejects '+defect+' and retains the original obligation',async()=>{
+ const f=await editedFixture({card:'now',temporal:temporalCases.future}),before=await row(f),original=f.s.repository.transaction.bind(f.s.repository);let reached=false;
+ const change=async t=>{reached=true;if(defect==='deadline'||defect==='temporal-scope'){const r=await t.get('meta',CONTEXT_CARDS_ROW),item=r.items.find(i=>i.id===f.c.itemId);if(defect==='deadline')item.maintenance.temporal.validUntil='2001-01-01T00:00:00.000Z';else item.maintenance.temporal.temporalScope='SYNTHETIC substituted scope';await t.put('meta',r);}else await alter(f,defect,t);};
+ if(phase==='before')await original(true,change);else if(phase==='response')f.state.providerHook=()=>original(true,change);else f.s.repository.transaction=(write,fn,...args)=>original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,r,...rest)=>{const value=await put(n,r,...rest);if(!reached&&n==='meta'&&(phase==='backup'?r.id==='backup-data-generation':r.id==='aiu:counters:v1'&&r.localResolved>0))await change(t);return value;};}return fn(t);},...args);
+ try{let result;try{result=await f.session.run(await f.session.prepare(options));}catch(error){assert.ok(['STALE_BASE','UNAVAILABLE'].includes(error.code),error.code);}assert.equal(reached,true);assert.notEqual(result?.processedState,'COMMITTED');assert.equal((await acks(f.s)).length,0);assert.equal(f.calls.length,phase==='before'?0:1);if(['settlement','backup'].includes(phase))assert.deepEqual(await row(f),before);}finally{f.s.repository.transaction=original;f.session.dispose();}
+});
+test('temporal correction ACK abort rolls back and retries the same physical response',async()=>{
+ const f=await restoredFixture({card:'now',temporal:temporalCases.expired}),before=await row(f),original=f.s.repository.transaction.bind(f.s.repository);let reached=false;
+ f.s.repository.transaction=(write,fn,...args)=>original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,r,...rest)=>{const value=await put(n,r,...rest);if(!reached&&n==='organizerWorkItems'&&r.state==='ACKNOWLEDGED'&&r.unit.facet==='context'){reached=true;t.tx.abort();}return value;};}return fn(t);},...args);
+ try{const h=await f.session.prepare(options),first=await f.session.run(h);assert.equal(reached,true);assert.notEqual(first.processedState,'COMMITTED');assert.equal((await acks(f.s)).length,0);assert.deepEqual(await row(f),before);const second=await f.session.run(h);assert.equal(second.processedState,'COMMITTED',JSON.stringify(second));assert.equal(f.calls.length,1);assert.equal((await acks(f.s)).filter(a=>a.unit.key===f.key).length,1);assert.deepEqual(await row(f),before);}finally{f.s.repository.transaction=original;f.session.dispose();}
+});
+for(const refusal of ['context-field','input-field','processing'])test('temporal correction cannot borrow '+refusal+' authorization',async()=>{
+ const f=await editedFixture({card:'now',temporal:temporalCases.expired});if(refusal==='processing')f.state.allowed=false;else f.state.processingHook=scope=>{if(refusal==='context-field')scope.contextItems[0].selectedFields=['body'];else scope.inputs=[];return scope;};try{const r=await f.session.run(await f.session.prepare(options));assert.notEqual(r.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);}finally{f.session.dispose();}
+});
+
+for(const defect of ['input-body','input-excluded','input-state','source-purge','source-missing','source-hidden','source-body','context-body','context-order','context-provenance','context-delete','receipt','restore','legacy-input','placement','revoke'])test('closed Context correction fence rejects '+defect+' after backup generation is staged',async()=>{
+ const f=await editedFixture(),before=await row(f),original=f.s.repository.transaction.bind(f.s.repository);let reached=false;
+ f.s.repository.transaction=(write,fn,...args)=>original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,r,...rest)=>{const value=await put(n,r,...rest);if(!reached&&n==='meta'&&r.id==='backup-data-generation'){reached=true;await alter(f,defect,t);}return value;};}return fn(t);},...args);
+ try{const result=await f.session.run(await f.session.prepare(options));assert.equal(reached,true);assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await acks(f.s)).length,0);assert.deepEqual(await row(f),before);}finally{f.s.repository.transaction=original;f.session.dispose();}
+});
+for(const defect of ['legacy-same-count','membership-added','removal-receipt'])test('closed restored Context fence rejects '+defect+' collection substitution',async()=>{
+ const f=await restoredFixture(),original=f.s.repository.transaction.bind(f.s.repository);
+ if(defect==='legacy-same-count')await original(true,t=>t.put('meta',{id:'memory:profile:'+JSON.stringify(['synthetic-unrelated']),kind:'profile',version:1,profileId:'synthetic-unrelated',name:'SYNTHETIC unrelated profile',budget:'standard',instruction:'',revision:0}));
+ const before=await row(f);let reached=false;
+ f.s.repository.transaction=(write,fn,...args)=>original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,r,...rest)=>{const value=await put(n,r,...rest);if(!reached&&n==='meta'&&r.id==='backup-data-generation'){reached=true;
+  if(defect==='legacy-same-count'){await t.delete('meta','memory:profile:'+JSON.stringify(['synthetic-unrelated']));await alter(f,'legacy-input',t);}
+  if(defect==='membership-added'){const p=(await t.all('placements'))[0];await put('placements',{...p,id:op(),entryId:op(),activeKey:0});}
+  if(defect==='removal-receipt'){const receipt=await t.get('operationReceipts','context:'+f.deletion.operationId);receipt.digest='0'.repeat(64);await put('operationReceipts',receipt);}
+ }return value;};}return fn(t);},...args);
+ try{const result=await f.session.run(await f.session.prepare(options));assert.equal(reached,true);assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await acks(f.s)).length,0);assert.deepEqual(await row(f),before);}finally{f.s.repository.transaction=original;f.session.dispose();}
 });

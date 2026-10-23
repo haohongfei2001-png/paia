@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: temporal Context edit expired reconciles through original protected owner without changing time metadata
+not ok 1 - temporal Context edit expired reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 411.33275
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"PARTIAL","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:db4d19e571bcba7e778ba55a1dcd940fe33b60c969310149ceafc6f171547959","facets":[{"facet":"context","units":1,"state":"FAILED","reason":"CONTEXT_INVALIDATED"}],"deferredUnits":1,"blockedUnits":1,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: temporal Context edit future reconciles through original protected owner without changing time metadata
+not ok 2 - temporal Context edit future reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 256.851667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"PARTIAL","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:3322068eee65b38cf37d30fcf7fe5672767d6ca6eddcd17bccaafa5711a8ef4c","facets":[{"facet":"context","units":1,"state":"FAILED","reason":"CONTEXT_INVALIDATED"}],"deferredUnits":1,"blockedUnits":1,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: temporal Context edit unknown reconciles through original protected owner without changing time metadata
+not ok 3 - temporal Context edit unknown reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 284.009833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"PARTIAL","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:c138ff4ed6bad9b5e41183e03ad80295b221a6821fc759e7823e33fc39b8d104","facets":[{"facet":"context","units":1,"state":"FAILED","reason":"CONTEXT_INVALIDATED"}],"deferredUnits":1,"blockedUnits":1,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: temporal Context restore expired reconciles through original protected owner without changing time metadata
+not ok 4 - temporal Context restore expired reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 275.331792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"PARTIAL","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:f0724d427cab8e73745d41f7f97faf72ad57bff1a0c73616cbc08044c8ded000","facets":[{"facet":"context","units":1,"state":"FAILED","reason":"CONTEXT_INVALIDATED"}],"deferredUnits":1,"blockedUnits":1,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: temporal Context restore future reconciles through original protected owner without changing time metadata
+not ok 5 - temporal Context restore future reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 252.244458
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"PARTIAL","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:5230a3da8928e30793d1e368f31dc79b3a6da516e62769b5a02b01ae7d8a3ad1","facets":[{"facet":"context","units":1,"state":"FAILED","reason":"CONTEXT_INVALIDATED"}],"deferredUnits":1,"blockedUnits":1,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: temporal Context restore unknown reconciles through original protected owner without changing time metadata
+not ok 6 - temporal Context restore unknown reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 275.858083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"PARTIAL","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:f0ae5bc7a49979555d47bef6a39664d5a29948b1729b7daefee3cab49afa4438","facets":[{"facet":"context","units":1,"state":"FAILED","reason":"CONTEXT_INVALIDATED"}],"deferredUnits":1,"blockedUnits":1,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: temporal correction backup rejects deadline and retains the original obligation
+ok 7 - temporal correction backup rejects deadline and retains the original obligation
+  ---
+  duration_ms: 253.075917
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects temporal-scope and retains the original obligation
+ok 8 - temporal correction backup rejects temporal-scope and retains the original obligation
+  ---
+  duration_ms: 264.651916
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects receipt and retains the original obligation
+ok 9 - temporal correction backup rejects receipt and retains the original obligation
+  ---
+  duration_ms: 242.002417
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects source-purge and retains the original obligation
+ok 10 - temporal correction backup rejects source-purge and retains the original obligation
+  ---
+  duration_ms: 235.216333
+  type: 'test'
+  ...
+# Subtest: temporal correction backup rejects revoke and retains the original obligation
+ok 11 - temporal correction backup rejects revoke and retains the original obligation
+  ---
+  duration_ms: 234.857375
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 5
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3136.392334
