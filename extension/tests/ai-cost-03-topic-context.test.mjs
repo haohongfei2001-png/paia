@@ -25,7 +25,7 @@ test('genuine Topic rename executes original Context with exact Topic ACK and no
  assert.equal(r.processedState,'COMMITTED',JSON.stringify(r));assert.equal(f.calls.length,1);assert.equal(f.calls[0].material.structuralTopics[0].name,'SYNTHETIC changed human interpretation');assert.deepEqual(f.scopes.find(s=>s.purpose==='ai-maintenance-payload').structuralTopics[0].selectedFields,['name']);assert.equal(f.calls[0].material.inputs.length,1);assert.deepEqual((await acks(f)).map(x=>[x.unit.key,x.unit.facet]),[[JSON.stringify(['topic',f.topic.id]),'context']]);assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.length,1);assert.deepEqual(await Promise.all(['records','blocks','thoughts','topics','sections','placements'].map(n=>rows(f.s,n))),before);assert.equal((await rows(f.s,'organizerWorkItems')).filter(r=>r.state==='DEFERRED').length,1);f.session.dispose();
 });
 
-import {readTopicContext,topicContextEvidence,TOPIC_CONTEXT_LIMIT} from '../core/ai-usage/topic-context-mapping.js';
+import {readTopicContext,topicContextAllowsTopic,topicContextEvidence,TOPIC_CONTEXT_LIMIT} from '../core/ai-usage/topic-context-mapping.js';
 async function mapped(f){const d=(await rows(f.s,'meta')).find(r=>r.id.startsWith('aiu:delta:pending:')&&r.descriptor?.kind==='topic').descriptor;return f.s.repository.transaction(false,t=>readTopicContext(f.s,t,d));}
 test('genuine Topic owner journal and complete human membership qualify exact name scope',async()=>{const f=await fixture(),m=await mapped(f);assert.ok(m);assert.deepEqual(m.selectedFields,['name']);assert.equal(m.entries.length,1);assert.equal(m.topicId,f.topic.id);f.session.dispose();});
 async function rename(f,name){const row=await read(f.s,'topics',f.topic.id);return f.s.renameTopic({id:row.id,expectedRevision:row.revision,name,operationId:op()});}
@@ -188,4 +188,50 @@ test('Topic selected closure permits genuinely changed original Input facts',asy
 test('Topic grounded active Item retains original Input-only NO_CHANGE subset support',async()=>{
  const f=await fixture(),specs=await evidence(f),owner=new ContextMaintenanceService(f.s,{processingVerifier:f.service.context.processingVerifier}),caller={},base={epoch:specs[0].expectedTopicBinding.epoch,itemId:op(),card:'info',associationIds:[op()]};await owner.maintain(caller,{...base,operationId:op(),expectedRevision:0,body:'SYNTHETIC selected interpretation',section:'Synthetic',evidence:specs});
  const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),plain=structuredClone(specs);for(const e of plain)delete e.humanTopic;const operationId=op(),result=await owner.noChange(caller,{...base,operationId,operation:'NO_CHANGE',expectedRevision:1,evidence:plain});f.session.dispose();assert.equal(result.disposition,'no_change');assert.equal(result.revision,1);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);assert.equal((await read(f.s,'operationReceipts','context-maintenance:'+operationId)).result.disposition,'no_change');
+});
+
+async function restoredTopicFixture(){
+ const f=await fixture(),saved=(await rows(f.s,'revisions')).find(j=>j.kind==='topic'&&j.reason==='rename'&&j.entityId===f.topic.id),operationId=op();
+ await f.s.restoreRevision({id:saved.id,expectedRevision:saved.afterRevision,operationId,side:'before'});
+ return {...f,restorationOperationId:operationId,restoredName:saved.before.name};
+}
+
+test('actual original Topic name restore commits only Context even with Topic rename reconciliation enabled',async()=>{
+ const f=await restoredTopicFixture();
+ try{
+  const current=await read(f.s,'topics',f.topic.id),journal=(await rows(f.s,'revisions')).find(j=>j.operationId===f.restorationOperationId&&j.kind==='topic'),receipt=await read(f.s,'operationReceipts',f.restorationOperationId);
+  assert.equal(current.name,f.restoredName);assert.equal(journal.reason,'restore');assert.deepEqual(journal.fieldMask,['name']);assert.equal(journal.afterRevision,current.revision);assert.deepEqual(receipt.result,{id:f.topic.id,revision:current.revision});assert.ok(await mapped(f));
+  f.service.topic.reconcileHumanNames=true;f.session.dispose();f.session=f.make();const tables=['thoughts','topics','sections','placements','revisions'],before=await Promise.all(tables.map(n=>rows(f.s,n)));
+  const result=await f.session.run(await f.session.prepare(f.options));assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,1);assert.equal(f.calls[0].material.structuralTopics[0].name,current.name);assert.ok(f.calls[0].coverage.every(x=>x.facet==='context'));assert.deepEqual((await acks(f)).map(x=>[x.unit.key,x.unit.facet]),[[JSON.stringify(['topic',f.topic.id]),'context']]);assert.ok((await rows(f.s,'organizerWorkItems')).some(x=>x.state==='DEFERRED'&&x.unit.key===JSON.stringify(['topic',f.topic.id])&&x.unit.facet==='topic'));assert.deepEqual(await Promise.all(tables.map(n=>rows(f.s,n))),before);
+ }finally{f.session.dispose();}
+});
+
+for(const defect of ['name','before-summary','after','base-revision','after-revision','actor','mask','operation','receipt-namespace','receipt-schema','receipt-owner','receipt-result','receipt-digest','receipt-clock','receipt-sequence','protection','identity-token','source'])test('Topic restore rejects '+defect+' before semantic dispatch or ACK',async()=>{
+ const f=await restoredTopicFixture();
+ try{
+  await f.s.repository.transaction(true,async t=>{
+   const topic=await t.get('topics',f.topic.id),j=(await t.all('revisions')).find(j=>j.operationId===f.restorationOperationId&&j.kind==='topic'),receipt=await t.get('operationReceipts',f.restorationOperationId);
+   if(defect==='name')topic.name+=' SYNTHETIC mutation';if(defect==='before-summary')j.before.summary='SYNTHETIC unexplained lost field';if(defect==='after')j.after.name+=' SYNTHETIC mutation';if(defect==='base-revision')j.baseRevision++;if(defect==='after-revision')j.afterRevision++;if(defect==='actor')j.actor='ai';if(defect==='mask')j.fieldMask=['summary'];if(defect==='operation')j.operationId=op();if(defect==='receipt-namespace')receipt.namespace='other';if(defect==='receipt-schema')receipt.schemaVersion=2;if(defect==='receipt-owner')receipt.ownerId=op();if(defect==='receipt-result')receipt.result.revision++;if(defect==='receipt-digest')receipt.digest='unqualified';if(defect==='receipt-clock')receipt.createdAt='invalid';if(defect==='receipt-sequence')receipt.operationSequence=-1;if(defect==='protection')topic.protections.name.operationId=op();if(defect==='identity-token')topic.identity.nameToken='0'.repeat(64);if(defect==='source'){const ix=await t.get('recordIndex',f.entry.sourceRecordIds[0]);await t.put('tombstones',{id:'source:'+ix.sourceKey});}
+   await t.put('topics',topic);await t.put('revisions',j);await t.put('operationReceipts',receipt);
+  });
+  assert.equal(await mapped(f),null);if(defect==='source')await assert.rejects(f.session.prepare(f.options),{code:'STALE_BASE'});else{const result=await f.session.run(await f.session.prepare(f.options));assert.notEqual(result.processedState,'COMMITTED');}assert.equal(f.calls.length,0);assert.equal((await acks(f)).length,0);
+ }finally{f.session.dispose();}
+});
+for(const boundary of ['grant-denied','wrong-fields','expired','revoke-after-dispatch','new-name-after-dispatch','ack-abort'])test('Topic restore '+boundary+' preserves original qualification and rollback',async()=>{
+ const f=await restoredTopicFixture(),tx=f.s.repository.transaction.bind(f.s.repository);let hit=false;
+ try{
+  if(boundary==='grant-denied')f.state.payloadAllowed=false;
+  if(boundary==='wrong-fields')f.state.processingHook=scope=>{scope.structuralTopics[0].selectedFields=['summary'];return scope;};
+  if(boundary==='expired'){const resolve=f.processing.resolve;f.processing.resolve=async(...args)=>({...await resolve(...args),expiresAt:Date.now()-1});f.session.dispose();f.session=f.make();}
+  if(boundary==='revoke-after-dispatch')f.state.providerHook=()=>f.abort.abort();
+  if(boundary==='new-name-after-dispatch')f.state.providerHook=()=>rename(f,'SYNTHETIC newer explicit name');
+  if(boundary==='ack-abort')f.s.repository.transaction=(write,fn,...rest)=>tx(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,row,...more)=>{const result=await put(n,row,...more);if(!hit&&n==='organizerWorkItems'&&row.state==='ACKNOWLEDGED'&&row.unit.facet==='context'){hit=true;throw Error('Synthetic Topic restore ACK abort');}return result;};}return fn(t);},...rest);
+  if(boundary==='expired'){await assert.rejects(f.session.prepare(f.options),{code:'UNAVAILABLE'});assert.equal(f.calls.length,0);assert.equal((await acks(f)).length,0);return;}
+  const h=await f.session.prepare(f.options),result=await f.session.run(h);assert.notEqual(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal((await acks(f)).length,0);assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW))?.items.length??0,0);assert.equal((await rows(f.s,'operationReceipts')).filter(r=>r.id.startsWith('context-maintenance:')).length,0);
+  assert.equal(f.calls.length,['grant-denied','wrong-fields'].includes(boundary)?0:1);
+  if(boundary==='ack-abort'){assert.equal(hit,true);assert.equal((await f.session.run(h)).processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await acks(f)).length,1);}
+ }finally{f.s.repository.transaction=tx;f.session.dispose();}
+});
+test('only original Topic rename mapping has the separate reconciliation brand',async()=>{
+ const f=await fixture(),restored=await restoredTopicFixture();try{const mapping=await mapped(f);assert.equal(topicContextAllowsTopic(mapping),true);assert.equal(topicContextAllowsTopic({...mapping}),false);assert.equal(topicContextAllowsTopic(await mapped(restored)),false);}finally{f.session.dispose();restored.session.dispose();}
 });
