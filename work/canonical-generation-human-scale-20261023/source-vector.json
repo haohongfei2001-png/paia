@@ -1,0 +1,20 @@
+{
+  "baseline": "b6bfe7bb",
+  "deliveredActiveBaseline": "0b6d7c74",
+  "node": "22.23.3",
+  "files": {
+    "extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js": "b1b1637c67c0fff4a5bbcae3fb51eeadca44545e5151aaf5c821e3d6b2203a43",
+    "extension/core/browser-native-sync/canonical-generation-phased-human.js": "839828e1e09a9f0566b6d92419131b72efe118fe68027aa93910ee680d438bdf",
+    "extension/core/browser-native-sync/canonical-generation-publication.js": "21a9d43237c8153d98570e8e2e6a182b3da0b2c5c6563fd269cadc24be036146",
+    "extension/core/browser-native-sync/canonical-generation-repository-gate.js": "57dc20277ffbc136a70767fea3e53f48387fb02523a467d12eb2dcff4c2c43d8",
+    "extension/core/browser-native-sync/canonical-generation-task-ledger.js": "7e767258bb92be6f28bd58758f6953064de0753bda53b5fb7c101d30ddeca2c6",
+    "extension/core/browser-native-sync/checkpoints.js": "2c74423a0ddea718f90debd997e25e00cd4172b3abfd8014014e4e511e3c41b1",
+    "extension/core/browser-native-sync/group-checkpoint.js": "5a63df1ecdb2be635f565943383e37b65b7e13ef72caff8b900c4d7c757d1b28",
+    "extension/core/browser-native-sync/human-library-group.js": "98540412f409d62cb0bc95cde4d2dd2a583fad32c71e759b23ee075c97148ef3",
+    "extension/core/browser-native-sync/human-library-journal.js": "80d144d29186f433fd278da46377f14e6c24536cb34c7f6ae313a3bc0b3b1a2e",
+    "extension/core/browser-native-sync/human-library-plan.js": "ac6902e0827417119b0de18ed34fecbedcac6409d338683c4c4bfbf772f03aa5",
+    "extension/core/idb-repository.js": "759765671a8855b4d7ea061e299c7d8837b502173cf376180cf0b45662072ae1",
+    "extension/tests/canonical-generation-phased-stage.test.mjs": "498d8cedfc53923154ae1817d0a2eedb28943724c61f8e3a9c8d0c861ca646a2",
+    "extension/tests/repository-committed-work.test.mjs": "221745e1fa0a184c5da9a421988844a2677983944040329d16e40690d8f22d8f"
+  }
+}

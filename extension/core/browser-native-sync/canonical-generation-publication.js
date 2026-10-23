@@ -1,3 +1,4 @@
+import * as phasedHuman from './canonical-generation-phased-human.js';
 import {requireOriginalLibraryDocumentsStore} from '../library-documents-owner.js';
 import {prepareOriginalCopyRetirement,retireOriginalCheckpointCopies} from './canonical-generation-copy-retirement.js';
 import {CANONICAL_REPOSITORY_PROTECTION,originalGenerationProtection} from './canonical-generation-repository-gate.js';
@@ -91,20 +92,22 @@ export class CanonicalGenerationPublication {
  sourceBaseSnapshot(token){const b=bases.get(token);if(!b||b.owner!==this)fail('GENERATION_CAPABILITY');return copy(b.snapshot);}
  async sealOriginalCheckpoint(handle,restore,proof){return this.#sealCheckpoint(handle,restore,proof,false);}
  async sealOriginalHumanCheckpoint(handle,restore,proof){return this.#sealCheckpoint(handle,restore,proof,true);}
+ async sealOriginalPhasedHumanCheckpoint(handle,restore,proof){return this.#sealCheckpoint(handle,restore,proof,'phased');}
  async #sealCheckpoint(handle,restore,proof,human){
-  const held=this.#held(handle),validate=human?requireOriginalHumanGenerationActivation:originalCheckpoint.requireOriginalCanonicalGenerationActivation;if(typeof validate!=='function')fail('GENERATION_COORDINATOR_UNAVAILABLE');
-  const packet=checkpointStage.readCanonicalCheckpointProof(proof,{store:restore?.store,core:restore?.live});
+  const held=this.#held(handle),validate=human==='phased'?phasedHuman.requireOriginalPhasedHumanGenerationActivation:human?requireOriginalHumanGenerationActivation:originalCheckpoint.requireOriginalCanonicalGenerationActivation;if(typeof validate!=='function')fail('GENERATION_COORDINATOR_UNAVAILABLE');
+  const packet=human==='phased'?phasedHuman.readOriginalPhasedHumanPublication(restore,proof):checkpointStage.readCanonicalCheckpointProof(proof,{store:restore?.store,core:restore?.live});
+  if(human==='phased'&&packet.store.repository!==held.repository)fail('GENERATION_COLLISION');
   // A source revision proves freshness, not inheritance of purge negatives or
   // existing canonical data. Replacement needs a separate migration owner.
   if(packet.sourceBase.root.active!==null)fail('GENERATION_EXISTING_SOURCE_OWNER_REQUIRED');
   const base=await this.captureSourceBase(packet.sourceBase);
   if(!equal(packet.generationIdentity,held.identity))fail('GENERATION_COLLISION');
   const selected=sealData({sealId:crypto.randomUUID(),manifestId:packet.manifestRef.id,graphDigest:packet.graphDigest});
-  let validationError;const gate=await publicationTransaction(held.repository,async t=>{registerRepositoryWorkLimit(held.repository,t);const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(before.phase!=='staging')fail('GENERATION_NOT_STAGING');
-   const qualification={id:qualifiedGraph,version:1,kind:human?'original-human':'original-group',identity:held.identity,seal:selected,sourceBase:packet.sourceBase};if(await t.get('meta',qualifiedGraph))fail('GENERATION_CHANGED');await t.put('meta',qualification);
+  let validationError;const gate=await publicationTransaction(held.repository,async t=>{registerRepositoryWorkLimit(held.repository,t,human==='phased'?phasedHuman.originalPhasedHumanPublicationWork(restore,proof):undefined);const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(before.phase!=='staging')fail('GENERATION_NOT_STAGING');
+   const qualification={id:qualifiedGraph,version:1,kind:human==='phased'?'original-phased-human':human?'original-human':'original-group',identity:held.identity,seal:selected,sourceBase:packet.sourceBase};if(await t.get('meta',qualifiedGraph))fail('GENERATION_CHANGED');await t.put('meta',qualification);
    let actual;try{actual=await validate(restore,proof,t);}catch(error){if(error instanceof SyncError)validationError=error;throw error;}if(!equal(actual,{manifestId:selected.manifestId,graphDigest:selected.graphDigest,generationIdentity:held.identity}))fail('GENERATION_CHANGED');
    const after={...before,phase:'sealed',seal:selected};await t.put('meta',after);sealPoint(held.repository,t,after.id,after);sealPoint(held.repository,t,qualifiedGraph,qualification);return after;
-  },held.repository.stores,'publication-seal').catch(error=>{throw validationError??error;});const token=Object.freeze(Object.create(null));seals.set(token,{owner:this,handle,gate,base:this.sourceBaseSnapshot(base)});return token;
+  },held.repository.stores,human==='phased'?'publication-phased-human-seal':'publication-seal').catch(error=>{throw validationError??error;});if(human==='phased')phasedHuman.completeOriginalPhasedHumanPublication(restore,proof);const token=Object.freeze(Object.create(null));seals.set(token,{owner:this,handle,gate,base:this.sourceBaseSnapshot(base)});return token;
  }
  async stagingWrite(handle,fn,authority=null,stores=undefined){return this.#writeGeneration(handle,'staging',fn,authority,stores);}
  async activeWrite(handle,fn){return this.#writeGeneration(handle,'active',fn);}
@@ -180,7 +183,7 @@ export class CanonicalGenerationPublication {
    if(root.pending||!root.active||!equal(root.active.identity,held.identity))fail('GENERATION_NOT_ACTIVE');
    const selected=await originalGenerationRepositoryRead(held.repository,async t=>({gate:await t.get('meta',CANONICAL_GENERATION_GATE),marker:await t.get('meta',CANONICAL_REPOSITORY_PROTECTION),qualification:await t.get('meta',qualifiedGraph)}),['meta']);chargeGroupPageValue(budget,selected);
    const gate=this.#gate(selected.gate,held.identity),q=data(selected.qualification,['id','version','kind','identity','seal','sourceBase']);originalGenerationProtection(selected.marker,gate,held.repository.name);
-   if(gate.phase!=='active'||gate.publicationId!==root.active.publicationId||!equal(gate.seal,root.active.receipt.seal)||q.id!==qualifiedGraph||q.version!==1||!['original-human','original-group'].includes(q.kind)||!equal(q.identity,held.identity)||!equal(q.seal,gate.seal))fail('GENERATION_GRAPH_QUALIFICATION_REQUIRED');
+   if(gate.phase!=='active'||gate.publicationId!==root.active.publicationId||!equal(gate.seal,root.active.receipt.seal)||q.id!==qualifiedGraph||q.version!==1||!['original-human','original-group','original-phased-human'].includes(q.kind)||!equal(q.identity,held.identity)||!equal(q.seal,gate.seal))fail('GENERATION_GRAPH_QUALIFICATION_REQUIRED');
    const last=await originalGenerationRepositoryRead(this.#registry,rootRead,['meta']);chargeGroupPageValue(budget,last);checkGroupPageBudget(budget);if(!equal(last,root))fail('GENERATION_CHANGED');
    const token=Object.freeze(Object.create(null));repositoryAuthorities.set(token,{repository:held.repository,name:held.repository.name,factory:held.repository.factory,scope:null,authority:Object.freeze({kind:'active-library',identity:held.identity,gate:copy(gate),marker:copy(selected.marker),qualification:copy(q)})});return token;
   };

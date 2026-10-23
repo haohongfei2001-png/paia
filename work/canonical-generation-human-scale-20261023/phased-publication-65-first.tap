@@ -1,0 +1,28 @@
+TAP version 13
+# {"publicationGroups":65,"prepared":{"state":"prepared","manifestId":"99ee560b86d50365854c7627d2f97a668686078595f3d3052cd0b7ab8d8f8a9e","graphDigest":"d606fd2a542adae50de113cb14cfdfd3735b4f0744528982eb55abfd3a620e48","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"prepaidBytes":2097152,"prepaidMs":30000}}
+# Subtest: fixed phased publication closes 65 original Human groups atomically
+not ok 1 - fixed phased publication closes 65 original Human groups atomically
+  ---
+  duration_ms: 7803.694916
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:27:27'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:493:955)
+    async publicationTransaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-publication.js:21:197)
+    async #sealCheckpoint (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-publication.js:99:34)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:27:506)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8064.91725

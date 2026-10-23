@@ -1,0 +1,61 @@
+TAP version 13
+# {"count":1,"items":7,"phase":"authenticated","workBytes":110269,"activeMs":7,"tickets":1}
+# Subtest: explicit phased authentication of 1 original Human creates keeps canonical target invisible
+ok 1 - explicit phased authentication of 1 original Human creates keeps canonical target invisible
+  ---
+  duration_ms: 113.058584
+  type: 'test'
+  ...
+# {"count":65,"items":391,"phase":"authenticated","workBytes":3409867,"activeMs":107,"tickets":13}
+# Subtest: explicit phased authentication of 65 original Human creates keeps canonical target invisible
+ok 2 - explicit phased authentication of 65 original Human creates keeps canonical target invisible
+  ---
+  duration_ms: 940.2615
+  type: 'test'
+  ...
+# {"count":129,"items":775,"phase":"authenticated","workBytes":6713494,"activeMs":222,"tickets":25}
+# Subtest: explicit phased authentication of 129 original Human creates keeps canonical target invisible
+ok 3 - explicit phased authentication of 129 original Human creates keeps canonical target invisible
+  ---
+  duration_ms: 1522.612834
+  type: 'test'
+  ...
+# Subtest: committed page followed by lost response burns original reservation on fresh explicit continuation
+ok 4 - committed page followed by lost response burns original reservation on fresh explicit continuation
+  ---
+  duration_ms: 215.108958
+  type: 'test'
+  ...
+# Subtest: old checkpoint invocation cannot silently enter or reset a phased task
+ok 5 - old checkpoint invocation cannot silently enter or reset a phased task
+  ---
+  duration_ms: 64.085458
+  type: 'test'
+  ...
+# Subtest: transport fault leaves a durable reservation without synthetic refund
+ok 6 - transport fault leaves a durable reservation without synthetic refund
+  ---
+  duration_ms: 50.354292
+  type: 'test'
+  ...
+# Subtest: ledger cannot double refund, reset spent work or accept unknown shape
+ok 7 - ledger cannot double refund, reset spent work or accept unknown shape
+  ---
+  duration_ms: 0.15025
+  type: 'test'
+  ...
+# Subtest: ledger hard task ceilings survive repeated conservative cold burns
+ok 8 - ledger hard task ceilings survive repeated conservative cold burns
+  ---
+  duration_ms: 0.075625
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3078.68225

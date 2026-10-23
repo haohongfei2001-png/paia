@@ -1,3 +1,4 @@
+import {originalPhasedHumanReadWork,settleOriginalPhasedHumanReadWork} from './browser-native-sync/canonical-generation-phased-human.js';
 import {prepareOriginalActiveRepositoryWrite,releaseOriginalActiveRepositoryWrite} from './browser-native-sync/canonical-generation-publication.js';
 import {CANONICAL_REPOSITORY_PROTECTION,CANONICAL_REPOSITORY_GATE,readOriginalGenerationRepositoryAuthority,originalGenerationRepositoryAdmission,originalGenerationRepositoryMutation,originalGenerationRepositorySettlement} from './browser-native-sync/canonical-generation-repository-gate.js';
 import {measureSourceWorkingPhysicalTree} from './browser-native-sync/source-working-physical.js';
@@ -106,9 +107,10 @@ function workCharge(scope,refs=0,value,hasValue=false){
 function workResult(scope,value){workCharge(scope,0,value,true);return value;}
 function workRow(scope,value){workCharge(scope,1,value,true);return value;}
 function finiteWorkQuery(scope,limit){if(repositoryScopes.get(scope)?.workLimit&&(!Number.isSafeInteger(limit)||limit<1||limit>100))workRefuse(repositoryScopes.get(scope));}
-export function registerRepositoryWorkLimit(repository,scope,{references=4096,bytes=2*1024*1024,ms=30000}={}){
+export function registerRepositoryWorkLimit(repository,scope,limits){return registerOriginalWorkLimit(repository,scope,limits,false);}
+function registerOriginalWorkLimit(repository,scope,{references=4096,bytes=2*1024*1024,ms=30000}={},readonly=false){
  const record=scopeRecord(repository,scope);requireRepositoryTransactionDataMethods(repository,scope);
- if(record.phase!=='callback'||record.identity.mode!=='readwrite'||record.terminalFailed||!Number.isSafeInteger(references)||references<1||references>4096||!Number.isSafeInteger(bytes)||bytes<1||bytes>2*1024*1024||!Number.isFinite(ms)||ms<=0||ms>30000)workRefuse(record);
+ if(record.phase!=='callback'||record.identity.mode!==(readonly?'readonly':'readwrite')||record.terminalFailed||!Number.isSafeInteger(references)||references<1||references>4096||!Number.isSafeInteger(bytes)||bytes<1||bytes>2*1024*1024||!Number.isFinite(ms)||ms<=0||ms>30000)workRefuse(record);
  // Re-registration may tighten limits but never reset consumption or the clock.
  if(record.workLimit){const b=record.workLimit;b.references=Math.min(b.references,references);b.byteLimit=Math.min(b.byteLimit,bytes);b.ms=Math.min(b.ms,ms);}
  else record.workLimit={started:workClock(),references,byteLimit:bytes,ms,refs:0,bytes:0};workCheck(record);
@@ -263,6 +265,15 @@ export function requireRepositoryTransactionSucceeded(repository,scope){
  const r=scopeRecord(repository,scope);
  if(r.nativeOutcome!=='completed'||!r.originalSuccess||!r.unwound||r.identity.nativeTransaction&&r.trustedNativeOutcome!=='completed')throw new ArchiveError('STALE_BASE');
  return true;
+}
+// Read-only accounting after the original callback, all finalizers, terminal
+// fences and native completion have succeeded. A receipt lends no transaction
+// authority and cannot restart or relax the original private work limit.
+export function readOriginalCommittedTransactionWork(repository,scope){
+ requireRepositoryTransactionSucceeded(repository,scope);
+ const r=scopeRecord(repository,scope);
+ if(!r.committedWork)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
+ return r.committedWork;
 }
 export function requireRepositoryTransactionCommitted(repository,scope){
  const r=scopeRecord(repository,scope);
@@ -489,7 +500,7 @@ export class ArchiveRepository {
   });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{if(write)await beginShadowWrite(this,scope,record,shadowAuthority);const result=await fn(scope);if(write)await finishShadowWrite(this,scope,record);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
+  try{if(write)await beginShadowWrite(this,scope,record,shadowAuthority);else{const limits=originalPhasedHumanReadWork(this,scope);if(limits)registerOriginalWorkLimit(this,scope,limits,true);}const result=await fn(scope);if(write)await finishShadowWrite(this,scope,record);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{if(record.originalSuccess&&record.workLimit&&!record.workLimit.failed)record.committedWork=Object.freeze({references:record.workLimit.refs,bytes:record.workLimit.bytes,activeMs:Math.max(0,workClock()-record.workLimit.started)});clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();if(!write)settleOriginalPhasedHumanReadWork(this,scope);}
   }finally{if(activeToken)releaseOriginalActiveRepositoryWrite(activeToken);if(write)writeState.active--;}
  }
  async initialize(){

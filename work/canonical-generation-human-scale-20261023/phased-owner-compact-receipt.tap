@@ -1,0 +1,35 @@
+TAP version 13
+# {"ownerGroups":65,"state":"applied","completed":65,"total":65,"workBytes":15419105,"activeMs":2144,"publicationQualified":false}
+# Subtest: phased original owner consumes 65 source-free Human groups within durable task budget
+ok 1 - phased original owner consumes 65 source-free Human groups within durable task budget
+  ---
+  duration_ms: 3404.680125
+  type: 'test'
+  ...
+# {"ownerGroups":129,"last":{"state":"applying","completed":29,"total":129,"workBytes":16701058,"activeMs":1634,"publicationQualified":false},"error":"BNS_GROUP_RESOURCE_LIMIT","message":"BNS_GROUP_RESOURCE_LIMIT","stack":"Error: BNS_GROUP_RESOURCE_LIMIT\\n    at ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:491:836)\\n    at async tx (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:25:215)\\n    at async CanonicalGenerationPhasedHumanRestore.step (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:42:16)\\n    at async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:25:389)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+# Subtest: phased original owner consumes 129 source-free Human groups within durable task budget
+not ok 2 - phased original owner consumes 129 source-free Human groups within durable task budget
+  ---
+  duration_ms: 3303.616042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:25:31'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:491:836)
+    async tx (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:25:215)
+    async CanonicalGenerationPhasedHumanRestore.step (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:42:16)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:25:389)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6915.062167

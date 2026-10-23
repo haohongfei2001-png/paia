@@ -1,0 +1,134 @@
+diff --git a/extension/core/browser-native-sync/canonical-generation-publication.js b/extension/core/browser-native-sync/canonical-generation-publication.js
+index 1f9b4b1b..558c3da2 100644
+--- a/extension/core/browser-native-sync/canonical-generation-publication.js
++++ b/extension/core/browser-native-sync/canonical-generation-publication.js
+@@ -1,3 +1,4 @@
++import * as phasedHuman from './canonical-generation-phased-human.js';
+ import {requireOriginalHumanGenerationActivation} from './canonical-generation-human-restore.js';
+ import * as originalCheckpoint from './group-checkpoint.js';
+ import * as checkpointStage from './canonical-generation-checkpoint-stage.js';
+@@ -84,20 +85,22 @@ export class CanonicalGenerationPublication {
+  sourceBaseSnapshot(token){const b=bases.get(token);if(!b||b.owner!==this)fail('GENERATION_CAPABILITY');return copy(b.snapshot);}
+  async sealOriginalCheckpoint(handle,restore,proof){return this.#sealCheckpoint(handle,restore,proof,false);}
+  async sealOriginalHumanCheckpoint(handle,restore,proof){return this.#sealCheckpoint(handle,restore,proof,true);}
++ async sealOriginalPhasedHumanCheckpoint(handle,restore,proof){return this.#sealCheckpoint(handle,restore,proof,'phased');}
+  async #sealCheckpoint(handle,restore,proof,human){
+-  const held=this.#held(handle),validate=human?requireOriginalHumanGenerationActivation:originalCheckpoint.requireOriginalCanonicalGenerationActivation;if(typeof validate!=='function')fail('GENERATION_COORDINATOR_UNAVAILABLE');
+-  const packet=checkpointStage.readCanonicalCheckpointProof(proof,{store:restore?.store,core:restore?.live});
++  const held=this.#held(handle),validate=human==='phased'?phasedHuman.requireOriginalPhasedHumanGenerationActivation:human?requireOriginalHumanGenerationActivation:originalCheckpoint.requireOriginalCanonicalGenerationActivation;if(typeof validate!=='function')fail('GENERATION_COORDINATOR_UNAVAILABLE');
++  const packet=human==='phased'?phasedHuman.readOriginalPhasedHumanPublication(restore,proof):checkpointStage.readCanonicalCheckpointProof(proof,{store:restore?.store,core:restore?.live});
++  if(human==='phased'&&packet.store.repository!==held.repository)fail('GENERATION_COLLISION');
+   // A source revision proves freshness, not inheritance of purge negatives or
+   // existing canonical data. Replacement needs a separate migration owner.
+   if(packet.sourceBase.root.active!==null)fail('GENERATION_EXISTING_SOURCE_OWNER_REQUIRED');
+   const base=await this.captureSourceBase(packet.sourceBase);
+   if(!equal(packet.generationIdentity,held.identity))fail('GENERATION_COLLISION');
+   const selected=sealData({sealId:crypto.randomUUID(),manifestId:packet.manifestRef.id,graphDigest:packet.graphDigest});
+-  let validationError;const gate=await publicationTransaction(held.repository,async t=>{registerRepositoryWorkLimit(held.repository,t);const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(before.phase!=='staging')fail('GENERATION_NOT_STAGING');
+-   const qualification={id:qualifiedGraph,version:1,kind:human?'original-human':'original-group',identity:held.identity,seal:selected,sourceBase:packet.sourceBase};if(await t.get('meta',qualifiedGraph))fail('GENERATION_CHANGED');await t.put('meta',qualification);
++  let validationError;const gate=await publicationTransaction(held.repository,async t=>{registerRepositoryWorkLimit(held.repository,t,human==='phased'?phasedHuman.originalPhasedHumanPublicationWork(restore,proof):undefined);const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(before.phase!=='staging')fail('GENERATION_NOT_STAGING');
++   const qualification={id:qualifiedGraph,version:1,kind:human==='phased'?'original-phased-human':human?'original-human':'original-group',identity:held.identity,seal:selected,sourceBase:packet.sourceBase};if(await t.get('meta',qualifiedGraph))fail('GENERATION_CHANGED');await t.put('meta',qualification);
+    let actual;try{actual=await validate(restore,proof,t);}catch(error){if(error instanceof SyncError)validationError=error;throw error;}if(!equal(actual,{manifestId:selected.manifestId,graphDigest:selected.graphDigest,generationIdentity:held.identity}))fail('GENERATION_CHANGED');
+    const after={...before,phase:'sealed',seal:selected};await t.put('meta',after);sealPoint(held.repository,t,after.id,after);sealPoint(held.repository,t,qualifiedGraph,qualification);return after;
+-  },held.repository.stores,'publication-seal').catch(error=>{throw validationError??error;});const token=Object.freeze(Object.create(null));seals.set(token,{owner:this,handle,gate,base:this.sourceBaseSnapshot(base)});return token;
++  },held.repository.stores,human==='phased'?'publication-phased-human-seal':'publication-seal').catch(error=>{throw validationError??error;});const token=Object.freeze(Object.create(null));seals.set(token,{owner:this,handle,gate,base:this.sourceBaseSnapshot(base)});return token;
+  }
+  async stagingWrite(handle,fn,authority=null,stores=undefined){return this.#writeGeneration(handle,'staging',fn,authority,stores);}
+  async activeWrite(handle,fn){return this.#writeGeneration(handle,'active',fn);}
+diff --git a/extension/core/browser-native-sync/canonical-generation-repository-gate.js b/extension/core/browser-native-sync/canonical-generation-repository-gate.js
+index 735bd3f0..a947df1d 100644
+--- a/extension/core/browser-native-sync/canonical-generation-repository-gate.js
++++ b/extension/core/browser-native-sync/canonical-generation-repository-gate.js
+@@ -1,5 +1,6 @@
+ import * as stage from './canonical-generation-checkpoint-stage.js';
+ import * as human from './canonical-generation-human-restore.js';
++import * as phasedHuman from './canonical-generation-phased-human.js';
+ import * as group from './group-checkpoint.js';
+ import * as publication from './canonical-generation-publication.js';
+ import {ArchiveError} from '../constants.js';
+@@ -11,7 +12,7 @@ export const CANONICAL_REPOSITORY_GATE='canonical-generation:gate:v1';
+ const fail=()=>{throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');};
+ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+ export function readOriginalGenerationRepositoryAuthority(token,repository,scope){
+- for(const [module,name]of [[stage,'readOriginalCheckpointRepositoryAuthority'],[human,'readOriginalHumanRepositoryAuthority'],[group,'readOriginalGroupGenerationRepositoryAuthority'],[publication,'readOriginalPublicationRepositoryAuthority']]){
++ for(const [module,name]of [[stage,'readOriginalCheckpointRepositoryAuthority'],[human,'readOriginalHumanRepositoryAuthority'],[phasedHuman,'readOriginalPhasedHumanRepositoryAuthority'],[group,'readOriginalGroupGenerationRepositoryAuthority'],[publication,'readOriginalPublicationRepositoryAuthority']]){
+   const read=module[name];if(typeof read!=='function')continue;const value=read(token,repository,scope);if(value!==null)return value;
+  }
+  return null;
+@@ -22,24 +23,24 @@ export function originalGenerationProtection(marker,gate,databaseName){
+ }
+ export function originalGenerationRepositoryAdmission(authority,marker,gate,databaseName){
+  if(!authority)fail();if(marker!=null)originalGenerationProtection(marker,gate,databaseName);else if(authority.kind!=='checkpoint-install'||!gate||gate.identity?.databaseName!==databaseName||gate.phase!=='staging')fail();
+- if(['checkpoint','checkpoint-install','human','group-stage','group-apply'].includes(authority.kind)&&gate.phase!=='staging')fail();
+- if(!['checkpoint','checkpoint-install','human','group-stage','group-apply','publication','publication-seal'].includes(authority.kind))fail();
++ if(['checkpoint','checkpoint-install','human','human-phased','group-stage','group-apply'].includes(authority.kind)&&gate.phase!=='staging')fail();
++ if(!['checkpoint','checkpoint-install','human','human-phased','group-stage','group-apply','publication','publication-seal','publication-phased-human-seal'].includes(authority.kind))fail();
+  if(authority.identity&&!same(authority.identity,gate.identity))fail();return true;
+ }
+ export function originalGenerationRepositoryMutation(authority,table,key,method){
+  if(!authority)fail();if(method==='clear')fail();
+  if(table==='meta'&&key===CANONICAL_REPOSITORY_PROTECTION){if(authority.kind!=='checkpoint-install'||method!=='put')fail();return;}
+- if(['human','group-apply'].includes(authority.kind)){if(table==='meta'&&key===CANONICAL_REPOSITORY_GATE)fail();return;}
++ if(['human','human-phased','group-apply'].includes(authority.kind)){if(table==='meta'&&key===CANONICAL_REPOSITORY_GATE)fail();return;}
+  if(table!=='meta')fail();
+  if(authority.kind==='group-stage'){if(typeof key!=='string'||!key.startsWith(authority.prefix))fail();return;}
+- if(['publication','publication-seal'].includes(authority.kind)){if(method!=='put'||key!==CANONICAL_REPOSITORY_GATE&&!(authority.kind==='publication-seal'&&key==='canonical-generation:qualified-graph:v1'))fail();return;}
++ if(['publication','publication-seal','publication-phased-human-seal'].includes(authority.kind)){if(method!=='put'||key!==CANONICAL_REPOSITORY_GATE&&!(['publication-seal','publication-phased-human-seal'].includes(authority.kind)&&key==='canonical-generation:qualified-graph:v1'||authority.kind==='publication-phased-human-seal'&&key==='canonical-generation:checkpoint:phased-task:v1'))fail();return;}
+  if(key===CANONICAL_REPOSITORY_GATE){if(method!=='put')fail();return;}
+  if(typeof key!=='string'||!key.startsWith('canonical-generation:checkpoint:'))fail();
+ }
+ export function originalGenerationRepositorySettlement(authority,marker,before,after,databaseName){
+  originalGenerationProtection(marker,after,databaseName);
+  if(!same(before.identity,after.identity)||before.registryName!==after.registryName)fail();
+- if(['human','group-stage','group-apply'].includes(authority.kind)&&!same(before,after))fail();
++ if(['human','human-phased','group-stage','group-apply'].includes(authority.kind)&&!same(before,after))fail();
+  if(['checkpoint','checkpoint-install'].includes(authority.kind)&&!same({...before,writeRevision:before.writeRevision+1},after))fail();
+  return true;
+ }
+diff --git a/extension/core/idb-repository.js b/extension/core/idb-repository.js
+index d25c7ed2..b76a5880 100644
+--- a/extension/core/idb-repository.js
++++ b/extension/core/idb-repository.js
+@@ -1,3 +1,4 @@
++import {originalPhasedHumanReadWork,settleOriginalPhasedHumanReadWork} from './browser-native-sync/canonical-generation-phased-human.js';
+ import {CANONICAL_REPOSITORY_PROTECTION,CANONICAL_REPOSITORY_GATE,readOriginalGenerationRepositoryAuthority,originalGenerationRepositoryAdmission,originalGenerationRepositoryMutation,originalGenerationRepositorySettlement} from './browser-native-sync/canonical-generation-repository-gate.js';
+ import {measureSourceWorkingPhysicalTree} from './browser-native-sync/source-working-physical.js';
+ import {sampleOriginalOrganizeMaterialFinalFacts,requireOriginalOrganizeMaterialFinalFacts} from '../background/organize-processing-policy.js';
+@@ -105,9 +106,10 @@ function workCharge(scope,refs=0,value,hasValue=false){
+ function workResult(scope,value){workCharge(scope,0,value,true);return value;}
+ function workRow(scope,value){workCharge(scope,1,value,true);return value;}
+ function finiteWorkQuery(scope,limit){if(repositoryScopes.get(scope)?.workLimit&&(!Number.isSafeInteger(limit)||limit<1||limit>100))workRefuse(repositoryScopes.get(scope));}
+-export function registerRepositoryWorkLimit(repository,scope,{references=4096,bytes=2*1024*1024,ms=30000}={}){
++export function registerRepositoryWorkLimit(repository,scope,limits){return registerOriginalWorkLimit(repository,scope,limits,false);}
++function registerOriginalWorkLimit(repository,scope,{references=4096,bytes=2*1024*1024,ms=30000}={},readonly=false){
+  const record=scopeRecord(repository,scope);requireRepositoryTransactionDataMethods(repository,scope);
+- if(record.phase!=='callback'||record.identity.mode!=='readwrite'||record.terminalFailed||!Number.isSafeInteger(references)||references<1||references>4096||!Number.isSafeInteger(bytes)||bytes<1||bytes>2*1024*1024||!Number.isFinite(ms)||ms<=0||ms>30000)workRefuse(record);
++ if(record.phase!=='callback'||record.identity.mode!==(readonly?'readonly':'readwrite')||record.terminalFailed||!Number.isSafeInteger(references)||references<1||references>4096||!Number.isSafeInteger(bytes)||bytes<1||bytes>2*1024*1024||!Number.isFinite(ms)||ms<=0||ms>30000)workRefuse(record);
+  // Re-registration may tighten limits but never reset consumption or the clock.
+  if(record.workLimit){const b=record.workLimit;b.references=Math.min(b.references,references);b.byteLimit=Math.min(b.byteLimit,bytes);b.ms=Math.min(b.ms,ms);}
+  else record.workLimit={started:workClock(),references,byteLimit:bytes,ms,refs:0,bytes:0};workCheck(record);
+@@ -255,6 +257,15 @@ export function requireRepositoryTransactionSucceeded(repository,scope){
+  if(r.nativeOutcome!=='completed'||!r.originalSuccess||!r.unwound||r.identity.nativeTransaction&&r.trustedNativeOutcome!=='completed')throw new ArchiveError('STALE_BASE');
+  return true;
+ }
++// Read-only accounting after the original callback, all finalizers, terminal
++// fences and native completion have succeeded. A receipt lends no transaction
++// authority and cannot restart or relax the original private work limit.
++export function readOriginalCommittedTransactionWork(repository,scope){
++ requireRepositoryTransactionSucceeded(repository,scope);
++ const r=scopeRecord(repository,scope);
++ if(!r.committedWork)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
++ return r.committedWork;
++}
+ export function requireRepositoryTransactionCommitted(repository,scope){
+  const r=scopeRecord(repository,scope);
+  // Settlement also includes abort. Only the original successful transaction
+@@ -479,7 +490,7 @@ export class ArchiveRepository {
+   });
+   // The rejection is observed immediately even when the operation also rejects.
+   done.catch(()=>{});
+-  try{if(write)await beginShadowWrite(this,scope,record,shadowAuthority);const result=await fn(scope);if(write)await finishShadowWrite(this,scope,record);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
++  try{if(write)await beginShadowWrite(this,scope,record,shadowAuthority);else{const limits=originalPhasedHumanReadWork(this,scope);if(limits)registerOriginalWorkLimit(this,scope,limits,true);}const result=await fn(scope);if(write)await finishShadowWrite(this,scope,record);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{if(record.originalSuccess&&record.workLimit&&!record.workLimit.failed)record.committedWork=Object.freeze({references:record.workLimit.refs,bytes:record.workLimit.bytes,activeMs:Math.max(0,workClock()-record.workLimit.started)});clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();if(!write)settleOriginalPhasedHumanReadWork(this,scope);}
+   }finally{if(write)writeState.active--;}
+  }
+  async initialize(){

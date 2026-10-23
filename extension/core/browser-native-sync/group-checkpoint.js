@@ -139,6 +139,12 @@ export async function validateGroupedCheckpointGraph(core,items,manifest,{store}
  assertGroupedCheckpointManifest(manifest,{core});
  return (await compile(core,items,manifest,store)).plan.digest;
 }
+// The explicit phased task reuses the same complete original compiler once.
+// A branded plan is semantic input only; it grants no repository writer.
+export async function prepareValidatedGroupedCheckpointGraph(core,items,manifest,{store}={}){
+ if(store?.repository!==core?.repository||!core?.repository)fail('BNS_GROUP_BINDING');
+ assertGroupedCheckpointManifest(manifest,{core});return (await compile(core,items,manifest,store)).plan;
+}
 // Both protocol namespaces count toward one explicit local admission budget.
 // Reuse the two existing per-batch byte envelopes; never count just wire bodies.
 async function requireStorageBudget(t,stage,replayId){

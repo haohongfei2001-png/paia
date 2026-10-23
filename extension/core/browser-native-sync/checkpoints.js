@@ -1,3 +1,4 @@
+import {requireOriginalPhasedCheckpointIterator} from './canonical-generation-checkpoint-stage.js';
 import {createGroupPageBudget,chargeGroupPageBytes,chargeGroupPageValue,checkGroupPageBudget} from './group-page-reader.js';
 import {buildGroupedCheckpoint,GroupedCheckpointRestore} from './group-checkpoint.js';
 import {BrowserNativeSyncCore,CORE_LIMITS,validateOperation} from './core.js';
@@ -66,8 +67,12 @@ async function readManifest(ref,get,{datasetId,profile,supported}){
  if(!exact(value,['magic','protocol','kind','datasetId','clientEncryption','root','level','itemCount','chain','coverage','parents'])||value.magic!=='PAIA-BNS'||value.protocol!==1||value.kind!=='checkpoint-manifest'||value.datasetId!==datasetId||value.clientEncryption!=='none'||!count(value.level)||value.level>8||!count(value.itemCount)||!hash(value.chain)&&value.itemCount!==0||!Array.isArray(value.parents)||value.parents.length>FANOUT||value.parents.some(x=>!hash(x))||new Set(value.parents).size!==value.parents.length)fail('BNS_CHECKPOINT_INVALID');
  validateCoverage(value.coverage,supported);return value;
 }
-export async function* checkpointItems(manifest,get,{profile=SEGMENT_PROFILE}={}){
- const work=manifest.ownerScope?.version===2?createGroupPageBudget():null,originalGet=get;
+export async function* checkpointItems(manifest,get,{profile=SEGMENT_PROFILE}={}){yield* walkCheckpointItems(manifest,get,profile,manifest.ownerScope?.version===2?createGroupPageBudget():null);}
+// The new explicit task owns cumulative data work; the unchanged walker still
+// enforces its original topology, duplicates, item digest and complete chain.
+export async function* originalPhasedHumanCheckpointItems(stage,manifest,get){requireOriginalPhasedCheckpointIterator(stage,manifest,get);yield* walkCheckpointItems(manifest,get,SEGMENT_PROFILE,null);}
+async function* walkCheckpointItems(manifest,get,profile,work){
+ const originalGet=get;
  if(work)get=async ref=>{checkGroupPageBudget(work);const raw=await originalGet(ref);if(raw instanceof Uint8Array)chargeGroupPageBytes(work,raw.byteLength);else checkGroupPageBudget(work);return raw;};
  const read=async ref=>{const decoded=await readObject(ref,get,{profile});if(work)chargeGroupPageBytes(work,decoded.byteLength);return decoded;};
  const stack=[{ref:manifest.root,level:manifest.level}],seen=new Set();let countItems=0,chain='';

@@ -1,0 +1,80 @@
+TAP version 13
+# Subtest: committed work includes original final reads and is an immutable numeric-only receipt
+ok 1 - committed work includes original final reads and is an immutable numeric-only receipt
+  ---
+  duration_ms: 11.975917
+  type: 'test'
+  ...
+# Subtest: committed accounting does not keep charging user pause after completion
+not ok 2 - committed accounting does not keep charging user pause after completion
+  ---
+  duration_ms: 1.880333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/repository-committed-work.test.mjs:10:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    workRefuse (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:98:53)
+    registerRepositoryWorkLimit (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:110:253)
+    file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/repository-committed-work.test.mjs:10:171
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:491:93)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/repository-committed-work.test.mjs:10:125)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: foreign repository and fabricated scope cannot get accounting evidence
+not ok 3 - foreign repository and fabricated scope cannot get accounting evidence
+  ---
+  duration_ms: 2.913625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/repository-committed-work.test.mjs:11:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    workRefuse (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:98:53)
+    registerRepositoryWorkLimit (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:110:253)
+    file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/repository-committed-work.test.mjs:11:193
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:491:93)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/repository-committed-work.test.mjs:11:147)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unmetered transaction does not manufacture a zero-cost receipt
+ok 4 - unmetered transaction does not manufacture a zero-cost receipt
+  ---
+  duration_ms: 1.385958
+  type: 'test'
+  ...
+# Subtest: aborted native transaction cannot produce committed work
+ok 5 - aborted native transaction cannot produce committed work
+  ---
+  duration_ms: 1.465667
+  type: 'test'
+  ...
+# Subtest: failed terminal fence cannot produce committed work
+ok 6 - failed terminal fence cannot produce committed work
+  ---
+  duration_ms: 1.212167
+  type: 'test'
+  ...
+# Subtest: private resource overrun cannot be reset through public diagnostics
+ok 7 - private resource overrun cannot be reset through public diagnostics
+  ---
+  duration_ms: 1.301167
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 5
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 187.643125
