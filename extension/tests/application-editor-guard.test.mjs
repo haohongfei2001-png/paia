@@ -28,7 +28,7 @@ test('new document or changed inventory invalidates the held freeze',async t=>{
 test('fresh challenge rechecks original owner and input invalidation revokes the old ACK',async t=>{
  const f=fixture(t),a=await f.add('document-a'),token=await f.guard.freezeExtensionPages(a.sender.documentId);a.setCurrent(false);await assert.rejects(f.guard.fenceExtensionPages(token));f.guard.release(token);await tick();a.setCurrent(true);const next=await f.guard.freezeExtensionPages(a.sender.documentId);a.doc.dispatchEvent(new Event('input'));await tick();assert.throws(()=>f.guard.assertFrozenExtensionPages(next));f.guard.release(next);
 });
-test('page blocks interaction until registered, during freeze and after disconnect without clearing text',async t=>{
+test('page blocks interaction during freeze and after an active disconnect without clearing text',async t=>{
  const f=fixture(t),a=await f.add('document-a');const token=await f.guard.freezeExtensionPages(a.sender.documentId);for(const type of ['beforeinput','compositionstart','submit','click']){const event=new Event(type,{cancelable:true});a.doc.dispatchEvent(event);assert.equal(event.defaultPrevented,true);}a.ports.page.disconnect();f.guard.release(token);const event=new Event('beforeinput',{cancelable:true});a.doc.dispatchEvent(event);assert.equal(event.defaultPrevented,true);assert.equal(a.client.isFrozen(),true);
 });
 test('caller objects and another issuer cannot substitute for a private extension-only freeze proof',async t=>{
@@ -37,4 +37,9 @@ test('caller objects and another issuer cannot substitute for a private extensio
 
 test('an in-flight repeated fence cannot be used as a completed private proof',async t=>{
  const f=fixture(t),a=await f.add('document-a'),token=await f.guard.freezeExtensionPages(a.sender.documentId);let finish;f.api.runtime.getContexts=()=>new Promise(r=>finish=r);const pending=f.guard.fenceExtensionPages(token);await tick();assert.throws(()=>f.guard.assertFrozenExtensionPages(token));finish(structuredClone(f.contexts));await pending;assert.equal(f.guard.assertFrozenExtensionPages(token),true);f.guard.release(token);
+});
+
+test('registration unavailable or idle disconnect does not freeze ordinary editing',async t=>{
+ const ports=pair({id,url,documentId:'idle-document',frameId:0}),doc=new EventTarget(),target=new EventTarget();const client=installApplicationEditorGuard({prepare:async()=>true,current:()=>true,release(){}},{api:{runtime:{connect:()=>ports.page}},document:doc,target});t.after(()=>client.dispose());
+ let event=new Event('beforeinput',{cancelable:true});doc.dispatchEvent(event);assert.equal(event.defaultPrevented,false);assert.equal(client.isFrozen(),false);ports.worker.disconnect();event=new Event('compositionstart',{cancelable:true});doc.dispatchEvent(event);assert.equal(event.defaultPrevented,false);assert.equal(client.isFrozen(),false);
 });
