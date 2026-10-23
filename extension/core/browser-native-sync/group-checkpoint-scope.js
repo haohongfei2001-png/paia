@@ -172,7 +172,7 @@ async function compileOriginalWireScope(plan){
  expected.context=sort([...context.values()]);expected.desired=['info','rules','now','inputs'].map(id=>desired.get(id)||{id,enabled:false,revision:0});expected.prompt=prompt;if(promptBinding)expected.promptBinding=promptBinding;
  const consumer=finalConsumerPreferenceOperations(plan);if(consumer.length)expected.consumerPreferences=consumer.map(op=>copy(op.value));
  if(topicDesired.size)expected.topicDesired=sort([...topicDesired.values()]);
- if(human)expected.humanLibrary=human;const saved=plan.groups.find(g=>g.type==='savedWorkBootstrap');if(saved)expected.savedWork=copy(plan.groups.filter(g=>g.type==='savedWorkSuccessor').at(-1)?.operations[0].value.after??saved.operations[0].value.payload);
+ if(human)expected.humanLibrary=human;const saved=plan.groups.filter(g=>g.type==='savedWorkBootstrap');if(saved.length){const payloads=saved.map(g=>plan.groups.filter(next=>next.type==='savedWorkSuccessor'&&next.operations[0].entityId===g.operations[0].entityId).at(-1)?.operations[0].value.after??g.operations[0].value.payload).sort((a,b)=>a.entry.id.localeCompare(b.entry.id));expected.savedWork=copy(payloads.length===1?payloads[0]:payloads);}
  // Portable Human is independently compiled already. Mixed Scope can borrow
  // that untouched aggregate; OUTER history stays independently cloned so its
  // allocator normalization cannot zero portable Human history by alias.

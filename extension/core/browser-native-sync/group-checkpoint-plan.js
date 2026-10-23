@@ -3,7 +3,7 @@ import {groupOperationPages,createGroupPageBudget,checkGroupPageBudget} from './
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {CORE_LIMITS,validateOperation,validateFrozenOperation,validateHumanCommitGroup,prepareOriginalSourceWorkingReceive,prepareOriginalCurrentMixedGroupReceive,requireOriginalSourceWorkingCore} from './core.js';
 import {bytes,digest,fail,equal} from './value.js';
-import {prepareInitialSourcePlan} from './source-bootstrap-plan.js';
+import {prepareInitialSourcePlan,initialSourcePlan} from './source-bootstrap-plan.js';
 import {prepareSourceAppendPlan} from './source-append-plan.js';
 import {promptCorrectionEnvelope} from './prompt-correction-binding.js';
 import {assertTopicDesiredReference} from './topic-desired-codec.js';
@@ -124,13 +124,22 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
  const saved=groups.filter(group=>group.type==='savedWorkBootstrap'),successors=groups.filter(group=>group.type==='savedWorkSuccessor');
  if(successors.length&&!saved.length)fail('BNS_SAVED_WORK_UNSUPPORTED');
  if(saved.length){
-  if(currentSourceWorking||saved.length!==1||groups.length!==2+successors.length||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1)fail('BNS_SAVED_WORK_UNSUPPORTED');
-  const group=saved[0],wire=group.operations[0].value.payload.link.evidence,source=createdInputs.get(wire.inputId);
-  if(!source||!equal([source.prepared.descriptor.value.sourceId],wire.sourceRecordIds)||!equal([source.prepared.descriptor.value.sourceKey],wire.sourceIdentityTokens))fail('BNS_GROUP_CAUSAL_GAP');
-  depend(group,source);
-  const anchor=group.operations[0];
-  for(const next of successors){const op=next.operations[0],prior=op.parents.length?byRevision.get(op.parents[0]):anchor;
-   if(op.entityId!==anchor.entityId||op.value.anchor!==anchor.revisionId||op.parents.length>1||!prior||(op.parents.length&&(prior.type!=='savedWorkSuccessor'||prior.value.anchor!==anchor.revisionId))||!equal(normalizeSavedPayload(op.value.before),normalizeSavedPayload(prior.type==='savedWorkBootstrap'?prior.value.payload:prior.value.after)))fail('BNS_SAVED_WORK_CHANGED');
+  if(currentSourceWorking||groups.length!==1+saved.length+successors.length||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1)fail('BNS_SAVED_WORK_UNSUPPORTED');
+  // A complete graph may retain pruned/coalesced historical payloads. Check
+  // identities across every before/after, not only the final canonical rows:
+  // another entity cannot borrow an old revision, provenance or owner receipt.
+  const identities=new Map(),sourceBaseline=initialSourcePlan(groups.find(group=>group.type==='sourceBootstrapCommit').capability).baselineRevision;
+  const claim=(kind,id,entity)=>{const key=JSON.stringify([kind,id]),prior=identities.get(key);if(prior!==undefined&&prior!==entity)fail('BNS_SAVED_WORK_COLLISION');identities.set(key,entity);};
+  const sourceOwner=Symbol('source');claim('history',sourceBaseline.id,sourceOwner);claim('operation',sourceBaseline.operationId,sourceOwner);
+  for(const group of [...saved,...successors]){const op=group.operations[0],payloads=group.type==='savedWorkBootstrap'?[op.value.payload]:[op.value.before,op.value.after];
+   for(const payload of payloads){const entity=op.entityId;claim('provenance',payload.link.provenanceId,entity);claim('allocation',payload.entry.createdSequence,entity);claim('allocation',payload.entry.updatedSequence,entity);for(const row of payload.history){claim('history',row.id,entity);claim('operation',row.operationId,entity);}}
+  }
+  const anchors=new Map();for(const group of saved){const anchor=group.operations[0],wire=anchor.value.payload.link.evidence,source=createdInputs.get(wire.inputId);
+   if(anchors.has(anchor.entityId)||!source||!equal([source.prepared.descriptor.value.sourceId],wire.sourceRecordIds)||!equal([source.prepared.descriptor.value.sourceKey],wire.sourceIdentityTokens))fail('BNS_GROUP_CAUSAL_GAP');
+   anchors.set(anchor.entityId,group);depend(group,source);
+  }
+  for(const next of successors){const op=next.operations[0],group=anchors.get(op.entityId),anchor=group?.operations[0],prior=op.parents.length?byRevision.get(op.parents[0]):anchor;
+   if(!anchor||op.value.anchor!==anchor.revisionId||op.parents.length>1||!prior||prior.entityId!==anchor.entityId||(op.parents.length&&(prior.type!=='savedWorkSuccessor'||prior.value.anchor!==anchor.revisionId))||!equal(normalizeSavedPayload(op.value.before),normalizeSavedPayload(prior.type==='savedWorkBootstrap'?prior.value.payload:prior.value.after)))fail('BNS_SAVED_WORK_CHANGED');
    depend(next,group);
   }
  }

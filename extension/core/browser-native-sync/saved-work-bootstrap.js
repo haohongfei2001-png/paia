@@ -27,7 +27,7 @@ import {clone,equal,identifier,bytes,digest,fail} from './value.js';
 // A bounded canonical bootstrap, not a fabricated replay of a lost AI request.
 // This profile proves one original AI baseline followed by a complete bounded
 // chain of human edits. Retired/coalesced histories and other owners remain unsupported.
-const plans=new WeakMap(),publications=new WeakMap(),protocolApplications=new WeakMap(),wireOperations=new WeakSet(),limit=2*1024*1024;
+const groups=new WeakMap(),plans=new WeakMap(),publications=new WeakMap(),protocolApplications=new WeakMap(),wireOperations=new WeakSet(),limit=2*1024*1024;
 const bad=()=>fail('BNS_SAVED_WORK_UNSUPPORTED');
 function binding(store,core){requireOriginalLibraryDocumentsStore(store);if(store.repository!==core.repository)fail('BNS_SAVED_WORK_BINDING');}
 async function page(t,name,index,key,max){const rows=[];let after=null;do{const p=await t.rangePage(name,index,prefix(key),after,Math.min(64,max+1-rows.length));rows.push(...p.rows.map(x=>x.value));if(rows.length>max)bad();after=p.next;}while(after!==null);if(await t.count(name,index,prefix(key))!==rows.length)bad();return rows;}
@@ -89,12 +89,12 @@ export async function finishSavedWorkBootstrap(t,cap,store){
  if(!equal(actual,{entry:p.expected.entry,history:p.expected.history,provenance:[p.expected.provenance],dependencies:[p.expected.dependency],placements:0,suppressions:0}))fail('BNS_SAVED_WORK_CHANGED');
  await p.core.put(t,'savedWorkBootstrap',[p.payload.entry.id],{version:1,digest:p.wireDigest});if(!p.before.authority.fence.marker)await p.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:p.before.authority.fence.epoch});
  const receiptKey=await p.core.idIn(t,'savedWorkBootstrap',p.payload.entry.id),markerKey=await p.core.idIn(t,'ownerRecoveryEpoch');
- const points=[...p.before.destination.source.rows.map(row=>['meta',row.id,row]),['meta',receiptKey,{id:receiptKey,version:1,digest:p.wireDigest}],['meta',markerKey,{id:markerKey,version:1,epoch:p.before.authority.fence.epoch}],...p.before.authority.roots.map(([id,row])=>['meta',id,p.group&&id===p.core.prefix+'active'?p.group.active:row]),...(p.group?[['meta',p.group.terminal.id,p.group.terminal]]:[]),['meta','thought-sequence',{id:'thought-sequence',value:Math.max(p.before.authority.sequence?.value||0,p.expected.entry.updatedSequence)}],['meta','revision-sequence',{id:'revision-sequence',value:p.expected.history.at(-1).sequence}],['meta','backup-data-generation',{id:'backup-data-generation',value:p.before.authority.generation+1}],['thoughts',p.expected.entry.id,p.expected.entry],['provenance',p.expected.provenance.id,p.expected.provenance],['dependencies',p.expected.dependency.id,p.expected.dependency],...p.expected.history.map(h=>['revisions',h.id,h])];
+ const points=[...p.before.destination.source.rows.map(row=>['meta',row.id,row]),['meta',receiptKey,{id:receiptKey,version:1,digest:p.wireDigest}],['meta',markerKey,{id:markerKey,version:1,epoch:p.before.authority.fence.epoch}],...p.before.authority.roots.map(([id,row])=>['meta',id,p.group&&id===p.core.prefix+'active'?p.group.active:row]),...(p.group?[['meta',p.group.terminal.id,p.group.terminal]]:[]),['meta','thought-sequence',{id:'thought-sequence',value:p.group?.finalSequence??Math.max(p.before.authority.sequence?.value||0,p.expected.entry.updatedSequence)}],['meta','revision-sequence',{id:'revision-sequence',value:p.group?.finalRevision??p.expected.history.at(-1).sequence}],['meta','backup-data-generation',{id:'backup-data-generation',value:p.before.authority.generation+1}],['thoughts',p.expected.entry.id,p.expected.entry],['provenance',p.expected.provenance.id,p.expected.provenance],['dependencies',p.expected.dependency.id,p.expected.dependency],...p.expected.history.map(h=>['revisions',h.id,h])];
  const check=()=>{if(Date.now()-p.start>30000)fail('BNS_SAVED_WORK_LIMIT');assertOriginalControlSettingsFacts(store,p.currentControl);return true;};
  registerRepositoryFinalReadFence(store.repository,t,{isCurrent:check,plan:function*(){
   for(const fact of p.facts)if(!equal(fact.project(yield {method:'get',table:fact.table,key:fact.key},check),fact.expected))fail('BNS_SAVED_WORK_CHANGED');
   for(const [table,key,expected]of points)if(!equal((yield {method:'get',table,key})??null,expected))fail('BNS_SAVED_WORK_CHANGED');
-  for(const [table,index,key,expected]of [['thoughts',undefined,undefined,1],['provenance','byOwner',prefix(['entry',p.payload.entry.id]),1],['dependencies','byTarget',prefix(['entry',p.payload.entry.id]),1],['revisions','byList',prefix(['library_entry:'+p.payload.entry.id]),p.expected.history.length],['placements','byEntry',prefix([p.payload.entry.id]),0],['thoughtSuppressions','byEntry',p.payload.entry.id,0],['thoughtSuppressions','byScope',p.evidence[0].scopeToken,0],['thoughtSuppressions','byExact',p.expected.entry.exactSignature,0],['tombstones',undefined,undefined,0]])if((yield {method:'count',table,...(index?{index,key}:{})})!==expected)fail('BNS_SAVED_WORK_CHANGED');return true;
+  for(const [table,index,key,expected]of [['thoughts',undefined,undefined,p.group?.entryCount??1],['provenance','byOwner',prefix(['entry',p.payload.entry.id]),1],['dependencies','byTarget',prefix(['entry',p.payload.entry.id]),1],['revisions','byList',prefix(['library_entry:'+p.payload.entry.id]),p.expected.history.length],['placements','byEntry',prefix([p.payload.entry.id]),0],['thoughtSuppressions','byEntry',p.payload.entry.id,0],['thoughtSuppressions','byScope',p.evidence[0].scopeToken,0],['thoughtSuppressions','byExact',p.expected.entry.exactSignature,0],['tombstones',undefined,undefined,0]])if((yield {method:'count',table,...(index?{index,key}:{})})!==expected)fail('BNS_SAVED_WORK_CHANGED');return true;
  }});
  return {state:'bootstrapped',id:p.payload.entry.id};
 }
@@ -111,11 +111,11 @@ async function deriveSavedChain(operations,evidence,secret){
  }
  expected.history=restoreSavedHistoryOrder(expected.history);return {expected,payload};
 }
-function savedPlanOperations(core,plan){requireOriginalGroupCheckpointPlan(core,plan);return plan.groups.filter(g=>['savedWorkBootstrap','savedWorkSuccessor'].includes(g.type)).map(g=>g.operations[0]);}
-async function deriveSavedPlan(core,plan,payload,evidence,secret){const result=await deriveSavedChain(savedPlanOperations(core,plan),evidence,secret);if(!equal(result.payload,payload))bad();return result.expected;}
+function savedPlanOperations(core,plan,entityId){requireOriginalGroupCheckpointPlan(core,plan);return plan.groups.filter(g=>['savedWorkBootstrap','savedWorkSuccessor'].includes(g.type)&&g.operations[0].entityId===entityId).map(g=>g.operations[0]);}
+async function deriveSavedPlan(core,plan,payload,evidence,secret){const result=await deriveSavedChain(savedPlanOperations(core,plan,payload.entry.id),evidence,secret);if(!equal(result.payload,payload))bad();return result.expected;}
 
 export async function prepareSourceSavedWorkBootstrap(store,core,input,sourceCapability,sourceOperations,startedAt=Date.now(),groupPlan=null){
- binding(store,core);bounded(input);const payload=clone(input),now=Date.now();if(!Number.isSafeInteger(startedAt)||startedAt>now||now-startedAt>30000)fail('BNS_SAVED_WORK_LIMIT');const start=startedAt;if(groupPlan){const ops=savedPlanOperations(core,groupPlan);if(!equal(ops.at(-1).type==='savedWorkBootstrap'?ops.at(-1).value.payload:ops.at(-1).value.after,payload))bad();validateSavedWorkEnvelope({id:payload.entry.id,version:1,payload});}else await validateSavedWorkPayload(payload);if(payload.datasetId!==core.datasetId)fail('BNS_SAVED_WORK_BINDING');
+ binding(store,core);bounded(input);const payload=clone(input),now=Date.now();if(!Number.isSafeInteger(startedAt)||startedAt>now||now-startedAt>30000)fail('BNS_SAVED_WORK_LIMIT');const start=startedAt;if(groupPlan){const ops=savedPlanOperations(core,groupPlan,payload.entry.id);if(!equal(ops.at(-1).type==='savedWorkBootstrap'?ops.at(-1).value.payload:ops.at(-1).value.after,payload))bad();validateSavedWorkEnvelope({id:payload.entry.id,version:1,payload});}else await validateSavedWorkPayload(payload);if(payload.datasetId!==core.datasetId)fail('BNS_SAVED_WORK_BINDING');
  const source=initialSourcePlan(sourceCapability),verified=await core.prepareSourceBootstrapReceive(sourceOperations),entities=Object.fromEntries(verified.members.map(op=>[op.value.entityType,op.value.entity]));if(!equal(source,entities))fail('BNS_SAVED_WORK_BINDING');
  const wire=payload.link.evidence,b=source.input;if(b.id!==wire.inputId||b.excluded||b.branchStatus||source.inputState.removalState!=='active'||source.inputState.sourcePurged||source.source.id!==wire.sourceRecordIds[0]||b.provenance.length!==1)fail('BNS_SAVED_WORK_CHANGED');
  await store.finishFoundation();const before=await core.transaction(false,async t=>({authority:await authority(store,core,t),destination:{thoughts:await t.count('thoughts'),rows:await ownedRows(t,payload.entry.id),history:await Promise.all(payload.history.map(h=>t.get('revisions',h.id).then(x=>x??null))),provenance:await t.get('provenance',payload.link.provenanceId)??null,dependency:await t.get('dependencies',JSON.stringify([wire.inputId,'entry',payload.entry.id]))??null,tombstones:await t.count('tombstones'),receipt:await core.get(t,'savedWorkBootstrap',payload.entry.id)??null},sourcePresent:!!await t.get('records',source.source.id)}));
@@ -190,53 +190,64 @@ export async function publishSavedWorkBootstrap(store,cap){
 // neither a public expected-row parameter nor an unbranded plan can relax roots.
 export async function prepareSavedWorkGroupApplication(store,core,plan,stage,state){
  requireOriginalGroupCheckpointPlan(core,plan);const saved=plan.groups.filter(g=>g.type==='savedWorkBootstrap');if(!saved.length)return null;const startedAt=Date.now();state=clone(state);
- if(saved.length!==1||plan.groups.some(g=>!['sourceBootstrapCommit','savedWorkBootstrap','savedWorkSuccessor'].includes(g.type))||core.repository!==stage.repository||core.datasetId!==stage.datasetId||core.fixedNamespace!==state.replayId||state.phase!=='validated'||state.graphDigest!==plan.digest||state.manifest?.datasetId!==core.datasetId||!equal(await stage.read('restore'),state))fail('BNS_SAVED_WORK_CAPABILITY');
- const stageRows=await verifySavedGroupStage(store,core,plan,stage,state);
- const source=plan.groups.find(g=>g.type==='sourceBootstrapCommit');if(!source)fail('BNS_SAVED_WORK_CAPABILITY');
- const operation=await prepareSavedWorkProtocol(saved[0].operations[0]),finalPayload=plan.groups.filter(g=>g.type==='savedWorkSuccessor').at(-1)?.operations[0].value.after??operation.value.payload,cap=await prepareSourceSavedWorkBootstrap(store,core,finalPayload,source.capability,source.operations,startedAt,plan);
- const p=plans.get(cap);p.wireDigest=await digest(operation.value.payload);p.group={protocol:[...savedGroupProtocolIntent(core,plan),...stageRows.map(row=>[row.id,row])],plan,stage,state:clone(state),operation,id:saved[0].id,active:{id:core.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:plan.digest},terminal:{...clone(state),phase:'activated'}};
- if(bytes({before:p.before,payload:p.payload,expected:p.expected,stage:p.group.state,protocol:p.group.protocol,plan}).length>limit)fail('BNS_SAVED_WORK_LIMIT');
- return cap;
+ if(plan.groups.some(g=>!['sourceBootstrapCommit','savedWorkBootstrap','savedWorkSuccessor'].includes(g.type))||core.repository!==stage.repository||core.datasetId!==stage.datasetId||core.fixedNamespace!==state.replayId||state.phase!=='validated'||state.graphDigest!==plan.digest||state.manifest?.datasetId!==core.datasetId||!equal(await stage.read('restore'),state))fail('BNS_SAVED_WORK_CAPABILITY');
+ const stageRows=await verifySavedGroupStage(store,core,plan,stage,state),source=plan.groups.find(g=>g.type==='sourceBootstrapCommit');if(!source)fail('BNS_SAVED_WORK_CAPABILITY');
+ const members=new Map(),historyIds=new Set(),provenanceIds=new Set();let retained=0,baseline=null,sequence=null,revision=null;
+ // Every member is prepared against the same actual empty installation before
+ // writes. Only this branded complete graph derives intervening owner counters.
+ for(const group of saved){const operation=await prepareSavedWorkProtocol(group.operations[0]),chain=savedPlanOperations(core,plan,operation.entityId),last=chain.at(-1),finalPayload=last.type==='savedWorkSuccessor'?last.value.after:operation.value.payload,member=await prepareSourceSavedWorkBootstrap(store,core,finalPayload,source.capability,source.operations,startedAt,plan),p=plans.get(member);
+  if(members.has(operation.entityId))bad();if(baseline===null){baseline=clone(p.before.authority);sequence=p.before.authority.sequence;revision=p.before.authority.revision;}else if(!equal(p.before.authority,baseline))fail('BNS_SAVED_WORK_CHANGED');
+  for(const row of p.expected.history){if(historyIds.has(row.id)||row.id===initialSourcePlan(source.capability).baselineRevision.id)bad();historyIds.add(row.id);}if(provenanceIds.has(p.expected.provenance.id))bad();provenanceIds.add(p.expected.provenance.id);
+  p.before.destination.thoughts=members.size;p.before.authority.sequence=sequence;p.before.authority.revision=revision;
+  p.expected.history=p.expected.history.map((row,i)=>({...row,sequence:(revision?.value||0)+i+1,listKey:[row.entityKey,(revision?.value||0)+i+1],documentList:[row.documentId,(revision?.value||0)+i+1]}));
+  sequence={id:'thought-sequence',value:Math.max(sequence?.value||0,p.expected.entry.updatedSequence)};revision={id:'revision-sequence',value:p.expected.history.at(-1).sequence};
+  p.wireDigest=await digest(operation.value.payload);retained+=bytes({before:p.before,payload:p.payload,expected:p.expected}).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');members.set(operation.entityId,member);
+ }
+ const protocol=[...savedGroupProtocolIntent(core,plan),...stageRows.map(row=>[row.id,row])],active={id:core.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:plan.digest},terminal={...clone(state),phase:'activated'};
+ retained+=bytes({state,protocol,plan}).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');
+ for(const member of members.values())plans.get(member).group={plan,stage,state,active,terminal,entryCount:members.size,finalSequence:sequence.value,finalRevision:revision.value};
+ const cap=Object.freeze({});groups.set(cap,{store,core,plan,stage,state,active,terminal,protocol,members,start:startedAt,next:0,applied:new Set()});return cap;
 }
 export async function applySavedWorkGroupStep(t,cap,id){
- const p=plans.get(cap);if(!p?.group)fail('BNS_SAVED_WORK_CAPABILITY');requireOriginalGroupCheckpointPlan(p.core,p.group.plan);
- const group=p.group.plan.groups.find(g=>g.id===id);if(!group||!['savedWorkBootstrap','savedWorkSuccessor'].includes(group.type))fail('BNS_SAVED_WORK_CAPABILITY');
- if(!equal(await p.group.stage.get(t,'restore'),p.group.state))fail('BNS_RESTORE_STAGE_CHANGED');
- // The original canonical bootstrap imports the complete validated retained
- // history once. Each immutable typed operation still receives its own original
- // Core receipt and ancestry; no historical AI execution is fabricated.
- if(group.type==='savedWorkBootstrap')await p.store.applySavedWorkBootstrapInTransaction(t,cap);
- if(p.transaction!==t)fail('BNS_SAVED_WORK_CAPABILITY');const operation=group.operations[0];
- protocolApplications.set(t,{core:p.core,operation,origin:'remote'});try{const result=await p.core.applyInTransaction(t,operation,{origin:'remote',materialize:false});if(result.state!=='applied')fail('BNS_SAVED_WORK_OPERATION');}finally{protocolApplications.delete(t);}
+ const g=groups.get(cap);if(!g)fail('BNS_SAVED_WORK_CAPABILITY');requireOriginalGroupCheckpointPlan(g.core,g.plan);
+ const group=g.plan.groups.find(row=>row.id===id);if(!group||!['savedWorkBootstrap','savedWorkSuccessor'].includes(group.type)||g.applied.has(id))fail('BNS_SAVED_WORK_CAPABILITY');const operation=group.operations[0],member=g.members.get(operation.entityId),p=plans.get(member);if(!p)fail('BNS_SAVED_WORK_CAPABILITY');
+ if(!equal(await g.stage.get(t,'restore'),g.state))fail('BNS_RESTORE_STAGE_CHANGED');
+ // Canonical retained history is imported once per entity. Immutable typed
+ // operations still receive their own original receipts and exact ancestry.
+ if(group.type==='savedWorkBootstrap'){if([...g.members.keys()][g.next]!==operation.entityId)fail('BNS_SAVED_WORK_CAPABILITY');await p.store.applySavedWorkBootstrapInTransaction(t,member);g.next++;}
+ if(p.transaction!==t)fail('BNS_SAVED_WORK_CAPABILITY');
+ protocolApplications.set(t,{core:p.core,operation,origin:'remote'});try{const result=await p.core.applyInTransaction(t,operation,{origin:'remote',materialize:false});if(result.state!=='applied')fail('BNS_SAVED_WORK_OPERATION');}finally{protocolApplications.delete(t);}g.applied.add(id);
 }
 export async function sealSavedWorkGroupActivation(t,cap){
- if(cap===null)return;const p=plans.get(cap);if(!p?.group||p.transaction!==t)fail('BNS_SAVED_WORK_CAPABILITY');
- if(!equal(await p.group.stage.get(t,'restore'),p.group.terminal)||!equal(await t.get('meta',p.core.prefix+'active'),p.group.active))fail('BNS_RESTORE_STAGE_CHANGED');
- await sealSavedProtocol(t,p.core,p.group.protocol,p.start);
- const stagePrefix=protocolPhysicalId(p.group.stage.prefix,p.group.stage.fixedNamespace,'groupItem',[]),replayPrefix=p.core.prefix+'generation:'+p.core.fixedNamespace+':',stageRange=IDBKeyRange.bound(stagePrefix,stagePrefix+'\uffff'),replayRange=IDBKeyRange.bound(replayPrefix,replayPrefix+'\uffff'),replayCount=p.group.protocol.filter(([id,row])=>row&&id.startsWith(replayPrefix)).length+2;
- registerRepositoryFinalReadFence(p.store.repository,t,{isCurrent:()=>{if(Date.now()-p.start>30000)fail('BNS_SAVED_WORK_LIMIT');return true;},plan:function*(){if((yield {method:'count',table:'meta',key:stageRange})!==p.group.state.received||(yield {method:'count',table:'meta',key:replayRange})!==replayCount)fail('BNS_RESTORE_STAGE_CHANGED');return true;}});
+ if(cap===null)return;const g=groups.get(cap);if(!g||g.next!==g.members.size||g.applied.size!==g.plan.groups.filter(row=>['savedWorkBootstrap','savedWorkSuccessor'].includes(row.type)).length||[...g.members.values()].some(member=>plans.get(member).transaction!==t))fail('BNS_SAVED_WORK_CAPABILITY');
+ if(!equal(await g.stage.get(t,'restore'),g.terminal)||!equal(await t.get('meta',g.core.prefix+'active'),g.active))fail('BNS_RESTORE_STAGE_CHANGED');
+ await sealSavedProtocol(t,g.core,g.protocol,g.start);
+ const stagePrefix=protocolPhysicalId(g.stage.prefix,g.stage.fixedNamespace,'groupItem',[]),replayPrefix=g.core.prefix+'generation:'+g.core.fixedNamespace+':',stageRange=IDBKeyRange.bound(stagePrefix,stagePrefix+'\uffff'),replayRange=IDBKeyRange.bound(replayPrefix,replayPrefix+'\uffff'),replayCount=g.protocol.filter(([id,row])=>row&&id.startsWith(replayPrefix)).length+g.members.size+1;
+ registerRepositoryFinalReadFence(g.store.repository,t,{isCurrent:()=>{if(Date.now()-g.start>30000)fail('BNS_SAVED_WORK_LIMIT');return true;},plan:function*(){if((yield {method:'count',table:'meta',key:stageRange})!==g.state.received||(yield {method:'count',table:'meta',key:replayRange})!==replayCount)fail('BNS_RESTORE_STAGE_CHANGED');return true;}});
 }
 
 // Keyed scope proof uses the original Source plan and original evidence/key
 // derivation. The portable aggregate never supplies a local authority token.
 const savedScopes=new WeakMap();
 export async function prepareSavedWorkScope(store,core,scope,plan){
- requireOriginalGroupCheckpointPlan(core,plan);binding(store,core);const saved=plan.groups.find(g=>g.type==='savedWorkBootstrap');if(!saved)return;
- const source=initialSourcePlan(plan.groups.find(g=>g.type==='sourceBootstrapCommit').capability),payload=plan.groups.filter(g=>g.type==='savedWorkSuccessor').at(-1)?.operations[0].value.after??saved.operations[0].value.payload;
- const {secret,epoch}=await core.transaction(false,async t=>({secret:(await t.get('meta','thought-suppression-key'))?.value,epoch:(await t.get('meta','thought-epoch'))?.value||0})),b=source.input,wire=payload.link.evidence;
- const evidence=[await planEvidenceProjection({inputId:b.id,contentRevision:source.inputState.contentRevision,body:b.libraryText??source.source.originalText,note:b.note||'',sourceRecordIds:[source.source.id],identities:[source.source.sourceKey]},{role:'primary',selectedFields:wire.selectedFields},secret,epoch)];
- if(!equal(portableSourceLinkedEvidence(evidence),wire))fail('BNS_SOURCE_LINKED_EVIDENCE_CHANGED');
- const expected=await deriveSavedPlan(core,plan,payload,evidence,secret);savedScopes.set(scope,{store,core,plan,evidence,secret,epoch,expected});
+ requireOriginalGroupCheckpointPlan(core,plan);binding(store,core);const saved=plan.groups.filter(g=>g.type==='savedWorkBootstrap');if(!saved.length)return;
+ const source=initialSourcePlan(plan.groups.find(g=>g.type==='sourceBootstrapCommit').capability),{secret,epoch}=await core.transaction(false,async t=>({secret:(await t.get('meta','thought-suppression-key'))?.value,epoch:(await t.get('meta','thought-epoch'))?.value||0})),members=[],ids=new Set(),histories=new Set(),provenance=new Set();let retained=0;
+ for(const group of saved){const chain=savedPlanOperations(core,plan,group.operations[0].entityId),last=chain.at(-1),payload=last.type==='savedWorkSuccessor'?last.value.after:group.operations[0].value.payload,b=source.input,wire=payload.link.evidence;
+  const evidence=[await planEvidenceProjection({inputId:b.id,contentRevision:source.inputState.contentRevision,body:b.libraryText??source.source.originalText,note:b.note||'',sourceRecordIds:[source.source.id],identities:[source.source.sourceKey]},{role:'primary',selectedFields:wire.selectedFields},secret,epoch)];
+  if(!equal(portableSourceLinkedEvidence(evidence),wire))fail('BNS_SOURCE_LINKED_EVIDENCE_CHANGED');const expected=await deriveSavedPlan(core,plan,payload,evidence,secret);
+  if(ids.has(expected.entry.id)||provenance.has(expected.provenance.id))bad();ids.add(expected.entry.id);provenance.add(expected.provenance.id);for(const row of expected.history){if(histories.has(row.id)||row.id===source.baselineRevision.id)bad();histories.add(row.id);}
+  retained+=bytes({expected,evidence}).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');members.push({evidence,expected});
+ }savedScopes.set(scope,{store,core,plan,secret,epoch,members});
 }
 const normalizedSavedHistory=rows=>rows.map(row=>({...row,sequence:0,listKey:[row.entityKey,0],documentList:[row.documentId,0]}));
 export async function requireSavedWorkScope(store,t,scope){
  const p=savedScopes.get(scope);if(!p||p.store!==store)fail('BNS_SAVED_WORK_CAPABILITY');requireOriginalGroupCheckpointPlan(p.core,p.plan);requireRepositoryTransactionScope(store.repository,t);
- if(!equal((await t.get('meta','thought-suppression-key'))?.value,p.secret)||((await t.get('meta','thought-epoch'))?.value||0)!==p.epoch)fail('BNS_SAVED_WORK_CHANGED');await checkEvidenceInTransaction(store,t,p.evidence);
- const rows=await ownedRows(t,p.expected.entry.id),expected={entry:p.expected.entry,history:p.expected.history,provenance:[p.expected.provenance],dependencies:[p.expected.dependency],placements:0,suppressions:0};
- // Physical history sequence is allocated locally; every semantic field remains exact.
- rows.history=normalizedSavedHistory(rows.history);expected.history=normalizedSavedHistory(expected.history);
- const sequence=(await t.get('meta','thought-sequence'))?.value;if(!Number.isSafeInteger(sequence)||sequence<p.expected.entry.updatedSequence||!equal(rows,expected)||await t.count('thoughts')!==1||await t.count('provenance')!==1||await t.count('dependencies')!==1||await t.count('thoughtSuppressions')||await t.count('placements')||await t.count('librarySearchTerms'))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
- for(const row of await readGroupRows(t,'libraryMigrationItems'))if(!equal(row,{id:JSON.stringify(['search','entry',p.expected.entry.id]),entityKind:'search',statusKey:0,ownerKind:'entry',ownerId:p.expected.entry.id,version:ownerVersion('entry',p.expected.entry),phase:'delete',offset:0,sourceRecordIds:p.expected.entry.sourceRecordIds??[]}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ if(!equal((await t.get('meta','thought-suppression-key'))?.value,p.secret)||((await t.get('meta','thought-epoch'))?.value||0)!==p.epoch)fail('BNS_SAVED_WORK_CHANGED');
+ const sequence=(await t.get('meta','thought-sequence'))?.value;if(!Number.isSafeInteger(sequence)||await t.count('thoughts')!==p.members.length||await t.count('provenance')!==p.members.length||await t.count('dependencies')!==p.members.length||await t.count('thoughtSuppressions')||await t.count('placements')||await t.count('librarySearchTerms'))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ for(const member of p.members){await checkEvidenceInTransaction(store,t,member.evidence);const e=member.expected,rows=await ownedRows(t,e.entry.id),expected={entry:e.entry,history:e.history,provenance:[e.provenance],dependencies:[e.dependency],placements:0,suppressions:0};
+  rows.history=normalizedSavedHistory(rows.history);expected.history=normalizedSavedHistory(expected.history);if(sequence<e.entry.updatedSequence||!equal(rows,expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ }
+ for(const row of await readGroupRows(t,'libraryMigrationItems')){const e=p.members.find(member=>member.expected.entry.id===row.ownerId)?.expected.entry;if(!e||!equal(row,{id:JSON.stringify(['search','entry',e.id]),entityKind:'search',statusKey:0,ownerKind:'entry',ownerId:e.id,version:ownerVersion('entry',e),phase:'delete',offset:0,sourceRecordIds:e.sourceRecordIds??[]}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
  return true;
 }
 

@@ -1,0 +1,11 @@
+{
+  "baseline": "c0ea304171ca3b6bcee2168127496995be926e1e",
+  "coordinator": "Temporary earlier integration only; no new coordinator change in this package",
+  "sha256": {
+    "extension/core/browser-native-sync/group-checkpoint-plan.js": "dad085db82ac2c680b20402823e830db5378dde7ed35cb7d8cdb198132cac5ce",
+    "extension/core/browser-native-sync/group-checkpoint-scope.js": "ee091069a5245744f101617eda1d07088afe43bb0b969639f1f4af931a9a58d7",
+    "extension/core/browser-native-sync/saved-work-bootstrap.js": "7a7636271f4e43c13e80fde8b2b78685010f8fb6e8ca8c5f922087cd98f23046",
+    "extension/core/browser-native-sync/group-checkpoint.js": "8a3fc82bfa9e29145381d93051a90acbf8c6c0a465a4ab301905c92b6e7e09cb",
+    "extension/tests/browser-native-sync-saved-multiple.test.mjs": "bb2a670f7a6e6f86aa2a7aa5139b29cc0f7b1cadc86d82c0f5adeaa38fc82f5a"
+  }
+}

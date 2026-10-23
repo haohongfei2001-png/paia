@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: two original saved entities restore together and retain independent typed edits through cold C
+ok 1 - two original saved entities restore together and retain independent typed edits through cold C
+  ---
+  duration_ms: 617.4005
+  type: 'test'
+  ...
+# Subtest: multi saved graph rejects cross-entity history collision before destination mutation
+ok 2 - multi saved graph rejects cross-entity history collision before destination mutation
+  ---
+  duration_ms: 101.51975
+  type: 'test'
+  ...
+# Subtest: multi saved graph rejects cross-entity provenance collision before destination mutation
+ok 3 - multi saved graph rejects cross-entity provenance collision before destination mutation
+  ---
+  duration_ms: 88.353541
+  type: 'test'
+  ...
+# Subtest: multi saved graph rejects cross-entity created allocation collision before destination mutation
+ok 4 - multi saved graph rejects cross-entity created allocation collision before destination mutation
+  ---
+  duration_ms: 91.058709
+  type: 'test'
+  ...
+# Subtest: multi saved successors cannot borrow another entity anchor or parent
+ok 5 - multi saved successors cannot borrow another entity anchor or parent
+  ---
+  duration_ms: 230.443875
+  type: 'test'
+  ...
+# Subtest: multi saved interleaved coalesced edits retain each real typed event through cold C
+ok 6 - multi saved interleaved coalesced edits retain each real typed event through cold C
+  ---
+  duration_ms: 435.0905
+  type: 'test'
+  ...
+# Subtest: multi saved partial member failure rolls back full scope and an explicit retry reprepares owners
+ok 7 - multi saved partial member failure rolls back full scope and an explicit retry reprepares owners
+  ---
+  duration_ms: 209.188667
+  type: 'test'
+  ...
+# Subtest: multi saved raw final fence rejects first Entry drift and rolls back every table
+ok 8 - multi saved raw final fence rejects first Entry drift and rolls back every table
+  ---
+  duration_ms: 152.384583
+  type: 'test'
+  ...
+# Subtest: multi saved raw final fence rejects second history drift and rolls back every table
+ok 9 - multi saved raw final fence rejects second history drift and rolls back every table
+  ---
+  duration_ms: 144.57275
+  type: 'test'
+  ...
+# Subtest: multi saved raw final fence rejects second receipt drift and rolls back every table
+ok 10 - multi saved raw final fence rejects second receipt drift and rolls back every table
+  ---
+  duration_ms: 148.074792
+  type: 'test'
+  ...
+# Subtest: multi saved raw final fence rejects thought count drift and rolls back every table
+ok 11 - multi saved raw final fence rejects thought count drift and rolls back every table
+  ---
+  duration_ms: 170.954667
+  type: 'test'
+  ...
+# Subtest: multi saved raw final fence rejects global revision drift and rolls back every table
+ok 12 - multi saved raw final fence rejects global revision drift and rolls back every table
+  ---
+  duration_ms: 143.089125
+  type: 'test'
+  ...
+# Subtest: multi saved activation remains bounded despite public metrics resets
+ok 13 - multi saved activation remains bounded despite public metrics resets
+  ---
+  duration_ms: 217.185292
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2896.949084
