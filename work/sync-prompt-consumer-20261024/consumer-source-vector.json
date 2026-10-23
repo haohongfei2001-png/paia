@@ -1,0 +1,11 @@
+{
+  "extension/background/service-worker.js": "98ca2f0829d66ce3fe50cafad8071db10f2519a0feb2affa23ce27a0a0379a94",
+  "extension/background/sync-local-lifecycle.js": "674978b002dcf9c1cf30c160818543730f42116fcc9bdf0faa50a4d4e958c676",
+  "extension/core/browser-native-sync/prompt-journal.js": "e5f1b8bdf936728ad41a09b43a9d841fcd3f9c831fa32c3e869706fd4b1a60bd",
+  "extension/core/prompt-reuse-service.js": "8056c36e377120f2cfde16c9d20487f2ca972e2c20c3425a2f9bde03956059fe",
+  "extension/ui/settings-sync.js": "e0a984da181b61dea984aa0ed7b860b61d41cbe24235ad9e479372abe620dc15",
+  "extension/core/browser-native-sync/core.js": "940426b9bfb80527064c0c9fa7663868cfcd40f43954cac65ffd9ed8ffb7f1d7",
+  "extension/core/browser-native-sync/checkpoint-publication.js": "40ea2a8eb569e46e4e19bc6eb38a5313e813227296c3de3a214e09b653c9d5e3",
+  "extension/core/browser-native-sync/group-checkpoint.js": "65f80fc179ce901a6c9eadbe8328a9d9d49fa26edd9491965419aa41a6b54cae",
+  "extension/core/library-documents-owner.js": "0e998939bd9835548e49ca0603ce3949a3ffc27d123c2fbd6bebcd9730042241"
+}

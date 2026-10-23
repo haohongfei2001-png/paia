@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: bound manual local resolves exact Prompt and companion parents together
+not ok 1 - bound manual local resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 61.080667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:13:55'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  code: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/value.js:5:32)
+    BrowserNativeSyncCore.prepareLocal (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:202:88)
+    async BrowserNativeSyncCore.prepare (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:245:15)
+    async JournalRestoreFence.prepare (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/prompt-journal.js:35:18)
+    async PromptSyncJournal.prepareManualResolution (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/prompt-journal.js:106:18)
+    async PromptReuseService.resolveManualConflict (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/prompt-reuse-service.js:356:241)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:13:274)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: bound manual other resolves exact Prompt and companion parents together
+not ok 2 - bound manual other resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 35.256042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:13:55'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  code: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/value.js:5:32)
+    BrowserNativeSyncCore.prepareLocal (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:202:88)
+    async BrowserNativeSyncCore.prepare (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:245:15)
+    async JournalRestoreFence.prepare (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/prompt-journal.js:35:18)
+    async PromptSyncJournal.prepareManualResolution (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/prompt-journal.js:106:18)
+    async PromptReuseService.resolveManualConflict (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/prompt-reuse-service.js:356:241)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:13:274)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: bound manual both resolves exact Prompt and companion parents together
+not ok 3 - bound manual both resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 32.70675
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:13:55'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  code: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/value.js:5:32)
+    BrowserNativeSyncCore.prepareLocal (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:202:88)
+    async BrowserNativeSyncCore.prepare (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:245:15)
+    async JournalRestoreFence.prepare (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/prompt-journal.js:35:18)
+    async PromptSyncJournal.prepareManualResolution (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/prompt-journal.js:106:18)
+    async PromptReuseService.resolveManualConflict (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/prompt-reuse-service.js:356:241)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:13:274)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: bound manual manual resolves exact Prompt and companion parents together
+not ok 4 - bound manual manual resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 30.010708
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:13:55'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  code: 'BNS_CONFLICT_REQUIRES_RESOLUTION'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/value.js:5:32)
+    BrowserNativeSyncCore.prepareLocal (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:202:88)
+    async BrowserNativeSyncCore.prepare (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:245:15)
+    async JournalRestoreFence.prepare (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/prompt-journal.js:35:18)
+    async PromptSyncJournal.prepareManualResolution (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/prompt-journal.js:106:18)
+    async PromptReuseService.resolveManualConflict (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/prompt-reuse-service.js:356:241)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:13:274)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: bound binding-proof refuses and preserves complete prior owner
+ok 5 - bound binding-proof refuses and preserves complete prior owner
+  ---
+  duration_ms: 26.519125
+  type: 'test'
+  ...
+# Subtest: bound binding-row refuses and preserves complete prior owner
+ok 6 - bound binding-row refuses and preserves complete prior owner
+  ---
+  duration_ms: 26.171209
+  type: 'test'
+  ...
+# Subtest: bound late-binding-write refuses and preserves complete prior owner
+ok 7 - bound late-binding-write refuses and preserves complete prior owner
+  ---
+  duration_ms: 26.736625
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 3
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 362.397459

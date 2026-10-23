@@ -1,0 +1,196 @@
+TAP version 13
+# Subtest: bound manual local resolves exact Prompt and companion parents together
+ok 1 - bound manual local resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 75.53525
+  type: 'test'
+  ...
+# Subtest: bound manual other resolves exact Prompt and companion parents together
+ok 2 - bound manual other resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 44.696125
+  type: 'test'
+  ...
+# Subtest: bound manual both resolves exact Prompt and companion parents together
+ok 3 - bound manual both resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 41.723584
+  type: 'test'
+  ...
+# Subtest: bound manual manual resolves exact Prompt and companion parents together
+ok 4 - bound manual manual resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 39.209167
+  type: 'test'
+  ...
+# Subtest: bound binding-proof refuses and preserves complete prior owner
+ok 5 - bound binding-proof refuses and preserves complete prior owner
+  ---
+  duration_ms: 25.936041
+  type: 'test'
+  ...
+# Subtest: bound binding-row refuses and preserves complete prior owner
+ok 6 - bound binding-row refuses and preserves complete prior owner
+  ---
+  duration_ms: 24.15375
+  type: 'test'
+  ...
+# Subtest: bound late-binding-write refuses and preserves complete prior owner
+ok 7 - bound late-binding-write refuses and preserves complete prior owner
+  ---
+  duration_ms: 29.788875
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved local pair with full two-parent history
+not ok 8 - original remote materializer restores resolved local pair with full two-parent history
+  ---
+  duration_ms: 21.407041
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:24:55'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:27:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:523:1205)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:167:66)
+    async prepareReplay (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:23:54)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:24:228)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: original remote materializer restores resolved other pair with full two-parent history
+not ok 9 - original remote materializer restores resolved other pair with full two-parent history
+  ---
+  duration_ms: 23.020417
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:24:55'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:27:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:523:1205)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:167:66)
+    async prepareReplay (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:23:54)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:24:228)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: original remote materializer restores resolved both pair with full two-parent history
+not ok 10 - original remote materializer restores resolved both pair with full two-parent history
+  ---
+  duration_ms: 21.663
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:24:55'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:27:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:523:1205)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:167:66)
+    async prepareReplay (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:23:54)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:24:228)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: original remote materializer restores resolved manual pair with full two-parent history
+not ok 11 - original remote materializer restores resolved manual pair with full two-parent history
+  ---
+  duration_ms: 21.616375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:24:55'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:27:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:523:1205)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:167:66)
+    async prepareReplay (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:23:54)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:24:228)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: remote resolved pair historical-companion rejects within original transaction and preserves all prior rows
+not ok 12 - remote resolved pair historical-companion rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 20.181416
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:25:97'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:27:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:523:1205)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:167:66)
+    async prepareReplay (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:23:54)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:25:457)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: remote resolved pair wrong-pair rejects within original transaction and preserves all prior rows
+not ok 13 - remote resolved pair wrong-pair rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 21.278917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:25:97'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:27:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:523:1205)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:167:66)
+    async prepareReplay (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:23:54)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:25:457)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: remote resolved pair old-proof rejects within original transaction and preserves all prior rows
+not ok 14 - remote resolved pair old-proof rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 20.964792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:25:97'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:27:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:523:1205)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:167:66)
+    async prepareReplay (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:23:54)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:25:457)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: remote resolved pair changed-other-preference rejects within original transaction and preserves all prior rows
+not ok 15 - remote resolved pair changed-other-preference rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 20.98675
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:25:97'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:27:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:523:1205)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/core.js:167:66)
+    async prepareReplay (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:23:54)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/manual-prompt-bound-conflict.test.mjs:25:457)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 7
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 613.362916

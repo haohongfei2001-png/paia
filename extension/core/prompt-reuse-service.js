@@ -89,7 +89,7 @@ export class PromptReuseService{
    // Query/resolve never expose these Inputs or preference owner objects.
    if(observation.static)observation.material=Object.freeze({inputs,preferences,generation:base});
   }
-  const snapshot={families,preferences,generation:base,inputs};if(projectCorrections&&this.syncJournal?.correctionBindings)return {...snapshot,...await this.syncJournal.projectCorrections(snapshot,this.clock())};return snapshot;
+  const snapshot={families,preferences,generation:base,inputs};if(projectCorrections&&this.syncJournal?.correctionBindings)return {...snapshot,...await this.syncJournal.projectCorrections(snapshot,this.clock(),this)};return snapshot;
  }
  #originalReadOwner(){return originalFoundationPromptQueueOwner(this.s)&&originalRepositoryTransactionOwner(this.s.repository)&&originalMethod(this,'snapshot',originalSnapshot)&&this.syncJournal===null;}
  async #readBinding(observation=null){

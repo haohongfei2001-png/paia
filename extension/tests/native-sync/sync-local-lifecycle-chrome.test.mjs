@@ -10,7 +10,7 @@ import {root,instrumentedExtension} from './storage-harness.mjs';
 import {prepareSyncLifecycleNative,runSyncLifecycleNative} from './sync-local-lifecycle-native-preparation.mjs';
 import {verifyManualPromptConflictPane} from '../harness/manual-prompt-conflict-pane-native.mjs';
 const hash=value=>createHash('sha256').update(value).digest('hex');
-const proof=['tests/native-sync/sync-local-lifecycle-chrome.test.mjs','tests/native-sync/sync-local-lifecycle-native-preparation.mjs','tests/native-sync/storage-harness.mjs','tests/native-sync/storage-worker-fixture.mjs','tests/native-sync/immutable-objects.mjs','tests/harness/manual-prompt-conflict-pane-native.mjs','tests/harness/settings-consumer-presentation.mjs','tests/harness/ans07-seed-evidence.mjs','tests/harness/fake-chatgpt.mjs','manifest.json','package.json'];
+const proof=['tests/native-sync/sync-local-lifecycle-chrome.test.mjs','tests/native-sync/sync-local-lifecycle-native-preparation.mjs','tests/native-sync/storage-harness.mjs','tests/native-sync/storage-worker-fixture.mjs','tests/native-sync/immutable-objects.mjs','tests/harness/manual-prompt-conflict-pane-native.mjs','tests/harness/settings-consumer-presentation.mjs','tests/harness/ans07-seed-evidence.mjs','tests/harness/checkpoint-publication-http.mjs','tests/harness/fake-chatgpt.mjs','manifest.json','package.json'];
 async function snapshot(){
  const paths=[...proof];async function walk(path){for(const row of await readdir(join(root,path),{withFileTypes:true})){const next=path+'/'+row.name;if(row.isDirectory())await walk(next);else paths.push(next);}}
  for(const path of ['core','background','ui'])await walk(path);
@@ -18,7 +18,7 @@ async function snapshot(){
  return {head:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),tree:execFileSync('git',['rev-parse','HEAD^{tree}'],{cwd:root,encoding:'utf8'}).trim(),hashes};
 }
 let sourceCases;
-for(const variant of ['source','release'])test('actual Settings and worker local Sync plus bounded Prompt pane '+variant,{timeout:180000},async()=>{
+for(const variant of ['source','release'])test('actual Settings and worker local Sync plus bounded Prompt pane '+variant,{timeout:300000},async()=>{
  // Require the intended existing release before even launching Source, avoiding
  // an accidental Source run followed by a missing-release/build fallback.
  assert.ok(process.env.PAIA_NATIVE_RELEASE_PATH&&isAbsolute(process.env.PAIA_NATIVE_RELEASE_PATH),'absolute PAIA_NATIVE_RELEASE_PATH is required; no automatic build');
@@ -34,10 +34,13 @@ for(const variant of ['source','release'])test('actual Settings and worker local
    }else assert.deepEqual(actual,original,'actual loaded runtime '+path);
    receipt.runtimeHashes[path]=hash(actual);
   }
-  extension=await instrumentedExtension(runtime);receipt.preparation=await prepareSyncLifecycleNative(extension);
-  // Original harness, flags, network isolation and temporary profile only.
-  const {FakeChatGPT}=await import('../harness/fake-chatgpt.mjs');h=await FakeChatGPT.start({extensionPath:extension.path,headless:true,launchThroughPort:true});receipt.browserVersion=h.context.browser().version();
-  receipt.sync=await runSyncLifecycleNative(h);
+  const {FakeChatGPT}=await import('../harness/fake-chatgpt.mjs');let remote=[];receipt.sync={devices:[],wholeArchiveComplete:false};receipt.preparations=[];
+  for(const device of ['A','B','C']){
+   extension=await instrumentedExtension(runtime);receipt.preparations.push(await prepareSyncLifecycleNative(extension,{device,remote}));
+   h=await FakeChatGPT.start({extensionPath:extension.path,headless:true,launchThroughPort:true});receipt.browserVersion=h.context.browser().version();
+   const result=await runSyncLifecycleNative(h,{device});remote=result.remote;delete result.remote;receipt.sync.devices.push(result);
+   if(device!=='C'){await h.close();h=null;await extension.cleanup();extension=null;}
+  }
   // This owner is already integrated on the parent line. It uses the same
   // isolated Archive page and adds no browser, dataset, provider or credential.
   await h.archive.evaluate(()=>document.getElementById('settings-sync-dialog')?.close());receipt.prompt=await verifyManualPromptConflictPane(h.archive);

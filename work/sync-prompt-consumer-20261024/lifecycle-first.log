@@ -1,0 +1,362 @@
+TAP version 13
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 1 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 2.839666
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+not ok 2 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 1.154458
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/settings-sync.test.mjs:19:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /does not create a recovery point/. Input:
+    
+    'This device is disconnected. Local and remote content was not deleted.Only Source and Working Input are covered by this local verification. Complete Thought, Prompt, Context and Topic sync is not connected. Publication creates a recoverable checkpoint for the original supported scope; unrepresented content is refused. This is not a whole-archive backup.Check statusResume local sync tasksPause transfersDisconnect this devicePublish pending Input changesRead an existing recovery pointContinue the original recovery'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: 'This device is disconnected. Local and remote content was not deleted.Only Source and Working Input are covered by this local verification. Complete Thought, Prompt, Context and Topic sync is not connected. Publication creates a recoverable checkpoint for the original supported scope; unrepresented content is refused. This is not a whole-archive backup.Check statusResume local sync tasksPause transfersDisconnect this devicePublish pending Input changesRead an existing recovery pointContinue the original recovery'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/settings-sync.test.mjs:20:712)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 3 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 0.809667
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 4 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 0.450542
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 5 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 0.519
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 6 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.327458
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 7 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 1.110125
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 8 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.314458
+  type: 'test'
+  ...
+# Subtest: shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+ok 9 - shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+  ---
+  duration_ms: 0.899792
+  type: 'test'
+  ...
+# Subtest: pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+ok 10 - pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+  ---
+  duration_ms: 42.199958
+  type: 'test'
+  ...
+# Subtest: same actual store journals feed original durable publication; no whole archive completion claim
+not ok 11 - same actual store journals feed original durable publication; no whole archive completion claim
+  ---
+  duration_ms: 60.744208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:79:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/library-documents-owner.js:27:155)
+    requireGroupedCheckpointDispatchCut (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/group-checkpoint.js:80:45)
+    buildGroupedCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/group-checkpoint.js:127:151)
+    async #await (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/checkpoint-publication.js:32:333)
+    async #prepareObjects (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/checkpoint-publication.js:62:16)
+    async file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/checkpoint-publication.js:77:78
+    async #exclusive (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/checkpoint-publication.js:34:14)
+    async #publishCheckpoint (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/work/sync-lifecycle-test-fixtures/fixture-Uaqf1S/background/sync-local-lifecycle.js:153:99)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:80:162)
+    async Test.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+not ok 12 - lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+  ---
+  duration_ms: 44.65625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:83:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of null (reading 'phase')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:84:279)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: pause during committed POST fences late response and explicit same task continuation first reconciles it
+not ok 13 - pause during committed POST fences late response and explicit same task continuation first reconciles it
+  ---
+  duration_ms: 42.716875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:86:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: binding generation change and foreign account block old pending upload without retargeting it
+not ok 14 - binding generation change and foreign account block old pending upload without retargeting it
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:89:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+not ok 15 - durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:92:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: second owner and state changes are refused, malformed provider binding never installs journals
+not ok 16 - second owner and state changes are refused, malformed provider binding never installs journals
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:95:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: wrong task command does not mutate pending identity or conceal original failure
+not ok 17 - wrong task command does not mutate pending identity or conceal original failure
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:98:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+not ok 18 - existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:101:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: suspend cancellation reconciles local state without IO or automatic continuation
+not ok 19 - suspend cancellation reconciles local state without IO or automatic continuation
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:105:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: cold recovery of original confirmed publication receipt needs no remote request
+not ok 20 - cold recovery of original confirmed publication receipt needs no remote request
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:109:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: remote loss after original verified cut never causes silently recreating it
+not ok 21 - remote loss after original verified cut never causes silently recreating it
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:113:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=false
+not ok 22 - actual worker synchronous events and same-store command consumer, configured=false
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:119:69'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=true
+not ok 23 - actual worker synchronous events and same-store command consumer, configured=true
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:119:69'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=restore
+not ok 24 - actual worker synchronous events and same-store command consumer, configured=restore
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:119:69'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge
+not ok 25 - actual worker synchronous events and same-store command consumer, configured=purge
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:119:69'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge-unknown
+not ok 26 - actual worker synchronous events and same-store command consumer, configured=purge-unknown
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:119:69'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+not ok 27 - OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:180:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+not ok 28 - interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:183:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: configured capture owner always includes original permanent-denial journal
+not ok 29 - configured capture owner always includes original permanent-denial journal
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:188:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+not ok 30 - Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:190:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: configured actions still require original consent; status and stop remain non-transferring
+not ok 31 - configured actions still require original consent; status and stop remain non-transferring
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:197:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: explicit pause during original preparation fences its transaction checkpoint before any transfer
+not ok 32 - explicit pause during original preparation fences its transaction checkpoint before any transfer
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:201:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 9
+# fail 3
+# cancelled 20
+# skipped 0
+# todo 0
+# duration_ms 320.215417

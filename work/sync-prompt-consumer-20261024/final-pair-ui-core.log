@@ -1,0 +1,268 @@
+TAP version 13
+# Subtest: bound manual local resolves exact Prompt and companion parents together
+ok 1 - bound manual local resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 87.852584
+  type: 'test'
+  ...
+# Subtest: bound manual other resolves exact Prompt and companion parents together
+ok 2 - bound manual other resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 50.641667
+  type: 'test'
+  ...
+# Subtest: bound manual both resolves exact Prompt and companion parents together
+ok 3 - bound manual both resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 47.69225
+  type: 'test'
+  ...
+# Subtest: bound manual manual resolves exact Prompt and companion parents together
+ok 4 - bound manual manual resolves exact Prompt and companion parents together
+  ---
+  duration_ms: 44.743292
+  type: 'test'
+  ...
+# Subtest: bound binding-proof refuses and preserves complete prior owner
+ok 5 - bound binding-proof refuses and preserves complete prior owner
+  ---
+  duration_ms: 29.081459
+  type: 'test'
+  ...
+# Subtest: bound binding-row refuses and preserves complete prior owner
+ok 6 - bound binding-row refuses and preserves complete prior owner
+  ---
+  duration_ms: 28.261083
+  type: 'test'
+  ...
+# Subtest: bound late-binding-write refuses and preserves complete prior owner
+ok 7 - bound late-binding-write refuses and preserves complete prior owner
+  ---
+  duration_ms: 34.884208
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved local pair with full two-parent history
+ok 8 - original remote materializer restores resolved local pair with full two-parent history
+  ---
+  duration_ms: 32.781292
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved other pair with full two-parent history
+ok 9 - original remote materializer restores resolved other pair with full two-parent history
+  ---
+  duration_ms: 32.691209
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved both pair with full two-parent history
+ok 10 - original remote materializer restores resolved both pair with full two-parent history
+  ---
+  duration_ms: 32.688417
+  type: 'test'
+  ...
+# Subtest: original remote materializer restores resolved manual pair with full two-parent history
+ok 11 - original remote materializer restores resolved manual pair with full two-parent history
+  ---
+  duration_ms: 31.316792
+  type: 'test'
+  ...
+# Subtest: remote resolved pair historical-companion rejects within original transaction and preserves all prior rows
+ok 12 - remote resolved pair historical-companion rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 28.837292
+  type: 'test'
+  ...
+# Subtest: remote resolved pair wrong-pair rejects within original transaction and preserves all prior rows
+ok 13 - remote resolved pair wrong-pair rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 25.483833
+  type: 'test'
+  ...
+# Subtest: remote resolved pair old-proof rejects within original transaction and preserves all prior rows
+ok 14 - remote resolved pair old-proof rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 23.710625
+  type: 'test'
+  ...
+# Subtest: remote resolved pair changed-other-preference rejects within original transaction and preserves all prior rows
+ok 15 - remote resolved pair changed-other-preference rejects within original transaction and preserves all prior rows
+  ---
+  duration_ms: 23.343667
+  type: 'test'
+  ...
+# Subtest: original explicit local atomically resolves both complete prompt/companion head sets
+ok 16 - original explicit local atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 62.221042
+  type: 'test'
+  ...
+# Subtest: original explicit other atomically resolves both complete prompt/companion head sets
+ok 17 - original explicit other atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 34.133209
+  type: 'test'
+  ...
+# Subtest: original explicit manual atomically resolves both complete prompt/companion head sets
+ok 18 - original explicit manual atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 38.734875
+  type: 'test'
+  ...
+# Subtest: original explicit both atomically resolves both complete prompt/companion head sets
+ok 19 - original explicit both atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 30.206791
+  type: 'test'
+  ...
+# Subtest: caller null cannot authorize multihead companion resolution
+ok 20 - caller null cannot authorize multihead companion resolution
+  ---
+  duration_ms: 20.092208
+  type: 'test'
+  ...
+# Subtest: caller true cannot authorize multihead companion resolution
+ok 21 - caller true cannot authorize multihead companion resolution
+  ---
+  duration_ms: 17.764542
+  type: 'test'
+  ...
+# Subtest: caller {} cannot authorize multihead companion resolution
+ok 22 - caller {} cannot authorize multihead companion resolution
+  ---
+  duration_ms: 20.600917
+  type: 'test'
+  ...
+# Subtest: caller "forged" cannot authorize multihead companion resolution
+ok 23 - caller "forged" cannot authorize multihead companion resolution
+  ---
+  duration_ms: 18.320584
+  type: 'test'
+  ...
+# Subtest: ordinary write refuses both prompt conflict and direct binding conflict without changing any table
+ok 24 - ordinary write refuses both prompt conflict and direct binding conflict without changing any table
+  ---
+  duration_ms: 18.631625
+  type: 'test'
+  ...
+# Subtest: proof-failure rolls back prompt/binding/proofs/old history/outbox/all tables
+ok 25 - proof-failure rolls back prompt/binding/proofs/old history/outbox/all tables
+  ---
+  duration_ms: 26.538042
+  type: 'test'
+  ...
+# Subtest: late-binding-write rolls back prompt/binding/proofs/old history/outbox/all tables
+ok 26 - late-binding-write rolls back prompt/binding/proofs/old history/outbox/all tables
+  ---
+  duration_ms: 28.775917
+  type: 'test'
+  ...
+# Subtest: original exact preparation still loses to later generation and cannot commit partial companions
+ok 27 - original exact preparation still loses to later generation and cannot commit partial companions
+  ---
+  duration_ms: 23.552458
+  type: 'test'
+  ...
+# Subtest: original private token rejects clone-token substitution without writes
+ok 28 - original private token rejects clone-token substitution without writes
+  ---
+  duration_ms: 21.120417
+  type: 'test'
+  ...
+# Subtest: original private token rejects prompt-parents substitution without writes
+ok 29 - original private token rejects prompt-parents substitution without writes
+  ---
+  duration_ms: 21.682417
+  type: 'test'
+  ...
+# Subtest: original private token rejects binding-envelope substitution without writes
+ok 30 - original private token rejects binding-envelope substitution without writes
+  ---
+  duration_ms: 21.024334
+  type: 'test'
+  ...
+# Subtest: original private token rejects actor substitution without writes
+ok 31 - original private token rejects actor substitution without writes
+  ---
+  duration_ms: 21.338959
+  type: 'test'
+  ...
+# Subtest: original private token rejects operation-kind substitution without writes
+ok 32 - original private token rejects operation-kind substitution without writes
+  ---
+  duration_ms: 20.027
+  type: 'test'
+  ...
+# Subtest: original private token rejects extra-change substitution without writes
+ok 33 - original private token rejects extra-change substitution without writes
+  ---
+  duration_ms: 22.71675
+  type: 'test'
+  ...
+# Subtest: prepared pair remains private and cannot commit a cloned operation envelope
+ok 34 - prepared pair remains private and cannot commit a cloned operation envelope
+  ---
+  duration_ms: 21.15475
+  type: 'test'
+  ...
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 35 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 3.317792
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 36 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 0.969833
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 37 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 0.582791
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 38 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 0.699333
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 39 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 0.738959
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 40 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.377041
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 41 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 0.981208
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 42 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.279708
+  type: 'test'
+  ...
+# Subtest: configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+ok 43 - configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+  ---
+  duration_ms: 0.49125
+  type: 'test'
+  ...
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 682.61425
