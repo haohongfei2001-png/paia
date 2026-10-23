@@ -1,15 +1,16 @@
+import {contextMutationDependencies,validateContextMutationPlanOrder} from './context-mutation-graph.js';
 import {normalizeSavedPayload} from './saved-work-successor-codec.js';
 import {groupOperationPages,createGroupPageBudget,checkGroupPageBudget} from './group-page-reader.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
-import {CORE_LIMITS,validateOperation,validateFrozenOperation,validateHumanCommitGroup,prepareOriginalSourceWorkingReceive,prepareOriginalCurrentMixedGroupReceive,requireOriginalSourceWorkingCore} from './core.js';
+import {CORE_LIMITS,validateOperation,validateFrozenOperation,validateHumanCommitGroup,validateContextMutationGroup,prepareOriginalSourceWorkingReceive,prepareOriginalCurrentMixedGroupReceive,requireOriginalSourceWorkingCore} from './core.js';
 import {bytes,digest,fail,equal} from './value.js';
 import {prepareInitialSourcePlan,initialSourcePlan} from './source-bootstrap-plan.js';
 import {prepareSourceAppendPlan} from './source-append-plan.js';
 import {promptCorrectionEnvelope} from './prompt-correction-binding.js';
 import {assertTopicDesiredReference} from './topic-desired-codec.js';
 
-const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBootstrapReceive'],sourceAppendCommit:['refs','prepareSourceAppendReceive'],inputWorkingCommit:['members','prepareWorkingReceive'],humanLibraryCommit:['members',null]});
-const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember','humanLibraryMember']);
+const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBootstrapReceive'],sourceAppendCommit:['refs','prepareSourceAppendReceive'],inputWorkingCommit:['members','prepareWorkingReceive'],humanLibraryCommit:['members',null],contextMutationCommit:['members',null]});
+const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember','humanLibraryMember','contextMutationMember']);
 const singles=new Set(['promptPreferences','promptBinding','consumerPreference','topicDesired','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent','savedWorkBootstrap','savedWorkSuccessor']);
 const freeze=x=>{if(x&&typeof x==='object'){for(const value of Object.values(x))freeze(value);Object.freeze(x);}return x;};
 const originalPlans=new WeakMap(),originalOperationSizes=new WeakMap();
@@ -82,7 +83,7 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
   if(Object.hasOwn(families,op.type)){
    const [refs,prepare]=families[op.type];rows=[];
    for(const ref of op.value[refs]){const row=byRevision.get(ref.revisionId);if(!row||row.type!==ref.type||row.entityId!==ref.entityId)fail('BNS_GROUP_INCOMPLETE');rows.push(row);}
-   rows.push(op);prepared=currentSourceWorking==='mixed'?await prepareOriginalCurrentMixedGroupReceive(core,op.type,rows):op.type==='humanLibraryCommit'?await validateHumanCommitGroup(rows,core.datasetId):currentSourceWorking?await prepareOriginalSourceWorkingReceive(core,op.type,rows):await core[prepare](rows);
+   rows.push(op);prepared=op.type==='contextMutationCommit'?await validateContextMutationGroup(rows,core.datasetId):currentSourceWorking==='mixed'?await prepareOriginalCurrentMixedGroupReceive(core,op.type,rows):op.type==='humanLibraryCommit'?await validateHumanCommitGroup(rows,core.datasetId):currentSourceWorking?await prepareOriginalSourceWorkingReceive(core,op.type,rows):await core[prepare](rows);
    const entities=Object.fromEntries(prepared.members.map(row=>[row.value.entityType,row.value.entity]));
    if(op.type==='sourceBootstrapCommit')capability=await prepareInitialSourcePlan(entities);
    if(op.type==='sourceAppendCommit')capability=await prepareSourceAppendPlan(entities,op.value.documentId);
@@ -104,6 +105,7 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
  const promptBindings=new Map();for(const group of groups)if(group.type==='promptBinding'){const ref=group.operations[0].value.promptRevisionId;if(promptBindings.has(ref))fail('BNS_PROMPT_BINDING_INVALID');promptBindings.set(ref,group);}
  for(const group of groups){
   for(const op of group.operations){if(op.type==='humanLibraryMember'&&(op.parents.length>1||!equal(op.parents.length?byRevision.get(op.parents[0])?.value.after:null,op.value.before)))fail('BNS_HUMAN_OWNER_CHANGED');for(const id of op.parents){const parent=byRevision.get(id);if(!parent||parent.type!==op.type||parent.entityId!==op.entityId)fail('BNS_GROUP_CAUSAL_GAP');depend(group,claimed.get(id));}}
+  if(group.type==='contextMutationCommit'){for(const revision of await contextMutationDependencies(group,byRevision))depend(group,claimed.get(revision));for(const other of groups)if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit','humanLibraryCommit'].includes(other.type))depend(group,other);}
   if(group.type==='sourceAppendCommit'){
    const anchor=group.prepared.descriptor.value.bootstrap,op=byRevision.get(anchor.revisionId),parent=claimed.get(anchor.revisionId);
    if(!op||op.type!=='sourceBootstrapCommit'||op.operationId!==anchor.operationId||!op.value.members.some(ref=>ref.revisionId===anchor.documentMemberRevisionId&&ref.entityId==='inputDocument:'+group.prepared.descriptor.value.documentId))fail('BNS_GROUP_CAUSAL_GAP');depend(group,parent);
@@ -157,6 +159,7 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
 
  const done=new Set(),ordered=[];
  while(ordered.length<groups.length){const ready=groups.filter(group=>!done.has(group.id)&&[...group.dependencies].every(id=>done.has(id))).sort((a,b)=>a.id.localeCompare(b.id));if(!ready.length)fail('BNS_GROUP_CAUSAL_GAP');for(const group of ready){done.add(group.id);ordered.push({...group,dependencies:[...group.dependencies].sort()});}}
+ if(ordered.some(group=>group.type==='contextMutationCommit'))await validateContextMutationPlanOrder(ordered);
  // Exact ordering commitment is independent of received object/page order.
  const graph=ordered.map(group=>({id:group.id,type:group.type,revisions:group.operations.map(op=>op.revisionId),dependencies:group.dependencies}));
  const plan=freeze({heads:[...heads].map(([key,revisions])=>({type:JSON.parse(key)[0],entityId:JSON.parse(key)[1],revisions,purged:false,fence:null})).sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId]))),groups:ordered,operationCount:operations.length,operationBytes:size,digest:await digest(graph)});

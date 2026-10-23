@@ -1,3 +1,5 @@
+import {originalContextMutationPreparation,requireContextMutationProtocolOwner,executeOriginalContextMutationApplication,finalizeOriginalContextMutationApplication,releaseOriginalContextMutationApplication} from './context-mutation-journal.js';
+import {executeOriginalContextGroupStep} from './context-mutation-group.js';
 import {requireOriginalPromptBindingResolution} from './prompt-journal.js';
 import {promptCorrectionEnvelope} from './prompt-correction-binding.js';
 import {assertTopicFormationOperation} from './topic-formation-codec.js';
@@ -17,6 +19,16 @@ import {claimHumanBranchRetention,requireHumanBranchRetentionInTransaction,asser
 import {CODECS,validateEntityAsync} from './codecs.js';
 import {assertConsumerPreferenceOperation} from './consumer-preference-codec.js';
 import {canonical,clone,count,digest,equal,exact,fail,hash,identifier,opaque,SyncError,bytes} from './value.js';
+
+function freezeContextProtocol(value){if(value&&typeof value==='object'){for(const child of Object.values(value))freezeContextProtocol(child);Object.freeze(value);}return value;}
+export async function validateContextMutationGroup(input,datasetId){
+ if(!Array.isArray(input)||input.length<2||input.length>3||input.reduce((n,op)=>n+bytes(op).length,0)>2*1024*1024)fail('BNS_CONTEXT_GROUP_INVALID');
+ const operations=[];for(const raw of input){const op=await validateOperation(raw);if(op.datasetId!==datasetId||op.kind!=='put'||!['user','bootstrap'].includes(op.actor)||!['contextMutationMember','contextMutationCommit'].includes(op.type))fail('BNS_CONTEXT_GROUP_INVALID');operations.push(op);}
+ const commits=operations.filter(op=>op.type==='contextMutationCommit');if(commits.length!==1)fail('BNS_CONTEXT_GROUP_INVALID');const descriptor=commits[0],members=operations.filter(op=>op!==descriptor);
+ if(descriptor.actor!==(descriptor.value.command.kind==='bootstrap'?'bootstrap':'user')||members.some(op=>op.actor!==descriptor.actor)||descriptor.parents.length||members.length!==descriptor.value.members.length||new Set(operations.map(op=>op.operationId)).size!==operations.length||new Set(operations.map(op=>op.revisionId)).size!==operations.length||new Set(operations.map(op=>op.sequence)).size!==operations.length)fail('BNS_CONTEXT_GROUP_INVALID');
+ for(const ref of descriptor.value.members){const op=members.find(m=>m.revisionId===ref.revisionId);if(!op||op.entityId!==ref.entityId||op.type!==ref.type||op.value.logicalCommitId!==descriptor.entityId||op.deviceId!==descriptor.deviceId||op.sequence>=descriptor.sequence||op.parents.length>1||!equal(op.parents,op.value.previous?.type==='contextMutationMember'?[op.value.previous.revisionId]:[]))fail('BNS_CONTEXT_GROUP_INVALID');}
+ return {descriptor,members,operations:[...members,descriptor]};
+}
 
 export const CORE_LIMITS=Object.freeze({batch:128,batchBytes:4*1024*1024,parents:128,heads:128,gapRanges:4096,ancestryReads:100000,pendingDependents:512});
 // The original Core alone records retention phase. Plan imports the fixed
@@ -147,6 +159,8 @@ export function calculateHumanRetentionHeadVectors(operations,recordedHeads,reco
 // an explicit meta namespace. No schema upgrade, arbitrary-store export, network
 // adapter, automatic enablement or second user-facing content store is installed.
 export class BrowserNativeSyncCore {
+ #contextPrepared=new WeakSet();
+ #contextTransactions=new WeakMap();
  #humanTransactions=new WeakMap();
  #retentionRepositoryTransaction;
  #humanPrepared=new WeakSet();
@@ -177,8 +191,11 @@ export class BrowserNativeSyncCore {
  async put(t,kind,ids,data){return t.put('meta',{...data,id:await this.idIn(t,kind,...ids)});}
  async namespace(){return this.transaction(false,t=>this.bind(t),['meta']);}
  async read(kind,...ids){return this.transaction(false,t=>this.get(t,kind,...ids),['meta']);}
- async prepareLocal(changes,{actor='user',operationIds=null,logicalCommit=null,sourceBootstrap=null,sourceAppend=null,humanLibrary=null,promptBinding=null,promptBindingResolution=null}={}){
+ async prepareLocal(changes,{actor='user',operationIds=null,logicalCommit=null,sourceBootstrap=null,sourceAppend=null,humanLibrary=null,promptBinding=null,promptBindingResolution=null,contextMutation=null}={}){
   if(!Array.isArray(changes)||!changes.length||changes.length>CORE_LIMITS.batch)fail('BNS_BATCH_LIMIT');
+  if(changes.some(c=>['contextMutationMember','contextMutationCommit'].includes(c.type))&&!contextMutation)fail('BNS_CONTEXT_OWNER_REQUIRED');
+  const contextPreparation=contextMutation?originalContextMutationPreparation(this,contextMutation):null;
+  if(contextPreparation&&(!equal(changes,contextPreparation.changes)||actor!==(contextPreparation.description.command.kind==='bootstrap'?'bootstrap':'user')||logicalCommit||sourceBootstrap||sourceAppend||humanLibrary||promptBinding||promptBindingResolution))fail('BNS_CONTEXT_OWNER_REQUIRED');
   changes=clone(changes);operationIds=operationIds?clone(operationIds):null;promptBinding=promptBinding?clone(promptBinding):null;
   if(promptBindingResolution!==null&&(!promptBinding||actor!=='user'||changes.length!==1||changes[0].type!=='promptPreferences'||changes[0].resolve!==true||!Array.isArray(changes[0].parents)||!Array.isArray(changes[0].expectedParents)))fail('BNS_PROMPT_BINDING_INVALID');
   const snapshot=await this.transaction(false,async t=>{await requireConsumerPublicationSettled(t);
@@ -237,6 +254,10 @@ export class BrowserNativeSyncCore {
    const value={...clone(humanLibrary),datasetId:this.datasetId,deviceId:this.deviceId,members:operations.map(op=>({type:op.type,entityId:op.entityId,revisionId:op.revisionId,operationId:op.operationId}))};
    operations.push(await sealOperation({protocol:1,datasetId:this.datasetId,deviceId:this.deviceId,sequence:++sequence,operationId:crypto.randomUUID(),type:'humanLibraryCommit',entityId:value.id,codecVersion:1,kind:'put',actor:'user',parents:[],value}));
   }
+  if(contextPreparation){
+   const value={...contextPreparation.description,members:operations.map(op=>({type:op.type,entityId:op.entityId,revisionId:op.revisionId}))};
+   operations.push(await sealOperation({protocol:1,datasetId:this.datasetId,deviceId:this.deviceId,sequence:++sequence,operationId:crypto.randomUUID(),type:'contextMutationCommit',entityId:value.id,codecVersion:1,kind:'put',actor,parents:[],value}));
+  }
   if(humanLibrary)await this.transaction(false,t=>this.requireHumanAncestry(t,operations),['meta']);
   if(operations.reduce((sum,operation)=>sum+bytes(operation).length,0)>CORE_LIMITS.batchBytes)fail('BNS_BATCH_BYTES');
   return {datasetId:this.datasetId,deviceId:this.deviceId,baseSequence:snapshot.sequence,baseGeneration:snapshot.generation,baseNamespace:snapshot.namespace,operations};
@@ -291,6 +312,10 @@ export class BrowserNativeSyncCore {
   return false;
  }
  async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null,appendCapability=null,humanCapability=null,humanRetentionCapability=null}={}){
+  if(['contextMutationMember','contextMutationCommit'].includes(operation.type)){
+   if(origin==='local')requireContextMutationProtocolOwner(t,this,operation);
+   else if(!this.#contextTransactions.get(t)?.operations.includes(operation))fail('BNS_CONTEXT_GROUP_REQUIRED');
+  }
   if(operation.type==='topicActivity')requireOriginalTopicActivityProtocolOwner(t,this,operation,origin);
   if(operation.type==='topicFormation')requireOriginalFormationProtocolOwner(t,this,operation,origin);
   const sourcePurge=operation.type==='sourcePurgeIntent'||operation.kind==='purge'&&['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type);
@@ -369,6 +394,49 @@ export class BrowserNativeSyncCore {
  async requireHumanAncestry(t,operations){
   const seen=new Map(operations.map(op=>[op.revisionId,op])),queue=operations.flatMap(op=>op.parents);let size=operations.reduce((n,op)=>n+bytes(op).length,0);if(seen.size>CORE_LIMITS.batch||size>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');
   while(queue.length){const id=queue.pop();if(seen.has(id))continue;const row=await this.get(t,'revision',id);if(!row||row.redacted)fail('BNS_HUMAN_ANCESTRY_REQUIRED');const op=row.operation;if(!['humanLibraryMember','humanLibraryCommit'].includes(op.type))fail('BNS_HUMAN_ANCESTRY_REQUIRED');seen.set(id,op);size+=bytes(op).length;if(seen.size>CORE_LIMITS.batch||size>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');queue.push(...op.parents);if(op.type==='humanLibraryMember'){const head=await this.get(t,'head','humanLibraryCommit',op.value.logicalCommitId);if(head?.purged||head?.revisions.length!==1)fail('BNS_HUMAN_ANCESTRY_REQUIRED');queue.push(...head.revisions);}else queue.push(...op.value.members.map(ref=>ref.revisionId));}
+ }
+ async prepareContextMutation(capability){
+  const {changes,description}=originalContextMutationPreparation(this,capability);
+  return this.prepare(changes,{contextMutation:capability,actor:description.command.kind==='bootstrap'?'bootstrap':'user'});
+ }
+ async prepareContextMutationReceive(input){
+  const protocol=await validateContextMutationGroup(input,this.datasetId);
+  const cut=await this.transaction(false,async t=>{
+   const receipts=await Promise.all(protocol.operations.map(op=>this.get(t,'receipt',op.operationId)));
+   if(receipts.some(Boolean)){if(!receipts.every((r,i)=>r?.digest===protocol.operations[i].revisionId))fail('BNS_CONTEXT_GROUP_PARTIAL');return {duplicate:true};}
+   for(const op of protocol.members){
+    const head=await this.get(t,'head',op.type,op.entityId);if(head?.purged||!equal(head?.revisions??[],op.parents))fail('BNS_CONTEXT_OWNER_CHANGED');
+    const previous=op.value.previous;
+    if(previous){const row=await this.get(t,'revision',previous.revisionId),oldHead=await this.get(t,'head',previous.type,previous.entityId);if(!row||row.redacted||row.operation.type!==previous.type||row.operation.entityId!==previous.entityId||oldHead?.purged||!equal(oldHead?.revisions,[previous.revisionId]))fail('BNS_CONTEXT_ANCESTRY_REQUIRED');}
+   }
+   return {namespace:await this.bind(t),generation:(await this.get(t,'generation'))?.value||0};
+  },['meta']);
+  const result={...protocol,...cut};freezeContextProtocol(result);this.#contextPrepared.add(result);return result;
+ }
+ contextMutationReceiveState(prepared){if(!this.#contextPrepared.has(prepared))fail('BNS_CONTEXT_GROUP_REQUIRED');return prepared;}
+ async prepareContextRestoreProtocols(plan){
+  requireOriginalGroupCheckpointPlan(this,plan);if(!this.fixedNamespace)fail('BNS_CONTEXT_RESTORE_REQUIRED');
+  const result=[];let generation=0;
+  for(const group of plan.groups){if(group.type==='contextMutationCommit'){const protocol=await validateContextMutationGroup(group.operations,this.datasetId);if(protocol.descriptor.revisionId!==group.id)fail('BNS_CONTEXT_GROUP_INVALID');const prepared={...protocol,namespace:this.fixedNamespace,generation};freezeContextProtocol(prepared);result.push(prepared);}generation+=group.operations.length;}
+  await this.transaction(false,async t=>{if(await this.bind(t)!==this.fixedNamespace||(await t.primaryRangePage('meta',{prefix:this.prefix+'generation:'+this.fixedNamespace+':',limit:1})).rows.length)fail('BNS_CONTEXT_RESTORE_REQUIRED');},['meta']);
+  for(const prepared of result)this.#contextPrepared.add(prepared);return Object.freeze(result);
+ }
+ async commitContextRestoreProtocol(t,prepared,capability){
+  this.contextMutationReceiveState(prepared);if(!this.fixedNamespace||prepared.namespace!==this.fixedNamespace||await this.bind(t)!==prepared.namespace||((await this.get(t,'generation'))?.value||0)!==prepared.generation)fail('BNS_PREPARATION_STALE');
+  await requireConsumerPublicationSettled(t);
+  for(const op of prepared.members){const head=await this.get(t,'head',op.type,op.entityId);if(head?.purged||!equal(head?.revisions??[],op.parents))fail('BNS_CONTEXT_OWNER_CHANGED');const previous=op.value.previous;if(previous){const old=await this.get(t,'head',previous.type,previous.entityId),revision=await this.get(t,'revision',previous.revisionId);if(old?.purged||!equal(old?.revisions,[previous.revisionId])||!revision||revision.redacted)fail('BNS_CONTEXT_ANCESTRY_REQUIRED');}}
+  this.#contextTransactions.set(t,prepared);
+  try{await executeOriginalContextGroupStep(t,this,prepared,capability);for(const op of prepared.operations){const result=await this.applyInTransaction(t,op,{origin:'remote',materialize:false});if(result.state!=='applied')fail('BNS_CONTEXT_ANCESTRY_REQUIRED');}for(const op of prepared.members)await this.recordMaterializedOwner(t,op,op.value.item.revision);return {state:'applied'};}
+  finally{this.#contextTransactions.delete(t);}
+ }
+ async commitContextMutationReceive(t,prepared,ownerPlan){
+  this.contextMutationReceiveState(prepared);await requireConsumerPublicationSettled(t);
+  if(prepared.duplicate){for(const op of prepared.operations)if((await this.get(t,'receipt',op.operationId))?.digest!==op.revisionId)fail('BNS_CONTEXT_GROUP_PARTIAL');return {state:'duplicate'};}
+  if(await this.bind(t)!==prepared.namespace||((await this.get(t,'generation'))?.value||0)!==prepared.generation)fail('BNS_PREPARATION_STALE');
+  for(const op of prepared.members){const head=await this.get(t,'head',op.type,op.entityId);if(head?.purged||!equal(head?.revisions??[],op.parents))fail('BNS_CONTEXT_OWNER_CHANGED');}
+  this.#contextTransactions.set(t,prepared);
+  try{await executeOriginalContextMutationApplication(t,this,prepared,ownerPlan);for(const op of prepared.operations){const result=await this.applyInTransaction(t,op,{origin:'remote',materialize:false});if(result.state!=='applied')fail('BNS_CONTEXT_ANCESTRY_REQUIRED');}for(const op of prepared.members)await this.recordMaterializedOwner(t,op,op.value.item.revision);await finalizeOriginalContextMutationApplication(t,this,prepared,ownerPlan);return {state:'applied'};}
+  finally{this.#contextTransactions.delete(t);releaseOriginalContextMutationApplication(ownerPlan);}
  }
  async prepareHumanReceive(input){
   const {descriptor,members:ordered,operations}=await validateHumanCommitGroup(input,this.datasetId);
@@ -685,4 +753,10 @@ const topicActivityCorePrototype=BrowserNativeSyncCore.prototype,topicActivityCo
 export function requireOriginalTopicActivityCoreMethods(core){
  requireOriginalSourceWorkingCore(core);
  for(const [name,expected]of topicActivityCoreMethods){const actual=Object.getOwnPropertyDescriptor(topicActivityCorePrototype,name);if(Object.getOwnPropertyDescriptor(core,name)||!actual||['value','get','set','writable','enumerable','configurable'].some(key=>actual[key]!==expected[key]))fail('BNS_TOPIC_ACTIVITY_OWNER_REQUIRED');}
+}
+
+const originalContextCorePrototype=BrowserNativeSyncCore.prototype,originalContextCoreMethods=Object.getOwnPropertyNames(originalContextCorePrototype).filter(name=>name!=='constructor').map(name=>[name,Object.getOwnPropertyDescriptor(originalContextCorePrototype,name)]);
+export function requireOriginalContextMutationCore(core){
+ requireOriginalSourceWorkingCore(core);
+ for(const [name,expected]of originalContextCoreMethods){const actual=Object.getOwnPropertyDescriptor(originalContextCorePrototype,name);if(Object.getOwnPropertyDescriptor(core,name)||!actual||['value','get','set','writable','enumerable','configurable'].some(key=>actual[key]!==expected[key]))fail('BNS_CONTEXT_OWNER_REQUIRED');}
 }

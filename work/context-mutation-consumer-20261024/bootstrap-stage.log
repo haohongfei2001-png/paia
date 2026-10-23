@@ -1,0 +1,35 @@
+TAP version 13
+# Subtest: explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+not ok 1 - explicit bootstrap reads existing original manual owner and does not mint a second command receipt
+  ---
+  duration_ms: 70.248917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-journal.test.mjs:37:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Got unwanted rejection: remote bootstrap
+    Actual message: "STORAGE_FAILED"
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+  error: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/idb-repository.js:27:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/idb-repository.js:523:1205)
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/indexed-store.js:203:11
+  operator: 'doesNotReject'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/context-mutation-journal.test.mjs:39:181)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 188.589083
