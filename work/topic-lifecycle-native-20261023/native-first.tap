@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: explicit local Topic lifecycle native source
+ok 1 - explicit local Topic lifecycle native source
+  ---
+  duration_ms: 5844.541458
+  type: 'test'
+  ...
+# Subtest: explicit local Topic lifecycle native release
+ok 2 - explicit local Topic lifecycle native release
+  ---
+  duration_ms: 6645.081875
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17436.227334
