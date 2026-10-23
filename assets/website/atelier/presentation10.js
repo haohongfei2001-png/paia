@@ -54,7 +54,9 @@
  }
  const stories=$$('[data-story]').map(el=>new Story(el));
  function schedule(){if(!raf&&!document.hidden&&!reduce.matches){last=0;raf=requestAnimationFrame(tick);}}
- function tick(time){const delta=last?Math.min(time-last,80):0;last=time;let active=false;for(const story of stories){if(story.visible&&story.started&&!story.done&&!story.paused){story.advance(delta);active=true;}}raf=active?requestAnimationFrame(tick):0;if(!active)last=0;}
+ // Count visible elapsed time, not a capped frame budget. Otherwise a busy
+ // device stretches a finite presentation indefinitely at a low frame rate.
+ function tick(time){const delta=last?Math.max(0,time-last):0;last=time;let active=false;for(const story of stories){if(story.visible&&story.started&&!story.done&&!story.paused){story.advance(delta);active=true;}}raf=active?requestAnimationFrame(tick):0;if(!active)last=0;}
  if('IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>{for(const entry of entries){const story=stories.find(s=>s.el===entry.target);story.visible=entry.isIntersecting;if(story.visible){if(reduce.matches)story.showFinal();else story.start();story.el.getAnimations({subtree:true}).forEach(a=>{if(!story.paused)a.play();});}else story.el.getAnimations({subtree:true}).forEach(a=>a.pause());}schedule();},{threshold:.18});stories.forEach(s=>observer.observe(s.el));}else stories.forEach(s=>s.showFinal());
  if(reduce.matches)stories.forEach(s=>s.showFinal());
  reduce.addEventListener('change',()=>{if(reduce.matches){cancelAnimationFrame(raf);raf=0;stories.forEach(s=>{s.showFinal();s.el.getAnimations({subtree:true}).forEach(a=>a.finish());});}else schedule();});
