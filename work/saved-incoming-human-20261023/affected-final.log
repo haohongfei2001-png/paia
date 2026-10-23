@@ -1,0 +1,406 @@
+TAP version 13
+# Subtest: incoming Human create into mixed B keeps Saved and outbox and continues to cold C
+ok 1 - incoming Human create into mixed B keeps Saved and outbox and continues to cold C
+  ---
+  duration_ms: 1332.486917
+  type: 'test'
+  ...
+# Subtest: incoming Human edit into mixed B keeps Saved and outbox and continues to cold C
+ok 2 - incoming Human edit into mixed B keeps Saved and outbox and continues to cold C
+  ---
+  duration_ms: 974.467833
+  type: 'test'
+  ...
+# Subtest: same Human entity fork rejects before changing mixed B
+ok 3 - same Human entity fork rejects before changing mixed B
+  ---
+  duration_ms: 318.619875
+  type: 'test'
+  ...
+# Subtest: incoming Human owner return rejects counter atomically
+ok 4 - incoming Human owner return rejects counter atomically
+  ---
+  duration_ms: 386.886042
+  type: 'test'
+  ...
+# Subtest: incoming Human owner return rejects Saved history atomically
+ok 5 - incoming Human owner return rejects Saved history atomically
+  ---
+  duration_ms: 384.393583
+  type: 'test'
+  ...
+# Subtest: incoming Human owner return rejects Saved mapping atomically
+ok 6 - incoming Human owner return rejects Saved mapping atomically
+  ---
+  duration_ms: 490.764583
+  type: 'test'
+  ...
+# Subtest: incoming Human owner return rejects local outbox atomically
+ok 7 - incoming Human owner return rejects local outbox atomically
+  ---
+  duration_ms: 602.769083
+  type: 'test'
+  ...
+# Subtest: incoming Human owner return rejects Human mapping atomically
+ok 8 - incoming Human owner return rejects Human mapping atomically
+  ---
+  duration_ms: 554.147084
+  type: 'test'
+  ...
+# Subtest: incoming Human owner return rejects protocol atomically
+ok 9 - incoming Human owner return rejects protocol atomically
+  ---
+  duration_ms: 451.453917
+  type: 'test'
+  ...
+# Subtest: incoming Human owner return rejects extra row atomically
+ok 10 - incoming Human owner return rejects extra row atomically
+  ---
+  duration_ms: 385.9865
+  type: 'test'
+  ...
+# Subtest: incoming Human final tail rejects counter atomically
+ok 11 - incoming Human final tail rejects counter atomically
+  ---
+  duration_ms: 392.971833
+  type: 'test'
+  ...
+# Subtest: incoming Human final tail rejects Saved history atomically
+ok 12 - incoming Human final tail rejects Saved history atomically
+  ---
+  duration_ms: 370.557125
+  type: 'test'
+  ...
+# Subtest: incoming Human final tail rejects Saved mapping atomically
+ok 13 - incoming Human final tail rejects Saved mapping atomically
+  ---
+  duration_ms: 379.237458
+  type: 'test'
+  ...
+# Subtest: incoming Human final tail rejects local outbox atomically
+ok 14 - incoming Human final tail rejects local outbox atomically
+  ---
+  duration_ms: 386.468209
+  type: 'test'
+  ...
+# Subtest: incoming Human final tail rejects Human mapping atomically
+ok 15 - incoming Human final tail rejects Human mapping atomically
+  ---
+  duration_ms: 399.214834
+  type: 'test'
+  ...
+# Subtest: incoming Human final tail rejects protocol atomically
+ok 16 - incoming Human final tail rejects protocol atomically
+  ---
+  duration_ms: 377.80075
+  type: 'test'
+  ...
+# Subtest: incoming Human final tail rejects extra row atomically
+ok 17 - incoming Human final tail rejects extra row atomically
+  ---
+  duration_ms: 380.615333
+  type: 'test'
+  ...
+# Subtest: incoming Human failure rolls back original group and explicit retry returns once
+ok 18 - incoming Human failure rolls back original group and explicit retry returns once
+  ---
+  duration_ms: 481.348958
+  type: 'test'
+  ...
+# Subtest: incoming Human edit preserves resident planned financial and completion semantics
+ok 19 - incoming Human edit preserves resident planned financial and completion semantics
+  ---
+  duration_ms: 385.36675
+  type: 'test'
+  ...
+# Subtest: incoming Human edit preserves resident unknown financial and completion semantics
+ok 20 - incoming Human edit preserves resident unknown financial and completion semantics
+  ---
+  duration_ms: 444.647166
+  type: 'test'
+  ...
+# Subtest: incoming Human edit preserves resident settled financial and completion semantics
+ok 21 - incoming Human edit preserves resident settled financial and completion semantics
+  ---
+  duration_ms: 390.640167
+  type: 'test'
+  ...
+# Subtest: incoming Human edit preserves resident committed financial and completion semantics
+ok 22 - incoming Human edit preserves resident committed financial and completion semantics
+  ---
+  duration_ms: 394.946708
+  type: 'test'
+  ...
+# Subtest: cold Saved edit rejects missing allocation mapping without writing
+ok 23 - cold Saved edit rejects missing allocation mapping without writing
+  ---
+  duration_ms: 652.164625
+  type: 'test'
+  ...
+# Subtest: cold Saved edit rejects wrong revision allocation mapping without writing
+ok 24 - cold Saved edit rejects wrong revision allocation mapping without writing
+  ---
+  duration_ms: 651.373583
+  type: 'test'
+  ...
+# Subtest: cold Saved edit rejects wrong entity allocation mapping without writing
+ok 25 - cold Saved edit rejects wrong entity allocation mapping without writing
+  ---
+  duration_ms: 633.314834
+  type: 'test'
+  ...
+# Subtest: cold Saved edit rejects copied local allocation mapping without writing
+ok 26 - cold Saved edit rejects copied local allocation mapping without writing
+  ---
+  duration_ms: 627.331167
+  type: 'test'
+  ...
+# Subtest: cold Saved edit rejects forged version allocation mapping without writing
+ok 27 - cold Saved edit rejects forged version allocation mapping without writing
+  ---
+  duration_ms: 633.785041
+  type: 'test'
+  ...
+# Subtest: wire Saved allocation collision still fails before the mixed receiver writes
+ok 28 - wire Saved allocation collision still fails before the mixed receiver writes
+  ---
+  duration_ms: 78.016125
+  type: 'test'
+  ...
+# Subtest: two incoming Human groups resume only after their complete durable owner boundary
+ok 29 - two incoming Human groups resume only after their complete durable owner boundary
+  ---
+  duration_ms: 542.47725
+  type: 'test'
+  ...
+# Subtest: local mutation after incoming Human stage rejects before first owner write
+ok 30 - local mutation after incoming Human stage rejects before first owner write
+  ---
+  duration_ms: 308.73775
+  type: 'test'
+  ...
+# Subtest: forged v2 upgrade of a v1 local mapping does not mint a cold allocation
+ok 31 - forged v2 upgrade of a v1 local mapping does not mint a cold allocation
+  ---
+  duration_ms: 272.538625
+  type: 'test'
+  ...
+# Subtest: multiple Saved entities retain unique cold local allocations and separate wire identities
+ok 32 - multiple Saved entities retain unique cold local allocations and separate wire identities
+  ---
+  duration_ms: 704.170083
+  type: 'test'
+  ...
+# Subtest: mixed existing B retains original Human work and outbox across Saved successors and cold C
+ok 33 - mixed existing B retains original Human work and outbox across Saved successors and cold C
+  ---
+  duration_ms: 1123.099125
+  type: 'test'
+  ...
+# Subtest: incoming Human edit respects the Saved mixed consumer and same-entity conflict
+ok 34 - incoming Human edit respects the Saved mixed consumer and same-entity conflict
+  ---
+  duration_ms: 372.5615
+  type: 'test'
+  ...
+# Subtest: incoming Human create respects the Saved mixed consumer and same-entity conflict
+ok 35 - incoming Human create respects the Saved mixed consumer and same-entity conflict
+  ---
+  duration_ms: 544.019542
+  type: 'test'
+  ...
+# Subtest: mixed Saved same-entity fork refuses before all canonical and protocol writes
+ok 36 - mixed Saved same-entity fork refuses before all canonical and protocol writes
+  ---
+  duration_ms: 327.439
+  type: 'test'
+  ...
+# Subtest: mixed Saved partial commit resumes after a cold coordinator restart
+ok 37 - mixed Saved partial commit resumes after a cold coordinator restart
+  ---
+  duration_ms: 564.468042
+  type: 'test'
+  ...
+# Subtest: mixed Saved partial commit rejects a subsequently edited Human base
+ok 38 - mixed Saved partial commit rejects a subsequently edited Human base
+  ---
+  duration_ms: 466.911375
+  type: 'test'
+  ...
+# Subtest: mixed Saved lost final return is settled by durable receipt without repeating owner writes
+ok 39 - mixed Saved lost final return is settled by durable receipt without repeating owner writes
+  ---
+  duration_ms: 517.294541
+  type: 'test'
+  ...
+# Subtest: ancestor-only mixed Saved checkpoint preserves newer Human and Saved content and local sends
+ok 40 - ancestor-only mixed Saved checkpoint preserves newer Human and Saved content and local sends
+  ---
+  duration_ms: 545.967875
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human body drift with complete step rollback
+ok 41 - mixed Saved original-owner return rejects Human body drift with complete step rollback
+  ---
+  duration_ms: 529.203833
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human physical allocation drift with complete step rollback
+ok 42 - mixed Saved original-owner return rejects Human physical allocation drift with complete step rollback
+  ---
+  duration_ms: 463.489875
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human history drift with complete step rollback
+ok 43 - mixed Saved original-owner return rejects Human history drift with complete step rollback
+  ---
+  duration_ms: 380.697209
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human receipt drift with complete step rollback
+ok 44 - mixed Saved original-owner return rejects Human receipt drift with complete step rollback
+  ---
+  duration_ms: 377.654833
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human mapping drift with complete step rollback
+ok 45 - mixed Saved original-owner return rejects Human mapping drift with complete step rollback
+  ---
+  duration_ms: 381.486542
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects local outbox drift with complete step rollback
+ok 46 - mixed Saved original-owner return rejects local outbox drift with complete step rollback
+  ---
+  duration_ms: 380.955708
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human semantic drift with complete step rollback
+ok 47 - mixed Saved original-owner return rejects Human semantic drift with complete step rollback
+  ---
+  duration_ms: 370.224209
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Source drift with complete step rollback
+ok 48 - mixed Saved original-owner return rejects Source drift with complete step rollback
+  ---
+  duration_ms: 367.471958
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects stage cursor drift with complete step rollback
+ok 49 - mixed Saved original-owner return rejects stage cursor drift with complete step rollback
+  ---
+  duration_ms: 368.162625
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects extra row drift with complete step rollback
+ok 50 - mixed Saved original-owner return rejects extra row drift with complete step rollback
+  ---
+  duration_ms: 358.459583
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects suppression key drift with complete step rollback
+ok 51 - mixed Saved original-owner return rejects suppression key drift with complete step rollback
+  ---
+  duration_ms: 355.996709
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects search queue drift with complete step rollback
+ok 52 - mixed Saved original-owner return rejects search queue drift with complete step rollback
+  ---
+  duration_ms: 349.385875
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects Human body drift atomically
+ok 53 - mixed Saved final backup tail rejects Human body drift atomically
+  ---
+  duration_ms: 375.655792
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects Human history drift atomically
+ok 54 - mixed Saved final backup tail rejects Human history drift atomically
+  ---
+  duration_ms: 437.952125
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects Human semantic drift atomically
+ok 55 - mixed Saved final backup tail rejects Human semantic drift atomically
+  ---
+  duration_ms: 372.116542
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects stage cursor drift atomically
+ok 56 - mixed Saved final backup tail rejects stage cursor drift atomically
+  ---
+  duration_ms: 386.480459
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects extra row drift atomically
+ok 57 - mixed Saved final backup tail rejects extra row drift atomically
+  ---
+  duration_ms: 372.293625
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects search queue drift atomically
+ok 58 - mixed Saved final backup tail rejects search queue drift atomically
+  ---
+  duration_ms: 410.074375
+  type: 'test'
+  ...
+# Subtest: mixed Saved private work limit rejects overflow despite rewritten public metrics
+ok 59 - mixed Saved private work limit rejects overflow despite rewritten public metrics
+  ---
+  duration_ms: 424.99
+  type: 'test'
+  ...
+# Subtest: mixed Saved storage failure rolls back both partitions then explicit retry commits once
+ok 60 - mixed Saved storage failure rolls back both partitions then explicit retry commits once
+  ---
+  duration_ms: 480.233167
+  type: 'test'
+  ...
+# Subtest: mixed Saved clock deadline preserves only acknowledged complete steps and allows explicit resume
+ok 61 - mixed Saved clock deadline preserves only acknowledged complete steps and allows explicit resume
+  ---
+  duration_ms: 558.107375
+  type: 'test'
+  ...
+# Subtest: mixed Saved Source edit after stage rejects without changing either owner
+ok 62 - mixed Saved Source edit after stage rejects without changing either owner
+  ---
+  duration_ms: 290.678625
+  type: 'test'
+  ...
+# Subtest: mixed ancestor acknowledgement rejects late Human semantic corruption without a Saved write
+ok 63 - mixed ancestor acknowledgement rejects late Human semantic corruption without a Saved write
+  ---
+  duration_ms: 326.009209
+  type: 'test'
+  ...
+# Subtest: mixed Saved rejects preexisting Human mapping revisionId corruption instead of authenticating it as retained state
+ok 64 - mixed Saved rejects preexisting Human mapping revisionId corruption instead of authenticating it as retained state
+  ---
+  duration_ms: 337.077542
+  type: 'test'
+  ...
+# Subtest: mixed Saved rejects preexisting Human mapping local corruption instead of authenticating it as retained state
+ok 65 - mixed Saved rejects preexisting Human mapping local corruption instead of authenticating it as retained state
+  ---
+  duration_ms: 338.362
+  type: 'test'
+  ...
+# Subtest: mixed Saved rejects preexisting Human mapping extra corruption instead of authenticating it as retained state
+ok 66 - mixed Saved rejects preexisting Human mapping extra corruption instead of authenticating it as retained state
+  ---
+  duration_ms: 335.396583
+  type: 'test'
+  ...
+1..66
+# tests 66
+# suites 0
+# pass 66
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15937.2115

@@ -1,0 +1,7 @@
+{
+  "node": "v22.23.3",
+  "platform": "Darwin",
+  "machine": "arm64",
+  "scope": "synthetic local Node only",
+  "runtimeCommit": "cbbb8a3b03016e3073577a1d4c4c2d4ddce33586"
+}

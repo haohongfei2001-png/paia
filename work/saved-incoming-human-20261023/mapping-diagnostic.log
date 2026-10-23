@@ -1,0 +1,33 @@
+TAP version 13
+# MAPPING_DEBUG {"mapping":{"version":2,"revisionId":"0849c1e059c6a03d0dcd861e6e2208fdb58e07524c8cc43b30370be9cd934111","wire":{"createdSequence":3,"updatedSequence":12,"negativeUpdatedSequence":-12,"history":[{"id":"5f8ffcc6-f0f4-4f2e-bcd3-90bb5f070b3b","sequence":2,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",2],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",2]},{"id":"442c0616-8fdd-4696-a009-ad09a662d333","sequence":3,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",3],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",3]},{"id":"3667fd30-e1de-43fd-99a5-16b9aa4912e4","sequence":4,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",4],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",4]},{"id":"3accce54-d3c7-41c6-847a-17f82bee94fc","sequence":5,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",5],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",5]}]},"local":{"createdSequence":7,"updatedSequence":12,"negativeUpdatedSequence":-12,"history":[{"id":"5f8ffcc6-f0f4-4f2e-bcd3-90bb5f070b3b","sequence":5,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",5],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",5]},{"id":"442c0616-8fdd-4696-a009-ad09a662d333","sequence":6,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",6],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",6]},{"id":"3667fd30-e1de-43fd-99a5-16b9aa4912e4","sequence":7,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",7],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",7]},{"id":"3accce54-d3c7-41c6-847a-17f82bee94fc","sequence":8,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",8],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",8]}]},"id":"bns:v1:synthetic-multiple-saved:generation:738accae-f482-4531-a29e-59da7e7014df:savedPhysical:3c451851-ab9b-4f33-9af7-5fcff7221844"},"expected":{"id":"bns:v1:synthetic-multiple-saved:generation:738accae-f482-4531-a29e-59da7e7014df:savedPhysical:3c451851-ab9b-4f33-9af7-5fcff7221844","version":2,"revisionId":"0849c1e059c6a03d0dcd861e6e2208fdb58e07524c8cc43b30370be9cd934111","wire":{"createdSequence":3,"updatedSequence":12,"negativeUpdatedSequence":-12,"history":[{"id":"5f8ffcc6-f0f4-4f2e-bcd3-90bb5f070b3b","sequence":3,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",3],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",3]},{"id":"442c0616-8fdd-4696-a009-ad09a662d333","sequence":4,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",4],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",4]},{"id":"3667fd30-e1de-43fd-99a5-16b9aa4912e4","sequence":5,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",5],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",5]},{"id":"3accce54-d3c7-41c6-847a-17f82bee94fc","sequence":8,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",8],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",8]}]},"local":{"createdSequence":7,"updatedSequence":12,"negativeUpdatedSequence":-12,"history":[{"id":"5f8ffcc6-f0f4-4f2e-bcd3-90bb5f070b3b","sequence":5,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",5],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",5]},{"id":"442c0616-8fdd-4696-a009-ad09a662d333","sequence":6,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",6],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",6]},{"id":"3667fd30-e1de-43fd-99a5-16b9aa4912e4","sequence":7,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",7],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",7]},{"id":"3accce54-d3c7-41c6-847a-17f82bee94fc","sequence":8,"listKey":["library_entry:3c451851-ab9b-4f33-9af7-5fcff7221844",8],"documentList":["3c451851-ab9b-4f33-9af7-5fcff7221844",8]}]}}}
+# Subtest: incoming Human create into mixed B keeps Saved and outbox and continues to cold C
+not ok 1 - incoming Human create into mixed B keeps Saved and outbox and continues to cold C
+  ---
+  duration_ms: 794.147042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/browser-native-sync-saved-incoming-human.test.mjs:34:32'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SAVED_WORK_CHANGED'
+  code: 'BNS_SAVED_WORK_CHANGED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/value.js:5:32)
+    requireSavedPhysical (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:372:573)
+    requireSavedWorkScope (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:273:3)
+    async requireGroupScope (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:208:39)
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:276:4
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/core.js:165:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/idb-repository.js:503:206)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/core.js:165:66)
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/group-checkpoint.js:263:48
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 927.759209

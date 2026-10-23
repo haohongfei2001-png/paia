@@ -1,0 +1,8 @@
+{
+  "extension/core/browser-native-sync/group-checkpoint.js": "51029ae95bc786b96854661fc14a32c99ae73b96612d54f87e737567e527d7db",
+  "extension/core/browser-native-sync/human-library-group.js": "71403dec91999571feb2f0639c7fa67aaa5e36181f55098c32fd501feb322786",
+  "extension/core/browser-native-sync/saved-work-bootstrap.js": "d9d471f3097fc68b42abfcbf53947f5413c79dfd438617caac57b70ccda1b00b",
+  "extension/tests/browser-native-sync-saved-incoming-human.test.mjs": "6a937268f8d44dab587f8eb750cb224da907d1e39526f25fe5f6bc1e6ef0daaa",
+  "extension/tests/browser-native-sync-saved-mixed-incremental.test.mjs": "7999a96bc038536eb61c227ffe036eea7254d5e9796099fddf33ba7050497966",
+  "extension/tests/browser-native-sync-saved-mixed.test.mjs": "90987d6ab663f6a766c4f2c5f81493b58509c5c15ebd79b0fe998b046abe2209"
+}
