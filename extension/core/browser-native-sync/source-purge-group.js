@@ -1,3 +1,4 @@
+import {prepareSourcePurgeActiveCut,requireSourcePurgeActiveGraph} from './source-purge-group-active.js';
 import {readOriginalControlSettings,assertOriginalControlSettingsFacts} from '../indexed-store.js';
 import {compileSourcePurgeClosure} from './source-purge-closure.js';
 import {prepareSourcePurgeRemote,prepareColdSourcePurgeApplication,applyColdSourcePurgeApplication,verifySourcePurgePortfolioIndexes} from './source-purge-journal.js';
@@ -31,7 +32,6 @@ function budget(isCurrent=()=>true){
 async function authority(store,core,t){
  const control=await store.control(t),publication=await readControlPublicationFence(t),library=await t.get('meta','thought-library');
  if(!control.settings.enabled||control.settings.consentVersion!==CONSENT_VERSION||publication.reservation||publication.migration?.phase!=='active'||publication.migration.databaseId!==store.databaseId||library?.sealed||library?.phase!=='active'||library?.verified!==true)deny();
- if((await t.primaryRangePage('meta',{prefix:'canonical-generation:',limit:1})).rows.length||await t.get('meta',core.prefix+'active'))deny();
  return {control,publication,controlFacts:readOriginalControlSettings(store,t),fence:await new JournalRestoreFence(core).snapshot(t),namespace:await core.bind(t)};
 }
 function wire(revisions){
@@ -40,8 +40,9 @@ function wire(revisions){
  return [...revisions.map(row=>({kind:'revision',operation:row.operation,redacted:row.redacted})),...[...heads.values()],...[...frontiers].map(([deviceId,state])=>({kind:'frontier',deviceId,...state}))];
 }
 function itemsFrom(raw,core,namespace){const prefix=core.prefix+'generation:'+namespace+':';return ['revision','head','frontier'].flatMap(kind=>raw.meta.filter(r=>r.id.startsWith(prefix+kind+':')).map(row=>({kind,...strip(row)})));}
-function protocolRows(core,namespace,items,before,generation,epoch,newPositive=false){
+function protocolRows(core,namespace,items,before,generation,epoch,newPositive=false,controls=[]){
  const result=new Map(),key=(kind,...parts)=>protocolPhysicalId(core.prefix,namespace,kind,parts),put=(kind,parts,data)=>{const id=key(kind,...parts);result.set(id,{id,...data});};
+ for(const row of controls)result.set(row.id,clone(row));
  const revisions=items.filter(x=>x.kind==='revision');
  for(const row of revisions){const o=row.operation;put('revision',[o.revisionId],{operation:o,redacted:row.redacted});put('receipt',[o.operationId],{digest:o.revisionId,deviceId:o.deviceId,sequence:o.sequence});put('sequence',[o.deviceId,String(o.sequence).padStart(16,'0')],{operationId:o.operationId,digest:o.revisionId});put('entityRevision',[o.type,o.entityId,o.revisionId],{revisionId:o.revisionId});}
  for(const item of items)if(item.kind==='head')put('head',[item.type,item.entityId],strip({id:null,...item}));else if(item.kind==='frontier')put('frontier',[item.deviceId],strip({id:null,...item}));
@@ -54,16 +55,18 @@ function protocolRows(core,namespace,items,before,generation,epoch,newPositive=f
  return [...result.values()].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
 }
 async function qualify(store,core,raw,base){
+ const active=await prepareSourcePurgeActiveCut(store,core,raw);
  const items=itemsFrom(raw,core,base.namespace),revisions=items.filter(r=>r.kind==='revision'),negative=revisions.some(r=>r.operation.type==='sourcePurgeIntent');
  const closure=negative?await compileSourcePurgeClosure(core,items):null,plan=closure?.positivePlan??await prepareGroupCheckpointPlan(core,revisions.map(r=>r.operation));if(plan.groups.some(g=>g.type!=='sourceBootstrapCommit')||revisions.some(r=>r.redacted)&&!negative)deny();
+ await requireSourcePurgeActiveGraph(active,plan,closure?.negative??[]);
  const generation=raw.meta.find(r=>r.id===protocolPhysicalId(core.prefix,base.namespace,'generation',[]))?.value||0;
  const coldCount=(closure?.negative??[]).filter(n=>!raw.inputStates.some(row=>row.id===n.intent.inputId)).length;if(!Number.isSafeInteger(generation)||generation!==revisions.length-coldCount*7)deny();
- const expected=protocolRows(core,base.namespace,items,raw,generation,base.fence.epoch),actual=raw.meta.filter(r=>r.id.startsWith('bns:'));if(!equalSourceWorkingPhysicalTree(actual,expected))deny();
+ const expected=protocolRows(core,base.namespace,items,raw,generation,base.fence.epoch,false,active.protocol),actual=raw.meta.filter(r=>r.id.startsWith('bns:'));if(!equalSourceWorkingPhysicalTree(actual,expected))deny();
  const scope=await prepareGroupScope(plan);
  if(negative){const inventory=await sourcePurgeNegativeInventory(core,revisions.map(r=>({id:protocolPhysicalId(core.prefix,base.namespace,'revision',[r.operation.revisionId]),operation:r.operation,redacted:r.redacted})),raw.meta,base.namespace,prepareSourcePurgeRemote),qualified=await prepareGroupedSourcePurgeRemainingCanonical(store,core,plan,scope,inventory);
   await core.transaction(false,t=>requireSourcePurgeRemainingScope(store,t,scope,qualified.view,qualified.proof));verifySourcePurgePortfolioIndexes(qualified.view,plan.groups,plan.groups.length+qualified.localCount);
  }else{await core.transaction(false,t=>requireGroupScope(store,t,scope));if(plan.groups.length)verifySourcePurgePortfolioIndexes(raw,plan.groups);}
- return {items,closure,plan,generation};
+ return {items,closure,plan,generation,active};
 }
 async function scopeFor(closure){const scope=await prepareGroupScope(closure.positivePlan),negative=closure.negative.map(n=>({intent:n.intent,operations:n.operations}));return {...scope.ownerScope,families:[...scope.ownerScope.families,{type:'sourcePurgeIntent',count:negative.length,digest:await digest(bytes(negative))}].sort((a,b)=>a.type.localeCompare(b.type))};}
 async function capture(store,core){return store.run(()=>core.transaction(false,async t=>({base:await authority(store,core,t),raw:await sourcePurgeGroupSnapshot(core,t)})));}
@@ -79,8 +82,9 @@ export class SourcePurgeGroupedCheckpointRestore{
  current(){const c=configs.get(this);if(!c||this.core!==c.core||this.store!==c.store||this.restoreId!==c.restoreId||c.store.repository!==c.repository||c.core.repository!==c.repository||c.repository.db!==c.database||c.core.datasetId!==c.datasetId||c.core.deviceId!==c.deviceId||c.core.prefix!==c.prefix||c.core.fixedNamespace!==c.namespace)changed();return c;}
  async stageCheckpoint(ref,get){staged.delete(this);const serial=(serials.get(this)||0)+1;serials.set(this,serial);const c=this.current(),work=budget(()=>serials.get(this)===serial);return work.run(async()=>{await c.store.finishFoundation();if(c.database===null)c.database=c.repository.db;const before=await capture(c.store,c.core);work.retain(before);const local=await qualify(c.store,c.core,before.raw,before.base),read=work.get(get),selected=clone(ref),manifest=decodeJSON(await readObject(selected,read,{profile:c.profile}));assertGroupedCheckpointManifest(manifest,{core:c.core});if(manifest.itemCount>384)deny();const items=[];for await(const item of checkpointItems(manifest,read,{profile:c.profile})){work.retain(item);items.push(item);}const closure=await compileSourcePurgeClosure(c.core,items);if(!closure.positivePlan.groups.length||!equal(closure.coverage,manifest.coverage)||!equal(await scopeFor(closure),manifest.ownerScope))deny();
   const revisions=new Map(local.items.filter(r=>r.kind==='revision').map(r=>[r.operation.revisionId,r]));for(const r of items.filter(r=>r.kind==='revision')){const old=revisions.get(r.operation.revisionId);if(old&&!equal(old,r))deny();revisions.set(r.operation.revisionId,r);}const mergedItems=wire([...revisions.values()]),merged=await compileSourcePurgeClosure(c.core,mergedItems),known=new Set(local.items.filter(r=>r.kind==='revision').map(r=>r.operation.revisionId)),positive=merged.positivePlan.groups.filter(g=>g.operations.some(o=>!known.has(o.revisionId))),negative=merged.negative.filter(n=>!known.has(n.operations[7].revisionId));if(positive.some(g=>g.operations.some(o=>known.has(o.revisionId))))deny();
+  await requireSourcePurgeActiveGraph(local.active,merged.positivePlan,merged.negative);
   const apps=[];for(const group of positive)apps.push(await prepareBootstrapApplication(c.store,c.core,group.operations));const negApps=[];for(const n of negative)negApps.push(await prepareColdSourcePurgeApplication(c.store,c.core,n.operations));
-  const protocol=protocolRows(c.core,before.base.namespace,mergedItems,before.raw,local.generation+positive.length*7+negative.length*8,before.base.fence.epoch,positive.length>0),physical=await planSourcePurgeGroupPhysical(c.store,c.core,before.raw,positive,negative,protocol);work.retain({protocol,physical});this.current();work.current();const now=await capture(c.store,c.core);if(!equalSourceWorkingPhysicalTree(now,before))changed();staged.set(this,{before,apps,negApps,physical,manifestId:selected.id,phase:'validated'});return {phase:'validated',manifestId:selected.id};});
+  const protocol=protocolRows(c.core,before.base.namespace,mergedItems,before.raw,local.generation+positive.length*7+negative.length*8,before.base.fence.epoch,positive.length>0,local.active.protocol),physical=await planSourcePurgeGroupPhysical(c.store,c.core,before.raw,positive,negative,protocol,local.active);work.retain({protocol,physical});this.current();work.current();const now=await capture(c.store,c.core);if(!equalSourceWorkingPhysicalTree(now,before))changed();staged.set(this,{before,apps,negApps,physical,manifestId:selected.id,phase:'validated'});return {phase:'validated',manifestId:selected.id};});
  }
  async activate(){const c=this.current(),p=staged.get(this);if(!p)fail('BNS_RESTORE_NOT_READY');const work=budget(()=>staged.get(this)===p);if(p.phase==='activated'){const now=await capture(c.store,c.core);if(!equalSourceWorkingPhysicalTree(now.raw,p.physical.terminal))changed();return {state:'activated'};}
   return work.run(()=>c.store.run(async()=>{const result=await c.core.transaction(true,async t=>{registerRepositoryWorkLimit(c.repository,t);this.current();const activeAuthority=await authority(c.store,c.core,t);if(!equalSourceWorkingPhysicalTree(activeAuthority,p.before.base))changed();await requireSourcePurgeGroupRows(c.core,t,p.before.raw);for(const app of p.negApps)await applyColdSourcePurgeApplication(t,app);for(const app of p.apps)await applyBootstrapApplication(t,app);await requireSourcePurgeGroupRows(c.core,t,p.physical.callback);sealSourcePurgeGroupRows(c.store,c.core,t,p.before.raw,p.physical.terminal,()=>{this.current();work.current();assertOriginalControlSettingsFacts(c.store,activeAuthority.controlFacts);});return {state:'activated'};});p.phase='activated';return result;}));

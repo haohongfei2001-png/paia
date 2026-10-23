@@ -1,0 +1,14 @@
+{
+  "base": "2730f0288ce3519a8f93ee7cab9ce0f5d2b0675d",
+  "platform": "Darwin",
+  "machine": "arm64",
+  "files": {
+    "extension/core/browser-native-sync/source-purge-group-active.js": "35a4f45f947d80f464cea1b1d6d5b94fd3da9ee2dd027895dc77f1055a5973b1",
+    "extension/core/browser-native-sync/source-purge-group.js": "f893a13ea2af49103d0c99138c30a6d2b4bdfdd9db46a703297903caca54da8e",
+    "extension/core/browser-native-sync/source-purge-group-physical.js": "3c19ad69587b3c2fb8f93a9cfd0c0e7643e6b8cf6aa9f2c9c70e65b60539ead7",
+    "extension/core/browser-native-sync/source-purge-negative.js": "235553f184d0a69ceedfa00a19675154df94b59d82ebbe961980c7790152d71e",
+    "extension/tests/browser-native-sync-selected-purge-group.test.mjs": "fe2e7e7311efc0e00ed7d2ea18d6937f7732a03c04e1e38bd8355ab57fac9188",
+    "extension/tests/native-sync/selected-purge-group-fixture.mjs": "ea458f64731f4fc9b239e737de9a0c48862e9d5d73c051d682b7313604c80473",
+    "extension/tests/native-sync/selected-purge-group-native.test.mjs": "dfea8987d22a0ac0da51aaca4d25db7767799f7aa1586b42e9fb92d8eb1d384d"
+  }
+}

@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: cold selected original-group exports permanent denial, merges a complete successor, edits and cold reopens
+ok 1 - cold selected original-group exports permanent denial, merges a complete successor, edits and cold reopens
+  ---
+  duration_ms: 866.9205
+  type: 'test'
+  ...
+# Subtest: selected destination imports an independent cold negative while keeping original local cleanup and controls
+ok 2 - selected destination imports an independent cold negative while keeping original local cleanup and controls
+  ---
+  duration_ms: 976.374583
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses unbound without transport publication or local changes
+ok 3 - selected checkpoint refuses unbound without transport publication or local changes
+  ---
+  duration_ms: 449.721167
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses completed without transport publication or local changes
+ok 4 - selected checkpoint refuses completed without transport publication or local changes
+  ---
+  duration_ms: 456.047958
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses gate without transport publication or local changes
+ok 5 - selected checkpoint refuses gate without transport publication or local changes
+  ---
+  duration_ms: 453.293875
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses resident-copy without transport publication or local changes
+ok 6 - selected checkpoint refuses resident-copy without transport publication or local changes
+  ---
+  duration_ms: 444.731833
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses unknown-namespace without transport publication or local changes
+ok 7 - selected checkpoint refuses unknown-namespace without transport publication or local changes
+  ---
+  duration_ms: 455.164334
+  type: 'test'
+  ...
+# Subtest: registry selection changed after staging refuses activation with local data unchanged
+ok 8 - registry selection changed after staging refuses activation with local data unchanged
+  ---
+  duration_ms: 544.537916
+  type: 'test'
+  ...
+# Subtest: late gate mutation rolls back selected positive-negative merge
+ok 9 - late gate mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 738.764042
+  type: 'test'
+  ...
+# Subtest: late completed mutation rolls back selected positive-negative merge
+ok 10 - late completed mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 747.961458
+  type: 'test'
+  ...
+# Subtest: late deny mutation rolls back selected positive-negative merge
+ok 11 - late deny mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 803.078208
+  type: 'test'
+  ...
+# Subtest: late outbox mutation rolls back selected positive-negative merge
+ok 12 - late outbox mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 757.567333
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7856.780625

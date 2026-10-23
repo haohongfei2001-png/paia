@@ -1,3 +1,4 @@
+import {prepareSourcePurgeActiveCut} from './source-purge-group-active.js';
 import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
 import {readGroupRows} from './group-page-reader.js';
@@ -71,13 +72,13 @@ export async function requireSourcePurgeRemainingCanonicalProof(proof,store,t,sc
 // denial can never fabricate those rows to impersonate local Source history.
 export async function prepareGroupedSourcePurgeRemainingCanonical(store,core,plan,scope,inventory){
  const original=inventories.get(inventory);if(!original||original.core!==core||original.repository!==store.repository||!inventory.negative.length)denied();requireOriginalGroupCheckpointPlan(core,plan);
- const raw=await core.transaction(false,t=>readCanonical(store,core,t)),local=inventory.negative.filter(n=>raw.inputStates.some(row=>row.id===n.intent.inputId)),cold=inventory.negative.filter(n=>!local.includes(n)),coldTombs=new Set();
+ const raw=await core.transaction(false,t=>readCanonical(store,core,t)),selected=await prepareSourcePurgeActiveCut(store,core,raw),local=inventory.negative.filter(n=>raw.inputStates.some(row=>row.id===n.intent.inputId)),cold=inventory.negative.filter(n=>!local.includes(n)),coldTombs=new Set();
  if(raw.tombstones.length!==inventory.negative.length)denied();
  for(const p of cold){const v=p.intent,tomb=raw.tombstones.find(row=>row.id==='source:'+v.sourceKey),expected={id:'source:'+v.sourceKey,sequence:Date.parse(v.at),value:{sourceIdentityHash:v.sourceKey,deletedAt:v.at,status:'permanently_ignored'}};if(!equal(tomb,expected))denied();coldTombs.add(expected.id);
   for(const [table,id]of [['records',v.sourceId],['recordIndex',v.sourceId],['blocks',v.inputId],['blockIndex',v.inputId],['times',v.sourceKey],['documents',v.documentId],['libraryDocuments',v.documentId],['inputStates',v.inputId],['revisions',v.baselineId],['filterInputs',v.inputId]])if(raw[table].some(row=>row.id===id))denied();
  }
  const excluded=local.length?await sourcePurgeNegativeCanonical({...raw,tombstones:raw.tombstones.filter(row=>!coldTombs.has(row.id))},local,plan.groups.length+local.length):{};
  if(!local.length&&(raw.organizerJobs.length||raw.invalidations.length))denied();
- const view=Object.fromEntries(Object.entries(raw).map(([name,rows])=>[name,rows.filter(row=>!excluded[name]?.has(row.id))]));for(const name of ['tombstones','organizerJobs','invalidations'])view[name]=[];
+ const view=Object.fromEntries(Object.entries(selected.view).map(([name,rows])=>[name,rows.filter(row=>!excluded[name]?.has(row.id))]));for(const name of ['tombstones','organizerJobs','invalidations'])view[name]=[];
  const proof=Object.freeze({});freeze(raw);freeze(view);proofs.set(proof,{store,core,repository:store.repository,plan,scope,raw,view});return {raw,view,proof,localCount:local.length};
 }

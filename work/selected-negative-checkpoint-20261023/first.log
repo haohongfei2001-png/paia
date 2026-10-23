@@ -1,0 +1,631 @@
+TAP version 13
+# Subtest: cold selected original-group exports permanent denial, merges a complete successor, edits and cold reopens
+not ok 1 - cold selected original-group exports permanent denial, merges a complete successor, edits and cold reopens
+  ---
+  duration_ms: 851.316375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-selected-purge-group.test.mjs:44:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        {
+    +     actor: 'user',
+    +     codecVersion: 1,
+    +     datasetId: 'synthetic_selected_checkpoint',
+    +     deviceId: 'synthetic_B',
+    +     entityId: 'b8e38297264aef02c66c5d86cab129fb55efafb1460b4f7a0683aaf977c1917f',
+    +     kind: 'put',
+    -     id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:07bfbeb6-6a35-4aa5-89b7-191ed4700be3',
+          operationId: '07bfbeb6-6a35-4aa5-89b7-191ed4700be3',
+    +     parents: [],
+    +     protocol: 1,
+          revisionId: 'd9e0c851eaa7142519d9f1f4d95f82cc98c34e68c529530a425864c765ba7d3d',
+    +     sequence: 8,
+    +     type: 'sourcePurgeIntent',
+    +     value: {
+    +       at: '2026-10-23T12:13:31.583Z',
+    +       baselineId: '934bf737-e6f4-4ceb-8031-2d19a86a2d74',
+    +       datasetId: 'synthetic_selected_checkpoint',
+    +       documentId: 'document:3f546031-48b9-4386-a49b-9af33a54b767',
+    +       id: 'b8e38297264aef02c66c5d86cab129fb55efafb1460b4f7a0683aaf977c1917f',
+    +       inputId: 'block:3f546031-48b9-4386-a49b-9af33a54b767',
+    +       sourceId: '3f546031-48b9-4386-a49b-9af33a54b767',
+    +       sourceKey: 'b8e38297264aef02c66c5d86cab129fb55efafb1460b4f7a0683aaf977c1917f',
+    +       targets: [
+    +         {
+    +           before: {
+    +             actor: 'bootstrap',
+    +             codecVersion: 1,
+    +             datasetId: 'synthetic_selected_checkpoint',
+    +             deviceId: 'synthetic_A',
+    +             entityId: 'input:block:3f546031-48b9-4386-a49b-9af33a54b767',
+    +             kind: 'put',
+    +             operationId: '266cf88d-222a-4be4-8910-9117fbe7379d',
+    +             parents: [],
+    +             protocol: 1,
+    +             revisionId: '04a7f60c92651be3191ce8455f1b95e228fedc273e4dcb6344b4790832e46e60',
+    +             sequence: 11,
+    +             type: 'sourceBootstrapMember',
+    +             value: null
+    +           },
+    +           purgeOperationId: '89a01d93-f348-451c-aec8-42cde58029b4',
+    +           purgeRevisionId: 'b7b0862105fe64655b8deefc8d5ae02f5b5baee92003b34b729734b059d398dd',
+    +           purgeSequence: 1
+    +         },
+    +         {
+    +           before: {
+    +             actor: 'bootstrap',
+    +             codecVersion: 1,
+    +             datasetId: 'synthetic_selected_checkpoint',
+    +             deviceId: 'synthetic_A',
+    +             entityId: 'baselineRevision:934bf737-e6f4-4ceb-8031-2d19a86a2d74',
+    +             kind: 'put',
+    +             operationId: '7ecfd7a2-a54d-429f-999d-2e82cc8be95c',
+    +             parents: [],
+    +             protocol: 1,
+    +             revisionId: '0f88038281af2132f2e849344f4e86e972e5d0b0ddb796d8cb72af4c298a532c',
+    +             sequence: 13,
+    +             type: 'sourceBootstrapMember',
+    +             value: null
+    +           },
+    +           purgeOperationId: '8b0a0321-306d-45cf-82f8-b093e474d363',
+    +           purgeRevisionId: '68d120ae5bddde905a88dd3950ca62a9968056f4c507ac00d6f8e2b7a1e17cb5',
+    +           purgeSequence: 2
+    +         },
+    +         {
+    +           before: {
+    +             actor: 'bootstrap',
+    +             codecVersion: 1,
+    +             datasetId: 'synthetic_selected_checkpoint',
+    +             deviceId: 'synthetic_A',
+    +             entityId: 'c82f2302-3346-4c66-a0b3-9832f775429c',
+    +             kind: 'put',
+    +             operationId: '4d1652c3-39e0-4670-afb5-74dcf1cff0d3',
+    +             parents: [],
+    +             protocol: 1,
+    +             revisionId: '5c80b8a440f27ca4988f0e36f5813af38b89ed364ad4601f27a7dbe54e99ff91',
+    +             sequence: 14,
+    +             type: 'sourceBootstrapCommit',
+    +             value: null
+    +           },
+    +           purgeOperationId: '8db62f7d-93c5-4a39-a20f-08d126038464',
+    +           purgeRevisionId: '9532010bdc31f3f9d109f43a1496baf536ed057a058ef16d66ffddd5b4b9869b',
+    +           purgeSequence: 3
+    +         },
+    +         {
+    +           before: {
+    +             actor: 'bootstrap',
+    +             codecVersion: 1,
+    +             datasetId: 'synthetic_selected_checkpoint',
+    +             deviceId: 'synthetic_A',
+    +             entityId: 'inputDocument:document:3f546031-48b9-4386-a49b-9af33a54b767',
+    +             kind: 'put',
+    +             operationId: 'f9b8c6b9-077d-4856-b899-00416e7e7d0f',
+    +             parents: [],
+    +             protocol: 1,
+    +             revisionId: '8100a4fa808170a94435a2b786e6fe2d35854620db87091862a2b550b8e3f530',
+    +             sequence: 10,
+    +             type: 'sourceBootstrapMember',
+    +             value: null
+    +           },
+    +           purgeOperationId: '7ebdf961-a999-46fe-b133-ff2583618eda',
+    +           purgeRevisionId: '99e1c1b7343f4fada7e8c8d1a0494ec59927dc7369318102a09f784447a7ee83',
+    +           purgeSequence: 4
+    +         },
+    +         {
+    +           before: {
+    +             actor: 'bootstrap',
+    +             codecVersion: 1,
+    +             datasetId: 'synthetic_selected_checkpoint',
+    +             deviceId: 'synthetic_A',
+    +             entityId: 'timeEvidence:b8e38297264aef02c66c5d86cab129fb55efafb1460b4f7a0683aaf977c1917f',
+    +             kind: 'put',
+    +             operationId: 'cf0aee41-ba8f-448f-a79b-51b76a487939',
+    +             parents: [],
+    +             protocol: 1,
+    +             revisionId: '8bb4e8d8b33e6a5c9142df2ea999d89f3e7d0d5464d518b74933ae8b6d850388',
+    +             sequence: 9,
+    +             type: 'sourceBootstrapMember',
+    +             value: null
+    +           },
+    +           purgeOperationId: '7171291b-ddf2-421f-ade3-b65485aac426',
+    +           purgeRevisionId: 'd4273b543a56dc0434ad6a029b7a05b6b3c81eb6bb44871c7304b39f6f19184a',
+    +           purgeSequence: 5
+    +         },
+    +         {
+    +           before: {
+    +             actor: 'bootstrap',
+    +             codecVersion: 1,
+    +             datasetId: 'synthetic_selected_checkpoint',
+    +             deviceId: 'synthetic_A',
+    +             entityId: 'source:3f546031-48b9-4386-a49b-9af33a54b767',
+    +             kind: 'put',
+    +             operationId: '381efe46-0a11-4a80-b613-1ef3f60ed8ad',
+    +             parents: [],
+    +             protocol: 1,
+    +             revisionId: '9be12bc91bcc11ebefbe737e7d05123f1cf391c5ec144fe11788b50f6a424806',
+    +             sequence: 8,
+    +             type: 'sourceBootstrapMember',
+    +             value: null
+    +           },
+    +           purgeOperationId: '3d66eb6c-406d-4c60-a3eb-a5441b6c97cd',
+    +           purgeRevisionId: '36c9f47f9b1eacd8a66361b6df78873faa51f5f4150b5fb83806dccd46aee561',
+    +           purgeSequence: 6
+    +         },
+    +         {
+    +           before: {
+    +             actor: 'bootstrap',
+    +             codecVersion: 1,
+    +             datasetId: 'synthetic_selected_checkpoint',
+    +             deviceId: 'synthetic_A',
+    +             entityId: 'inputState:block:3f546031-48b9-4386-a49b-9af33a54b767',
+    +             kind: 'put',
+    +             operationId: '89586dab-c630-43ad-a724-a70a0d4829be',
+    +             parents: [],
+    +             protocol: 1,
+    +             revisionId: 'a7767618ea5c86b4a52eba2dcd045b248d867721eb3138ae0b961691ed2f92b0',
+    +             sequence: 12,
+    +             type: 'sourceBootstrapMember',
+    +             value: null
+    +           },
+    +           purgeOperationId: '7acb3c99-a0e5-4275-8ddb-1bcea9468c0b',
+    +           purgeRevisionId: '109f92a95f24f2c57c21ce07d45a8286363f3d13e4ab983c28dcdf221bcf98bd',
+    +           purgeSequence: 7
+    +         }
+    +       ],
+    +       version: 1
+    +     }
+    -     state: 'queued'
+        },
+        {
+    +     actor: 'user',
+    +     codecVersion: 1,
+    +     datasetId: 'synthetic_selected_checkpoint',
+    +     deviceId: 'synthetic_B',
+    +     entityId: 'source:3f546031-48b9-4386-a49b-9af33a54b767',
+    +     kind: 'purge',
+    -     id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:3d66eb6c-406d-4c60-a3eb-a5441b6c97cd',
+          operationId: '3d66eb6c-406d-4c60-a3eb-a5441b6c97cd',
+    +     parents: [
+    +       '9be12bc91bcc11ebefbe737e7d05123f1cf391c5ec144fe11788b50f6a424806'
+    +     ],
+    +     protocol: 1,
+          revisionId: '36c9f47f9b1eacd8a66361b6df78873faa51f5f4150b5fb83806dccd46aee561',
+    +     sequence: 6,
+    +     type: 'sourceBootstrapMember',
+    +     value: null
+    -     state: 'queued'
+        },
+        {
+    +     actor: 'user',
+    +     codecVersion: 1,
+    +     datasetId: 'synthetic_selected_checkpoint',
+    +     deviceId: 'synthetic_B',
+    +     entityId: 'timeEvidence:b8e38297264aef02c66c5d86cab129fb55efafb1460b4f7a0683aaf977c1917f',
+    +     kind: 'purge',
+    -     id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:7171291b-ddf2-421f-ade3-b65485aac426',
+          operationId: '7171291b-ddf2-421f-ade3-b65485aac426',
+    +     parents: [
+    +       '8bb4e8d8b33e6a5c9142df2ea999d89f3e7d0d5464d518b74933ae8b6d850388'
+    +     ],
+    +     protocol: 1,
+          revisionId: 'd4273b543a56dc0434ad6a029b7a05b6b3c81eb6bb44871c7304b39f6f19184a',
+    +     sequence: 5,
+    +     type: 'sourceBootstrapMember',
+    +     value: null
+    -     state: 'queued'
+        },
+        {
+    +     actor: 'user',
+    +     codecVersion: 1,
+    +     datasetId: 'synthetic_selected_checkpoint',
+    +     deviceId: 'synthetic_B',
+    +     entityId: 'inputState:block:3f546031-48b9-4386-a49b-9af33a54b767',
+    +     kind: 'purge',
+    -     id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:7acb3c99-a0e5-4275-8ddb-1bcea9468c0b',
+          operationId: '7acb3c99-a0e5-4275-8ddb-1bcea9468c0b',
+    +     parents: [
+    +       'a7767618ea5c86b4a52eba2dcd045b248d867721eb3138ae0b961691ed2f92b0'
+    +     ],
+    +     protocol: 1,
+          revisionId: '109f92a95f24f2c57c21ce07d45a8286363f3d13e4ab983c28dcdf221bcf98bd',
+    +     sequence: 7,
+    +     type: 'sourceBootstrapMember',
+    +     value: null
+    -     state: 'queued'
+        },
+        {
+    +     actor: 'user',
+    +     codecVersion: 1,
+    +     datasetId: 'synthetic_selected_checkpoint',
+    +     deviceId: 'synthetic_B',
+    +     entityId: 'inputDocument:document:3f546031-48b9-4386-a49b-9af33a54b767',
+    +     kind: 'purge',
+    -     id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:7ebdf961-a999-46fe-b133-ff2583618eda',
+          operationId: '7ebdf961-a999-46fe-b133-ff2583618eda',
+    +     parents: [
+    +       '8100a4fa808170a94435a2b786e6fe2d35854620db87091862a2b550b8e3f530'
+    +     ],
+    +     protocol: 1,
+          revisionId: '99e1c1b7343f4fada7e8c8d1a0494ec59927dc7369318102a09f784447a7ee83',
+    +     sequence: 4,
+    +     type: 'sourceBootstrapMember',
+    +     value: null
+    -     state: 'queued'
+        },
+        {
+    +     actor: 'user',
+    +     codecVersion: 1,
+    +     datasetId: 'synthetic_selected_checkpoint',
+    +     deviceId: 'synthetic_B',
+    +     entityId: 'input:block:3f546031-48b9-4386-a49b-9af33a54b767',
+    +     kind: 'purge',
+    -     id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:89a01d93-f348-451c-aec8-42cde58029b4',
+          operationId: '89a01d93-f348-451c-aec8-42cde58029b4',
+    +     parents: [
+    +       '04a7f60c92651be3191ce8455f1b95e228fedc273e4dcb6344b4790832e46e60'
+    +     ],
+    +     protocol: 1,
+          revisionId: 'b7b0862105fe64655b8deefc8d5ae02f5b5baee92003b34b729734b059d398dd',
+    +     sequence: 1,
+    +     type: 'sourceBootstrapMember',
+    +     value: null
+    -     state: 'queued'
+        },
+        {
+    +     actor: 'user',
+    +     codecVersion: 1,
+    +     datasetId: 'synthetic_selected_checkpoint',
+    +     deviceId: 'synthetic_B',
+    +     entityId: 'baselineRevision:934bf737-e6f4-4ceb-8031-2d19a86a2d74',
+    +     kind: 'purge',
+    -     id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:8b0a0321-306d-45cf-82f8-b093e474d363',
+          operationId: '8b0a0321-306d-45cf-82f8-b093e474d363',
+    +     parents: [
+    +       '0f88038281af2132f2e849344f4e86e972e5d0b0ddb796d8cb72af4c298a532c'
+    +     ],
+    +     protocol: 1,
+          revisionId: '68d120ae5bddde905a88dd3950ca62a9968056f4c507ac00d6f8e2b7a1e17cb5',
+    +     sequence: 2,
+    +     type: 'sourceBootstrapMember',
+    +     value: null
+    -     state: 'queued'
+        },
+        {
+    +     actor: 'user',
+    +     codecVersion: 1,
+    +     datasetId: 'synthetic_selected_checkpoint',
+    +     deviceId: 'synthetic_B',
+    +     entityId: 'c82f2302-3346-4c66-a0b3-9832f775429c',
+    +     kind: 'purge',
+    -     id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:8db62f7d-93c5-4a39-a20f-08d126038464',
+          operationId: '8db62f7d-93c5-4a39-a20f-08d126038464',
+    +     parents: [
+    +       '5c80b8a440f27ca4988f0e36f5813af38b89ed364ad4601f27a7dbe54e99ff91'
+    +     ],
+    +     protocol: 1,
+          revisionId: '9532010bdc31f3f9d109f43a1496baf536ed057a058ef16d66ffddd5b4b9869b',
+    +     sequence: 3,
+    +     type: 'sourceBootstrapCommit',
+    +     value: null
+    -     state: 'queued'
+        }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      operationId: '07bfbeb6-6a35-4aa5-89b7-191ed4700be3'
+      revisionId: 'd9e0c851eaa7142519d9f1f4d95f82cc98c34e68c529530a425864c765ba7d3d'
+      state: 'queued'
+      id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:07bfbeb6-6a35-4aa5-89b7-191ed4700be3'
+    1:
+      operationId: '3d66eb6c-406d-4c60-a3eb-a5441b6c97cd'
+      revisionId: '36c9f47f9b1eacd8a66361b6df78873faa51f5f4150b5fb83806dccd46aee561'
+      state: 'queued'
+      id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:3d66eb6c-406d-4c60-a3eb-a5441b6c97cd'
+    2:
+      operationId: '7171291b-ddf2-421f-ade3-b65485aac426'
+      revisionId: 'd4273b543a56dc0434ad6a029b7a05b6b3c81eb6bb44871c7304b39f6f19184a'
+      state: 'queued'
+      id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:7171291b-ddf2-421f-ade3-b65485aac426'
+    3:
+      operationId: '7acb3c99-a0e5-4275-8ddb-1bcea9468c0b'
+      revisionId: '109f92a95f24f2c57c21ce07d45a8286363f3d13e4ab983c28dcdf221bcf98bd'
+      state: 'queued'
+      id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:7acb3c99-a0e5-4275-8ddb-1bcea9468c0b'
+    4:
+      operationId: '7ebdf961-a999-46fe-b133-ff2583618eda'
+      revisionId: '99e1c1b7343f4fada7e8c8d1a0494ec59927dc7369318102a09f784447a7ee83'
+      state: 'queued'
+      id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:7ebdf961-a999-46fe-b133-ff2583618eda'
+    5:
+      operationId: '89a01d93-f348-451c-aec8-42cde58029b4'
+      revisionId: 'b7b0862105fe64655b8deefc8d5ae02f5b5baee92003b34b729734b059d398dd'
+      state: 'queued'
+      id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:89a01d93-f348-451c-aec8-42cde58029b4'
+    6:
+      operationId: '8b0a0321-306d-45cf-82f8-b093e474d363'
+      revisionId: '68d120ae5bddde905a88dd3950ca62a9968056f4c507ac00d6f8e2b7a1e17cb5'
+      state: 'queued'
+      id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:8b0a0321-306d-45cf-82f8-b093e474d363'
+    7:
+      operationId: '8db62f7d-93c5-4a39-a20f-08d126038464'
+      revisionId: '9532010bdc31f3f9d109f43a1496baf536ed057a058ef16d66ffddd5b4b9869b'
+      state: 'queued'
+      id: 'bns:v1:synthetic_selected_checkpoint:generation:4a33cfc5-562d-4ced-959e-e4e291d55519:outbox:8db62f7d-93c5-4a39-a20f-08d126038464'
+  actual:
+    0:
+      protocol: 1
+      datasetId: 'synthetic_selected_checkpoint'
+      deviceId: 'synthetic_B'
+      sequence: 8
+      operationId: '07bfbeb6-6a35-4aa5-89b7-191ed4700be3'
+      type: 'sourcePurgeIntent'
+      entityId: 'b8e38297264aef02c66c5d86cab129fb55efafb1460b4f7a0683aaf977c1917f'
+      codecVersion: 1
+      kind: 'put'
+      actor: 'user'
+      parents:
+      value:
+        id: 'b8e38297264aef02c66c5d86cab129fb55efafb1460b4f7a0683aaf977c1917f'
+        version: 1
+        datasetId: 'synthetic_selected_checkpoint'
+        sourceId: '3f546031-48b9-4386-a49b-9af33a54b767'
+        sourceKey: 'b8e38297264aef02c66c5d86cab129fb55efafb1460b4f7a0683aaf977c1917f'
+        documentId: 'document:3f546031-48b9-4386-a49b-9af33a54b767'
+        inputId: 'block:3f546031-48b9-4386-a49b-9af33a54b767'
+        baselineId: '934bf737-e6f4-4ceb-8031-2d19a86a2d74'
+        at: '2026-10-23T12:13:31.583Z'
+        targets:
+          0:
+            before:
+              actor: 'bootstrap'
+              codecVersion: 1
+              datasetId: 'synthetic_selected_checkpoint'
+              deviceId: 'synthetic_A'
+              entityId: 'input:block:3f546031-48b9-4386-a49b-9af33a54b767'
+              kind: 'put'
+              operationId: '266cf88d-222a-4be4-8910-9117fbe7379d'
+              parents:
+              protocol: 1
+              revisionId: '04a7f60c92651be3191ce8455f1b95e228fedc273e4dcb6344b4790832e46e60'
+              sequence: 11
+              type: 'sourceBootstrapMember'
+              value: ~
+            purgeRevisionId: 'b7b0862105fe64655b8deefc8d5ae02f5b5baee92003b34b729734b059d398dd'
+            purgeOperationId: '89a01d93-f348-451c-aec8-42cde58029b4'
+            purgeSequence: 1
+          1:
+            before:
+              actor: 'bootstrap'
+              codecVersion: 1
+              datasetId: 'synthetic_selected_checkpoint'
+              deviceId: 'synthetic_A'
+              entityId: 'baselineRevision:934bf737-e6f4-4ceb-8031-2d19a86a2d74'
+              kind: 'put'
+              operationId: '7ecfd7a2-a54d-429f-999d-2e82cc8be95c'
+              parents:
+              protocol: 1
+              revisionId: '0f88038281af2132f2e849344f4e86e972e5d0b0ddb796d8cb72af4c298a532c'
+              sequence: 13
+              type: 'sourceBootstrapMember'
+              value: ~
+            purgeRevisionId: '68d120ae5bddde905a88dd3950ca62a9968056f4c507ac00d6f8e2b7a1e17cb5'
+            purgeOperationId: '8b0a0321-306d-45cf-82f8-b093e474d363'
+            purgeSequence: 2
+          2:
+            before:
+              actor: 'bootstrap'
+              codecVersion: 1
+              datasetId: 'synthetic_selected_checkpoint'
+              deviceId: 'synthetic_A'
+              entityId: 'c82f2302-3346-4c66-a0b3-9832f775429c'
+              kind: 'put'
+              operationId: '4d1652c3-39e0-4670-afb5-74dcf1cff0d3'
+              parents:
+              protocol: 1
+              revisionId: '5c80b8a440f27ca4988f0e36f5813af38b89ed364ad4601f27a7dbe54e99ff91'
+              sequence: 14
+              type: 'sourceBootstrapCommit'
+              value: ~
+            purgeRevisionId: '9532010bdc31f3f9d109f43a1496baf536ed057a058ef16d66ffddd5b4b9869b'
+            purgeOperationId: '8db62f7d-93c5-4a39-a20f-08d126038464'
+            purgeSequence: 3
+          3:
+            before:
+              actor: 'bootstrap'
+              codecVersion: 1
+              datasetId: 'synthetic_selected_checkpoint'
+              deviceId: 'synthetic_A'
+              entityId: 'inputDocument:document:3f546031-48b9-4386-a49b-9af33a54b767'
+              kind: 'put'
+              operationId: 'f9b8c6b9-077d-4856-b899-00416e7e7d0f'
+              parents:
+              protocol: 1
+              revisionId: '8100a4fa808170a94435a2b786e6fe2d35854620db87091862a2b550b8e3f530'
+              sequence: 10
+              type: 'sourceBootstrapMember'
+              value: ~
+            purgeRevisionId: '99e1c1b7343f4fada7e8c8d1a0494ec59927dc7369318102a09f784447a7ee83'
+            purgeOperationId: '7ebdf961-a999-46fe-b133-ff2583618eda'
+            purgeSequence: 4
+          4:
+            before:
+              actor: 'bootstrap'
+              codecVersion: 1
+              datasetId: 'synthetic_selected_checkpoint'
+              deviceId: 'synthetic_A'
+              entityId: 'timeEvidence:b8e38297264aef02c66c5d86cab129fb55efafb1460b4f7a0683aaf977c1917f'
+              kind: 'put'
+              operationId: 'cf0aee41-ba8f-448f-a79b-51b76a487939'
+              parents:
+              protocol: 1
+              revisionId: '8bb4e8d8b33e6a5c9142df2ea999d89f3e7d0d5464d518b74933ae8b6d850388'
+              sequence: 9
+              type: 'sourceBootstrapMember'
+              value: ~
+            purgeRevisionId: 'd4273b543a56dc0434ad6a029b7a05b6b3c81eb6bb44871c7304b39f6f19184a'
+            purgeOperationId: '7171291b-ddf2-421f-ade3-b65485aac426'
+            purgeSequence: 5
+          5:
+            before:
+              actor: 'bootstrap'
+              codecVersion: 1
+              datasetId: 'synthetic_selected_checkpoint'
+              deviceId: 'synthetic_A'
+              entityId: 'source:3f546031-48b9-4386-a49b-9af33a54b767'
+              kind: 'put'
+              operationId: '381efe46-0a11-4a80-b613-1ef3f60ed8ad'
+              parents:
+              protocol: 1
+              revisionId: '9be12bc91bcc11ebefbe737e7d05123f1cf391c5ec144fe11788b50f6a424806'
+              sequence: 8
+              type: 'sourceBootstrapMember'
+              value: ~
+            purgeRevisionId: '36c9f47f9b1eacd8a66361b6df78873faa51f5f4150b5fb83806dccd46aee561'
+            purgeOperationId: '3d66eb6c-406d-4c60-a3eb-a5441b6c97cd'
+            purgeSequence: 6
+          6:
+            before:
+              actor: 'bootstrap'
+              codecVersion: 1
+              datasetId: 'synthetic_selected_checkpoint'
+              deviceId: 'synthetic_A'
+              entityId: 'inputState:block:3f546031-48b9-4386-a49b-9af33a54b767'
+              kind: 'put'
+              operationId: '89586dab-c630-43ad-a724-a70a0d4829be'
+              parents:
+              protocol: 1
+              revisionId: 'a7767618ea5c86b4a52eba2dcd045b248d867721eb3138ae0b961691ed2f92b0'
+              sequence: 12
+              type: 'sourceBootstrapMember'
+              value: ~
+            purgeRevisionId: '109f92a95f24f2c57c21ce07d45a8286363f3d13e4ab983c28dcdf221bcf98bd'
+            purgeOperationId: '7acb3c99-a0e5-4275-8ddb-1bcea9468c0b'
+            purgeSequence: 7
+      revisionId: 'd9e0c851eaa7142519d9f1f4d95f82cc98c34e68c529530a425864c765ba7d3d'
+    1:
+      protocol: 1
+      datasetId: 'synthetic_selected_checkpoint'
+      deviceId: 'synthetic_B'
+      sequence: 6
+      operationId: '3d66eb6c-406d-4c60-a3eb-a5441b6c97cd'
+      type: 'sourceBootstrapMember'
+      entityId: 'source:3f546031-48b9-4386-a49b-9af33a54b767'
+      codecVersion: 1
+      kind: 'purge'
+      actor: 'user'
+      parents:
+        0: '9be12bc91bcc11ebefbe737e7d05123f1cf391c5ec144fe11788b50f6a424806'
+      value: ~
+      revisionId: '36c9f47f9b1eacd8a66361b6df78873faa51f5f4150b5fb83806dccd46aee561'
+    2:
+      protocol: 1
+      datasetId: 'synthetic_selected_checkpoint'
+      deviceId: 'synthetic_B'
+      sequence: 5
+      operationId: '7171291b-ddf2-421f-ade3-b65485aac426'
+      type: 'sourceBootstrapMember'
+      entityId: 'timeEvidence:b8e38297264aef02c66c5d86cab129fb55efafb1460b4f7a0683aaf977c1917f'
+      codecVersion: 1
+      kind: 'purge'
+      actor: 'user'
+      parents:
+        0: '8bb4e8d8b33e6a5c9142df2ea999d89f3e7d0d5464d518b74933ae8b6d850388'
+      value: ~
+      revisionId: 'd4273b543a56dc0434ad6a029b7a05b6b3c81eb6bb44871c7304b39f6f19184a'
+    3:
+      protocol: 1
+      datasetId: 'synthetic_selected_checkpoint'
+      deviceId: 'synthetic_B'
+      sequence: 7
+      operationId: '7acb3c99-a0e5-4275-8ddb-1bcea9468c0b'
+      type: 'sourceBootstrapMember'
+      entityId: 'inputState:block:3f546031-48b9-4386-a49b-9af33a54b767'
+      codecVersion: 1
+      kind: 'purge'
+      actor: 'user'
+      parents:
+        0: 'a7767618ea5c86b4a52eba2dcd045b248d867721eb3138ae0b961691ed2f92b0'
+      value: ~
+      revisionId: '109f92a95f24f2c57c21ce07d45a8286363f3d13e4ab983c28dcdf221bcf98bd'
+    4:
+      protocol: 1
+      datasetId: 'synthetic_selected_checkpoint'
+      deviceId: 'synthetic_B'
+      sequence: 4
+      operationId: '7ebdf961-a999-46fe-b133-ff2583618eda'
+      type: 'sourceBootstrapMember'
+      entityId: 'inputDocument:document:3f546031-48b9-4386-a49b-9af33a54b767'
+      codecVersion: 1
+      kind: 'purge'
+      actor: 'user'
+      parents:
+        0: '8100a4fa808170a94435a2b786e6fe2d35854620db87091862a2b550b8e3f530'
+      value: ~
+      revisionId: '99e1c1b7343f4fada7e8c8d1a0494ec59927dc7369318102a09f784447a7ee83'
+    5:
+      protocol: 1
+      datasetId: 'synthetic_selected_checkpoint'
+      deviceId: 'synthetic_B'
+      sequence: 1
+      operationId: '89a01d93-f348-451c-aec8-42cde58029b4'
+      type: 'sourceBootstrapMember'
+      entityId: 'input:block:3f546031-48b9-4386-a49b-9af33a54b767'
+      codecVersion: 1
+      kind: 'purge'
+      actor: 'user'
+      parents:
+        0: '04a7f60c92651be3191ce8455f1b95e228fedc273e4dcb6344b4790832e46e60'
+      value: ~
+      revisionId: 'b7b0862105fe64655b8deefc8d5ae02f5b5baee92003b34b729734b059d398dd'
+    6:
+      protocol: 1
+      datasetId: 'synthetic_selected_checkpoint'
+      deviceId: 'synthetic_B'
+      sequence: 2
+      operationId: '8b0a0321-306d-45cf-82f8-b093e474d363'
+      type: 'sourceBootstrapMember'
+      entityId: 'baselineRevision:934bf737-e6f4-4ceb-8031-2d19a86a2d74'
+      codecVersion: 1
+      kind: 'purge'
+      actor: 'user'
+      parents:
+        0: '0f88038281af2132f2e849344f4e86e972e5d0b0ddb796d8cb72af4c298a532c'
+      value: ~
+      revisionId: '68d120ae5bddde905a88dd3950ca62a9968056f4c507ac00d6f8e2b7a1e17cb5'
+    7:
+      protocol: 1
+      datasetId: 'synthetic_selected_checkpoint'
+      deviceId: 'synthetic_B'
+      sequence: 3
+      operationId: '8db62f7d-93c5-4a39-a20f-08d126038464'
+      type: 'sourceBootstrapCommit'
+      entityId: 'c82f2302-3346-4c66-a0b3-9832f775429c'
+      codecVersion: 1
+      kind: 'purge'
+      actor: 'user'
+      parents:
+        0: '5c80b8a440f27ca4988f0e36f5813af38b89ed364ad4601f27a7dbe54e99ff91'
+      value: ~
+      revisionId: '9532010bdc31f3f9d109f43a1496baf536ed057a058ef16d66ffddd5b4b9869b'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-selected-purge-group.test.mjs:45:734)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1029.740958

@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+import {nativeSelectedPurgeGroupFixture} from '../../extension/tests/native-sync/selected-purge-group-fixture.mjs';
+const source=await readFile('extension/tests/browser-native-sync-selected-purge-group.test.mjs','utf8'),helpers=await readFile('extension/tests/harness/thought-m1.mjs','utf8');
+const output=nativeSelectedPurgeGroupFixture(source,helpers);
+await writeFile('work/selected-negative-checkpoint-20261023/generated-native-fixture.mjs',output);
+const expected=JSON.parse(output.match(/const expectedNames=(\[.*?\]);/)[1]);assert.equal(expected.length,13);assert.equal(new Set(expected).size,13);
+assert.equal(output.includes("cases.some((item,i)=>item.name!==expectedNames[i])"),true);
+assert.equal(output.includes("(await indexedDB.databases()).filter"),true);
+assert.throws(()=>nativeSelectedPurgeGroupFixture(source.replace('new LibraryDocumentsStore(','new UnknownStore('),helpers),/CONSTRUCTORS_CHANGED/);
+assert.throws(()=>nativeSelectedPurgeGroupFixture(source.replace('new ArchiveRepository(','new UnknownRepository('),helpers),/CONSTRUCTORS_CHANGED/);
+assert.throws(()=>nativeSelectedPurgeGroupFixture(source.replace('new IDBFactory()','indexedDB'),helpers),/CONSTRUCTORS_CHANGED/);
+assert.throws(()=>nativeSelectedPurgeGroupFixture(source+"\nimport('node:fs');",helpers),/UNSUPPORTED_IMPORT/);
+assert.throws(()=>nativeSelectedPurgeGroupFixture(source,helpers.replace('export async function setup','async function setup')),/HELPER_SETUP_CHANGED/);
+console.log('Native preparation: generated 13 exact named cases; constructor/factory/helper/import boundary checks passed. No browser/native/build execution.');

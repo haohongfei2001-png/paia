@@ -1,3 +1,4 @@
+import {sourcePurgeActiveTerminal} from './source-purge-group-active.js';
 import {IndexedArchiveStore} from '../indexed-store.js';
 import {originalIAConstructor} from '../ia-store-owner.js';
 import {planInitialFilter} from '../smart-filter-store-owner.js';
@@ -17,7 +18,7 @@ export async function sourcePurgeGroupSnapshot(core,t){
 }
 // Detached prediction only: original domain/index/semantic writers operate on
 // private Maps. No native transaction, store mutation, or alternate data truth.
-export async function planSourcePurgeGroupPhysical(store,core,before,groups,negative,protocol){
+export async function planSourcePurgeGroupPhysical(store,core,before,groups,negative,protocol,active){
  const bound=snapshots.get(before);if(!bound||bound.core!==core||bound.repository!==store.repository||bound.database!==store.repository.db)deny();
  if(measureSourceWorkingPhysicalTree(before).B*4+measureSourceWorkingPhysicalTree({groups,negative,protocol}).B*8>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');
  const maps=Object.fromEntries(Object.entries(before).map(([name,rows])=>[name,new Map(rows.map(row=>[row.id,copy(row)]))]));
@@ -37,7 +38,7 @@ export async function planSourcePurgeGroupPhysical(store,core,before,groups,nega
  const callback=Object.fromEntries(Object.entries(maps).map(([name,map])=>[name,sort([...map.values()].map(copy))]));
  await flushNavigationWrites(scratch);await flushSemanticWrites(scratch);
  if(groups.length||negative.length){const row=maps.meta.get('backup-data-generation');maps.meta.set('backup-data-generation',{id:'backup-data-generation',value:(row?.value||0)+1});}
- const terminal=Object.fromEntries(Object.entries(maps).map(([name,map])=>[name,sort([...map.values()].map(copy))]));
+ const terminal=sourcePurgeActiveTerminal(store,core,active,Object.fromEntries(Object.entries(maps).map(([name,map])=>[name,sort([...map.values()].map(copy))])));
  if(measureSourceWorkingPhysicalTree({before,callback,terminal}).B>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');return {callback,terminal};
 }
 export async function requireSourcePurgeGroupRows(core,t,expected){const actual=await sourcePurgeGroupSnapshot(core,t);if(!equalSourceWorkingPhysicalTree(actual,expected))deny();}
