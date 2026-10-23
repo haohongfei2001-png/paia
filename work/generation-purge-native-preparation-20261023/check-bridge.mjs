@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {nativeGenerationPurgeFixture} from '../../extension/tests/native-sync/generation-purge-fixture.mjs';
 const helpers=readFileSync('extension/tests/harness/thought-m1.mjs','utf8'),results=[];
 function plain(source){let previous;do{previous=source;source=source.replace(/^import[^;\n]+;/gm,'');}while(source!==previous);return source.replace(/^export /gm,'');}
-for(const [name,file,count] of [['generation-owner','canonical-generation-owner-restore.test.mjs',30],['source-purge','browser-native-sync-source-purge.test.mjs',28],['saved-multiple','browser-native-sync-saved-multiple.test.mjs',15]]){
+for(const [name,file,count] of [['generation-owner','canonical-generation-owner-restore.test.mjs',30],['source-purge','browser-native-sync-source-purge.test.mjs',28],['saved-multiple','browser-native-sync-saved-multiple.test.mjs',15],['human-generation','canonical-generation-human-restore.test.mjs',32]]){
  const original=readFileSync('extension/tests/'+file,'utf8'),generated=nativeGenerationPurgeFixture(original,helpers,name+'-matrix');
  writeFileSync('work/generation-purge-native-preparation-20261023/'+name+'.mjs',generated);
  const sourceCases=[];runInNewContext(plain(original),{IDBKeyRange:{},test:(name,fn)=>sourceCases.push({name,body:fn.toString()}),globalThis:{}});

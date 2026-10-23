@@ -2,19 +2,19 @@
 // assertion calls are retained. Only Node registration, database construction
 // and the existing synthetic helper module boundary are adapted for MV3.
 export function nativeGenerationPurgeFixture(source,helpers,command){
- if(!['generation-owner-matrix','source-purge-matrix','saved-multiple-matrix'].includes(command))throw Error('NATIVE_OWNER_COMMAND');
+ if(!['generation-owner-matrix','source-purge-matrix','saved-multiple-matrix','human-generation-matrix'].includes(command))throw Error('NATIVE_OWNER_COMMAND');
  const replace=(before,after)=>{if(source.split(before).length!==2)throw Error('NATIVE_OWNER_BOUNDARY_CHANGED: '+before);source=source.replace(before,after);};
  replace("import test from 'node:test';",'');replace("import assert from 'node:assert/strict';",'');
  replace("import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';",'');
  replace('globalThis.IDBKeyRange=IDBKeyRange;','');
- const storeClass=command==='saved-multiple-matrix'?'LibraryDocumentsStore':'LibraryFoundationStore';
- const helperImport=command==='generation-owner-matrix'?"import {local,capture} from './harness/thought-m1.mjs';":command==='saved-multiple-matrix'?"import {local,capture,inputEdit} from './harness/thought-m1.mjs';":"import {local,capture,inputEdit,derived} from './harness/thought-m1.mjs';";
+ const storeClass=['saved-multiple-matrix','human-generation-matrix'].includes(command)?'LibraryDocumentsStore':'LibraryFoundationStore';
+ const helperImport=command==='human-generation-matrix'?"import {local} from './harness/thought-m1.mjs';":command==='generation-owner-matrix'?"import {local,capture} from './harness/thought-m1.mjs';":command==='saved-multiple-matrix'?"import {local,capture,inputEdit} from './harness/thought-m1.mjs';":"import {local,capture,inputEdit,derived} from './harness/thought-m1.mjs';";
  replace(helperImport,'');
  if(/\bimport\s*\(/.test(source)||/node:|fake-indexeddb|\.\/harness\//.test(source))throw Error('NATIVE_OWNER_UNSUPPORTED_IMPORT');
  // Construct the real original owners and preserve all supplied options. Each
  // factory-isolated synthetic DB becomes a uniquely named native IDB database.
  const storeCount=source.split('new '+storeClass+'(').length-1,repositoryCount=(source.match(/new ArchiveRepository\(/g)||[]).length;
- if(storeCount!==(command==='generation-owner-matrix'?2:1)||repositoryCount!==(command==='generation-owner-matrix'?2:0))throw Error('NATIVE_OWNER_CONSTRUCTORS_CHANGED');
+ if(storeCount!==(['generation-owner-matrix','human-generation-matrix'].includes(command)?2:1)||repositoryCount!==(['generation-owner-matrix','human-generation-matrix'].includes(command)?2:0))throw Error('NATIVE_OWNER_CONSTRUCTORS_CHANGED');
  source=source.replaceAll('new '+storeClass+'(','nativeStore(').replaceAll('new ArchiveRepository(','nativeRepository(').replaceAll('new IDBFactory()','indexedDB');
  const helperLines=["import {IDBFactory,IDBKeyRange} from '../vendor/fake-indexeddb/build/esm/index.js';","import {LibraryFoundationStore} from '../../core/thought-store.js';",'globalThis.IDBKeyRange=IDBKeyRange;'];
  for(const line of helperLines){if(helpers.split(line).length!==2)throw Error('NATIVE_HELPER_BOUNDARY_CHANGED');helpers=helpers.replace(line,'');}

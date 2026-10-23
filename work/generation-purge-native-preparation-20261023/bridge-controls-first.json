@@ -1,0 +1,20 @@
+[
+  {
+    "name": "generation-owner",
+    "originalCases": 30,
+    "exactAdaptedCaseBodies": true,
+    "refusalControls": 3
+  },
+  {
+    "name": "source-purge",
+    "originalCases": 28,
+    "exactAdaptedCaseBodies": true,
+    "refusalControls": 3
+  },
+  {
+    "name": "saved-multiple",
+    "originalCases": 15,
+    "exactAdaptedCaseBodies": true,
+    "refusalControls": 3
+  }
+]

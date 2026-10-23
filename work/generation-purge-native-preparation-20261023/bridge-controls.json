@@ -16,5 +16,11 @@
     "originalCases": 15,
     "exactAdaptedCaseBodies": true,
     "refusalControls": 3
+  },
+  {
+    "name": "human-generation",
+    "originalCases": 32,
+    "exactAdaptedCaseBodies": true,
+    "refusalControls": 3
   }
 ]
