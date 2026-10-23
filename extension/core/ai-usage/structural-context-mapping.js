@@ -1,4 +1,4 @@
-import {readTopicContext,topicContextMaterial,validTopicContextEvidence,readTopicContextEvidence} from './topic-context-mapping.js';
+import {readTopicContext,topicContextAllowsTopic,topicContextMaterial,validTopicContextEvidence,readTopicContextEvidence} from './topic-context-mapping.js';
 import {planHumanSectionEdit} from '../thought-organization.js';
 import {inputProjection} from '../thought-evidence.js';
 import {prefix,revisionOK,idOK} from '../thought-model.js';
@@ -20,7 +20,7 @@ export const structuralContextAllowsTopic=m=>!!m&&topicReconciliationMappings.ha
 const sectionSnapshot=row=>{const {searchVersion,...value}=row||{};return value;};
 const normalized=x=>typeof x==='string'?x.trim().replace(/\s+/g,' '):null;
 export async function readStructuralContext(store,t,d){
- if(d?.kind==='topic'){const mapping=await readTopicContext(store,t,d);if(mapping)topicReconciliationMappings.add(mapping);return mapping;}
+ if(d?.kind==='topic'){const mapping=await readTopicContext(store,t,d);if(topicContextAllowsTopic(mapping))topicReconciliationMappings.add(mapping);return mapping;}
  if(d?.kind!=='section'||d.removed||d.fenceOnly||d.independent||!idOK(d.entityId)||!idOK(d.topicId))return null;
  const row=await t.get('sections',d.recordId),topic=await t.get('topics',d.topicId),j=await t.get('revisions',d.journalId);
  if(!row||row.id!==JSON.stringify([d.topicId,d.layoutGeneration,d.entityId])||row.sectionId!==d.entityId||row.topicId!==d.topicId||row.layoutGeneration!==d.layoutGeneration||row.revision!==d.revision||row.lifecycle!=='active'||row.activeKey!==0||row.redirectTo||!topic||topic.lifecycle!=='active'||topic.redirectTo||topic.layoutJobId||topic.identity?.noRecreation||topic.activeLayoutGeneration!==d.layoutGeneration||!revisionOK(topic.revision)||!revisionOK(topic.organizationRevision))return null;
