@@ -1,0 +1,7 @@
+{
+  "extension/core/browser-native-sync/source-purge-journal.js": "1e86249972e868fe47afb468cad44fd02dabc860981418654ddec509fd0252cc",
+  "extension/core/browser-native-sync/source-purge-negative.js": "17f37f57739dae9e1004e102c0ba4198906c501f7d9be0e5b40119920ef26189",
+  "extension/core/browser-native-sync/source-purge-metadata.js": "38f12a13c621f1a13d7792e8af2b8effc51e0b30401a436f40c2e2687c623ba0",
+  "extension/core/browser-native-sync/group-checkpoint-scope.js": "aa39b036d491689fa4f547b99d67da4d3e1288215533470a8b37691efa10f8a7",
+  "extension/tests/browser-native-sync-source-purge-multi.test.mjs": "2996ea64d545b073bf48b0607d187ace884b1178f1f02a6c967a72daf1d70314"
+}

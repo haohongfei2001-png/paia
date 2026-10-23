@@ -1,0 +1,244 @@
+TAP version 13
+# Subtest: original purge selects one of two independent Source bootstrap groups and preserves the other
+ok 1 - original purge selects one of two independent Source bootstrap groups and preserves the other
+  ---
+  duration_ms: 307.704792
+  type: 'test'
+  ...
+# Subtest: live second device preserves received and local Sources and outbox while consuming only selected remote purge
+ok 2 - live second device preserves received and local Sources and outbox while consuming only selected remote purge
+  ---
+  duration_ms: 561.928416
+  type: 'test'
+  ...
+# Subtest: late record mutation of an unselected Source rolls back the entire purge
+ok 3 - late record mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 174.941208
+  type: 'test'
+  ...
+# Subtest: late record-index mutation of an unselected Source rolls back the entire purge
+ok 4 - late record-index mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 156.377458
+  type: 'test'
+  ...
+# Subtest: late input mutation of an unselected Source rolls back the entire purge
+ok 5 - late input mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 181.692792
+  type: 'test'
+  ...
+# Subtest: late input-index mutation of an unselected Source rolls back the entire purge
+ok 6 - late input-index mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 225.018584
+  type: 'test'
+  ...
+# Subtest: late document mutation of an unselected Source rolls back the entire purge
+ok 7 - late document mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 179.593875
+  type: 'test'
+  ...
+# Subtest: late source-count mutation of an unselected Source rolls back the entire purge
+ok 8 - late source-count mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 183.2985
+  type: 'test'
+  ...
+# Subtest: late history mutation of an unselected Source rolls back the entire purge
+ok 9 - late history mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 179.143333
+  type: 'test'
+  ...
+# Subtest: late outbox mutation of an unselected Source rolls back the entire purge
+ok 10 - late outbox mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 176.499458
+  type: 'test'
+  ...
+# Subtest: late archive-index mutation of an unselected Source rolls back the entire purge
+ok 11 - late archive-index mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 196.238959
+  type: 'test'
+  ...
+# Subtest: late unexpected-row mutation of an unselected Source rolls back the entire purge
+ok 12 - late unexpected-row mutation of an unselected Source rolls back the entire purge
+  ---
+  duration_ms: 170.715792
+  type: 'test'
+  ...
+# Subtest: unselected orphan protocol invalidity rejects before deleting either Source
+ok 13 - unselected orphan protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 59.698625
+  type: 'test'
+  ...
+# Subtest: unselected fork protocol invalidity rejects before deleting either Source
+ok 14 - unselected fork protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 105.941208
+  type: 'test'
+  ...
+# Subtest: unselected reused-member protocol invalidity rejects before deleting either Source
+ok 15 - unselected reused-member protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 69.596666
+  type: 'test'
+  ...
+# Subtest: unselected generation protocol invalidity rejects before deleting either Source
+ok 16 - unselected generation protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 94.829167
+  type: 'test'
+  ...
+# Subtest: unselected frontier protocol invalidity rejects before deleting either Source
+ok 17 - unselected frontier protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 102.451875
+  type: 'test'
+  ...
+# Subtest: unselected device protocol invalidity rejects before deleting either Source
+ok 18 - unselected device protocol invalidity rejects before deleting either Source
+  ---
+  duration_ms: 92.065792
+  type: 'test'
+  ...
+# Subtest: cryptographically valid cross-group member reuse is rejected by the original compiler
+ok 19 - cryptographically valid cross-group member reuse is rejected by the original compiler
+  ---
+  duration_ms: 60.452959
+  type: 'test'
+  ...
+# Subtest: multiple Source purge refuses append without deleting any data
+ok 20 - multiple Source purge refuses append without deleting any data
+  ---
+  duration_ms: 105.329042
+  type: 'test'
+  ...
+# Subtest: multiple Source purge refuses other-namespace without deleting any data
+ok 21 - multiple Source purge refuses other-namespace without deleting any data
+  ---
+  duration_ms: 64.935958
+  type: 'test'
+  ...
+# Subtest: multiple Source purge refuses resident-checkpoint without deleting any data
+ok 22 - multiple Source purge refuses resident-checkpoint without deleting any data
+  ---
+  duration_ms: 38.566959
+  type: 'test'
+  ...
+# Subtest: multiple Source purge refuses unknown-owner without deleting any data
+ok 23 - multiple Source purge refuses unknown-owner without deleting any data
+  ---
+  duration_ms: 91.547959
+  type: 'test'
+  ...
+# Subtest: original maintenance callback cannot establish a corrupted unselected source as the new baseline
+ok 24 - original maintenance callback cannot establish a corrupted unselected source as the new baseline
+  ---
+  duration_ms: 175.993125
+  type: 'test'
+  ...
+# Subtest: multiple Source purge keeps the private work budget despite resetting public metrics
+ok 25 - multiple Source purge keeps the private work budget despite resetting public metrics
+  ---
+  duration_ms: 250.191375
+  type: 'test'
+  ...
+# Subtest: remaining independent Source can be purged after the first cleanup without reviving either group
+ok 26 - remaining independent Source can be purged after the first cleanup without reviving either group
+  ---
+  duration_ms: 487.940167
+  type: 'test'
+  ...
+# Subtest: second selected purge preserves the first queued cleanup and both denial groups
+ok 27 - second selected purge preserves the first queued cleanup and both denial groups
+  ---
+  duration_ms: 391.189
+  type: 'test'
+  ...
+# Subtest: live receiver consumes two selected purges while retaining a local third Source and its queued operations
+ok 28 - live receiver consumes two selected purges while retaining a local third Source and its queued operations
+  ---
+  duration_ms: 1160.8295
+  type: 'test'
+  ...
+# Subtest: prior negative deny corruption rejects a subsequent purge without altering either group
+ok 29 - prior negative deny corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 249.631834
+  type: 'test'
+  ...
+# Subtest: prior negative tombstone corruption rejects a subsequent purge without altering either group
+ok 30 - prior negative tombstone corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 394.150291
+  type: 'test'
+  ...
+# Subtest: prior negative redacted-body corruption rejects a subsequent purge without altering either group
+ok 31 - prior negative redacted-body corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 272.995666
+  type: 'test'
+  ...
+# Subtest: prior negative old-outbox corruption rejects a subsequent purge without altering either group
+ok 32 - prior negative old-outbox corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 264.680791
+  type: 'test'
+  ...
+# Subtest: prior negative old-receipt corruption rejects a subsequent purge without altering either group
+ok 33 - prior negative old-receipt corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 348.988542
+  type: 'test'
+  ...
+# Subtest: prior negative input-state corruption rejects a subsequent purge without altering either group
+ok 34 - prior negative input-state corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 236.363792
+  type: 'test'
+  ...
+# Subtest: prior negative baseline corruption rejects a subsequent purge without altering either group
+ok 35 - prior negative baseline corruption rejects a subsequent purge without altering either group
+  ---
+  duration_ms: 236.798375
+  type: 'test'
+  ...
+# Subtest: late deny change during the second purge rolls back to the complete first result
+ok 36 - late deny change during the second purge rolls back to the complete first result
+  ---
+  duration_ms: 442.203334
+  type: 'test'
+  ...
+# Subtest: late prior-cleanup change during the second purge rolls back to the complete first result
+ok 37 - late prior-cleanup change during the second purge rolls back to the complete first result
+  ---
+  duration_ms: 436.308041
+  type: 'test'
+  ...
+# Subtest: late prior-tombstone change during the second purge rolls back to the complete first result
+ok 38 - late prior-tombstone change during the second purge rolls back to the complete first result
+  ---
+  duration_ms: 355.072166
+  type: 'test'
+  ...
+# Subtest: late prior-input-state change during the second purge rolls back to the complete first result
+ok 39 - late prior-input-state change during the second purge rolls back to the complete first result
+  ---
+  duration_ms: 434.658375
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9917.091208

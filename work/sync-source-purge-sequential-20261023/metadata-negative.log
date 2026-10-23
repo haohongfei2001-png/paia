@@ -1,0 +1,98 @@
+TAP version 13
+# Subtest: complete metadata cut rejects existing-meta at owner-return
+not ok 1 - complete metadata cut rejects existing-meta at owner-return
+  ---
+  duration_ms: 318.7605
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge-multi.test.mjs:33:121'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge-multi.test.mjs:33:1412)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: complete metadata cut rejects new-meta at owner-return
+not ok 2 - complete metadata cut rejects new-meta at owner-return
+  ---
+  duration_ms: 298.389625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge-multi.test.mjs:33:121'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge-multi.test.mjs:33:1412)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: complete metadata cut rejects other-annual at owner-return
+ok 3 - complete metadata cut rejects other-annual at owner-return
+  ---
+  duration_ms: 263.152833
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects other-outbox at owner-return
+ok 4 - complete metadata cut rejects other-outbox at owner-return
+  ---
+  duration_ms: 249.452333
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects existing-meta at tail
+not ok 5 - complete metadata cut rejects existing-meta at tail
+  ---
+  duration_ms: 256.530542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge-multi.test.mjs:33:121'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge-multi.test.mjs:33:1412)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: complete metadata cut rejects new-meta at tail
+not ok 6 - complete metadata cut rejects new-meta at tail
+  ---
+  duration_ms: 288.785375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge-multi.test.mjs:33:121'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge-multi.test.mjs:33:1412)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: complete metadata cut rejects other-annual at tail
+ok 7 - complete metadata cut rejects other-annual at tail
+  ---
+  duration_ms: 249.160875
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects other-outbox at tail
+ok 8 - complete metadata cut rejects other-outbox at tail
+  ---
+  duration_ms: 258.385167
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 4
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2416.80475

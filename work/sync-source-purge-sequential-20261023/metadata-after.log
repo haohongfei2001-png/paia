@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: original purge selects one of two independent Source bootstrap groups and preserves the other
+ok 1 - original purge selects one of two independent Source bootstrap groups and preserves the other
+  ---
+  duration_ms: 262.701625
+  type: 'test'
+  ...
+# Subtest: remaining independent Source can be purged after the first cleanup without reviving either group
+ok 2 - remaining independent Source can be purged after the first cleanup without reviving either group
+  ---
+  duration_ms: 436.230417
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects existing-meta at owner-return
+ok 3 - complete metadata cut rejects existing-meta at owner-return
+  ---
+  duration_ms: 182.612375
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects new-meta at owner-return
+ok 4 - complete metadata cut rejects new-meta at owner-return
+  ---
+  duration_ms: 181.561834
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects other-annual at owner-return
+ok 5 - complete metadata cut rejects other-annual at owner-return
+  ---
+  duration_ms: 186.098583
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects other-outbox at owner-return
+ok 6 - complete metadata cut rejects other-outbox at owner-return
+  ---
+  duration_ms: 174.036625
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects existing-meta at tail
+ok 7 - complete metadata cut rejects existing-meta at tail
+  ---
+  duration_ms: 247.728791
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects new-meta at tail
+ok 8 - complete metadata cut rejects new-meta at tail
+  ---
+  duration_ms: 214.509959
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects other-annual at tail
+ok 9 - complete metadata cut rejects other-annual at tail
+  ---
+  duration_ms: 193.695084
+  type: 'test'
+  ...
+# Subtest: complete metadata cut rejects other-outbox at tail
+ok 10 - complete metadata cut rejects other-outbox at tail
+  ---
+  duration_ms: 186.329208
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2450.190875

@@ -1,7 +1,9 @@
+import {planSourcePurgeMetadata} from './source-purge-metadata.js';
+import {sourcePurgeNegativeInventory,prepareSourcePurgeRemainingCanonical} from './source-purge-negative.js';
 import {planInitialFilter} from '../smart-filter-store-owner.js';
 import {archiveYearPrefix,archiveYearMeta} from '../archive-year-index.js';
 import {prepareGroupCheckpointPlan} from './group-checkpoint-plan.js';
-import {prepareGroupScope,requireGroupScope} from './group-checkpoint-scope.js';
+import {prepareGroupScope,requireGroupScope,requireSourcePurgeRemainingScope} from './group-checkpoint-scope.js';
 import {readGroupRows} from './group-page-reader.js';
 import {recordIndex,blockIndex,sourceCount,chatOf} from '../idb-repository.js';
 import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from './source-working-physical.js';
@@ -50,11 +52,11 @@ async function confirmedPublicationRows(core,all,namespace){
 async function portfolioRows(t){
  const all={};let retained=0;for(const name of t.tx.objectStoreNames){all[name]=await readGroupRows(t,name);for(const row of all[name]){retained+=measureSourceWorkingPhysicalTree(row).B;if(retained>2*1024*1024)denied();}}return all;
 }
-function verifyPortfolioIndexes(raw,groups){
+function verifyPortfolioIndexes(raw,groups,total=groups.length){
  const n=groups.length,metadata=new Map(raw.meta.map(row=>[row.id,row]));
- for(const name of ['recordIndex','blockIndex','documents'])if(raw[name].length!==n||new Set(raw[name].map(r=>r.sequence)).size!==n||raw[name].some(r=>!Number.isSafeInteger(r.sequence)||r.sequence<0||r.sequence>=n))denied();
- for(const name of ['inputStates','revisions']){const key=name==='inputStates'?'deltaSequence':'sequence';if(raw[name].length!==n||new Set(raw[name].map(r=>r[key])).size!==n||raw[name].some(r=>!Number.isSafeInteger(r[key])||r[key]<1||r[key]>n))denied();}
- for(const [id,value]of [['sequence',{records:n,blocks:n,documents:n}],['input-delta-sequence',{value:n}],['revision-sequence',{value:n}]])if(!equal(metadata.get(id),{id,...value}))denied();
+ for(const name of ['recordIndex','blockIndex','documents'])if(raw[name].length!==n||new Set(raw[name].map(r=>r.sequence)).size!==n||raw[name].some(r=>!Number.isSafeInteger(r.sequence)||r.sequence<0||r.sequence>=total))denied();
+ for(const name of ['inputStates','revisions']){const key=name==='inputStates'?'deltaSequence':'sequence';if(raw[name].length!==n||new Set(raw[name].map(r=>r[key])).size!==n||raw[name].some(r=>!Number.isSafeInteger(r[key])||r[key]<1||r[key]>total))denied();}
+ for(const [id,value]of [['sequence',{records:total,blocks:total,documents:total}],['input-delta-sequence',{value:total}],['revision-sequence',{value:total}]])if(!equal(metadata.get(id),{id,...value}))denied();
  if(raw.sourceCounts.length!==n||raw.filterInputs.length!==n||['invalidations','operationReceipts','librarySearchTerms','migrationBackup'].some(name=>raw[name].length))denied();
  for(const group of groups){const e=initialSourcePlan(group.capability),r=e.source,b=e.input,ri=raw.recordIndex.find(row=>row.id===r.id),bi=raw.blockIndex.find(row=>row.id===b.id),doc=raw.documents.find(row=>row.id===b.documentId),count=sourceCount(b.documentId,r.sourceKey,[r],[b],r.chatId);
   if(!equal(raw.filterInputs.find(row=>row.id===b.id),planInitialFilter(b,raw.inputStates.find(row=>row.id===b.id))))denied();
@@ -63,9 +65,10 @@ function verifyPortfolioIndexes(raw,groups){
   if(!equalSourceWorkingPhysicalTree(doc,expected))denied();
  }
 }
-async function preparePortfolio(store,core,before,plan){
- if(plan.groups.length===1)return null;const scope=await prepareGroupScope(plan);
- return core.transaction(false,async t=>{if(!equal(await authority(store,core,t),before.authority)||!equal(await rows(t,'bns:v1:'),before.rows))denied();await requireGroupScope(store,t,scope);const raw=await portfolioRows(t);verifyPortfolioIndexes(raw,plan.groups);return raw;});
+async function preparePortfolio(store,core,before,plan,inventory){
+ const negative=inventory.negative;
+ if(plan.groups.length===1&&!negative.length)return null;const scope=await prepareGroupScope(plan),qualified=negative.length?await prepareSourcePurgeRemainingCanonical(store,core,plan,scope,inventory):null;
+ return core.transaction(false,async t=>{if(!equal(await authority(store,core,t),before.authority)||!equal(await rows(t,'bns:v1:'),before.rows))denied();let raw;if(!negative.length){raw=await portfolioRows(t);await requireGroupScope(store,t,scope);verifyPortfolioIndexes(raw,plan.groups);}else{raw=qualified.raw;await requireSourcePurgeRemainingScope(store,t,scope,qualified.view,qualified.proof);verifyPortfolioIndexes(qualified.view,plan.groups,plan.groups.length+negative.length);}return raw;});
 }
 function remainingPortfolio(p){
  if(!p.portfolio)return null;const result=Object.fromEntries(Object.entries(p.portfolio).filter(([name])=>name!=='meta').map(([name,rows])=>[name,new Map(rows.map(row=>[row.id,structuredClone(row)]))]));
@@ -82,22 +85,21 @@ export async function prepareOriginalSourcePurge(store,id,key){
  // prepared publications are deliberately refused. A selected active vector
  // alone cannot prove that all resident copies were retired.
  const publicationRows=await confirmedPublicationRows(core,before.rows,before.namespace);
- for(const row of before.rows){if(row.id===core.prefix+'active'||publicationRows.has(row.id))continue;if(!row.id.startsWith(generationPrefix)||!allowedKinds.has(row.id.slice(generationPrefix.length).split(':')[0]))denied();}
+ for(const row of before.rows){if(row.id===core.prefix+'active'||row.id.startsWith(core.prefix+'sourcePurgeDeny:')||publicationRows.has(row.id))continue;if(!row.id.startsWith(generationPrefix)||!allowedKinds.has(row.id.slice(generationPrefix.length).split(':')[0]))denied();}
  const revisions=before.rows.filter(row=>row.id.startsWith(generationPrefix+'revision:'));
- if(!revisions.length||revisions.length%7||revisions.length>128||revisions.some(row=>row.redacted||!['sourceBootstrapMember','sourceBootstrapCommit'].includes(row.operation?.type)))denied();
- const allOperations=[];for(const row of revisions)allOperations.push(await validateOperation(row.operation));
+ if(!revisions.length||revisions.length>128)denied();const inventory=await sourcePurgeNegativeInventory(core,revisions,before.rows,before.namespace,prepareSourcePurgeRemote),{negative,entries}=inventory,allOperations=inventory.active;if(!allOperations.length||allOperations.length%7)denied();
  const plan=await prepareGroupCheckpointPlan(core,allOperations);if(plan.groups.some(group=>group.type!=='sourceBootstrapCommit'))denied();
  // Every group must be its original complete, independent creation. A shared
  // document/chat, reused entity or orphan member cannot authorize deletion.
  const identities=new Map();for(const group of plan.groups){const e=initialSourcePlan(group.capability);for(const [kind,value]of [['source',e.source.id],['sourceKey',e.source.sourceKey],['chat',chatOf(e.source)],['document',e.inputDocument.id],['input',e.input.id],['history',e.baselineRevision.id]]){const k=kind+':'+value;if(identities.has(k))denied();identities.set(k,group.id);}}
  const matches=plan.groups.filter(group=>group.prepared.descriptor.value.sourceId===id&&group.prepared.descriptor.value.sourceKey===key);if(matches.length!==1)denied();const selectedGroup=matches[0],operations=allOperations.filter(op=>selectedGroup.operations.some(member=>member.revisionId===op.revisionId)),verified=selectedGroup.prepared,v=verified.descriptor.value,initial=initialSourcePlan(selectedGroup.capability);if(initial.source.id!==id||initial.source.sourceKey!==key)denied();
- const portfolio=await preparePortfolio(store,core,before,plan);
+ for(const p of negative)for(const [kind,value]of [['source',p.intent.sourceId],['sourceKey',p.intent.sourceKey],['document',p.intent.documentId],['input',p.intent.inputId],['history',p.intent.baselineId]])if(identities.has(kind+':'+value))denied();
+ const portfolio=await preparePortfolio(store,core,before,plan,inventory);
  const byId=new Map(before.rows.map(row=>[row.id,row]));
- for(const op of allOperations){const ids=await core.transaction(false,async t=>({head:await core.idIn(t,'head',op.type,op.entityId),receipt:await core.idIn(t,'receipt',op.operationId),sequence:await core.idIn(t,'sequence',op.deviceId,String(op.sequence).padStart(16,'0'))}));if(!equal(byId.get(ids.head),{id:ids.head,type:op.type,entityId:op.entityId,revisions:[op.revisionId],purged:false,fence:null})||!equal(byId.get(ids.receipt),{id:ids.receipt,digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence})||!equal(byId.get(ids.sequence),{id:ids.sequence,operationId:op.operationId,digest:op.revisionId}))denied();}
- if(before.rows.filter(row=>row.id.startsWith(generationPrefix+'head:')).length!==allOperations.length)denied();
  const exactProtocol=new Map(),set=async(kind,ids,data)=>{const rid=await core.transaction(false,t=>core.idIn(t,kind,...ids),['meta']);exactProtocol.set(rid,{...data,id:rid});},frontiers=new Map();
- for(const op of allOperations){await set('revision',[op.revisionId],{operation:op,redacted:false});await set('head',[op.type,op.entityId],{type:op.type,entityId:op.entityId,revisions:[op.revisionId],purged:false,fence:null});await set('receipt',[op.operationId],{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence});await set('sequence',[op.deviceId,String(op.sequence).padStart(16,'0')],{operationId:op.operationId,digest:op.revisionId});await set('entityRevision',[op.type,op.entityId,op.revisionId],{revisionId:op.revisionId});const outboxId=await core.transaction(false,t=>core.idIn(t,'outbox',op.operationId),['meta']);if(byId.has(outboxId))exactProtocol.set(outboxId,{id:outboxId,operationId:op.operationId,revisionId:op.revisionId,state:'queued'});frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));}
- for(const [deviceId,f]of frontiers)await set('frontier',[deviceId],{...f,deviceId});await set('generation',[],{value:allOperations.length});const ownOps=allOperations.filter(op=>op.deviceId===core.deviceId);if(ownOps.length)await set('device',[core.deviceId],{sequence:Math.max(...ownOps.map(op=>op.sequence))});
+ for(const entry of entries){const op=entry.operation,purged=op.kind==='purge';await set('revision',[op.revisionId],{operation:op,redacted:entry.redacted});await set('head',[op.type,op.entityId],{type:op.type,entityId:op.entityId,revisions:[op.revisionId],purged,fence:purged?op.revisionId:null});await set('receipt',[op.operationId],{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence});await set('sequence',[op.deviceId,String(op.sequence).padStart(16,'0')],{operationId:op.operationId,digest:op.revisionId});await set('entityRevision',[op.type,op.entityId,op.revisionId],{revisionId:op.revisionId});const outboxId=await core.transaction(false,t=>core.idIn(t,'outbox',op.operationId),['meta']);if(entry.original&&byId.has(outboxId))denied();if(byId.has(outboxId))exactProtocol.set(outboxId,{id:outboxId,operationId:op.operationId,revisionId:op.revisionId,state:'queued'});frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));}
+ for(const [deviceId,f]of frontiers)await set('frontier',[deviceId],{...f,deviceId});await set('generation',[],{value:entries.length});const ownOps=entries.map(e=>e.operation).filter(op=>op.deviceId===core.deviceId);if(ownOps.length)await set('device',[core.deviceId],{sequence:Math.max(...ownOps.map(op=>op.sequence))});
+ for(const p of negative)exactProtocol.set(p.deny.id,p.deny);
  const marker=before.rows.find(row=>row.id===generationPrefix+'ownerRecoveryEpoch:');if(marker){if(!exact(marker,['id','version','epoch'])||Object.keys(marker).length!==3||marker.version!==1||marker.epoch!==null&&(typeof marker.epoch!=='string'||marker.epoch.length>512))denied();exactProtocol.set(marker.id,marker);}
  for(const row of before.rows)if(!publicationRows.has(row.id)){if(row.id===core.prefix+'active'){if(!exact(row,['id','namespace','manifestId'])||Object.keys(row).length!==3||row.namespace!==before.namespace||!/^([a-f0-9]{64})$/.test(row.manifestId))denied();}else if(!equal(row,exactProtocol.get(row.id)))denied();}
  for(const [rid,row]of exactProtocol)if(!equal(byId.get(rid),row))denied();
@@ -156,10 +158,11 @@ export async function finishOriginalSourcePurge(t,store,cap){
  if(!p.cold&&(p.cleanupJobs!==1||p.cleanupEvents!==1||!p.cleanupPoints.has('inputStates:'+p.intent.inputId)))denied();
  const points=[...p.cleanupPoints.values(),['tombstones',tombstone.id,tombstone],['records',p.intent.sourceId,null],['recordIndex',p.intent.sourceId,null],['blocks',p.intent.inputId,null],['blockIndex',p.intent.inputId,null],['times',p.intent.sourceKey,null],...expected.map(row=>['meta',row.id,row]),...p.before.authority.roots.map(([id,row])=>['meta',id,row])];
  for(const [table,key,row]of points)if(!equal((await t.get(table,key))??null,row))denied();
- const retained=remainingPortfolio(p),counts=[],metaRanges=[];if(retained){const raw=await portfolioRows(t);for(const [table,expectedRows]of Object.entries(retained)){if(!equalSourceWorkingPhysicalTree(raw[table],expectedRows))denied();counts.push([table,expectedRows.length]);for(const row of expectedRows)points.push([table,row.id,row]);}
+ const retained=remainingPortfolio(p),counts=[],metaRanges=[];let completeMeta=null;if(retained){const metadata=await planSourcePurgeMetadata(p,retained),raw=await portfolioRows(t);if(!equalSourceWorkingPhysicalTree(raw.meta,metadata.callback))denied();completeMeta=metadata.terminal;for(const [table,expectedRows]of Object.entries(retained)){if(!equalSourceWorkingPhysicalTree(raw[table],expectedRows))denied();counts.push([table,expectedRows.length]);for(const row of expectedRows)points.push([table,row.id,row]);}
   for(const id of ['sequence','input-delta-sequence','revision-sequence','thought-suppression-key','gate'])points.push(['meta',id,p.portfolio.meta.find(row=>row.id===id)??null]);
   for(const doc of retained.documents){const prefix=archiveYearPrefix(doc.id),rows=p.portfolio.meta.filter(row=>row.id.startsWith(prefix)),marker=archiveYearMeta(doc.id);metaRanges.push([prefixRange(prefix),rows.length]);for(const row of rows)points.push(['meta',row.id,row]);points.push(['meta',marker,p.portfolio.meta.find(row=>row.id===marker)??null]);}
  }
+ if(completeMeta){for(let i=points.length-1;i>=0;i--)if(points[i][0]==='meta')points.splice(i,1);for(const row of completeMeta)points.push(['meta',row.id,row]);counts.push(['meta',completeMeta.length]);}
  const current=()=>{selected(store,cap);assertOriginalControlSettingsFacts(store,p.before.authority.control);return true;};registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){for(const [key,value]of metaRanges)if((yield {method:'count',table:'meta',key})!==value)denied();for(const [table,value]of counts)if((yield {method:'count',table})!==value)denied();for(const [table,key,row]of points)if(!equalSourceWorkingPhysicalTree((yield {method:'get',table,key})??null,row))denied();if((yield {method:'count',table:'meta',key:prefixRange('bns:v1:')})!==expected.length)denied();if((yield {method:'count',table:'meta',key:prefixRange(residentCheckpointPrefix)})!==0)denied();return true;}});
 }
 

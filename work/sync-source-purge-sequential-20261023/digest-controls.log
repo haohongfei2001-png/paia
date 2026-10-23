@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: prior baseline with valid shape but changed historical time cannot be authenticated by a later purge
+ok 1 - prior baseline with valid shape but changed historical time cannot be authenticated by a later purge
+  ---
+  duration_ms: 593.062792
+  type: 'test'
+  ...
+# Subtest: a canonical change during negative-member digest verification is not adopted as a new baseline
+ok 2 - a canonical change during negative-member digest verification is not adopted as a new baseline
+  ---
+  duration_ms: 371.137667
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1402.155916
