@@ -10,7 +10,7 @@ The [takeover queue](PAIA-TAKEOVER-QUEUE-20261023.md) owns programme sequencing.
 
 ## Baseline and evidence rules
 
-- Refreshed main: `73fa457a1c9b5b060ff362e15777354aa37d49cc`.
+- Refreshed and normally merged main: `5e3c426aead5ad698330fa4201ab17b0c21878b1`; retained website restoration and entry/mobile fixes.
 - PR313 acceptance head: `02144bccf5e0e0b6842aaa4e7c6958cedecdfde1`;
   Full `39860568299` failed. Its first permitted opportunity is consumed.
 - Follow-up implementation commits `712a5d1a503d260f4318d755518927acd04d8066`
@@ -435,3 +435,7 @@ flag assertion ran too early. Source-linked remove/restore, worker restart,
 provider/real-account, performance, whole-file or full-platform qualification
 remain separate. Evidence and all original failures:
 `work/paia-takeover-20261023/context-source-linked-native/REPORT.md` and manifest.
+
+## Integrated local build milestone at3511dbe8
+
+[Milestone report](PAIA-LOCAL-INTEGRATION-MILESTONE-20261023.md) records the complete898/898 Node combination, subsequent157/157 provider and183/183 recovery batches separately, and the637-file0.55.9 Development build with source/release package audits. No totals are summed across overlapping runs. Native Context20 passing results and final Sync2/2 retain their separate commands and earlier failed batch. Whole-plan, Full/Linux, real provider, visual/physical and installation qualification remain open.

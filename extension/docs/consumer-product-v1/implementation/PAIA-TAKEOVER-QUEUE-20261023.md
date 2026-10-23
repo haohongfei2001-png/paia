@@ -305,3 +305,7 @@ remaining-decision bundle. The deliverable must include a runnable version,
 whole-plan disposition, evidence, remaining risks and update/use/rollback
 instructions. Its existence is not permission to install, deploy, spend or merge
 through unfulfilled gates, and it is not a claim that all seven plans are done.
+
+## 8. Latest integrated progress —3511dbe8
+
+The [local milestone](PAIA-LOCAL-INTEGRATION-MILESTONE-20261023.md) supersedes older missing-code wording for plain Input Context body/body+note/note-only corrections, Source-linked human Entry create/edit/remove/restore, local OneDrive transport/HTTP, provider-publication error composition and held-stage cancellation. It does not close complete Context typed-lineage coverage or SYNC01 C/full lifecycle/scale. Root continues integration; Context and Sync authors own disjoint successors, and the independent review line validates bounds/terminal rollback before integration. The637-file runnable development build is retained without replacing the installed product.
