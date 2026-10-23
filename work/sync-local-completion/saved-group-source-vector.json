@@ -1,0 +1,26 @@
+{
+  "baseline": "62ca0df9",
+  "coordinator": "temporary exact patch in this tree; root owns integration",
+  "files": [
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint-plan.js",
+      "sha256": "09c47d6cdde84f4280a9dfe40dc46a91a11d3fefb7393ab85d57de7461f64f91"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint-scope.js",
+      "sha256": "9a61b72440fae587962a6fa96b6f30c969433c61b42119532952f3729edaf206"
+    },
+    {
+      "path": "extension/core/browser-native-sync/saved-work-bootstrap.js",
+      "sha256": "0bbb6c24780bddc9d7d844d1df9ecab68c331b0b0cdbe3067b43393cd5d5bee0"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint.js",
+      "sha256": "22662aa25862d91e9d317c72437d2a74401562355d530edc8772ef780a2a6b18"
+    },
+    {
+      "path": "extension/tests/browser-native-sync-saved-group.test.mjs",
+      "sha256": "10baffb5c8b044db097b7185872975d2c34be262a144c4bf3b66c45a5f285ba4"
+    }
+  ]
+}

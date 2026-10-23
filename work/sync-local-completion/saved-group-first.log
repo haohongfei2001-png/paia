@@ -1,0 +1,30 @@
+TAP version 13
+# Subtest: saved Source graph exports A, restores cold B and reexports unchanged canonical work to cold C
+not ok 1 - saved Source graph exports A, restores cold B and reexports unchanged canonical work to cold C
+  ---
+  duration_ms: 92.586042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-group.test.mjs:23:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    requireSavedWorkScope (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:208:270)
+    async requireGroupScope (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:205:39)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint.js:62:379
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:154:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:451:20)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:154:66)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:192:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 244.882

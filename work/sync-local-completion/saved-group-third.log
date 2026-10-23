@@ -1,0 +1,705 @@
+TAP version 13
+# Subtest: saved Source graph exports A, restores cold B and reexports unchanged canonical work to cold C
+not ok 1 - saved Source graph exports A, restores cold B and reexports unchanged canonical work to cold C
+  ---
+  duration_ms: 214.323041
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-group.test.mjs:23:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        dependencies: [
+          {
+            basedOnContentRevision: 0,
+            eligibilityEpochAtUse: 0,
+    ...
+            ],
+    +       scopeToken: 'b4b5abe803345444a946c57fe57ae651706bf5842b3332ccb53a107f0197236e',
+    -       scopeToken: '01ed655a1e9179118f9ededed1247234614a3616531e4c0bd1dd63c4ffab4558',
+            selectedFields: [
+              'body'
+            ],
+            sourceRecordIds: [
+              '7aefd831-852f-4bc6-9400-5c358cf064a6'
+    ...
+            validatedAgainstContentRevision: 0,
+    +       versionToken: 'f7b6c34ab4b795578e30287c8c91b227937ea3f702b392c9869b26b9196370d5'
+    -       versionToken: '1e15104fc0af4f3f8bd3e332de4e3f01d7e867f74dd6369cc2a5cc8d29784e89'
+          }
+        ],
+        provenance: [
+          {
+            actualVersion: {
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    thoughts:
+      0:
+        id: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        storageSchema: 2
+        thoughtText: 'SYNTHETIC human protected result'
+        note: 'SYNTHETIC personal note'
+        family: 'Thinking'
+        type: 'idea'
+        formation: 'explicit'
+        origin: 'ai'
+        revision: 1
+        contentRevision: 1
+        fieldRevisions:
+          title: 0
+          body: 1
+          note: 1
+          type: 0
+          formation: 0
+        organizationRevision: 0
+        dependencyRevision: 0
+        createdAt: '2026-10-23T04:39:45.420Z'
+        updatedAt: '2026-10-23T04:39:45.424Z'
+        updatedSequence: 3
+        createdSequence: 1
+        hasHumanAction: true
+        userEdited: true
+        protections:
+          title:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          body:
+            locked: true
+            reason: 'user_edit'
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+            at: '2026-10-23T04:39:45.424Z'
+          note:
+            locked: true
+            reason: 'user_edit'
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+            at: '2026-10-23T04:39:45.424Z'
+          type:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          formation:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          topics:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          section:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          order:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+        authorship:
+          title:
+            actor: 'ai'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          body:
+            actor: 'user'
+            everHumanConfirmed: true
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+            at: '2026-10-23T04:39:45.424Z'
+          note:
+            actor: 'user'
+            everHumanConfirmed: true
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+            at: '2026-10-23T04:39:45.424Z'
+          type:
+            actor: 'ai'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          formation:
+            actor: 'ai'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+        organizationIntents:
+          version: 1
+          included:
+          excluded:
+          edges:
+          fixed: ~
+        lifecycle: 'active'
+        freshness: 'current'
+        integrity: 'complete'
+        staleReasons:
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        inputRefs:
+          0:
+            inputBlockId: 'block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+            basedOnContentRevision: 0
+        topics:
+        types:
+          0: 'type:idea'
+        bodyBinding: 'thought'
+        provenanceType: 'input_derived'
+        lifecycleKey: 0
+        activeKey: 0
+        listKey:
+          0: 0
+          1: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        negativeUpdatedSequence: -3
+        searchVersion: '1:0:active:0'
+        thoughtEditedAt: '2026-10-23T04:39:45.424Z'
+    provenance:
+      0:
+        id: 'ea89e02c-07c9-48e7-b36d-c5a401da0b95'
+        ownerKind: 'entry'
+        ownerId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        generationId: '09933497-067b-4d30-89c9-ea4a37c6e7d1'
+        inputId: 'block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+        basedOnContentRevision: 0
+        actualVersion:
+          inputRevision: 0
+          projectionVersion: 1
+          selectedFields:
+            0: 'body'
+          fieldDigests:
+            body: '0de09a40f7fa1804edaf5c17115814c0963aca90aa6ac1811515aa676015bd5c'
+        role: 'primary'
+        contributionType: 'paraphrase'
+        formation: 'explicit'
+        generatedAt: '2026-10-23T04:39:45.420Z'
+        generator:
+          providerId: 'fixture'
+          providerVersion: '1'
+          modelVersion: 'deterministic-1'
+          taskSchemaVersion: 1
+          promptTemplateVersion: 1
+          policyVersion: 1
+        inputAuthorshipAtUse: 'working_input'
+        entryFieldAuthorshipAtCommit: 'ai'
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        sourceIdentityTokens:
+          0: '48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217'
+        availability: 'resolvable'
+        contributionKey: '["74e880c4-9ff8-45b5-83b4-d2d939a08828","block:7aefd831-852f-4bc6-9400-5c358cf064a6",0,"primary","09933497-067b-4d30-89c9-ea4a37c6e7d1"]'
+    dependencies:
+      0:
+        id: '["block:7aefd831-852f-4bc6-9400-5c358cf064a6","entry","74e880c4-9ff8-45b5-83b4-d2d939a08828"]'
+        inputId: 'block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+        inputList:
+          0: 'block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+          1: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        thoughtId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        targetKind: 'entry'
+        targetId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        eligibilityEpochAtUse: 0
+        basedOnContentRevision: 0
+        selectedFields:
+          0: 'body'
+        fieldDigests:
+          body: '0de09a40f7fa1804edaf5c17115814c0963aca90aa6ac1811515aa676015bd5c'
+        validatedAgainstContentRevision: 0
+        status: 'valid'
+        roles:
+          0: 'primary'
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        scopeToken: '01ed655a1e9179118f9ededed1247234614a3616531e4c0bd1dd63c4ffab4558'
+        versionToken: '1e15104fc0af4f3f8bd3e332de4e3f01d7e867f74dd6369cc2a5cc8d29784e89'
+    revisions:
+      0:
+        kind: 'library_entry'
+        entityId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        before:
+          bodyProtection:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          bodyAuthorship:
+            actor: 'ai'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          hasHumanAction: false
+          userEdited: false
+          title: ''
+          body: 'SYNTHETIC retained AI artifact'
+          note: ''
+          type: 'idea'
+          formation: 'explicit'
+          lifecycle: 'active'
+          bodyBinding: 'thought'
+        after:
+          bodyProtection:
+            locked: true
+            reason: 'user_edit'
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+            at: '2026-10-23T04:39:45.424Z'
+          bodyAuthorship:
+            actor: 'user'
+            everHumanConfirmed: true
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+            at: '2026-10-23T04:39:45.424Z'
+          hasHumanAction: true
+          userEdited: true
+          title: ''
+          body: 'SYNTHETIC human protected result'
+          note: 'SYNTHETIC personal note'
+          type: 'idea'
+          formation: 'explicit'
+          lifecycle: 'active'
+          bodyBinding: 'thought'
+          thoughtEditedAt: '2026-10-23T04:39:45.424Z'
+        fieldMask:
+          0: 'body'
+          1: 'note'
+        actor: 'user'
+        reason: 'edit'
+        important: false
+        operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+        baseRevision: 0
+        afterRevision: 1
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        entityKey: 'library_entry:74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        documentId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        at: '2026-10-23T04:39:45.424Z'
+        windowStartedAt: '2026-10-23T04:39:45.424Z'
+        id: '3baa68e0-edc4-4e09-be3f-b50aa0c729d8'
+      1:
+        kind: 'input'
+        entityId: 'block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+        documentId: 'document:7aefd831-852f-4bc6-9400-5c358cf064a6'
+        before:
+          libraryText: ~
+          note: ''
+          excluded: false
+          originalTextReference: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+          provenanceSignature: '[{"sourceRecordId":"7aefd831-852f-4bc6-9400-5c358cf064a6"}]'
+        after: <Circular>
+        reason: 'baseline'
+        important: true
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        id: '4dd841d3-1439-4953-bf6b-9c398ba75d62'
+        entityKey: 'input:block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+        windowStartedAt: '2026-10-23T04:39:45.395Z'
+        at: '2026-10-23T04:39:45.395Z'
+      2:
+        kind: 'library_entry'
+        entityId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        before:
+          bodyProtection:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          bodyAuthorship:
+            actor: 'ai'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          hasHumanAction: false
+          userEdited: false
+          title: ''
+          body: 'SYNTHETIC retained AI artifact'
+          note: ''
+          type: 'idea'
+          formation: 'explicit'
+          lifecycle: 'active'
+          bodyBinding: 'thought'
+        after:
+          bodyProtection:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          bodyAuthorship:
+            actor: 'ai'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          hasHumanAction: false
+          userEdited: false
+          title: ''
+          body: 'SYNTHETIC retained AI artifact'
+          note: ''
+          type: 'idea'
+          formation: 'explicit'
+          lifecycle: 'active'
+          bodyBinding: 'thought'
+        fieldMask:
+          0: 'title'
+          1: 'body'
+          2: 'note'
+          3: 'type'
+          4: 'formation'
+        actor: 'ai'
+        reason: 'baseline'
+        important: true
+        operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+        baseRevision: 0
+        afterRevision: 0
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        entityKey: 'library_entry:74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        documentId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        at: '2026-10-23T04:39:45.421Z'
+        windowStartedAt: '2026-10-23T04:39:45.421Z'
+        id: 'd6efa8ac-1eb0-490b-86ca-17fd505296fa'
+  actual:
+    thoughts:
+      0:
+        id: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        storageSchema: 2
+        thoughtText: 'SYNTHETIC human protected result'
+        note: 'SYNTHETIC personal note'
+        family: 'Thinking'
+        type: 'idea'
+        formation: 'explicit'
+        origin: 'ai'
+        revision: 1
+        contentRevision: 1
+        fieldRevisions:
+          title: 0
+          body: 1
+          note: 1
+          type: 0
+          formation: 0
+        organizationRevision: 0
+        dependencyRevision: 0
+        createdAt: '2026-10-23T04:39:45.420Z'
+        updatedAt: '2026-10-23T04:39:45.424Z'
+        updatedSequence: 3
+        createdSequence: 1
+        hasHumanAction: true
+        userEdited: true
+        protections:
+          title:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          body:
+            locked: true
+            reason: 'user_edit'
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+            at: '2026-10-23T04:39:45.424Z'
+          note:
+            locked: true
+            reason: 'user_edit'
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+            at: '2026-10-23T04:39:45.424Z'
+          type:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          formation:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          topics:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          section:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          order:
+            locked: false
+            reason: 'none'
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+        authorship:
+          title:
+            actor: 'ai'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          body:
+            actor: 'user'
+            everHumanConfirmed: true
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+            at: '2026-10-23T04:39:45.424Z'
+          note:
+            actor: 'user'
+            everHumanConfirmed: true
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+            at: '2026-10-23T04:39:45.424Z'
+          type:
+            actor: 'ai'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+          formation:
+            actor: 'ai'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            at: '2026-10-23T04:39:45.420Z'
+        organizationIntents:
+          version: 1
+          included:
+          excluded:
+          edges:
+          fixed: ~
+        lifecycle: 'active'
+        freshness: 'current'
+        integrity: 'complete'
+        staleReasons:
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        inputRefs:
+          0:
+            inputBlockId: 'block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+            basedOnContentRevision: 0
+        topics:
+        types:
+          0: 'type:idea'
+        bodyBinding: 'thought'
+        provenanceType: 'input_derived'
+        lifecycleKey: 0
+        activeKey: 0
+        listKey:
+          0: 0
+          1: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        negativeUpdatedSequence: -3
+        thoughtEditedAt: '2026-10-23T04:39:45.424Z'
+        searchVersion: '1:0:active:0'
+    provenance:
+      0:
+        id: 'ea89e02c-07c9-48e7-b36d-c5a401da0b95'
+        ownerKind: 'entry'
+        ownerId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        generationId: '09933497-067b-4d30-89c9-ea4a37c6e7d1'
+        inputId: 'block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+        basedOnContentRevision: 0
+        actualVersion:
+          inputRevision: 0
+          projectionVersion: 1
+          selectedFields:
+            0: 'body'
+          fieldDigests:
+            body: '0de09a40f7fa1804edaf5c17115814c0963aca90aa6ac1811515aa676015bd5c'
+        role: 'primary'
+        contributionType: 'paraphrase'
+        formation: 'explicit'
+        generatedAt: '2026-10-23T04:39:45.420Z'
+        generator:
+          modelVersion: 'deterministic-1'
+          policyVersion: 1
+          promptTemplateVersion: 1
+          providerId: 'fixture'
+          providerVersion: '1'
+          taskSchemaVersion: 1
+        inputAuthorshipAtUse: 'working_input'
+        entryFieldAuthorshipAtCommit: 'ai'
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        sourceIdentityTokens:
+          0: '48429b0726c51bd7d2e80878664dc1069f339e5c6e362172d3879cdde31f4217'
+        availability: 'resolvable'
+        contributionKey: '["74e880c4-9ff8-45b5-83b4-d2d939a08828","block:7aefd831-852f-4bc6-9400-5c358cf064a6",0,"primary","09933497-067b-4d30-89c9-ea4a37c6e7d1"]'
+    dependencies:
+      0:
+        id: '["block:7aefd831-852f-4bc6-9400-5c358cf064a6","entry","74e880c4-9ff8-45b5-83b4-d2d939a08828"]'
+        inputId: 'block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+        inputList:
+          0: 'block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+          1: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        thoughtId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        targetKind: 'entry'
+        targetId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        eligibilityEpochAtUse: 0
+        basedOnContentRevision: 0
+        selectedFields:
+          0: 'body'
+        fieldDigests:
+          body: '0de09a40f7fa1804edaf5c17115814c0963aca90aa6ac1811515aa676015bd5c'
+        validatedAgainstContentRevision: 0
+        status: 'valid'
+        roles:
+          0: 'primary'
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        scopeToken: 'b4b5abe803345444a946c57fe57ae651706bf5842b3332ccb53a107f0197236e'
+        versionToken: 'f7b6c34ab4b795578e30287c8c91b227937ea3f702b392c9869b26b9196370d5'
+    revisions:
+      0:
+        actor: 'user'
+        after:
+          body: 'SYNTHETIC human protected result'
+          bodyAuthorship:
+            actor: 'user'
+            at: '2026-10-23T04:39:45.424Z'
+            everHumanConfirmed: true
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+          bodyBinding: 'thought'
+          bodyProtection:
+            at: '2026-10-23T04:39:45.424Z'
+            locked: true
+            operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+            reason: 'user_edit'
+          formation: 'explicit'
+          hasHumanAction: true
+          lifecycle: 'active'
+          note: 'SYNTHETIC personal note'
+          thoughtEditedAt: '2026-10-23T04:39:45.424Z'
+          title: ''
+          type: 'idea'
+          userEdited: true
+        afterRevision: 1
+        at: '2026-10-23T04:39:45.424Z'
+        baseRevision: 0
+        before:
+          body: 'SYNTHETIC retained AI artifact'
+          bodyAuthorship:
+            actor: 'ai'
+            at: '2026-10-23T04:39:45.420Z'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+          bodyBinding: 'thought'
+          bodyProtection:
+            at: '2026-10-23T04:39:45.420Z'
+            locked: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            reason: 'none'
+          formation: 'explicit'
+          hasHumanAction: false
+          lifecycle: 'active'
+          note: ''
+          title: ''
+          type: 'idea'
+          userEdited: false
+        documentId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        entityId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        entityKey: 'library_entry:74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        fieldMask:
+          0: 'body'
+          1: 'note'
+        id: '3baa68e0-edc4-4e09-be3f-b50aa0c729d8'
+        important: false
+        kind: 'library_entry'
+        operationId: '8dea897d-5a8f-432e-be62-bd7ca2ce55b5'
+        reason: 'edit'
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        windowStartedAt: '2026-10-23T04:39:45.424Z'
+      1:
+        after:
+          excluded: false
+          libraryText: ~
+          note: ''
+          originalTextReference: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+          provenanceSignature: '[{"sourceRecordId":"7aefd831-852f-4bc6-9400-5c358cf064a6"}]'
+        at: '2026-10-23T04:39:45.395Z'
+        before:
+          excluded: false
+          libraryText: ~
+          note: ''
+          originalTextReference: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+          provenanceSignature: '[{"sourceRecordId":"7aefd831-852f-4bc6-9400-5c358cf064a6"}]'
+        documentId: 'document:7aefd831-852f-4bc6-9400-5c358cf064a6'
+        entityId: 'block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+        entityKey: 'input:block:7aefd831-852f-4bc6-9400-5c358cf064a6'
+        id: '4dd841d3-1439-4953-bf6b-9c398ba75d62'
+        important: true
+        kind: 'input'
+        reason: 'baseline'
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        windowStartedAt: '2026-10-23T04:39:45.395Z'
+      2:
+        actor: 'ai'
+        after:
+          body: 'SYNTHETIC retained AI artifact'
+          bodyAuthorship:
+            actor: 'ai'
+            at: '2026-10-23T04:39:45.420Z'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+          bodyBinding: 'thought'
+          bodyProtection:
+            at: '2026-10-23T04:39:45.420Z'
+            locked: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            reason: 'none'
+          formation: 'explicit'
+          hasHumanAction: false
+          lifecycle: 'active'
+          note: ''
+          title: ''
+          type: 'idea'
+          userEdited: false
+        afterRevision: 0
+        at: '2026-10-23T04:39:45.421Z'
+        baseRevision: 0
+        before:
+          body: 'SYNTHETIC retained AI artifact'
+          bodyAuthorship:
+            actor: 'ai'
+            at: '2026-10-23T04:39:45.420Z'
+            everHumanConfirmed: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+          bodyBinding: 'thought'
+          bodyProtection:
+            at: '2026-10-23T04:39:45.420Z'
+            locked: false
+            operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+            reason: 'none'
+          formation: 'explicit'
+          hasHumanAction: false
+          lifecycle: 'active'
+          note: ''
+          title: ''
+          type: 'idea'
+          userEdited: false
+        documentId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        entityId: '74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        entityKey: 'library_entry:74e880c4-9ff8-45b5-83b4-d2d939a08828'
+        fieldMask:
+          0: 'title'
+          1: 'body'
+          2: 'note'
+          3: 'type'
+          4: 'formation'
+        id: 'd6efa8ac-1eb0-490b-86ca-17fd505296fa'
+        important: true
+        kind: 'library_entry'
+        operationId: '126271e4-693b-4fe3-8fb5-b65bbf6a88e0'
+        reason: 'baseline'
+        sourceRecordIds:
+          0: '7aefd831-852f-4bc6-9400-5c358cf064a6'
+        windowStartedAt: '2026-10-23T04:39:45.421Z'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-group.test.mjs:24:312)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 354.677333

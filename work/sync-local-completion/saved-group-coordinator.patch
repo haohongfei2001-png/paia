@@ -1,0 +1,36 @@
+diff --git a/extension/core/browser-native-sync/group-checkpoint.js b/extension/core/browser-native-sync/group-checkpoint.js
+index a8d87fd6..47302650 100644
+--- a/extension/core/browser-native-sync/group-checkpoint.js
++++ b/extension/core/browser-native-sync/group-checkpoint.js
+@@ -1,3 +1,4 @@
++import {prepareSavedWorkGroupApplication,applySavedWorkGroupStep,sealSavedWorkGroupActivation} from './saved-work-bootstrap.js';
+ import {groupOperationPages,createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget,readGroupRows} from './group-page-reader.js';
+ import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,captureMixedCurrentGroupProjection,requireMixedCurrentGroupProjection,encodeMixedCurrentGroupCheckpoint,publishMixedCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
+ import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-working-commit.js';
+@@ -162,7 +163,7 @@ export class GroupedCheckpointRestore{
+   if(localOperations.length)return this.mergeManual(state,plan,localOperations);
+   const filter=new FilterIntentSyncJournal(replay),working=new InputWorkingCommitReceiver(this.store,replay,{filterJournal:filter}),manual=manualSyncOwners(replay),desired=contextDesiredMaterializer(replay),topicDesired=topicDesiredMaterializer(replay),consumerOperations=finalConsumerPreferenceOperations(plan);
+   const sourceProof=await prepareRestoredFilterSources(canonical.expected.records.map(row=>({...row})));
+-  const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan);
++  const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan),savedApplication=await prepareSavedWorkGroupApplication(this.store,replay,plan,this.stage,state);
+   const applications=[];for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);else if(group.type==='sourceAppendCommit'){const anchor=plan.groups.find(x=>x.id===group.prepared.descriptor.value.bootstrap.revisionId);applications.push([group,await prepareAppendApplication(this.store,replay,group.operations,anchor.operations)]);}else if(group.type==='inputWorkingCommit')applications.push([group,await prepareWorkingApplication(working,group.operations)]);else if(group.type==='filterIntent')applications.push([group,await prepareFilterApplication(filter,group.operations[0])]);else applications.push([group,null]);}
+   const consumerApplication=consumerOperations.length?await prepareRestoredConsumerPreferenceApplication(this.store,replay,plan,this.stage,state):null;
+   const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(replay,[]));
+@@ -175,7 +176,7 @@ export class GroupedCheckpointRestore{
+    await requireGroupScope(this.store,t,empty);if(humanApplication)await requireHumanGroupApplication(t,humanApplication);
+    for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
+    if((await t.primaryRangePage('meta',{prefix:replay.prefix+'generation:'+replay.fixedNamespace+':',limit:1})).rows.length)fail('BNS_RESTORE_STAGE_CHANGED');
+-   for(const [group,cap]of applications){if(group.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,group.id);else if(group.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(group.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(group.type==='inputWorkingCommit')await working.applyRestored(t,cap,sourceProof);else if(group.type==='filterIntent')await filter.applyRestored(t,cap,sourceProof);else{replay.materialize=group.type==='contextDesired'?desired:group.type==='topicDesired'?topicDesired:group.type==='promptBinding'?materializePromptBinding:manual.materialize;const result=await replay.applyInTransaction(t,group.operations[0],{materialize:group.type!=='consumerPreference'});if(result.state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');}await this.checkpoint('applied-group',group.id);}
++   for(const [group,cap]of applications){if(group.type==='savedWorkBootstrap')await applySavedWorkGroupStep(t,savedApplication,group.id);else if(group.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,group.id);else if(group.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(group.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(group.type==='inputWorkingCommit')await working.applyRestored(t,cap,sourceProof);else if(group.type==='filterIntent')await filter.applyRestored(t,cap,sourceProof);else{replay.materialize=group.type==='contextDesired'?desired:group.type==='topicDesired'?topicDesired:group.type==='promptBinding'?materializePromptBinding:manual.materialize;const result=await replay.applyInTransaction(t,group.operations[0],{materialize:group.type!=='consumerPreference'});if(result.state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');}await this.checkpoint('applied-group',group.id);}
+    const publication=consumerApplication?await applyRestoredConsumerPreferenceOwners(t,consumerApplication):null;
+    await requireGroupScope(this.store,t,canonical);if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');await requireStorageBudget(t,this.stage,state.replayId);
+    for(const expected of plan.heads){const actual=await replay.get(t,'head',expected.type,expected.entityId);if(!actual||!equal(withoutId(actual),expected))fail('BNS_CHECKPOINT_HEAD');}
+@@ -184,7 +185,7 @@ export class GroupedCheckpointRestore{
+    const publishing=!!publication?.operations.length;
+    await this.stage.put(t,'restore',[],{...withoutId(state),phase:publishing?'publishing':'activated'});
+    if(publishing){const binding=await this.store.controlPublicationBinding(t);await t.put('meta',{id:CONSUMER_PUBLICATION_PENDING_ID,version:2,namespace:state.replayId,databaseId:binding.reservation.databaseId,controlRevision:binding.reservation.revision,nonce:binding.reservation.nonce,terminal:false,before:publication.before,operations:publication.operations,restore:{stageId:state.id,manifestId:state.manifestId,graphDigest:state.graphDigest,replayId:state.replayId,operations:publication.allOperations,smartFilter:publication.smartFilter}});}
+-   await this.checkpoint('after-activation',t);return {state:publishing?'publishing':'activated',namespace:state.replayId};
++   await sealSavedWorkGroupActivation(t,savedApplication);await this.checkpoint('after-activation',t);return {state:publishing?'publishing':'activated',namespace:state.replayId};
+   });if(result.state==='publishing'){await this.store.publish();return {state:'activated',namespace:state.replayId};}return result;});
+  }
+  // A bounded first nonempty consumer: merge only the four original manual

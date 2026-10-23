@@ -1,0 +1,37 @@
+# Finite saved AI work grouped recovery — 2026-10-23
+
+## Result and exact scope
+
+Original grouped checkpoint now consumes an authentic two-group graph: one Source bootstrap (seven original operations), followed by one `savedWorkBootstrap` operation. The saved envelope still admits only one AI baseline plus one real human edit, one active unplaced thought-bound Entry, one primary Source and its exact provenance/dependency pair. It preserves AI origin, generator and real history identities/authors/operation IDs, and manual protections. Local keyed evidence is recomputed by original owners; it is not copied as portable authority.
+
+The synthetic original consumer actually exports A, stages and activates empty B, reexports B's unchanged canonical work, and stages/activates empty C. Original source/owner/protocol/active pointer remain one transaction. Unknown-ACK replay is idempotent and later B manual edits survive old restore acknowledgement. Attempting to export an unrepresented later edit fails closed; this is not typed successor support.
+
+Implementation base is normal merge `62ca0df9` of this line's `74e0efdc` and root `2ef5a3e4`. Five conflicts adopted root's reviewed paging and recovery-read timeout changes, preserving the finite saved implementations. Root uniquely owns coordinator integration: `saved-group-coordinator.patch` is the exact temporary local coordinator wiring used in these tests and is NOT included as a coordinator implementation change in this commit. Required connections are import; prepare per exact plan/stage; consume the saved group through the original owner; terminal activation seal. Other runtime changes are the original plan, scope and saved-owner files only.
+
+## Safety binding
+
+- Strict two-family profile and Source causal dependency; native current/mixed profiles, Human/Working mixing and additional owners remain rejected.
+- Scope verifies actual local evidence, canonical Entry and exact history/provenance/dependency semantics; local physical history allocation is normalized only after validating its indexes and global counter. Ordinary original owner may consume extra thought sequence numbers; its safe integer counter must cover the Entry's allocated sequence rather than equal its last update.
+- Only exact original pending search queue rows are permitted, by original owner version. No arbitrary search projection exemption.
+- Group capability binds the authentic original plan/Core, exact repository, durable validated state, unique replay namespace and exact saved operation. The complete original manifest is schema-validated and reencoded to its exact reference. All stored stage items are read within the original budget, required to have continuous original keys and exact count, chain-hashed in order, and recompiled by the original graph compiler to the same ownerScope/heads/frontiers/graph digest. Cloned plan and state-only/mutated stages refuse preparation.
+- The original saved writer's final fence accepts only the derived terminal active pointer and exact activated stage row. No public expected-pointer parameter exists. Its Source, authority, Entry, histories, negative canonical spaces and original control fences remain.
+- Whole replay protocol expectations are derived BEFORE writes from the authentic graph: all eight revision/receipt/sequence/entityRevision/head intents, final frontier/generation/device and absent pending/quarantine/outbox. Final raw fences bind these plus original staged rows, exact stage item count and complete replay row count (the planned protocol plus two original receipts/markers). No post-write row becomes its own expected value.
+- Original 30-second preparation age includes stage proof; retained payload/expectation/stage/protocol/plan aggregate is bounded by 2 MiB. No new transport, credentials, grants, default enablement, arbitrary meta export or provider activity.
+
+## Validation (distinct runs, not a combined fabricated total)
+
+Node 22.23.3, Python 3.12.14, macOS arm64, fake IndexedDB, synthetic fixtures only.
+
+1. Initial new consumer 0/1: original pending search queue initially rejected. Fixed by exact original queue contract. Next import typo 0/1 retained; corrected original `ownerVersion` import. Third 0/1 was test comparison including device-local dependency keys; semantic assertion now excludes only keyed tokens, like provenance. Corrected A/B/C 1/1.
+2. First negative batch 14/14 was qualified afterward with `injected === true`; this exposed a stage injection fixture error, yielding 13/14. Corrected original `idIn` gives actual injected stage change, final 14/14.
+3. Whole graph protocol fence and original Source receipt/sequence negatives: 16/16. Initial seven-file owning batch 177/193 (all 16 new cases failed at export due overstrict thought counter equality). Corrected counter lower-bound requirement: new 16/16. Manifest/chain/stage/clone negative additions: 20/20.
+4. Seven-file owning final **197/197**, exit 0, no fail/cancel/skip/todo, TAP **18849.706375 ms**: saved group, saved bootstrap, Source bootstrap, Core, Thought M1, original grouped restore and generic paging. Raw `saved-group-owning-final.log`.
+5. Final extra-row safety addition changes only group terminal count fence and adds two tests. Complete new owning file **22/22**, exit 0, no fail/cancel/skip/todo, TAP **2455.355666 ms**. Raw `saved-group-terminal-count-final.log`. The preceding 197 run predates this small count addition and is not relabeled as 199.
+
+Rollback negatives compare EVERY canonical/protocol/stage table before and after failed activation. Terminal tests independently prove injection happened, including Source, active, stage, saved frontier/receipt, Source receipt/sequence, migration database identity, publication revision and thought-library availability. Extra staged or replay rows are rejected. Other negatives cover missing Source, populated destination, unrepresented Topic, stale Source, missing/changed stage items, manifest mismatch, cloned plan and forged capability.
+
+All failed and incomplete development runs remain under `work/sync-local-completion/saved-group-*.log`; source vector records exact final runtime, test and temporary coordinator bytes. No browser, cloud, large seed, build, real account or native performance assertion. This package has not received independent review yet; acceptance reviewer was executing its own lifecycle package and explicitly did not review this group delta.
+
+## Remaining queue
+
+This finite group is not complete Sync C or full saved/adopted coverage. Longer/coalesced saved histories, typed successors, adopted Current/Topic/placements, multiple Sources, populated Thought merges and purge remain explicit next local implementation work. Existing later local edits are preserved but cannot be falsely exported using the stale bootstrap graph. Current native projection, real provider and full product acceptance remain separate qualification.

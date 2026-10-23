@@ -9,7 +9,7 @@ import {assertTopicDesiredReference} from './topic-desired-codec.js';
 
 const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBootstrapReceive'],sourceAppendCommit:['refs','prepareSourceAppendReceive'],inputWorkingCommit:['members','prepareWorkingReceive'],humanLibraryCommit:['members',null]});
 const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember','humanLibraryMember']);
-const singles=new Set(['promptPreferences','promptBinding','consumerPreference','topicDesired','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent']);
+const singles=new Set(['promptPreferences','promptBinding','consumerPreference','topicDesired','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent','savedWorkBootstrap']);
 const freeze=x=>{if(x&&typeof x==='object'){for(const value of Object.values(x))freeze(value);Object.freeze(x);}return x;};
 const originalPlans=new WeakMap(),originalOperationSizes=new WeakMap();
 // Compilation identity is local and body-free. A cloned DTO remains useful to
@@ -120,6 +120,13 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
  // complete parent order and execute them first, so the original local history
  // allocator starts from the actual captured empty installation, never a
  // predicted foreign-owner counter. Existing non-Human dependencies stay intact.
+ const saved=groups.filter(group=>group.type==='savedWorkBootstrap');
+ if(saved.length){
+  if(currentSourceWorking||saved.length!==1||groups.length!==2||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1)fail('BNS_SAVED_WORK_UNSUPPORTED');
+  const group=saved[0],wire=group.operations[0].value.payload.link.evidence,source=createdInputs.get(wire.inputId);
+  if(!source||!equal([source.prepared.descriptor.value.sourceId],wire.sourceRecordIds)||!equal([source.prepared.descriptor.value.sourceKey],wire.sourceIdentityTokens))fail('BNS_GROUP_CAUSAL_GAP');
+  depend(group,source);
+ }
  const human=groups.filter(group=>group.type==='humanLibraryCommit'),linked=human.filter(group=>group.prepared.descriptor.value.kind.startsWith('source-'));
  if(linked.length){
   if(binding.currentSourceWorking||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1||groups.some(group=>!['humanLibraryCommit','sourceBootstrapCommit'].includes(group.type)))fail('BNS_HUMAN_UNSUPPORTED');

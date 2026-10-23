@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: saved Source graph exports A, restores cold B and reexports unchanged canonical work to cold C
+ok 1 - saved Source graph exports A, restores cold B and reexports unchanged canonical work to cold C
+  ---
+  duration_ms: 262.3495
+  type: 'test'
+  ...
+# Subtest: saved group rollback retains every staged and canonical row when applied-group fails
+ok 2 - saved group rollback retains every staged and canonical row when applied-group fails
+  ---
+  duration_ms: 99.522833
+  type: 'test'
+  ...
+# Subtest: saved group rollback retains every staged and canonical row when before-activation fails
+ok 3 - saved group rollback retains every staged and canonical row when before-activation fails
+  ---
+  duration_ms: 104.42475
+  type: 'test'
+  ...
+# Subtest: saved group rollback retains every staged and canonical row when after-activation fails
+ok 4 - saved group rollback retains every staged and canonical row when after-activation fails
+  ---
+  duration_ms: 108.022167
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation source drift
+ok 5 - saved group final raw fence rejects post-activation source drift
+  ---
+  duration_ms: 109.743208
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation active drift
+ok 6 - saved group final raw fence rejects post-activation active drift
+  ---
+  duration_ms: 107.068083
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation stage drift
+ok 7 - saved group final raw fence rejects post-activation stage drift
+  ---
+  duration_ms: 112.624041
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation saved frontier drift
+ok 8 - saved group final raw fence rejects post-activation saved frontier drift
+  ---
+  duration_ms: 107.751791
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation saved receipt drift
+ok 9 - saved group final raw fence rejects post-activation saved receipt drift
+  ---
+  duration_ms: 113.973833
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation source receipt drift
+ok 10 - saved group final raw fence rejects post-activation source receipt drift
+  ---
+  duration_ms: 109.413042
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation source sequence drift
+ok 11 - saved group final raw fence rejects post-activation source sequence drift
+  ---
+  duration_ms: 107.519792
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation migration drift
+ok 12 - saved group final raw fence rejects post-activation migration drift
+  ---
+  duration_ms: 105.109
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation publication drift
+ok 13 - saved group final raw fence rejects post-activation publication drift
+  ---
+  duration_ms: 107.891625
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation library drift
+ok 14 - saved group final raw fence rejects post-activation library drift
+  ---
+  duration_ms: 106.96425
+  type: 'test'
+  ...
+# Subtest: saved graph requires original Source dependency and rejects unrepresented populated canonical rows
+ok 15 - saved graph requires original Source dependency and rejects unrepresented populated canonical rows
+  ---
+  duration_ms: 86.523459
+  type: 'test'
+  ...
+# Subtest: changed Source cannot export stale saved checkpoint evidence
+ok 16 - changed Source cannot export stale saved checkpoint evidence
+  ---
+  duration_ms: 58.371709
+  type: 'test'
+  ...
+# Subtest: saved group capability refuses missing items without canonical mutation
+ok 17 - saved group capability refuses missing items without canonical mutation
+  ---
+  duration_ms: 79.768125
+  type: 'test'
+  ...
+# Subtest: saved group capability refuses manifest ref without canonical mutation
+ok 18 - saved group capability refuses manifest ref without canonical mutation
+  ---
+  duration_ms: 77.687958
+  type: 'test'
+  ...
+# Subtest: saved group capability refuses changed item without canonical mutation
+ok 19 - saved group capability refuses changed item without canonical mutation
+  ---
+  duration_ms: 78.782584
+  type: 'test'
+  ...
+# Subtest: saved group capability refuses cloned plan without canonical mutation
+ok 20 - saved group capability refuses cloned plan without canonical mutation
+  ---
+  duration_ms: 82.695125
+  type: 'test'
+  ...
+# Subtest: saved terminal scope refuses a new unplanned stage row after activation
+ok 21 - saved terminal scope refuses a new unplanned stage row after activation
+  ---
+  duration_ms: 118.024542
+  type: 'test'
+  ...
+# Subtest: saved terminal scope refuses a new unplanned replay row after activation
+ok 22 - saved terminal scope refuses a new unplanned replay row after activation
+  ---
+  duration_ms: 108.195333
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2455.355666

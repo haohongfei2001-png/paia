@@ -1,3 +1,4 @@
+import {prepareSavedWorkScope,requireSavedWorkScope} from './saved-work-bootstrap.js';
 import {readGroupRows} from './group-page-reader.js';
 import {compareMixedConfiguration,consumeMixedPublicationMetadata} from './mixed-configuration.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
@@ -160,6 +161,7 @@ async function compileOriginalWireScope(plan){
  for(const group of plan.groups){
   if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions'}[type];if(name&&!(type==='timeEvidence'&&value.value===null))maps[name].set(value.id,copy(value));}
   else if(group.type==='inputWorkingCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value;maps[{input:'blocks',inputState:'inputStates',revision:'revisions',filterIntent:'filterIntents'}[type]].set(value.id,copy(value));}
+  else if(group.type==='savedWorkBootstrap'){for(const row of group.operations[0].value.payload.history)maps.revisions.set(row.id,copy(row));}
   else if(group.type!=='humanLibraryCommit'){const op=group.operations[0];if(group.type==='filterIntent')maps.filterIntents.set(op.entityId,copy(op.value));else if(group.type==='promptPreferences')prompt=copy(op.value);else if(group.type==='promptBinding')promptBinding=copy(op.value);else if(group.type==='contextDesired')desired.set(op.entityId,copy(op.value));else if(group.type==='topicDesired')topicDesired.set(op.entityId,copy(op.value));else if(group.type!=='consumerPreference')context.set(op.entityId,copy(op.value));}
  }
  const human=plan.groups.some(group=>group.type==='humanLibraryCommit')?compileHumanScope(plan):null;if(human)for(const row of human.rows.history)maps.revisions.set(row.id,mixed?row:clone(row));
@@ -170,7 +172,7 @@ async function compileOriginalWireScope(plan){
  expected.context=sort([...context.values()]);expected.desired=['info','rules','now','inputs'].map(id=>desired.get(id)||{id,enabled:false,revision:0});expected.prompt=prompt;if(promptBinding)expected.promptBinding=promptBinding;
  const consumer=finalConsumerPreferenceOperations(plan);if(consumer.length)expected.consumerPreferences=consumer.map(op=>copy(op.value));
  if(topicDesired.size)expected.topicDesired=sort([...topicDesired.values()]);
- if(human)expected.humanLibrary=human;
+ if(human)expected.humanLibrary=human;const saved=plan.groups.find(g=>g.type==='savedWorkBootstrap');if(saved)expected.savedWork=copy(saved.operations[0].value.payload);
  // Portable Human is independently compiled already. Mixed Scope can borrow
  // that untouched aggregate; OUTER history stays independently cloned so its
  // allocator normalization cannot zero portable Human history by alias.
@@ -185,13 +187,14 @@ export async function prepareOriginalMixedWireOwnerScope(core,plan){
 }
 function requireCompiledGroupScope(scope){const p=originalScopes.get(scope);if(!p||p.phase!=='ready'||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||p.core&&Object.entries(p.coreBinding).some(([key,value])=>p.core[key]!==value))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');return p;}
 export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
- const originalCore=originalGroupCheckpointCoreOrNull(plan);if(!originalCore&&plan.groups.some(group=>['topicDesired','promptBinding','consumerPreference'].includes(group.type)||group.type==='promptPreferences'&&(group.operations[0].value.splits.length||group.operations[0].value.pins.some(id=>id.startsWith('pf:'))||group.operations[0].value.overrides.some(row=>row.id.startsWith('pf:')||row.representative!==undefined))))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const originalCore=originalGroupCheckpointCoreOrNull(plan);if(!originalCore&&plan.groups.some(group=>['topicDesired','promptBinding','consumerPreference','savedWorkBootstrap'].includes(group.type)||group.type==='promptPreferences'&&(group.operations[0].value.splits.length||group.operations[0].value.pins.some(id=>id.startsWith('pf:'))||group.operations[0].value.overrides.some(row=>row.id.startsWith('pf:')||row.representative!==undefined))))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  const {scope,human}=await compileOriginalWireScope(plan),p={plan:new ScopeWeakRef(plan),core:originalCore,consumerOperations:finalConsumerPreferenceOperations(plan),expected:scope.expected,ownerScope:scope.ownerScope,phase:'preparing',humanWire:human,mixedCore:originalCurrentMixedGroupCore(plan)};p.coreBinding=p.core?{repository:p.core.repository,datasetId:p.core.datasetId,prefix:p.core.prefix,fixedNamespace:p.core.fixedNamespace}:null;if(!p.core&&plan.groups.some(g=>g.type==='topicDesired'))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScopes.set(scope,p);
  try{
   if(p.mixedCore&&store){
    const meta=nativeMixedCompilation!==undefined?borrowOriginalMixedScopeCompilationMeta(nativeMixedCompilation,store,scope,human):await store.run(()=>store.repository.transaction(false,async t=>{if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all('meta');},['meta']));
    measureSourceWorkingPhysicalTree(meta);freezeScope(meta);if(meta.some(row=>row.id===p.mixedCore.prefix+'active')){p.restoredAllocation=await prepareMixedRestoredAllocationProof(p.mixedCore,plan,meta,...(nativeMixedCompilation!==undefined?[{nonce:nativeMixedCompilation,store,scope}]:[]));if(nativeMixedCompilation!==undefined)retainOriginalMixedRestoredScopeProof(nativeMixedCompilation,store,scope,plan);}
   }
+  if(scope.expected.savedWork)await prepareSavedWorkScope(store,originalCore,scope,plan);
   if(human){if(nativeMixedCompilation!==undefined)reserveOriginalMixedKeyedScopePhase(nativeMixedCompilation,store,scope,plan);await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);}freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;
  }catch(error){originalScopes.delete(scope);throw error;}
 }
@@ -199,12 +202,13 @@ export async function requireGroupScope(store,t,scope){
  requireCompiledGroupScope(scope);
  const c=await store.control(t);
  if(!equal(c.preferences,consumerDisplayPreferences(scope.expected.consumerPreferences??[]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
- const human=hasHumanScope(scope)?await requireHumanScope(store,t,scope):null,humanStores=new Set(['thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems','provenance','dependencies']);
- for(const name of t.tx.objectStoreNames)if(!represented.has(name)&&!ephemeralStores.has(name)&&!(human&&humanStores.has(name))&&await t.count(name))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ const saved=scope.expected.savedWork?await requireSavedWorkScope(store,t,scope):false,human=hasHumanScope(scope)?await requireHumanScope(store,t,scope):null,humanStores=new Set(['thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems','provenance','dependencies']);
+ for(const name of t.tx.objectStoreNames)if(!represented.has(name)&&!ephemeralStores.has(name)&&!((human||saved)&&humanStores.has(name))&&await t.count(name))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  // Inspect every canonical metadata key, but do not walk the selected Core's
  // immutable protocol namespace as if it were owner data. That closed bns:v1
  // prefix cannot match backupMetaAllowed; its graph is proven independently.
  // Other namespaces and every canonical prefix remain in the two exact ranges.
+ if(saved)for(const name of ['topics','sections'])if(await t.count(name))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  const corePrefix=originalScopes.get(scope).core.prefix;
  const keys=[...await t.keys('meta',null,IDBKeyRange.upperBound(corePrefix,true),10000),...await t.keys('meta',null,IDBKeyRange.lowerBound(corePrefix+'\uffff'),10000)];
  if(keys.length>10000)fail('BNS_GROUP_RESOURCE_LIMIT');
@@ -231,14 +235,14 @@ export async function requireGroupScope(store,t,scope){
  const bound=originalScopes.get(scope),consumer=await requireConsumerPreferenceOwners(t,store,bound.core,bound.consumerOperations);if(scope.expected.consumerPreferences)actual.consumerPreferences=consumer;
  const topicDesired=await readTopicDesiredOwners(t,bound.core,scope.expected.topicDesired??[]);if(scope.expected.topicDesired)actual.topicDesired=topicDesired;
  actual.prompt=projectEntity('promptPreferences',await readPromptPreferences(t));const companion=await t.get('meta',PROMPT_CORRECTION_BINDING_ROW);if(scope.expected.promptBinding)actual.promptBinding=physicalPromptCompanion(companion,actual.prompt);else if(companion)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
- if(human){const revisions=actual.revisions,sequence=await t.get('meta','revision-sequence');if((sequence?.value||0)!==Math.max(0,...revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(human||saved){const revisions=actual.revisions,sequence=await t.get('meta','revision-sequence');if((sequence?.value||0)!==Math.max(0,...revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
  return compareGroupCanonicalValues(scope,actual,human);
 }
 // Human bodies/history are checked by their original owner before this outer
 // comparison. Omit the portable aggregate before cloning rather than allocating
 // its duplicate only to discard it; all shared history/domain operands remain.
 function canonicalComparisonExpected(scope,human){
- return human?Object.fromEntries(Object.entries(scope.expected).filter(([name])=>name!=='humanLibrary')):scope.expected;
+ return human||scope.expected.savedWork?Object.fromEntries(Object.entries(scope.expected).filter(([name])=>name!=='savedWork'&&(!human||name!=='humanLibrary'))):scope.expected;
 }
 export function measureOriginalMixedCanonicalComparisonExpected(core,store,scope,plan,raw,nonce){
  if(arguments.length!==6)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);

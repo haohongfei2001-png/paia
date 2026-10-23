@@ -1,3 +1,10 @@
+import {validateGroupedCheckpointGraph} from './group-checkpoint.js';
+import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
+import {protocolObject} from './segments.js';
+import {protocolPhysicalId} from './physical-key.js';
+import {ownerVersion} from '../library-search.js';
+import {readGroupRows} from './group-page-reader.js';
+import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {readControlPublicationFence,CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION} from '../local-control-publication.js';
 import {validateFrozenOperation,acceptSequence} from './core.js';
 import {requireOriginalLibraryDocumentsStore} from '../library-documents-owner.js';
@@ -79,7 +86,7 @@ export async function finishSavedWorkBootstrap(t,cap,store){
  if(!equal(actual,{entry:p.expected.entry,history:p.expected.history,provenance:[p.expected.provenance],dependencies:[p.expected.dependency],placements:0,suppressions:0}))fail('BNS_SAVED_WORK_CHANGED');
  await p.core.put(t,'savedWorkBootstrap',[p.payload.entry.id],{version:1,digest:p.wireDigest});if(!p.before.authority.fence.marker)await p.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:p.before.authority.fence.epoch});
  const receiptKey=await p.core.idIn(t,'savedWorkBootstrap',p.payload.entry.id),markerKey=await p.core.idIn(t,'ownerRecoveryEpoch');
- const points=[...p.before.destination.source.rows.map(row=>['meta',row.id,row]),['meta',receiptKey,{id:receiptKey,version:1,digest:p.wireDigest}],['meta',markerKey,{id:markerKey,version:1,epoch:p.before.authority.fence.epoch}],...p.before.authority.roots.map(([id,row])=>['meta',id,row]),['meta','thought-sequence',{id:'thought-sequence',value:Math.max(p.before.authority.sequence?.value||0,p.expected.entry.updatedSequence)}],['meta','revision-sequence',{id:'revision-sequence',value:p.expected.history.at(-1).sequence}],['meta','backup-data-generation',{id:'backup-data-generation',value:p.before.authority.generation+1}],['thoughts',p.expected.entry.id,p.expected.entry],['provenance',p.expected.provenance.id,p.expected.provenance],['dependencies',p.expected.dependency.id,p.expected.dependency],...p.expected.history.map(h=>['revisions',h.id,h])];
+ const points=[...p.before.destination.source.rows.map(row=>['meta',row.id,row]),['meta',receiptKey,{id:receiptKey,version:1,digest:p.wireDigest}],['meta',markerKey,{id:markerKey,version:1,epoch:p.before.authority.fence.epoch}],...p.before.authority.roots.map(([id,row])=>['meta',id,p.group&&id===p.core.prefix+'active'?p.group.active:row]),...(p.group?[['meta',p.group.terminal.id,p.group.terminal]]:[]),['meta','thought-sequence',{id:'thought-sequence',value:Math.max(p.before.authority.sequence?.value||0,p.expected.entry.updatedSequence)}],['meta','revision-sequence',{id:'revision-sequence',value:p.expected.history.at(-1).sequence}],['meta','backup-data-generation',{id:'backup-data-generation',value:p.before.authority.generation+1}],['thoughts',p.expected.entry.id,p.expected.entry],['provenance',p.expected.provenance.id,p.expected.provenance],['dependencies',p.expected.dependency.id,p.expected.dependency],...p.expected.history.map(h=>['revisions',h.id,h])];
  const check=()=>{if(Date.now()-p.start>30000)fail('BNS_SAVED_WORK_LIMIT');assertOriginalControlSettingsFacts(store,p.currentControl);return true;};
  registerRepositoryFinalReadFence(store.repository,t,{isCurrent:check,plan:function*(){
   for(const fact of p.facts)if(!equal(fact.project(yield {method:'get',table:fact.table,key:fact.key},check),fact.expected))fail('BNS_SAVED_WORK_CHANGED');
@@ -162,4 +169,75 @@ export async function publishSavedWorkBootstrap(store,cap){
   registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){for(const fact of p.facts)if(!equal(fact.project(yield {method:'get',table:fact.table,key:fact.key},current),fact.expected))fail('BNS_SAVED_WORK_CHANGED');for(const [table,key,row]of points)if(!equal((yield {method:'get',table,key})??null,row))fail('BNS_SAVED_WORK_CHANGED');for(const [table,index,key,n]of [['revisions','byList',prefix(['library_entry:'+id]),2],['provenance','byOwner',prefix(['entry',id]),1],['dependencies','byTarget',prefix(['entry',id]),1],['placements','byEntry',prefix([id]),0],['thoughtSuppressions','byEntry',id,0],['thoughtSuppressions','byScope',p.evidence[0].scopeToken,0],['thoughtSuppressions','byExact',p.expected.entry.exactSignature,0]])if((yield {method:'count',table,index,key})!==n)fail('BNS_SAVED_WORK_CHANGED');return true;}});
   await sealSavedProtocol(t,core,intent,p.start);return clone(operation);
  });
+}
+
+// A compiled Source + saved graph owns exactly one terminal replay activation.
+// This constructor derives the allowed pointer from the durable validated stage;
+// neither a public expected-row parameter nor an unbranded plan can relax roots.
+export async function prepareSavedWorkGroupApplication(store,core,plan,stage,state){
+ requireOriginalGroupCheckpointPlan(core,plan);const saved=plan.groups.filter(g=>g.type==='savedWorkBootstrap');if(!saved.length)return null;const startedAt=Date.now();state=clone(state);
+ if(saved.length!==1||plan.groups.length!==2||core.repository!==stage.repository||core.datasetId!==stage.datasetId||core.fixedNamespace!==state.replayId||state.phase!=='validated'||state.graphDigest!==plan.digest||state.manifest?.datasetId!==core.datasetId||!equal(await stage.read('restore'),state))fail('BNS_SAVED_WORK_CAPABILITY');
+ const stageRows=await verifySavedGroupStage(store,core,plan,stage,state);
+ const source=plan.groups.find(g=>g.type==='sourceBootstrapCommit');if(!source)fail('BNS_SAVED_WORK_CAPABILITY');
+ const operation=await prepareSavedWorkProtocol(saved[0].operations[0]),cap=await prepareSourceSavedWorkBootstrap(store,core,operation.value.payload,source.capability,source.operations,startedAt);
+ const p=plans.get(cap);p.group={protocol:[...savedGroupProtocolIntent(core,plan),...stageRows.map(row=>[row.id,row])],plan,stage,state:clone(state),operation,id:saved[0].id,active:{id:core.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:plan.digest},terminal:{...clone(state),phase:'activated'}};
+ if(bytes({before:p.before,payload:p.payload,expected:p.expected,stage:p.group.state,protocol:p.group.protocol,plan}).length>limit)fail('BNS_SAVED_WORK_LIMIT');
+ return cap;
+}
+export async function applySavedWorkGroupStep(t,cap,id){
+ const p=plans.get(cap);if(!p?.group||p.group.id!==id)fail('BNS_SAVED_WORK_CAPABILITY');requireOriginalGroupCheckpointPlan(p.core,p.group.plan);
+ if(!equal(await p.group.stage.get(t,'restore'),p.group.state))fail('BNS_RESTORE_STAGE_CHANGED');
+ await p.store.applySavedWorkBootstrapInTransaction(t,cap);await commitSavedWorkProtocol(t,p.core,cap,p.group.operation);
+}
+export async function sealSavedWorkGroupActivation(t,cap){
+ if(cap===null)return;const p=plans.get(cap);if(!p?.group||p.transaction!==t)fail('BNS_SAVED_WORK_CAPABILITY');
+ if(!equal(await p.group.stage.get(t,'restore'),p.group.terminal)||!equal(await t.get('meta',p.core.prefix+'active'),p.group.active))fail('BNS_RESTORE_STAGE_CHANGED');
+ await sealSavedProtocol(t,p.core,p.group.protocol,p.start);
+ const stagePrefix=protocolPhysicalId(p.group.stage.prefix,p.group.stage.fixedNamespace,'groupItem',[]),replayPrefix=p.core.prefix+'generation:'+p.core.fixedNamespace+':',stageRange=IDBKeyRange.bound(stagePrefix,stagePrefix+'\uffff'),replayRange=IDBKeyRange.bound(replayPrefix,replayPrefix+'\uffff'),replayCount=p.group.protocol.filter(([id,row])=>row&&id.startsWith(replayPrefix)).length+2;
+ registerRepositoryFinalReadFence(p.store.repository,t,{isCurrent:()=>{if(Date.now()-p.start>30000)fail('BNS_SAVED_WORK_LIMIT');return true;},plan:function*(){if((yield {method:'count',table:'meta',key:stageRange})!==p.group.state.received||(yield {method:'count',table:'meta',key:replayRange})!==replayCount)fail('BNS_RESTORE_STAGE_CHANGED');return true;}});
+}
+
+// Keyed scope proof uses the original Source plan and original evidence/key
+// derivation. The portable aggregate never supplies a local authority token.
+const savedScopes=new WeakMap();
+export async function prepareSavedWorkScope(store,core,scope,plan){
+ requireOriginalGroupCheckpointPlan(core,plan);binding(store,core);const saved=plan.groups.find(g=>g.type==='savedWorkBootstrap');if(!saved)return;
+ const source=initialSourcePlan(plan.groups.find(g=>g.type==='sourceBootstrapCommit').capability),payload=saved.operations[0].value.payload;
+ const {secret,epoch}=await core.transaction(false,async t=>({secret:(await t.get('meta','thought-suppression-key'))?.value,epoch:(await t.get('meta','thought-epoch'))?.value||0})),b=source.input,wire=payload.link.evidence;
+ const evidence=[await planEvidenceProjection({inputId:b.id,contentRevision:source.inputState.contentRevision,body:b.libraryText??source.source.originalText,note:b.note||'',sourceRecordIds:[source.source.id],identities:[source.source.sourceKey]},{role:'primary',selectedFields:wire.selectedFields},secret,epoch)];
+ if(!equal(portableSourceLinkedEvidence(evidence),wire))fail('BNS_SOURCE_LINKED_EVIDENCE_CHANGED');
+ const expected=await derive(payload,evidence,secret);savedScopes.set(scope,{store,core,plan,evidence,secret,epoch,expected});
+}
+const normalizedSavedHistory=rows=>rows.map(row=>({...row,sequence:0,listKey:[row.entityKey,0],documentList:[row.documentId,0]}));
+export async function requireSavedWorkScope(store,t,scope){
+ const p=savedScopes.get(scope);if(!p||p.store!==store)fail('BNS_SAVED_WORK_CAPABILITY');requireOriginalGroupCheckpointPlan(p.core,p.plan);requireRepositoryTransactionScope(store.repository,t);
+ if(!equal((await t.get('meta','thought-suppression-key'))?.value,p.secret)||((await t.get('meta','thought-epoch'))?.value||0)!==p.epoch)fail('BNS_SAVED_WORK_CHANGED');await checkEvidenceInTransaction(store,t,p.evidence);
+ const rows=await ownedRows(t,p.expected.entry.id),expected={entry:p.expected.entry,history:p.expected.history,provenance:[p.expected.provenance],dependencies:[p.expected.dependency],placements:0,suppressions:0};
+ // Physical history sequence is allocated locally; every semantic field remains exact.
+ rows.history=normalizedSavedHistory(rows.history);expected.history=normalizedSavedHistory(expected.history);
+ const sequence=(await t.get('meta','thought-sequence'))?.value;if(!Number.isSafeInteger(sequence)||sequence<p.expected.entry.updatedSequence||!equal(rows,expected)||await t.count('thoughts')!==1||await t.count('provenance')!==1||await t.count('dependencies')!==1||await t.count('thoughtSuppressions')||await t.count('placements')||await t.count('librarySearchTerms'))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ for(const row of await readGroupRows(t,'libraryMigrationItems'))if(!equal(row,{id:JSON.stringify(['search','entry',p.expected.entry.id]),entityKind:'search',statusKey:0,ownerKind:'entry',ownerId:p.expected.entry.id,version:ownerVersion('entry',p.expected.entry),phase:'delete',offset:0,sourceRecordIds:p.expected.entry.sourceRecordIds??[]}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ return true;
+}
+
+// All original replay write intents are derived from the authentic immutable
+// graph while the new replay namespace is still empty, not from post-write rows.
+function savedGroupProtocolIntent(core,plan){
+ const points=[],frontiers=new Map(),key=(kind,...ids)=>protocolPhysicalId(core.prefix,core.fixedNamespace,kind,ids),put=(kind,ids,value)=>{const id=key(kind,...ids);points.push([id,{...value,id}]);};let local=0;
+ for(const g of plan.groups)for(const op of g.operations){
+  put('revision',[op.revisionId],{operation:op,redacted:false});put('receipt',[op.operationId],{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence});put('sequence',[op.deviceId,String(op.sequence).padStart(16,'0')],{operationId:op.operationId,digest:op.revisionId});put('entityRevision',[op.type,op.entityId,op.revisionId],{revisionId:op.revisionId});
+  frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));if(op.deviceId===core.deviceId)local=Math.max(local,op.sequence);
+  for(const [kind,ids]of [['pending',[op.operationId]],['quarantine',[op.operationId]],['entityPending',[op.type,op.entityId,op.operationId]],['outbox',[op.operationId]]])points.push([key(kind,...ids),null]);
+ }
+ for(const h of plan.heads)put('head',[h.type,h.entityId],h);for(const [deviceId,state]of frontiers)put('frontier',[deviceId],{...state,deviceId});put('generation',[],{value:plan.operationCount});if(local)put('device',[core.deviceId],{sequence:local});return points;
+}
+
+async function verifySavedGroupStage(store,core,plan,stage,state){
+ assertGroupedCheckpointManifest(state.manifest,{core});
+ if(stage.fixedNamespace===core.fixedNamespace||!stage.fixedNamespace||state.manifestRef?.codec!=='identity'||state.received!==state.manifest.itemCount)fail('BNS_RESTORE_STAGE_CHANGED');
+ const object=await protocolObject('checkpoint-manifest',bytes(state.manifest));if(object.ref.id!==state.manifestId||!equal(object.ref,state.manifestRef))fail('BNS_OBJECT_INTEGRITY');
+ const rows=await stage.transaction(false,t=>readGroupRows(t,'meta',{prefix:protocolPhysicalId(stage.prefix,stage.fixedNamespace,'groupItem',[])}),['meta']);
+ if(rows.length!==state.received)fail('BNS_RESTORE_STAGE_CHANGED');let chain='';
+ for(let i=0;i<rows.length;i++){const row=rows[i];if(!equal(row,{id:protocolPhysicalId(stage.prefix,stage.fixedNamespace,'groupItem',[String(i).padStart(4,'0')]),item:row.item}))fail('BNS_RESTORE_STAGE_CHANGED');chain=await digest(bytes(chain+'\n'+new TextDecoder().decode(bytes(row.item))));}
+ if(chain!==state.manifest.chain||await validateGroupedCheckpointGraph(core,rows.map(row=>row.item),state.manifest,{store})!==plan.digest||!equal(await stage.read('restore'),state))fail('BNS_RESTORE_STAGE_CHANGED');return rows;
 }

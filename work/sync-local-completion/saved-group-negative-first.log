@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: saved Source graph exports A, restores cold B and reexports unchanged canonical work to cold C
+ok 1 - saved Source graph exports A, restores cold B and reexports unchanged canonical work to cold C
+  ---
+  duration_ms: 296.78875
+  type: 'test'
+  ...
+# Subtest: saved group rollback retains every staged and canonical row when applied-group fails
+ok 2 - saved group rollback retains every staged and canonical row when applied-group fails
+  ---
+  duration_ms: 116.443542
+  type: 'test'
+  ...
+# Subtest: saved group rollback retains every staged and canonical row when before-activation fails
+ok 3 - saved group rollback retains every staged and canonical row when before-activation fails
+  ---
+  duration_ms: 109.398
+  type: 'test'
+  ...
+# Subtest: saved group rollback retains every staged and canonical row when after-activation fails
+ok 4 - saved group rollback retains every staged and canonical row when after-activation fails
+  ---
+  duration_ms: 103.035958
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation source drift
+ok 5 - saved group final raw fence rejects post-activation source drift
+  ---
+  duration_ms: 111.034209
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation active drift
+ok 6 - saved group final raw fence rejects post-activation active drift
+  ---
+  duration_ms: 101.166125
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation stage drift
+ok 7 - saved group final raw fence rejects post-activation stage drift
+  ---
+  duration_ms: 105.77075
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation saved frontier drift
+ok 8 - saved group final raw fence rejects post-activation saved frontier drift
+  ---
+  duration_ms: 102.536167
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation saved receipt drift
+ok 9 - saved group final raw fence rejects post-activation saved receipt drift
+  ---
+  duration_ms: 102.785666
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation migration drift
+ok 10 - saved group final raw fence rejects post-activation migration drift
+  ---
+  duration_ms: 113.704417
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation publication drift
+ok 11 - saved group final raw fence rejects post-activation publication drift
+  ---
+  duration_ms: 106.50175
+  type: 'test'
+  ...
+# Subtest: saved group final raw fence rejects post-activation library drift
+ok 12 - saved group final raw fence rejects post-activation library drift
+  ---
+  duration_ms: 110.166791
+  type: 'test'
+  ...
+# Subtest: saved graph requires original Source dependency and rejects unrepresented populated canonical rows
+ok 13 - saved graph requires original Source dependency and rejects unrepresented populated canonical rows
+  ---
+  duration_ms: 93.495208
+  type: 'test'
+  ...
+# Subtest: changed Source cannot export stale saved checkpoint evidence
+ok 14 - changed Source cannot export stale saved checkpoint evidence
+  ---
+  duration_ms: 60.220667
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1740.672334
