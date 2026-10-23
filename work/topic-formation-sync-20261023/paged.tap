@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: original Formation reactivation and full domain history settle with typed protocol in the same transaction
+ok 1 - original Formation reactivation and full domain history settle with typed protocol in the same transaction
+  ---
+  duration_ms: 204.625917
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 430.036958

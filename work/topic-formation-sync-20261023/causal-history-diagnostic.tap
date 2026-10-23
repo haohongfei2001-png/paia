@@ -1,0 +1,30 @@
+TAP version 13
+# SYNTHETIC CHAIN BASE [ 'updatedAt' ]
+# Subtest: actual inactivity → original Formation reactivation → independent inactivity preserves a causal chain on cold B
+not ok 1 - actual inactivity → original Formation reactivation → independent inactivity preserves a causal chain on cold B
+  ---
+  duration_ms: 281.301792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:34:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_TOPIC_FORMATION_CHANGED'
+  code: 'BNS_TOPIC_FORMATION_CHANGED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/browser-native-sync/value.js:5:32)
+    prepareOriginalFormationSync (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/browser-native-sync/topic-formation-journal.js:25:1907)
+    async TopicFormationService.commit (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/topic-formation.js:223:209)
+    async TopicFormationSyncJournal.receive (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/browser-native-sync/topic-formation-journal.js:20:446)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:34:739)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 458.376416

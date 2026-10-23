@@ -1,0 +1,41 @@
+TAP version 13
+# Subtest: original Formation reactivation and full domain history settle with typed protocol in the same transaction
+ok 1 - original Formation reactivation and full domain history settle with typed protocol in the same transaction
+  ---
+  duration_ms: 196.96025
+  type: 'test'
+  ...
+# Subtest: cold original backup base replays Formation through a genuine receiver issuer and preserves important history without echo
+ok 2 - cold original backup base replays Formation through a genuine receiver issuer and preserves important history without echo
+  ---
+  duration_ms: 228.548958
+  type: 'test'
+  ...
+# Subtest: actual inactivity → original Formation reactivation → independent inactivity preserves a causal chain on cold B
+not ok 3 - actual inactivity → original Formation reactivation → independent inactivity preserves a causal chain on cold B
+  ---
+  duration_ms: 125.982084
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:34:1'
+  failureType: 'testCodeFailure'
+  error: 'TOPIC_ACTIVITY_DEFERRED'
+  code: 'TOPIC_ACTIVITY_DEFERRED'
+  stack: |-
+    defer (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/topic-lifecycle-activity.js:10:34)
+    captureTopicLifecycleActivity (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/topic-lifecycle-activity.js:23:203)
+    async store.operation.activity.workLimit (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/topic-lifecycle.js:54:31)
+    async OrganizerStore.libraryOperationInTransaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/library-documents-owner.js:82:16)
+    async OrganizerStore.operationInTransaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/thought-store-owner.js:113:363)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:482:87)
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:203:11
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 2
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 898.549709

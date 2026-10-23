@@ -1,0 +1,61 @@
+{
+  "base": "1114ffe490c3db6bc918c30f81138aca69d886c6",
+  "files": [
+    {
+      "path": "extension/core/topic-formation.js",
+      "bytes": 58269,
+      "sha256": "fd6b7ddce47de32cf18f5cf9cb33b76fb20fb0de4c58e5bccd3e249ee7bdf136",
+      "blob": "a6ed63ac3126e2db3e4dbceb016e3641d9bcc64c",
+      "baseBlob": "19951ffcd8a0708e73590acfba80f0d68cb3c8a4"
+    },
+    {
+      "path": "extension/core/browser-native-sync/topic-formation-codec.js",
+      "bytes": 4122,
+      "sha256": "66d2c65e40a34fb247a3704841bb1148be47eb62b9901ed66868bb00c8787fe4",
+      "blob": "80e47e76d1abeed4cc7ca0b83e030b2f328f6076",
+      "baseBlob": null
+    },
+    {
+      "path": "extension/core/browser-native-sync/topic-formation-journal.js",
+      "bytes": 16769,
+      "sha256": "2a66c442a3e5c7ac2b97a4976ab34301f2e63ff57d2c923d28a0fd7fabbae99c",
+      "blob": "802129c7852b4ae08397c7f51aae2e8378220f36",
+      "baseBlob": null
+    },
+    {
+      "path": "extension/core/browser-native-sync/topic-activity-codec.js",
+      "bytes": 2542,
+      "sha256": "0031d7146d7ef85675ca4bab69362ae90060fa0b38995c537d41db9436325529",
+      "blob": "c1d00452135fb4773bd7a75fb52127839692b2a9",
+      "baseBlob": "45d33671e849cbb2c08aac7c44dac1e38d2f9062"
+    },
+    {
+      "path": "extension/core/browser-native-sync/topic-activity-journal.js",
+      "bytes": 15410,
+      "sha256": "4a96ac6e2bef06a957d0ccb27e725ee54ef56de6b28bd43f91e6f6255f264455",
+      "blob": "f7191bbc200b7ce1643bd0575945a5d2c7d7ebbd",
+      "baseBlob": "e1c0e9fb37618a7b3f8a5ff43c0d788ad59698f7"
+    },
+    {
+      "path": "extension/core/browser-native-sync/core.js",
+      "bytes": 72047,
+      "sha256": "dbfd3c120620e027960744e99465acd733fb435361db84f95efbabd28492a9c4",
+      "blob": "d2d200a152a413a444ceacb9f332dea1d16b7772",
+      "baseBlob": "ec577a1840a75a5773099c6582ca1133f053453a"
+    },
+    {
+      "path": "extension/core/browser-native-sync/codecs.js",
+      "bytes": 15840,
+      "sha256": "2db51ae97891bfd3a6d2f171f13d82cbc0ad227b3573a2f63014af76c732c200",
+      "blob": "fb086b0cac1dd53278235dc17d479367de4f661a",
+      "baseBlob": "cc2dbab2e7896c1f0e69101e73d29ba9b80541cc"
+    },
+    {
+      "path": "extension/tests/topic-formation-sync.test.mjs",
+      "bytes": 19268,
+      "sha256": "4c051c74683c17bfd761fc2a53c460815829a10ff412d97ff4b662e106a62d55",
+      "blob": "e63545e8febb717429dc6b6c80391d6e6e555527",
+      "baseBlob": null
+    }
+  ]
+}
