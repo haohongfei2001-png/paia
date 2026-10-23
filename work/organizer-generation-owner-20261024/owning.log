@@ -1,0 +1,426 @@
+TAP version 13
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+ok 1 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 268.202375
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rebinds original proof and never duplicates canonical application
+ok 2 - protected group cold resume rebinds original proof and never duplicates canonical application
+  ---
+  duration_ms: 209.1055
+  type: 'test'
+  ...
+# Subtest: protected group never lends a transaction to custom diagnostic callback
+ok 3 - protected group never lends a transaction to custom diagnostic callback
+  ---
+  duration_ms: 69.694167
+  type: 'test'
+  ...
+# Subtest: protected group cannot acquire genuine authority using forged or foreign proof
+ok 4 - protected group cannot acquire genuine authority using forged or foreign proof
+  ---
+  duration_ms: 67.157167
+  type: 'test'
+  ...
+# Subtest: protected group keeps token away from mutable repository and Core transaction wrappers
+ok 5 - protected group keeps token away from mutable repository and Core transaction wrappers
+  ---
+  duration_ms: 167.321125
+  type: 'test'
+  ...
+# Subtest: protected original group refuses gate-phase drift without partial owner writes
+ok 6 - protected original group refuses gate-phase drift without partial owner writes
+  ---
+  duration_ms: 98.9655
+  type: 'test'
+  ...
+# Subtest: protected original group refuses checkpoint-item drift without partial owner writes
+ok 7 - protected original group refuses checkpoint-item drift without partial owner writes
+  ---
+  duration_ms: 103.711917
+  type: 'test'
+  ...
+# Subtest: protected original group refuses consent drift without partial owner writes
+ok 8 - protected original group refuses consent drift without partial owner writes
+  ---
+  duration_ms: 95.770917
+  type: 'test'
+  ...
+# Subtest: protected original group refuses restore-row drift without partial owner writes
+ok 9 - protected original group refuses restore-row drift without partial owner writes
+  ---
+  duration_ms: 94.222583
+  type: 'test'
+  ...
+# Subtest: protected original group refuses purge-deny drift without partial owner writes
+ok 10 - protected original group refuses purge-deny drift without partial owner writes
+  ---
+  duration_ms: 96.761583
+  type: 'test'
+  ...
+# Subtest: protected group native terminal canonical drift rolls back original owner and receipt
+ok 11 - protected group native terminal canonical drift rolls back original owner and receipt
+  ---
+  duration_ms: 136.483959
+  type: 'test'
+  ...
+# Subtest: protected group native terminal restore-receipt drift rolls back original owner and receipt
+ok 12 - protected group native terminal restore-receipt drift rolls back original owner and receipt
+  ---
+  duration_ms: 132.337208
+  type: 'test'
+  ...
+# Subtest: protected group native terminal checkpoint-item drift rolls back original owner and receipt
+ok 13 - protected group native terminal checkpoint-item drift rolls back original owner and receipt
+  ---
+  duration_ms: 119.640375
+  type: 'test'
+  ...
+# Subtest: protected group native terminal protection drift rolls back original owner and receipt
+ok 14 - protected group native terminal protection drift rolls back original owner and receipt
+  ---
+  duration_ms: 157.084084
+  type: 'test'
+  ...
+# Subtest: protected group native terminal gate drift rolls back original owner and receipt
+ok 15 - protected group native terminal gate drift rolls back original owner and receipt
+  ---
+  duration_ms: 122.015291
+  type: 'test'
+  ...
+# Subtest: protected original graph seal retains existing-active migration refusal
+ok 16 - protected original graph seal retains existing-active migration refusal
+  ---
+  duration_ms: 170.522459
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted stage.put before lending a write transaction
+ok 17 - protected group refuses substituted stage.put before lending a write transaction
+  ---
+  duration_ms: 98.602584
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted coreB.get before lending a write transaction
+ok 18 - protected group refuses substituted coreB.get before lending a write transaction
+  ---
+  duration_ms: 110.518291
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.applyInitialSource before lending a write transaction
+ok 19 - protected group refuses substituted b.applyInitialSource before lending a write transaction
+  ---
+  duration_ms: 94.857583
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.control before lending a write transaction
+ok 20 - protected group refuses substituted b.control before lending a write transaction
+  ---
+  duration_ms: 96.181458
+  type: 'test'
+  ...
+# Subtest: protected group descriptor guard refuses an owner method getter without executing it
+ok 21 - protected group descriptor guard refuses an owner method getter without executing it
+  ---
+  duration_ms: 99.961333
+  type: 'test'
+  ...
+# Subtest: protected group rejects a shadowing prototype method before write authority
+ok 22 - protected group rejects a shadowing prototype method before write authority
+  ---
+  duration_ms: 93.626042
+  type: 'test'
+  ...
+# Subtest: protected group restore field getter cannot rebind the private original consumer
+ok 23 - protected group restore field getter cannot rebind the private original consumer
+  ---
+  duration_ms: 62.629958
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rejects extra durable restore fields
+ok 24 - protected group cold resume rejects extra durable restore fields
+  ---
+  duration_ms: 99.989875
+  type: 'test'
+  ...
+# Subtest: protected group native owner failure rolls back and fresh explicit retry reuses original graph
+ok 25 - protected group native owner failure rolls back and fresh explicit retry reuses original graph
+  ---
+  duration_ms: 167.315375
+  type: 'test'
+  ...
+# Subtest: protected fixed group publication refuses substituted original consumer methods before write callback
+ok 26 - protected fixed group publication refuses substituted original consumer methods before write callback
+  ---
+  duration_ms: 157.352625
+  type: 'test'
+  ...
+# Subtest: protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+ok 27 - protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+  ---
+  duration_ms: 312.273333
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects put before external callback
+ok 28 - protected original repository rejects put before external callback
+  ---
+  duration_ms: 93.807291
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects delete before external callback
+ok 29 - protected original repository rejects delete before external callback
+  ---
+  duration_ms: 87.160875
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects clear before external callback
+ok 30 - protected original repository rejects clear before external callback
+  ---
+  duration_ms: 89.61525
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects raw before external callback
+ok 31 - protected original repository rejects raw before external callback
+  ---
+  duration_ms: 88.642958
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects forged-capability before external callback
+ok 32 - protected original repository rejects forged-capability before external callback
+  ---
+  duration_ms: 89.357292
+  type: 'test'
+  ...
+# Subtest: protected gate is enforced by a cold original repository instance
+ok 33 - protected gate is enforced by a cold original repository instance
+  ---
+  duration_ms: 84.753167
+  type: 'test'
+  ...
+# Subtest: private generation authority never passes through mutable instance wrappers
+ok 34 - private generation authority never passes through mutable instance wrappers
+  ---
+  duration_ms: 122.834917
+  type: 'test'
+  ...
+# Subtest: protected public staging/active callback and metadata seal cannot acquire graph writer
+ok 35 - protected public staging/active callback and metadata seal cannot acquire graph writer
+  ---
+  duration_ms: 84.297125
+  type: 'test'
+  ...
+# Subtest: protected Human does not lend a private transaction to external diagnostic callback
+ok 36 - protected Human does not lend a private transaction to external diagnostic callback
+  ---
+  duration_ms: 91.941667
+  type: 'test'
+  ...
+# Subtest: unmarked original database preserves ordinary writes but rejects a forged protection marker
+ok 37 - unmarked original database preserves ordinary writes but rejects a forged protection marker
+  ---
+  duration_ms: 79.117208
+  type: 'test'
+  ...
+# Subtest: late raw protection marker on unmarked write is rejected and rolled back
+ok 38 - late raw protection marker on unmarked write is rejected and rolled back
+  ---
+  duration_ms: 80.332917
+  type: 'test'
+  ...
+# Subtest: protected stage resumes cold original consumer after committed page response loss
+ok 39 - protected stage resumes cold original consumer after committed page response loss
+  ---
+  duration_ms: 114.906875
+  type: 'test'
+  ...
+# Subtest: protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+ok 40 - protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+  ---
+  duration_ms: 245.115375
+  type: 'test'
+  ...
+# Subtest: protected cold attach retains registry binding and publication resumes after target-ready
+ok 41 - protected cold attach retains registry binding and publication resumes after target-ready
+  ---
+  duration_ms: 245.994
+  type: 'test'
+  ...
+# Subtest: protection installation refuses a nonempty original target and preserves its prior human work
+ok 42 - protection installation refuses a nonempty original target and preserves its prior human work
+  ---
+  duration_ms: 70.739042
+  type: 'test'
+  ...
+# Subtest: a caller-shaped store cannot mint original protection installation authority
+ok 43 - a caller-shaped store cannot mint original protection installation authority
+  ---
+  duration_ms: 61.274833
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+ok 44 - protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+  ---
+  duration_ms: 61.788667
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+ok 45 - protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+  ---
+  duration_ms: 66.280959
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+ok 46 - protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+  ---
+  duration_ms: 65.61525
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer extra-field
+ok 47 - protection installation rejects nonempty initializer extra-field
+  ---
+  duration_ms: 82.920333
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer nested-body
+ok 48 - protection installation rejects nonempty initializer nested-body
+  ---
+  duration_ms: 66.163292
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer old-ephemeral
+ok 49 - protection installation rejects nonempty initializer old-ephemeral
+  ---
+  duration_ms: 65.610416
+  type: 'test'
+  ...
+# Subtest: protected initial marker bytes are charged before the caller can enter
+ok 50 - protected initial marker bytes are charged before the caller can enter
+  ---
+  duration_ms: 87.486041
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects identity drift
+ok 51 - cold protected marker/gate rejects identity drift
+  ---
+  duration_ms: 95.951333
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects phase drift
+ok 52 - cold protected marker/gate rejects phase drift
+  ---
+  duration_ms: 88.773875
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects mode drift
+ok 53 - cold protected marker/gate rejects mode drift
+  ---
+  duration_ms: 90.708875
+  type: 'test'
+  ...
+# Subtest: original LibraryDocumentsStore full generation data identity admitted
+ok 54 - original LibraryDocumentsStore full generation data identity admitted
+  ---
+  duration_ms: 0.83775
+  type: 'test'
+  ...
+# Subtest: original OrganizerStore full generation data identity admitted
+ok 55 - original OrganizerStore full generation data identity admitted
+  ---
+  duration_ms: 0.667542
+  type: 'test'
+  ...
+# Subtest: arbitrary LibraryDocumentsStore subclass denied despite original constructor brand
+ok 56 - arbitrary LibraryDocumentsStore subclass denied despite original constructor brand
+  ---
+  duration_ms: 0.323292
+  type: 'test'
+  ...
+# Subtest: arbitrary OrganizerStore subclass denied despite original constructor brand
+ok 57 - arbitrary OrganizerStore subclass denied despite original constructor brand
+  ---
+  duration_ms: 0.080292
+  type: 'test'
+  ...
+# Subtest: prototype-shaped unconstructed Organizer denied
+ok 58 - prototype-shaped unconstructed Organizer denied
+  ---
+  duration_ms: 0.049708
+  type: 'test'
+  ...
+# Subtest: Organizer own canonicalTopic replacement denied
+ok 59 - Organizer own canonicalTopic replacement denied
+  ---
+  duration_ms: 0.06225
+  type: 'test'
+  ...
+# Subtest: Organizer own applyInitialSource replacement denied
+ok 60 - Organizer own applyInitialSource replacement denied
+  ---
+  duration_ms: 0.19875
+  type: 'test'
+  ...
+# Subtest: Organizer own createEntry replacement denied
+ok 61 - Organizer own createEntry replacement denied
+  ---
+  duration_ms: 0.132542
+  type: 'test'
+  ...
+# Subtest: Organizer own safeOrganization replacement denied
+ok 62 - Organizer own safeOrganization replacement denied
+  ---
+  duration_ms: 0.199041
+  type: 'test'
+  ...
+# Subtest: Organizer declaration replace mutation denied and not trusted on first check
+ok 63 - Organizer declaration replace mutation denied and not trusted on first check
+  ---
+  duration_ms: 0.371417
+  type: 'test'
+  ...
+# Subtest: Organizer declaration added-shadow mutation denied and not trusted on first check
+ok 64 - Organizer declaration added-shadow mutation denied and not trusted on first check
+  ---
+  duration_ms: 0.222125
+  type: 'test'
+  ...
+# Subtest: Organizer declaration parent mutation denied and not trusted on first check
+ok 65 - Organizer declaration parent mutation denied and not trusted on first check
+  ---
+  duration_ms: 0.157167
+  type: 'test'
+  ...
+# Subtest: Organizer declaration descriptor mutation denied and not trusted on first check
+ok 66 - Organizer declaration descriptor mutation denied and not trusted on first check
+  ---
+  duration_ms: 0.142542
+  type: 'test'
+  ...
+# Subtest: original Organizer checkpoint producer prepares and publishes via original Google adapter
+not ok 67 - original Organizer checkpoint producer prepares and publishes via original Google adapter
+  ---
+  duration_ms: 40.872334
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/library-documents-generation-owner.test.mjs:19:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SOURCE_APPEND_ANCHOR'
+  code: 'BNS_SOURCE_APPEND_ANCHOR'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/value.js:5:32)
+    appendAnchor (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/source-append-journal.js:21:125)
+    async appendSnapshot (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/source-append-journal.js:33:126)
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/core.js:165:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/idb-repository.js:523:253)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/core.js:165:66)
+    async captureSourceAppend (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/browser-native-sync/source-append-journal.js:39:15)
+    async file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/indexed-store.js:203:11
+  ...
+1..67
+# tests 67
+# suites 0
+# pass 66
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3328.827708
