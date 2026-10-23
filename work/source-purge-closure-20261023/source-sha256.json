@@ -1,0 +1,6 @@
+{
+  "extension/core/browser-native-sync/source-purge-closure.js": "27c4a8a91b21ade3cf78902b811fd7be5408b6c7ef12e2edd4bd6f003977bd90",
+  "extension/core/browser-native-sync/source-purge-checkpoint.js": "bd89348e36a52d5d4f74d6797725504d2b0855192c098976ba62a222884939c1",
+  "extension/tests/browser-native-sync-source-purge-closure.test.mjs": "5e933f141819f3349d885223777180ccd1da566f979a3857223e5e8b30471035",
+  "extension/tests/browser-native-sync-source-purge.test.mjs": "f61d5234a74ccb063c7833b57bfffbd23770ee13ddc583ca0092ffbc1af809af"
+}

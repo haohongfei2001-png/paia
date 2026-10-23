@@ -1,0 +1,286 @@
+TAP version 13
+# Subtest: real positive Source plus permanent deletion compile as disjoint exact protocol closure
+ok 1 - real positive Source plus permanent deletion compile as disjoint exact protocol closure
+  ---
+  duration_ms: 240.478541
+  type: 'test'
+  ...
+# Subtest: two original permanent deletions and remaining independent Source retain each complete negative group
+ok 2 - two original permanent deletions and remaining independent Source retain each complete negative group
+  ---
+  duration_ms: 562.162542
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-original without changing canonical or protocol state
+ok 3 - closure refuses drop-original without changing canonical or protocol state
+  ---
+  duration_ms: 173.953542
+  type: 'test'
+  ...
+# Subtest: closure refuses old-body without changing canonical or protocol state
+ok 4 - closure refuses old-body without changing canonical or protocol state
+  ---
+  duration_ms: 167.17375
+  type: 'test'
+  ...
+# Subtest: closure refuses false-redaction without changing canonical or protocol state
+ok 5 - closure refuses false-redaction without changing canonical or protocol state
+  ---
+  duration_ms: 173.611625
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-purge without changing canonical or protocol state
+ok 6 - closure refuses drop-purge without changing canonical or protocol state
+  ---
+  duration_ms: 161.986791
+  type: 'test'
+  ...
+# Subtest: closure refuses head without changing canonical or protocol state
+ok 7 - closure refuses head without changing canonical or protocol state
+  ---
+  duration_ms: 165.144416
+  type: 'test'
+  ...
+# Subtest: closure refuses stale-head without changing canonical or protocol state
+ok 8 - closure refuses stale-head without changing canonical or protocol state
+  ---
+  duration_ms: 165.4645
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-frontier without changing canonical or protocol state
+ok 9 - closure refuses drop-frontier without changing canonical or protocol state
+  ---
+  duration_ms: 167.578959
+  type: 'test'
+  ...
+# Subtest: closure refuses frontier-hole without changing canonical or protocol state
+ok 10 - closure refuses frontier-hole without changing canonical or protocol state
+  ---
+  duration_ms: 168.88825
+  type: 'test'
+  ...
+# Subtest: closure refuses extra-head without changing canonical or protocol state
+ok 11 - closure refuses extra-head without changing canonical or protocol state
+  ---
+  duration_ms: 166.838416
+  type: 'test'
+  ...
+# Subtest: closure refuses duplicate without changing canonical or protocol state
+ok 12 - closure refuses duplicate without changing canonical or protocol state
+  ---
+  duration_ms: 160.026583
+  type: 'test'
+  ...
+# Subtest: closure refuses unknown-item without changing canonical or protocol state
+ok 13 - closure refuses unknown-item without changing canonical or protocol state
+  ---
+  duration_ms: 165.152459
+  type: 'test'
+  ...
+# Subtest: closure refuses unknown-field without changing canonical or protocol state
+ok 14 - closure refuses unknown-field without changing canonical or protocol state
+  ---
+  duration_ms: 156.404209
+  type: 'test'
+  ...
+# Subtest: independently valid positive creation cannot share the negative Source identity
+ok 15 - independently valid positive creation cannot share the negative Source identity
+  ---
+  duration_ms: 177.319417
+  type: 'test'
+  ...
+# Subtest: cloned result and changed Core do not carry original compiler identity
+ok 16 - cloned result and changed Core do not carry original compiler identity
+  ---
+  duration_ms: 165.835834
+  type: 'test'
+  ...
+# Subtest: caller edits during awaited digest cannot alter the original detached closure
+ok 17 - caller edits during awaited digest cannot alter the original detached closure
+  ---
+  duration_ms: 157.281583
+  type: 'test'
+  ...
+# Subtest: mixed compilation does not widen the original negative-only checkpoint publisher
+ok 18 - mixed compilation does not widen the original negative-only checkpoint publisher
+  ---
+  duration_ms: 163.620125
+  type: 'test'
+  ...
+# Subtest: original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+ok 19 - original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+  ---
+  duration_ms: 130.661583
+  type: 'test'
+  ...
+# Subtest: original human Input gate remains a refusal with every canonical and protocol row unchanged
+ok 20 - original human Input gate remains a refusal with every canonical and protocol row unchanged
+  ---
+  duration_ms: 30.7685
+  type: 'test'
+  ...
+# Subtest: resident staging or other namespace content refuses without deleting the active Source
+ok 21 - resident staging or other namespace content refuses without deleting the active Source
+  ---
+  duration_ms: 34.187791
+  type: 'test'
+  ...
+# Subtest: actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+ok 22 - actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+  ---
+  duration_ms: 211.013083
+  type: 'test'
+  ...
+# Subtest: bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+ok 23 - bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+  ---
+  duration_ms: 187.101792
+  type: 'test'
+  ...
+# Subtest: original purge final receipt drift rolls back all canonical and protocol state
+ok 24 - original purge final receipt drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 63.783208
+  type: 'test'
+  ...
+# Subtest: original purge final frontier drift rolls back all canonical and protocol state
+ok 25 - original purge final frontier drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 63.661542
+  type: 'test'
+  ...
+# Subtest: original purge final deny drift rolls back all canonical and protocol state
+ok 26 - original purge final deny drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 67.673917
+  type: 'test'
+  ...
+# Subtest: original purge final source-resurrection drift rolls back all canonical and protocol state
+ok 27 - original purge final source-resurrection drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 71.664958
+  type: 'test'
+  ...
+# Subtest: original purge final control drift rolls back all canonical and protocol state
+ok 28 - original purge final control drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 68.826
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-job drift rolls back all canonical and protocol state
+ok 29 - original purge final cleanup-job drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 62.253709
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-event drift rolls back all canonical and protocol state
+ok 30 - original purge final cleanup-event drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 63.257375
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-epoch drift rolls back all canonical and protocol state
+ok 31 - original purge final cleanup-epoch drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 61.612458
+  type: 'test'
+  ...
+# Subtest: original purge final tombstone drift rolls back all canonical and protocol state
+ok 32 - original purge final tombstone drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 63.18475
+  type: 'test'
+  ...
+# Subtest: original purge final budget drift rolls back all canonical and protocol state
+ok 33 - original purge final budget drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 122.5555
+  type: 'test'
+  ...
+# Subtest: original purge final failure drift rolls back all canonical and protocol state
+ok 34 - original purge final failure drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 62.191542
+  type: 'test'
+  ...
+# Subtest: checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+ok 35 - checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+  ---
+  duration_ms: 137.472625
+  type: 'test'
+  ...
+# Subtest: checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+ok 36 - checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+  ---
+  duration_ms: 77.819083
+  type: 'test'
+  ...
+# Subtest: pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+ok 37 - pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+  ---
+  duration_ms: 80.945541
+  type: 'test'
+  ...
+# Subtest: human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+ok 38 - human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+  ---
+  duration_ms: 29.797583
+  type: 'test'
+  ...
+# Subtest: original import preflight before purge cannot reintroduce deleted Source or its imported text
+ok 39 - original import preflight before purge cannot reintroduce deleted Source or its imported text
+  ---
+  duration_ms: 67.7295
+  type: 'test'
+  ...
+# Subtest: generic Core cannot mint or receive the original-owner purge protocol
+ok 40 - generic Core cannot mint or receive the original-owner purge protocol
+  ---
+  duration_ms: 78.740709
+  type: 'test'
+  ...
+# Subtest: unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+ok 41 - unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+  ---
+  duration_ms: 32.8475
+  type: 'test'
+  ...
+# Subtest: cold receive final receipt corruption rolls back denial and all protocol rows
+ok 42 - cold receive final receipt corruption rolls back denial and all protocol rows
+  ---
+  duration_ms: 95.4455
+  type: 'test'
+  ...
+# Subtest: checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+ok 43 - checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+  ---
+  duration_ms: 106.394125
+  type: 'test'
+  ...
+# Subtest: checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+ok 44 - checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+  ---
+  duration_ms: 119.320125
+  type: 'test'
+  ...
+# Subtest: transport cannot enlarge a metered reference before returning oversized bytes
+ok 45 - transport cannot enlarge a metered reference before returning oversized bytes
+  ---
+  duration_ms: 81.098583
+  type: 'test'
+  ...
+# Subtest: original maintenance observer cannot rebind the single Input state within its purge transaction
+ok 46 - original maintenance observer cannot rebind the single Input state within its purge transaction
+  ---
+  duration_ms: 49.105667
+  type: 'test'
+  ...
+1..46
+# tests 46
+# suites 0
+# pass 46
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3759.902583

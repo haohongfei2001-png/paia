@@ -1,11 +1,10 @@
+import {compileSourcePurgeClosure,requireOriginalSourcePurgeClosure} from './source-purge-closure.js';
 import {registerRepositoryWorkLimit} from '../idb-repository.js';
 import {encodeOriginalCheckpoint,checkpointItems,readCheckpointManifest} from './checkpoints.js';
-import {SourcePurgeReceiver,prepareSourcePurgeRemote} from './source-purge-journal.js';
-import {acceptSequence} from './core.js';
+import {SourcePurgeReceiver} from './source-purge-journal.js';
 import {assertProtocolObjectReference,SEGMENT_PROFILE} from './segments.js';
-import {bytes,clone,equal,fail,exact,canonical,hash} from './value.js';
+import {bytes,clone,equal,fail,hash} from './value.js';
 const invalid=()=>fail('BNS_SOURCE_PURGE_CHECKPOINT_INVALID');
-const sort=rows=>[...rows].sort((a,b)=>canonical(a).localeCompare(canonical(b)));
 const strip=({id,...row})=>row;
 const pending=new WeakMap(),serials=new WeakMap(),configs=new WeakMap();
 function settings(profile,limits){
@@ -21,20 +20,13 @@ function ledger(limits,isCurrent=()=>true){
 }
 async function compile(core,items,manifest){
  if(items.length>25||bytes(items).length>2*1024*1024)invalid();
- const revisions=[],heads=[],frontiers=[];for(const item of items){
-  if(item.kind==='revision'&&exact(item,['kind','operation','redacted'])&&Object.keys(item).length===3&&typeof item.redacted==='boolean')revisions.push(item);
-  else if(item.kind==='head'&&exact(item,['kind','type','entityId','revisions','purged','fence'])&&Object.keys(item).length===6){const {kind,...row}=item;heads.push(row);}
-  else if(item.kind==='frontier'&&exact(item,['kind','deviceId','frontier','ranges'])&&Object.keys(item).length===4){const {kind,...row}=item;frontiers.push(row);}else invalid();
- }
- if(revisions.length!==15||heads.length!==8)invalid();
- const remote=await prepareSourcePurgeRemote(revisions.filter(item=>item.operation.kind==='purge'||item.operation.type==='sourcePurgeIntent').map(item=>item.operation),core);
- const expectedRevisions=[...remote.intent.targets.map(x=>({kind:'revision',operation:x.before,redacted:true})),...remote.operations.map(operation=>({kind:'revision',operation,redacted:operation.kind==='purge'}))];
- const expectedHeads=remote.operations.map(op=>({type:op.type,entityId:op.entityId,revisions:[op.revisionId],purged:op.kind==='purge',fence:op.kind==='purge'?op.revisionId:null}));
- if(!equal(sort(revisions),sort(expectedRevisions))||!equal(sort(heads),sort(expectedHeads)))invalid();
- const expectedFrontier=new Map();for(const op of [...remote.intent.targets.map(x=>x.before),...remote.operations])expectedFrontier.set(op.deviceId,acceptSequence(expectedFrontier.get(op.deviceId),op.sequence));
- const frontierRows=[...expectedFrontier].map(([deviceId,value])=>({...value,deviceId}));if(!equal(sort(frontiers),sort(frontierRows)))invalid();
- const coverage=[{type:'sourceBootstrapCommit',version:1,count:1},{type:'sourceBootstrapMember',version:1,count:6},{type:'sourcePurgeIntent',version:1,count:1}];if(manifest&&!equal(manifest.coverage,coverage))invalid();return remote;
+ const closure=await compileSourcePurgeClosure(core,items);requireOriginalSourcePurgeClosure(core,closure);
+ // Preserve this existing consumer's single, negative-only profile. Mixed
+ // closure compilation is not permission to activate a mixed checkpoint here.
+ if(closure.revisionCount!==15||closure.negative.length!==1||closure.positivePlan.groups.length||closure.heads.length!==8)invalid();
+ if(manifest&&!equal(manifest.coverage,closure.coverage))invalid();return closure.negative[0];
 }
+
 async function marker(store,core){return store.run(()=>core.transaction(false,async t=>({namespace:await core.bind(t),generation:(await core.get(t,'generation'))?.value||0,ownerGeneration:(await t.get('meta','backup-data-generation'))?.value||0})));}
 async function currentCut(store,core,cut){if(!equal(await marker(store,core),cut))fail('BNS_SNAPSHOT_CHANGED');}
 // An immutable negative-intent checkpoint, not a full canonical backup. It
