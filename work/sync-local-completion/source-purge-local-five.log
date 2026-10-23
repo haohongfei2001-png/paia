@@ -1,0 +1,55 @@
+TAP version 13
+# Subtest: original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+ok 1 - original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+  ---
+  duration_ms: 125.399541
+  type: 'test'
+  ...
+# Subtest: original human Input gate remains a refusal with every canonical and protocol row unchanged
+ok 2 - original human Input gate remains a refusal with every canonical and protocol row unchanged
+  ---
+  duration_ms: 27.075666
+  type: 'test'
+  ...
+# Subtest: resident staging or other namespace content refuses without deleting the active Source
+ok 3 - resident staging or other namespace content refuses without deleting the active Source
+  ---
+  duration_ms: 28.199916
+  type: 'test'
+  ...
+# Subtest: actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+ok 4 - actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+  ---
+  duration_ms: 176.803042
+  type: 'test'
+  ...
+# Subtest: bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+not ok 5 - bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+  ---
+  duration_ms: 79.514834
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge.test.mjs:25:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    workRefuse (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:97:53)
+    registerRepositoryWorkLimit (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:109:253)
+    file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-purge-checkpoint.js:33:41
+    file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:157:133
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:462:26)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:157:66)
+    async buildSourcePurgeCheckpoint (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-purge-checkpoint.js:33:2)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge.test.mjs:25:296)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 576.199

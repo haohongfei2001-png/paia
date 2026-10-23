@@ -1,0 +1,27 @@
+TAP version 13
+# Subtest: bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+not ok 1 - bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+  ---
+  duration_ms: 77.873166
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge.test.mjs:25:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SOURCE_PURGE_UNSUPPORTED'
+  code: 'BNS_SOURCE_PURGE_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    denied (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-purge-journal.js:13:18)
+    prepareOriginalSourcePurge (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-purge-journal.js:61:249)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:412:19
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 193.7825

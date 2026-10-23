@@ -1,3 +1,4 @@
+import {observeOriginalSourcePurgeRow} from './browser-native-sync/source-purge-journal.js';
 import {hashText} from './dedupe.js';
 import {ArchiveError} from './constants.js';
 import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
@@ -8,15 +9,15 @@ import {inputProjection} from './thought-evidence.js';
 export async function enqueueInvalidation(store,t,inputId,reason,contentRevision,context={}) {
  const sequence=await nextSequence(t,'thought-epoch'),id=store.uuid();
  if(reason==='input_removed'){const m=await t.get('inputStates',inputId);if(m){m.lastRemovalSequence=sequence;await t.put('inputStates',m);}}
- await t.put('invalidations',{id,eventSchema:2,inputId,reason,contentRevision,sequence,at:store.clock(),stateKey:0,state:'pending',cursor:null,dependencyAck:false,organizerAck:false,...(context.operationId?{operationId:context.operationId}:{}),...(context.revisionReason?{revisionReason:context.revisionReason}:{})});
+ const event={id,eventSchema:2,inputId,reason,contentRevision,sequence,at:store.clock(),stateKey:0,state:'pending',cursor:null,dependencyAck:false,organizerAck:false,...(context.operationId?{operationId:context.operationId}:{}),...(context.revisionReason?{revisionReason:context.revisionReason}:{})};observeOriginalSourcePurgeRow(store,t,'invalidations',event);await t.put('invalidations',event);
 }
 export async function beforeSourcePurge(store,t,records,blocks) {
  const sequence=await nextSequence(t,'thought-epoch'),sourceRecordIds=records.map(r=>r.id),id=store.uuid();
  // The tombstone is committed by the frozen source transaction. This metadata-only
  // job/fence shares that transaction; no Thought fan-out or raw payload is copied.
- await t.put('organizerJobs',{id,kind:'purge_cleanup',state:'queued',stateKey:0,sequence,nextAttemptAt:0,priority:0,sourceRecordIds,stage:0,cursor:null,createdAt:store.clock()});
+ const job={id,kind:'purge_cleanup',state:'queued',stateKey:0,sequence,nextAttemptAt:0,priority:0,sourceRecordIds,stage:0,cursor:null,createdAt:store.clock()};observeOriginalSourcePurgeRow(store,t,'organizerJobs',job);await t.put('organizerJobs',job);
  for(const [inputId]of blocks) {
-  const meta=await t.get('inputStates',inputId);if(meta){meta.sourcePurged=true;meta.sourceRecordIds=meta.sourceRecordIds.filter(x=>!sourceRecordIds.includes(x));await t.put('inputStates',meta);}
+  const meta=await t.get('inputStates',inputId);if(meta){meta.sourcePurged=true;meta.sourceRecordIds=meta.sourceRecordIds.filter(x=>!sourceRecordIds.includes(x));observeOriginalSourcePurgeRow(store,t,'inputStates',meta);await t.put('inputStates',meta);}
   await enqueueInvalidation(store,t,inputId,'source_purged',null);
   await t.delete('filterInputs',inputId);
   await t.delete('meta','memory:input:'+JSON.stringify([inputId]));

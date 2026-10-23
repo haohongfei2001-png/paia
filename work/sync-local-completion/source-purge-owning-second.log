@@ -1,0 +1,171 @@
+TAP version 13
+# Subtest: original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+ok 1 - original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+  ---
+  duration_ms: 120.248333
+  type: 'test'
+  ...
+# Subtest: original human Input gate remains a refusal with every canonical and protocol row unchanged
+ok 2 - original human Input gate remains a refusal with every canonical and protocol row unchanged
+  ---
+  duration_ms: 26.266
+  type: 'test'
+  ...
+# Subtest: resident staging or other namespace content refuses without deleting the active Source
+ok 3 - resident staging or other namespace content refuses without deleting the active Source
+  ---
+  duration_ms: 27.283875
+  type: 'test'
+  ...
+# Subtest: actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+ok 4 - actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+  ---
+  duration_ms: 183.005333
+  type: 'test'
+  ...
+# Subtest: bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+ok 5 - bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+  ---
+  duration_ms: 169.04225
+  type: 'test'
+  ...
+# Subtest: original purge final receipt drift rolls back all canonical and protocol state
+ok 6 - original purge final receipt drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 56.097417
+  type: 'test'
+  ...
+# Subtest: original purge final frontier drift rolls back all canonical and protocol state
+ok 7 - original purge final frontier drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 54.787083
+  type: 'test'
+  ...
+# Subtest: original purge final deny drift rolls back all canonical and protocol state
+ok 8 - original purge final deny drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 60.97475
+  type: 'test'
+  ...
+# Subtest: original purge final source-resurrection drift rolls back all canonical and protocol state
+ok 9 - original purge final source-resurrection drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 54.529875
+  type: 'test'
+  ...
+# Subtest: original purge final control drift rolls back all canonical and protocol state
+ok 10 - original purge final control drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 61.572625
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-job drift rolls back all canonical and protocol state
+ok 11 - original purge final cleanup-job drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 53.7395
+  type: 'test'
+  ...
+# Subtest: original purge final budget drift rolls back all canonical and protocol state
+ok 12 - original purge final budget drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 106.28075
+  type: 'test'
+  ...
+# Subtest: original purge final failure drift rolls back all canonical and protocol state
+ok 13 - original purge final failure drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 52.615292
+  type: 'test'
+  ...
+# Subtest: checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+ok 14 - checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+  ---
+  duration_ms: 131.503125
+  type: 'test'
+  ...
+# Subtest: checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+ok 15 - checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+  ---
+  duration_ms: 70.566791
+  type: 'test'
+  ...
+# Subtest: pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+not ok 16 - pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+  ---
+  duration_ms: 70.78275
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge.test.mjs:29:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SOURCE_BOOTSTRAP_UNAVAILABLE'
+  code: 'BNS_SOURCE_BOOTSTRAP_UNAVAILABLE'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    requireAbsent (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-bootstrap-journal.js:21:262)
+    file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-bootstrap-journal.js:37:120
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:157:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/idb-repository.js:462:20)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:157:66)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/source-bootstrap-journal.js:37:12
+    async file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+ok 17 - human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+  ---
+  duration_ms: 30.503417
+  type: 'test'
+  ...
+# Subtest: original import preflight before purge cannot reintroduce deleted Source or its imported text
+ok 18 - original import preflight before purge cannot reintroduce deleted Source or its imported text
+  ---
+  duration_ms: 61.60325
+  type: 'test'
+  ...
+# Subtest: generic Core cannot mint or receive the original-owner purge protocol
+not ok 19 - generic Core cannot mint or receive the original-owner purge protocol
+  ---
+  duration_ms: 66.633709
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge.test.mjs:33:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of null (reading 'targets')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-source-purge.test.mjs:33:420)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+ok 20 - unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+  ---
+  duration_ms: 27.173708
+  type: 'test'
+  ...
+# Subtest: cold receive final receipt corruption rolls back denial and all protocol rows
+ok 21 - cold receive final receipt corruption rolls back denial and all protocol rows
+  ---
+  duration_ms: 85.084916
+  type: 'test'
+  ...
+# Subtest: checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+ok 22 - checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+  ---
+  duration_ms: 95.284667
+  type: 'test'
+  ...
+# Subtest: checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+ok 23 - checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+  ---
+  duration_ms: 106.687125
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 21
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1939.857417

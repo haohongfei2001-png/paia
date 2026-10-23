@@ -29,10 +29,12 @@ const untouched=s=>s&&s.libraryText===null&&s.note==='';
 
 // This is admission, never a keep/delete policy for human derivatives. Every
 // traversal is complete or refuses; no prefix can authorize permanent deletion.
-export async function assessSourcePurge(t,{id,key,record},rawRecovery){
+export async function assessSourcePurge(t,{id,key,record},rawRecovery,privateWork=false){
  let budget=10000;
  const all=async(name,index,value,limit=1000)=>{
-  const rows=await t.all(name,index,value,limit+1);
+  // Opt-in private work reads stream and charge every physical row in the
+  // original repository. Keep complete-set semantics for duplicate index keys.
+  const rows=await t.all(name,index,value,privateWork?undefined:limit+1);
   budget-=rows.length;if(rows.length>limit||budget<0)unavailable();return rows;
  };
  const indexes=new Map((await all('recordIndex','bySource',key)).map(r=>[r.id,r]));

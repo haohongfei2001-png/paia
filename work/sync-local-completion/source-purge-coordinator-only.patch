@@ -1,0 +1,33 @@
+--- a/extension/core/browser-native-sync/group-checkpoint.js
++++ b/extension/core/browser-native-sync/group-checkpoint.js
+@@ -1,3 +1,4 @@
++import {requireNoSourcePurgeDeny} from './source-purge-journal.js';
+ import {prepareSavedWorkGroupApplication,applySavedWorkGroupStep,sealSavedWorkGroupActivation} from './saved-work-bootstrap.js';
+ import {groupOperationPages,createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget,readGroupRows} from './group-page-reader.js';
+ import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,captureMixedCurrentGroupProjection,requireMixedCurrentGroupProjection,encodeMixedCurrentGroupCheckpoint,publishMixedCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
+@@ -122,9 +123,10 @@
+  }
+  async begin(ref,get,{supported}={}){
+   const {store,live,stage}=this;await store.finishFoundation();
+-  const base=await store.run(()=>live.transaction(false,t=>authority(store,live,t))); // before first get
++  const base=await store.run(()=>live.transaction(false,async t=>{await requireNoSourcePurgeDeny(live,t);return authority(store,live,t);})); // before first get
+   const m=await manifest(ref,get,live,this.profile,supported),replayId=crypto.randomUUID();
+   return store.run(()=>stage.transaction(true,async t=>{
++   await requireNoSourcePurgeDeny(live,t);
+    if(!equal(await authority(store,live,t),base))fail('BNS_RESTORE_LOCAL_CHANGED');
+    const old=await stage.get(t,'restore');if(old){if(old.manifestId!==ref.id)fail('BNS_RESTORE_ID_COLLISION');return old;}
+    if((await t.primaryRangePage('meta',{prefix:stage.prefix+'generation:'+stage.fixedNamespace+':',limit:1})).rows.length)fail('BNS_RESTORE_ID_COLLISION');
+@@ -135,11 +137,11 @@
+   let state=await this.begin(ref,get,options);if(['activated','merged','validated','publishing'].includes(state.phase))return state;
+   let index=0;for await(const item of checkpointItems(state.manifest,get,{profile:this.profile})){
+    const at=index++;if(at<state.received)continue;
+-   await this.stage.transaction(true,async t=>{const current=await this.stage.get(t,'restore');if(current.phase!=='staging'||current.received!==at)fail('BNS_RESTORE_STAGE_CHANGED');if(!equal(await authority(this.store,this.live,t),current.base))fail('BNS_RESTORE_LOCAL_CHANGED');await this.stage.put(t,'groupItem',[String(at).padStart(4,'0')],{item});await this.stage.put(t,'restore',[],{...withoutId(current),received:at+1});await requireStorageBudget(t,this.stage,current.replayId);},['meta']);await this.checkpoint('staged-item',index);
++   await this.stage.transaction(true,async t=>{await requireNoSourcePurgeDeny(this.live,t);const current=await this.stage.get(t,'restore');if(current.phase!=='staging'||current.received!==at)fail('BNS_RESTORE_STAGE_CHANGED');if(!equal(await authority(this.store,this.live,t),current.base))fail('BNS_RESTORE_LOCAL_CHANGED');await this.stage.put(t,'groupItem',[String(at).padStart(4,'0')],{item});await this.stage.put(t,'restore',[],{...withoutId(current),received:at+1});await requireStorageBudget(t,this.stage,current.replayId);},['meta']);await this.checkpoint('staged-item',index);
+   }
+   state=await this.stage.read('restore');const items=await stageItems(this.stage);
+   const replay=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.replayId}),compiled=await compile(replay,items,state.manifest,this.store);
+-  await this.stage.transaction(true,async t=>{const current=await this.stage.get(t,'restore');if(current.phase!=='staging'||current.received!==items.length||items.length!==current.manifest.itemCount)fail('BNS_RESTORE_STAGE_CHANGED');await this.stage.put(t,'restore',[],{...withoutId(current),phase:'validated',graphDigest:compiled.plan.digest});},['meta']);return this.stage.read('restore');
++  await this.stage.transaction(true,async t=>{await requireNoSourcePurgeDeny(this.live,t);const current=await this.stage.get(t,'restore');if(current.phase!=='staging'||current.received!==items.length||items.length!==current.manifest.itemCount)fail('BNS_RESTORE_STAGE_CHANGED');await this.stage.put(t,'restore',[],{...withoutId(current),phase:'validated',graphDigest:compiled.plan.digest});},['meta']);return this.stage.read('restore');
+  }
+  async activate(){
+   const state=await this.stage.read('restore');if(!state||!['validated','activated','merged','publishing'].includes(state.phase))fail('BNS_RESTORE_NOT_READY');

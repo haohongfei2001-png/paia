@@ -1,0 +1,1001 @@
+TAP version 13
+# Subtest: original checkpoint canonical reservation precedes publication and preserves exact sharded wire
+ok 1 - original checkpoint canonical reservation precedes publication and preserves exact sharded wire
+  ---
+  duration_ms: 79.60075
+  type: 'test'
+  ...
+# Subtest: BNS fresh virtual installation restores only verified cloud checkpoint objects atomically
+ok 2 - BNS fresh virtual installation restores only verified cloud checkpoint objects atomically
+  ---
+  duration_ms: 35.191958
+  type: 'test'
+  ...
+# Subtest: BNS staged interruption resumes after restart while old canonical content remains usable
+ok 3 - BNS staged interruption resumes after restart while old canonical content remains usable
+  ---
+  duration_ms: 54.442708
+  type: 'test'
+  ...
+# Subtest: BNS activation failure rolls back owner and active-generation pointer together
+ok 4 - BNS activation failure rolls back owner and active-generation pointer together
+  ---
+  duration_ms: 25.251708
+  type: 'test'
+  ...
+# Subtest: BNS local edits during restore reject activation and pre-restore prepared writes cannot cross generations
+ok 5 - BNS local edits during restore reject activation and pre-restore prepared writes cannot cross generations
+  ---
+  duration_ms: 48.477542
+  type: 'test'
+  ...
+# Subtest: BNS unmanaged local owner work and missing required codec never get overwritten
+ok 6 - BNS unmanaged local owner work and missing required codec never get overwritten
+  ---
+  duration_ms: 35.646833
+  type: 'test'
+  ...
+# Subtest: BNS corrupt or missing checkpoint shard never activates a partial replacement
+ok 7 - BNS corrupt or missing checkpoint shard never activates a partial replacement
+  ---
+  duration_ms: 11.41425
+  type: 'test'
+  ...
+# Subtest: BNS checkpoint retains body-free purge history and stale replay cannot resurrect staging
+ok 8 - BNS checkpoint retains body-free purge history and stale replay cannot resurrect staging
+  ---
+  duration_ms: 19.093666
+  type: 'test'
+  ...
+# Subtest: BNS bounded checkpoint index pages support more than one manifest level
+ok 9 - BNS bounded checkpoint index pages support more than one manifest level
+  ---
+  duration_ms: 628.411292
+  type: 'test'
+  ...
+# Subtest: BNS verified causal tail reconciles onto staged checkpoint before owner activation
+ok 10 - BNS verified causal tail reconciles onto staged checkpoint before owner activation
+  ---
+  duration_ms: 17.03775
+  type: 'test'
+  ...
+# Subtest: BNS activation refuses an unvalidated staging mutation even when live owner stayed unchanged
+ok 11 - BNS activation refuses an unvalidated staging mutation even when live owner stayed unchanged
+  ---
+  duration_ms: 14.444083
+  type: 'test'
+  ...
+# Subtest: BNS generation change between checkpoint validation and its receipt cannot become validated
+ok 12 - BNS generation change between checkpoint validation and its receipt cannot become validated
+  ---
+  duration_ms: 12.1825
+  type: 'test'
+  ...
+# Subtest: BNS before-staging live pending work cannot be stranded by activation
+ok 13 - BNS before-staging live pending work cannot be stranded by activation
+  ---
+  duration_ms: 16.647
+  type: 'test'
+  ...
+# Subtest: BNS after-staging live pending work cannot be stranded by activation
+ok 14 - BNS after-staging live pending work cannot be stranded by activation
+  ---
+  duration_ms: 15.297666
+  type: 'test'
+  ...
+# Subtest: BNS new pending-only staging receive invalidates a validated activation token
+ok 15 - BNS new pending-only staging receive invalidates a validated activation token
+  ---
+  duration_ms: 11.46975
+  type: 'test'
+  ...
+# Subtest: BNS exact bytes, unsupported codecs and actor boundaries fail closed
+ok 16 - BNS exact bytes, unsupported codecs and actor boundaries fail closed
+  ---
+  duration_ms: 5.844292
+  type: 'test'
+  ...
+# Subtest: BNS receiving 12 before 11 accepts both exactly once and retains real holes
+ok 17 - BNS receiving 12 before 11 accepts both exactly once and retains real holes
+  ---
+  duration_ms: 51.985
+  type: 'test'
+  ...
+# Subtest: BNS full ancestry survives reversed tail and immediate-base shortcuts are insufficient
+ok 18 - BNS full ancestry survives reversed tail and immediate-base shortcuts are insufficient
+  ---
+  duration_ms: 23.270458
+  type: 'test'
+  ...
+# Subtest: BNS two independent repositories preserve concurrent human alternatives and exact resolution parents
+ok 19 - BNS two independent repositories preserve concurrent human alternatives and exact resolution parents
+  ---
+  duration_ms: 27.884375
+  type: 'test'
+  ...
+# Subtest: BNS same ID divergent digest and reused device sequence are hard collisions
+ok 20 - BNS same ID divergent digest and reused device sequence are hard collisions
+  ---
+  duration_ms: 11.174417
+  type: 'test'
+  ...
+# Subtest: BNS stale preparation aborts content and never consumes a sequence
+ok 21 - BNS stale preparation aborts content and never consumes a sequence
+  ---
+  duration_ms: 9.584958
+  type: 'test'
+  ...
+# Subtest: BNS immutable Source identity and payload hashes are independently validated
+ok 22 - BNS immutable Source identity and payload hashes are independently validated
+  ---
+  duration_ms: 9.405375
+  type: 'test'
+  ...
+# Subtest: BNS permanent purge removes history bodies and publishes the body-free fence
+ok 23 - BNS permanent purge removes history bodies and publishes the body-free fence
+  ---
+  duration_ms: 26.7745
+  type: 'test'
+  ...
+# Subtest: BNS actual Prompt domain save and outbox share one production IDB transaction
+ok 24 - BNS actual Prompt domain save and outbox share one production IDB transaction
+  ---
+  duration_ms: 66.927125
+  type: 'test'
+  ...
+# Subtest: BNS Prompt remote apply restores orphan manual work without copying use ranking or echoing
+ok 25 - BNS Prompt remote apply restores orphan manual work without copying use ranking or echoing
+  ---
+  duration_ms: 12.3375
+  type: 'test'
+  ...
+# Subtest: BNS verified-use local counter cannot invalidate subsequent manual Prompt work
+ok 26 - BNS verified-use local counter cannot invalidate subsequent manual Prompt work
+  ---
+  duration_ms: 51.085375
+  type: 'test'
+  ...
+# Subtest: BNS source several revisions restore to fresh Prompt owner and destination can edit
+ok 27 - BNS source several revisions restore to fresh Prompt owner and destination can edit
+  ---
+  duration_ms: 55.861417
+  type: 'test'
+  ...
+# Subtest: BNS a colliding operation aborts the complete received batch before partial materialization
+ok 28 - BNS a colliding operation aborts the complete received batch before partial materialization
+  ---
+  duration_ms: 6.661959
+  type: 'test'
+  ...
+# Subtest: BNS purge redacts incomplete pending bodies and preserves the anti-resurrection receipt
+ok 29 - BNS purge redacts incomplete pending bodies and preserves the anti-resurrection receipt
+  ---
+  duration_ms: 8.6765
+  type: 'test'
+  ...
+# Subtest: BNS three concurrent purge operations converge regardless of arrival order
+ok 30 - BNS three concurrent purge operations converge regardless of arrival order
+  ---
+  duration_ms: 20.228416
+  type: 'test'
+  ...
+# Subtest: BNS asynchronous digest validation owns a snapshot before caller mutation
+ok 31 - BNS asynchronous digest validation owns a snapshot before caller mutation
+  ---
+  duration_ms: 7.0805
+  type: 'test'
+  ...
+# Subtest: BNS sparse arrays and hidden symbol data are rejected rather than normalized
+ok 32 - BNS sparse arrays and hidden symbol data are rejected rather than normalized
+  ---
+  duration_ms: 0.250542
+  type: 'test'
+  ...
+# Subtest: BNS invalid pending ancestry is quarantined without poisoning a valid parent or restart
+ok 33 - BNS invalid pending ancestry is quarantined without poisoning a valid parent or restart
+  ---
+  duration_ms: 13.529625
+  type: 'test'
+  ...
+# Subtest: BNS whole receive batch is captured before the first asynchronous validation
+ok 34 - BNS whole receive batch is captured before the first asynchronous validation
+  ---
+  duration_ms: 8.006834
+  type: 'test'
+  ...
+# Subtest: BNS inherited object properties cannot be used as registered purge codecs
+ok 35 - BNS inherited object properties cannot be used as registered purge codecs
+  ---
+  duration_ms: 2.287708
+  type: 'test'
+  ...
+# Subtest: BNS current codec cannot implicitly admit future Context families or processing metadata
+ok 36 - BNS current codec cannot implicitly admit future Context families or processing metadata
+  ---
+  duration_ms: 0.352
+  type: 'test'
+  ...
+# Subtest: BNS remote manual update retains existing device reuse counts and starts new IDs at zero
+ok 37 - BNS remote manual update retains existing device reuse counts and starts new IDs at zero
+  ---
+  duration_ms: 15.435209
+  type: 'test'
+  ...
+# Subtest: BNS verified reuse committed during remote validation survives owner materialization
+ok 38 - BNS verified reuse committed during remote validation survives owner materialization
+  ---
+  duration_ms: 35.518875
+  type: 'test'
+  ...
+# Subtest: BNS remote first apply refuses unmanaged manual Prompt work without protocol side effects
+ok 39 - BNS remote first apply refuses unmanaged manual Prompt work without protocol side effects
+  ---
+  duration_ms: 39.272542
+  type: 'test'
+  ...
+# Subtest: BNS remote descendant refuses a changed canonical Prompt owner outside the optional journal
+ok 40 - BNS remote descendant refuses a changed canonical Prompt owner outside the optional journal
+  ---
+  duration_ms: 36.548458
+  type: 'test'
+  ...
+# Subtest: BNS empty remote first apply and managed descendant retain their normal idempotent owner path
+ok 41 - BNS empty remote first apply and managed descendant retain their normal idempotent owner path
+  ---
+  duration_ms: 14.294041
+  type: 'test'
+  ...
+# Subtest: BNS Prompt purge remains explicitly unavailable and atomically preserves the existing owner
+ok 42 - BNS Prompt purge remains explicitly unavailable and atomically preserves the existing owner
+  ---
+  duration_ms: 12.788209
+  type: 'test'
+  ...
+# Subtest: original immutable operation validation authenticates frozen identities and detaches mutable inputs
+ok 43 - original immutable operation validation authenticates frozen identities and detaches mutable inputs
+  ---
+  duration_ms: 1.02225
+  type: 'test'
+  ...
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 44 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 256.470125
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 45 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 514.833583
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 46 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 377.965291
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 47 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 345.815625
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 48 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 323.67525
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 49 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 237.186083
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 50 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 235.015458
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 51 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 219.753416
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 52 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 203.482208
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 53 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 218.578875
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 54 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 252.455833
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 55 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 109.860208
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 56 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 37.014917
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 57 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 459.790334
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":101.15620899999976,"reads":2701,"writes":1161}}
+# Subtest: exact128 retained operations restore and the129th has explicit paged scope admission
+ok 58 - exact128 retained operations restore and the129th has explicit paged scope admission
+  ---
+  duration_ms: 916.062209
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 59 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 20.040833
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 60 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 27.054584
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 61 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 26.353417
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 62 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 29.829625
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 63 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 26.852167
+  type: 'test'
+  ...
+# Subtest: BNS publication cut, configuration and object IDs survive restart and exclude later edits
+ok 64 - BNS publication cut, configuration and object IDs survive restart and exclude later edits
+  ---
+  duration_ms: 56.783
+  type: 'test'
+  ...
+# Subtest: BNS unknown upload outcome reconciles the same logical identity, written=true
+ok 65 - BNS unknown upload outcome reconciles the same logical identity, written=true
+  ---
+  duration_ms: 22.290416
+  type: 'test'
+  ...
+# Subtest: BNS unknown upload outcome reconciles the same logical identity, written=false
+ok 66 - BNS unknown upload outcome reconciles the same logical identity, written=false
+  ---
+  duration_ms: 17.397083
+  type: 'test'
+  ...
+# Subtest: BNS streamed progress may stop and resume without retaining a whole-dataset receipt list
+ok 67 - BNS streamed progress may stop and resume without retaining a whole-dataset receipt list
+  ---
+  duration_ms: 42.061333
+  type: 'test'
+  ...
+# Subtest: BNS preparation failure rolls back reservations, identity and active index atomically
+ok 68 - BNS preparation failure rolls back reservations, identity and active index atomically
+  ---
+  duration_ms: 12.964708
+  type: 'test'
+  ...
+# Subtest: BNS only one prepared publication can reserve the same cut and primitive ack cannot bypass it
+ok 69 - BNS only one prepared publication can reserve the same cut and primitive ack cannot bypass it
+  ---
+  duration_ms: 14.684583
+  type: 'test'
+  ...
+# Subtest: BNS local acknowledgement failure preserves queue and exact receipt retry
+ok 70 - BNS local acknowledgement failure preserves queue and exact receipt retry
+  ---
+  duration_ms: 22.019834
+  type: 'test'
+  ...
+# Subtest: BNS missing previously verified remote data is blocked before delayed local acknowledgement
+ok 71 - BNS missing previously verified remote data is blocked before delayed local acknowledgement
+  ---
+  duration_ms: 19.4665
+  type: 'test'
+  ...
+# Subtest: BNS corrupt same-ID object is quarantined without overwrite or false queue acknowledgement
+ok 72 - BNS corrupt same-ID object is quarantined without overwrite or false queue acknowledgement
+  ---
+  duration_ms: 13.057833
+  type: 'test'
+  ...
+# Subtest: BNS partial remote dependency loss cannot be acknowledged as a complete descriptor
+ok 73 - BNS partial remote dependency loss cannot be acknowledged as a complete descriptor
+  ---
+  duration_ms: 43.910708
+  type: 'test'
+  ...
+# Subtest: BNS purge during upload marks the old body cut obsolete and never publishes its descriptor
+ok 74 - BNS purge during upload marks the old body cut obsolete and never publishes its descriptor
+  ---
+  duration_ms: 38.075875
+  type: 'test'
+  ...
+# Subtest: BNS active publication prevents restore namespace loss and confirmed ID cannot retarget later generation
+ok 75 - BNS active publication prevents restore namespace loss and confirmed ID cannot retarget later generation
+  ---
+  duration_ms: 22.652791
+  type: 'test'
+  ...
+# Subtest: BNS pending catalogue and reservation scan are bounded, with explicit continuation
+ok 76 - BNS pending catalogue and reservation scan are bounded, with explicit continuation
+  ---
+  duration_ms: 13.272458
+  type: 'test'
+  ...
+# Subtest: BNS duplicate publication ID with changed packing and modified durable blueprint fail closed
+ok 77 - BNS duplicate publication ID with changed packing and modified durable blueprint fail closed
+  ---
+  duration_ms: 8.104667
+  type: 'test'
+  ...
+# Subtest: BNS concurrent restart publishers deduplicate immutable objects and atomic confirmation
+ok 78 - BNS concurrent restart publishers deduplicate immutable objects and atomic confirmation
+  ---
+  duration_ms: 13.799
+  type: 'test'
+  ...
+# Subtest: BNS an in-flight success cannot clear a concurrently recorded integrity block
+ok 79 - BNS an in-flight success cannot clear a concurrently recorded integrity block
+  ---
+  duration_ms: 10.385625
+  type: 'test'
+  ...
+# Subtest: BNS unqualified chunk profiles and malformed reservations are rejected before upload
+ok 80 - BNS unqualified chunk profiles and malformed reservations are rejected before upload
+  ---
+  duration_ms: 5.637375
+  type: 'test'
+  ...
+# Subtest: BNS transport error bodies are neither persisted nor returned by the publication boundary
+ok 81 - BNS transport error bodies are neither persisted nor returned by the publication boundary
+  ---
+  duration_ms: 9.8725
+  type: 'test'
+  ...
+# Subtest: BNS purge while a publication iterator is suspended cannot publish its later descriptor
+ok 82 - BNS purge while a publication iterator is suspended cannot publish its later descriptor
+  ---
+  duration_ms: 10.461625
+  type: 'test'
+  ...
+# Subtest: BNS obsolete retirement atomically releases surviving reservations and retains every possible object without bodies
+ok 83 - BNS obsolete retirement atomically releases surviving reservations and retains every possible object without bodies
+  ---
+  duration_ms: 26.54025
+  type: 'test'
+  ...
+# Subtest: BNS retirement cannot clear an integrity block or retire a merely prepared cut
+ok 84 - BNS retirement cannot clear an integrity block or retire a merely prepared cut
+  ---
+  duration_ms: 10.169291
+  type: 'test'
+  ...
+# Subtest: BNS old suspended publisher cannot advance or acknowledge after obsolete retirement
+ok 85 - BNS old suspended publisher cannot advance or acknowledge after obsolete retirement
+  ---
+  duration_ms: 14.401542
+  type: 'test'
+  ...
+# Subtest: BNS retired opaque object ledger survives namespace restore and cannot retarget its old publication ID
+ok 86 - BNS retired opaque object ledger survives namespace restore and cannot retarget its old publication ID
+  ---
+  duration_ms: 19.328083
+  type: 'test'
+  ...
+# Subtest: BNS late in-flight descriptor completion remains retained and cannot create a publication acknowledgement
+ok 87 - BNS late in-flight descriptor completion remains retained and cannot create a publication acknowledgement
+  ---
+  duration_ms: 16.280833
+  type: 'test'
+  ...
+# Subtest: actual opt-in capture atomically publishes a complete required Source bootstrap
+ok 88 - actual opt-in capture atomically publishes a complete required Source bootstrap
+  ---
+  duration_ms: 117.268125
+  type: 'test'
+  ...
+# Subtest: real publication creates empty receiver Source and preserves exact baseline identity/time with local sequences
+ok 89 - real publication creates empty receiver Source and preserves exact baseline identity/time with local sequences
+  ---
+  duration_ms: 186.047916
+  type: 'test'
+  ...
+# Subtest: actual A first Working edit follows bootstrap, roundtrips and coalesces without copied canonical rows
+ok 90 - actual A first Working edit follows bootstrap, roundtrips and coalesces without copied canonical rows
+  ---
+  duration_ms: 361.887792
+  type: 'test'
+  ...
+# Subtest: actual B first Working edit follows bootstrap, roundtrips and coalesces without copied canonical rows
+ok 91 - actual B first Working edit follows bootstrap, roundtrips and coalesces without copied canonical rows
+  ---
+  duration_ms: 268.631875
+  type: 'test'
+  ...
+# Subtest: every real one-operation publication is rejected by frozen old reader before descriptor arrives
+ok 92 - every real one-operation publication is rejected by frozen old reader before descriptor arrives
+  ---
+  duration_ms: 78.776083
+  type: 'test'
+  ...
+# Subtest: incomplete, generic and applyPending bootstrap refuse with all stores unchanged
+ok 93 - incomplete, generic and applyPending bootstrap refuse with all stores unchanged
+  ---
+  duration_ms: 81.767583
+  type: 'test'
+  ...
+# Subtest: receiver exception after Source/canonical writes rolls back every store and protocol receipt with no echo
+ok 94 - receiver exception after Source/canonical writes rolls back every store and protocol receipt with no echo
+  ---
+  duration_ms: 76.977833
+  type: 'test'
+  ...
+# Subtest: producer exception after outbox write rolls back canonical and protocol together
+ok 95 - producer exception after outbox write rolls back canonical and protocol together
+  ---
+  duration_ms: 19.388084
+  type: 'test'
+  ...
+# Subtest: actual initial time ledger survives publication exactly and does not substitute capture time for Source time
+ok 96 - actual initial time ledger survives publication exactly and does not substitute capture time for Source time
+  ---
+  duration_ms: 64.215
+  type: 'test'
+  ...
+# Subtest: committed duplicate capture, enrichment and multi-message bound requests refuse without half writes
+ok 97 - committed duplicate capture, enrichment and multi-message bound requests refuse without half writes
+  ---
+  duration_ms: 24.366333
+  type: 'test'
+  ...
+# Subtest: receive first-await permission race rejects without admitting protocol or canonical rows
+ok 98 - receive first-await permission race rejects without admitting protocol or canonical rows
+  ---
+  duration_ms: 55.384792
+  type: 'test'
+  ...
+# Subtest: receive first-await restore race rejects without admitting protocol or canonical rows
+ok 99 - receive first-await restore race rejects without admitting protocol or canonical rows
+  ---
+  duration_ms: 53.616583
+  type: 'test'
+  ...
+# Subtest: receive first-await namespace race rejects without admitting protocol or canonical rows
+ok 100 - receive first-await namespace race rejects without admitting protocol or canonical rows
+  ---
+  duration_ms: 67.049625
+  type: 'test'
+  ...
+# Subtest: re-sealed internally inconsistent Source time, document, and baseline closures reject every store atomically
+ok 101 - re-sealed internally inconsistent Source time, document, and baseline closures reject every store atomically
+  ---
+  duration_ms: 124.681542
+  type: 'test'
+  ...
+# Subtest: valid separate captures cannot lend members or descriptors to one another
+ok 102 - valid separate captures cannot lend members or descriptors to one another
+  ---
+  duration_ms: 100.919875
+  type: 'test'
+  ...
+# Subtest: deleted Source cannot be recreated by exact acknowledged bootstrap replay
+ok 103 - deleted Source cannot be recreated by exact acknowledged bootstrap replay
+  ---
+  duration_ms: 64.249333
+  type: 'test'
+  ...
+# Subtest: old acknowledged bootstrap is refused after same-value restore epoch changes
+ok 104 - old acknowledged bootstrap is refused after same-value restore epoch changes
+  ---
+  duration_ms: 59.158625
+  type: 'test'
+  ...
+# Subtest: existing conversation or local capture is not silently merged into initial bootstrap scope
+ok 105 - existing conversation or local capture is not silently merged into initial bootstrap scope
+  ---
+  duration_ms: 55.690666
+  type: 'test'
+  ...
+# Subtest: malformed descriptor refs and unknown member fields reject as typed codec errors
+ok 106 - malformed descriptor refs and unknown member fields reject as typed codec errors
+  ---
+  duration_ms: 56.524541
+  type: 'test'
+  ...
+# Subtest: default null keeps ordinary capture duplicates and enrichment without bootstrap wire publication
+ok 107 - default null keeps ordinary capture duplicates and enrichment without bootstrap wire publication
+  ---
+  duration_ms: 19.387333
+  type: 'test'
+  ...
+# Subtest: actual checkpoint staging refuses the required bootstrap family and cannot activate partial canonical Source
+ok 108 - actual checkpoint staging refuses the required bootstrap family and cannot activate partial canonical Source
+  ---
+  duration_ms: 36.232459
+  type: 'test'
+  ...
+# Subtest: canonical refresh mutation cannot slip into committed outbox despite a valid prepared Source plan
+ok 109 - canonical refresh mutation cannot slip into committed outbox despite a valid prepared Source plan
+  ---
+  duration_ms: 16.605958
+  type: 'test'
+  ...
+# Subtest: Source ledger cannot carry a createTime inconsistent with its qualified response candidate
+ok 110 - Source ledger cannot carry a createTime inconsistent with its qualified response candidate
+  ---
+  duration_ms: 54.498208
+  type: 'test'
+  ...
+# Subtest: actual DOM/response conflict and blocked time remain qualified, while fabricated empty or historical conflict ledgers refuse
+ok 111 - actual DOM/response conflict and blocked time remain qualified, while fabricated empty or historical conflict ledgers refuse
+  ---
+  duration_ms: 190.554458
+  type: 'test'
+  ...
+# Subtest: original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+ok 112 - original Source purge atomically retires all seven bootstrap payloads and publishes only bodyfree intent
+  ---
+  duration_ms: 229.58825
+  type: 'test'
+  ...
+# Subtest: original human Input gate remains a refusal with every canonical and protocol row unchanged
+ok 113 - original human Input gate remains a refusal with every canonical and protocol row unchanged
+  ---
+  duration_ms: 79.42525
+  type: 'test'
+  ...
+# Subtest: resident staging or other namespace content refuses without deleting the active Source
+ok 114 - resident staging or other namespace content refuses without deleting the active Source
+  ---
+  duration_ms: 60.139708
+  type: 'test'
+  ...
+# Subtest: actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+ok 115 - actual bodyfree publication purges an already restored B and cold C, with no receive echo or old Source replay
+  ---
+  duration_ms: 314.559917
+  type: 'test'
+  ...
+# Subtest: bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+ok 116 - bodyfree immutable cut restores denial on cold D, re-exports it, and rejects the earlier grouped Source cut
+  ---
+  duration_ms: 255.673625
+  type: 'test'
+  ...
+# Subtest: original purge final receipt drift rolls back all canonical and protocol state
+ok 117 - original purge final receipt drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 79.445
+  type: 'test'
+  ...
+# Subtest: original purge final frontier drift rolls back all canonical and protocol state
+ok 118 - original purge final frontier drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 68.503334
+  type: 'test'
+  ...
+# Subtest: original purge final deny drift rolls back all canonical and protocol state
+ok 119 - original purge final deny drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 80.197167
+  type: 'test'
+  ...
+# Subtest: original purge final source-resurrection drift rolls back all canonical and protocol state
+ok 120 - original purge final source-resurrection drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 67.947708
+  type: 'test'
+  ...
+# Subtest: original purge final control drift rolls back all canonical and protocol state
+ok 121 - original purge final control drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 65.181709
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-job drift rolls back all canonical and protocol state
+ok 122 - original purge final cleanup-job drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 62.10325
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-event drift rolls back all canonical and protocol state
+ok 123 - original purge final cleanup-event drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 72.315375
+  type: 'test'
+  ...
+# Subtest: original purge final cleanup-epoch drift rolls back all canonical and protocol state
+ok 124 - original purge final cleanup-epoch drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 63.452041
+  type: 'test'
+  ...
+# Subtest: original purge final tombstone drift rolls back all canonical and protocol state
+ok 125 - original purge final tombstone drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 64.359583
+  type: 'test'
+  ...
+# Subtest: original purge final budget drift rolls back all canonical and protocol state
+ok 126 - original purge final budget drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 123.777334
+  type: 'test'
+  ...
+# Subtest: original purge final failure drift rolls back all canonical and protocol state
+ok 127 - original purge final failure drift rolls back all canonical and protocol state
+  ---
+  duration_ms: 61.642958
+  type: 'test'
+  ...
+# Subtest: checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+ok 128 - checkpoint deadline settles held transport and failed/newer stage cannot activate an older proof
+  ---
+  duration_ms: 139.8035
+  type: 'test'
+  ...
+# Subtest: checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+ok 129 - checkpoint encoded and decoded byte ledger refuses before fetching an oversized reference
+  ---
+  duration_ms: 79.721042
+  type: 'test'
+  ...
+# Subtest: pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+ok 130 - pure AI dependent content is fenced immediately and removed by the original resumable cleanup owner
+  ---
+  duration_ms: 88.725333
+  type: 'test'
+  ...
+# Subtest: human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+ok 131 - human-confirmed AI derivative retains the original B-02 refusal and unchanged tables
+  ---
+  duration_ms: 30.743334
+  type: 'test'
+  ...
+# Subtest: original import preflight before purge cannot reintroduce deleted Source or its imported text
+ok 132 - original import preflight before purge cannot reintroduce deleted Source or its imported text
+  ---
+  duration_ms: 75.36675
+  type: 'test'
+  ...
+# Subtest: generic Core cannot mint or receive the original-owner purge protocol
+ok 133 - generic Core cannot mint or receive the original-owner purge protocol
+  ---
+  duration_ms: 78.759875
+  type: 'test'
+  ...
+# Subtest: unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+ok 134 - unsettled immutable publication refuses local purge instead of pretending all remote copies are retired
+  ---
+  duration_ms: 29.701583
+  type: 'test'
+  ...
+# Subtest: cold receive final receipt corruption rolls back denial and all protocol rows
+ok 135 - cold receive final receipt corruption rolls back denial and all protocol rows
+  ---
+  duration_ms: 93.836792
+  type: 'test'
+  ...
+# Subtest: checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+ok 136 - checkpoint identity is detached before awaited transport and public limits cannot enlarge its private budget
+  ---
+  duration_ms: 102.644333
+  type: 'test'
+  ...
+# Subtest: checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+ok 137 - checkpoint upload deadline settles without claiming rollback or dispatching more immutable objects
+  ---
+  duration_ms: 112.541458
+  type: 'test'
+  ...
+# Subtest: Q4 untouched Source preflight is body-free/readonly; existing purge/tombstone/recapture fence remains available
+ok 138 - Q4 untouched Source preflight is body-free/readonly; existing purge/tombstone/recapture fence remains available
+  ---
+  duration_ms: 114.975166
+  type: 'test'
+  ...
+# Subtest: Q4 current human Input and original-backed Current with human past versions both refuse with full database/storage equality
+ok 139 - Q4 current human Input and original-backed Current with human past versions both refuse with full database/storage equality
+  ---
+  duration_ms: 108.391875
+  type: 'test'
+  ...
+# Subtest: Q4 legacy Source note/edit and lost title owner/history refuse; a surviving independent title is preserved
+ok 140 - Q4 legacy Source note/edit and lost title owner/history refuse; a surviving independent title is preserved
+  ---
+  duration_ms: 134.524042
+  type: 'test'
+  ...
+# Subtest: Q4 affected protected Thought/AI/Topic, user relation and sealed unknown quarantine refuse without cleanup jobs
+ok 141 - Q4 affected protected Thought/AI/Topic, user relation and sealed unknown quarantine refuse without cleanup jobs
+  ---
+  duration_ms: 176.727375
+  type: 'test'
+  ...
+# Subtest: Q4 resident expired, malformed, title-only and exact pending-request recovery cannot be cleared to permit Source purge
+ok 142 - Q4 resident expired, malformed, title-only and exact pending-request recovery cannot be cleared to permit Source purge
+  ---
+  duration_ms: 108.313625
+  type: 'test'
+  ...
+# Subtest: Q4 fresh commit refuses real concurrent human edit after a positive preview and between assessment/transaction
+ok 143 - Q4 fresh commit refuses real concurrent human edit after a positive preview and between assessment/transaction
+  ---
+  duration_ms: 26.976916
+  type: 'test'
+  ...
+# Subtest: Q4 final recovery read and aborted eligible purge retain all Source and existing metadata
+ok 144 - Q4 final recovery read and aborted eligible purge retain all Source and existing metadata
+  ---
+  duration_ms: 39.820167
+  type: 'test'
+  ...
+# Subtest: Q4 incomplete/corrupt provenance refuses without effects; ordinary reversible Input removal still works
+ok 145 - Q4 incomplete/corrupt provenance refuses without effects; ordinary reversible Input removal still works
+  ---
+  duration_ms: 30.544292
+  type: 'test'
+  ...
+# Subtest: Q4 known automatic evidence remains purgeable; Source/derived cleanup never grants authorization
+ok 146 - Q4 known automatic evidence remains purgeable; Source/derived cleanup never grants authorization
+  ---
+  duration_ms: 50.200167
+  type: 'test'
+  ...
+# Subtest: Q4 complete Source snapshot scope above the transaction bound refuses the entire target without a prefix purge
+ok 147 - Q4 complete Source snapshot scope above the transaction bound refuses the entire target without a prefix purge
+  ---
+  duration_ms: 139.066833
+  type: 'test'
+  ...
+# Subtest: Q4 affected dependency owners with incomplete Source index or unknown protection cannot escape admission
+ok 148 - Q4 affected dependency owners with incomplete Source index or unknown protection cannot escape admission
+  ---
+  duration_ms: 55.573708
+  type: 'test'
+  ...
+# Subtest: production ledger has no verified adapter and refuses writes despite synthetic adapter claims
+ok 149 - production ledger has no verified adapter and refuses writes despite synthetic adapter claims
+  ---
+  duration_ms: 24.017625
+  type: 'test'
+  ...
+# Subtest: preflight persists no text/title, commits exact text/time once, retries do not double counters
+ok 150 - preflight persists no text/title, commits exact text/time once, retries do not double counters
+  ---
+  duration_ms: 43.508791
+  type: 'test'
+  ...
+# Subtest: batch digest mismatch and wrong owner cannot commit
+ok 151 - batch digest mismatch and wrong owner cannot commit
+  ---
+  duration_ms: 15.773375
+  type: 'test'
+  ...
+# Subtest: pause and worker restart require fresh consent and whole content fingerprint for resume
+ok 152 - pause and worker restart require fresh consent and whole content fingerprint for resume
+  ---
+  duration_ms: 19.655292
+  type: 'test'
+  ...
+# Subtest: cross-batch conflicting times are known before first record commit
+ok 153 - cross-batch conflicting times are known before first record commit
+  ---
+  duration_ms: 29.469666
+  type: 'test'
+  ...
+# Subtest: import protects authored library text, title, note, exclusion, revisions and capturedAt
+ok 154 - import protects authored library text, title, note, exclusion, revisions and capturedAt
+  ---
+  duration_ms: 36.762583
+  type: 'test'
+  ...
+# Subtest: permanent ignore after preflight wins and purge removes import source evidence
+ok 155 - permanent ignore after preflight wins and purge removes import source evidence
+  ---
+  duration_ms: 36.9645
+  type: 'test'
+  ...
+# Subtest: transaction abort rolls records, default blocks, facts and checkpoint back together
+ok 156 - transaction abort rolls records, default blocks, facts and checkpoint back together
+  ---
+  duration_ms: 21.752167
+  type: 'test'
+  ...
+# Subtest: same text distinct sources stay distinct and ambiguous sources are not active library text
+ok 157 - same text distinct sources stay distinct and ambiguous sources are not active library text
+  ---
+  duration_ms: 24.427958
+  type: 'test'
+  ...
+# Subtest: capture and import dedupe together, later empty response evidence cannot erase official time
+ok 158 - capture and import dedupe together, later empty response evidence cannot erase official time
+  ---
+  duration_ms: 36.590167
+  type: 'test'
+  ...
+# Subtest: existing reliable response time is preserved and contradictory export is explicitly partial
+ok 159 - existing reliable response time is preserved and contradictory export is explicitly partial
+  ---
+  duration_ms: 29.809333
+  type: 'test'
+  ...
+# Subtest: quota-style abort does not advance checkpoint and resume status marks missing in-memory grant
+ok 160 - quota-style abort does not advance checkpoint and resume status marks missing in-memory grant
+  ---
+  duration_ms: 20.521292
+  type: 'test'
+  ...
+# Subtest: all projected fields are allowlisted and only exact sent text user messages are admitted
+ok 161 - all projected fields are allowlisted and only exact sent text user messages are admitted
+  ---
+  duration_ms: 6.935875
+  type: 'test'
+  ...
+# Subtest: all resumable tasks remain reachable through bounded task pages
+ok 162 - all resumable tasks remain reachable through bounded task pages
+  ---
+  duration_ms: 26.55075
+  type: 'test'
+  ...
+# Subtest: legacy snapshot tombstones exclude all import facts both before and after preflight
+ok 163 - legacy snapshot tombstones exclude all import facts both before and after preflight
+  ---
+  duration_ms: 23.228791
+  type: 'test'
+  ...
+# Subtest: conflicting branch evidence across preflight batches never creates an active linear block
+ok 164 - conflicting branch evidence across preflight batches never creates an active linear block
+  ---
+  duration_ms: 17.125709
+  type: 'test'
+  ...
+# Subtest: too many legacy candidates fail before an unbounded legacy record materialization
+ok 165 - too many legacy candidates fail before an unbounded legacy record materialization
+  ---
+  duration_ms: 209.378875
+  type: 'test'
+  ...
+1..165
+# tests 165
+# suites 0
+# pass 165
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5035.016083

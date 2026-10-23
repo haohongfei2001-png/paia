@@ -1,3 +1,4 @@
+import {requireSourcePurgeProtocolOwner} from './source-purge-journal.js';
 import {createGroupPageBudget,chargeGroupPageBytes,checkGroupPageBudget} from './group-page-reader.js';
 import {requireSavedWorkProtocolOwner} from './saved-work-bootstrap.js';
 import {requireConsumerPublicationSettled} from './consumer-publication-state.js';
@@ -57,7 +58,8 @@ export async function validateOperation(operation){
  if(operation.type==='consumerPreference')assertConsumerPreferenceOperation(operation);
  if(operation.type==='topicDesired')assertTopicDesiredOperation(operation);
  if(['sourceAppendMember','sourceAppendCommit'].includes(operation.type)&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length))fail('BNS_SOURCE_APPEND_INVALID');
- if(['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type)&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length))fail('BNS_SOURCE_BOOTSTRAP_INVALID');
+ if(['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type)&&operation.kind!=='purge'&&(operation.actor!=='bootstrap'||operation.parents.length))fail('BNS_SOURCE_BOOTSTRAP_INVALID');
+ if(operation.type==='sourcePurgeIntent'&&(operation.kind!=='put'||operation.actor!=='user'||operation.parents.length||operation.value.datasetId!==operation.datasetId))fail('BNS_SOURCE_PURGE_INVALID');
  if(operation.type==='source'&&operation.kind!=='purge'&&operation.actor==='user')fail('BNS_SOURCE_AUTHORITY');
  if(operation.actor==='source'&&operation.type!=='source'&&operation.type!=='timeEvidence'&&operation.type!=='sourceStructure')fail('BNS_ACTOR_AUTHORITY');
  if(operation.actor==='bootstrap'&&operation.parents.length)fail('BNS_BOOTSTRAP_AUTHORITY');
@@ -266,13 +268,15 @@ export class BrowserNativeSyncCore {
   return false;
  }
  async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null,appendCapability=null,humanCapability=null,humanRetentionCapability=null}={}){
+  const sourcePurge=operation.type==='sourcePurgeIntent'||operation.kind==='purge'&&['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type);
+  if(sourcePurge)requireSourcePurgeProtocolOwner(t,this,operation,origin);
   if(['savedWorkBootstrap','savedWorkSuccessor'].includes(operation.type))requireSavedWorkProtocolOwner(t,this,operation,origin);
   const scope=requireRepositoryTransactionScope(this.repository,t),activeRetention=humanRetentionTransactions.get(scope.token);
   if(activeRetention&&(activeRetention.wrapper!==t||activeRetention.core!==this||activeRetention.repository!==this.repository||activeRetention.database!==scope.database||scope.database!==this.repository.db||scope.mode!=='readwrite'||this.boundTransactions.get(t)!==activeRetention.namespace||activeRetention.phase!=='apply'||origin!=='remote'||materialize!==false||humanRetentionCapability!==activeRetention||!activeRetention.operations?.includes(operation)))throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
   if(activeRetention){requireRepositoryTransactionDataMethods(this.repository,t);requireOriginalHumanRetentionCoreDataMethods(this);}
   if(origin==='remote'&&['humanLibraryMember','humanLibraryCommit'].includes(operation.type)&&(humanCapability===null||this.#humanTransactions.get(t)!==humanCapability)){const retention=humanRetentionTransactions.get(scope.token);if(!retention||retention!==humanRetentionCapability||retention.phase!=='apply'||!retention.operations?.includes(operation))fail('BNS_HUMAN_COMMIT_REQUIRED');}
   if(origin==='remote'&&['sourceAppendMember','sourceAppendCommit'].includes(operation.type)&&(appendCapability===null||this.#appendTransactions.get(t)!==appendCapability))fail('BNS_SOURCE_APPEND_REQUIRED');
-  if(origin==='remote'&&['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type)&&(bootstrapCapability===null||this.#bootstrapTransactions.get(t)!==bootstrapCapability))fail('BNS_SOURCE_BOOTSTRAP_REQUIRED');
+  if(!sourcePurge&&origin==='remote'&&['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type)&&(bootstrapCapability===null||this.#bootstrapTransactions.get(t)!==bootstrapCapability))fail('BNS_SOURCE_BOOTSTRAP_REQUIRED');
   if(origin==='remote'&&['inputWorkingMember','inputWorkingCommit'].includes(operation.type)&&(workingCapability===null||this.#workingTransactions.get(t)!==workingCapability))fail('BNS_WORKING_COMMIT_REQUIRED');
   if(operation.datasetId!==this.datasetId)fail('BNS_DATASET_MISMATCH');
   const quarantined=await this.get(t,'quarantine',operation.operationId);if(quarantined){if(quarantined.digest!==operation.revisionId)fail('BNS_OPERATION_COLLISION');return {state:'quarantined',reason:quarantined.reason};}

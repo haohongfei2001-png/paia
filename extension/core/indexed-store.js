@@ -1,3 +1,4 @@
+import {prepareOriginalSourcePurge,beginOriginalSourcePurge,finishOriginalSourcePurge,observeOriginalSourcePurgeTombstone,closeOriginalSourcePurge} from './browser-native-sync/source-purge-journal.js';
 import {sourceAppendPlan,verifySourceAppendWrite,verifyAppendDocumentPreserved} from './browser-native-sync/source-append-plan.js';
 import {initialSourceRecord,initialSourceObjects} from './source-initial.js';
 import {initialSourcePlan,verifyInitialSourceWrite} from './browser-native-sync/source-bootstrap-plan.js';
@@ -181,7 +182,7 @@ export function requireOriginalConsumerPublicationEvidence(store,reservation,kin
 }
 export class IndexedArchiveStore {
  #preferencePublication=null;
- constructor(local,options={}){originalLocalControls.set(this,{local,get:local.get,set:local.set,kind:local===globalThis.chrome?.storage?.local?'chrome-sdk':'original-injected-adapter'});this.local=local;this.repository=new ArchiveRepository(local,options);originalLocalControls.get(this).repository=this.repository;this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;this.consumerPreferenceJournal=options.consumerPreferenceJournal??null;this.localPublicationTerminal=local===globalThis.chrome?.storage?.local||options.localPublicationTerminal===true;}
+ constructor(local,options={}){originalLocalControls.set(this,{local,get:local.get,set:local.set,kind:local===globalThis.chrome?.storage?.local?'chrome-sdk':'original-injected-adapter'});this.local=local;this.repository=new ArchiveRepository(local,options);originalLocalControls.get(this).repository=this.repository;this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;this.sourcePurgeJournal=options.sourcePurgeJournal??null;this.consumerPreferenceJournal=options.consumerPreferenceJournal??null;this.localPublicationTerminal=local===globalThis.chrome?.storage?.local||options.localPublicationTerminal===true;}
  run(fn){const task=this.tail.then(async()=>{
   // Install before any prelude await. An overlapping genuine run permanently
   // supersedes this opaque execution; neither completion nor this prelude may
@@ -408,10 +409,13 @@ export class IndexedArchiveStore {
   // caller holds withRecoveryFence; store.run serializes all canonical writers.
   const rawRecovery=await this.local.get(null);
   await this.repository.transaction(false,t=>assessSourcePurge(t,{id,key,record:r},rawRecovery));
-  const finalRecovery=await this.local.get(null);
+  const purgePlan=await prepareOriginalSourcePurge(this,id,key),finalRecovery=await this.local.get(null);
   const result=await this.repository.transaction(true,async t=>{
+   if(purgePlan)registerRepositoryWorkLimit(this.repository,t,{});
+   try{
    const current=await t.get('records',id);if(!current||!permanent&&!current.value.deletedAt)error('INVALID_REQUEST');
-   await assessSourcePurge(t,{id,key,record:current.value},finalRecovery);
+   await assessSourcePurge(t,{id,key,record:current.value},finalRecovery,!!purgePlan);
+   await beginOriginalSourcePurge(t,this,purgePlan);
    this.changedSources.add(key);
    const indexes=await t.all('recordIndex','bySource',key);if(r.chatId&&r.sourceMessageId)for(const ix of await t.all('recordIndex','byIdentity',[chatOf(r),r.sourceMessageId]))if(!/^[a-f0-9]{64}$/.test(ix.sourceKey||'')&&!indexes.some(x=>x.id===ix.id))indexes.push(ix);if(!indexes.some(x=>x.id===id))indexes.push(await t.get('recordIndex',id));const removed=[];for(const ix of indexes)removed.push((await t.get('records',ix.id)).value);
    const docs=new Set((await t.all('documents','byChat',chatOf(r))).map(d=>d.id)),blocks=new Map();for(const r of removed)for(const b of await t.all('blockIndex','byRecord',r.id))blocks.set(b.id,{index:b,value:(await t.get('blocks',b.id)).value});
@@ -419,11 +423,12 @@ export class IndexedArchiveStore {
    if(this.beforeSourcePurge)await this.beforeSourcePurge(t,removed,blocks);
    await clearReadingTargets(t,new Set(blocks.keys()));
    const s={library:{blocks:[...blocks.values()].map(b=>b.value)}};detachSources(s,removed);const kept=new Map(s.library.blocks.map(b=>[b.id,b]));
-   await t.put('tombstones',{id:'source:'+key,sequence:Date.parse(this.clock()),value:{sourceIdentityHash:key,deletedAt:this.clock(),status:'permanently_ignored'}});
+   const tombstone={id:'source:'+key,sequence:Date.parse(this.clock()),value:{sourceIdentityHash:key,deletedAt:this.clock(),status:'permanently_ignored'}};observeOriginalSourcePurgeTombstone(t,this,purgePlan,tombstone);await t.put('tombstones',tombstone);
    for(const r of removed){await t.delete('records',r.id);await t.delete('recordIndex',r.id);await t.delete('tombstones','snapshot:'+r.dedupeKey);}await t.delete('times',key);
    for(const name of ['importEvidence','importSources'])for(const evidenceId of await t.keys(name,'bySource',key))await t.delete(name,evidenceId);
    for(const [id,old]of blocks){docs.add(old.value.documentId);const b=kept.get(id);if(!b){await t.delete('blocks',id);await t.delete('blockIndex',id);}else{b.revision++;b.recoveryPurgeRevision=b.revision;b.provenanceSignature=JSON.stringify(b.provenance);await t.put('blocks',{id,value:b});const rec=b.sourceRecordId?(await t.get('records',b.sourceRecordId))?.value:null;await t.put('blockIndex',blockIndex(b,old.index.sequence,rec?[rec]:[]));}}
-   for(const id of docs)await this.refreshDoc(t,id);await clearPurgedReaderPolicy(t,new Set(blocks.keys()),key);return {id};
+   for(const id of docs)await this.refreshDoc(t,id);await clearPurgedReaderPolicy(t,new Set(blocks.keys()),key);await finishOriginalSourcePurge(t,this,purgePlan);return {id};
+   }finally{closeOriginalSourcePurge(t,purgePlan);}
   });await this.publish();return result;
  });}
  prepareRemoval(request){return this.run(()=>this.repository.transaction(false,t=>prepareRemoval(this,t,request)));}

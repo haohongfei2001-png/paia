@@ -211,3 +211,7 @@ export class StagedSyncRestore {
   });return result;
  }
 }
+
+// Original immutable manifest validation, shared by the explicit bodyfree
+// Source retirement consumer. This read grants no canonical activation right.
+export {readManifest as readCheckpointManifest};

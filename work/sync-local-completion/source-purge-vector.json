@@ -1,0 +1,61 @@
+{
+  "baseline": "5d77a349703dcbdffa16c480aa0c8879acba08dc",
+  "sourceFiles": [
+    {
+      "path": "extension/core/browser-native-sync/source-purge-codec.js",
+      "sha256": "bfbe850cb33a941a753e5db7f118a10b681255aa5eead304543c714a602f2360",
+      "committed": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-purge-journal.js",
+      "sha256": "5c9bd84a69dd567ab05a98f48804beaecd71eca2363fdcbaaacc45f7f5273e08",
+      "committed": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-purge-checkpoint.js",
+      "sha256": "a2c4d8c710863ffc465baa33499a2d6b00ee8d4b1c2c933143c9ee1b9aeea5a8",
+      "committed": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/core.js",
+      "sha256": "eb0e76bbdebfbef21ea6469e9f93df8910422678ec0a2b0ca44439afc9a9f409",
+      "committed": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/codecs.js",
+      "sha256": "00bc695777aa9bdd928a692842dedde14172fbec541d453de941334605cd13bf",
+      "committed": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/checkpoints.js",
+      "sha256": "90aa8fa9896e71aae05cc8c7ca72b04d1bc950845843d07d230f4d7d6fbce1b3",
+      "committed": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint.js",
+      "sha256": "8a3fc82bfa9e29145381d93051a90acbf8c6c0a465a4ab301905c92b6e7e09cb",
+      "committed": false
+    },
+    {
+      "path": "extension/core/indexed-store.js",
+      "sha256": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+      "committed": true
+    },
+    {
+      "path": "extension/core/source-purge-admission.js",
+      "sha256": "8a526a77ff393739736d19b746319ac5b844192392ecb5f53c7edf67ce294347",
+      "committed": true
+    },
+    {
+      "path": "extension/core/thought-maintenance.js",
+      "sha256": "35f099480098ac724f3de6a26f50b4991bb027c6eff05340eba5621c318833b6",
+      "committed": true
+    },
+    {
+      "path": "extension/tests/browser-native-sync-source-purge.test.mjs",
+      "sha256": "f61d5234a74ccb063c7833b57bfffbd23770ee13ddc583ca0092ffbc1af809af",
+      "committed": true
+    }
+  ],
+  "coordinator": "temporary complete saved wiring plus the supplied purge-only delta; root owns integration"
+}
