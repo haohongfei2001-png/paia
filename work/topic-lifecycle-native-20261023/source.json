@@ -1,0 +1,364 @@
+{
+  "variant": "source",
+  "scope": "explicit-policy-original-owner-local-only",
+  "head": "1d7f7de47c9790f36a01c0de481917086ee5ce2d",
+  "result": "PASS",
+  "schedulerActivated": false,
+  "syncEnabled": false,
+  "owningSha256": "2192f24747ce469a0f502cabfeda2fb5376d0b67267fb6aa7f7f076ce7e5ea50",
+  "originalSetupSha256": "b94c97d11f3058195f3318bb7235875373c7e2e30fa181abbc34b3747b21a6a5",
+  "hashes": {
+    "core/topic-lifecycle.js": "cdc8fcd33845eebcb6241143bcd75a28253ae19c7acb38dcac7c813cd8335d33",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "4d9e50e11852b1c29b16ba56860925f36636432b1c05701a6f10d47418c028ca",
+    "core/indexed-store.js": "b6d844b62249d99142ff000fc20fab1670af27a5c6155fefe2bd134bc74ee173",
+    "core/library-documents-owner.js": "6b0c4f02f8beca3755de39d3ab6c21eadf657803c36fe31aacf04015b8c51d05",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "39b5e96ceb945add2de2462987b29af140319667f8ebf0b42605f93140a8f8a2",
+    "core/thought-journal.js": "346f721441bd83439c91cae13358f09044f29b35cdd2ae6941cd882a7d72a53e",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  },
+  "originalHashes": {
+    "core/topic-lifecycle.js": "cdc8fcd33845eebcb6241143bcd75a28253ae19c7acb38dcac7c813cd8335d33",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "4d9e50e11852b1c29b16ba56860925f36636432b1c05701a6f10d47418c028ca",
+    "core/indexed-store.js": "b6d844b62249d99142ff000fc20fab1670af27a5c6155fefe2bd134bc74ee173",
+    "core/library-documents-owner.js": "6b0c4f02f8beca3755de39d3ab6c21eadf657803c36fe31aacf04015b8c51d05",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "39b5e96ceb945add2de2462987b29af140319667f8ebf0b42605f93140a8f8a2",
+    "core/thought-journal.js": "346f721441bd83439c91cae13358f09044f29b35cdd2ae6941cd882a7d72a53e",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    {
+      "name": "explicit inactivity uses real original issuer and commits once; restarted consumer replays exact receipt",
+      "state": "PASS",
+      "assertions": 6
+    },
+    {
+      "name": "activity missing cannot write or issue a success receipt",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "activity recent cannot write or issue a success receipt",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "activity future cannot write or issue a success receipt",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "activity backwards cannot write or issue a success receipt",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "original pin veto remains authoritative",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "original keep veto remains authoritative",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "original lifecycle veto remains authoritative",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "late activity after original backup finalizer rolls back every table",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "late building-generation after original backup finalizer rolls back every table",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "late membership after original backup finalizer rolls back every table",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "late source after original backup finalizer rolls back every table",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "late source-delete after original backup finalizer rolls back every table",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "late memory-negative after original backup finalizer rolls back every table",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "late grant after original backup finalizer rolls back every table",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "legacy authority and forged budget cannot mint automatic activity capability",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "automatic owner preserves installed Sync journal refusal",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "private cumulative reference limit aborts the complete actual lifecycle transaction",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "bounded original history pruning counts physical history bytes and rolls back on overflow",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "bounded and original pruning preserve the exact same newest-important and young rows",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "inflight original history deletion failure rolls lifecycle, journal, indexes and receipt back",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "policy is explicit, detached, versioned and never adopts the proposal as defaults",
+      "state": "PASS",
+      "assertions": 9
+    },
+    {
+      "name": "already dormant with a new action is deferred without another receipt; close never dispatches",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "original formation Topic sources exceed the independent processing scope: unchanged original sources commit",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "original formation Topic sources exceed the independent processing scope: late extra Source deletion rolls back",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "lost delivery after real commit is reconciled by the same original operation receipt, never a new action",
+      "state": "PASS",
+      "assertions": 7
+    },
+    {
+      "name": "close stops future dispatch and reports an already in-flight original commit without claiming rollback",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "actual moved Source-linked member outside Topic sources and processing scope rejects late Source deletion",
+      "state": "PASS",
+      "assertions": 4
+    },
+    {
+      "name": "moved member entry-revision late same-count drift rolls every table back",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "moved member entry-admission late same-count drift rolls every table back",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "moved member provenance late same-count drift rolls every table back",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "moved member dependency late same-count drift rolls every table back",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "moved member input-metadata late same-count drift rolls every table back",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "unchanged original moved member commits with independently selected processing Input",
+      "state": "PASS",
+      "assertions": 1
+    },
+    {
+      "name": "automatic receipt replay is physically byte-bounded before callback admission",
+      "state": "PASS",
+      "assertions": 2
+    },
+    {
+      "name": "original execution transaction charges publication prelude before its first receipt read",
+      "state": "PASS",
+      "assertions": 3
+    },
+    {
+      "name": "original writer budget configuration only tightens and accepts no callback",
+      "state": "PASS",
+      "assertions": 6
+    },
+    {
+      "name": "two selected Topics preserve first committed receipt when second transaction fails",
+      "state": "PASS",
+      "assertions": 8
+    },
+    {
+      "name": "budget accessors are rejected at both original owner entries without evaluation",
+      "state": "PASS",
+      "assertions": 3
+    }
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "lifecycle-native-1",
+      "lifecycle-native-10",
+      "lifecycle-native-11",
+      "lifecycle-native-12",
+      "lifecycle-native-13",
+      "lifecycle-native-14",
+      "lifecycle-native-15",
+      "lifecycle-native-16",
+      "lifecycle-native-17",
+      "lifecycle-native-18",
+      "lifecycle-native-19",
+      "lifecycle-native-2",
+      "lifecycle-native-20",
+      "lifecycle-native-21",
+      "lifecycle-native-22",
+      "lifecycle-native-23",
+      "lifecycle-native-24",
+      "lifecycle-native-25",
+      "lifecycle-native-26",
+      "lifecycle-native-27",
+      "lifecycle-native-28",
+      "lifecycle-native-29",
+      "lifecycle-native-3",
+      "lifecycle-native-30",
+      "lifecycle-native-31",
+      "lifecycle-native-32",
+      "lifecycle-native-33",
+      "lifecycle-native-34",
+      "lifecycle-native-35",
+      "lifecycle-native-36",
+      "lifecycle-native-37",
+      "lifecycle-native-38",
+      "lifecycle-native-4",
+      "lifecycle-native-5",
+      "lifecycle-native-6",
+      "lifecycle-native-7",
+      "lifecycle-native-8",
+      "lifecycle-native-9",
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "cc6e9121-2703-45f2-98a9-81fb1509a073",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "cc6e9121-2703-45f2-98a9-81fb1509a073",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "lifecycle-native-1",
+            "lifecycle-native-10",
+            "lifecycle-native-11",
+            "lifecycle-native-12",
+            "lifecycle-native-13",
+            "lifecycle-native-14",
+            "lifecycle-native-15",
+            "lifecycle-native-16",
+            "lifecycle-native-17",
+            "lifecycle-native-18",
+            "lifecycle-native-19",
+            "lifecycle-native-2",
+            "lifecycle-native-20",
+            "lifecycle-native-21",
+            "lifecycle-native-22",
+            "lifecycle-native-23",
+            "lifecycle-native-24",
+            "lifecycle-native-25",
+            "lifecycle-native-26",
+            "lifecycle-native-27",
+            "lifecycle-native-28",
+            "lifecycle-native-29",
+            "lifecycle-native-3",
+            "lifecycle-native-30",
+            "lifecycle-native-31",
+            "lifecycle-native-32",
+            "lifecycle-native-33",
+            "lifecycle-native-34",
+            "lifecycle-native-35",
+            "lifecycle-native-36",
+            "lifecycle-native-37",
+            "lifecycle-native-38",
+            "lifecycle-native-4",
+            "lifecycle-native-5",
+            "lifecycle-native-6",
+            "lifecycle-native-7",
+            "lifecycle-native-8",
+            "lifecycle-native-9",
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  },
+  "afterHashes": {
+    "core/topic-lifecycle.js": "cdc8fcd33845eebcb6241143bcd75a28253ae19c7acb38dcac7c813cd8335d33",
+    "core/topic-lifecycle-consumer.js": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+    "core/topic-lifecycle-activity.js": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+    "core/topic-lifecycle-entry-metadata.js": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+    "core/topic-lifecycle-policy.js": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+    "core/idb-repository.js": "4d9e50e11852b1c29b16ba56860925f36636432b1c05701a6f10d47418c028ca",
+    "core/indexed-store.js": "b6d844b62249d99142ff000fc20fab1670af27a5c6155fefe2bd134bc74ee173",
+    "core/library-documents-owner.js": "6b0c4f02f8beca3755de39d3ab6c21eadf657803c36fe31aacf04015b8c51d05",
+    "core/thought-store-owner.js": "9e8b45bec512b838f5b5f1941bdffeb2562f4e80f69978a2617d7b789390db85",
+    "core/ia-store-owner.js": "39b5e96ceb945add2de2462987b29af140319667f8ebf0b42605f93140a8f8a2",
+    "core/thought-journal.js": "346f721441bd83439c91cae13358f09044f29b35cdd2ae6941cd882a7d72a53e",
+    "core/thought-read-index.js": "c78aac596a506bc02dce8507a9dae5e8cdff13e84dc7b43629961a724d1816f7",
+    "core/topic-processing.js": "24d9a123770274ade496df96bfc75037fd40f4bd3e57f3698707098623ac87ce",
+    "core/topic-processing-authority.js": "f5fcabb66b7f34020d5c3f46170f3483b4733708132186b5583169d713664cb0"
+  }
+}
