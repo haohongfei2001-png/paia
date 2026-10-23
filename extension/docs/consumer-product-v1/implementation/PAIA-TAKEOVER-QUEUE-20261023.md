@@ -142,6 +142,57 @@ unchanged DEFER must not redispatch. Start with deterministic local tests and
 one meaningful native integration milestone if the changed owner requires it.
 No cloud rerun or large seed is necessary to design and implement these cases.
 
+## 4.2 Current implementation receipts after the initial checkpoint
+
+The §4.1 table describes the recorded pre-change checkpoint. Its Section/Topic
+restore gaps have now progressed as follows; other finite facets remain open.
+
+- Same-Topic Section movement was already the original placement operation;
+  baseline regression verification preserved that route rather than adding a
+  second structural interpretation.
+- Section title restoration is integrated at `cac4f583`; Topic name restoration
+  at `19d97e316e73a5b6213f0bbbd2ed19c93d227aa3`. Both qualify the actual original
+  user restore journal and current protected field, complete bounded membership,
+  independent selected processing authority and original Context commit owner.
+  Restores receive no rename-only Topic reconciliation capability. Clones cannot
+  acquire the private object-identity capability.
+- Section four-file owning verification: 350/350. Topic initial owning batch:
+  158/159, with a fixture expecting a response error where original preparation
+  correctly rejected stale Source; corrected targeted check: 1/1. Keep those
+  invocations distinct. Earlier negative controls remain in their reports.
+- The integrated original CTX4-05 file has two new Source/release parents,
+  eight leaves: 10/10 once at `19d97e31`, actual native IndexedDB, exact original
+  restore owners, Context commit, Topic pending, ACK abort without complete,
+  whole-table rollback and same-response replay without extra provider call.
+  All eight recorded source hashes and HEAD remained stable. This is not the
+  whole original file, cloud Full, physical UI journey or live service.
+  [Native receipt](../../../../work/paia-takeover-20261023/structural-restore-native/REPORT.md)
+  is committed with the tests at `d73768c9`.
+- The same checkpoint fixes the actual English organization control and its
+  accessible labels without translating authored text. Its existing bilingual
+  owner test passes 1/1 on Node22.23.3; no browser performance claim follows.
+- Authored Entry → current unique human Topic now has original-owner semantic
+  reconciliation at `941c6de8` plus required direct-writer fence `34653489`.
+  Its independent grant, typed source adapter, human protection and terminal
+  receipt/ACK paths passed661/661 before final fence tightening; subsequent
+  narrow34/34 and authority2/2 are separate receipts. This does not claim new
+  Topic formation, multi-membership, Placement support or native/live quality.
+- Local Sync coordinator and Settings entry are integrated at `68bff5cd`;
+  original causal graph coverage and lost-commit outcomes are preserved.
+  Its owning94/94 is separate from Settings Source/release2/2 at `1aa790a7`.
+  The UI remains read-only unavailable for real providers.
+- Grouped compaction qualification is integrated at `d203bd55`,37/37 after
+  fixing the last remote-read/stale-stage window. Actual collection occurs only
+  in synthetic Map fixtures; the planner's snapshot is not a production delete
+  lease. Full C provenance/Source-linked Thought restoration is in progress.
+- Google appData local injected-HTTP adapter composes original publication and
+  cold-B restore,33/33 after independent-review fixes. Real OAuth/HTTP host,
+  account and minimal-scope qualification remain absent; see its local report.
+- Placement Topic, other human Context correction variants, full Sync C and
+  provider/platform implementations remain in the continuous queue. Final
+  build/native/integrated acceptance follows a coherent source freeze, not
+  every incremental commit.
+
 ## 5. Initial parallel packages and file ownership
 
 1. **Root integration:** the combined candidate, shared worker/repository
