@@ -354,7 +354,9 @@ def audit_js(path, text):
     for match in re.finditer(r"\b(?:chrome\s*\.\s*)?runtime\s*\.\s*getURL\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
         local_reference(match.group(1), ROOT / "manifest.json",
                         f"{path.relative_to(ROOT)} runtime.getURL")
-    for match in re.finditer(r"(?:\bfrom\s*|\bimport\s*)['\"]([^'\"]+)['\"]", text):
+    # A quoted schema key such as 'from','to' is not a module keyword.
+    # Keep zero-space legal syntax (from"./module.js") covered.
+    for match in re.finditer(r"(?<!['\"`])(?:\bfrom\s*|\bimport\s*)['\"]([^'\"]+)['\"]", text):
         local_reference(match.group(1), path, f"{path.relative_to(ROOT)} import")
     for match in re.finditer(r"\bimport\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
         local_reference(match.group(1), path, f"{path.relative_to(ROOT)} dynamic import")

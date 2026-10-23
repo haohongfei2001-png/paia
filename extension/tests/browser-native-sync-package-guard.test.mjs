@@ -19,3 +19,21 @@ for name in ['google-drive.js','google-drive-http.js','onedrive.js','onedrive-ht
 print(json.dumps(cases))
 `],{cwd:fileURLToPath(new URL('..',import.meta.url)),encoding:'utf8'});assert.equal(JSON.parse(result).length,20);
 });
+
+test('package import scan keeps real references and ignores quoted schema keys',()=>{
+ const result=execFileSync(process.env.PYTHON||'python3',['-c',String.raw`
+import ast,json,re
+from pathlib import Path
+from urllib.parse import urlsplit
+root=Path.cwd();tree=ast.parse((root/'scripts/check_package.py').read_text());references=[];failures=[]
+nodes=[n for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='FORBIDDEN_JS' for t in n.targets) or isinstance(n,ast.FunctionDef) and n.name=='audit_js']
+env={'ROOT':root,'re':re,'urlsplit':urlsplit,'local_reference':lambda ref,*a:references.append(ref),'require':lambda ok,m:failures.append(m) if not ok else None}
+exec(compile(ast.Module(body=nodes,type_ignores=[]),'original-package-audit','exec'),env)
+path=root/'core/browser-native-sync/canonical-generation-publication.js'
+env['audit_js'](path,path.read_text());assert references==['./group-checkpoint.js','./canonical-generation-checkpoint-stage.js','../constants.js','./value.js','../idb-repository.js'],references
+references.clear();env['audit_js'](root/'core/example.js',"const fields=['from','to','import','next']; const double=[\"from\",\"to\"]; import './a.js'; import x from\"./b.js\"; export {x} from './c.js'; const y=import('./d.js');")
+assert references==['./a.js','./b.js','./c.js','./d.js'],references
+assert not failures,failures
+print(json.dumps(references))
+`],{cwd:fileURLToPath(new URL('..',import.meta.url)),encoding:'utf8'});assert.deepEqual(JSON.parse(result),['./a.js','./b.js','./c.js','./d.js']);
+});
