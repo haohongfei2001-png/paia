@@ -341,15 +341,15 @@ export function measureOriginalMixedPreparingWireScope(core,scope,plan,store,non
 // inventory owner reads the real transaction and binds this exact view; a
 // supplied filtered snapshot cannot acquire this qualification.
 export async function requireSourcePurgeRemainingScope(store,t,scope,view,proof){
- await requireSourcePurgeRemainingCanonicalProof(proof,store,t,scope,view);const original=requireCompiledGroupScope(scope),plan=scopeDeref.call(original.plan);if(!plan||plan.groups.some(group=>group.type!=='sourceBootstrapCommit')||hasHumanScope(scope)||scope.expected.savedWork)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
- const c=await store.control(t);if(!consumerPreferencesMatchLocal(c.preferences,consumerDisplayPreferences([]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ await requireSourcePurgeRemainingCanonicalProof(proof,store,t,scope,view);const original=requireCompiledGroupScope(scope),plan=scopeDeref.call(original.plan);if(!plan||plan.groups.some(group=>!['sourceBootstrapCommit','consumerPreference','promptPreferences','promptBinding'].includes(group.type))||hasHumanScope(scope)||scope.expected.savedWork)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const c=await store.control(t);if(!consumerPreferencesMatchLocal(c.preferences,consumerDisplayPreferences(scope.expected.consumerPreferences??[]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  for(const [name,rows]of Object.entries(view))if(!represented.has(name)&&!ephemeralStores.has(name)&&rows.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  for(const row of view.meta){const key=row.id;if(key.startsWith(original.core.prefix))continue;if(key===CONTEXT_CARDS_ROW||key===PROMPT_REUSE_ROW||counters.has(key))continue;
   if(key===CONTEXT_TOPIC_ACCESS_ROW){await requireLocalTopicChoicesRepresented(t,original.core,[]);continue;}
-  if(key==='smart-filter'){if(row.mode!=='light'||row.policyEpoch!==0)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(key==='smart-filter'){const intent=scope.expected.consumerPreferences?.find(row=>row.id==='smartFilter');if(row.mode!==(intent?.value??'light')||!count(row.policyEpoch)||!intent&&row.policyEpoch!==0)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
   if(backupMetaAllowed(key))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  }
  const actual={};for(const name of ['records','blocks','documents','libraryDocuments'])actual[name]=sort(view[name].map(row=>clone(row.value)));for(const name of ['times','inputStates','revisions','filterIntents'])actual[name]=sort(view[name].map(row=>clone(row)));
- const context=await readContextCards(t);actual.context=sort(context.items);actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));await requireConsumerPreferenceOwners(t,store,original.core,[]);await readTopicDesiredOwners(t,original.core,[]);actual.prompt=projectEntity('promptPreferences',await readPromptPreferences(t));if(await t.get('meta',PROMPT_CORRECTION_BINDING_ROW))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ const context=await readContextCards(t);actual.context=sort(context.items);actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));const consumer=await requireConsumerPreferenceOwners(t,store,original.core,original.consumerOperations);if(scope.expected.consumerPreferences)actual.consumerPreferences=consumer;await readTopicDesiredOwners(t,original.core,[]);actual.prompt=projectEntity('promptPreferences',await readPromptPreferences(t));const companion=await t.get('meta',PROMPT_CORRECTION_BINDING_ROW);if(scope.expected.promptBinding)actual.promptBinding=physicalPromptCompanion(companion,actual.prompt);else if(companion)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  return compareGroupCanonicalValues(scope,actual,null);
 }

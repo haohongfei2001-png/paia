@@ -1,0 +1,54 @@
+TAP version 13
+# Subtest: google original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+not ok 1 - google original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+  ---
+  duration_ms: 322.258166
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-portable-checkpoint.test.mjs:12:41'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"ok":false,"error":"BNS_SOURCE_PURGE_UNSUPPORTED"}
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-portable-checkpoint.test.mjs:15:583)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: onedrive original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+not ok 2 - onedrive original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+  ---
+  duration_ms: 248.773958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-portable-checkpoint.test.mjs:12:41'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"ok":false,"error":"BNS_SOURCE_PURGE_UNSUPPORTED"}
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-portable-checkpoint.test.mjs:15:583)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 699.265917

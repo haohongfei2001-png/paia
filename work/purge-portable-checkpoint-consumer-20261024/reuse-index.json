@@ -1,0 +1,17 @@
+{
+  "source_purge_portable_owner": "ab7815d0beff52d50ef8cb2309a35095d7c583ef",
+  "original_negative_consumer": "50cb35e89995cfb48bde1083c52c94777220f932",
+  "producer": "7228f20812a2ba38747e51e33b10af6bb57a1f8c",
+  "scope_literal_fix": "74b41365",
+  "owning_test_unchanged_except_normal_purge_NOW": "extension/tests/sync-local-lifecycle.test.mjs",
+  "final_command": "COMMAND.txt",
+  "final_log": "owning-terminal.log",
+  "not_run": [
+    "native",
+    "browser",
+    "build",
+    "real providers",
+    "cloud",
+    "65/129 scale"
+  ]
+}

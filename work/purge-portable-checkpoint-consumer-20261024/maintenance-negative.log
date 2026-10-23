@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: mixed negative portable export refuses inconsistent source_purged maintenance acknowledgement without any write
+ok 1 - mixed negative portable export refuses inconsistent source_purged maintenance acknowledgement without any write
+  ---
+  duration_ms: 345.524083
+  type: 'test'
+  ...
+# Subtest: mixed negative portable export refuses inconsistent source_updated maintenance acknowledgement without any write
+ok 2 - mixed negative portable export refuses inconsistent source_updated maintenance acknowledgement without any write
+  ---
+  duration_ms: 273.227166
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 751.000917

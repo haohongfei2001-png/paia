@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: negative portable local publication terminal is settled from durable stage after cold instance only
+ok 1 - negative portable local publication terminal is settled from durable stage after cold instance only
+  ---
+  duration_ms: 631.585041
+  type: 'test'
+  ...
+# Subtest: negative portable local publication unknown-visible is settled from durable stage after cold instance only
+ok 2 - negative portable local publication unknown-visible is settled from durable stage after cold instance only
+  ---
+  duration_ms: 434.197208
+  type: 'test'
+  ...
+# Subtest: negative portable local publication unknown-absent is settled from durable stage after cold instance only
+ok 3 - negative portable local publication unknown-absent is settled from durable stage after cold instance only
+  ---
+  duration_ms: 357.602417
+  type: 'test'
+  ...
+# Subtest: negative portable local publication undispatched is settled from durable stage after cold instance only
+ok 4 - negative portable local publication undispatched is settled from durable stage after cold instance only
+  ---
+  duration_ms: 416.792333
+  type: 'test'
+  ...
+# Subtest: continuing one negative stage cannot settle a different valid-looking pending stage
+ok 5 - continuing one negative stage cannot settle a different valid-looking pending stage
+  ---
+  duration_ms: 330.751708
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2301.43675

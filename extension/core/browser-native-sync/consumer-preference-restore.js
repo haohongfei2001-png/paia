@@ -1,3 +1,5 @@
+import {requireOriginalSourcePurgeConsumerApplication,validateSourcePurgeConsumerStage} from './source-purge-group.js';
+import {sourcePurgeProtocolControls} from './source-purge-protocol-controls.js';
 import {defaults} from '../workspace.js';
 import {CONSUMER_PREFERENCE_KEYS,assertConsumerPreferenceOperation,consumerPreferenceRenderingValue} from './consumer-preference-codec.js';
 import {clone,equal,exact,hash,opaque,count} from './value.js';
@@ -53,10 +55,21 @@ export async function prepareRestoredConsumerPreferenceApplication(store,core,pl
  await validateImportedConsumerStage(state,core);
  const token=Object.freeze({});applications.set(token,{store,core,plan,stageCore,state:clone(state),operations:finalConsumerPreferenceOperations(plan)});return token;
 }
+export async function prepareSourcePurgeConsumerApplication(store,core,plan,authority){
+ requireOriginalGroupCheckpointPlan(core,plan);
+ const held=requireOriginalSourcePurgeConsumerApplication(authority,core,plan);
+ if(held.store!==store||held.state.version!==2||held.state.phase!=='validated')fail('BNS_GROUP_STAGE_CHANGED');
+ await validateImportedConsumerStage(held.state,core,3);
+ const token=Object.freeze({});applications.set(token,{store,core,plan,state:clone(held.state),negative:authority,operations:finalConsumerPreferenceOperations(plan).filter(op=>held.revisionIds.includes(op.revisionId))});return token;
+}
 export async function applyRestoredConsumerPreferenceOwners(t,token){
  const prepared=applications.get(token);if(!prepared)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  const {store,core,plan,stageCore,state,operations}=prepared;requireOriginalGroupCheckpointPlan(core,plan);
- if(!equal(await t.get('meta',state.id),state)||core.repository!==store.repository||core.fixedNamespace!==state.replayId)fail('BNS_GROUP_STAGE_CHANGED');
+ if(prepared.negative)requireOriginalSourcePurgeConsumerApplication(prepared.negative,core,plan);
+ if(!equal(await t.get('meta',state.id),state)||core.repository!==store.repository||(prepared.negative?await core.bind(t)!==state.namespace:core.fixedNamespace!==state.replayId))fail('BNS_GROUP_STAGE_CHANGED');
+ return applyConsumerRows(t,store,core,operations);
+}
+async function applyConsumerRows(t,store,core,operations){
  if(!operations.length)return null;
  if(!store.consumerPreferenceJournal||store.consumerPreferenceJournal.core.repository!==core.repository||store.consumerPreferenceJournal.core.datasetId!==core.datasetId)fail('BNS_CONSUMER_PREFERENCE_OWNER_REQUIRED');
  await store.qualifyControlPublicationRead(t);
@@ -78,14 +91,25 @@ export async function applyRestoredConsumerPreferenceOwners(t,token){
  return {before,operations:display.map(ref),allOperations:operations.map(ref),smartFilter:{mode:filter.mode,policyEpoch:filter.policyEpoch}};
 }
 
+// Detached prediction shares the original value writer. It cannot receive a
+// native transaction: the original physical planner supplies an isolated facade.
+export async function projectSourcePurgeConsumerRows(token,t,store,core){
+ const p=applications.get(token);if(!p?.negative||store.repository!==p.store.repository||core!==p.core||t.tx?.objectStore)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ requireOriginalSourcePurgeConsumerApplication(p.negative,p.core,p.plan);
+ return applyConsumerRows(t,store,core,p.operations);
+}
+
 // Separate imported role: never interpret an absent outbox as a local write.
 // Its exact original durable stage/active pointer must remain publishing until
 // the one original control publication is verified and atomically settled.
 export async function requireImportedConsumerPublication(t,core,pending){
- const ref=pending.restore;
- if(!exact(ref,['stageId','manifestId','graphDigest','replayId','operations','smartFilter'])||Object.keys(ref).length!==6||!hash(ref.manifestId)||!hash(ref.graphDigest)||ref.replayId!==pending.namespace||typeof ref.stageId!=='string'||!ref.stageId.startsWith(core.prefix+'generation:')||!ref.stageId.endsWith(':restore:'))fail('BNS_CONSUMER_PUBLICATION_PENDING');
+ const ref=pending.restore,negative=pending.version===3;
+ if(!exact(ref,['stageId','manifestId','graphDigest','replayId','operations','smartFilter'])||Object.keys(ref).length!==6||!hash(ref.manifestId)||!hash(ref.graphDigest)||ref.replayId!==pending.namespace||typeof ref.stageId!=='string'||!ref.stageId.startsWith(core.prefix+'generation:')||!(negative?ref.stageId.endsWith(':sourcePurgeRestore:'):ref.stageId.endsWith(':restore:')))fail('BNS_CONSUMER_PUBLICATION_PENDING');
  const stage=await t.get('meta',ref.stageId),active=await t.get('meta',core.prefix+'active');
- if(!stage||stage.id!==ref.stageId||stage.phase!=='publishing'||stage.manifestId!==ref.manifestId||stage.graphDigest!==ref.graphDigest||stage.replayId!==ref.replayId||stage.received!==stage.manifest?.itemCount||!equal(active,{id:core.prefix+'active',namespace:ref.replayId,manifestId:ref.manifestId,graphDigest:ref.graphDigest})||(await t.get('meta','recovery-restore-epoch'))?.value!==stage.base?.fence?.epoch&&!(stage.base?.fence?.epoch===null&&(await t.get('meta','recovery-restore-epoch'))===undefined))fail('BNS_CONSUMER_PUBLICATION_PENDING');
+ if(negative){
+  sourcePurgeProtocolControls(core,[stage],ref.replayId);
+  if(stage.version!==2||stage.databaseId!==pending.databaseId||stage.namespace!==ref.replayId||stage.phase!=='publishing'||stage.manifestRef.id!==ref.manifestId||stage.portableDigest!==ref.graphDigest||stage.epoch!==((await t.get('meta','recovery-restore-epoch'))?.value??null))fail('BNS_CONSUMER_PUBLICATION_PENDING');
+ }else if(!stage||stage.id!==ref.stageId||stage.phase!=='publishing'||stage.manifestId!==ref.manifestId||stage.graphDigest!==ref.graphDigest||stage.replayId!==ref.replayId||stage.received!==stage.manifest?.itemCount||!equal(active,{id:core.prefix+'active',namespace:ref.replayId,manifestId:ref.manifestId,graphDigest:ref.graphDigest})||(await t.get('meta','recovery-restore-epoch'))?.value!==stage.base?.fence?.epoch&&!(stage.base?.fence?.epoch===null&&(await t.get('meta','recovery-restore-epoch'))===undefined))fail('BNS_CONSUMER_PUBLICATION_PENDING');
  const refs=ref.operations;if(!Array.isArray(refs)||refs.length<1||refs.length>7||new Set(refs.map(x=>x?.entityId)).size!==refs.length||refs.some(x=>!exact(x,['entityId','operationId','revisionId'])||Object.keys(x).length!==3||!CONSUMER_PREFERENCE_KEYS.includes(x.entityId)||!hash(x.revisionId))||!equal(pending.operations,refs.filter(x=>x.entityId!=='smartFilter')))fail('BNS_CONSUMER_PUBLICATION_PENDING');
  for(const item of refs){const revision=await core.get(t,'revision',item.revisionId),receipt=await core.get(t,'receipt',item.operationId),head=await core.get(t,'head','consumerPreference',item.entityId),proof=await core.materializedOwner(t,'consumerPreference',item.entityId),owner=await t.get('meta',rowId(item.entityId));
   if(!revision?.operation||revision.operation.type!=='consumerPreference'||revision.operation.entityId!==item.entityId||revision.operation.operationId!==item.operationId||await core.get(t,'outbox',item.operationId)||!receipt||receipt.digest!==item.revisionId||receipt.deviceId!==revision.operation.deviceId||receipt.sequence!==revision.operation.sequence||head?.purged||!equal(head?.revisions,[item.revisionId])||!exact(owner,['id','version','revision','intent'])||Object.keys(owner).length!==4||owner.version!==1||!Number.isSafeInteger(owner.revision)||owner.revision<1||!equal(owner.intent,revision.operation.value)||proof?.ownerRevision!==owner.revision||proof?.operation.revisionId!==item.revisionId)fail('BNS_CONSUMER_PUBLICATION_PENDING');
@@ -95,7 +119,9 @@ export async function requireImportedConsumerPublication(t,core,pending){
  return stage;
 }
 // Crypto and immutable re-encoding stay outside every original IDB transaction.
-export async function validateImportedConsumerStage(stage,core){
+export async function validateImportedConsumerStage(stage,core,role=2,revisions=null){
+ if(role===3){sourcePurgeProtocolControls(core,[stage],stage.namespace);if(stage.version!==2||!['validated','publishing'].includes(stage.phase))fail('BNS_CONSUMER_PUBLICATION_PENDING');const encoded=await protocolObject('checkpoint-manifest',bytes(stage.manifest),{profile:SEGMENT_PROFILE});if(!equal(encoded.ref,stage.manifestRef))fail('BNS_OBJECT_INTEGRITY');if(stage.phase==='publishing')await validateSourcePurgeConsumerStage(core,stage,revisions);return;}
+ if(role!==2)fail('BNS_CONSUMER_PUBLICATION_PENDING');
  const base=stage?.base,fence=base?.fence,settings=base?.settings;
  if(!exact(stage,['id','manifestId','manifestRef','manifest','phase','base','replayId','received','graphDigest'])||Object.keys(stage).length!==9||!['validated','publishing'].includes(stage.phase)||!hash(stage.manifestId)||!hash(stage.graphDigest)||!opaque(stage.replayId)||!count(stage.received)||stage.received!==stage.manifest?.itemCount||!exact(base,['namespace','generation','ownerGeneration','fence','settings'])||Object.keys(base).length!==5||!(base.namespace==='initial'||opaque(base.namespace))||base.namespace===stage.replayId||!count(base.generation)||!count(base.ownerGeneration)||!exact(fence,['epoch','namespace','marker'])||Object.keys(fence).length!==3||fence.namespace!==base.namespace||!(fence.epoch===null||opaque(fence.epoch))||typeof fence.marker!=='boolean'||!exact(settings,['consentVersion','consentAt','enabled','epoch'])||Object.keys(settings).length!==4||settings.enabled!==true||settings.consentVersion!==CONSENT_VERSION||!count(settings.epoch)||!Number.isFinite(Date.parse(settings.consentAt)))fail('BNS_CONSUMER_PUBLICATION_PENDING');
  assertGroupedCheckpointManifest(stage.manifest,{core});assertProtocolObjectReference(stage.manifestRef);

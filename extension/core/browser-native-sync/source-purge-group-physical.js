@@ -1,3 +1,8 @@
+import {materializePrompt,preparePromptBindingReplay} from './prompt-journal.js';
+import {requireResolvedPromptReplayConflict} from './resolved-prompt-replay.js';
+import {projectSourcePurgeConsumerRows} from './consumer-preference-restore.js';
+import {CONSUMER_PUBLICATION_PENDING_ID} from './consumer-publication-state.js';
+import {reserveControlPublication,readControlPublicationFence,CONTROL_PUBLICATION_RESERVATION} from '../local-control-publication.js';
 import {originalFilterConstructor} from '../smart-filter-store-owner.js';
 import {enqueueInvalidation} from '../thought-maintenance.js';
 import {equal,exact,opaque} from './value.js';
@@ -21,7 +26,7 @@ export async function sourcePurgeGroupSnapshot(core,t){
 }
 // Detached prediction only: original domain/index/semantic writers operate on
 // private Maps. No native transaction, store mutation, or alternate data truth.
-export async function planSourcePurgeGroupPhysical(store,core,before,groups,negative,protocol,active,observed=null){
+export async function planSourcePurgeGroupPhysical(store,core,before,groups,negative,protocol,active,observed=null,portable=null){
  const bound=snapshots.get(before);if(!bound||bound.core!==core||bound.repository!==store.repository||bound.database!==store.repository.db)deny();
  if(measureSourceWorkingPhysicalTree(before).B*4+measureSourceWorkingPhysicalTree({groups,negative,protocol}).B*8>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');
  const maps=Object.fromEntries(Object.entries(before).map(([name,rows])=>[name,new Map(rows.map(row=>[row.id,copy(row)]))]));
@@ -40,6 +45,16 @@ export async function planSourcePurgeGroupPhysical(store,core,before,groups,nega
  const knownEvents=new Set();
  for(const group of groups){
   if(group.type==='sourceBootstrapCommit'){await IndexedArchiveStore.prototype.applyInitialSource.call(facade,scratch,group.capability);continue;}
+  if(['promptPreferences','promptBinding','consumerPreference'].includes(group.type)){
+   if(!portable)deny();const operation=group.operations[0],previousHead=await core.get(scratch,'head',operation.type,operation.entityId),previousVersions=[];
+   for(const ref of previousHead?.revisions??[])previousVersions.push((await core.get(scratch,'revision',ref)).operation);
+   await core.put(scratch,'revision',[operation.revisionId],{operation,redacted:false});
+   let revisions=[],stale=false;for(const head of previousHead?.revisions??[]){if(await core.ancestor(scratch,head,operation.revisionId))continue;if(await core.ancestor(scratch,operation.revisionId,head))stale=true;revisions.push(head);}if(!stale)revisions.push(operation.revisionId);revisions.sort();
+   const head={type:operation.type,entityId:operation.entityId,revisions,purged:false,fence:null};await core.put(scratch,'head',[operation.type,operation.entityId],head);
+   if(revisions.length>1)requireResolvedPromptReplayConflict(core,portable.plan,group,{state:'conflict',revisions});
+   else if(group.type!=='consumerPreference'){const winner=(await core.get(scratch,'revision',revisions[0])).operation;await (group.type==='promptBinding'?preparePromptBindingReplay(core,portable.plan):materializePrompt)(scratch,{core,previousCore:core,operation:winner,head,origin:'remote',previousHead,previousVersions});}
+   continue;
+  }
   if(group.type!=='inputWorkingCommit'||!observed)deny();
   const members=group.prepared.members.map(o=>({operation:o,type:o.value.entityType,value:o.value.entity})),block=members.find(m=>m.type==='input')?.value,state=members.find(m=>m.type==='inputState')?.value;
   const event=events.find(r=>r.inputId===block.id&&r.contentRevision===state.contentRevision),at=observed.filterInputs.find(r=>r.id===block.id)?.overrideAt;
@@ -54,12 +69,22 @@ export async function planSourcePurgeGroupPhysical(store,core,before,groups,nega
  }
 
  for(const n of negative){const v=n.intent,id='source:'+v.sourceKey;if(maps.tombstones.has(id))continue;await scratch.put('tombstones',{id,sequence:Date.parse(v.at),value:{sourceIdentityHash:v.sourceKey,deletedAt:v.at,status:'permanently_ignored'}});}
+ let publication=null,predictedControl=null;
+ if(portable?.consumer){
+  const control=copy(portable.beforeControl),beforeFence=await readControlPublicationFence(scratch),nonce=observed?.meta.find(r=>r.id===CONTROL_PUBLICATION_RESERVATION)?.nonce;
+  const facade={repository:store.repository,consumerPreferenceJournal:store.consumerPreferenceJournal,control:async()=>copy(control),qualifyControlPublicationRead:async()=>{},saveControl:async(_t,value)=>{if(!opaque(nonce)||!/^([A-Za-z0-9_-]{8,128})$/.test(nonce))deny();await reserveControlPublication(scratch,beforeFence,{nonce,databaseId:store.databaseId,beforeDigest:portable.controlDigest});Object.assign(control,copy(value));await scratch.put('meta',{id:'gate',epoch:value.settings.epoch,enabled:value.settings.enabled});}};
+  publication=await projectSourcePurgeConsumerRows(portable.consumer,scratch,facade,core);predictedControl=copy(control);
+ }
+ const publishing=!!publication?.operations.length;
+ if(portable?.progress){const progress={...portable.progress,phase:publishing?'publishing':'activated'};protocol=protocol.map(row=>row.id===progress.id?progress:row);}
  for(const row of protocol)maps.meta.set(row.id,copy(row));
+ if(publishing){const progress=portable.progress,reservation=await scratch.get('meta',CONTROL_PUBLICATION_RESERVATION);await scratch.put('meta',{id:CONSUMER_PUBLICATION_PENDING_ID,version:3,namespace:progress.namespace,databaseId:reservation.databaseId,controlRevision:reservation.revision,nonce:reservation.nonce,terminal:false,before:publication.before,operations:publication.operations,restore:{stageId:progress.id,manifestId:progress.manifestRef.id,graphDigest:progress.portableDigest,replayId:progress.namespace,operations:publication.allOperations,smartFilter:publication.smartFilter}});}
+
  const callback=Object.fromEntries(Object.entries(maps).map(([name,map])=>[name,sort([...map.values()].map(copy))]));
  await flushNavigationWrites(scratch);await flushSemanticWrites(scratch);
  if(groups.length||negative.length){const row=maps.meta.get('backup-data-generation');maps.meta.set('backup-data-generation',{id:'backup-data-generation',value:(row?.value||0)+1});}
  const terminal=sourcePurgeActiveTerminal(store,core,active,Object.fromEntries(Object.entries(maps).map(([name,map])=>[name,sort([...map.values()].map(copy))])));
- if(measureSourceWorkingPhysicalTree({before,callback,terminal}).B>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');return {callback,terminal};
+ if(measureSourceWorkingPhysicalTree({before,callback,terminal}).B>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');return {callback,terminal,...(predictedControl?{control:predictedControl}:{})};
 }
 export async function requireSourcePurgeGroupRows(core,t,expected){const actual=await sourcePurgeGroupSnapshot(core,t);if(!equalSourceWorkingPhysicalTree(actual,expected))deny();}
 export function sealSourcePurgeGroupRows(store,core,t,before,terminal,current){
