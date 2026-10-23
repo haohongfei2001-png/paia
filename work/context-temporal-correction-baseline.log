@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: temporal Context edit expired reconciles through original protected owner without changing time metadata
+not ok 1 - temporal Context edit expired reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 99.612333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"be77dd4a-10c4-4734-9e21-65e5c8cfdc1f\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: temporal Context edit future reconciles through original protected owner without changing time metadata
+not ok 2 - temporal Context edit future reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 56.073833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"86eeb6e0-bca7-4450-b13b-0918e2fcdd7c\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: temporal Context edit unknown reconciles through original protected owner without changing time metadata
+not ok 3 - temporal Context edit unknown reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 60.167583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"2f257688-d100-492d-ae9b-2c2d09829bd6\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: temporal Context restore expired reconciles through original protected owner without changing time metadata
+not ok 4 - temporal Context restore expired reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 47.42775
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"430a1fed-e7ba-422e-9e01-f793fd976819\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: temporal Context restore future reconciles through original protected owner without changing time metadata
+not ok 5 - temporal Context restore future reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 47.11825
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"f8ddec5f-1593-4ce6-b99c-8222e4bd1330\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: temporal Context restore unknown reconciles through original protected owner without changing time metadata
+not ok 6 - temporal Context restore unknown reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 46.364667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"bbaf11f8-6f9a-4c44-bb28-73681cf1c822\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 0
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 512.252125

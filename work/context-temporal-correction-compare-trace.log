@@ -1,0 +1,33 @@
+TAP version 13
+# Subtest: temporal Context edit expired reconciles through original protected owner without changing time metadata
+not ok 1 - temporal Context edit expired reconciles through original protected owner without changing time metadata
+  ---
+  duration_ms: 422.639625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:312:98'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"PARTIAL","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:66016e5278d4f57131d7ca516913e8bd5ee586034565d18c33079a240b1f9291","facets":[{"facet":"context","units":1,"state":"FAILED","reason":"CONTEXT_INVALIDATED"}],"deferredUnits":1,"blockedUnits":1,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-context-edit-mapping.test.mjs:314:75)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 706.976333
