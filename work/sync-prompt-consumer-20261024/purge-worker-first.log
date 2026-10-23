@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge
+not ok 1 - actual worker synchronous events and same-store command consumer, configured=purge
+  ---
+  duration_ms: 202.727291
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:119:69'
+  failureType: 'testCodeFailure'
+  error: 'receipt.descriptors is not iterable'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:155:341)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge-unknown
+ok 2 - actual worker synchronous events and same-store command consumer, configured=purge-unknown
+  ---
+  duration_ms: 99.851375
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 466.186042
