@@ -1,0 +1,8 @@
+{
+  "extension/background/application-worker-coordination.js": "56be2f63f38759cddf9f6b707b8cb86c83d9a138df49a9e228f5a0e5755b8bc3",
+  "extension/core/thought-runner.js": "864de6d7618f716f1b22ba77a94fdd849fbf0269260c9537ac4b30b1c022c014",
+  "extension/core/library-runner.js": "fa9499ae76236a5957117e1f84e89d341071ee3fd51ce7ecfd6d7e776e02de35",
+  "extension/core/filter-runner.js": "ebb10b3853574e1d29be64c8bd78a390be1469a297332beb81e3409b5297fdfd",
+  "extension/core/ai-usage/maintenance-runner.js": "c2679b7cef965b56d2e0ad9f9d021d3a93daee61d8dead1a983ceeda883f0629",
+  "extension/tests/application-worker-coordination.test.mjs": "4f7cdc9e6a99cebb649d46e48185a9df2f8adf7bceba76d03037b6fb7c70cd5a"
+}
