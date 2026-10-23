@@ -1,3 +1,4 @@
+import {createConfiguredSyncLifecycle,syncLifecycleError} from './sync-local-lifecycle.js';
 import {MaintenanceProcessingCommands,configureMaintenanceProcessingSource} from './maintenance-processing-commands.js';
 import {createAIFilterRuntime} from './ai-filter-commands.js';
 import {readAIFilterPolicyConfiguration} from './ai-filter-policy-configuration.js';
@@ -58,7 +59,8 @@ import {unavailableAIProvider,unavailableAICredentials} from '../core/organizer/
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
 import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
-let store,maintenanceProcessing,maintenanceConfiguration,maintenanceRunner,contextConnections,localScopePreviewCapability,contextScopePreview,thoughtLibraryRead,sectionPromotion,thoughtSectionReading,promptReuse,archiveArrival,promptSurface,promptNext,promptAssist,legacyUsage,passport,revisit,readerState,sourceStructure,archiveNavigation,archiveOriginal,archiveOrderPreference,sourceOrderRegistry,originalOrganizer,organizeConfiguration,organizeActionSource,aiOrganizer,boundedOrganizer,onboarding,integrity,memory,contextTopics,contextCards,backups,imports,runner,safety,libraryRunner;
+let syncSuspended=false;
+let store,syncLifecycle,maintenanceProcessing,maintenanceConfiguration,maintenanceRunner,contextConnections,localScopePreviewCapability,contextScopePreview,thoughtLibraryRead,sectionPromotion,thoughtSectionReading,promptReuse,archiveArrival,promptSurface,promptNext,promptAssist,legacyUsage,passport,revisit,readerState,sourceStructure,archiveNavigation,archiveOriginal,archiveOrderPreference,sourceOrderRegistry,originalOrganizer,organizeConfiguration,organizeActionSource,aiOrganizer,boundedOrganizer,onboarding,integrity,memory,contextTopics,contextCards,backups,imports,runner,safety,libraryRunner;
 const startupEvents=createApplicationStartupEvents(chrome);
 const aiFilterRuntime=createAIFilterRuntime(chrome,{getStore:()=>store,policy:readAIFilterPolicyConfiguration()});
 async function initializeApplicationServices(){
@@ -168,10 +170,14 @@ chrome.runtime.onConnect?.addListener(port=>{if(port.name==='official-export-ses
 chrome.runtime.onConnect?.addListener(port=>{if(port.name.startsWith('bounded-organizer:')&&isExtensionPage(port.sender)){const id=port.name.slice('bounded-organizer:'.length);port.onDisconnect.addListener(()=>{void ready.then(()=>{if(boundedOrganizer.currentId===id&&boundedOrganizer.running)return boundedOrganizer.stop();}).catch(()=>{});});}});
 // Fail closed if storage isolation cannot be established; never expose records
 // directly to a content script, including the brief worker-startup period.
-const ready = chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' }).then(initializeApplicationServices).then(()=>store.recoverControlPublication());
+const ready = chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' }).then(initializeApplicationServices).then(()=>store.recoverControlPublication()).then(async()=>{syncLifecycle=await createConfiguredSyncLifecycle(store,chrome);if(syncSuspended)syncLifecycle.suspend();});
 const privacyReady=Promise.resolve(privacySession.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'}));
 privacyReady.catch(()=>{});
 ready.catch(() => {});
+// Register synchronously; startup only reconciles local receipts, never unknown IO.
+chrome.runtime.onStartup?.addListener(()=>{void ready.then(()=>syncLifecycle.reconcile()).catch(()=>{});});
+chrome.runtime.onSuspend?.addListener(()=>{syncSuspended=true;syncLifecycle?.suspend();});
+chrome.runtime.onSuspendCanceled?.addListener(()=>{syncSuspended=false;void ready.then(()=>syncLifecycle.resumeAfterSuspend()).catch(()=>{});});
 installCaptureRecovery(chrome, ready);
 // Register lifecycle listeners synchronously; the fixed facade reaches the one
 // selected owner only after initialization. It grants no store/writer capability.
@@ -202,6 +208,7 @@ function isChatGPTContent(sender) {
 async function handle(request, sender) {
   await ready;
   if (!request || typeof request.type !== 'string') throw new ArchiveError('INVALID_REQUEST');
+  if(request.type.startsWith('PAIA_SYNC_'))return syncLifecycle.handle(request,sender);
   if(request.type.startsWith('PAIA_MAINTENANCE_PROCESSING_'))return maintenanceProcessing.handle(request,sender);
   if(request.type.startsWith('PAIA_ARCHIVE_ARRIVAL_'))return archiveArrival.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_ASSIST_'))return promptAssist.handle(request,sender);
@@ -591,6 +598,10 @@ if(runtime.onStartup)startupMaintenance();
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   handle(request, sender)
     .then(async data => {
+      if(request.type.startsWith('PAIA_SYNC_')){
+        if(['PAIA_SYNC_RESTORE','PAIA_SYNC_CONTINUE'].includes(request.type)&&data?.task?.phase==='confirmed')await notifyArchiveChanged(request.type);
+        sendResponse({ok:true,data});return;
+      }
       const archiveMutation=request.type==='CAPTURE'?(Number(data?.added)>0||data?.timeChanged===true):request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:request.type==='OBSERVE_SOURCE_STRUCTURE'?false:true;
       if(request.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&['confirm','resume','proposal_resume','restore'].includes(request.command)&&data?.state==='committed')void notifyArchiveChanged(request.type);
       if(request.type==='PURGE_SOURCE')await notifyArchiveChanged(request.type);
@@ -611,7 +622,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       else if(request.type!=='OBSERVE_SOURCE_STRUCTURE'&&!isAIStyleOnlyRequest(request)&&!localToolRequest(request.type)&&(!request.type.startsWith('IMPORT_')||['IMPORT_COMMIT','IMPORT_COMPLETE','IMPORT_RESOLVE_BRANCH'].includes(request.type))&&!['GET_ONBOARDING','SET_ONBOARDING'].includes(request.type)&&!request.type.startsWith('PAIA_MEMORY_')&&!request.type.startsWith('PAIA_INTEGRITY_')&&!request.type.startsWith('PAIA_BACKUP_')&&request.type!=='GET_BOUNDED_ORGANIZER'&&!['GET_AI_PRESENTATION_STATUS','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME'].includes(request.type)&&request.type!=='GET_ORIGINAL_ORGANIZER_STATUS'&&request.type!=='GET_DEEPSEEK_STATUS'&&request.type!=='FILTER_DIAGNOSTICS'&&!['SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))void scheduleFilter({retry:['FILTER_RECOVER','FILTER_MODE'].includes(request.type)});
       if(request.type!=='PURGE_SOURCE'&&archiveMutation&&!isAIStyleOnlyRequest(request)&&!localToolRequest(request.type)&&!['PAIA_MEMORY_STATUS','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_MEMORY_ENTRIES'].includes(request.type)&&!request.type.startsWith('PAIA_INTEGRITY_')&&!['PAIA_BACKUP_BEGIN_EXPORT','PAIA_BACKUP_EXPORT_PAGE','PAIA_BACKUP_BEGIN_RESTORE','PAIA_BACKUP_STAGE','PAIA_BACKUP_PREVIEW','PAIA_BACKUP_CANCEL','GET_BOUNDED_ORGANIZER','GET_LIBRARY_REMOVED_TOPICS','GET_LIBRARY_REMOVED_PLACEMENTS','GET_LIBRARY_RENAME_SUGGESTIONS','GET_LIBRARY_MERGE_SUGGESTIONS','GET_ORGANIZER_CONTROLS','GET_AI_PRESENTATION_REVISIONS','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME','GET_AI_PRESENTATION_STATUS','GET_ORIGINAL_ORGANIZER_STATUS','GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK','LIBRARY_UPDATES','LIBRARY_ORGANIZER_JOBS','GET_LIBRARY_UNPLACED','GET_LIBRARY_PLACEMENT','LIBRARY_INDEX_PAGE','GET_LIBRARY_ROOT_SEARCH','TOPIC_DOCUMENT_PAGE','GET_LIBRARY_TOPIC_TIMELINE','GET_LIBRARY_TOPIC','GET_LIBRARY_ENTRY','GET_LIBRARY_PATHS','GET_LIBRARY_PROVENANCE','GET_LIBRARY_REMOVED','SEARCH_LIBRARY','GET_LIBRARY_LAYOUT','GET_LIBRARY_FOUNDATION_STATUS','GET_LIBRARY_DUAL_VIEW_STATUS','PREVIEW_AI_LIBRARY_UPDATE','FILTER_DIAGNOSTICS','FILTER_STATUS','FILTER_NOTICE','FILTER_RECENT','SEARCH_INPUTS','GET_INPUT','GET_IA_STATUS','GET_REVISIONS','GET_THOUGHTS','GET_THOUGHT','GET_STATUS','GET_STATE','GET_PAGE','GET_MIGRATION_STATUS','RESPONSE_POLL','RESPONSE_VIEW','RESPONSE_ARM','DIAGNOSTIC','GET_ONBOARDING','SET_ONBOARDING','IMPORT_LATEST','IMPORT_CANCEL','IMPORT_CAPABILITIES','IMPORT_TASKS','IMPORT_STATUS','IMPORT_BEGIN','IMPORT_PREFLIGHT','IMPORT_READY','IMPORT_PAUSE'].includes(request.type))notifyArchiveChanged(request.type);
     })
-    .catch(error => sendResponse({ ok: false, ...(['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)?{phase:'message_handler'}:{}), ...(request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&error?.phase==='promotion_not_confirmed'?{phase:'promotion_not_confirmed'}:{}), error: request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&['BNS_GROUP_OWNER_UNSUPPORTED','BNS_HUMAN_UNSUPPORTED_MUTATION'].includes(error?.code)?error.code:typeof request?.type==='string' && request.type.startsWith('IMPORT_') ? safeImportError(error) : ['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)&&!(error instanceof ArchiveError)?'INTERNAL_RUNTIME_ERROR':safeErrorCode(error) }));
+    .catch(error => sendResponse({ ok: false, ...(['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)?{phase:'message_handler'}:{}), ...(request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&error?.phase==='promotion_not_confirmed'?{phase:'promotion_not_confirmed'}:{}), error: typeof request?.type==='string'&&request.type.startsWith('PAIA_SYNC_')?syncLifecycleError(error):request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&['BNS_GROUP_OWNER_UNSUPPORTED','BNS_HUMAN_UNSUPPORTED_MUTATION'].includes(error?.code)?error.code:typeof request?.type==='string' && request.type.startsWith('IMPORT_') ? safeImportError(error) : ['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)&&!(error instanceof ArchiveError)?'INTERNAL_RUNTIME_ERROR':safeErrorCode(error) }));
   return true;
 });
 
