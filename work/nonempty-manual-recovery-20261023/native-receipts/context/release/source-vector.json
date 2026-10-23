@@ -1,0 +1,12 @@
+{
+  "core/ai-usage/context-correction.js": "baab71df6ee7e179d99cb2aef4bd5f83e4ea7d64ffc55f243df32738a588126d",
+  "core/ai-usage/local-maintenance-session.js": "8d9098bbfeb1cdf585a53b7bd053f6fab65e11f6b2908b969805cf3b77b84eea",
+  "core/ai-usage/maintenance-payload.js": "0587099ba3836155d7d302e37e422f2dd9b59cfe9ca42a5dfef3f853dea7f416",
+  "core/ai-usage/maintenance-qualification.js": "33716de292c96822810a7cf89f1e8b81793c540547486d5cf936f156a0befa6a",
+  "core/ai-usage/maintenance-service-response.js": "7d78d25dbae0fdd0b08bb1558f13f2dcc8b87808d56b007d301a1fe12b420ce0",
+  "core/context-authored-entry.js": "5c6ea96c127ad6ed85f67d38a8cecb2bc21999394aaabd19187c51a8b0835c26",
+  "core/context-bound-entry.js": "6d7350a7e8025f38b13354bffcf121f5fd2d5a475457159bd47c3f6d27b74813",
+  "core/context-item-lineage.js": "98d4ec29577291d6d4e81a33c4a7785a7dffc88bde8d4f5b20d1251f530588c3",
+  "core/context-topic-scope.js": "47edae961cb18b9d7ba987850bd34fcc3c5de758fc563fe0d923b71e4a905379",
+  "core/idb-repository.js": "4d9e50e11852b1c29b16ba56860925f36636432b1c05701a6f10d47418c028ca"
+}
