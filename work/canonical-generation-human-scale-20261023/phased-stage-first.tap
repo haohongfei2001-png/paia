@@ -1,0 +1,79 @@
+TAP version 13
+# {"count":1,"items":7,"phase":"authenticated","workBytes":110239,"activeMs":7,"tickets":1}
+# Subtest: explicit phased authentication of 1 original Human creates keeps canonical target invisible
+ok 1 - explicit phased authentication of 1 original Human creates keeps canonical target invisible
+  ---
+  duration_ms: 105.743667
+  type: 'test'
+  ...
+# Subtest: explicit phased authentication of 65 original Human creates keeps canonical target invisible
+not ok 2 - explicit phased authentication of 65 original Human creates keeps canonical target invisible
+  ---
+  duration_ms: 777.148917
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:14:31'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_TASK_PROFILE'
+  code: 'GENERATION_TASK_PROFILE'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:25:80)
+    CanonicalGenerationCheckpointStage.stagePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:138:53)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:14:186)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: explicit phased authentication of 129 original Human creates keeps canonical target invisible
+not ok 3 - explicit phased authentication of 129 original Human creates keeps canonical target invisible
+  ---
+  duration_ms: 1185.628667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:14:31'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_TASK_PROFILE'
+  code: 'GENERATION_TASK_PROFILE'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:25:80)
+    CanonicalGenerationCheckpointStage.stagePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:138:53)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:14:186)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: committed page followed by lost response burns original reservation on fresh explicit continuation
+ok 4 - committed page followed by lost response burns original reservation on fresh explicit continuation
+  ---
+  duration_ms: 229.784958
+  type: 'test'
+  ...
+# Subtest: old checkpoint invocation cannot silently enter or reset a phased task
+ok 5 - old checkpoint invocation cannot silently enter or reset a phased task
+  ---
+  duration_ms: 89.209667
+  type: 'test'
+  ...
+# Subtest: transport fault leaves a durable reservation without synthetic refund
+ok 6 - transport fault leaves a durable reservation without synthetic refund
+  ---
+  duration_ms: 50.274833
+  type: 'test'
+  ...
+# Subtest: ledger cannot double refund, reset spent work or accept unknown shape
+ok 7 - ledger cannot double refund, reset spent work or accept unknown shape
+  ---
+  duration_ms: 0.155708
+  type: 'test'
+  ...
+# Subtest: ledger hard task ceilings survive repeated conservative cold burns
+ok 8 - ledger hard task ceilings survive repeated conservative cold burns
+  ---
+  duration_ms: 0.087209
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 6
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2612.659791

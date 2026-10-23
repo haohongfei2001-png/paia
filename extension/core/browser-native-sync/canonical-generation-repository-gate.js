@@ -1,5 +1,6 @@
 import * as stage from './canonical-generation-checkpoint-stage.js';
 import * as human from './canonical-generation-human-restore.js';
+import * as phasedHuman from './canonical-generation-phased-human.js';
 import * as group from './group-checkpoint.js';
 import * as publication from './canonical-generation-publication.js';
 import {ArchiveError} from '../constants.js';
@@ -11,7 +12,7 @@ export const CANONICAL_REPOSITORY_GATE='canonical-generation:gate:v1';
 const fail=()=>{throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 export function readOriginalGenerationRepositoryAuthority(token,repository,scope){
- for(const [module,name]of [[stage,'readOriginalCheckpointRepositoryAuthority'],[human,'readOriginalHumanRepositoryAuthority'],[group,'readOriginalGroupGenerationRepositoryAuthority'],[publication,'readOriginalPublicationRepositoryAuthority']]){
+ for(const [module,name]of [[stage,'readOriginalCheckpointRepositoryAuthority'],[human,'readOriginalHumanRepositoryAuthority'],[phasedHuman,'readOriginalPhasedHumanRepositoryAuthority'],[group,'readOriginalGroupGenerationRepositoryAuthority'],[publication,'readOriginalPublicationRepositoryAuthority']]){
   const read=module[name];if(typeof read!=='function')continue;const value=read(token,repository,scope);if(value!==null)return value;
  }
  return null;
@@ -22,8 +23,8 @@ export function originalGenerationProtection(marker,gate,databaseName){
 }
 export function originalGenerationRepositoryAdmission(authority,marker,gate,databaseName){
  if(!authority)fail();if(marker!=null)originalGenerationProtection(marker,gate,databaseName);else if(authority.kind!=='checkpoint-install'||!gate||gate.identity?.databaseName!==databaseName||gate.phase!=='staging')fail();
- if(['checkpoint','checkpoint-install','human','group-stage','group-apply'].includes(authority.kind)&&gate.phase!=='staging')fail();
- if(!['checkpoint','checkpoint-install','human','group-stage','group-apply','publication','publication-seal','checkpoint-retire','active-library'].includes(authority.kind))fail();
+ if(['checkpoint','checkpoint-install','human','human-phased','group-stage','group-apply'].includes(authority.kind)&&gate.phase!=='staging')fail();
+ if(!['checkpoint','checkpoint-install','human','human-phased','group-stage','group-apply','publication','publication-seal','publication-phased-human-seal','checkpoint-retire','active-library'].includes(authority.kind))fail();
  if(authority.kind==='checkpoint-retire'&&(marker==null||gate.phase!=='active'))fail();
  if(authority.kind==='active-library'&&(marker==null||gate.phase!=='active'||!same(gate,authority.gate)||!same(marker,authority.marker)))fail();
  if(authority.identity&&!same(authority.identity,gate.identity))fail();return true;
@@ -33,17 +34,17 @@ export function originalGenerationRepositoryMutation(authority,table,key,method)
  if(table==='meta'&&key===CANONICAL_REPOSITORY_PROTECTION){if(authority.kind!=='checkpoint-install'||method!=='put')fail();return;}
  if(authority.kind==='checkpoint-retire'){if(table!=='meta'||!(method==='put'&&key==='canonical-generation:copy-retirement:v1'||method==='delete'&&(key==='canonical-generation:checkpoint:state:v1'||/^canonical-generation:checkpoint:(item|page):[0-9]{8}$/.test(key))))fail();return;}
  if(authority.kind==='active-library'){if(table==='meta'&&typeof key==='string'&&key.startsWith('canonical-generation:'))fail();return;}
- if(['human','group-apply'].includes(authority.kind)){if(table==='meta'&&key===CANONICAL_REPOSITORY_GATE)fail();return;}
+ if(['human','human-phased','group-apply'].includes(authority.kind)){if(table==='meta'&&key===CANONICAL_REPOSITORY_GATE)fail();return;}
  if(table!=='meta')fail();
  if(authority.kind==='group-stage'){if(typeof key!=='string'||!key.startsWith(authority.prefix))fail();return;}
- if(['publication','publication-seal'].includes(authority.kind)){if(method!=='put'||key!==CANONICAL_REPOSITORY_GATE&&!(authority.kind==='publication-seal'&&key==='canonical-generation:qualified-graph:v1'))fail();return;}
+ if(['publication','publication-seal','publication-phased-human-seal'].includes(authority.kind)){if(method!=='put'||key!==CANONICAL_REPOSITORY_GATE&&!(['publication-seal','publication-phased-human-seal'].includes(authority.kind)&&key==='canonical-generation:qualified-graph:v1'||authority.kind==='publication-phased-human-seal'&&key==='canonical-generation:checkpoint:phased-task:v1'))fail();return;}
  if(key===CANONICAL_REPOSITORY_GATE){if(method!=='put')fail();return;}
  if(typeof key!=='string'||!key.startsWith('canonical-generation:checkpoint:'))fail();
 }
 export function originalGenerationRepositorySettlement(authority,marker,before,after,databaseName){
  originalGenerationProtection(marker,after,databaseName);
  if(!same(before.identity,after.identity)||before.registryName!==after.registryName)fail();
- if(['human','checkpoint-retire','group-stage','group-apply'].includes(authority.kind)&&!same(before,after))fail();
+ if(['human','human-phased','checkpoint-retire','group-stage','group-apply'].includes(authority.kind)&&!same(before,after))fail();
  if(authority.kind==='active-library'&&!same({...before,writeRevision:before.writeRevision+1},after))fail();
  if(['checkpoint','checkpoint-install'].includes(authority.kind)&&!same({...before,writeRevision:before.writeRevision+1},after))fail();
  return true;

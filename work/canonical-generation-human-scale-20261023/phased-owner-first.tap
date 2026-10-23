@@ -1,0 +1,17 @@
+TAP version 13
+# {"ownerGroups":1,"state":"applied","completed":1,"total":1,"workBytes":402155,"activeMs":65,"publicationQualified":false}
+# Subtest: phased original owner consumes 1 source-free Human groups within durable task budget
+ok 1 - phased original owner consumes 1 source-free Human groups within durable task budget
+  ---
+  duration_ms: 217.086167
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 413.489375

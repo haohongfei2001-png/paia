@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: fixed phased seal rejects real late item mutation and rolls back the whole publication transaction
+ok 1 - fixed phased seal rejects real late item mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 203.185042
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late page mutation and rolls back the whole publication transaction
+ok 2 - fixed phased seal rejects real late page mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 139.202708
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late validation mutation and rolls back the whole publication transaction
+ok 3 - fixed phased seal rejects real late validation mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 129.78975
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late canonical mutation and rolls back the whole publication transaction
+ok 4 - fixed phased seal rejects real late canonical mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 114.640292
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late receipt mutation and rolls back the whole publication transaction
+ok 5 - fixed phased seal rejects real late receipt mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 123.431334
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late counter mutation and rolls back the whole publication transaction
+ok 6 - fixed phased seal rejects real late counter mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 115.240125
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late extra mutation and rolls back the whole publication transaction
+ok 7 - fixed phased seal rejects real late extra mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 123.504917
+  type: 'test'
+  ...
+# Subtest: fixed phased publication rejects forged proof and active source changed since original begin
+ok 8 - fixed phased publication rejects forged proof and active source changed since original begin
+  ---
+  duration_ms: 129.341875
+  type: 'test'
+  ...
+# Subtest: live phased invocation cannot be mistaken for a cold crashed reservation
+ok 9 - live phased invocation cannot be mistaken for a cold crashed reservation
+  ---
+  duration_ms: 60.817708
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1314.931959

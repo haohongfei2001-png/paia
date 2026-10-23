@@ -1,0 +1,1133 @@
+TAP version 13
+# Subtest: actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+ok 1 - actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+  ---
+  duration_ms: 357.736125
+  type: 'test'
+  ...
+# Subtest: actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+ok 2 - actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+  ---
+  duration_ms: 152.5045
+  type: 'test'
+  ...
+# Subtest: actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+ok 3 - actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+  ---
+  duration_ms: 346.367125
+  type: 'test'
+  ...
+# Subtest: real bound create/edit/lifecycle owners publish required members through original segments and duplicate ACK adds nothing
+ok 4 - real bound create/edit/lifecycle owners publish required members through original segments and duplicate ACK adds nothing
+  ---
+  duration_ms: 262.759334
+  type: 'test'
+  ...
+# Subtest: actual owner and its outbox roll back together after protocol write failure
+ok 5 - actual owner and its outbox roll back together after protocol write failure
+  ---
+  duration_ms: 21.99075
+  type: 'test'
+  ...
+# Subtest: real bound named Topic/Section/placement/move/fixed/remove/restore/identity consumers remain atomic
+ok 6 - real bound named Topic/Section/placement/move/fixed/remove/restore/identity consumers remain atomic
+  ---
+  duration_ms: 378.918416
+  type: 'test'
+  ...
+# Subtest: private receiver replays actual owners across installation keys and local sequences, preserves coalesced history, duplicate after edit is zero write
+ok 7 - private receiver replays actual owners across installation keys and local sequences, preserves coalesced history, duplicate after edit is zero write
+  ---
+  duration_ms: 155.934792
+  type: 'test'
+  ...
+# Subtest: partial/swapped/semantic tampered/local-counter tampered groups and invalid options refuse with all actual stores unchanged
+ok 8 - partial/swapped/semantic tampered/local-counter tampered groups and invalid options refuse with all actual stores unchanged
+  ---
+  duration_ms: 44.107666
+  type: 'test'
+  ...
+# Subtest: remote actual canonical/domain history/Core/mapping writes all roll back on final ACK failure; prepared owner edit refuses
+ok 9 - remote actual canonical/domain history/Core/mapping writes all roll back on final ACK failure; prepared owner edit refuses
+  ---
+  duration_ms: 46.732583
+  type: 'test'
+  ...
+# Subtest: one global 128-operation ancestry budget includes every parent commit and its member closure before producer writes
+ok 10 - one global 128-operation ancestry budget includes every parent commit and its member closure before producer writes
+  ---
+  duration_ms: 910.307
+  type: 'test'
+  ...
+# Subtest: actual receiver can edit and republish to original producer despite different physical sequences
+ok 11 - actual receiver can edit and republish to original producer despite different physical sequences
+  ---
+  duration_ms: 64.9675
+  type: 'test'
+  ...
+# Subtest: current grouped checkpoint refuses an unjournaled human edit before publication with every store unchanged
+ok 12 - current grouped checkpoint refuses an unjournaled human edit before publication with every store unchanged
+  ---
+  duration_ms: 34.510459
+  type: 'test'
+  ...
+# Subtest: private prepared receiver refuses a real intervening canonical owner change and an unbound capability before any ACK
+ok 13 - private prepared receiver refuses a real intervening canonical owner change and an unbound capability before any ACK
+  ---
+  duration_ms: 42.573458
+  type: 'test'
+  ...
+# Subtest: generation checkpoint authenticates original Source graph and mints private input proof without canonical writes
+ok 14 - generation checkpoint authenticates original Source graph and mints private input proof without canonical writes
+  ---
+  duration_ms: 117.475459
+  type: 'test'
+  ...
+# Subtest: generation checkpoint resumes after committed final page and validates durable cursor/receipt
+ok 15 - generation checkpoint resumes after committed final page and validates durable cursor/receipt
+  ---
+  duration_ms: 71.297542
+  type: 'test'
+  ...
+# Subtest: generation checkpoint lost page response resumes exact cursor without duplicate items
+ok 16 - generation checkpoint lost page response resumes exact cursor without duplicate items
+  ---
+  duration_ms: 65.669959
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable item drift before proof
+ok 17 - generation checkpoint rejects durable item drift before proof
+  ---
+  duration_ms: 56.073416
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable page drift before proof
+ok 18 - generation checkpoint rejects durable page drift before proof
+  ---
+  duration_ms: 52.822417
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable cursor drift before proof
+ok 19 - generation checkpoint rejects durable cursor drift before proof
+  ---
+  duration_ms: 52.199708
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable extra-item drift before proof
+ok 20 - generation checkpoint rejects durable extra-item drift before proof
+  ---
+  duration_ms: 52.9125
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable gate drift before proof
+ok 21 - generation checkpoint rejects durable gate drift before proof
+  ---
+  duration_ms: 51.226792
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late item and rolls back
+ok 22 - generation checkpoint original same-TX terminal rejects late item and rolls back
+  ---
+  duration_ms: 91.094083
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late page and rolls back
+ok 23 - generation checkpoint original same-TX terminal rejects late page and rolls back
+  ---
+  duration_ms: 76.539625
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late extra-item and rolls back
+ok 24 - generation checkpoint original same-TX terminal rejects late extra-item and rolls back
+  ---
+  duration_ms: 69.173041
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late state and rolls back
+ok 25 - generation checkpoint original same-TX terminal rejects late state and rolls back
+  ---
+  duration_ms: 66.797333
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late gate and rolls back
+ok 26 - generation checkpoint original same-TX terminal rejects late gate and rolls back
+  ---
+  duration_ms: 62.258041
+  type: 'test'
+  ...
+# Subtest: generation checkpoint detaches manifest ref before held external get
+ok 27 - generation checkpoint detaches manifest ref before held external get
+  ---
+  duration_ms: 43.922625
+  type: 'test'
+  ...
+# Subtest: generation checkpoint refuses another target handle or foreign compiler binding
+ok 28 - generation checkpoint refuses another target handle or foreign compiler binding
+  ---
+  duration_ms: 57.89325
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects incomplete immutable chain before authenticated state
+ok 29 - generation checkpoint rejects incomplete immutable chain before authenticated state
+  ---
+  duration_ms: 46.690875
+  type: 'test'
+  ...
+# (node:79877) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: generation checkpoint held manifest get times out and late completion cannot create state
+ok 30 - generation checkpoint held manifest get times out and late completion cannot create state
+  ---
+  duration_ms: 42.168875
+  type: 'test'
+  ...
+# Subtest: generation checkpoint authenticates multiple durable pages from actual original Source appends
+ok 31 - generation checkpoint authenticates multiple durable pages from actual original Source appends
+  ---
+  duration_ms: 205.490208
+  type: 'test'
+  ...
+# Subtest: generation checkpoint valid immutable hashes do not prove an incomplete original causal group
+ok 32 - generation checkpoint valid immutable hashes do not prove an incomplete original causal group
+  ---
+  duration_ms: 53.007375
+  type: 'test'
+  ...
+# Subtest: generation checkpoint v1 charges declared decoded transport bytes before decompression or fetch
+ok 33 - generation checkpoint v1 charges declared decoded transport bytes before decompression or fetch
+  ---
+  duration_ms: 73.687666
+  type: 'test'
+  ...
+# Subtest: generation checkpoint source base is fixed before first manifest read and refuses subsequent publication
+ok 34 - generation checkpoint source base is fixed before first manifest read and refuses subsequent publication
+  ---
+  duration_ms: 48.793917
+  type: 'test'
+  ...
+# Subtest: generation checkpoint restart never refreshes a stale durable begin source base
+ok 35 - generation checkpoint restart never refreshes a stale durable begin source base
+  ---
+  duration_ms: 58.824584
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects rewritten durable manifest identity before private proof
+ok 36 - generation checkpoint rejects rewritten durable manifest identity before private proof
+  ---
+  duration_ms: 71.705292
+  type: 'test'
+  ...
+# Subtest: generation checkpoint authenticates original gzip manifest bytes on durable validation
+ok 37 - generation checkpoint authenticates original gzip manifest bytes on durable validation
+  ---
+  duration_ms: 68.021958
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable manifest bytes mismatch
+ok 38 - generation checkpoint rejects durable manifest bytes mismatch
+  ---
+  duration_ms: 57.622958
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable manifest manifest mismatch
+ok 39 - generation checkpoint rejects durable manifest manifest mismatch
+  ---
+  duration_ms: 55.844
+  type: 'test'
+  ...
+# Subtest: generation Human steps consume original actual receiver and cold-resume without publishing partial target
+ok 40 - generation Human steps consume original actual receiver and cold-resume without publishing partial target
+  ---
+  duration_ms: 312.473625
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: cursor
+ok 41 - generation Human rollback: cursor
+  ---
+  duration_ms: 117.815416
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: owner_receipt
+ok 42 - generation Human rollback: owner_receipt
+  ---
+  duration_ms: 107.738666
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: human_body
+ok 43 - generation Human rollback: human_body
+  ---
+  duration_ms: 110.884417
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: history
+ok 44 - generation Human rollback: history
+  ---
+  duration_ms: 135.422833
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: gate
+ok 45 - generation Human rollback: gate
+  ---
+  duration_ms: 116.38275
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: extra_member
+ok 46 - generation Human rollback: extra_member
+  ---
+  duration_ms: 113.162167
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: backup
+ok 47 - generation Human rollback: backup
+  ---
+  duration_ms: 104.339291
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: oversized
+ok 48 - generation Human rollback: oversized
+  ---
+  duration_ms: 107.814667
+  type: 'test'
+  ...
+# Subtest: generation Human rollback: fault
+ok 49 - generation Human rollback: fault
+  ---
+  duration_ms: 107.652709
+  type: 'test'
+  ...
+# Subtest: generation Human lost committed response resumes next exact group
+ok 50 - generation Human lost committed response resumes next exact group
+  ---
+  duration_ms: 180.721834
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects version drift
+ok 51 - generation Human final receipt rejects version drift
+  ---
+  duration_ms: 223.416291
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects index drift
+ok 52 - generation Human final receipt rejects index drift
+  ---
+  duration_ms: 227.541541
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects manifestId drift
+ok 53 - generation Human final receipt rejects manifestId drift
+  ---
+  duration_ms: 209.236417
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects graphDigest drift
+ok 54 - generation Human final receipt rejects graphDigest drift
+  ---
+  duration_ms: 208.602625
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects generationIdentity drift
+ok 55 - generation Human final receipt rejects generationIdentity drift
+  ---
+  duration_ms: 200.976083
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects sourceBase drift
+ok 56 - generation Human final receipt rejects sourceBase drift
+  ---
+  duration_ms: 237.89725
+  type: 'test'
+  ...
+# Subtest: generation Human final receipt rejects domainOperationId drift
+ok 57 - generation Human final receipt rejects domainOperationId drift
+  ---
+  duration_ms: 206.938458
+  type: 'test'
+  ...
+# Subtest: generation Human rejects unknown protocol rows before resuming
+ok 58 - generation Human rejects unknown protocol rows before resuming
+  ---
+  duration_ms: 120.972459
+  type: 'test'
+  ...
+# Subtest: generation Human refuses forged checkpoint proof and paused original collection
+ok 59 - generation Human refuses forged checkpoint proof and paused original collection
+  ---
+  duration_ms: 86.432375
+  type: 'test'
+  ...
+# Subtest: generation Human fixed original activation requires completed prepared original restore
+ok 60 - generation Human fixed original activation requires completed prepared original restore
+  ---
+  duration_ms: 243.854542
+  type: 'test'
+  ...
+# Subtest: generation Human pinned Core device identity cannot change during continuation
+ok 61 - generation Human pinned Core device identity cannot change during continuation
+  ---
+  duration_ms: 79.515417
+  type: 'test'
+  ...
+# Subtest: fixed Human publication seals only the actual complete canonical target and recovers first registry
+ok 62 - fixed Human publication seals only the actual complete canonical target and recovers first registry
+  ---
+  duration_ms: 271.39475
+  type: 'test'
+  ...
+# Subtest: fixed Human publication refuses incomplete without canonical or gate writes
+ok 63 - fixed Human publication refuses incomplete without canonical or gate writes
+  ---
+  duration_ms: 87.449417
+  type: 'test'
+  ...
+# Subtest: fixed Human publication refuses unprepared without canonical or gate writes
+ok 64 - fixed Human publication refuses unprepared without canonical or gate writes
+  ---
+  duration_ms: 183.32825
+  type: 'test'
+  ...
+# Subtest: fixed Human publication refuses foreign restore without canonical or gate writes
+ok 65 - fixed Human publication refuses foreign restore without canonical or gate writes
+  ---
+  duration_ms: 233.796792
+  type: 'test'
+  ...
+# Subtest: fixed Human publication refuses wrong owner route without canonical or gate writes
+ok 66 - fixed Human publication refuses wrong owner route without canonical or gate writes
+  ---
+  duration_ms: 218.420917
+  type: 'test'
+  ...
+# Subtest: fixed Human publication rechecks original canonical facts after preparation
+ok 67 - fixed Human publication rechecks original canonical facts after preparation
+  ---
+  duration_ms: 252.872875
+  type: 'test'
+  ...
+# Subtest: fixed Human publication terminal fence rolls back late physical mutation and sealed gate together
+ok 68 - fixed Human publication terminal fence rolls back late physical mutation and sealed gate together
+  ---
+  duration_ms: 286.100875
+  type: 'test'
+  ...
+# Subtest: fixed Human publication refuses an authenticated existing-active base without migration owner
+ok 69 - fixed Human publication refuses an authenticated existing-active base without migration owner
+  ---
+  duration_ms: 235.579292
+  type: 'test'
+  ...
+# Subtest: fixed Human publication cannot refresh source base changed before seal
+ok 70 - fixed Human publication cannot refresh source base changed before seal
+  ---
+  duration_ms: 227.3595
+  type: 'test'
+  ...
+# Subtest: fixed Human publication cannot refresh source base changed before reserve
+ok 71 - fixed Human publication cannot refresh source base changed before reserve
+  ---
+  duration_ms: 278.462541
+  type: 'test'
+  ...
+# Subtest: fixed Human graph qualification is bodyfree and cannot be substituted before seal
+ok 72 - fixed Human graph qualification is bodyfree and cannot be substituted before seal
+  ---
+  duration_ms: 229.388542
+  type: 'test'
+  ...
+# Subtest: fixed Human durable graph qualification binds the exact sealed identity without body copies
+ok 73 - fixed Human durable graph qualification binds the exact sealed identity without body copies
+  ---
+  duration_ms: 256.387375
+  type: 'test'
+  ...
+# {"count":1,"items":7,"phase":"authenticated","workBytes":110215,"activeMs":7,"tickets":1}
+# Subtest: explicit phased authentication of 1 original Human creates keeps canonical target invisible
+ok 74 - explicit phased authentication of 1 original Human creates keeps canonical target invisible
+  ---
+  duration_ms: 95.196417
+  type: 'test'
+  ...
+# Subtest: committed page followed by lost response burns original reservation on fresh explicit continuation
+ok 75 - committed page followed by lost response burns original reservation on fresh explicit continuation
+  ---
+  duration_ms: 231.286375
+  type: 'test'
+  ...
+# Subtest: old checkpoint invocation cannot silently enter or reset a phased task
+ok 76 - old checkpoint invocation cannot silently enter or reset a phased task
+  ---
+  duration_ms: 67.28425
+  type: 'test'
+  ...
+# Subtest: transport fault leaves a durable reservation without synthetic refund
+ok 77 - transport fault leaves a durable reservation without synthetic refund
+  ---
+  duration_ms: 53.095083
+  type: 'test'
+  ...
+# Subtest: ledger cannot double refund, reset spent work or accept unknown shape
+ok 78 - ledger cannot double refund, reset spent work or accept unknown shape
+  ---
+  duration_ms: 0.25275
+  type: 'test'
+  ...
+# Subtest: ledger hard task ceilings survive repeated conservative cold burns
+ok 79 - ledger hard task ceilings survive repeated conservative cold burns
+  ---
+  duration_ms: 0.197042
+  type: 'test'
+  ...
+# {"validatedGroups":1,"workBytes":223808,"activeMs":16,"tickets":4}
+# Subtest: explicit phased whole Human graph validates 1 groups without claiming canonical application
+ok 80 - explicit phased whole Human graph validates 1 groups without claiming canonical application
+  ---
+  duration_ms: 70.905458
+  type: 'test'
+  ...
+# {"verificationGroups":1,"state":"verified-in-process","completed":1,"total":1,"pages":1,"workBytes":377549,"publicationQualified":false}
+# {"ownerGroups":1,"state":"applied","completed":1,"total":1,"workBytes":350986,"activeMs":50,"publicationQualified":false}
+# Subtest: phased original owner consumes 1 source-free Human groups within durable task budget
+ok 81 - phased original owner consumes 1 source-free Human groups within durable task budget
+  ---
+  duration_ms: 135.111208
+  type: 'test'
+  ...
+# {"ownerGroups":129,"last":{"state":"applying","completed":32,"total":129,"workBytes":16684799,"activeMs":1575,"publicationQualified":false},"error":"BNS_GROUP_RESOURCE_LIMIT","message":"BNS_GROUP_RESOURCE_LIMIT","stack":"Error: BNS_GROUP_RESOURCE_LIMIT\\n    at ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:503:955)\\n    at async tx (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:33:215)\\n    at async \#step (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:51:16)\\n    at async CanonicalGenerationPhasedHumanRestore.step (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-phased-human.js:43:129)\\n    at async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:25:386)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+# Subtest: phased original owner consumes 129 source-free Human groups within durable task budget
+ok 82 - phased original owner consumes 129 source-free Human groups within durable task budget
+  ---
+  duration_ms: 3331.498709
+  type: 'test'
+  ...
+# {"phaseCosts":1,"authenticate":{"bytes":110209,"ms":5},"validate":{"bytes":113659,"ms":8},"owner":{"bytes":127010,"ms":29}}
+# {"publicationGroups":1,"prepared":{"state":"prepared","manifestId":"923544d1fda1ccc189b35500624cc6b5c2d8f9a430ad9f7825d4b50e748984d8","graphDigest":"b2ca15a126cb29f68f535ff6a1b1debcaa60d2f274d0b7ecbe949fc0d827ac28","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"prepaidBytes":2097152,"prepaidMs":30000}}
+# {"publicationGroups":1,"task":{"id":"canonical-generation:checkpoint:phased-task:v1","version":1,"taskId":"dcfcfd8c-02ef-4dba-83be-6859967bd0bb","identity":{"manifestId":"923544d1fda1ccc189b35500624cc6b5c2d8f9a430ad9f7825d4b50e748984d8","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"sourceBase":{"root":{"id":"canonical-generation:registry:v1","version":1,"revision":0,"active":null,"pending":null},"gate":null}},"phase":"verified","tickets":6,"burned":1,"workBytes":2448030,"activeMs":30042,"pending":null,"transportIds":["e2af70788215bea7ab8e5cdeb45f414002b0819d4cd9cfdb473aa9775aa83e51"]},"work":{"native":{"references":110,"bytes":52691,"activeMs":23.699915999999575},"preparationBytes":907,"prepaidBytes":2097152,"prepaidMs":30000}}
+# Subtest: fixed phased publication closes 1 original Human groups atomically
+ok 83 - fixed phased publication closes 1 original Human groups atomically
+  ---
+  duration_ms: 142.0625
+  type: 'test'
+  ...
+# {"phaseCosts":65,"authenticate":{"bytes":3409279,"ms":115},"validate":{"bytes":3018875,"ms":161},"owner":{"bytes":8051498,"ms":1875}}
+# {"publicationGroups":65,"prepared":{"state":"prepared","manifestId":"ef344acd36dcda4973b9854924ac39b34accbde4451d22d8bdb4276b23dc1acb","graphDigest":"89633445405258d398cf20078d9a87439b98ba37b34e8bd8e5aa6e89521ad613","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"prepaidBytes":2097152,"prepaidMs":30000}}
+# {"publicationGroups":65,"task":{"id":"canonical-generation:checkpoint:phased-task:v1","version":1,"taskId":"42af8278-28cf-4cc6-bfa8-6a485319f18f","identity":{"manifestId":"ef344acd36dcda4973b9854924ac39b34accbde4451d22d8bdb4276b23dc1acb","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"sourceBase":{"root":{"id":"canonical-generation:registry:v1","version":1,"revision":0,"active":null,"pending":null},"gate":null}},"phase":"verified","tickets":94,"burned":1,"workBytes":16576804,"activeMs":32151,"pending":null,"transportIds":["19ac7ce2da6501145f67551f4117d905b9f64cb7c0149a66463b9e458e2bc5a3","0e86b3489f7d08cbcb16748a9c5efa5955ab3fa841d724aa7eadd180da5dc9f2","03ea4546864081222bde9f6f9c6a8a0323c5b946ef5c8f360a77ae1073903532","acbb392b0b145f207bfe04193acfa7cb3cc8289fec3238b7e6a032dbf636a69e"]},"work":{"native":{"references":1926,"bytes":1983978,"activeMs":584.2136250000003},"preparationBytes":4206,"prepaidBytes":2097152,"prepaidMs":30000}}
+# Subtest: fixed phased publication closes 65 original Human groups atomically
+ok 84 - fixed phased publication closes 65 original Human groups atomically
+  ---
+  duration_ms: 4131.139542
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late item mutation and rolls back the whole publication transaction
+ok 85 - fixed phased seal rejects real late item mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 129.713
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late page mutation and rolls back the whole publication transaction
+ok 86 - fixed phased seal rejects real late page mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 127.393083
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late validation mutation and rolls back the whole publication transaction
+ok 87 - fixed phased seal rejects real late validation mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 119.615083
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late canonical mutation and rolls back the whole publication transaction
+ok 88 - fixed phased seal rejects real late canonical mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 109.91125
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late receipt mutation and rolls back the whole publication transaction
+ok 89 - fixed phased seal rejects real late receipt mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 114.209625
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late counter mutation and rolls back the whole publication transaction
+ok 90 - fixed phased seal rejects real late counter mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 108.495583
+  type: 'test'
+  ...
+# Subtest: fixed phased seal rejects real late extra mutation and rolls back the whole publication transaction
+ok 91 - fixed phased seal rejects real late extra mutation and rolls back the whole publication transaction
+  ---
+  duration_ms: 107.230834
+  type: 'test'
+  ...
+# Subtest: fixed phased publication rejects forged proof and active source changed since original begin
+ok 92 - fixed phased publication rejects forged proof and active source changed since original begin
+  ---
+  duration_ms: 102.383916
+  type: 'test'
+  ...
+# Subtest: live phased invocation cannot be mistaken for a cold crashed reservation
+ok 93 - live phased invocation cannot be mistaken for a cold crashed reservation
+  ---
+  duration_ms: 64.635792
+  type: 'test'
+  ...
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+ok 94 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 242.785791
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rebinds original proof and never duplicates canonical application
+ok 95 - protected group cold resume rebinds original proof and never duplicates canonical application
+  ---
+  duration_ms: 200.198916
+  type: 'test'
+  ...
+# Subtest: protected group never lends a transaction to custom diagnostic callback
+ok 96 - protected group never lends a transaction to custom diagnostic callback
+  ---
+  duration_ms: 65.919291
+  type: 'test'
+  ...
+# Subtest: protected group cannot acquire genuine authority using forged or foreign proof
+ok 97 - protected group cannot acquire genuine authority using forged or foreign proof
+  ---
+  duration_ms: 62.183792
+  type: 'test'
+  ...
+# Subtest: protected group keeps token away from mutable repository and Core transaction wrappers
+ok 98 - protected group keeps token away from mutable repository and Core transaction wrappers
+  ---
+  duration_ms: 162.505833
+  type: 'test'
+  ...
+# Subtest: protected original group refuses gate-phase drift without partial owner writes
+ok 99 - protected original group refuses gate-phase drift without partial owner writes
+  ---
+  duration_ms: 96.483333
+  type: 'test'
+  ...
+# Subtest: protected original group refuses checkpoint-item drift without partial owner writes
+ok 100 - protected original group refuses checkpoint-item drift without partial owner writes
+  ---
+  duration_ms: 111.033334
+  type: 'test'
+  ...
+# Subtest: protected original group refuses consent drift without partial owner writes
+ok 101 - protected original group refuses consent drift without partial owner writes
+  ---
+  duration_ms: 91.766167
+  type: 'test'
+  ...
+# Subtest: protected original group refuses restore-row drift without partial owner writes
+ok 102 - protected original group refuses restore-row drift without partial owner writes
+  ---
+  duration_ms: 89.589791
+  type: 'test'
+  ...
+# Subtest: protected original group refuses purge-deny drift without partial owner writes
+ok 103 - protected original group refuses purge-deny drift without partial owner writes
+  ---
+  duration_ms: 91.983083
+  type: 'test'
+  ...
+# Subtest: protected group native terminal canonical drift rolls back original owner and receipt
+ok 104 - protected group native terminal canonical drift rolls back original owner and receipt
+  ---
+  duration_ms: 132.534541
+  type: 'test'
+  ...
+# Subtest: protected group native terminal restore-receipt drift rolls back original owner and receipt
+ok 105 - protected group native terminal restore-receipt drift rolls back original owner and receipt
+  ---
+  duration_ms: 128.527708
+  type: 'test'
+  ...
+# Subtest: protected group native terminal checkpoint-item drift rolls back original owner and receipt
+ok 106 - protected group native terminal checkpoint-item drift rolls back original owner and receipt
+  ---
+  duration_ms: 116.816958
+  type: 'test'
+  ...
+# Subtest: protected group native terminal protection drift rolls back original owner and receipt
+ok 107 - protected group native terminal protection drift rolls back original owner and receipt
+  ---
+  duration_ms: 149.302792
+  type: 'test'
+  ...
+# Subtest: protected group native terminal gate drift rolls back original owner and receipt
+ok 108 - protected group native terminal gate drift rolls back original owner and receipt
+  ---
+  duration_ms: 118.712916
+  type: 'test'
+  ...
+# Subtest: protected original graph seal retains existing-active migration refusal
+ok 109 - protected original graph seal retains existing-active migration refusal
+  ---
+  duration_ms: 182.660458
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted stage.put before lending a write transaction
+ok 110 - protected group refuses substituted stage.put before lending a write transaction
+  ---
+  duration_ms: 93.142375
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted coreB.get before lending a write transaction
+ok 111 - protected group refuses substituted coreB.get before lending a write transaction
+  ---
+  duration_ms: 93.538875
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.applyInitialSource before lending a write transaction
+ok 112 - protected group refuses substituted b.applyInitialSource before lending a write transaction
+  ---
+  duration_ms: 91.803333
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.control before lending a write transaction
+ok 113 - protected group refuses substituted b.control before lending a write transaction
+  ---
+  duration_ms: 95.016167
+  type: 'test'
+  ...
+# Subtest: protected group descriptor guard refuses an owner method getter without executing it
+ok 114 - protected group descriptor guard refuses an owner method getter without executing it
+  ---
+  duration_ms: 91.613709
+  type: 'test'
+  ...
+# Subtest: protected group rejects a shadowing prototype method before write authority
+ok 115 - protected group rejects a shadowing prototype method before write authority
+  ---
+  duration_ms: 90.17575
+  type: 'test'
+  ...
+# Subtest: protected group restore field getter cannot rebind the private original consumer
+ok 116 - protected group restore field getter cannot rebind the private original consumer
+  ---
+  duration_ms: 61.29125
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rejects extra durable restore fields
+ok 117 - protected group cold resume rejects extra durable restore fields
+  ---
+  duration_ms: 100.351875
+  type: 'test'
+  ...
+# Subtest: protected group native owner failure rolls back and fresh explicit retry reuses original graph
+ok 118 - protected group native owner failure rolls back and fresh explicit retry reuses original graph
+  ---
+  duration_ms: 201.17475
+  type: 'test'
+  ...
+# Subtest: protected fixed group publication refuses substituted original consumer methods before write callback
+ok 119 - protected fixed group publication refuses substituted original consumer methods before write callback
+  ---
+  duration_ms: 170.360292
+  type: 'test'
+  ...
+# Subtest: generation publication starts empty, stages invisibly and commits exact durable identity
+ok 120 - generation publication starts empty, stages invisibly and commits exact durable identity
+  ---
+  duration_ms: 13.694625
+  type: 'test'
+  ...
+# Subtest: generation publication phases preserve whole old/new data and reject stale writers
+ok 121 - generation publication phases preserve whole old/new data and reject stale writers
+  ---
+  duration_ms: 12.156542
+  type: 'test'
+  ...
+# Subtest: generation restart recovers reserved without exposing staging or replaying payload
+ok 122 - generation restart recovers reserved without exposing staging or replaying payload
+  ---
+  duration_ms: 11.427459
+  type: 'test'
+  ...
+# Subtest: generation restart recovers source-retired without exposing staging or replaying payload
+ok 123 - generation restart recovers source-retired without exposing staging or replaying payload
+  ---
+  duration_ms: 9.90425
+  type: 'test'
+  ...
+# Subtest: generation restart recovers target-ready without exposing staging or replaying payload
+ok 124 - generation restart recovers target-ready without exposing staging or replaying payload
+  ---
+  duration_ms: 10.574958
+  type: 'test'
+  ...
+# Subtest: generation old in-flight writer invalidates reservation and discarded target cannot be republished
+ok 125 - generation old in-flight writer invalidates reservation and discarded target cannot be republished
+  ---
+  duration_ms: 9.683708
+  type: 'test'
+  ...
+# Subtest: generation old writer paused before native TX is rejected after retirement
+ok 126 - generation old writer paused before native TX is rejected after retirement
+  ---
+  duration_ms: 8.302708
+  type: 'test'
+  ...
+# Subtest: generation lost publication response is resolved from receipt without duplicate transition
+ok 127 - generation lost publication response is resolved from receipt without duplicate transition
+  ---
+  duration_ms: 3.96
+  type: 'test'
+  ...
+# Subtest: generation foreign registry cannot attach or delete an active generation
+ok 128 - generation foreign registry cannot attach or delete an active generation
+  ---
+  duration_ms: 5.39675
+  type: 'test'
+  ...
+# Subtest: generation persistent generation catalog prevents restart collision
+ok 129 - generation persistent generation catalog prevents restart collision
+  ---
+  duration_ms: 3.669667
+  type: 'test'
+  ...
+# Subtest: generation persistent database catalog prevents restart collision
+ok 130 - generation persistent database catalog prevents restart collision
+  ---
+  duration_ms: 4.461584
+  type: 'test'
+  ...
+# Subtest: generation persistent name catalog prevents restart collision
+ok 131 - generation persistent name catalog prevents restart collision
+  ---
+  duration_ms: 2.962125
+  type: 'test'
+  ...
+# Subtest: generation active and pending participants cannot be deleted; old retired DB is preserved until separate deletion
+ok 132 - generation active and pending participants cannot be deleted; old retired DB is preserved until separate deletion
+  ---
+  duration_ms: 9.453875
+  type: 'test'
+  ...
+# Subtest: generation rejects preexisting canonical payload even when meta is empty
+ok 133 - generation rejects preexisting canonical payload even when meta is empty
+  ---
+  duration_ms: 2.302625
+  type: 'test'
+  ...
+# Subtest: generation original new thought-library DDL marker alone is permitted
+ok 134 - generation original new thought-library DDL marker alone is permitted
+  ---
+  duration_ms: 3.780417
+  type: 'test'
+  ...
+# Subtest: generation rejects fake capabilities, getter definitions and mutable repository identity
+ok 135 - generation rejects fake capabilities, getter definitions and mutable repository identity
+  ---
+  duration_ms: 2.671334
+  type: 'test'
+  ...
+# Subtest: generation final root drift rolls back original publication TX
+ok 136 - generation final root drift rolls back original publication TX
+  ---
+  duration_ms: 5.518959
+  type: 'test'
+  ...
+# Subtest: generation final receipt drift rolls back original publication TX
+ok 137 - generation final receipt drift rolls back original publication TX
+  ---
+  duration_ms: 4.211583
+  type: 'test'
+  ...
+# Subtest: generation final gate drift rolls back original publication TX
+ok 138 - generation final gate drift rolls back original publication TX
+  ---
+  duration_ms: 3.995167
+  type: 'test'
+  ...
+# Subtest: generation active lookup refuses altered durable publication receipt
+ok 139 - generation active lookup refuses altered durable publication receipt
+  ---
+  duration_ms: 4.099166
+  type: 'test'
+  ...
+# Subtest: generation staging callback cannot overwrite gate and failures roll back payload
+ok 140 - generation staging callback cannot overwrite gate and failures roll back payload
+  ---
+  duration_ms: 2.584916
+  type: 'test'
+  ...
+# Subtest: generation original per-TX byte limit is registered before callback and rolls back
+ok 141 - generation original per-TX byte limit is registered before callback and rolls back
+  ---
+  duration_ms: 7.268792
+  type: 'test'
+  ...
+# Subtest: generation registry rejects non-null falsy active or pending false
+ok 142 - generation registry rejects non-null falsy active or pending false
+  ---
+  duration_ms: 1.055458
+  type: 'test'
+  ...
+# Subtest: generation registry rejects non-null falsy active or pending 0
+ok 143 - generation registry rejects non-null falsy active or pending 0
+  ---
+  duration_ms: 1.00275
+  type: 'test'
+  ...
+# Subtest: generation registry rejects non-null falsy active or pending ""
+ok 144 - generation registry rejects non-null falsy active or pending ""
+  ---
+  duration_ms: 0.981
+  type: 'test'
+  ...
+# Subtest: generation initial reservation is reported pending with no active generation
+ok 145 - generation initial reservation is reported pending with no active generation
+  ---
+  duration_ms: 4.302
+  type: 'test'
+  ...
+# Subtest: generation drifted source identity is refused before persistent reservation
+ok 146 - generation drifted source identity is refused before persistent reservation
+  ---
+  duration_ms: 6.047875
+  type: 'test'
+  ...
+# Subtest: generation publication receipt tampering prevents new writes and reservations
+ok 147 - generation publication receipt tampering prevents new writes and reservations
+  ---
+  duration_ms: 5.422834
+  type: 'test'
+  ...
+# Subtest: generation reservation terminal also seals the previous active receipt
+ok 148 - generation reservation terminal also seals the previous active receipt
+  ---
+  duration_ms: 5.851583
+  type: 'test'
+  ...
+# Subtest: generation recover refuses unattached generations and leaves durable pending intact
+ok 149 - generation recover refuses unattached generations and leaves durable pending intact
+  ---
+  duration_ms: 7.664292
+  type: 'test'
+  ...
+# Subtest: generation crash after target invalidation resumes pending cancellation without publishing stale graph
+ok 150 - generation crash after target invalidation resumes pending cancellation without publishing stale graph
+  ---
+  duration_ms: 9.012542
+  type: 'test'
+  ...
+# Subtest: generation concurrent advances produce exact conflicts or one commit and remain recoverable
+ok 151 - generation concurrent advances produce exact conflicts or one commit and remain recoverable
+  ---
+  duration_ms: 9.105875
+  type: 'test'
+  ...
+# Subtest: protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+ok 152 - protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+  ---
+  duration_ms: 288.018625
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects put before external callback
+ok 153 - protected original repository rejects put before external callback
+  ---
+  duration_ms: 122.319084
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects delete before external callback
+ok 154 - protected original repository rejects delete before external callback
+  ---
+  duration_ms: 97.593083
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects clear before external callback
+ok 155 - protected original repository rejects clear before external callback
+  ---
+  duration_ms: 95.678
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects raw before external callback
+ok 156 - protected original repository rejects raw before external callback
+  ---
+  duration_ms: 92.103458
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects forged-capability before external callback
+ok 157 - protected original repository rejects forged-capability before external callback
+  ---
+  duration_ms: 82.818791
+  type: 'test'
+  ...
+# Subtest: protected gate is enforced by a cold original repository instance
+ok 158 - protected gate is enforced by a cold original repository instance
+  ---
+  duration_ms: 82.769666
+  type: 'test'
+  ...
+# Subtest: private generation authority never passes through mutable instance wrappers
+ok 159 - private generation authority never passes through mutable instance wrappers
+  ---
+  duration_ms: 117.241208
+  type: 'test'
+  ...
+# Subtest: protected public staging/active callback and metadata seal cannot acquire graph writer
+ok 160 - protected public staging/active callback and metadata seal cannot acquire graph writer
+  ---
+  duration_ms: 87.185375
+  type: 'test'
+  ...
+# Subtest: protected Human does not lend a private transaction to external diagnostic callback
+ok 161 - protected Human does not lend a private transaction to external diagnostic callback
+  ---
+  duration_ms: 96.773083
+  type: 'test'
+  ...
+# Subtest: unmarked original database preserves ordinary writes but rejects a forged protection marker
+ok 162 - unmarked original database preserves ordinary writes but rejects a forged protection marker
+  ---
+  duration_ms: 97.759083
+  type: 'test'
+  ...
+# Subtest: late raw protection marker on unmarked write is rejected and rolled back
+ok 163 - late raw protection marker on unmarked write is rejected and rolled back
+  ---
+  duration_ms: 124.974084
+  type: 'test'
+  ...
+# Subtest: protected stage resumes cold original consumer after committed page response loss
+ok 164 - protected stage resumes cold original consumer after committed page response loss
+  ---
+  duration_ms: 136.52075
+  type: 'test'
+  ...
+# Subtest: protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+ok 165 - protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+  ---
+  duration_ms: 255.151
+  type: 'test'
+  ...
+# Subtest: protected cold attach retains registry binding and publication resumes after target-ready
+ok 166 - protected cold attach retains registry binding and publication resumes after target-ready
+  ---
+  duration_ms: 232.874791
+  type: 'test'
+  ...
+# Subtest: protection installation refuses a nonempty original target and preserves its prior human work
+ok 167 - protection installation refuses a nonempty original target and preserves its prior human work
+  ---
+  duration_ms: 62.756708
+  type: 'test'
+  ...
+# Subtest: a caller-shaped store cannot mint original protection installation authority
+ok 168 - a caller-shaped store cannot mint original protection installation authority
+  ---
+  duration_ms: 55.166208
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+ok 169 - protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+  ---
+  duration_ms: 67.025792
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+ok 170 - protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+  ---
+  duration_ms: 55.723041
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+ok 171 - protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+  ---
+  duration_ms: 62.359375
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer extra-field
+ok 172 - protection installation rejects nonempty initializer extra-field
+  ---
+  duration_ms: 79.424875
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer nested-body
+ok 173 - protection installation rejects nonempty initializer nested-body
+  ---
+  duration_ms: 63.855417
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer old-ephemeral
+ok 174 - protection installation rejects nonempty initializer old-ephemeral
+  ---
+  duration_ms: 69.860625
+  type: 'test'
+  ...
+# Subtest: protected initial marker bytes are charged before the caller can enter
+ok 175 - protected initial marker bytes are charged before the caller can enter
+  ---
+  duration_ms: 83.294875
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects identity drift
+ok 176 - cold protected marker/gate rejects identity drift
+  ---
+  duration_ms: 84.533625
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects phase drift
+ok 177 - cold protected marker/gate rejects phase drift
+  ---
+  duration_ms: 85.485167
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects mode drift
+ok 178 - cold protected marker/gate rejects mode drift
+  ---
+  duration_ms: 85.036958
+  type: 'test'
+  ...
+# Subtest: committed work includes original final reads and is an immutable numeric-only receipt
+ok 179 - committed work includes original final reads and is an immutable numeric-only receipt
+  ---
+  duration_ms: 6.868042
+  type: 'test'
+  ...
+# Subtest: committed accounting does not keep charging user pause after completion
+ok 180 - committed accounting does not keep charging user pause after completion
+  ---
+  duration_ms: 17.489417
+  type: 'test'
+  ...
+# Subtest: foreign repository and fabricated scope cannot get accounting evidence
+ok 181 - foreign repository and fabricated scope cannot get accounting evidence
+  ---
+  duration_ms: 2.092542
+  type: 'test'
+  ...
+# Subtest: unmetered transaction does not manufacture a zero-cost receipt
+ok 182 - unmetered transaction does not manufacture a zero-cost receipt
+  ---
+  duration_ms: 1.479875
+  type: 'test'
+  ...
+# Subtest: aborted native transaction cannot produce committed work
+ok 183 - aborted native transaction cannot produce committed work
+  ---
+  duration_ms: 1.554083
+  type: 'test'
+  ...
+# Subtest: failed terminal fence cannot produce committed work
+ok 184 - failed terminal fence cannot produce committed work
+  ---
+  duration_ms: 1.042667
+  type: 'test'
+  ...
+# Subtest: private resource overrun cannot be reset through public diagnostics
+ok 185 - private resource overrun cannot be reset through public diagnostics
+  ---
+  duration_ms: 1.0285
+  type: 'test'
+  ...
+1..185
+# tests 185
+# suites 0
+# pass 185
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 27425.083

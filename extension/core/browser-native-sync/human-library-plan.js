@@ -107,6 +107,9 @@ async function prepareEntryPlan(store,core,request,entry,sourceBound){
  const cap=Object.freeze({});plans.set(cap,{kind:'entry',sourceBound,evidence,provenance,dependencies,store,core,entry:clone(entry),before,request:clone(request),allocation:allocation.seal(),events:allocation.events(),row,history,result,operationReceipt,revisionSequence,thoughtSequence});return cap;
 }
 export function humanEntryPlan(cap){const p=plans.get(cap);if(p?.kind!=='entry')fail('BNS_HUMAN_PLAN_REQUIRED');return {entry:clone(p.row),history:clone(p.history),provenance:clone(p.provenance||[]),dependencies:clone(p.dependencies||[]),result:clone(p.result),operationReceipt:clone(p.operationReceipt),events:clone(p.events)};}
+// Read-only expectation from the original private named planner, before its
+// writer runs. A DTO cannot construct this view or acquire execution authority.
+export function originalHumanEntryGenerationExpectation(cap){const p=plans.get(cap);if(p?.kind!=='entry'||p.sourceBound||p.provenance.length||p.dependencies.length)fail('BNS_HUMAN_GENERATION_SCOPE');return structuredClone({entry:p.row,history:p.history,operationReceipt:p.operationReceipt,thoughtSequence:p.thoughtSequence,revisionSequence:p.revisionSequence,base:p.entry});}
 export async function requireHumanEntryPlan(t,cap,store,core){const p=plans.get(cap);if(p?.kind!=='entry'||p.store!==store||p.core!==core)fail('BNS_HUMAN_PLAN_REQUIRED');if(!equal(await base(store,core,t),p.entry)||await t.get('operationReceipts',p.request.operationId)||await t.get('thoughts',p.row.id))fail('BNS_HUMAN_CHANGED');for(const h of p.history)if(await t.get('revisions',h.id))fail('BNS_HUMAN_CHANGED');if(p.sourceBound){await checkEvidenceInTransaction(store,t,p.evidence);for(const row of p.provenance)if(await t.get('provenance',row.id))fail('BNS_HUMAN_CHANGED');for(const row of p.dependencies)if(await t.get('dependencies',row.id))fail('BNS_HUMAN_CHANGED');}return p.allocation;}
 
 async function editReadSet(t,id){

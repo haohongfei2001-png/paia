@@ -1,0 +1,26 @@
+TAP version 13
+# {"verificationGroups":1,"state":"verified-in-process","completed":1,"total":1,"pages":1,"workBytes":372533,"publicationQualified":false}
+# {"ownerGroups":1,"state":"applied","completed":1,"total":1,"workBytes":346287,"activeMs":81,"publicationQualified":false}
+# Subtest: phased original owner consumes 1 source-free Human groups within durable task budget
+ok 1 - phased original owner consumes 1 source-free Human groups within durable task budget
+  ---
+  duration_ms: 314.737459
+  type: 'test'
+  ...
+# {"verificationGroups":65,"state":"verified-in-process","completed":65,"total":65,"pages":43,"workBytes":15987230,"publicationQualified":false}
+# {"ownerGroups":65,"state":"applied","completed":65,"total":65,"workBytes":14419836,"activeMs":3545,"publicationQualified":false}
+# Subtest: phased original owner consumes 65 source-free Human groups within durable task budget
+ok 2 - phased original owner consumes 65 source-free Human groups within durable task budget
+  ---
+  duration_ms: 7454.677209
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8039.079166

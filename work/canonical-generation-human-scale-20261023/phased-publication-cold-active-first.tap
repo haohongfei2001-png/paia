@@ -1,0 +1,26 @@
+TAP version 13
+# {"publicationGroups":1,"prepared":{"state":"prepared","manifestId":"b0b0ca9fb654175d3e464d9eae47e9de51a47217ba1170ccdc21b9bb23ded019","graphDigest":"383c0ffaa9c90f014a25a33a5b96654e585e5bcc0b97f3e42ba705ba18be895a","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"prepaidBytes":2097152,"prepaidMs":30000}}
+# {"publicationGroups":1,"task":{"id":"canonical-generation:checkpoint:phased-task:v1","version":1,"taskId":"ea53a687-2eeb-4f7d-81bb-9a528e409782","identity":{"manifestId":"b0b0ca9fb654175d3e464d9eae47e9de51a47217ba1170ccdc21b9bb23ded019","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"sourceBase":{"root":{"id":"canonical-generation:registry:v1","version":1,"revision":0,"active":null,"pending":null},"gate":null}},"phase":"verified","tickets":6,"burned":1,"workBytes":2447808,"activeMs":30059,"pending":null,"transportIds":["3d091c09ec83a978d20037ea4f7b56e49771c2ba874d2e1cb214bba17f156d67"]},"work":{"native":{"references":110,"bytes":52669,"activeMs":27.19066700000002},"preparationBytes":907,"prepaidBytes":2097152,"prepaidMs":30000}}
+# Subtest: fixed phased publication closes 1 original Human groups atomically
+not ok 1 - fixed phased publication closes 1 original Human groups atomically
+  ---
+  duration_ms: 221.34125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:27:27'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:26:40)
+    ArchiveRepository.initialize (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:510:71)
+    async file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/indexed-store.js:197:21
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 405.152375

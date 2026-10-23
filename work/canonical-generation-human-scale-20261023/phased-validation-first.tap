@@ -1,0 +1,73 @@
+TAP version 13
+# Subtest: explicit phased whole Human graph validates 1 groups without claiming canonical application
+not ok 1 - explicit phased whole Human graph validates 1 groups without claiming canonical application
+  ---
+  duration_ms: 123.022083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:22:31'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_CHECKPOINT_CHANGED'
+  code: 'GENERATION_CHECKPOINT_CHANGED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:27:80)
+    file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:200:271
+    async file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-publication.js:111:17
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:491:87)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:99:184)
+    async dataWrite (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:182:68)
+    async CanonicalGenerationCheckpointStage.validatePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:200:3)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:22:255)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: explicit phased whole Human graph validates 65 groups without claiming canonical application
+not ok 2 - explicit phased whole Human graph validates 65 groups without claiming canonical application
+  ---
+  duration_ms: 1103.952416
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:22:31'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_CHECKPOINT_CHANGED'
+  code: 'GENERATION_CHECKPOINT_CHANGED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:27:80)
+    file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:200:271
+    async file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-publication.js:111:17
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:491:87)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:99:184)
+    async dataWrite (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:182:68)
+    async CanonicalGenerationCheckpointStage.validatePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:200:3)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:22:255)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: explicit phased whole Human graph validates 129 groups without claiming canonical application
+not ok 3 - explicit phased whole Human graph validates 129 groups without claiming canonical application
+  ---
+  duration_ms: 2342.758292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:22:31'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_CHECKPOINT_CHANGED'
+  code: 'GENERATION_CHECKPOINT_CHANGED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:27:80)
+    file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:200:271
+    async file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-publication.js:111:17
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:491:87)
+    async #write (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:99:184)
+    async dataWrite (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:182:68)
+    async CanonicalGenerationCheckpointStage.validatePhasedHumanCheckpoint (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js:200:3)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-phased-stage.test.mjs:22:255)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 0
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3832.586375

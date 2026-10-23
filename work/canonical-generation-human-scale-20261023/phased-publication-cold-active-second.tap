@@ -1,0 +1,18 @@
+TAP version 13
+# {"publicationGroups":1,"prepared":{"state":"prepared","manifestId":"7194c43980bf28237d3255e634d681b29a932e90c5acba99d8d505a0628b7c87","graphDigest":"80efbde408666e4429d5f7fa31ea06afc05dd9e3436653ed2610140ddae8d7c1","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"prepaidBytes":2097152,"prepaidMs":30000}}
+# {"publicationGroups":1,"task":{"id":"canonical-generation:checkpoint:phased-task:v1","version":1,"taskId":"bf6c7b35-5f04-4542-b547-dc86831a78af","identity":{"manifestId":"7194c43980bf28237d3255e634d681b29a932e90c5acba99d8d505a0628b7c87","generationIdentity":{"generationId":"synthetic_generation","databaseId":"synthetic_database","databaseName":"SYNTHETIC-phased-target"},"sourceBase":{"root":{"id":"canonical-generation:registry:v1","version":1,"revision":0,"active":null,"pending":null},"gate":null}},"phase":"verified","tickets":6,"burned":1,"workBytes":2448084,"activeMs":30053,"pending":null,"transportIds":["4bd4600ec837acff68e5afb7b16ce7886b68a09d7fb48bf9e00dd1860fd4a18d"]},"work":{"native":{"references":110,"bytes":52694,"activeMs":26.41883299999995},"preparationBytes":907,"prepaidBytes":2097152,"prepaidMs":30000}}
+# Subtest: fixed phased publication closes 1 original Human groups atomically
+ok 1 - fixed phased publication closes 1 original Human groups atomically
+  ---
+  duration_ms: 215.411458
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 382.2115
