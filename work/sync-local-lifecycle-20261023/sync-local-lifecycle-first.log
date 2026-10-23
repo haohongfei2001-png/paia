@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+ok 1 - shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+  ---
+  duration_ms: 0.847625
+  type: 'test'
+  ...
+# Subtest: pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+ok 2 - pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+  ---
+  duration_ms: 40.775417
+  type: 'test'
+  ...
+# Subtest: same actual store journals feed original durable publication; no whole archive completion claim
+ok 3 - same actual store journals feed original durable publication; no whole archive completion claim
+  ---
+  duration_ms: 60.778792
+  type: 'test'
+  ...
+# Subtest: lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+ok 4 - lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+  ---
+  duration_ms: 52.8615
+  type: 'test'
+  ...
+# Subtest: pause during committed POST fences late response and explicit same task continuation first reconciles it
+ok 5 - pause during committed POST fences late response and explicit same task continuation first reconciles it
+  ---
+  duration_ms: 45.436708
+  type: 'test'
+  ...
+# Subtest: binding generation change and foreign account block old pending upload without retargeting it
+ok 6 - binding generation change and foreign account block old pending upload without retargeting it
+  ---
+  duration_ms: 51.156625
+  type: 'test'
+  ...
+# Subtest: durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+ok 7 - durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+  ---
+  duration_ms: 24.723667
+  type: 'test'
+  ...
+# Subtest: second owner and state changes are refused, malformed provider binding never installs journals
+ok 8 - second owner and state changes are refused, malformed provider binding never installs journals
+  ---
+  duration_ms: 15.699167
+  type: 'test'
+  ...
+# Subtest: wrong task command does not mutate pending identity or conceal original failure
+ok 9 - wrong task command does not mutate pending identity or conceal original failure
+  ---
+  duration_ms: 31.232541
+  type: 'test'
+  ...
+# Subtest: existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+ok 10 - existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+  ---
+  duration_ms: 105.365917
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 591.075041

@@ -1,0 +1,226 @@
+TAP version 13
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 1 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 3.567958
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 2 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 1.189833
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 3 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 0.759375
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 4 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 0.4365
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 5 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 0.516916
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 6 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.3475
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 7 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 1.003542
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 8 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.326792
+  type: 'test'
+  ...
+# Subtest: shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+ok 9 - shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+  ---
+  duration_ms: 1.057917
+  type: 'test'
+  ...
+# Subtest: pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+ok 10 - pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+  ---
+  duration_ms: 41.761541
+  type: 'test'
+  ...
+# Subtest: same actual store journals feed original durable publication; no whole archive completion claim
+ok 11 - same actual store journals feed original durable publication; no whole archive completion claim
+  ---
+  duration_ms: 63.415166
+  type: 'test'
+  ...
+# Subtest: lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+ok 12 - lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+  ---
+  duration_ms: 49.435584
+  type: 'test'
+  ...
+# Subtest: pause during committed POST fences late response and explicit same task continuation first reconciles it
+ok 13 - pause during committed POST fences late response and explicit same task continuation first reconciles it
+  ---
+  duration_ms: 43.88625
+  type: 'test'
+  ...
+# Subtest: binding generation change and foreign account block old pending upload without retargeting it
+ok 14 - binding generation change and foreign account block old pending upload without retargeting it
+  ---
+  duration_ms: 47.879917
+  type: 'test'
+  ...
+# Subtest: durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+ok 15 - durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+  ---
+  duration_ms: 23.849125
+  type: 'test'
+  ...
+# Subtest: second owner and state changes are refused, malformed provider binding never installs journals
+ok 16 - second owner and state changes are refused, malformed provider binding never installs journals
+  ---
+  duration_ms: 14.817125
+  type: 'test'
+  ...
+# Subtest: wrong task command does not mutate pending identity or conceal original failure
+ok 17 - wrong task command does not mutate pending identity or conceal original failure
+  ---
+  duration_ms: 30.2785
+  type: 'test'
+  ...
+# Subtest: existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+ok 18 - existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+  ---
+  duration_ms: 98.445917
+  type: 'test'
+  ...
+# Subtest: suspend cancellation reconciles local state without IO or automatic continuation
+ok 19 - suspend cancellation reconciles local state without IO or automatic continuation
+  ---
+  duration_ms: 37.256166
+  type: 'test'
+  ...
+# Subtest: cold recovery of original confirmed publication receipt needs no remote request
+ok 20 - cold recovery of original confirmed publication receipt needs no remote request
+  ---
+  duration_ms: 42.721209
+  type: 'test'
+  ...
+# Subtest: remote loss after original verified cut never causes silently recreating it
+ok 21 - remote loss after original verified cut never causes silently recreating it
+  ---
+  duration_ms: 43.899167
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=false
+ok 22 - actual worker synchronous events and same-store command consumer, configured=false
+  ---
+  duration_ms: 72.996625
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=true
+ok 23 - actual worker synchronous events and same-store command consumer, configured=true
+  ---
+  duration_ms: 74.082
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=restore
+ok 24 - actual worker synchronous events and same-store command consumer, configured=restore
+  ---
+  duration_ms: 115.209875
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge
+not ok 25 - actual worker synchronous events and same-store command consumer, configured=purge
+  ---
+  duration_ms: 60.813625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:118:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'STORAGE_FAILED'
+    - 'BNS_FILTER_WRITER_UNSUPPORTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'BNS_FILTER_WRITER_UNSUPPORTED'
+  actual: 'STORAGE_FAILED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:148:125)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge-unknown
+not ok 26 - actual worker synchronous events and same-store command consumer, configured=purge-unknown
+  ---
+  duration_ms: 68.782875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:118:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'STORAGE_FAILED'
+    - 'BNS_FILTER_WRITER_UNSUPPORTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'BNS_FILTER_WRITER_UNSUPPORTED'
+  actual: 'STORAGE_FAILED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/sync-local-lifecycle.test.mjs:148:125)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+ok 27 - OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+  ---
+  duration_ms: 35.390625
+  type: 'test'
+  ...
+# Subtest: interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+ok 28 - interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+  ---
+  duration_ms: 87.014167
+  type: 'test'
+  ...
+# Subtest: configured capture owner always includes original permanent-denial journal
+ok 29 - configured capture owner always includes original permanent-denial journal
+  ---
+  duration_ms: 12.493333
+  type: 'test'
+  ...
+# Subtest: Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+ok 30 - Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+  ---
+  duration_ms: 0.2215
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 28
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1232.906875

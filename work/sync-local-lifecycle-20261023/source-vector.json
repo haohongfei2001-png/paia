@@ -1,0 +1,12 @@
+{
+  "base": "424b485b7b5ef1129fb3c935cb1ee9ac95fd097c",
+  "sha256": {
+    "extension/background/service-worker.js": "95ea15a388fcf45ba89f773abc284b8935bdf983b0aa5db5fe1ba40737ec8465",
+    "extension/background/sync-lifecycle-configuration.js": "88d0ebcfc3e5c47baf46cd023f6f2193f3cf1c373ea2a678ea282e2de9836d06",
+    "extension/background/sync-local-lifecycle.js": "84329e09772c5683dfcb49c9cc25a71422dfb221cffad6291984e0e555f9fc1b",
+    "extension/ui/settings-sync.js": "4ff431f4ade4a63652ddb985f792411ae2081c7f485f639b631b49925961fe50",
+    "extension/tests/settings-sync.test.mjs": "613ddf734a0fc0209bd68b9c19404a3ac900064e02b1d2e017d1c83a64ab7212",
+    "extension/tests/sync-local-lifecycle.test.mjs": "f303500f1d510e3317c81d8701141b71dec6e72054e91e381fcac452017afae2",
+    "extension/tests/native-sync/sync-local-lifecycle-native-preparation.mjs": "d46bb4ab0bce9df7203cb5af41ebd53fd520268133bd8623cb9f331a8f52b9bc"
+  }
+}
