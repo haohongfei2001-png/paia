@@ -472,3 +472,8 @@ remain open; no earlier cloud failure or cancelled capacity diagnosis is cleared
 ## Local UI checkpoint at c6d3d5b2
 
 Original headless synthetic runs: Settings complete file **4/6 exit1**, shell selected main1/1, current Context unavailable-route UI1/1, Prompt fixed-three-form Source/Release2/2. Settings Source/Release each completed288 layout rows and keyboard/failed-write checks, then the preserved pinned headed-touch prerequisite rejected this headless environment. The later stages in those parents did not run. No complete Settings, touch, private-reference fidelity or whole-product acceptance follows. See [exact report](../../../../work/takeover-ui-milestone-20261023/REPORT.md), separate raw failures, runtime vectors and selected actual captures.
+
+
+## Saved and structural native checkpoint at765f2444/f90ca3ad
+
+Eleven complete owning files pass495/495. The original native batch remains2/4: saved Source/Release passed27 original case bodies each; structural parents failed on an MV3 fixture import boundary. After test-only correction, structural Source/Release separately pass2/2, each43 Section and49 Topic-name original correction bodies, reusing the identical642-file build. All original failures, exact runtime hashes and scope limits are in [the milestone report](../../../../work/saved-structural-milestone-20261023/REPORT.md). This supersedes grouped saved-consumption missing-code wording for the finite single-saved-graph, retained2–128 revision-history cold-recovery path. Outgoing saved successors, broad mixed/nonempty/scale Sync and later Context mixtures remain open. No Full/Linux, capacity, real-provider or installed acceptance is inferred.

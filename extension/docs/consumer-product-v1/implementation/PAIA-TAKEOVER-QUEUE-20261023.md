@@ -362,3 +362,8 @@ are not reset by this composition.
 ### UI milestone, c6d3d5b2
 
 Concentrated original headless UI verification finished: Settings4/6 with two pinned-headed-touch environment failures retained, shell main1/1, current Context UI1/1, Prompt fixed forms2/2. Settings later stages after the coarse prerequisite remain unexecuted. Preserve the required touch qualification for an authorized matching environment; do not launch a visible browser or weaken its assertions solely to relabel this batch. [Report](../../../../work/takeover-ui-milestone-20261023/REPORT.md). The separately recorded manual/bound-Context native checkpoint at6452a3a7 already completed30/30 and is not waiting for this UI result.
+
+
+## Saved and structural native checkpoint at765f2444/f90ca3ad
+
+Eleven complete owning files pass495/495. The original native batch remains2/4: saved Source/Release passed27 original case bodies each; structural parents failed on an MV3 fixture import boundary. After test-only correction, structural Source/Release separately pass2/2, each43 Section and49 Topic-name original correction bodies, reusing the identical642-file build. All original failures, exact runtime hashes and scope limits are in [the milestone report](../../../../work/saved-structural-milestone-20261023/REPORT.md). This supersedes grouped saved-consumption missing-code wording for the finite single-saved-graph, retained2–128 revision-history cold-recovery path. Outgoing saved successors, broad mixed/nonempty/scale Sync and later Context mixtures remain open. No Full/Linux, capacity, real-provider or installed acceptance is inferred.

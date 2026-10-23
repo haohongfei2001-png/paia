@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: BNS finite saved AI grouped recovery native source
+ok 1 - BNS finite saved AI grouped recovery native source
+  ---
+  duration_ms: 6683.059916
+  type: 'test'
+  ...
+# Subtest: BNS finite saved AI grouped recovery native release
+ok 2 - BNS finite saved AI grouped recovery native release
+  ---
+  duration_ms: 6457.59025
+  type: 'test'
+  ...
+# Subtest: structural Context correction original native owners source
+not ok 3 - structural Context correction original native owners source
+  ---
+  duration_ms: 17722.406958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/structural-correction-chrome.test.mjs:12:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: Section-lineage Context correction original source adapter none: TypeError: import() is disallowed on ServiceWorkerGlobalScope by the HTML specification. See https://github.com/w3c/ServiceWorker/issues/1356.
+        at Object.fn (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/ai-cost-03-structural-context.test.mjs:300:50)
+        at runCorrectionCases (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/native-bridge.mjs:24:18)
+        at async <anonymous>:337:30
+        at Object.fn (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/ai-cost-03-structural-context.test.mjs:300:50)
+        at runCorrectionCases (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/native-bridge.mjs:24:18)
+        at async <anonymous>:337:30
+        at runCorrectionCases (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/native-bridge.mjs:25:18)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.fn (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/ai-cost-03-structural-context.test.mjs:300:50)
+    runCorrectionCases (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/native-bridge.mjs:24:18)
+    async <anonymous>:337:30
+    Object.fn (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/ai-cost-03-structural-context.test.mjs:300:50)
+    runCorrectionCases (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/native-bridge.mjs:24:18)
+    async <anonymous>:337:30
+    runCorrectionCases (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/native-bridge.mjs:25:18)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/structural-correction-chrome.test.mjs:34:142)
+  ...
+# Subtest: structural Context correction original native owners release
+not ok 4 - structural Context correction original native owners release
+  ---
+  duration_ms: 17739.272334
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/structural-correction-chrome.test.mjs:12:43'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: Section-lineage Context correction original source adapter none: TypeError: import() is disallowed on ServiceWorkerGlobalScope by the HTML specification. See https://github.com/w3c/ServiceWorker/issues/1356.
+        at Object.fn (chrome-extension://djfahbefokamammgpopkpajnlgjflmne/tests/ai-cost-03-structural-context.test.mjs:300:50)
+        at runCorrectionCases (chrome-extension://djfahbefokamammgpopkpajnlgjflmne/tests/native-bridge.mjs:24:18)
+        at async <anonymous>:337:30
+        at Object.fn (chrome-extension://djfahbefokamammgpopkpajnlgjflmne/tests/ai-cost-03-structural-context.test.mjs:300:50)
+        at runCorrectionCases (chrome-extension://djfahbefokamammgpopkpajnlgjflmne/tests/native-bridge.mjs:24:18)
+        at async <anonymous>:337:30
+        at runCorrectionCases (chrome-extension://djfahbefokamammgpopkpajnlgjflmne/tests/native-bridge.mjs:25:18)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.fn (chrome-extension://djfahbefokamammgpopkpajnlgjflmne/tests/ai-cost-03-structural-context.test.mjs:300:50)
+    runCorrectionCases (chrome-extension://djfahbefokamammgpopkpajnlgjflmne/tests/native-bridge.mjs:24:18)
+    async <anonymous>:337:30
+    Object.fn (chrome-extension://djfahbefokamammgpopkpajnlgjflmne/tests/ai-cost-03-structural-context.test.mjs:300:50)
+    runCorrectionCases (chrome-extension://djfahbefokamammgpopkpajnlgjflmne/tests/native-bridge.mjs:24:18)
+    async <anonymous>:337:30
+    runCorrectionCases (chrome-extension://djfahbefokamammgpopkpajnlgjflmne/tests/native-bridge.mjs:25:18)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/structural-correction-chrome.test.mjs:34:142)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 2
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 58574.647209

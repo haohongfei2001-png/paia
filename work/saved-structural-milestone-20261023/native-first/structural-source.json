@@ -1,0 +1,22 @@
+{
+  "variant": "source",
+  "result": "FAIL",
+  "head": "765f24443e2fa84b4e3db39ecc943c207ccf80bd",
+  "selection": "original Section-lineage and Topic-name-lineage Context correction cases only",
+  "fullOwningFile": false,
+  "helperSha256": "b94c97d11f3058195f3318bb7235875373c7e2e30fa181abbc34b3747b21a6a5",
+  "owningSha256": {
+    "ai-cost-03-structural-context.test.mjs": "61fde923909031d3a130bc6f7387be775b567525f4e200ed62ecaa129ed5e64b",
+    "ai-cost-03-topic-context.test.mjs": "302b3099b8f1a4cea5e586af22dc8deff59fbbfc0a83d2bf940098b536bceefd"
+  },
+  "hashes": {
+    "core/ai-usage/context-correction.js": "b2d6f86d658b062dacd516da4e2b623ea4366797296c01b95097e391615ece69",
+    "core/ai-usage/local-maintenance-session.js": "35817c0cf631668a1f56de5c08c1d5eed0891846683943e4f5ce585c39db8744",
+    "core/ai-usage/maintenance-payload.js": "363f5f5343bd868c193bdb007650cc89abd9ac5fd29ecb8114e6ceecb8ef434e",
+    "core/ai-usage/maintenance-qualification.js": "70835036a4db96d4b967453ce2aacb275c732a50f1246e8a9575a5e283f57bcf",
+    "core/idb-repository.js": "a974ce3fe86cc2363b95977d099766120968f41bc3bce645f10ee63929a1ca85"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": {},
+  "error": "worker.evaluate: Error: Section-lineage Context correction original source adapter none: TypeError: import() is disallowed on ServiceWorkerGlobalScope by the HTML specification. See https://github.com/w3c/ServiceWorker/issues/1356.\n    at Object.fn (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/ai-cost-03-structural-context.test.mjs:300:50)\n    at runCorrectionCases (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/native-bridge.mjs:24:18)\n    at async <anonymous>:337:30\n    at Object.fn (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/ai-cost-03-structural-context.test.mjs:300:50)\n    at runCorrectionCases (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/native-bridge.mjs:24:18)\n    at async <anonymous>:337:30\n    at runCorrectionCases (chrome-extension://ljobapabkhjahoimpdccfigpghhjmgfh/tests/native-bridge.mjs:25:18)\n    at async <anonymous>:337:30\n    at Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)\n    at async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/structural-correction-chrome.test.mjs:34:142)"
+}

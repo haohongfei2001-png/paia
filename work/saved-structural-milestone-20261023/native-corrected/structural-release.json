@@ -1,0 +1,150 @@
+{
+  "variant": "release",
+  "result": "PASS",
+  "head": "f90ca3ad4c6a8ba08c6a16d14925c1ce5e0fd9bf",
+  "selection": "original Section-lineage and Topic-name-lineage Context correction cases only",
+  "fullOwningFile": false,
+  "helperSha256": "b94c97d11f3058195f3318bb7235875373c7e2e30fa181abbc34b3747b21a6a5",
+  "owningSha256": {
+    "ai-cost-03-structural-context.test.mjs": "61fde923909031d3a130bc6f7387be775b567525f4e200ed62ecaa129ed5e64b",
+    "ai-cost-03-topic-context.test.mjs": "302b3099b8f1a4cea5e586af22dc8deff59fbbfc0a83d2bf940098b536bceefd"
+  },
+  "hashes": {
+    "core/ai-usage/context-correction.js": "b2d6f86d658b062dacd516da4e2b623ea4366797296c01b95097e391615ece69",
+    "core/ai-usage/local-maintenance-session.js": "35817c0cf631668a1f56de5c08c1d5eed0891846683943e4f5ce585c39db8744",
+    "core/ai-usage/maintenance-payload.js": "363f5f5343bd868c193bdb007650cc89abd9ac5fd29ecb8114e6ceecb8ef434e",
+    "core/ai-usage/maintenance-qualification.js": "70835036a4db96d4b967453ce2aacb275c732a50f1246e8a9575a5e283f57bcf",
+    "core/idb-repository.js": "a974ce3fe86cc2363b95977d099766120968f41bc3bce645f10ee63929a1ca85"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": {
+    "Section-lineage Context correction": [
+      "Section-lineage Context correction real human edit completes protected original owner",
+      "Section-lineage Context correction real human restore completes protected original owner",
+      "Section-lineage Context correction independent qualification refuses before dispatch",
+      "Section-lineage Context correction independent qualification-title refuses before dispatch",
+      "Section-lineage Context correction independent qualification-history refuses before dispatch",
+      "Section-lineage Context correction independent qualification-entry refuses before dispatch",
+      "Section-lineage Context correction independent processing refuses before dispatch",
+      "Section-lineage Context correction independent input refuses before dispatch",
+      "Section-lineage Context correction independent section refuses before dispatch",
+      "Section-lineage Context correction independent context refuses before dispatch",
+      "Section-lineage Context correction provider closes title before exact ACK",
+      "Section-lineage Context correction provider closes history before exact ACK",
+      "Section-lineage Context correction provider closes receipt before exact ACK",
+      "Section-lineage Context correction provider closes input before exact ACK",
+      "Section-lineage Context correction provider closes source before exact ACK",
+      "Section-lineage Context correction provider closes placement-journal before exact ACK",
+      "Section-lineage Context correction provider closes membership before exact ACK",
+      "Section-lineage Context correction provider closes entry before exact ACK",
+      "Section-lineage Context correction provider closes revoke before exact ACK",
+      "Section-lineage Context correction backup closes title before exact ACK",
+      "Section-lineage Context correction backup closes history before exact ACK",
+      "Section-lineage Context correction backup closes receipt before exact ACK",
+      "Section-lineage Context correction backup closes input before exact ACK",
+      "Section-lineage Context correction backup closes source before exact ACK",
+      "Section-lineage Context correction backup closes placement-journal before exact ACK",
+      "Section-lineage Context correction backup closes membership before exact ACK",
+      "Section-lineage Context correction backup closes entry before exact ACK",
+      "Section-lineage Context correction backup closes revoke before exact ACK",
+      "Section-lineage Context correction original source adapter none",
+      "Section-lineage Context correction original source adapter foreign-item",
+      "Section-lineage Context correction original source adapter unknown-field",
+      "Section-lineage Context correction ACK rollback replays one original response",
+      "Section-lineage Context correction rejects retained missing-spec without broader reads",
+      "Section-lineage Context correction rejects retained wrong-title-digest without broader reads",
+      "Section-lineage Context correction rejects retained missing-member without broader reads",
+      "Section-lineage Context correction rejects retained foreign-input without broader reads",
+      "Section-lineage Context correction rejects retained extra-note without broader reads",
+      "Section-lineage Context correction rejects retained humanTopic-alias without broader reads",
+      "Section-lineage Context correction rejects retained invalidated without broader reads",
+      "Section-lineage Context correction retains all two original Input members",
+      "Section-lineage Context correction DTO refuses partial structure and foreign coverage",
+      "Section-lineage Context correction late structural journal addition cannot change original latest owner",
+      "Section-lineage Context correction late structural journal same-count replacement cannot change original latest owner"
+    ],
+    "Topic-name-lineage Context correction": [
+      "Topic-name-lineage Context correction real human edit completes protected original owner",
+      "Topic-name-lineage Context correction real human restore completes protected original owner",
+      "Topic-name-lineage Context correction independent qualification refuses before dispatch",
+      "Topic-name-lineage Context correction independent qualification-name refuses before dispatch",
+      "Topic-name-lineage Context correction independent qualification-summary refuses before dispatch",
+      "Topic-name-lineage Context correction independent qualification-history refuses before dispatch",
+      "Topic-name-lineage Context correction independent qualification-entry refuses before dispatch",
+      "Topic-name-lineage Context correction independent processing refuses before dispatch",
+      "Topic-name-lineage Context correction independent input refuses before dispatch",
+      "Topic-name-lineage Context correction independent topic refuses before dispatch",
+      "Topic-name-lineage Context correction independent context refuses before dispatch",
+      "Topic-name-lineage Context correction provider closes name before exact ACK",
+      "Topic-name-lineage Context correction provider closes summary before exact ACK",
+      "Topic-name-lineage Context correction provider closes history before exact ACK",
+      "Topic-name-lineage Context correction provider closes receipt before exact ACK",
+      "Topic-name-lineage Context correction provider closes input before exact ACK",
+      "Topic-name-lineage Context correction provider closes source before exact ACK",
+      "Topic-name-lineage Context correction provider closes placement-journal before exact ACK",
+      "Topic-name-lineage Context correction provider closes membership before exact ACK",
+      "Topic-name-lineage Context correction provider closes section before exact ACK",
+      "Topic-name-lineage Context correction provider closes entry before exact ACK",
+      "Topic-name-lineage Context correction provider closes revoke before exact ACK",
+      "Topic-name-lineage Context correction backup closes name before exact ACK",
+      "Topic-name-lineage Context correction backup closes summary before exact ACK",
+      "Topic-name-lineage Context correction backup closes history before exact ACK",
+      "Topic-name-lineage Context correction backup closes receipt before exact ACK",
+      "Topic-name-lineage Context correction backup closes input before exact ACK",
+      "Topic-name-lineage Context correction backup closes source before exact ACK",
+      "Topic-name-lineage Context correction backup closes placement-journal before exact ACK",
+      "Topic-name-lineage Context correction backup closes membership before exact ACK",
+      "Topic-name-lineage Context correction backup closes section before exact ACK",
+      "Topic-name-lineage Context correction backup closes entry before exact ACK",
+      "Topic-name-lineage Context correction backup closes revoke before exact ACK",
+      "Topic-name-lineage Context correction original source adapter none",
+      "Topic-name-lineage Context correction original source adapter foreign-item",
+      "Topic-name-lineage Context correction original source adapter unknown-field",
+      "Topic-name-lineage Context correction ACK rollback replays one original response",
+      "Topic-name-lineage Context correction rejects retained missing-spec without broader reads",
+      "Topic-name-lineage Context correction rejects retained wrong-name-digest without broader reads",
+      "Topic-name-lineage Context correction rejects retained missing-member without broader reads",
+      "Topic-name-lineage Context correction rejects retained foreign-input without broader reads",
+      "Topic-name-lineage Context correction rejects retained extra-note without broader reads",
+      "Topic-name-lineage Context correction rejects retained humanSection-alias without broader reads",
+      "Topic-name-lineage Context correction rejects retained mixed-section without broader reads",
+      "Topic-name-lineage Context correction rejects retained invalidated without broader reads",
+      "Topic-name-lineage Context correction retains all two original Input members",
+      "Topic-name-lineage Context correction DTO refuses partial structure and foreign coverage",
+      "Topic-name-lineage Context correction late structural journal addition cannot change original latest owner",
+      "Topic-name-lineage Context correction late structural journal same-count replacement cannot change original latest owner"
+    ]
+  },
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "33b289b7-ce5c-45dd-9d18-aa5a2aa5f975",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "33b289b7-ce5c-45dd-9d18-aa5a2aa5f975",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}
