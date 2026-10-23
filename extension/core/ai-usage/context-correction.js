@@ -118,13 +118,13 @@ async function editSnapshot(store,t,m){
  if(!equal(await readContextEditMapping(store,t,editDescriptor(m)),m))fail('STALE_BASE');
  const item=(await t.get('meta','context-cards:v1')).items.find(i=>i.id===m.itemId),receipt=await t.get('operationReceipts',m.proof.receiptId),inputs=[],topics=[],memberships=[],sources=[],legacy=[],legacyIndex=[];
  const filter=await t.get('meta','smart-filter'),authored=[];
- for(const mapping of m.authoredEntries||[]){const entry=await t.get('thoughts',mapping.entryId),entityKey='library_entry:'+mapping.entryId,journals=await t.all('revisions','byList',prefix([entityKey]));authored.push({entry:authoredEntrySnapshot(entry,mapping),journals:journals.map(authoredJournalSnapshot),members:await captureTopicFormationMembers(t,[mapping.entryId])});}
+ for(const mapping of m.authoredEntries||[]){const entry=await t.get('thoughts',mapping.entryId),entityKey='library_entry:'+mapping.entryId,journals=await t.all('revisions','byList',prefix([entityKey]));const section=await t.get('sections',JSON.stringify([mapping.topicId,mapping.layoutGeneration,mapping.sectionId])),placementKey='placement:'+mapping.placementId,placementJournal=await t.edge('revisions','byList',prefix([placementKey]),'prev'),placementJournalCount=await t.count('revisions','byList',prefix([placementKey]));if(!section||!placementJournal)fail('STALE_BASE');authored.push({entry:authoredEntrySnapshot(entry,mapping),journals:journals.map(authoredJournalSnapshot),section:metadataWithout(section,['title']),placementJournal:authoredJournalSnapshot(placementJournal),placementJournalCount,members:await captureTopicFormationMembers(t,[mapping.entryId])});}
  for(const e of m.provenance.evidence.filter(e=>!e.kind)){const input=await inputProjection(store,t,e.inputId);if(!input||await store.isFiltered(t,input.block,filter))fail('STALE_BASE');inputs.push({inputId:input.inputId,documentId:input.documentId,contentRevision:input.contentRevision,lastRemovalSequence:input.lastRemovalSequence,body:input.body,note:input.note,sourceRecordIds:input.sourceRecordIds,identities:input.identities});}
  for(const topicId of [...new Set(m.provenance.evidence.map(e=>e.topicId))].sort()){
   const topic=await t.get('topics',topicId);topics.push(metadataWithout(topic,['name','nameKey','summary']));
   const placements=await t.all('placements','byTopicOrder',prefix([topicId,topic.activeLayoutGeneration,0]),17);if(placements.length>16)fail('BUDGET_EXCEEDED');
   const entries=[];for(const p of placements){const e=await t.get('thoughts',p.entryId);if(!e)fail('STALE_BASE');entries.push(metadataWithout(e,['thoughtText','title','note']));}
-  memberships.push({placements,entries});
+  const sectionRange=prefix([topicId,topic.activeLayoutGeneration]),sectionCount=await t.count('sections','byTopicOrder',sectionRange);if(!Number.isSafeInteger(sectionCount)||sectionCount>CONTEXT_TOPIC_SCOPE_LIMITS.refs)fail('BUDGET_EXCEEDED');const sections=(await t.all('sections','byTopicOrder',sectionRange)).map(s=>metadataWithout(s,['title']));if(sections.length!==sectionCount)fail('STALE_BASE');memberships.push({placements,entries,sections});
  }
  for(const id of m.sourceRecordIds){const row=await t.get('records',id);sources.push({index:await t.get('recordIndex',id),record:row?{id:row.id,value:{originalText:row.value?.originalText}}:row});}
  // Original legacy restrictions are part of the final transaction fence too.
@@ -142,7 +142,7 @@ export async function captureContextEditMaterial(store,m,{read,signal,workBudget
   const current=()=>{if(signal?.aborted)fail('UNAVAILABLE');if(workBudget)assertContextScopeWorkBudgetFacts(workBudget,{database:store.repository.db});return true;};
   const retain=value=>{current();if(workBudget){workBudget.hashBytes+=new TextEncoder().encode(JSON.stringify(value)).length;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes)fail('BUDGET_EXCEEDED');}return value;};
   const terminalFacts=await read(t=>captureTopicFormationTerminal(store,t,m.provenance.evidence.filter(e=>!e.kind),{retain,current}));
-  if(snapshot.authored)retain(snapshot.authored);
+  if(snapshot.authored)retain(snapshot.authored);retain(snapshot.memberships.map(m=>m.sections));
   const held={mapping:m,snapshot,lineage:lineage.captured,fields,fieldDigests,terminalFacts,workBudget};await read(t=>assertContextEditMaterial(store,t,held));return held;
  }catch(error){releaseContextLineage(lineage.captured);throw error;}
 }
@@ -171,12 +171,14 @@ export function registerContextEditFinalFence(store,t,held,isCurrent){
   for(const fact of held.terminalFacts)same(fact.project(yield*get(fact.table,fact.key),check),fact.expected);
   for(const source of s.sources)same(yield*get('recordIndex',source.index.id),source.index);
   for(const author of s.authored||[]){const mapping=m.authoredEntries.find(x=>x.entryId===author.entry.id),entry=yield*get('thoughts',author.entry.id);if(!entry)fail('STALE_BASE');same(authoredEntrySnapshot(entry,mapping),author.entry);
+   const section=yield*get('sections',author.section.id);if(!section)fail('STALE_BASE');same(metadataWithout(section,['title']),author.section);same(yield*count('revisions','byList',prefix(['placement:'+mapping.placementId])),author.placementJournalCount);same(authoredJournalSnapshot(yield*get('revisions',author.placementJournal.id)),author.placementJournal);
    same(yield*count('revisions','byList',prefix(['library_entry:'+entry.id])),author.journals.length);for(const row of author.journals)same(authoredJournalSnapshot(yield*get('revisions',row.id)),row);
    for(const member of author.members)for(const {table,rows}of member.collections){const {index,key}=topicFormationMemberRange(table,member.entryId);same(yield*count(table,index,key),rows.length);for(const row of rows)same(topicFormationMemberProjection(table,yield*get(table,row.id)),row);}
   }
   for(let n=0;n<s.topics.length;n++){
    const topic=s.topics[n],actual=yield*get('topics',topic.id);if(!actual)fail('STALE_BASE');same(metadataWithout(actual,['name','nameKey','summary']),topic);
-   const {placements,entries}=s.memberships[n];same(yield*count('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0])),placements.length);
+   const {placements,entries,sections}=s.memberships[n];same(yield*count('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration])),sections.length);for(const section of sections){const actual=yield*get('sections',section.id);if(!actual)fail('STALE_BASE');same(metadataWithout(actual,['title']),section);}
+same(yield*count('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0])),placements.length);
    for(const p of placements)same(yield*get('placements',p.id),p);
    for(const entry of entries){const actual=yield*get('thoughts',entry.id);if(!actual)fail('STALE_BASE');same(metadataWithout(actual,['thoughtText','title','note']),entry);}
   }
