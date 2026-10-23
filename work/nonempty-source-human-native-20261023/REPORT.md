@@ -1,0 +1,15 @@
+# Nonempty Source/Working and Human restore native milestone
+
+Frozen implementation bfb2a398283f49b4f9635399e1ea0a72de33c397. Exact Source/Working candidate3d25df83 is integrated9cb13ae2; coordinator is a manual application of its narrow three-hunk patch preserving all existing protected-generation guards. Human restore test-only1114ffe4 is integrated3dda14a8. The initial patch-check failed on evolved root context and made no edits; no old coordinator was copied.
+
+One complete four-owner Node batch: **60/60**, exit0, TAP41838.487209ms, wall41905.19175ms. Original22 Source-incremental cases,3 cost cases,26 protected group cases and9 Human restore cases all execute; zero failure/cancellation/skip/todo. Prior component failures remain in their original evidence directories.
+
+One standard development build:22542 guardrails,637 runtime resources,661 files,0.55.9 Development, wall1922.973875ms. Uninstalled runnable output is `release/` alongside this report (untracked, retained).
+
+One headless native batch: **4/4** Source/Release parents, original22 incremental and9 Human restore case bodies per variant, TAP91949.972459ms/wall91974.668125ms. Native IndexedDB, zero attempted external requests. Complete result JSON and SHA256 source/release vectors are retained. Node/build/native source vectors unchanged. The bridge changes only test registration/imports and actual database construction; original assertions and case bodies remain except the declared cold-constructor boundary. Each synthetic storage identity preserves its actual native database name on reopening.
+
+Bridge preparation corrections before execution: human constructor replacement initially counted the helper constructor it had just inserted; corrected ordering. Static negative probe initially expected compile rejection for a factory replacement that the existing runtime factory guard rejects instead; switched to mandatory unsupported import probe. Body equality initially failed to account for the explicitly adapted cold constructor; the exact substitution is now recorded. These were preparation errors, not production/data test failures. Initial tool error text is reflected here; no owning/browser test had run then. Both final bridge checks pass. Existing source-portfolio bridge remains supported.
+
+Runtime: Node22.23.3, Python3.12.14, Playwright1.63.0, Chrome156.0.8078.47, macOS arm64. No download/install/global configuration, real account, provider, paid model, remote CI/Full or deployment.
+
+Scope: two populated compatible Source/Working devices retain local outbox, merge independent appends/edits and cold-export again; same Input forks refuse. Real Human removed→restored Topic persists its lifecycle lock through cold B/C; later automatic activity retains original refusal. This does not certify arbitrary mixed Source/Human/saved merge, conflict resolution, all Sync families, Linux capacity or final programme acceptance. Large phased canonical recovery and remaining mixed owner integration continue.

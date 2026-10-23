@@ -434,3 +434,7 @@ Integrated d3aa1054 active original-library binding and a43fe357 protected origi
 ## Published writes, protected groups and typed first Topic activity native milestone
 
 Corrected7db1a0be composition88/88 and Source/Release native6/6 (original21 active+26 protected-group+34 activity cases per variant), standard660-file development artifact. Initial54/55 import-cycle failure retained; one direct-owner import correction preserves all guards. No cloud/Full/install or whole-stage acceptance. [Report](../../../../work/active-generation-native-milestone-20261023/REPORT.md). Remaining data graph, nonempty merge, phased large graph and lifecycle work continues; default production Sync remains off as required for local SYNC01.
+
+## Nonempty Source/Working and Human restore integration at bfb2a398
+
+Exact3d25df83 plus narrow root coordinator and test-only1114ffe4 integrated. Four complete owning files60/60; one661-file development build; Source/Release original22 incremental and9 Human restore cases each,4/4 native parents with no external requests. [Report](../../../../work/nonempty-source-human-native-20261023/REPORT.md). Mixed Source/Human/saved destination merge, larger phased restoration and formed/adopted/negative families remain work, not external blockers or completed Sync. No prior Full/capacity result is replaced.

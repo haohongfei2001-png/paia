@@ -1,0 +1,370 @@
+TAP version 13
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+ok 1 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 262.887125
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rebinds original proof and never duplicates canonical application
+ok 2 - protected group cold resume rebinds original proof and never duplicates canonical application
+  ---
+  duration_ms: 273.710542
+  type: 'test'
+  ...
+# Subtest: protected group never lends a transaction to custom diagnostic callback
+ok 3 - protected group never lends a transaction to custom diagnostic callback
+  ---
+  duration_ms: 75.162333
+  type: 'test'
+  ...
+# Subtest: protected group cannot acquire genuine authority using forged or foreign proof
+ok 4 - protected group cannot acquire genuine authority using forged or foreign proof
+  ---
+  duration_ms: 79.198084
+  type: 'test'
+  ...
+# Subtest: protected group keeps token away from mutable repository and Core transaction wrappers
+ok 5 - protected group keeps token away from mutable repository and Core transaction wrappers
+  ---
+  duration_ms: 163.791833
+  type: 'test'
+  ...
+# Subtest: protected original group refuses gate-phase drift without partial owner writes
+ok 6 - protected original group refuses gate-phase drift without partial owner writes
+  ---
+  duration_ms: 108.315
+  type: 'test'
+  ...
+# Subtest: protected original group refuses checkpoint-item drift without partial owner writes
+ok 7 - protected original group refuses checkpoint-item drift without partial owner writes
+  ---
+  duration_ms: 91.947208
+  type: 'test'
+  ...
+# Subtest: protected original group refuses consent drift without partial owner writes
+ok 8 - protected original group refuses consent drift without partial owner writes
+  ---
+  duration_ms: 95.214167
+  type: 'test'
+  ...
+# Subtest: protected original group refuses restore-row drift without partial owner writes
+ok 9 - protected original group refuses restore-row drift without partial owner writes
+  ---
+  duration_ms: 90.26
+  type: 'test'
+  ...
+# Subtest: protected original group refuses purge-deny drift without partial owner writes
+ok 10 - protected original group refuses purge-deny drift without partial owner writes
+  ---
+  duration_ms: 125.179917
+  type: 'test'
+  ...
+# Subtest: protected group native terminal canonical drift rolls back original owner and receipt
+ok 11 - protected group native terminal canonical drift rolls back original owner and receipt
+  ---
+  duration_ms: 158.081708
+  type: 'test'
+  ...
+# Subtest: protected group native terminal restore-receipt drift rolls back original owner and receipt
+ok 12 - protected group native terminal restore-receipt drift rolls back original owner and receipt
+  ---
+  duration_ms: 141.876959
+  type: 'test'
+  ...
+# Subtest: protected group native terminal checkpoint-item drift rolls back original owner and receipt
+ok 13 - protected group native terminal checkpoint-item drift rolls back original owner and receipt
+  ---
+  duration_ms: 127.186292
+  type: 'test'
+  ...
+# Subtest: protected group native terminal protection drift rolls back original owner and receipt
+ok 14 - protected group native terminal protection drift rolls back original owner and receipt
+  ---
+  duration_ms: 160.999625
+  type: 'test'
+  ...
+# Subtest: protected group native terminal gate drift rolls back original owner and receipt
+ok 15 - protected group native terminal gate drift rolls back original owner and receipt
+  ---
+  duration_ms: 123.5225
+  type: 'test'
+  ...
+# Subtest: protected original graph seal retains existing-active migration refusal
+ok 16 - protected original graph seal retains existing-active migration refusal
+  ---
+  duration_ms: 168.013083
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted stage.put before lending a write transaction
+ok 17 - protected group refuses substituted stage.put before lending a write transaction
+  ---
+  duration_ms: 97.381292
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted coreB.get before lending a write transaction
+ok 18 - protected group refuses substituted coreB.get before lending a write transaction
+  ---
+  duration_ms: 104.7315
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.applyInitialSource before lending a write transaction
+ok 19 - protected group refuses substituted b.applyInitialSource before lending a write transaction
+  ---
+  duration_ms: 105.088625
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.control before lending a write transaction
+ok 20 - protected group refuses substituted b.control before lending a write transaction
+  ---
+  duration_ms: 112.715666
+  type: 'test'
+  ...
+# Subtest: protected group descriptor guard refuses an owner method getter without executing it
+ok 21 - protected group descriptor guard refuses an owner method getter without executing it
+  ---
+  duration_ms: 92.667083
+  type: 'test'
+  ...
+# Subtest: protected group rejects a shadowing prototype method before write authority
+ok 22 - protected group rejects a shadowing prototype method before write authority
+  ---
+  duration_ms: 91.514917
+  type: 'test'
+  ...
+# Subtest: protected group restore field getter cannot rebind the private original consumer
+ok 23 - protected group restore field getter cannot rebind the private original consumer
+  ---
+  duration_ms: 58.963667
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rejects extra durable restore fields
+ok 24 - protected group cold resume rejects extra durable restore fields
+  ---
+  duration_ms: 98.026917
+  type: 'test'
+  ...
+# Subtest: protected group native owner failure rolls back and fresh explicit retry reuses original graph
+ok 25 - protected group native owner failure rolls back and fresh explicit retry reuses original graph
+  ---
+  duration_ms: 188.39125
+  type: 'test'
+  ...
+# Subtest: protected fixed group publication refuses substituted original consumer methods before write callback
+ok 26 - protected fixed group publication refuses substituted original consumer methods before write callback
+  ---
+  duration_ms: 193.947625
+  type: 'test'
+  ...
+# Subtest: existing Source device retains its local edit and outbox while receiving another Input successor
+ok 27 - existing Source device retains its local edit and outbox while receiving another Input successor
+  ---
+  duration_ms: 1911.050083
+  type: 'test'
+  ...
+# Subtest: two devices append independently then receive in both directions and keep next local edits exportable
+ok 28 - two devices append independently then receive in both directions and keep next local edits exportable
+  ---
+  duration_ms: 5741.8425
+  type: 'test'
+  ...
+# Subtest: concurrent edits of the same Input are rejected before any canonical or protocol merge write
+ok 29 - concurrent edits of the same Input are rejected before any canonical or protocol merge write
+  ---
+  duration_ms: 1026.755167
+  type: 'test'
+  ...
+# Subtest: duplicate and recreated consumer resolve the original durable merge receipt without writes
+ok 30 - duplicate and recreated consumer resolve the original durable merge receipt without writes
+  ---
+  duration_ms: 1236.045625
+  type: 'test'
+  ...
+# Subtest: lost committed result is resolved from durable receipts by an explicit recreated consumer
+ok 31 - lost committed result is resolved from durable receipts by an explicit recreated consumer
+  ---
+  duration_ms: 2128.169917
+  type: 'test'
+  ...
+# Subtest: failure at source-working-applied-group rolls back the complete bounded checkpoint merge
+ok 32 - failure at source-working-applied-group rolls back the complete bounded checkpoint merge
+  ---
+  duration_ms: 1147.20225
+  type: 'test'
+  ...
+# Subtest: failure at before-source-working-commit rolls back the complete bounded checkpoint merge
+ok 33 - failure at before-source-working-commit rolls back the complete bounded checkpoint merge
+  ---
+  duration_ms: 1094.958417
+  type: 'test'
+  ...
+# Subtest: terminal fence refuses unrelated-Source drift and rolls back all tables
+ok 34 - terminal fence refuses unrelated-Source drift and rolls back all tables
+  ---
+  duration_ms: 1112.504875
+  type: 'test'
+  ...
+# Subtest: terminal fence refuses old-receipt drift and rolls back all tables
+ok 35 - terminal fence refuses old-receipt drift and rolls back all tables
+  ---
+  duration_ms: 1100.25575
+  type: 'test'
+  ...
+# Subtest: terminal fence refuses local-outbox drift and rolls back all tables
+ok 36 - terminal fence refuses local-outbox drift and rolls back all tables
+  ---
+  duration_ms: 1263.931167
+  type: 'test'
+  ...
+# Subtest: terminal fence refuses foreign-negative-space drift and rolls back all tables
+ok 37 - terminal fence refuses foreign-negative-space drift and rolls back all tables
+  ---
+  duration_ms: 1216.270916
+  type: 'test'
+  ...
+# Subtest: terminal fence refuses semantic-tail drift and rolls back all tables
+ok 38 - terminal fence refuses semantic-tail drift and rolls back all tables
+  ---
+  duration_ms: 1200.028208
+  type: 'test'
+  ...
+# Subtest: original private work budget rejects 4097 reads even when public diagnostics are reset
+ok 39 - original private work budget rejects 4097 reads even when public diagnostics are reset
+  ---
+  duration_ms: 1408.658375
+  type: 'test'
+  ...
+# Subtest: local edit after staging refuses the stale merge baseline and preserves the newer local state
+ok 40 - local edit after staging refuses the stale merge baseline and preserves the newer local state
+  ---
+  duration_ms: 1043.391958
+  type: 'test'
+  ...
+# Subtest: repeated unchanged checkpoint uses a new bounded no-op receipt without altering user data or outbox
+ok 41 - repeated unchanged checkpoint uses a new bounded no-op receipt without altering user data or outbox
+  ---
+  duration_ms: 2103.983291
+  type: 'test'
+  ...
+# Subtest: timeline counterfeits and cross-receipt references cannot qualify a populated current cut
+ok 42 - timeline counterfeits and cross-receipt references cannot qualify a populated current cut
+  ---
+  duration_ms: 1658.540083
+  type: 'test'
+  ...
+# Subtest: late control revocation refuses the same atomic merge instead of adopting a fresh authority
+ok 43 - late control revocation refuses the same atomic merge instead of adopting a fresh authority
+  ---
+  duration_ms: 1203.281667
+  type: 'test'
+  ...
+# Subtest: elapsed public deadline rejects before commit and keeps the complete prior cut
+ok 44 - elapsed public deadline rejects before commit and keeps the complete prior cut
+  ---
+  duration_ms: 1106.76525
+  type: 'test'
+  ...
+# Subtest: existing device admits a new original document bootstrap and its Working through the same bounded owner merge
+ok 45 - existing device admits a new original document bootstrap and its Working through the same bounded owner merge
+  ---
+  duration_ms: 1970.230667
+  type: 'test'
+  ...
+# Subtest: original Working owner return cannot establish a changed queued-outbox baseline
+ok 46 - original Working owner return cannot establish a changed queued-outbox baseline
+  ---
+  duration_ms: 1204.447125
+  type: 'test'
+  ...
+# Subtest: original Working owner return cannot establish a changed suppression-key baseline
+ok 47 - original Working owner return cannot establish a changed suppression-key baseline
+  ---
+  duration_ms: 1187.392834
+  type: 'test'
+  ...
+# Subtest: original Working owner return cannot establish a changed control-gate baseline
+ok 48 - original Working owner return cannot establish a changed control-gate baseline
+  ---
+  duration_ms: 1244.470792
+  type: 'test'
+  ...
+# Subtest: actual corrupt larger physical comparison and control have independent original two-side canonical prepayment
+ok 49 - actual corrupt larger physical comparison and control have independent original two-side canonical prepayment
+  ---
+  duration_ms: 106.183125
+  type: 'test'
+  ...
+# Subtest: complete original prepared entities and family arrays are priced before Scope digest rather than one operation
+ok 50 - complete original prepared entities and family arrays are priced before Scope digest rather than one operation
+  ---
+  duration_ms: 70.923208
+  type: 'test'
+  ...
+# Subtest: cost meter refuses supplied physical or control getters before reading them
+ok 51 - cost meter refuses supplied physical or control getters before reading them
+  ---
+  duration_ms: 44.782375
+  type: 'test'
+  ...
+# Subtest: original human restore crosses cold B and cold C with its real causal group and retained lifecycle lock
+ok 52 - original human restore crosses cold B and cold C with its real causal group and retained lifecycle lock
+  ---
+  duration_ms: 991.950208
+  type: 'test'
+  ...
+# Subtest: a restored human Topic rejects a later independently authorized inactivity without canonical or activity protocol writes
+ok 53 - a restored human Topic rejects a later independently authorized inactivity without canonical or activity protocol writes
+  ---
+  duration_ms: 548.555083
+  type: 'test'
+  ...
+# Subtest: the restored lock is not an independent processing grant; revoked issuer still rejects with every store unchanged
+ok 54 - the restored lock is not an independent processing grant; revoked issuer still rejects with every store unchanged
+  ---
+  duration_ms: 97.891042
+  type: 'test'
+  ...
+# Subtest: original human restoration duplicate and lost return retain one exact causal event
+ok 55 - original human restoration duplicate and lost return retain one exact causal event
+  ---
+  duration_ms: 100.88975
+  type: 'test'
+  ...
+# Subtest: human restore source ACK failure atomically rolls back canonical members, history and protocol
+ok 56 - human restore source ACK failure atomically rolls back canonical members, history and protocol
+  ---
+  duration_ms: 87.286042
+  type: 'test'
+  ...
+# Subtest: human restore receiver ACK failure atomically rolls back canonical members, history and protocol
+ok 57 - human restore receiver ACK failure atomically rolls back canonical members, history and protocol
+  ---
+  duration_ms: 370.388958
+  type: 'test'
+  ...
+# Subtest: two genuine human restores from the same removed base cannot silently replace the accepted causal branch
+ok 58 - two genuine human restores from the same removed base cannot silently replace the accepted causal branch
+  ---
+  duration_ms: 688.349125
+  type: 'test'
+  ...
+# Subtest: an actual intervening human restore invalidates an already prepared remote restore owner
+ok 59 - an actual intervening human restore invalidates an already prepared remote restore owner
+  ---
+  duration_ms: 412.668875
+  type: 'test'
+  ...
+# Subtest: cold default store retains the human restoration lock and its original lifecycle owner veto
+ok 60 - cold default store retains the human restoration lock and its original lifecycle owner veto
+  ---
+  duration_ms: 105.3875
+  type: 'test'
+  ...
+1..60
+# tests 60
+# suites 0
+# pass 60
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41838.487209
