@@ -2,15 +2,13 @@ import {nativeSavedGroupFixture} from './saved-group-fixture.mjs';
 // Keep all owning test bodies. Only replace the Node/database adapter and turn
 // literal test-only imports into static imports required by an MV3 worker.
 export function nativeSavedSuccessorFixture(source){
- let declarations='';
- source=source.replace(/const \{([^{}]+)\}=await import\('([^']+)'\);/g,(line,names,path)=>{
+ let declarations='';const modules=new Map();
+ source=source.replace(/await import\('([^']+)'\)/g,(line,path)=>{
   if(!path.startsWith('../core/'))throw Error('SAVED_SUCCESSOR_IMPORT_SCOPE');
-  declarations+=`import {${names}} from '${path}';\n`;return '';
- });
- // One original case also continues its declaration after the import.
- source=source.replace(/const \{([^{}]+)\}=await import\('([^']+)'\),/g,(line,names,path)=>{
-  if(!path.startsWith('../core/'))throw Error('SAVED_SUCCESSOR_IMPORT_SCOPE');
-  declarations+=`import {${names}} from '${path}';\n`;return 'const ';
+  if(!modules.has(path)){const name='nativeSavedModule'+modules.size;modules.set(path,name);declarations+=`import * as ${name} from '${path}';\n`;}
+  // Keep local declarations in their original scopes: hoisting named bindings
+  // can collide with a later static import of the same production function.
+  return `await Promise.resolve(${modules.get(path)})`;
  });
  if(/\bimport\s*\(/.test(source))throw Error('SAVED_SUCCESSOR_DYNAMIC_IMPORT_CHANGED');
  let result=nativeSavedGroupFixture(declarations+source);

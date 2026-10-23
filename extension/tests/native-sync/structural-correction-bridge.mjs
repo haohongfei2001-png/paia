@@ -15,6 +15,8 @@ export const assert={
  notEqual(a,b,label){if(Object.is(a,b))throw Error(label||'notEqual');},
  deepEqual(a,b,label){if(!equal(a,b))throw Error(label||'deepEqual');},
  ok(value,label){if(!value)throw Error(label||'truthy');},
+ match(value,pattern,label){if(typeof value!=='string'||!(pattern instanceof RegExp))throw new TypeError('string and RegExp required');if(!pattern.test(value))throw Error(label||'match');},
+ doesNotMatch(value,pattern,label){if(typeof value!=='string'||!(pattern instanceof RegExp))throw new TypeError('string and RegExp required');if(pattern.test(value))throw Error(label||'doesNotMatch');},
  throws(fn,expected){try{fn();}catch(e){rejected(e,expected);return;}throw Error('expected throw');},
  async rejects(fn,expected){try{await(typeof fn==='function'?fn():fn);}catch(e){rejected(e,expected);return;}throw Error('expected rejection');}
 };
