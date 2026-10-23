@@ -27,3 +27,17 @@ Root inspected the private paired Core capability, exact two-head one-to-one env
 51892575 fixes only portable comparison for two valid device-local booleans; A-close/B-republish/C and post-stage local value retention pass with20/20 across three complete owning files. Full local control is still read/qualified by the original owner, no remote protection value is installed. The draft second test incorrectly expected a device-only change to reject stage authority; corrected test requires original local value preservation and documents that difference.
 
 Existing synthetic compaction collection is already completed in4c0d4d62 (8/8 author evidence); do not recreate it from old planner-only wording. Context complete owner integration is independent and in progress, not silently included in this checkpoint/Prompt batch.
+
+Independent readonly review of51892575 by the Context owner found no new concrete blocker: only two validated local booleans are normalized in portable equality, expected fields originate in fixed defaults/portable keys, extra fields still reject, and original application reads current target control and writes only portable keys. Reviewer did not execute tests. Post-staging case directly changes preview protection; the A/B/C case additionally covers independent sidebar choices.
+
+The checkpoint/Prompt milestone may freeze after the existing configured worker purge case preserves all seven local preference and Prompt owners. Complete negative-plus-portable remote restore remains a separate active consumer package and is not represented by the existing NOW refusal or six original checkpoint native cases. This sequencing avoids blocking the independent full positive A/B/C native chain on a larger negative publication-role change.
+
+## Complete paired history integration at0ee98a12
+
+ed4ee021 was picked alone on the already integrated original parents, with only the expected disjoint group-checkpoint auto-merge. Root read the complete new callback and ancestry helper: branded immutable plan prepared outside IDB, exact same-Core operations, two matching branch ancestors, complete paired user resolution, prior companion/proof and JournalRestoreFence held unchanged, and terminal rollback if a deferred companion remains. Ordinary materializePromptBinding keeps its old unprepared refusal. Original full scope/head/frontier and activation checks still run after replay. No new crypto await enters the transaction. Author38/38 complete three files and51/51 related four files remain separate from the pending root composed invocation.
+
+## Portable owner preservation at 5211b8be
+
+Root reviewed ab7815d0 runtime and unknown-upload assertions before a clean exact cherry-pick. Source cardinality now counts original Source groups only; all portable groups still pass full original plan/scope and exact proof checks. Materialized owners are reconstructed exactly from validated single heads, original canonical values, Prompt envelope and companion links; no arbitrary metadata is admitted. Deletion preserves original uncertain upload task and cannot retransmit its obsolete cut, including cold reopen. Author results 104/104, 6/6 and 3/3 are separate, not the upcoming composed result. Full negative-plus-portable publication remains separate work.
+
+The composed batch is now frozen with 27 whole-owning Node files and two native files, one build. Existing small logical 128/129-operation admission tests are dependency regression tests, not another qualified 129-Human-group recovery. No consumed scale data is reopened.

@@ -1,5 +1,5 @@
 {
-  "state": "DRAFT_PENDING_FINAL_RUNTIME",
+  "state": "FROZEN",
   "owning": [
     "checkpoint-publication.test.mjs",
     "browser-native-sync-core.test.mjs",
@@ -24,7 +24,10 @@
     "source-purge-checkpoint-publication.test.mjs",
     "consumer-local-protection-checkpoint.test.mjs",
     "consumer-preference-group-restore.test.mjs",
-    "mixed-configuration-owner.test.mjs"
+    "mixed-configuration-owner.test.mjs",
+    "browser-native-sync-group-checkpoint-restore.test.mjs",
+    "consumer-preference-sync-owner.test.mjs",
+    "source-purge-portable-owner.test.mjs"
   ],
   "native": [
     "native-sync/checkpoint-publication-native.test.mjs",
