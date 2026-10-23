@@ -1,0 +1,7 @@
+# Original lazy memory default and checkpoint publication
+
+Native Settings Source/Release first failed with a null task. Original command ACK observation proved NOW was refused with BNS_GROUP_CANONICAL_UNREPRESENTED, not a missing process exit. One Source diagnostic found group scope metadata guard; a follow-up captured only its fixed family classification/field names, identifying the original MemoryService configuration shape. Both original failures and diagnostics remain in the integration evidence.
+
+A deterministic original MemoryService.ready() then reproduced the same scope refusal: new owning file 5/6 (positive A/B/C failed; all five negative controls passed). The fix qualifies only the exact original configDefault() row as local initialization. It carries no portable operation, permission, historical intent or copied control. Every differing field, legacy profile or unknown key still refuses. Original map/cut proof remains mandatory at each consumption seam. No memory:* exemption, schema migration or runtime activation was added.
+
+Four whole owning files passed 33/33, exit0, TAP8076.256542ms. Adding separate-profile refusal and target-decision change after staging yielded final owning8/8; the original target is preserved after failed activation. These are local Node22.23.3 synthetic tests, not browser or full-product acceptance. No 129-group data or cloud execution was used.
