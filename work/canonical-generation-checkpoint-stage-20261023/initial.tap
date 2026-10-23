@@ -1,0 +1,114 @@
+TAP version 13
+# Subtest: generation checkpoint authenticates original Source graph and mints private input proof without canonical writes
+ok 1 - generation checkpoint authenticates original Source graph and mints private input proof without canonical writes
+  ---
+  duration_ms: 98.483416
+  type: 'test'
+  ...
+# Subtest: generation checkpoint resumes after committed final page and validates durable cursor/receipt
+ok 2 - generation checkpoint resumes after committed final page and validates durable cursor/receipt
+  ---
+  duration_ms: 57.238875
+  type: 'test'
+  ...
+# Subtest: generation checkpoint lost page response resumes exact cursor without duplicate items
+ok 3 - generation checkpoint lost page response resumes exact cursor without duplicate items
+  ---
+  duration_ms: 55.3155
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable item drift before proof
+ok 4 - generation checkpoint rejects durable item drift before proof
+  ---
+  duration_ms: 45.295584
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable page drift before proof
+ok 5 - generation checkpoint rejects durable page drift before proof
+  ---
+  duration_ms: 44.8745
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable cursor drift before proof
+ok 6 - generation checkpoint rejects durable cursor drift before proof
+  ---
+  duration_ms: 44.864083
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable extra-item drift before proof
+ok 7 - generation checkpoint rejects durable extra-item drift before proof
+  ---
+  duration_ms: 49.386625
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects durable gate drift before proof
+ok 8 - generation checkpoint rejects durable gate drift before proof
+  ---
+  duration_ms: 45.462791
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late item and rolls back
+ok 9 - generation checkpoint original same-TX terminal rejects late item and rolls back
+  ---
+  duration_ms: 50.544084
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late page and rolls back
+ok 10 - generation checkpoint original same-TX terminal rejects late page and rolls back
+  ---
+  duration_ms: 51.300708
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late extra-item and rolls back
+ok 11 - generation checkpoint original same-TX terminal rejects late extra-item and rolls back
+  ---
+  duration_ms: 56.221792
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late state and rolls back
+ok 12 - generation checkpoint original same-TX terminal rejects late state and rolls back
+  ---
+  duration_ms: 49.5305
+  type: 'test'
+  ...
+# Subtest: generation checkpoint original same-TX terminal rejects late gate and rolls back
+ok 13 - generation checkpoint original same-TX terminal rejects late gate and rolls back
+  ---
+  duration_ms: 49.863042
+  type: 'test'
+  ...
+# Subtest: generation checkpoint detaches manifest ref before held external get
+ok 14 - generation checkpoint detaches manifest ref before held external get
+  ---
+  duration_ms: 39.064292
+  type: 'test'
+  ...
+# Subtest: generation checkpoint refuses another target handle or foreign compiler binding
+ok 15 - generation checkpoint refuses another target handle or foreign compiler binding
+  ---
+  duration_ms: 47.783041
+  type: 'test'
+  ...
+# Subtest: generation checkpoint rejects incomplete immutable chain before authenticated state
+ok 16 - generation checkpoint rejects incomplete immutable chain before authenticated state
+  ---
+  duration_ms: 42.664
+  type: 'test'
+  ...
+# (node:51711) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: generation checkpoint held manifest get times out and late completion cannot create state
+ok 17 - generation checkpoint held manifest get times out and late completion cannot create state
+  ---
+  duration_ms: 47.221916
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1034.779584

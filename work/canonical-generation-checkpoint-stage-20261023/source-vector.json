@@ -1,0 +1,23 @@
+{
+  "base": "213ca7704eb531b9a710c306fb083224af55f5bc",
+  "node": "22.23.3",
+  "execution": "macOS arm64; original vendored fake IndexedDB; no browser/native/cloud",
+  "files": [
+    {
+      "path": "extension/core/browser-native-sync/canonical-generation-publication.js",
+      "sha256": "236947adbb0756a04754a63f01ac4cabbcc0b2585b90aa7a8bbe0cf19a093fb3"
+    },
+    {
+      "path": "extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js",
+      "sha256": "3984621865a038d5b49b2c71e6a345ffec78c370ff362201a666a9c8978702c7"
+    },
+    {
+      "path": "extension/tests/canonical-generation-checkpoint-stage.test.mjs",
+      "sha256": "cee93ff91279b7ed0294c0ab8715125a5eeff3f7d5817232fa783d2f4e93aefa"
+    },
+    {
+      "path": "extension/tests/canonical-generation-publication.test.mjs",
+      "sha256": "12d9ea071a2e93472d5a37a18333f5f0fedb16a1dc44d3acfadc93b028c259da"
+    }
+  ]
+}
