@@ -1,0 +1,455 @@
+{
+  "head": "6fa33dba076d1ef292bcaf5f765614545bf65fc7",
+  "variant": "source",
+  "scope": "independent-original-post-touch-journeys",
+  "fullSettings": false,
+  "touchQualification": false,
+  "result": "PASS",
+  "interactions": [
+    {
+      "kind": "directory-keyboard-history-focus"
+    },
+    {
+      "kind": "capture-toggle-evidence",
+      "stage": "capture-restore",
+      "before": {
+        "disabled": false,
+        "checked": "true",
+        "connected": true,
+        "visible": true,
+        "focused": false
+      },
+      "events": [
+        {
+          "stage": "capture-first",
+          "type": "pointerdown",
+          "trusted": true,
+          "pointerType": "mouse",
+          "control": {
+            "disabled": false,
+            "checked": "true",
+            "connected": true,
+            "visible": true,
+            "focused": false
+          }
+        },
+        {
+          "stage": "capture-first",
+          "type": "pointerup",
+          "trusted": true,
+          "pointerType": "mouse",
+          "control": {
+            "disabled": false,
+            "checked": "true",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        },
+        {
+          "stage": "capture-first",
+          "type": "click",
+          "trusted": true,
+          "pointerType": "mouse",
+          "control": {
+            "disabled": false,
+            "checked": "true",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        },
+        {
+          "stage": "capture-restore",
+          "type": "pointerdown",
+          "trusted": true,
+          "pointerType": "mouse",
+          "control": {
+            "disabled": false,
+            "checked": "false",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        },
+        {
+          "stage": "capture-restore",
+          "type": "pointerup",
+          "trusted": true,
+          "pointerType": "mouse",
+          "control": {
+            "disabled": false,
+            "checked": "false",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        },
+        {
+          "stage": "capture-restore",
+          "type": "click",
+          "trusted": true,
+          "pointerType": "mouse",
+          "control": {
+            "disabled": false,
+            "checked": "false",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        }
+      ],
+      "writes": [
+        {
+          "type": "SET_ENABLED",
+          "stage": "capture-first",
+          "state": "settled",
+          "control": {
+            "disabled": true,
+            "checked": "true",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          },
+          "requested": false,
+          "ok": true,
+          "enabled": false,
+          "consented": null,
+          "controlAfter": {
+            "disabled": true,
+            "checked": "true",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        },
+        {
+          "type": "SET_ENABLED",
+          "stage": "capture-restore",
+          "state": "settled",
+          "control": {
+            "disabled": true,
+            "checked": "false",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          },
+          "requested": true,
+          "ok": true,
+          "enabled": true,
+          "consented": null,
+          "controlAfter": {
+            "disabled": true,
+            "checked": "false",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        }
+      ],
+      "reads": [
+        {
+          "type": "GET_STATUS",
+          "stage": "initial-read",
+          "state": "settled",
+          "control": {
+            "disabled": false,
+            "checked": "true",
+            "connected": true,
+            "visible": true,
+            "focused": false
+          },
+          "ok": true,
+          "enabled": true,
+          "consented": true,
+          "controlAfter": {
+            "disabled": false,
+            "checked": "true",
+            "connected": true,
+            "visible": true,
+            "focused": false
+          }
+        },
+        {
+          "type": "GET_STATUS",
+          "stage": "capture-first",
+          "state": "settled",
+          "control": {
+            "disabled": true,
+            "checked": "true",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          },
+          "ok": true,
+          "enabled": false,
+          "consented": true,
+          "controlAfter": {
+            "disabled": false,
+            "checked": "false",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        },
+        {
+          "type": "GET_PAGE",
+          "stage": "capture-first",
+          "state": "settled",
+          "control": {
+            "disabled": false,
+            "checked": "false",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          },
+          "ok": true,
+          "enabled": false,
+          "consented": true,
+          "controlAfter": {
+            "disabled": false,
+            "checked": "false",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        },
+        {
+          "type": "GET_PAGE",
+          "stage": "capture-first",
+          "state": "settled",
+          "control": {
+            "disabled": false,
+            "checked": "false",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          },
+          "ok": true,
+          "enabled": false,
+          "consented": true,
+          "controlAfter": {
+            "disabled": false,
+            "checked": "false",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        },
+        {
+          "type": "GET_STATUS",
+          "stage": "capture-restore",
+          "state": "settled",
+          "control": {
+            "disabled": true,
+            "checked": "false",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          },
+          "ok": true,
+          "enabled": true,
+          "consented": true,
+          "controlAfter": {
+            "disabled": false,
+            "checked": "true",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        },
+        {
+          "type": "GET_PAGE",
+          "stage": "capture-restore",
+          "state": "pending",
+          "control": {
+            "disabled": false,
+            "checked": "true",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        },
+        {
+          "type": "GET_PAGE",
+          "stage": "capture-restore",
+          "state": "pending",
+          "control": {
+            "disabled": false,
+            "checked": "true",
+            "connected": true,
+            "visible": true,
+            "focused": true
+          }
+        }
+      ],
+      "current": {
+        "disabled": false,
+        "checked": "true",
+        "connected": true,
+        "visible": true,
+        "focused": true
+      }
+    },
+    {
+      "kind": "capture-filter-preview-persistence",
+      "capture": true,
+      "mode": "light",
+      "crossTab": "confirmed"
+    },
+    {
+      "kind": "read-only-about-status",
+      "rows": [
+        {
+          "language": "zh-CN",
+          "state": "unknown",
+          "text": "尚无可确认的更新状态。"
+        },
+        {
+          "language": "zh-CN",
+          "state": "available",
+          "text": "Chrome 已报告可用版本 1.55.9。你可以继续当前工作。"
+        },
+        {
+          "language": "zh-CN",
+          "state": "installed",
+          "text": "Chrome 已报告当前版本安装完成。"
+        },
+        {
+          "language": "en",
+          "state": "unknown",
+          "text": "No confirmed update status is available."
+        },
+        {
+          "language": "en",
+          "state": "available",
+          "text": "Chrome reported version 1.55.9 available. You can keep working."
+        },
+        {
+          "language": "en",
+          "state": "installed",
+          "text": "Chrome reported this version installed."
+        },
+        {
+          "language": "zh-CN",
+          "state": "read-error",
+          "text": "暂时无法读取更新状态。重新打开“关于 PAIA”可重试。"
+        },
+        {
+          "language": "en",
+          "state": "read-error",
+          "text": "Could not read update status. Reopen About PAIA to retry."
+        }
+      ]
+    },
+    {
+      "kind": "offline-ai-style",
+      "rows": [
+        {
+          "kind": "explicit-default",
+          "snapshot": {
+            "available": true,
+            "value": "balanced",
+            "revision": 1,
+            "explicit": true,
+            "epoch": "initial"
+          },
+          "reopened": true
+        },
+        {
+          "kind": "native-radio-keyboard",
+          "snapshot": {
+            "available": true,
+            "value": "original",
+            "revision": 2,
+            "explicit": true,
+            "epoch": "initial"
+          }
+        },
+        {
+          "kind": "modal-escape-back-focus"
+        },
+        {
+          "kind": "cross-window-focus",
+          "snapshot": {
+            "available": true,
+            "value": "concise",
+            "revision": 3,
+            "explicit": true,
+            "epoch": "initial"
+          }
+        },
+        {
+          "kind": "failed-write-preserves-confirmed",
+          "failureGeometry": {
+            "clip": {
+              "x": 17,
+              "y": 17,
+              "right": 303,
+              "bottom": 883
+            },
+            "feedback": {
+              "x": 37,
+              "y": 277.0625,
+              "right": 283,
+              "bottom": 515.015625,
+              "width": 246,
+              "height": 237.953125
+            },
+            "focus": {
+              "x": 265,
+              "y": 849.3125,
+              "right": 283,
+              "bottom": 867.3125,
+              "width": 18,
+              "height": 18
+            },
+            "focusId": "settings-ai-style-original"
+          }
+        },
+        {
+          "kind": "lost-ack-reconciles-canonical",
+          "snapshot": {
+            "available": true,
+            "value": "original",
+            "revision": 4,
+            "explicit": true,
+            "epoch": "initial"
+          }
+        },
+        {
+          "kind": "future-version-inert"
+        },
+        {
+          "kind": "compact-200-percent",
+          "geometry": {
+            "width": 288,
+            "overflow": 0,
+            "labels": [
+              {
+                "width": 246,
+                "height": 478.84375,
+                "associated": true
+              },
+              {
+                "width": 246,
+                "height": 430.75,
+                "associated": true
+              },
+              {
+                "width": 246,
+                "height": 335.0625,
+                "associated": true
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "network": {
+    "models": 0,
+    "extension": 0,
+    "external": 0
+  }
+}

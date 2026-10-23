@@ -482,3 +482,8 @@ Eleven complete owning files pass495/495. The original native batch remains2/4: 
 ## Lifecycle and multi-Entry Context checkpoint at852e17b6
 
 Selected lifecycle1dc04adf, multi-authored eb031c23 and multi-bound f4180c5e are integrated; nine complete affected files pass375/375 once on Node22.23.3, with unchanged before/after hashes. [Report](../../../../work/lifecycle-context-integration-20261023/REPORT.md). Local lifecycle now has explicit versioned policy evaluation, complete member Source closure, first-read private transaction metering and accurate interrupted-batch receipts; production scheduler/default policy and installed Sync-journal composition remain separate. Context qualifies1–16 same-Topic authored Entries or1–8 independent bound pairs, retaining16 evidence maximum and all independent grants. Legal mixed-family successor work remains active. No Full/Linux, native successor or real-service acceptance follows from this Node batch.
+
+
+## Settings independent continuation at6fa33dba
+
+Previously interrupted directory/history/focus, cross-control, About and offline AI-style journeys now pass Source/Release2/2 in fresh headless synthetic profiles, reusing the exact original action/assertion block after a real UI failure-response prerequisite. Original complete Settings still preserves its coarse-device gate and earlier4/6 failure. No touch/fullSettings qualification or repeat288-row matrix is claimed. [Report and exact evidence](../../../../work/settings-independent-20261023/REPORT.md);646-file build and all source vectors recorded, zero external/model requests.
