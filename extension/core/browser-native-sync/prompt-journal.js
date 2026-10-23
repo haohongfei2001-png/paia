@@ -205,18 +205,41 @@ export async function restorePromptPreferences(t,context){
 }
 export function preparePromptBindingReplay(core,plan){
  requireOriginalGroupCheckpointPlan(core,plan);
- const history=new Map(plan.groups.flatMap(group=>group.operations).filter(op=>['promptPreferences','promptBinding'].includes(op.type)).map(op=>[op.revisionId,op]));
- return async(t,context)=>{requireOriginalGroupCheckpointPlan(core,plan);if(context.core!==core||!equal(history.get(context.operation.revisionId)??null,context.operation))fail('BNS_OWNER_CHANGED');return materializePromptBindingCurrent(t,context,history);};
+ const history=new Map(plan.groups.flatMap(group=>group.operations).filter(op=>['promptPreferences','promptBinding'].includes(op.type)).map(op=>[op.revisionId,op])),deferred=new WeakMap(),resolvers=[];
+ const ancestor=(a,b)=>{const queue=[b],seen=new Set();while(queue.length){const id=queue.pop();if(id===a)return true;if(seen.has(id))continue;seen.add(id);const op=history.get(id);if(!op)return false;queue.push(...op.parents);}return false;};
+ for(const companion of history.values())if(companion.type==='promptBinding'&&companion.actor==='user'&&companion.parents.length===2){const prompt=history.get(companion.value.promptRevisionId),old=companion.parents.map(id=>history.get(id));if(!prompt||prompt.type!=='promptPreferences'||prompt.actor!=='user'||prompt.parents.length!==2||old.some(x=>!x||x.type!=='promptBinding')||new Set(old.map(x=>x.value.promptRevisionId)).size!==2||!equal(old.map(x=>x.value.promptRevisionId).sort(),prompt.parents.slice().sort()))continue;const prior=old.map(x=>history.get(x.value.promptRevisionId));if(prior.some(x=>!x)||old[0].value.normalizerVersion!==old[1].value.normalizerVersion||!equal(old[0].value.bindings,old[1].value.bindings))continue;try{qualifyResolvedManualPair(prior.map(x=>x.value),prompt.value,old[0].value,companion.value);}catch{continue;}resolvers.push({prompt,companion});}
+ return async(t,context)=>{
+  requireOriginalGroupCheckpointPlan(core,plan);if(context.core!==core||!equal(history.get(context.operation.revisionId)??null,context.operation))fail('BNS_OWNER_CHANGED');
+  const promptHead=await core.get(t,'head','promptPreferences',PROMPT_REUSE_ROW),row=await t.get('meta',PROMPT_CORRECTION_BINDING_ROW),proof=await core.materializedOwner(t,'promptBinding',PROMPT_REUSE_ROW),fence=await new JournalRestoreFence(core).snapshot(t);let held=deferred.get(t);
+  if(held&&(!equal(row??null,held.row)||!equal(proof,held.proof)||!equal(fence,held.fence)))fail('BNS_OWNER_CHANGED');
+  if(promptHead&&!promptHead.purged&&(promptHead.revisions.length!==1||promptHead.revisions[0]!==context.operation.value.promptRevisionId)){
+   // A complete, already qualified resolved graph may expose its two Prompt
+   // branches before the matching historical companion. Retain that protocol
+   // history without publishing a mismatched canonical pair. Only this same
+   // transaction's exact deferred owner may be consumed by its final resolver.
+   const resolver=resolvers.find(x=>ancestor(context.operation.revisionId,x.companion.revisionId)&&promptHead.revisions.length<=2&&promptHead.revisions.every(id=>x.prompt.parents.some(parent=>ancestor(id,parent))));if(!resolver)fail('BNS_OWNER_CHANGED');
+   const preferences=await readPromptPreferences(t),promptProof=await core.materializedOwner(t,'promptPreferences',PROMPT_REUSE_ROW);if(!promptProof||promptProof.ownerRevision!==preferences.revision||!equal(promptProof.operation.value,projectEntity('promptPreferences',preferences)))fail('BNS_OWNER_CHANGED');
+   if(row||proof){if(!row||!proof||proof.ownerRevision>preferences.revision||!equal({...row,id:PROMPT_REUSE_ROW},proof.operation.value)||!equal(history.get(proof.operation.revisionId)??null,proof.operation))fail('BNS_OWNER_CHANGED');}
+   if(!held)registerRepositoryFinalReadFence(core.repository,t,{isCurrent:()=>true,plan:function*(){if(deferred.has(t))fail('BNS_OWNER_CHANGED');return true;}});
+   deferred.set(t,held??{row:row??null,proof,fence});return;
+  }
+  const resolving=held&&resolvers.some(x=>x.companion.revisionId===context.operation.revisionId);
+  if(held&&!resolving)fail('BNS_OWNER_CHANGED');
+  await materializePromptBindingCurrent(t,context,history,resolving?held:null);if(held)deferred.delete(t);
+ };
+
 }
 export async function materializePromptBinding(t,context){return materializePromptBindingCurrent(t,context,null);}
-async function materializePromptBindingCurrent(t,context,history){
+async function materializePromptBindingCurrent(t,context,history,deferred=null){
  const {core,operation,head,previousHead}=context;if(operation.type!=='promptBinding'||head.purged||head.revisions.length!==1)fail('BNS_PROMPT_BINDING_REQUIRED');
  const value=validatePromptCorrectionCompanion(operation.value),preferences=await readPromptPreferences(t),promptHead=await core.get(t,'head','promptPreferences',PROMPT_REUSE_ROW),promptProof=await core.materializedOwner(t,'promptPreferences',PROMPT_REUSE_ROW);
  if(promptHead?.purged||promptHead?.revisions.length!==1||promptHead.revisions[0]!==value.promptRevisionId||promptProof?.operation.revisionId!==value.promptRevisionId||promptProof.ownerRevision!==preferences.revision||!equal(promptProof.operation.value,projectEntity('promptPreferences',preferences)))fail('BNS_OWNER_CHANGED');promptCorrectionEnvelope(value,promptProof.operation.value);
  const row=await t.get('meta',PROMPT_CORRECTION_BINDING_ROW),previousCore=context.previousCore||core,proof=await previousCore.materializedOwner(t,'promptBinding',PROMPT_REUSE_ROW);
  if(row||previousHead||proof){
-  if(!row||row.id!==PROMPT_CORRECTION_BINDING_ROW||!previousHead||previousHead.purged||!proof||proof.ownerRevision!==preferences.revision-1||!equal(proof.operation.value,validatePromptCorrectionCompanion({...row,id:PROMPT_REUSE_ROW})))fail('BNS_OWNER_CHANGED');
-  if(previousHead.revisions.length===1){if(proof.operation.revisionId!==previousHead.revisions[0])fail('BNS_OWNER_CHANGED');}
+  if(!previousHead||previousHead.purged)fail('BNS_OWNER_CHANGED');
+  if(!deferred&&(!row||row.id!==PROMPT_CORRECTION_BINDING_ROW||!proof||proof.ownerRevision!==preferences.revision-1||!equal(proof.operation.value,validatePromptCorrectionCompanion({...row,id:PROMPT_REUSE_ROW}))))fail('BNS_OWNER_CHANGED');
+  if(deferred&&(!equal(row??null,deferred.row)||!equal(proof,deferred.proof)||proof&&proof.ownerRevision>preferences.revision-1))fail('BNS_OWNER_CHANGED');
+  if(previousHead.revisions.length===1){if(!proof||proof.operation.revisionId!==previousHead.revisions[0])fail('BNS_OWNER_CHANGED');}
   else{
    // Only a completely resolved paired manual fork can cross an intermediate
    // two-head history. Every prior sealed companion is matched one-to-one to
@@ -224,8 +247,8 @@ async function materializePromptBindingCurrent(t,context,history){
    if(!history||previousHead.revisions.length!==2||operation.actor!=='user'||operation.kind!=='put'||promptProof.operation.actor!=='user'||!equal(operation.parents,[...previousHead.revisions].sort())||promptProof.operation.parents.length!==2)fail('BNS_OWNER_CHANGED');
    const linked=new Map(),prompts=[];
    for(const revision of previousHead.revisions){const prior=await previousCore.get(t,'revision',revision);if(!prior||prior.redacted)fail('BNS_OWNER_CHANGED');const companion=prior.operation;if(!equal(history.get(companion.revisionId)??null,companion))fail('BNS_OWNER_CHANGED');if(companion.type!=='promptBinding'||companion.entityId!==PROMPT_REUSE_ROW||companion.datasetId!==core.datasetId||companion.kind!=='put'||!promptProof.operation.parents.includes(companion.value.promptRevisionId)||linked.has(companion.value.promptRevisionId))fail('BNS_OWNER_CHANGED');const target=await previousCore.get(t,'revision',companion.value.promptRevisionId);if(!target||target.redacted)fail('BNS_OWNER_CHANGED');if(!equal(history.get(target.operation.revisionId)??null,target.operation))fail('BNS_OWNER_CHANGED');if(target.operation.type!=='promptPreferences'||target.operation.entityId!==PROMPT_REUSE_ROW||target.operation.datasetId!==core.datasetId||target.operation.kind!=='put')fail('BNS_OWNER_CHANGED');promptCorrectionEnvelope(companion.value,target.operation.value);linked.set(target.operation.revisionId,companion);prompts.push(target.operation);}
-   const companions=[...linked.values()];if(linked.size!==2||companions[0].value.normalizerVersion!==companions[1].value.normalizerVersion||!equal(companions[0].value.bindings,companions[1].value.bindings)||!await previousCore.ownerAncestor(t,proof.operation,previousHead.revisions))fail('BNS_OWNER_CHANGED');
-   const historical=await previousCore.get(t,'revision',proof.operation.value.promptRevisionId);if(!historical||historical.redacted||!await previousCore.ownerAncestor(t,historical.operation,promptProof.operation.parents))fail('BNS_OWNER_CHANGED');if(!equal(history.get(historical.operation.revisionId)??null,historical.operation))fail('BNS_OWNER_CHANGED');promptCorrectionEnvelope(proof.operation.value,historical.operation.value);
+   const companions=[...linked.values()];if(linked.size!==2||companions[0].value.normalizerVersion!==companions[1].value.normalizerVersion||!equal(companions[0].value.bindings,companions[1].value.bindings)||proof&&!await previousCore.ownerAncestor(t,proof.operation,previousHead.revisions))fail('BNS_OWNER_CHANGED');
+   if(proof){const historical=await previousCore.get(t,'revision',proof.operation.value.promptRevisionId);if(!historical||historical.redacted||!await previousCore.ownerAncestor(t,historical.operation,promptProof.operation.parents))fail('BNS_OWNER_CHANGED');if(!equal(history.get(historical.operation.revisionId)??null,historical.operation))fail('BNS_OWNER_CHANGED');promptCorrectionEnvelope(proof.operation.value,historical.operation.value);}
    qualifyResolvedManualPair(prompts.map(x=>x.value),promptProof.operation.value,companions[0].value,value);
   }
   await new JournalRestoreFence(previousCore).snapshot(t);
