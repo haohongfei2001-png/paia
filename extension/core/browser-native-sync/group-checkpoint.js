@@ -301,7 +301,7 @@ export class GroupedCheckpointRestore{
    for(const [g,cap]of applications){current();if(g.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(g.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else await working.applyRestored(t,cap,sources);await this.checkpoint('source-working-applied-group',g.id);}
    // Original owners may not mutate the staged cursor or replace the prior
    // chronology before this coordinator performs its exact transition.
-   if(!equal(await this.stage.get(t,'restore'),state)||!equal((await t.get('meta',p.timeline.id))??null,p.snapshot.meta.find(r=>r.id===p.timeline.id)??null))fail('BNS_RESTORE_STAGE_CHANGED');
+   if(!equal(await this.stage.get(t,'restore'),state)||!equal((await t.get('meta',p.timeline.id))??null,p.rows.meta.find(r=>r.id===p.timeline.id)??null))fail('BNS_RESTORE_STAGE_CHANGED');
    if(await this.live.get(t,'mergeCommit',this.restoreId))fail('BNS_RESTORE_ID_COLLISION');
    await this.live.put(t,'mergeCommit',[this.restoreId],{version:1,restoreId:this.restoreId,namespace:p.namespace,epoch:state.base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:p.merged.digest,receipts});await t.put('meta',p.timeline);
    await this.stage.put(t,'restore',[],{...withoutId(state),phase:'merged',mergeNamespace:p.namespace,mergeDigest:p.merged.digest,mergeReceipts:receipts});
