@@ -1,3 +1,5 @@
+import {requireCheckpointManifestStorage} from './checkpoint-manifest-storage.js';
+import {assertProtocolObjectReference} from './segments.js';
 import {originalGenerationTaskData,CANONICAL_PHASED_TASK} from './canonical-generation-task-ledger.js';
 import {ArchiveError} from '../constants.js';
 import {requireRepositoryTransactionDataMethods,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
@@ -42,7 +44,8 @@ export async function prepareOriginalCopyRetirement(repository,gate,qualificatio
  if(before.progress){progress(before.progress,gate);if(before.progress.version!==(phased?2:1)||phased&&before.progress.controlsDigest!==controls.digest)fail();}
  if(before.progress?.phase==='retired'){if(before.state!==null)fail();return before;}
  const state=before.state;
- if(!state||state.id!==STATE||state.version!==1||state.phase!==(phased?'authenticated':'validated')||!Number.isSafeInteger(state.received)||state.received<0||state.received>4096||state.received!==state.manifest?.itemCount||state.pages!==Math.ceil(state.received/32)||(phased?state.graphDigest!==null:state.graphDigest!==gate.seal.graphDigest)||state.manifestRef?.id!==gate.seal.manifestId||!equal(state.sourceBase,qualification.sourceBase))fail();
+ if(!state||state.id!==STATE||![1,2].includes(state.version)||state.phase!==(phased?'authenticated':'validated')||!Number.isSafeInteger(state.received)||state.received<0||state.received>4096||state.received!==state.manifest?.itemCount||state.pages!==Math.ceil(state.received/32)||(phased?state.graphDigest!==null:state.graphDigest!==gate.seal.graphDigest)||state.manifestRef?.id!==gate.seal.manifestId||!equal(state.sourceBase,qualification.sourceBase))fail();
+ assertProtocolObjectReference(state.manifestRef);if(state.manifestRef.kind!=='checkpoint-manifest')fail();requireCheckpointManifestStorage(state.version,state.manifestEncoded,state.manifestRef.encodedBytes);
  if(phased){const v=controls.rows[1];if(state.received!==v.itemCount||state.pages!==v.pageCount||state.chain!==v.chain||state.pageChain!==v.pageChain)fail();}
  const stateDigest=await digest(bytes(state));checkGroupPageBudget(budget);
  if(before.progress&&(before.progress.stateDigest!==stateDigest||before.progress.itemTotal!==state.received||before.progress.pageTotal!==state.pages))fail();

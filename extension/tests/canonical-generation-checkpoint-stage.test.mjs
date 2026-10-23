@@ -1,3 +1,4 @@
+import {decodeCheckpointManifestStorage} from '../core/browser-native-sync/checkpoint-manifest-storage.js';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
 import {ArchiveRepository} from '../core/idb-repository.js';
@@ -65,9 +66,9 @@ test('generation checkpoint rejects rewritten durable manifest identity before p
  const f=await fixture(t);await f.stage.stageCheckpoint(f.cp.ref,r=>f.transport.get(r));await f.store.repository.transaction(true,async t=>{const state=await t.get('meta',STATE);state.manifestRef.id='c'.repeat(64);state.manifestRef.digest=state.manifestRef.id;await t.put('meta',state);});await assert.rejects(f.stage.validate(),{code:'BNS_OBJECT_INTEGRITY'});assert.equal((await read(f.store.repository,STATE)).phase,'authenticated');
 });
 
-test('generation checkpoint authenticates original gzip manifest bytes on durable validation',async t=>{
- const f=await fixture(t),object=await protocolObject('checkpoint-manifest',bytes(f.cp.manifest),{codec:'gzip'});await f.transport.putImmutable(object.ref,object.bytes);await f.stage.stageCheckpoint(object.ref,r=>f.transport.get(r));const proof=await f.stage.validate();assert.equal(readCanonicalCheckpointProof(proof,f).manifestRef.id,object.ref.id);await f.store.repository.transaction(true,t=>requireCanonicalCheckpointProof(proof,f,t));
+for(const version of [1,2])test('generation checkpoint authenticates original gzip manifest bytes on durable v'+version+' validation',async t=>{
+ const f=await fixture(t),object=await protocolObject('checkpoint-manifest',bytes(f.cp.manifest),{codec:'gzip'});await f.transport.putImmutable(object.ref,object.bytes);await f.stage.stageCheckpoint(object.ref,r=>f.transport.get(r));if(version===1)await f.store.repository.transaction(true,async t=>{const row=await t.get('meta',STATE);await t.put('meta',{...row,version:1,manifestEncoded:Array.from(decodeCheckpointManifestStorage(row.version,row.manifestEncoded,row.manifestRef.encodedBytes))});},['meta']);const next=new CanonicalGenerationCheckpointStage(f.publication,f.handle,f),proof=await next.validate();assert.equal((await read(f.store.repository,STATE)).version,version);assert.equal(readCanonicalCheckpointProof(proof,f).manifestRef.id,object.ref.id);await f.store.repository.transaction(true,t=>requireCanonicalCheckpointProof(proof,f,t));
 });
 for(const defect of ['bytes','manifest'])test('generation checkpoint rejects durable manifest '+defect+' mismatch',async t=>{
- const f=await fixture(t);await f.stage.stageCheckpoint(f.cp.ref,r=>f.transport.get(r));await f.store.repository.transaction(true,async t=>{const state=await t.get('meta',STATE);if(defect==='bytes')state.manifestEncoded[0]^=1;else state.manifest.parents=['c'.repeat(64)];await t.put('meta',state);});await assert.rejects(f.stage.validate());assert.equal((await read(f.store.repository,STATE)).phase,'authenticated');
+ const f=await fixture(t);await f.stage.stageCheckpoint(f.cp.ref,r=>f.transport.get(r));await f.store.repository.transaction(true,async t=>{const state=await t.get('meta',STATE);if(defect==='bytes')state.manifestEncoded=state.manifestEncoded[0]==='A'?'B'+state.manifestEncoded.slice(1):'A'+state.manifestEncoded.slice(1);else state.manifest.parents=['c'.repeat(64)];await t.put('meta',state);});await assert.rejects(f.stage.validate());assert.equal((await read(f.store.repository,STATE)).phase,'authenticated');
 });
