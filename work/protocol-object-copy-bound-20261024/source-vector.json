@@ -1,0 +1,8 @@
+{
+  "base": "dd7921b4b71ffd8cb4340d014c1f2074a1271b63",
+  "node": "22.23.3",
+  "files": {
+    "extension/core/browser-native-sync/segments.js": "03269481493efd1180a48228dcdf9172f8a5e2c16d6c91d386b71bec18d0e49a",
+    "extension/tests/browser-native-sync-segments.test.mjs": "4d09bb2f00ed38c4138bac4965fb0a9f7f45bf50d0c246777e2b23862c9e4214"
+  }
+}

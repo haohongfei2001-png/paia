@@ -62,3 +62,19 @@ test('BNS object encoding snapshots mutable byte buffers before hashing',async()
  try{const result=protocolObject('chunk',data);await entered;data.fill(65);release();object=await result;}finally{release();crypto.subtle.digest=original;}
  assert.equal(await digest(object.bytes),object.ref.digest);assert.equal(new TextDecoder().decode(object.bytes),'synthetic immutable bytes');
 });
+
+for(const shape of ['oversized','masked-length','proxy'])test('BNS incoming object rejects '+shape+' before transport-controlled copy',async()=>{
+ const object=await protocolObject('chunk',bytes('synthetic bounded transport'));
+ let copies=0;const raw=new Uint8Array(object.ref.encodedBytes+1);
+ raw.slice=()=>{copies++;throw Error('transport-controlled copy must not execute');};
+ if(shape==='masked-length')Object.defineProperty(raw,'length',{value:object.ref.encodedBytes});
+ const supplied=shape==='proxy'?new Proxy(raw,{}):raw;
+ await assert.rejects(readObject(object.ref,async()=>supplied),{code:'BNS_OBJECT_INTEGRITY'});assert.equal(copies,0);
+});
+test('BNS incoming object uses bounded original bytes without transport species or copy hooks',async()=>{
+ const object=await protocolObject('chunk',bytes('synthetic original bytes 中文'));
+ let hooks=0;const supplied=object.bytes.slice();
+ Object.defineProperties(supplied,{slice:{value:()=>{hooks++;throw Error('slice hook');}},constructor:{get(){hooks++;throw Error('species hook');}}});
+ const result=await readObject(object.ref,async()=>supplied);assert.deepEqual(result,object.bytes);assert.equal(hooks,0);assert.notEqual(result,supplied);
+ supplied.fill(0);assert.deepEqual(result,object.bytes);
+});

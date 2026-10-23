@@ -1,0 +1,328 @@
+TAP version 13
+# Subtest: original checkpoint canonical reservation precedes publication and preserves exact sharded wire
+ok 1 - original checkpoint canonical reservation precedes publication and preserves exact sharded wire
+  ---
+  duration_ms: 58.835625
+  type: 'test'
+  ...
+# Subtest: BNS fresh virtual installation restores only verified cloud checkpoint objects atomically
+ok 2 - BNS fresh virtual installation restores only verified cloud checkpoint objects atomically
+  ---
+  duration_ms: 33.295375
+  type: 'test'
+  ...
+# Subtest: BNS staged interruption resumes after restart while old canonical content remains usable
+ok 3 - BNS staged interruption resumes after restart while old canonical content remains usable
+  ---
+  duration_ms: 21.111333
+  type: 'test'
+  ...
+# Subtest: BNS activation failure rolls back owner and active-generation pointer together
+ok 4 - BNS activation failure rolls back owner and active-generation pointer together
+  ---
+  duration_ms: 13.667625
+  type: 'test'
+  ...
+# Subtest: BNS local edits during restore reject activation and pre-restore prepared writes cannot cross generations
+ok 5 - BNS local edits during restore reject activation and pre-restore prepared writes cannot cross generations
+  ---
+  duration_ms: 31.35
+  type: 'test'
+  ...
+# Subtest: BNS unmanaged local owner work and missing required codec never get overwritten
+ok 6 - BNS unmanaged local owner work and missing required codec never get overwritten
+  ---
+  duration_ms: 14.564
+  type: 'test'
+  ...
+# Subtest: BNS corrupt or missing checkpoint shard never activates a partial replacement
+ok 7 - BNS corrupt or missing checkpoint shard never activates a partial replacement
+  ---
+  duration_ms: 8.189542
+  type: 'test'
+  ...
+# Subtest: BNS checkpoint retains body-free purge history and stale replay cannot resurrect staging
+ok 8 - BNS checkpoint retains body-free purge history and stale replay cannot resurrect staging
+  ---
+  duration_ms: 14.603333
+  type: 'test'
+  ...
+# Subtest: BNS bounded checkpoint index pages support more than one manifest level
+ok 9 - BNS bounded checkpoint index pages support more than one manifest level
+  ---
+  duration_ms: 526.883375
+  type: 'test'
+  ...
+# Subtest: BNS verified causal tail reconciles onto staged checkpoint before owner activation
+ok 10 - BNS verified causal tail reconciles onto staged checkpoint before owner activation
+  ---
+  duration_ms: 17.27725
+  type: 'test'
+  ...
+# Subtest: BNS activation refuses an unvalidated staging mutation even when live owner stayed unchanged
+ok 11 - BNS activation refuses an unvalidated staging mutation even when live owner stayed unchanged
+  ---
+  duration_ms: 16.702792
+  type: 'test'
+  ...
+# Subtest: BNS generation change between checkpoint validation and its receipt cannot become validated
+ok 12 - BNS generation change between checkpoint validation and its receipt cannot become validated
+  ---
+  duration_ms: 12.823792
+  type: 'test'
+  ...
+# Subtest: BNS before-staging live pending work cannot be stranded by activation
+ok 13 - BNS before-staging live pending work cannot be stranded by activation
+  ---
+  duration_ms: 14.334208
+  type: 'test'
+  ...
+# Subtest: BNS after-staging live pending work cannot be stranded by activation
+ok 14 - BNS after-staging live pending work cannot be stranded by activation
+  ---
+  duration_ms: 16.05425
+  type: 'test'
+  ...
+# Subtest: BNS new pending-only staging receive invalidates a validated activation token
+ok 15 - BNS new pending-only staging receive invalidates a validated activation token
+  ---
+  duration_ms: 11.592833
+  type: 'test'
+  ...
+# Subtest: local discovery traverses empty pages and restores original Source/Working with sender closed
+ok 16 - local discovery traverses empty pages and restores original Source/Working with sender closed
+  ---
+  duration_ms: 234.736709
+  type: 'test'
+  ...
+# Subtest: missing or corrupt transport bytes never activate; restart resumes original durable stage
+ok 17 - missing or corrupt transport bytes never activate; restart resumes original durable stage
+  ---
+  duration_ms: 154.605625
+  type: 'test'
+  ...
+# Subtest: pause during held transport rejects late completion and preserves original destination
+ok 18 - pause during held transport rejects late completion and preserves original destination
+  ---
+  duration_ms: 143.69475
+  type: 'test'
+  ...
+# Subtest: activation rollback and local edits keep their original exact owner fences
+ok 19 - activation rollback and local edits keep their original exact owner fences
+  ---
+  duration_ms: 150.19375
+  type: 'test'
+  ...
+# Subtest: discovery refuses missing instead of selecting an arbitrary checkpoint
+ok 20 - discovery refuses missing instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 73.153417
+  type: 'test'
+  ...
+# Subtest: discovery refuses multiple instead of selecting an arbitrary checkpoint
+ok 21 - discovery refuses multiple instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 71.693709
+  type: 'test'
+  ...
+# Subtest: discovery refuses cycle instead of selecting an arbitrary checkpoint
+ok 22 - discovery refuses cycle instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 69.11575
+  type: 'test'
+  ...
+# Subtest: discovery refuses malformed instead of selecting an arbitrary checkpoint
+ok 23 - discovery refuses malformed instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 70.925667
+  type: 'test'
+  ...
+# Subtest: historical checkpoints select the authenticated unique causal descendant, not list order
+ok 24 - historical checkpoints select the authenticated unique causal descendant, not list order
+  ---
+  duration_ms: 208.881875
+  type: 'test'
+  ...
+# Subtest: two genuine incomparable checkpoints cannot be silently chosen
+ok 25 - two genuine incomparable checkpoints cannot be silently chosen
+  ---
+  duration_ms: 101.427667
+  type: 'test'
+  ...
+# Subtest: pause after the real activation commit preserves the confirmed restored outcome
+ok 26 - pause after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 116.978625
+  type: 'test'
+  ...
+# Subtest: close after the real activation commit preserves the confirmed restored outcome
+ok 27 - close after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 118.122208
+  type: 'test'
+  ...
+# Subtest: pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+ok 28 - pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+  ---
+  duration_ms: 144.995416
+  type: 'test'
+  ...
+# Subtest: lost post-commit response stays settlement-unknown until original durable activation proof is checked
+ok 29 - lost post-commit response stays settlement-unknown until original durable activation proof is checked
+  ---
+  duration_ms: 121.767917
+  type: 'test'
+  ...
+# Subtest: discovery enforces cumulative object budget before fetching or activating
+ok 30 - discovery enforces cumulative object budget before fetching or activating
+  ---
+  duration_ms: 62.067833
+  type: 'test'
+  ...
+# Subtest: claimed parent alone cannot make an older valid cut supersede newer canonical revisions
+ok 31 - claimed parent alone cannot make an older valid cut supersede newer canonical revisions
+  ---
+  duration_ms: 94.385292
+  type: 'test'
+  ...
+# Subtest: discovery deadline settles held listing and fences late completion
+ok 32 - discovery deadline settles held listing and fences late completion
+  ---
+  duration_ms: 88.916334
+  type: 'test'
+  ...
+# Subtest: discovery deadline settles held object and fences late completion
+ok 33 - discovery deadline settles held object and fences late completion
+  ---
+  duration_ms: 89.592333
+  type: 'test'
+  ...
+# Subtest: pause settles a held discovery without pretending to cancel underlying transport
+ok 34 - pause settles a held discovery without pretending to cancel underlying transport
+  ---
+  duration_ms: 60.44
+  type: 'test'
+  ...
+# Subtest: close settles a held discovery without pretending to cancel underlying transport
+ok 35 - close settles a held discovery without pretending to cancel underlying transport
+  ---
+  duration_ms: 64.416417
+  type: 'test'
+  ...
+# Subtest: stage rejects transport length mismatch before the object reader copies bytes
+ok 36 - stage rejects transport length mismatch before the object reader copies bytes
+  ---
+  duration_ms: 59.755666
+  type: 'test'
+  ...
+# Subtest: discover rejects transport length mismatch before the object reader copies bytes
+ok 37 - discover rejects transport length mismatch before the object reader copies bytes
+  ---
+  duration_ms: 59.576625
+  type: 'test'
+  ...
+# Subtest: pause settles held staging before host completion and late bytes cannot change original destination
+ok 38 - pause settles held staging before host completion and late bytes cannot change original destination
+  ---
+  duration_ms: 115.321209
+  type: 'test'
+  ...
+# Subtest: close settles held staging before host completion and late bytes cannot change original destination
+ok 39 - close settles held staging before host completion and late bytes cannot change original destination
+  ---
+  duration_ms: 57.9795
+  type: 'test'
+  ...
+# Subtest: staging deadline bounds held object and permits original durable-stage resume
+ok 40 - staging deadline bounds held object and permits original durable-stage resume
+  ---
+  duration_ms: 185.978334
+  type: 'test'
+  ...
+# Subtest: late prior-stage bytes cannot disturb a new confirmed recovery after pause and resume
+ok 41 - late prior-stage bytes cannot disturb a new confirmed recovery after pause and resume
+  ---
+  duration_ms: 117.706084
+  type: 'test'
+  ...
+# Subtest: BNS stable packed objects preserve exact bodies with descriptor-last verified publication
+ok 42 - BNS stable packed objects preserve exact bodies with descriptor-last verified publication
+  ---
+  duration_ms: 53.75725
+  type: 'test'
+  ...
+# Subtest: BNS one large mixed-script operation chunks losslessly and partial chunks remain invisible
+ok 43 - BNS one large mixed-script operation chunks losslessly and partial chunks remain invisible
+  ---
+  duration_ms: 15.805542
+  type: 'test'
+  ...
+# Subtest: BNS lost upload acknowledgement reuses immutable IDs and never publishes early
+ok 44 - BNS lost upload acknowledgement reuses immutable IDs and never publishes early
+  ---
+  duration_ms: 0.703167
+  type: 'test'
+  ...
+# Subtest: BNS tampering, unknown reader codec, wrong namespace and malformed trailing bytes are refused
+ok 45 - BNS tampering, unknown reader codec, wrong namespace and malformed trailing bytes are refused
+  ---
+  duration_ms: 1.376917
+  type: 'test'
+  ...
+# Subtest: BNS optional gzip has streaming declared-length and expansion limits
+ok 46 - BNS optional gzip has streaming declared-length and expansion limits
+  ---
+  duration_ms: 8.792542
+  type: 'test'
+  ...
+# Subtest: BNS malformed operation/count/coverage fails before any returned operation
+ok 47 - BNS malformed operation/count/coverage fails before any returned operation
+  ---
+  duration_ms: 1.370584
+  type: 'test'
+  ...
+# Subtest: BNS aggregate reassembled bodies are bounded before any chunk allocation or download
+ok 48 - BNS aggregate reassembled bodies are bounded before any chunk allocation or download
+  ---
+  duration_ms: 9.22
+  type: 'test'
+  ...
+# Subtest: BNS object encoding snapshots mutable byte buffers before hashing
+ok 49 - BNS object encoding snapshots mutable byte buffers before hashing
+  ---
+  duration_ms: 1.926916
+  type: 'test'
+  ...
+# Subtest: BNS incoming object rejects oversized before transport-controlled copy
+ok 50 - BNS incoming object rejects oversized before transport-controlled copy
+  ---
+  duration_ms: 0.436291
+  type: 'test'
+  ...
+# Subtest: BNS incoming object rejects masked-length before transport-controlled copy
+ok 51 - BNS incoming object rejects masked-length before transport-controlled copy
+  ---
+  duration_ms: 0.315917
+  type: 'test'
+  ...
+# Subtest: BNS incoming object rejects proxy before transport-controlled copy
+ok 52 - BNS incoming object rejects proxy before transport-controlled copy
+  ---
+  duration_ms: 0.290083
+  type: 'test'
+  ...
+# Subtest: BNS incoming object uses bounded original bytes without transport species or copy hooks
+ok 53 - BNS incoming object uses bounded original bytes without transport species or copy hooks
+  ---
+  duration_ms: 0.5425
+  type: 'test'
+  ...
+1..53
+# tests 53
+# suites 0
+# pass 53
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2978.26925

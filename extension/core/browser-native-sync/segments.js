@@ -7,6 +7,8 @@ import {bytes,clone,count,decodeJSON,digest,exact,fail,hash,opaque} from './valu
 export const SEGMENT_PROFILE=Object.freeze({id:'bns1-candidate-256',encoded:1024*1024,decoded:4*1024*1024,operations:512,chunk:64*1024,target:256*1024,dependencies:4096,decodedConcurrency:1,operationBytes:4*1024*1024,decodedOperations:4*1024*1024});
 const refFields=['id','kind','codec','encodedBytes','decodedBytes','digest'];
 const formats=['chunk','segment','descriptor','checkpoint-shard','checkpoint-manifest'];
+const originalByteLength=Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype),'byteLength').get;
+const originalByteSet=Uint8Array.prototype.set;
 function validateRef(ref,profile){
  if(!exact(ref,refFields)||Object.keys(ref).length!==refFields.length||!hash(ref.id)||!hash(ref.digest)||ref.id!==ref.digest||!formats.includes(ref.kind)||!['identity','gzip'].includes(ref.codec)||!count(ref.encodedBytes)||ref.encodedBytes<1||ref.encodedBytes>profile.encoded||!count(ref.decodedBytes)||ref.decodedBytes<1||ref.decodedBytes>profile.decoded)fail('BNS_OBJECT_REF_INVALID');
  return ref;
@@ -29,8 +31,13 @@ export async function protocolObject(kind,data,{codec='identity',profile=SEGMENT
  return {ref:{id:checksum,kind,codec,encodedBytes:encoded.length,decodedBytes:data.length,digest:checksum},bytes:encoded};
 }
 export async function readObject(ref,get,{profile=SEGMENT_PROFILE}={}){
- ref=clone(ref);validateRef(ref,profile);const supplied=await get(clone(ref));const input=supplied instanceof Uint8Array?supplied.slice():supplied;
- if(!(input instanceof Uint8Array)||input.length!==ref.encodedBytes||input.length>profile.encoded||await digest(input)!==ref.digest)fail('BNS_OBJECT_INTEGRITY');
+ ref=clone(ref);validateRef(ref,profile);const supplied=await get(clone(ref));
+ // Validate the actual typed-array extent before allocating our snapshot.
+ // Transport getters, slice overrides and species cannot control this copy.
+ let length;try{length=supplied instanceof Uint8Array?originalByteLength.call(supplied):-1;}catch{fail('BNS_OBJECT_INTEGRITY');}
+ if(length!==ref.encodedBytes||length>profile.encoded)fail('BNS_OBJECT_INTEGRITY');
+ const input=new Uint8Array(length);originalByteSet.call(input,supplied);
+ if(await digest(input)!==ref.digest)fail('BNS_OBJECT_INTEGRITY');
  const decoded=ref.codec==='identity'?input:await transform(input,'gunzip',Math.min(profile.decoded,ref.decodedBytes));
  if(decoded.length!==ref.decodedBytes)fail('BNS_OBJECT_INTEGRITY');return decoded;
 }
