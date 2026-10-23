@@ -1,4 +1,5 @@
 import {AIMaintenanceFilterOwner} from './ai-usage/ai-filter-owner.js';
+import {originalSourcePurgeFilterOwner,requireOriginalSourcePurgeFilterTransaction} from './browser-native-sync/source-purge-journal.js';
 import {advanceArchiveYearIndex,archiveYearKey,archiveYearPrefix} from './archive-year-index.js';
 import {inputProjection} from './thought-evidence.js';
 import {qualifiedInputSearch,prepareInputSearchArrival,matchesInputSearchArrival} from './qualified-input-search.js';
@@ -197,9 +198,9 @@ class SmartFilterStore extends IAStore {
   for(let i=0;i<after.length;i++){const a=before[i],b=after[i],edited=a.libraryText!==b.libraryText||a.note!==b.note;if(edited||a.excluded&&!b.excluded||request.revisionReason==='restore')await this.protect(t,b,edited?'user_edit':'revision_restore',edited);}
  }
  async saveRecord(t,r,index){await super.saveRecord(t,r,index);if(r.sourceKey){const old=await t.get('filterIntents','legacy:'+r.id);if(old){if(this.filterIntentJournal)throw new ArchiveError('BNS_FILTER_WRITER_UNSUPPORTED');await t.put('filterIntents',{...old,id:r.sourceKey});await t.delete('filterIntents',old.id);}}}
- purge(id,permanent=false){if(this.filterIntentJournal)return Promise.reject(new ArchiveError('BNS_FILTER_WRITER_UNSUPPORTED'));return super.purge(id,permanent);}
+ purge(id,permanent=false){if(this.filterIntentJournal&&!originalSourcePurgeFilterOwner(this))return Promise.reject(new ArchiveError('BNS_FILTER_WRITER_UNSUPPORTED'));return super.purge(id,permanent);}
  async beforeSourcePurge(t,records,blocks){
-  if(this.filterIntentJournal)throw new ArchiveError('BNS_FILTER_WRITER_UNSUPPORTED');
+  if(this.filterIntentJournal)requireOriginalSourcePurgeFilterTransaction(t,this);
   await super.beforeSourcePurge(t,records,blocks);
   for(const [id]of blocks)await t.delete('filterInputs',id);for(const r of records)await t.delete('filterIntents',r.sourceKey||'legacy:'+r.id);
  }
