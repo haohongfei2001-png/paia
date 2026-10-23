@@ -10,7 +10,7 @@ The [takeover queue](PAIA-TAKEOVER-QUEUE-20261023.md) owns programme sequencing.
 
 ## Baseline and evidence rules
 
-- Refreshed and normally merged main: `5e3c426aead5ad698330fa4201ab17b0c21878b1`; retained website restoration and entry/mobile fixes.
+- Refreshed main: `3bbd033b760701b5267a813d23ea94d26760c3b0`, normally merged as `42d2d9d1`; retained website restoration, entry/mobile fixes and the latest twelve-path reading/interaction refinements. This main successor changes no extension paths; the build at `3511dbe8` is retained without a redundant rebuild.
 - PR313 acceptance head: `02144bccf5e0e0b6842aaa4e7c6958cedecdfde1`;
   Full `39860568299` failed. Its first permitted opportunity is consumed.
 - Follow-up implementation commits `712a5d1a503d260f4318d755518927acd04d8066`
