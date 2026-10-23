@@ -1,0 +1,204 @@
+TAP version 13
+# Subtest: multi authored correction original owner edit
+ok 1 - multi authored correction original owner edit
+  ---
+  duration_ms: 459.484625
+  type: 'test'
+  ...
+# Subtest: multi authored correction original owner restore
+ok 2 - multi authored correction original owner restore
+  ---
+  duration_ms: 390.102209
+  type: 'test'
+  ...
+# Subtest: multi authored correction finite size 16
+ok 3 - multi authored correction finite size 16
+  ---
+  duration_ms: 2143.861708
+  type: 'test'
+  ...
+# Subtest: multi authored correction finite size 17
+not ok 4 - multi authored correction finite size 17
+  ---
+  duration_ms: 180.993208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-authored-context.test.mjs:356:28'
+  failureType: 'testCodeFailure'
+  error: 'INVALID_REQUEST'
+  code: 'INVALID_REQUEST'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/context-maintenance.js:24:49)
+    need (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/context-maintenance.js:25:29)
+    validateContextMaintenanceChange (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/context-maintenance.js:82:2)
+    #maintain (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/context-maintenance.js:157:28)
+    ContextMaintenanceService.maintain (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/core/context-maintenance.js:150:57)
+    multiAuthoredCorrectionFixture (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-authored-context.test.mjs:344:28)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-authored-context.test.mjs:357:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: multi authored correction keeps cross Topic composition pending despite independently valid original lineage
+ok 5 - multi authored correction keeps cross Topic composition pending despite independently valid original lineage
+  ---
+  duration_ms: 53.230583
+  type: 'test'
+  ...
+# Subtest: multi authored correction independent second author qualification-entry
+ok 6 - multi authored correction independent second author qualification-entry
+  ---
+  duration_ms: 58.606791
+  type: 'test'
+  ...
+# Subtest: multi authored correction independent second author qualification-history
+ok 7 - multi authored correction independent second author qualification-history
+  ---
+  duration_ms: 69.208166
+  type: 'test'
+  ...
+# Subtest: multi authored correction independent second author qualification-field
+ok 8 - multi authored correction independent second author qualification-field
+  ---
+  duration_ms: 100.307334
+  type: 'test'
+  ...
+# Subtest: multi authored correction independent second author payload-entry
+ok 9 - multi authored correction independent second author payload-entry
+  ---
+  duration_ms: 64.473125
+  type: 'test'
+  ...
+# Subtest: multi authored correction independent second author payload-field
+ok 10 - multi authored correction independent second author payload-field
+  ---
+  duration_ms: 59.378792
+  type: 'test'
+  ...
+# Subtest: multi authored correction independent second author context-field
+ok 11 - multi authored correction independent second author context-field
+  ---
+  duration_ms: 60.778
+  type: 'test'
+  ...
+# Subtest: multi authored correction independent second author revoke
+ok 12 - multi authored correction independent second author revoke
+  ---
+  duration_ms: 50.062666
+  type: 'test'
+  ...
+# Subtest: multi authored correction provider second author body
+ok 13 - multi authored correction provider second author body
+  ---
+  duration_ms: 280.516458
+  type: 'test'
+  ...
+# Subtest: multi authored correction provider second author note
+ok 14 - multi authored correction provider second author note
+  ---
+  duration_ms: 280.708834
+  type: 'test'
+  ...
+# Subtest: multi authored correction provider second author history
+ok 15 - multi authored correction provider second author history
+  ---
+  duration_ms: 293.280125
+  type: 'test'
+  ...
+# Subtest: multi authored correction provider second author membership
+ok 16 - multi authored correction provider second author membership
+  ---
+  duration_ms: 301.693
+  type: 'test'
+  ...
+# Subtest: multi authored correction provider second author receipt
+ok 17 - multi authored correction provider second author receipt
+  ---
+  duration_ms: 315.216583
+  type: 'test'
+  ...
+# Subtest: multi authored correction provider second author same-count-member
+ok 18 - multi authored correction provider second author same-count-member
+  ---
+  duration_ms: 288.701541
+  type: 'test'
+  ...
+# Subtest: multi authored correction provider second author revoke
+ok 19 - multi authored correction provider second author revoke
+  ---
+  duration_ms: 306.36925
+  type: 'test'
+  ...
+# Subtest: multi authored correction backup second author body
+ok 20 - multi authored correction backup second author body
+  ---
+  duration_ms: 372.2765
+  type: 'test'
+  ...
+# Subtest: multi authored correction backup second author note
+ok 21 - multi authored correction backup second author note
+  ---
+  duration_ms: 372.807458
+  type: 'test'
+  ...
+# Subtest: multi authored correction backup second author history
+ok 22 - multi authored correction backup second author history
+  ---
+  duration_ms: 383.995625
+  type: 'test'
+  ...
+# Subtest: multi authored correction backup second author membership
+ok 23 - multi authored correction backup second author membership
+  ---
+  duration_ms: 364.0745
+  type: 'test'
+  ...
+# Subtest: multi authored correction backup second author receipt
+ok 24 - multi authored correction backup second author receipt
+  ---
+  duration_ms: 391.786667
+  type: 'test'
+  ...
+# Subtest: multi authored correction backup second author same-count-member
+ok 25 - multi authored correction backup second author same-count-member
+  ---
+  duration_ms: 362.848708
+  type: 'test'
+  ...
+# Subtest: multi authored correction backup second author revoke
+ok 26 - multi authored correction backup second author revoke
+  ---
+  duration_ms: 356.882208
+  type: 'test'
+  ...
+# Subtest: multi authored correction ACK rollback reuses one original response
+ok 27 - multi authored correction ACK rollback reuses one original response
+  ---
+  duration_ms: 548.973292
+  type: 'test'
+  ...
+# Subtest: multi authored correction original source adapter none
+ok 28 - multi authored correction original source adapter none
+  ---
+  duration_ms: 379.076959
+  type: 'test'
+  ...
+# Subtest: multi authored correction original source adapter foreign-item
+ok 29 - multi authored correction original source adapter foreign-item
+  ---
+  duration_ms: 282.046584
+  type: 'test'
+  ...
+# Subtest: multi authored correction original source adapter unknown-field
+ok 30 - multi authored correction original source adapter unknown-field
+  ---
+  duration_ms: 285.588
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 29
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10023.502125

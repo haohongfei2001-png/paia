@@ -327,3 +327,77 @@ for(const defect of ['section','placement-journal'])test('authored correction ta
  f.s.repository.transaction=(write,fn,...args)=>original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(name,row,...rest)=>{const result=await put(name,row,...rest);if(!reached&&name==='meta'&&row.id==='backup-data-generation'){reached=true;const p=(await t.all('placements')).find(x=>x.entryId===f.entry.id);if(defect==='section'){const section=await t.get('sections',JSON.stringify([p.topicId,p.layoutGeneration,p.sectionId]));section.lifecycle='removed';await put('sections',section);}else{const journal=(await t.all('revisions')).find(x=>x.kind==='placement'&&x.entityId===p.id);assert.ok(journal);journal.after.rank='500000000000';await put('revisions',journal);}}return result;};}return fn(t);},...args);
  try{const result=await f.session.run(await f.session.prepare(f.correctionOptions));assert.equal(reached,true);assert.notEqual(result.processedState,'COMMITTED');assert.equal((await correctionAcks(f)).length,0);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);}finally{f.s.repository.transaction=original;f.session.dispose();}
 });
+
+
+async function multiAuthoredCorrectionFixture({restore=false,count=2,crossTopic=false}={}){
+ const f=await fixture();f.session.dispose();f.entries=[f.entry];
+ for(let i=1;i<count;i++){
+  const entry=await f.s.createEntry({actor:'user',operationId:op(),body:'SYNTHETIC independent author '+i,type:'idea',formation:'explicit',evidence:[]});
+  const topic=crossTopic&&i===count-1?await f.s.createTopic({name:'Synthetic separate author Topic',operationId:op()}):f.topic;
+  await f.s.placeEntry({topicId:topic.id,entryId:entry.id,expectedEntryRevision:entry.revision,expectedTopicRevision:(await f.s.topic(topic.id)).organizationRevision,operationId:op()});
+  if(i===1){const row=await read(f.s,'thoughts',entry.id);await f.s.editEntry({id:entry.id,expectedRevision:row.revision,operationId:op(),changes:{title:'SYNTHETIC second author title',note:'SYNTHETIC second author note'}});}
+  f.entries.push(entry);
+ }
+ const evidence=[];
+ for(const entry of f.entries){const m=await f.s.repository.transaction(false,t=>readAuthoredEntryContext(f.s,t,entry.id));assert.ok(m);const scope=await readContextTopicScope(f.s,{topicId:m.topicId}),row=await read(f.s,'thoughts',entry.id),fields=m.selectedFields||['body'],digests={};assert.equal(scope.available,true);for(const field of fields)digests[field]=await hashText(row[field==='body'?'thoughtText':field]||'');evidence.push(authoredContextEvidence(m,scope.binding,digests));}
+ const owner=new ContextMaintenanceService(f.s,{processingVerifier:f.verifier}),itemId=op(),epoch=evidence[0].expectedTopicBinding.epoch;
+ const request={operationId:op(),epoch,itemId,card:'info',expectedRevision:0,body:'SYNTHETIC original compound author Context',section:'Synthetic compound author',associationIds:[op()],evidence};
+ if(count>16){const before=await ownerRows(f.s);await assert.rejects(owner.maintain(f.caller,request),{code:'INVALID_REQUEST'});assert.deepEqual(await ownerRows(f.s),before);assert.equal(await read(f.s,'meta',CONTEXT_CARDS_ROW),undefined);f.originalRejected=true;return f;}
+ assert.equal((await owner.maintain(f.caller,request)).ok,true);
+ const cards=new ContextCardsService(f.s),item=(await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.find(x=>x.id===itemId);
+ assert.equal(item.maintenance.provenance.evidence.length,count);
+ if(restore){const removal=op();await cards.change({kind:'delete',operationId:removal,epoch,itemId,expectedRevision:item.revision});await cards.change({kind:'restore',operationId:op(),epoch,itemId,expectedRevision:item.revision+1,deletedBy:removal});}
+ else await cards.change({kind:'put',operationId:op(),epoch,itemId,expectedRevision:item.revision,card:item.card,body:'SYNTHETIC compound human correction',section:item.section});
+ f.calls.length=0;f.scopes.length=0;f.session=f.make();f.correctionOptions={...options,limit:1};f.correctionKey=JSON.stringify(['context_item',itemId]);return f;
+}
+for(const restore of [false,true])test('multi authored correction original owner '+(restore?'restore':'edit'),async()=>{
+ const f=await multiAuthoredCorrectionFixture({restore}),before=await read(f.s,'meta',CONTEXT_CARDS_ROW),owners=await ownerRows(f.s);
+ try{const result=await f.session.run(await f.session.prepare(f.correctionOptions));assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,1);assert.deepEqual(f.calls[0].material.inputs,[]);assert.deepEqual(f.calls[0].material.contextItems[0].authoredEntryIds,f.entries.map(e=>e.id));assert.equal(f.calls[0].material.authoredEntries.length,2);assert.deepEqual(f.calls[0].material.authoredEntries[1].selectedFields,['body','note','title']);assert.deepEqual(await ownerRows(f.s),owners);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);const done=await correctionAcks(f);assert.equal(done.length,1);assert.equal(done[0].unit.facet,'context');assert.equal(done[0].outcome,'NO_CHANGE');}finally{f.session.dispose();}
+});
+
+for(const count of [16,17])test('multi authored correction finite size '+count,async()=>{
+ const f=await multiAuthoredCorrectionFixture({count});try{if(count===17){assert.equal(f.originalRejected,true);assert.equal(f.calls.length,0);return;}const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),result=await f.session.run(await f.session.prepare(f.correctionOptions));if(count===16){assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,1);assert.equal(f.calls[0].material.authoredEntries.length,count);assert.equal((await correctionAcks(f)).length,1);}else{assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await correctionAcks(f)).length,0);}assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);}finally{f.session.dispose();}
+});
+test('multi authored correction keeps cross Topic composition pending despite independently valid original lineage',async()=>{
+ const f=await multiAuthoredCorrectionFixture({crossTopic:true});try{const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),result=await f.session.run(await f.session.prepare(f.correctionOptions));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await correctionAcks(f)).length,0);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);}finally{f.session.dispose();}
+});
+for(const denial of ['qualification-entry','qualification-history','qualification-field','payload-entry','payload-field','context-field','revoke'])test('multi authored correction independent second author '+denial,async()=>{
+ const f=await multiAuthoredCorrectionFixture(),second=f.entries[1].id;
+ if(denial==='qualification-entry')f.state.qualificationScopeHook=s=>({...s,entries:s.entries.filter(e=>e.entryId!==second)});
+ if(denial==='qualification-history')f.state.qualificationScopeHook=s=>({...s,journals:[]});
+ if(denial==='qualification-field')f.state.qualificationScopeHook=s=>({...s,entries:s.entries.map(e=>({...e,selectedFields:['body']}))});
+ if(denial==='payload-entry')f.state.scopeHook=s=>({...s,authoredEntries:s.authoredEntries.filter(e=>e.entryId!==second)});
+ if(denial==='payload-field')f.state.scopeHook=s=>({...s,authoredEntries:s.authoredEntries.map(e=>({...e,selectedFields:['body']}))});
+ if(denial==='context-field')f.state.scopeHook=s=>({...s,contextItems:s.contextItems.map(e=>({...e,selectedFields:['section']}))});
+ if(denial==='revoke')f.abort.abort();
+ try{let result;try{result=await f.session.run(await f.session.prepare(f.correctionOptions));}catch(e){assert.ok(['UNAVAILABLE','STALE_BASE'].includes(e.code),e.code);}assert.notEqual(result?.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await correctionAcks(f)).length,0);}finally{f.session.dispose();}
+});
+for(const phase of ['provider','backup'])for(const defect of ['body','note','history','membership','receipt','same-count-member','revoke'])test('multi authored correction '+phase+' second author '+defect,async()=>{
+ const f=await multiAuthoredCorrectionFixture({restore:true}),before=await read(f.s,'meta',CONTEXT_CARDS_ROW),original=f.s.repository.transaction.bind(f.s.repository),id=f.entries[1].id;let reached=false;
+ const change=async t=>{if(reached)return;reached=true;if(defect==='revoke'){f.abort.abort();return;}if(['body','note'].includes(defect)){const row=await t.get('thoughts',id);row[defect==='body'?'thoughtText':'note']='SYNTHETIC changed second author';await t.put('thoughts',row);}
+ if(defect==='history'){const row=(await t.all('revisions')).find(r=>r.kind==='library_entry'&&r.entityId===id&&r.reason==='baseline');assert.ok(row);row.after.body='SYNTHETIC false second history';await t.put('revisions',row);}
+ if(defect==='membership'||defect==='same-count-member'){const row=(await t.all('placements')).find(r=>r.entryId===id);assert.ok(row);if(defect==='same-count-member'){const count=await t.count('placements');await t.delete('placements',row.id);await t.put('placements',{...row,id:'synthetic-replacement-'+row.id});assert.equal(await t.count('placements'),count);}else await t.put('placements',{...row,rank:'500000000000'});}
+ if(defect==='receipt'){const pending=await t.get('meta','aiu:delta:pending:'+f.correctionKey),row=await t.get('operationReceipts',pending.descriptor.contextEdit.receiptId);row.digest='0'.repeat(64);await t.put('operationReceipts',row);}};
+ if(phase==='provider')f.state.providerHook=()=>original(true,change);else f.s.repository.transaction=(write,fn,...args)=>original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(name,row,...rest)=>{const value=await put(name,row,...rest);if(!reached&&name==='meta'&&row.id==='backup-data-generation')await change(t);return value;};}return fn(t);},...args);
+ try{let result;try{result=await f.session.run(await f.session.prepare(f.correctionOptions));}catch(e){assert.ok(['UNAVAILABLE','STALE_BASE'].includes(e.code),e.code);}assert.equal(reached,true);assert.notEqual(result?.processedState,'COMMITTED');assert.equal((await correctionAcks(f)).length,0);assert.equal(f.calls.length,1);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);}finally{f.s.repository.transaction=original;f.session.dispose();}
+});
+test('multi authored correction ACK rollback reuses one original response',async()=>{
+ const f=await multiAuthoredCorrectionFixture({restore:true}),before=await read(f.s,'meta',CONTEXT_CARDS_ROW),original=f.s.repository.transaction.bind(f.s.repository);let hit=false;
+ f.s.repository.transaction=(write,fn,...args)=>original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(name,row,...rest)=>{if(!hit&&name==='organizerWorkItems'&&row.state==='ACKNOWLEDGED'&&row.unit.key===f.correctionKey){hit=true;throw Object.assign(Error('SYNTHETIC compound ACK failure'),{code:'STORAGE_FAILED'});}return put(name,row,...rest);};}return fn(t);},...args);
+ try{const h=await f.session.prepare(f.correctionOptions),first=await f.session.run(h);assert.equal(hit,true);assert.notEqual(first.processedState,'COMMITTED');assert.equal((await correctionAcks(f)).length,0);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);f.s.repository.transaction=original;assert.equal((await f.session.run(h)).processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await correctionAcks(f)).length,1);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);}finally{f.s.repository.transaction=original;f.session.dispose();}
+});
+for(const defect of ['none','foreign-item','unknown-field'])test('multi authored correction original source adapter '+defect,async()=>{
+ const {createMaintenanceServiceResponseAdapter}=await import('../core/ai-usage/maintenance-service-response.js'),{maintenanceSourceResponse}=await import('../../services/ai-gateway/tests/maintenance-source-response-fixture.mjs'),f=await multiAuthoredCorrectionFixture({restore:true}),before=await read(f.s,'meta',CONTEXT_CARDS_ROW),owner=createMaintenanceServiceResponseAdapter();f.session.dispose();f.service.responseAdapter=owner.adapter;
+ f.state.responseFactory=request=>{owner.registerChild({s:f.s,read:fn=>f.s.repository.transaction(false,fn)},request,()=>!f.abort.signal.aborted,f.abort.signal);const value=maintenanceSourceResponse(request,{body:'SYNTHETIC compound interpretation'});if(defect==='foreign-item')value.context.groups[0].itemId=op();if(defect==='unknown-field')value.context.groups[0].permission=true;return {accepted:true,operationReceiptId:'synthetic-'+request.childOperationId,value};};f.session=f.make();
+ try{const result=await f.session.run(await f.session.prepare(f.correctionOptions));assert.equal(f.calls.length,1);if(defect==='none'){assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal((await correctionAcks(f)).length,1);}else{assert.notEqual(result.processedState,'COMMITTED');assert.equal((await correctionAcks(f)).length,0);}assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);}finally{owner.dispose();f.session.dispose();}
+});
+
+test('multi authored correction exact DTO refuses omitted, duplicate, foreign and mixed material',async()=>{
+ const {createMaintenancePayload}=await import('../core/ai-usage/maintenance-payload.js'),f=await multiAuthoredCorrectionFixture();
+ try{assert.equal((await f.session.run(await f.session.prepare(f.correctionOptions))).processedState,'COMMITTED');const {material,...metadata}=f.calls[0],limits=f.s.organizerBudget.limits,create=(m,meta=metadata)=>createMaintenancePayload(meta,{sourceCount:0,view:{inputs:[],entries:[],identities:[],sections:[],constraints:[]}},limits,[],m.authoredEntries,[],[],[],m.contextItems);assert.deepEqual(create(material).material.contextItems,material.contextItems);
+ for(const defect of ['duplicate-id','missing-id','foreign-id','missing-entry','extra-entry','cross-topic','mixed-bound','mixed-fields','topic-coverage']){const m=structuredClone(material),meta=structuredClone(metadata),c=m.contextItems[0];if(defect==='duplicate-id')c.authoredEntryIds[1]=c.authoredEntryIds[0];if(defect==='missing-id')c.authoredEntryIds.pop();if(defect==='foreign-id')c.authoredEntryIds[1]=op();if(defect==='missing-entry')m.authoredEntries.pop();if(defect==='extra-entry')m.authoredEntries.push({...m.authoredEntries[0],entryId:op()});if(defect==='cross-topic'){const e=m.authoredEntries[1];e.topicId=op();e.placementId=JSON.stringify([e.topicId,e.layoutGeneration,e.entryId]);}if(defect==='mixed-bound')c.boundEntryIds=[f.entries[1].id];if(defect==='mixed-fields')c.inputFields=[];if(defect==='topic-coverage')meta.coverage[0].facet='topic';assert.throws(()=>create(m,meta),undefined,defect);}
+ }finally{f.session.dispose();}
+});
+test('multi authored correction still refuses invalidated retained lineage without reading old body',async()=>{
+ const f=await multiAuthoredCorrectionFixture();try{await f.s.repository.transaction(true,async t=>{const row=await t.get('meta',CONTEXT_CARDS_ROW);row.items[0].maintenance.invalidation=structuredClone(row.items[0].maintenance.provenance);await t.put('meta',row);});const result=await f.session.run(await f.session.prepare(f.correctionOptions));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await correctionAcks(f)).length,0);assert.equal(f.scopes.length,0);}finally{f.session.dispose();}
+});
