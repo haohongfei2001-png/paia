@@ -1,4 +1,5 @@
 import {createGroupPageBudget,chargeGroupPageBytes,checkGroupPageBudget} from './group-page-reader.js';
+import {requireSavedWorkProtocolOwner} from './saved-work-bootstrap.js';
 import {requireConsumerPublicationSettled} from './consumer-publication-state.js';
 import {assertTopicDesiredOperation} from './topic-desired-codec.js';
 import {protocolKey as key,protocolPhysicalId} from './physical-key.js';
@@ -51,6 +52,7 @@ export async function validateOperation(operation){
  if(!exact(operation,opFields)||Object.keys(operation).length!==opFields.length||operation.protocol!==1||!opaque(operation.datasetId)||!opaque(operation.deviceId)||!opaque(operation.operationId)||!count(operation.sequence)||operation.sequence<1||!identifier(operation.entityId)||!Object.hasOwn(CODECS,operation.type)||operation.codecVersion!==CODECS[operation.type].version||!['put','purge'].includes(operation.kind)||!['user','source','bootstrap'].includes(operation.actor)||!Array.isArray(operation.parents)||operation.parents.length>CORE_LIMITS.parents||operation.parents.some(x=>!hash(x))||new Set(operation.parents).size!==operation.parents.length||!hash(operation.revisionId))fail('BNS_OPERATION_INVALID');
  if(operation.kind==='purge'){if(operation.actor!=='user'||operation.value!==null)fail('BNS_PURGE_INVALID');}
  else{await validateEntityAsync(operation.type,operation.value,operation.codecVersion);if(operation.value.id!==operation.entityId)fail('BNS_ENTITY_MISMATCH');}
+ if(operation.type==='savedWorkBootstrap'&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length||operation.value.payload.datasetId!==operation.datasetId))fail('BNS_SAVED_WORK_OPERATION');
  if(operation.type==='consumerPreference')assertConsumerPreferenceOperation(operation);
  if(operation.type==='topicDesired')assertTopicDesiredOperation(operation);
  if(['sourceAppendMember','sourceAppendCommit'].includes(operation.type)&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length))fail('BNS_SOURCE_APPEND_INVALID');
@@ -263,6 +265,7 @@ export class BrowserNativeSyncCore {
   return false;
  }
  async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null,appendCapability=null,humanCapability=null,humanRetentionCapability=null}={}){
+  if(operation.type==='savedWorkBootstrap')requireSavedWorkProtocolOwner(t,this,operation,origin);
   const scope=requireRepositoryTransactionScope(this.repository,t),activeRetention=humanRetentionTransactions.get(scope.token);
   if(activeRetention&&(activeRetention.wrapper!==t||activeRetention.core!==this||activeRetention.repository!==this.repository||activeRetention.database!==scope.database||scope.database!==this.repository.db||scope.mode!=='readwrite'||this.boundTransactions.get(t)!==activeRetention.namespace||activeRetention.phase!=='apply'||origin!=='remote'||materialize!==false||humanRetentionCapability!==activeRetention||!activeRetention.operations?.includes(operation)))throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
   if(activeRetention){requireRepositoryTransactionDataMethods(this.repository,t);requireOriginalHumanRetentionCoreDataMethods(this);}

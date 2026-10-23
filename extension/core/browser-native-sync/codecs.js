@@ -1,3 +1,4 @@
+import {validateSavedWorkEnvelope,validateSavedWorkPayload} from './saved-work-payload.js';
 import {validateHumanLibraryMember,validateHumanLibraryCommit} from './human-library-codec.js';
 import {validateConsumerPreference,validateConsumerPreferenceIntent,CONSUMER_PREFERENCE_CODEC_VERSION} from './consumer-preference-codec.js';
 import {validatePromptCorrectionCompanion} from './prompt-correction-binding.js';
@@ -99,7 +100,7 @@ const commitCodec=spec('inputWorkingCommit',value=>{
  if(!Array.isArray(value.sourceRefs)||!value.sourceRefs.length||value.sourceRefs.length>16||value.sourceRefs.some(x=>!exact(x,['id','sourceKey','dedupeKey','contentHash'])||Object.keys(x).length!==4||!identifier(x.id)||![x.sourceKey,x.dedupeKey,x.contentHash].every(hash))||new Set(value.sourceRefs.map(x=>x.id)).size!==value.sourceRefs.length)fail('BNS_CODEC_INVALID');
  const seen=new Set();for(const ref of value.members){if(!exact(ref,['type','entityId','revisionId'])||Object.keys(ref).length!==3||ref.type!=='inputWorkingMember'||!identifier(ref.entityId)||!hash(ref.revisionId)||seen.has(ref.entityId))fail('BNS_CODEC_INVALID');seen.add(ref.entityId);}return value;
 },{store:'meta'});
-export const CODECS=Object.freeze({humanLibraryMember:spec('humanLibraryMember',validateHumanLibraryMember),humanLibraryCommit:spec('humanLibraryCommit',validateHumanLibraryCommit),sourceAppendMember:spec('sourceAppendMember',validateSourceAppendMember),sourceAppendCommit:spec('sourceAppendCommit',validateSourceAppendCommit),sourceBootstrapMember:spec('sourceBootstrapMember',validateSourceBootstrapMember),sourceBootstrapCommit:spec('sourceBootstrapCommit',validateSourceBootstrapCommit),inputWorkingMember:memberCodec,inputWorkingCommit:commitCodec,source:sourceCodec,filterIntent:filterIntentCodec,revision:workingRevisionCodec,...Object.fromEntries(entries.filter(([type])=>['input','inputState'].includes(type))),...Object.fromEntries(entries.filter(([type])=>['contextItem','contextRulesItem','contextNowItem','contextDesired','promptPreferences','promptBinding','topicDesired'].includes(type))),consumerPreference:spec('consumerPreference',validateConsumerPreferenceIntent,{version:CONSUMER_PREFERENCE_CODEC_VERSION,store:'meta',owner:'control'})});
+export const CODECS=Object.freeze({savedWorkBootstrap:spec('savedWorkBootstrap',validateSavedWorkEnvelope,{immutable:true}),humanLibraryMember:spec('humanLibraryMember',validateHumanLibraryMember),humanLibraryCommit:spec('humanLibraryCommit',validateHumanLibraryCommit),sourceAppendMember:spec('sourceAppendMember',validateSourceAppendMember),sourceAppendCommit:spec('sourceAppendCommit',validateSourceAppendCommit),sourceBootstrapMember:spec('sourceBootstrapMember',validateSourceBootstrapMember),sourceBootstrapCommit:spec('sourceBootstrapCommit',validateSourceBootstrapCommit),inputWorkingMember:memberCodec,inputWorkingCommit:commitCodec,source:sourceCodec,filterIntent:filterIntentCodec,revision:workingRevisionCodec,...Object.fromEntries(entries.filter(([type])=>['input','inputState'].includes(type))),...Object.fromEntries(entries.filter(([type])=>['contextItem','contextRulesItem','contextNowItem','contextDesired','promptPreferences','promptBinding','topicDesired'].includes(type))),consumerPreference:spec('consumerPreference',validateConsumerPreferenceIntent,{version:CONSUMER_PREFERENCE_CODEC_VERSION,store:'meta',owner:'control'})});
 export function validateEntity(type,value,version=1){
  const codec=Object.hasOwn(CODECS,type)?CODECS[type]:null;if(!codec||version!==codec.version)fail('BNS_CODEC_UNSUPPORTED');
  canonical(value);
@@ -109,6 +110,7 @@ export function validateEntity(type,value,version=1){
 }
 export async function validateEntityAsync(type,value,version=1){
  validateEntity(type,value,version);
+ if(type==='savedWorkBootstrap')await validateSavedWorkPayload(value.payload);
  if(type==='source'){
   const expected=await identify(sourceIdentityChat(value.platform,value.chatId),value.sourceMessageId,value.originalText);
   if(['contentHash','sourceKey','dedupeKey'].some(key=>value[key]!==expected[key]))fail('BNS_SOURCE_DIGEST');

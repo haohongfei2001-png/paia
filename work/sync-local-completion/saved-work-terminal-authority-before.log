@@ -1,0 +1,74 @@
+TAP version 13
+# Subtest: saved bootstrap terminal authority rejects late migration
+not ok 1 - saved bootstrap terminal authority rejects late migration
+  ---
+  duration_ms: 82.616833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:70:257'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:70:529)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: saved bootstrap terminal authority rejects late local-control-publication:revision
+not ok 2 - saved bootstrap terminal authority rejects late local-control-publication:revision
+  ---
+  duration_ms: 56.537875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:70:257'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:70:529)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: saved bootstrap terminal authority rejects late local-control-publication:reservation
+not ok 3 - saved bootstrap terminal authority rejects late local-control-publication:reservation
+  ---
+  duration_ms: 49.072125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:70:257'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:70:529)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: saved bootstrap terminal authority rejects late thought-library
+not ok 4 - saved bootstrap terminal authority rejects late thought-library
+  ---
+  duration_ms: 51.927625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:70:257'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/saved-work-bootstrap.test.mjs:70:529)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 371.729917
