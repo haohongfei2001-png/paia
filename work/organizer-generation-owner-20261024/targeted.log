@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: original LibraryDocumentsStore full generation data identity admitted
+ok 1 - original LibraryDocumentsStore full generation data identity admitted
+  ---
+  duration_ms: 1.845125
+  type: 'test'
+  ...
+# Subtest: original OrganizerStore full generation data identity admitted
+ok 2 - original OrganizerStore full generation data identity admitted
+  ---
+  duration_ms: 0.395875
+  type: 'test'
+  ...
+# Subtest: arbitrary LibraryDocumentsStore subclass denied despite original constructor brand
+ok 3 - arbitrary LibraryDocumentsStore subclass denied despite original constructor brand
+  ---
+  duration_ms: 0.272167
+  type: 'test'
+  ...
+# Subtest: arbitrary OrganizerStore subclass denied despite original constructor brand
+ok 4 - arbitrary OrganizerStore subclass denied despite original constructor brand
+  ---
+  duration_ms: 0.070125
+  type: 'test'
+  ...
+# Subtest: prototype-shaped unconstructed Organizer denied
+ok 5 - prototype-shaped unconstructed Organizer denied
+  ---
+  duration_ms: 0.052792
+  type: 'test'
+  ...
+# Subtest: Organizer own canonicalTopic replacement denied
+ok 6 - Organizer own canonicalTopic replacement denied
+  ---
+  duration_ms: 0.061
+  type: 'test'
+  ...
+# Subtest: Organizer own applyInitialSource replacement denied
+ok 7 - Organizer own applyInitialSource replacement denied
+  ---
+  duration_ms: 0.189959
+  type: 'test'
+  ...
+# Subtest: Organizer own createEntry replacement denied
+ok 8 - Organizer own createEntry replacement denied
+  ---
+  duration_ms: 0.129291
+  type: 'test'
+  ...
+# Subtest: Organizer own safeOrganization replacement denied
+ok 9 - Organizer own safeOrganization replacement denied
+  ---
+  duration_ms: 0.213583
+  type: 'test'
+  ...
+# Subtest: Organizer declaration replace mutation denied and not trusted on first check
+ok 10 - Organizer declaration replace mutation denied and not trusted on first check
+  ---
+  duration_ms: 0.369875
+  type: 'test'
+  ...
+# Subtest: Organizer declaration added-shadow mutation denied and not trusted on first check
+ok 11 - Organizer declaration added-shadow mutation denied and not trusted on first check
+  ---
+  duration_ms: 0.219292
+  type: 'test'
+  ...
+# Subtest: Organizer declaration parent mutation denied and not trusted on first check
+ok 12 - Organizer declaration parent mutation denied and not trusted on first check
+  ---
+  duration_ms: 0.150792
+  type: 'test'
+  ...
+# Subtest: Organizer declaration descriptor mutation denied and not trusted on first check
+ok 13 - Organizer declaration descriptor mutation denied and not trusted on first check
+  ---
+  duration_ms: 0.134708
+  type: 'test'
+  ...
+# Subtest: original Organizer checkpoint producer prepares and publishes via original Google adapter
+ok 14 - original Organizer checkpoint producer prepares and publishes via original Google adapter
+  ---
+  duration_ms: 185.820458
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 308.623

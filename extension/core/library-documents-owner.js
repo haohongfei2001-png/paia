@@ -1,3 +1,4 @@
+import {requireOriginalOrganizerGenerationMethods} from './organizer/store-owner.js';
 import {isOriginalHumanGenerationTransaction} from './browser-native-sync/human-library-group.js';
 async function generationPlacementRows(store,t,id){if(!isOriginalHumanGenerationTransaction(t))return t.all('placements','byEntry',prefix([id]));const rows=[];let after=null;do{const page=await t.rangePage('placements','byEntry',prefix([id]),after,100);rows.push(...page.rows.map(x=>x.value));after=page.next;}while(after!==null);return rows;}
 import {ArchiveError} from './constants.js';
@@ -24,7 +25,11 @@ const generationDescriptor=Object.getOwnPropertyDescriptor,generationPrototype=O
 // Read-only identity check for the fixed shadow-generation original owner.
 // Capture in this declaration module at class creation, never from a caller.
 export function requireOriginalLibraryDocumentsGenerationMethods(store){
- if(!originalLibraryDocumentsStores.has(store)||!originalGenerationDataChain||generationPrototype(store)!==originalGenerationDataChain[0].prototype)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ if(!originalLibraryDocumentsStores.has(store)||!originalGenerationDataChain)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ // The application worker uses the fixed Organizer subclass. Its declaration
+ // owner checks that exact extra layer; the original Docs chain below remains
+ // mandatory. No caller-supplied subclass or first-use method snapshot qualifies.
+ if(generationPrototype(store)!==originalGenerationDataChain[0].prototype)requireOriginalOrganizerGenerationMethods(store);
  for(const {prototype,parent,methods}of originalGenerationDataChain){
   if(generationPrototype(prototype)!==parent||Object.getOwnPropertyNames(prototype).filter(name=>!['constructor','run','finishFoundation'].includes(name)).join('\0')!==methods.map(([name])=>name).join('\0'))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
   for(const [name,expected]of methods){const current=generationDescriptor(prototype,name);if(!current||['value','get','set','writable','enumerable','configurable'].some(key=>current[key]!==expected[key]))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');}

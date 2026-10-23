@@ -1,0 +1,42 @@
+TAP version 13
+# Subtest: original OrganizerStore full generation data identity admitted
+not ok 1 - original OrganizerStore full generation data identity admitted
+  ---
+  duration_ms: 0.817333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/library-documents-generation-owner.test.mjs:14:55'
+  failureType: 'testCodeFailure'
+  error: |-
+    Got unwanted exception.
+    Actual message: "GENERATION_REPOSITORY_WRITE_DENIED"
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    requireOriginalLibraryDocumentsGenerationMethods (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/core/library-documents-owner.js:27:155)
+    file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/library-documents-generation-owner.test.mjs:14:150
+    getActual (node:assert:609:5)
+    Function.doesNotThrow (node:assert:777:32)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/library-documents-generation-owner.test.mjs:14:133)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  operator: 'doesNotThrow'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-resident-jobs/paia/extension/tests/library-documents-generation-owner.test.mjs:14:133)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 168.877958

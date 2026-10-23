@@ -1,3 +1,4 @@
+import {ArchiveError} from '../constants.js';
 import {originalFoundationConstructor,originalFoundationOrganizeMaterialOwner} from '../thought-store-owner.js';
 import {originalFilterOrganizeMaterialOwner} from '../smart-filter-store-owner.js';
 import {validFeedbackDraft} from '../recovery-draft.js';
@@ -33,7 +34,7 @@ import {enqueueOriginalWork,planOriginalWork,originalBootstrapStatus} from './or
 // Match LibraryDocumentsStore's existing lazy owner pattern. Static worker
 // imports may observe the checker before the legacy class cycle completes;
 // only the original constructor initializes its private checker and brand.
-let originalConstructor=null,originalMaterialCheck=null;
+let originalConstructor=null,originalMaterialCheck=null,originalGenerationCheck=null;
 export function originalOrganizerConstructor(){
  if(originalConstructor)return originalConstructor;
  const LibraryFoundationStore=originalFoundationConstructor();
@@ -207,10 +208,31 @@ function requireOriginalOrganizeMaterialMethods(store){
  return true;
 }
 
+ // Capture this additional layer at the original class declaration, never on
+ // a first eligibility call. Base descriptors are separately checked by the
+ // original Docs owner. This check issues no repository/write capability.
+ const generationPrototype=Object.getPrototypeOf,generationDescriptor=Object.getOwnPropertyDescriptor;
+ const generationNames=Object.freeze(Object.getOwnPropertyNames(OrganizerStore.prototype));
+ const generationMethods=Object.freeze(generationNames.map(name=>Object.freeze([name,Object.freeze(generationDescriptor(OrganizerStore.prototype,name))])));
+ originalGenerationCheck=store=>{
+  const deny=()=>{throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');};
+  if(!originalOrganizeMaterialStores.has(store)||generationPrototype(store)!==OrganizerStore.prototype||generationPrototype(OrganizerStore.prototype)!==LibraryDocumentsStore.prototype)deny();
+  if(Object.getOwnPropertyNames(OrganizerStore.prototype).join('\0')!==generationNames.join('\0'))deny();
+  for(const [name,expected]of generationMethods){
+   const current=generationDescriptor(OrganizerStore.prototype,name);
+   if(!current||['value','get','set','writable','enumerable','configurable'].some(key=>current[key]!==expected[key])||generationDescriptor(store,name))deny();
+  }
+  return true;
+ };
  originalMaterialCheck=requireOriginalOrganizeMaterialMethods;
  return originalConstructor=OrganizerStore;
 }
 export function requireOriginalOrganizeMaterialMethods(store){
  if(originalMaterialCheck===null)reject('UNAVAILABLE');
  return originalMaterialCheck(store);
+}
+
+export function requireOriginalOrganizerGenerationMethods(store){
+ if(originalGenerationCheck===null)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ return originalGenerationCheck(store);
 }
