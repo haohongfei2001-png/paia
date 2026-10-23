@@ -487,3 +487,12 @@ Selected lifecycle1dc04adf, multi-authored eb031c23 and multi-bound f4180c5e are
 ## Settings independent continuation at6fa33dba
 
 Previously interrupted directory/history/focus, cross-control, About and offline AI-style journeys now pass Source/Release2/2 in fresh headless synthetic profiles, reusing the exact original action/assertion block after a real UI failure-response prerequisite. Original complete Settings still preserves its coarse-device gate and earlier4/6 failure. No touch/fullSettings qualification or repeat288-row matrix is claimed. [Report and exact evidence](../../../../work/settings-independent-20261023/REPORT.md);646-file build and all source vectors recorded, zero external/model requests.
+
+
+## Lifecycle native and typed saved successor integration
+
+The isolated lifecycle Source/Release qualification is integrated atbcf8496b/c0ebb806. Each variant executes39 original local-consumer case bodies and126 assertions using native IndexedDB, zero external requests; the two TAP parents pass2/2. Its frozen runtime predates the root complete-all primitive, so it is component evidence alongside the current-root375/375 composition, not a claim of latest-tree whole native qualification. [Report](TOPIC-LIFECYCLE-NATIVE-20261023.md).
+
+Typed saved successors48228bf0 are selectively integrated asd71f5be8, plus the exact one-line original grouped coordinator dispatch25e95da5. Independent source review found no new blocker within one original Source, one saved AI Entry and complete retained uncoalesced history. A→cold B→original edit/atomic receipt+outbox→cold C→edit→cold D passes in synthetic Node fixtures;155/155 and later cold receipt-drift1/1 remain separate agent invocations. Root did not import the agent's writer-budget dependency twice. [Report](SYNC-SAVED-TYPED-SUCCESSOR-20261023.md).
+
+Continuous coalesced/retention edits, multiple entities, nonempty incremental saved targets and broader scale remain implementation work. Native successor qualification is being prepared for a coherent freeze with the lawful Context mixtures; this paragraph is not its execution evidence. The lifecycle private Session-handle dispatcher is also in progress and does not activate a worker, default policy or real issuer.

@@ -39,7 +39,7 @@ concrete grouped decision, with budget and stop conditions.
   `02144bccf5e0e0b6842aaa4e7c6958cedecdfde1`.
 - Current local integration branch: `codex/paia-takeover-integration-20261023`.
   The initial inventory checkpoint was `0897127e67902141a43b94ea18f44998235a2fc5`.
-  Current composed source checkpoint is `6452a3a7` (Context bound, saved-work
+  An earlier composed source checkpoint is `6452a3a7` (Context bound, saved-work
   typed protocol, bounded paging and finite nonempty manual recovery). This is an intermediate identity,
   **not** the final reviewed/tested deliverable; root records the final identity
   after the shared batch is frozen.
@@ -361,7 +361,7 @@ are not reset by this composition.
 
 ### UI milestone, c6d3d5b2
 
-Concentrated original headless UI verification finished: Settings4/6 with two pinned-headed-touch environment failures retained, shell main1/1, current Context UI1/1, Prompt fixed forms2/2. Settings later stages after the coarse prerequisite remain unexecuted. Preserve the required touch qualification for an authorized matching environment; do not launch a visible browser or weaken its assertions solely to relabel this batch. [Report](../../../../work/takeover-ui-milestone-20261023/REPORT.md). The separately recorded manual/bound-Context native checkpoint at6452a3a7 already completed30/30 and is not waiting for this UI result.
+Concentrated original headless UI verification finished: Settings4/6 with two pinned-headed-touch environment failures retained, shell main1/1, current Context UI1/1, Prompt fixed forms2/2. At that invocation, Settings later stages after the coarse prerequisite were unexecuted; the separate6fa33dba continuation below now covers them without closing the touch gate. Preserve the required touch qualification for an authorized matching environment; do not launch a visible browser or weaken its assertions solely to relabel this batch. [Report](../../../../work/takeover-ui-milestone-20261023/REPORT.md). The separately recorded manual/bound-Context native checkpoint at6452a3a7 already completed30/30 and is not waiting for this UI result.
 
 
 ## Saved and structural native checkpoint at765f2444/f90ca3ad
@@ -377,3 +377,12 @@ Selected lifecycle1dc04adf, multi-authored eb031c23 and multi-bound f4180c5e are
 ## Settings independent continuation at6fa33dba
 
 Previously interrupted directory/history/focus, cross-control, About and offline AI-style journeys now pass Source/Release2/2 in fresh headless synthetic profiles, reusing the exact original action/assertion block after a real UI failure-response prerequisite. Original complete Settings still preserves its coarse-device gate and earlier4/6 failure. No touch/fullSettings qualification or repeat288-row matrix is claimed. [Report and exact evidence](../../../../work/settings-independent-20261023/REPORT.md);646-file build and all source vectors recorded, zero external/model requests.
+
+
+## Lifecycle native and typed saved successor integration
+
+The isolated lifecycle Source/Release qualification is integrated atbcf8496b/c0ebb806. Each variant executes39 original local-consumer case bodies and126 assertions using native IndexedDB, zero external requests; the two TAP parents pass2/2. Its frozen runtime predates the root complete-all primitive, so it is component evidence alongside the current-root375/375 composition, not a claim of latest-tree whole native qualification. [Report](TOPIC-LIFECYCLE-NATIVE-20261023.md).
+
+Typed saved successors48228bf0 are selectively integrated asd71f5be8, plus the exact one-line original grouped coordinator dispatch25e95da5. Independent source review found no new blocker within one original Source, one saved AI Entry and complete retained uncoalesced history. A→cold B→original edit/atomic receipt+outbox→cold C→edit→cold D passes in synthetic Node fixtures;155/155 and later cold receipt-drift1/1 remain separate agent invocations. Root did not import the agent's writer-budget dependency twice. [Report](SYNC-SAVED-TYPED-SUCCESSOR-20261023.md).
+
+Continuous coalesced/retention edits, multiple entities, nonempty incremental saved targets and broader scale remain implementation work. Native successor qualification is being prepared for a coherent freeze with the lawful Context mixtures; this paragraph is not its execution evidence. The lifecycle private Session-handle dispatcher is also in progress and does not activate a worker, default policy or real issuer.
