@@ -423,7 +423,7 @@ export class IndexedArchiveStore {
    if(this.beforeSourcePurge)await this.beforeSourcePurge(t,removed,blocks);
    await clearReadingTargets(t,new Set(blocks.keys()));
    const s={library:{blocks:[...blocks.values()].map(b=>b.value)}};detachSources(s,removed);const kept=new Map(s.library.blocks.map(b=>[b.id,b]));
-   const tombstone={id:'source:'+key,sequence:Date.parse(this.clock()),value:{sourceIdentityHash:key,deletedAt:this.clock(),status:'permanently_ignored'}};observeOriginalSourcePurgeTombstone(t,this,purgePlan,tombstone);await t.put('tombstones',tombstone);
+   const deletedAt=this.clock(),tombstone={id:'source:'+key,sequence:Date.parse(deletedAt),value:{sourceIdentityHash:key,deletedAt,status:'permanently_ignored'}};observeOriginalSourcePurgeTombstone(t,this,purgePlan,tombstone);await t.put('tombstones',tombstone);
    for(const r of removed){await t.delete('records',r.id);await t.delete('recordIndex',r.id);await t.delete('tombstones','snapshot:'+r.dedupeKey);}await t.delete('times',key);
    for(const name of ['importEvidence','importSources'])for(const evidenceId of await t.keys(name,'bySource',key))await t.delete(name,evidenceId);
    for(const [id,old]of blocks){docs.add(old.value.documentId);const b=kept.get(id);if(!b){await t.delete('blocks',id);await t.delete('blockIndex',id);}else{b.revision++;b.recoveryPurgeRevision=b.revision;b.provenanceSignature=JSON.stringify(b.provenance);await t.put('blocks',{id,value:b});const rec=b.sourceRecordId?(await t.get('records',b.sourceRecordId))?.value:null;await t.put('blockIndex',blockIndex(b,old.index.sequence,rec?[rec]:[]));}}
