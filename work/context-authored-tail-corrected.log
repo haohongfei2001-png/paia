@@ -1,0 +1,316 @@
+TAP version 13
+# Subtest: authored Context correction original owner edit body
+ok 1 - authored Context correction original owner edit body
+  ---
+  duration_ms: 392.505958
+  type: 'test'
+  ...
+# Subtest: authored Context correction original owner edit complete fields
+ok 2 - authored Context correction original owner edit complete fields
+  ---
+  duration_ms: 366.864334
+  type: 'test'
+  ...
+# Subtest: authored Context correction original owner restore body
+ok 3 - authored Context correction original owner restore body
+  ---
+  duration_ms: 337.738417
+  type: 'test'
+  ...
+# Subtest: authored Context correction original owner restore complete fields
+ok 4 - authored Context correction original owner restore complete fields
+  ---
+  duration_ms: 350.073167
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent qualification before material dispatch
+ok 5 - authored Context correction refuses independent qualification before material dispatch
+  ---
+  duration_ms: 149.270792
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent qualification-field before material dispatch
+ok 6 - authored Context correction refuses independent qualification-field before material dispatch
+  ---
+  duration_ms: 151.401084
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent author-field before material dispatch
+ok 7 - authored Context correction refuses independent author-field before material dispatch
+  ---
+  duration_ms: 150.205917
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent context-field before material dispatch
+ok 8 - authored Context correction refuses independent context-field before material dispatch
+  ---
+  duration_ms: 155.318209
+  type: 'test'
+  ...
+# Subtest: authored Context correction refuses independent processing before material dispatch
+ok 9 - authored Context correction refuses independent processing before material dispatch
+  ---
+  duration_ms: 146.607667
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects body atomically
+ok 10 - authored Context correction before rejects body atomically
+  ---
+  duration_ms: 138.10375
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects note atomically
+ok 11 - authored Context correction before rejects note atomically
+  ---
+  duration_ms: 158.649625
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects history atomically
+ok 12 - authored Context correction before rejects history atomically
+  ---
+  duration_ms: 148.803334
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects membership atomically
+ok 13 - authored Context correction before rejects membership atomically
+  ---
+  duration_ms: 162.012333
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects dependency atomically
+ok 14 - authored Context correction before rejects dependency atomically
+  ---
+  duration_ms: 156.761542
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects receipt atomically
+ok 15 - authored Context correction before rejects receipt atomically
+  ---
+  duration_ms: 140.748875
+  type: 'test'
+  ...
+# Subtest: authored Context correction before rejects revoke atomically
+ok 16 - authored Context correction before rejects revoke atomically
+  ---
+  duration_ms: 143.194125
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects body atomically
+ok 17 - authored Context correction provider rejects body atomically
+  ---
+  duration_ms: 293.821458
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects note atomically
+ok 18 - authored Context correction provider rejects note atomically
+  ---
+  duration_ms: 296.491
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects history atomically
+ok 19 - authored Context correction provider rejects history atomically
+  ---
+  duration_ms: 302.081583
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects membership atomically
+ok 20 - authored Context correction provider rejects membership atomically
+  ---
+  duration_ms: 289.150084
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects dependency atomically
+ok 21 - authored Context correction provider rejects dependency atomically
+  ---
+  duration_ms: 287.111208
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects receipt atomically
+ok 22 - authored Context correction provider rejects receipt atomically
+  ---
+  duration_ms: 320.466625
+  type: 'test'
+  ...
+# Subtest: authored Context correction provider rejects revoke atomically
+ok 23 - authored Context correction provider rejects revoke atomically
+  ---
+  duration_ms: 285.199292
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects body atomically
+ok 24 - authored Context correction settlement rejects body atomically
+  ---
+  duration_ms: 333.767584
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects note atomically
+ok 25 - authored Context correction settlement rejects note atomically
+  ---
+  duration_ms: 342.340666
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects history atomically
+ok 26 - authored Context correction settlement rejects history atomically
+  ---
+  duration_ms: 345.281542
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects membership atomically
+ok 27 - authored Context correction settlement rejects membership atomically
+  ---
+  duration_ms: 354.141833
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects dependency atomically
+ok 28 - authored Context correction settlement rejects dependency atomically
+  ---
+  duration_ms: 361.131584
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects receipt atomically
+ok 29 - authored Context correction settlement rejects receipt atomically
+  ---
+  duration_ms: 345.369166
+  type: 'test'
+  ...
+# Subtest: authored Context correction settlement rejects revoke atomically
+ok 30 - authored Context correction settlement rejects revoke atomically
+  ---
+  duration_ms: 342.042417
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects body atomically
+ok 31 - authored Context correction backup rejects body atomically
+  ---
+  duration_ms: 369.224417
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects note atomically
+ok 32 - authored Context correction backup rejects note atomically
+  ---
+  duration_ms: 358.1795
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects history atomically
+ok 33 - authored Context correction backup rejects history atomically
+  ---
+  duration_ms: 367.193041
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects membership atomically
+ok 34 - authored Context correction backup rejects membership atomically
+  ---
+  duration_ms: 367.15
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects dependency atomically
+ok 35 - authored Context correction backup rejects dependency atomically
+  ---
+  duration_ms: 348.37625
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects receipt atomically
+ok 36 - authored Context correction backup rejects receipt atomically
+  ---
+  duration_ms: 349.393125
+  type: 'test'
+  ...
+# Subtest: authored Context correction backup rejects revoke atomically
+ok 37 - authored Context correction backup rejects revoke atomically
+  ---
+  duration_ms: 347.71825
+  type: 'test'
+  ...
+# Subtest: authored Context correction original source response adapter none
+ok 38 - authored Context correction original source response adapter none
+  ---
+  duration_ms: 365.298208
+  type: 'test'
+  ...
+# Subtest: authored Context correction original source response adapter foreign-item
+ok 39 - authored Context correction original source response adapter foreign-item
+  ---
+  duration_ms: 431.761209
+  type: 'test'
+  ...
+# Subtest: authored Context correction original source response adapter unknown-field
+ok 40 - authored Context correction original source response adapter unknown-field
+  ---
+  duration_ms: 292.622541
+  type: 'test'
+  ...
+# Subtest: authored Context correction ACK abort replays one retained response without changing human contents
+ok 41 - authored Context correction ACK abort replays one retained response without changing human contents
+  ---
+  duration_ms: 409.414209
+  type: 'test'
+  ...
+# Subtest: authored Context correction DTO rejects copied grants, extra entries, mixed Inputs and Topic coverage
+ok 42 - authored Context correction DTO rejects copied grants, extra entries, mixed Inputs and Topic coverage
+  ---
+  duration_ms: 361.094792
+  type: 'test'
+  ...
+# Subtest: authored correction independent qualification refuses omitted history
+ok 43 - authored correction independent qualification refuses omitted history
+  ---
+  duration_ms: 162.32
+  type: 'test'
+  ...
+# Subtest: authored correction independent qualification refuses omitted title
+ok 44 - authored correction independent qualification refuses omitted title
+  ---
+  duration_ms: 185.345667
+  type: 'test'
+  ...
+# Subtest: authored correction independent qualification refuses omitted note
+ok 45 - authored correction independent qualification refuses omitted note
+  ---
+  duration_ms: 143.974167
+  type: 'test'
+  ...
+# Subtest: authored correction rejects retained evidence selected-fields inconsistent with original owner receipt
+ok 46 - authored correction rejects retained evidence selected-fields inconsistent with original owner receipt
+  ---
+  duration_ms: 150.589875
+  type: 'test'
+  ...
+# Subtest: authored correction rejects retained evidence field-digest inconsistent with original owner receipt
+ok 47 - authored correction rejects retained evidence field-digest inconsistent with original owner receipt
+  ---
+  duration_ms: 183.510958
+  type: 'test'
+  ...
+# Subtest: authored correction closed fence refuses late placements replacement at unchanged count
+ok 48 - authored correction closed fence refuses late placements replacement at unchanged count
+  ---
+  duration_ms: 408.168709
+  type: 'test'
+  ...
+# Subtest: authored correction closed fence refuses late revisions replacement at unchanged count
+ok 49 - authored correction closed fence refuses late revisions replacement at unchanged count
+  ---
+  duration_ms: 376.358334
+  type: 'test'
+  ...
+# Subtest: authored correction tail independently fences original section owner facts
+ok 50 - authored correction tail independently fences original section owner facts
+  ---
+  duration_ms: 394.776708
+  type: 'test'
+  ...
+# Subtest: authored correction tail independently fences original placement-journal owner facts
+ok 51 - authored correction tail independently fences original placement-journal owner facts
+  ---
+  duration_ms: 364.905458
+  type: 'test'
+  ...
+1..51
+# tests 51
+# suites 0
+# pass 51
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14599.593417

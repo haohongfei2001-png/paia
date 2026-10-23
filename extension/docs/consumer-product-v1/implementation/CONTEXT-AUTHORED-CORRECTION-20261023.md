@@ -40,3 +40,11 @@ The actual baseline, failed attempts, positive results and full owning log are r
 | Context correction Topic interpretation | Still separate; no blanket Topic completion or shared grant |
 
 These remaining scope bridges are ordinary engineering only where the existing full-field grants and original owner semantics are sufficient. Wider Source access, policy grants, production connection, paid requests, cloud budget and paused Sync remain separate boundaries.
+
+## Follow-up: original Section and placement journal terminal facts
+
+Continued owner-read-set review found that 17eaa591 did not independently close Section eligibility or the original latest placement journal after the backup tail. Two new authored tail cases correctly failed against it (0/2: erroneous ACK). A plain Input correction also exposed the missing Section lifecycle fence (0/1). These failures are retained; 17eaa591 must not be treated as complete terminal qualification by itself.
+
+The follow-up captures the complete current-layout Section metadata set for every selected Topic and compares its count plus each row with native final reads, without retaining Section title bytes. Authored correction also holds its exact Section metadata, latest original placement journal and journal count. All authored correction cases then passed 51/51, and the combined selected correction tests passed 122/122 (TAP 15480.028625 ms). These are separate focused checks, not another complete nine-file aggregate.
+
+**Additional terminal read-set audit remains open:** original Context scope eligibility also traverses shared memberships, related Topic identity/name registry and organization receipts, and Context access. The complete metadata read set must be closed under the original scope owner before claiming all Context correction terminal qualification. No native/production acceptance or integration completion is asserted here. This audit takes priority over the next bound-field expansion.
