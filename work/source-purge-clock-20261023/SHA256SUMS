@@ -1,6 +1,8 @@
 ee6530ea0720ffac3743f2899780df9b2ddd9563c84e8797bb61ee17aa54c012  extension/core/indexed-store.js
 c7926547788da71de64ed4d8646e1b6255ce308c6ad6243f16bed77b4792a00b  extension/tests/browser-native-sync-source-purge-clock.test.mjs
-6fd2515d829e058fc483d942b79f801b46efc43358f40c62a6c83b90cd01ecd4  work/source-purge-clock-20261023/REPORT.md
+66a474f12bb75532f24cdf7a188c7e517a409d592c241c24587fd959670be9ad  work/source-purge-clock-20261023/REPORT.md
 982b9e9bfb10ffe83cad665807abcfd3fa97b37822db5ab7831157a499548a9e  work/source-purge-clock-20261023/after-exit.json
 9f0ce00ba46f82fd8a1a5c1154155c7e99d536b7646b56002aa4baa0fbd0935f  work/source-purge-clock-20261023/after.log
 89b3d5847cfd23f9cacfc87b12e1696a27e12bf1704adcd3e51c7217266d2460  work/source-purge-clock-20261023/before.log
+c327b1bdd0a2dead37949761023a3e74561b32916d9d70ce5f87bb64e02a43dd  work/source-purge-clock-20261023/root-isolated.log
+c0a44fb6423d24f89ed3c45962fe39a5c0fa6251ee4b4d0412861e59f3f7302b  work/source-purge-clock-20261023/root-isolated.json
