@@ -1,0 +1,580 @@
+TAP version 13
+# Subtest: committed original graph can bind original store and edit through original Human owner
+ok 1 - committed original graph can bind original store and edit through original Human owner
+  ---
+  duration_ms: 397.462
+  type: 'test'
+  ...
+# Subtest: staging sealed and target-ready graphs cannot bind an active application writer
+ok 2 - staging sealed and target-ready graphs cannot bind an active application writer
+  ---
+  duration_ms: 268.268208
+  type: 'test'
+  ...
+# Subtest: binding refuses fake stores handles and mismatched original repositories
+ok 3 - binding refuses fake stores handles and mismatched original repositories
+  ---
+  duration_ms: 282.1645
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:gate:v1
+ok 4 - active application cannot mutate protected protocol canonical-generation:gate:v1
+  ---
+  duration_ms: 267.620208
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:repository-protection:v1
+ok 5 - active application cannot mutate protected protocol canonical-generation:repository-protection:v1
+  ---
+  duration_ms: 303.987042
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:qualified-graph:v1
+ok 6 - active application cannot mutate protected protocol canonical-generation:qualified-graph:v1
+  ---
+  duration_ms: 291.412209
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:checkpoint:item:00000000
+ok 7 - active application cannot mutate protected protocol canonical-generation:checkpoint:item:00000000
+  ---
+  duration_ms: 286.188042
+  type: 'test'
+  ...
+# Subtest: active application cannot delete protected generation metadata
+ok 8 - active application cannot delete protected generation metadata
+  ---
+  duration_ms: 266.824792
+  type: 'test'
+  ...
+# Subtest: active application cannot clear protected generation metadata
+ok 9 - active application cannot clear protected generation metadata
+  ---
+  duration_ms: 281.542208
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:gate:v1
+ok 10 - raw native mutation of protected generation row rolls whole active write back canonical-generation:gate:v1
+  ---
+  duration_ms: 386.086
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:qualified-graph:v1
+ok 11 - raw native mutation of protected generation row rolls whole active write back canonical-generation:qualified-graph:v1
+  ---
+  duration_ms: 297.095292
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:checkpoint:unknown
+ok 12 - raw native mutation of protected generation row rolls whole active write back canonical-generation:checkpoint:unknown
+  ---
+  duration_ms: 268.703416
+  type: 'test'
+  ...
+# Subtest: failed active callback does not advance write revision or retain any write
+ok 13 - failed active callback does not advance write revision or retain any write
+  ---
+  duration_ms: 257.342792
+  type: 'test'
+  ...
+# Subtest: active write retains original4096 resource budget and full rollback
+ok 14 - active write retains original4096 resource budget and full rollback
+  ---
+  duration_ms: 353.501291
+  type: 'test'
+  ...
+# Subtest: cold unbound original repository does not inherit live writer authority
+ok 15 - cold unbound original repository does not inherit live writer authority
+  ---
+  duration_ms: 255.766333
+  type: 'test'
+  ...
+# Subtest: changed durable registry receipt refuses before active callback
+ok 16 - changed durable registry receipt refuses before active callback
+  ---
+  duration_ms: 258.681792
+  type: 'test'
+  ...
+# Subtest: post-preflight reservation race retains the source write and invalidates stale replacement
+ok 17 - post-preflight reservation race retains the source write and invalidates stale replacement
+  ---
+  duration_ms: 277.6425
+  type: 'test'
+  ...
+# Subtest: cold original library rebinds from durable publication and continues original edit without resetting consent
+ok 18 - cold original library rebinds from durable publication and continues original edit without resetting consent
+  ---
+  duration_ms: 275.422333
+  type: 'test'
+  ...
+# Subtest: competing prepared active writes cannot silently share one source revision
+ok 19 - competing prepared active writes cannot silently share one source revision
+  ---
+  duration_ms: 263.635583
+  type: 'test'
+  ...
+# Subtest: changed registry instance wrapper cannot manufacture active writer readiness
+ok 20 - changed registry instance wrapper cannot manufacture active writer readiness
+  ---
+  duration_ms: 271.558625
+  type: 'test'
+  ...
+# Subtest: overflowed write revision fails before any active write is retained
+ok 21 - overflowed write revision fails before any active write is retained
+  ---
+  duration_ms: 291.429667
+  type: 'test'
+  ...
+# Subtest: fixed copy retirement preserves original canonical export before and after and cold resumes
+ok 22 - fixed copy retirement preserves original canonical export before and after and cold resumes
+  ---
+  duration_ms: 537.32
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+ok 23 - copy retirement refuses staged and sealed-but-unpublished graphs without deleting copies
+  ---
+  duration_ms: 287.284333
+  type: 'test'
+  ...
+# Subtest: copy retirement has no arbitrary public deletion or receipt authority
+ok 24 - copy retirement has no arbitrary public deletion or receipt authority
+  ---
+  duration_ms: 262.9085
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification kind
+ok 25 - copy retirement refuses changed fixed qualification kind
+  ---
+  duration_ms: 265.61525
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification identity
+ok 26 - copy retirement refuses changed fixed qualification identity
+  ---
+  duration_ms: 259.711125
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification seal
+ok 27 - copy retirement refuses changed fixed qualification seal
+  ---
+  duration_ms: 286.12675
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses changed fixed qualification sourceBase
+ok 28 - copy retirement refuses changed fixed qualification sourceBase
+  ---
+  duration_ms: 260.054541
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses unknown copy without deleting remaining copies
+ok 29 - copy retirement refuses unknown copy without deleting remaining copies
+  ---
+  duration_ms: 265.896875
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing copy without deleting remaining copies
+ok 30 - copy retirement refuses missing copy without deleting remaining copies
+  ---
+  duration_ms: 264.30125
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses foreign marker without deleting remaining copies
+ok 31 - copy retirement refuses foreign marker without deleting remaining copies
+  ---
+  duration_ms: 274.199458
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses missing marker without deleting remaining copies
+ok 32 - copy retirement refuses missing marker without deleting remaining copies
+  ---
+  duration_ms: 257.972958
+  type: 'test'
+  ...
+# Subtest: copy retirement refuses forged progress without deleting remaining copies
+ok 33 - copy retirement refuses forged progress without deleting remaining copies
+  ---
+  duration_ms: 265.073709
+  type: 'test'
+  ...
+# Subtest: copy retirement cannot use a generic metadata publication as graph qualification
+ok 34 - copy retirement cannot use a generic metadata publication as graph qualification
+  ---
+  duration_ms: 62.046791
+  type: 'test'
+  ...
+# Subtest: retirement cannot execute a caller callback or expand its fixed deletion scope
+ok 35 - retirement cannot execute a caller callback or expand its fixed deletion scope
+  ---
+  duration_ms: 278.530208
+  type: 'test'
+  ...
+# Subtest: copy retirement settles only a bounded page and resumes actual remaining copies on cold reopen
+ok 36 - copy retirement settles only a bounded page and resumes actual remaining copies on cold reopen
+  ---
+  duration_ms: 1165.752083
+  type: 'test'
+  ...
+# Subtest: generation publication starts empty, stages invisibly and commits exact durable identity
+ok 37 - generation publication starts empty, stages invisibly and commits exact durable identity
+  ---
+  duration_ms: 41.872
+  type: 'test'
+  ...
+# Subtest: generation publication phases preserve whole old/new data and reject stale writers
+ok 38 - generation publication phases preserve whole old/new data and reject stale writers
+  ---
+  duration_ms: 38.076667
+  type: 'test'
+  ...
+# Subtest: generation restart recovers reserved without exposing staging or replaying payload
+ok 39 - generation restart recovers reserved without exposing staging or replaying payload
+  ---
+  duration_ms: 24.903708
+  type: 'test'
+  ...
+# Subtest: generation restart recovers source-retired without exposing staging or replaying payload
+ok 40 - generation restart recovers source-retired without exposing staging or replaying payload
+  ---
+  duration_ms: 29.211917
+  type: 'test'
+  ...
+# Subtest: generation restart recovers target-ready without exposing staging or replaying payload
+ok 41 - generation restart recovers target-ready without exposing staging or replaying payload
+  ---
+  duration_ms: 43.162125
+  type: 'test'
+  ...
+# Subtest: generation old in-flight writer invalidates reservation and discarded target cannot be republished
+ok 42 - generation old in-flight writer invalidates reservation and discarded target cannot be republished
+  ---
+  duration_ms: 12.31975
+  type: 'test'
+  ...
+# Subtest: generation old writer paused before native TX is rejected after retirement
+ok 43 - generation old writer paused before native TX is rejected after retirement
+  ---
+  duration_ms: 16.548542
+  type: 'test'
+  ...
+# Subtest: generation lost publication response is resolved from receipt without duplicate transition
+ok 44 - generation lost publication response is resolved from receipt without duplicate transition
+  ---
+  duration_ms: 8.899334
+  type: 'test'
+  ...
+# Subtest: generation foreign registry cannot attach or delete an active generation
+ok 45 - generation foreign registry cannot attach or delete an active generation
+  ---
+  duration_ms: 7.009167
+  type: 'test'
+  ...
+# Subtest: generation persistent generation catalog prevents restart collision
+ok 46 - generation persistent generation catalog prevents restart collision
+  ---
+  duration_ms: 6.151709
+  type: 'test'
+  ...
+# Subtest: generation persistent database catalog prevents restart collision
+ok 47 - generation persistent database catalog prevents restart collision
+  ---
+  duration_ms: 6.160833
+  type: 'test'
+  ...
+# Subtest: generation persistent name catalog prevents restart collision
+ok 48 - generation persistent name catalog prevents restart collision
+  ---
+  duration_ms: 5.328084
+  type: 'test'
+  ...
+# Subtest: generation active and pending participants cannot be deleted; old retired DB is preserved until separate deletion
+ok 49 - generation active and pending participants cannot be deleted; old retired DB is preserved until separate deletion
+  ---
+  duration_ms: 21.472917
+  type: 'test'
+  ...
+# Subtest: generation rejects preexisting canonical payload even when meta is empty
+ok 50 - generation rejects preexisting canonical payload even when meta is empty
+  ---
+  duration_ms: 6.281291
+  type: 'test'
+  ...
+# Subtest: generation original new thought-library DDL marker alone is permitted
+ok 51 - generation original new thought-library DDL marker alone is permitted
+  ---
+  duration_ms: 13.394667
+  type: 'test'
+  ...
+# Subtest: generation rejects fake capabilities, getter definitions and mutable repository identity
+ok 52 - generation rejects fake capabilities, getter definitions and mutable repository identity
+  ---
+  duration_ms: 8.6395
+  type: 'test'
+  ...
+# Subtest: generation final root drift rolls back original publication TX
+ok 53 - generation final root drift rolls back original publication TX
+  ---
+  duration_ms: 12.778458
+  type: 'test'
+  ...
+# Subtest: generation final receipt drift rolls back original publication TX
+ok 54 - generation final receipt drift rolls back original publication TX
+  ---
+  duration_ms: 16.097625
+  type: 'test'
+  ...
+# Subtest: generation final gate drift rolls back original publication TX
+ok 55 - generation final gate drift rolls back original publication TX
+  ---
+  duration_ms: 14.178084
+  type: 'test'
+  ...
+# Subtest: generation active lookup refuses altered durable publication receipt
+ok 56 - generation active lookup refuses altered durable publication receipt
+  ---
+  duration_ms: 13.38525
+  type: 'test'
+  ...
+# Subtest: generation staging callback cannot overwrite gate and failures roll back payload
+ok 57 - generation staging callback cannot overwrite gate and failures roll back payload
+  ---
+  duration_ms: 4.831292
+  type: 'test'
+  ...
+# Subtest: generation original per-TX byte limit is registered before callback and rolls back
+ok 58 - generation original per-TX byte limit is registered before callback and rolls back
+  ---
+  duration_ms: 13.329458
+  type: 'test'
+  ...
+# Subtest: generation registry rejects non-null falsy active or pending false
+ok 59 - generation registry rejects non-null falsy active or pending false
+  ---
+  duration_ms: 2.2215
+  type: 'test'
+  ...
+# Subtest: generation registry rejects non-null falsy active or pending 0
+ok 60 - generation registry rejects non-null falsy active or pending 0
+  ---
+  duration_ms: 1.86375
+  type: 'test'
+  ...
+# Subtest: generation registry rejects non-null falsy active or pending ""
+ok 61 - generation registry rejects non-null falsy active or pending ""
+  ---
+  duration_ms: 2.430125
+  type: 'test'
+  ...
+# Subtest: generation initial reservation is reported pending with no active generation
+ok 62 - generation initial reservation is reported pending with no active generation
+  ---
+  duration_ms: 8.693834
+  type: 'test'
+  ...
+# Subtest: generation drifted source identity is refused before persistent reservation
+ok 63 - generation drifted source identity is refused before persistent reservation
+  ---
+  duration_ms: 22.736625
+  type: 'test'
+  ...
+# Subtest: generation publication receipt tampering prevents new writes and reservations
+ok 64 - generation publication receipt tampering prevents new writes and reservations
+  ---
+  duration_ms: 22.157584
+  type: 'test'
+  ...
+# Subtest: generation reservation terminal also seals the previous active receipt
+ok 65 - generation reservation terminal also seals the previous active receipt
+  ---
+  duration_ms: 16.271667
+  type: 'test'
+  ...
+# Subtest: generation recover refuses unattached generations and leaves durable pending intact
+ok 66 - generation recover refuses unattached generations and leaves durable pending intact
+  ---
+  duration_ms: 11.570791
+  type: 'test'
+  ...
+# Subtest: generation crash after target invalidation resumes pending cancellation without publishing stale graph
+ok 67 - generation crash after target invalidation resumes pending cancellation without publishing stale graph
+  ---
+  duration_ms: 20.715042
+  type: 'test'
+  ...
+# Subtest: generation concurrent advances produce exact conflicts or one commit and remain recoverable
+ok 68 - generation concurrent advances produce exact conflicts or one commit and remain recoverable
+  ---
+  duration_ms: 18.708458
+  type: 'test'
+  ...
+# Subtest: protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+ok 69 - protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+  ---
+  duration_ms: 824.02125
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects put before external callback
+ok 70 - protected original repository rejects put before external callback
+  ---
+  duration_ms: 234.473
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects delete before external callback
+ok 71 - protected original repository rejects delete before external callback
+  ---
+  duration_ms: 282.055042
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects clear before external callback
+ok 72 - protected original repository rejects clear before external callback
+  ---
+  duration_ms: 197.80625
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects raw before external callback
+ok 73 - protected original repository rejects raw before external callback
+  ---
+  duration_ms: 227.79425
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects forged-capability before external callback
+ok 74 - protected original repository rejects forged-capability before external callback
+  ---
+  duration_ms: 153.1725
+  type: 'test'
+  ...
+# Subtest: protected gate is enforced by a cold original repository instance
+ok 75 - protected gate is enforced by a cold original repository instance
+  ---
+  duration_ms: 103.719041
+  type: 'test'
+  ...
+# Subtest: private generation authority never passes through mutable instance wrappers
+ok 76 - private generation authority never passes through mutable instance wrappers
+  ---
+  duration_ms: 277.9305
+  type: 'test'
+  ...
+# Subtest: protected public staging/active callback and metadata seal cannot acquire graph writer
+ok 77 - protected public staging/active callback and metadata seal cannot acquire graph writer
+  ---
+  duration_ms: 124.244208
+  type: 'test'
+  ...
+# Subtest: protected Human does not lend a private transaction to external diagnostic callback
+ok 78 - protected Human does not lend a private transaction to external diagnostic callback
+  ---
+  duration_ms: 373.590417
+  type: 'test'
+  ...
+# Subtest: unmarked original database preserves ordinary writes but rejects a forged protection marker
+ok 79 - unmarked original database preserves ordinary writes but rejects a forged protection marker
+  ---
+  duration_ms: 272.1945
+  type: 'test'
+  ...
+# Subtest: late raw protection marker on unmarked write is rejected and rolled back
+ok 80 - late raw protection marker on unmarked write is rejected and rolled back
+  ---
+  duration_ms: 242.867792
+  type: 'test'
+  ...
+# Subtest: protected stage resumes cold original consumer after committed page response loss
+ok 81 - protected stage resumes cold original consumer after committed page response loss
+  ---
+  duration_ms: 279.116208
+  type: 'test'
+  ...
+# Subtest: protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+ok 82 - protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+  ---
+  duration_ms: 516.5655
+  type: 'test'
+  ...
+# Subtest: protected cold attach retains registry binding and publication resumes after target-ready
+ok 83 - protected cold attach retains registry binding and publication resumes after target-ready
+  ---
+  duration_ms: 320.863583
+  type: 'test'
+  ...
+# Subtest: protection installation refuses a nonempty original target and preserves its prior human work
+ok 84 - protection installation refuses a nonempty original target and preserves its prior human work
+  ---
+  duration_ms: 86.529084
+  type: 'test'
+  ...
+# Subtest: a caller-shaped store cannot mint original protection installation authority
+ok 85 - a caller-shaped store cannot mint original protection installation authority
+  ---
+  duration_ms: 69.333083
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+ok 86 - protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+  ---
+  duration_ms: 69.474208
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+ok 87 - protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+  ---
+  duration_ms: 93.204209
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+ok 88 - protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+  ---
+  duration_ms: 72.427708
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer extra-field
+ok 89 - protection installation rejects nonempty initializer extra-field
+  ---
+  duration_ms: 72.992416
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer nested-body
+ok 90 - protection installation rejects nonempty initializer nested-body
+  ---
+  duration_ms: 71.127125
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer old-ephemeral
+ok 91 - protection installation rejects nonempty initializer old-ephemeral
+  ---
+  duration_ms: 76.603458
+  type: 'test'
+  ...
+# Subtest: protected initial marker bytes are charged before the caller can enter
+ok 92 - protected initial marker bytes are charged before the caller can enter
+  ---
+  duration_ms: 86.131667
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects identity drift
+ok 93 - cold protected marker/gate rejects identity drift
+  ---
+  duration_ms: 87.477291
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects phase drift
+ok 94 - cold protected marker/gate rejects phase drift
+  ---
+  duration_ms: 89.216541
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects mode drift
+ok 95 - cold protected marker/gate rejects mode drift
+  ---
+  duration_ms: 85.830875
+  type: 'test'
+  ...
+1..95
+# tests 95
+# suites 0
+# pass 95
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17794.572792

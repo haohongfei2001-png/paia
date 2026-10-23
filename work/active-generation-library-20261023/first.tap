@@ -1,0 +1,135 @@
+TAP version 13
+# Subtest: committed original graph can bind original store and edit through original Human owner
+not ok 1 - committed original graph can bind original store and edit through original Human owner
+  ---
+  duration_ms: 305.2285
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/canonical-generation-active-library.test.mjs:36:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/canonical-generation-repository-gate.js:10:23)
+    originalGenerationRepositorySettlement (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/canonical-generation-repository-gate.js:44:98)
+    finishShadowWrite (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:151:2)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:492:112)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: staging sealed and target-ready graphs cannot bind an active application writer
+ok 2 - staging sealed and target-ready graphs cannot bind an active application writer
+  ---
+  duration_ms: 243.772667
+  type: 'test'
+  ...
+# Subtest: binding refuses fake stores handles and mismatched original repositories
+ok 3 - binding refuses fake stores handles and mismatched original repositories
+  ---
+  duration_ms: 246.738167
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:gate:v1
+ok 4 - active application cannot mutate protected protocol canonical-generation:gate:v1
+  ---
+  duration_ms: 240.135833
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:repository-protection:v1
+ok 5 - active application cannot mutate protected protocol canonical-generation:repository-protection:v1
+  ---
+  duration_ms: 236.552
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:qualified-graph:v1
+ok 6 - active application cannot mutate protected protocol canonical-generation:qualified-graph:v1
+  ---
+  duration_ms: 235.080417
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:checkpoint:item:00000000
+ok 7 - active application cannot mutate protected protocol canonical-generation:checkpoint:item:00000000
+  ---
+  duration_ms: 256.747875
+  type: 'test'
+  ...
+# Subtest: active application cannot delete protected generation metadata
+ok 8 - active application cannot delete protected generation metadata
+  ---
+  duration_ms: 236.006417
+  type: 'test'
+  ...
+# Subtest: active application cannot clear protected generation metadata
+ok 9 - active application cannot clear protected generation metadata
+  ---
+  duration_ms: 235.335625
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:gate:v1
+ok 10 - raw native mutation of protected generation row rolls whole active write back canonical-generation:gate:v1
+  ---
+  duration_ms: 241.714958
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:qualified-graph:v1
+ok 11 - raw native mutation of protected generation row rolls whole active write back canonical-generation:qualified-graph:v1
+  ---
+  duration_ms: 244.034791
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:checkpoint:unknown
+ok 12 - raw native mutation of protected generation row rolls whole active write back canonical-generation:checkpoint:unknown
+  ---
+  duration_ms: 235.20925
+  type: 'test'
+  ...
+# Subtest: failed active callback does not advance write revision or retain any write
+ok 13 - failed active callback does not advance write revision or retain any write
+  ---
+  duration_ms: 233.582333
+  type: 'test'
+  ...
+# Subtest: active write retains original4096 resource budget and full rollback
+ok 14 - active write retains original4096 resource budget and full rollback
+  ---
+  duration_ms: 296.2825
+  type: 'test'
+  ...
+# Subtest: cold unbound original repository does not inherit live writer authority
+ok 15 - cold unbound original repository does not inherit live writer authority
+  ---
+  duration_ms: 248.964
+  type: 'test'
+  ...
+# Subtest: changed durable registry receipt refuses before active callback
+ok 16 - changed durable registry receipt refuses before active callback
+  ---
+  duration_ms: 232.336958
+  type: 'test'
+  ...
+# Subtest: post-preflight reservation race retains the source write and invalidates stale replacement
+not ok 17 - post-preflight reservation race retains the source write and invalidates stale replacement
+  ---
+  duration_ms: 232.824792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/canonical-generation-active-library.test.mjs:46:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/canonical-generation-repository-gate.js:10:23)
+    originalGenerationRepositorySettlement (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/canonical-generation-repository-gate.js:44:98)
+    finishShadowWrite (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:151:2)
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:492:112)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/canonical-generation-active-library.test.mjs:46:788)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 15
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4343.272542
