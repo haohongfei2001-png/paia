@@ -32,7 +32,7 @@ async function prepareGroupApplication(store,core,plan,basePlan){
   for(const row of view.rows){const table={entry:'thoughts',topic:'topics',section:'sections'}[row.type];if(!table)continue;const old=beforeState[table].find(r=>r.id===row.after.id),version=ownerVersion(row.type,row.after);if(old?.searchVersion!==version){const queue=planSearchQueueLocator(row.type,row.after,version);searchChanges.set(queue.id,queue);}}
   steps.push({id:group.id,owner,protocol,mappings});advanceHumanGraphReadSet(inventory,owner);
  }
- const cap=Object.freeze({});applications.set(cap,{store,core,inventory,steps,searchChanges:[...searchChanges.values()],incremental:!!basePlan,expected:basePlan?humanGraphReadSetProjection(inventory):null});return cap;
+ const cap=Object.freeze({});applications.set(cap,{store,core,plan,inventory,steps,searchChanges:[...searchChanges.values()],incremental:!!basePlan,expected:basePlan?humanGraphReadSetProjection(inventory):null});return cap;
 }
 export async function requireHumanGroupApplication(t,cap){const a=applications.get(cap);if(!a)fail('BNS_PREPARATION_REQUIRED');await requireHumanGraphReadSet(t,a.inventory);}
 export async function applyHumanGroupStep(t,cap,id){
@@ -59,3 +59,12 @@ export async function applyOriginalHumanGenerationStep(t,cap){
 // Exact planned original-owner metadata, not a caller-supplied exclusion list.
 // Every returned value was produced by the actual private named-owner plans.
 export function humanIncrementalExpectedMetadata(store,core,cap){const a=applications.get(cap);if(!a||a.store!==store||a.core!==core||!a.incremental)fail('BNS_PREPARATION_REQUIRED');return clone({meta:[...a.expected.names,...a.expected.pairs,...a.expected.indices],search:a.searchChanges,tables:Object.fromEntries(['thoughts','topics','sections','placements','thoughtSuppressions','revisions','operationReceipts','provenance','dependencies'].map(name=>[name,a.expected[name]]))});}
+
+// Only the original cold application can supply the Human partition to Saved.
+// The inventory and mapping values are derived before any canonical write.
+export function originalHumanSavedApplicationWitness(store,core,plan,cap){
+ const a=applications.get(cap);if(!a||a.store!==store||a.core!==core||a.plan!==plan||a.incremental)fail('BNS_PREPARATION_REQUIRED');requireOriginalGroupCheckpointPlan(core,plan);
+ if(a.steps.some(step=>!['entry','entry-edit'].includes(step.protocol.descriptor.value.kind)))fail('BNS_SAVED_WORK_UNSUPPORTED');
+ const state=humanGraphReadSetProjection(a.inventory);
+ return {state,search:clone(a.searchChanges),mappings:a.steps.flatMap(step=>step.mappings).map(row=>({id:row.id,after:clone(row.after)}))};
+}

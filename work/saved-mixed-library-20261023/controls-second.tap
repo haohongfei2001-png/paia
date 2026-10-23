@@ -1,0 +1,131 @@
+TAP version 13
+# Subtest: original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+ok 1 - original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+  ---
+  duration_ms: 628.382625
+  type: 'test'
+  ...
+# Subtest: mixed graph rejects a Saved creation allocation borrowed from the Human owner
+ok 2 - mixed graph rejects a Saved creation allocation borrowed from the Human owner
+  ---
+  duration_ms: 129.09925
+  type: 'test'
+  ...
+# Subtest: mixed export refuses an unjournaled Human entry and leaves original library unchanged
+ok 3 - mixed export refuses an unjournaled Human entry and leaves original library unchanged
+  ---
+  duration_ms: 129.241708
+  type: 'test'
+  ...
+# Subtest: mixed Saved profile explicitly refuses structural Human groups
+ok 4 - mixed Saved profile explicitly refuses structural Human groups
+  ---
+  duration_ms: 141.747792
+  type: 'test'
+  ...
+# Subtest: mixed cold activation refuses existing local canonical Human work
+ok 5 - mixed cold activation refuses existing local canonical Human work
+  ---
+  duration_ms: 146.476166
+  type: 'test'
+  ...
+# Subtest: mixed activation failure preserves both owners and explicit retry commits exactly once
+ok 6 - mixed activation failure preserves both owners and explicit retry commits exactly once
+  ---
+  duration_ms: 241.631083
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human body drift with complete rollback
+ok 7 - mixed final native fence rejects Human body drift with complete rollback
+  ---
+  duration_ms: 188.868125
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human history drift with complete rollback
+ok 8 - mixed final native fence rejects Human history drift with complete rollback
+  ---
+  duration_ms: 200.216333
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human receipt drift with complete rollback
+ok 9 - mixed final native fence rejects Human receipt drift with complete rollback
+  ---
+  duration_ms: 169.197042
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human mapping drift with complete rollback
+ok 10 - mixed final native fence rejects Human mapping drift with complete rollback
+  ---
+  duration_ms: 188.339542
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Human queue drift with complete rollback
+ok 11 - mixed final native fence rejects Human queue drift with complete rollback
+  ---
+  duration_ms: 164.8195
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects extra Human row drift with complete rollback
+ok 12 - mixed final native fence rejects extra Human row drift with complete rollback
+  ---
+  duration_ms: 152.724792
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Saved body drift with complete rollback
+ok 13 - mixed final native fence rejects Saved body drift with complete rollback
+  ---
+  duration_ms: 153.732875
+  type: 'test'
+  ...
+# Subtest: mixed final native fence rejects Source record drift with complete rollback
+ok 14 - mixed final native fence rejects Source record drift with complete rollback
+  ---
+  duration_ms: 172.967
+  type: 'test'
+  ...
+# Subtest: mixed activation preserves the original private transaction budget
+ok 15 - mixed activation preserves the original private transaction budget
+  ---
+  duration_ms: 231.683375
+  type: 'test'
+  ...
+# Subtest: mixed original Human witness rejects a copied capability without opening a writer
+not ok 16 - mixed original Human witness rejects a copied capability without opening a writer
+  ---
+  duration_ms: 88.236833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/tests/browser-native-sync-saved-mixed.test.mjs:52:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_HUMAN_RESTORE_REQUIRED'
+  code: 'BNS_HUMAN_RESTORE_REQUIRED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/core/browser-native-sync/value.js:5:32)
+    BrowserNativeSyncCore.prepareHumanRestoreProtocols (file:///Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/core/browser-native-sync/core.js:372:51)
+    prepareGroupApplication (file:///Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/core/browser-native-sync/human-library-group.js:15:104)
+    prepareHumanGroupApplication (file:///Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/core/browser-native-sync/human-library-group.js:11:76)
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/tests/browser-native-sync-saved-mixed.test.mjs:52:305)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: existing mixed B refuses unsupported incremental receive before changing its canonical or protocol rows
+ok 17 - existing mixed B refuses unsupported incremental receive before changing its canonical or protocol rows
+  ---
+  duration_ms: 275.134708
+  type: 'test'
+  ...
+# Subtest: two original Human edits remain human-owned alongside a Saved successor on cold C
+ok 18 - two original Human edits remain human-owned alongside a Saved successor on cold C
+  ---
+  duration_ms: 409.873
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 17
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4122.688208

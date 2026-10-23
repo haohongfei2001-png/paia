@@ -1,0 +1,26 @@
+diff --git a/extension/core/browser-native-sync/group-checkpoint-plan.js b/extension/core/browser-native-sync/group-checkpoint-plan.js
+index 4bfd9f02..12318f4e 100644
+--- a/extension/core/browser-native-sync/group-checkpoint-plan.js
++++ b/extension/core/browser-native-sync/group-checkpoint-plan.js
+@@ -125,15 +125,19 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
+  const saved=groups.filter(group=>group.type==='savedWorkBootstrap'),successors=groups.filter(group=>group.type==='savedWorkSuccessor');
+  if(successors.length&&!saved.length)fail('BNS_SAVED_WORK_UNSUPPORTED');
+  if(saved.length){
+-  if(currentSourceWorking||groups.length!==1+saved.length+successors.length||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1)fail('BNS_SAVED_WORK_UNSUPPORTED');
++  const humanSaved=groups.filter(g=>g.type==='humanLibraryCommit');
++  if(humanSaved.some(g=>!['entry','entry-edit'].includes(g.prepared.descriptor.value.kind)||g.prepared.members.some(op=>!['entry','history'].includes(op.value.entityType))))fail('BNS_SAVED_WORK_UNSUPPORTED');
++  if(currentSourceWorking||groups.length!==1+saved.length+successors.length+humanSaved.length||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1)fail('BNS_SAVED_WORK_UNSUPPORTED');
+   // A complete graph may retain pruned/coalesced historical payloads. Check
+   // identities across every before/after, not only the final canonical rows:
+   // another entity cannot borrow an old revision, provenance or owner receipt.
+   const identities=new Map(),sourceBaseline=initialSourcePlan(groups.find(group=>group.type==='sourceBootstrapCommit').capability).baselineRevision;
+   const claim=(kind,id,entity)=>{const key=JSON.stringify([kind,id]),prior=identities.get(key);if(prior!==undefined&&prior!==entity)fail('BNS_SAVED_WORK_COLLISION');identities.set(key,entity);};
+   const sourceOwner=Symbol('source');claim('history',sourceBaseline.id,sourceOwner);claim('operation',sourceBaseline.operationId,sourceOwner);
++  const humanOwners=new Map(),humanOwner=id=>{if(!humanOwners.has(id))humanOwners.set(id,Symbol('human-entry'));return humanOwners.get(id);};
++  for(const g of humanSaved)for(const op of g.prepared.members){const row=op.value.after,entity=humanOwner(op.value.entityType==='entry'?row.id:row.entityId);if(op.value.entityType==='entry'){claim('entry',row.id,entity);claim('allocation',row.createdSequence,entity);}else{claim('history',row.id,entity);claim('operation',row.operationId,entity);}}
+   for(const group of [...saved,...successors]){const op=group.operations[0],payloads=group.type==='savedWorkBootstrap'?[op.value.payload]:[op.value.before,op.value.after];
+-   for(const payload of payloads){const entity=op.entityId;claim('provenance',payload.link.provenanceId,entity);claim('allocation',payload.entry.createdSequence,entity);for(const row of payload.history){claim('history',row.id,entity);claim('operation',row.operationId,entity);}}const after=group.type==='savedWorkBootstrap'?op.value.payload:op.value.after;claim('update:'+op.deviceId,after.entry.updatedSequence,op.entityId);
++   for(const payload of payloads){const entity=op.entityId;claim('entry',entity,entity);claim('provenance',payload.link.provenanceId,entity);claim('allocation',payload.entry.createdSequence,entity);for(const row of payload.history){claim('history',row.id,entity);claim('operation',row.operationId,entity);}}const after=group.type==='savedWorkBootstrap'?op.value.payload:op.value.after;claim('update:'+op.deviceId,after.entry.updatedSequence,op.entityId);
+   }
+   const anchors=new Map();for(const group of saved){const anchor=group.operations[0],wire=anchor.value.payload.link.evidence,source=createdInputs.get(wire.inputId);
+    if(anchors.has(anchor.entityId)||!source||!equal([source.prepared.descriptor.value.sourceId],wire.sourceRecordIds)||!equal([source.prepared.descriptor.value.sourceKey],wire.sourceIdentityTokens))fail('BNS_GROUP_CAUSAL_GAP');

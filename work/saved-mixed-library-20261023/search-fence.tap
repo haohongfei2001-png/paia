@@ -1,0 +1,26 @@
+TAP version 13
+# Subtest: original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+not ok 1 - original Human and Saved entries coexist through cold B, genuine Saved edit and cold C
+  ---
+  duration_ms: 228.861333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/tests/browser-native-sync-saved-mixed.test.mjs:22:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/core/idb-repository.js:25:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/core/idb-repository.js:492:1039)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/core/browser-native-sync/core.js:165:66)
+    async file:///Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/core/browser-native-sync/group-checkpoint.js:257:48
+    async file:///Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 397.10375
