@@ -1,0 +1,9 @@
+{
+  "extension/background/application-store-selection.js": "82261ba8dc6cfd3e34a073775ba023db52137b2497ceba433bb2a2ea681e0eb2",
+  "extension/core/browser-native-sync/group-checkpoint.js": "adbd3f897183a4ed17988fbebda346600fe70c69583cffe2ca006ad1c870b96b",
+  "extension/core/browser-native-sync/canonical-generation-publication.js": "84d379eb9b5cf7afeb354c7d5fb8acd70e491278ec5e37198b163bf60ceb883e",
+  "extension/core/browser-native-sync/application-generation-selection.js": "e1e39503159c92655902955765fc34961981c03d1bfa696c91f2dd1370c5f71b",
+  "extension/core/idb-repository.js": "2198dd0066d3ef742788f38a56871a0ed4ffe0d7a13c2b7be1ad1d6ed25db37a",
+  "extension/tests/application-existing-selection.test.mjs": "16a7ce98bca17a5cdd5abd1e661ffac48549398a8c302d9210af1c59bef7071d",
+  "extension/tests/harness/existing-application-selection.mjs": "f38b7e11b4a1df94a64f0dbebedcd1cc1425c4cd593c22faee8b25eff56ca99a"
+}

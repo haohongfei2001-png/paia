@@ -306,3 +306,6 @@ export function originalActiveSourceWorkingTerminalRows(repository,before,rows){
  // callback return. Seal that exact transition, never omit the gate from fences.
  return {...rows,meta:rows.meta.map(row=>row.id===gate.id?{...gate,writeRevision:gate.writeRevision+1}:row)};
 }
+
+const originalSelectionOpenOrganizer=CanonicalGenerationPublication.prototype.openOriginalActiveOrganizerStore;
+export function openOriginalPublishedOrganizerForSelection(publication,local,authority){if(arguments.length!==3)fail('GENERATION_CAPABILITY');return originalSelectionOpenOrganizer.call(publication,local,authority);}

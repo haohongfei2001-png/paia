@@ -500,3 +500,30 @@ export async function requireOriginalCanonicalGenerationActivation(restore,proof
  }});
  return Object.freeze({manifestId:state.manifestId,graphDigest:state.graphDigest,generationIdentity:verified.generationIdentity});
 }
+
+// Read-only existing-library inheritance evidence. The original compiler and
+// canonical owner qualify every represented family; this opaque proof grants no
+// write, provider or activation capability and never initializes Foundation.
+const applicationInheritanceCuts=new WeakMap();
+export async function prepareOriginalApplicationInheritanceCut(store,core){
+ requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(core);
+ if(store.repository!==core.repository||store.loaded!==true||!store.repository.db)fail('BNS_GROUP_BINDING');
+ const observation=await observeOriginalControlPublication(store),tail=store.tail,repository=store.repository;
+ const plan=await prepareGroupCheckpointPlan(core,await allOperations(core)),scope=await prepareGroupScope(plan,{store});
+ const held={store,core,repository,datasetId:core.datasetId,prefix:core.prefix,fixedNamespace:core.fixedNamespace,db:repository.db,tail,observation:observation.token,plan,scope,canonicalDigest:await digest(scope.ownerScope),cut:null,control:clone(observation.row)};
+ const token=Object.freeze(Object.create(null));applicationInheritanceCuts.set(token,held);
+ held.cut=await requireOriginalApplicationInheritanceCut(token);return token;
+}
+export async function requireOriginalApplicationInheritanceCut(token){
+ const p=applicationInheritanceCuts.get(token);if(arguments.length!==1||!p)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const {store,core,repository}=p;
+ const current=()=>{requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(core);if(store.repository!==repository||core.repository!==repository||repository.db!==p.db||store.tail!==p.tail||core.datasetId!==p.datasetId||core.prefix!==p.prefix||core.fixedNamespace!==p.fixedNamespace)fail('BNS_SNAPSHOT_CHANGED');requireOriginalControlObservation(store,p.observation);};
+ current();const observed=await observeOriginalControlPublication(store,p.observation);if(!equal(observed.row,p.control))fail('BNS_SNAPSHOT_CHANGED');
+ const cut=await core.transaction(false,async t=>{const value=await authority(store,core,t);await store.qualifyControlPublicationRead(t);await requireCommittedPlan(core,t,p.plan);await requireGroupScope(store,t,p.scope);return value;});current();
+ if(p.cut!==null&&!equal(cut,p.cut))fail('BNS_SNAPSHOT_CHANGED');
+ return clone(cut);
+}
+export function readOriginalApplicationInheritanceCut(token){
+ const p=applicationInheritanceCuts.get(token);if(!p||!p.cut)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalControlObservation(p.store,p.observation);
+ return Object.freeze({datasetId:p.datasetId,databaseName:p.repository.name,databaseId:p.control.databaseId,namespace:p.cut.namespace,epoch:p.cut.fence,graphDigest:p.plan.digest,canonicalDigest:p.canonicalDigest,control:clone(p.control)});
+}
