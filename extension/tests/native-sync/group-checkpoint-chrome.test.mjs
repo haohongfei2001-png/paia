@@ -20,3 +20,50 @@ for(const variant of ['source','release'])test('BNS bounded grouped checkpoint a
  }catch(error){receipt.result='FAIL';receipt.error=error.message;throw error;}
  finally{await writeFile(join(output,variant+'.json'),JSON.stringify(receipt,null,2));await browser?.close();await extension?.cleanup();await rm(directory,{recursive:true,force:true});}
 });
+
+// Separate finite Source-linked graph qualification. Existing grouped matrix,
+// capacity and restart assertions above remain byte-identical.
+function sourceLinkedNativeFixture(){return `
+import {LibraryDocumentsStore} from '../core/library-documents-store.js';
+import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';
+import {SourceBootstrapJournal} from '../core/browser-native-sync/source-bootstrap-journal.js';
+import {HumanLibrarySyncJournal} from '../core/browser-native-sync/human-library-journal.js';
+import {GroupedCheckpointRestore} from '../core/browser-native-sync/group-checkpoint.js';
+import {buildCheckpoint} from '../core/browser-native-sync/checkpoints.js';
+const previous=globalThis.__bnsNative;
+globalThis.__bnsNative={...previous,async run(command,args={}){
+ if(command!=='source-linked-cold-native')return previous.run(command,args);
+ const check=(v,m)=>{if(!v)throw Error(m);},same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),op=()=>crypto.randomUUID(),stores=[],datasetId='synthetic-linked-native-'+op();
+ const snapshot=s=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all([...t.tx.objectStoreNames].map(async n=>[n,await t.all(n)]))));
+ const fresh=async deviceId=>{const values={},name='paia-source-linked-native-'+op(),storage={async get(k){return {[k]:structuredClone(values[k])};},async set(v){Object.assign(values,structuredClone(v));}},s=new LibraryDocumentsStore(storage,{indexedDB,name});stores.push({s,name});await s.consent(true);await s.finishFoundation();check(s.repository.db instanceof IDBDatabase,'native original database');const core=new BrowserNativeSyncCore(s.repository,{datasetId,deviceId});s.humanLibraryJournal=new HumanLibrarySyncJournal(core);return {s,core};};
+ try{
+  check(indexedDB instanceof IDBFactory&&/\\[native code\\]/.test(IDBFactory.prototype.open.toString()),'native factory');
+  const a=await fresh('synthetic-A');a.s.sourceBootstrapJournal=new SourceBootstrapJournal(a.core);await a.s.capture({epoch:(await a.s.status()).epoch,adapterVersion:'0.3.0',chat:{id:'synthetic-linked',url:'https://chatgpt.com/c/synthetic-linked',title:'Synthetic'},messages:[{sourceMessageId:'one',pageOrder:1,originalText:'SYNTHETIC immutable original input'}]});
+  const input=(await a.s.snapshot()).library.blocks[0],evidence=await a.s.evidenceFor([{inputId:input.id,role:'primary',selectedFields:['body']}]),entry=await a.s.createEntry({actor:'user',operationId:op(),body:'SYNTHETIC protected human Source-linked body',type:'idea',formation:'explicit',evidence});await a.s.editEntry({id:entry.id,operationId:op(),expectedRevision:0,changes:{note:'SYNTHETIC protected human note'}});
+  const original=await snapshot(a.s),objects=new Map(),transport={async putImmutable(ref,raw){objects.set(ref.id,raw.slice());},async get(ref){return objects.get(ref.id)?.slice();}},cut=await buildCheckpoint(a.core,transport,{grouped:{store:a.s}});
+  await a.s.repository.close();
+  const failures=[];
+  for(const point of ['applied-group','before-activation','after-activation']){
+   const f=await fresh('synthetic-fault-'+point);let reached=false,aborted=false,completed=false,activeTransaction=null;
+   const restore=new GroupedCheckpointRestore(f.core,{store:f.s,restoreId:op(),checkpoint:async name=>{if(name===point){reached=true;check(activeTransaction instanceof IDBTransaction,'fault on original native activation transaction');activeTransaction.addEventListener('abort',()=>aborted=true,{once:true});activeTransaction.addEventListener('complete',()=>completed=true,{once:true});throw Object.assign(Error('SYNTHETIC activation fault'),{code:'SYNTHETIC_NATIVE_ABORT'});}}});await restore.stageCheckpoint(cut.ref,ref=>transport.get(ref));const before=await snapshot(f.s),transaction=f.s.repository.transaction.bind(f.s.repository);
+   f.s.repository.transaction=(write,fn,...rest)=>transaction(write,async t=>{if(write)activeTransaction=t.tx;return fn(t);},...rest);
+   let rejected=false;try{await restore.activate();}catch{rejected=true;}finally{f.s.repository.transaction=transaction;}
+   check(rejected&&reached&&aborted&&!completed,'native activation abort without completion');check(same(await snapshot(f.s),before),'activation all-store rollback');check((await restore.stage.read('restore')).phase==='validated','failed activation preserves validated stage');failures.push(point);
+  }
+  const b=await fresh('synthetic-B'),restore=new GroupedCheckpointRestore(b.core,{store:b.s,restoreId:op()});check((await restore.stageCheckpoint(cut.ref,ref=>transport.get(ref))).phase==='validated','cold B stage');check((await restore.activate()).state==='activated','cold B original activation');const after=await snapshot(b.s);
+  check(after.thoughts.length===1&&after.thoughts[0].id===entry.id&&after.thoughts[0].thoughtText==='SYNTHETIC protected human Source-linked body'&&after.thoughts[0].note==='SYNTHETIC protected human note','cold B human body');check(same(after.thoughts[0].inputRefs,original.thoughts[0].inputRefs)&&same(after.thoughts[0].protections,original.thoughts[0].protections),'cold B links and protection');check(after.provenance.length===1&&after.dependencies.length===1&&after.revisions.length===original.revisions.length,'complete original provenance dependency history');check(after.provenance[0].scopeToken!==original.provenance[0].scopeToken,'device-local token recomputed');
+  const stable=await snapshot(b.s);await restore.activate();check(same(await snapshot(b.s),stable),'repeat activation exact no write');await b.s.editEntry({id:entry.id,operationId:op(),expectedRevision:1,changes:{body:'SYNTHETIC cold B continued human body'}});const second=await buildCheckpoint(b.core,transport,{grouped:{store:b.s}});await b.s.repository.close();
+  const c=await fresh('synthetic-C'),cold=new GroupedCheckpointRestore(c.core,{store:c.s,restoreId:op()});await cold.stageCheckpoint(second.ref,ref=>transport.get(ref));await cold.activate();const final=await snapshot(c.s);check(final.thoughts[0].thoughtText==='SYNTHETIC cold B continued human body'&&final.thoughts[0].note==='SYNTHETIC protected human note','continued edit survives cold C');check(same(final.thoughts[0].inputRefs,original.thoughts[0].inputRefs)&&final.provenance.length===1&&final.dependencies.length===1,'C preserves linked edge');
+  return {passed:true,nativeFactory:true,nativeTransactions:true,coldB:true,senderRepositoryClosed:true,coldC:true,continuation:true,exactDuplicate:true,allStoreRollback:failures,localTokensRecomputed:true};
+ }finally{for(const {s,name}of stores){await s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(name);r.onsuccess=resolve;r.onerror=()=>reject(Error('native linked cleanup'));r.onblocked=()=>reject(Error('native linked cleanup blocked'));});}}
+}};
+`;}
+for(const variant of ['source','release'])test('BNS finite Source-linked cold graph native '+variant,{timeout:120000},async()=>{
+ const directory=await mkdtemp(join(tmpdir(),'paia-source-linked-native-')),output=join(root,'work/qa-bns-source-linked-native');let extension,browser;await mkdir(output,{recursive:true});
+ try{
+  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',join(directory,'release')],{cwd:root,stdio:'pipe'});
+  extension=await instrumentedExtension(variant==='source'?root:join(directory,'release'));await writeFile(join(extension.path,'background/bns-source-linked-fixture.mjs'),sourceLinkedNativeFixture());
+  const worker=join(extension.path,'background/service-worker.js'),original=await readFile(worker,'utf8'),marker="import './bns-native-storage-fixture.mjs';";assert.equal(original.split(marker).length,2);await writeFile(worker,original.replace(marker,marker+"\nimport './bns-source-linked-fixture.mjs';"));
+  browser=await startNative(extension.path);const result=await browser.call('source-linked-cold-native');assert.equal(result.passed,true);const isolation=await browser.isolation();assert.equal(isolation.nativeFactory,true);assert.equal(isolation.networkAttempts,0);assert.equal(isolation.httpRequests,0);await writeFile(join(output,variant+'.json'),JSON.stringify({head,tree,variant,result,isolation,browserVersion:browser.browserVersion},null,2));
+ }finally{await browser?.close();await extension?.cleanup();await rm(directory,{recursive:true,force:true});}
+});
