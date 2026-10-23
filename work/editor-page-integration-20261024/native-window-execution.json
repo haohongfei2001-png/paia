@@ -1,0 +1,11 @@
+{
+  "head": "edf4874976797cc241d92ea9df7fa9b3a4f2067f",
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/editor-page-integration-20261024/native.mjs"
+  ],
+  "scope": "original owning window+viewport sizing; earlier hidden-control setup failures preserved",
+  "exitCode": 0,
+  "wallMs": 7655.593375005992
+}
