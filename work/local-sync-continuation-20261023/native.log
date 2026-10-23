@@ -1,0 +1,126 @@
+TAP version 13
+# Subtest: BNS generation/purge native checkpoint-storage-cold source
+ok 1 - BNS generation/purge native checkpoint-storage-cold source
+  ---
+  duration_ms: 3173.880708
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native checkpoint-storage-cold release
+ok 2 - BNS generation/purge native checkpoint-storage-cold release
+  ---
+  duration_ms: 3009.808375
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native cold-active-library source
+not ok 3 - BNS generation/purge native cold-active-library source
+  ---
+  duration_ms: 4456.165583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/cold-active-library-native.test.mjs:13:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: cold selection refuses missing catalog and never repairs it: Error: expected rejection
+        at Object.rejects (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-assert.mjs:21:116)
+        at async Object.fn (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-fixture.mjs:60:584)
+        at async Object.run (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-fixture.mjs:80:7)
+        at async <anonymous>:337:30
+        at Object.rejects (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-assert.mjs:21:116)
+        at async Object.fn (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-fixture.mjs:60:584)
+        at async Object.run (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-fixture.mjs:80:7)
+        at async <anonymous>:337:30
+        at Object.run (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-fixture.mjs:81:24)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.rejects (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-assert.mjs:21:116)
+    async Object.fn (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-fixture.mjs:60:584)
+    async Object.run (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-fixture.mjs:80:7)
+    async <anonymous>:337:30
+    Object.rejects (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-assert.mjs:21:116)
+    async Object.fn (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-fixture.mjs:60:584)
+    async Object.run (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-fixture.mjs:80:7)
+    async <anonymous>:337:30
+    Object.run (chrome-extension://eeagamclngjlggdpdiiamiihlipjhbmb/background/generation-purge-fixture.mjs:81:24)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/cold-active-library-native.test.mjs:27:105)
+  ...
+# Subtest: BNS generation/purge native cold-active-library release
+not ok 4 - BNS generation/purge native cold-active-library release
+  ---
+  duration_ms: 4262.935167
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/cold-active-library-native.test.mjs:13:69'
+  failureType: 'testCodeFailure'
+  error: |-
+    worker.evaluate: Error: cold selection refuses missing catalog and never repairs it: Error: expected rejection
+        at Object.rejects (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-assert.mjs:21:116)
+        at async Object.fn (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-fixture.mjs:60:584)
+        at async Object.run (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-fixture.mjs:80:7)
+        at async <anonymous>:337:30
+        at Object.rejects (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-assert.mjs:21:116)
+        at async Object.fn (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-fixture.mjs:60:584)
+        at async Object.run (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-fixture.mjs:80:7)
+        at async <anonymous>:337:30
+        at Object.run (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-fixture.mjs:81:24)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.rejects (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-assert.mjs:21:116)
+    async Object.fn (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-fixture.mjs:60:584)
+    async Object.run (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-fixture.mjs:80:7)
+    async <anonymous>:337:30
+    Object.rejects (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-assert.mjs:21:116)
+    async Object.fn (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-fixture.mjs:60:584)
+    async Object.run (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-fixture.mjs:80:7)
+    async <anonymous>:337:30
+    Object.run (chrome-extension://fblfgnbhfficlfokfjfakbgghbfbhblj/background/generation-purge-fixture.mjs:81:24)
+    async <anonymous>:337:30
+    Object.call (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/storage-harness.mjs:84:63)
+    async TestContext.<anonymous> (/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/native-sync/cold-active-library-native.test.mjs:27:105)
+  ...
+# Subtest: BNS generation/purge native phased-copy-retirement source
+ok 5 - BNS generation/purge native phased-copy-retirement source
+  ---
+  duration_ms: 6206.276708
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native phased-copy-retirement release
+ok 6 - BNS generation/purge native phased-copy-retirement release
+  ---
+  duration_ms: 6907.094042
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native phased-human-cold source
+ok 7 - BNS generation/purge native phased-human-cold source
+  ---
+  duration_ms: 5848.264
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native phased-human-cold release
+ok 8 - BNS generation/purge native phased-human-cold release
+  ---
+  duration_ms: 6850.47925
+  type: 'test'
+  ...
+# Subtest: BNS mixed Saved resident jobs native saved-resident-jobs source
+ok 9 - BNS mixed Saved resident jobs native saved-resident-jobs source
+  ---
+  duration_ms: 11469.165875
+  type: 'test'
+  ...
+# Subtest: BNS mixed Saved resident jobs native saved-resident-jobs release
+ok 10 - BNS mixed Saved resident jobs native saved-resident-jobs release
+  ---
+  duration_ms: 12821.240333
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 8
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 89789.123458

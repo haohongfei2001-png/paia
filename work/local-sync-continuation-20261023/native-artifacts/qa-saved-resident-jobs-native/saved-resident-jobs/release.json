@@ -1,0 +1,104 @@
+{
+  "variant": "release",
+  "scope": "saved-resident-jobs",
+  "head": "974de197087262a270a929883b16c768785a3ce2",
+  "result": "PASS",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "5d5b066beb1cfcbaaf4970b3cb1e2c99bc825d6c7b212b0878a5b11d6909e10b",
+  "hashes": {
+    "core/browser-native-sync/saved-work-bootstrap.js": "5a70d26fea639eca05801a81f658740a69f54b19274866b55c38f31b9d287082",
+    "core/browser-native-sync/group-checkpoint.js": "351b5fba591e55f1e5def4a66ee82eda20a5e28ff2bba4014ea8ca173dca32b5",
+    "core/browser-native-sync/group-checkpoint-plan.js": "0536d0afcb587dac7ee3e1ae2c7817291c57653a1d4730379f86d53aac6709ae",
+    "core/browser-native-sync/group-checkpoint-scope.js": "3fda9ccb9854164d226dd6df26d37400023a31b3f3b2add61b4b61c8940a4bbd",
+    "core/browser-native-sync/human-library-scope.js": "c897bb58ab460e6d7702a828b739c38717a2ec44e156c2552fc69bf05a65592f",
+    "core/browser-native-sync/human-library-group.js": "4ea23770db4f89c81bf8479cc4544e41acfdbeb383b061daa1236af12673826d",
+    "core/browser-native-sync/human-library-plan.js": "a0b4845ddfe44968bdc7e68c9bb7ae5d35135b728a4ff860a735f7ebedf546e2",
+    "core/browser-native-sync/human-library-journal.js": "962ef77a4f47fe129c5490731614c2d42eb2b7426c67f5ec05103a578990e794",
+    "core/browser-native-sync/saved-work-journal.js": "157f5f353c80acc6d2947064b5e9397b7a5537cb8e71442ee74bedea89ee7876",
+    "core/browser-native-sync/saved-work-successor-codec.js": "e6e439804e1c83c41296b37281be8966502235c17107eab6e67874bebec14a3a",
+    "core/browser-native-sync/source-working-physical.js": "849950db460e2f2b14547e72670887a59494a66a402e0f2566cf5a77b10d9e95",
+    "core/idb-repository.js": "20327d67af3170ccc233b952369c2154ad9fc373888ef6f20e985bf5edc4fe4d",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
+    "core/organizer/store-owner.js": "06fd1229b88b914b9965252c377caf6e8531dc67b654c87d2a30b8b0b7a048dd",
+    "core/ai-usage/delta.js": "c463eb810b8bc6e56fabd0520f9736b1fed81923c37272d1e63cf4988a813114",
+    "core/ai-usage/semantic-invalidation.js": "a4b8ddf476f6985b48e420f6bc1e146fb3c64e107783c651ce659e217fbb99fb",
+    "core/ai-usage/domain-result-receipt.js": "d099ee52d6920cb3ff1e41dd0ddfb123ad98789004264d15fb36e66060f1fe44",
+    "core/ai-usage/foundation.js": "25d0f55bcd51b8ca2543225b9c73b6e4c646a52785b65cff651e4f5571ed554a"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    "existing mixed Saved receive preserves original planned resident job semantics",
+    "existing mixed Saved receive preserves original reserved resident job semantics",
+    "existing mixed Saved receive preserves original responded resident job semantics",
+    "existing mixed Saved receive preserves original unknown resident job semantics",
+    "existing mixed Saved receive preserves original settled resident job semantics",
+    "existing mixed Saved receive preserves original committed resident job semantics",
+    "unrelated resident job is retained byte-for-byte across a Saved receive",
+    "unknown resident receipt is cancelled only once across two incoming Saved successors",
+    "missing receipt behind an original dispatch fence stays unknown without fabricated refund",
+    "final raw organizerJobs drift aborts the Saved edit and its local financial state",
+    "final raw organizerUsage drift aborts the Saved edit and its local financial state",
+    "final raw organizerWorkItems drift aborts the Saved edit and its local financial state",
+    "a storage abort rolls back canonical, job, usage and stage then explicit retry commits once",
+    "plain scope and checkpoint export cannot admit resident jobs without the private merge proof",
+    "a forged resident proof is refused and a genuine unsealed proof cannot commit",
+    "a resident proof cannot qualify a different scope identity in its same transaction",
+    "101 active resident jobs retain the original bounded invalidator and stale dispatch refusal",
+    "failure in the real invalidator put rolls back the original Saved receive, not only its projection"
+  ],
+  "hashesAfter": {
+    "core/browser-native-sync/saved-work-bootstrap.js": "5a70d26fea639eca05801a81f658740a69f54b19274866b55c38f31b9d287082",
+    "core/browser-native-sync/group-checkpoint.js": "351b5fba591e55f1e5def4a66ee82eda20a5e28ff2bba4014ea8ca173dca32b5",
+    "core/browser-native-sync/group-checkpoint-plan.js": "0536d0afcb587dac7ee3e1ae2c7817291c57653a1d4730379f86d53aac6709ae",
+    "core/browser-native-sync/group-checkpoint-scope.js": "3fda9ccb9854164d226dd6df26d37400023a31b3f3b2add61b4b61c8940a4bbd",
+    "core/browser-native-sync/human-library-scope.js": "c897bb58ab460e6d7702a828b739c38717a2ec44e156c2552fc69bf05a65592f",
+    "core/browser-native-sync/human-library-group.js": "4ea23770db4f89c81bf8479cc4544e41acfdbeb383b061daa1236af12673826d",
+    "core/browser-native-sync/human-library-plan.js": "a0b4845ddfe44968bdc7e68c9bb7ae5d35135b728a4ff860a735f7ebedf546e2",
+    "core/browser-native-sync/human-library-journal.js": "962ef77a4f47fe129c5490731614c2d42eb2b7426c67f5ec05103a578990e794",
+    "core/browser-native-sync/saved-work-journal.js": "157f5f353c80acc6d2947064b5e9397b7a5537cb8e71442ee74bedea89ee7876",
+    "core/browser-native-sync/saved-work-successor-codec.js": "e6e439804e1c83c41296b37281be8966502235c17107eab6e67874bebec14a3a",
+    "core/browser-native-sync/source-working-physical.js": "849950db460e2f2b14547e72670887a59494a66a402e0f2566cf5a77b10d9e95",
+    "core/idb-repository.js": "20327d67af3170ccc233b952369c2154ad9fc373888ef6f20e985bf5edc4fe4d",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
+    "core/organizer/store-owner.js": "06fd1229b88b914b9965252c377caf6e8531dc67b654c87d2a30b8b0b7a048dd",
+    "core/ai-usage/delta.js": "c463eb810b8bc6e56fabd0520f9736b1fed81923c37272d1e63cf4988a813114",
+    "core/ai-usage/semantic-invalidation.js": "a4b8ddf476f6985b48e420f6bc1e146fb3c64e107783c651ce659e217fbb99fb",
+    "core/ai-usage/domain-result-receipt.js": "d099ee52d6920cb3ff1e41dd0ddfb123ad98789004264d15fb36e66060f1fe44",
+    "core/ai-usage/foundation.js": "25d0f55bcd51b8ca2543225b9c73b6e4c646a52785b65cff651e4f5571ed554a"
+  },
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "37bd3d5a-5e04-4f2e-a26f-b625e0d4ff6d",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "37bd3d5a-5e04-4f2e-a26f-b625e0d4ff6d",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}

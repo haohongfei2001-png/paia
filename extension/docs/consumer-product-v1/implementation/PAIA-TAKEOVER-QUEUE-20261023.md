@@ -467,3 +467,12 @@ Main9d720055 (website PR322) is preserved by normal merge5e6f4f72; all23 changed
 An additional independent readonly review of872e23b0 found no new definite blocker: original private mutation permission, task/validation controls, cold progress CAS and final count fences remain; final native fixture checks actual nonempty thoughtText and original Entry bodies. Cross-database global atomicity, arbitrary raw-IDB forgery resistance, broad scale and existing-active replacement are not inferred.
 
 The previously mentioned pre-publication body-copy consumption is an optimization candidate, **not a required separate plan deliverable**. It would move the same reads earlier and add deletion/receipt/cold reconstruction work; it is not being implemented merely to make the final transaction smaller. The scale lane instead examines actual authentication/validation/owner work before proposing a consuming change.65/129 failures remain; no enlarged cap or large repeat run. In parallel, identify and implement true existing-active reopening/replacement and populated mixed-family gaps through original owners, preserving all negative/human facts. Local engineering continues; independent identity issuance and external release gates remain distinct.
+
+
+## Coherent local continuation through 474b0009
+
+Resident Saved jobs, durable original active-library reopening, checkpoint storage v2/v1 cold compatibility and ordinary Human journal module entry are integrated. [Exact receipt](../../../../work/local-sync-continuation-20261023/REPORT.md): 495/495 Node, one 670-file build, original native 8/10, then test-only catalog-key correction 22/22 Node and affected Source/Release 2/2 on the same build. Retain the two failed native receipts.
+
+The separate accidental 65/129 expected-refusal execution is disclosed in the checkpoint-storage correction record; it is not success or retrospectively authorized. New direct human approval permits private task-bound 8 MiB final/cold phases and new-task 64 MiB/120 s, ordinary limits unchanged, small tests first and one 129-group local recovery including one cold reopen. Root owns that one execution; pending implementation/review is not a pass.
+
+Parallel local engineering continues: incoming Human groups into existing mixed Saved libraries; selected Source-library negative intent plus ordinary incremental edits; complete mixed positive/negative checkpoint restore remains open. No new cloud, real-account, credentials, paid-model, install or deployment authority.

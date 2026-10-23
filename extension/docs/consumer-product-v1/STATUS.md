@@ -14,10 +14,15 @@ The refreshed main baseline is `9d7200555b315e1d89509f12bf78bf62e16418ae`,
 normally merged as `5e6f4f72` on 2026-10-23. Its 23 website/document paths are
 byte-identical to that main in the integration checkout; extension runtime is
 unchanged by this merge. Earlier main identities and website receipts remain
-historical evidence. The latest runtime freeze is `872e23b0`, with the separate
-[coherent local recovery receipt](../../../work/phased-human-integration-20261023/REPORT.md):
-115/115 owning Node tests, one development build and Source/Release 8/8 native
-parents. This is not Full, Linux capacity or whole-programme acceptance.
+historical evidence. The latest coherent local runtime freeze is `f04141f0`, with native bridges through `974de197` and the test-only correction `474b0009`.
+The [local Sync continuation receipt](../../../work/local-sync-continuation-20261023/REPORT.md)
+records 495/495 owning Node tests, one 670-file development build, native 8/10
+followed by a corrected owning 22/22 and the affected Source/Release 2/2 using
+the same release. The two initial native fixture failures remain recorded;
+these are separate invocations, not one 10/10 result. The earlier 115/115 and
+8/8 milestone remains historical. No Full, Linux capacity or whole-programme
+acceptance follows. Qualified scale recovery has new limited human authorization;
+its implementation and one authorized 129-group validation are still pending.
 `codex/paia-takeover-integration-20261023` preserves that history and composes the
 frozen PR313 head `02144bccf5e0e0b6842aaa4e7c6958cedecdfde1` with exact selected
 PR312/post-Full successors and `f745013c` semantic read-pair implementation.

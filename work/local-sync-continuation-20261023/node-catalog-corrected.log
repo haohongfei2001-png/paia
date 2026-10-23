@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: durable registry selects original library after cold reopen and normal owner edits remain durable
+ok 1 - durable registry selects original library after cold reopen and normal owner edits remain durable
+  ---
+  duration_ms: 867.843625
+  type: 'test'
+  ...
+# Subtest: existing selected library receives A successor while preserving independent B edit and outbox
+ok 2 - existing selected library receives A successor while preserving independent B edit and outbox
+  ---
+  duration_ms: 1752.726792
+  type: 'test'
+  ...
+# Subtest: missing registry rejects without leaving a ghost database
+ok 3 - missing registry rejects without leaving a ghost database
+  ---
+  duration_ms: 0.884167
+  type: 'test'
+  ...
+# Subtest: missing selected database rejects without creating a replacement
+ok 4 - missing selected database rejects without creating a replacement
+  ---
+  duration_ms: 1405.612958
+  type: 'test'
+  ...
+# Subtest: existing old schema is refused without an implicit migration or later automatic upgrade
+ok 5 - existing old schema is refused without an implicit migration or later automatic upgrade
+  ---
+  duration_ms: 0.945333
+  type: 'test'
+  ...
+# Subtest: cold selection refuses missing catalog and never repairs it
+ok 6 - cold selection refuses missing catalog and never repairs it
+  ---
+  duration_ms: 789.941292
+  type: 'test'
+  ...
+# Subtest: cold selection refuses missing receipt and never repairs it
+ok 7 - cold selection refuses missing receipt and never repairs it
+  ---
+  duration_ms: 809.161375
+  type: 'test'
+  ...
+# Subtest: cold selection refuses missing qualification and never repairs it
+ok 8 - cold selection refuses missing qualification and never repairs it
+  ---
+  duration_ms: 594.583625
+  type: 'test'
+  ...
+# Subtest: a legitimate pending publication refuses cold selection and already-open owner writes
+ok 9 - a legitimate pending publication refuses cold selection and already-open owner writes
+  ---
+  duration_ms: 589.801041
+  type: 'test'
+  ...
+# Subtest: changed durable receipt after selection refuses normal owner edit and retains all data
+ok 10 - changed durable receipt after selection refuses normal owner edit and retains all data
+  ---
+  duration_ms: 554.826042
+  type: 'test'
+  ...
+# Subtest: replacing the returned original store repository cannot carry its active authority
+ok 11 - replacing the returned original store repository cannot carry its active authority
+  ---
+  duration_ms: 521.379084
+  type: 'test'
+  ...
+# Subtest: same manager refuses a second implicit attachment and callers cannot supply a database override
+ok 12 - same manager refuses a second implicit attachment and callers cannot supply a database override
+  ---
+  duration_ms: 624.548708
+  type: 'test'
+  ...
+# Subtest: active merge terminal refuses raw canonical-generation:gate:v1 mutation and rolls all tables back
+ok 13 - active merge terminal refuses raw canonical-generation:gate:v1 mutation and rolls all tables back
+  ---
+  duration_ms: 820.482333
+  type: 'test'
+  ...
+# Subtest: active merge terminal refuses raw canonical-generation:copy-retirement:v1 mutation and rolls all tables back
+ok 14 - active merge terminal refuses raw canonical-generation:copy-retirement:v1 mutation and rolls all tables back
+  ---
+  duration_ms: 824.488042
+  type: 'test'
+  ...
+# Subtest: active merge terminal refuses raw canonical-generation:qualified-graph:v1 mutation and rolls all tables back
+ok 15 - active merge terminal refuses raw canonical-generation:qualified-graph:v1 mutation and rolls all tables back
+  ---
+  duration_ms: 831.027958
+  type: 'test'
+  ...
+# Subtest: unbound original repository cannot acquire active metadata classification from copied rows
+ok 16 - unbound original repository cannot acquire active metadata classification from copied rows
+  ---
+  duration_ms: 519.3895
+  type: 'test'
+  ...
+# Subtest: forged canonicalGeneration identity cannot be projected as an ordinary completed restore
+ok 17 - forged canonicalGeneration identity cannot be projected as an ordinary completed restore
+  ---
+  duration_ms: 811.881625
+  type: 'test'
+  ...
+# Subtest: unknown generation control is refused instead of exempting the entire namespace
+ok 18 - unknown generation control is refused instead of exempting the entire namespace
+  ---
+  duration_ms: 794.201666
+  type: 'test'
+  ...
+# Subtest: local edit after staging refuses a stale active merge while retaining the newer edit
+ok 19 - local edit after staging refuses a stale active merge while retaining the newer edit
+  ---
+  duration_ms: 1039.005958
+  type: 'test'
+  ...
+# Subtest: unsupported exclusion through the original Working journal refuses before changing any data
+ok 20 - unsupported exclusion through the original Working journal refuses before changing any data
+  ---
+  duration_ms: 622.723208
+  type: 'test'
+  ...
+# Subtest: resident negative intent refuses incoming recovery and remains byte-for-byte unchanged
+ok 21 - resident negative intent refuses incoming recovery and remains byte-for-byte unchanged
+  ---
+  duration_ms: 670.560875
+  type: 'test'
+  ...
+# Subtest: existing-only opening refuses when database inventory is unavailable instead of probing by create
+ok 22 - existing-only opening refuses when database inventory is unavailable instead of probing by create
+  ---
+  duration_ms: 0.182667
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15609.724458

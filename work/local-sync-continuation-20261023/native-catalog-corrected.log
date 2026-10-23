@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: BNS generation/purge native cold-active-library source
+ok 1 - BNS generation/purge native cold-active-library source
+  ---
+  duration_ms: 17633.829042
+  type: 'test'
+  ...
+# Subtest: BNS generation/purge native cold-active-library release
+ok 2 - BNS generation/purge native cold-active-library release
+  ---
+  duration_ms: 14855.416583
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 37457.772

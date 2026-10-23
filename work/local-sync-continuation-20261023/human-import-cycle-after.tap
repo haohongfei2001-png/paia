@@ -1,0 +1,96 @@
+TAP version 13
+# Subtest: actual Working Input edit cancels the existing never-dispatched job atomically
+ok 1 - actual Working Input edit cancels the existing never-dispatched job atomically
+  ---
+  duration_ms: 39.661916
+  type: 'test'
+  ...
+# Subtest: dispatched synthetic attempt remains unknown and retains reservation after real edit
+ok 2 - dispatched synthetic attempt remains unknown and retains reservation after real edit
+  ---
+  duration_ms: 23.26975
+  type: 'test'
+  ...
+# Subtest: duplicate capture and unrelated metadata do not change an existing job
+ok 3 - duplicate capture and unrelated metadata do not change an existing job
+  ---
+  duration_ms: 22.788958
+  type: 'test'
+  ...
+# Subtest: 101 active jobs overflow leaves every job and receipt untouched and current still rejects stale work
+ok 4 - 101 active jobs overflow leaves every job and receipt untouched and current still rejects stale work
+  ---
+  duration_ms: 42.779125
+  type: 'test'
+  ...
+# SYNTHETIC_INVALIDATION_COST {"jobs":100,"reads":449,"writes":115,"elapsedMs":25.758291999999983}
+# SYNTHETIC_CAPTURE_COST {"jobs":0,"reads":109,"writes":24,"elapsedMs":4.251916999999992}
+# Subtest: at most 100 actual indexed jobs are examined; ordinary zero-job capture has no job writes
+ok 5 - at most 100 actual indexed jobs are examined; ordinary zero-job capture has no job writes
+  ---
+  duration_ms: 63.358
+  type: 'test'
+  ...
+# Subtest: semantic cancellation write failure rolls the real canonical edit and all jobs back
+ok 6 - semantic cancellation write failure rolls the real canonical edit and all jobs back
+  ---
+  duration_ms: 16.303792
+  type: 'test'
+  ...
+# Subtest: trusted restore epoch changes cancel a never-dispatched job without provider authority
+ok 7 - trusted restore epoch changes cancel a never-dispatched job without provider authority
+  ---
+  duration_ms: 15.265166
+  type: 'test'
+  ...
+# Subtest: missing known rows and unavailable authority are not proof of semantic invalidation
+ok 8 - missing known rows and unavailable authority are not proof of semantic invalidation
+  ---
+  duration_ms: 17.501041
+  type: 'test'
+  ...
+# Subtest: a true unknown outcome retains reservation and is not repeatedly recancelled
+ok 9 - a true unknown outcome retains reservation and is not repeatedly recancelled
+  ---
+  duration_ms: 28.500209
+  type: 'test'
+  ...
+# Subtest: unrelated and duplicate writes never scan the active job index
+ok 10 - unrelated and duplicate writes never scan the active job index
+  ---
+  duration_ms: 18.927125
+  type: 'test'
+  ...
+# Subtest: invalidation read error is propagated and cannot become a successful canonical mutation
+ok 11 - invalidation read error is propagated and cannot become a successful canonical mutation
+  ---
+  duration_ms: 16.11075
+  type: 'test'
+  ...
+# Subtest: a committed local child receipt survives cancellation of an unfinished sibling
+ok 12 - a committed local child receipt survives cancellation of an unfinished sibling
+  ---
+  duration_ms: 23.364875
+  type: 'test'
+  ...
+# Subtest: a durable dispatch fence with missing receipt is not proof of a never-dispatched child
+ok 13 - a durable dispatch fence with missing receipt is not proof of a never-dispatched child
+  ---
+  duration_ms: 16.338125
+  type: 'test'
+  ...
+# Subtest: 100 legitimate scoped Organize plans do not reread unchanged evidence for each job on capture
+ok 14 - 100 legitimate scoped Organize plans do not reread unchanged evidence for each job on capture
+  ---
+  duration_ms: 2464.305875
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2969.827708

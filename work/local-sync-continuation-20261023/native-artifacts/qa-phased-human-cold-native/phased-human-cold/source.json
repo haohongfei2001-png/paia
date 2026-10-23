@@ -1,0 +1,88 @@
+{
+  "variant": "source",
+  "scope": "phased-human-cold",
+  "head": "974de197087262a270a929883b16c768785a3ce2",
+  "result": "PASS",
+  "fullSyncQualification": false,
+  "providerActivation": false,
+  "owningSha256": "00fb78a10affb99a5ea5ca823915825c10ffdbaa22cbc67b1d9f3e6cf8bdd2a4",
+  "hashes": {
+    "core/browser-native-sync/canonical-generation-phased-human.js": "bae35f50c3bdd50b3e5cc8c787c1bb0d2c391d47120c84f0ae6a01b982c8c93c",
+    "core/browser-native-sync/canonical-generation-task-ledger.js": "1a5c9098ad40ac141b17047ead690aac843252a6e36cccc217fc41a60af05ac2",
+    "core/thought-binding.js": "777a0006cc04081e68e3ea98c95ad9961fdd12a25aaa6b361862e34511837f5e",
+    "core/browser-native-sync/canonical-generation-human-restore.js": "cc84377922fd4009ed069e12cf6926120868ea528a144cb373fb3ab064565a6c",
+    "core/browser-native-sync/human-library-group.js": "4ea23770db4f89c81bf8479cc4544e41acfdbeb383b061daa1236af12673826d",
+    "core/browser-native-sync/human-library-plan.js": "a0b4845ddfe44968bdc7e68c9bb7ae5d35135b728a4ff860a735f7ebedf546e2",
+    "core/browser-native-sync/human-library-search-proof.js": "105c65d9b2d9793accb9df6026bb70063822958dabf2fe741953db9eccbb9f76",
+    "core/ia-store-owner.js": "67825a0116b455b19d2187bc7f12db8fd4957a97e3b543172f2c093d15a03e18",
+    "core/library-documents-owner.js": "75c9e20798098cdc0244296da5c5bfae0ac6f26fd0c46031a70c5c4cae28a887",
+    "core/browser-native-sync/saved-work-bootstrap.js": "5a70d26fea639eca05801a81f658740a69f54b19274866b55c38f31b9d287082",
+    "core/browser-native-sync/group-checkpoint-plan.js": "0536d0afcb587dac7ee3e1ae2c7817291c57653a1d4730379f86d53aac6709ae",
+    "core/browser-native-sync/group-checkpoint-scope.js": "3fda9ccb9854164d226dd6df26d37400023a31b3f3b2add61b4b61c8940a4bbd",
+    "core/library-documents-store.js": "63f7e9dec5c31e076cfa48e865b1fa7ef1e804ac12ba2d25c3c1d8faff69931a",
+    "core/idb-repository.js": "20327d67af3170ccc233b952369c2154ad9fc373888ef6f20e985bf5edc4fe4d",
+    "core/indexed-store.js": "09885dd4fff80eeb20764e76635a51646ad52da4a01b3f6f4659f7964abae1de",
+    "core/thought-maintenance.js": "35f099480098ac724f3de6a26f50b4991bb027c6eff05340eba5621c318833b6",
+    "core/source-purge-admission.js": "8a526a77ff393739736d19b746319ac5b844192392ecb5f53c7edf67ce294347",
+    "core/browser-native-sync/core.js": "77dee7e562f58bb770198b4d482d110f814d92db003acaa7a9d41c671f8905d4",
+    "core/browser-native-sync/group-checkpoint.js": "351b5fba591e55f1e5def4a66ee82eda20a5e28ff2bba4014ea8ca173dca32b5",
+    "core/browser-native-sync/canonical-generation-publication.js": "5f5706c542f90ee5825710073ca5ad08680abd92abf3ec1c1177893f94a13d66",
+    "core/browser-native-sync/canonical-generation-checkpoint-stage.js": "b7fa358c7e15774c5d3f21b667ba5e5506f774c700a82cb5c5906746ca7c0a72",
+    "core/browser-native-sync/source-purge-journal.js": "1e86249972e868fe47afb468cad44fd02dabc860981418654ddec509fd0252cc",
+    "core/browser-native-sync/source-purge-codec.js": "bfbe850cb33a941a753e5db7f118a10b681255aa5eead304543c714a602f2360",
+    "core/browser-native-sync/source-purge-checkpoint.js": "a2c4d8c710863ffc465baa33499a2d6b00ee8d4b1c2c933143c9ee1b9aeea5a8"
+  },
+  "browserVersion": "156.0.8078.47",
+  "cases": [
+    "fixed phased seal rejects real late semantic-sequence mutation and rolls back the whole publication transaction",
+    "fixed phased seal rejects real late semantic-known mutation and rolls back the whole publication transaction",
+    "fixed phased seal rejects real late semantic-dirty mutation and rolls back the whole publication transaction",
+    "fixed phased seal rejects real late semantic-extra mutation and rolls back the whole publication transaction",
+    "explicit cold rehydration resumes the original two-group cursor and publishes without resetting its ledger",
+    "cold original expectation refuses durable origin drift without publishing",
+    "cold original expectation refuses durable entry drift without publishing",
+    "cold original expectation refuses durable history drift without publishing",
+    "cold original expectation refuses durable receipt drift without publishing",
+    "cold original expectation refuses durable semantic drift without publishing",
+    "cold original expectation refuses durable binding drift without publishing",
+    "cold original expectation refuses durable compatibility drift without publishing",
+    "cold completed readiness never repairs incomplete or damaged binding inside a shadow generation",
+    "cold completed readiness never repairs incomplete or damaged binding-version inside a shadow generation",
+    "cold completed readiness never repairs incomplete or damaged compatibility inside a shadow generation",
+    "cold readonly readiness does not permit later binding drift before the next original owner",
+    "cold readonly readiness does not permit later compatibility drift before the next original owner",
+    "cold publication crash keeps the old prepaid ticket burned and resumes the original completed cursor"
+  ],
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "1aca6953-45b2-4d44-9b65-537b548cf9fa",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "1aca6953-45b2-4d44-9b65-537b548cf9fa",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  }
+}
