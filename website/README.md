@@ -1,3 +1,7 @@
+> The current homepage is Atelier V9. See [atelier/README.md](atelier/README.md)
+> for its paired templates, existing-generator integration and verification.
+> The prior homepage notes below remain historical; interior/demo ownership is unchanged.
+
 # PAIA website — full-site refoundation · 9 October 2026
 
 The Owner authorized a complete redesign, implementation, website-only PR,

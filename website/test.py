@@ -14,8 +14,10 @@ from core_checks import verify_core
 from origin_checks import verify_origin, verify_assets, verify_hero, verify_typography
 from playwright.sync_api import sync_playwright
 from presentation_checks import verify_presentation
+from atelier_checks import enabled as atelier_enabled, verify_static as verify_atelier_static, verify_home as verify_atelier_home
 
 ROOT = Path(__file__).resolve().parents[1]
+ATELIER = atelier_enabled(ROOT)
 OFFLINE = '--offline-render' in sys.argv
 OUT = Path(os.environ.get('WEBSITE_TEST_OUTPUT', ROOT / 'website-test-artifacts'))
 OUT.mkdir(parents=True, exist_ok=True)
@@ -92,15 +94,21 @@ for relative in ('index.html', 'zh/index.html'):
     source = (ROOT / relative).read_text()
     doc = Document(source)
     check('Watch the film' not in source and 'A PAIA user' not in source, f'{relative}: no invented film or testimonial')
-    check(sum('data-product-hero' in attrs for _, attrs in doc.tags) == 1, f'{relative}: current product-led opening exists')
-    check([attrs['data-hero-space'] for _, attrs in doc.tags if 'data-hero-space' in attrs] == ['archive', 'thought', 'context'], f'{relative}: three approved product spaces')
+    if ATELIER:
+        check(sum('data-pd-tab' in attrs for _, attrs in doc.tags) == 3, f'{relative}: three approved Atelier spaces')
+    else:
+        check(sum('data-product-hero' in attrs for _, attrs in doc.tags) == 1, f'{relative}: current product-led opening exists')
+        check([attrs['data-hero-space'] for _, attrs in doc.tags if 'data-hero-space' in attrs] == ['archive', 'thought', 'context'], f'{relative}: three approved product spaces')
     check('data-hero-sequence' not in source and 'data-scroll-collection' not in source, f'{relative}: retired opening is not a second visual owner')
     check(sum('/brand/paia-logo-v1.webp' in attrs.get('src', '') for attrs in doc.all('img')) == 1, f'{relative}: original artwork remains confined to its closing use')
 for relative in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
     source = (ROOT / relative).read_text()
     doc = Document(source)
     styles = [urlparse(attrs['href']).path for attrs in doc.all('link') if attrs.get('rel') == 'stylesheet']
-    check('/assets/website/site.css' in styles and '/assets/website/product-experience.css' in styles, f'{relative}: shared product visual system loaded')
+    if ATELIER and relative.endswith('index.html'):
+        check('/assets/website/atelier/site.css' in styles, f'{relative}: reviewed Atelier visual owner loaded')
+    else:
+        check('/assets/website/site.css' in styles and '/assets/website/product-experience.css' in styles, f'{relative}: shared product visual system loaded')
     check(not any(name in source for name in ('home-core-v1.css', 'home-origin-v7.css', 'product-consistency.css', '/assets/website/demo.js')), f'{relative}: no retired stylesheet or demo cascade')
 
 verify_assets(ROOT, check)
@@ -111,14 +119,17 @@ verify_static_publication(ROOT,check)
 # Keep the current production copy/hero and all unrelated generated pages frozen.
 # This uses a committed exact baseline, not an editable candidate snapshot.
 import subprocess
-art_env = dict(os.environ, WEBSITE_ART_OUTPUT=str(OUT / 'art-direction-static'))
-art_args = ['--static-only'] if '--static-only' in sys.argv else []
-art_result = subprocess.run([sys.executable, str(ROOT / 'website/art_direction_checks.py'), *art_args], env=art_env, capture_output=True, text=True)
-art_report_path = OUT / 'art-direction-static' / 'report.json'
-check(art_report_path.is_file(), 'homepage art-direction static guard returned evidence')
-for item in json.loads(art_report_path.read_text())['results']:
-    check(item['pass'], 'homepage frozen baseline: ' + item['check'])
-check(art_result.returncode == 0, 'homepage frozen baseline guard completed without error')
+if ATELIER:
+    verify_atelier_static(ROOT, check)
+else:
+    art_env = dict(os.environ, WEBSITE_ART_OUTPUT=str(OUT / 'art-direction-static'))
+    art_args = ['--static-only'] if '--static-only' in sys.argv else []
+    art_result = subprocess.run([sys.executable, str(ROOT / 'website/art_direction_checks.py'), *art_args], env=art_env, capture_output=True, text=True)
+    art_report_path = OUT / 'art-direction-static' / 'report.json'
+    check(art_report_path.is_file(), 'homepage art-direction static guard returned evidence')
+    for item in json.loads(art_report_path.read_text())['results']:
+        check(item['pass'], 'homepage frozen baseline: ' + item['check'])
+    check(art_result.returncode == 0, 'homepage frozen baseline guard completed without error')
 
 # Selected D6 text/surface pairs. Visual review also inspects the composited
 # translucent layers; token contrast alone is not a full accessibility audit.
@@ -270,6 +281,19 @@ try:
                 page.evaluate('document.fonts.ready')
                 check(page.evaluate('Array.from(document.images).every(i=>i.complete && i.naturalWidth>0 || i.loading==="lazy")'), f'{name}: {width}px image assets available')
                 check_reflow(page, f'{name}: {width}px reflow', name, width, 'layout')
+                if ATELIER and path.name == 'index.html':
+                    verify_atelier_home(page, check, f'{name}-{width}', out=OUT if width in (1440,390) else None)
+                    if width == 320:
+                        page.add_style_tag(content='html{font-size:200%!important}')
+                        check_reflow(page, f'{name}: 320px with 200% text', name, width, 'text-200')
+                        menu=page.locator('.menu-toggle');menu.focus();page.keyboard.press('Enter')
+                        check(page.locator('#mobile-nav').evaluate('e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1}'), f'{name}: enlarged menu fits')
+                        page.keyboard.press('Escape')
+                        check(menu.evaluate('e=>e===document.activeElement'), f'{name}: enlarged menu restores focus')
+                    check(not errors, f'{name}: {width}px no JS errors')
+                    check(not external, f'{name}: {width}px no unsolicited external requests')
+                    page.close()
+                    continue
                 verify_typography(page, check, f'{name}: {width}px')
                 if path.name == 'demo.html':
                     check(page.locator('[data-thought-text]').evaluate_all('els=>els.length===4 && els.every(e=>parseFloat(getComputedStyle(e).fontSize)>=14)'), f'{name}: {width}px Topic body remains readable')
@@ -337,35 +361,49 @@ try:
 
         for locale in ['', 'zh/']:
             en = locale != 'zh/'
-            # Native geometry, keyboard tabs, full default motion and system preference.
-            page = browser.new_page(viewport={'width': 1440, 'height': 900}, reduced_motion='no-preference')
-            load(page, locale + 'index.html')
-            page.evaluate('document.fonts.ready')
-            verify_hero(page, check, en=en, motion=True)
-            page.close()
-            page = browser.new_page(viewport={'width': 390, 'height': 844})
-            load(page, locale + 'index.html')
-            verify_hero(page, check, en=en)
-            verify_presentation(page, check, locale+'homepage', motion=True)
-            verify_origin(page, check, en=en)
-            menu = page.locator('.mobile-menu')
-            menu.locator('summary').click()
-            check(menu.evaluate('el=>el.open'), f'{locale}: mobile menu opens')
-            page.keyboard.press('Escape')
-            check(not menu.evaluate('el=>el.open'), f'{locale}: Escape closes menu')
-            check(menu.locator('summary').evaluate('el=>el===document.activeElement'), f'{locale}: menu restores focus')
-            page.emulate_media(reduced_motion='reduce')
-            check(page.evaluate("getComputedStyle(document.documentElement).scrollBehavior==='auto'"), f'{locale}: reduced motion')
-            # Narrow regression for the repaired high-contrast title and Orb.
-            page.emulate_media(forced_colors='active', reduced_motion='reduce')
-            load(page, locale + 'index.html')
-            page.evaluate('document.fonts.ready')
-            contrast_locale = 'en' if en else 'zh'
-            check(page.evaluate("matchMedia('(forced-colors: active)').matches"), f'{locale}: browser forced colors is active')
-            title = page.locator('.hero-heading h1 > span')
-            check(title.is_visible() and title.evaluate("e=>{const s=getComputedStyle(e);return s.backgroundImage==='none'&&s.webkitTextFillColor===s.color&&!['transparent','rgba(0,0,0,0)'].includes(s.webkitTextFillColor.replaceAll(' ',''));}"), f'{locale}: high-contrast title uses visible text instead of transparent gradient fill')
-            settle_capture_top(page)
-            page.screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-hero.png'), animations='disabled')
+            if ATELIER:
+                for home_width in (1440,390):
+                    page=browser.new_page(viewport={'width':home_width,'height':900})
+                    errors=[];external=[]
+                    page.on('pageerror',lambda error:errors.append(str(error)))
+                    page.on('request',lambda request:external.append(request.url) if request.url.startswith('http') and not request.url.startswith(origin+'/') else None)
+                    load(page,locale+'index.html')
+                    verify_atelier_home(page,check,locale+'home-deep-'+str(home_width),deep=True)
+                    check(not errors,locale+': new home interactions have no JS errors')
+                    check(not external,locale+': new home interactions make no external requests')
+                    page.close()
+                page=browser.new_page(viewport={'width':390,'height':844},forced_colors='active',reduced_motion='reduce')
+                contrast_locale='en' if en else 'zh'
+            else:
+                # Native geometry, keyboard tabs, full default motion and system preference.
+                page = browser.new_page(viewport={'width': 1440, 'height': 900}, reduced_motion='no-preference')
+                load(page, locale + 'index.html')
+                page.evaluate('document.fonts.ready')
+                verify_hero(page, check, en=en, motion=True)
+                page.close()
+                page = browser.new_page(viewport={'width': 390, 'height': 844})
+                load(page, locale + 'index.html')
+                verify_hero(page, check, en=en)
+                verify_presentation(page, check, locale+'homepage', motion=True)
+                verify_origin(page, check, en=en)
+                menu = page.locator('.mobile-menu')
+                menu.locator('summary').click()
+                check(menu.evaluate('el=>el.open'), f'{locale}: mobile menu opens')
+                page.keyboard.press('Escape')
+                check(not menu.evaluate('el=>el.open'), f'{locale}: Escape closes menu')
+                check(menu.locator('summary').evaluate('el=>el===document.activeElement'), f'{locale}: menu restores focus')
+                page.emulate_media(reduced_motion='reduce')
+                check(page.evaluate("getComputedStyle(document.documentElement).scrollBehavior==='auto'"), f'{locale}: reduced motion')
+                # Narrow regression for the repaired high-contrast title and Orb.
+                page.emulate_media(forced_colors='active', reduced_motion='reduce')
+                load(page, locale + 'index.html')
+                page.evaluate('document.fonts.ready')
+                contrast_locale = 'en' if en else 'zh'
+                check(page.evaluate("matchMedia('(forced-colors: active)').matches"), f'{locale}: browser forced colors is active')
+                title = page.locator('.hero-heading h1 > span')
+                check(title.is_visible() and title.evaluate("e=>{const s=getComputedStyle(e);return s.backgroundImage==='none'&&s.webkitTextFillColor===s.color&&!['transparent','rgba(0,0,0,0)'].includes(s.webkitTextFillColor.replaceAll(' ',''));}"), f'{locale}: high-contrast title uses visible text instead of transparent gradient fill')
+                settle_capture_top(page)
+                page.screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-hero.png'), animations='disabled')
             # Full interaction/keyboard/permission checks continue on the
             # unchanged demo rather than turning the homepage into a test app.
             load(page, locale + 'demo.html')
@@ -439,9 +477,14 @@ try:
             context = browser.new_context(java_script_enabled=False, viewport={'width': 390, 'height': 844})
             page = context.new_page()
             load(page, locale + 'index.html', scripts=False)
-            check(page.locator('h1').is_visible() and page.locator('#input-library').is_visible() and page.locator('#personal-context').is_visible(), f'{locale}: static core content without JS')
-            check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-hero-glass]').is_visible(), f'{locale}: product-led first view works without JavaScript')
-            check(page.locator('[data-story-organized]').is_visible(), f'{locale}: complete topic presentation without JavaScript')
+            if ATELIER:
+                check(page.locator('h1').is_visible() and page.locator('#archive').is_visible() and page.locator('#context').is_visible(), f'{locale}: static core content without JS')
+                check(page.locator('#pd-panel-thought').is_visible() and page.locator('#pd-demo').is_visible(), f'{locale}: product-led first view works without JavaScript')
+                check(page.locator('#topic-prose article').count()==2 and page.locator('#topic-prose').is_visible(), f'{locale}: complete topic presentation without JavaScript')
+            else:
+                check(page.locator('h1').is_visible() and page.locator('#input-library').is_visible() and page.locator('#personal-context').is_visible(), f'{locale}: static core content without JS')
+                check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-hero-glass]').is_visible(), f'{locale}: product-led first view works without JavaScript')
+                check(page.locator('[data-story-organized]').is_visible(), f'{locale}: complete topic presentation without JavaScript')
             page.close()
             context.close()
         browser.close()

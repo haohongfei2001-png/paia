@@ -33,7 +33,12 @@ def source_digest(root):
 
 
 def verify_static_harmony(root, check):
-    if 'data-home-mode="presentation"' in (root/'index.html').read_text():
+    if 'data-atelier-version="9"' in (root/'index.html').read_text():
+        # The owner replaced only the homepage; all prior assets and interior
+        # outputs remain locked to the exact main checkpoint in this manifest.
+        from atelier_checks import verify_static
+        verify_static(root, check)
+    elif 'data-home-mode="presentation"' in (root/'index.html').read_text():
         # Presentation intentionally replaces homepage trial controls. All
         # other delivered pages, demo controllers and original visual sheets
         # remain byte-locked to the approved pre-presentation baseline.
