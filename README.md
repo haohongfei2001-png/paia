@@ -1,3 +1,9 @@
+> **23 October 2026 — Atelier V9 homepage.** The owner requested the current
+> conversation design be published, with an independent hero background and a
+> less rigid Thought Library presentation. The paired home templates and their
+> scoped verification now live in [website/atelier/README.md](website/atelier/README.md).
+> Other pages, the standalone demo, product runtime and release boundaries remain.
+
 # PAIA — Personal AI Input Archive
 
 **PAIA** is a local-first personal AI information and context system. It collects what users tell AI, preserves source evidence, and helps them turn their accumulated inputs into context they can edit, choose and reuse. A good reading experience supports this loop; PAIA is not positioned as a reading app.

@@ -34,14 +34,15 @@ def find(nodes,selector):
 def verify_static_publication(root,check):
     from evidence_fix_checks import restore_confirmed_edits
     original=json.loads((root/'website/launch_invariants.json').read_text())
-    for relative,entries in original['home'].items():
-        parsed=Fragments(restore_confirmed_edits(relative,(root/relative).read_bytes()).decode())
-        for selector,expected in entries.items():
-            mapped = selector
-            if 'data-home-mode="presentation"' in parsed.source:
-                mapped = {'.pc-record textarea':'.hp-input-text', '[data-thought-text]':'[data-story-original] .ad-story-entry p'}.get(selector,selector)
-            actual=[Text(parsed.outer(n)).value() for n in find(parsed,mapped)]
-            check(actual==expected,relative+': original expressions/value statement retained '+selector)
+    if 'data-atelier-version="9"' not in (root/'index.html').read_text():
+        for relative,entries in original['home'].items():
+            parsed=Fragments(restore_confirmed_edits(relative,(root/relative).read_bytes()).decode())
+            for selector,expected in entries.items():
+                mapped = selector
+                if 'data-home-mode="presentation"' in parsed.source:
+                    mapped = {'.pc-record textarea':'.hp-input-text', '[data-thought-text]':'[data-story-original] .ad-story-entry p'}.get(selector,selector)
+                actual=[Text(parsed.outer(n)).value() for n in find(parsed,mapped)]
+                check(actual==expected,relative+': original expressions/value statement retained '+selector)
     for relative,sha in original['unmodified_runtime'].items():
         data=(root/relative).read_bytes()
         if relative == 'assets/website/product-experience.css':
