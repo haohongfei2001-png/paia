@@ -20,8 +20,7 @@ def verify_typography(page, check, label='site'):
     editorial = (page.locator('html').get_attribute('lang') == 'en' and
                  page.locator('body').get_attribute('data-page') in editorial_pages)
     family = page.locator('h1').evaluate('e=>getComputedStyle(e).fontFamily')
-    continuity_english = page.locator('body').get_attribute('data-site-revision') == 'continuity-v2' and page.locator('html').get_attribute('lang') == 'en'
-    expected = 'Instrument Serif' if editorial or continuity_english else 'sans-serif'
+    expected = 'Instrument Serif' if editorial else 'sans-serif'
     test(expected in family, 'primary heading retains its editorial or product UI type role')
     test('PAIA Display' in page.locator('.wordmark').first.evaluate('e=>getComputedStyle(e).fontFamily'), 'original PAIA brand typography retained')
     test(page.locator('.header-inner').evaluate("e=>getComputedStyle(e).backdropFilter.includes('blur(')"), 'navigation uses the shared glass surface')
@@ -62,7 +61,7 @@ def verify_origin(page, check, en=True):
     test(page.locator('.pc-thought').evaluate_all("els=>els.length===4 && els.every(e=>getComputedStyle(e).boxShadow==='none' && parseFloat(getComputedStyle(e).borderTopWidth)===0)"), 'Topic entries remain continuous prose without individual card chrome')
     test(page.locator('.pc-topic-source').count() == 4, 'topic keeps cross-conversation provenance')
     stamps = [' '.join(value.split()) for value in page.locator('.pc-thought time').all_text_contents()]
-    test(stamps == ['08 MAY 09:42', '08 MAY 11:18', '08 MAY 18:03', '24 SEP 10:26'], 'topic preserves the chronological trail')
+    test(stamps == ['12 AUG 09:42', '26 AUG 11:18', '10 SEP 18:03', '24 SEP 10:26'], 'topic preserves the chronological trail')
     test(page.locator('[data-context-card]').count() == 4, 'four independent Context cards remain identifiable')
     test(page.locator('[data-context-overview] textarea').count() == 0, 'overview keeps personal bodies in their details')
     test(('live AI' if en else 'AI') in page.locator('.pc-disclosure').text_content() and ('clear on reload' if en else '刷新即清除') in page.locator('.pc-disclosure').text_content(), 'one demo boundary preserves nonconnection and transient-edit truth')

@@ -79,9 +79,6 @@ def verify_harmony(page, check, label='site'):
          'shared surface hierarchy is loaded with the original stylesheet')
     if page_name != 'index.html':
         return
-    if page.locator('body').get_attribute('data-site-revision') == 'continuity-v2':
-        from continuity_checks import verify_visual
-        return verify_visual(page,check,label)
     forced = page.evaluate("matchMedia('(forced-colors:active)').matches")
     backing = page.locator('.hero-stack i').evaluate_all("es=>es.filter(e=>getComputedStyle(e).display!=='none').length")
     test(backing <= 1, 'opening has at most one supporting plane')
@@ -90,16 +87,11 @@ def verify_harmony(page, check, label='site'):
              'ambient light is not another framed slab')
         test(page.locator('.hero-product-glass').evaluate("e=>getComputedStyle(e).backdropFilter.includes('blur(')"),
              'product preview retains its glass identity')
-        if page.locator('body').get_attribute('data-site-revision') == '20261022':
-            test(page.locator('.vs-host').evaluate("e=>getComputedStyle(e).backgroundColor==='rgb(255, 255, 255)'"),'new prompt host remains neutral white')
-            test(page.locator('.vs-prompt-board').evaluate("e=>getComputedStyle(e).backdropFilter.includes('blur(')"),'saved expressions retain the glass material')
-            test(page.locator('.vs-thought-lines li').evaluate_all("es=>es.every(e=>getComputedStyle(e).boxShadow==='none')"),'new chronological reading remains continuous, not individual cards')
-        else:
-            shadows = [page.locator(sel).first.evaluate('e=>getComputedStyle(e).boxShadow') for sel in (
-                '.pc-record', '.pc-context-card', '.ad-prompt-scroll .ad-host')]
-            test(len(set(shadows)) == 1, 'paper, directory and neutral host share a quiet contact shadow')
-            test(page.locator('.ad-prompt-scroll .ad-host').evaluate("e=>getComputedStyle(e).backgroundColor==='rgb(255, 255, 255)'"),
-                 'ChatGPT-like host stays neutral white')
+        shadows = [page.locator(sel).first.evaluate('e=>getComputedStyle(e).boxShadow') for sel in (
+            '.pc-record', '.pc-context-card', '.ad-prompt-scroll .ad-host')]
+        test(len(set(shadows)) == 1, 'paper, directory and neutral host share a quiet contact shadow')
+        test(page.locator('.ad-prompt-scroll .ad-host').evaluate("e=>getComputedStyle(e).backgroundColor==='rgb(255, 255, 255)'"),
+             'ChatGPT-like host stays neutral white')
     test(page.locator('[data-context-overview] textarea,[data-context-overview] [data-context-text]').count() == 0,
          'Context remains a directory, not a body preview')
     test(page.locator('[data-context-card]').count() == 4, 'all four independent Context directories remain')

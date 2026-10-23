@@ -19,5 +19,5 @@ def icon(name, cls='art-icon'):
     return f'<svg class="{cls}" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{paths[name]}</svg>'
 
 def render(t, a, button, statusmini):
-    from continuity import render as render_presentation
+    from presentation_home import render as render_presentation
     return render_presentation(t, a, button, icon)
