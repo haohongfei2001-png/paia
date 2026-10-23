@@ -1,0 +1,8 @@
+{
+  "extension/core/browser-native-sync/group-checkpoint.js": "6a28c269c35e5179e526354b90ae421a141cb9e80dd2a3f26108eea274c6f777",
+  "extension/core/browser-native-sync/prompt-journal.js": "fd65e8f2bcb7e3889788b1aa19e93367de65aea9416d754211976511d52d1f4b",
+  "extension/core/browser-native-sync/resolved-prompt-replay.js": "706cadb6fb84ad083b1801a618e57229c9c688fba5866d74d351edd0c5727e1f",
+  "extension/tests/manual-prompt-bound-conflict.test.mjs": "27575b979c93299538ea31c586d2d9027c13fe09015b18475a19acbdcc3a40fd",
+  "extension/tests/resolved-prompt-replay.test.mjs": "2c35d7391b322bc68d85cddb63e6fb89f408af391672c4a834519342c8f24341",
+  "extension/tests/sync-worker-checkpoint-prompt.test.mjs": "3dd5ec79cf629643399d354cf4e05afc01fef484da03bd9d06e73be5aaaf525d"
+}
