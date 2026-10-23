@@ -10,6 +10,7 @@ import {ArchiveRepository,registerRepositoryWorkLimit,registerRepositoryFinalRea
 // database. A sealed identity is publication metadata, never a content grant.
 export const CANONICAL_GENERATION_REGISTRY='canonical-generation:registry:v1';
 export const CANONICAL_GENERATION_GATE='canonical-generation:gate:v1';
+const qualifiedGraph='canonical-generation:qualified-graph:v1';
 const receipts='canonical-generation:receipt:',deletions='canonical-generation:deletion:',invalidations='canonical-generation:invalidated:',catalog='canonical-generation:catalog:';
 const handles=new WeakMap(),seals=new WeakMap(),bases=new WeakMap();
 const fail=(code='GENERATION_INVALID')=>{throw new ArchiveError(code);};
@@ -86,8 +87,9 @@ export class CanonicalGenerationPublication {
   if(!equal(packet.generationIdentity,held.identity))fail('GENERATION_COLLISION');
   const selected=sealData({sealId:crypto.randomUUID(),manifestId:packet.manifestRef.id,graphDigest:packet.graphDigest});
   let validationError;const gate=await held.repository.transaction(true,async t=>{registerRepositoryWorkLimit(held.repository,t);const before=this.#gate(await t.get('meta',CANONICAL_GENERATION_GATE),held.identity);if(before.phase!=='staging')fail('GENERATION_NOT_STAGING');
+   const qualification={id:qualifiedGraph,version:1,kind:human?'original-human':'original-group',identity:held.identity,seal:selected,sourceBase:packet.sourceBase};if(await t.get('meta',qualifiedGraph))fail('GENERATION_CHANGED');await t.put('meta',qualification);
    let actual;try{actual=await validate(restore,proof,t);}catch(error){if(error instanceof SyncError)validationError=error;throw error;}if(!equal(actual,{manifestId:selected.manifestId,graphDigest:selected.graphDigest,generationIdentity:held.identity}))fail('GENERATION_CHANGED');
-   const after={...before,phase:'sealed',seal:selected};await t.put('meta',after);sealPoint(held.repository,t,after.id,after);return after;
+   const after={...before,phase:'sealed',seal:selected};await t.put('meta',after);sealPoint(held.repository,t,after.id,after);sealPoint(held.repository,t,qualifiedGraph,qualification);return after;
   }).catch(error=>{throw validationError??error;});const token=Object.freeze(Object.create(null));seals.set(token,{owner:this,handle,gate,base:this.sourceBaseSnapshot(base)});return token;
  }
  async stagingWrite(handle,fn){return this.#writeGeneration(handle,'staging',fn);}
