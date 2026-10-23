@@ -27,7 +27,7 @@
 | [AI-COST01–07](../AI_USAGE_PLAN.md) | 原 Delta/Job/Receipt、service/UNKNOWN、Filter、Assist、Organize Current、人工保护和 ACK/CAS 路径保留。`local-maintenance-session.js` constructor 的原 Foundation committers 实际消费 authored/placement/structural/context-edit 资格；不是无调用 helper。原四个服务-native 根已在验收矩阵明确独立入口及历史 30 leaves，不能继续声称没有入口，也不能当最新全部源码的 real SQL/model 结果。 | 有限人工语义映射的旧总缺口由新消费者逐项覆盖。没有新确认的独立非 Sync 映射需要立即重做。继续处理真实集成反例；manual DEFER 不得 blanket ACK；真实身份/entitlement/profile/tokenizer 和安装配置不能用本地 tier 标记伪造。 | 金融 unknown/replay/refund、真实 SQL、真实模型质量/费用、真实账户/签名权限、服务部署分别验收。默认 null / default-deny 是边界，不是可绕过的故障。 |
 | [Prompt / NIB S0–S4](../NARROW_INPUT_BOARD_V4_PLAN.md) | `content/prompt-surface.js`→`background/prompt-surface.js`→`ui/prompt-surface.js` 的原私有 frame 与 receiver；R3 三态原生 2/2 是有限证据。`ui/prompt-surface.js` 实际有 representative / split 选择、保存、过期拒绝及工具入口；`core/prompt-family.js` 消费 splits / representative，并非 Family 纠正整体缺失。 | 不重做 R3 连接研究、Family 纠正、原 archive search、插入/undo/no-send。真实差异出现时在原 owner 修。remote Stage3B 不因自动本地推进而新增。 | 当前真实网站兼容、真实 IME、动画/120Hz/50ms、当前设计图逐项视觉与源/包一致性，不能由固定三态两 case 或旧原型证明。没有未经授权的真实回复读取/发送。 |
 | [ARCHIVE-HOME01–06 / IAH1.8](../INPUT_ARCHIVE_HOME_PLAN.md) | `ui/archive.js` 实际调用 `requalifyArchiveYear` 和 `installArchiveArrival`，通过原 GET_PAGE / SEARCH_INPUTS、Reader state/editor/session 与导航恢复消费年度、精确目标、空根和编辑返回；`archive-year-requalification.js` 逐项核原 Input/revision/日期/邻接边界。已有 Archive / year / arrival / Source/Working tests 是原 owning 路径。 | 年度、根、目标和编辑返回不是整体缺失。Browser2 子进程已正常退出，不能继续开发“收尾子进程挂住”假设；对象构造耗时子集不是主因。容量和真实规模证明待整合，原 scale / 原数据量 / 断言不删。 | 原文完整 copy、日期不变、source切换/filter/purge/recovery、真实源与Linux容量。100k 本地已耗播种证明不是 Linux 提升；已有只读分析不需要再跑同样大 seed。 |
-| [SYNC01–06](../BROWSER_NATIVE_SYNC_PLAN.md) | 原 local coordinator、Core、当前 mixed exporter、原 Source/Working/Human/Saved/Formation/purge owners、非空增量、同批 Human+Working、Saved非空后继、冷启动 phased continuation、发布后复制清理均有实际消费者。[最新冻结报告](../../../../work/phased-human-integration-20261023/REPORT.md)：115/115完整 Node，669 文件 build，Source/Release8/8 parents；每variant25+34+18+13原 case；零网络。 | **仍有真正工程：**大图在原预算内的端到端恢复、发布前已消费副本的安全清理/冷重验、未覆盖混合/已采用/冲突族、既有 active-generation 替换与完整负向事实继承、实际 application database 切换；逐项确认 current compiler / owner 消费边界后实施。65/129预算拒绝未解决；发布后清理及少一次读不是容量证明。SYNC01不是完成；默认生产 Sync off 符合本地合成范围。 | 真实Chrome/Edge/Safari账户/provider、最小scope、跨设备及平台恢复、最终完整一致性/视觉/性能/Full和实际启用。OAuth/云scope/真实数据不能由本地注入适配器替代。 |
+| [SYNC01–06](../BROWSER_NATIVE_SYNC_PLAN.md) | 原 local coordinator、Core、当前 mixed exporter、原 Source/Working/Human/Saved/Formation/purge owners、非空增量、同批 Human+Working、Saved非空后继、冷启动 phased continuation、发布后复制清理均有实际消费者。[最新冻结报告](../../../../work/phased-human-integration-20261023/REPORT.md)：115/115完整 Node，669 文件 build，Source/Release8/8 parents；每variant25+34+18+13原 case；零网络。 | **仍有真正工程：**大图在原预算内的端到端恢复、明确被现有消费者拒绝的必要混合族（下节逐项列出）、既有 active-generation 替换与完整负向事实继承、实际 application database 切换；逐项确认 current compiler / owner 消费边界后实施。发布前副本消费仅为优化候选，不是独立强制交付物。65/129预算拒绝未解决；发布后清理及少一次读不是容量证明。SYNC01不是完成；默认生产 Sync off 符合本地合成范围。 | 真实Chrome/Edge/Safari账户/provider、最小scope、跨设备及平台恢复、最终完整一致性/视觉/性能/Full和实际启用。OAuth/云scope/真实数据不能由本地注入适配器替代。 |
 
 上表 Sync 的阶段名称为 **SYNC01**；整个计划仍为 PARTIAL / NOT_ACCEPTED。静态复核未确认新的独立非 Sync 功能缺口，只表示不应重复已经实现的消费者，不证明所有非 Sync 计划已经验收。
 
@@ -55,9 +55,25 @@
 
 ## 5. 连续队列建议与完成定义
 
-1. 优先完成当前 Sync 原 owner 的真实剩余恢复链：原预算内大图、可恢复的发布前副本处理、明确未覆盖 family 与已有 active 库替换/实际消费。沿一条端到端 A→coldB→原编辑→coldC 的消费者闭合，不把新增一个未消费校验器当里程碑。
+1. 优先完成当前 Sync 原 owner 的真实剩余恢复链：原预算内大图、已定位的 populated mixed 原 owner 拒绝与已有 active 库替换/实际消费。不得将“发布前副本处理”升级为必须实现的单独子计划。沿一条端到端 A→coldB→原编辑→coldC 的消费者闭合，不把新增一个未消费校验器当里程碑。
 2. 并行保留非 Sync 已完成消费者并审查实际集成差额；只对新的源码反例或当前计划明确但未接入的结果开工。manual DEFER 保留，身份issuer等集中决策不冒充普通实现卡点。
 3. 每个有意义冻结做完整所属、安全rollback/native源包组合；未改部分按exact依赖复用证据，不为文档或新commit重复build/全套。
 4. 最终必须交付可运行包、全部七条计划逐项实现/验收/明确外部缺口、原失败及最终证据、剩余风险和升级/使用/回退方法。局部绿、报告commit或默认关闭的服务不能称“整个产品完成”。
 
 本报告仅静态核对与新增文档；未运行Node、browser、build、APT、云CI、Full、provider/model、安装或部署。没有修改原计划、安全guard、测试断言或历史证据。
+
+
+## 6. 当日后继：当前 Sync01 必做消费者与明确优先级
+
+本补记静态读取 root `4c0d4d62`。官网 main `9d7200555b315e1d89509f12bf78bf62e16418ae` 经正常 merge `5e6f4f728d286eeabdf626e48d4ee3ac3e6d0ba6` 保留；root 报告23条官网路径逐字节不变，本线核对 merge 双亲，未重跑官网或产品测试。`4c0d4d62` 选择了 `3a5a2ba5` 的实际 synthetic collection 消费者和8/8既有证据；不再将计划旧段“performedDeletion:false”泛称当前没有实际 collection。该有限 fake transport 结果不等于物理远端删除或整个 compaction 合同完成。
+
+[Sync计划](../BROWSER_NATIVE_SYNC_PLAN.md) §3 明确要求独立虚拟安装通过 fake cloud 恢复/合并全部已填充 canonical families；§3.2要求非空B、阶段中本地编辑、失效后旧数据可用、原子激活/恢复、清理后re-export与后续双向编辑，参数实验不推迟到provider阶段。因此以下三类仍是**本地获准工程**。不能因当前 unsupported 就全推迟到真实账户验收，也不能不看真实消费者便将所有 unsupported codec 一次泛化实施。
+
+| 优先工作包 | 确定当前消费者 / 拒绝 | 自主实施的有限闭环与边界 |
+|---|---|---|
+| 最高：既有 mixed B 的 Saved successor 与 resident AI jobs 共存 | `saved-work-bootstrap.js:403` 的 `prepareSavedMixedRetention` 在421直接拒绝任何 `organizerJobs`。原 `ai-usage/semantic-invalidation.js` 已有真正的 job/usage/domain-result失效 owner；当前拒绝避免漏掉它，但普通使用过AI的B不应永远不能接收合法Saved后继。 | 使用原Saved编辑+原semantic invalidation owner，**写入前**推导所需jobs/usage/meta/receipt变化，再原生终态完整比对。A→非空Source/Human/Saved B（原真实本地Job）→Saved编辑到达→原状态失效/UNKNOWN费用保留→cold B→原编辑→C；错receipt/迟到/callback裸改/超预算全回滚。不得删除Job、重写费用、用后写快照当预期。此为local fake-cloud，不调用模型。先核原失效依赖后决定是否抽取实际owner共用的纯投影；不要建立第二个失效实现。 |
+| 随后：Saved mixed 消费者接收真正新 Human groups | `group-checkpoint.js:345` 当前要求incoming仅为单操作`savedWorkSuccessor`；`browser-native-sync-saved-mixed.test.mjs` 的“existing mixed B refuses incoming new Human groups”明确证明现状。通用mixed Human+Working已实现，不能把它重做或当成含Saved的证明。 | 在Saved既存物理/mapping/history/receipt闭包保留前提下，消费原Human计划/写入/协议；拓扑/分配/计数/semantic终态预期在写前完成，B本地Saved与Human/outbox不能丢。源端完整manifest→coldB→新Human→本地Saved编辑→coldC是有限验收。禁止只扩allowlist或跳过Saved闭包；shared coordinator由root统一整合。 |
+| 并行：existing-active replacement / application database选择 | `canonical-generation-publication.js` 的原`#sealCheckpoint` 对 `packet.sourceBase.root.active!==null` 拒绝 `GENERATION_EXISTING_SOURCE_OWNER_REQUIRED`，注释正确指出freshness不证明canonical/negative继承。`background/service-worker.js:61` 仍用原默认`IndexedArchiveStore`；已有手工原active binding不等于应用真实选择。 | 先在两个虚拟安装中用原registry/原store factory完成已有active迁移、旧canonical/负向事实/未完成编辑继承，publication中断/并发编辑保留旧可用库，cold新consumer读取/编辑；不直接移除拒绝。**本地可注入应用选择与真实默认worker启用分开**：Sync01要证明真实应用owner消费所选库，不需对真实用户profile打开Sync。root已另派writer，本线不抢文件。 |
+| 并行：scale /预算内完整恢复 | 65最终seal及129原owner累计预算拒绝仍在；版本/缓存不能代替完整原行/计数封口。没有可用的已通过完整规模包。 | scale writer处理checkpoint preparation/重复工作与原owner消费，保留4096refs/2MiB/30s和原累计账。发布前副本消费并非计划独立强制要求；最新scale分析报告129在owner前已约12.65MiB，额外消费/冷重验增加累计成本，root已决定不为final表面变小实现该复杂支线。此数字为scale writer报告，本线未重测。先做有实际降低工作的工程，再按冻结差额选择必要测量；不重复已耗100k播种或云Full。 |
+
+分工建议：本线以独立树所有 `saved-work-bootstrap.js` 保留证明及必要的原 `semantic-invalidation.js` 共用投影、独立所属测试；不改 Saved旧树两处shared patch。root统一coordinator及原生桥；另两线分别active replacement和scale。权限、scope和预算不扩展时这些工作无需新的逐步批准。若确认某普通状态目前没有原写入/映射合同，先提供具体欠缺和合理实现包，而非把整类一律留作外部验收。
