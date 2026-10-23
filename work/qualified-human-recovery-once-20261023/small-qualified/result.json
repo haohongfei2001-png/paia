@@ -1,0 +1,1369 @@
+{
+  "result": "PASS",
+  "events": [
+    {
+      "phase": "source-start",
+      "atMs": 455.20000000298023,
+      "groups": 3
+    },
+    {
+      "phase": "source-closed",
+      "atMs": 535.9000000059605,
+      "objects": 3
+    },
+    {
+      "phase": "authenticated",
+      "atMs": 588,
+      "task": {
+        "id": "canonical-generation:checkpoint:phased-task:v1",
+        "version": 2,
+        "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+        "identity": {
+          "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+          "generationIdentity": {
+            "generationId": "synthetic_qualified_generation",
+            "databaseId": "synthetic_qualified_database",
+            "databaseName": "paia-native-qualified-small-target"
+          },
+          "sourceBase": {
+            "root": {
+              "id": "canonical-generation:registry:v1",
+              "version": 1,
+              "revision": 0,
+              "active": null,
+              "pending": null
+            },
+            "gate": null
+          }
+        },
+        "phase": "authenticated",
+        "tickets": 1,
+        "burned": 0,
+        "workBytes": 2299377,
+        "activeMs": 30014,
+        "pending": null,
+        "transportIds": [
+          "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+        ],
+        "controlSequence": 3,
+        "controlBurned": 0,
+        "controlPending": {
+          "sequence": 3,
+          "bytes": 2097152,
+          "ms": 30000
+        }
+      },
+      "control": {
+        "transactions": 3,
+        "references": 49,
+        "bytes": 28488,
+        "activeMs": 3.9000000059604645,
+        "maxReferences": 19,
+        "maxBytes": 16391,
+        "maxActiveMs": 1.5
+      }
+    },
+    {
+      "phase": "validated-before-owner",
+      "atMs": 609.7000000029802,
+      "task": {
+        "id": "canonical-generation:checkpoint:phased-task:v1",
+        "version": 2,
+        "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+        "identity": {
+          "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+          "generationIdentity": {
+            "generationId": "synthetic_qualified_generation",
+            "databaseId": "synthetic_qualified_database",
+            "databaseName": "paia-native-qualified-small-target"
+          },
+          "sourceBase": {
+            "root": {
+              "id": "canonical-generation:registry:v1",
+              "version": 1,
+              "revision": 0,
+              "active": null,
+              "pending": null
+            },
+            "gate": null
+          }
+        },
+        "phase": "validated",
+        "tickets": 4,
+        "burned": 0,
+        "workBytes": 2533361,
+        "activeMs": 30040,
+        "pending": null,
+        "transportIds": [
+          "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+        ],
+        "controlSequence": 10,
+        "controlBurned": 0,
+        "controlPending": {
+          "sequence": 10,
+          "bytes": 2097152,
+          "ms": 30000
+        }
+      },
+      "control": {
+        "transactions": 10,
+        "references": 158,
+        "bytes": 83201,
+        "activeMs": 11.900000020861626,
+        "maxReferences": 19,
+        "maxBytes": 17566,
+        "maxActiveMs": 1.7999999970197678
+      },
+      "schedule": {
+        "version": 1,
+        "groups": 3,
+        "operations": 9,
+        "items": 19,
+        "pages": 1,
+        "rawPoints": 118,
+        "storeCounts": 37,
+        "fixedReferences": 19,
+        "references": 174
+      }
+    },
+    {
+      "phase": "owner",
+      "atMs": 669,
+      "task": {
+        "id": "canonical-generation:checkpoint:phased-task:v1",
+        "version": 2,
+        "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+        "identity": {
+          "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+          "generationIdentity": {
+            "generationId": "synthetic_qualified_generation",
+            "databaseId": "synthetic_qualified_database",
+            "databaseName": "paia-native-qualified-small-target"
+          },
+          "sourceBase": {
+            "root": {
+              "id": "canonical-generation:registry:v1",
+              "version": 1,
+              "revision": 0,
+              "active": null,
+              "pending": null
+            },
+            "gate": null
+          }
+        },
+        "phase": "applying",
+        "tickets": 5,
+        "burned": 0,
+        "workBytes": 2694792,
+        "activeMs": 30091,
+        "pending": null,
+        "transportIds": [
+          "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+        ],
+        "controlSequence": 13,
+        "controlBurned": 0,
+        "controlPending": {
+          "sequence": 13,
+          "bytes": 2097152,
+          "ms": 30000
+        }
+      },
+      "control": {
+        "transactions": 13,
+        "references": 193,
+        "bytes": 97352,
+        "activeMs": 25.700000017881393,
+        "maxReferences": 19,
+        "maxBytes": 17566,
+        "maxActiveMs": 5.4000000059604645
+      },
+      "completed": 1
+    },
+    {
+      "phase": "cold-closed",
+      "atMs": 669.2000000029802,
+      "completed": 1,
+      "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab"
+    },
+    {
+      "phase": "cold-revalidated",
+      "atMs": 693.3000000119209,
+      "task": {
+        "id": "canonical-generation:checkpoint:phased-task:v1",
+        "version": 2,
+        "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+        "identity": {
+          "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+          "generationIdentity": {
+            "generationId": "synthetic_qualified_generation",
+            "databaseId": "synthetic_qualified_database",
+            "databaseName": "paia-native-qualified-small-target"
+          },
+          "sourceBase": {
+            "root": {
+              "id": "canonical-generation:registry:v1",
+              "version": 1,
+              "revision": 0,
+              "active": null,
+              "pending": null
+            },
+            "gate": null
+          }
+        },
+        "phase": "applying",
+        "tickets": 8,
+        "burned": 0,
+        "workBytes": 5021321,
+        "activeMs": 60115,
+        "pending": null,
+        "transportIds": [
+          "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+        ],
+        "controlSequence": 20,
+        "controlBurned": 1,
+        "controlPending": {
+          "sequence": 20,
+          "bytes": 2097152,
+          "ms": 30000
+        }
+      },
+      "control": {
+        "transactions": 7,
+        "references": 109,
+        "bytes": 54673,
+        "activeMs": 8.700000017881393,
+        "maxReferences": 19,
+        "maxBytes": 17566,
+        "maxActiveMs": 1.7999999970197678
+      }
+    },
+    {
+      "phase": "cold-rehydrated",
+      "atMs": 747.2000000029802,
+      "task": {
+        "id": "canonical-generation:checkpoint:phased-task:v1",
+        "version": 2,
+        "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+        "identity": {
+          "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+          "generationIdentity": {
+            "generationId": "synthetic_qualified_generation",
+            "databaseId": "synthetic_qualified_database",
+            "databaseName": "paia-native-qualified-small-target"
+          },
+          "sourceBase": {
+            "root": {
+              "id": "canonical-generation:registry:v1",
+              "version": 1,
+              "revision": 0,
+              "active": null,
+              "pending": null
+            },
+            "gate": null
+          }
+        },
+        "phase": "applying",
+        "tickets": 9,
+        "burned": 0,
+        "workBytes": 5120253,
+        "activeMs": 60167,
+        "pending": null,
+        "transportIds": [
+          "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+        ],
+        "controlSequence": 23,
+        "controlBurned": 1,
+        "controlPending": {
+          "sequence": 23,
+          "bytes": 2097152,
+          "ms": 30000
+        }
+      },
+      "control": {
+        "transactions": 10,
+        "references": 144,
+        "bytes": 69986,
+        "activeMs": 20.799999997019768,
+        "maxReferences": 19,
+        "maxBytes": 17566,
+        "maxActiveMs": 4.399999991059303
+      },
+      "rehydrated": {
+        "state": "rehydrated",
+        "completed": 1,
+        "total": 3,
+        "workBytes": 5120253,
+        "publicationQualified": false
+      }
+    },
+    {
+      "phase": "owner",
+      "atMs": 789.5,
+      "task": {
+        "id": "canonical-generation:checkpoint:phased-task:v1",
+        "version": 2,
+        "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+        "identity": {
+          "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+          "generationIdentity": {
+            "generationId": "synthetic_qualified_generation",
+            "databaseId": "synthetic_qualified_database",
+            "databaseName": "paia-native-qualified-small-target"
+          },
+          "sourceBase": {
+            "root": {
+              "id": "canonical-generation:registry:v1",
+              "version": 1,
+              "revision": 0,
+              "active": null,
+              "pending": null
+            },
+            "gate": null
+          }
+        },
+        "phase": "applying",
+        "tickets": 10,
+        "burned": 0,
+        "workBytes": 5268801,
+        "activeMs": 60210,
+        "pending": null,
+        "transportIds": [
+          "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+        ],
+        "controlSequence": 26,
+        "controlBurned": 1,
+        "controlPending": {
+          "sequence": 26,
+          "bytes": 2097152,
+          "ms": 30000
+        }
+      },
+      "control": {
+        "transactions": 13,
+        "references": 179,
+        "bytes": 85292,
+        "activeMs": 32.30000001192093,
+        "maxReferences": 19,
+        "maxBytes": 17566,
+        "maxActiveMs": 4.399999991059303
+      },
+      "completed": 2
+    },
+    {
+      "phase": "owner",
+      "atMs": 830.2000000029802,
+      "task": {
+        "id": "canonical-generation:checkpoint:phased-task:v1",
+        "version": 2,
+        "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+        "identity": {
+          "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+          "generationIdentity": {
+            "generationId": "synthetic_qualified_generation",
+            "databaseId": "synthetic_qualified_database",
+            "databaseName": "paia-native-qualified-small-target"
+          },
+          "sourceBase": {
+            "root": {
+              "id": "canonical-generation:registry:v1",
+              "version": 1,
+              "revision": 0,
+              "active": null,
+              "pending": null
+            },
+            "gate": null
+          }
+        },
+        "phase": "applying",
+        "tickets": 11,
+        "burned": 0,
+        "workBytes": 5414788,
+        "activeMs": 60251,
+        "pending": null,
+        "transportIds": [
+          "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+        ],
+        "controlSequence": 29,
+        "controlBurned": 1,
+        "controlPending": {
+          "sequence": 29,
+          "bytes": 2097152,
+          "ms": 30000
+        }
+      },
+      "control": {
+        "transactions": 16,
+        "references": 214,
+        "bytes": 100602,
+        "activeMs": 43.400000020861626,
+        "maxReferences": 19,
+        "maxBytes": 17566,
+        "maxActiveMs": 4.399999991059303
+      },
+      "completed": 3
+    },
+    {
+      "phase": "publication-prepared",
+      "atMs": 838.7000000029802,
+      "task": {
+        "id": "canonical-generation:checkpoint:phased-task:v1",
+        "version": 2,
+        "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+        "identity": {
+          "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+          "generationIdentity": {
+            "generationId": "synthetic_qualified_generation",
+            "databaseId": "synthetic_qualified_database",
+            "databaseName": "paia-native-qualified-small-target"
+          },
+          "sourceBase": {
+            "root": {
+              "id": "canonical-generation:registry:v1",
+              "version": 1,
+              "revision": 0,
+              "active": null,
+              "pending": null
+            },
+            "gate": null
+          }
+        },
+        "phase": "applying",
+        "tickets": 12,
+        "burned": 0,
+        "workBytes": 13813983,
+        "activeMs": 90259,
+        "pending": {
+          "sequence": 12,
+          "kind": "publication",
+          "bytes": 8388608,
+          "ms": 30000
+        },
+        "transportIds": [
+          "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+        ],
+        "controlSequence": 31,
+        "controlBurned": 1,
+        "controlPending": {
+          "sequence": 31,
+          "bytes": 2097152,
+          "ms": 30000
+        }
+      },
+      "control": {
+        "transactions": 18,
+        "references": 238,
+        "bytes": 111256,
+        "activeMs": 50.900000020861626,
+        "maxReferences": 19,
+        "maxBytes": 17566,
+        "maxActiveMs": 4.399999991059303
+      },
+      "preparedPublication": {
+        "state": "prepared",
+        "references": 174,
+        "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+        "graphDigest": "79b669cadafb18fff61ba46d635dad5db6ae73999f2548af0baf7c74259e185e",
+        "generationIdentity": {
+          "generationId": "synthetic_qualified_generation",
+          "databaseId": "synthetic_qualified_database",
+          "databaseName": "paia-native-qualified-small-target"
+        },
+        "prepaidBytes": 8388608,
+        "prepaidMs": 30000
+      }
+    },
+    {
+      "phase": "sealed",
+      "atMs": 876.2000000029802,
+      "task": {
+        "id": "canonical-generation:checkpoint:phased-task:v1",
+        "version": 2,
+        "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+        "identity": {
+          "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+          "generationIdentity": {
+            "generationId": "synthetic_qualified_generation",
+            "databaseId": "synthetic_qualified_database",
+            "databaseName": "paia-native-qualified-small-target"
+          },
+          "sourceBase": {
+            "root": {
+              "id": "canonical-generation:registry:v1",
+              "version": 1,
+              "revision": 0,
+              "active": null,
+              "pending": null
+            },
+            "gate": null
+          }
+        },
+        "phase": "verified",
+        "tickets": 12,
+        "burned": 0,
+        "workBytes": 11721698,
+        "activeMs": 60263,
+        "pending": null,
+        "transportIds": [
+          "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+        ],
+        "controlSequence": 31,
+        "controlBurned": 1,
+        "controlPending": null
+      },
+      "control": {
+        "transactions": 18,
+        "references": 238,
+        "bytes": 111256,
+        "activeMs": 50.900000020861626,
+        "maxReferences": 19,
+        "maxBytes": 17566,
+        "maxActiveMs": 4.399999991059303
+      },
+      "work": {
+        "native": {
+          "references": 174,
+          "bytes": 122897,
+          "activeMs": 36.5
+        },
+        "preparationBytes": 1786,
+        "prepaidBytes": 8388608,
+        "prepaidMs": 30000
+      }
+    },
+    {
+      "phase": "committed-and-edited",
+      "atMs": 902.8000000119209,
+      "task": {
+        "id": "canonical-generation:checkpoint:phased-task:v1",
+        "version": 2,
+        "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+        "identity": {
+          "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+          "generationIdentity": {
+            "generationId": "synthetic_qualified_generation",
+            "databaseId": "synthetic_qualified_database",
+            "databaseName": "paia-native-qualified-small-target"
+          },
+          "sourceBase": {
+            "root": {
+              "id": "canonical-generation:registry:v1",
+              "version": 1,
+              "revision": 0,
+              "active": null,
+              "pending": null
+            },
+            "gate": null
+          }
+        },
+        "phase": "verified",
+        "tickets": 12,
+        "burned": 0,
+        "workBytes": 11721698,
+        "activeMs": 60263,
+        "pending": null,
+        "transportIds": [
+          "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+        ],
+        "controlSequence": 31,
+        "controlBurned": 1,
+        "controlPending": null
+      },
+      "control": {
+        "transactions": 18,
+        "references": 238,
+        "bytes": 111256,
+        "activeMs": 50.900000020861626,
+        "maxReferences": 19,
+        "maxBytes": 17566,
+        "maxActiveMs": 4.399999991059303
+      },
+      "groups": 3,
+      "receipts": 3
+    }
+  ],
+  "ledger": {
+    "id": "canonical-generation:checkpoint:phased-task:v1",
+    "version": 2,
+    "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+    "identity": {
+      "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+      "generationIdentity": {
+        "generationId": "synthetic_qualified_generation",
+        "databaseId": "synthetic_qualified_database",
+        "databaseName": "paia-native-qualified-small-target"
+      },
+      "sourceBase": {
+        "root": {
+          "id": "canonical-generation:registry:v1",
+          "version": 1,
+          "revision": 0,
+          "active": null,
+          "pending": null
+        },
+        "gate": null
+      }
+    },
+    "phase": "verified",
+    "tickets": 12,
+    "burned": 0,
+    "workBytes": 11721698,
+    "activeMs": 60263,
+    "pending": null,
+    "transportIds": [
+      "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+    ],
+    "controlSequence": 31,
+    "controlBurned": 1,
+    "controlPending": null
+  },
+  "work": {
+    "native": {
+      "references": 174,
+      "bytes": 122897,
+      "activeMs": 36.5
+    },
+    "preparationBytes": 1786,
+    "prepaidBytes": 8388608,
+    "prepaidMs": 30000
+  },
+  "schedule": {
+    "version": 1,
+    "groups": 3,
+    "operations": 9,
+    "items": 19,
+    "pages": 1,
+    "rawPoints": 118,
+    "storeCounts": 37,
+    "fixedReferences": 19,
+    "references": 174
+  },
+  "entries": [
+    {
+      "id": "26055b48-d55c-47ae-a770-12f0e07f3f3f",
+      "storageSchema": 2,
+      "thoughtText": "SYNTHETIC qualified original 0",
+      "note": "",
+      "family": "Thinking",
+      "type": "idea",
+      "formation": "explicit",
+      "origin": "user",
+      "revision": 0,
+      "contentRevision": 0,
+      "fieldRevisions": {
+        "title": 0,
+        "body": 0,
+        "note": 0,
+        "type": 0,
+        "formation": 0
+      },
+      "organizationRevision": 0,
+      "dependencyRevision": 0,
+      "createdAt": "2026-10-23T12:13:24.071Z",
+      "updatedAt": "2026-10-23T12:13:24.071Z",
+      "updatedSequence": 5,
+      "createdSequence": 5,
+      "hasHumanAction": true,
+      "userEdited": true,
+      "protections": {
+        "title": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "body": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "note": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "type": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "formation": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "topics": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "section": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "order": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        }
+      },
+      "authorship": {
+        "title": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "body": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "note": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "type": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "formation": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        }
+      },
+      "organizationIntents": {
+        "version": 1,
+        "included": [],
+        "excluded": [],
+        "edges": {},
+        "fixed": null
+      },
+      "lifecycle": "active",
+      "freshness": "current",
+      "integrity": "detached",
+      "staleReasons": [],
+      "sourceRecordIds": [],
+      "inputRefs": [],
+      "exactSignature": "b7f4d08e926dc22c64dcb813784c46783c18d458108fa464edf02192f13dedf8",
+      "topics": [],
+      "types": [
+        "type:idea"
+      ],
+      "bodyBinding": "thought",
+      "provenanceType": "user_created",
+      "lifecycleKey": 0,
+      "activeKey": 0,
+      "listKey": [
+        0,
+        "26055b48-d55c-47ae-a770-12f0e07f3f3f"
+      ],
+      "negativeUpdatedSequence": -5,
+      "searchVersion": "0:0:active:0"
+    },
+    {
+      "id": "2f19c556-cafe-457b-b6ea-163eede68c28",
+      "storageSchema": 2,
+      "thoughtText": "SYNTHETIC qualified original 1",
+      "note": "",
+      "family": "Thinking",
+      "type": "idea",
+      "formation": "explicit",
+      "origin": "user",
+      "revision": 0,
+      "contentRevision": 0,
+      "fieldRevisions": {
+        "title": 0,
+        "body": 0,
+        "note": 0,
+        "type": 0,
+        "formation": 0
+      },
+      "organizationRevision": 0,
+      "dependencyRevision": 0,
+      "createdAt": "2026-10-23T12:13:24.083Z",
+      "updatedAt": "2026-10-23T12:13:24.083Z",
+      "updatedSequence": 1,
+      "createdSequence": 1,
+      "hasHumanAction": true,
+      "userEdited": true,
+      "protections": {
+        "title": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "body": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "note": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "type": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "formation": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "topics": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "section": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "order": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        }
+      },
+      "authorship": {
+        "title": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "body": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "note": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "type": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "formation": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        }
+      },
+      "organizationIntents": {
+        "version": 1,
+        "included": [],
+        "excluded": [],
+        "edges": {},
+        "fixed": null
+      },
+      "lifecycle": "active",
+      "freshness": "current",
+      "integrity": "detached",
+      "staleReasons": [],
+      "sourceRecordIds": [],
+      "inputRefs": [],
+      "exactSignature": "34bb212a32dcf380ccefdf7fea43b55828a729752e115a1101e7225e737e9b6d",
+      "topics": [],
+      "types": [
+        "type:idea"
+      ],
+      "bodyBinding": "thought",
+      "provenanceType": "user_created",
+      "lifecycleKey": 0,
+      "activeKey": 0,
+      "listKey": [
+        0,
+        "2f19c556-cafe-457b-b6ea-163eede68c28"
+      ],
+      "negativeUpdatedSequence": -1,
+      "searchVersion": "0:0:active:0"
+    },
+    {
+      "id": "fc7b510f-b336-48a0-a220-e6ba01ad4fbe",
+      "storageSchema": 2,
+      "thoughtText": "SYNTHETIC qualified original 2",
+      "note": "",
+      "family": "Thinking",
+      "type": "idea",
+      "formation": "explicit",
+      "origin": "user",
+      "revision": 0,
+      "contentRevision": 0,
+      "fieldRevisions": {
+        "title": 0,
+        "body": 0,
+        "note": 0,
+        "type": 0,
+        "formation": 0
+      },
+      "organizationRevision": 0,
+      "dependencyRevision": 0,
+      "createdAt": "2026-10-23T12:13:24.093Z",
+      "updatedAt": "2026-10-23T12:13:24.093Z",
+      "updatedSequence": 3,
+      "createdSequence": 3,
+      "hasHumanAction": true,
+      "userEdited": true,
+      "protections": {
+        "title": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "body": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "note": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "type": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "formation": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "topics": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "section": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "order": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        }
+      },
+      "authorship": {
+        "title": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "body": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "note": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "type": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "formation": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        }
+      },
+      "organizationIntents": {
+        "version": 1,
+        "included": [],
+        "excluded": [],
+        "edges": {},
+        "fixed": null
+      },
+      "lifecycle": "active",
+      "freshness": "current",
+      "integrity": "detached",
+      "staleReasons": [],
+      "sourceRecordIds": [],
+      "inputRefs": [],
+      "exactSignature": "3fbbb4e487a8365d71be5fee899d3af0245d387b01721d65d90b352b82350fc9",
+      "topics": [],
+      "types": [
+        "type:idea"
+      ],
+      "bodyBinding": "thought",
+      "provenanceType": "user_created",
+      "lifecycleKey": 0,
+      "activeKey": 0,
+      "listKey": [
+        0,
+        "fc7b510f-b336-48a0-a220-e6ba01ad4fbe"
+      ],
+      "negativeUpdatedSequence": -3,
+      "searchVersion": "0:0:active:0"
+    }
+  ],
+  "history": [
+    {
+      "kind": "library_entry",
+      "entityId": "2f19c556-cafe-457b-b6ea-163eede68c28",
+      "before": {
+        "bodyProtection": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "bodyAuthorship": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "hasHumanAction": true,
+        "userEdited": true,
+        "title": "",
+        "body": "SYNTHETIC qualified original 1",
+        "note": "",
+        "type": "idea",
+        "formation": "explicit",
+        "lifecycle": "active",
+        "bodyBinding": "thought"
+      },
+      "after": {
+        "bodyProtection": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "bodyAuthorship": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+          "at": "2026-10-23T12:13:24.083Z"
+        },
+        "hasHumanAction": true,
+        "userEdited": true,
+        "title": "",
+        "body": "SYNTHETIC qualified original 1",
+        "note": "",
+        "type": "idea",
+        "formation": "explicit",
+        "lifecycle": "active",
+        "bodyBinding": "thought"
+      },
+      "fieldMask": [
+        "title",
+        "body",
+        "note",
+        "type",
+        "formation"
+      ],
+      "actor": "user",
+      "reason": "baseline",
+      "important": true,
+      "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+      "baseRevision": 0,
+      "afterRevision": 0,
+      "sourceRecordIds": [],
+      "entityKey": "library_entry:2f19c556-cafe-457b-b6ea-163eede68c28",
+      "documentId": "2f19c556-cafe-457b-b6ea-163eede68c28",
+      "at": "2026-10-23T12:13:24.083Z",
+      "windowStartedAt": "2026-10-23T12:13:24.083Z",
+      "id": "2de79e23-2f1b-4ba9-8978-5140c47ccfb7",
+      "sequence": 1,
+      "listKey": [
+        "library_entry:2f19c556-cafe-457b-b6ea-163eede68c28",
+        1
+      ],
+      "documentList": [
+        "2f19c556-cafe-457b-b6ea-163eede68c28",
+        1
+      ]
+    },
+    {
+      "kind": "library_entry",
+      "entityId": "26055b48-d55c-47ae-a770-12f0e07f3f3f",
+      "before": {
+        "bodyProtection": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "bodyAuthorship": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "hasHumanAction": true,
+        "userEdited": true,
+        "title": "",
+        "body": "SYNTHETIC qualified original 0",
+        "note": "",
+        "type": "idea",
+        "formation": "explicit",
+        "lifecycle": "active",
+        "bodyBinding": "thought"
+      },
+      "after": {
+        "bodyProtection": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "bodyAuthorship": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+          "at": "2026-10-23T12:13:24.071Z"
+        },
+        "hasHumanAction": true,
+        "userEdited": true,
+        "title": "",
+        "body": "SYNTHETIC qualified original 0",
+        "note": "",
+        "type": "idea",
+        "formation": "explicit",
+        "lifecycle": "active",
+        "bodyBinding": "thought"
+      },
+      "fieldMask": [
+        "title",
+        "body",
+        "note",
+        "type",
+        "formation"
+      ],
+      "actor": "user",
+      "reason": "baseline",
+      "important": true,
+      "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+      "baseRevision": 0,
+      "afterRevision": 0,
+      "sourceRecordIds": [],
+      "entityKey": "library_entry:26055b48-d55c-47ae-a770-12f0e07f3f3f",
+      "documentId": "26055b48-d55c-47ae-a770-12f0e07f3f3f",
+      "at": "2026-10-23T12:13:24.071Z",
+      "windowStartedAt": "2026-10-23T12:13:24.071Z",
+      "id": "d7e02f70-3f63-4f68-8b85-6a04558dabc5",
+      "sequence": 3,
+      "listKey": [
+        "library_entry:26055b48-d55c-47ae-a770-12f0e07f3f3f",
+        3
+      ],
+      "documentList": [
+        "26055b48-d55c-47ae-a770-12f0e07f3f3f",
+        3
+      ]
+    },
+    {
+      "kind": "library_entry",
+      "entityId": "fc7b510f-b336-48a0-a220-e6ba01ad4fbe",
+      "before": {
+        "bodyProtection": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "bodyAuthorship": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "hasHumanAction": true,
+        "userEdited": true,
+        "title": "",
+        "body": "SYNTHETIC qualified original 2",
+        "note": "",
+        "type": "idea",
+        "formation": "explicit",
+        "lifecycle": "active",
+        "bodyBinding": "thought"
+      },
+      "after": {
+        "bodyProtection": {
+          "locked": true,
+          "reason": "user_created",
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "bodyAuthorship": {
+          "actor": "user",
+          "everHumanConfirmed": true,
+          "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+          "at": "2026-10-23T12:13:24.093Z"
+        },
+        "hasHumanAction": true,
+        "userEdited": true,
+        "title": "",
+        "body": "SYNTHETIC qualified original 2",
+        "note": "",
+        "type": "idea",
+        "formation": "explicit",
+        "lifecycle": "active",
+        "bodyBinding": "thought"
+      },
+      "fieldMask": [
+        "title",
+        "body",
+        "note",
+        "type",
+        "formation"
+      ],
+      "actor": "user",
+      "reason": "baseline",
+      "important": true,
+      "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+      "baseRevision": 0,
+      "afterRevision": 0,
+      "sourceRecordIds": [],
+      "entityKey": "library_entry:fc7b510f-b336-48a0-a220-e6ba01ad4fbe",
+      "documentId": "fc7b510f-b336-48a0-a220-e6ba01ad4fbe",
+      "at": "2026-10-23T12:13:24.093Z",
+      "windowStartedAt": "2026-10-23T12:13:24.093Z",
+      "id": "f5fff261-907b-4029-a82f-37d35b31a880",
+      "sequence": 2,
+      "listKey": [
+        "library_entry:fc7b510f-b336-48a0-a220-e6ba01ad4fbe",
+        2
+      ],
+      "documentList": [
+        "fc7b510f-b336-48a0-a220-e6ba01ad4fbe",
+        2
+      ]
+    }
+  ],
+  "receipts": [
+    {
+      "id": "canonical-generation:phased-human:receipt:00000000",
+      "version": 1,
+      "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+      "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+      "graphDigest": "79b669cadafb18fff61ba46d635dad5db6ae73999f2548af0baf7c74259e185e",
+      "generationIdentity": {
+        "generationId": "synthetic_qualified_generation",
+        "databaseId": "synthetic_qualified_database",
+        "databaseName": "paia-native-qualified-small-target"
+      },
+      "sourceBase": {
+        "root": {
+          "id": "canonical-generation:registry:v1",
+          "version": 1,
+          "revision": 0,
+          "active": null,
+          "pending": null
+        },
+        "gate": null
+      },
+      "index": 0,
+      "groupId": "607a42b2d27015dfeeed26fa695f385c2854677ab84c8cda66e1372cc95409b0",
+      "operationId": "dfc4e44e-327a-4394-a171-9d7b19e51bcb",
+      "expectedDigest": "c5ea3468fe16c61cfe58e7365e9d076c9597569ce9ed5b3a4cd6bff158f96ace"
+    },
+    {
+      "id": "canonical-generation:phased-human:receipt:00000001",
+      "version": 1,
+      "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+      "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+      "graphDigest": "79b669cadafb18fff61ba46d635dad5db6ae73999f2548af0baf7c74259e185e",
+      "generationIdentity": {
+        "generationId": "synthetic_qualified_generation",
+        "databaseId": "synthetic_qualified_database",
+        "databaseName": "paia-native-qualified-small-target"
+      },
+      "sourceBase": {
+        "root": {
+          "id": "canonical-generation:registry:v1",
+          "version": 1,
+          "revision": 0,
+          "active": null,
+          "pending": null
+        },
+        "gate": null
+      },
+      "index": 1,
+      "groupId": "d838579a6adcc11a753766cc2febfd60a26479aef41a4e948ae197e44385d1c8",
+      "operationId": "609e2f2d-7b18-4109-98a9-8042747b60db",
+      "expectedDigest": "6e80604743c8ab3ad8d519adcccb22ebdc97d2e1f1cca7f17c293faa8b65848b"
+    },
+    {
+      "id": "canonical-generation:phased-human:receipt:00000002",
+      "version": 1,
+      "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+      "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+      "graphDigest": "79b669cadafb18fff61ba46d635dad5db6ae73999f2548af0baf7c74259e185e",
+      "generationIdentity": {
+        "generationId": "synthetic_qualified_generation",
+        "databaseId": "synthetic_qualified_database",
+        "databaseName": "paia-native-qualified-small-target"
+      },
+      "sourceBase": {
+        "root": {
+          "id": "canonical-generation:registry:v1",
+          "version": 1,
+          "revision": 0,
+          "active": null,
+          "pending": null
+        },
+        "gate": null
+      },
+      "index": 2,
+      "groupId": "f0a1bc5a1e2a2ba2907362b704e7a083a7b758ac2c7a3ff5ca3c150331f388c9",
+      "operationId": "e8e083c7-c5cf-4613-8230-783d69a4ed6e",
+      "expectedDigest": "3bd4812bde04e01bb115c85cac198b49beaea988354de23619ac7f76052d7eb9"
+    }
+  ]
+}

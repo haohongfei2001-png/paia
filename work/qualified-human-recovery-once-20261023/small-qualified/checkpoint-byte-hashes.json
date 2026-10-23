@@ -1,0 +1,38 @@
+[
+  {
+    "ref": {
+      "id": "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0",
+      "kind": "checkpoint-shard",
+      "codec": "identity",
+      "encodedBytes": 27051,
+      "decodedBytes": 27051,
+      "digest": "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+    },
+    "bytes": 27051,
+    "sha256": "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+  },
+  {
+    "ref": {
+      "id": "9f12bb102bd4caf3b990b4e5d4a5ce7b5ce85777bcf43bc6cc09666d1b218b03",
+      "kind": "checkpoint-manifest",
+      "codec": "identity",
+      "encodedBytes": 602,
+      "decodedBytes": 602,
+      "digest": "9f12bb102bd4caf3b990b4e5d4a5ce7b5ce85777bcf43bc6cc09666d1b218b03"
+    },
+    "bytes": 602,
+    "sha256": "9f12bb102bd4caf3b990b4e5d4a5ce7b5ce85777bcf43bc6cc09666d1b218b03"
+  },
+  {
+    "ref": {
+      "id": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+      "kind": "checkpoint-manifest",
+      "codec": "identity",
+      "encodedBytes": 1968,
+      "decodedBytes": 1968,
+      "digest": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730"
+    },
+    "bytes": 1968,
+    "sha256": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730"
+  }
+]

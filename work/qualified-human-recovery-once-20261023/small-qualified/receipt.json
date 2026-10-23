@@ -1,0 +1,112 @@
+{
+  "mode": "small",
+  "head": "99be3ede2d1e902808eb2593699205a0ce9ae14f",
+  "groups": 3,
+  "coldPrefix": 1,
+  "result": "PASS",
+  "node": "v22.23.3",
+  "platform": "darwin",
+  "arch": "arm64",
+  "fullSyncQualification": false,
+  "cloudExecuted": false,
+  "startedAt": "2026-10-23T12:13:22.708Z",
+  "fixtureSha256": "4b0bb9eddbd809e6629539b9bd588c0d520eccdfa6c6cff2f02bfb710fee5814",
+  "browserVersion": "156.0.8078.47",
+  "schedule": {
+    "version": 1,
+    "groups": 3,
+    "operations": 9,
+    "items": 19,
+    "pages": 1,
+    "rawPoints": 118,
+    "storeCounts": 37,
+    "fixedReferences": 19,
+    "references": 174
+  },
+  "ledger": {
+    "id": "canonical-generation:checkpoint:phased-task:v1",
+    "version": 2,
+    "taskId": "8326aed9-e84c-471d-9bda-2c456fdc1fab",
+    "identity": {
+      "manifestId": "5ecc982fceb24bc11c983df50d019f28b41cc5fbf99f6329b102743c702c9730",
+      "generationIdentity": {
+        "generationId": "synthetic_qualified_generation",
+        "databaseId": "synthetic_qualified_database",
+        "databaseName": "paia-native-qualified-small-target"
+      },
+      "sourceBase": {
+        "root": {
+          "id": "canonical-generation:registry:v1",
+          "version": 1,
+          "revision": 0,
+          "active": null,
+          "pending": null
+        },
+        "gate": null
+      }
+    },
+    "phase": "verified",
+    "tickets": 12,
+    "burned": 0,
+    "workBytes": 11721698,
+    "activeMs": 60263,
+    "pending": null,
+    "transportIds": [
+      "eea1d511fa28cd78cbaeb139a5c5c04c471afc616dfe29a500b66e97ec05bbe0"
+    ],
+    "controlSequence": 31,
+    "controlBurned": 1,
+    "controlPending": null
+  },
+  "work": {
+    "native": {
+      "references": 174,
+      "bytes": 122897,
+      "activeMs": 36.5
+    },
+    "preparationBytes": 1786,
+    "prepaidBytes": 8388608,
+    "prepaidMs": 30000
+  },
+  "wallMs": 1789.668125,
+  "memoryScope": "Node orchestration process samples only; browser heap/process peak UNKNOWN",
+  "isolation": {
+    "nativeFactory": true,
+    "networkAttempts": 0,
+    "httpRequests": 0,
+    "databases": [
+      "paia-archive",
+      "paia-native-qualified-small-registry",
+      "paia-native-qualified-small-source",
+      "paia-native-qualified-small-target"
+    ],
+    "networkLedger": {
+      "observations": [
+        {
+          "lifetime": "bdf2e3b0-48ec-4410-8748-5e172c9cb1dc",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive"
+          ],
+          "point": "opened"
+        },
+        {
+          "lifetime": "bdf2e3b0-48ec-4410-8748-5e172c9cb1dc",
+          "nativeFactory": true,
+          "networkAttempts": [],
+          "databases": [
+            "paia-archive",
+            "paia-native-qualified-small-registry",
+            "paia-native-qualified-small-source",
+            "paia-native-qualified-small-target"
+          ],
+          "point": "final"
+        }
+      ],
+      "transitions": [],
+      "complete": true
+    }
+  },
+  "sourceStable": true
+}
