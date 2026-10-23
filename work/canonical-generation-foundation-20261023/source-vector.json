@@ -1,0 +1,39 @@
+{
+  "base": "29e825aaaecf1cef2dd8b3965dd02c187eb87989",
+  "implemented": {
+    "extension/core/browser-native-sync/canonical-generation-publication.js": "7dfe202da4044a27dbfb73e9c2ebda752f5c01943ea8b45073816367bd1e88a3",
+    "extension/tests/canonical-generation-publication.test.mjs": "12d9ea071a2e93472d5a37a18333f5f0fedb16a1dc44d3acfadc93b028c259da",
+    "extension/docs/consumer-product-v1/implementation/CANONICAL-GENERATION-FOUNDATION-20261023.md": "9ae7a87907c1294503e04593599f867b09eab16d755f2ee05fc88c092cd0c05a"
+  },
+  "readOnlyInterfaceSources": {
+    "extension/core/idb-repository.js": "4d9e50e11852b1c29b16ba56860925f36636432b1c05701a6f10d47418c028ca",
+    "extension/core/indexed-store.js": "f22dc7055141fdd1e5837b73a669cc9358c509d1fd250619651853236cc15a94",
+    "extension/core/local-control-publication.js": "556cdf4ef6b1976f13f2d23e9568869f9ebc7ec8bf7c88c09f7d20bd39ceab32",
+    "extension/core/backup-service.js": "4c56bf65281d5069e9ad93bf0480721c1723743181629846a0ee6f138a85176c",
+    "extension/core/browser-native-sync/group-checkpoint.js": "7dbac50c9e6e618fb1f55a004093e151ab57dbdc7238edf0f84bc580b1001eaf",
+    "extension/core/browser-native-sync/group-checkpoint-plan.js": "8b50db44c4cb253245f7c7f5b0fd45d3a0df49378a2a451c8898e43170c631cb",
+    "extension/core/browser-native-sync/group-page-reader.js": "bdce1b9f5ef4ae55afa16f828c5be620126148297cd7ecc9d22801d8adcf9d8a",
+    "extension/core/browser-native-sync/canonical-readiness.js": "2e8372b5c5caee16b6c7f397a7bd89220746edec43ced1caaf24a9b3df168067",
+    "extension/core/browser-native-sync/recovery-session.js": "e5275b3ea540f45a29478635b09733d15848c063e93a292e429e0659ca203d73"
+  },
+  "node": "22.23.3",
+  "test": "node --test extension/tests/canonical-generation-publication.test.mjs",
+  "result": {
+    "tests": 32,
+    "pass": 32,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "exitCode": 0,
+    "durationMs": 302.374584
+  },
+  "notRun": [
+    "native",
+    "browser",
+    "build",
+    "cloud",
+    "large-seed",
+    "default-integration"
+  ]
+}
