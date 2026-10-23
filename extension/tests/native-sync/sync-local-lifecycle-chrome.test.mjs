@@ -10,7 +10,7 @@ import {root,instrumentedExtension} from './storage-harness.mjs';
 import {prepareSyncLifecycleNative,runSyncLifecycleNative} from './sync-local-lifecycle-native-preparation.mjs';
 import {verifyManualPromptConflictPane} from '../harness/manual-prompt-conflict-pane-native.mjs';
 const hash=value=>createHash('sha256').update(value).digest('hex');
-const proof=['tests/native-sync/sync-local-lifecycle-chrome.test.mjs','tests/native-sync/sync-local-lifecycle-native-preparation.mjs','tests/native-sync/storage-harness.mjs','tests/native-sync/storage-worker-fixture.mjs','tests/native-sync/immutable-objects.mjs','tests/harness/manual-prompt-conflict-pane-native.mjs','tests/harness/fake-chatgpt.mjs','manifest.json','package.json'];
+const proof=['tests/native-sync/sync-local-lifecycle-chrome.test.mjs','tests/native-sync/sync-local-lifecycle-native-preparation.mjs','tests/native-sync/storage-harness.mjs','tests/native-sync/storage-worker-fixture.mjs','tests/native-sync/immutable-objects.mjs','tests/harness/manual-prompt-conflict-pane-native.mjs','tests/harness/settings-consumer-presentation.mjs','tests/harness/ans07-seed-evidence.mjs','tests/harness/fake-chatgpt.mjs','manifest.json','package.json'];
 async function snapshot(){
  const paths=[...proof];async function walk(path){for(const row of await readdir(join(root,path),{withFileTypes:true})){const next=path+'/'+row.name;if(row.isDirectory())await walk(next);else paths.push(next);}}
  for(const path of ['core','background','ui'])await walk(path);

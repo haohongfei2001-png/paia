@@ -6,6 +6,8 @@ import {readFile,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {root} from './storage-harness.mjs';
+import {chooseConsumerGroup} from '../harness/settings-consumer-presentation.mjs';
+import {observeANS07Consent} from '../harness/ans07-seed-evidence.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 export async function prepareSyncLifecycleNative(extension){
  assert.ok(extension?.path&&extension.path!==root&&typeof extension.cleanup==='function','owned disposable extension required');
@@ -29,9 +31,12 @@ export async function runSyncLifecycleNative(h){
  await p.setViewportSize({width:1280,height:900});
  // FakeChatGPT's ordinary onboarding entry already advances the welcome page.
  // Consume the genuine one-click consent path and await its actual readback.
- await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();
- await p.waitForFunction(async()=>{const r=await chrome.runtime.sendMessage({type:'GET_STATUS'});return r?.ok===true&&r.data.consented===true;});
- await p.locator('.sidebar-bottom [data-view=settings]').click();await p.locator('#settings-panel').waitFor({state:'visible'});await p.locator('#settings-sync').click();
+ await p.evaluate(`(()=>{const observe=${observeANS07Consent.toString()};globalThis.__syncConsentTrace={};globalThis.__syncConsentObservation=observe(chrome.runtime,__syncConsentTrace);})()`);
+ let consent;
+ try{await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();consent=await p.evaluate(async()=>{await __syncConsentObservation.complete();return __syncConsentTrace.consent;});}
+ finally{await p.evaluate(()=>{__syncConsentObservation.stop();delete globalThis.__syncConsentObservation;delete globalThis.__syncConsentTrace;});}
+ assert.deepEqual(consent,{dispatched:1,settled:1,acknowledged:1});
+ await p.locator('.sidebar-bottom [data-view=settings]').click();await p.locator('#settings-panel').waitFor({state:'visible'});await chooseConsumerGroup(p,'data');await p.locator('#settings-sync').click();
  const button=name=>p.locator(`#settings-sync-dialog [data-sync-command=${name}]`);
  await button('RESUME').waitFor({state:'visible'});assert.equal((await inspect()).attempts,0);await button('RESUME').click();await button('NOW').waitFor({state:'visible'});
  const baseline=await inspect();assert.equal(baseline.native,true);assert.equal(baseline.journals,true);assert.equal(baseline.view.wholeArchiveComplete,false);
@@ -42,5 +47,5 @@ export async function runSyncLifecycleNative(h){
  const paused=await inspect();assert.equal(paused.view.state,'paused');assert.equal(paused.attempts,unknown.attempts);
  await h.restartWorker();const cold=await inspect();assert.equal(cold.view.state,'paused');assert.deepEqual(cold.task,paused.task);assert.equal(cold.attempts,0,'cold startup never resends unknown work');
  assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
- return {status:'LOCAL_SETTINGS_WORKER_NATIVE_PARTIAL_ONLY',unknownTaskRetained:true,coldPaused:true,noAutomaticTransfer:true,wholeArchiveComplete:false,checkpointProduced:false,confirmedUpload:false};
+ return {status:'LOCAL_SETTINGS_WORKER_NATIVE_PARTIAL_ONLY',consent,unknownTaskRetained:true,coldPaused:true,noAutomaticTransfer:true,wholeArchiveComplete:false,checkpointProduced:false,confirmedUpload:false};
 }
