@@ -1,3 +1,4 @@
+import {createGroupPageBudget,chargeGroupPageBytes,chargeGroupPageValue,checkGroupPageBudget} from './group-page-reader.js';
 import {buildGroupedCheckpoint,GroupedCheckpointRestore} from './group-checkpoint.js';
 import {BrowserNativeSyncCore,CORE_LIMITS,validateOperation} from './core.js';
 import {CODECS,validateCoverage} from './codecs.js';
@@ -66,10 +67,13 @@ async function readManifest(ref,get,{datasetId,profile,supported}){
  validateCoverage(value.coverage,supported);return value;
 }
 export async function* checkpointItems(manifest,get,{profile=SEGMENT_PROFILE}={}){
+ const work=manifest.ownerScope?.version===2?createGroupPageBudget():null,originalGet=get;
+ if(work)get=async ref=>{checkGroupPageBudget(work);const raw=await originalGet(ref);if(raw instanceof Uint8Array)chargeGroupPageBytes(work,raw.byteLength);else checkGroupPageBudget(work);return raw;};
+ const read=async ref=>{const decoded=await readObject(ref,get,{profile});if(work)chargeGroupPageBytes(work,decoded.byteLength);return decoded;};
  const stack=[{ref:manifest.root,level:manifest.level}],seen=new Set();let countItems=0,chain='';
  while(stack.length){
   const {ref,level}=stack.pop();if(ref.kind!=='checkpoint-shard'||seen.has(ref.id))fail('BNS_CHECKPOINT_GRAPH');seen.add(ref.id);
-  const page=decodeJSON(await readObject(ref,get,{profile}),profile.decoded);
+  const page=decodeJSON(await read(ref),profile.decoded);
   if(page.magic!=='PAIA-BNS'||page.protocol!==1||page.datasetId!==manifest.datasetId||page.level!==level)fail('BNS_CHECKPOINT_GRAPH');
   if(level>0){if(!exact(page,['magic','protocol','datasetId','level','children'])||!Array.isArray(page.children)||!page.children.length||page.children.length>FANOUT)fail('BNS_CHECKPOINT_GRAPH');for(const child of [...page.children].reverse())stack.push({ref:child,level:level-1});continue;}
   if(!exact(page,['magic','protocol','datasetId','level','entries'])||!Array.isArray(page.entries)||page.entries.length>profile.operations)fail('BNS_CHECKPOINT_GRAPH');
@@ -78,10 +82,10 @@ export async function* checkpointItems(manifest,get,{profile=SEGMENT_PROFILE}={}
    if(entry.kind==='inline'&&exact(entry,['kind','item']))item=entry.item;
    else if(entry.kind==='chunked'&&exact(entry,['kind','bytes','digest','chunks'])&&count(entry.bytes)&&entry.bytes>0&&entry.bytes<=profile.operationBytes&&hash(entry.digest)&&Array.isArray(entry.chunks)&&entry.chunks.length>0&&entry.chunks.length<=profile.dependencies){
     const size=entry.chunks.reduce((sum,ref)=>sum+(count(ref.decodedBytes)?ref.decodedBytes:Infinity),0);if(size!==entry.bytes||entry.chunks.some(ref=>ref.kind!=='chunk'))fail('BNS_CHECKPOINT_GRAPH');
-    const raw=new Uint8Array(size);let offset=0;for(const ref of entry.chunks){const part=await readObject(ref,get,{profile});raw.set(part,offset);offset+=part.length;}
+    const raw=new Uint8Array(size);let offset=0;for(const ref of entry.chunks){const part=await read(ref);raw.set(part,offset);offset+=part.length;}
     if(await digest(raw)!==entry.digest)fail('BNS_CHUNK_INTEGRITY');item=decodeJSON(raw,profile.operationBytes);
    }else fail('BNS_CHECKPOINT_GRAPH');
-   chain=await digest(bytes(chain+'\n'+new TextDecoder().decode(bytes(item))));if(++countItems>manifest.itemCount)fail('BNS_CHECKPOINT_COUNT');yield item;
+   chain=await digest(bytes(chain+'\n'+new TextDecoder().decode(bytes(item))));if(++countItems>manifest.itemCount)fail('BNS_CHECKPOINT_COUNT');if(work)chargeGroupPageValue(work,item);yield item;if(work)checkGroupPageBudget(work);
   }
  }
  if(countItems!==manifest.itemCount||chain!==manifest.chain)fail('BNS_CHECKPOINT_COUNT');

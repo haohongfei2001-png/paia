@@ -1,3 +1,4 @@
+import {GROUP_PAGE_LIMITS,readGroupRows,createGroupPageBudget,chargeGroupPageValue,chargeGroupPageBytes,checkGroupPageBudget} from './group-page-reader.js';
 import {readObject,readSegmentDescriptor,SEGMENT_PROFILE} from './segments.js';
 import {BrowserNativeSyncCore} from './core.js';
 import {validateGroupedCheckpointGraph} from './group-checkpoint.js';
@@ -18,7 +19,7 @@ async function retainedState(restore){
 // the exact original validated graph, never treat absence as empty coverage.
 async function groupedProof(restore,state){
  if(!restore.grouped)return null;
- const items=[];let size=0;for await(const row of restore.stage.rows('groupItem')){if(items.length===384||(size+=bytes(row.item).length)>2*1024*1024)fail('BNS_COMPACTION_UNVERIFIED');items.push(row.item);}
+ const items=await restore.stage.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix:await restore.stage.idIn(t,'groupItem')})).map(row=>row.item),['meta']);
  if(items.length!==state.received)fail('BNS_COMPACTION_UNVERIFIED');
  const replay=new BrowserNativeSyncCore(restore.live.repository,{datasetId:restore.live.datasetId,deviceId:restore.live.deviceId,namespace:state.replayId});
  const digest=await validateGroupedCheckpointGraph(replay,items,state.manifest,{store:restore.grouped.store});if(digest!==state.graphDigest)fail('BNS_COMPACTION_UNVERIFIED');
@@ -43,9 +44,12 @@ async function retainReferences(state,get,profile,protectedIds,visited){
 // checkpoint IDs, causal receipts and explicit restore pins replace age/LWW.
 export async function planCompaction({older,newer,descriptors,get,pinned=[],profile=SEGMENT_PROFILE}={}){
  if(!older?.stage||!newer?.stage||older.stage.datasetId!==newer.stage.datasetId||!Array.isArray(descriptors)||!Array.isArray(pinned)||pinned.some(id=>!hash(id)))fail('BNS_COMPACTION_INVALID');
- // Own the complete inventory and pins before the first asynchronous read.
- // Coverage and object closure must refer to the same immutable input cut.
+ // Own the bounded inventory before the first asynchronous read. The budget
+ // covers this planner invocation; eligibility is still only a snapshot.
+ if(descriptors.length>GROUP_PAGE_LIMITS.refs||pinned.length>GROUP_PAGE_LIMITS.refs)fail('BNS_GROUP_RESOURCE_LIMIT');
+ const budget=createGroupPageBudget();chargeGroupPageValue(budget,{descriptors,pinned,profile});
  descriptors=clone(descriptors);pinned=clone(pinned);profile=clone(profile);
+ const remote=get;get=async ref=>{checkGroupPageBudget(budget);const raw=await remote(ref);checkGroupPageBudget(budget);if(raw instanceof Uint8Array)chargeGroupPageBytes(budget,raw.byteLength);return raw;};
  const previous=await retainedState(older),current=await retainedState(newer),previousProof=await groupedProof(older,previous),currentProof=await groupedProof(newer,current);
  if(previous.manifestId===current.manifestId||!current.manifest.parents.includes(previous.manifestId))fail('BNS_COMPACTION_REDUNDANCY');
  for await(const receipt of receiptRows(older,previousProof)){
@@ -76,5 +80,6 @@ export async function planCompaction({older,newer,descriptors,get,pinned=[],prof
  await verifyManifest(previous,get,profile);await verifyManifest(current,get,profile);
  await groupedProof(older,previous);await groupedProof(newer,current);
  if(!equal(await retainedState(older),previous)||!equal(await retainedState(newer),current))fail('BNS_COMPACTION_UNVERIFIED');
+ checkGroupPageBudget(budget);
  return {requiredCheckpoint:current.manifestId,retainedCheckpoints:[previous.manifestId,current.manifestId],frontiers,eligible:[...eligible.values()],retained,performedDeletion:false};
 }

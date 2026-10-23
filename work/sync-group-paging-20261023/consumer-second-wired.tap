@@ -1,0 +1,60 @@
+TAP version 13
+# {"syntheticPaging":{"entries":129,"history":129,"operations":387}}
+# {"syntheticPagingActivation":{"reads":12617,"writes":4391}}
+# Subtest: 129 original Human Entry rows and their complete journals cross pages through lost-A grouped recovery
+ok 1 - 129 original Human Entry rows and their complete journals cross pages through lost-A grouped recovery
+  ---
+  duration_ms: 18634.210917
+  type: 'test'
+  ...
+# Subtest: original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+ok 2 - original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+  ---
+  duration_ms: 18.482833
+  type: 'test'
+  ...
+# Subtest: paged reader rejects backwards before accepting a forged page
+ok 3 - paged reader rejects backwards before accepting a forged page
+  ---
+  duration_ms: 0.244167
+  type: 'test'
+  ...
+# Subtest: paged reader rejects foreign-key before accepting a forged page
+ok 4 - paged reader rejects foreign-key before accepting a forged page
+  ---
+  duration_ms: 0.041209
+  type: 'test'
+  ...
+# Subtest: paged reader rejects false-next before accepting a forged page
+ok 5 - paged reader rejects false-next before accepting a forged page
+  ---
+  duration_ms: 0.033666
+  type: 'test'
+  ...
+# Subtest: paged reader rejects oversize-page before accepting a forged page
+ok 6 - paged reader rejects oversize-page before accepting a forged page
+  ---
+  duration_ms: 0.052083
+  type: 'test'
+  ...
+# Subtest: operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+ok 7 - operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+  ---
+  duration_ms: 11.287417
+  type: 'test'
+  ...
+# Subtest: paged work deadline is checked after a held page settles and accepts no row
+ok 8 - paged work deadline is checked after a held page settles and accepts no row
+  ---
+  duration_ms: 0.127416
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18826.522458

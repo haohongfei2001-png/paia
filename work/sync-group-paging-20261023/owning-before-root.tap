@@ -1,0 +1,368 @@
+TAP version 13
+# Subtest: native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+ok 1 - native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes
+  ---
+  duration_ms: 53.351166
+  type: 'test'
+  ...
+# Subtest: actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+ok 2 - actual Source append and sequential Working groups form a complete causal plan regardless of arrival order
+  ---
+  duration_ms: 81.458833
+  type: 'test'
+  ...
+# Subtest: missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+ok 3 - missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan
+  ---
+  duration_ms: 29.026542
+  type: 'test'
+  ...
+# Subtest: operation budget counts all ancestry rather than current heads
+not ok 4 - operation budget counts all ancestry rather than current heads
+  ---
+  duration_ms: 24.524208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-checkpoint-plan.test.mjs:24:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_GROUP_DUPLICATE'
+    -   code: 'BNS_GROUP_RESOURCE_LIMIT'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_GROUP_RESOURCE_LIMIT'
+  actual:
+  error: 'BNS_GROUP_DUPLICATE'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    prepareGroupCheckpointPlanInternal (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-checkpoint-plan.js:69:87)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-checkpoint-plan.test.mjs:24:129)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-checkpoint-plan.test.mjs:24:129)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+not ok 5 - actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title
+  ---
+  duration_ms: 38.502583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-checkpoint-plan.test.mjs:26:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:25:67)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:34:82)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:159)
+    groupTablePages (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:27:208)
+  ...
+# Subtest: fourMiB operation bytes include all retained payloads, not only final current text
+not ok 6 - fourMiB operation bytes include all retained payloads, not only final current text
+  ---
+  duration_ms: 196.113542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-checkpoint-plan.test.mjs:28:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    chargeGroupPageBytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:9:235)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:131)
+    groupOperationPages (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:16:46)
+    async prepareGroupCheckpointPlanInternal (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-checkpoint-plan.js:60:18)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-checkpoint-plan.test.mjs:28:749)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: full inventory rejects actual unjournaled note rather than claiming protocol coverage
+not ok 7 - full inventory rejects actual unjournaled note rather than claiming protocol coverage
+  ---
+  duration_ms: 26.474333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-checkpoint-plan.test.mjs:30:74'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_VALUE_INVALID'
+    -   code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  actual:
+  error: 'BNS_VALUE_INVALID'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:25:67)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:34:82)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:159)
+    groupTablePages (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:27:208)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-checkpoint-plan.test.mjs:30:940)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+not ok 8 - full inventory rejects actual unjournaled Context rather than claiming protocol coverage
+  ---
+  duration_ms: 25.139
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-checkpoint-plan.test.mjs:30:74'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_VALUE_INVALID'
+    -   code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  actual:
+  error: 'BNS_VALUE_INVALID'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:25:67)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:34:82)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:159)
+    groupTablePages (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:27:208)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-checkpoint-plan.test.mjs:30:940)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+ok 9 - full inventory rejects actual unjournaled Topic rather than claiming protocol coverage
+  ---
+  duration_ms: 26.05
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+ok 10 - full inventory rejects actual unjournaled AI-metadata rather than claiming protocol coverage
+  ---
+  duration_ms: 23.57125
+  type: 'test'
+  ...
+# Subtest: full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+ok 11 - full inventory rejects actual unjournaled preferences rather than claiming protocol coverage
+  ---
+  duration_ms: 21.927583
+  type: 'test'
+  ...
+# Subtest: grouped compaction consumes actual original-owner graphs, closes A, collects covered objects and restores B
+not ok 12 - grouped compaction consumes actual original-owner graphs, closes A, collects covered objects and restores B
+  ---
+  duration_ms: 60.786291
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-compaction.test.mjs:30:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:25:67)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:34:82)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:159)
+    groupTablePages (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:27:208)
+  ...
+# Subtest: active restore pin protects its complete covered object closure
+not ok 13 - active restore pin protects its complete covered object closure
+  ---
+  duration_ms: 32.672375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-compaction.test.mjs:38:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:25:67)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:34:82)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:159)
+    groupTablePages (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:27:208)
+  ...
+# Subtest: partial fake collection leaves both complete generations and unpublished tail usable after restart
+not ok 14 - partial fake collection leaves both complete generations and unpublished tail usable after restart
+  ---
+  duration_ms: 29.843833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-compaction.test.mjs:39:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:25:67)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:34:82)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:159)
+    groupTablePages (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:27:208)
+  ...
+# Subtest: grouped tail reconciliation during planning invalidates the previous retention proof
+not ok 15 - grouped tail reconciliation during planning invalidates the previous retention proof
+  ---
+  duration_ms: 33.123417
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-compaction.test.mjs:40:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:25:67)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:34:82)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:159)
+    groupTablePages (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:27:208)
+  ...
+# Subtest: grouped compaction refuses missing staged items rather than treating empty receipts as covered
+not ok 16 - grouped compaction refuses missing staged items rather than treating empty receipts as covered
+  ---
+  duration_ms: 28.946333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-compaction.test.mjs:41:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:25:67)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:34:82)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:159)
+    groupTablePages (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:27:208)
+  ...
+# Subtest: change during the last remote manifest verification is caught before returning a collection plan
+not ok 17 - change during the last remote manifest verification is caught before returning a collection plan
+  ---
+  duration_ms: 27.002375
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-compaction.test.mjs:43:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:25:67)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:34:82)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:159)
+    groupTablePages (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:27:208)
+  ...
+# Subtest: actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+ok 18 - actual complete Human graph checkpoint replays original Topic/default/named Section, Entry coalescing and membership owners on an empty installation in one transaction
+  ---
+  duration_ms: 350.543083
+  type: 'test'
+  ...
+# Subtest: actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+ok 19 - actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged
+  ---
+  duration_ms: 144.696416
+  type: 'test'
+  ...
+# Subtest: actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+not ok 20 - actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back
+  ---
+  duration_ms: 79.05
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-human-library-group.test.mjs:17:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_VALUE_INVALID'
+  code: 'BNS_VALUE_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:5:32)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:25:67)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:240
+    Array.map (<anonymous>)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:26:230)
+    visit (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:29:100)
+    canonical (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:32:24)
+    bytes (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/value.js:34:82)
+    chargeGroupPageValue (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:10:159)
+    groupTablePages (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-page-reader.js:27:208)
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 8
+# fail 12
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 710.633083

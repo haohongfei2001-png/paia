@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: 129 genuine Prompt history operations cross pages into one original canonical owner row
+not ok 1 - 129 genuine Prompt history operations cross pages into one original canonical owner row
+  ---
+  duration_ms: 878.035791
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-paging.test.mjs:52:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    workRefuse (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:96:123)
+    Transaction.keys (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:355:98)
+    requireConsumerPublicationSettled (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/consumer-publication-state.js:10:14)
+    file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-checkpoint.js:169:10
+    async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/core.js:152:127
+    async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-paging.test.mjs:58:195
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/idb-repository.js:449:20)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/core.js:152:66)
+    async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/group-checkpoint.js:164:48
+    async file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/indexed-store.js:192:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1022.740958

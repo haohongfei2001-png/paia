@@ -1,0 +1,71 @@
+TAP version 13
+# {"syntheticPrompt129Transactions":[{"write":true,"reads":2503,"writes":1163}]}
+# Subtest: 129 genuine Prompt history operations cross pages into one original canonical owner row
+ok 1 - 129 genuine Prompt history operations cross pages into one original canonical owner row
+  ---
+  duration_ms: 876.4845
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects refs and rolls back despite public metrics mutation
+ok 2 - private transaction budget rejects refs and rolls back despite public metrics mutation
+  ---
+  duration_ms: 12.398542
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects bytes and rolls back despite public metrics mutation
+ok 3 - private transaction budget rejects bytes and rolls back despite public metrics mutation
+  ---
+  duration_ms: 10.485125
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects reset and rolls back despite public metrics mutation
+ok 4 - private transaction budget rejects reset and rolls back despite public metrics mutation
+  ---
+  duration_ms: 10.3855
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects cursor and rolls back despite public metrics mutation
+ok 5 - private transaction budget rejects cursor and rolls back despite public metrics mutation
+  ---
+  duration_ms: 10.139166
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects late-finalizer and rolls back despite public metrics mutation
+ok 6 - private transaction budget rejects late-finalizer and rolls back despite public metrics mutation
+  ---
+  duration_ms: 13.338083
+  type: 'test'
+  ...
+# Subtest: private work envelope rejects a borrowed scope and cannot be removed by catching its error
+ok 7 - private work envelope rejects a borrowed scope and cannot be removed by catching its error
+  ---
+  duration_ms: 8.788916
+  type: 'test'
+  ...
+# Subtest: private transaction deadline rejects the next request after synchronous delayed continuation
+ok 8 - private transaction deadline rejects the next request after synchronous delayed continuation
+  ---
+  duration_ms: 18.869917
+  type: 'test'
+  ...
+# Subtest: paged manifest admission is explicit and still bounded; unknown and mixed profiles refuse
+ok 9 - paged manifest admission is explicit and still bounded; unknown and mixed profiles refuse
+  ---
+  duration_ms: 0.38025
+  type: 'test'
+  ...
+# Subtest: 65 genuine Human Entries fit staging but paged activation refuses private transaction work and rolls back every store
+ok 10 - 65 genuine Human Entries fit staging but paged activation refuses private transaction work and rolls back every store
+  ---
+  duration_ms: 4720.456625
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5798.046875

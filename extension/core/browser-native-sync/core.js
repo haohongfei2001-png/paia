@@ -1,3 +1,4 @@
+import {groupOperationPages,createGroupPageBudget,checkGroupPageBudget} from './group-page-reader.js';
 import {requireConsumerPublicationSettled} from './consumer-publication-state.js';
 import {assertTopicDesiredOperation} from './topic-desired-codec.js';
 import {protocolKey as key,protocolPhysicalId} from './physical-key.js';
@@ -350,8 +351,9 @@ export class BrowserNativeSyncCore {
  // This mints no generic materializer: each Human group still needs the exact
  // original named-owner capability and final current heads/generation checks.
  async prepareHumanRestoreProtocols(groups){
-  if(!this.fixedNamespace||!Array.isArray(groups))fail('BNS_HUMAN_RESTORE_REQUIRED');const input=groups.flatMap(group=>group.operations||[]);
-  if(input.length>CORE_LIMITS.batch||input.reduce((n,op)=>n+bytes(op).length,0)>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');
+  if(!this.fixedNamespace||!Array.isArray(groups))fail('BNS_HUMAN_RESTORE_REQUIRED');
+  const budget=createGroupPageBudget();async function* all(){for(const group of groups){if(!Array.isArray(group.operations)||group.operations.length>CORE_LIMITS.batch)fail('BNS_HUMAN_GRAPH_LIMIT');yield* group.operations;}}
+  for await(const page of groupOperationPages(all(),{budget})){}
   const seen=new Map(),ids=new Set(),sequences=new Set(),heads=new Map(),result=[];let generation=0;
   for(const group of groups){
    if(!Array.isArray(group.operations)||!group.operations.length)fail('BNS_HUMAN_COMMIT_INVALID');
@@ -365,7 +367,7 @@ export class BrowserNativeSyncCore {
    generation+=group.operations.length;
   }
   await this.transaction(false,async t=>{if(await this.bind(t)!==this.fixedNamespace||(await t.primaryRangePage('meta',{prefix:this.prefix+'generation:'+this.fixedNamespace+':',limit:1})).rows.length)fail('BNS_HUMAN_RESTORE_REQUIRED');},['meta']);
-  const freeze=x=>{if(x&&typeof x==='object'){for(const y of Object.values(x))freeze(y);Object.freeze(x);}return x;};for(const prepared of result){freeze(prepared);this.#humanPrepared.add(prepared);}return Object.freeze(result);
+  checkGroupPageBudget(budget);const freeze=x=>{if(x&&typeof x==='object'){for(const y of Object.values(x))freeze(y);Object.freeze(x);}return x;};for(const prepared of result){freeze(prepared);this.#humanPrepared.add(prepared);}return Object.freeze(result);
  }
  async commitHumanReceive(t,prepared,writeOwner){
   if(!this.#humanPrepared.has(prepared)||typeof writeOwner!=='function')fail('BNS_PREPARATION_REQUIRED');const prior=await this.get(t,'receipt',prepared.descriptor.operationId);if(prior){if(prior.digest!==prepared.descriptor.revisionId)fail('BNS_OPERATION_COLLISION');return {state:'duplicate'};}

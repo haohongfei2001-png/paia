@@ -1,0 +1,17 @@
+TAP version 13
+# {"syntheticPrompt129Transactions":[{"write":true,"reads":2503,"writes":1163}]}
+# Subtest: 129 genuine Prompt history operations cross pages into one original canonical owner row
+ok 1 - 129 genuine Prompt history operations cross pages into one original canonical owner row
+  ---
+  duration_ms: 881.674291
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 984.789125

@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+ok 1 - original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+  ---
+  duration_ms: 41.809292
+  type: 'test'
+  ...
+# Subtest: paged reader rejects backwards before accepting a forged page
+ok 2 - paged reader rejects backwards before accepting a forged page
+  ---
+  duration_ms: 0.2975
+  type: 'test'
+  ...
+# Subtest: paged reader rejects foreign-key before accepting a forged page
+ok 3 - paged reader rejects foreign-key before accepting a forged page
+  ---
+  duration_ms: 0.040875
+  type: 'test'
+  ...
+# Subtest: paged reader rejects false-next before accepting a forged page
+ok 4 - paged reader rejects false-next before accepting a forged page
+  ---
+  duration_ms: 0.03375
+  type: 'test'
+  ...
+# Subtest: paged reader rejects oversize-page before accepting a forged page
+ok 5 - paged reader rejects oversize-page before accepting a forged page
+  ---
+  duration_ms: 0.09125
+  type: 'test'
+  ...
+# Subtest: operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+ok 6 - operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+  ---
+  duration_ms: 14.0795
+  type: 'test'
+  ...
+# Subtest: paged work deadline is checked after a held page settles and accepts no row
+ok 7 - paged work deadline is checked after a held page settles and accepts no row
+  ---
+  duration_ms: 0.171458
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 206.824708

@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: 129 original Human Entry rows and their complete journals cross pages through lost-A grouped recovery
+not ok 1 - 129 original Human Entry rows and their complete journals cross pages through lost-A grouped recovery
+  ---
+  duration_ms: 41.868125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-paging.test.mjs:13:1'
+  failureType: 'testCodeFailure'
+  error: 'budget is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    BrowserNativeSyncCore.prepare (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/core.js:234:24)
+    async HumanLibrarySyncJournal.prepare (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/human-library-journal.js:36:18)
+    async HumanLibrarySyncJournal.execute (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/core/browser-native-sync/human-library-journal.js:64:63)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-paging/paia/extension/tests/browser-native-sync-group-paging.test.mjs:15:37)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+ok 2 - original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+  ---
+  duration_ms: 29.743333
+  type: 'test'
+  ...
+# Subtest: paged reader rejects backwards before accepting a forged page
+ok 3 - paged reader rejects backwards before accepting a forged page
+  ---
+  duration_ms: 0.304959
+  type: 'test'
+  ...
+# Subtest: paged reader rejects foreign-key before accepting a forged page
+ok 4 - paged reader rejects foreign-key before accepting a forged page
+  ---
+  duration_ms: 0.047709
+  type: 'test'
+  ...
+# Subtest: paged reader rejects false-next before accepting a forged page
+ok 5 - paged reader rejects false-next before accepting a forged page
+  ---
+  duration_ms: 0.047334
+  type: 'test'
+  ...
+# Subtest: paged reader rejects oversize-page before accepting a forged page
+ok 6 - paged reader rejects oversize-page before accepting a forged page
+  ---
+  duration_ms: 0.063792
+  type: 'test'
+  ...
+# Subtest: operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+ok 7 - operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+  ---
+  duration_ms: 13.957084
+  type: 'test'
+  ...
+# Subtest: paged work deadline is checked after a held page settles and accepts no row
+ok 8 - paged work deadline is checked after a held page settles and accepts no row
+  ---
+  duration_ms: 0.153041
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 7
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 231.729209

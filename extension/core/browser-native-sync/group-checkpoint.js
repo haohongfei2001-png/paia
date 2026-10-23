@@ -1,3 +1,4 @@
+import {groupOperationPages,createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget,readGroupRows} from './group-page-reader.js';
 import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,captureMixedCurrentGroupProjection,requireMixedCurrentGroupProjection,encodeMixedCurrentGroupCheckpoint,publishMixedCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
 import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-working-commit.js';
 import {prepareHumanGroupApplication,requireHumanGroupApplication,applyHumanGroupStep} from './human-library-group.js';
@@ -15,7 +16,7 @@ import {JournalRestoreFence,readRestoreEpoch,materializePromptBinding} from './p
 import {CONSENT_VERSION} from '../constants.js';
 import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque} from './value.js';
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
-import {awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity} from '../idb-repository.js';
+import {awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity,registerRepositoryWorkLimit} from '../idb-repository.js';
 import {finalConsumerPreferenceOperations,prepareRestoredConsumerPreferenceApplication,applyRestoredConsumerPreferenceOwners} from './consumer-preference-restore.js';
 import {CONSUMER_PUBLICATION_PENDING_ID,requireConsumerPublicationSettled} from './consumer-publication-state.js';
 import {sealManualMergeTransaction} from './manual-merge-terminal.js';
@@ -23,14 +24,15 @@ import {topicDesiredMaterializer} from './topic-desired-journal.js';
 const own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
 const withoutId=({id,...row})=>row;
 async function authority(store,core,t){const c=await store.control(t);if(!c.settings.enabled||c.settings.consentVersion!==CONSENT_VERSION)fail('BNS_GROUP_PERMISSION');return{namespace:await core.bind(t),generation:(await core.get(t,'generation'))?.value||0,ownerGeneration:(await t.get('meta','backup-data-generation'))?.value||0,fence:await new JournalRestoreFence(core).snapshot(t),settings:c.settings};}
-async function allOperations(core){const operations=[];for await(const row of core.rows('revision')){if(row.redacted)fail('BNS_GROUP_OWNER_UNSUPPORTED');if(operations.length===128)fail('BNS_GROUP_RESOURCE_LIMIT');operations.push(row.operation);}return operations;}
+async function allOperations(core){const operations=[],budget=createGroupPageBudget();for await(const row of core.rows('revision')){if(row.redacted)fail('BNS_GROUP_OWNER_UNSUPPORTED');chargeGroupPageValue(budget,row.operation);operations.push(row.operation);}checkGroupPageBudget(budget);return operations;}
+async function stageItems(stage){return stage.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix:await stage.idIn(t,'groupItem')})).map(row=>row.item),['meta']);}
 async function requireCommittedPlan(core,t,plan){
  const operations=plan.groups.flatMap(group=>group.operations);
  for(const op of operations){
   const revision=await core.get(t,'revision',op.revisionId),receipt=await core.get(t,'receipt',op.operationId),sequence=await core.get(t,'sequence',op.deviceId,String(op.sequence).padStart(16,'0'));
   if(!revision||revision.redacted||!equal(revision.operation,op)||!receipt||!equal(withoutId(receipt),{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence})||!sequence||!equal(withoutId(sequence),{operationId:op.operationId,digest:op.revisionId}))fail('BNS_GROUP_COMMIT_UNPROVEN');
  }
- const heads=[];let after=null;do{const page=await t.primaryRangePage('meta',{prefix:await core.idIn(t,'head'),after,limit:100});for(const {value}of page.rows){if(heads.length===128)fail('BNS_GROUP_RESOURCE_LIMIT');heads.push(withoutId(value));}after=page.next;}while(after);
+ const heads=(await readGroupRows(t,'meta',{prefix:await core.idIn(t,'head')})).map(withoutId);
  heads.sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId])));
  if(!equal(heads,plan.heads))fail('BNS_GROUP_COMMIT_UNPROVEN');
 }
@@ -134,7 +136,7 @@ export class GroupedCheckpointRestore{
    const at=index++;if(at<state.received)continue;
    await this.stage.transaction(true,async t=>{const current=await this.stage.get(t,'restore');if(current.phase!=='staging'||current.received!==at)fail('BNS_RESTORE_STAGE_CHANGED');if(!equal(await authority(this.store,this.live,t),current.base))fail('BNS_RESTORE_LOCAL_CHANGED');await this.stage.put(t,'groupItem',[String(at).padStart(4,'0')],{item});await this.stage.put(t,'restore',[],{...withoutId(current),received:at+1});await requireStorageBudget(t,this.stage,current.replayId);},['meta']);await this.checkpoint('staged-item',index);
   }
-  state=await this.stage.read('restore');const items=[];for await(const row of this.stage.rows('groupItem'))items.push(row.item);
+  state=await this.stage.read('restore');const items=await stageItems(this.stage);
   const replay=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.replayId}),compiled=await compile(replay,items,state.manifest,this.store);
   await this.stage.transaction(true,async t=>{const current=await this.stage.get(t,'restore');if(current.phase!=='staging'||current.received!==items.length||items.length!==current.manifest.itemCount)fail('BNS_RESTORE_STAGE_CHANGED');await this.stage.put(t,'restore',[],{...withoutId(current),phase:'validated',graphDigest:compiled.plan.digest});},['meta']);return this.stage.read('restore');
  }
@@ -165,6 +167,7 @@ export class GroupedCheckpointRestore{
   const consumerApplication=consumerOperations.length?await prepareRestoredConsumerPreferenceApplication(this.store,replay,plan,this.stage,state):null;
   const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(replay,[]));
   return this.store.run(async()=>{const result=await this.live.transaction(true,async t=>{
+   if(state.manifest.ownerScope.version===2)registerRepositoryWorkLimit(this.store.repository,t);
    const current=await this.stage.get(t,'restore');if(!equal(current,state))fail('BNS_RESTORE_STAGE_CHANGED');
    if(state.phase==='activated'){const active=await t.get('meta',this.live.prefix+'active');if(active?.namespace!==state.replayId||active.manifestId!==state.manifestId||await readRestoreEpoch(t)!==state.base.fence.epoch)fail('BNS_RESTORE_LOCAL_CHANGED');return {state:'activated',namespace:state.replayId};}
    if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');
@@ -254,8 +257,8 @@ export class GroupedCheckpointRestore{
   if(!ref||typeof get!=='function'||!Array.isArray(operations))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
   const old=await this.stage.read('restore');if(old?.phase!=='validated')fail('BNS_RESTORE_NOT_READY');
   const m=await manifest(ref,get,this.live,this.profile,supported);if(!m.parents.includes(old.manifestId))fail('BNS_GROUP_TAIL_INVALID');
-  const oldItems=[];for await(const row of this.stage.rows('groupItem'))oldItems.push(row.item);
-  const items=[];for await(const item of checkpointItems(m,get,{profile:this.profile})){if(items.length===384)fail('BNS_GROUP_RESOURCE_LIMIT');items.push(item);}
+  const oldItems=await stageItems(this.stage);
+  const items=[];for await(const page of groupOperationPages(checkpointItems(m,get,{profile:this.profile})))items.push(...page);
   const replay=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:old.replayId}),compiled=await compile(replay,items,m,this.store);
   const prior=new Map(oldItems.filter(x=>x.kind==='revision').map(x=>[x.operation.revisionId,x.operation])),next=new Map(items.filter(x=>x.kind==='revision').map(x=>[x.operation.revisionId,x.operation]));
   for(const [id,op]of prior)if(!equal(next.get(id)??null,op))fail('BNS_GROUP_TAIL_INVALID');
