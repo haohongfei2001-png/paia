@@ -27,8 +27,14 @@ import {syntheticRemote} from './sync-lifecycle-configuration.js';
 import {sealOperation as syntheticSeal} from '../core/browser-native-sync/core.js';
 globalThis.__localSyncNative={ready,remote:syntheticRemote,async inspect(){await ready;return {native:store.repository.db instanceof IDBDatabase,view:await syncLifecycle.snapshot(),task:(await chrome.storage.local.get('paia-sync-local-lifecycle:v1'))['paia-sync-local-lifecycle:v1']?.task,journals:[store.sourceBootstrapJournal,store.sourcePurgeJournal,store.filterIntentJournal,store.inputWorkingJournal,store.consumerPreferenceJournal,promptReuse.service.syncJournal].every(j=>j?.core.repository===store.repository)};},async capture(){await ready;return store.capture({epoch:(await store.status()).epoch,adapterVersion:'0.3.0',chat:{id:'SYNTHETIC_native_sync',url:'https://chatgpt.com/c/SYNTHETIC_native_sync',title:'SYNTHETIC local sync'},messages:[{sourceMessageId:'SYNTHETIC_one',pageOrder:1,originalText:'SYNTHETIC original retained'}]});},async conflict(){await ready;const core=promptReuse.service.syncJournal.core,id='prompt-reuse:v1',h=await core.read('head','promptPreferences',id),bh=await core.read('head','promptBinding',id),a=(await core.read('revision',h.revisions[0])).operation,ba=(await core.read('revision',bh.revisions[0])).operation,value=structuredClone(a.value);value.overrides[0].text='SYNTHETIC remote manual choice';const make=(type,sequence,value)=>syntheticSeal({protocol:1,datasetId:core.datasetId,deviceId:'SYNTHETIC_native_remote_branch',sequence,operationId:crypto.randomUUID(),type,entityId:id,codecVersion:1,kind:'put',actor:'user',parents:[],value});const b=await make('promptPreferences',1,value),bb=await make('promptBinding',2,{...structuredClone(ba.value),promptRevisionId:b.revisionId});return [(await core.receive(b)).state,(await core.receive(bb)).state];}};
 `;
+ let diagnostic=null;
+ if(process.env.PAIA_SYNC_NATIVE_DIAGNOSTIC==='1'){
+  const path=join(extension.path,'core/browser-native-sync/group-checkpoint-scope.js'),original=await readFile(path,'utf8');
+  const modified=original.split('\n').map((line,i)=>line.replaceAll("fail('BNS_GROUP_CANONICAL_UNREPRESENTED')",`(globalThis.__syncScopeDiagnostic={line:${i+1}},fail('BNS_GROUP_CANONICAL_UNREPRESENTED'))`)).join('\n').replace("if(!equal(actual,expected))(globalThis.__syncScopeDiagnostic=", "if(!equal(actual,expected))(globalThis.__syncScopeMismatch=Object.keys(actual).filter(k=>!equal(actual[k],expected[k])),globalThis.__syncScopeDiagnostic=");
+  assert.notEqual(modified,original);await writeFile(path,modified);diagnostic={originalSha256:sha(original),instrumentedSha256:sha(modified),scope:'fixed guard line and differing top-level family names only'};
+ }
  const worker=await readFile(workerPath,'utf8');await writeFile(configPath,config);await writeFile(workerPath,worker+bridge);
- return {configurationSha256:sha(config),originalWorkerSha256:sha(worker),bridgeSha256:sha(bridge),syntheticHttpSha256:sha(adapted),claim:'PREPARED_ONLY_NO_NATIVE_RESULT'};
+ return {diagnostic,configurationSha256:sha(config),originalWorkerSha256:sha(worker),bridgeSha256:sha(bridge),syntheticHttpSha256:sha(adapted),claim:'PREPARED_ONLY_NO_NATIVE_RESULT'};
 }
 export async function runSyncLifecycleNative(h,{device='A'}={}){
  // This uses the visible original Settings modal inside the headless harness,
@@ -53,6 +59,7 @@ export async function runSyncLifecycleNative(h,{device='A'}={}){
   assert.ok(['RESUME','NOW','RESTORE'].includes(command));
   await p.evaluate(command=>{const send=chrome.runtime.sendMessage;let pending,count=0;const type='PAIA_SYNC_'+command;const observed=function(message,...args){const result=Reflect.apply(send,this,[message,...args]);if(message?.type===type){count++;pending=result;}return result;};chrome.runtime.sendMessage=observed;globalThis.__syncActionObservation={async complete(){if(count!==1||!pending)throw Error('SYNC_ACTION_NOT_DISPATCHED_ONCE');const response=await pending;if(count!==1||response?.ok!==true)throw Error('SYNC_ACTION_ACK_'+JSON.stringify({command,count,ok:response?.ok,error:response?.error}));return {command,dispatched:count,acknowledged:1};},stop(){if(chrome.runtime.sendMessage===observed)chrome.runtime.sendMessage=send;}};},command);
   try{await button(command).click();return await p.evaluate(()=>__syncActionObservation.complete());}
+  catch(error){if(process.env.PAIA_SYNC_NATIVE_DIAGNOSTIC==='1')error.message+=' SCOPE_DIAGNOSTIC '+JSON.stringify(await worker().evaluate(()=>({guard:globalThis.__syncScopeDiagnostic??null,families:globalThis.__syncScopeMismatch??null})));throw error;}
   finally{await p.evaluate(()=>{__syncActionObservation.stop();delete globalThis.__syncActionObservation;});}
  };
 
