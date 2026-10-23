@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: contained immutable upload session uses fail conflict and unsigned assets, exact read-back and restart reuse
+ok 1 - contained immutable upload session uses fail conflict and unsigned assets, exact read-back and restart reuse
+  ---
+  duration_ms: 30.973166
+  type: 'test'
+  ...
+# Subtest: lost upload result is read back by same immutable name after adapter restart, no duplicate PUT
+ok 2 - lost upload result is read back by same immutable name after adapter restart, no duplicate PUT
+  ---
+  duration_ms: 13.022625
+  type: 'test'
+  ...
+# Subtest: lost session creation refuses blind retry with no recoverable expiry or completed object
+ok 3 - lost session creation refuses blind retry with no recoverable expiry or completed object
+  ---
+  duration_ms: 11.646583
+  type: 'test'
+  ...
+# Subtest: wrong object bytes are rejected before root access or allocation
+ok 4 - wrong object bytes are rejected before root access or allocation
+  ---
+  duration_ms: 9.449333
+  type: 'test'
+  ...
+# Subtest: reject unqualified scope without request
+ok 5 - reject unqualified scope without request
+  ---
+  duration_ms: 10.692542
+  type: 'test'
+  ...
+# Subtest: reject unqualified tenant without request
+ok 6 - reject unqualified tenant without request
+  ---
+  duration_ms: 7.411291
+  type: 'test'
+  ...
+# Subtest: reject unqualified client without request
+ok 7 - reject unqualified client without request
+  ---
+  duration_ms: 9.106542
+  type: 'test'
+  ...
+# Subtest: reject remote parent and preserve all remote objects
+ok 8 - reject remote parent and preserve all remote objects
+  ---
+  duration_ms: 11.344458
+  type: 'test'
+  ...
+# Subtest: reject remote drive and preserve all remote objects
+ok 9 - reject remote drive and preserve all remote objects
+  ---
+  duration_ms: 12.728541
+  type: 'test'
+  ...
+# Subtest: reject remote remoteItem and preserve all remote objects
+ok 10 - reject remote remoteItem and preserve all remote objects
+  ---
+  duration_ms: 10.989292
+  type: 'test'
+  ...
+# Subtest: reject remote size and preserve all remote objects
+ok 11 - reject remote size and preserve all remote objects
+  ---
+  duration_ms: 11.673416
+  type: 'test'
+  ...
+# Subtest: reject remote etag and preserve all remote objects
+ok 12 - reject remote etag and preserve all remote objects
+  ---
+  duration_ms: 11.938125
+  type: 'test'
+  ...
+# Subtest: reject remote download-host and preserve all remote objects
+ok 13 - reject remote download-host and preserve all remote objects
+  ---
+  duration_ms: 10.5765
+  type: 'test'
+  ...
+# Subtest: reject remote bytes and preserve all remote objects
+ok 14 - reject remote bytes and preserve all remote objects
+  ---
+  duration_ms: 12.027875
+  type: 'test'
+  ...
+# Subtest: typed HTTP 401 stops with no retry and no provider message
+ok 15 - typed HTTP 401 stops with no retry and no provider message
+  ---
+  duration_ms: 9.679458
+  type: 'test'
+  ...
+# Subtest: typed HTTP 403 stops with no retry and no provider message
+ok 16 - typed HTTP 403 stops with no retry and no provider message
+  ---
+  duration_ms: 10.508166
+  type: 'test'
+  ...
+# Subtest: typed HTTP 429 stops with no retry and no provider message
+ok 17 - typed HTTP 429 stops with no retry and no provider message
+  ---
+  duration_ms: 8.627042
+  type: 'test'
+  ...
+# Subtest: typed HTTP 507 stops with no retry and no provider message
+ok 18 - typed HTTP 507 stops with no retry and no provider message
+  ---
+  duration_ms: 8.439583
+  type: 'test'
+  ...
+# Subtest: typed HTTP 500 stops with no retry and no provider message
+ok 19 - typed HTTP 500 stops with no retry and no provider message
+  ---
+  duration_ms: 8.601709
+  type: 'test'
+  ...
+# Subtest: held request close fences late results and settles once
+ok 20 - held request close fences late results and settles once
+  ---
+  duration_ms: 10.160958
+  type: 'test'
+  ...
+# Subtest: held request deadline has no retry
+ok 21 - held request deadline has no retry
+  ---
+  duration_ms: 28.560416
+  type: 'test'
+  ...
+# Subtest: changed appRoot cannot retarget existing transport
+ok 22 - changed appRoot cannot retarget existing transport
+  ---
+  duration_ms: 9.615375
+  type: 'test'
+  ...
+# Subtest: foreign files ignored, grouped discovery bounded and cursor cannot escape AppFolder
+ok 23 - foreign files ignored, grouped discovery bounded and cursor cannot escape AppFolder
+  ---
+  duration_ms: 14.715416
+  type: 'test'
+  ...
+# Subtest: OneDrive contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+ok 24 - OneDrive contained seam publishes canonical checkpoint; sender closes; fresh B uses original recovery owner
+  ---
+  duration_ms: 135.277083
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 559.483292

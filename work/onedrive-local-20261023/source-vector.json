@@ -1,0 +1,8 @@
+{
+  "extension/core/browser-native-sync/providers/onedrive.js": "f1fb91f8090e52182ebedd5731e6977d45b3df21ddb74a7e11543e2ecc260f7a",
+  "extension/core/browser-native-sync/providers/onedrive-http.js": "84980acca20829b985e9a4a60dccfae2f7635e12761beec305f20d003b8a457b",
+  "extension/tests/browser-native-sync-onedrive.test.mjs": "a00883937dfcc72576f83843fcf59d42d0fe2548343a367775d4352388ca0bdd",
+  "extension/tests/browser-native-sync-onedrive-http.test.mjs": "2402afb5f28f1e89ff74bdd03420e3dc6eb53df26e0f505af1963fb5539375f5",
+  "extension/scripts/check_package.py": "5a3c671a95fb2093746c9e0451d9acbe84c1919632c0abaaf81fcfd75fa8c1c2",
+  "extension/tests/browser-native-sync-package-guard.test.mjs": "266abea08f39204c3b5af0d8a8dd3ff41b13a5b7e182388a1c0c17b0d5aeacb7"
+}
