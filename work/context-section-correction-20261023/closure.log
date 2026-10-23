@@ -1,0 +1,38 @@
+TAP version 13
+# Subtest: Section-lineage Context correction retains all two original Input members
+not ok 1 - Section-lineage Context correction retains all two original Input members
+  ---
+  duration_ms: 748.46225
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:313:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 2
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 2
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:313:319)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: Section-lineage Context correction DTO refuses partial structure and foreign coverage
+ok 2 - Section-lineage Context correction DTO refuses partial structure and foreign coverage
+  ---
+  duration_ms: 674.97275
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1571.438041

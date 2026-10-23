@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: Section-lineage Context correction independent qualification refuses before dispatch
+ok 1 - Section-lineage Context correction independent qualification refuses before dispatch
+  ---
+  duration_ms: 360.608041
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction independent qualification-title refuses before dispatch
+ok 2 - Section-lineage Context correction independent qualification-title refuses before dispatch
+  ---
+  duration_ms: 307.242667
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction independent qualification-history refuses before dispatch
+ok 3 - Section-lineage Context correction independent qualification-history refuses before dispatch
+  ---
+  duration_ms: 315.336
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction independent qualification-entry refuses before dispatch
+ok 4 - Section-lineage Context correction independent qualification-entry refuses before dispatch
+  ---
+  duration_ms: 272.421667
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction independent processing refuses before dispatch
+ok 5 - Section-lineage Context correction independent processing refuses before dispatch
+  ---
+  duration_ms: 276.427792
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction independent input refuses before dispatch
+ok 6 - Section-lineage Context correction independent input refuses before dispatch
+  ---
+  duration_ms: 275.188083
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction independent section refuses before dispatch
+ok 7 - Section-lineage Context correction independent section refuses before dispatch
+  ---
+  duration_ms: 266.962375
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction independent context refuses before dispatch
+ok 8 - Section-lineage Context correction independent context refuses before dispatch
+  ---
+  duration_ms: 310.127209
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2528.080583

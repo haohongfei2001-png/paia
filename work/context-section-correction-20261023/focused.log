@@ -1,0 +1,334 @@
+TAP version 13
+# Subtest: Section-lineage Context correction real human edit completes protected original owner
+ok 1 - Section-lineage Context correction real human edit completes protected original owner
+  ---
+  duration_ms: 757.422666
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction real human restore completes protected original owner
+ok 2 - Section-lineage Context correction real human restore completes protected original owner
+  ---
+  duration_ms: 704.574041
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction independent qualification refuses before dispatch
+ok 3 - Section-lineage Context correction independent qualification refuses before dispatch
+  ---
+  duration_ms: 313.776667
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction independent qualification-title refuses before dispatch
+not ok 4 - Section-lineage Context correction independent qualification-title refuses before dispatch
+  ---
+  duration_ms: 686.15825
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:277:148'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    'COMMITTED'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  actual: 'COMMITTED'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:280:166)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Section-lineage Context correction independent qualification-history refuses before dispatch
+not ok 5 - Section-lineage Context correction independent qualification-history refuses before dispatch
+  ---
+  duration_ms: 740.505542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:277:148'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    'COMMITTED'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  actual: 'COMMITTED'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:280:166)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Section-lineage Context correction independent qualification-entry refuses before dispatch
+not ok 6 - Section-lineage Context correction independent qualification-entry refuses before dispatch
+  ---
+  duration_ms: 609.084667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:277:148'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    'COMMITTED'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  actual: 'COMMITTED'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:280:166)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Section-lineage Context correction independent processing refuses before dispatch
+ok 7 - Section-lineage Context correction independent processing refuses before dispatch
+  ---
+  duration_ms: 261.850417
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction independent input refuses before dispatch
+not ok 8 - Section-lineage Context correction independent input refuses before dispatch
+  ---
+  duration_ms: 664.412958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:277:148'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    'COMMITTED'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  actual: 'COMMITTED'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:280:166)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Section-lineage Context correction independent section refuses before dispatch
+not ok 9 - Section-lineage Context correction independent section refuses before dispatch
+  ---
+  duration_ms: 604.746625
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:277:148'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    'COMMITTED'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  actual: 'COMMITTED'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:280:166)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Section-lineage Context correction independent context refuses before dispatch
+not ok 10 - Section-lineage Context correction independent context refuses before dispatch
+  ---
+  duration_ms: 627.94025
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:277:148'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    'COMMITTED'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  actual: 'COMMITTED'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-structural-context.test.mjs:280:166)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Section-lineage Context correction provider closes title before exact ACK
+ok 11 - Section-lineage Context correction provider closes title before exact ACK
+  ---
+  duration_ms: 541.354917
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction provider closes history before exact ACK
+ok 12 - Section-lineage Context correction provider closes history before exact ACK
+  ---
+  duration_ms: 546.061375
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction provider closes receipt before exact ACK
+ok 13 - Section-lineage Context correction provider closes receipt before exact ACK
+  ---
+  duration_ms: 544.658416
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction provider closes input before exact ACK
+ok 14 - Section-lineage Context correction provider closes input before exact ACK
+  ---
+  duration_ms: 549.547792
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction provider closes source before exact ACK
+ok 15 - Section-lineage Context correction provider closes source before exact ACK
+  ---
+  duration_ms: 516.479208
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction provider closes placement-journal before exact ACK
+ok 16 - Section-lineage Context correction provider closes placement-journal before exact ACK
+  ---
+  duration_ms: 535.97975
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction provider closes membership before exact ACK
+ok 17 - Section-lineage Context correction provider closes membership before exact ACK
+  ---
+  duration_ms: 541.373209
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction provider closes entry before exact ACK
+ok 18 - Section-lineage Context correction provider closes entry before exact ACK
+  ---
+  duration_ms: 541.206708
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction provider closes revoke before exact ACK
+ok 19 - Section-lineage Context correction provider closes revoke before exact ACK
+  ---
+  duration_ms: 512.619625
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction backup closes title before exact ACK
+ok 20 - Section-lineage Context correction backup closes title before exact ACK
+  ---
+  duration_ms: 602.945791
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction backup closes history before exact ACK
+ok 21 - Section-lineage Context correction backup closes history before exact ACK
+  ---
+  duration_ms: 605.9325
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction backup closes receipt before exact ACK
+ok 22 - Section-lineage Context correction backup closes receipt before exact ACK
+  ---
+  duration_ms: 634.146167
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction backup closes input before exact ACK
+ok 23 - Section-lineage Context correction backup closes input before exact ACK
+  ---
+  duration_ms: 612.632292
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction backup closes source before exact ACK
+ok 24 - Section-lineage Context correction backup closes source before exact ACK
+  ---
+  duration_ms: 615.390458
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction backup closes placement-journal before exact ACK
+ok 25 - Section-lineage Context correction backup closes placement-journal before exact ACK
+  ---
+  duration_ms: 606.112125
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction backup closes membership before exact ACK
+ok 26 - Section-lineage Context correction backup closes membership before exact ACK
+  ---
+  duration_ms: 581.407583
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction backup closes entry before exact ACK
+ok 27 - Section-lineage Context correction backup closes entry before exact ACK
+  ---
+  duration_ms: 599.115792
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction backup closes revoke before exact ACK
+ok 28 - Section-lineage Context correction backup closes revoke before exact ACK
+  ---
+  duration_ms: 592.326417
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction original source adapter none
+ok 29 - Section-lineage Context correction original source adapter none
+  ---
+  duration_ms: 593.534625
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction original source adapter foreign-item
+ok 30 - Section-lineage Context correction original source adapter foreign-item
+  ---
+  duration_ms: 524.720584
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction original source adapter unknown-field
+ok 31 - Section-lineage Context correction original source adapter unknown-field
+  ---
+  duration_ms: 511.3975
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction ACK rollback replays one original response
+ok 32 - Section-lineage Context correction ACK rollback replays one original response
+  ---
+  duration_ms: 657.275459
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction rejects retained missing-spec without broader reads
+ok 33 - Section-lineage Context correction rejects retained missing-spec without broader reads
+  ---
+  duration_ms: 300.427417
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction rejects retained wrong-title-digest without broader reads
+ok 34 - Section-lineage Context correction rejects retained wrong-title-digest without broader reads
+  ---
+  duration_ms: 311.166334
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction rejects retained missing-member without broader reads
+ok 35 - Section-lineage Context correction rejects retained missing-member without broader reads
+  ---
+  duration_ms: 259.167459
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction rejects retained foreign-input without broader reads
+ok 36 - Section-lineage Context correction rejects retained foreign-input without broader reads
+  ---
+  duration_ms: 242.158083
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction rejects retained extra-note without broader reads
+ok 37 - Section-lineage Context correction rejects retained extra-note without broader reads
+  ---
+  duration_ms: 241.545916
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction rejects retained humanTopic-alias without broader reads
+ok 38 - Section-lineage Context correction rejects retained humanTopic-alias without broader reads
+  ---
+  duration_ms: 253.940291
+  type: 'test'
+  ...
+# Subtest: Section-lineage Context correction rejects retained invalidated without broader reads
+ok 39 - Section-lineage Context correction rejects retained invalidated without broader reads
+  ---
+  duration_ms: 248.476333
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 33
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 20558.257208

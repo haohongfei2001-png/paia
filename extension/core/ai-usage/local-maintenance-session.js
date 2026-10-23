@@ -226,7 +226,7 @@ export class LocalMaintenanceSession {
   };return this.#qualificationRead(request,transaction,qualify);
  }
  async #contextMapping(request,transaction=null){
-  const qualify=async transaction=>{const t=contextScopeTransactionReader(this.#store,transaction,createContextScopeWorkBudget()),found=new Map();for(const {key,descriptor:d}of request.items){if(d.kind!=='context_item')continue;const preliminary=await readContextEditMapping(this.#store,t,d,{qualifyAuthored:false});if(!preliminary)continue;const m=preliminary.authoredEntryIds||preliminary.boundEntryIds?await this.#qualificationRead(request,transaction,q=>readContextEditMapping(this.#store,q,d)):preliminary;if(m)found.set(key,m);}return found;};return transaction?qualify(transaction):this.#foundation.read(qualify);
+  const qualify=async transaction=>{const t=contextScopeTransactionReader(this.#store,transaction,createContextScopeWorkBudget()),found=new Map();for(const {key,descriptor:d}of request.items){if(d.kind!=='context_item')continue;const preliminary=await readContextEditMapping(this.#store,t,d,{qualifyAuthored:false});if(!preliminary)continue;const m=preliminary.authoredEntryIds||preliminary.boundEntryIds||preliminary.structuralSectionIds?await this.#qualificationRead(request,transaction,q=>readContextEditMapping(this.#store,q,d)):preliminary;if(m)found.set(key,m);}return found;};return transaction?qualify(transaction):this.#foundation.read(qualify);
  }
  #contextEdits(state,units){return units.filter(u=>u.facet==='context'&&state.contextMapping?.has(u.key)).map(u=>state.contextMapping.get(u.key));}
  #selectedInputFields(state,units,inputId){const corrections=this.#contextEdits(state,units);if(!corrections.length)return ['body'];if(corrections.length!==1||units.length!==1)fail('STALE_BASE');return contextEditInputFields(corrections[0],inputId);}
@@ -378,7 +378,7 @@ export class LocalMaintenanceSession {
   const qualify=async transaction=>{const t=contextScopeTransactionReader(this.#store,transaction,createContextScopeWorkBudget()),found=new Map();for(const {key,descriptor:d}of request.items){if(!['section','topic'].includes(d.kind))continue;const mapping=await readStructuralContext(this.#store,t,d);if(mapping)found.set(key,mapping);}return found;};return this.#qualificationRead(request,transaction,qualify);
  }
  #structuralTopicCapable(mapping){return structuralContextAllowsTopic(mapping)&&(mapping.kind==='topic'?this.#service?.topic.reconcileHumanNames===true:this.#service?.topic.reconcileHumanSections===true);}
- #structures(state,units){return [...new Map(units.filter(u=>state.structuralMapping?.has(u.key)&&(u.facet==='context'||u.facet==='topic'&&this.#structuralTopicCapable(state.structuralMapping.get(u.key)))).map(u=>[u.key,state.structuralMapping.get(u.key)])).values()];}
+ #structures(state,units){return [...new Map([...this.#contextEdits(state,units).flatMap(m=>(m.structuralSections||[]).map(s=>[s.recordId,s])),...units.filter(u=>state.structuralMapping?.has(u.key)&&(u.facet==='context'||u.facet==='topic'&&this.#structuralTopicCapable(state.structuralMapping.get(u.key)))).map(u=>[state.structuralMapping.get(u.key).recordId,state.structuralMapping.get(u.key)])]).values()];}
  #checkStructuralBudget(state,units){
   const structures=this.#structures(state,units.filter(u=>u.facet==='context'));if(!structures.length)return;
   // Byte-only specimens carry no field authority and acquire/hash no text.
@@ -392,7 +392,7 @@ export class LocalMaintenanceSession {
  }
  async #checkStructuralMapping(state,units,transaction){
   return this.#qualificationCheck(state,units,transaction,async transaction=>{
-  const t=contextScopeTransactionReader(this.#store,transaction,state.authoredBudget);for(const u of units)if(this.#structures(state,[u]).length){const d=state.request.items.find(i=>i.key===u.key).descriptor;const m=state.structuralMapping.get(u.key),current=await readStructuralContext(this.#store,t,d);if(!equal(current,m)||u.facet==='topic'&&!structuralContextAllowsTopic(current))fail('STALE_BASE');for(const e of m.entries)if(state.structuralInputs?.has(e.inputId)&&(await inputProjection(this.#store,t,e.inputId))?.body!==state.structuralInputs.get(e.inputId))fail('STALE_BASE');}
+  const t=contextScopeTransactionReader(this.#store,transaction,state.authoredBudget);for(const u of units)if(state.structuralMapping?.has(u.key)&&this.#structures(state,[u]).length){const d=state.request.items.find(i=>i.key===u.key).descriptor;const m=state.structuralMapping.get(u.key),current=await readStructuralContext(this.#store,t,d);if(!equal(current,m)||u.facet==='topic'&&!structuralContextAllowsTopic(current))fail('STALE_BASE');for(const e of m.entries)if(state.structuralInputs?.has(e.inputId)&&(await inputProjection(this.#store,t,e.inputId))?.body!==state.structuralInputs.get(e.inputId))fail('STALE_BASE');}
   });
  }
  async #authoredMapping(request,transaction=null){
@@ -445,7 +445,7 @@ export class LocalMaintenanceSession {
    else if(u.facet==='context'&&state.boundMapping?.has(u.key))ids.add(state.boundMapping.get(u.key).inputId);
    else if(d?.kind==='library_entry'&&(u.facet==='context'||u.facet==='topic'&&this.#authoredTopicCapable(state.authoredMapping?.get(u.key)))&&state.authoredMapping?.has(u.key))continue;
    else if(d?.kind==='placement'&&(u.facet==='context'||u.facet==='topic'&&this.#service?.topic.reconcileHumanPlacements===true)&&state.placementMapping?.has(u.key))ids.add(state.placementMapping.get(u.key).inputId);
-   else if(this.#structures(state,[u]).length)for(const e of state.structuralMapping.get(u.key).entries)ids.add(e.inputId);
+   else if(this.#structures(state,[u]).length)for(const m of this.#structures(state,[u]))for(const e of m.entries)ids.add(e.inputId);
    else if(d?.kind==='context_item'&&u.facet==='context'&&state.contextMapping?.has(u.key)){for(const e of state.contextMapping.get(u.key).provenance.evidence)if(!e.kind)ids.add(e.inputId);}
    else return null;
   }return [...ids].sort();
