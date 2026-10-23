@@ -1,0 +1,43 @@
+TAP version 13
+# SyncError: BNS_SOURCE_PURGE_UNSUPPORTED
+#     at fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+#     at denied (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-negative.js:13:18)
+#     at sourcePurgeNegativeCanonical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-negative.js:55:546)
+#     at async prepareGroupedSourcePurgeRemainingCanonical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-negative.js:84:30)
+#     at async qualify (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:82:315)
+#     at async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:104:219
+#     at async Object.run (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:37:28)
+#     at async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-portable-checkpoint.test.mjs:16:570)
+#     at async Test.run (node:internal/test_runner/test:1054:7)
+#     at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+# Subtest: google original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+not ok 1 - google original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+  ---
+  duration_ms: 325.24525
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-portable-checkpoint.test.mjs:13:41'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SOURCE_PURGE_UNSUPPORTED'
+  code: 'BNS_SOURCE_PURGE_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    denied (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-negative.js:13:18)
+    sourcePurgeNegativeCanonical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-negative.js:55:546)
+    async prepareGroupedSourcePurgeRemainingCanonical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-negative.js:84:30)
+    async qualify (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:82:315)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:104:219
+    async Object.run (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:37:28)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-portable-checkpoint.test.mjs:16:570)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 450.078791

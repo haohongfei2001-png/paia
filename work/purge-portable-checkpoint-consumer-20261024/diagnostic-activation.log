@@ -1,0 +1,42 @@
+TAP version 13
+# SyncError: BNS_SOURCE_PURGE_GROUP_CHANGED
+#     at fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+#     at deny (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group-physical.js:20:16)
+#     at requireSourcePurgeGroupRows (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group-physical.js:89:172)
+#     at async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:158:4
+#     at async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:167:127
+#     at async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/idb-repository.js:523:253)
+#     at async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/core.js:167:66)
+#     at async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:142:82
+#     at async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/indexed-store.js:203:11
+# Subtest: google original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+not ok 1 - google original worker negative + seven portable intents + Prompt: A closes, cloud-only B restores, cold edit/republication reaches C
+  ---
+  duration_ms: 1064.518708
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-portable-checkpoint.test.mjs:13:41'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"ok":false,"error":"BNS_SOURCE_PURGE_GROUP_CHANGED"}
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/source-purge-portable-checkpoint.test.mjs:17:438)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1191.040291

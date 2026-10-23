@@ -1,0 +1,49 @@
+{
+  "base": "ab7815d0beff52d50ef8cb2309a35095d7c583ef",
+  "files": [
+    {
+      "path": "extension/core/browser-native-sync/consumer-preference-journal.js",
+      "sha256": "1c4a573d35e879ea56d6d844c6d0ebcac71a123f774cd7b17340b5a17036ca71"
+    },
+    {
+      "path": "extension/core/browser-native-sync/consumer-preference-restore.js",
+      "sha256": "78503cd0f1a92a9dc0b607db6ae5ca112ed110fd07360d141617f96b5b5372a3"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint-scope.js",
+      "sha256": "9615785d55222f20e2b59fc7e40383b4812de89b3ced47544dd2312d68f17614"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-purge-closure.js",
+      "sha256": "0cc99d3e85be253a7ea1f69c05f8bef80c5de85ccfef5ea5958e78d4f2e3ab0a"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-purge-group-physical.js",
+      "sha256": "13147bb03bc18e264a99f273e406586af8109599a1431855cc6f5ccf1e762977"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-purge-group-working.js",
+      "sha256": "8bdb0d1d0d2945efcfe3f9555669a40ee7e2a44552b95e0afb5259d598ff5084"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-purge-group.js",
+      "sha256": "b82e9e13967bb303ef013192bd0f2bfdcdfbef7becf227c03b2e4971c08992bd"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-purge-negative.js",
+      "sha256": "bc06e0a96d5d3d1b6df5f222817048baf53c984b59664f8b4f5501bbd678cd07"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-purge-protocol-controls.js",
+      "sha256": "ee5e4e9664efe4891fd1f27382fb3b9c360260911bdc3462981643d11ccb8cff"
+    },
+    {
+      "path": "extension/tests/sync-local-lifecycle.test.mjs",
+      "sha256": "a72fe229bc75310c7a4ed929b70ef4748094d350c66ad53ca3c36704e468a088"
+    },
+    {
+      "path": "extension/tests/source-purge-portable-checkpoint.test.mjs",
+      "sha256": "ec74da0c4c77495dd4ebe4aff1d9cd9bd023c3e525a38a1ee2913d2f8f5e9a2d"
+    }
+  ]
+}

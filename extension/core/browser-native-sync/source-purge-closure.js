@@ -47,9 +47,9 @@ export async function compileSourcePurgeClosure(core,input){
   negatives.push(freeze(remote));
  }
  if(!negatives.length)invalid();
- const positive=[];for(const row of revisions)if(!claimed.has(row.operation.revisionId)){if(row.redacted||row.operation.kind!=='put'||!['sourceBootstrapMember','sourceBootstrapCommit','inputWorkingMember','inputWorkingCommit'].includes(row.operation.type))invalid();positive.push(row.operation);}
+ const positive=[];for(const row of revisions)if(!claimed.has(row.operation.revisionId)){if(row.redacted||row.operation.kind!=='put'||!['sourceBootstrapMember','sourceBootstrapCommit','inputWorkingMember','inputWorkingCommit','consumerPreference','promptPreferences','promptBinding'].includes(row.operation.type))invalid();positive.push(row.operation);}
  const positivePlan=await prepareGroupCheckpointPlan(core,positive);current();
- for(const group of positivePlan.groups){if(group.type==='inputWorkingCommit')continue;if(group.type!=='sourceBootstrapCommit')invalid();const p=initialSourcePlan(group.capability);for(const [kind,id]of [['sourceId',p.source.id],['sourceKey',p.source.sourceKey],['documentId',p.inputDocument.id],['inputId',p.input.id],['baselineId',p.baselineRevision.id]])identity(kind,id);}
+ for(const group of positivePlan.groups){if(['inputWorkingCommit','consumerPreference','promptPreferences','promptBinding'].includes(group.type))continue;if(group.type!=='sourceBootstrapCommit')invalid();const p=initialSourcePlan(group.capability);for(const [kind,id]of [['sourceId',p.source.id],['sourceKey',p.source.sourceKey],['documentId',p.inputDocument.id],['inputId',p.input.id],['baselineId',p.baselineRevision.id]])identity(kind,id);}
  expectedHeads.push(...positivePlan.heads);
  const expectedFrontiers=new Map();for(const row of revisions){const op=row.operation;expectedFrontiers.set(op.deviceId,acceptSequence(expectedFrontiers.get(op.deviceId),op.sequence));}
  const frontierRows=[...expectedFrontiers].map(([deviceId,value])=>({...value,deviceId}));
