@@ -363,3 +363,44 @@ separate 94/94 Node receipt was inspected, not rerun.
 
 Evidence: `work/paia-takeover-20261023/settings-sync-native/REPORT.md`,
 `execution.json`, original TAP, two body-free receipts and SHA256SUMS.
+
+
+## Authored and Placement native dual-facet qualification
+
+At frozen integrated runtime `a9fb362b39cad49ff271c7bcaa0c4c295def88fc`, the
+appended CTX4-05 finite batch passed **20 native leaves + 2 parents = 22/22**,
+exit 0, no fail/cancel/skip/todo. TAP 11730.940917 ms; wall 11.778604416991584 s.
+Node 22.23.3, Python 3.12.14, Playwright 1.63.0, Chrome 156.0.8078.47, macOS
+arm64 and the original headless offline harness were used. HEAD and the complete
+recorded runtime/UI/background/harness/scripts/owning-test SHA256 vectors were
+identical before/after. The original 146485-byte owning-file prefix is unchanged.
+
+Both Source and release qualify Authored and Placement through the original
+source-owned response adapter and genuine independent TopicProcessingAuthority:
+complete dual publication, missing Topic payload permission, final Topic grant
+revocation, native Topic ACK abort, native Context ACK abort, response replay
+without an additional provider call, and completed replay with no durable write.
+Human body, Source, membership, Section, provenance and revision rows remain exact.
+Each failure checks all native stores against its original transaction's prestate.
+Context failure preserves the earlier independent committed Topic ACK/receipt;
+this is **per-facet transaction atomicity**, not cross-facet atomicity.
+
+The first invocation remains 5/12 with seven failed TAP tests. It exposed a real
+session-to-Topic-issuer qualification-budget wiring gap and release package URL
+admission gap, plus a Context rollback test oracle that wrongly assumed both
+facets share a transaction. Two minimal Authored diagnostic runs remain 0/2 each.
+Root fixed the trusted resolver's bodyfree budget argument without weakening
+original budget identity or independent processing guards. The fixture caches
+issuers by budget identity with a fixed epoch/expiry; the wrong-budget and revoked
+authority Node controls remain separate evidence. Exact package module/literal
+admission grants no network or OAuth capability. All failures, source snapshots,
+final raw TAP and 25 initial/final case records are retained under
+`work/paia-takeover-20261023/human-reconciliation-native/` with a manifest.
+
+Remaining acceptance is unchanged: this is finite native domain/transaction
+coverage, not whole owning-file regression, visual/device acceptance, Linux
+capacity, real provider/authorization qualification, or a complete product pass.
+Source-linked Sync grouped cold recovery, Context correction reconciliation and
+other current implementation gaps stay on the takeover queue until separately
+implemented and qualified. Production activation and cloud execution still need
+their existing authorization and budget boundaries respected.

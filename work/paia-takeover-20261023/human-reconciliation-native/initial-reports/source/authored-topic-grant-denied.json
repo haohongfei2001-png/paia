@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "nativeFactory": true,
+  "nativeTransaction": true,
+  "kind": "authored",
+  "phase": "topic-grant-denied",
+  "physicalAttempts": 0,
+  "topicAuthorityCalls": 0,
+  "atomicRollback": false,
+  "allHumanRowsPreserved": true,
+  "sourceOwnedAdapter": true
+}

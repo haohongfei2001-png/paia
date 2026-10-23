@@ -1,0 +1,5 @@
+FAIL: 4 package guardrail issue(s), 21414 checks
+- core/browser-native-sync/providers/google-drive-http.js: unexpected remote URL literal
+- core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal
+- core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal
+- core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal
