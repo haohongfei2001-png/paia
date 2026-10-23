@@ -1,0 +1,292 @@
+TAP version 13
+# Subtest: Topic-name-lineage Context correction real human edit completes protected original owner
+ok 1 - Topic-name-lineage Context correction real human edit completes protected original owner
+  ---
+  duration_ms: 766.924333
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction real human restore completes protected original owner
+ok 2 - Topic-name-lineage Context correction real human restore completes protected original owner
+  ---
+  duration_ms: 684.361333
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction independent qualification refuses before dispatch
+ok 3 - Topic-name-lineage Context correction independent qualification refuses before dispatch
+  ---
+  duration_ms: 290.982584
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction independent qualification-name refuses before dispatch
+ok 4 - Topic-name-lineage Context correction independent qualification-name refuses before dispatch
+  ---
+  duration_ms: 282.536709
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction independent qualification-summary refuses before dispatch
+ok 5 - Topic-name-lineage Context correction independent qualification-summary refuses before dispatch
+  ---
+  duration_ms: 266.982041
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction independent qualification-history refuses before dispatch
+ok 6 - Topic-name-lineage Context correction independent qualification-history refuses before dispatch
+  ---
+  duration_ms: 275.162333
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction independent qualification-entry refuses before dispatch
+ok 7 - Topic-name-lineage Context correction independent qualification-entry refuses before dispatch
+  ---
+  duration_ms: 282.804625
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction independent processing refuses before dispatch
+ok 8 - Topic-name-lineage Context correction independent processing refuses before dispatch
+  ---
+  duration_ms: 275.623792
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction independent input refuses before dispatch
+ok 9 - Topic-name-lineage Context correction independent input refuses before dispatch
+  ---
+  duration_ms: 283.6115
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction independent topic refuses before dispatch
+ok 10 - Topic-name-lineage Context correction independent topic refuses before dispatch
+  ---
+  duration_ms: 297.844459
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction independent context refuses before dispatch
+ok 11 - Topic-name-lineage Context correction independent context refuses before dispatch
+  ---
+  duration_ms: 262.316084
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction provider closes name before exact ACK
+ok 12 - Topic-name-lineage Context correction provider closes name before exact ACK
+  ---
+  duration_ms: 615.3525
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction provider closes summary before exact ACK
+ok 13 - Topic-name-lineage Context correction provider closes summary before exact ACK
+  ---
+  duration_ms: 583.019792
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction provider closes history before exact ACK
+ok 14 - Topic-name-lineage Context correction provider closes history before exact ACK
+  ---
+  duration_ms: 611.914875
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction provider closes receipt before exact ACK
+ok 15 - Topic-name-lineage Context correction provider closes receipt before exact ACK
+  ---
+  duration_ms: 582.469459
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction provider closes input before exact ACK
+ok 16 - Topic-name-lineage Context correction provider closes input before exact ACK
+  ---
+  duration_ms: 588.577667
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction provider closes source before exact ACK
+ok 17 - Topic-name-lineage Context correction provider closes source before exact ACK
+  ---
+  duration_ms: 559.921917
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction provider closes placement-journal before exact ACK
+ok 18 - Topic-name-lineage Context correction provider closes placement-journal before exact ACK
+  ---
+  duration_ms: 613.95725
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction provider closes membership before exact ACK
+ok 19 - Topic-name-lineage Context correction provider closes membership before exact ACK
+  ---
+  duration_ms: 598.918167
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction provider closes section before exact ACK
+ok 20 - Topic-name-lineage Context correction provider closes section before exact ACK
+  ---
+  duration_ms: 557.368375
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction provider closes entry before exact ACK
+ok 21 - Topic-name-lineage Context correction provider closes entry before exact ACK
+  ---
+  duration_ms: 576.283166
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction provider closes revoke before exact ACK
+ok 22 - Topic-name-lineage Context correction provider closes revoke before exact ACK
+  ---
+  duration_ms: 557.640958
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction backup closes name before exact ACK
+ok 23 - Topic-name-lineage Context correction backup closes name before exact ACK
+  ---
+  duration_ms: 647.760083
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction backup closes summary before exact ACK
+ok 24 - Topic-name-lineage Context correction backup closes summary before exact ACK
+  ---
+  duration_ms: 646.369583
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction backup closes history before exact ACK
+ok 25 - Topic-name-lineage Context correction backup closes history before exact ACK
+  ---
+  duration_ms: 649.808292
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction backup closes receipt before exact ACK
+ok 26 - Topic-name-lineage Context correction backup closes receipt before exact ACK
+  ---
+  duration_ms: 645.646666
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction backup closes input before exact ACK
+ok 27 - Topic-name-lineage Context correction backup closes input before exact ACK
+  ---
+  duration_ms: 647.945416
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction backup closes source before exact ACK
+ok 28 - Topic-name-lineage Context correction backup closes source before exact ACK
+  ---
+  duration_ms: 644.854458
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction backup closes placement-journal before exact ACK
+ok 29 - Topic-name-lineage Context correction backup closes placement-journal before exact ACK
+  ---
+  duration_ms: 657.785458
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction backup closes membership before exact ACK
+ok 30 - Topic-name-lineage Context correction backup closes membership before exact ACK
+  ---
+  duration_ms: 660.79175
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction backup closes section before exact ACK
+ok 31 - Topic-name-lineage Context correction backup closes section before exact ACK
+  ---
+  duration_ms: 636.427208
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction backup closes entry before exact ACK
+ok 32 - Topic-name-lineage Context correction backup closes entry before exact ACK
+  ---
+  duration_ms: 663.886333
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction backup closes revoke before exact ACK
+ok 33 - Topic-name-lineage Context correction backup closes revoke before exact ACK
+  ---
+  duration_ms: 655.033
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction original source adapter none
+ok 34 - Topic-name-lineage Context correction original source adapter none
+  ---
+  duration_ms: 648.490958
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction original source adapter foreign-item
+ok 35 - Topic-name-lineage Context correction original source adapter foreign-item
+  ---
+  duration_ms: 568.803208
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction original source adapter unknown-field
+ok 36 - Topic-name-lineage Context correction original source adapter unknown-field
+  ---
+  duration_ms: 576.305875
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction ACK rollback replays one original response
+ok 37 - Topic-name-lineage Context correction ACK rollback replays one original response
+  ---
+  duration_ms: 730.816833
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction rejects retained missing-spec without broader reads
+ok 38 - Topic-name-lineage Context correction rejects retained missing-spec without broader reads
+  ---
+  duration_ms: 341.969375
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction rejects retained wrong-name-digest without broader reads
+ok 39 - Topic-name-lineage Context correction rejects retained wrong-name-digest without broader reads
+  ---
+  duration_ms: 327.602875
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction rejects retained missing-member without broader reads
+ok 40 - Topic-name-lineage Context correction rejects retained missing-member without broader reads
+  ---
+  duration_ms: 258.290041
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction rejects retained foreign-input without broader reads
+ok 41 - Topic-name-lineage Context correction rejects retained foreign-input without broader reads
+  ---
+  duration_ms: 366.722459
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction rejects retained extra-note without broader reads
+ok 42 - Topic-name-lineage Context correction rejects retained extra-note without broader reads
+  ---
+  duration_ms: 265.27175
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction rejects retained humanSection-alias without broader reads
+ok 43 - Topic-name-lineage Context correction rejects retained humanSection-alias without broader reads
+  ---
+  duration_ms: 265.134
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction rejects retained mixed-section without broader reads
+ok 44 - Topic-name-lineage Context correction rejects retained mixed-section without broader reads
+  ---
+  duration_ms: 320.202542
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction rejects retained invalidated without broader reads
+ok 45 - Topic-name-lineage Context correction rejects retained invalidated without broader reads
+  ---
+  duration_ms: 263.001834
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction retains all two original Input members
+ok 46 - Topic-name-lineage Context correction retains all two original Input members
+  ---
+  duration_ms: 965.432459
+  type: 'test'
+  ...
+# Subtest: Topic-name-lineage Context correction DTO refuses partial structure and foreign coverage
+ok 47 - Topic-name-lineage Context correction DTO refuses partial structure and foreign coverage
+  ---
+  duration_ms: 642.468167
+  type: 'test'
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24256.122375
