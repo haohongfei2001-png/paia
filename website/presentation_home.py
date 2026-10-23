@@ -99,7 +99,7 @@ def refine_reading_and_routes(source,t,a):
     parsed=Fragments(source);note=parsed.one('pc-plan-note')
     old=parsed.outer(note)
     source=parsed.swap(note,old[:-4]+'<span class="hp-demo-route">'+demonstration('#prompt-reuse',t('体验提示词复用','Try prompt reuse'))+'</span></p>')
-    source=source.replace('<span>'+t('对话','Conversation')+'</span>',
+    source=source.replace('<span>'+t('对话','CONVERSATION')+'</span>',
                           '<span>'+t('界面演示','Interface illustration')+'</span>',1)
     # The illustrated pre-granted state stays illustrative; real permission
     # defaults and the independent demo's permission owner are unchanged.

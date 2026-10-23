@@ -114,7 +114,7 @@ body[data-home-mode=presentation]{--hp-accent:#4779b8}
 
 /* SIX_SCOPED_REFINEMENTS_20261023: keep the composition, cases and identity.
    These source/permission labels carry meaning; they are not decoration. */
-[data-home-mode=presentation] :is(.pc-record-meta time,.pc-date,.pc-origin-chip,.ad-story-date,.ad-story-entry time,.ad-story-provenance,.ad-chapter-source,.ad-document-source,[data-card-count],[data-topic-count],.hp-composer-foot>span:first-child){font-size:.6875rem;line-height:1.7;color:#516783}
+[data-home-mode=presentation] :is(.pc-record-meta time,.pc-record-meta time>span,.pc-date,.pc-origin-chip,.ad-story-date,.ad-story-entry time,.ad-story-provenance,.ad-chapter-source,.ad-document-source,[data-card-count],[data-topic-count],.hp-composer-foot>span:first-child){font-size:.6875rem;line-height:1.7;color:#516783}
 [data-home-mode=presentation] .pc-context :is(.pc-master-permission,.pc-card-permission){font-size:.6875rem;line-height:1.65;color:#3e6089}
 [data-home-mode=presentation] :is(.ad-original-cue,.ad-ai-cue){font-size:.75rem;line-height:1.65;color:#37679f}
 /* Leave the body size and all typefaces intact. Grow the frame, not clipping. */
@@ -144,7 +144,7 @@ body[data-home-mode=presentation]{--hp-accent:#4779b8}
 [data-home-mode=presentation] .ad-prompt-scroll[data-demo-step=filled] .hp-composer-phrase{opacity:1;transform:none;transition:opacity .22s}
 @media(prefers-reduced-motion:reduce){[data-home-mode=presentation] .pc-prompt-row,[data-home-mode=presentation] .hp-composer-phrase{transition:none!important}}
 @media(forced-colors:active){
- [data-home-mode=presentation] :is(.pc-record-meta time,.pc-date,.pc-origin-chip,.ad-story-date,.ad-story-entry time,.ad-story-provenance,.ad-chapter-source,.ad-document-source,[data-card-count],[data-topic-count],.hp-composer-foot>span:first-child,.ad-original-cue,.ad-ai-cue,.hp-demo-caption,.hp-availability){color:CanvasText}
+ [data-home-mode=presentation] :is(.pc-record-meta time,.pc-record-meta time>span,.pc-date,.pc-origin-chip,.ad-story-date,.ad-story-entry time,.ad-story-provenance,.ad-chapter-source,.ad-document-source,[data-card-count],[data-topic-count],.hp-composer-foot>span:first-child,.ad-original-cue,.ad-ai-cue,.hp-demo-caption,.hp-availability){color:CanvasText}
  [data-home-mode=presentation] .hp-demo-link{color:LinkText}
  [data-home-mode=presentation] .ad-prompt-scroll:is([data-demo-step=selected],[data-demo-step=filled]) .pc-prompt-row:first-child{outline:2px solid Highlight;outline-offset:-2px;box-shadow:none}
 }

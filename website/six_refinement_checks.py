@@ -57,7 +57,7 @@ def verify_readability_and_routes(page,check,label='home'):
     zh=page.locator('html').get_attribute('lang').startswith('zh');prefix='/zh/' if zh else '/'
     test(page.locator('.hp-demo-link').evaluate_all('es=>es.map(e=>e.getAttribute("href"))')==[prefix+'demo.html#'+k for k in ('input-library','thought-library','prompt-reuse','personal-context')],'each illustration has the right real-demo destination')
     test(page.locator('.pc-topic-root-head,.pc-topic-footer').count()==0,'duplicate guide labels absent')
-    selectors='.ad-story-entry time,.ad-story-provenance,.ad-chapter-source,.ad-document-source,.pc-card-permission,.pc-master-permission,[data-card-count],[data-topic-count]'
+    selectors='.pc-record-meta time,.pc-record-meta time>span,.pc-date,.pc-origin-chip,.ad-story-date,.ad-original-cue,.ad-ai-cue,.hp-composer-foot>span:first-child,.ad-story-entry time,.ad-story-provenance,.ad-chapter-source,.ad-document-source,.pc-card-permission,.pc-master-permission,[data-card-count],[data-topic-count]'
     actual=page.locator(selectors).evaluate_all('es=>es.map(e=>({font:parseFloat(getComputedStyle(e).fontSize),color:getComputedStyle(e).color}))')
     test(bool(actual) and all(x['font']>=11 for x in actual),'meaningful source and permission labels are at least 11 CSS px at normal zoom')
     if not page.evaluate("matchMedia('(forced-colors:active)').matches"):
