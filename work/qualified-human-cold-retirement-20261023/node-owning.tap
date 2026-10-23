@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: phased retirement removes only checkpoint body copies and preserves export and audit controls
+ok 1 - phased retirement removes only checkpoint body copies and preserves export and audit controls
+  ---
+  duration_ms: 656.793875
+  type: 'test'
+  ...
+# Subtest: phased retirement bounded page survives actual store and registry close then preserves original edit
+ok 2 - phased retirement bounded page survives actual store and registry close then preserves original edit
+  ---
+  duration_ms: 965.747125
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses unknown with complete rollback
+ok 3 - phased retirement refuses unknown with complete rollback
+  ---
+  duration_ms: 330.373666
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses missing-item with complete rollback
+ok 4 - phased retirement refuses missing-item with complete rollback
+  ---
+  duration_ms: 298.988167
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses missing-validation with complete rollback
+ok 5 - phased retirement refuses missing-validation with complete rollback
+  ---
+  duration_ms: 302.208917
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses pending-task with complete rollback
+ok 6 - phased retirement refuses pending-task with complete rollback
+  ---
+  duration_ms: 311.217125
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses foreign-task with complete rollback
+ok 7 - phased retirement refuses foreign-task with complete rollback
+  ---
+  duration_ms: 308.077541
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses validation-chain with complete rollback
+ok 8 - phased retirement refuses validation-chain with complete rollback
+  ---
+  duration_ms: 276.942292
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses receipt-extra with complete rollback
+ok 9 - phased retirement refuses receipt-extra with complete rollback
+  ---
+  duration_ms: 269.126292
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses progress with complete rollback
+ok 10 - phased retirement refuses progress with complete rollback
+  ---
+  duration_ms: 264.259334
+  type: 'test'
+  ...
+# Subtest: phased retirement terminal fence refuses late ledger and rolls back deletions
+ok 11 - phased retirement terminal fence refuses late ledger and rolls back deletions
+  ---
+  duration_ms: 294.998917
+  type: 'test'
+  ...
+# Subtest: phased retirement terminal fence refuses late new-copy and rolls back deletions
+ok 12 - phased retirement terminal fence refuses late new-copy and rolls back deletions
+  ---
+  duration_ms: 328.969334
+  type: 'test'
+  ...
+# Subtest: phased retirement pins audit controls across cleanup calls
+ok 13 - phased retirement pins audit controls across cleanup calls
+  ---
+  duration_ms: 990.885334
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses malformed checkpoint storage version before any deletion
+ok 14 - phased retirement refuses malformed checkpoint storage version before any deletion
+  ---
+  duration_ms: 287.61125
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses malformed checkpoint storage base64 before any deletion
+ok 15 - phased retirement refuses malformed checkpoint storage base64 before any deletion
+  ---
+  duration_ms: 284.4905
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses malformed checkpoint storage length before any deletion
+ok 16 - phased retirement refuses malformed checkpoint storage length before any deletion
+  ---
+  duration_ms: 276.165291
+  type: 'test'
+  ...
+# Subtest: phased retirement refuses malformed checkpoint storage ref-digest before any deletion
+ok 17 - phased retirement refuses malformed checkpoint storage ref-digest before any deletion
+  ---
+  duration_ms: 325.309167
+  type: 'test'
+  ...
+# Subtest: qualified v2 1 group cold retirement preserves canonical and audit rows and ordinary editing
+ok 18 - qualified v2 1 group cold retirement preserves canonical and audit rows and ordinary editing
+  ---
+  duration_ms: 569.421792
+  type: 'test'
+  ...
+# Subtest: qualified v2 3 group cold retirement preserves canonical and audit rows and ordinary editing
+ok 19 - qualified v2 3 group cold retirement preserves canonical and audit rows and ordinary editing
+  ---
+  duration_ms: 636.007167
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement refuses control-debt before deleting any body copy
+ok 20 - qualified cold retirement refuses control-debt before deleting any body copy
+  ---
+  duration_ms: 338.800208
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement refuses foreign-task before deleting any body copy
+ok 21 - qualified cold retirement refuses foreign-task before deleting any body copy
+  ---
+  duration_ms: 353.934917
+  type: 'test'
+  ...
+# Subtest: qualified cold retirement terminal fence rolls back deletions after late control ledger mutation
+ok 22 - qualified cold retirement terminal fence rolls back deletions after late control ledger mutation
+  ---
+  duration_ms: 317.90775
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7232.209292

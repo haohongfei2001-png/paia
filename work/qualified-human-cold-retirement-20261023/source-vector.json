@@ -1,0 +1,6 @@
+{
+  "extension/core/browser-native-sync/canonical-generation-copy-retirement.js": "d13b71805bc1f1f88686836bc9c5e52acb43f801ded2a7497dd78f3302ceafb2",
+  "extension/tests/qualified-human-cold-retirement.test.mjs": "0b7aa36ae0bc55439df3200dea37c7cc424a5e5d80f02f61aa86baabc369f8f7",
+  "extension/tests/native-sync/qualified-human-retirement-fixture.mjs": "47bb3893ccd0005f8682ba3537313e59402f4b539abc4877728cd496ae97a455",
+  "extension/tests/native-sync/qualified-human-retirement-chrome.test.mjs": "a80573ddc3d403861ca6652014ffe6cc240fc5ad1ae097abc5325b5e4310848a"
+}

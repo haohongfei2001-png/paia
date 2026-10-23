@@ -29,7 +29,7 @@ async function phasedControls(repository,gate,q,budget){
  const validationId=PREFIX+'validated-task:v1',validatedPage=PREFIX+'validated-page:';
  const rows=await repository.transaction(false,async t=>{
   const task=originalGenerationTaskData(await t.get('meta',CANONICAL_PHASED_TASK)),v=await t.get('meta',validationId);
-  if(task.phase!=='verified'||task.pending!==null||task.identity.manifestId!==gate.seal.manifestId||!equal(task.identity.generationIdentity,gate.identity)||!equal(task.identity.sourceBase,q.sourceBase))fail();
+  if(task.phase!=='verified'||task.pending!==null||task.version===2&&task.controlPending!==null||task.identity.manifestId!==gate.seal.manifestId||!equal(task.identity.generationIdentity,gate.identity)||!equal(task.identity.sourceBase,q.sourceBase))fail();
   if(!v||Object.keys(v).sort().join(',')!==['id','version','taskId','manifestId','graphDigest','generationIdentity','sourceBase','itemCount','pageCount','chain','pageChain'].sort().join(',')||v.id!==validationId||v.version!==1||v.taskId!==task.taskId||v.manifestId!==gate.seal.manifestId||v.graphDigest!==gate.seal.graphDigest||!equal(v.generationIdentity,gate.identity)||!equal(v.sourceBase,q.sourceBase)||!Number.isSafeInteger(v.itemCount)||v.itemCount<1||v.itemCount>4096||v.pageCount!==Math.ceil(v.itemCount/32)||!(/^[a-f0-9]{64}$/).test(v.chain)||!(/^[a-f0-9]{64}$/).test(v.pageChain))fail();
   const result=[task,v];for(let n=0;n<v.pageCount;n++){
    const id=key(validatedPage,n),r=await t.get('meta',id);
