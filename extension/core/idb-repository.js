@@ -1,3 +1,4 @@
+import {prepareOriginalActiveRepositoryWrite,releaseOriginalActiveRepositoryWrite} from './browser-native-sync/canonical-generation-publication.js';
 import {CANONICAL_REPOSITORY_PROTECTION,CANONICAL_REPOSITORY_GATE,readOriginalGenerationRepositoryAuthority,originalGenerationRepositoryAdmission,originalGenerationRepositoryMutation,originalGenerationRepositorySettlement} from './browser-native-sync/canonical-generation-repository-gate.js';
 import {measureSourceWorkingPhysicalTree} from './browser-native-sync/source-working-physical.js';
 import {sampleOriginalOrganizeMaterialFinalFacts,requireOriginalOrganizeMaterialFinalFacts} from '../background/organize-processing-policy.js';
@@ -125,7 +126,7 @@ function requireWritableScope(scope){
 }
 function requireShadowMutation(scope,table,key,method){
  const r=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);if(!r)return;
- if(r.shadow){const current=readOriginalGenerationRepositoryAuthority(r.shadow.token,r.repository,scope);if(current!==r.shadow.authority)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');originalGenerationRepositoryMutation(current,table,key,method);}
+ if(r.shadow){const current=readOriginalGenerationRepositoryAuthority(r.shadow.token,r.repository,scope);if(current!==r.shadow.authority)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');if(!(current.kind==='active-library'&&r.activeGateFinalizer===true&&table==='meta'&&key===CANONICAL_REPOSITORY_GATE&&method==='put'))originalGenerationRepositoryMutation(current,table,key,method);}
  else if(table==='meta'&&key===CANONICAL_REPOSITORY_PROTECTION)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
 }
 async function beginShadowWrite(repository,scope,record,token){
@@ -134,12 +135,20 @@ async function beginShadowWrite(repository,scope,record,token){
  registerRepositoryWorkLimit(repository,scope);record.workLimit.started=record.started;workCharge(scope,1,CANONICAL_REPOSITORY_PROTECTION,true);workResult(scope,marker);workCheck(record);registerRepositoryWorkLimit(repository,scope);
  const gate=await scope.get('meta',CANONICAL_REPOSITORY_GATE);originalGenerationRepositoryAdmission(authority,marker,gate,record.identity.database.name);
  record.shadow={token,authority,marker:marker??null,gate};
+ if(authority.kind==='active-library'){
+  if(JSON.stringify(await scope.get('meta','canonical-generation:qualified-graph:v1'))!==JSON.stringify(authority.qualification))throw new ArchiveError('GENERATION_CHANGED');
+  const range=IDBKeyRange.bound('canonical-generation:','canonical-generation:\uffff',false,true),keys=await scope.keys('meta',null,range,4097);if(keys.length>4096)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
+  record.activeGenerationRows=[];for(const key of keys)record.activeGenerationRows.push({key,row:await scope.get('meta',key)});
+  registerRepositoryFinalReadFence(repository,scope,{isCurrent:()=>true,plan:function*(){if((yield {method:'count',table:'meta',key:range})!==keys.length)throw new ArchiveError('GENERATION_CHANGED');for(const {key,row}of record.activeGenerationRows){const expected=key===CANONICAL_REPOSITORY_GATE?{...row,writeRevision:row.writeRevision+1}:row;if(JSON.stringify(yield {method:'get',table:'meta',key})!==JSON.stringify(expected))throw new ArchiveError('GENERATION_CHANGED');}return true;}});
+ }
 }
 async function finishShadowWrite(repository,scope,record){
  const marker=await scope.get('meta',CANONICAL_REPOSITORY_PROTECTION),s=record.shadow;
  if(!s){if(marker!=null)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');registerRepositoryFinalReadFence(repository,scope,{isCurrent:()=>true,plan:function*(){if((yield {method:'get',table:'meta',key:CANONICAL_REPOSITORY_PROTECTION})!=null)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');return true;}});return;}
  if(readOriginalGenerationRepositoryAuthority(s.token,repository,scope)!==s.authority||s.marker&&JSON.stringify(marker)!==JSON.stringify(s.marker))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
- const gate=await scope.get('meta',CANONICAL_REPOSITORY_GATE);originalGenerationRepositorySettlement(s.authority,marker,s.gate,gate,record.identity.database.name);
+ let gate=await scope.get('meta',CANONICAL_REPOSITORY_GATE);
+ if(s.authority.kind==='active-library'){if(JSON.stringify(gate)!==JSON.stringify(s.gate)||gate.writeRevision>=Number.MAX_SAFE_INTEGER)throw new ArchiveError('GENERATION_CHANGED');gate={...gate,writeRevision:gate.writeRevision+1};record.activeGateFinalizer=true;try{await scope.put('meta',gate);}finally{record.activeGateFinalizer=false;}registerRepositoryFinalReadFence(repository,scope,{isCurrent:()=>true,plan:function*(){if(JSON.stringify(yield {method:'get',table:'meta',key:'canonical-generation:qualified-graph:v1'})!==JSON.stringify(s.authority.qualification))throw new ArchiveError('GENERATION_CHANGED');return true;}});}
+ originalGenerationRepositorySettlement(s.authority,marker,s.gate,gate,record.identity.database.name);
  registerRepositoryFinalReadFence(repository,scope,{isCurrent:()=>readOriginalGenerationRepositoryAuthority(s.token,repository,scope)===s.authority,plan:function*(){if(JSON.stringify(yield {method:'get',table:'meta',key:CANONICAL_REPOSITORY_PROTECTION})!==JSON.stringify(marker)||JSON.stringify(yield {method:'get',table:'meta',key:CANONICAL_REPOSITORY_GATE})!==JSON.stringify(gate))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');return true;}});
 }
 function requireReadableScope(scope){const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);workCheck(record);if(record&&(record.terminalFailed||record.finalReadFences.length&&!sameScope(record)||record.phase==='terminal'&&!record.driverReading))refuseTerminal(record);}
@@ -451,7 +460,8 @@ export class ArchiveRepository {
   });
  }
  async transaction(write,fn,stores=this.stores,shadowAuthority=null){
-  const writeState=repositoryWrites.get(this);if(!writeState)throw fail();
+  const writeState=repositoryWrites.get(this);if(!writeState)throw fail();let activeToken=null;
+  if(write&&shadowAuthority===null){activeToken=await prepareOriginalActiveRepositoryWrite(this);if(activeToken)shadowAuthority=activeToken;}
   if(write){writeState.generation=Object.freeze({});writeState.active++;}
   try{
   await this.open();if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
@@ -480,7 +490,7 @@ export class ArchiveRepository {
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
   try{if(write)await beginShadowWrite(this,scope,record,shadowAuthority);const result=await fn(scope);if(write)await finishShadowWrite(this,scope,record);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();}
-  }finally{if(write)writeState.active--;}
+  }finally{if(activeToken)releaseOriginalActiveRepositoryWrite(activeToken);if(write)writeState.active--;}
  }
  async initialize(){
   await this.open();let m=await this.transaction(false,t=>t.get('meta','migration'));
@@ -575,6 +585,7 @@ export function originalRepositoryTransactionOwner(repository){
 
 // Fixed generation consumers bypass instance wrappers; the opaque authority is
 // bound once to the original native scope and never returned to their callers.
+export function originalGenerationRepositoryRead(repository,fn,stores){if(!repositoryWrites.has(repository))throw new ArchiveError('GENERATION_CAPABILITY');return promptTransactionMethod.value.call(repository,false,fn,stores);}
 export async function originalGenerationRepositoryTransaction(repository,token,fn,stores){
  if(!repositoryWrites.has(repository))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
  const authority=readOriginalGenerationRepositoryAuthority(token,repository,null);

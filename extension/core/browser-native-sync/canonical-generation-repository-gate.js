@@ -23,12 +23,16 @@ export function originalGenerationProtection(marker,gate,databaseName){
 export function originalGenerationRepositoryAdmission(authority,marker,gate,databaseName){
  if(!authority)fail();if(marker!=null)originalGenerationProtection(marker,gate,databaseName);else if(authority.kind!=='checkpoint-install'||!gate||gate.identity?.databaseName!==databaseName||gate.phase!=='staging')fail();
  if(['checkpoint','checkpoint-install','human','group-stage','group-apply'].includes(authority.kind)&&gate.phase!=='staging')fail();
- if(!['checkpoint','checkpoint-install','human','group-stage','group-apply','publication','publication-seal'].includes(authority.kind))fail();
+ if(!['checkpoint','checkpoint-install','human','group-stage','group-apply','publication','publication-seal','checkpoint-retire','active-library'].includes(authority.kind))fail();
+ if(authority.kind==='checkpoint-retire'&&(marker==null||gate.phase!=='active'))fail();
+ if(authority.kind==='active-library'&&(marker==null||gate.phase!=='active'||!same(gate,authority.gate)||!same(marker,authority.marker)))fail();
  if(authority.identity&&!same(authority.identity,gate.identity))fail();return true;
 }
 export function originalGenerationRepositoryMutation(authority,table,key,method){
  if(!authority)fail();if(method==='clear')fail();
  if(table==='meta'&&key===CANONICAL_REPOSITORY_PROTECTION){if(authority.kind!=='checkpoint-install'||method!=='put')fail();return;}
+ if(authority.kind==='checkpoint-retire'){if(table!=='meta'||!(method==='put'&&key==='canonical-generation:copy-retirement:v1'||method==='delete'&&(key==='canonical-generation:checkpoint:state:v1'||/^canonical-generation:checkpoint:(item|page):[0-9]{8}$/.test(key))))fail();return;}
+ if(authority.kind==='active-library'){if(table==='meta'&&typeof key==='string'&&key.startsWith('canonical-generation:'))fail();return;}
  if(['human','group-apply'].includes(authority.kind)){if(table==='meta'&&key===CANONICAL_REPOSITORY_GATE)fail();return;}
  if(table!=='meta')fail();
  if(authority.kind==='group-stage'){if(typeof key!=='string'||!key.startsWith(authority.prefix))fail();return;}
@@ -39,7 +43,8 @@ export function originalGenerationRepositoryMutation(authority,table,key,method)
 export function originalGenerationRepositorySettlement(authority,marker,before,after,databaseName){
  originalGenerationProtection(marker,after,databaseName);
  if(!same(before.identity,after.identity)||before.registryName!==after.registryName)fail();
- if(['human','group-stage','group-apply'].includes(authority.kind)&&!same(before,after))fail();
+ if(['human','checkpoint-retire','group-stage','group-apply'].includes(authority.kind)&&!same(before,after))fail();
+ if(authority.kind==='active-library'&&!same({...before,writeRevision:before.writeRevision+1},after))fail();
  if(['checkpoint','checkpoint-install'].includes(authority.kind)&&!same({...before,writeRevision:before.writeRevision+1},after))fail();
  return true;
 }
