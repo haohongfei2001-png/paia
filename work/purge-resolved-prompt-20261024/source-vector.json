@@ -1,0 +1,7 @@
+{
+  "extension/core/browser-native-sync/group-checkpoint-scope.js": "ca101894c2715eafe35eafa9bfdd7f097b17c7faef83851f614ded66933f9665",
+  "extension/core/browser-native-sync/prompt-journal.js": "46bd21e429a82cc9a7083e8d739c0094c5e3179a9e89a4610783ef4b3c588367",
+  "extension/core/browser-native-sync/source-purge-group-physical.js": "56bcfa17cf0bad24015fa4b714d8ef9e1496171a7e5100fcc5d943c9c7f389bf",
+  "extension/core/browser-native-sync/source-purge-group.js": "7aab683342ab514d71f0951a43546b5245f82af924a541c407d3b38198256deb",
+  "extension/tests/source-purge-resolved-prompt.test.mjs": "36b1d06a4279d2f240f523008f9d49fa20f911939a56d5bea71ed7122832cb25"
+}

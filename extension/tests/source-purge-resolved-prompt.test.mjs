@@ -1,0 +1,69 @@
+import {MemoryService} from '../core/memory/service.js';
+import {configDefault} from '../core/memory/model.js';
+import {SourceBootstrapReceiver} from '../core/browser-native-sync/source-bootstrap-receive.js';
+import {capture,inputEdit} from './harness/thought-m1.mjs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {openConfiguredSyncWorker} from './harness/sync-configured-worker.mjs';
+import {fakeGoogleCheckpointHTTP,fakeOneDriveCheckpointHTTP} from './harness/checkpoint-publication-http.mjs';
+import {STORAGE_KEY} from '../core/constants.js';
+import {readPromptPreferences} from '../core/prompt-reuse-preferences.js';
+const google={subject:'SYNTHETIC_google_subject',clientId:'000000000000-synthetic.apps.googleusercontent.com',generation:'SYNTHETIC_generation',scopes:['https://www.googleapis.com/auth/drive.appdata']};
+const onedrive={subject:'SYNTHETIC_subject',tenantId:'9188040d-6c67-4c5b-b112-36a304b66dad',clientId:'00000000-0000-0000-0000-000000000001',generation:'SYNTHETIC_generation',scopes:['Files.ReadWrite.AppFolder']};
+const display={language:'en',appearance:'dark',fontSize:'large',readingWidth:'wide',timeDisplay:'date_only',timeEmphasis:'standard'};
+const prompt=f=>f.bridge.store.repository.transaction(false,readPromptPreferences,['meta']);
+const prefs=async f=>(await f.storage.get(STORAGE_KEY))[STORAGE_KEY].preferences;
+for(const kind of ['google','onedrive'])test(kind+' negative + surviving Working + explicit paired manual resolution: A closes, B restores, cold edit reaches C',async t=>{const mixed=true;
+ const binding=kind==='google'?google:onedrive,cloud=(kind==='google'?fakeGoogleCheckpointHTTP:fakeOneDriveCheckpointHTTP)(binding),options={provider:kind==='google'?'google-drive':'onedrive',binding,cloud};let current;
+ const open=async(deviceId,more={})=>{current=await openConfiguredSyncWorker({...options,deviceId,...more});await new MemoryService(current.bridge.store).ready();return current;};t.after(async()=>current?.close());
+ const a=await open('SYNTHETIC_A');assert.equal((await a.rpc('UPDATE_PREFERENCES',{changes:display})).ok,true);assert.equal((await a.rpc('FILTER_MODE',{mode:'off'})).ok,true);const created=await a.promptChange({action:'create',revision:(await a.query()).revision,text:'SYNTHETIC surviving Prompt'});assert.equal((await a.ui('RESUME')).ok,true);await a.capture();if(mixed){const q=capture((await a.bridge.store.status()).epoch,'SYNTHETIC_survivor','SYNTHETIC separate surviving body');q.chat={id:'SYNTHETIC_survivor_chat',url:'https://chatgpt.com/c/SYNTHETIC_survivor_chat',title:'SYNTHETIC survivor'};assert.equal((await a.rpc('CAPTURE',{...q,contentVersion:'0.55.0'},{id:'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',url:q.chat.url,frameId:0,tab:{id:2,url:q.chat.url,incognito:false}})).ok,true);}const source=(await a.bridge.store.snapshot()).records.find(r=>r.chatId==='m1-synthetic-chat');const prior=[];for await(const row of a.bridge.prompt.syncJournal.core.rows('revision'))prior.push(row.operation);const descriptor=prior.find(op=>op.type==='sourceBootstrapCommit'&&op.value.sourceId===source.id),oldIds=new Set([descriptor.revisionId,...descriptor.value.members.map(r=>r.revisionId)]),stale=prior.filter(op=>oldIds.has(op.revisionId));assert.equal((await a.rpc('PURGE_SOURCE',{id:source.id,confirm:true})).ok,true);await a.bridge.store.drainPurgeCleanup();if(mixed)await inputEdit(a.bridge.store,(await a.bridge.store.snapshot()).library.blocks[0].id,{note:'SYNTHETIC preserved Working'});await resolvePair(a,created.id);const published=await a.ui('NOW');assert.equal(published.ok,true,JSON.stringify(published));assert.equal(published.data.task.phase,'confirmed');assert.equal(cloud.requests.filter(r=>['POST','PUT'].includes(r.method)).some(r=>r.body&&new TextDecoder().decode(r.body).includes('SYNTHETIC explain this carefully')),false,'new cloud objects contain no deleted Source body');await a.close();
+ const b=await open('SYNTHETIC_B');assert.equal((await b.ui('RESUME')).ok,true);const restored=await b.ui('RESTORE');assert.equal(restored.ok,true,JSON.stringify(restored));assert.equal((await b.bridge.store.snapshot()).records.length,mixed?1:0);for(const [key,value] of Object.entries(display))assert.equal((await prefs(b))[key],value);assert.equal((await b.bridge.store.filterStatus()).mode,'off');assert.equal((await prompt(b)).overrides.find(x=>x.id===created.id).text,'SYNTHETIC resolved other');if(mixed)assert.equal((await b.bridge.store.snapshot()).library.blocks[0].note,'SYNTHETIC preserved Working');const beforeReplay=await b.bridge.store.repository.transaction(false,async tx=>Object.fromEntries(await Promise.all(b.bridge.store.repository.stores.map(async name=>[name,await tx.all(name)]))));await assert.rejects(new SourceBootstrapReceiver(b.bridge.store,b.bridge.prompt.syncJournal.core).receive(stale));assert.deepEqual(await b.bridge.store.repository.transaction(false,async tx=>Object.fromEntries(await Promise.all(b.bridge.store.repository.stores.map(async name=>[name,await tx.all(name)])))),beforeReplay);const storage=b.storage,factory=b.factory;await b.close();
+ const cold=await open('SYNTHETIC_B',{storage,factory});assert.equal((await cold.rpc('UPDATE_PREFERENCES',{changes:{appearance:'light'}})).ok,true);await cold.promptChange({action:'edit',id:created.id,revision:(await cold.query()).revision,text:'SYNTHETIC B later manual'});if(mixed)await inputEdit(cold.bridge.store,(await cold.bridge.store.snapshot()).library.blocks[0].id,{note:'SYNTHETIC cold further Working'});const next=await cold.ui('NOW');assert.equal(next.ok,true,JSON.stringify(next));await cold.close();
+ const c=await open('SYNTHETIC_C');assert.equal((await c.ui('RESUME')).ok,true);const last=await c.ui('RESTORE');assert.equal(last.ok,true,JSON.stringify(last));assert.deepEqual(await c.bridge.store.repository.transaction(false,t=>t.get('meta','memory:config')),configDefault());assert.equal((await c.bridge.store.snapshot()).records.length,mixed?1:0);if(mixed)assert.equal((await c.bridge.store.snapshot()).library.blocks[0].note,'SYNTHETIC cold further Working');assert.equal((await prefs(c)).appearance,'light');assert.equal((await prompt(c)).overrides.find(x=>x.id===created.id).text,'SYNTHETIC B later manual');
+});
+
+import {sealOperation} from '../core/browser-native-sync/core.js';
+import {PROMPT_REUSE_ROW} from '../core/prompt-reuse-preferences.js';
+async function resolvePair(f,id){
+ await f.promptChange({action:'edit',id,revision:(await f.query()).revision,text:'SYNTHETIC local advanced'});
+ const core=f.bridge.prompt.syncJournal.core,h=await core.read('head','promptPreferences',PROMPT_REUSE_ROW),bh=await core.read('head','promptBinding',PROMPT_REUSE_ROW),old=(await core.read('revision',h.revisions[0])).operation,oldBinding=(await core.read('revision',bh.revisions[0])).operation,value=structuredClone(old.value);value.overrides.find(x=>x.id===id).text='SYNTHETIC resolved other';
+ const make=(type,sequence,value)=>sealOperation({protocol:1,datasetId:core.datasetId,deviceId:'SYNTHETIC_conflict',sequence,operationId:crypto.randomUUID(),type,entityId:PROMPT_REUSE_ROW,codecVersion:1,kind:'put',actor:'user',parents:[],value});
+ const remote=await make('promptPreferences',1,value),companion=await make('promptBinding',2,{...structuredClone(oldBinding.value),promptRevisionId:remote.revisionId});assert.equal((await core.receive(remote)).state,'conflict');assert.equal((await core.receive(companion)).state,'conflict');
+ const offer=(await f.query()).manualConflict;assert.equal(offer.state,'available');const resolved=await f.rpc('PAIA_PROMPT_CONFLICT_RESOLVE',{resolution:{token:offer.token,choice:'other'}});assert.equal(resolved.ok,true,JSON.stringify(resolved));assert.equal((await f.query()).manualConflict.state,'none');
+}
+
+import {setup} from './harness/thought-m1.mjs';
+import {OrganizerStore} from '../core/organizer/store.js';
+import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';
+import {prepareGroupCheckpointPlan} from '../core/browser-native-sync/group-checkpoint-plan.js';
+import {preparePromptBindingReplay,prepareSourcePurgePromptPrediction,materializePrompt} from '../core/browser-native-sync/prompt-journal.js';
+import {PROMPT_CORRECTION_NORMALIZER_VERSION} from '../core/browser-native-sync/prompt-correction-binding.js';
+const tables=s=>s.repository.transaction(false,async tx=>Object.fromEntries(await Promise.all(s.repository.stores.map(async name=>[name,await tx.all(name)]))));
+async function pairFixture(t){
+ const f=await setup(OrganizerStore);t.after(()=>f.s.repository.close());const core=new BrowserNativeSyncCore(f.s.repository,{datasetId:'SYNTHETIC_negative_replay_proof',deviceId:'SYNTHETIC_target'}),id='manual:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+ const seal=(type,value,device,sequence,parents=[])=>sealOperation({protocol:1,datasetId:core.datasetId,deviceId:device,sequence,operationId:crypto.randomUUID(),type,entityId:PROMPT_REUSE_ROW,codecVersion:1,kind:'put',actor:'user',parents,value});
+ const pref=text=>({id:PROMPT_REUSE_ROW,version:1,pins:[],overrides:[{id,text,hidden:false}],splits:[]}),binding=p=>({id:PROMPT_REUSE_ROW,version:1,normalizerVersion:PROMPT_CORRECTION_NORMALIZER_VERSION,bindings:[{familyId:id,kind:'manual',inputIds:[]}],promptRevisionId:p.revisionId});
+ const p0=await seal('promptPreferences',pref('SYNTHETIC zero'),'SYNTHETIC_zero',1),p1=await seal('promptPreferences',pref('SYNTHETIC one'),'SYNTHETIC_one',1),b0=await seal('promptBinding',binding(p0),'SYNTHETIC_zero',2),b1=await seal('promptBinding',binding(p1),'SYNTHETIC_one',2),p2=await seal('promptPreferences',pref('SYNTHETIC resolved'),'SYNTHETIC_resolver',1,[p0.revisionId,p1.revisionId]),b2=await seal('promptBinding',binding(p2),'SYNTHETIC_resolver',2,[b0.revisionId,b1.revisionId]),ops=[p0,p1,b0,b1,p2,b2],plan=await prepareGroupCheckpointPlan(core,ops);return {...f,core,ops,plan};
+}
+for(const kind of ['repository','wrapped-repository','fabricated-maps','cloned-plan'])test('detached Prompt predictor rejects '+kind+' without table changes',async t=>{
+ const f=await pairFixture(t),before=await tables(f.s);
+ await f.core.transaction(true,async tx=>{const fake=kind==='repository'?tx:kind==='wrapped-repository'?{get:tx.get.bind(tx),put:tx.put.bind(tx),tx:{}}:{get:async()=>undefined,put:async()=>{},tx:{objectStoreNames:{contains:()=>true}}};assert.throws(()=>prepareSourcePurgePromptPrediction(f.core,kind==='cloned-plan'?structuredClone(f.plan):f.plan,fake),{code:'BNS_SOURCE_PURGE_GROUP_CHANGED'});});assert.deepEqual(await tables(f.s),before);
+});
+test('original Repository Prompt deferred pair left unresolved aborts every table at final fence',async t=>{
+ const f=await pairFixture(t),binding=preparePromptBindingReplay(f.core,f.plan),before=await tables(f.s);let deferredEntered=false;
+ await assert.rejects(f.core.transaction(true,async tx=>{
+  for(const operation of f.ops.slice(0,3)){const previousHead=await f.core.get(tx,'head',operation.type,operation.entityId),previousVersions=[];for(const ref of previousHead?.revisions??[])previousVersions.push((await f.core.get(tx,'revision',ref)).operation);const result=await f.core.applyInTransaction(tx,operation,{materialize:false});if(result.state!=='applied'){assert.equal(result.state,'conflict');continue;}const head=await f.core.get(tx,'head',operation.type,operation.entityId),context={core:f.core,previousCore:f.core,operation,head,origin:'remote',previousHead,previousVersions};if(operation.type==='promptBinding'){await binding(tx,context);deferredEntered=true;}else await materializePrompt(tx,context);}
+ }),{code:'STORAGE_FAILED'});assert.equal(deferredEntered,true);assert.deepEqual(await tables(f.s),before);
+});
+for(const change of ['externalAccess','localOnly','userTouched','revision','unknown','legacy-profile'])test('negative publication refuses nondefault memory '+change+' before cloud writes',async t=>{
+ const cloud=fakeGoogleCheckpointHTTP(google),f=await openConfiguredSyncWorker({provider:'google-drive',binding:google,cloud,deviceId:'SYNTHETIC_refusal'});t.after(()=>f.close());await new MemoryService(f.bridge.store).ready();await f.ui('RESUME');assert.equal((await f.rpc('FILTER_MODE',{mode:'off'})).ok,true);await f.capture();assert.equal((await f.rpc('PURGE_SOURCE',{id:(await f.bridge.store.snapshot()).records[0].id,confirm:true})).ok,true);await f.bridge.store.drainPurgeCleanup();
+ await f.bridge.store.repository.transaction(true,async tx=>{if(change==='legacy-profile')await tx.put('meta',{id:'memory:profile:["default"]',kind:'profile',version:1,profileId:'default',name:'SYNTHETIC',budget:'standard',instruction:'',revision:0});else{const row=await tx.get('meta','memory:config');await tx.put('meta',{...row,[change==='unknown'?'extra':change]:change==='revision'?1:true});}});
+ const before=await tables(f.bridge.store),control=await f.storage.get(STORAGE_KEY),writes=cloud.requests.filter(r=>['POST','PUT'].includes(r.method)).length,result=await f.ui('NOW');assert.equal(result.ok,false);assert.equal(result.error,'BNS_GROUP_CANONICAL_UNREPRESENTED');assert.deepEqual(await tables(f.bridge.store),before);assert.deepEqual(await f.storage.get(STORAGE_KEY),control);assert.equal(cloud.requests.filter(r=>['POST','PUT'].includes(r.method)).length,writes);
+});
+
+import {sourcePurgeGroupSnapshot,planSourcePurgeGroupPhysical} from '../core/browser-native-sync/source-purge-group-physical.js';
+test('original private Map predictor refuses an unfinished paired history before returning any projected tree',async t=>{
+ const f=await pairFixture(t),before=await tables(f.s),captured=await f.core.transaction(false,tx=>sourcePurgeGroupSnapshot(f.core,tx));
+ const groups=f.ops.slice(0,3).map(op=>f.plan.groups.find(group=>group.id===op.revisionId));
+ await assert.rejects(planSourcePurgeGroupPhysical(f.s,f.core,captured,groups,[],[],null,null,{plan:f.plan}),{code:'BNS_OWNER_CHANGED'});assert.deepEqual(await tables(f.s),before);
+});
