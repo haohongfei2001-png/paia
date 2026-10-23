@@ -1,0 +1,262 @@
+TAP version 13
+# Subtest: compound qualifier note-only rejects omitted input-field
+ok 1 - compound qualifier note-only rejects omitted input-field
+  ---
+  duration_ms: 157.230125
+  type: 'test'
+  ...
+# Subtest: compound qualifier note-only rejects omitted qualification-field
+ok 2 - compound qualifier note-only rejects omitted qualification-field
+  ---
+  duration_ms: 98.327416
+  type: 'test'
+  ...
+# Subtest: compound qualifier note-only rejects omitted structure
+ok 3 - compound qualifier note-only rejects omitted structure
+  ---
+  duration_ms: 86.418583
+  type: 'test'
+  ...
+# Subtest: compound qualifier note-only rejects omitted authored
+ok 4 - compound qualifier note-only rejects omitted authored
+  ---
+  duration_ms: 88.915375
+  type: 'test'
+  ...
+# Subtest: compound qualifier note-only rejects omitted bound
+ok 5 - compound qualifier note-only rejects omitted bound
+  ---
+  duration_ms: 91.428416
+  type: 'test'
+  ...
+# Subtest: compound qualifier note-only rejects omitted context
+ok 6 - compound qualifier note-only rejects omitted context
+  ---
+  duration_ms: 89.071667
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted input-field
+ok 7 - compound qualifier bound-note rejects omitted input-field
+  ---
+  duration_ms: 89.003917
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted qualification-field
+ok 8 - compound qualifier bound-note rejects omitted qualification-field
+  ---
+  duration_ms: 89.937625
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted structure
+ok 9 - compound qualifier bound-note rejects omitted structure
+  ---
+  duration_ms: 95.715209
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted authored
+ok 10 - compound qualifier bound-note rejects omitted authored
+  ---
+  duration_ms: 90.904084
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted bound
+ok 11 - compound qualifier bound-note rejects omitted bound
+  ---
+  duration_ms: 85.93825
+  type: 'test'
+  ...
+# Subtest: compound qualifier bound-note rejects omitted context
+ok 12 - compound qualifier bound-note rejects omitted context
+  ---
+  duration_ms: 93.825167
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted input-field
+ok 13 - compound qualifier section-mixed rejects omitted input-field
+  ---
+  duration_ms: 168.034084
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted qualification-field
+ok 14 - compound qualifier section-mixed rejects omitted qualification-field
+  ---
+  duration_ms: 145.271958
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted structure
+ok 15 - compound qualifier section-mixed rejects omitted structure
+  ---
+  duration_ms: 126.84475
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted authored
+ok 16 - compound qualifier section-mixed rejects omitted authored
+  ---
+  duration_ms: 126.142875
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted bound
+ok 17 - compound qualifier section-mixed rejects omitted bound
+  ---
+  duration_ms: 119.198708
+  type: 'test'
+  ...
+# Subtest: compound qualifier section-mixed rejects omitted context
+ok 18 - compound qualifier section-mixed rejects omitted context
+  ---
+  duration_ms: 121.513375
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects input-note
+ok 19 - compound terminal provider rejects input-note
+  ---
+  duration_ms: 565.641
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects section-title
+ok 20 - compound terminal provider rejects section-title
+  ---
+  duration_ms: 784.739667
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects section-history
+ok 21 - compound terminal provider rejects section-history
+  ---
+  duration_ms: 841.067583
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects section-receipt
+ok 22 - compound terminal provider rejects section-receipt
+  ---
+  duration_ms: 892.965208
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects section-member
+ok 23 - compound terminal provider rejects section-member
+  ---
+  duration_ms: 966.896917
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects bound-note
+ok 24 - compound terminal provider rejects bound-note
+  ---
+  duration_ms: 605.272
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects authored-note
+ok 25 - compound terminal provider rejects authored-note
+  ---
+  duration_ms: 586.340625
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects source
+ok 26 - compound terminal provider rejects source
+  ---
+  duration_ms: 586.726209
+  type: 'test'
+  ...
+# Subtest: compound terminal provider rejects revoke
+ok 27 - compound terminal provider rejects revoke
+  ---
+  duration_ms: 602.72125
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects input-note
+ok 28 - compound terminal backup rejects input-note
+  ---
+  duration_ms: 734.727417
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects section-title
+ok 29 - compound terminal backup rejects section-title
+  ---
+  duration_ms: 1022.02675
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects section-history
+ok 30 - compound terminal backup rejects section-history
+  ---
+  duration_ms: 923.818834
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects section-receipt
+ok 31 - compound terminal backup rejects section-receipt
+  ---
+  duration_ms: 1000.5975
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects section-member
+ok 32 - compound terminal backup rejects section-member
+  ---
+  duration_ms: 954.474583
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects bound-note
+ok 33 - compound terminal backup rejects bound-note
+  ---
+  duration_ms: 808.806958
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects authored-note
+ok 34 - compound terminal backup rejects authored-note
+  ---
+  duration_ms: 769.060542
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects source
+ok 35 - compound terminal backup rejects source
+  ---
+  duration_ms: 773.804958
+  type: 'test'
+  ...
+# Subtest: compound terminal backup rejects revoke
+ok 36 - compound terminal backup rejects revoke
+  ---
+  duration_ms: 654.283042
+  type: 'test'
+  ...
+# Subtest: compound original source adapter and ACK replay note-only
+ok 37 - compound original source adapter and ACK replay note-only
+  ---
+  duration_ms: 714.980875
+  type: 'test'
+  ...
+# Subtest: compound original source adapter and ACK replay body-note
+ok 38 - compound original source adapter and ACK replay body-note
+  ---
+  duration_ms: 714.853833
+  type: 'test'
+  ...
+# Subtest: compound original source adapter and ACK replay section-mixed
+ok 39 - compound original source adapter and ACK replay section-mixed
+  ---
+  duration_ms: 1049.513666
+  type: 'test'
+  ...
+# Subtest: compound bound note-only Input cannot satisfy original full body owner pair
+ok 40 - compound bound note-only Input cannot satisfy original full body owner pair
+  ---
+  duration_ms: 52.8385
+  type: 'test'
+  ...
+# Subtest: compound Topic structure original owner refuses edited bound member
+ok 41 - compound Topic structure original owner refuses edited bound member
+  ---
+  duration_ms: 62.301125
+  type: 'test'
+  ...
+# Subtest: compound Topic structure original owner refuses source-free authored member
+ok 42 - compound Topic structure original owner refuses source-free authored member
+  ---
+  duration_ms: 73.377833
+  type: 'test'
+  ...
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18871.201083

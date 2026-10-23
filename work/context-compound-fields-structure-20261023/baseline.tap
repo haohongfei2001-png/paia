@@ -1,0 +1,194 @@
+TAP version 13
+# Subtest: compound fields original body+note with independent authored owner
+not ok 1 - compound fields original body+note with independent authored owner
+  ---
+  duration_ms: 155.626708
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:300:53'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"a7eb176f-6d33-4d59-9e7b-dd95c8a6b71f\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:301:171)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: compound fields original note with independent authored owner
+not ok 2 - compound fields original note with independent authored owner
+  ---
+  duration_ms: 83.934792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:300:53'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"4f72eb65-d05e-46aa-8bca-6580ab0c8d3d\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:301:171)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: compound fields original body+note with bound
+not ok 3 - compound fields original body+note with bound
+  ---
+  duration_ms: 67.640417
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:303:34'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"f44ffbc4-f49c-458d-8bd0-5ce206204139\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:304:167)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: compound fields original body+note with bound and authored
+not ok 4 - compound fields original body+note with bound and authored
+  ---
+  duration_ms: 79.477041
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:303:34'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"68dff39d-c98e-48f4-b2a0-506394647146\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:304:167)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: compound structure original Section with plain
+not ok 5 - compound structure original Section with plain
+  ---
+  duration_ms: 95.092166
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:306:60'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"63e0b37e-d9c8-4100-9a3c-72634b276094\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:307:191)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: compound structure original Section with bound
+not ok 6 - compound structure original Section with bound
+  ---
+  duration_ms: 97.423042
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:306:60'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"59987695-b88d-4fd8-af2a-d6257680607b\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:307:191)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: compound structure original Section with plain and authored
+not ok 7 - compound structure original Section with plain and authored
+  ---
+  duration_ms: 107.624083
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:306:60'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"91508f86-c6bd-4187-82dd-296b57a57ac4\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:307:191)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: compound structure original Section with bound and authored
+not ok 8 - compound structure original Section with bound and authored
+  ---
+  duration_ms: 141.882417
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:306:60'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"DEFERRED","dispatchAllowed":false,"financialAuthority":false,"jobId":null,"nextCursor":"aiu:delta:pending:[\"context_item\",\"39b60b6e-4dcb-4463-bb78-69ecfd616c60\"]","complete":false,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}
+    + actual - expected
+    
+    + undefined
+    - 'COMMITTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'COMMITTED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-structural-context/paia/extension/tests/ai-cost-03-bound-entry-fields.test.mjs:307:191)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 0
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 984.141583

@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: compound fields original body+note with independent authored owner
+ok 1 - compound fields original body+note with independent authored owner
+  ---
+  duration_ms: 743.736125
+  type: 'test'
+  ...
+# Subtest: compound fields original note with independent authored owner
+ok 2 - compound fields original note with independent authored owner
+  ---
+  duration_ms: 638.347917
+  type: 'test'
+  ...
+# Subtest: compound fields original body+note with bound
+ok 3 - compound fields original body+note with bound
+  ---
+  duration_ms: 492.947792
+  type: 'test'
+  ...
+# Subtest: compound fields original body+note with bound and authored
+ok 4 - compound fields original body+note with bound and authored
+  ---
+  duration_ms: 639.936542
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with plain
+ok 5 - compound structure original Section with plain
+  ---
+  duration_ms: 828.514625
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with bound
+ok 6 - compound structure original Section with bound
+  ---
+  duration_ms: 752.149834
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with plain and authored
+ok 7 - compound structure original Section with plain and authored
+  ---
+  duration_ms: 1351.277959
+  type: 'test'
+  ...
+# Subtest: compound structure original Section with bound and authored
+ok 8 - compound structure original Section with bound and authored
+  ---
+  duration_ms: 1188.134583
+  type: 'test'
+  ...
+# Subtest: compound DTO closes structural member fields and every independent family
+ok 9 - compound DTO closes structural member fields and every independent family
+  ---
+  duration_ms: 2052.608875
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8838.635083
