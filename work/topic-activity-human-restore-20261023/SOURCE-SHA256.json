@@ -1,0 +1,56 @@
+{
+  "extension/tests/topic-activity-human-restore-sync.test.mjs": {
+    "sha256": "02532bf193cc2ad592b696990fbb1063fe66eb4e5341163b40f98804afdd9d8f",
+    "bytes": 13312
+  },
+  "extension/tests/topic-activity-sync.test.mjs": {
+    "sha256": "b160023c39e559b6c9c30f203dc2e0582eb6a26710b35251189fce7fd73a17d9",
+    "bytes": 20504,
+    "baselineEqual": true
+  },
+  "extension/tests/human-graph-topic-lifecycle-plan.test.mjs": {
+    "sha256": "1b2bb57ac6e7e42b737dd61f0e29f4cdfdbed513cc7e7257fc49960febad94f8",
+    "bytes": 4204,
+    "baselineEqual": true
+  },
+  "extension/core/topic-governance.js": {
+    "sha256": "6351726622884d9c839367dd1526ffb5fda2b49f65f0a7a1e64db61861317734",
+    "bytes": 5609,
+    "baselineEqual": true
+  },
+  "extension/core/topic-identity.js": {
+    "sha256": "bddbc5036723b5001306890e66c4b5554b1b8ce621702e0ec2e4baa4c85945fc",
+    "bytes": 10898,
+    "baselineEqual": true
+  },
+  "extension/core/topic-lifecycle.js": {
+    "sha256": "5511a8dd465427e26d4419367eb64bb2d6aecc37e898ca90700a6f6d08a08653",
+    "bytes": 6966,
+    "baselineEqual": true
+  },
+  "extension/core/browser-native-sync/topic-activity-codec.js": {
+    "sha256": "67b3eb0180735e137b09f99a068b80deaf73c40a849e6faf9712bd22c6caae6b",
+    "bytes": 2330,
+    "baselineEqual": true
+  },
+  "extension/core/browser-native-sync/topic-activity-journal.js": {
+    "sha256": "4267967caab2d733cd2ab1b914bbf690b23ee8ba39a9408e6ac658f1b0eb355c",
+    "bytes": 12657,
+    "baselineEqual": true
+  },
+  "extension/core/browser-native-sync/human-library-plan.js": {
+    "sha256": "22f6eb961c3c463396eaa619d42844f0d6d2ff05ed0dcb966f2d8ae0720455ba",
+    "bytes": 274436,
+    "baselineEqual": true
+  },
+  "extension/core/browser-native-sync/human-library-journal.js": {
+    "sha256": "e147204c96bdee44c23d2127aed11a6b6b036dce96332de64c8c33ab4ff56804",
+    "bytes": 14694,
+    "baselineEqual": true
+  },
+  "extension/core/topic-formation.js": {
+    "sha256": "558d7de0a14f57099ed77d8bc651ac8e1dd6112f16fcd2340f583b5e1bce6af6",
+    "bytes": 55222,
+    "baselineEqual": true
+  }
+}
