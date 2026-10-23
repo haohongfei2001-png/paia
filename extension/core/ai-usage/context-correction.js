@@ -71,7 +71,7 @@ export async function assertContextProtectionCorrections(store,t,items,captured)
 // Finite text-correction/current-restoration mapper. A human-controlled
 // automatic Item never becomes
 // source-free human evidence. Its entire original plain Input field lineage must
-// remain current; authored/bound/structural/note-only/invalidated cases stay pending.
+// remain current; authored/bound/structural/invalidated cases stay pending.
 // Valid temporal metadata remains frozen under the original human protection;
 // it neither becomes a new selected model field nor authorizes automatic expiry.
 export async function readContextEditMapping(store,t,d){
@@ -92,7 +92,7 @@ export async function readContextEditMapping(store,t,d){
   if(!humanReceipt(removal,p.removalReceiptId,item.id,p.epoch,p.removalReceiptDigest,{ok:true,itemId:item.id,revision:p.beforeRevision,lifecycle:'removed',deletedBy:p.removalReceiptId.slice('context:'.length)}))return null;
  }
  const evidence=item.maintenance.provenance.evidence,sources=new Set(),memory=new MemoryService(store);
- if(!evidence.length||evidence.length>16||new Set(evidence.map(e=>e.inputId)).size!==evidence.length||evidence.some(e=>e.kind||e.humanTopic||e.humanSection||!equal(e.selectedFields,['body'])&&!equal(e.selectedFields,['body','note'])))return null;
+ if(!evidence.length||evidence.length>16||new Set(evidence.map(e=>e.inputId)).size!==evidence.length||evidence.some(e=>e.kind||e.humanTopic||e.humanSection||!equal(e.selectedFields,['body'])&&!equal(e.selectedFields,['body','note'])&&!equal(e.selectedFields,['note'])))return null;
  for(const e of evidence){const state=await t.get('inputStates',e.inputId),index=await t.get('blockIndex',e.inputId);
   if(!state||state.removalState!=='active'||state.sourcePurged||state.contentRevision!==e.contentRevision||(state.lastRemovalSequence??0)!==e.expectedRemovalSequence||index?.excluded!==false||!equal([...state.sourceRecordIds].sort(),e.sourceRecordIds)||!await memory.safeSources(t,e.sourceRecordIds))return null;
   for(const id of e.sourceRecordIds)sources.add(id);

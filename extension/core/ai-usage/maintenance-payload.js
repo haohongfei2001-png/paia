@@ -14,9 +14,9 @@ export function createMaintenancePayload(metadata,material,limits,placements=[],
  // Notes only accompany a single original Context correction with its exact
  // complete Input-field selection. Ordinary Topic/Input requests remain body-only.
  const inputs=view.inputs.map((input,index)=>{
-  const note=Object.hasOwn(input.fields||{},'note'),selected=contextItems?.[0]?.inputFields?.find(e=>e.inputId===input.id);
-  if(typeof input.id!=='string'||input.role!=='primary'||!Number.isSafeInteger(input.revision)||input.revision<0||typeof input.fields?.body!=='string'||Object.keys(input.fields).length!==(note?2:1)||note&&(typeof input.fields.note!=='string'||contextItems.length!==1||metadata.coverage?.length!==1||metadata.coverage[0].facet!=='context'||JSON.stringify(selected?.selectedFields)!=='["body","note"]'))fail('UNAVAILABLE');
-  return {ref:'i'+index,inputId:input.id,revision:input.revision,body:input.fields.body,...(note?{note:input.fields.note}:{})};
+  const selected=contextItems?.[0]?.inputFields?.find(e=>e.inputId===input.id),fields=selected?.selectedFields??['body'],extended=Object.hasOwn(input.fields||{},'note');
+  if(typeof input.id!=='string'||input.role!=='primary'||!Number.isSafeInteger(input.revision)||input.revision<0||!['["body"]','["body","note"]','["note"]'].includes(JSON.stringify(fields))||!input.fields||Object.keys(input.fields).length!==fields.length||!fields.every(field=>typeof input.fields[field]==='string')||extended&&(contextItems.length!==1||metadata.coverage?.length!==1||metadata.coverage[0].facet!=='context'||!selected?.selectedFields.includes('note')))fail('UNAVAILABLE');
+  return {ref:'i'+index,inputId:input.id,revision:input.revision,...Object.fromEntries(fields.map(field=>[field,input.fields[field]]))};
  });
  if(new Set(inputs.map(i=>i.inputId)).size!==inputs.length)fail('UNAVAILABLE');
  // Entry descriptors come from the original formation owner after exact Entry authority.
@@ -71,8 +71,8 @@ export function createMaintenancePayload(metadata,material,limits,placements=[],
  if(!Array.isArray(contextItems)||contextItems.length>1)fail('BUDGET_EXCEEDED');
  for(const m of contextItems){
   if(Object.hasOwn(m,'inputFields')){
-   if(!Array.isArray(m.inputFields)||!Array.isArray(m.inputIds)||m.inputFields.length!==m.inputIds.length||!m.inputFields.some(e=>JSON.stringify(e.selectedFields)==='["body","note"]')||new Set(m.inputFields.map(e=>e.inputId)).size!==m.inputFields.length)fail('UNAVAILABLE');
-   for(const e of m.inputFields){exact(e,['inputId','selectedFields']);const input=inputs.find(i=>i.inputId===e.inputId);if(!m.inputIds.includes(e.inputId)||!input||!['["body"]','["body","note"]'].includes(JSON.stringify(e.selectedFields))||Object.hasOwn(input,'note')!==e.selectedFields.includes('note'))fail('UNAVAILABLE');}
+   if(!Array.isArray(m.inputFields)||!Array.isArray(m.inputIds)||m.inputFields.length!==m.inputIds.length||!m.inputFields.some(e=>e.selectedFields?.includes('note'))||new Set(m.inputFields.map(e=>e.inputId)).size!==m.inputFields.length)fail('UNAVAILABLE');
+   for(const e of m.inputFields){exact(e,['inputId','selectedFields']);const input=inputs.find(i=>i.inputId===e.inputId);if(!m.inputIds.includes(e.inputId)||!input||!['["body"]','["body","note"]','["note"]'].includes(JSON.stringify(e.selectedFields))||['body','note'].some(field=>Object.hasOwn(input,field)!==e.selectedFields.includes(field)))fail('UNAVAILABLE');}
   }
   exact(m,['kind','itemId','revision','card','selectedFields','proof','inputIds','fields','fieldDigests',...(Object.hasOwn(m,'inputFields')?['inputFields']:[])]);exact(m.fields,['body','section']);exact(m.fieldDigests,['body','section']);
   if(m.kind!=='contextEdit'||!Number.isSafeInteger(m.revision)||m.revision<2||!['info','rules','now'].includes(m.card)||JSON.stringify(m.selectedFields)!=='["body","section"]'||!m.selectedFields.every(f=>typeof m.fields[f]==='string'&&/^[a-f0-9]{64}$/.test(m.fieldDigests[f]))||!metadata.coverage?.some(u=>u.facet==='context'&&u.key===JSON.stringify(['context_item',m.itemId]))||!Array.isArray(m.inputIds)||!m.inputIds.length||!m.inputIds.every(id=>inputs.some(i=>i.inputId===id)))fail('UNAVAILABLE');
