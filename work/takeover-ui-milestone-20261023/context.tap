@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: UIR-04 current ordinary Context route stays unavailable and preserves data across source/release wide, compact and dark pages
+ok 1 - UIR-04 current ordinary Context route stays unavailable and preserves data across source/release wide, compact and dark pages
+  ---
+  duration_ms: 16748.496166
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16943.499916

@@ -1,0 +1,98 @@
+TAP version 13
+# READING_RHYTHM {"surface":"archive","width":1440,"fontSize":"standard","size":17,"line":28.05,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"thought","width":1440,"fontSize":"standard","size":17,"line":28.05,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"context","width":1440,"fontSize":"standard","size":17,"line":28.05,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"archive","width":390,"fontSize":"small","size":16,"line":26.4,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"thought","width":390,"fontSize":"small","size":16,"line":26.4,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"context","width":390,"fontSize":"small","size":16,"line":26.4,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"archive","width":390,"fontSize":"large","size":19,"line":31.35,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"thought","width":390,"fontSize":"large","size":19,"line":31.35,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"context","width":390,"fontSize":"large","size":19,"line":31.35,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"archive","width":320,"fontSize":"xlarge","size":21,"line":34.65,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"thought","width":320,"fontSize":"xlarge","size":21,"line":34.65,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"context","width":320,"fontSize":"xlarge","size":21,"line":34.65,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"archive","width":1440,"fontSize":"standard","size":17,"line":28.05,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"thought","width":1440,"fontSize":"standard","size":17,"line":28.05,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"context","width":1440,"fontSize":"standard","size":17,"line":28.05,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"archive","width":390,"fontSize":"small","size":16,"line":26.4,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"thought","width":390,"fontSize":"small","size":16,"line":26.4,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"context","width":390,"fontSize":"small","size":16,"line":26.4,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"archive","width":390,"fontSize":"large","size":19,"line":31.35,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"thought","width":390,"fontSize":"large","size":19,"line":31.35,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"context","width":390,"fontSize":"large","size":19,"line":31.35,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"archive","width":320,"fontSize":"xlarge","size":21,"line":34.65,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"thought","width":320,"fontSize":"xlarge","size":21,"line":34.65,"space":"pre-wrap","children":[]}
+# READING_RHYTHM {"surface":"context","width":320,"fontSize":"xlarge","size":21,"line":34.65,"space":"pre-wrap","children":[]}
+# Subtest: UIR-04 Settings keeps one six-group owner projection with the adopted directory and compact Back flow in source and built release Chrome
+ok 1 - UIR-04 Settings keeps one six-group owner projection with the adopted directory and compact Back flow in source and built release Chrome
+  ---
+  duration_ms: 41986.437708
+  type: 'test'
+  ...
+# Subtest: D5 S01 records adopted Settings geometry before its presentation replacement
+ok 2 - D5 S01 records adopted Settings geometry before its presentation replacement
+  ---
+  duration_ms: 1927.051667
+  type: 'test'
+  ...
+# Subtest: D5 S01 Settings preserves six group owners with paired reading-column, keyboard and reflow evidence (source)
+not ok 3 - D5 S01 Settings preserves six group owners with paired reading-column, keyboard and reflow evidence (source)
+  ---
+  duration_ms: 48976.620834
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/uir-04-settings-chrome-e2e.test.mjs:69:43'
+  failureType: 'testCodeFailure'
+  error: 'headed device proof must not be overridden'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1'
+  actual: '1'
+  operator: 'notStrictEqual'
+  stack: |-
+    coarseSettingsEvidence (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/harness/settings-consumer-presentation.mjs:38:10)
+    compareConsumerSettings (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/harness/settings-consumer-presentation.mjs:77:72)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/uir-04-settings-chrome-e2e.test.mjs:71:462)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: D5 S01 Settings preserves six group owners with paired reading-column, keyboard and reflow evidence (release)
+not ok 4 - D5 S01 Settings preserves six group owners with paired reading-column, keyboard and reflow evidence (release)
+  ---
+  duration_ms: 50783.675834
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/uir-04-settings-chrome-e2e.test.mjs:69:43'
+  failureType: 'testCodeFailure'
+  error: 'headed device proof must not be overridden'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1'
+  actual: '1'
+  operator: 'notStrictEqual'
+  stack: |-
+    coarseSettingsEvidence (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/harness/settings-consumer-presentation.mjs:38:10)
+    compareConsumerSettings (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/harness/settings-consumer-presentation.mjs:77:72)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/uir-04-settings-chrome-e2e.test.mjs:71:462)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: SET2 compact text and Data locale remain readable (source)
+ok 5 - SET2 compact text and Data locale remain readable (source)
+  ---
+  duration_ms: 3282.761125
+  type: 'test'
+  ...
+# Subtest: SET2 compact text and Data locale remain readable (release)
+ok 6 - SET2 compact text and Data locale remain readable (release)
+  ---
+  duration_ms: 4870.946875
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 4
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 152010.779333

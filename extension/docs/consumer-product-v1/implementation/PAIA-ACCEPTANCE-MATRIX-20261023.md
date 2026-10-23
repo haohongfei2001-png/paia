@@ -468,3 +468,7 @@ Source/release identity, exact commands, all raw TAP and body-free native receip
 are in the report and its SHA256SUMS. Whole Sync families, production lifecycle,
 Full/Linux, actual provider/model/SQL, visual/physical and installation gates
 remain open; no earlier cloud failure or cancelled capacity diagnosis is cleared.
+
+## Local UI checkpoint at c6d3d5b2
+
+Original headless synthetic runs: Settings complete file **4/6 exit1**, shell selected main1/1, current Context unavailable-route UI1/1, Prompt fixed-three-form Source/Release2/2. Settings Source/Release each completed288 layout rows and keyboard/failed-write checks, then the preserved pinned headed-touch prerequisite rejected this headless environment. The later stages in those parents did not run. No complete Settings, touch, private-reference fidelity or whole-product acceptance follows. See [exact report](../../../../work/takeover-ui-milestone-20261023/REPORT.md), separate raw failures, runtime vectors and selected actual captures.

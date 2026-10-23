@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: approved fixed three forms use one private frame and direct exact bounded expressions source
+ok 1 - approved fixed three forms use one private frame and direct exact bounded expressions source
+  ---
+  duration_ms: 6540.248084
+  type: 'test'
+  ...
+# Subtest: approved fixed three forms use one private frame and direct exact bounded expressions release
+ok 2 - approved fixed three forms use one private frame and direct exact bounded expressions release
+  ---
+  duration_ms: 5734.855375
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17389.792333

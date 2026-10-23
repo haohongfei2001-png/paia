@@ -358,3 +358,7 @@ physical devices, real identity/model/provider/tokenizer/SQL, cross-source
 additional old-body authority and deployment/installation remain separate exact
 qualification or authorization boundaries. Existing constrained run allowances
 are not reset by this composition.
+
+### UI milestone, c6d3d5b2
+
+Concentrated original headless UI verification finished: Settings4/6 with two pinned-headed-touch environment failures retained, shell main1/1, current Context UI1/1, Prompt fixed forms2/2. Settings later stages after the coarse prerequisite remain unexecuted. Preserve the required touch qualification for an authorized matching environment; do not launch a visible browser or weaken its assertions solely to relabel this batch. [Report](../../../../work/takeover-ui-milestone-20261023/REPORT.md). The separately recorded manual/bound-Context native checkpoint at6452a3a7 already completed30/30 and is not waiting for this UI result.
