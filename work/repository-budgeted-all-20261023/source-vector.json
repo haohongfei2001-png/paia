@@ -1,0 +1,6 @@
+{
+  "extension/core/idb-repository.js": "a974ce3fe86cc2363b95977d099766120968f41bc3bce645f10ee63929a1ca85",
+  "extension/tests/repository-budgeted-all.test.mjs": "e9258f530af7701de1c35b73277722a241f1d6fd9184b2c734896991be5f7426",
+  "extension/tests/repository-final-read-fence.test.mjs": "f04472af6a24dcd38afd6f28a38cc22b033cc5df809d78922cef2133c41a8892",
+  "extension/tests/browser-native-sync-group-paging.test.mjs": "489edefbb6ec3f40e884a8ae0f93726eea4a6fe8c5f6bb0a03d61ae6e230d67a"
+}

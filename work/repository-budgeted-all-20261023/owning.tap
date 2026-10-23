@@ -1,0 +1,336 @@
+TAP version 13
+# {"syntheticPaging":{"entries":129,"history":129,"operations":387}}
+# Subtest: 129 original Human Entry rows refuse a paged staging envelope without publishing canonical state
+ok 1 - 129 original Human Entry rows refuse a paged staging envelope without publishing canonical state
+  ---
+  duration_ms: 2326.594833
+  type: 'test'
+  ...
+# Subtest: original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+ok 2 - original repository rows use bounded ordered pages and one shared transaction byte/ref meter
+  ---
+  duration_ms: 15.95775
+  type: 'test'
+  ...
+# Subtest: paged reader rejects backwards before accepting a forged page
+ok 3 - paged reader rejects backwards before accepting a forged page
+  ---
+  duration_ms: 0.11025
+  type: 'test'
+  ...
+# Subtest: paged reader rejects foreign-key before accepting a forged page
+ok 4 - paged reader rejects foreign-key before accepting a forged page
+  ---
+  duration_ms: 0.037
+  type: 'test'
+  ...
+# Subtest: paged reader rejects false-next before accepting a forged page
+ok 5 - paged reader rejects false-next before accepting a forged page
+  ---
+  duration_ms: 0.045375
+  type: 'test'
+  ...
+# Subtest: paged reader rejects oversize-page before accepting a forged page
+ok 6 - paged reader rejects oversize-page before accepting a forged page
+  ---
+  duration_ms: 0.044833
+  type: 'test'
+  ...
+# Subtest: operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+ok 7 - operation paging keeps the 2 MiB/4096 total envelope and 64 element pages
+  ---
+  duration_ms: 13.914334
+  type: 'test'
+  ...
+# Subtest: paged work deadline is checked after a held page settles and accepts no row
+ok 8 - paged work deadline is checked after a held page settles and accepts no row
+  ---
+  duration_ms: 0.239
+  type: 'test'
+  ...
+# {"syntheticPrompt129Transactions":[{"write":true,"reads":2503,"writes":1163}]}
+# Subtest: 129 genuine Prompt history operations cross pages into one original canonical owner row
+ok 9 - 129 genuine Prompt history operations cross pages into one original canonical owner row
+  ---
+  duration_ms: 1258.542375
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects refs and rolls back despite public metrics mutation
+ok 10 - private transaction budget rejects refs and rolls back despite public metrics mutation
+  ---
+  duration_ms: 12.552458
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects bytes and rolls back despite public metrics mutation
+ok 11 - private transaction budget rejects bytes and rolls back despite public metrics mutation
+  ---
+  duration_ms: 10.636
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects reset and rolls back despite public metrics mutation
+ok 12 - private transaction budget rejects reset and rolls back despite public metrics mutation
+  ---
+  duration_ms: 12.482041
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects cursor and rolls back despite public metrics mutation
+ok 13 - private transaction budget rejects cursor and rolls back despite public metrics mutation
+  ---
+  duration_ms: 10.994625
+  type: 'test'
+  ...
+# Subtest: private transaction budget rejects late-finalizer and rolls back despite public metrics mutation
+ok 14 - private transaction budget rejects late-finalizer and rolls back despite public metrics mutation
+  ---
+  duration_ms: 12.073083
+  type: 'test'
+  ...
+# Subtest: private work envelope rejects a borrowed scope and cannot be removed by catching its error
+ok 15 - private work envelope rejects a borrowed scope and cannot be removed by catching its error
+  ---
+  duration_ms: 13.185666
+  type: 'test'
+  ...
+# Subtest: private transaction deadline rejects the next request after synchronous delayed continuation
+ok 16 - private transaction deadline rejects the next request after synchronous delayed continuation
+  ---
+  duration_ms: 20.107083
+  type: 'test'
+  ...
+# Subtest: paged manifest admission is explicit and still bounded; unknown and mixed profiles refuse
+ok 17 - paged manifest admission is explicit and still bounded; unknown and mixed profiles refuse
+  ---
+  duration_ms: 0.227667
+  type: 'test'
+  ...
+# Subtest: 65 genuine Human Entries fit staging but paged activation refuses private transaction work and rolls back every store
+ok 18 - 65 genuine Human Entries fit staging but paged activation refuses private transaction work and rolls back every store
+  ---
+  duration_ms: 4894.283083
+  type: 'test'
+  ...
+# Subtest: canonical metadata on either side of Core namespace remains a required owner: aiPresentation:synthetic-unrepresented
+ok 19 - canonical metadata on either side of Core namespace remains a required owner: aiPresentation:synthetic-unrepresented
+  ---
+  duration_ms: 14.301208
+  type: 'test'
+  ...
+# Subtest: canonical metadata on either side of Core namespace remains a required owner: topicKeepSeparate:synthetic-unrepresented
+ok 20 - canonical metadata on either side of Core namespace remains a required owner: topicKeepSeparate:synthetic-unrepresented
+  ---
+  duration_ms: 12.085292
+  type: 'test'
+  ...
+# Subtest: Human restore consumes a detached charged graph during digest await: append-group
+ok 21 - Human restore consumes a detached charged graph during digest await: append-group
+  ---
+  duration_ms: 31.219042
+  type: 'test'
+  ...
+# Subtest: Human restore consumes a detached charged graph during digest await: replace-operations
+ok 22 - Human restore consumes a detached charged graph during digest await: replace-operations
+  ---
+  duration_ms: 29.512375
+  type: 'test'
+  ...
+# Subtest: budgeted original all returns the complete primary range above one page
+ok 23 - budgeted original all returns the complete primary range above one page
+  ---
+  duration_ms: 36.496458
+  type: 'test'
+  ...
+# Subtest: budgeted original all returns the complete indexed range above one page
+ok 24 - budgeted original all returns the complete indexed range above one page
+  ---
+  duration_ms: 35.013417
+  type: 'test'
+  ...
+# Subtest: budgeted all refs excess atomically rejects despite public metrics reset
+ok 25 - budgeted all refs excess atomically rejects despite public metrics reset
+  ---
+  duration_ms: 12.815958
+  type: 'test'
+  ...
+# Subtest: budgeted all bytes excess atomically rejects despite public metrics reset
+ok 26 - budgeted all bytes excess atomically rejects despite public metrics reset
+  ---
+  duration_ms: 10.912083
+  type: 'test'
+  ...
+# Subtest: budgeted all caught excess atomically rejects despite public metrics reset
+ok 27 - budgeted all caught excess atomically rejects despite public metrics reset
+  ---
+  duration_ms: 13.571125
+  type: 'test'
+  ...
+# Subtest: budgeted all repeat excess atomically rejects despite public metrics reset
+ok 28 - budgeted all repeat excess atomically rejects despite public metrics reset
+  ---
+  duration_ms: 10.548875
+  type: 'test'
+  ...
+# Subtest: budgeted empty all returns an empty complete range
+ok 29 - budgeted empty all returns an empty complete range
+  ---
+  duration_ms: 8.486333
+  type: 'test'
+  ...
+# Subtest: budgeted explicit oversized all remains refused and rollback is sticky
+ok 30 - budgeted explicit oversized all remains refused and rollback is sticky
+  ---
+  duration_ms: 13.762959
+  type: 'test'
+  ...
+# Subtest: ordinary all retains original complete and explicit-limit behavior
+ok 31 - ordinary all retains original complete and explicit-limit behavior
+  ---
+  duration_ms: 12.114625
+  type: 'test'
+  ...
+# Subtest: original closed terminal read plan permits legal owner writes and runs after actual finalizers
+ok 32 - original closed terminal read plan permits legal owner writes and runs after actual finalizers
+  ---
+  duration_ms: 24.780708
+  type: 'test'
+  ...
+# Subtest: terminal put rejection remains sticky when a second fence catches it
+ok 33 - terminal put rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 13.630042
+  type: 'test'
+  ...
+# Subtest: terminal delete rejection remains sticky when a second fence catches it
+ok 34 - terminal delete rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 12.136459
+  type: 'test'
+  ...
+# Subtest: terminal clear rejection remains sticky when a second fence catches it
+ok 35 - terminal clear rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 10.93375
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-plan before a non-IDB promise can commit
+ok 36 - terminal rejects async-plan before a non-IDB promise can commit
+  ---
+  duration_ms: 9.765333
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-step before a non-IDB promise can commit
+ok 37 - terminal rejects async-step before a non-IDB promise can commit
+  ---
+  duration_ms: 10.449875
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-current before a non-IDB promise can commit
+ok 38 - terminal rejects async-current before a non-IDB promise can commit
+  ---
+  duration_ms: 10.565125
+  type: 'test'
+  ...
+# Subtest: terminal rejects truthy-current before a non-IDB promise can commit
+ok 39 - terminal rejects truthy-current before a non-IDB promise can commit
+  ---
+  duration_ms: 9.595083
+  type: 'test'
+  ...
+# Subtest: terminal rejects throw-current before a non-IDB promise can commit
+ok 40 - terminal rejects throw-current before a non-IDB promise can commit
+  ---
+  duration_ms: 12.001084
+  type: 'test'
+  ...
+# Subtest: late terminal registration cannot replace an already checked first fence even when caught
+ok 41 - late terminal registration cannot replace an already checked first fence even when caught
+  ---
+  duration_ms: 9.490125
+  type: 'test'
+  ...
+# Subtest: completed, foreign, copied and readonly scopes never register a terminal capability
+ok 42 - completed, foreign, copied and readonly scopes never register a terminal capability
+  ---
+  duration_ms: 18.724791
+  type: 'test'
+  ...
+# Subtest: all prior synchronous currentness predicates are checked after the final second-fence read
+ok 43 - all prior synchronous currentness predicates are checked after the final second-fence read
+  ---
+  duration_ms: 8.83875
+  type: 'test'
+  ...
+# Subtest: exact primary range count is bounded metadata and does not count the whole store
+ok 44 - exact primary range count is bounded metadata and does not count the whole store
+  ---
+  duration_ms: 8.622125
+  type: 'test'
+  ...
+# Subtest: late finalizer registration refusal is sticky outside the owner callback
+ok 45 - late finalizer registration refusal is sticky outside the owner callback
+  ---
+  duration_ms: 9.79025
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via get
+ok 46 - terminal comparator cannot escape the closed plan via get
+  ---
+  duration_ms: 8.27125
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via all
+ok 47 - terminal comparator cannot escape the closed plan via all
+  ---
+  duration_ms: 8.43975
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via count
+ok 48 - terminal comparator cannot escape the closed plan via count
+  ---
+  duration_ms: 9.367458
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via putDerivedSearchRow
+ok 49 - terminal comparator cannot escape the closed plan via putDerivedSearchRow
+  ---
+  duration_ms: 8.165709
+  type: 'test'
+  ...
+# Subtest: an unbounded all request is not a supported closed terminal operation
+ok 50 - an unbounded all request is not a supported closed terminal operation
+  ---
+  duration_ms: 8.577166
+  type: 'test'
+  ...
+# Subtest: a registered scope cannot replace its original native transaction behind a closed get
+ok 51 - a registered scope cannot replace its original native transaction behind a closed get
+  ---
+  duration_ms: 9.547625
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject accessor properties without acquiring their value
+ok 52 - closed terminal specs reject accessor properties without acquiring their value
+  ---
+  duration_ms: 8.007125
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject inherited properties without acquiring their value
+ok 53 - closed terminal specs reject inherited properties without acquiring their value
+  ---
+  duration_ms: 8.117291
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject symbol properties without acquiring their value
+ok 54 - closed terminal specs reject symbol properties without acquiring their value
+  ---
+  duration_ms: 9.415041
+  type: 'test'
+  ...
+1..54
+# tests 54
+# suites 0
+# pass 54
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9401.339875
