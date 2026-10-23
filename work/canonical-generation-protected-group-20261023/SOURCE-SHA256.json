@@ -1,0 +1,7 @@
+{
+  "extension/core/browser-native-sync/canonical-generation-repository-gate.js": "de1ecf320dbb30f155617c94aa3fb197c92454b5c178558bb5db56aacd200480",
+  "extension/core/browser-native-sync/core.js": "71eedce2a7a954821e8a160e7d1552a57d1d4f084e8183ac379552ddc585a52a",
+  "extension/core/browser-native-sync/group-checkpoint.js": "1db8ba7ee989a2c0af4a1fc4a9dcc76105ce8304514db67e7acdf4c7f8681296",
+  "extension/core/library-documents-owner.js": "0bcc0281bb2739a7799753d07cc6a12d7271c9d37de6f981b4a1e80e7175b8c6",
+  "extension/tests/canonical-generation-protected-group.test.mjs": "63fe421ec7568a3f4a6e3c05d9ac671713412bfc72c11fe437561d0f9bbdac25"
+}

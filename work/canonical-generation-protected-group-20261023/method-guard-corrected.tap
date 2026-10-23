@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+ok 1 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 303.238291
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rebinds original proof and never duplicates canonical application
+ok 2 - protected group cold resume rebinds original proof and never duplicates canonical application
+  ---
+  duration_ms: 225.351959
+  type: 'test'
+  ...
+# Subtest: protected group never lends a transaction to custom diagnostic callback
+ok 3 - protected group never lends a transaction to custom diagnostic callback
+  ---
+  duration_ms: 98.464667
+  type: 'test'
+  ...
+# Subtest: protected group cannot acquire genuine authority using forged or foreign proof
+ok 4 - protected group cannot acquire genuine authority using forged or foreign proof
+  ---
+  duration_ms: 71.798666
+  type: 'test'
+  ...
+# Subtest: protected group keeps token away from mutable repository and Core transaction wrappers
+ok 5 - protected group keeps token away from mutable repository and Core transaction wrappers
+  ---
+  duration_ms: 174.800958
+  type: 'test'
+  ...
+# Subtest: protected original group refuses gate-phase drift without partial owner writes
+ok 6 - protected original group refuses gate-phase drift without partial owner writes
+  ---
+  duration_ms: 99.745459
+  type: 'test'
+  ...
+# Subtest: protected original group refuses checkpoint-item drift without partial owner writes
+ok 7 - protected original group refuses checkpoint-item drift without partial owner writes
+  ---
+  duration_ms: 100.332542
+  type: 'test'
+  ...
+# Subtest: protected original group refuses consent drift without partial owner writes
+ok 8 - protected original group refuses consent drift without partial owner writes
+  ---
+  duration_ms: 91.424625
+  type: 'test'
+  ...
+# Subtest: protected original group refuses restore-row drift without partial owner writes
+ok 9 - protected original group refuses restore-row drift without partial owner writes
+  ---
+  duration_ms: 96.761625
+  type: 'test'
+  ...
+# Subtest: protected original group refuses purge-deny drift without partial owner writes
+ok 10 - protected original group refuses purge-deny drift without partial owner writes
+  ---
+  duration_ms: 139.794167
+  type: 'test'
+  ...
+# Subtest: protected group native terminal canonical drift rolls back original owner and receipt
+ok 11 - protected group native terminal canonical drift rolls back original owner and receipt
+  ---
+  duration_ms: 147.28975
+  type: 'test'
+  ...
+# Subtest: protected group native terminal restore-receipt drift rolls back original owner and receipt
+ok 12 - protected group native terminal restore-receipt drift rolls back original owner and receipt
+  ---
+  duration_ms: 142.456708
+  type: 'test'
+  ...
+# Subtest: protected group native terminal checkpoint-item drift rolls back original owner and receipt
+ok 13 - protected group native terminal checkpoint-item drift rolls back original owner and receipt
+  ---
+  duration_ms: 118.561792
+  type: 'test'
+  ...
+# Subtest: protected group native terminal protection drift rolls back original owner and receipt
+ok 14 - protected group native terminal protection drift rolls back original owner and receipt
+  ---
+  duration_ms: 147.984125
+  type: 'test'
+  ...
+# Subtest: protected group native terminal gate drift rolls back original owner and receipt
+ok 15 - protected group native terminal gate drift rolls back original owner and receipt
+  ---
+  duration_ms: 117.568167
+  type: 'test'
+  ...
+# Subtest: protected original graph seal retains existing-active migration refusal
+ok 16 - protected original graph seal retains existing-active migration refusal
+  ---
+  duration_ms: 158.492625
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2388.675458

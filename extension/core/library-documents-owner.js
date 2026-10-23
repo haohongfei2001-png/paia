@@ -19,6 +19,19 @@ import {queueSearch,searchBatch,rebuildBatch,searchLibrary} from './library-sear
 import {startLayout,layoutBatch,reorderPlacement} from './library-layout.js';
 import {syncThoughtRootTopic,thoughtRootIndexPage,invalidateThoughtTopicIndex} from './thought-read-index.js';
 const originalLibraryDocumentsStores=new WeakSet();
+let originalGenerationDataChain;
+const generationDescriptor=Object.getOwnPropertyDescriptor,generationPrototype=Object.getPrototypeOf;
+// Read-only identity check for the fixed shadow-generation original owner.
+// Capture in this declaration module at class creation, never from a caller.
+export function requireOriginalLibraryDocumentsGenerationMethods(store){
+ if(!originalLibraryDocumentsStores.has(store)||!originalGenerationDataChain||generationPrototype(store)!==originalGenerationDataChain[0].prototype)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ for(const {prototype,parent,methods}of originalGenerationDataChain){
+  if(generationPrototype(prototype)!==parent||Object.getOwnPropertyNames(prototype).filter(name=>!['constructor','run','finishFoundation'].includes(name)).join('\0')!==methods.map(([name])=>name).join('\0'))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+  for(const [name,expected]of methods){const current=generationDescriptor(prototype,name);if(!current||['value','get','set','writable','enumerable','configurable'].some(key=>current[key]!==expected[key]))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');}
+ }
+ for(const name of new Set(originalGenerationDataChain.flatMap(x=>x.methods.map(([name])=>name)))){if(generationDescriptor(store,name))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');}
+}
+
 // Constructor identity only, not consent, native source or snapshot authority.
 export function requireOriginalLibraryDocumentsStore(store){if(!originalLibraryDocumentsStores.has(store))fail();}
 const limitOK=n=>Number.isInteger(n)&&n>0&&n<=100;
@@ -163,5 +176,7 @@ export function originalLibraryDocumentsConstructor(){
  async processLibraryMaintenance(){await this.ensureLibrarySearch();const l=await layoutBatch(this);if(l.pending)return l;const c=await countBatch(this);if(c.pending)return c;const r=await rebuildBatch(this);if(r.pending)return r;return searchBatch(this);}
  async drainLibraryMaintenance(){for(;;){const r=await this.processLibraryMaintenance();if(!r.pending)return;await this.repository.checkpoint('library-maintenance-batch');}}
  };
+ originalGenerationDataChain=[];
+ for(let prototype=originalConstructor.prototype;prototype!==Object.prototype;prototype=generationPrototype(prototype))originalGenerationDataChain.push({prototype,parent:generationPrototype(prototype),methods:Object.getOwnPropertyNames(prototype).filter(name=>!['constructor','run','finishFoundation'].includes(name)).map(name=>[name,generationDescriptor(prototype,name)])});
  return originalConstructor;
 }

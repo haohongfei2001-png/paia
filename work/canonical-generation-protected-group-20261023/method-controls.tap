@@ -1,0 +1,204 @@
+TAP version 13
+# Subtest: protected original group consumes actual Source owner and publishes qualified canonical state
+ok 1 - protected original group consumes actual Source owner and publishes qualified canonical state
+  ---
+  duration_ms: 266.072042
+  type: 'test'
+  ...
+# Subtest: protected group cold resume rebinds original proof and never duplicates canonical application
+ok 2 - protected group cold resume rebinds original proof and never duplicates canonical application
+  ---
+  duration_ms: 208.238667
+  type: 'test'
+  ...
+# Subtest: protected group never lends a transaction to custom diagnostic callback
+ok 3 - protected group never lends a transaction to custom diagnostic callback
+  ---
+  duration_ms: 64.984791
+  type: 'test'
+  ...
+# Subtest: protected group cannot acquire genuine authority using forged or foreign proof
+ok 4 - protected group cannot acquire genuine authority using forged or foreign proof
+  ---
+  duration_ms: 62.013042
+  type: 'test'
+  ...
+# Subtest: protected group keeps token away from mutable repository and Core transaction wrappers
+ok 5 - protected group keeps token away from mutable repository and Core transaction wrappers
+  ---
+  duration_ms: 160.307667
+  type: 'test'
+  ...
+# Subtest: protected original group refuses gate-phase drift without partial owner writes
+ok 6 - protected original group refuses gate-phase drift without partial owner writes
+  ---
+  duration_ms: 121.958833
+  type: 'test'
+  ...
+# Subtest: protected original group refuses checkpoint-item drift without partial owner writes
+ok 7 - protected original group refuses checkpoint-item drift without partial owner writes
+  ---
+  duration_ms: 113.720041
+  type: 'test'
+  ...
+# Subtest: protected original group refuses consent drift without partial owner writes
+ok 8 - protected original group refuses consent drift without partial owner writes
+  ---
+  duration_ms: 106.18025
+  type: 'test'
+  ...
+# Subtest: protected original group refuses restore-row drift without partial owner writes
+ok 9 - protected original group refuses restore-row drift without partial owner writes
+  ---
+  duration_ms: 104.86825
+  type: 'test'
+  ...
+# Subtest: protected original group refuses purge-deny drift without partial owner writes
+ok 10 - protected original group refuses purge-deny drift without partial owner writes
+  ---
+  duration_ms: 113.672542
+  type: 'test'
+  ...
+# Subtest: protected group native terminal canonical drift rolls back original owner and receipt
+ok 11 - protected group native terminal canonical drift rolls back original owner and receipt
+  ---
+  duration_ms: 188.409166
+  type: 'test'
+  ...
+# Subtest: protected group native terminal restore-receipt drift rolls back original owner and receipt
+ok 12 - protected group native terminal restore-receipt drift rolls back original owner and receipt
+  ---
+  duration_ms: 169.287167
+  type: 'test'
+  ...
+# Subtest: protected group native terminal checkpoint-item drift rolls back original owner and receipt
+ok 13 - protected group native terminal checkpoint-item drift rolls back original owner and receipt
+  ---
+  duration_ms: 147.434917
+  type: 'test'
+  ...
+# Subtest: protected group native terminal protection drift rolls back original owner and receipt
+ok 14 - protected group native terminal protection drift rolls back original owner and receipt
+  ---
+  duration_ms: 179.609208
+  type: 'test'
+  ...
+# Subtest: protected group native terminal gate drift rolls back original owner and receipt
+ok 15 - protected group native terminal gate drift rolls back original owner and receipt
+  ---
+  duration_ms: 129.824834
+  type: 'test'
+  ...
+# Subtest: protected original graph seal retains existing-active migration refusal
+ok 16 - protected original graph seal retains existing-active migration refusal
+  ---
+  duration_ms: 193.894375
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted stage.put before lending a write transaction
+not ok 17 - protected group refuses substituted stage.put before lending a write transaction
+  ---
+  duration_ms: 102.310542
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-protected-group.test.mjs:67:105'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'STORAGE_FAILED'
+    -   code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  actual:
+  error: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:482:1039)
+    async generationTransaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/group-checkpoint.js:54:13)
+    async file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/group-checkpoint.js:255:48
+    async file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/indexed-store.js:203:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-protected-group.test.mjs:67:547)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: protected group refuses substituted coreB.get before lending a write transaction
+not ok 18 - protected group refuses substituted coreB.get before lending a write transaction
+  ---
+  duration_ms: 103.4635
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-protected-group.test.mjs:67:105'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'STORAGE_FAILED'
+    -   code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  actual:
+  error: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/idb-repository.js:482:1039)
+    async generationTransaction (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/group-checkpoint.js:54:13)
+    async file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/browser-native-sync/group-checkpoint.js:255:48
+    async file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/core/indexed-store.js:203:11
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-protected-group/paia/extension/tests/canonical-generation-protected-group.test.mjs:67:547)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: protected group refuses substituted b.applyInitialSource before lending a write transaction
+ok 19 - protected group refuses substituted b.applyInitialSource before lending a write transaction
+  ---
+  duration_ms: 100.365875
+  type: 'test'
+  ...
+# Subtest: protected group refuses substituted b.control before lending a write transaction
+ok 20 - protected group refuses substituted b.control before lending a write transaction
+  ---
+  duration_ms: 103.680042
+  type: 'test'
+  ...
+# Subtest: protected group descriptor guard refuses an owner method getter without executing it
+ok 21 - protected group descriptor guard refuses an owner method getter without executing it
+  ---
+  duration_ms: 127.173625
+  type: 'test'
+  ...
+# Subtest: protected group rejects a shadowing prototype method before write authority
+ok 22 - protected group rejects a shadowing prototype method before write authority
+  ---
+  duration_ms: 100.646959
+  type: 'test'
+  ...
+# Subtest: protected group restore field getter cannot rebind the private original consumer
+ok 23 - protected group restore field getter cannot rebind the private original consumer
+  ---
+  duration_ms: 113.418458
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 21
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3268.121417
