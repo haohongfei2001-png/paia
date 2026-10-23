@@ -1,6 +1,7 @@
 import {abandonOriginalGenerationControl,originalGenerationControlReadWork,completeOriginalGenerationControlRead} from './canonical-generation-task-ledger.js';
 import * as phasedHuman from './canonical-generation-phased-human.js';
 import {requireOriginalLibraryDocumentsStore,originalLibraryDocumentsConstructor} from '../library-documents-owner.js';
+import {originalOrganizerConstructor} from '../organizer/store-owner.js';
 import {prepareOriginalCopyRetirement,retireOriginalCheckpointCopies} from './canonical-generation-copy-retirement.js';
 import {CANONICAL_REPOSITORY_PROTECTION,originalGenerationProtection} from './canonical-generation-repository-gate.js';
 import {createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget} from './group-page-reader.js';
@@ -88,7 +89,15 @@ export class CanonicalGenerationPublication {
  // original store; callers cannot supply a database, handle or factory here.
  // This opens an existing schema only and never repairs catalog/publication rows.
  async openOriginalActiveStore(local){
-  if(arguments.length!==1)fail('GENERATION_CAPABILITY');this.#bound(this.#registry);
+  if(arguments.length!==1)fail('GENERATION_CAPABILITY');return this.#openOriginalActiveStore(local,false,null);
+ }
+ // Fixed application subclass only. No caller supplies a constructor, database
+ // name, factory or repository. The original filter authority stays unchanged.
+ async openOriginalActiveOrganizerStore(local,aiFilterAuthority){
+  if(arguments.length!==2)fail('GENERATION_CAPABILITY');return this.#openOriginalActiveStore(local,true,aiFilterAuthority);
+ }
+ async #openOriginalActiveStore(local,organizer,aiFilterAuthority){
+  this.#bound(this.#registry);
   await openOriginalExistingRepository(this.#registry);this.#bound(this.#registry);
   const readSelection=async t=>{
    const root=await rootRead(t);if(root.pending)fail('GENERATION_PENDING');if(!root.active)fail('GENERATION_NOT_ACTIVE');
@@ -100,7 +109,7 @@ export class CanonicalGenerationPublication {
   };
   const root=await originalGenerationRepositoryRead(this.#registry,readSelection,['meta']),ident=identity(root.active.identity);
   if(this.#repositories.has(ident.generationId))fail('GENERATION_ALREADY_ATTACHED');
-  const Store=originalLibraryDocumentsConstructor(),store=new Store(local,{indexedDB:this.#factory,name:ident.databaseName}),repository=store.repository;
+  const Store=organizer?originalOrganizerConstructor():originalLibraryDocumentsConstructor(),store=new Store(local,{indexedDB:this.#factory,name:ident.databaseName,...(organizer?{aiFilterAuthority}:{})}),repository=store.repository;
   const handle=Object.freeze(Object.create(null)),held={owner:this,repository,identity:ident,handle};
   try{
    await openOriginalExistingRepository(repository);this.#bound(repository);handles.set(handle,held);this.#repositories.set(ident.generationId,held);

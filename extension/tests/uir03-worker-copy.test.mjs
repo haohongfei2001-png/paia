@@ -29,7 +29,7 @@ test('actual statically instrumented worker shares its real Store and runs obser
  globalThis.fetch=async()=>{network++;throw Error('Unexpected network');};
  try{
   await import(pathToFileURL(join(fixture.path,'background','service-worker.js')).href);
-  const bridge=globalThis.__uir03Worker;assert.ok(bridge);assert.equal(bridge.library.store,bridge.store);
+  const bridge=globalThis.__uir03Worker;assert.ok(bridge);await bridge.ready;assert.equal(bridge.library.store,bridge.store);
   for(const name of ['prefix','invalidateThoughtTopicIndex','ImportLedger','ImportCoordinator','getOfficialExportAdapter'])assert.equal(typeof bridge[name],'function',name);
   // Execute the exact browser-injected function under a resolver that rejects
   // every dynamic import, matching the native failure rather than mocking it away.
@@ -41,6 +41,6 @@ test('actual statically instrumented worker shares its real Store and runs obser
   const diagnostic=await globalThis.__uir03Library.read();assert.equal(diagnostic.observed,true);assert.equal(diagnostic.failed,false);assert.equal(diagnostic.index.rebuild.complete,true);assert.equal(diagnostic.index.searchPending,0);assert.equal((await bridge.store.entry(entry.id)).body,'SYNTHETIC original worker body');assert.equal(imports,0);assert.equal(network,0);
   const message=await new Promise(resolve=>listener({type:'CAPTURE'},sender,resolve));assert.equal(message.ok,false,'test bridge never expands production UI capture admission');
  }finally{
-  globalThis.__uir03Library?.restore();const bridge=globalThis.__uir03Worker;while(bridge?.library.running)await bridge.library.running;await bridge?.store.repository.close();delete globalThis.__uir03Library;delete globalThis.__uir03Worker;Object.assign(globalThis,saved);await fixture.close();
+  globalThis.__uir03Library?.restore();const bridge=globalThis.__uir03Worker;while(bridge?.library?.running)await bridge.library.running;await bridge?.store?.repository.close();delete globalThis.__uir03Library;delete globalThis.__uir03Worker;Object.assign(globalThis,saved);await fixture.close();
  }
 });

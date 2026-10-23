@@ -44,7 +44,8 @@ import {LibraryRunner} from '../core/library-runner.js';
 import {FilterRunner} from '../core/filter-runner.js';
 import {ImportHandler} from './import-handler.js';
 import {safeImportError} from '../core/import/errors.js';
-import { OrganizerStore as IndexedArchiveStore } from '../core/organizer/store.js';
+import {selectOriginalApplicationStore} from './application-store-selection.js';
+import {createApplicationStartupEvents} from './application-startup-events.js';
 import {SafetyRunner} from '../core/thought-runner.js';
 import { ADAPTER_VERSION, ArchiveError, safeErrorCode } from '../core/constants.js';
 import { canonicalChat } from '../core/validation.js';
@@ -57,36 +58,55 @@ import {unavailableAIProvider,unavailableAICredentials} from '../core/organizer/
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
 import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
+let store,maintenanceProcessing,maintenanceConfiguration,maintenanceRunner,contextConnections,localScopePreviewCapability,contextScopePreview,thoughtLibraryRead,sectionPromotion,thoughtSectionReading,promptReuse,archiveArrival,promptSurface,promptNext,promptAssist,legacyUsage,passport,revisit,readerState,sourceStructure,archiveNavigation,archiveOriginal,archiveOrderPreference,sourceOrderRegistry,originalOrganizer,organizeConfiguration,organizeActionSource,aiOrganizer,boundedOrganizer,onboarding,integrity,memory,contextTopics,contextCards,backups,imports,runner,safety,libraryRunner;
+const startupEvents=createApplicationStartupEvents(chrome);
 const aiFilterRuntime=createAIFilterRuntime(chrome,{getStore:()=>store,policy:readAIFilterPolicyConfiguration()});
-const store = new IndexedArchiveStore(chrome.storage.local,{aiFilterAuthority:aiFilterRuntime.authority});
-const maintenanceProcessing=new MaintenanceProcessingCommands(store,chrome);
-const maintenanceConfiguration=aiFilterRuntime.configureService(configureMaintenanceProcessingSource(maintenanceProcessing,store,readMaintenanceServiceConfiguration(store)),readMaintenanceIdentityCurrentnessEndpoint());
-const maintenanceRunner=createMaintenanceRunner(store,maintenanceConfiguration);
-const contextConnections=new ContextConnections(store,chrome);
-const localScopePreviewCapability=Object.freeze({});
-const contextScopePreview=new ContextReadService(store,{localPreviewCapability:localScopePreviewCapability});
-const thoughtLibraryRead=new ThoughtLibraryReadModel(store);
-const sectionPromotion=new TopicSectionPromotionCommands(store,chrome,{promotionSession:readMaintenanceRunnerSession(maintenanceRunner,store),checkpointStorage:{session:chrome.storage.session||null}});
-const thoughtSectionReading=new ThoughtSectionReading(thoughtLibraryRead);
-const promptReuse = new PromptReuseCommands(new PromptReuseService(store,{historyCandidates:createConfiguredHistoricalCandidateSession(store)}),chrome);
-const archiveArrival = new ArchiveArrival(promptReuse.service,chrome);
-const promptSurface = new PromptSurfaceCommands(promptReuse,chrome,{openArchiveArrival:(descriptor,source)=>archiveArrival.open(descriptor,source)});
-const promptNext = new NextPromptCommands(promptReuse.service,chrome,promptSurface);
+async function initializeApplicationServices(){
+store=await selectOriginalApplicationStore(chrome.storage.local,{aiFilterAuthority:aiFilterRuntime.authority});
+maintenanceProcessing=new MaintenanceProcessingCommands(store,startupEvents);
+maintenanceConfiguration=aiFilterRuntime.configureService(configureMaintenanceProcessingSource(maintenanceProcessing,store,readMaintenanceServiceConfiguration(store)),readMaintenanceIdentityCurrentnessEndpoint());
+maintenanceRunner=createMaintenanceRunner(store,maintenanceConfiguration);
+contextConnections=new ContextConnections(store,startupEvents);
+localScopePreviewCapability=Object.freeze({});
+contextScopePreview=new ContextReadService(store,{localPreviewCapability:localScopePreviewCapability});
+thoughtLibraryRead=new ThoughtLibraryReadModel(store);
+sectionPromotion=new TopicSectionPromotionCommands(store,chrome,{promotionSession:readMaintenanceRunnerSession(maintenanceRunner,store),checkpointStorage:{session:chrome.storage.session||null}});
+thoughtSectionReading=new ThoughtSectionReading(thoughtLibraryRead);
+promptReuse= new PromptReuseCommands(new PromptReuseService(store,{historyCandidates:createConfiguredHistoricalCandidateSession(store)}),chrome);
+archiveArrival= new ArchiveArrival(promptReuse.service,chrome);
+promptSurface= new PromptSurfaceCommands(promptReuse,chrome,{openArchiveArrival:(descriptor,source)=>archiveArrival.open(descriptor,source)});
+promptNext= new NextPromptCommands(promptReuse.service,chrome,promptSurface);
 promptSurface.next=promptNext;
-const promptAssist=new AssistPromptCommands(store,chrome,{surface:promptSurface});
+promptAssist=new AssistPromptCommands(store,startupEvents,{surface:promptSurface});
 promptSurface.assist=promptAssist;
-chrome.tabs?.onRemoved?.addListener(id=>{promptSurface.removeTab(id);promptNext.removeTab(id);promptAssist.removeTab(id);archiveArrival.removeTab(id);});
-chrome.tabs?.onUpdated?.addListener((id,change)=>{if(change.url||change.status==='loading'){promptNext.removeTab(id);promptAssist.removeTab(id);}archiveArrival.changedTab(id,change);});
+legacyUsage= new LegacyUsageRecords(store);
+passport= new PassportService(store);
+revisit= new RevisitService(store);
+readerState= new ReaderStateService(store);
+sourceStructure= new SourceStructureStore(store);
+archiveNavigation= new ArchiveNavigationQuery(store);
+archiveOriginal= new ArchiveOriginalQuery(store);
+archiveOrderPreference= new ArchiveOrderPreferenceService(store);
+sourceOrderRegistry= new SourceOrderRegistry([['chatgpt',unavailableSourceOrderProvider('UNVERIFIED')]]);
+originalOrganizer=new SimpleOriginalOrganizerRunner(store,{provider:unavailableAIProvider,credentials:unavailableAICredentials});
+organizeConfiguration=readOrganizeServiceConfiguration();
+organizeActionSource=organizeConfiguration===null?null:createOrganizeActionSource(store,startupEvents);
+aiOrganizer=createConfiguredOrganizeRunner(store,organizeConfiguration,{actionSource:organizeActionSource});
+boundedOrganizer=new BoundedOrganizerWorkflow(store,{original:originalOrganizer,ai:aiOrganizer});
+onboarding=new OnboardingService(store);
+integrity=new IntegrityChecker(store);
+memory=new MemoryService(store,{session:privacySession});
+contextTopics=new ContextTopicAccessService(store);
+contextCards=new ContextCardsService(store,{topicSummary:(t,epoch)=>contextTopics.summaryInTransaction(t,epoch)});
+backups=new BackupService(store,{appVersion:chrome.runtime.getManifest().version});
+imports= new ImportHandler(store,chrome.runtime);
+runner=new FilterRunner(store,{changed:()=>{void runtime.sendMessage?.({type:'ARCHIVE_CHANGED'}).catch(()=>{});}});
+safety=new SafetyRunner(store);
+libraryRunner=new LibraryRunner(store);
+}
+chrome.tabs?.onRemoved?.addListener(id=>{void ready.then(()=>{promptSurface.removeTab(id);promptNext.removeTab(id);promptAssist.removeTab(id);archiveArrival.removeTab(id);}).catch(()=>{});});
+chrome.tabs?.onUpdated?.addListener((id,change)=>{void ready.then(()=>{if(change.url||change.status==='loading'){promptNext.removeTab(id);promptAssist.removeTab(id);}archiveArrival.changedTab(id,change);}).catch(()=>{});});
 // Missing new suggestion preferences are off; installation/update never resets a user preference.
-const legacyUsage = new LegacyUsageRecords(store);
-const passport = new PassportService(store);
-const revisit = new RevisitService(store);
-const readerState = new ReaderStateService(store);
-const sourceStructure = new SourceStructureStore(store);
-const archiveNavigation = new ArchiveNavigationQuery(store);
-const archiveOriginal = new ArchiveOriginalQuery(store);
-const archiveOrderPreference = new ArchiveOrderPreferenceService(store);
-const sourceOrderRegistry = new SourceOrderRegistry([['chatgpt',unavailableSourceOrderProvider('UNVERIFIED')]]);
 let recoveryDrafts=null;
 const recoveryDraftStore=()=>recoveryDrafts??=new RecoveryDraftStore(chrome.storage.local);
 // Recovery storage and canonical IndexedDB are separate stores. Keep admission,
@@ -144,28 +164,25 @@ chrome.runtime.onInstalled?.addListener(details=>{
 // No credential reader or direct provider is constructed by this worker.
 const unavailableSession={get:async()=>{throw new ArchiveError('UNAVAILABLE');},set:async()=>{throw new ArchiveError('UNAVAILABLE');},remove:async()=>{throw new ArchiveError('UNAVAILABLE');}};
 const privacySession=chrome.storage.session||unavailableSession;
-const originalOrganizer=new SimpleOriginalOrganizerRunner(store,{provider:unavailableAIProvider,credentials:unavailableAICredentials});
-const organizeConfiguration=readOrganizeServiceConfiguration();
-const organizeActionSource=organizeConfiguration===null?null:createOrganizeActionSource(store,chrome);
-const aiOrganizer=createConfiguredOrganizeRunner(store,organizeConfiguration,{actionSource:organizeActionSource});
-const boundedOrganizer=new BoundedOrganizerWorkflow(store,{original:originalOrganizer,ai:aiOrganizer});
-const onboarding=new OnboardingService(store);
-const integrity=new IntegrityChecker(store);
-const memory=new MemoryService(store,{session:privacySession});
-const contextTopics=new ContextTopicAccessService(store);
-const contextCards=new ContextCardsService(store,{topicSummary:(t,epoch)=>contextTopics.summaryInTransaction(t,epoch)});
-const backups=new BackupService(store,{appVersion:chrome.runtime.getManifest().version});
-const imports = new ImportHandler(store,chrome.runtime);
-chrome.runtime.onConnect?.addListener(port=>{if(port.name==='official-export-session')port.onDisconnect.addListener(()=>imports.disconnect(port.sender));});
-chrome.runtime.onConnect?.addListener(port=>{if(port.name.startsWith('bounded-organizer:')&&isExtensionPage(port.sender)){const id=port.name.slice('bounded-organizer:'.length);port.onDisconnect.addListener(()=>{if(boundedOrganizer.currentId===id&&boundedOrganizer.running)void boundedOrganizer.stop();});}});
+chrome.runtime.onConnect?.addListener(port=>{if(port.name==='official-export-session')port.onDisconnect.addListener(()=>{void ready.then(()=>imports.disconnect(port.sender)).catch(()=>{});});});
+chrome.runtime.onConnect?.addListener(port=>{if(port.name.startsWith('bounded-organizer:')&&isExtensionPage(port.sender)){const id=port.name.slice('bounded-organizer:'.length);port.onDisconnect.addListener(()=>{void ready.then(()=>{if(boundedOrganizer.currentId===id&&boundedOrganizer.running)return boundedOrganizer.stop();}).catch(()=>{});});}});
 // Fail closed if storage isolation cannot be established; never expose records
 // directly to a content script, including the brief worker-startup period.
-const ready = chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' }).then(()=>store.recoverControlPublication());
+const ready = chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' }).then(initializeApplicationServices).then(()=>store.recoverControlPublication());
 const privacyReady=Promise.resolve(privacySession.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'}));
 privacyReady.catch(()=>{});
 ready.catch(() => {});
 installCaptureRecovery(chrome, ready);
-installContextConnectionLifecycle(contextConnections,chrome,ready);
+// Register lifecycle listeners synchronously; the fixed facade reaches the one
+// selected owner only after initialization. It grants no store/writer capability.
+installContextConnectionLifecycle({
+ resumeAuthorized:()=>ready.then(()=>contextConnections.resumeAuthorized()),
+ // A worker suspended before initialization has no live connection to checkpoint.
+ // Do not promise deferred suspension work that Chrome may never execute.
+ checkpointForSuspend:()=>contextConnections?contextConnections.checkpointForSuspend():Promise.resolve({state:'uninitialized'}),
+ resumeAfterSuspend:()=>contextConnections?contextConnections.resumeAfterSuspend():Promise.resolve({resumed:0}),
+ dispose:()=>{void ready.then(()=>contextConnections.dispose()).catch(()=>{});},
+},chrome,ready);
 const backupReady=ready.then(()=>backups.recoverSettings());backupReady.catch(()=>{});
 const originalReady=Promise.all([ready,privacyReady,backupReady]).then(()=>Promise.all([originalOrganizer.reconcileInterrupted(),aiOrganizer.reconcileInterrupted(),boundedOrganizer.reconcileInterrupted()]));
 originalReady.catch(()=>{});
@@ -531,9 +548,6 @@ function notifyArchiveChanged(type){
 function notifySourceStructureChanged(){
  return Promise.resolve(chrome.runtime.sendMessage?.({type:'SOURCE_STRUCTURE_CHANGED'})).catch(()=>{});
 }
-const runner=new FilterRunner(store,{changed:()=>{void runtime.sendMessage?.({type:'ARCHIVE_CHANGED'}).catch(()=>{});}});
-const safety=new SafetyRunner(store);
-const libraryRunner=new LibraryRunner(store);
 // Original Organizer is cost-gated: capture, startup, timers, and rerenders may
 // maintain local state but can never dispatch its remote provider.
 const scheduleFilter=(options)=>Promise.all([safety.wake(options),libraryRunner.wake(options),runner.wake(options)]);

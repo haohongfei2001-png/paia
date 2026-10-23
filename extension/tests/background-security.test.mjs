@@ -79,7 +79,7 @@ function unassignedObservation(epoch,generation=3,observedAt='2026-09-22T11:21:0
   };
 }
 
-async function fixture({ isolationFailure = false, delayedIsolation = false } = {}) {
+async function fixture({ isolationFailure = false, delayedIsolation = false, startupEvents = false } = {}) {
   globalThis.indexedDB=new IDBFactory();
   let listener;
   let persisted = {};
@@ -122,10 +122,16 @@ async function fixture({ isolationFailure = false, delayedIsolation = false } = 
     } }
   };
   toolbarRegistrationFixture(chrome);
+  const startup={};
+  if(startupEvents){const event=()=>{const callbacks=new Set();return {addListener(fn){callbacks.add(fn);},removeListener(fn){callbacks.delete(fn);},emit(...args){for(const fn of [...callbacks])fn(...args);},size(){return callbacks.size;}};};
+   for(const name of ['onStartup','onSuspend','onSuspendCanceled'])chrome.runtime[name]=startup[name]=event();
+   chrome.storage.onChanged=startup.storage=event();chrome.permissions={onRemoved:startup.permission=event(),contains:async()=>false};
+   chrome.tabs={onRemoved:startup.removed=event(),onUpdated:startup.updated=event()};
+  }
   await import(`../background/service-worker.js?synthetic-test=${crypto.randomUUID()}`);
   assert.equal(typeof listener, 'function');
   return {
-    accessRequests,notifications,
+    accessRequests,notifications,startup,
     nextNotification(matches){
       return new Promise((resolve,reject)=>{
         const waiter={matches,resolve};
@@ -638,4 +644,14 @@ test('VS09 actual worker keeps prompt library and mutations behind exact trusted
  await expectError(app.send({type:'PAIA_PROMPT_COPY_TEXT',id:created.data.id,text:'PRIVATE_TEMPLATE_CANARY'},promptUI),'MEMORY_STALE');
  assert.deepEqual((await app.send({type:'GET_STATE'})).data.records,before);
  assert.ok(app.notifications.some(x=>x.type==='PAIA_PROMPT_CHANGED'));assert.ok(!app.notifications.some(x=>JSON.stringify(x).includes('PRIVATE_TEMPLATE_CANARY')));
+});
+
+
+test('actual worker registers startup invalidation and suspend listeners before store isolation',async t=>{
+ const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});const app=await fixture({delayedIsolation:true,startupEvents:true});
+ for(const name of ['onStartup','onSuspend','onSuspendCanceled','storage','permission','removed','updated'])assert.ok(app.startup[name].size()>0,name+' is synchronously registered');
+ const before=app.counts();app.startup.onSuspend.emit();app.startup.permission.emit({permissions:['nativeMessaging']});app.startup.storage.emit({'synthetic':{newValue:'changed'}},'local');app.startup.removed.emit(23);app.startup.updated.emit(23,{status:'loading'});app.startup.onSuspendCanceled.emit();
+ await Promise.resolve();assert.deepEqual(app.counts(),before);assert.deepEqual(await indexedDB.databases(),[]);
+ app.releaseIsolation();const status=await app.send({type:'GET_STATUS'});assert.equal(status.ok,true);assert.equal(status.data.consented,false);
+ await app.send({type:'CONSENT',accepted:true});assert.equal((await app.send({type:'GET_STATUS'})).data.consented,true);assert.equal((await indexedDB.databases()).filter(x=>x.name==='paia-archive').length,1);
 });

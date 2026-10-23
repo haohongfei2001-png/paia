@@ -15,7 +15,7 @@ import {invalidateThoughtTopicIndex as uir03Invalidate} from '../core/thought-re
 import {ImportLedger as UIR03ImportLedger} from '../core/import/ledger.js';
 import {ImportCoordinator as UIR03ImportCoordinator} from '../core/import/coordinator.js';
 import {getOfficialExportAdapter as uir03Adapter} from '../core/import/registry.js';
-globalThis.__uir03Worker={store,library:libraryRunner,prefix:uir03Prefix,invalidateThoughtTopicIndex:uir03Invalidate,ImportLedger:UIR03ImportLedger,ImportCoordinator:UIR03ImportCoordinator,getOfficialExportAdapter:uir03Adapter};
+globalThis.__uir03Worker={get store(){return store;},get library(){return libraryRunner;},ready,prefix:uir03Prefix,invalidateThoughtTopicIndex:uir03Invalidate,ImportLedger:UIR03ImportLedger,ImportCoordinator:UIR03ImportCoordinator,getOfficialExportAdapter:uir03Adapter};
 `;
 export async function createUIRWorkerFixture(extensionPath=fileURLToPath(new URL('../..',import.meta.url))){
  const temporary=await mkdtemp(join(tmpdir(),'paia-uir03-worker-')),path=join(temporary,'extension');

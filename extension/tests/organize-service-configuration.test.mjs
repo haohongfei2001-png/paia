@@ -10,9 +10,10 @@ test('original Organize RPC has a configured LocalOrganizeSession owner and rema
  assert.equal(runner.available(),false);
  await assert.rejects(runner.handle({type:'UPDATE_AI_PRESENTATION',topicId:'synthetic',userActionId:'synthetic',scopeBinding:'a'.repeat(64)}),{code:'AI_SERVICE_UNAVAILABLE'});
  const worker=await readFile(new URL('../background/service-worker.js',import.meta.url),'utf8');
- assert.match(worker,/const organizeConfiguration=readOrganizeServiceConfiguration\(\);/);
- assert.match(worker,/const organizeActionSource=organizeConfiguration===null\?null:createOrganizeActionSource\(store,chrome\);/);
- assert.match(worker,/const aiOrganizer=createConfiguredOrganizeRunner\(store,organizeConfiguration,\{actionSource:organizeActionSource\}\);/);
+ assert.match(worker,/async function initializeApplicationServices\(\)\{[\s\S]*store=await selectOriginalApplicationStore\(chrome\.storage\.local,\{aiFilterAuthority:aiFilterRuntime\.authority\}\);/);
+ assert.match(worker,/organizeConfiguration=readOrganizeServiceConfiguration\(\);/);
+ assert.match(worker,/organizeActionSource=organizeConfiguration===null\?null:createOrganizeActionSource\(store,startupEvents\);/);
+ assert.match(worker,/aiOrganizer=createConfiguredOrganizeRunner\(store,organizeConfiguration,\{actionSource:organizeActionSource\}\);/);
  assert.match(worker,/case 'UPDATE_AI_PRESENTATION': return aiOrganizer.handle\(request,sender\)/);
  assert.match(worker,/case 'GET_AI_PRESENTATION_SCOPE': return aiOrganizer.handle\(request,sender\)/);
  assert.doesNotMatch(worker,/new AIPresentationRunner\(/);
