@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: original source-linked creation plan consumes exact original provenance/dependency and edit owner
+ok 1 - original source-linked creation plan consumes exact original provenance/dependency and edit owner
+  ---
+  duration_ms: 61.9115
+  type: 'test'
+  ...
+# Subtest: source edit after preparation refuses original create without any additional writes
+ok 2 - source edit after preparation refuses original create without any additional writes
+  ---
+  duration_ms: 25.828041
+  type: 'test'
+  ...
+# Subtest: linked owner keeps creation, provenance, dependency and history in one rollback boundary
+ok 3 - linked owner keeps creation, provenance, dependency and history in one rollback boundary
+  ---
+  duration_ms: 26.397417
+  type: 'test'
+  ...
+# Subtest: stale Source is not admitted for linked edit
+ok 4 - stale Source is not admitted for linked edit
+  ---
+  duration_ms: 30.989958
+  type: 'test'
+  ...
+# Subtest: retained dependency mismatch refuses linked edit without writes
+ok 5 - retained dependency mismatch refuses linked edit without writes
+  ---
+  duration_ms: 28.971083
+  type: 'test'
+  ...
+# Subtest: portable Source edge rebinds local tokens after real bootstrap into independent B
+ok 6 - portable Source edge rebinds local tokens after real bootstrap into independent B
+  ---
+  duration_ms: 63.114166
+  type: 'test'
+  ...
+# Subtest: source-linked typed journal exports portable edge and receives create/edit through original B owner
+ok 7 - source-linked typed journal exports portable edge and receives create/edit through original B owner
+  ---
+  duration_ms: 93.608584
+  type: 'test'
+  ...
+# Subtest: single Source and source-linked create/edit restore as one original owner graph on cold B
+ok 8 - single Source and source-linked create/edit restore as one original owner graph on cold B
+  ---
+  duration_ms: 711.183791
+  type: 'test'
+  ...
+# Subtest: journal refuses Source-linked capture whose original Source protocol is absent
+ok 9 - journal refuses Source-linked capture whose original Source protocol is absent
+  ---
+  duration_ms: 16.700584
+  type: 'test'
+  ...
+# Subtest: linked removal and explicit restore preserve portable negative intent and protected history across cold B
+ok 10 - linked removal and explicit restore preserve portable negative intent and protected history across cold B
+  ---
+  duration_ms: 498.232125
+  type: 'test'
+  ...
+# Subtest: linked lifecycle original transaction rolls suppression and history back after owner execution
+ok 11 - linked lifecycle original transaction rolls suppression and history back after owner execution
+  ---
+  duration_ms: 28.042167
+  type: 'test'
+  ...
+# Subtest: source lifecycle suppression pagination retains exact same-key rows at 65
+ok 12 - source lifecycle suppression pagination retains exact same-key rows at 65
+  ---
+  duration_ms: 40.555
+  type: 'test'
+  ...
+# Subtest: source lifecycle suppression pagination retains exact same-key rows at 128
+ok 13 - source lifecycle suppression pagination retains exact same-key rows at 128
+  ---
+  duration_ms: 79.908167
+  type: 'test'
+  ...
+# Subtest: source lifecycle suppression pagination retains exact same-key rows at 129
+ok 14 - source lifecycle suppression pagination retains exact same-key rows at 129
+  ---
+  duration_ms: 34.838375
+  type: 'test'
+  ...
+# Subtest: source-derived original Human placement survives whole checkpoint and destination original edits
+ok 15 - source-derived original Human placement survives whole checkpoint and destination original edits
+  ---
+  duration_ms: 631.867625
+  type: 'test'
+  ...
+# Subtest: original Input addToTopics whole binding is one receipt and survives checkpoint
+ok 16 - original Input addToTopics whole binding is one receipt and survives checkpoint
+  ---
+  duration_ms: 1100.157833
+  type: 'test'
+  ...
+# Subtest: original Input addToTopics excerpt is one receipt and survives checkpoint
+ok 17 - original Input addToTopics excerpt is one receipt and survives checkpoint
+  ---
+  duration_ms: 1006.928583
+  type: 'test'
+  ...
+# Subtest: prepared exact Input selection rechecks Source, topics and atomic receipt before original mutation
+ok 18 - prepared exact Input selection rechecks Source, topics and atomic receipt before original mutation
+  ---
+  duration_ms: 39.077
+  type: 'test'
+  ...
+# Subtest: source-linked placement rechecks provenance and rejects without partial membership
+ok 19 - source-linked placement rechecks provenance and rejects without partial membership
+  ---
+  duration_ms: 46.899167
+  type: 'test'
+  ...
+# Subtest: Input compound owner rolls back body, membership, provenance, receipt and outbox together
+ok 20 - Input compound owner rolls back body, membership, provenance, receipt and outbox together
+  ---
+  duration_ms: 45.517667
+  type: 'test'
+  ...
+# Subtest: Input exact selection preserves receipt collisions, invalid bounds and original topic constraints
+ok 21 - Input exact selection preserves receipt collisions, invalid bounds and original topic constraints
+  ---
+  duration_ms: 58.117208
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3064.561208
