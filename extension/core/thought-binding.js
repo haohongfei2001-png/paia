@@ -32,6 +32,8 @@ export async function classifyBinding(store,t,row,previousInput=null){
 }
 export function applyBinding(row,binding){delete row.workingInputId;delete row.bindingRevision;delete row.bindingLength;Object.assign(row,binding);return row;}
 export async function migrateBindings(store,{limit=100,maxBatches=Infinity}={}){
+ const completed=await store.run(()=>store.repository.transaction(false,t=>t.get('meta',BINDING_ROW),['meta']));
+ if(completed?.version===1&&completed.complete)return completed;
  for(let i=0;i<maxBatches;i++){
   const marker=await store.run(()=>store.repository.transaction(true,async t=>{
    const m=await t.get('meta',BINDING_ROW)||{id:BINDING_ROW,version:1,cursor:null,complete:false,input:0,thought:0};if(m.version!==1)fail();if(m.complete)return m;

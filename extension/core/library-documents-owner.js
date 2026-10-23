@@ -62,6 +62,11 @@ export function originalLibraryDocumentsConstructor(){
  constructor(local,options={}){super(local,options);originalLibraryDocumentsStores.add(this);this.libraryDocumentMode=true;this.compatibilityStatus=null;}
  async finishFoundation(){
   await super.finishFoundation();if(this.documentsLoaded)return;
+  // A cold, already completed library needs no repair writer. In particular,
+  // opening a protected staging generation must not request write authority
+  // merely to rediscover the original completed compatibility receipt.
+  const completed=await this.run(()=>this.repository.transaction(false,t=>t.get('meta','library-documents-compat-v2'),['meta']));
+  if(completed?.complete){this.compatibilityStatus=completed;this.documentsLoaded=true;return;}
   for(;;){
    const marker=await this.run(()=>this.repository.transaction(true,async t=>{
     const row=await t.get('meta','library-documents-compat-v2')||{id:'library-documents-compat-v2',cursor:null,complete:false,activeTopics:0,repairedTopics:0,repairedIndexTopics:0,repairedGenerationTopics:0,repairedDefaultSections:0,unresolvedLayouts:0,indexedActiveTopics:0,indexGap:0};

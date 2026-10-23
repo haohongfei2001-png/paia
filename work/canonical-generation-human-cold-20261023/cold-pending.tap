@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: cold publication crash keeps the old prepaid ticket burned and resumes the original completed cursor
+ok 1 - cold publication crash keeps the old prepaid ticket burned and resumes the original completed cursor
+  ---
+  duration_ms: 867.875958
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1241.47475
