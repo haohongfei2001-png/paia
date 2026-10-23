@@ -29,7 +29,7 @@ export function sourcePurgeActiveTerminal(store,core,cut,rows){
 // independent successors may use other producers. No body is reconstructed.
 export async function requireSourcePurgeActiveGraph(cut,plan,negative){
  const p=cuts.get(cut);if(!p)deny();if(!cut.active)return;
- const groups=plan.groups.map(g=>({id:g.id,type:g.type,operations:g.operations}));
+ const groups=plan.groups.filter(g=>g.type==='sourceBootstrapCommit').map(g=>({id:g.id,type:g.type,operations:g.operations}));
  for(const item of negative){const operations=item.intent.targets.map(t=>t.before).sort((a,b)=>a.sequence-b.sequence),commit=operations.filter(op=>op.type==='sourceBootstrapCommit');if(commit.length!==1||operations.at(-1)!==commit[0])deny();groups.push({id:commit[0].revisionId,type:'sourceBootstrapCommit',operations});}
  const devices=new Set();for(const g of groups){if(g.type!=='sourceBootstrapCommit'||g.operations.length!==7||g.operations.some(op=>op.deviceId!==g.operations[0].deviceId))deny();devices.add(g.operations[0].deviceId);}
  let matched=0;

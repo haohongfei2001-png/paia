@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+import {nativeWorkingNegativeGroupFixture} from '../../extension/tests/native-sync/working-negative-group-fixture.mjs';
+const source=await readFile('extension/tests/browser-native-sync-working-negative-group.test.mjs','utf8'),helpers=await readFile('extension/tests/harness/thought-m1.mjs','utf8'),prepared=nativeWorkingNegativeGroupFixture(source,helpers);
+assert.ok(prepared.includes(source.slice(source.indexOf("test('selected Source Working"))));
+assert.throws(()=>nativeWorkingNegativeGroupFixture(source.replace("import test from 'node:test';",''),helpers));
+assert.throws(()=>nativeWorkingNegativeGroupFixture(source+'\nnew LibraryDocumentsStore(storage,{})',helpers));
+assert.throws(()=>nativeWorkingNegativeGroupFixture(source,helpers.replace('globalThis.IDBKeyRange=IDBKeyRange;','')));
+assert.ok(prepared.includes('cases.length!==expectedNames.length'));
+assert.ok(prepared.includes('new Set(cases.map(item=>item.name)).size'));
+await writeFile('work/source-working-negative-consumer-20261023/native-prepared.mjs',prepared);
+console.log('Native bridge preparation assertions PASS; original 18 case bodies unchanged; browser NOT RUN');

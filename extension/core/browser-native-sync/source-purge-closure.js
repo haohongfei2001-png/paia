@@ -13,7 +13,9 @@ const freeze=value=>{if(value&&typeof value==='object'){for(const child of Objec
 // Original immutable protocol closure, not canonical/read/write authority.
 // Negative groups contribute only their seven original redacted envelopes and
 // eight authenticated purge operations. They never reconstruct a Source body.
-// Positive independent initial Sources go through the existing group compiler.
+// Positive independent initial Sources and their complete surviving Working
+// chains go through the existing group compiler. Deleted Source Working stays
+// unsupported: its original bootstrap body is never reconstructed.
 export async function compileSourcePurgeClosure(core,input){
  const binding={core,repository:core.repository,datasetId:core.datasetId,deviceId:core.deviceId,prefix:core.prefix,namespace:core.fixedNamespace},started=performance.now();
  const current=()=>{if(core.repository!==binding.repository||core.datasetId!==binding.datasetId||core.deviceId!==binding.deviceId||core.prefix!==binding.prefix||core.fixedNamespace!==binding.namespace)invalid();if(performance.now()-started>=30000)fail('BNS_GROUP_RESOURCE_LIMIT');};
@@ -45,9 +47,9 @@ export async function compileSourcePurgeClosure(core,input){
   negatives.push(freeze(remote));
  }
  if(!negatives.length)invalid();
- const positive=[];for(const row of revisions)if(!claimed.has(row.operation.revisionId)){if(row.redacted||row.operation.kind!=='put'||!['sourceBootstrapMember','sourceBootstrapCommit'].includes(row.operation.type))invalid();positive.push(row.operation);}
+ const positive=[];for(const row of revisions)if(!claimed.has(row.operation.revisionId)){if(row.redacted||row.operation.kind!=='put'||!['sourceBootstrapMember','sourceBootstrapCommit','inputWorkingMember','inputWorkingCommit'].includes(row.operation.type))invalid();positive.push(row.operation);}
  const positivePlan=await prepareGroupCheckpointPlan(core,positive);current();
- for(const group of positivePlan.groups){if(group.type!=='sourceBootstrapCommit')invalid();const p=initialSourcePlan(group.capability);for(const [kind,id]of [['sourceId',p.source.id],['sourceKey',p.source.sourceKey],['documentId',p.inputDocument.id],['inputId',p.input.id],['baselineId',p.baselineRevision.id]])identity(kind,id);}
+ for(const group of positivePlan.groups){if(group.type==='inputWorkingCommit')continue;if(group.type!=='sourceBootstrapCommit')invalid();const p=initialSourcePlan(group.capability);for(const [kind,id]of [['sourceId',p.source.id],['sourceKey',p.source.sourceKey],['documentId',p.inputDocument.id],['inputId',p.input.id],['baselineId',p.baselineRevision.id]])identity(kind,id);}
  expectedHeads.push(...positivePlan.heads);
  const expectedFrontiers=new Map();for(const row of revisions){const op=row.operation;expectedFrontiers.set(op.deviceId,acceptSequence(expectedFrontiers.get(op.deviceId),op.sequence));}
  const frontierRows=[...expectedFrontiers].map(([deviceId,value])=>({...value,deviceId}));

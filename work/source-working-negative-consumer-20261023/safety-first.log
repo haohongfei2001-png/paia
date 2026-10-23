@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+ok 1 - selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+  ---
+  duration_ms: 1525.349208
+  type: 'test'
+  ...
+# Subtest: existing selected Source receives complete Working and denial while preserving its original local Source and controls
+ok 2 - existing selected Source receives complete Working and denial while preserving its original local Source and controls
+  ---
+  duration_ms: 1166.766375
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on owner-extra-row
+ok 3 - Working negative atomic consumer rolls back every table on owner-extra-row
+  ---
+  duration_ms: 610.645291
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on owner-throws
+ok 4 - Working negative atomic consumer rolls back every table on owner-throws
+  ---
+  duration_ms: 593.620625
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on working-map
+ok 5 - Working negative atomic consumer rolls back every table on working-map
+  ---
+  duration_ms: 596.424375
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on invalid-event
+ok 6 - Working negative atomic consumer rolls back every table on invalid-event
+  ---
+  duration_ms: 597.066042
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on lost-denial
+ok 7 - Working negative atomic consumer rolls back every table on lost-denial
+  ---
+  duration_ms: 594.917375
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on semantic-terminal
+ok 8 - Working negative atomic consumer rolls back every table on semantic-terminal
+  ---
+  duration_ms: 596.45525
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented body before transport publication
+ok 9 - Working export rejects unrepresented body before transport publication
+  ---
+  duration_ms: 583.507417
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented history before transport publication
+ok 10 - Working export rejects unrepresented history before transport publication
+  ---
+  duration_ms: 609.877791
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented working-map before transport publication
+ok 11 - Working export rejects unrepresented working-map before transport publication
+  ---
+  duration_ms: 563.164708
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented filter before transport publication
+ok 12 - Working export rejects unrepresented filter before transport publication
+  ---
+  duration_ms: 564.262083
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented receipt before transport publication
+ok 13 - Working export rejects unrepresented receipt before transport publication
+  ---
+  duration_ms: 569.790458
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented extra-owner before transport publication
+ok 14 - Working export rejects unrepresented extra-owner before transport publication
+  ---
+  duration_ms: 591.396667
+  type: 'test'
+  ...
+# Subtest: local human Working divergence cannot be overwritten by a foreign sibling checkpoint
+ok 15 - local human Working divergence cannot be overwritten by a foreign sibling checkpoint
+  ---
+  duration_ms: 808.044792
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10803.244

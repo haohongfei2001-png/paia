@@ -1,3 +1,6 @@
+import {originalFilterConstructor} from '../smart-filter-store-owner.js';
+import {enqueueInvalidation} from '../thought-maintenance.js';
+import {equal,exact,opaque} from './value.js';
 import {sourcePurgeActiveTerminal} from './source-purge-group-active.js';
 import {IndexedArchiveStore} from '../indexed-store.js';
 import {originalIAConstructor} from '../ia-store-owner.js';
@@ -18,7 +21,7 @@ export async function sourcePurgeGroupSnapshot(core,t){
 }
 // Detached prediction only: original domain/index/semantic writers operate on
 // private Maps. No native transaction, store mutation, or alternate data truth.
-export async function planSourcePurgeGroupPhysical(store,core,before,groups,negative,protocol,active){
+export async function planSourcePurgeGroupPhysical(store,core,before,groups,negative,protocol,active,observed=null){
  const bound=snapshots.get(before);if(!bound||bound.core!==core||bound.repository!==store.repository||bound.database!==store.repository.db)deny();
  if(measureSourceWorkingPhysicalTree(before).B*4+measureSourceWorkingPhysicalTree({groups,negative,protocol}).B*8>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');
  const maps=Object.fromEntries(Object.entries(before).map(([name,rows])=>[name,new Map(rows.map(row=>[row.id,copy(row)]))]));
@@ -32,7 +35,24 @@ export async function planSourcePurgeGroupPhysical(store,core,before,groups,nega
   all:async(table,index,key)=>query(table,index,key).map(x=>copy(x.row)),count:async(table,index,key)=>query(table,index,key).length,
   edge:async(table,index,key,direction='next')=>{const rows=query(table,index,key);return copy((direction==='prev'?rows.at(-1):rows[0])?.row);},keys:async(table,index,key)=>query(table,index,key).map(x=>x.row.id)};
  const facade={changedSources:new Set(),control:async()=>copy(store.controlCache),saveRecord:IndexedArchiveStore.prototype.saveRecord,refreshDoc:IndexedArchiveStore.prototype.refreshDoc,initialFilter:planInitialFilter,applyInitialBaseline:(t,cap)=>originalIAConstructor().prototype.applyInitialBaseline.call(store,t,cap)};
- for(const group of groups)await IndexedArchiveStore.prototype.applyInitialSource.call(facade,scratch,group.capability);
+ const working=groups.filter(g=>g.type==='inputWorkingCommit'),events=observed?.invalidations.filter(r=>!before.invalidations.some(old=>old.id===r.id))??[];
+ if(working.length&&events.length!==working.length)deny();
+ const knownEvents=new Set();
+ for(const group of groups){
+  if(group.type==='sourceBootstrapCommit'){await IndexedArchiveStore.prototype.applyInitialSource.call(facade,scratch,group.capability);continue;}
+  if(group.type!=='inputWorkingCommit'||!observed)deny();
+  const members=group.prepared.members.map(o=>({operation:o,type:o.value.entityType,value:o.value.entity})),block=members.find(m=>m.type==='input')?.value,state=members.find(m=>m.type==='inputState')?.value;
+  const event=events.find(r=>r.inputId===block.id&&r.contentRevision===state.contentRevision),at=observed.filterInputs.find(r=>r.id===block.id)?.overrideAt;
+  if(!event||knownEvents.has(event.id)||!exact(event,['id','eventSchema','inputId','reason','contentRevision','sequence','at','stateKey','state','cursor','dependencyAck','organizerAck'])||!opaque(event.id)||typeof at!=='string'||!Number.isFinite(Date.parse(at))||typeof event.at!=='string'||!Number.isFinite(Date.parse(event.at))||!equal(event,{id:event.id,eventSchema:2,inputId:block.id,reason:'source_updated',contentRevision:state.contentRevision,sequence:(maps.meta.get('thought-epoch')?.value||0)+1,at:event.at,stateKey:0,state:'pending',cursor:null,dependencyAck:false,organizerAck:false}))deny();knownEvents.add(event.id);
+  const history=members.filter(m=>m.type==='revision').map(m=>({...m,localSequence:maps.revisions.get(m.value.id)?.sequence??null})),clocks=[at,event.at];
+  const owner={clock:()=>{if(!clocks.length)deny();return clocks.shift();},uuid:()=>event.id,initialFilter:planInitialFilter,updateProtectedFilterRow:originalFilterConstructor().prototype.updateProtectedFilterRow,invalidate(t,inputId,reason,revision){return enqueueInvalidation(this,t,inputId,reason,revision);}};
+  const result=await originalIAConstructor().prototype.applyRemoteWorking.call(owner,scratch,{before:copy(maps.blocks.get(block.id)?.value),block,inputState:state,history,keeps:members.filter(m=>m.type==='filterIntent').map(m=>m.value),operationId:group.prepared.descriptor.value.id});
+  if(clocks.length)deny();
+  const namespace=before.meta.find(r=>r.id===core.prefix+'active')?.namespace??'initial',key=(kind,id)=>core.prefix+'generation:'+namespace+':'+kind+':'+encodeURIComponent(id);
+  protocol=protocol.filter(r=>r.id!==key('workingOwner',block.id)&&!result.history.some(h=>r.id===key('workingHistory',h.id)));
+  protocol.push({id:key('workingOwner',block.id),revisionId:members.find(m=>m.type==='input').operation.revisionId,deltaSequence:result.deltaSequence});for(const h of result.history)protocol.push({id:key('workingHistory',h.id),sequence:h.sequence,revisionId:members.find(m=>m.type==='revision'&&m.value.id===h.id).operation.revisionId});
+ }
+
  for(const n of negative){const v=n.intent,id='source:'+v.sourceKey;if(maps.tombstones.has(id))continue;await scratch.put('tombstones',{id,sequence:Date.parse(v.at),value:{sourceIdentityHash:v.sourceKey,deletedAt:v.at,status:'permanently_ignored'}});}
  for(const row of protocol)maps.meta.set(row.id,copy(row));
  const callback=Object.fromEntries(Object.entries(maps).map(([name,map])=>[name,sort([...map.values()].map(copy))]));

@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: existing selected edited Source receives complete Working and denial while preserving its local edit and controls
+not ok 1 - existing selected edited Source receives complete Working and denial while preserving its local edit and controls
+  ---
+  duration_ms: 791.41875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-working-negative-group.test.mjs:52:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SOURCE_PURGE_UNSUPPORTED'
+  code: 'BNS_SOURCE_PURGE_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    denied (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-journal.js:24:18)
+    verifySourcePurgePortfolioIndexes (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-journal.js:74:220)
+    qualify (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:72:96)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:87:365
+    async Object.run (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:32:28)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-working-negative-group.test.mjs:53:328)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 959.854083

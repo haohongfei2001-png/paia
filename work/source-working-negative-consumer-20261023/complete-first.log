@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+not ok 1 - selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+  ---
+  duration_ms: 523.869709
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-working-negative-group.test.mjs:47:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SOURCE_PURGE_UNSUPPORTED'
+  code: 'BNS_SOURCE_PURGE_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    denied (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-negative.js:13:18)
+    sourcePurgeNegativeCanonical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-negative.js:51:381)
+    prepareGroupedSourcePurgeRemainingCanonical (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-negative.js:82:36)
+    async qualify (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:70:286)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:78:219
+    async Object.run (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:32:28)
+    async checkpoint (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-working-negative-group.test.mjs:39:183)
+    async edited (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-working-negative-group.test.mjs:46:239)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-working-negative-group.test.mjs:48:10)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 645.501583

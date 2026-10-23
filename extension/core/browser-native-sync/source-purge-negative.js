@@ -1,3 +1,5 @@
+import {prepareSourcePurgeWorkingCut} from './source-purge-group-working.js';
+import {prepareGroupScope} from './group-checkpoint-scope.js';
 import {prepareSourcePurgeActiveCut} from './source-purge-group-active.js';
 import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
@@ -13,7 +15,7 @@ const own=(v,keys)=>exact(v,keys)&&Object.keys(v).length===keys.length;
 const iso=v=>typeof v==='string'&&Number.isFinite(Date.parse(v))&&new Date(v).toISOString()===v;
 // A negative group can prove denial and retirement only. Missing original
 // Source bodies are never reconstructed or passed to a materializing owner.
-export async function sourcePurgeNegativeInventory(core,revisionRows,allRows,namespace,prepareRemote){
+export async function sourcePurgeNegativeInventory(core,revisionRows,allRows,namespace,prepareRemote,allowWorking=false){
  const prefix=core.prefix+'generation:'+namespace+':',remaining=new Map(revisionRows.map(row=>[row.id,row])),negative=[],entries=[];
  for(const row of revisionRows.filter(row=>row.operation?.type==='sourcePurgeIntent')){
   const descriptor=await validateOperation(row.operation),intent=validateSourcePurgeIntent(descriptor.value),operations=intent.targets.map(target=>remaining.get(prefix+'revision:'+target.purgeRevisionId)?.operation);operations.push(descriptor);
@@ -23,7 +25,7 @@ export async function sourcePurgeNegativeInventory(core,revisionRows,allRows,nam
   for(const operation of operations){const id=prefix+'revision:'+operation.revisionId,value={id,operation,redacted:operation.kind==='purge'};if(!equal(remaining.get(id),value))denied();remaining.delete(id);entries.push({operation,redacted:value.redacted,original:false});}
   negative.push({intent,operations,deny});
  }
- const active=[];for(const row of remaining.values()){if(row.redacted||!['sourceBootstrapMember','sourceBootstrapCommit'].includes(row.operation?.type))denied();const operation=await validateOperation(row.operation);active.push(operation);entries.push({operation,redacted:false,original:false});}
+ const active=[];for(const row of remaining.values()){if(row.redacted||!(allowWorking?['sourceBootstrapMember','sourceBootstrapCommit','inputWorkingMember','inputWorkingCommit']:['sourceBootstrapMember','sourceBootstrapCommit']).includes(row.operation?.type))denied();const operation=await validateOperation(row.operation);active.push(operation);entries.push({operation,redacted:false,original:false});}
  const keys=new Set(),revisions=new Set(),operationIds=new Set(),sequences=new Set();for(const {operation:op}of entries){const sequence=JSON.stringify([op.deviceId,op.sequence]);if(revisions.has(op.revisionId)||operationIds.has(op.operationId)||sequences.has(sequence))denied();revisions.add(op.revisionId);operationIds.add(op.operationId);sequences.add(sequence);}
  for(const p of negative)for(const [kind,value]of Object.entries(p.intent).filter(([k])=>['sourceId','sourceKey','documentId','inputId','baselineId'].includes(k))){const k=kind+':'+value;if(keys.has(k))denied();keys.add(k);}
  if(allRows.filter(row=>row.id.startsWith(core.prefix+'sourcePurgeDeny:')).length!==negative.length)denied();
@@ -68,17 +70,19 @@ export async function prepareSourcePurgeRemainingCanonical(store,core,plan,scope
 export async function requireSourcePurgeRemainingCanonicalProof(proof,store,t,scope,view){const p=proofs.get(proof);if(!p||p.store!==store||p.repository!==store.repository||p.core.repository!==p.repository||p.scope!==scope||p.view!==view)denied();requireOriginalGroupCheckpointPlan(p.core,p.plan);if(!equalSourceWorkingPhysicalTree(await readCanonical(store,p.core,t),p.raw))denied();return true;}
 
 // Mixed local cleanup and cold remote denial remain distinct original facts.
+// A selected receiver with surviving Working but no local negative is also
+// compared through the exact original native cut; it does not mint a denial.
 // Only the former has original Input state / maintenance evidence. A cold
 // denial can never fabricate those rows to impersonate local Source history.
 export async function prepareGroupedSourcePurgeRemainingCanonical(store,core,plan,scope,inventory){
- const original=inventories.get(inventory);if(!original||original.core!==core||original.repository!==store.repository||!inventory.negative.length)denied();requireOriginalGroupCheckpointPlan(core,plan);
- const raw=await core.transaction(false,t=>readCanonical(store,core,t)),selected=await prepareSourcePurgeActiveCut(store,core,raw),local=inventory.negative.filter(n=>raw.inputStates.some(row=>row.id===n.intent.inputId)),cold=inventory.negative.filter(n=>!local.includes(n)),coldTombs=new Set();
+ const original=inventories.get(inventory);if(!original||original.core!==core||original.repository!==store.repository)denied();requireOriginalGroupCheckpointPlan(core,plan);if(!inventory.negative.length&&!plan.groups.some(g=>g.type==='inputWorkingCommit'))denied();
+ const raw=await core.transaction(false,t=>readCanonical(store,core,t)),selected=await prepareSourcePurgeActiveCut(store,core,raw),working=await prepareSourcePurgeWorkingCut(store,core,raw,plan,original.namespace,inventory.negative),projected=working.view;plan=working.plan;scope=await prepareGroupScope(plan);const local=inventory.negative.filter(n=>raw.inputStates.some(row=>row.id===n.intent.inputId)),cold=inventory.negative.filter(n=>!local.includes(n)),coldTombs=new Set();
  if(raw.tombstones.length!==inventory.negative.length)denied();
  for(const p of cold){const v=p.intent,tomb=raw.tombstones.find(row=>row.id==='source:'+v.sourceKey),expected={id:'source:'+v.sourceKey,sequence:Date.parse(v.at),value:{sourceIdentityHash:v.sourceKey,deletedAt:v.at,status:'permanently_ignored'}};if(!equal(tomb,expected))denied();coldTombs.add(expected.id);
   for(const [table,id]of [['records',v.sourceId],['recordIndex',v.sourceId],['blocks',v.inputId],['blockIndex',v.inputId],['times',v.sourceKey],['documents',v.documentId],['libraryDocuments',v.documentId],['inputStates',v.inputId],['revisions',v.baselineId],['filterInputs',v.inputId]])if(raw[table].some(row=>row.id===id))denied();
  }
- const excluded=local.length?await sourcePurgeNegativeCanonical({...raw,tombstones:raw.tombstones.filter(row=>!coldTombs.has(row.id))},local,plan.groups.length+local.length):{};
- if(!local.length&&(raw.organizerJobs.length||raw.invalidations.length))denied();
- const view=Object.fromEntries(Object.entries(selected.view).map(([name,rows])=>[name,rows.filter(row=>!excluded[name]?.has(row.id))]));for(const name of ['tombstones','organizerJobs','invalidations'])view[name]=[];
- const proof=Object.freeze({});freeze(raw);freeze(view);proofs.set(proof,{store,core,repository:store.repository,plan,scope,raw,view});return {raw,view,proof,localCount:local.length};
+ const excluded=local.length?await sourcePurgeNegativeCanonical({...projected,tombstones:projected.tombstones.filter(row=>!coldTombs.has(row.id))},local,plan.groups.length+local.length):{};
+ if(!local.length&&(projected.organizerJobs.length||projected.invalidations.length))denied();
+ const view=Object.fromEntries(Object.entries(projected).map(([name,rows])=>[name,(name==='meta'?rows.filter(row=>selected.view.meta.some(r=>r.id===row.id)):rows).filter(row=>!excluded[name]?.has(row.id))]));for(const name of ['tombstones','organizerJobs','invalidations'])view[name]=[];
+ const proof=Object.freeze({});freeze(raw);freeze(view);proofs.set(proof,{store,core,repository:store.repository,plan,scope,raw,view});return {raw,view,proof,localCount:local.length,scope,plan,working};
 }

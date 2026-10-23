@@ -1,0 +1,460 @@
+TAP version 13
+# Subtest: cold selected original-group exports permanent denial, merges a complete successor, edits and cold reopens
+ok 1 - cold selected original-group exports permanent denial, merges a complete successor, edits and cold reopens
+  ---
+  duration_ms: 1265.390958
+  type: 'test'
+  ...
+# Subtest: selected destination imports an independent cold negative while keeping original local cleanup and controls
+ok 2 - selected destination imports an independent cold negative while keeping original local cleanup and controls
+  ---
+  duration_ms: 1163.045667
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses unbound without transport publication or local changes
+ok 3 - selected checkpoint refuses unbound without transport publication or local changes
+  ---
+  duration_ms: 580.003417
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses completed without transport publication or local changes
+ok 4 - selected checkpoint refuses completed without transport publication or local changes
+  ---
+  duration_ms: 541.425333
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses gate without transport publication or local changes
+ok 5 - selected checkpoint refuses gate without transport publication or local changes
+  ---
+  duration_ms: 566.633
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses resident-copy without transport publication or local changes
+ok 6 - selected checkpoint refuses resident-copy without transport publication or local changes
+  ---
+  duration_ms: 563.218042
+  type: 'test'
+  ...
+# Subtest: selected checkpoint refuses unknown-namespace without transport publication or local changes
+ok 7 - selected checkpoint refuses unknown-namespace without transport publication or local changes
+  ---
+  duration_ms: 553.680125
+  type: 'test'
+  ...
+# Subtest: registry selection changed after staging refuses activation with local data unchanged
+ok 8 - registry selection changed after staging refuses activation with local data unchanged
+  ---
+  duration_ms: 640.115959
+  type: 'test'
+  ...
+# Subtest: late gate mutation rolls back selected positive-negative merge
+ok 9 - late gate mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 819.946292
+  type: 'test'
+  ...
+# Subtest: late completed mutation rolls back selected positive-negative merge
+ok 10 - late completed mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 827.862084
+  type: 'test'
+  ...
+# Subtest: late deny mutation rolls back selected positive-negative merge
+ok 11 - late deny mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 791.451166
+  type: 'test'
+  ...
+# Subtest: late outbox mutation rolls back selected positive-negative merge
+ok 12 - late outbox mutation rolls back selected positive-negative merge
+  ---
+  duration_ms: 781.528459
+  type: 'test'
+  ...
+# Subtest: unsupported same-producer post-publication Source cannot be mistaken for the sealed original graph
+ok 13 - unsupported same-producer post-publication Source cannot be mistaken for the sealed original graph
+  ---
+  duration_ms: 475.677125
+  type: 'test'
+  ...
+# Subtest: permanent Source tombstone uses one clock instant and survives complete checkpoint receive and old Source denial
+ok 14 - permanent Source tombstone uses one clock instant and survives complete checkpoint receive and old Source denial
+  ---
+  duration_ms: 604.083
+  type: 'test'
+  ...
+# Subtest: real positive Source plus permanent deletion compile as disjoint exact protocol closure
+ok 15 - real positive Source plus permanent deletion compile as disjoint exact protocol closure
+  ---
+  duration_ms: 416.901708
+  type: 'test'
+  ...
+# Subtest: two original permanent deletions and remaining independent Source retain each complete negative group
+ok 16 - two original permanent deletions and remaining independent Source retain each complete negative group
+  ---
+  duration_ms: 725.415208
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-original without changing canonical or protocol state
+ok 17 - closure refuses drop-original without changing canonical or protocol state
+  ---
+  duration_ms: 203.779708
+  type: 'test'
+  ...
+# Subtest: closure refuses old-body without changing canonical or protocol state
+ok 18 - closure refuses old-body without changing canonical or protocol state
+  ---
+  duration_ms: 206.533833
+  type: 'test'
+  ...
+# Subtest: closure refuses false-redaction without changing canonical or protocol state
+ok 19 - closure refuses false-redaction without changing canonical or protocol state
+  ---
+  duration_ms: 207.004
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-purge without changing canonical or protocol state
+ok 20 - closure refuses drop-purge without changing canonical or protocol state
+  ---
+  duration_ms: 199.739917
+  type: 'test'
+  ...
+# Subtest: closure refuses head without changing canonical or protocol state
+ok 21 - closure refuses head without changing canonical or protocol state
+  ---
+  duration_ms: 199.186459
+  type: 'test'
+  ...
+# Subtest: closure refuses stale-head without changing canonical or protocol state
+ok 22 - closure refuses stale-head without changing canonical or protocol state
+  ---
+  duration_ms: 197.981583
+  type: 'test'
+  ...
+# Subtest: closure refuses drop-frontier without changing canonical or protocol state
+ok 23 - closure refuses drop-frontier without changing canonical or protocol state
+  ---
+  duration_ms: 201.575834
+  type: 'test'
+  ...
+# Subtest: closure refuses frontier-hole without changing canonical or protocol state
+ok 24 - closure refuses frontier-hole without changing canonical or protocol state
+  ---
+  duration_ms: 212.320375
+  type: 'test'
+  ...
+# Subtest: closure refuses extra-head without changing canonical or protocol state
+ok 25 - closure refuses extra-head without changing canonical or protocol state
+  ---
+  duration_ms: 235.290375
+  type: 'test'
+  ...
+# Subtest: closure refuses duplicate without changing canonical or protocol state
+ok 26 - closure refuses duplicate without changing canonical or protocol state
+  ---
+  duration_ms: 203.948125
+  type: 'test'
+  ...
+# Subtest: closure refuses unknown-item without changing canonical or protocol state
+ok 27 - closure refuses unknown-item without changing canonical or protocol state
+  ---
+  duration_ms: 196.686042
+  type: 'test'
+  ...
+# Subtest: closure refuses unknown-field without changing canonical or protocol state
+ok 28 - closure refuses unknown-field without changing canonical or protocol state
+  ---
+  duration_ms: 194.951459
+  type: 'test'
+  ...
+# Subtest: independently valid positive creation cannot share the negative Source identity
+ok 29 - independently valid positive creation cannot share the negative Source identity
+  ---
+  duration_ms: 226.283458
+  type: 'test'
+  ...
+# Subtest: cloned result and changed Core do not carry original compiler identity
+ok 30 - cloned result and changed Core do not carry original compiler identity
+  ---
+  duration_ms: 226.336084
+  type: 'test'
+  ...
+# Subtest: caller edits during awaited digest cannot alter the original detached closure
+ok 31 - caller edits during awaited digest cannot alter the original detached closure
+  ---
+  duration_ms: 237.884416
+  type: 'test'
+  ...
+# Subtest: mixed compilation does not widen the original negative-only checkpoint publisher
+ok 32 - mixed compilation does not widen the original negative-only checkpoint publisher
+  ---
+  duration_ms: 202.558166
+  type: 'test'
+  ...
+# Subtest: Core rebinding during digest invalidates the closure rather than adopting later identity
+ok 33 - Core rebinding during digest invalidates the closure rather than adopting later identity
+  ---
+  duration_ms: 199.024416
+  type: 'test'
+  ...
+# Subtest: closure rejects oversized input before clone, digest or canonical mutation
+ok 34 - closure rejects oversized input before clone, digest or canonical mutation
+  ---
+  duration_ms: 210.097583
+  type: 'test'
+  ...
+# Subtest: closure refuses accessor-bearing input without invoking the accessor
+ok 35 - closure refuses accessor-bearing input without invoking the accessor
+  ---
+  duration_ms: 202.151708
+  type: 'test'
+  ...
+# Subtest: complete original positive and permanent negative Source checkpoint activates atomically and re-exports
+ok 36 - complete original positive and permanent negative Source checkpoint activates atomically and re-exports
+  ---
+  duration_ms: 769.986291
+  type: 'test'
+  ...
+# Subtest: existing permanent denial and queued local work survive a complete checkpoint successor
+ok 37 - existing permanent denial and queued local work survive a complete checkpoint successor
+  ---
+  duration_ms: 585.342583
+  type: 'test'
+  ...
+# Subtest: independent local positive Source and outbox are preserved while incoming positive and negative apply
+ok 38 - independent local positive Source and outbox are preserved while incoming positive and negative apply
+  ---
+  duration_ms: 382.05425
+  type: 'test'
+  ...
+# Subtest: atomic rollback preserves every table on owner-failure
+ok 39 - atomic rollback preserves every table on owner-failure
+  ---
+  duration_ms: 318.613791
+  type: 'test'
+  ...
+# Subtest: atomic rollback preserves every table on owner-extra-row
+ok 40 - atomic rollback preserves every table on owner-extra-row
+  ---
+  duration_ms: 323.758667
+  type: 'test'
+  ...
+# Subtest: atomic rollback preserves every table on post-callback-extra-row
+ok 41 - atomic rollback preserves every table on post-callback-extra-row
+  ---
+  duration_ms: 347.809791
+  type: 'test'
+  ...
+# Subtest: atomic rollback preserves every table on semantic-terminal-extra-row
+ok 42 - atomic rollback preserves every table on semantic-terminal-extra-row
+  ---
+  duration_ms: 380.285958
+  type: 'test'
+  ...
+# Subtest: concurrent ordinary local edit after validation refuses entire staged restore
+ok 43 - concurrent ordinary local edit after validation refuses entire staged restore
+  ---
+  duration_ms: 316.880542
+  type: 'test'
+  ...
+# Subtest: read-only stage refuses a checkpoint intersecting a live old Source rather than deleting it
+ok 44 - read-only stage refuses a checkpoint intersecting a live old Source rather than deleting it
+  ---
+  duration_ms: 316.204875
+  type: 'test'
+  ...
+# Subtest: caller/Core rebinding after validation cannot apply prepared negative capabilities
+ok 45 - caller/Core rebinding after validation cannot apply prepared negative capabilities
+  ---
+  duration_ms: 316.057875
+  type: 'test'
+  ...
+# Subtest: ordinary grouped consumer keeps its existing negative refusal
+ok 46 - ordinary grouped consumer keeps its existing negative refusal
+  ---
+  duration_ms: 382.46875
+  type: 'test'
+  ...
+# Subtest: cold reopen consumes restored positive Source and retains permanent denial across a real Working edit
+ok 47 - cold reopen consumes restored positive Source and retains permanent denial across a real Working edit
+  ---
+  duration_ms: 365.794166
+  type: 'test'
+  ...
+# Subtest: new cold negative combines with existing genuine local cleanup and re-exports both without losing outbox
+ok 48 - new cold negative combines with existing genuine local cleanup and re-exports both without losing outbox
+  ---
+  duration_ms: 818.67425
+  type: 'test'
+  ...
+# Subtest: current cut refuses extra-protocol before any external get
+ok 49 - current cut refuses extra-protocol before any external get
+  ---
+  duration_ms: 324.389167
+  type: 'test'
+  ...
+# Subtest: current cut refuses missing-deny before any external get
+ok 50 - current cut refuses missing-deny before any external get
+  ---
+  duration_ms: 318.458167
+  type: 'test'
+  ...
+# Subtest: current cut refuses wrong-frontier before any external get
+ok 51 - current cut refuses wrong-frontier before any external get
+  ---
+  duration_ms: 337.716917
+  type: 'test'
+  ...
+# Subtest: current cut refuses invented-generation before any external get
+ok 52 - current cut refuses invented-generation before any external get
+  ---
+  duration_ms: 337.414041
+  type: 'test'
+  ...
+# Subtest: current cut refuses unrepresented-human before any external get
+ok 53 - current cut refuses unrepresented-human before any external get
+  ---
+  duration_ms: 334.13725
+  type: 'test'
+  ...
+# Subtest: settings revocation after owner callback still aborts all positive and negative writes
+ok 54 - settings revocation after owner callback still aborts all positive and negative writes
+  ---
+  duration_ms: 295.720334
+  type: 'test'
+  ...
+# Subtest: replacement staging invalidates an older unresolved reader instead of overwriting the new plan
+ok 55 - replacement staging invalidates an older unresolved reader instead of overwriting the new plan
+  ---
+  duration_ms: 298.218334
+  type: 'test'
+  ...
+# Subtest: fresh repeated import and same-instance replay leave every row unchanged
+ok 56 - fresh repeated import and same-instance replay leave every row unchanged
+  ---
+  duration_ms: 360.48175
+  type: 'test'
+  ...
+# Subtest: an ordinary local capture during export prevents publication of a stale checkpoint result
+ok 57 - an ordinary local capture during export prevents publication of a stale checkpoint result
+  ---
+  duration_ms: 312.950708
+  type: 'test'
+  ...
+# Subtest: selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+ok 58 - selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+  ---
+  duration_ms: 1317.056708
+  type: 'test'
+  ...
+# Subtest: existing selected Source receives complete Working and denial while preserving its original local Source and controls
+ok 59 - existing selected Source receives complete Working and denial while preserving its original local Source and controls
+  ---
+  duration_ms: 1266.283
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on owner-extra-row
+ok 60 - Working negative atomic consumer rolls back every table on owner-extra-row
+  ---
+  duration_ms: 779.216541
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on owner-throws
+ok 61 - Working negative atomic consumer rolls back every table on owner-throws
+  ---
+  duration_ms: 733.630875
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on working-map
+ok 62 - Working negative atomic consumer rolls back every table on working-map
+  ---
+  duration_ms: 769.811667
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on invalid-event
+ok 63 - Working negative atomic consumer rolls back every table on invalid-event
+  ---
+  duration_ms: 723.118833
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on lost-denial
+ok 64 - Working negative atomic consumer rolls back every table on lost-denial
+  ---
+  duration_ms: 678.605833
+  type: 'test'
+  ...
+# Subtest: Working negative atomic consumer rolls back every table on semantic-terminal
+ok 65 - Working negative atomic consumer rolls back every table on semantic-terminal
+  ---
+  duration_ms: 690.599292
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented body before transport publication
+ok 66 - Working export rejects unrepresented body before transport publication
+  ---
+  duration_ms: 603.623708
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented history before transport publication
+ok 67 - Working export rejects unrepresented history before transport publication
+  ---
+  duration_ms: 578.698083
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented working-map before transport publication
+ok 68 - Working export rejects unrepresented working-map before transport publication
+  ---
+  duration_ms: 602.969417
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented filter before transport publication
+ok 69 - Working export rejects unrepresented filter before transport publication
+  ---
+  duration_ms: 549.494333
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented receipt before transport publication
+ok 70 - Working export rejects unrepresented receipt before transport publication
+  ---
+  duration_ms: 537.552709
+  type: 'test'
+  ...
+# Subtest: Working export rejects unrepresented extra-owner before transport publication
+ok 71 - Working export rejects unrepresented extra-owner before transport publication
+  ---
+  duration_ms: 545.3445
+  type: 'test'
+  ...
+# Subtest: local human Working divergence cannot be overwritten by a foreign sibling checkpoint
+ok 72 - local human Working divergence cannot be overwritten by a foreign sibling checkpoint
+  ---
+  duration_ms: 746.902166
+  type: 'test'
+  ...
+# Subtest: original allocation order 0 survives Working negative reverse qualification
+ok 73 - original allocation order 0 survives Working negative reverse qualification
+  ---
+  duration_ms: 568.640292
+  type: 'test'
+  ...
+# Subtest: original allocation order 1 survives Working negative reverse qualification
+ok 74 - original allocation order 1 survives Working negative reverse qualification
+  ---
+  duration_ms: 575.353458
+  type: 'test'
+  ...
+# Subtest: unmodified repeated Working negative checkpoint is idempotent after exact local owner binding
+ok 75 - unmodified repeated Working negative checkpoint is idempotent after exact local owner binding
+  ---
+  duration_ms: 658.6785
+  type: 'test'
+  ...
+1..75
+# tests 75
+# suites 0
+# pass 75
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13122.926541

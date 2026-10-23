@@ -1,0 +1,8 @@
+file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/work/source-working-negative-consumer-20261023/prepare-native.mjs:5
+assert.ok(prepared.includes(source.slice(source.index("test('selected Source Working"))));
+                                                ^
+
+TypeError: source.index is not a function
+    at file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/work/source-working-negative-consumer-20261023/prepare-native.mjs:5:49
+
+Node.js v22.23.3

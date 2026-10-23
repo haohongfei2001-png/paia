@@ -1,0 +1,22 @@
+[
+  {
+    "command": [
+      "work/source-working-negative-consumer-20261023/prepare-native.mjs"
+    ],
+    "exitCode": 0
+  },
+  {
+    "command": [
+      "--check",
+      "work/source-working-negative-consumer-20261023/native-prepared.mjs"
+    ],
+    "exitCode": 0
+  },
+  {
+    "command": [
+      "--check",
+      "extension/tests/native-sync/working-negative-group-native.test.mjs"
+    ],
+    "exitCode": 0
+  }
+]

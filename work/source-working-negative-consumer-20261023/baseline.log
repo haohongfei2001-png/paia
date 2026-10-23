@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: selected Source Working plus independent permanent denial exports and consumes after source close
+not ok 1 - selected Source Working plus independent permanent denial exports and consumes after source close
+  ---
+  duration_ms: 582.958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-working-negative-group.test.mjs:44:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SOURCE_PURGE_CHECKPOINT_INVALID'
+  code: 'BNS_SOURCE_PURGE_CHECKPOINT_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/value.js:5:32)
+    invalid (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-closure.js:8:19)
+    compileSourcePurgeClosure (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-closure.js:48:215)
+    async qualify (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:60:25)
+    async file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:74:219
+    async Object.run (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/core/browser-native-sync/source-purge-group.js:29:28)
+    async checkpoint (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-working-negative-group.test.mjs:39:183)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-active-local-consumer/paia/extension/tests/browser-native-sync-working-negative-group.test.mjs:44:511)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 760.004084

@@ -1,0 +1,18 @@
+TAP version 13
+# SYNTHETIC_PROJECTION {"states":[["block:456fb3b4-b0aa-4420-a957-9e5a24009669",1],["block:937860ce-a0ac-4826-ba0b-49b98e3c602b",2]],"history":[["61f77168-b20b-4c54-83f2-acbb1f652690",2]],"total":2}
+# SYNTHETIC_PROJECTION {"states":[["block:937860ce-a0ac-4826-ba0b-49b98e3c602b",1]],"history":[["61f77168-b20b-4c54-83f2-acbb1f652690",1]],"total":1}
+# Subtest: selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+ok 1 - selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+  ---
+  duration_ms: 868.288083
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1010.277959

@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+ok 1 - selected Source Working plus independent permanent denial exports, closes, restores, cold edits and re-exports
+  ---
+  duration_ms: 831.040042
+  type: 'test'
+  ...
+# Subtest: existing selected Source receives complete Working and denial while preserving its original local Source and controls
+ok 2 - existing selected Source receives complete Working and denial while preserving its original local Source and controls
+  ---
+  duration_ms: 1063.777833
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2016.7095
