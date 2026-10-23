@@ -18,9 +18,11 @@ function status(code){if(code===401)fail('BNS_PROVIDER_AUTH_REQUIRED');if(code==
 // this exact subject/client/generation before constructing this transport.
 export class GoogleDriveAppDataTransport {
  #core;#binding;#request;#current;#identity;#dataset;#namespace;#closed=false;#timeout;#pending=new Set();#budget=null;
- constructor(core,{binding,request,isCurrent,requestTimeoutMs=30000}={}){
+ #dispatchQualification=null;
+ constructor(core,{binding,request,isCurrent,requestTimeoutMs=30000,dispatchQualification=null}={}){
+  if(dispatchQualification!==null&&typeof dispatchQualification!=='function')fail('BNS_PROVIDER_BINDING');
   if(!core?.repository||!opaque(core.datasetId)||!exact(binding,['subject','clientId','generation','scopes'])||!subject(binding.subject)||!clientId(binding.clientId)||!opaque(binding.generation)||!Array.isArray(binding.scopes)||binding.scopes.length!==1||binding.scopes[0]!==GOOGLE_APPDATA_SCOPE||typeof request!=='function'||typeof isCurrent!=='function'||!Number.isSafeInteger(requestTimeoutMs)||requestTimeoutMs<1||requestTimeoutMs>30000)fail('BNS_PROVIDER_BINDING');
-  this.#core=core;this.#binding=Object.freeze({...clone(binding),scopes:Object.freeze([...binding.scopes])});this.#request=request;this.#current=isCurrent;this.#timeout=requestTimeoutMs;
+  this.#dispatchQualification=dispatchQualification;this.#core=core;this.#binding=Object.freeze({...clone(binding),scopes:Object.freeze([...binding.scopes])});this.#request=request;this.#current=isCurrent;this.#timeout=requestTimeoutMs;
   // Account/client bind the local retry journal; generation fences in-flight
   // work but does not allocate a new remote ID on ordinary reauthorization.
   this.#identity=digest({provider:'google-drive-appdata-v1',subject:binding.subject,clientId:binding.clientId,datasetId:core.datasetId});this.#dataset=digest(core.datasetId);this.#namespace=core.namespace();
@@ -36,7 +38,7 @@ export class GoogleDriveAppDataTransport {
   await this.#guard();const budget=this.#budget,remaining=budget?.deadline-performance.now();if(!budget||++budget.requests>4096||remaining<=0)fail('BNS_PROVIDER_RESOURCE_LIMIT');const controller=new AbortController();let timer,cancel,dispatched=false;
   const interrupted=new Promise((_,reject)=>{cancel=()=>{controller.abort();reject(new SyncError('BNS_PROVIDER_BINDING_CHANGED'));};timer=setTimeout(()=>{controller.abort();reject(new SyncError('BNS_PROVIDER_COMPLETION_UNKNOWN'));},remaining);this.#pending.add(cancel);});
   try{
-   let response;try{response=await Promise.race([Promise.resolve().then(()=>{this.#check();dispatched=true;if(method==='POST')budget.writeDispatched=true;return this.#request(Object.freeze({method,url,headers:Object.freeze({...headers}),body,signal:controller.signal,maxResponseBytes:limit,binding:this.#binding}));}),interrupted]);}catch(error){if(error instanceof SyncError)throw error;fail('BNS_PROVIDER_COMPLETION_UNKNOWN');}
+   let response;try{response=await Promise.race([Promise.resolve().then(async()=>{const assertDispatch=this.#dispatchQualification?await this.#dispatchQualification(Object.freeze({method,url})):null;this.#check();if(controller.signal.aborted||this.#budget!==budget||performance.now()>=budget.deadline)fail('BNS_PROVIDER_COMPLETION_UNKNOWN');if(this.#dispatchQualification){if(typeof assertDispatch!=='function')fail('BNS_PROVIDER_BINDING');assertDispatch();}dispatched=true;if(method==='POST')budget.writeDispatched=true;return this.#request(Object.freeze({method,url,headers:Object.freeze({...headers}),body,signal:controller.signal,maxResponseBytes:limit,binding:this.#binding}));}),interrupted]);}catch(error){if(error instanceof SyncError)throw error;fail('BNS_PROVIDER_COMPLETION_UNKNOWN');}
    await this.#guard();if(!response||!Number.isInteger(response.status))fail('BNS_PROVIDER_RESPONSE_INVALID');
    // The host must also enforce the streaming bound before allocation. This
    // check bounds our copy and parse, not allocations inside the host seam.

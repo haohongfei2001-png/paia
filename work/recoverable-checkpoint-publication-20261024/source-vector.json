@@ -1,0 +1,13 @@
+{
+  "base": "8f1fc0f68f66c3c91c12e14e00f43d9e857fa1c1",
+  "sha256": {
+    "extension/core/browser-native-sync/checkpoint-publication.js": "40ea2a8eb569e46e4e19bc6eb38a5313e813227296c3de3a214e09b653c9d5e3",
+    "extension/core/browser-native-sync/group-checkpoint.js": "65f80fc179ce901a6c9eadbe8328a9d9d49fa26edd9491965419aa41a6b54cae",
+    "extension/core/browser-native-sync/providers/google-drive.js": "7463b96cad7b5cba33d7eaf5824aa8aa087bd0e2c156b6802eb28d9c7824c773",
+    "extension/core/browser-native-sync/providers/onedrive.js": "7c8c037e9bf8f039f9447d99d638d5366a269e17a014acd2fa047c4d3e0c2464",
+    "extension/tests/checkpoint-publication.test.mjs": "91bf855eca179b9ade506a523e89dee5437a3d366cf43f4e8a5cec5a219dbad6",
+    "extension/tests/harness/checkpoint-publication-http.mjs": "e10a56ff3d9afb3a86eb2eb5fa9d060201cff1f1e26189872602b12adfe71868",
+    "extension/tests/native-sync/checkpoint-publication-fixture.mjs": "a4013c8579875de0d7b95349e58fea6bba55d43ba5d04b250f5260d5ebf394a8",
+    "extension/tests/native-sync/checkpoint-publication-native.test.mjs": "2ca3a15ddb1d8b80d023629fb4addc07e9e3f5b74f1351ff5ac10307ccb8fcb8"
+  }
+}

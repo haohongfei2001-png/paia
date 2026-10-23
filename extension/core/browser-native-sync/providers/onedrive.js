@@ -22,9 +22,11 @@ function status(n){fail(n===401?'BNS_PROVIDER_AUTH_REQUIRED':n===403?'BNS_PROVID
 // network, token, login, provider selection, broader scope or product enablement.
 export class OneDriveAppFolderTransport {
  #core;#binding;#request;#current;#namespace;#dataset;#identity;#timeout;#closed=false;#budget=null;#pending=new Set();#root=null;
- constructor(core,{binding,request,isCurrent,requestTimeoutMs=30000}={}){
+ #dispatchQualification=null;
+ constructor(core,{binding,request,isCurrent,requestTimeoutMs=30000,dispatchQualification=null}={}){
+  if(dispatchQualification!==null&&typeof dispatchQualification!=='function')fail('BNS_PROVIDER_BINDING');
   if(!core?.repository||!opaque(core.datasetId)||!exact(binding,['subject','tenantId','clientId','generation','scopes'])||!id(binding.subject)||binding.tenantId!=='9188040d-6c67-4c5b-b112-36a304b66dad'||!guid(binding.clientId)||!opaque(binding.generation)||!equal(binding.scopes,[ONEDRIVE_APPFOLDER_SCOPE])||typeof request!=='function'||typeof isCurrent!=='function'||!Number.isInteger(requestTimeoutMs)||requestTimeoutMs<1||requestTimeoutMs>30000)fail('BNS_PROVIDER_BINDING');
-  this.#core=core;this.#binding=Object.freeze({...clone(binding),scopes:Object.freeze([...binding.scopes])});this.#request=request;this.#current=isCurrent;this.#timeout=requestTimeoutMs;this.#namespace=core.namespace();this.#dataset=digest(core.datasetId);this.#identity=digest({provider:'onedrive-appfolder-v1',subject:binding.subject,tenantId:binding.tenantId,clientId:binding.clientId,datasetId:core.datasetId});
+  this.#dispatchQualification=dispatchQualification;this.#core=core;this.#binding=Object.freeze({...clone(binding),scopes:Object.freeze([...binding.scopes])});this.#request=request;this.#current=isCurrent;this.#timeout=requestTimeoutMs;this.#namespace=core.namespace();this.#dataset=digest(core.datasetId);this.#identity=digest({provider:'onedrive-appfolder-v1',subject:binding.subject,tenantId:binding.tenantId,clientId:binding.clientId,datasetId:core.datasetId});
  }
  close(){this.#closed=true;for(const cancel of this.#pending)cancel();}
  #check(){if(this.#closed||this.#current(this.#binding)!==true)fail('BNS_PROVIDER_BINDING_CHANGED');}
@@ -33,7 +35,7 @@ export class OneDriveAppFolderTransport {
  async #http(method,url,{body=null,headers={},limit=65536,allow=[],authorization='graph'}={}){
   await this.#guard();const b=this.#budget,remaining=b?.deadline-performance.now();if(!b||++b.requests>4096||remaining<=0)fail('BNS_PROVIDER_RESOURCE_LIMIT');
   const controller=new AbortController();let cancel,timer;const interruption=new Promise((_,reject)=>{cancel=()=>{controller.abort();reject(new SyncError('BNS_PROVIDER_BINDING_CHANGED'));};timer=setTimeout(()=>{controller.abort();reject(new SyncError('BNS_PROVIDER_COMPLETION_UNKNOWN'));},remaining);this.#pending.add(cancel);});
-  try{let r;try{r=await Promise.race([Promise.resolve().then(()=>{this.#check();if(method==='POST'||method==='PUT')b.write=true;return this.#request(Object.freeze({method,url,headers:Object.freeze({...headers}),body,signal:controller.signal,maxResponseBytes:limit,binding:this.#binding,authorization}));}),interruption]);}catch(e){if(e instanceof SyncError)throw e;fail('BNS_PROVIDER_COMPLETION_UNKNOWN');}
+  try{let r;try{r=await Promise.race([Promise.resolve().then(async()=>{const assertDispatch=this.#dispatchQualification?await this.#dispatchQualification(Object.freeze({method,url})):null;this.#check();if(controller.signal.aborted||this.#budget!==b||performance.now()>=b.deadline)fail('BNS_PROVIDER_COMPLETION_UNKNOWN');if(this.#dispatchQualification){if(typeof assertDispatch!=='function')fail('BNS_PROVIDER_BINDING');assertDispatch();}if(method==='POST'||method==='PUT')b.write=true;return this.#request(Object.freeze({method,url,headers:Object.freeze({...headers}),body,signal:controller.signal,maxResponseBytes:limit,binding:this.#binding,authorization}));}),interruption]);}catch(e){if(e instanceof SyncError)throw e;fail('BNS_PROVIDER_COMPLETION_UNKNOWN');}
    await this.#guard();if(!r||!Number.isInteger(r.status)||!(r.body instanceof Uint8Array))fail('BNS_PROVIDER_RESPONSE_INVALID');if(r.body.length>limit||(b.received+=r.body.length)>2*1024*1024)fail('BNS_PROVIDER_RESOURCE_LIMIT');if(!allow.includes(r.status)&&(r.status<200||r.status>=300))status(r.status);return {...r,body:r.body.slice()};
   }finally{clearTimeout(timer);this.#pending.delete(cancel);controller.abort();}
  }

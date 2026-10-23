@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: google original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 1 - google original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 1588.14275
+  type: 'test'
+  ...
+# Subtest: onedrive original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 2 - onedrive original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 1762.073041
+  type: 'test'
+  ...
+# Subtest: google last pre-dispatch GET pause forbids first remote body write
+ok 3 - google last pre-dispatch GET pause forbids first remote body write
+  ---
+  duration_ms: 62.39
+  type: 'test'
+  ...
+# Subtest: google last pre-dispatch GET delete forbids first remote body write
+ok 4 - google last pre-dispatch GET delete forbids first remote body write
+  ---
+  duration_ms: 120.612542
+  type: 'test'
+  ...
+# Subtest: onedrive last pre-dispatch GET pause forbids first remote body write
+ok 5 - onedrive last pre-dispatch GET pause forbids first remote body write
+  ---
+  duration_ms: 64.022917
+  type: 'test'
+  ...
+# Subtest: onedrive last pre-dispatch GET delete forbids first remote body write
+ok 6 - onedrive last pre-dispatch GET delete forbids first remote body write
+  ---
+  duration_ms: 114.950167
+  type: 'test'
+  ...
+# Subtest: unsettled original local set pause quarantines key until true completion
+ok 7 - unsettled original local set pause quarantines key until true completion
+  ---
+  duration_ms: 102.323833
+  type: 'test'
+  ...
+# Subtest: unsettled original local set timeout quarantines key until true completion
+ok 8 - unsettled original local set timeout quarantines key until true completion
+  ---
+  duration_ms: 318.528583
+  type: 'test'
+  ...
+# Subtest: google qualification completion after timeout cannot dispatch the first HTTP
+ok 9 - google qualification completion after timeout cannot dispatch the first HTTP
+  ---
+  duration_ms: 50.698125
+  type: 'test'
+  ...
+# Subtest: google qualification completion after close cannot dispatch the first HTTP
+ok 10 - google qualification completion after close cannot dispatch the first HTTP
+  ---
+  duration_ms: 30.062958
+  type: 'test'
+  ...
+# Subtest: onedrive qualification completion after timeout cannot dispatch the first HTTP
+ok 11 - onedrive qualification completion after timeout cannot dispatch the first HTTP
+  ---
+  duration_ms: 51.437583
+  type: 'test'
+  ...
+# Subtest: onedrive qualification completion after close cannot dispatch the first HTTP
+ok 12 - onedrive qualification completion after close cannot dispatch the first HTTP
+  ---
+  duration_ms: 30.856833
+  type: 'test'
+  ...
+# Subtest: private committed dispatch proof refuses cloned results and a later original Store operation
+ok 13 - private committed dispatch proof refuses cloned results and a later original Store operation
+  ---
+  duration_ms: 47.911917
+  type: 'test'
+  ...
+# Subtest: paused old provider GET cannot borrow resumed action work to issue POST
+ok 14 - paused old provider GET cannot borrow resumed action work to issue POST
+  ---
+  duration_ms: 102.05775
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4576.669666
