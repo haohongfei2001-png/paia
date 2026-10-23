@@ -89,7 +89,7 @@ Context asserts0 external/extension/provider requests and unchanged app settings
 All emitted body-free records are copied into native-receipts/.
 
 One original builder invocation succeeds with642 files, version0.55.9 Development;
-source/release guard outputs are in build.log. release-source-vector.json binds
+release package/product guard outputs are in build.log. release-source-vector.json binds
 the local temporary artifact's every file. This development artifact does not
 replace the earlier3511dbe8 build receipt and is not installed, published or
 Full-certified. No native timing comparison, Linux capacity, real provider,
