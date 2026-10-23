@@ -10,10 +10,13 @@ export function requireResolvedPromptReplayConflict(core,plan,group,result){
  const deny=()=>fail('BNS_GROUP_CAUSAL_GAP'),types=['promptPreferences','promptBinding'];
  const index=plan.groups.indexOf(group),operation=group?.operations?.[0];
  if(index<0||group.operations.length!==1||!types.includes(group.type)||operation.type!==group.type||result?.state!=='conflict'||!Array.isArray(result.revisions)||result.revisions.length!==2||new Set(result.revisions).size!==2||!result.revisions.includes(operation.revisionId))deny();
- const parents=result.revisions.slice().sort();
- const resolver=plan.groups.slice(index+1).find(g=>g.type===group.type&&g.operations.length===1&&g.operations[0].entityId===operation.entityId&&equal(g.operations[0].parents.slice().sort(),parents))?.operations[0];
- if(!resolver||resolver.actor!=='user'||resolver.kind!=='put')deny();
- const operations=plan.groups.flatMap(g=>g.operations),byRevision=new Map(operations.map(op=>[op.revisionId,op]));
+ const parents=result.revisions.slice().sort(),operations=plan.groups.flatMap(g=>g.operations),byRevision=new Map(operations.map(op=>[op.revisionId,op]));
+ const ancestor=(a,b)=>{const queue=[b],seen=new Set();while(queue.length){const ref=queue.pop();if(ref===a)return true;if(seen.has(ref))continue;seen.add(ref);const op=byRevision.get(ref);if(!op||op.type!==operation.type||op.entityId!==operation.entityId)return false;queue.push(...op.parents);}return false;};
+ // A later local edit may advance one branch before its explicit resolution.
+ // Require distinct, one-to-one branch ancestry; shared-ancestor guesses and
+ // an unrelated final overwrite cannot count as consuming the current fork.
+ const resolver=plan.groups.slice(index+1).find(g=>{const op=g.operations[0];if(g.type!==group.type||g.operations.length!==1||op.entityId!==operation.entityId||op.parents.length!==2||op.actor!=='user'||op.kind!=='put')return false;const matches=parents.map(parent=>op.parents.filter(ref=>ancestor(parent,ref)));return matches.every(x=>x.length===1)&&new Set(matches.flat()).size===2;})?.operations[0];
+ if(!resolver)deny();
  const prompt=group.type==='promptPreferences'?resolver:byRevision.get(resolver.value.promptRevisionId);
  const companion=group.type==='promptBinding'?resolver:operations.find(op=>op.type==='promptBinding'&&op.value.promptRevisionId===resolver.revisionId);
  if(!prompt||!companion||prompt.type!=='promptPreferences'||companion.type!=='promptBinding'||prompt.entityId!==operation.entityId||companion.entityId!==operation.entityId||prompt.actor!=='user'||companion.actor!=='user'||prompt.kind!=='put'||companion.kind!=='put'||prompt.parents.length!==2||companion.parents.length!==2)deny();

@@ -1,0 +1,317 @@
+TAP version 13
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 1 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 143.263875
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 2 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 356.617875
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 3 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 299.896042
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 4 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 319.115334
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 5 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 314.060584
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 6 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 229.408042
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 7 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 225.048541
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 8 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 228.726
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 9 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 225.813583
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 10 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 238.287
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 11 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 267.070292
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 12 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 113.07375
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 13 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 41.097958
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 14 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 496.7935
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":107.47712500000034,"reads":2705,"writes":1161}}
+# Subtest: exact128 retained operations restore and the129th has explicit paged scope admission
+ok 15 - exact128 retained operations restore and the129th has explicit paged scope admission
+  ---
+  duration_ms: 968.80525
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 16 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 19.569458
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 17 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 29.649375
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 18 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 27.778625
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 19 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 28.1865
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 20 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 32.239
+  type: 'test'
+  ...
+# Subtest: original A local preview protection and B sidebar choice survive complete checkpoint recovery and republish without transfer
+ok 21 - original A local preview protection and B sidebar choice survive complete checkpoint recovery and republish without transfer
+  ---
+  duration_ms: 276.562625
+  type: 'test'
+  ...
+# Subtest: a device-only protection change after staging is preserved by the original activation control owner
+ok 22 - a device-only protection change after staging is preserved by the original activation control owner
+  ---
+  duration_ms: 94.259958
+  type: 'test'
+  ...
+# Subtest: local comparison excludes only valid device booleans and keeps every other value exact
+ok 23 - local comparison excludes only valid device booleans and keeps every other value exact
+  ---
+  duration_ms: 0.149334
+  type: 'test'
+  ...
+# Subtest: original explicit local atomically resolves both complete prompt/companion head sets
+ok 24 - original explicit local atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 68.463625
+  type: 'test'
+  ...
+# Subtest: original explicit other atomically resolves both complete prompt/companion head sets
+ok 25 - original explicit other atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 41.112166
+  type: 'test'
+  ...
+# Subtest: original explicit manual atomically resolves both complete prompt/companion head sets
+ok 26 - original explicit manual atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 44.200625
+  type: 'test'
+  ...
+# Subtest: original explicit both atomically resolves both complete prompt/companion head sets
+ok 27 - original explicit both atomically resolves both complete prompt/companion head sets
+  ---
+  duration_ms: 34.715791
+  type: 'test'
+  ...
+# Subtest: caller null cannot authorize multihead companion resolution
+ok 28 - caller null cannot authorize multihead companion resolution
+  ---
+  duration_ms: 21.885208
+  type: 'test'
+  ...
+# Subtest: caller true cannot authorize multihead companion resolution
+ok 29 - caller true cannot authorize multihead companion resolution
+  ---
+  duration_ms: 20.031542
+  type: 'test'
+  ...
+# Subtest: caller {} cannot authorize multihead companion resolution
+ok 30 - caller {} cannot authorize multihead companion resolution
+  ---
+  duration_ms: 22.218875
+  type: 'test'
+  ...
+# Subtest: caller "forged" cannot authorize multihead companion resolution
+ok 31 - caller "forged" cannot authorize multihead companion resolution
+  ---
+  duration_ms: 22.587875
+  type: 'test'
+  ...
+# Subtest: ordinary write refuses both prompt conflict and direct binding conflict without changing any table
+ok 32 - ordinary write refuses both prompt conflict and direct binding conflict without changing any table
+  ---
+  duration_ms: 20.983042
+  type: 'test'
+  ...
+# Subtest: proof-failure rolls back prompt/binding/proofs/old history/outbox/all tables
+ok 33 - proof-failure rolls back prompt/binding/proofs/old history/outbox/all tables
+  ---
+  duration_ms: 29.468291
+  type: 'test'
+  ...
+# Subtest: late-binding-write rolls back prompt/binding/proofs/old history/outbox/all tables
+ok 34 - late-binding-write rolls back prompt/binding/proofs/old history/outbox/all tables
+  ---
+  duration_ms: 31.654542
+  type: 'test'
+  ...
+# Subtest: original exact preparation still loses to later generation and cannot commit partial companions
+ok 35 - original exact preparation still loses to later generation and cannot commit partial companions
+  ---
+  duration_ms: 26.37475
+  type: 'test'
+  ...
+# Subtest: original private token rejects clone-token substitution without writes
+ok 36 - original private token rejects clone-token substitution without writes
+  ---
+  duration_ms: 21.185375
+  type: 'test'
+  ...
+# Subtest: original private token rejects prompt-parents substitution without writes
+ok 37 - original private token rejects prompt-parents substitution without writes
+  ---
+  duration_ms: 21.954292
+  type: 'test'
+  ...
+# Subtest: original private token rejects binding-envelope substitution without writes
+ok 38 - original private token rejects binding-envelope substitution without writes
+  ---
+  duration_ms: 21.614458
+  type: 'test'
+  ...
+# Subtest: original private token rejects actor substitution without writes
+ok 39 - original private token rejects actor substitution without writes
+  ---
+  duration_ms: 21.754834
+  type: 'test'
+  ...
+# Subtest: original private token rejects operation-kind substitution without writes
+ok 40 - original private token rejects operation-kind substitution without writes
+  ---
+  duration_ms: 21.009584
+  type: 'test'
+  ...
+# Subtest: original private token rejects extra-change substitution without writes
+ok 41 - original private token rejects extra-change substitution without writes
+  ---
+  duration_ms: 20.9275
+  type: 'test'
+  ...
+# Subtest: prepared pair remains private and cannot commit a cloned operation envelope
+ok 42 - prepared pair remains private and cannot commit a cloned operation envelope
+  ---
+  duration_ms: 21.110625
+  type: 'test'
+  ...
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 43 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 3.888042
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 44 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 1.626459
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 45 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 1.049
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 46 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 0.943417
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 47 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 1.030042
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 48 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.565375
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 49 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 1.932583
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 50 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.768375
+  type: 'test'
+  ...
+# Subtest: configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+ok 51 - configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+  ---
+  duration_ms: 0.747458
+  type: 'test'
+  ...
+1..51
+# tests 51
+# suites 0
+# pass 51
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4750.700458
