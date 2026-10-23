@@ -1,0 +1,12 @@
+[
+  {
+    "name": "saved-incremental",
+    "originalCases": 34,
+    "exactAdaptedCaseBodies": true,
+    "refusalControls": 3,
+    "nativeReopenIdentity": {
+      "distinct": true,
+      "cold": true
+    }
+  }
+]

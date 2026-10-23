@@ -1,0 +1,182 @@
+TAP version 13
+# Subtest: mixed existing B retains original Human work and outbox across Saved successors and cold C
+ok 1 - mixed existing B retains original Human work and outbox across Saved successors and cold C
+  ---
+  duration_ms: 1059.229417
+  type: 'test'
+  ...
+# Subtest: incoming new Human edit stays outside the Saved mixed consumer
+ok 2 - incoming new Human edit stays outside the Saved mixed consumer
+  ---
+  duration_ms: 425.816834
+  type: 'test'
+  ...
+# Subtest: incoming new Human create stays outside the Saved mixed consumer
+ok 3 - incoming new Human create stays outside the Saved mixed consumer
+  ---
+  duration_ms: 657.419542
+  type: 'test'
+  ...
+# Subtest: mixed Saved same-entity fork refuses before all canonical and protocol writes
+ok 4 - mixed Saved same-entity fork refuses before all canonical and protocol writes
+  ---
+  duration_ms: 741.542292
+  type: 'test'
+  ...
+# Subtest: mixed Saved partial commit resumes after a cold coordinator restart
+ok 5 - mixed Saved partial commit resumes after a cold coordinator restart
+  ---
+  duration_ms: 702.038459
+  type: 'test'
+  ...
+# Subtest: mixed Saved partial commit rejects a subsequently edited Human base
+ok 6 - mixed Saved partial commit rejects a subsequently edited Human base
+  ---
+  duration_ms: 598.814625
+  type: 'test'
+  ...
+# Subtest: mixed Saved lost final return is settled by durable receipt without repeating owner writes
+ok 7 - mixed Saved lost final return is settled by durable receipt without repeating owner writes
+  ---
+  duration_ms: 469.523792
+  type: 'test'
+  ...
+# Subtest: ancestor-only mixed Saved checkpoint preserves newer Human and Saved content and local sends
+ok 8 - ancestor-only mixed Saved checkpoint preserves newer Human and Saved content and local sends
+  ---
+  duration_ms: 482.063833
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human body drift with complete step rollback
+ok 9 - mixed Saved original-owner return rejects Human body drift with complete step rollback
+  ---
+  duration_ms: 366.781125
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human physical allocation drift with complete step rollback
+ok 10 - mixed Saved original-owner return rejects Human physical allocation drift with complete step rollback
+  ---
+  duration_ms: 465.807375
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human history drift with complete step rollback
+ok 11 - mixed Saved original-owner return rejects Human history drift with complete step rollback
+  ---
+  duration_ms: 416.99575
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human receipt drift with complete step rollback
+ok 12 - mixed Saved original-owner return rejects Human receipt drift with complete step rollback
+  ---
+  duration_ms: 424.554083
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human mapping drift with complete step rollback
+ok 13 - mixed Saved original-owner return rejects Human mapping drift with complete step rollback
+  ---
+  duration_ms: 431.320958
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Human semantic drift with complete step rollback
+ok 14 - mixed Saved original-owner return rejects Human semantic drift with complete step rollback
+  ---
+  duration_ms: 368.605958
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects Source drift with complete step rollback
+ok 15 - mixed Saved original-owner return rejects Source drift with complete step rollback
+  ---
+  duration_ms: 422.713458
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects stage cursor drift with complete step rollback
+not ok 16 - mixed Saved original-owner return rejects stage cursor drift with complete step rollback
+  ---
+  duration_ms: 425.305833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/tests/browser-native-sync-saved-mixed-incremental.test.mjs:72:196'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-saved-mixed/paia/extension/tests/browser-native-sync-saved-mixed-incremental.test.mjs:75:6)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mixed Saved original-owner return rejects extra row drift with complete step rollback
+ok 17 - mixed Saved original-owner return rejects extra row drift with complete step rollback
+  ---
+  duration_ms: 426.894625
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects suppression key drift with complete step rollback
+ok 18 - mixed Saved original-owner return rejects suppression key drift with complete step rollback
+  ---
+  duration_ms: 424.212333
+  type: 'test'
+  ...
+# Subtest: mixed Saved original-owner return rejects search queue drift with complete step rollback
+ok 19 - mixed Saved original-owner return rejects search queue drift with complete step rollback
+  ---
+  duration_ms: 360.557542
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects Human body drift atomically
+ok 20 - mixed Saved final backup tail rejects Human body drift atomically
+  ---
+  duration_ms: 482.161791
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects Human history drift atomically
+ok 21 - mixed Saved final backup tail rejects Human history drift atomically
+  ---
+  duration_ms: 431.68875
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects Human semantic drift atomically
+ok 22 - mixed Saved final backup tail rejects Human semantic drift atomically
+  ---
+  duration_ms: 457.401
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects stage cursor drift atomically
+ok 23 - mixed Saved final backup tail rejects stage cursor drift atomically
+  ---
+  duration_ms: 441.790084
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects extra row drift atomically
+ok 24 - mixed Saved final backup tail rejects extra row drift atomically
+  ---
+  duration_ms: 505.84725
+  type: 'test'
+  ...
+# Subtest: mixed Saved final backup tail rejects search queue drift atomically
+ok 25 - mixed Saved final backup tail rejects search queue drift atomically
+  ---
+  duration_ms: 453.15675
+  type: 'test'
+  ...
+# Subtest: mixed Saved private work limit rejects overflow despite rewritten public metrics
+ok 26 - mixed Saved private work limit rejects overflow despite rewritten public metrics
+  ---
+  duration_ms: 507.622208
+  type: 'test'
+  ...
+# Subtest: mixed Saved storage failure rolls back both partitions then explicit retry commits once
+ok 27 - mixed Saved storage failure rolls back both partitions then explicit retry commits once
+  ---
+  duration_ms: 561.260458
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 26
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13744.400875
