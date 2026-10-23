@@ -22,7 +22,7 @@ import {readSectionPromotionRecoveryAuthority,assertSectionPromotionRecoveryAuth
 import {assertStructuralTopicAssessment,assertStructuralTopicResult} from './structural-topic-reconciliation.js';
 import {qualifyContextProtectionCorrections,assertContextProtectionCorrections,readContextEditMapping,contextEditScope,contextEditEvidence,captureContextEditMaterial,assertContextEditMaterial,releaseContextEditMaterial} from './context-correction.js';
 import {inputProjection} from '../thought-evidence.js';
-import {readStructuralContext,structuralContextGroups,structuralContextProperty,structuralContextMaterial,structuralContextEvidence} from './structural-context-mapping.js';
+import {readStructuralContext,structuralContextAllowsTopic,structuralContextGroups,structuralContextProperty,structuralContextMaterial,structuralContextEvidence} from './structural-context-mapping.js';
 import {readBoundEntryContext,boundContextEvidenceMatches,boundSelectedText} from '../context-bound-entry.js';
 import {readAuthoredEntryContext,authoredContextEvidenceMatches,authoredSelectedFields,authoredSelectedText} from '../context-authored-entry.js';
 import {hashText} from '../dedupe.js';
@@ -367,7 +367,7 @@ export class LocalMaintenanceSession {
  async #structuralMapping(request,transaction=null){
   const qualify=async transaction=>{const t=contextScopeTransactionReader(this.#store,transaction,createContextScopeWorkBudget()),found=new Map();for(const {key,descriptor:d}of request.items){if(!['section','topic'].includes(d.kind))continue;const mapping=await readStructuralContext(this.#store,t,d);if(mapping)found.set(key,mapping);}return found;};return this.#qualificationRead(request,transaction,qualify);
  }
- #structuralTopicCapable(mapping){return !!mapping&&(mapping.kind==='topic'?this.#service?.topic.reconcileHumanNames===true:this.#service?.topic.reconcileHumanSections===true);}
+ #structuralTopicCapable(mapping){return structuralContextAllowsTopic(mapping)&&(mapping.kind==='topic'?this.#service?.topic.reconcileHumanNames===true:this.#service?.topic.reconcileHumanSections===true);}
  #structures(state,units){return [...new Map(units.filter(u=>state.structuralMapping?.has(u.key)&&(u.facet==='context'||u.facet==='topic'&&this.#structuralTopicCapable(state.structuralMapping.get(u.key)))).map(u=>[u.key,state.structuralMapping.get(u.key)])).values()];}
  #checkStructuralBudget(state,units){
   const structures=this.#structures(state,units.filter(u=>u.facet==='context'));if(!structures.length)return;
@@ -382,7 +382,7 @@ export class LocalMaintenanceSession {
  }
  async #checkStructuralMapping(state,units,transaction){
   return this.#qualificationCheck(state,units,transaction,async transaction=>{
-  const t=contextScopeTransactionReader(this.#store,transaction,state.authoredBudget);for(const u of units)if(this.#structures(state,[u]).length){const d=state.request.items.find(i=>i.key===u.key).descriptor;const m=state.structuralMapping.get(u.key);if(!equal(await readStructuralContext(this.#store,t,d),m))fail('STALE_BASE');for(const e of m.entries)if(state.structuralInputs?.has(e.inputId)&&(await inputProjection(this.#store,t,e.inputId))?.body!==state.structuralInputs.get(e.inputId))fail('STALE_BASE');}
+  const t=contextScopeTransactionReader(this.#store,transaction,state.authoredBudget);for(const u of units)if(this.#structures(state,[u]).length){const d=state.request.items.find(i=>i.key===u.key).descriptor;const m=state.structuralMapping.get(u.key),current=await readStructuralContext(this.#store,t,d);if(!equal(current,m)||u.facet==='topic'&&!structuralContextAllowsTopic(current))fail('STALE_BASE');for(const e of m.entries)if(state.structuralInputs?.has(e.inputId)&&(await inputProjection(this.#store,t,e.inputId))?.body!==state.structuralInputs.get(e.inputId))fail('STALE_BASE');}
   });
  }
  async #authoredMapping(request,transaction=null){

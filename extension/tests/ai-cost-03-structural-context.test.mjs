@@ -25,7 +25,7 @@ test('genuine Section rename executes original Context with exact Section ACK an
  assert.equal(r.processedState,'COMMITTED',JSON.stringify(r));assert.equal(f.calls.length,1);assert.equal(f.calls[0].material.structuralSections[0].title,'SYNTHETIC changed human interpretation');assert.deepEqual(f.scopes.find(s=>s.purpose==='ai-maintenance-payload').structuralSections[0].selectedFields,['title']);assert.equal(f.calls[0].material.inputs.length,1);assert.deepEqual((await acks(f)).map(x=>[x.unit.key,x.unit.facet]),[[JSON.stringify(['section',f.section.sectionId]),'context']]);assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.length,1);assert.deepEqual(await Promise.all(['records','blocks','thoughts','topics','sections','placements'].map(n=>rows(f.s,n))),before);assert.equal((await rows(f.s,'organizerWorkItems')).filter(r=>r.state==='DEFERRED').length,1);f.session.dispose();
 });
 
-import {readStructuralContext,structuralContextEvidence,STRUCTURAL_CONTEXT_LIMIT} from '../core/ai-usage/structural-context-mapping.js';
+import {readStructuralContext,structuralContextAllowsTopic,structuralContextEvidence,STRUCTURAL_CONTEXT_LIMIT} from '../core/ai-usage/structural-context-mapping.js';
 import {captureContextEvidence,fenceContextLineage,releaseContextLineage,readableContextItems,contextEvidenceIdentity} from '../core/context-item-lineage.js';
 import {ContextMaintenanceService,CONTEXT_MAINTENANCE_LIMITS} from '../core/context-maintenance.js';
 import {AIUsageFoundation} from '../core/ai-usage/foundation.js';
@@ -212,14 +212,51 @@ test('same-Topic Section move already uses exact original Placement Context rout
  }finally{f.session.dispose();}
 });
 
-test('actual original Section title restore remains a distinct unsupported semantic obligation',async()=>{
+test('actual original Section title restore commits exact Context while Topic rename capability remains separate',async()=>{
  const f=await fixture();
  try{
   const original=(await rows(f.s,'revisions')).find(j=>j.kind==='section'&&j.reason==='rename'&&j.entityId===f.section.sectionId),operationId=op();
   assert.ok(original);await f.s.restoreRevision({id:original.id,expectedRevision:original.afterRevision,operationId,side:'before'});
   const current=await read(f.s,'sections',f.section.id),journal=(await rows(f.s,'revisions')).find(j=>j.operationId===operationId&&j.kind==='section'),receipt=await read(f.s,'operationReceipts',operationId);
   assert.equal(current.title,original.before.title);assert.equal(journal.reason,'restore');assert.deepEqual(journal.fieldMask,['title']);assert.equal(journal.baseRevision,original.afterRevision);assert.equal(journal.afterRevision,current.revision);assert.equal(receipt.namespace,'thought-library');assert.deepEqual(receipt.result,{id:f.section.sectionId,revision:current.revision});
-  assert.equal(Object.hasOwn(journal,'restoreRevisionId'),false);assert.equal(await mapped(f),null);
-  const result=await f.session.run(await f.session.prepare(f.options));assert.equal(result.state,'DEFERRED',JSON.stringify(result));assert.equal(result.remainingWork,true);assert.equal(f.calls.length,0);assert.equal((await acks(f)).length,0);
+  assert.equal(Object.hasOwn(journal,'restoreRevisionId'),false);const mapping=await mapped(f);assert.ok(mapping);assert.equal(structuralContextAllowsTopic(mapping),false);assert.equal(structuralContextAllowsTopic(structuredClone(mapping)),false);
+  f.service.topic.reconcileHumanSections=true;f.session.dispose();f.session=f.make();const tables=['thoughts','topics','sections','placements','revisions'],before=await Promise.all(tables.map(n=>rows(f.s,n)));
+  const result=await f.session.run(await f.session.prepare(f.options));assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,1);assert.equal(f.calls[0].material.structuralSections[0].title,current.title);assert.ok(f.calls[0].coverage.every(x=>x.facet==='context'));assert.deepEqual((await acks(f)).map(x=>[x.unit.key,x.unit.facet]),[[JSON.stringify(['section',f.section.sectionId]),'context']]);assert.ok((await rows(f.s,'organizerWorkItems')).some(x=>x.state==='DEFERRED'&&x.unit.key===JSON.stringify(['section',f.section.sectionId])&&x.unit.facet==='topic'));assert.deepEqual(await Promise.all(tables.map(n=>rows(f.s,n))),before);
  }finally{f.session.dispose();}
+});
+
+async function restoredFixture(){
+ const f=await fixture(),saved=(await rows(f.s,'revisions')).find(j=>j.kind==='section'&&j.reason==='rename'&&j.entityId===f.section.sectionId),operationId=op();
+ await f.s.restoreRevision({id:saved.id,expectedRevision:saved.afterRevision,operationId,side:'before'});
+ return {...f,restorationOperationId:operationId,restoredTitle:saved.before.title};
+}
+for(const defect of ['title','before','after','base-revision','after-revision','actor','mask','operation','receipt-namespace','receipt-schema','receipt-owner','receipt-result','receipt-digest','receipt-clock','receipt-sequence','protection','source'])test('Section restore rejects '+defect+' without semantic dispatch or ACK',async()=>{
+ const f=await restoredFixture();
+ try{
+  await f.s.repository.transaction(true,async t=>{
+   const section=await t.get('sections',f.section.id),j=(await t.all('revisions')).find(j=>j.operationId===f.restorationOperationId&&j.kind==='section'),receipt=await t.get('operationReceipts',f.restorationOperationId);
+   if(defect==='title')section.title+=' SYNTHETIC mutation';if(defect==='before')j.before.rank='000000000099';if(defect==='after')j.after.title+=' SYNTHETIC mutation';if(defect==='base-revision')j.baseRevision++;if(defect==='after-revision')j.afterRevision++;if(defect==='actor')j.actor='ai';if(defect==='mask')j.fieldMask=['rank'];if(defect==='operation')j.operationId=op();if(defect==='receipt-namespace')receipt.namespace='other';if(defect==='receipt-schema')receipt.schemaVersion=2;if(defect==='receipt-owner')receipt.ownerId=op();if(defect==='receipt-result')receipt.result.revision++;if(defect==='receipt-digest')receipt.digest='unqualified';if(defect==='receipt-clock')receipt.createdAt='invalid';if(defect==='receipt-sequence')receipt.operationSequence=-1;if(defect==='protection')section.protections.title.operationId=op();if(defect==='source'){const ix=await t.get('recordIndex',f.entry.sourceRecordIds[0]);await t.put('tombstones',{id:'source:'+ix.sourceKey});}
+   await t.put('sections',section);await t.put('revisions',j);await t.put('operationReceipts',receipt);
+  });
+  assert.equal(await mapped(f),null);const result=await f.session.run(await f.session.prepare(f.options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f)).length,0);
+ }finally{f.session.dispose();}
+});
+for(const boundary of ['grant-denied','wrong-fields','expired','revoke-after-dispatch','new-title-after-dispatch','ack-abort'])test('Section restore '+boundary+' retains original qualification and rollback boundaries',async()=>{
+ const f=await restoredFixture(),tx=f.s.repository.transaction.bind(f.s.repository);let hit=false;
+ try{
+  if(boundary==='grant-denied')f.state.payloadAllowed=false;
+  if(boundary==='wrong-fields')f.state.processingHook=scope=>{scope.structuralSections[0].selectedFields=['rank'];return scope;};
+  if(boundary==='expired'){const resolve=f.processing.resolve;f.processing.resolve=async(...args)=>({...await resolve(...args),expiresAt:Date.now()-1});f.session.dispose();f.session=f.make();}
+  if(boundary==='revoke-after-dispatch')f.state.providerHook=()=>f.abort.abort();
+  if(boundary==='new-title-after-dispatch')f.state.providerHook=()=>rename(f,'SYNTHETIC newer explicit title');
+  if(boundary==='ack-abort')f.s.repository.transaction=(write,fn,...rest)=>tx(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,row,...more)=>{const result=await put(n,row,...more);if(!hit&&n==='organizerWorkItems'&&row.state==='ACKNOWLEDGED'&&row.unit.facet==='context'){hit=true;throw Error('Synthetic restore ACK abort');}return result;};}return fn(t);},...rest);
+  if(boundary==='expired'){await assert.rejects(f.session.prepare(f.options),{code:'UNAVAILABLE'});assert.equal(f.calls.length,0);assert.equal((await acks(f)).length,0);return;}
+  const h=await f.session.prepare(f.options),result=await f.session.run(h);assert.notEqual(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal((await acks(f)).length,0);assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW))?.items.length??0,0);assert.equal((await rows(f.s,'operationReceipts')).filter(r=>r.id.startsWith('context-maintenance:')).length,0);
+  assert.equal(f.calls.length,['grant-denied','wrong-fields','expired'].includes(boundary)?0:1);
+  if(boundary==='ack-abort'){assert.equal(hit,true);assert.equal((await f.session.run(h)).processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await acks(f)).length,1);}
+ }finally{f.s.repository.transaction=tx;f.session.dispose();}
+});
+
+test('Topic reconciliation requires original finite rename mapping, never a copy or restored title',async()=>{
+ const f=await fixture();try{const mapping=await mapped(f);assert.equal(structuralContextAllowsTopic(mapping),true);assert.equal(structuralContextAllowsTopic({...mapping}),false);}finally{f.session.dispose();}
 });
