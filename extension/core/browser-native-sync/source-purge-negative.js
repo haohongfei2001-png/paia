@@ -15,7 +15,7 @@ const own=(v,keys)=>exact(v,keys)&&Object.keys(v).length===keys.length;
 const iso=v=>typeof v==='string'&&Number.isFinite(Date.parse(v))&&new Date(v).toISOString()===v;
 // A negative group can prove denial and retirement only. Missing original
 // Source bodies are never reconstructed or passed to a materializing owner.
-export async function sourcePurgeNegativeInventory(core,revisionRows,allRows,namespace,prepareRemote,allowWorking=false){
+export async function sourcePurgeNegativeInventory(core,revisionRows,allRows,namespace,prepareRemote,allowWorking=false,allowPortable=false){
  const prefix=core.prefix+'generation:'+namespace+':',remaining=new Map(revisionRows.map(row=>[row.id,row])),negative=[],entries=[];
  for(const row of revisionRows.filter(row=>row.operation?.type==='sourcePurgeIntent')){
   const descriptor=await validateOperation(row.operation),intent=validateSourcePurgeIntent(descriptor.value),operations=intent.targets.map(target=>remaining.get(prefix+'revision:'+target.purgeRevisionId)?.operation);operations.push(descriptor);
@@ -25,7 +25,7 @@ export async function sourcePurgeNegativeInventory(core,revisionRows,allRows,nam
   for(const operation of operations){const id=prefix+'revision:'+operation.revisionId,value={id,operation,redacted:operation.kind==='purge'};if(!equal(remaining.get(id),value))denied();remaining.delete(id);entries.push({operation,redacted:value.redacted,original:false});}
   negative.push({intent,operations,deny});
  }
- const active=[];for(const row of remaining.values()){if(row.redacted||!(allowWorking?['sourceBootstrapMember','sourceBootstrapCommit','inputWorkingMember','inputWorkingCommit']:['sourceBootstrapMember','sourceBootstrapCommit']).includes(row.operation?.type))denied();const operation=await validateOperation(row.operation);active.push(operation);entries.push({operation,redacted:false,original:false});}
+ const active=[];for(const row of remaining.values()){if(row.redacted||!['sourceBootstrapMember','sourceBootstrapCommit',...(allowWorking?['inputWorkingMember','inputWorkingCommit']:[]),...(allowPortable?['consumerPreference','promptPreferences','promptBinding']:[])].includes(row.operation?.type))denied();const operation=await validateOperation(row.operation);active.push(operation);entries.push({operation,redacted:false,original:false});}
  const keys=new Set(),revisions=new Set(),operationIds=new Set(),sequences=new Set();for(const {operation:op}of entries){const sequence=JSON.stringify([op.deviceId,op.sequence]);if(revisions.has(op.revisionId)||operationIds.has(op.operationId)||sequences.has(sequence))denied();revisions.add(op.revisionId);operationIds.add(op.operationId);sequences.add(sequence);}
  for(const p of negative)for(const [kind,value]of Object.entries(p.intent).filter(([k])=>['sourceId','sourceKey','documentId','inputId','baselineId'].includes(k))){const k=kind+':'+value;if(keys.has(k))denied();keys.add(k);}
  if(allRows.filter(row=>row.id.startsWith(core.prefix+'sourcePurgeDeny:')).length!==negative.length)denied();
@@ -64,7 +64,7 @@ async function sourcePurgeNegativeCanonical(raw,negative,total){
 async function readCanonical(store,core,t){requireRepositoryTransactionScope(store.repository,t);requireRepositoryTransactionDataMethods(store.repository,t);if(core.repository!==store.repository)denied();const raw={};let references=0,retained=0;for(const name of t.tx.objectStoreNames){raw[name]=await readGroupRows(t,name);references+=raw[name].length;if(references>4096)denied();for(const row of raw[name]){retained+=measureSourceWorkingPhysicalTree(row).B;if(retained>2*1024*1024)denied();}}return raw;}
 export async function prepareSourcePurgeRemainingCanonical(store,core,plan,scope,inventory){
  const original=inventories.get(inventory);if(!original||original.core!==core||original.repository!==store.repository||core.repository!==store.repository||!inventory.negative.length)denied();requireOriginalGroupCheckpointPlan(core,plan);
- const raw=await core.transaction(false,t=>readCanonical(store,core,t)),excluded=await sourcePurgeNegativeCanonical(raw,inventory.negative,plan.groups.length+inventory.negative.length),view=Object.fromEntries(Object.entries(raw).map(([name,rows])=>[name,rows.filter(row=>!excluded[name]?.has(row.id))]));for(const name of ['tombstones','organizerJobs','invalidations'])view[name]=[];
+ const raw=await core.transaction(false,t=>readCanonical(store,core,t)),excluded=await sourcePurgeNegativeCanonical(raw,inventory.negative,plan.groups.filter(g=>g.type==='sourceBootstrapCommit').length+inventory.negative.length),view=Object.fromEntries(Object.entries(raw).map(([name,rows])=>[name,rows.filter(row=>!excluded[name]?.has(row.id))]));for(const name of ['tombstones','organizerJobs','invalidations'])view[name]=[];
  const proof=Object.freeze({});freeze(raw);freeze(view);proofs.set(proof,{store,core,repository:store.repository,plan,scope,raw,view});return {raw,view,proof};
 }
 export async function requireSourcePurgeRemainingCanonicalProof(proof,store,t,scope,view){const p=proofs.get(proof);if(!p||p.store!==store||p.repository!==store.repository||p.core.repository!==p.repository||p.scope!==scope||p.view!==view)denied();requireOriginalGroupCheckpointPlan(p.core,p.plan);if(!equalSourceWorkingPhysicalTree(await readCanonical(store,p.core,t),p.raw))denied();return true;}
@@ -81,7 +81,7 @@ export async function prepareGroupedSourcePurgeRemainingCanonical(store,core,pla
  for(const p of cold){const v=p.intent,tomb=raw.tombstones.find(row=>row.id==='source:'+v.sourceKey),expected={id:'source:'+v.sourceKey,sequence:Date.parse(v.at),value:{sourceIdentityHash:v.sourceKey,deletedAt:v.at,status:'permanently_ignored'}};if(!equal(tomb,expected))denied();coldTombs.add(expected.id);
   for(const [table,id]of [['records',v.sourceId],['recordIndex',v.sourceId],['blocks',v.inputId],['blockIndex',v.inputId],['times',v.sourceKey],['documents',v.documentId],['libraryDocuments',v.documentId],['inputStates',v.inputId],['revisions',v.baselineId],['filterInputs',v.inputId]])if(raw[table].some(row=>row.id===id))denied();
  }
- const excluded=local.length?await sourcePurgeNegativeCanonical({...projected,tombstones:projected.tombstones.filter(row=>!coldTombs.has(row.id))},local,plan.groups.length+local.length):{};
+ const excluded=local.length?await sourcePurgeNegativeCanonical({...projected,tombstones:projected.tombstones.filter(row=>!coldTombs.has(row.id))},local,plan.groups.filter(g=>g.type==='sourceBootstrapCommit').length+local.length):{};
  if(!local.length&&(projected.organizerJobs.length||projected.invalidations.length))denied();
  const view=Object.fromEntries(Object.entries(projected).map(([name,rows])=>[name,(name==='meta'?rows.filter(row=>selected.view.meta.some(r=>r.id===row.id)):rows).filter(row=>!excluded[name]?.has(row.id))]));for(const name of ['tombstones','organizerJobs','invalidations'])view[name]=[];
  const proof=Object.freeze({});freeze(raw);freeze(view);proofs.set(proof,{store,core,repository:store.repository,plan,scope,raw,view});return {raw,view,proof,localCount:local.length,scope,plan,working};

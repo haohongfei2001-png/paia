@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: google actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+ok 1 - google actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+  ---
+  duration_ms: 385.960292
+  type: 'test'
+  ...
+# Subtest: onedrive actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+ok 2 - onedrive actual worker purge preserves all seven portable intents and subsequent manual Prompt history/proofs
+  ---
+  duration_ms: 296.653042
+  type: 'test'
+  ...
+# Subtest: purge refuses changed consumerPreference owner proof and preserves every table
+ok 3 - purge refuses changed consumerPreference owner proof and preserves every table
+  ---
+  duration_ms: 149.389166
+  type: 'test'
+  ...
+# Subtest: purge refuses changed promptPreferences owner proof and preserves every table
+ok 4 - purge refuses changed promptPreferences owner proof and preserves every table
+  ---
+  duration_ms: 154.827625
+  type: 'test'
+  ...
+# Subtest: purge refuses changed promptBinding owner proof and preserves every table
+ok 5 - purge refuses changed promptBinding owner proof and preserves every table
+  ---
+  duration_ms: 152.833792
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1271.313875
