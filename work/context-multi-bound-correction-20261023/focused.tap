@@ -1,0 +1,238 @@
+TAP version 13
+# Subtest: multi bound Context correction original edit qualifies every paired owner
+ok 1 - multi bound Context correction original edit qualifies every paired owner
+  ---
+  duration_ms: 845.169416
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction original restore qualifies every paired owner
+ok 2 - multi bound Context correction original restore qualifies every paired owner
+  ---
+  duration_ms: 806.985459
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction preserves eight pair original evidence ceiling
+ok 3 - multi bound Context correction preserves eight pair original evidence ceiling
+  ---
+  duration_ms: 2864.765417
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair input
+ok 4 - multi bound Context correction independent second pair input
+  ---
+  duration_ms: 131.810667
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair bound
+ok 5 - multi bound Context correction independent second pair bound
+  ---
+  duration_ms: 129.557917
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair context
+ok 6 - multi bound Context correction independent second pair context
+  ---
+  duration_ms: 118.201459
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair qualification-entry
+ok 7 - multi bound Context correction independent second pair qualification-entry
+  ---
+  duration_ms: 125.949208
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair qualification-history
+ok 8 - multi bound Context correction independent second pair qualification-history
+  ---
+  duration_ms: 116.350125
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair qualification-title
+ok 9 - multi bound Context correction independent second pair qualification-title
+  ---
+  duration_ms: 110.302166
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction independent second pair qualification-note
+ok 10 - multi bound Context correction independent second pair qualification-note
+  ---
+  duration_ms: 104.68525
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair note
+ok 11 - multi bound Context correction provider second pair note
+  ---
+  duration_ms: 682.414959
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair title
+ok 12 - multi bound Context correction provider second pair title
+  ---
+  duration_ms: 662.75775
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair input
+ok 13 - multi bound Context correction provider second pair input
+  ---
+  duration_ms: 638.58075
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair source
+ok 14 - multi bound Context correction provider second pair source
+  ---
+  duration_ms: 655.220083
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair history
+ok 15 - multi bound Context correction provider second pair history
+  ---
+  duration_ms: 719.953084
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair placement-journal
+ok 16 - multi bound Context correction provider second pair placement-journal
+  ---
+  duration_ms: 674.679542
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair membership
+ok 17 - multi bound Context correction provider second pair membership
+  ---
+  duration_ms: 657.774417
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction provider second pair revoke
+ok 18 - multi bound Context correction provider second pair revoke
+  ---
+  duration_ms: 653.583583
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair note
+ok 19 - multi bound Context correction backup second pair note
+  ---
+  duration_ms: 850.155667
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair title
+ok 20 - multi bound Context correction backup second pair title
+  ---
+  duration_ms: 788.329334
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair input
+ok 21 - multi bound Context correction backup second pair input
+  ---
+  duration_ms: 803.423667
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair source
+ok 22 - multi bound Context correction backup second pair source
+  ---
+  duration_ms: 813.508459
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair history
+ok 23 - multi bound Context correction backup second pair history
+  ---
+  duration_ms: 765.131042
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair placement-journal
+ok 24 - multi bound Context correction backup second pair placement-journal
+  ---
+  duration_ms: 743.575417
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair membership
+ok 25 - multi bound Context correction backup second pair membership
+  ---
+  duration_ms: 746.973541
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction backup second pair revoke
+ok 26 - multi bound Context correction backup second pair revoke
+  ---
+  duration_ms: 738.33425
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction original response adapter none
+ok 27 - multi bound Context correction original response adapter none
+  ---
+  duration_ms: 769.445
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction original response adapter foreign-item
+ok 28 - multi bound Context correction original response adapter foreign-item
+  ---
+  duration_ms: 596.654459
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction original response adapter unknown-field
+ok 29 - multi bound Context correction original response adapter unknown-field
+  ---
+  duration_ms: 610.958041
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction ACK rollback replays exact retained response once
+ok 30 - multi bound Context correction ACK rollback replays exact retained response once
+  ---
+  duration_ms: 862.375208
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained selected-fields before dispatch
+ok 31 - multi bound Context correction rejects second retained selected-fields before dispatch
+  ---
+  duration_ms: 90.064542
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained digest before dispatch
+ok 32 - multi bound Context correction rejects second retained digest before dispatch
+  ---
+  duration_ms: 200.417916
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained foreign-input before dispatch
+ok 33 - multi bound Context correction rejects second retained foreign-input before dispatch
+  ---
+  duration_ms: 85.816792
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained missing-input before dispatch
+ok 34 - multi bound Context correction rejects second retained missing-input before dispatch
+  ---
+  duration_ms: 86.789167
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained human-kind before dispatch
+ok 35 - multi bound Context correction rejects second retained human-kind before dispatch
+  ---
+  duration_ms: 87.261292
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained duplicate-bound before dispatch
+ok 36 - multi bound Context correction rejects second retained duplicate-bound before dispatch
+  ---
+  duration_ms: 91.135625
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction rejects second retained invalidated before dispatch
+ok 37 - multi bound Context correction rejects second retained invalidated before dispatch
+  ---
+  duration_ms: 85.771
+  type: 'test'
+  ...
+# Subtest: multi bound Context correction DTO closes exact paired sets and independent coverage
+ok 38 - multi bound Context correction DTO closes exact paired sets and independent coverage
+  ---
+  duration_ms: 762.067167
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21437.40075
