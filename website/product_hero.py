@@ -41,7 +41,7 @@ def render_hero(t, a, button, icon):
 <div class="optical-field" aria-hidden="true"><span class="optical-sheet" data-scroll-art></span><span class="optical-rule"></span><span class="optical-index">PAIA / 01</span></div>
 <div class="hero-grid wrap"><div class="hero-heading"><p class="hero-eyebrow"><span class="status-dot" aria-hidden="true"></span>{t('个人 AI 输入档案', 'PERSONAL AI INPUT ARCHIVE')}</p>
 <h1 id="hero-title">{t('你的表达，<br><span>不止于对话。</span>', 'Your words.<br><span>Beyond the chat.</span>')}</h1>
-<p class="hero-description">{t('保存你对 AI 说过的话。<br>找回、串联、复用，<br>让下一次从这里开始。', 'Keep what you tell AI.<br>Find it. Connect it. Reuse it.<br>Begin with what you already know.')}</p>
+<p class="hero-description">{t('保存你对 AI 说过的话。<br>找回、串联、复用，<br>让下一次从这里开始。', 'Keep what you tell AI.<br>Find it. Connect it. Reuse it.<br> Begin with what you already know.')}</p>
 <div class="hero-actions">{button('demo.html', t('体验 PAIA', 'Explore PAIA'))}{a('beta.html', t('申请内测', 'Request access') + ' <span aria-hidden="true">↗</span>', 'hero-secondary')}</div>
 <p class="hero-scope">{t('Chrome · ChatGPT · 邀请制内测', 'Chrome · ChatGPT · Private beta')}</p>
 <a class="hero-explore" href="#input-library"><span class="hero-scroll-mark" aria-hidden="true">↓</span><span>{t('看见你的积累', 'See what stays with you')}</span></a></div>
