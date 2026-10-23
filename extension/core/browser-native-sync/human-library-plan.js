@@ -13,7 +13,7 @@ import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from '.
 import {sourceWorkingCurrentStores,sourceWorkingCurrentNonemptyStores} from './source-working-canonical.js';
 import {sourceWorkingCurrentIndexSchema,sourceWorkingPhysicalIndexKey} from './source-working-index-schema.js';
 import {mixedCurrentIndexSchema,mixedCurrentPhysicalIndexKey} from './mixed-current-index-schema.js';
-import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta,assertSourceWorkingMergedDefaultMeta,assertInitialMixedDefaultMeta,assertRestoredMixedDefaultMeta} from './source-working-default-meta.js';
+import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta,assertSourceWorkingMergedDefaultMeta,assertInitialMixedDefaultMeta,assertRestoredMixedDefaultMeta,assertMergedMixedDefaultMeta} from './source-working-default-meta.js';
 import {requireOriginalGroupCheckpointPlan,prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan,measureOriginalMixedPrefixWrappers,measureOriginalMixedRepeatedPreparedOperations,measureOriginalMixedPlanNativeOperationAliases} from './group-checkpoint-plan.js';
 import {sourceWorkingScopeScratch,sourceWorkingComparisonScratch} from './source-working-qualification-cost.js';
 import * as currentGroupOwner from './group-checkpoint-scope.js';
@@ -1416,6 +1416,49 @@ export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,p
  }
  projectionRequired();
 }
+// Repeated causal subplans of a merged cut borrow only the complete original
+// Plan's immutable bodies. Every wrapper, retained chronology/control and
+// sequential manifest/wire temporary remains paid on the SAME native ticket.
+// Neither a caller callback nor an ordinary Scope can create this authority.
+export function reserveOriginalMixedChronologyPhase(nonce,store,scope,plan,phase,subset,meta){
+ if(arguments.length!==7)projectionRequired();requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);
+ if(r.group.plan!==plan||r.raw.rows.meta!==meta||r.mixedRestoredProofRetained)projectionRequired();
+ if(phase==='control'){
+  if(r.mixedRestoredPhase)projectionRequired();const frames=currentGroupOwner.measureOriginalMixedPreparingWireScope(r.core,scope,plan,store,nonce);
+  r.mixedRestoredBase=projectionTreeCharge(frames.scope)-projectionAliasCharge(frames.borrowedOperations)+(frames.borrowedHuman?0:projectionTreeCharge(frames.human))+128*1024;
+  // At most128 groups/operations and their bounded reference/map cells. Three
+  // simultaneously live subplan wrappers (current, comparison, compiler) are
+  // retained conservatively through the entire chronology. No raw/Plan/source
+  // body is discounted here. Each control's complete tree is also charged.
+  const n=plan.groups.length,o=plan.operationCount,m={B:0,T:128*(o+n+1),V:16*(o+n+1),E:32*(o+n+1)};
+  // A subset may expose an older head absent from the final head set. Charge
+  // every original operation's possible head, plus the full n*n dependency
+  // matrix (hash IDs are64chars), before the first subset allocates anything.
+  for(const group of plan.groups){m.T+=group.id.length+group.type.length;for(const op of group.operations)m.T+=op.type.length+op.entityId.length+op.revisionId.length;}
+  m.T+=n*n*64;m.E+=n*n;m.B=6*m.T;
+  r.mixedChronologyWrapper=projectionTreeCharge(m);r.mixedChronologyCanonical=projectionCanonicalCharge(m);
+  r.mixedChronologyScratch=3*r.mixedChronologyWrapper+completedGroupControlScratch(r.core,r.raw);
+  for(const row of meta)if(row.id.startsWith(r.core.prefix+'generation:')&&(row.id.endsWith(':mixedTimeline:')||row.id.includes(':mergeCommit:'))){const m=projectionRowMeasure(r,row);r.mixedChronologyScratch+=4*projectionTreeCharge(m)+4*projectionCanonicalCharge(m)+8*m.B;}
+  r.mixedRestoredPhase='timeline';projectionReserve(r,r.mixedRestoredBase+r.mixedChronologyScratch);return;
+ }
+ if(!['timeline','timeline-compiled','timeline-wire'].includes(r.mixedRestoredPhase))projectionRequired();const base=r.mixedRestoredBase+r.mixedChronologyScratch;
+ if(phase==='compiler'){
+  r.mixedRestoredPhase='timeline';projectionReserve(r,base+4*r.mixedChronologyCanonical+128*1024);return;
+ }
+ if(phase==='compiled'||phase==='wire'){
+  // The helper verifies borrowedFrom and the original complete Plan identity.
+  const measured=measureOriginalMixedPrefixWrappers(r.core,plan,subset);
+  if(projectionTreeCharge(measured)>r.mixedChronologyWrapper||projectionCanonicalCharge(measured)>r.mixedChronologyCanonical)projectionRequired();
+  if(phase==='compiled'){r.mixedRestoredPhase='timeline-compiled';projectionReserve(r,base+4*projectionCanonicalCharge(measured)+128*1024);return;}
+  const human={B:2,T:0,V:1,E:0},wire={B:2,T:0,V:1,E:0};
+  const add=(v,h=false)=>{const m=projectionRowMeasure(r,v);for(const key of ['B','T','V','E']){wire[key]+=m[key];if(h)human[key]+=m[key];}wire.E++;if(h)human.E++;};
+  for(const group of subset.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)add(member.value.after,true);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members)add(member.value.entity);else add(group.operations[0].value);}
+  const meter=mixedWireCanonicalFamilyPeak(r,subset,human,base);r.mixedRestoredPhase='timeline-wire';projectionReserve(r,base+2*meter.normalizationTrees+2*meter.generatedTrees+4*meter.peak+8*wire.B+4096*128+256*1024);return;
+ }
+ if(phase==='manifest'){projectionReserve(r,base+128*1024);return;}
+ if(phase==='mapped'){r.mixedRestoredPhase='timeline-mapped';projectionReserve(r,base+4096*128+128*1024);return;}
+ projectionRequired();
+}
 // Enter keyed work only AFTER the original wire builder returned. Price its
 // actual surviving Scope and final Human wire, not overwritten operation
 // histories from the complete Plan, which remain independently owned.
@@ -1429,7 +1472,7 @@ export function reserveOriginalMixedKeyedScopePhase(nonce,store,scope,plan){
 // after the original prefix builders have returned, and BEFORE keyed work.
 export function retainOriginalMixedRestoredScopeProof(nonce,store,scope,plan){
  if(arguments.length!==4)projectionRequired();requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);
- if(r.mixedRestoredProofRetained||r.group.plan!==plan||r.mixedRestoredPhase!=='mapped')projectionRequired();
+ if(r.mixedRestoredProofRetained||r.group.plan!==plan||!['mapped','timeline-mapped'].includes(r.mixedRestoredPhase))projectionRequired();
  const hidden=currentGroupOwner.measureOriginalMixedRestoredScopeExpectation(r.core,scope,plan,store,nonce);r.owned+=projectionTreeCharge(hidden);r.mixedRestoredProofRetained=true;projectionReserve(r,r.mixedRestoredBase);
 }
 // The original canonical owners borrow only this exact drained cut. A caller
@@ -1602,7 +1645,7 @@ export function assertOriginalInitialMixedScopeCompilationProfile(core,plan){
 }
 async function projectionCompileInitialMixedScope(r){
  if(!r.mixedCompilationInspection||!r.nativeDrained||r.binding.fixedNamespace!==null)projectionRequired();
- const restored=r.raw.rows.meta.some(row=>row.id===r.binding.prefix+'active');if(!restored&&r.raw.namespace!=='initial')projectionRequired();
+ const restored=r.raw.rows.meta.some(row=>row.id===r.binding.prefix+'active'),merged=r.raw.rows.meta.some(row=>row.id===r.binding.prefix+'generation:'+r.raw.namespace+':mixedTimeline:');if(!restored&&r.raw.namespace!=='initial')projectionRequired();
  const prefix=protocolPhysicalId(r.binding.prefix,r.raw.namespace,'revision',[]),totals={B:2,T:0,V:1,E:0},sourceEntities={B:2,T:0,V:1,E:0};let peak={B:0,T:0,V:0,E:0},number=0;
  for(const row of r.raw.groupMeta)if(row.id.startsWith(prefix)){
   if(row.redacted!==false||!row.operation||++number>128)projectionRequired();const m=projectionMeasure(row.operation,'native');for(const key of ['B','T','V','E'])totals[key]+=m[key];totals.E++;if(['sourceBootstrapMember','sourceAppendMember'].includes(row.operation.type)){const entity=projectionMeasure(row.operation.value.entity,'native');for(const key of ['B','T','V','E'])sourceEntities[key]+=entity[key];sourceEntities.E++;}if(projectionCanonicalCharge(m)>projectionCanonicalCharge(peak))peak=m;
@@ -1699,7 +1742,7 @@ async function projectionCompileInitialMixedScope(r){
  const completedId=restored?currentGroupOwner.originalMixedRestoredMetadataReplay(r.core,scope,plan).completedId:null;let metadataPeak=0;
  for(const row of r.raw.rows.meta)if(row.id!==completedId)metadataPeak=Math.max(metadataPeak,projectionCanonicalCharge(projectionRowMeasure(r,row)));
  const metadataScratch=Math.max(mixedCurrentSemanticScratch(r),currentContextSnapshotScratch(scope,plan,r.raw,true))+4*metadataPeak+4096*256+256*1024+16*1024;
- projectionReserve(r,metadataScratch);(restored?assertRestoredMixedDefaultMeta:assertInitialMixedDefaultMeta)(r.core,r.store,scope,plan,r.raw,r.controlValues,r.binding.databaseId,r.nonce);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
+ projectionReserve(r,metadataScratch);(merged?assertMergedMixedDefaultMeta:restored?assertRestoredMixedDefaultMeta:assertInitialMixedDefaultMeta)(r.core,r.store,scope,plan,r.raw,r.controlValues,r.binding.databaseId,r.nonce);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
  return Object.freeze({version:1,state:restored?'RESTORED_NATIVE_SCOPE_COMPILATION_ONLY':'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,ordinarySearchQualified:true,searchCompleted:searchCounts.owners===searchCounts.completed&&equal(r.raw.rows.meta.find(row=>row.id==='library-search-rebuild')??null,{id:'library-search-rebuild',phase:3,cursor:null,complete:true}),completeInitialMetadataQualified:!restored,completeRestoredMetadataQualified:restored,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
 }
 
