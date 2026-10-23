@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: explicit complete original existing cut selects the published candidate and cold original owner preserves source
+not ok 1 - explicit complete original existing cut selects the published candidate and cold original owner preserves source
+  ---
+  duration_ms: 543.477833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/application-existing-selection.test.mjs:8:1'
+  failureType: 'testCodeFailure'
+  error: 'CONTROL_PUBLICATION_INVALID'
+  code: 'CONTROL_PUBLICATION_INVALID'
+  stack: |-
+    refuse (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/local-control-publication.js:7:27)
+    visit (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/local-control-publication.js:20:136)
+    visit (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/local-control-publication.js:23:149)
+    visit (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/local-control-publication.js:23:149)
+    visit (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/local-control-publication.js:23:149)
+    controlPublicationEncoding (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/local-control-publication.js:26:24)
+    controlPublicationEqual (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/local-control-publication.js:29:45)
+    sameRegistry (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/application-generation-selection.js:36:47)
+    async OriginalApplicationGenerationSelection.activate (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/application-generation-selection.js:80:59)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/application-existing-selection.test.mjs:11:15)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 699.63925

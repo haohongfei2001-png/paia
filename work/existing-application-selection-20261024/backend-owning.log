@@ -1,0 +1,667 @@
+TAP version 13
+# Subtest: explicit complete original existing cut selects the published candidate and cold original owner preserves source
+ok 1 - explicit complete original existing cut selects the published candidate and cold original owner preserves source
+  ---
+  duration_ms: 987.834541
+  type: 'test'
+  ...
+# Subtest: source mutation after readonly preparation invalidates activation without a marker or overwritten data
+ok 2 - source mutation after readonly preparation invalidates activation without a marker or overwritten data
+  ---
+  duration_ms: 711.730292
+  type: 'test'
+  ...
+# Subtest: target mutation after readonly preparation invalidates activation without a marker or overwritten data
+ok 3 - target mutation after readonly preparation invalidates activation without a marker or overwritten data
+  ---
+  duration_ms: 685.673792
+  type: 'test'
+  ...
+# Subtest: unrepresented default content and foreign candidate graph cannot pass inheritance
+ok 4 - unrepresented default content and foreign candidate graph cannot pass inheritance
+  ---
+  duration_ms: 556.533167
+  type: 'test'
+  ...
+# Subtest: ordinary callers cannot install, clone or erase the private selection marker
+ok 5 - ordinary callers cannot install, clone or erase the private selection marker
+  ---
+  duration_ms: 501.292209
+  type: 'test'
+  ...
+# Subtest: local SDK reject-before retains one dispatch and reconciles only durable original receipt
+ok 6 - local SDK reject-before retains one dispatch and reconciles only durable original receipt
+  ---
+  duration_ms: 594.757791
+  type: 'test'
+  ...
+# Subtest: local SDK reject-after retains one dispatch and reconciles only durable original receipt
+ok 7 - local SDK reject-after retains one dispatch and reconciles only durable original receipt
+  ---
+  duration_ms: 544.701167
+  type: 'test'
+  ...
+# Subtest: interruption after committed source fence has a cold explicit continue path
+ok 8 - interruption after committed source fence has a cold explicit continue path
+  ---
+  duration_ms: 576.849334
+  type: 'test'
+  ...
+# Subtest: interruption after committed source fence has a cold explicit cancel path
+ok 9 - interruption after committed source fence has a cold explicit cancel path
+  ---
+  duration_ms: 587.700083
+  type: 'test'
+  ...
+# Subtest: cold configured application consumes only completed receipt and refuses rollback after later human edit
+ok 10 - cold configured application consumes only completed receipt and refuses rollback after later human edit
+  ---
+  duration_ms: 627.934625
+  type: 'test'
+  ...
+# selected original startup
+# original human edit committed
+# fallback refusal preserved rows
+# Subtest: unrepresented existing default Source is refused without implicit enrollment or any writes
+ok 11 - unrepresented existing default Source is refused without implicit enrollment or any writes
+  ---
+  duration_ms: 478.307958
+  type: 'test'
+  ...
+# Subtest: existing default without a selected receipt is the prior original application, not an automatic candidate switch
+ok 12 - existing default without a selected receipt is the prior original application, not an automatic candidate switch
+  ---
+  duration_ms: 424.387291
+  type: 'test'
+  ...
+# Subtest: actual cold configured worker uses selected original services and keeps the prior database
+ok 13 - actual cold configured worker uses selected original services and keeps the prior database
+  ---
+  duration_ms: 1355.295625
+  type: 'test'
+  ...
+# Subtest: durable interruption at source-dispatched reconciles the original operation without another SDK dispatch
+ok 14 - durable interruption at source-dispatched reconciles the original operation without another SDK dispatch
+  ---
+  duration_ms: 498.209959
+  type: 'test'
+  ...
+# Subtest: durable interruption at source-selected reconciles the original operation without another SDK dispatch
+ok 15 - durable interruption at source-selected reconciles the original operation without another SDK dispatch
+  ---
+  duration_ms: 494.704625
+  type: 'test'
+  ...
+# Subtest: durable interruption at target-cleanup reconciles the original operation without another SDK dispatch
+ok 16 - durable interruption at target-cleanup reconciles the original operation without another SDK dispatch
+  ---
+  duration_ms: 487.20225
+  type: 'test'
+  ...
+# Subtest: default source configuration preserves the ordinary original Organizer store
+ok 17 - default source configuration preserves the ordinary original Organizer store
+  ---
+  duration_ms: 43.687208
+  type: 'test'
+  ...
+# Subtest: first published generation selects original Organizer and cold reopens owner edits
+ok 18 - first published generation selects original Organizer and cold reopens owner edits
+  ---
+  duration_ms: 857.306458
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default empty without replacing or migrating it
+ok 19 - enabled selection refuses existing default empty without replacing or migrating it
+  ---
+  duration_ms: 617.233167
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default content without replacing or migrating it
+ok 20 - enabled selection refuses existing default content without replacing or migrating it
+  ---
+  duration_ms: 638.464375
+  type: 'test'
+  ...
+# Subtest: enabled missing registry refuses without creating registry target or fallback
+ok 21 - enabled missing registry refuses without creating registry target or fallback
+  ---
+  duration_ms: 0.263042
+  type: 'test'
+  ...
+# Subtest: enabled corrupt registry fails without silently opening default
+ok 22 - enabled corrupt registry fails without silently opening default
+  ---
+  duration_ms: 516.214917
+  type: 'test'
+  ...
+# Subtest: enabled corrupt target fails without silently opening default
+ok 23 - enabled corrupt target fails without silently opening default
+  ---
+  duration_ms: 499.978125
+  type: 'test'
+  ...
+# Subtest: enabled corrupt receipt fails without silently opening default
+ok 24 - enabled corrupt receipt fails without silently opening default
+  ---
+  duration_ms: 497.233
+  type: 'test'
+  ...
+# Subtest: default database appearing before final selection check rejects the selected store
+ok 25 - default database appearing before final selection check rejects the selected store
+  ---
+  duration_ms: 494.571125
+  type: 'test'
+  ...
+# Subtest: caller database factory constructor and malformed configuration cannot choose an application store
+ok 26 - caller database factory constructor and malformed configuration cannot choose an application store
+  ---
+  duration_ms: 0.325833
+  type: 'test'
+  ...
+# Subtest: enabled selection requires database enumeration and never falls back
+ok 27 - enabled selection requires database enumeration and never falls back
+  ---
+  duration_ms: 0.065625
+  type: 'test'
+  ...
+# Subtest: selected original Organizer retains the exact AI filter authority without granting it default permission
+ok 28 - selected original Organizer retains the exact AI filter authority without granting it default permission
+  ---
+  duration_ms: 469.971875
+  type: 'test'
+  ...
+# Subtest: actual configured worker builds its original services on the selected Organizer without a fallback store
+ok 29 - actual configured worker builds its original services on the selected Organizer without a fallback store
+  ---
+  duration_ms: 1611.827208
+  type: 'test'
+  ...
+# Subtest: committed original graph can bind original store and edit through original Human owner
+ok 30 - committed original graph can bind original store and edit through original Human owner
+  ---
+  duration_ms: 616.438583
+  type: 'test'
+  ...
+# Subtest: staging sealed and target-ready graphs cannot bind an active application writer
+ok 31 - staging sealed and target-ready graphs cannot bind an active application writer
+  ---
+  duration_ms: 390.291583
+  type: 'test'
+  ...
+# Subtest: binding refuses fake stores handles and mismatched original repositories
+ok 32 - binding refuses fake stores handles and mismatched original repositories
+  ---
+  duration_ms: 385.293833
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:gate:v1
+ok 33 - active application cannot mutate protected protocol canonical-generation:gate:v1
+  ---
+  duration_ms: 375.392125
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:repository-protection:v1
+ok 34 - active application cannot mutate protected protocol canonical-generation:repository-protection:v1
+  ---
+  duration_ms: 370.970583
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:qualified-graph:v1
+ok 35 - active application cannot mutate protected protocol canonical-generation:qualified-graph:v1
+  ---
+  duration_ms: 310.635791
+  type: 'test'
+  ...
+# Subtest: active application cannot mutate protected protocol canonical-generation:checkpoint:item:00000000
+ok 36 - active application cannot mutate protected protocol canonical-generation:checkpoint:item:00000000
+  ---
+  duration_ms: 298.651125
+  type: 'test'
+  ...
+# Subtest: active application cannot delete protected generation metadata
+ok 37 - active application cannot delete protected generation metadata
+  ---
+  duration_ms: 294.551042
+  type: 'test'
+  ...
+# Subtest: active application cannot clear protected generation metadata
+ok 38 - active application cannot clear protected generation metadata
+  ---
+  duration_ms: 295.854167
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:gate:v1
+ok 39 - raw native mutation of protected generation row rolls whole active write back canonical-generation:gate:v1
+  ---
+  duration_ms: 299.52675
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:qualified-graph:v1
+ok 40 - raw native mutation of protected generation row rolls whole active write back canonical-generation:qualified-graph:v1
+  ---
+  duration_ms: 299.017167
+  type: 'test'
+  ...
+# Subtest: raw native mutation of protected generation row rolls whole active write back canonical-generation:checkpoint:unknown
+ok 41 - raw native mutation of protected generation row rolls whole active write back canonical-generation:checkpoint:unknown
+  ---
+  duration_ms: 271.699042
+  type: 'test'
+  ...
+# Subtest: failed active callback does not advance write revision or retain any write
+ok 42 - failed active callback does not advance write revision or retain any write
+  ---
+  duration_ms: 262.575459
+  type: 'test'
+  ...
+# Subtest: active write retains original4096 resource budget and full rollback
+ok 43 - active write retains original4096 resource budget and full rollback
+  ---
+  duration_ms: 344.244
+  type: 'test'
+  ...
+# Subtest: cold unbound original repository does not inherit live writer authority
+ok 44 - cold unbound original repository does not inherit live writer authority
+  ---
+  duration_ms: 296.563542
+  type: 'test'
+  ...
+# Subtest: changed durable registry receipt refuses before active callback
+ok 45 - changed durable registry receipt refuses before active callback
+  ---
+  duration_ms: 292.180083
+  type: 'test'
+  ...
+# Subtest: post-preflight reservation race retains the source write and invalidates stale replacement
+ok 46 - post-preflight reservation race retains the source write and invalidates stale replacement
+  ---
+  duration_ms: 279.828417
+  type: 'test'
+  ...
+# Subtest: cold original library rebinds from durable publication and continues original edit without resetting consent
+ok 47 - cold original library rebinds from durable publication and continues original edit without resetting consent
+  ---
+  duration_ms: 298.469125
+  type: 'test'
+  ...
+# Subtest: competing prepared active writes cannot silently share one source revision
+ok 48 - competing prepared active writes cannot silently share one source revision
+  ---
+  duration_ms: 335.016042
+  type: 'test'
+  ...
+# Subtest: changed registry instance wrapper cannot manufacture active writer readiness
+ok 49 - changed registry instance wrapper cannot manufacture active writer readiness
+  ---
+  duration_ms: 261.272417
+  type: 'test'
+  ...
+# Subtest: overflowed write revision fails before any active write is retained
+ok 50 - overflowed write revision fails before any active write is retained
+  ---
+  duration_ms: 262.578
+  type: 'test'
+  ...
+# Subtest: protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+ok 51 - protected original checkpoint and Human owner complete three exact groups; default store API cannot write
+  ---
+  duration_ms: 554.84375
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects put before external callback
+ok 52 - protected original repository rejects put before external callback
+  ---
+  duration_ms: 159.582667
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects delete before external callback
+ok 53 - protected original repository rejects delete before external callback
+  ---
+  duration_ms: 138.308625
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects clear before external callback
+ok 54 - protected original repository rejects clear before external callback
+  ---
+  duration_ms: 134.63125
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects raw before external callback
+ok 55 - protected original repository rejects raw before external callback
+  ---
+  duration_ms: 137.654375
+  type: 'test'
+  ...
+# Subtest: protected original repository rejects forged-capability before external callback
+ok 56 - protected original repository rejects forged-capability before external callback
+  ---
+  duration_ms: 141.034333
+  type: 'test'
+  ...
+# Subtest: protected gate is enforced by a cold original repository instance
+ok 57 - protected gate is enforced by a cold original repository instance
+  ---
+  duration_ms: 135.883875
+  type: 'test'
+  ...
+# Subtest: private generation authority never passes through mutable instance wrappers
+ok 58 - private generation authority never passes through mutable instance wrappers
+  ---
+  duration_ms: 174.552541
+  type: 'test'
+  ...
+# Subtest: protected public staging/active callback and metadata seal cannot acquire graph writer
+ok 59 - protected public staging/active callback and metadata seal cannot acquire graph writer
+  ---
+  duration_ms: 130.952375
+  type: 'test'
+  ...
+# Subtest: protected Human does not lend a private transaction to external diagnostic callback
+ok 60 - protected Human does not lend a private transaction to external diagnostic callback
+  ---
+  duration_ms: 141.299542
+  type: 'test'
+  ...
+# Subtest: unmarked original database preserves ordinary writes but rejects a forged protection marker
+ok 61 - unmarked original database preserves ordinary writes but rejects a forged protection marker
+  ---
+  duration_ms: 127.57275
+  type: 'test'
+  ...
+# Subtest: late raw protection marker on unmarked write is rejected and rolled back
+ok 62 - late raw protection marker on unmarked write is rejected and rolled back
+  ---
+  duration_ms: 122.549292
+  type: 'test'
+  ...
+# Subtest: protected stage resumes cold original consumer after committed page response loss
+ok 63 - protected stage resumes cold original consumer after committed page response loss
+  ---
+  duration_ms: 148.345833
+  type: 'test'
+  ...
+# Subtest: protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+ok 64 - protected fixed Human sealing publishes exact original qualified graph; committed target remains read-only
+  ---
+  duration_ms: 308.456666
+  type: 'test'
+  ...
+# Subtest: protected cold attach retains registry binding and publication resumes after target-ready
+ok 65 - protected cold attach retains registry binding and publication resumes after target-ready
+  ---
+  duration_ms: 293.716167
+  type: 'test'
+  ...
+# Subtest: protection installation refuses a nonempty original target and preserves its prior human work
+ok 66 - protection installation refuses a nonempty original target and preserves its prior human work
+  ---
+  duration_ms: 85.73225
+  type: 'test'
+  ...
+# Subtest: a caller-shaped store cannot mint original protection installation authority
+ok 67 - a caller-shaped store cannot mint original protection installation authority
+  ---
+  duration_ms: 74.969333
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+ok 68 - protection installation refuses prior unqualified copy bns:v1:foreign:revision:synthetic
+  ---
+  duration_ms: 81.324208
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+ok 69 - protection installation refuses prior unqualified copy canonical-generation:checkpoint:item:99999999
+  ---
+  duration_ms: 79.505709
+  type: 'test'
+  ...
+# Subtest: protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+ok 70 - protection installation refuses prior unqualified copy SYNTHETIC-unknown-copy
+  ---
+  duration_ms: 79.181542
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer extra-field
+ok 71 - protection installation rejects nonempty initializer extra-field
+  ---
+  duration_ms: 80.595416
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer nested-body
+ok 72 - protection installation rejects nonempty initializer nested-body
+  ---
+  duration_ms: 81.176
+  type: 'test'
+  ...
+# Subtest: protection installation rejects nonempty initializer old-ephemeral
+ok 73 - protection installation rejects nonempty initializer old-ephemeral
+  ---
+  duration_ms: 80.545833
+  type: 'test'
+  ...
+# Subtest: protected initial marker bytes are charged before the caller can enter
+ok 74 - protected initial marker bytes are charged before the caller can enter
+  ---
+  duration_ms: 116.148875
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects identity drift
+ok 75 - cold protected marker/gate rejects identity drift
+  ---
+  duration_ms: 110.75575
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects phase drift
+ok 76 - cold protected marker/gate rejects phase drift
+  ---
+  duration_ms: 108.601
+  type: 'test'
+  ...
+# Subtest: cold protected marker/gate rejects mode drift
+ok 77 - cold protected marker/gate rejects mode drift
+  ---
+  duration_ms: 108.820083
+  type: 'test'
+  ...
+# Subtest: budgeted original all returns the complete primary range above one page
+ok 78 - budgeted original all returns the complete primary range above one page
+  ---
+  duration_ms: 86.83475
+  type: 'test'
+  ...
+# Subtest: budgeted original all returns the complete indexed range above one page
+ok 79 - budgeted original all returns the complete indexed range above one page
+  ---
+  duration_ms: 85.395875
+  type: 'test'
+  ...
+# Subtest: budgeted all refs excess atomically rejects despite public metrics reset
+ok 80 - budgeted all refs excess atomically rejects despite public metrics reset
+  ---
+  duration_ms: 35.640042
+  type: 'test'
+  ...
+# Subtest: budgeted all bytes excess atomically rejects despite public metrics reset
+ok 81 - budgeted all bytes excess atomically rejects despite public metrics reset
+  ---
+  duration_ms: 36.245584
+  type: 'test'
+  ...
+# Subtest: budgeted all caught excess atomically rejects despite public metrics reset
+ok 82 - budgeted all caught excess atomically rejects despite public metrics reset
+  ---
+  duration_ms: 37.494875
+  type: 'test'
+  ...
+# Subtest: budgeted all repeat excess atomically rejects despite public metrics reset
+ok 83 - budgeted all repeat excess atomically rejects despite public metrics reset
+  ---
+  duration_ms: 31.69275
+  type: 'test'
+  ...
+# Subtest: budgeted empty all returns an empty complete range
+ok 84 - budgeted empty all returns an empty complete range
+  ---
+  duration_ms: 29.494292
+  type: 'test'
+  ...
+# Subtest: budgeted explicit oversized all remains refused and rollback is sticky
+ok 85 - budgeted explicit oversized all remains refused and rollback is sticky
+  ---
+  duration_ms: 36.270042
+  type: 'test'
+  ...
+# Subtest: ordinary all retains original complete and explicit-limit behavior
+ok 86 - ordinary all retains original complete and explicit-limit behavior
+  ---
+  duration_ms: 36.4495
+  type: 'test'
+  ...
+# Subtest: original closed terminal read plan permits legal owner writes and runs after actual finalizers
+ok 87 - original closed terminal read plan permits legal owner writes and runs after actual finalizers
+  ---
+  duration_ms: 71.518458
+  type: 'test'
+  ...
+# Subtest: terminal put rejection remains sticky when a second fence catches it
+ok 88 - terminal put rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 41.64325
+  type: 'test'
+  ...
+# Subtest: terminal delete rejection remains sticky when a second fence catches it
+ok 89 - terminal delete rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 33.680666
+  type: 'test'
+  ...
+# Subtest: terminal clear rejection remains sticky when a second fence catches it
+ok 90 - terminal clear rejection remains sticky when a second fence catches it
+  ---
+  duration_ms: 33.309375
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-plan before a non-IDB promise can commit
+ok 91 - terminal rejects async-plan before a non-IDB promise can commit
+  ---
+  duration_ms: 29.483167
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-step before a non-IDB promise can commit
+ok 92 - terminal rejects async-step before a non-IDB promise can commit
+  ---
+  duration_ms: 30.172292
+  type: 'test'
+  ...
+# Subtest: terminal rejects async-current before a non-IDB promise can commit
+ok 93 - terminal rejects async-current before a non-IDB promise can commit
+  ---
+  duration_ms: 30.509708
+  type: 'test'
+  ...
+# Subtest: terminal rejects truthy-current before a non-IDB promise can commit
+ok 94 - terminal rejects truthy-current before a non-IDB promise can commit
+  ---
+  duration_ms: 30.301667
+  type: 'test'
+  ...
+# Subtest: terminal rejects throw-current before a non-IDB promise can commit
+ok 95 - terminal rejects throw-current before a non-IDB promise can commit
+  ---
+  duration_ms: 29.812416
+  type: 'test'
+  ...
+# Subtest: late terminal registration cannot replace an already checked first fence even when caught
+ok 96 - late terminal registration cannot replace an already checked first fence even when caught
+  ---
+  duration_ms: 27.491667
+  type: 'test'
+  ...
+# Subtest: completed, foreign, copied and readonly scopes never register a terminal capability
+ok 97 - completed, foreign, copied and readonly scopes never register a terminal capability
+  ---
+  duration_ms: 53.265709
+  type: 'test'
+  ...
+# Subtest: all prior synchronous currentness predicates are checked after the final second-fence read
+ok 98 - all prior synchronous currentness predicates are checked after the final second-fence read
+  ---
+  duration_ms: 28.812625
+  type: 'test'
+  ...
+# Subtest: exact primary range count is bounded metadata and does not count the whole store
+ok 99 - exact primary range count is bounded metadata and does not count the whole store
+  ---
+  duration_ms: 25.314
+  type: 'test'
+  ...
+# Subtest: late finalizer registration refusal is sticky outside the owner callback
+ok 100 - late finalizer registration refusal is sticky outside the owner callback
+  ---
+  duration_ms: 26.419167
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via get
+ok 101 - terminal comparator cannot escape the closed plan via get
+  ---
+  duration_ms: 23.858709
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via all
+ok 102 - terminal comparator cannot escape the closed plan via all
+  ---
+  duration_ms: 25.679875
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via count
+ok 103 - terminal comparator cannot escape the closed plan via count
+  ---
+  duration_ms: 23.583417
+  type: 'test'
+  ...
+# Subtest: terminal comparator cannot escape the closed plan via putDerivedSearchRow
+ok 104 - terminal comparator cannot escape the closed plan via putDerivedSearchRow
+  ---
+  duration_ms: 24.225
+  type: 'test'
+  ...
+# Subtest: an unbounded all request is not a supported closed terminal operation
+ok 105 - an unbounded all request is not a supported closed terminal operation
+  ---
+  duration_ms: 23.148416
+  type: 'test'
+  ...
+# Subtest: a registered scope cannot replace its original native transaction behind a closed get
+ok 106 - a registered scope cannot replace its original native transaction behind a closed get
+  ---
+  duration_ms: 21.398875
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject accessor properties without acquiring their value
+ok 107 - closed terminal specs reject accessor properties without acquiring their value
+  ---
+  duration_ms: 22.381708
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject inherited properties without acquiring their value
+ok 108 - closed terminal specs reject inherited properties without acquiring their value
+  ---
+  duration_ms: 21.972125
+  type: 'test'
+  ...
+# Subtest: closed terminal specs reject symbol properties without acquiring their value
+ok 109 - closed terminal specs reject symbol properties without acquiring their value
+  ---
+  duration_ms: 24.088875
+  type: 'test'
+  ...
+1..109
+# tests 109
+# suites 0
+# pass 109
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10288.299875

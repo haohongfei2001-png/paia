@@ -1,0 +1,77 @@
+TAP version 13
+# Subtest: explicit complete original existing cut selects the published candidate and cold original owner preserves source
+ok 1 - explicit complete original existing cut selects the published candidate and cold original owner preserves source
+  ---
+  duration_ms: 598.060792
+  type: 'test'
+  ...
+# Subtest: source mutation after readonly preparation invalidates activation without a marker or overwritten data
+ok 2 - source mutation after readonly preparation invalidates activation without a marker or overwritten data
+  ---
+  duration_ms: 495.598458
+  type: 'test'
+  ...
+# Subtest: target mutation after readonly preparation invalidates activation without a marker or overwritten data
+ok 3 - target mutation after readonly preparation invalidates activation without a marker or overwritten data
+  ---
+  duration_ms: 487.806334
+  type: 'test'
+  ...
+# Subtest: unrepresented default content and foreign candidate graph cannot pass inheritance
+ok 4 - unrepresented default content and foreign candidate graph cannot pass inheritance
+  ---
+  duration_ms: 456.386834
+  type: 'test'
+  ...
+# Subtest: ordinary callers cannot install, clone or erase the private selection marker
+ok 5 - ordinary callers cannot install, clone or erase the private selection marker
+  ---
+  duration_ms: 418.104084
+  type: 'test'
+  ...
+# Subtest: local SDK reject-before retains one dispatch and reconciles only durable original receipt
+ok 6 - local SDK reject-before retains one dispatch and reconciles only durable original receipt
+  ---
+  duration_ms: 496.61825
+  type: 'test'
+  ...
+# Subtest: local SDK reject-after retains one dispatch and reconciles only durable original receipt
+ok 7 - local SDK reject-after retains one dispatch and reconciles only durable original receipt
+  ---
+  duration_ms: 489.469833
+  type: 'test'
+  ...
+# Subtest: interruption after committed source fence has a cold explicit continue path
+ok 8 - interruption after committed source fence has a cold explicit continue path
+  ---
+  duration_ms: 492.251875
+  type: 'test'
+  ...
+# Subtest: interruption after committed source fence has a cold explicit cancel path
+ok 9 - interruption after committed source fence has a cold explicit cancel path
+  ---
+  duration_ms: 498.392833
+  type: 'test'
+  ...
+# Subtest: cold configured application consumes only completed receipt and refuses rollback after later human edit
+not ok 10 - cold configured application consumes only completed receipt and refuses rollback after later human edit
+  ---
+  duration_ms: 511.017958
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/application-existing-selection.test.mjs:37:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:28:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:511:211)
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 9
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5103.897167

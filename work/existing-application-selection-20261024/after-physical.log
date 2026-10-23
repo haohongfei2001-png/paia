@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: explicit complete original existing cut selects the published candidate and cold original owner preserves source
+ok 1 - explicit complete original existing cut selects the published candidate and cold original owner preserves source
+  ---
+  duration_ms: 937.009417
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1076.663375

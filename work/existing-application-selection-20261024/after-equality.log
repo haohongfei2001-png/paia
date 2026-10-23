@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: explicit complete original existing cut selects the published candidate and cold original owner preserves source
+not ok 1 - explicit complete original existing cut selects the published candidate and cold original owner preserves source
+  ---
+  duration_ms: 551.332292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/application-existing-selection.test.mjs:8:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:28:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/idb-repository.js:536:1319)
+    async write (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/application-generation-selection.js:28:13)
+    async OriginalApplicationGenerationSelection.activate (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/core/browser-native-sync/application-generation-selection.js:82:4)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-scale-consumption/paia/extension/tests/application-existing-selection.test.mjs:11:15)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 670.949917

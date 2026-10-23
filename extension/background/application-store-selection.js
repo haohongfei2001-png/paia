@@ -1,3 +1,4 @@
+import {openOriginalSelectedExistingApplication} from '../core/browser-native-sync/application-generation-selection.js';
 import {ArchiveError} from '../core/constants.js';
 import {ArchiveRepository,DATABASE_NAME} from '../core/idb-repository.js';
 import {originalOrganizerConstructor} from '../core/organizer/store-owner.js';
@@ -16,10 +17,11 @@ export async function selectOriginalApplicationStore(local,options={}){
  if(arguments.length>2||!options||Object.getPrototypeOf(options)!==Object.prototype||Reflect.ownKeys(options).some(key=>!['aiFilterAuthority','configuration'].includes(key))||Object.values(Object.getOwnPropertyDescriptors(options)).some(d=>!Object.hasOwn(d,'value')))fail();
  const authority=options.aiFilterAuthority??null,configuration=Object.hasOwn(options,'configuration')?options.configuration:readApplicationStoreConfiguration();
  if(configuration===null)return new (originalOrganizerConstructor())(local,{aiFilterAuthority:authority});
- if(!exact(configuration,['mode'])||configuration.mode!=='first-published-generation')fail();
+ if(!exact(configuration,['mode'])||!['first-published-generation','validated-existing-generation'].includes(configuration.mode))fail();
  const factory=globalThis.indexedDB;
  if(!factory||typeof factory.databases!=='function'||typeof originalOpenActiveOrganizer!=='function')fail('GENERATION_COORDINATOR_UNAVAILABLE');
  const defaultAbsent=async()=>{const databases=await factory.databases();if(!Array.isArray(databases)||databases.some(row=>!row||typeof row.name!=='string'))fail();if(databases.some(row=>row.name===DATABASE_NAME))fail('GENERATION_EXISTING_SOURCE_OWNER_REQUIRED');};
+ if(configuration.mode==='validated-existing-generation'){const existing=(await factory.databases()).some(row=>row.name===DATABASE_NAME);if(existing){const selected=await openOriginalSelectedExistingApplication(local,factory,authority);return selected??new (originalOrganizerConstructor())(local,{aiFilterAuthority:authority});}}
  await defaultAbsent();
  const registry=new ArchiveRepository(local,{indexedDB:factory,name:APPLICATION_GENERATION_REGISTRY}),publication=new CanonicalGenerationPublication(registry);let store;
  try{
