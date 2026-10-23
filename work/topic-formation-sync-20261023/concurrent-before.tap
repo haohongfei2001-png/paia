@@ -1,0 +1,25 @@
+TAP version 13
+# Subtest: two concurrent receives retain one exact incoming operation and do not overwrite the in-flight claim
+not ok 1 - two concurrent receives retain one exact incoming operation and do not overwrite the in-flight claim
+  ---
+  duration_ms: 238.594208
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:49:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'operation')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:49:629)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 460.120959

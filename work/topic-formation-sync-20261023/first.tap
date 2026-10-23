@@ -1,0 +1,29 @@
+TAP version 13
+# Subtest: original Formation reactivation and full domain history settle with typed protocol in the same transaction
+not ok 1 - original Formation reactivation and full domain history settle with typed protocol in the same transaction
+  ---
+  duration_ms: 163.901833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:9:1'
+  failureType: 'testCodeFailure'
+  error: 'INVALID_REQUEST'
+  code: 'INVALID_REQUEST'
+  stack: |-
+    snapshotWriteWorkLimit (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:29:112)
+    OrganizerStore.foundationWrite (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/thought-store-owner.js:84:56)
+    TopicFormationService.#writeTransaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/topic-formation.js:72:87)
+    #commit (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/topic-formation.js:242:48)
+    async TopicFormationService.commit (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/topic-formation.js:223:425)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:9:244)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 406.841833

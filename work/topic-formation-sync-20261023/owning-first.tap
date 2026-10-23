@@ -1,0 +1,161 @@
+TAP version 13
+# Subtest: original Formation reactivation and full domain history settle with typed protocol in the same transaction
+ok 1 - original Formation reactivation and full domain history settle with typed protocol in the same transaction
+  ---
+  duration_ms: 405.244375
+  type: 'test'
+  ...
+# Subtest: cold original backup base replays Formation through a genuine receiver issuer and preserves important history without echo
+ok 2 - cold original backup base replays Formation through a genuine receiver issuer and preserves important history without echo
+  ---
+  duration_ms: 428.669083
+  type: 'test'
+  ...
+# Subtest: actual inactivity → original Formation reactivation → independent inactivity preserves a causal chain on cold B
+not ok 3 - actual inactivity → original Formation reactivation → independent inactivity preserves a causal chain on cold B
+  ---
+  duration_ms: 396.006667
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:34:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_TOPIC_FORMATION_CHANGED'
+  code: 'BNS_TOPIC_FORMATION_CHANGED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/browser-native-sync/value.js:5:32)
+    prepareOriginalFormationSync (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/browser-native-sync/topic-formation-journal.js:25:1907)
+    async TopicFormationService.commit (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/topic-formation.js:223:209)
+    async TopicFormationSyncJournal.receive (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/browser-native-sync/topic-formation-journal.js:20:446)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:34:548)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Formation history after original owner cannot settle and rolls back all tables
+ok 4 - Formation history after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 180.7035
+  type: 'test'
+  ...
+# Subtest: Formation receipt after original owner cannot settle and rolls back all tables
+ok 5 - Formation receipt after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 177.158792
+  type: 'test'
+  ...
+# Subtest: Formation protocol head after original owner cannot settle and rolls back all tables
+ok 6 - Formation protocol head after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 133.765792
+  type: 'test'
+  ...
+# Subtest: Formation protocol receipt after original owner cannot settle and rolls back all tables
+ok 7 - Formation protocol receipt after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 182.432833
+  type: 'test'
+  ...
+# Subtest: Formation Source after original owner cannot settle and rolls back all tables
+ok 8 - Formation Source after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 175.253125
+  type: 'test'
+  ...
+# Subtest: Formation grant after original owner cannot settle and rolls back all tables
+ok 9 - Formation grant after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 141.439208
+  type: 'test'
+  ...
+# Subtest: Formation ACK failure after original owner cannot settle and rolls back all tables
+ok 10 - Formation ACK failure after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 141.9535
+  type: 'test'
+  ...
+# Subtest: Formation private budget after original owner cannot settle and rolls back all tables
+ok 11 - Formation private budget after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 173.321333
+  type: 'test'
+  ...
+# Subtest: generic Core cannot treat Formation data as a domain write capability
+ok 12 - generic Core cannot treat Formation data as a domain write capability
+  ---
+  duration_ms: 156.595
+  type: 'test'
+  ...
+# Subtest: competing original Formation event is rejected after one settled restoration
+ok 13 - competing original Formation event is rejected after one settled restoration
+  ---
+  duration_ms: 354.711042
+  type: 'test'
+  ...
+# Subtest: original human lifecycle lock rejects Formation replay with no partial Sync writes
+ok 14 - original human lifecycle lock rejects Formation replay with no partial Sync writes
+  ---
+  duration_ms: 177.156
+  type: 'test'
+  ...
+# Subtest: lost return resolves original receipt without repeating history or protocol
+ok 15 - lost return resolves original receipt without repeating history or protocol
+  ---
+  duration_ms: 148.297084
+  type: 'test'
+  ...
+# Subtest: duplicate rechecks domain result before acknowledging success
+ok 16 - duplicate rechecks domain result before acknowledging success
+  ---
+  duration_ms: 128.210125
+  type: 'test'
+  ...
+# Subtest: duplicate rechecks protocol mapping before acknowledging success
+ok 17 - duplicate rechecks protocol mapping before acknowledging success
+  ---
+  duration_ms: 106.796167
+  type: 'test'
+  ...
+# Subtest: duplicate rechecks history removal before acknowledging success
+ok 18 - duplicate rechecks history removal before acknowledging success
+  ---
+  duration_ms: 99.270125
+  type: 'test'
+  ...
+# Subtest: Formation selected history collection is closed against extra history tail writes
+ok 19 - Formation selected history collection is closed against extra history tail writes
+  ---
+  duration_ms: 95.832708
+  type: 'test'
+  ...
+# Subtest: Formation selected history collection is closed against prior history changed tail writes
+ok 20 - Formation selected history collection is closed against prior history changed tail writes
+  ---
+  duration_ms: 100.262292
+  type: 'test'
+  ...
+# Subtest: duplicate checks original important-history semantic before/after rather than presence alone
+ok 21 - duplicate checks original important-history semantic before/after rather than presence alone
+  ---
+  duration_ms: 98.013958
+  type: 'test'
+  ...
+# Subtest: new independent inactivity refuses a missing Formation settlement receipt
+ok 22 - new independent inactivity refuses a missing Formation settlement receipt
+  ---
+  duration_ms: 156.258833
+  type: 'test'
+  ...
+# Subtest: journal busy protects a held original commit and does not discard in-flight ownership
+ok 23 - journal busy protects a held original commit and does not discard in-flight ownership
+  ---
+  duration_ms: 106.21375
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 22
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4690.689

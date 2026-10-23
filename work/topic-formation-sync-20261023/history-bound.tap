@@ -1,0 +1,343 @@
+TAP version 13
+# Subtest: original Formation reactivation and full domain history settle with typed protocol in the same transaction
+not ok 1 - original Formation reactivation and full domain history settle with typed protocol in the same transaction
+  ---
+  duration_ms: 122.4545
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:9:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:482:1039)
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: cold original backup base replays Formation through a genuine receiver issuer and preserves important history without echo
+not ok 2 - cold original backup base replays Formation through a genuine receiver issuer and preserves important history without echo
+  ---
+  duration_ms: 120.139791
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:24:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:482:1039)
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: actual inactivity → original Formation reactivation → independent inactivity preserves a causal chain on cold B
+not ok 3 - actual inactivity → original Formation reactivation → independent inactivity preserves a causal chain on cold B
+  ---
+  duration_ms: 162.765458
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:34:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:482:1039)
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: Formation history after original owner cannot settle and rolls back all tables
+not ok 4 - Formation history after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 96.426333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:128'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:1349)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Formation receipt after original owner cannot settle and rolls back all tables
+not ok 5 - Formation receipt after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 79.42575
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:128'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:1349)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Formation protocol head after original owner cannot settle and rolls back all tables
+not ok 6 - Formation protocol head after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 88.305292
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:128'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:1349)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Formation protocol receipt after original owner cannot settle and rolls back all tables
+not ok 7 - Formation protocol receipt after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 97.908792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:128'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:1349)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Formation Source after original owner cannot settle and rolls back all tables
+not ok 8 - Formation Source after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 72.950875
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:128'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:1349)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Formation grant after original owner cannot settle and rolls back all tables
+not ok 9 - Formation grant after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 74.610792
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:128'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:1349)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Formation ACK failure after original owner cannot settle and rolls back all tables
+not ok 10 - Formation ACK failure after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 74.895833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:128'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:1349)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: Formation private budget after original owner cannot settle and rolls back all tables
+not ok 11 - Formation private budget after original owner cannot settle and rolls back all tables
+  ---
+  duration_ms: 73.031834
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:128'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:36:1349)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: generic Core cannot treat Formation data as a domain write capability
+not ok 12 - generic Core cannot treat Formation data as a domain write capability
+  ---
+  duration_ms: 92.44125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:37:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:482:1039)
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: competing original Formation event is rejected after one settled restoration
+not ok 13 - competing original Formation event is rejected after one settled restoration
+  ---
+  duration_ms: 110.320708
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:38:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:482:1039)
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: original human lifecycle lock rejects Formation replay with no partial Sync writes
+not ok 14 - original human lifecycle lock rejects Formation replay with no partial Sync writes
+  ---
+  duration_ms: 92.62
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:39:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:482:1039)
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: lost return resolves original receipt without repeating history or protocol
+not ok 15 - lost return resolves original receipt without repeating history or protocol
+  ---
+  duration_ms: 67.913167
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:40:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:40:621)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: duplicate rechecks domain result before acknowledging success
+not ok 16 - duplicate rechecks domain result before acknowledging success
+  ---
+  duration_ms: 77.913333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:41:77'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:482:1039)
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: duplicate rechecks protocol mapping before acknowledging success
+not ok 17 - duplicate rechecks protocol mapping before acknowledging success
+  ---
+  duration_ms: 74.095333
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:41:77'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:482:1039)
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: duplicate rechecks history removal before acknowledging success
+not ok 18 - duplicate rechecks history removal before acknowledging success
+  ---
+  duration_ms: 74.537
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:41:77'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:482:1039)
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:203:11
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 0
+# fail 18
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1839.664584

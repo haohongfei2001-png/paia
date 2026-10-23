@@ -1,0 +1,46 @@
+diff --git a/extension/core/browser-native-sync/codecs.js b/extension/core/browser-native-sync/codecs.js
+index cc2dbab2..fb086b0c 100644
+--- a/extension/core/browser-native-sync/codecs.js
++++ b/extension/core/browser-native-sync/codecs.js
+@@ -1,3 +1,4 @@
++import {validateTopicFormation} from './topic-formation-codec.js';
+ import {validateSourcePurgeIntent} from './source-purge-codec.js';
+ import {validateTopicActivity} from './topic-activity-codec.js';
+ import {validateSavedSuccessorEnvelope,validateSavedSuccessor} from './saved-work-successor-codec.js';
+@@ -103,7 +104,7 @@ const commitCodec=spec('inputWorkingCommit',value=>{
+  if(!Array.isArray(value.sourceRefs)||!value.sourceRefs.length||value.sourceRefs.length>16||value.sourceRefs.some(x=>!exact(x,['id','sourceKey','dedupeKey','contentHash'])||Object.keys(x).length!==4||!identifier(x.id)||![x.sourceKey,x.dedupeKey,x.contentHash].every(hash))||new Set(value.sourceRefs.map(x=>x.id)).size!==value.sourceRefs.length)fail('BNS_CODEC_INVALID');
+  const seen=new Set();for(const ref of value.members){if(!exact(ref,['type','entityId','revisionId'])||Object.keys(ref).length!==3||ref.type!=='inputWorkingMember'||!identifier(ref.entityId)||!hash(ref.revisionId)||seen.has(ref.entityId))fail('BNS_CODEC_INVALID');seen.add(ref.entityId);}return value;
+ },{store:'meta'});
+-export const CODECS=Object.freeze({topicActivity:spec('topicActivity',validateTopicActivity),sourcePurgeIntent:spec('sourcePurgeIntent',validateSourcePurgeIntent,{immutable:true}),savedWorkSuccessor:spec('savedWorkSuccessor',validateSavedSuccessorEnvelope),savedWorkBootstrap:spec('savedWorkBootstrap',validateSavedWorkEnvelope,{immutable:true}),humanLibraryMember:spec('humanLibraryMember',validateHumanLibraryMember),humanLibraryCommit:spec('humanLibraryCommit',validateHumanLibraryCommit),sourceAppendMember:spec('sourceAppendMember',validateSourceAppendMember),sourceAppendCommit:spec('sourceAppendCommit',validateSourceAppendCommit),sourceBootstrapMember:spec('sourceBootstrapMember',validateSourceBootstrapMember),sourceBootstrapCommit:spec('sourceBootstrapCommit',validateSourceBootstrapCommit),inputWorkingMember:memberCodec,inputWorkingCommit:commitCodec,source:sourceCodec,filterIntent:filterIntentCodec,revision:workingRevisionCodec,...Object.fromEntries(entries.filter(([type])=>['input','inputState'].includes(type))),...Object.fromEntries(entries.filter(([type])=>['contextItem','contextRulesItem','contextNowItem','contextDesired','promptPreferences','promptBinding','topicDesired'].includes(type))),consumerPreference:spec('consumerPreference',validateConsumerPreferenceIntent,{version:CONSUMER_PREFERENCE_CODEC_VERSION,store:'meta',owner:'control'})});
++export const CODECS=Object.freeze({topicFormation:spec('topicFormation',validateTopicFormation),topicActivity:spec('topicActivity',validateTopicActivity),sourcePurgeIntent:spec('sourcePurgeIntent',validateSourcePurgeIntent,{immutable:true}),savedWorkSuccessor:spec('savedWorkSuccessor',validateSavedSuccessorEnvelope),savedWorkBootstrap:spec('savedWorkBootstrap',validateSavedWorkEnvelope,{immutable:true}),humanLibraryMember:spec('humanLibraryMember',validateHumanLibraryMember),humanLibraryCommit:spec('humanLibraryCommit',validateHumanLibraryCommit),sourceAppendMember:spec('sourceAppendMember',validateSourceAppendMember),sourceAppendCommit:spec('sourceAppendCommit',validateSourceAppendCommit),sourceBootstrapMember:spec('sourceBootstrapMember',validateSourceBootstrapMember),sourceBootstrapCommit:spec('sourceBootstrapCommit',validateSourceBootstrapCommit),inputWorkingMember:memberCodec,inputWorkingCommit:commitCodec,source:sourceCodec,filterIntent:filterIntentCodec,revision:workingRevisionCodec,...Object.fromEntries(entries.filter(([type])=>['input','inputState'].includes(type))),...Object.fromEntries(entries.filter(([type])=>['contextItem','contextRulesItem','contextNowItem','contextDesired','promptPreferences','promptBinding','topicDesired'].includes(type))),consumerPreference:spec('consumerPreference',validateConsumerPreferenceIntent,{version:CONSUMER_PREFERENCE_CODEC_VERSION,store:'meta',owner:'control'})});
+ export function validateEntity(type,value,version=1){
+  const codec=Object.hasOwn(CODECS,type)?CODECS[type]:null;if(!codec||version!==codec.version)fail('BNS_CODEC_UNSUPPORTED');
+  canonical(value);
+diff --git a/extension/core/browser-native-sync/core.js b/extension/core/browser-native-sync/core.js
+index ec577a18..d2d200a1 100644
+--- a/extension/core/browser-native-sync/core.js
++++ b/extension/core/browser-native-sync/core.js
+@@ -1,3 +1,5 @@
++import {assertTopicFormationOperation} from './topic-formation-codec.js';
++import {requireOriginalFormationProtocolOwner} from './topic-formation-journal.js';
+ import {requireOriginalTopicActivityProtocolOwner} from './topic-activity-journal.js';
+ import {assertTopicActivityOperation} from './topic-activity-codec.js';
+ import {requireSourcePurgeProtocolOwner} from './source-purge-journal.js';
+@@ -56,7 +58,8 @@ export async function validateOperation(operation){
+  if(operation.kind==='purge'){if(operation.actor!=='user'||operation.value!==null)fail('BNS_PURGE_INVALID');}
+  else{await validateEntityAsync(operation.type,operation.value,operation.codecVersion);if(operation.value.id!==operation.entityId)fail('BNS_ENTITY_MISMATCH');}
+  if(operation.type==='topicActivity')assertTopicActivityOperation(operation);
+- if(operation.actor==='activity'&&operation.type!=='topicActivity')fail('BNS_ACTOR_AUTHORITY');
++ if(operation.type==='topicFormation')assertTopicFormationOperation(operation);
++ if(operation.actor==='activity'&&!['topicActivity','topicFormation'].includes(operation.type))fail('BNS_ACTOR_AUTHORITY');
+  if(operation.type==='savedWorkBootstrap'&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length||operation.value.payload.datasetId!==operation.datasetId))fail('BNS_SAVED_WORK_OPERATION');
+  if(operation.type==='savedWorkSuccessor'&&(operation.kind!=='put'||operation.actor!=='user'||operation.parents.length>1||operation.value.before.datasetId!==operation.datasetId))fail('BNS_SAVED_WORK_OPERATION');
+  if(operation.type==='consumerPreference')assertConsumerPreferenceOperation(operation);
+@@ -273,6 +276,7 @@ export class BrowserNativeSyncCore {
+  }
+  async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null,appendCapability=null,humanCapability=null,humanRetentionCapability=null}={}){
+   if(operation.type==='topicActivity')requireOriginalTopicActivityProtocolOwner(t,this,operation,origin);
++  if(operation.type==='topicFormation')requireOriginalFormationProtocolOwner(t,this,operation,origin);
+   const sourcePurge=operation.type==='sourcePurgeIntent'||operation.kind==='purge'&&['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type);
+   if(sourcePurge)requireSourcePurgeProtocolOwner(t,this,operation,origin);
+   if(['savedWorkBootstrap','savedWorkSuccessor'].includes(operation.type))requireSavedWorkProtocolOwner(t,this,operation,origin);

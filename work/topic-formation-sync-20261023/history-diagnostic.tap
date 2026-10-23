@@ -1,0 +1,26 @@
+TAP version 13
+# SYNTHETIC HISTORY DIFFERENCE [ 'after' ] [ 'searchVersion' ]
+# Subtest: original Formation reactivation and full domain history settle with typed protocol in the same transaction
+not ok 1 - original Formation reactivation and full domain history settle with typed protocol in the same transaction
+  ---
+  duration_ms: 113.053291
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/tests/topic-formation-sync.test.mjs:9:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:24:40)
+    ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/idb-repository.js:482:1039)
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:290:185
+    async file:///Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia/extension/core/indexed-store.js:203:11
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 289.577333

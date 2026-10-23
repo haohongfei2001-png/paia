@@ -1,0 +1,30 @@
+{
+  "node": "v22.23.3",
+  "platform": "Darwin",
+  "machine": "arm64",
+  "nodePath": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+  "fullOwning": {
+    "log": "owning-final.tap",
+    "files": 10,
+    "pass": 152,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "durationMs": 32329.904125,
+    "exitCode": 0,
+    "note": "Before final receive-claim/custom-delegate changes"
+  },
+  "finalOwning": {
+    "log": "reviewed-final.tap",
+    "files": 1,
+    "pass": 26,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "durationMs": 5300.039667,
+    "exitCode": 0,
+    "note": "Final source; complete new owning file; not native/browser"
+  }
+}

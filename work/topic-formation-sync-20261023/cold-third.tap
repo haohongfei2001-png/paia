@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: cold original backup base replays Formation through a genuine receiver issuer and preserves important history without echo
+ok 1 - cold original backup base replays Formation through a genuine receiver issuer and preserves important history without echo
+  ---
+  duration_ms: 237.501041
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 427.248625
