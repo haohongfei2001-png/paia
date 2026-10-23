@@ -1,0 +1,9 @@
+{
+  "extension/core/browser-native-sync/saved-work-bootstrap.js": "89ff2ff6657d5c9437eb0e5734bbea3402e34bccdf264d5c7cacba1dccf6de36",
+  "extension/core/browser-native-sync/human-library-plan.js": "1b3628f45b06363a6ac62c98cfdd125270f87b78ef43569d5cb281f2e1e9c89f",
+  "extension/tests/browser-native-sync-saved-successor.test.mjs": "3fe5e3bb9fc4bbde3ac46bd48db7b5e59902e1259c227c2641987773d6101d96",
+  "work/sync-local-completion/saved-coalesced-authority-after.log": "8fda93ab5119f5cf63a5d85eac9434719d91b748bcd2648e371cbabf1a45d763",
+  "work/sync-local-completion/saved-coalesced-authority-baseline.log": "e1f8fc1560cd5ac3012ecb52458fee713bffb4ff1f5365630c0aafb171185bd7",
+  "work/sync-local-completion/saved-coalesced-authority-owning.log": "ba73682d41e3229028e46c3083d9e6497c652ed0bff2e2ad49eec3f9de318ad9",
+  "work/sync-local-completion/saved-coalesced-authority-corrected.log": "55df633093f41f5f4b413c9d90d175f3b1d82c7170ae2b07d6870c4d42446d9f"
+}

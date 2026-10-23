@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: saved coalesced ancestry authority before-owner anchor-head rolls back
+ok 1 - saved coalesced ancestry authority before-owner anchor-head rolls back
+  ---
+  duration_ms: 225.157625
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority before-owner ancestor-receipt rolls back
+ok 2 - saved coalesced ancestry authority before-owner ancestor-receipt rolls back
+  ---
+  duration_ms: 169.301125
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority after-owner anchor-head rolls back
+ok 3 - saved coalesced ancestry authority after-owner anchor-head rolls back
+  ---
+  duration_ms: 173.329958
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority after-owner ancestor-receipt rolls back
+ok 4 - saved coalesced ancestry authority after-owner ancestor-receipt rolls back
+  ---
+  duration_ms: 178.175291
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit preserves a later original global history counter
+ok 5 - saved coalesced edit preserves a later original global history counter
+  ---
+  duration_ms: 174.210375
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1060.682583

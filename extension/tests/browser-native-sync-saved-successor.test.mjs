@@ -122,3 +122,12 @@ test('saved coalesced cold final activation failure preserves every table and st
 test('saved coalesced initial capture still refuses missing typed intermediate facts',async t=>{
  const a=await saved(t);await a.s.editEntry({id:a.created.id,expectedRevision:1,operationId:crypto.randomUUID(),changes:{title:'SYNTHETIC first ordinary title'}});await a.s.editEntry({id:a.created.id,expectedRevision:2,operationId:crypto.randomUUID(),changes:{title:'SYNTHETIC second ordinary title'}});const before=await snapshot(a.s);await assert.rejects(captureSavedWorkBootstrap(a.s,a.core,a.created.id));assert.deepEqual(await snapshot(a.s),before);
 });
+for(const phase of ['before-owner','after-owner'])for(const drift of ['anchor-head','ancestor-receipt'])test('saved coalesced ancestry authority '+phase+' '+drift+' rolls back',async t=>{
+ const {a,b}=await restoredEditor(t);await b.s.editEntry(edit(a));const original=b.s.foundationWrite.bind(b.s),anchor=(await b.core.read('head','savedWorkBootstrap',a.created.id)),anchorOp=(await b.core.read('revision',anchor.revisions[0])).operation;let injected=false;
+ const change=async tx=>{if(drift==='anchor-head')await tx.put('meta',{...anchor,purged:true});else{const r=await b.core.get(tx,'receipt',anchorOp.operationId);await tx.put('meta',{...r,sequence:r.sequence+1});}injected=true;};
+ b.s.foundationWrite=(fn,limit)=>original(async tx=>{if(phase==='before-owner')await change(tx);const result=await fn(tx);if(phase==='after-owner')await change(tx);return result;},limit);const before=await snapshot(b.s);await assert.rejects(b.s.editEntry({id:a.created.id,expectedRevision:2,operationId:crypto.randomUUID(),changes:{title:'SYNTHETIC authority fault'}}));assert.equal(injected,true);assert.deepEqual(await snapshot(b.s),before);
+});
+test('saved coalesced edit preserves a later original global history counter',async t=>{
+ const {a,b}=await restoredEditor(t);await b.s.editEntry(edit(a));b.s.humanLibraryJournal=null;await b.s.createTopic({name:'SYNTHETIC independent original owner',operationId:crypto.randomUUID()});b.s.humanLibraryJournal=new SavedWorkSyncJournal(b.core);const value=(await b.s.repository.transaction(false,t=>t.get('meta','revision-sequence'))).value;
+ assert.equal((await b.s.editEntry({id:a.created.id,expectedRevision:2,operationId:crypto.randomUUID(),changes:{title:'SYNTHETIC counter continuation'}})).revision,3);assert.equal((await b.s.repository.transaction(false,t=>t.get('meta','revision-sequence'))).value,value);
+});

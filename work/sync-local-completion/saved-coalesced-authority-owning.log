@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: saved original editor records typed successor atomically after cold B restore
+ok 1 - saved original editor records typed successor atomically after cold B restore
+  ---
+  duration_ms: 459.060292
+  type: 'test'
+  ...
+# Subtest: saved successor stale revision and field CAS preserve canonical and complete protocol
+ok 2 - saved successor stale revision and field CAS preserve canonical and complete protocol
+  ---
+  duration_ms: 145.532458
+  type: 'test'
+  ...
+# Subtest: saved successor lost response retries original receipt and outbox without a second edit
+ok 3 - saved successor lost response retries original receipt and outbox without a second edit
+  ---
+  duration_ms: 150.590791
+  type: 'test'
+  ...
+# Subtest: saved successor cannot weaken existing user-only Source journal or accept changed Source
+ok 4 - saved successor cannot weaken existing user-only Source journal or accept changed Source
+  ---
+  duration_ms: 124.959833
+  type: 'test'
+  ...
+# Subtest: saved successor final source failure rolls back canonical and atomic outbox
+ok 5 - saved successor final source failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 140.6185
+  type: 'test'
+  ...
+# Subtest: saved successor final control failure rolls back canonical and atomic outbox
+ok 6 - saved successor final control failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 127.643917
+  type: 'test'
+  ...
+# Subtest: saved successor final frontier failure rolls back canonical and atomic outbox
+ok 7 - saved successor final frontier failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 129.764042
+  type: 'test'
+  ...
+# Subtest: saved successor final receipt failure rolls back canonical and atomic outbox
+ok 8 - saved successor final receipt failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 129.098083
+  type: 'test'
+  ...
+# Subtest: saved successor final history failure rolls back canonical and atomic outbox
+ok 9 - saved successor final history failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 129.55225
+  type: 'test'
+  ...
+# Subtest: saved successor final budget failure rolls back canonical and atomic outbox
+ok 10 - saved successor final budget failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 197.509083
+  type: 'test'
+  ...
+# Subtest: saved successor final failure failure rolls back canonical and atomic outbox
+ok 11 - saved successor final failure failure rolls back canonical and atomic outbox
+  ---
+  duration_ms: 126.542083
+  type: 'test'
+  ...
+# Subtest: saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+ok 12 - saved successor concurrent device branches are refused as conflict rather than silently losing either edit
+  ---
+  duration_ms: 210.888208
+  type: 'test'
+  ...
+# Subtest: saved successor typed Core rejects direct application without original owner capability
+ok 13 - saved successor typed Core rejects direct application without original owner capability
+  ---
+  duration_ms: 133.117125
+  type: 'test'
+  ...
+# Subtest: saved successor unrepresented ordinary edit remains an explicit refusal
+ok 14 - saved successor unrepresented ordinary edit remains an explicit refusal
+  ---
+  duration_ms: 148.437375
+  type: 'test'
+  ...
+# Subtest: saved successor typed validator and graph refuse forged request allocation origin and ancestry
+ok 15 - saved successor typed validator and graph refuse forged request allocation origin and ancestry
+  ---
+  duration_ms: 142.117
+  type: 'test'
+  ...
+# Subtest: saved successor cold recovery applied-group fault leaves complete stage and canonical state unchanged
+ok 16 - saved successor cold recovery applied-group fault leaves complete stage and canonical state unchanged
+  ---
+  duration_ms: 226.201542
+  type: 'test'
+  ...
+# Subtest: saved successor cold recovery after-activation fault leaves complete stage and canonical state unchanged
+ok 17 - saved successor cold recovery after-activation fault leaves complete stage and canonical state unchanged
+  ---
+  duration_ms: 222.635
+  type: 'test'
+  ...
+# Subtest: saved successor budget is admitted before the original first transaction query
+ok 18 - saved successor budget is admitted before the original first transaction query
+  ---
+  duration_ms: 121.294541
+  type: 'test'
+  ...
+# Subtest: saved original edit planner refuses duplicate physical index keys hidden at a page boundary
+ok 19 - saved original edit planner refuses duplicate physical index keys hidden at a page boundary
+  ---
+  duration_ms: 121.384042
+  type: 'test'
+  ...
+# Subtest: saved successor cold final receipt drift rolls back every canonical protocol and activated stage row
+ok 20 - saved successor cold final receipt drift rolls back every canonical protocol and activated stage row
+  ---
+  duration_ms: 228.43325
+  type: 'test'
+  ...
+# Subtest: saved coalesced typed edits preserve every operation through B to cold C and continuation
+ok 21 - saved coalesced typed edits preserve every operation through B to cold C and continuation
+  ---
+  duration_ms: 347.733583
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor missing
+ok 22 - saved coalesced continuation authenticates every original typed ancestor missing
+  ---
+  duration_ms: 152.264917
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor changed
+ok 23 - saved coalesced continuation authenticates every original typed ancestor changed
+  ---
+  duration_ms: 155.807583
+  type: 'test'
+  ...
+# Subtest: saved coalesced continuation authenticates every original typed ancestor tail
+ok 24 - saved coalesced continuation authenticates every original typed ancestor tail
+  ---
+  duration_ms: 177.21525
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit tail source rolls back original row replacement and outbox
+ok 25 - saved coalesced edit tail source rolls back original row replacement and outbox
+  ---
+  duration_ms: 152.211875
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit tail receipt rolls back original row replacement and outbox
+ok 26 - saved coalesced edit tail receipt rolls back original row replacement and outbox
+  ---
+  duration_ms: 153.58725
+  type: 'test'
+  ...
+# Subtest: saved coalesced cold final activation failure preserves every table and stage
+ok 27 - saved coalesced cold final activation failure preserves every table and stage
+  ---
+  duration_ms: 277.235375
+  type: 'test'
+  ...
+# Subtest: saved coalesced initial capture still refuses missing typed intermediate facts
+ok 28 - saved coalesced initial capture still refuses missing typed intermediate facts
+  ---
+  duration_ms: 28.661
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority before-owner anchor-head rolls back
+ok 29 - saved coalesced ancestry authority before-owner anchor-head rolls back
+  ---
+  duration_ms: 145.65925
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority before-owner ancestor-receipt rolls back
+ok 30 - saved coalesced ancestry authority before-owner ancestor-receipt rolls back
+  ---
+  duration_ms: 146.27275
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority after-owner anchor-head rolls back
+ok 31 - saved coalesced ancestry authority after-owner anchor-head rolls back
+  ---
+  duration_ms: 151.705208
+  type: 'test'
+  ...
+# Subtest: saved coalesced ancestry authority after-owner ancestor-receipt rolls back
+ok 32 - saved coalesced ancestry authority after-owner ancestor-receipt rolls back
+  ---
+  duration_ms: 154.102
+  type: 'test'
+  ...
+# Subtest: saved coalesced edit preserves a later original global history counter
+ok 33 - saved coalesced edit preserves a later original global history counter
+  ---
+  duration_ms: 158.168167
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5756.598334

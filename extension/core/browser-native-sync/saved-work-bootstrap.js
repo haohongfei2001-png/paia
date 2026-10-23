@@ -275,6 +275,11 @@ export async function prepareSavedWorkEdit(store,core,input){
  const anchor=await core.read('revision',anchorHead.revisions[0]),chain=[],seen=new Set();let revision=head?.revisions[0],retainedChain=bytes(anchor).length;
  while(revision){if(seen.has(revision)||chain.length>=128||Date.now()-start>30000)fail('BNS_SAVED_WORK_LIMIT');seen.add(revision);const row=await core.read('revision',revision);if(!row||row.redacted||row.operation?.type!=='savedWorkSuccessor'||row.operation.revisionId!==revision||row.operation.parents.length>1)bad();retainedChain+=bytes(row).length;if(retainedChain>limit)fail('BNS_SAVED_WORK_LIMIT');chain.unshift(row);revision=row.operation.parents[0];}
  const ancestry=[anchor,...chain];for(const row of ancestry){if(!row||row.redacted)bad();await validateFrozenOperation(row.operation);}
+ const lineage=await core.transaction(false,async t=>{
+  const result=[anchorHead,...(head?[head]:[])];
+  for(const row of ancestry){const op=row.operation;for(const [kind,ids,value]of [['receipt',[op.operationId],{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence}],['sequence',[op.deviceId,String(op.sequence).padStart(16,'0')],{operationId:op.operationId,digest:op.revisionId}],['entityRevision',[op.type,op.entityId,op.revisionId],{revisionId:op.revisionId}]]){const actual=await core.get(t,kind,...ids);if(!actual||!equal(actual,{id:actual.id,...value}))fail('BNS_SAVED_WORK_CHANGED');result.push(actual);}}
+  return result;
+ });
  const previous=chain.at(-1)??anchor,canonical=await core.transaction(false,async t=>({authority:await authority(store,core,t),rows:await ownedRows(t,request.id)}));
  const link=anchor.operation.value.payload.link,evidenceForChain=await restoreSourceLinkedEvidence(store,link.evidence),derived=await deriveSavedChain(ancestry.map(row=>row.operation),evidenceForChain,canonical.authority.secret),r=canonical.rows;
  const expected={entry:derived.expected.entry,history:derived.expected.history,provenance:[derived.expected.provenance],dependencies:[derived.expected.dependency],placements:0,suppressions:0};
@@ -285,22 +290,24 @@ export async function prepareSavedWorkEdit(store,core,input){
  const value={id:request.id,version:1,anchor:anchor.operation.revisionId,before:payload,after,request,events,allocation,sequenceBefore:entry.sequence?.value||0,revisionBefore:entry.revision?.value||0};await validateSavedSuccessor(value);
  const prepared=await core.prepare([{type:'savedWorkSuccessor',expectedParents:head?.revisions||[],value}],{actor:'user'}),before=await core.transaction(false,async t=>({authority:await authority(store,core,t),rows:await ownedRows(t,request.id),source:await sourceProof(core,t,payload.link)}));
  if(!equal(before.rows.entry, {...payload.entry,exactSignature:before.rows.entry.exactSignature})||!equal(before.rows.history,payload.history)||!equal(before.authority.sequence,entry.sequence)||!equal(before.authority.revision,entry.revision))fail('BNS_SAVED_WORK_CHANGED');
- const evidence=await restoreSourceLinkedEvidence(store,payload.link.evidence);let retained=bytes({value,before,prepared,view,ancestry}).length;
+ const evidence=await restoreSourceLinkedEvidence(store,payload.link.evidence);let retained=bytes({value,before,prepared,view,ancestry,lineage}).length;
  const current=()=>{if(Date.now()-start>30000||retained>limit)fail('BNS_SAVED_WORK_LIMIT');};current();
  const facts=await core.transaction(false,t=>captureTopicFormationTerminal(store,t,evidence,{current,retain:x=>{retained+=bytes(x).length;current();return clone(x);}}));
- const cap=Object.freeze({});savedEdits.set(cap,{store,core,owner,view,prepared,before,evidence,facts,start,request,requestDigest,anchor,previous,ancestry});return cap;
+ const cap=Object.freeze({});savedEdits.set(cap,{store,core,owner,view,prepared,before,evidence,facts,start,request,requestDigest,anchor,previous,ancestry,lineage});return cap;
 }
 export async function commitSavedWorkEdit(t,cap,store){
  const p=savedEdits.get(cap);if(!p||p.store!==store)fail('BNS_SAVED_WORK_CAPABILITY');const {core,before,view,request}=p;
  requireRepositoryTransactionScope(store.repository,t);requireRepositoryTransactionDataMethods(store.repository,t);
  const now=await authority(store,core,t);if(Date.now()-p.start>30000||!equal(before,{authority:now,rows:await ownedRows(t,request.id),source:await sourceProof(core,t,p.prepared.operations[0].value.before.link)}))fail('BNS_SAVED_WORK_CHANGED');await checkEvidenceInTransaction(store,t,p.evidence);
  for(const fact of p.facts)if(!equal(fact.project(await t.get(fact.table,fact.key),()=>{}),fact.expected))fail('BNS_SAVED_WORK_CHANGED');
+ for(const original of p.lineage)if(!equal(await t.get('meta',original.id),original))fail('BNS_SAVED_WORK_CHANGED');
  for(const original of p.ancestry)if(!equal(await core.get(t,'revision',original.operation.revisionId),original))fail('BNS_SAVED_WORK_CHANGED');
  const operation=p.prepared.operations[0],intent=await savedProtocolIntent(t,core,operation,true),result=await executeHumanPlanInTransaction(t,p.owner);
  protocolApplications.set(t,{core,operation,origin:'local'});try{await core.commitPrepared(t,p.prepared,{materialize:false});}finally{protocolApplications.delete(t);}
  const marker={version:1,requestDigest:p.requestDigest,result:clone(result),protocolOperationId:operation.operationId,revisionId:operation.revisionId},key=await core.idIn(t,'savedEditReceipt',request.operationId);if(await t.get('meta',key))fail('BNS_SAVED_WORK_COLLISION');await core.put(t,'savedEditReceipt',[request.operationId],marker);
- const points=[...before.source.rows.map(row=>['meta',row.id,row]),...before.authority.roots.map(([id,row])=>['meta',id,row]),...new Map(p.ancestry.map(row=>[row.id,row])).values()].map(x=>Array.isArray(x)?x:['meta',x.id,x]);
- points.push(['meta',key,{...marker,id:key}],['meta','thought-sequence',{id:'thought-sequence',value:view.operationReceipt.operationSequence}],['meta','revision-sequence',{id:'revision-sequence',value:view.history.at(-1).sequence}],['meta','backup-data-generation',{id:'backup-data-generation',value:before.authority.generation+1}],['thoughts',view.entry.id,view.entry],['operationReceipts',request.operationId,view.operationReceipt],...before.rows.provenance.map(row=>['provenance',row.id,row]),...before.rows.dependencies.map(row=>['dependencies',row.id,row]),...view.history.map(row=>['revisions',row.id,row]));
+ const points=[...before.source.rows.map(row=>['meta',row.id,row]),...before.authority.roots.map(([id,row])=>['meta',id,row]),...new Map([...p.ancestry,...p.lineage].map(row=>[row.id,row])).values()].map(x=>Array.isArray(x)?x:['meta',x.id,x]);
+ const previousSuccessorHead=p.lineage.find(row=>row.type==='savedWorkSuccessor'&&Array.isArray(row.revisions));if(previousSuccessorHead){const index=points.findIndex(([table,id])=>table==='meta'&&id===previousSuccessorHead.id);points.splice(index,1);}
+ points.push(['meta',key,{...marker,id:key}],['meta','thought-sequence',{id:'thought-sequence',value:view.operationReceipt.operationSequence}],['meta','revision-sequence',{id:'revision-sequence',value:view.revisionSequence}],['meta','backup-data-generation',{id:'backup-data-generation',value:before.authority.generation+1}],['thoughts',view.entry.id,view.entry],['operationReceipts',request.operationId,view.operationReceipt],...before.rows.provenance.map(row=>['provenance',row.id,row]),...before.rows.dependencies.map(row=>['dependencies',row.id,row]),...view.history.map(row=>['revisions',row.id,row]));
  const current=()=>{if(Date.now()-p.start>30000)fail('BNS_SAVED_WORK_LIMIT');assertOriginalControlSettingsFacts(store,now.control);return true;};
  registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){
   for(const fact of p.facts)if(!equal(fact.project(yield {method:'get',table:fact.table,key:fact.key},current),fact.expected))fail('BNS_SAVED_WORK_CHANGED');
