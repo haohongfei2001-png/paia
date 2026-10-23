@@ -1,0 +1,4 @@
+{
+  "extension/core/browser-native-sync/recovery-session.js": "2c8aab07264735e30b7a2e601b037289607ecc6a79ab46517ff22fdc22210100",
+  "extension/tests/browser-native-sync-local-recovery.test.mjs": "f3ace19cd03caf2b29ab5db77e618a694fe3648e3691b381f0809e9a1ebe941a"
+}

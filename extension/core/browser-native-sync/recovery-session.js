@@ -8,10 +8,10 @@ import {bytes,clone,decodeJSON,equal,exact,fail,hash,opaque,SyncError} from './v
 // Core/store and a transport; this module creates no provider, account or grant.
 // Durable progress belongs exclusively to the existing staged restore owner.
 export class LocalSyncRecoverySession {
- #restore;#transport;#core;#store;#discoveryTimeoutMs;#cancelRead=null;#recoveryState='not-restored';#busy=false;#paused=false;#closed=false;#serial=0;#ref=null;#state='idle';#error=null;
- constructor(core,{store,transport,restoreId=crypto.randomUUID(),checkpoint=async()=>{},discoveryTimeoutMs=30000}={}){
-  if(store?.repository!==core?.repository||!core?.repository||typeof transport?.get!=='function'||!opaque(restoreId)||typeof checkpoint!=='function'||!Number.isSafeInteger(discoveryTimeoutMs)||discoveryTimeoutMs<1||discoveryTimeoutMs>30000)fail('BNS_RECOVERY_BINDING');
-  this.#transport=transport;this.#core=core;this.#store=store;this.#discoveryTimeoutMs=discoveryTimeoutMs;
+ #restore;#transport;#core;#store;#discoveryTimeoutMs;#readTimeoutMs;#cancelRead=null;#recoveryState='not-restored';#busy=false;#paused=false;#closed=false;#serial=0;#ref=null;#state='idle';#error=null;
+ constructor(core,{store,transport,restoreId=crypto.randomUUID(),checkpoint=async()=>{},discoveryTimeoutMs=30000,readTimeoutMs=30000}={}){
+  if(store?.repository!==core?.repository||!core?.repository||typeof transport?.get!=='function'||!opaque(restoreId)||typeof checkpoint!=='function'||!Number.isSafeInteger(discoveryTimeoutMs)||discoveryTimeoutMs<1||discoveryTimeoutMs>30000||!Number.isSafeInteger(readTimeoutMs)||readTimeoutMs<1||readTimeoutMs>30000)fail('BNS_RECOVERY_BINDING');
+  this.#transport=transport;this.#core=core;this.#store=store;this.#discoveryTimeoutMs=discoveryTimeoutMs;this.#readTimeoutMs=readTimeoutMs;
   this.#restore=new StagedSyncRestore(core,{restoreId,grouped:{store},checkpoint:async(...args)=>{this.#check();await checkpoint(...args);this.#check();}});
  }
  get restoreId(){return this.#restore.restoreId;}
@@ -31,17 +31,18 @@ export class LocalSyncRecoverySession {
   assertProtocolObjectReference(reference);
   if(!(raw instanceof Uint8Array)||raw.byteLength!==reference.encodedBytes)fail('BNS_OBJECT_INTEGRITY');return raw;
  }
- async #readUntil(action,deadline,serial){
-  this.#check(serial);const remaining=deadline-performance.now();if(remaining<=0)fail('BNS_RECOVERY_DISCOVERY_LIMIT');
-  let timer,cancel;const interruption=new Promise((_,reject)=>{cancel=()=>reject(new SyncError('BNS_RECOVERY_INTERRUPTED'));this.#cancelRead=cancel;timer=setTimeout(()=>{++this.#serial;reject(new SyncError('BNS_RECOVERY_DISCOVERY_LIMIT'));},remaining);});
-  try{const result=await Promise.race([Promise.resolve().then(()=>{this.#check(serial);return action();}),interruption]);this.#check(serial);return result;}
+ async #readUntil(action,deadline,serial,limitCode='BNS_RECOVERY_DISCOVERY_LIMIT'){
+  this.#check(serial);const remaining=deadline-performance.now();if(remaining<=0)fail(limitCode);
+  let timer,cancel;const interruption=new Promise((_,reject)=>{cancel=()=>reject(new SyncError('BNS_RECOVERY_INTERRUPTED'));this.#cancelRead=cancel;timer=setTimeout(()=>{++this.#serial;reject(new SyncError(limitCode));},remaining);});
+  try{const result=await Promise.race([Promise.resolve().then(()=>{this.#check(serial);return action();}),interruption]);this.#check(serial);if(performance.now()>=deadline){++this.#serial;fail(limitCode);}return result;}
   finally{clearTimeout(timer);if(this.#cancelRead===cancel)this.#cancelRead=null;}
  }
  async stage(ref){
   return this.#run('reading',async serial=>{
+   const deadline=performance.now()+this.#readTimeoutMs;
    const detached=clone(ref);if(this.#ref&&this.#ref.id!==detached?.id)fail('BNS_RESTORE_ID_COLLISION');this.#ref=detached;
-   const get=async reference=>{this.#check(serial);const raw=await this.#transport.get(clone(reference));this.#check(serial);return this.#transportBytes(reference,raw);};
-   const result=await this.#restore.stageCheckpoint(detached,get);this.#check(serial);
+   const get=async reference=>{this.#check(serial);const raw=await this.#readUntil(()=>this.#transport.get(clone(reference)),deadline,serial,'BNS_RECOVERY_READ_LIMIT');this.#check(serial);return this.#transportBytes(reference,raw);};
+   const result=await this.#restore.stageCheckpoint(detached,get);this.#check(serial);if(performance.now()>=deadline)fail('BNS_RECOVERY_READ_LIMIT');
    // A previous activation still requires the original replay/epoch proof.
    this.#state=result.phase==='activated'?'confirmation-needed':'validated';
   });

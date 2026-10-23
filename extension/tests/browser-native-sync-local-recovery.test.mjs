@@ -91,3 +91,23 @@ for(const action of ['pause','close'])test(action+' settles a held discovery wit
 for(const action of ['stage','discover'])test(action+' rejects transport length mismatch before the object reader copies bytes',async t=>{
  const f=await fixture(t),session=f.session(),before=await canonical(f.b.s);let copies=0;f.transport.get=async ref=>{const raw=new Uint8Array(ref.encodedBytes+1);raw.slice=()=>{copies++;throw Error('unexpected oversized copy');};return raw;};await assert.rejects(action==='stage'?session.stage(f.cut.ref):session.discover(),{code:'BNS_OBJECT_INTEGRITY'});assert.equal(copies,0);assert.deepEqual(await canonical(f.b.s),before);
 });
+
+for(const action of ['pause','close'])test(action+' settles held staging before host completion and late bytes cannot change original destination',async t=>{
+ const f=await fixture(t),before=await canonical(f.b.s),session=f.session(),get=f.transport.get;let arrive,release,settled=false;const entered=new Promise(r=>arrive=r),held=new Promise(r=>release=r);f.transport.get=async ref=>{arrive();await held;return get(ref);};
+ const pending=session.stage(f.cut.ref);pending.catch(()=>{}).finally(()=>{settled=true;});await entered;session[action]();
+ try{await new Promise(r=>setImmediate(r));assert.equal(settled,true,'pause/close must settle without releasing the injected transport');await assert.rejects(pending,{code:'BNS_RECOVERY_INTERRUPTED'});assert.equal(session.snapshot().busy,false);}
+ finally{release();await pending.catch(()=>{});}
+ await new Promise(r=>setImmediate(r));assert.deepEqual(await canonical(f.b.s),before);assert.equal(session.snapshot().recoveryState,'not-restored');
+ if(action==='pause'){session.resume();f.transport.get=get;assert.equal((await session.recover(f.cut.ref)).recoveryState,'restored');}
+});
+test('staging deadline bounds held object and permits original durable-stage resume',async t=>{
+ const f=await fixture(t),session=f.session({readTimeoutMs:60}),before=await canonical(f.b.s),get=f.transport.get;let release,arrive;const held=new Promise(r=>release=r),entered=new Promise(r=>arrive=r);f.transport.get=async ref=>{if(ref.kind==='checkpoint-shard'){arrive();await held;}return get(ref);};const pending=session.stage(f.cut.ref);pending.catch(()=>{});await entered;let timer;
+ try{await assert.rejects(Promise.race([pending,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('test-only ceiling: staging did not settle')),500);})]),{code:'BNS_RECOVERY_READ_LIMIT'});assert.equal(session.snapshot().busy,false);}
+ finally{clearTimeout(timer);release();await pending.catch(()=>{});}
+ await new Promise(r=>setImmediate(r));assert.deepEqual(await canonical(f.b.s),before);f.transport.get=get;assert.equal((await f.session({restoreId:session.restoreId}).continueStored()).recoveryState,'restored');
+});
+
+test('late prior-stage bytes cannot disturb a new confirmed recovery after pause and resume',async t=>{
+ const f=await fixture(t),session=f.session(),get=f.transport.get;let arrive,release;const entered=new Promise(r=>arrive=r),held=new Promise(r=>release=r);f.transport.get=async ref=>{arrive();await held;return get(ref);};const pending=session.stage(f.cut.ref);pending.catch(()=>{});await entered;session.pause();await assert.rejects(pending,{code:'BNS_RECOVERY_INTERRUPTED'});session.resume();f.transport.get=get;
+ assert.equal((await session.recover(f.cut.ref)).recoveryState,'restored');const before=await canonical(f.b.s),snapshot=session.snapshot();release();await new Promise(r=>setImmediate(r));assert.deepEqual(await canonical(f.b.s),before);assert.deepEqual(session.snapshot(),snapshot);
+});
