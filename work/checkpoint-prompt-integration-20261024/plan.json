@@ -14,7 +14,9 @@
     "manual-prompt-conflict-consumer.test.mjs",
     "sync-local-lifecycle.test.mjs",
     "settings-sync.test.mjs",
-    "browser-native-sync-source-purge-filter.test.mjs"
+    "browser-native-sync-source-purge-filter.test.mjs",
+    "library-documents-generation-owner.test.mjs",
+    "library-documents-owner.test.mjs"
   ],
   "native": [
     "native-sync/checkpoint-publication-native.test.mjs",

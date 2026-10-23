@@ -159,5 +159,21 @@
       "work/checkpoint-native-consumer-20261024/synthetic-final.log": "f38bae89fb2e07c4c653529bf4da1cfc4db3b487943f2a112f5925b9df69f7b1",
       "work/checkpoint-native-consumer-20261024/synthetic-first.log": "5c51fe23751890129d4c9d9ae9110184e14c03f4bfba1b204305115a72ab1853"
     }
+  },
+  {
+    "author": "16d5fd9d76c1ee71341af5962ca064d608d84a4e",
+    "integrated": "e85eab36",
+    "files": {
+      "extension/core/library-documents-owner.js": "0e998939bd9835548e49ca0603ce3949a3ffc27d123c2fbd6bebcd9730042241",
+      "extension/core/organizer/store-owner.js": "0ca81b8c8824bbe2501af920e1e1586ede69a8976e915a9049050610183eaeb3",
+      "extension/tests/library-documents-generation-owner.test.mjs": "c635a94d9533ca18be3792d35ec618c57a91a7ebf2865a373d958612ceb36ad0",
+      "work/organizer-generation-owner-20261024/REPORT.md": "1582d0d9781f5d462c92542a755a845284bb93a0c5a5d4a3c64ee699610fb79f",
+      "work/organizer-generation-owner-20261024/SHA256SUMS": "7d3113d15729d459ea74dc5ed97511afdb7f3ddd68036868acfa598757fe65f3",
+      "work/organizer-generation-owner-20261024/before.log": "dd4fdb09be1167a19f3aae891567b2c381e4d5bcc9a4aaad4f8eaa547787b33e",
+      "work/organizer-generation-owner-20261024/first-owning-test.mjs": "0e1e1f8b7009a62bb608dde63e30906bf7acb79d7d6369d0255b2af21e475d1d",
+      "work/organizer-generation-owner-20261024/owning.log": "3e7f96be6166cd45dc6f29dd1d0ddd25b7d12d58803b7e895e1a9bc341bff8cd",
+      "work/organizer-generation-owner-20261024/source-vector.txt": "aedf7fdf7ea2c289eaad0f8b2a643b4bcd455fd7ddc27a811b352e76d8b9f239",
+      "work/organizer-generation-owner-20261024/targeted.log": "55e687877a8e864d4a073cb86acb17cb72e8d5c471911147887c3d14ee9828e2"
+    }
   }
 ]
