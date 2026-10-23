@@ -1,0 +1,73 @@
+diff --git a/extension/core/browser-native-sync/group-checkpoint-plan.js b/extension/core/browser-native-sync/group-checkpoint-plan.js
+index 4bfd9f02..12318f4e 100644
+--- a/extension/core/browser-native-sync/group-checkpoint-plan.js
++++ b/extension/core/browser-native-sync/group-checkpoint-plan.js
+@@ -125,15 +125,19 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
+  const saved=groups.filter(group=>group.type==='savedWorkBootstrap'),successors=groups.filter(group=>group.type==='savedWorkSuccessor');
+  if(successors.length&&!saved.length)fail('BNS_SAVED_WORK_UNSUPPORTED');
+  if(saved.length){
+-  if(currentSourceWorking||groups.length!==1+saved.length+successors.length||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1)fail('BNS_SAVED_WORK_UNSUPPORTED');
++  const humanSaved=groups.filter(g=>g.type==='humanLibraryCommit');
++  if(humanSaved.some(g=>!['entry','entry-edit'].includes(g.prepared.descriptor.value.kind)||g.prepared.members.some(op=>!['entry','history'].includes(op.value.entityType))))fail('BNS_SAVED_WORK_UNSUPPORTED');
++  if(currentSourceWorking||groups.length!==1+saved.length+successors.length+humanSaved.length||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1)fail('BNS_SAVED_WORK_UNSUPPORTED');
+   // A complete graph may retain pruned/coalesced historical payloads. Check
+   // identities across every before/after, not only the final canonical rows:
+   // another entity cannot borrow an old revision, provenance or owner receipt.
+   const identities=new Map(),sourceBaseline=initialSourcePlan(groups.find(group=>group.type==='sourceBootstrapCommit').capability).baselineRevision;
+   const claim=(kind,id,entity)=>{const key=JSON.stringify([kind,id]),prior=identities.get(key);if(prior!==undefined&&prior!==entity)fail('BNS_SAVED_WORK_COLLISION');identities.set(key,entity);};
+   const sourceOwner=Symbol('source');claim('history',sourceBaseline.id,sourceOwner);claim('operation',sourceBaseline.operationId,sourceOwner);
++  const humanOwners=new Map(),humanOwner=id=>{if(!humanOwners.has(id))humanOwners.set(id,Symbol('human-entry'));return humanOwners.get(id);};
++  for(const g of humanSaved)for(const op of g.prepared.members){const row=op.value.after,entity=humanOwner(op.value.entityType==='entry'?row.id:row.entityId);if(op.value.entityType==='entry'){claim('entry',row.id,entity);claim('allocation',row.createdSequence,entity);}else{claim('history',row.id,entity);claim('operation',row.operationId,entity);}}
+   for(const group of [...saved,...successors]){const op=group.operations[0],payloads=group.type==='savedWorkBootstrap'?[op.value.payload]:[op.value.before,op.value.after];
+-   for(const payload of payloads){const entity=op.entityId;claim('provenance',payload.link.provenanceId,entity);claim('allocation',payload.entry.createdSequence,entity);for(const row of payload.history){claim('history',row.id,entity);claim('operation',row.operationId,entity);}}const after=group.type==='savedWorkBootstrap'?op.value.payload:op.value.after;claim('update:'+op.deviceId,after.entry.updatedSequence,op.entityId);
++   for(const payload of payloads){const entity=op.entityId;claim('entry',entity,entity);claim('provenance',payload.link.provenanceId,entity);claim('allocation',payload.entry.createdSequence,entity);for(const row of payload.history){claim('history',row.id,entity);claim('operation',row.operationId,entity);}}const after=group.type==='savedWorkBootstrap'?op.value.payload:op.value.after;claim('update:'+op.deviceId,after.entry.updatedSequence,op.entityId);
+   }
+   const anchors=new Map();for(const group of saved){const anchor=group.operations[0],wire=anchor.value.payload.link.evidence,source=createdInputs.get(wire.inputId);
+    if(anchors.has(anchor.entityId)||!source||!equal([source.prepared.descriptor.value.sourceId],wire.sourceRecordIds)||!equal([source.prepared.descriptor.value.sourceKey],wire.sourceIdentityTokens))fail('BNS_GROUP_CAUSAL_GAP');
+diff --git a/extension/core/browser-native-sync/group-checkpoint.js b/extension/core/browser-native-sync/group-checkpoint.js
+index d776e28a..180e9378 100644
+--- a/extension/core/browser-native-sync/group-checkpoint.js
++++ b/extension/core/browser-native-sync/group-checkpoint.js
+@@ -4,7 +4,7 @@ import {requireOriginalLibraryDocumentsGenerationMethods} from '../library-docum
+ import {requireNoSourcePurgeDeny} from './source-purge-journal.js';
+ import {equalSourceWorkingPhysicalTree} from './source-working-physical.js';
+ import {readCanonicalCheckpointProof,requireCanonicalCheckpointProof,requireCanonicalCheckpointInputProof} from './canonical-generation-checkpoint-stage.js';
+-import {prepareSavedWorkGroupApplication,applySavedWorkGroupStep,sealSavedWorkGroupActivation,prepareSavedWorkReceive,commitSavedWorkEdit,sealSavedWorkCurrentScope,sealSavedWorkMergeProgress} from './saved-work-bootstrap.js';
++import {prepareSavedWorkGroupApplication,applySavedWorkGroupStep,sealSavedWorkGroupActivation,prepareSavedWorkReceive,commitSavedWorkEdit,sealSavedWorkCurrentScope,sealSavedWorkMergeProgress,prepareSavedMixedRetention,sealSavedMixedRetention} from './saved-work-bootstrap.js';
+ import {groupOperationPages,createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget,readGroupRows} from './group-page-reader.js';
+ import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,captureMixedCurrentGroupProjection,requireMixedCurrentGroupProjection,encodeMixedCurrentGroupCheckpoint,publishMixedCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
+ import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-working-commit.js';
+@@ -249,7 +249,7 @@ export class GroupedCheckpointRestore{
+   if(localOperations.length)return plan.groups.some(g=>g.type==='savedWorkBootstrap')?this.mergeSaved(state,plan,localOperations):plan.groups.every(g=>['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(g.type))?this.mergeSourceWorking(state,plan,localOperations):plan.groups.some(g=>g.type==='sourceBootstrapCommit')&&plan.groups.some(g=>g.type==='humanLibraryCommit')?this.mergeMixed(state,plan,localOperations):this.mergeManual(state,plan,localOperations);
+   const filter=new FilterIntentSyncJournal(replay),working=new InputWorkingCommitReceiver(this.store,replay,{filterJournal:filter}),manual=manualSyncOwners(replay),desired=contextDesiredMaterializer(replay),topicDesired=topicDesiredMaterializer(replay),consumerOperations=finalConsumerPreferenceOperations(plan);
+   const sourceProof=await prepareRestoredFilterSources(canonical.expected.records.map(row=>({...row})));
+-  const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan),savedApplication=await prepareSavedWorkGroupApplication(this.store,replay,plan,this.stage,state);
++  const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan),savedApplication=await prepareSavedWorkGroupApplication(this.store,replay,plan,this.stage,state,humanApplication);
+   const applications=[];for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);else if(group.type==='sourceAppendCommit'){const anchor=plan.groups.find(x=>x.id===group.prepared.descriptor.value.bootstrap.revisionId);applications.push([group,await prepareAppendApplication(this.store,replay,group.operations,anchor.operations)]);}else if(group.type==='inputWorkingCommit')applications.push([group,await prepareWorkingApplication(working,group.operations)]);else if(group.type==='filterIntent')applications.push([group,await prepareFilterApplication(filter,group.operations[0])]);else applications.push([group,null]);}
+   const consumerApplication=consumerOperations.length?await prepareRestoredConsumerPreferenceApplication(this.store,replay,plan,this.stage,state):null;
+   const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(replay,[]));
+@@ -326,7 +326,7 @@ export class GroupedCheckpointRestore{
+  // named-owner transition with its durable cursor. A failed later step is not
+  // described as whole-checkpoint rollback or acknowledged as complete.
+  async mergeSaved(state,remotePlan,localOperations){
+-  const started=performance.now(),current=()=>{if(performance.now()-started>=30000)fail('BNS_GROUP_RESOURCE_LIMIT');},allowed=new Set(['sourceBootstrapCommit','savedWorkBootstrap','savedWorkSuccessor']);
++  const started=performance.now(),current=()=>{if(performance.now()-started>=30000)fail('BNS_GROUP_RESOURCE_LIMIT');},allowed=new Set(['sourceBootstrapCommit','savedWorkBootstrap','savedWorkSuccessor','humanLibraryCommit']);
+   let localPlan=await prepareGroupCheckpointPlan(this.live,localOperations);if([...localPlan.groups,...remotePlan.groups].some(g=>!allowed.has(g.type)))fail('BNS_GROUP_MERGE_OWNER_UNSUPPORTED');
+   const combined=new Map(localOperations.map(op=>[op.revisionId,op]));for(const g of remotePlan.groups)for(const op of g.operations){const old=combined.get(op.revisionId);if(old&&!equal(old,op))fail('BNS_GROUP_DUPLICATE');combined.set(op.revisionId,op);}
+   if(bytes([...combined.values()]).length>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');const merged=await prepareGroupCheckpointPlan(this.live,[...combined.values()]),known=new Set(localOperations.map(op=>op.revisionId)),incoming=merged.groups.filter(g=>g.operations.some(op=>!known.has(op.revisionId)));
+@@ -339,13 +339,14 @@ export class GroupedCheckpointRestore{
+     current();if(!equal(await this.stage.get(t,'restore'),previous)||!equal(await authority(this.store,this.live,t),previous.savedMerge?.base??previous.base))fail('BNS_RESTORE_LOCAL_CHANGED');
+     await requireNoSourcePurgeDeny(this.live,t);await requireConsumerPublicationSettled(t);await this.store.qualifyControlPublicationRead(t);await requireCommittedPlan(this.live,t,localPlan);await requireGroupScope(this.store,t,before);
+     for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
++    const retention=await prepareSavedMixedRetention(this.store,this.live,t,before,prepared,this.stage);
+     if(operation)await commitSavedWorkEdit(t,prepared,this.store);
+     await requireCommittedPlan(this.live,t,nextPlan);await requireGroupScope(this.store,t,after);await sealSavedWorkCurrentScope(this.store,this.live,t,after);
+     const base=await authority(this.store,this.live,t),nextBase={...base,ownerGeneration:base.ownerGeneration+(t.backupChanged?1:0)},completed=[...(previous.savedMerge?.completed??[]),...(operation?[operation.revisionId]:[])];
+     const next={...withoutId(previous),phase:complete?'merged':'merging-saved',savedMerge:{digest:merged.digest,completed,base:nextBase}};
+     const intents=[],merge=complete?{version:1,restoreId:this.restoreId,namespace:base.namespace,epoch:base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:merged.digest,receipts}:null;
+     if(complete){if(await this.live.get(t,'mergeCommit',this.restoreId))fail('BNS_RESTORE_ID_COLLISION');intents.push({id:await this.live.idIn(t,'mergeCommit',this.restoreId),...merge});Object.assign(next,{mergeNamespace:base.namespace,mergeDigest:merged.digest,mergeReceipts:receipts});}
+-    intents.push({id:await this.stage.idIn(t,'restore'),...next});await sealSavedWorkMergeProgress(this.store,this.live,t,this.stage,started,intents);await this.checkpoint('before-saved-step-commit',t);
++    intents.push({id:await this.stage.idIn(t,'restore'),...next});await sealSavedMixedRetention(this.store,this.live,t,retention,this.stage,intents);await sealSavedWorkMergeProgress(this.store,this.live,t,this.stage,started,intents);await this.checkpoint('before-saved-step-commit',t);
+     if(merge)await this.live.put(t,'mergeCommit',[this.restoreId],merge);await this.stage.put(t,'restore',[],next);await this.checkpoint('after-saved-step-commit',t);current();return {state:complete?'activated':'partial',namespace:base.namespace,merged:complete};
+    },{ms:Math.max(1,Math.floor(30000-(performance.now()-started)))});
+    state=await this.stage.read('restore');await this.checkpoint('saved-step-settled',operation?.revisionId??null);current();if(complete)return result;localOperations.push(operation);localPlan=nextPlan;

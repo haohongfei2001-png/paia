@@ -1,0 +1,122 @@
+[
+  {
+    "headRefName": "codex/organize-handoff-validation-20261022",
+    "headRefOid": "02144bccf5e0e0b6842aaa4e7c6958cedecdfde1",
+    "number": 313,
+    "title": "Wire bounded Organize and preserve independent Maintenance progress"
+  },
+  {
+    "headRefName": "fix/settings-restore-intent-v0559-20261022",
+    "headRefOid": "7cd62ab4faf2940db7d3b57822e72c6e249a24e5",
+    "number": 312,
+    "title": "Preserve latest Settings selection during pending restore (0.55.9)"
+  },
+  {
+    "headRefName": "design/paia-website-flagship-20261021",
+    "headRefOid": "360c15b75941c14a2eebe5dd39480d080b123551",
+    "number": 310,
+    "title": "PAIA \u5b98\u7f51\u91cd\u65b0\u8bbe\u8ba1\uff1a\u8868\u8fbe\u3001\u539f\u6587\u4e0e\u81ea\u4e3b\u5f00\u653e\uff08\u7b2c\u4e09\u7248\uff09"
+  },
+  {
+    "headRefName": "design/float-ui-1.2-geometry-r2-20261018",
+    "headRefOid": "9a770b22f3e1be88f146905fbd31ff204139710d",
+    "number": 298,
+    "title": "design(prompt): R2 unified capsule and separate-panel geometry"
+  },
+  {
+    "headRefName": "design/float-ui-1.2-polish-20261018",
+    "headRefOid": "7e5322d2241fd13112751a5170d3902179e00081",
+    "number": 297,
+    "title": "design(prompt): v1.2 horizontal double-card R1 runnable refinement"
+  },
+  {
+    "headRefName": "codex/authored-restore-continuity-20261018",
+    "headRefOid": "a19a9c6c0c8e71d4b9e90f152f879d27699cc617",
+    "number": 296,
+    "title": "fix: verify complete authored restore journal continuity"
+  },
+  {
+    "headRefName": "design/website-three-act-20261014",
+    "headRefOid": "a7c3635469052808e4bf1a10abfd469463281632",
+    "number": 287,
+    "title": "design: open-canvas revision 02; fixed-stage prototype rejected"
+  },
+  {
+    "headRefName": "design/website-live-art-direction-20261012",
+    "headRefOid": "d2f74539845e6530cc7612689ab3e137108ef256",
+    "number": 267,
+    "title": "website: live-based art direction with frozen copy"
+  },
+  {
+    "headRefName": "engineering/execution-efficiency-20261012",
+    "headRefOid": "6ed7bf75942d2696af32f72d9f6cb143572c7582",
+    "number": 264,
+    "title": "refactor(ci): unify browser admission and simplify the existing execution entry"
+  },
+  {
+    "headRefName": "feat/website-words-worth-returning-20261010",
+    "headRefOid": "21c76b9d676a7b3d5aa5492e9d41b96be1badaae",
+    "number": 240,
+    "title": "website: refine the current live layouts, preserve existing copy"
+  },
+  {
+    "headRefName": "codex/coordinated-042-20261009",
+    "headRefOid": "c6e7df0db6d324a8b42cdd1011537decfe9590a6",
+    "number": 231,
+    "title": "Preserve the first concurrent Human body branch with authentic native commit"
+  },
+  {
+    "headRefName": "codex/cpv1-context-local-015",
+    "headRefOid": "8e500508eed4379fb61e04a9340a302c1c5ab011",
+    "number": 188,
+    "title": "Context 0.15: complete local editing and Topic choices with internal read boundary"
+  },
+  {
+    "headRefName": "codex/cpv1-ctx4-04-read",
+    "headRefOid": "9be25f04e612bec6f44c2bdc509efd06d47c366d",
+    "number": 187,
+    "title": "CTX4-04: enforce bounded internal Context reads with default-denied authority"
+  },
+  {
+    "headRefName": "codex/cpv1-topic-05-read-model",
+    "headRefOid": "f85f40be6f0f893e32ac6f4f11256cdcd372f9b8",
+    "number": 182,
+    "title": "TOPIC-05.1: checkpoint reviewed read-only Library projection"
+  },
+  {
+    "headRefName": "codex/cpv1-ctx4-03-policy",
+    "headRefOid": "9d1380d341ffc5d15722d51c11c80d159faa1b29",
+    "number": 179,
+    "title": "CTX4-03: persist local My Inputs Topic choices with trusted scope checks"
+  },
+  {
+    "headRefName": "codex/cpv1-ctx4-02",
+    "headRefOid": "8c9ba02104c90b14e8a05d6f2b43f3347c9b7f00",
+    "number": 178,
+    "title": "CPV1-CTX4-02: local three-card editing and recovery (0.15.0)"
+  },
+  {
+    "headRefName": "feat/d5-topic-page-visual",
+    "headRefOid": "645c2410eef78e0d1360caa75a7971aad7ebbfd9",
+    "number": 140,
+    "title": "D5: align Thought page and writing appearance"
+  },
+  {
+    "headRefName": "feat/d5-q6-compose-route",
+    "headRefOid": "497847ea39547df0d069676dda0b6645eb58b6da",
+    "number": 132,
+    "title": "D5 T05: align Thought compose workspace and preserve origin return"
+  },
+  {
+    "headRefName": "feat/vs08-readonly-connector",
+    "headRefOid": "991f78f4c54b79d67428bf3209fb4eaa18f1cc9b",
+    "number": 99,
+    "title": "VS-08/VS-09: scoped Context and human Prompt workspace"
+  },
+  {
+    "headRefName": "design/website-v6-origin",
+    "headRefOid": "ea035da1b006ac08183d5724ffb2eea3f98dea85",
+    "number": 91,
+    "title": "design: Website v6 \u2014 return to original spatial editorial language"
+  }
+]

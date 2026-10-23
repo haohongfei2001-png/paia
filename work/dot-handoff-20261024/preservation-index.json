@@ -1,0 +1,33 @@
+[
+  {
+    "worktree": "/Users/hhf/.codex/worktrees/paia-lifecycle-sync/paia",
+    "head": "981bbe7dd0c9d3c6363562de2a0c1516811916bf",
+    "branch": "codex/topic-lifecycle-sync-20261023",
+    "copiedUntracked": [],
+    "patchSha256": "53a8c960a76087de5f38db9c4fa7b041ca6725c1c4cbff3425d08a41b408c169",
+    "unchanged": true
+  },
+  {
+    "worktree": "/Users/hhf/.codex/worktrees/paia-saved-mixed/paia",
+    "head": "d5659f0a6d9720e1210298bdb4b48658524b4599",
+    "branch": "codex/saved-mixed-incremental-20261023",
+    "copiedUntracked": [],
+    "patchSha256": "16a68800169c1aa2bd62d8944aaa4d18cfdbdfb5a052fd9e7b5ebef88bd18531",
+    "unchanged": true
+  },
+  {
+    "worktree": "/Users/hhf/.codex/worktrees/paia-sync-local/paia",
+    "head": "2d2236dfc7250c8f16588feb837a675fa01891ef",
+    "branch": "codex/sync-mixed-human-working-20261023",
+    "copiedUntracked": [
+      "work/sync-local-completion/saved-incremental-coordinator-after.txt",
+      "work/sync-local-completion/saved-incremental-coordinator-before.txt",
+      "work/sync-local-completion/saved-incremental-test-before-diagnostic.txt",
+      "work/sync-local-completion/saved-retention-test-draft.txt",
+      "work/sync-local-completion/source-purge-indexed-draft.txt",
+      "work/sync-local-completion/source-working-coordinator-full-local.patch"
+    ],
+    "patchSha256": "200c6027aab137bad31747fdc5becd3d551c75ff4ecec09b43444180cfbf0ef5",
+    "unchanged": true
+  }
+]

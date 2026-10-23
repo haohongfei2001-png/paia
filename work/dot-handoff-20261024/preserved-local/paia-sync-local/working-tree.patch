@@ -1,0 +1,41 @@
+diff --git a/extension/core/browser-native-sync/group-checkpoint.js b/extension/core/browser-native-sync/group-checkpoint.js
+index abe74730..40f61734 100644
+--- a/extension/core/browser-native-sync/group-checkpoint.js
++++ b/extension/core/browser-native-sync/group-checkpoint.js
+@@ -311,7 +311,7 @@ export class GroupedCheckpointRestore{
+  async mergeMixed(state,remotePlan,localOperations){
+   const started=performance.now(),p=await prepareMixedNonemptyMerge(this.store,this.live,this.stage,localOperations,remotePlan,this.restoreId),filter=new FilterIntentSyncJournal(this.live),working=new InputWorkingCommitReceiver(this.store,this.live,{filterJournal:filter}),sources=await prepareRestoredFilterSources(p.afterScope.expected.records),applications=[];
+   for(const g of p.incoming){if(g.type==='sourceBootstrapCommit')applications.push([g,await prepareBootstrapApplication(this.store,this.live,g.operations)]);else if(g.type==='sourceAppendCommit'){const anchor=p.merged.groups.find(x=>x.id===g.prepared.descriptor.value.bootstrap.revisionId);applications.push([g,await prepareAppendApplication(this.store,this.live,g.operations,anchor.operations)]);}else if(g.type==='inputWorkingCommit')applications.push([g,await prepareWorkingApplication(working,g.operations)]);else applications.push([g,null]);}
+-  const humanApplication=p.incoming.some(g=>g.type==='humanLibraryCommit')?await prepareHumanIncrementalGroupApplication(this.store,this.live,p.beforePlan,p.incoming):null;
++  const humanApplication=p.incoming.some(g=>g.type==='humanLibraryCommit')?await prepareHumanIncrementalGroupApplication(this.store,this.live,p.beforePlan,p.incoming,p.incoming.some(g=>g.type==='inputWorkingCommit')?{plan:p.merged,applications}:null):null;
+   const manual=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.base.namespace==='initial'?null:state.base.namespace});manual.materialize=manualSyncOwners(manual).materialize;
+   const receipts=remotePlan.groups.flatMap(g=>g.operations).map(o=>({operationId:o.operationId,revisionId:o.revisionId,deviceId:o.deviceId,sequence:o.sequence}));
+   const mergeReceipt={id:this.live.prefix+'generation:'+p.namespace+':mergeCommit:'+encodeURIComponent(this.restoreId),version:1,restoreId:this.restoreId,namespace:p.namespace,epoch:state.base.fence.epoch,manifestId:state.manifestId,graphDigest:state.graphDigest,mergeDigest:p.merged.digest,receipts},resultProof=await prepareMixedNonemptyResult(this.store,this.live,p,mergeReceipt,humanApplication);
+diff --git a/extension/tests/native-sync/generation-purge-fixture.mjs b/extension/tests/native-sync/generation-purge-fixture.mjs
+index 70f0b459..a2c7c950 100644
+--- a/extension/tests/native-sync/generation-purge-fixture.mjs
++++ b/extension/tests/native-sync/generation-purge-fixture.mjs
+@@ -2,19 +2,19 @@
+ // assertion calls are retained. Only Node registration, database construction
+ // and the existing synthetic helper module boundary are adapted for MV3.
+ export function nativeGenerationPurgeFixture(source,helpers,command){
+- if(!['mixed-native-chronology-matrix','mixed-nonempty-matrix','source-purge-multi-matrix','generation-owner-matrix','source-purge-matrix','saved-multiple-matrix','saved-incremental-matrix','human-generation-matrix','repository-gate-matrix','copy-retirement-matrix','source-portfolio-matrix','source-incremental-matrix','active-library-matrix','protected-group-matrix'].includes(command))throw Error('NATIVE_OWNER_COMMAND');
++ if(!['mixed-human-working-matrix','mixed-native-chronology-matrix','mixed-nonempty-matrix','source-purge-multi-matrix','generation-owner-matrix','source-purge-matrix','saved-multiple-matrix','saved-incremental-matrix','human-generation-matrix','repository-gate-matrix','copy-retirement-matrix','source-portfolio-matrix','source-incremental-matrix','active-library-matrix','protected-group-matrix'].includes(command))throw Error('NATIVE_OWNER_COMMAND');
+  const replace=(before,after)=>{if(source.split(before).length!==2)throw Error('NATIVE_OWNER_BOUNDARY_CHANGED: '+before);source=source.replace(before,after);};
+  replace("import test from 'node:test';",'');replace("import assert from 'node:assert/strict';",'');
+  replace("import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';",'');
+  replace('globalThis.IDBKeyRange=IDBKeyRange;','');
+- const storeClass=['mixed-native-chronology-matrix','mixed-nonempty-matrix','saved-multiple-matrix','saved-incremental-matrix','human-generation-matrix','repository-gate-matrix','copy-retirement-matrix','source-portfolio-matrix','source-incremental-matrix','active-library-matrix','protected-group-matrix'].includes(command)?'LibraryDocumentsStore':'LibraryFoundationStore';
+- const helperImport=['human-generation-matrix','repository-gate-matrix','copy-retirement-matrix','active-library-matrix'].includes(command)?"import {local} from './harness/thought-m1.mjs';":['source-purge-multi-matrix','generation-owner-matrix','protected-group-matrix'].includes(command)?"import {local,capture} from './harness/thought-m1.mjs';":['mixed-native-chronology-matrix','mixed-nonempty-matrix','saved-multiple-matrix','saved-incremental-matrix','source-portfolio-matrix','source-incremental-matrix','active-library-matrix','protected-group-matrix'].includes(command)?"import {local,capture,inputEdit} from './harness/thought-m1.mjs';":"import {local,capture,inputEdit,derived} from './harness/thought-m1.mjs';";
++ const storeClass=['mixed-human-working-matrix','mixed-native-chronology-matrix','mixed-nonempty-matrix','saved-multiple-matrix','saved-incremental-matrix','human-generation-matrix','repository-gate-matrix','copy-retirement-matrix','source-portfolio-matrix','source-incremental-matrix','active-library-matrix','protected-group-matrix'].includes(command)?'LibraryDocumentsStore':'LibraryFoundationStore';
++ const helperImport=['human-generation-matrix','repository-gate-matrix','copy-retirement-matrix','active-library-matrix'].includes(command)?"import {local} from './harness/thought-m1.mjs';":['source-purge-multi-matrix','generation-owner-matrix','protected-group-matrix'].includes(command)?"import {local,capture} from './harness/thought-m1.mjs';":['mixed-human-working-matrix','mixed-native-chronology-matrix','mixed-nonempty-matrix','saved-multiple-matrix','saved-incremental-matrix','source-portfolio-matrix','source-incremental-matrix','active-library-matrix','protected-group-matrix'].includes(command)?"import {local,capture,inputEdit} from './harness/thought-m1.mjs';":"import {local,capture,inputEdit,derived} from './harness/thought-m1.mjs';";
+  replace(helperImport,'');
+  if(/\bimport\s*\(/.test(source)||/node:|fake-indexeddb|\.\/harness\//.test(source))throw Error('NATIVE_OWNER_UNSUPPORTED_IMPORT');
+  // Construct the real original owners and preserve all supplied options. Each
+  // factory-isolated synthetic DB becomes a uniquely named native IDB database.
+  const storeCount=source.split('new '+storeClass+'(').length-1,repositoryCount=(source.match(/new ArchiveRepository\(/g)||[]).length;
+- const expectedConstructors=['mixed-native-chronology-matrix','mixed-nonempty-matrix'].includes(command)?[2,0]:command==='active-library-matrix'?[4,3]:command==='protected-group-matrix'?[2,2]:command==='copy-retirement-matrix'?[3,1]:['generation-owner-matrix','human-generation-matrix','repository-gate-matrix'].includes(command)?[2,2]:[1,0];
++ const expectedConstructors=['mixed-human-working-matrix','mixed-native-chronology-matrix','mixed-nonempty-matrix'].includes(command)?[2,0]:command==='active-library-matrix'?[4,3]:command==='protected-group-matrix'?[2,2]:command==='copy-retirement-matrix'?[3,1]:['generation-owner-matrix','human-generation-matrix','repository-gate-matrix'].includes(command)?[2,2]:[1,0];
+  if(storeCount!==expectedConstructors[0]||repositoryCount!==expectedConstructors[1])throw Error('NATIVE_OWNER_CONSTRUCTORS_CHANGED');
+  source=source.replaceAll('new '+storeClass+'(','nativeStore(').replaceAll('new ArchiveRepository(','nativeRepository(').replaceAll('new IDBFactory()','indexedDB');
+  const helperLines=["import {IDBFactory,IDBKeyRange} from '../vendor/fake-indexeddb/build/esm/index.js';","import {LibraryFoundationStore} from '../../core/thought-store.js';",'globalThis.IDBKeyRange=IDBKeyRange;'];
