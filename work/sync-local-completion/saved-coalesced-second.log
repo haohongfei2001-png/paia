@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: saved coalesced typed edits preserve every operation through B to cold C and continuation
+not ok 1 - saved coalesced typed edits preserve every operation through B to cold C and continuation
+  ---
+  duration_ms: 245.285833
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-successor.test.mjs:102:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    5 !== 3
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 3
+  actual: 5
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-successor.test.mjs:104:383)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 397.819125

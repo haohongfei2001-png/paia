@@ -1,0 +1,12 @@
+{
+  "extension/core/browser-native-sync/saved-work-successor-codec.js": "8e9a28ce9f36ce977d5deb3333b7986dc365ba9e906db031fc25e00b05ff2cad",
+  "extension/core/browser-native-sync/saved-work-bootstrap.js": "29784497958ae7c32f092a9ad3ef3b2c0b28ba3ea084015b17131a6edd2fd9d1",
+  "extension/tests/browser-native-sync-saved-successor.test.mjs": "22adf4cf7bd7b205b0fefe1124c27ac02091d2671e9f92f42c709064d15a28b3",
+  "extension/core/browser-native-sync/group-checkpoint.js": "4db2ea2c652005a8e8b298ccab14bdc7157f85c13ab6fa680fb0c1f12bb017b1",
+  "work/sync-local-completion/saved-coalesced-owning.log": "4100b6e06039797adac3d3d58f186df51e3d9db5132bd079c232c87bbb901aa7",
+  "work/sync-local-completion/saved-coalesced-third.log": "fdcbd339f3b6340e343d3595fde9118dcb319e7df3d8da66a4ba56224c522f8d",
+  "work/sync-local-completion/saved-coalesced-first.log": "b99deca8222242f53b4702ecb7e1bcfe02d6ede7c323cc7c49c420da44fb18a5",
+  "work/sync-local-completion/saved-coalesced-final.log": "a1fc7512e8e6d3c49c29f90612fce2a92407fc350916634e5cc27b02cf0a35f4",
+  "work/sync-local-completion/saved-coalesced-second.log": "e6965b5e410d951117faebc4e1247a1f9a14e7ad2407b80c781e043d5c97b197",
+  "work/sync-local-completion/saved-coalesced-baseline.log": "fa38edd37418f9450912c212dd9e9179889b46c8cfd7587782aa696ea9e06a5e"
+}

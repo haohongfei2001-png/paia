@@ -1,4 +1,4 @@
-import {savedEditRequest,normalizeSavedPayload,validateSavedSuccessor} from './saved-work-successor-codec.js';
+import {savedEditRequest,normalizeSavedPayload,validateSavedSuccessor,deriveSavedSuccessor,restoreSavedHistoryOrder} from './saved-work-successor-codec.js';
 import {humanPlanEntry,prepareSavedEntryEditPlan,humanEntryEditPlan,executeHumanPlanInTransaction} from './human-library-plan.js';
 import {hashText} from '../dedupe.js';
 import {validateGroupedCheckpointGraph} from './group-checkpoint.js';
@@ -11,7 +11,7 @@ import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {readControlPublicationFence,CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION} from '../local-control-publication.js';
 import {validateFrozenOperation,acceptSequence} from './core.js';
 import {requireOriginalLibraryDocumentsStore} from '../library-documents-owner.js';
-import {deriveSavedWorkBootstrap as derive,portableSavedEntry as portableEntry,boundedSavedPayload as bounded,validateSavedWorkPayload} from './saved-work-payload.js';
+import {deriveSavedWorkBootstrap as derive,portableSavedEntry as portableEntry,boundedSavedPayload as bounded,validateSavedWorkPayload,validateSavedWorkEnvelope} from './saved-work-payload.js';
 import {prefix} from '../thought-model.js';
 import {checkEvidenceInTransaction,planEvidenceProjection} from '../thought-evidence.js';
 import {CONSENT_VERSION} from '../constants.js';
@@ -103,15 +103,26 @@ export async function applySavedWorkBootstrap(store,cap){const p=plans.get(cap);
 // Consuming finite Source-first preparation. The Source capability is issued by
 // the original Source validator; the real transaction still executes that owner
 // before this owner. No synthetic source row is installed or used as authority.
-export async function prepareSourceSavedWorkBootstrap(store,core,input,sourceCapability,sourceOperations,startedAt=Date.now()){
- binding(store,core);bounded(input);const payload=clone(input),now=Date.now();if(!Number.isSafeInteger(startedAt)||startedAt>now||now-startedAt>30000)fail('BNS_SAVED_WORK_LIMIT');const start=startedAt;await validateSavedWorkPayload(payload);if(payload.datasetId!==core.datasetId)fail('BNS_SAVED_WORK_BINDING');
+async function deriveSavedChain(operations,evidence,secret){
+ const anchor=operations[0];if(anchor?.type!=='savedWorkBootstrap')bad();let payload=anchor.value.payload,expected=await derive(payload,evidence,secret),previous=null;
+ for(const op of operations.slice(1)){
+  if(op.type!=='savedWorkSuccessor'||op.entityId!==anchor.entityId||op.value.anchor!==anchor.revisionId||!equal(op.parents,previous?[previous.revisionId]:[])||!equal(normalizeSavedPayload(op.value.before),normalizeSavedPayload(payload)))bad();
+  const next=await deriveSavedSuccessor(op.value,secret);expected={...expected,...next};payload=op.value.after;previous=op;
+ }
+ expected.history=restoreSavedHistoryOrder(expected.history);return {expected,payload};
+}
+function savedPlanOperations(core,plan){requireOriginalGroupCheckpointPlan(core,plan);return plan.groups.filter(g=>['savedWorkBootstrap','savedWorkSuccessor'].includes(g.type)).map(g=>g.operations[0]);}
+async function deriveSavedPlan(core,plan,payload,evidence,secret){const result=await deriveSavedChain(savedPlanOperations(core,plan),evidence,secret);if(!equal(result.payload,payload))bad();return result.expected;}
+
+export async function prepareSourceSavedWorkBootstrap(store,core,input,sourceCapability,sourceOperations,startedAt=Date.now(),groupPlan=null){
+ binding(store,core);bounded(input);const payload=clone(input),now=Date.now();if(!Number.isSafeInteger(startedAt)||startedAt>now||now-startedAt>30000)fail('BNS_SAVED_WORK_LIMIT');const start=startedAt;if(groupPlan){const ops=savedPlanOperations(core,groupPlan);if(!equal(ops.at(-1).type==='savedWorkBootstrap'?ops.at(-1).value.payload:ops.at(-1).value.after,payload))bad();validateSavedWorkEnvelope({id:payload.entry.id,version:1,payload});}else await validateSavedWorkPayload(payload);if(payload.datasetId!==core.datasetId)fail('BNS_SAVED_WORK_BINDING');
  const source=initialSourcePlan(sourceCapability),verified=await core.prepareSourceBootstrapReceive(sourceOperations),entities=Object.fromEntries(verified.members.map(op=>[op.value.entityType,op.value.entity]));if(!equal(source,entities))fail('BNS_SAVED_WORK_BINDING');
  const wire=payload.link.evidence,b=source.input;if(b.id!==wire.inputId||b.excluded||b.branchStatus||source.inputState.removalState!=='active'||source.inputState.sourcePurged||source.source.id!==wire.sourceRecordIds[0]||b.provenance.length!==1)fail('BNS_SAVED_WORK_CHANGED');
  await store.finishFoundation();const before=await core.transaction(false,async t=>({authority:await authority(store,core,t),destination:{thoughts:await t.count('thoughts'),rows:await ownedRows(t,payload.entry.id),history:await Promise.all(payload.history.map(h=>t.get('revisions',h.id).then(x=>x??null))),provenance:await t.get('provenance',payload.link.provenanceId)??null,dependency:await t.get('dependencies',JSON.stringify([wire.inputId,'entry',payload.entry.id]))??null,tombstones:await t.count('tombstones'),receipt:await core.get(t,'savedWorkBootstrap',payload.entry.id)??null},sourcePresent:!!await t.get('records',source.source.id)}));
  if(before.sourcePresent){const existing=await prepareSavedWorkBootstrap(store,core,payload);plans.get(existing).start=start;return existing;}delete before.sourcePresent;
  const d=before.destination;if(d.thoughts||(before.authority.sequence?.value||0)!==0||d.rows.entry||d.rows.history.length||d.rows.provenance.length||d.rows.dependencies.length||d.rows.placements||d.rows.suppressions||d.history.some(Boolean)||d.provenance||d.dependency||d.tombstones||d.receipt)fail('BNS_SAVED_WORK_DESTINATION');
  const evidence=[await planEvidenceProjection({inputId:b.id,contentRevision:source.inputState.contentRevision,body:b.libraryText??source.source.originalText,note:b.note||'',sourceRecordIds:[source.source.id],identities:[source.source.sourceKey]},{role:'primary',selectedFields:wire.selectedFields},before.authority.secret,before.authority.epoch)];if(!equal(portableSourceLinkedEvidence(evidence),wire))fail('BNS_SOURCE_LINKED_EVIDENCE_CHANGED');
- const expected=await derive(payload,evidence,before.authority.secret),sourceSequence=(before.authority.revision?.value||0)+1;
+ const expected=groupPlan?await deriveSavedPlan(core,groupPlan,payload,evidence,before.authority.secret):await derive(payload,evidence,before.authority.secret),sourceSequence=(before.authority.revision?.value||0)+1;
  before.authority.revision={id:'revision-sequence',value:sourceSequence};before.authority.fence.marker=true;
  const member=verified.members.find(op=>op.value.entityType==='input'),descriptor=verified.descriptor;before.destination.source=await core.transaction(false,async t=>({member:member.revisionId,commit:descriptor.revisionId,rows:await Promise.all([member,descriptor].flatMap(op=>[core.idIn(t,'head',op.type,op.entityId).then(id=>({id,type:op.type,entityId:op.entityId,revisions:[op.revisionId],purged:false,fence:null})),core.idIn(t,'revision',op.revisionId).then(id=>({id,operation:op,redacted:false}))]))}));
  const history=expected.history.map((h,i)=>({...h,sequence:sourceSequence+i+1,listKey:[h.entityKey,sourceSequence+i+1],documentList:[h.documentId,sourceSequence+i+1]})),retained=bytes(payload).length+bytes(source).length+bytes(sourceOperations).length+bytes(before).length+bytes(expected).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');
@@ -182,7 +193,7 @@ export async function prepareSavedWorkGroupApplication(store,core,plan,stage,sta
  if(saved.length!==1||plan.groups.some(g=>!['sourceBootstrapCommit','savedWorkBootstrap','savedWorkSuccessor'].includes(g.type))||core.repository!==stage.repository||core.datasetId!==stage.datasetId||core.fixedNamespace!==state.replayId||state.phase!=='validated'||state.graphDigest!==plan.digest||state.manifest?.datasetId!==core.datasetId||!equal(await stage.read('restore'),state))fail('BNS_SAVED_WORK_CAPABILITY');
  const stageRows=await verifySavedGroupStage(store,core,plan,stage,state);
  const source=plan.groups.find(g=>g.type==='sourceBootstrapCommit');if(!source)fail('BNS_SAVED_WORK_CAPABILITY');
- const operation=await prepareSavedWorkProtocol(saved[0].operations[0]),finalPayload=plan.groups.filter(g=>g.type==='savedWorkSuccessor').at(-1)?.operations[0].value.after??operation.value.payload,cap=await prepareSourceSavedWorkBootstrap(store,core,finalPayload,source.capability,source.operations,startedAt);
+ const operation=await prepareSavedWorkProtocol(saved[0].operations[0]),finalPayload=plan.groups.filter(g=>g.type==='savedWorkSuccessor').at(-1)?.operations[0].value.after??operation.value.payload,cap=await prepareSourceSavedWorkBootstrap(store,core,finalPayload,source.capability,source.operations,startedAt,plan);
  const p=plans.get(cap);p.wireDigest=await digest(operation.value.payload);p.group={protocol:[...savedGroupProtocolIntent(core,plan),...stageRows.map(row=>[row.id,row])],plan,stage,state:clone(state),operation,id:saved[0].id,active:{id:core.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:plan.digest},terminal:{...clone(state),phase:'activated'}};
  if(bytes({before:p.before,payload:p.payload,expected:p.expected,stage:p.group.state,protocol:p.group.protocol,plan}).length>limit)fail('BNS_SAVED_WORK_LIMIT');
  return cap;
@@ -215,7 +226,7 @@ export async function prepareSavedWorkScope(store,core,scope,plan){
  const {secret,epoch}=await core.transaction(false,async t=>({secret:(await t.get('meta','thought-suppression-key'))?.value,epoch:(await t.get('meta','thought-epoch'))?.value||0})),b=source.input,wire=payload.link.evidence;
  const evidence=[await planEvidenceProjection({inputId:b.id,contentRevision:source.inputState.contentRevision,body:b.libraryText??source.source.originalText,note:b.note||'',sourceRecordIds:[source.source.id],identities:[source.source.sourceKey]},{role:'primary',selectedFields:wire.selectedFields},secret,epoch)];
  if(!equal(portableSourceLinkedEvidence(evidence),wire))fail('BNS_SOURCE_LINKED_EVIDENCE_CHANGED');
- const expected=await derive(payload,evidence,secret);savedScopes.set(scope,{store,core,plan,evidence,secret,epoch,expected});
+ const expected=await deriveSavedPlan(core,plan,payload,evidence,secret);savedScopes.set(scope,{store,core,plan,evidence,secret,epoch,expected});
 }
 const normalizedSavedHistory=rows=>rows.map(row=>({...row,sequence:0,listKey:[row.entityKey,0],documentList:[row.documentId,0]}));
 export async function requireSavedWorkScope(store,t,scope){
@@ -259,30 +270,36 @@ export async function prepareSavedWorkEdit(store,core,input){
  const retry=await core.transaction(false,async t=>({marker:await core.get(t,'savedEditReceipt',request.operationId),domain:await t.get('operationReceipts',request.operationId)}));
  if(retry.marker){const original=await core.read('revision',retry.marker.revisionId),op=original?.operation,receipt=await core.read('receipt',retry.marker.protocolOperationId);if(original?.redacted||op?.type!=='savedWorkSuccessor'||op.operationId!==retry.marker.protocolOperationId||!equal(savedEditRequest(op.value.request),request)||retry.marker.requestDigest!==requestDigest||retry.domain?.digest!==requestDigest||!equal(retry.marker.result,retry.domain?.result)||!receipt||!equal(receipt,{id:receipt.id,digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence}))fail('BNS_SAVED_WORK_COLLISION');return {duplicate:true,result:clone(retry.marker.result)};}
  if(retry.domain)fail('BNS_SAVED_WORK_COLLISION');
- const start=Date.now(),payload=await captureSavedWorkBootstrap(store,core,request.id),anchorHead=await core.read('head','savedWorkBootstrap',request.id),head=await core.read('head','savedWorkSuccessor',request.id);
+ const start=Date.now(),anchorHead=await core.read('head','savedWorkBootstrap',request.id),head=await core.read('head','savedWorkSuccessor',request.id);
  if(anchorHead?.purged||anchorHead?.revisions?.length!==1||head&&(head.purged||head.revisions.length!==1))fail('BNS_SAVED_WORK_CHANGED');
- const anchor=await core.read('revision',anchorHead.revisions[0]),previous=head?await core.read('revision',head.revisions[0]):anchor;
- if(!anchor||anchor.redacted||!previous||previous.redacted||!equal(normalizeSavedPayload(head?previous.operation.value.after:anchor.operation.value.payload),normalizeSavedPayload(payload))||head&&previous.operation.value.anchor!==anchor.operation.revisionId)fail('BNS_SAVED_WORK_CHANGED');
+ const anchor=await core.read('revision',anchorHead.revisions[0]),chain=[],seen=new Set();let revision=head?.revisions[0],retainedChain=bytes(anchor).length;
+ while(revision){if(seen.has(revision)||chain.length>=128||Date.now()-start>30000)fail('BNS_SAVED_WORK_LIMIT');seen.add(revision);const row=await core.read('revision',revision);if(!row||row.redacted||row.operation?.type!=='savedWorkSuccessor'||row.operation.revisionId!==revision||row.operation.parents.length>1)bad();retainedChain+=bytes(row).length;if(retainedChain>limit)fail('BNS_SAVED_WORK_LIMIT');chain.unshift(row);revision=row.operation.parents[0];}
+ const ancestry=[anchor,...chain];for(const row of ancestry){if(!row||row.redacted)bad();await validateFrozenOperation(row.operation);}
+ const previous=chain.at(-1)??anchor,canonical=await core.transaction(false,async t=>({authority:await authority(store,core,t),rows:await ownedRows(t,request.id)}));
+ const link=anchor.operation.value.payload.link,evidenceForChain=await restoreSourceLinkedEvidence(store,link.evidence),derived=await deriveSavedChain(ancestry.map(row=>row.operation),evidenceForChain,canonical.authority.secret),r=canonical.rows;
+ const expected={entry:derived.expected.entry,history:derived.expected.history,provenance:[derived.expected.provenance],dependencies:[derived.expected.dependency],placements:0,suppressions:0};
+ if(!equal({...r,history:normalizedSavedHistory(r.history)},{...expected,history:normalizedSavedHistory(expected.history)}))fail('BNS_SAVED_WORK_CHANGED');
+ const payload=bounded({...clone(derived.payload),entry:portableEntry(r.entry),history:r.history});
  const entry=await humanPlanEntry(store,core),owner=await prepareSavedEntryEditPlan(store,core,request,entry);if(owner.conflict)return owner;if(owner.duplicate)fail('BNS_SAVED_WORK_COLLISION');
  const view=humanEntryEditPlan(owner),after={...clone(payload),entry:portableEntry(view.entry),history:clone(view.history)},events=view.events,allocation={domainCount:events.filter(e=>e.role==='domain').length,indexGenerationCount:events.filter(e=>e.role==='index-generation').length};
  const value={id:request.id,version:1,anchor:anchor.operation.revisionId,before:payload,after,request,events,allocation,sequenceBefore:entry.sequence?.value||0,revisionBefore:entry.revision?.value||0};await validateSavedSuccessor(value);
  const prepared=await core.prepare([{type:'savedWorkSuccessor',expectedParents:head?.revisions||[],value}],{actor:'user'}),before=await core.transaction(false,async t=>({authority:await authority(store,core,t),rows:await ownedRows(t,request.id),source:await sourceProof(core,t,payload.link)}));
  if(!equal(before.rows.entry, {...payload.entry,exactSignature:before.rows.entry.exactSignature})||!equal(before.rows.history,payload.history)||!equal(before.authority.sequence,entry.sequence)||!equal(before.authority.revision,entry.revision))fail('BNS_SAVED_WORK_CHANGED');
- const evidence=await restoreSourceLinkedEvidence(store,payload.link.evidence);let retained=bytes({value,before,prepared,view}).length;
+ const evidence=await restoreSourceLinkedEvidence(store,payload.link.evidence);let retained=bytes({value,before,prepared,view,ancestry}).length;
  const current=()=>{if(Date.now()-start>30000||retained>limit)fail('BNS_SAVED_WORK_LIMIT');};current();
  const facts=await core.transaction(false,t=>captureTopicFormationTerminal(store,t,evidence,{current,retain:x=>{retained+=bytes(x).length;current();return clone(x);}}));
- const cap=Object.freeze({});savedEdits.set(cap,{store,core,owner,view,prepared,before,evidence,facts,start,request,requestDigest,anchor,previous});return cap;
+ const cap=Object.freeze({});savedEdits.set(cap,{store,core,owner,view,prepared,before,evidence,facts,start,request,requestDigest,anchor,previous,ancestry});return cap;
 }
 export async function commitSavedWorkEdit(t,cap,store){
  const p=savedEdits.get(cap);if(!p||p.store!==store)fail('BNS_SAVED_WORK_CAPABILITY');const {core,before,view,request}=p;
  requireRepositoryTransactionScope(store.repository,t);requireRepositoryTransactionDataMethods(store.repository,t);
  const now=await authority(store,core,t);if(Date.now()-p.start>30000||!equal(before,{authority:now,rows:await ownedRows(t,request.id),source:await sourceProof(core,t,p.prepared.operations[0].value.before.link)}))fail('BNS_SAVED_WORK_CHANGED');await checkEvidenceInTransaction(store,t,p.evidence);
  for(const fact of p.facts)if(!equal(fact.project(await t.get(fact.table,fact.key),()=>{}),fact.expected))fail('BNS_SAVED_WORK_CHANGED');
- for(const original of [p.anchor,p.previous])if(!equal(await core.get(t,'revision',original.operation.revisionId),original))fail('BNS_SAVED_WORK_CHANGED');
+ for(const original of p.ancestry)if(!equal(await core.get(t,'revision',original.operation.revisionId),original))fail('BNS_SAVED_WORK_CHANGED');
  const operation=p.prepared.operations[0],intent=await savedProtocolIntent(t,core,operation,true),result=await executeHumanPlanInTransaction(t,p.owner);
  protocolApplications.set(t,{core,operation,origin:'local'});try{await core.commitPrepared(t,p.prepared,{materialize:false});}finally{protocolApplications.delete(t);}
  const marker={version:1,requestDigest:p.requestDigest,result:clone(result),protocolOperationId:operation.operationId,revisionId:operation.revisionId},key=await core.idIn(t,'savedEditReceipt',request.operationId);if(await t.get('meta',key))fail('BNS_SAVED_WORK_COLLISION');await core.put(t,'savedEditReceipt',[request.operationId],marker);
- const points=[...before.source.rows.map(row=>['meta',row.id,row]),...before.authority.roots.map(([id,row])=>['meta',id,row]),...new Map([p.anchor,p.previous].map(row=>[row.id,row])).values()].map(x=>Array.isArray(x)?x:['meta',x.id,x]);
+ const points=[...before.source.rows.map(row=>['meta',row.id,row]),...before.authority.roots.map(([id,row])=>['meta',id,row]),...new Map(p.ancestry.map(row=>[row.id,row])).values()].map(x=>Array.isArray(x)?x:['meta',x.id,x]);
  points.push(['meta',key,{...marker,id:key}],['meta','thought-sequence',{id:'thought-sequence',value:view.operationReceipt.operationSequence}],['meta','revision-sequence',{id:'revision-sequence',value:view.history.at(-1).sequence}],['meta','backup-data-generation',{id:'backup-data-generation',value:before.authority.generation+1}],['thoughts',view.entry.id,view.entry],['operationReceipts',request.operationId,view.operationReceipt],...before.rows.provenance.map(row=>['provenance',row.id,row]),...before.rows.dependencies.map(row=>['dependencies',row.id,row]),...view.history.map(row=>['revisions',row.id,row]));
  const current=()=>{if(Date.now()-p.start>30000)fail('BNS_SAVED_WORK_LIMIT');assertOriginalControlSettingsFacts(store,now.control);return true;};
  registerRepositoryFinalReadFence(store.repository,t,{isCurrent:current,plan:function*(){

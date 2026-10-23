@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: saved coalesced typed edits preserve every operation through B to cold C and continuation
+not ok 1 - saved coalesced typed edits preserve every operation through B to cold C and continuation
+  ---
+  duration_ms: 221.617125
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-successor.test.mjs:102:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SAVED_WORK_UNSUPPORTED'
+  code: 'BNS_SAVED_WORK_UNSUPPORTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    bad (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-payload.js:7:15)
+    deriveSavedWorkBootstrap (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-payload.js:25:553)
+    validateSavedWorkPayload (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-payload.js:17:9)
+    validateSavedSuccessor (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-successor-codec.js:27:102)
+    async prepareSavedWorkEdit (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-bootstrap.js:268:202)
+    async SavedWorkSyncJournal.execute (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-journal.js:12:18)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-successor.test.mjs:104:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 385.011709

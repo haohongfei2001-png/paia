@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: saved coalesced typed edits preserve every operation through B to cold C and continuation
+not ok 1 - saved coalesced typed edits preserve every operation through B to cold C and continuation
+  ---
+  duration_ms: 348.876583
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-successor.test.mjs:102:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SAVED_SUCCESSOR_INVALID'
+  code: 'BNS_SAVED_SUCCESSOR_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/value.js:5:32)
+    bad (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-successor-codec.js:9:15)
+    deriveSavedSuccessor (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-successor-codec.js:40:138)
+    async validateSavedSuccessor (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/saved-work-successor-codec.js:46:49)
+    async validateEntityAsync (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/codecs.js:114:33)
+    async validateOperation (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/core.js:54:7)
+    async prepareGroupCheckpointPlanInternal (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint-plan.js:65:84)
+    async compile (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint.js:97:13)
+    async GroupedCheckpointRestore.stageCheckpoint (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/core/browser-native-sync/group-checkpoint.js:141:158)
+    async TestContext.<anonymous> (file:///Users/hhf/.codex/worktrees/paia-sync-local/paia/extension/tests/browser-native-sync-saved-successor.test.mjs:106:164)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 493.482167
