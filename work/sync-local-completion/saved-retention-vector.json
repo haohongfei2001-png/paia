@@ -1,0 +1,11 @@
+{
+  "extension/core/browser-native-sync/human-library-plan.js": "22f6eb961c3c463396eaa619d42844f0d6d2ff05ed0dcb966f2d8ae0720455ba",
+  "extension/core/browser-native-sync/saved-work-bootstrap.js": "23ac3b4b3bb461be8ec750fb90f38f1cf9325a9325d8198da2ae46c3af346ebe",
+  "extension/core/browser-native-sync/saved-work-successor-codec.js": "a21ed7d2b4f4cc028169a49a8d29c4cc7c1bb397cf2fb154996b2f7b75d478f1",
+  "extension/core/browser-native-sync/group-checkpoint-scope.js": "583dfc90784f60196b51420e10cf153e7cf464c59057fb5c42dbf5df71f319fa",
+  "extension/tests/browser-native-sync-saved-successor.test.mjs": "a7041f2ca8e0891217339d5f3fcf5673859f4f6dcd5cbd7fac876407cc75fb1f",
+  "work/sync-local-completion/saved-retention-final.log": "cc04a375b858701920720c16a871b0d869c8a14d2a014e6b8ea7eae2274291fc",
+  "work/sync-local-completion/saved-retention-after.log": "a6f7ebbecf548f6d47f840d447422e24f3187633a8bf585c5f219140042b5062",
+  "work/sync-local-completion/saved-retention-baseline.log": "12907cb8abd35ac2d33a158a46da3db0db496f7137559354e299d6cd1b75f5f9",
+  "work/sync-local-completion/saved-retention-scope.log": "57156a7436624d2801bbaa0b801a4a2d7159af40b4e8f0e3c01bdccb1b5396ff"
+}

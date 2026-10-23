@@ -45,7 +45,7 @@ export async function deriveSavedSuccessor(v,secret=Array(32).fill(0)){
  }else{
   if(!equal(v.allocation,{domainCount:5,indexGenerationCount:0})||!equal(events.map(e=>e.kind),['clock','clock','uuid','clock','clock']))bad();
   history=[...clone(v.before.history),{...planned.row,id:events[2].value,sequence,listKey:[planned.entityKey,sequence],documentList:[planned.row.documentId,sequence]}];
-  const cutoff=Date.parse(events[3].value)-REVISION_POLICY.days*86400000;let important=0;for(const h of [...history].reverse()){if(h.important)important++;if(revisionShouldPrune(h,cutoff,important))bad();}
+  const cutoff=Date.parse(events[3].value)-REVISION_POLICY.days*86400000;let important=0;const retired=new Set();for(const h of [...history].reverse()){if(h.important)important++;if(revisionShouldPrune(h,cutoff,important))retired.add(h.id);}history=history.filter(h=>!retired.has(h.id));
  }
  if(!equal(portableSavedEntry(row),v.after.entry)||!equal(history,v.after.history))bad();return {entry:row,history:restoreSavedHistoryOrder(history)};
 }
