@@ -1,3 +1,4 @@
+import {requireOriginalDefaultMemoryRow,consumeOriginalDefaultMemoryRow} from './local-memory-default.js';
 import {requireSourcePurgeRemainingCanonicalProof} from './source-purge-negative.js';
 import {prepareSavedWorkScope,requireSavedWorkScope,requireSavedMixedResidentRetention} from './saved-work-bootstrap.js';
 import {readGroupRows} from './group-page-reader.js';
@@ -111,6 +112,7 @@ export async function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,
  for(const row of Object.values(raw.points))if(row)rows.delete(row.id);
  for(const list of Object.values(raw.prefixes))for(const row of list)rows.delete(row.id);
  for(const [id,row]of rows){
+  if(id==='memory:config'){requireOriginalDefaultMemoryRow(row);continue;}
   if(id===CONTEXT_CARDS_ROW){if(!equal(row,emptyContext()))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
   if(id===PROMPT_REUSE_ROW){if(!equal(row,emptyPromptPreferences()))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
   if(id==='sequence'){if(!equal(row,{id,records:0,blocks:0,documents:0}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
@@ -216,6 +218,7 @@ export async function requireGroupScope(store,t,scope,residentRetention=null){
  const keys=[...await t.keys('meta',null,IDBKeyRange.upperBound(corePrefix,true),10000),...await t.keys('meta',null,IDBKeyRange.lowerBound(corePrefix+'\uffff'),10000)];
  if(keys.length>10000)fail('BNS_GROUP_RESOURCE_LIMIT');
  for(const key of keys){
+  if(key==='memory:config'){requireOriginalDefaultMemoryRow(await t.get('meta',key));continue;}
   if(human?.allowed.has(key))continue;
   if(key===CONTEXT_CARDS_ROW||key===PROMPT_REUSE_ROW||counters.has(key))continue;
   if(key===CONTEXT_TOPIC_ACCESS_ROW){const bound=originalScopes.get(scope);await requireLocalTopicChoicesRepresented(t,bound.core,scope.expected.topicDesired??[]);continue;}
@@ -281,7 +284,7 @@ export function assertOriginalCurrentMixedNativeBodies(core,store,scope,plan,raw
 export function consumeOriginalMixedManualMeta(core,store,scope,plan,raw,control,nonce,rows){
  if(arguments.length!==8)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeBodiesConsumed(nonce,store,core,scope,plan,raw,control);
  const key=(kind,...parts)=>protocolPhysicalId(core.prefix,raw.namespace,kind,parts);
- const configuration=compareMixedConfiguration(core,scope,plan,raw,control,!!originalScopes.get(scope).restoredAllocation);for(const id of configuration.consumed)rows.delete(id);consumeMixedPublicationMetadata(rows);
+ const configuration=compareMixedConfiguration(core,scope,plan,raw,control,!!originalScopes.get(scope).restoredAllocation);for(const id of configuration.consumed)rows.delete(id);consumeMixedPublicationMetadata(rows);consumeOriginalDefaultMemoryRow(rows);
  if(plan.groups.some(group=>group.type==='promptPreferences')){
   const head=plan.heads.find(head=>head.type==='promptPreferences'&&head.entityId===PROMPT_REUSE_ROW),operation=head&&plan.groups.flatMap(group=>group.operations).find(op=>op.revisionId===head.revisions[0]),row=rows.get(PROMPT_REUSE_ROW);
   if(!head||head.purged||head.revisions.length!==1||!operation||!row)fail('BNS_GROUP_COMMIT_UNPROVEN');if(scope.expected.promptBinding)consumePromptCompanion(scope,plan,rows,key,row);else assertManualPromptCurrentPhysicalShape(row);assertManualPromptNativeValue(row,operation.value,scope.expected.prompt);

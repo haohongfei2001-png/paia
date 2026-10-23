@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: original lazy default memory configuration survives A to initialized B to C without portable permission intent
+ok 1 - original lazy default memory configuration survives A to initialized B to C without portable permission intent
+  ---
+  duration_ms: 202.454458
+  type: 'test'
+  ...
+# Subtest: nondefault memory external stays unrepresented with no publication or writes
+ok 2 - nondefault memory external stays unrepresented with no publication or writes
+  ---
+  duration_ms: 28.932084
+  type: 'test'
+  ...
+# Subtest: nondefault memory localOnly stays unrepresented with no publication or writes
+ok 3 - nondefault memory localOnly stays unrepresented with no publication or writes
+  ---
+  duration_ms: 27.88775
+  type: 'test'
+  ...
+# Subtest: nondefault memory touched stays unrepresented with no publication or writes
+ok 4 - nondefault memory touched stays unrepresented with no publication or writes
+  ---
+  duration_ms: 27.450958
+  type: 'test'
+  ...
+# Subtest: nondefault memory revision stays unrepresented with no publication or writes
+ok 5 - nondefault memory revision stays unrepresented with no publication or writes
+  ---
+  duration_ms: 26.408542
+  type: 'test'
+  ...
+# Subtest: nondefault memory unknown stays unrepresented with no publication or writes
+ok 6 - nondefault memory unknown stays unrepresented with no publication or writes
+  ---
+  duration_ms: 26.69675
+  type: 'test'
+  ...
+# Subtest: a separate legacy profile is not admitted with the default configuration
+ok 7 - a separate legacy profile is not admitted with the default configuration
+  ---
+  duration_ms: 24.251417
+  type: 'test'
+  ...
+# Subtest: a changed target memory decision after staging refuses activation and preserves the existing target
+ok 8 - a changed target memory decision after staging refuses activation and preserves the existing target
+  ---
+  duration_ms: 63.604416
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 553.92725

@@ -1,0 +1,6 @@
+{
+  "extension/core/browser-native-sync/local-memory-default.js": "98ce048d72672b5c6c6f3d3670c89bf490996ec18be5d81965d54961dc3d754c",
+  "extension/core/browser-native-sync/group-checkpoint-scope.js": "22626c26312ac40b07f2cd8f1eb3b3b97b98741945c3e27a1edf8b0de92c3ba2",
+  "extension/core/browser-native-sync/source-working-default-meta.js": "119b441705e902a29ed459d2b646d788678226603073ab287008391d08b6c895",
+  "extension/tests/default-memory-checkpoint.test.mjs": "c4fb8814bb600e29c98402f348377743a0fcb67a4c1e3b607f7d5e941817397d"
+}

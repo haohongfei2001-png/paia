@@ -1,0 +1,59 @@
+TAP version 13
+# Subtest: original lazy default memory configuration survives A to initialized B to C without portable permission intent
+not ok 1 - original lazy default memory configuration survives A to initialized B to C without portable permission intent
+  ---
+  duration_ms: 70.13725
+  type: 'test'
+  location: '/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/tests/default-memory-checkpoint.test.mjs:22:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  code: 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/value.js:5:32)
+    requireGroupScope (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint-scope.js:223:29)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/group-checkpoint.js:110:496
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:167:127
+    async ArchiveRepository.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/idb-repository.js:523:253)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/browser-native-sync/core.js:167:66)
+    async file:///Users/hhf/.codex/worktrees/organize-handoff-validation/paia/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: nondefault memory external stays unrepresented with no publication or writes
+ok 2 - nondefault memory external stays unrepresented with no publication or writes
+  ---
+  duration_ms: 35.694458
+  type: 'test'
+  ...
+# Subtest: nondefault memory localOnly stays unrepresented with no publication or writes
+ok 3 - nondefault memory localOnly stays unrepresented with no publication or writes
+  ---
+  duration_ms: 30.756292
+  type: 'test'
+  ...
+# Subtest: nondefault memory touched stays unrepresented with no publication or writes
+ok 4 - nondefault memory touched stays unrepresented with no publication or writes
+  ---
+  duration_ms: 29.963834
+  type: 'test'
+  ...
+# Subtest: nondefault memory revision stays unrepresented with no publication or writes
+ok 5 - nondefault memory revision stays unrepresented with no publication or writes
+  ---
+  duration_ms: 28.71825
+  type: 'test'
+  ...
+# Subtest: nondefault memory unknown stays unrepresented with no publication or writes
+ok 6 - nondefault memory unknown stays unrepresented with no publication or writes
+  ---
+  duration_ms: 28.126041
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 348.499375

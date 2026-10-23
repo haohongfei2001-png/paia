@@ -1,3 +1,4 @@
+import {consumeOriginalDefaultMemoryRow} from './local-memory-default.js';
 import {archiveYearKey,archiveYearMeta} from '../archive-year-index.js';
 import {consumeMixedPublicationMetadata,mixedConfigurationReplay} from './mixed-configuration.js';
 import {consumerDisplayPreferences,consumerPreferencesMatchLocal} from './consumer-preference-restore.js';
@@ -173,7 +174,7 @@ function qualifyLocal(core,scope,plan,rows,control,databaseId,replay){
  // The preceding canonical checker individually checked every original protocol
  // ID, including full operations/receipt/head/history and foreign namespaces.
  // No unvalidated protocol prefix or arbitrary local key is exempted here.
- const remaining=new Map(rows.meta.filter(row=>!admitted.has(row.id)).map(row=>[row.id,row]));consumeMixedPublicationMetadata(remaining);consumeArchiveYearMetadata(remaining,rows);
+ const remaining=new Map(rows.meta.filter(row=>!admitted.has(row.id)).map(row=>[row.id,row]));consumeMixedPublicationMetadata(remaining);consumeOriginalDefaultMemoryRow(remaining);consumeArchiveYearMetadata(remaining,rows);
  for(const row of remaining.values())if(!row.id.startsWith('bns:'))refuse();
 }
 

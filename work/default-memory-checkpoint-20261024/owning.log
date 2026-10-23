@@ -1,0 +1,209 @@
+TAP version 13
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 1 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 115.073458
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 2 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 295.237792
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 3 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 281.704042
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 4 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 312.680042
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 5 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 312.632042
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 6 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 227.488667
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 7 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 227.130042
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 8 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 231.362209
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 9 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 223.608625
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 10 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 238.166292
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 11 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 264.74925
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 12 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 114.722333
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 13 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 40.225542
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 14 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 552.145083
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":106.17529099999956,"reads":2705,"writes":1161}}
+# Subtest: exact128 retained operations restore and the129th has explicit paged scope admission
+ok 15 - exact128 retained operations restore and the129th has explicit paged scope admission
+  ---
+  duration_ms: 960.824417
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 16 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 22.814417
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 17 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 28.088917
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 18 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 27.746417
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 19 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 26.969875
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 20 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 30.341167
+  type: 'test'
+  ...
+# Subtest: original A local preview protection and B sidebar choice survive complete checkpoint recovery and republish without transfer
+ok 21 - original A local preview protection and B sidebar choice survive complete checkpoint recovery and republish without transfer
+  ---
+  duration_ms: 236.182583
+  type: 'test'
+  ...
+# Subtest: a device-only protection change after staging is preserved by the original activation control owner
+ok 22 - a device-only protection change after staging is preserved by the original activation control owner
+  ---
+  duration_ms: 83.565667
+  type: 'test'
+  ...
+# Subtest: local comparison excludes only valid device booleans and keeps every other value exact
+ok 23 - local comparison excludes only valid device booleans and keeps every other value exact
+  ---
+  duration_ms: 0.097166
+  type: 'test'
+  ...
+# Subtest: original lazy default memory configuration survives A to initialized B to C without portable permission intent
+ok 24 - original lazy default memory configuration survives A to initialized B to C without portable permission intent
+  ---
+  duration_ms: 216.456333
+  type: 'test'
+  ...
+# Subtest: nondefault memory external stays unrepresented with no publication or writes
+ok 25 - nondefault memory external stays unrepresented with no publication or writes
+  ---
+  duration_ms: 32.244083
+  type: 'test'
+  ...
+# Subtest: nondefault memory localOnly stays unrepresented with no publication or writes
+ok 26 - nondefault memory localOnly stays unrepresented with no publication or writes
+  ---
+  duration_ms: 30.439625
+  type: 'test'
+  ...
+# Subtest: nondefault memory touched stays unrepresented with no publication or writes
+ok 27 - nondefault memory touched stays unrepresented with no publication or writes
+  ---
+  duration_ms: 30.661208
+  type: 'test'
+  ...
+# Subtest: nondefault memory revision stays unrepresented with no publication or writes
+ok 28 - nondefault memory revision stays unrepresented with no publication or writes
+  ---
+  duration_ms: 29.281709
+  type: 'test'
+  ...
+# Subtest: nondefault memory unknown stays unrepresented with no publication or writes
+ok 29 - nondefault memory unknown stays unrepresented with no publication or writes
+  ---
+  duration_ms: 29.435583
+  type: 'test'
+  ...
+# Subtest: google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 30 - google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 1103.298417
+  type: 'test'
+  ...
+# Subtest: onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 31 - onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 1121.402167
+  type: 'test'
+  ...
+# Subtest: actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+ok 32 - actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+  ---
+  duration_ms: 82.493375
+  type: 'test'
+  ...
+# Subtest: unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+ok 33 - unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+  ---
+  duration_ms: 74.654209
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8076.256542
