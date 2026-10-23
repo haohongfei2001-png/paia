@@ -1,3 +1,4 @@
+import {readContextEditMapping} from './context-correction.js';
 import {sourcePresent} from '../thought-source-presence.js';
 import {assertMaintenanceProcessingConsentReceiptSnapshot} from '../../background/maintenance-processing-consent.js';
 import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
@@ -85,6 +86,9 @@ async function metadataClosure(store,t,request,selection={}){
  for(const id of selection.entryIds||[])await addEntry(id);
  for(const selected of selection.structures||[]){const row=await t.get(selected.store,selected.recordId);need(row);structures.set(JSON.stringify([selected.store,row.id]),{table:selected.store,metadata:structureMetadata(row),selectedFields:[...selected.selectedFields]});}
  for(const {descriptor:d}of request.items){
+  // Current human correction metadata selects original author references only.
+  // Author bytes/history remain inaccessible until the separate scope grant.
+  if(d.kind==='context_item'){const m=await readContextEditMapping(store,t,d,{qualifyAuthored:false});for(const id of m?.authoredEntryIds||[]){await addEntry(id);historyEntries.add(id);}}
   if(d.kind==='library_entry'){await addEntry(d.entityId);historyEntries.add(d.entityId);}
   if(d.kind==='placement'){const row=await t.get('placements',d.recordId||d.entityId);if(row?.id===d.entityId&&idOK(row.entryId)){await addEntry(row.entryId);historyEntries.add(row.entryId);}}
   if(['topic','section'].includes(d.kind)){

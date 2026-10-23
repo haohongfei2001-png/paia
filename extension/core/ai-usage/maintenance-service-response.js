@@ -129,7 +129,7 @@ function unitMaterial(unit,material,metadata){
  if(kind==='library_entry'){const entry=material.entries?.find(e=>e.entryId===id);requireFact(entry&&metadata.entries?.some(e=>e.entryId===id&&e.revision===entry.revision&&equal(e.inputIds,[entry.workingInputId])),'STALE_BASE');return {inputs:[entry.workingInputId],authored:[],bound:[],structures:[],topicId:null};}
  if(kind==='placement'){const p=material.placements?.find(e=>e.placementId===id);requireFact(p&&metadata.placements?.some(e=>equal(e,p)),'STALE_BASE');return {inputs:[p.inputId],authored:[],bound:[],structures:[],topicId:p.topicId};}
  if(kind==='section'||kind==='topic'){const list=kind==='topic'?'structuralTopics':'structuralSections',sent=material[list]?.find(e=>kind==='topic'?e.topicId===id:e.sectionId===id),m=metadata[list]?.find(e=>kind==='topic'?e.topicId===id:e.sectionId===id);requireFact(sent&&m&&equal(without(sent,['title','name']),m),'STALE_BASE');return {inputs:[...new Set(m.entries.map(e=>e.inputId))],authored:[],bound:[],structures:[m],topicId:m.topicId};}
- if(kind==='context_item'){const sent=material.contextItems?.find(e=>e.itemId===id),m=metadata.contextItems?.find(e=>e.itemId===id);requireFact(sent&&m&&equal(without(sent,['fields']),without(m,['associationIds','evidence'])),'STALE_BASE');return {inputs:sent.inputIds,authored:[],bound:[],structures:[],topicId:null,correction:m};}
+ if(kind==='context_item'){const sent=material.contextItems?.find(e=>e.itemId===id),m=metadata.contextItems?.find(e=>e.itemId===id);requireFact(sent&&m&&equal(without(sent,['fields']),without(m,['associationIds','evidence'])),'STALE_BASE');return {inputs:sent.inputIds,authored:sent.authoredEntryIds||[],bound:[],structures:[],topicId:null,correction:m};}
  fail('INVALID_RESPONSE');
 }
 
