@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: default source configuration preserves the ordinary original Organizer store
+ok 1 - default source configuration preserves the ordinary original Organizer store
+  ---
+  duration_ms: 22.569208
+  type: 'test'
+  ...
+# Subtest: first published generation selects original Organizer and cold reopens owner edits
+ok 2 - first published generation selects original Organizer and cold reopens owner edits
+  ---
+  duration_ms: 538.547667
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default empty without replacing or migrating it
+ok 3 - enabled selection refuses existing default empty without replacing or migrating it
+  ---
+  duration_ms: 471.185958
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default content without replacing or migrating it
+ok 4 - enabled selection refuses existing default content without replacing or migrating it
+  ---
+  duration_ms: 507.123542
+  type: 'test'
+  ...
+# Subtest: enabled missing registry refuses without creating registry target or fallback
+ok 5 - enabled missing registry refuses without creating registry target or fallback
+  ---
+  duration_ms: 0.276417
+  type: 'test'
+  ...
+# Subtest: enabled corrupt registry fails without silently opening default
+ok 6 - enabled corrupt registry fails without silently opening default
+  ---
+  duration_ms: 460.209291
+  type: 'test'
+  ...
+# Subtest: enabled corrupt target fails without silently opening default
+ok 7 - enabled corrupt target fails without silently opening default
+  ---
+  duration_ms: 470.524333
+  type: 'test'
+  ...
+# Subtest: enabled corrupt receipt fails without silently opening default
+ok 8 - enabled corrupt receipt fails without silently opening default
+  ---
+  duration_ms: 462.872917
+  type: 'test'
+  ...
+# Subtest: default database appearing before final selection check rejects the selected store
+ok 9 - default database appearing before final selection check rejects the selected store
+  ---
+  duration_ms: 473.246792
+  type: 'test'
+  ...
+# Subtest: caller database factory constructor and malformed configuration cannot choose an application store
+ok 10 - caller database factory constructor and malformed configuration cannot choose an application store
+  ---
+  duration_ms: 0.320292
+  type: 'test'
+  ...
+# Subtest: enabled selection requires database enumeration and never falls back
+ok 11 - enabled selection requires database enumeration and never falls back
+  ---
+  duration_ms: 0.063
+  type: 'test'
+  ...
+# Subtest: selected original Organizer retains the exact AI filter authority without granting it default permission
+ok 12 - selected original Organizer retains the exact AI filter authority without granting it default permission
+  ---
+  duration_ms: 490.061917
+  type: 'test'
+  ...
+# Subtest: actual configured worker builds its original services on the selected Organizer without a fallback store
+ok 13 - actual configured worker builds its original services on the selected Organizer without a fallback store
+  ---
+  duration_ms: 2051.270916
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6115.362292

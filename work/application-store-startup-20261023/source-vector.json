@@ -1,0 +1,62 @@
+{
+  "commit": "94fd0fd26783c1a095a1c4fbd0edd0fc5bbee94d",
+  "capturedAfterValidation": true,
+  "note": "Final source vector; does not retrospectively relabel prior intermediate test source bytes.",
+  "files": [
+    {
+      "path": "extension/background/application-startup-events.js",
+      "sha256": "efcd86af17e103b6119ea566da1a8f3e19c3c762e2bb955fa204570f0aa05eb0",
+      "blob": "5efbcda8eaa49039e9e19873521b288ac341088f"
+    },
+    {
+      "path": "extension/background/application-store-configuration.js",
+      "sha256": "d30a04baf60aaa37c7675a50fa273b9ffd2a7f20327f0c5376cf264f366239ee",
+      "blob": "5f8f6e3ecc5281c341a992dd460d78075770dc05"
+    },
+    {
+      "path": "extension/background/application-store-selection.js",
+      "sha256": "16555fedc6141e7a57750e78ea37c3cd3ac6d5506fcd910a1440c990d0971604",
+      "blob": "0a1d7f1a96fbf46d9e52525f25bbca268b2c9bc7"
+    },
+    {
+      "path": "extension/background/service-worker.js",
+      "sha256": "56c0652d33aac05d01e53b45244d859af5f87f46825039f0b8958d6ea5435ae5",
+      "blob": "b03dfab8870bcd12fdcc4028791fd98aada50142"
+    },
+    {
+      "path": "extension/core/browser-native-sync/canonical-generation-publication.js",
+      "sha256": "d03a00bcdc813468ba775da6da258f6d039b7f18a3b5c6875490747a548ffe4a",
+      "blob": "16a9378dad53a5922a88f0daffed412ea8069f4d"
+    },
+    {
+      "path": "extension/tests/application-startup-events.test.mjs",
+      "sha256": "ea68ec1d61ee3c95ae4ff04040bc92e97606eb32a8ac8d443edaa56e674ab892",
+      "blob": "6d103de2f929652acd8681fceaeecfb2bfdc9a68"
+    },
+    {
+      "path": "extension/tests/application-store-selection.test.mjs",
+      "sha256": "023e36eb8ba673e1548f06213d98aba964f7f100c4decf221c612a78600b1e8a",
+      "blob": "c0563969bb5e5961d760d811dc66030bc3586b74"
+    },
+    {
+      "path": "extension/tests/background-security.test.mjs",
+      "sha256": "366ae5d518afdace76fb21abb4966d669aa96940ff8351963590e4fcf77d1063",
+      "blob": "647dfabe974eaa8f6c4ee80e65516886df3acb57"
+    },
+    {
+      "path": "extension/tests/harness/uir03-worker-copy.mjs",
+      "sha256": "8221ca4cbcda483538b3adf3bc9604cd45681af0ff62c3120b3be0166f90d4e4",
+      "blob": "bca401fb4da0f24cfbc4f8c8c6eff1a2e29d5411"
+    },
+    {
+      "path": "extension/tests/organize-service-configuration.test.mjs",
+      "sha256": "08ef78a8a118ea6b08a14b756cf67fb185d98ad0025ed433cfe659e7de3a5353",
+      "blob": "5e4233eb9c96eebec8e60334bdf5ca0291f024ff"
+    },
+    {
+      "path": "extension/tests/uir03-worker-copy.test.mjs",
+      "sha256": "6661448a0d0a3e12470ab0062940e07e0d6da7aa5622b6d08f82f097a684636f",
+      "blob": "ff49428416bf0d8cf6b0d030e509e06ebec12b42"
+    }
+  ]
+}

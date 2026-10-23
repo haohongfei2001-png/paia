@@ -1,0 +1,443 @@
+TAP version 13
+# Subtest: fixed startup relays register before owners and never replay stale events
+ok 1 - fixed startup relays register before owners and never replay stale events
+  ---
+  duration_ms: 1.174917
+  type: 'test'
+  ...
+# Subtest: original owners can remove their private invalidation listeners without altering native registration
+ok 2 - original owners can remove their private invalidation listeners without altering native registration
+  ---
+  duration_ms: 0.275459
+  type: 'test'
+  ...
+# Subtest: one owner exception does not suppress another original invalidation
+ok 3 - one owner exception does not suppress another original invalidation
+  ---
+  duration_ms: 0.152833
+  type: 'test'
+  ...
+# Subtest: optional unsupported event surfaces remain unsupported
+ok 4 - optional unsupported event surfaces remain unsupported
+  ---
+  duration_ms: 1.069375
+  type: 'test'
+  ...
+# Subtest: default source configuration preserves the ordinary original Organizer store
+ok 5 - default source configuration preserves the ordinary original Organizer store
+  ---
+  duration_ms: 58.14525
+  type: 'test'
+  ...
+# Subtest: first published generation selects original Organizer and cold reopens owner edits
+ok 6 - first published generation selects original Organizer and cold reopens owner edits
+  ---
+  duration_ms: 1221.749583
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default empty without replacing or migrating it
+ok 7 - enabled selection refuses existing default empty without replacing or migrating it
+  ---
+  duration_ms: 1078.684583
+  type: 'test'
+  ...
+# Subtest: enabled selection refuses existing default content without replacing or migrating it
+ok 8 - enabled selection refuses existing default content without replacing or migrating it
+  ---
+  duration_ms: 1040.306416
+  type: 'test'
+  ...
+# Subtest: enabled missing registry refuses without creating registry target or fallback
+ok 9 - enabled missing registry refuses without creating registry target or fallback
+  ---
+  duration_ms: 0.539292
+  type: 'test'
+  ...
+# Subtest: enabled corrupt registry fails without silently opening default
+ok 10 - enabled corrupt registry fails without silently opening default
+  ---
+  duration_ms: 987.462
+  type: 'test'
+  ...
+# Subtest: enabled corrupt target fails without silently opening default
+ok 11 - enabled corrupt target fails without silently opening default
+  ---
+  duration_ms: 1077.439875
+  type: 'test'
+  ...
+# Subtest: enabled corrupt receipt fails without silently opening default
+ok 12 - enabled corrupt receipt fails without silently opening default
+  ---
+  duration_ms: 1010.358125
+  type: 'test'
+  ...
+# Subtest: default database appearing before final selection check rejects the selected store
+ok 13 - default database appearing before final selection check rejects the selected store
+  ---
+  duration_ms: 895.384208
+  type: 'test'
+  ...
+# Subtest: caller database factory constructor and malformed configuration cannot choose an application store
+ok 14 - caller database factory constructor and malformed configuration cannot choose an application store
+  ---
+  duration_ms: 0.430458
+  type: 'test'
+  ...
+# Subtest: enabled selection requires database enumeration and never falls back
+ok 15 - enabled selection requires database enumeration and never falls back
+  ---
+  duration_ms: 0.2735
+  type: 'test'
+  ...
+# Subtest: selected original Organizer retains the exact AI filter authority without granting it default permission
+ok 16 - selected original Organizer retains the exact AI filter authority without granting it default permission
+  ---
+  duration_ms: 947.351542
+  type: 'test'
+  ...
+# Subtest: service worker enforces caller capabilities, consent and immutable capture
+    # Subtest: no storage access until trusted-context isolation succeeds
+    ok 1 - no storage access until trusted-context isolation succeeds
+      ---
+      duration_ms: 61.048792
+      type: 'test'
+      ...
+    # Subtest: only exact own extension pages may read archive data
+    ok 2 - only exact own extension pages may read archive data
+      ---
+      duration_ms: 9.64525
+      type: 'test'
+      ...
+    # Subtest: status exposes only the minimal content-script fields
+    ok 3 - status exposes only the minimal content-script fields
+      ---
+      duration_ms: 27.976292
+      type: 'test'
+      ...
+    # Subtest: content scripts cannot grant consent or invoke archive mutations
+    ok 4 - content scripts cannot grant consent or invoke archive mutations
+      ---
+      duration_ms: 11.035292
+      type: 'test'
+      ...
+    # Subtest: capture requires a matching persistent sender chat and correct adapter
+    ok 5 - capture requires a matching persistent sender chat and correct adapter
+      ---
+      duration_ms: 36.419167
+      type: 'test'
+      ...
+    # Subtest: SPA capture uses the current tab URL and rejects stale or unsafe routes
+    ok 6 - SPA capture uses the current tab URL and rejects stale or unsafe routes
+      ---
+      duration_ms: 55.6115
+      type: 'test'
+      ...
+    # Subtest: notes remain separate and immutable originals reject mutation attempts
+    ok 7 - notes remain separate and immutable originals reject mutation attempts
+      ---
+      duration_ms: 41.777791
+      type: 'test'
+      ...
+    # Subtest: pause and resumed consent epochs reject delayed batches in queue order
+    ok 8 - pause and resumed consent epochs reject delayed batches in queue order
+      ---
+      duration_ms: 55.146083
+      type: 'test'
+      ...
+    # Subtest: diagnostics whitelist fields and strip arbitrary content
+    ok 9 - diagnostics whitelist fields and strip arbitrary content
+      ---
+      duration_ms: 91.990458
+      type: 'test'
+      ...
+    # Subtest: diagnostics require the current adapter except for the fixed version-mismatch code
+    ok 10 - diagnostics require the current adapter except for the fixed version-mismatch code
+      ---
+      duration_ms: 31.778833
+      type: 'test'
+      ...
+    # Subtest: every diagnostic code including the version exception requires the trusted top-level ChatGPT sender
+    ok 11 - every diagnostic code including the version exception requires the trusted top-level ChatGPT sender
+      ---
+      duration_ms: 1.240625
+      type: 'test'
+      ...
+    # Subtest: paused diagnostics cannot restore structural data
+    ok 12 - paused diagnostics cannot restore structural data
+      ---
+      duration_ms: 26.439708
+      type: 'test'
+      ...
+    1..12
+ok 17 - service worker enforces caller capabilities, consent and immutable capture
+  ---
+  duration_ms: 740.691417
+  type: 'test'
+  ...
+# Subtest: service worker fails closed if storage isolation fails
+ok 18 - service worker fails closed if storage isolation fails
+  ---
+  duration_ms: 8.033542
+  type: 'test'
+  ...
+# Subtest: ANS-03 source observations require trusted current-route sender, current epoch and archived source before settle
+ok 19 - ANS-03 source observations require trusted current-route sender, current epoch and archived source before settle
+  ---
+  duration_ms: 98.122917
+  type: 'test'
+  ...
+# Subtest: CPR-01 Project observations are bound to the trusted same-tab Project route and settle atomically
+ok 20 - CPR-01 Project observations are bound to the trusted same-tab Project route and settle atomically
+  ---
+  duration_ms: 106.813042
+  type: 'test'
+  ...
+# Subtest: CPR-02 plain-route absence is trusted, custom GPT is not, and only relationship changes notify Navigator
+ok 21 - CPR-02 plain-route absence is trusted, custom GPT is not, and only relationship changes notify Navigator
+  ---
+  duration_ms: 84.630125
+  type: 'test'
+  ...
+# Subtest: metadata enrichment uses the same trusted top-level sender and epoch gates as capture
+ok 22 - metadata enrichment uses the same trusted top-level sender and epoch gates as capture
+  ---
+  duration_ms: 73.263042
+  type: 'test'
+  ...
+# Subtest: Library and Memory access commands remain restricted to trusted UI contexts
+ok 23 - Library and Memory access commands remain restricted to trusted UI contexts
+  ---
+  duration_ms: 58.2545
+  type: 'test'
+  ...
+# Subtest: no UI, content script or external caller has a reload message command
+ok 24 - no UI, content script or external caller has a reload message command
+  ---
+  duration_ms: 30.8975
+  type: 'test'
+  ...
+# Subtest: malformed request types still produce a safe response after import routing
+ok 25 - malformed request types still produce a safe response after import routing
+  ---
+  duration_ms: 9.9
+  type: 'test'
+  ...
+# Subtest: IA capabilities remain trusted-page-only; no Thought creation, AI refresh or source purge without confirmation
+ok 26 - IA capabilities remain trusted-page-only; no Thought creation, AI refresh or source purge without confirmation
+  ---
+  duration_ms: 30.617209
+  type: 'test'
+  ...
+# Subtest: CPV1-01.1 recovery drafts are exact trusted-UI, consent-gated local operations
+ok 27 - CPV1-01.1 recovery drafts are exact trusted-UI, consent-gated local operations
+  ---
+  duration_ms: 69.819
+  type: 'test'
+  ...
+# Subtest: Smart Filter commands remain restricted to trusted UI callers
+ok 28 - Smart Filter commands remain restricted to trusted UI callers
+  ---
+  duration_ms: 11.886083
+  type: 'test'
+  ...
+# Subtest: M2 Library commands are trusted UI only, consent gated and manual-only creation
+ok 29 - M2 Library commands are trusted UI only, consent gated and manual-only creation
+  ---
+  duration_ms: 28.743916
+  type: 'test'
+  ...
+# Subtest: v081 backup, bounded workflow, Topic governance and AI draft commands reject content and foreign senders
+ok 30 - v081 backup, bounded workflow, Topic governance and AI draft commands reject content and foreign senders
+  ---
+  duration_ms: 19.045958
+  type: 'test'
+  ...
+# Subtest: v0100 Memory commands reject content/foreign callers and all require consent
+ok 31 - v0100 Memory commands reject content/foreign callers and all require consent
+  ---
+  duration_ms: 29.979833
+  type: 'test'
+  ...
+# Subtest: UX-R2 Reader, Revisit and capture policy RPCs require exact trusted UI and consent
+ok 32 - UX-R2 Reader, Revisit and capture policy RPCs require exact trusted UI and consent
+  ---
+  duration_ms: 31.542875
+  type: 'test'
+  ...
+# Subtest: UX-R3 Thought selection, binding, reverse policy, history and positions require exact trusted UI and consent
+ok 33 - UX-R3 Thought selection, binding, reverse policy, history and positions require exact trusted UI and consent
+  ---
+  duration_ms: 31.686666
+  type: 'test'
+  ...
+# Subtest: retired manual Context rejects trusted calls after consent while preserving sender and consent gates
+ok 34 - retired manual Context rejects trusted calls after consent while preserving sender and consent gates
+  ---
+  duration_ms: 23.512959
+  type: 'test'
+  ...
+# Subtest: foundation worker: time-only CAPTURE notifies readers but unchanged replay does not
+ok 35 - foundation worker: time-only CAPTURE notifies readers but unchanged replay does not
+  ---
+  duration_ms: 65.470167
+  type: 'test'
+  ...
+# Subtest: capture recovery fences every old-version content write before metadata or source mutation
+ok 36 - capture recovery fences every old-version content write before metadata or source mutation
+  ---
+  duration_ms: 35.025792
+  type: 'test'
+  ...
+# Subtest: VS09 actual worker keeps prompt library and mutations behind exact trusted callers and consent
+ok 37 - VS09 actual worker keeps prompt library and mutations behind exact trusted callers and consent
+  ---
+  duration_ms: 157.110125
+  type: 'test'
+  ...
+# Subtest: actual worker registers startup invalidation and suspend listeners before store isolation
+ok 38 - actual worker registers startup invalidation and suspend listeners before store isolation
+  ---
+  duration_ms: 34.353875
+  type: 'test'
+  ...
+# Subtest: durable registry selects original library after cold reopen and normal owner edits remain durable
+ok 39 - durable registry selects original library after cold reopen and normal owner edits remain durable
+  ---
+  duration_ms: 770.09525
+  type: 'test'
+  ...
+# Subtest: existing selected library receives A successor while preserving independent B edit and outbox
+ok 40 - existing selected library receives A successor while preserving independent B edit and outbox
+  ---
+  duration_ms: 993.601042
+  type: 'test'
+  ...
+# Subtest: missing registry rejects without leaving a ghost database
+ok 41 - missing registry rejects without leaving a ghost database
+  ---
+  duration_ms: 0.28125
+  type: 'test'
+  ...
+# Subtest: missing selected database rejects without creating a replacement
+ok 42 - missing selected database rejects without creating a replacement
+  ---
+  duration_ms: 454.909125
+  type: 'test'
+  ...
+# Subtest: existing old schema is refused without an implicit migration or later automatic upgrade
+ok 43 - existing old schema is refused without an implicit migration or later automatic upgrade
+  ---
+  duration_ms: 0.350667
+  type: 'test'
+  ...
+# Subtest: cold selection refuses missing catalog and never repairs it
+ok 44 - cold selection refuses missing catalog and never repairs it
+  ---
+  duration_ms: 461.365583
+  type: 'test'
+  ...
+# Subtest: cold selection refuses missing receipt and never repairs it
+ok 45 - cold selection refuses missing receipt and never repairs it
+  ---
+  duration_ms: 447.133208
+  type: 'test'
+  ...
+# Subtest: cold selection refuses missing qualification and never repairs it
+ok 46 - cold selection refuses missing qualification and never repairs it
+  ---
+  duration_ms: 448.462417
+  type: 'test'
+  ...
+# Subtest: a legitimate pending publication refuses cold selection and already-open owner writes
+ok 47 - a legitimate pending publication refuses cold selection and already-open owner writes
+  ---
+  duration_ms: 458.8125
+  type: 'test'
+  ...
+# Subtest: changed durable receipt after selection refuses normal owner edit and retains all data
+ok 48 - changed durable receipt after selection refuses normal owner edit and retains all data
+  ---
+  duration_ms: 455.888
+  type: 'test'
+  ...
+# Subtest: replacing the returned original store repository cannot carry its active authority
+ok 49 - replacing the returned original store repository cannot carry its active authority
+  ---
+  duration_ms: 454.302833
+  type: 'test'
+  ...
+# Subtest: same manager refuses a second implicit attachment and callers cannot supply a database override
+ok 50 - same manager refuses a second implicit attachment and callers cannot supply a database override
+  ---
+  duration_ms: 454.913375
+  type: 'test'
+  ...
+# Subtest: active merge terminal refuses raw canonical-generation:gate:v1 mutation and rolls all tables back
+ok 51 - active merge terminal refuses raw canonical-generation:gate:v1 mutation and rolls all tables back
+  ---
+  duration_ms: 783.376167
+  type: 'test'
+  ...
+# Subtest: active merge terminal refuses raw canonical-generation:copy-retirement:v1 mutation and rolls all tables back
+ok 52 - active merge terminal refuses raw canonical-generation:copy-retirement:v1 mutation and rolls all tables back
+  ---
+  duration_ms: 785.529917
+  type: 'test'
+  ...
+# Subtest: active merge terminal refuses raw canonical-generation:qualified-graph:v1 mutation and rolls all tables back
+ok 53 - active merge terminal refuses raw canonical-generation:qualified-graph:v1 mutation and rolls all tables back
+  ---
+  duration_ms: 783.358917
+  type: 'test'
+  ...
+# Subtest: unbound original repository cannot acquire active metadata classification from copied rows
+ok 54 - unbound original repository cannot acquire active metadata classification from copied rows
+  ---
+  duration_ms: 616.189708
+  type: 'test'
+  ...
+# Subtest: forged canonicalGeneration identity cannot be projected as an ordinary completed restore
+ok 55 - forged canonicalGeneration identity cannot be projected as an ordinary completed restore
+  ---
+  duration_ms: 705.519916
+  type: 'test'
+  ...
+# Subtest: unknown generation control is refused instead of exempting the entire namespace
+ok 56 - unknown generation control is refused instead of exempting the entire namespace
+  ---
+  duration_ms: 697.032625
+  type: 'test'
+  ...
+# Subtest: local edit after staging refuses a stale active merge while retaining the newer edit
+ok 57 - local edit after staging refuses a stale active merge while retaining the newer edit
+  ---
+  duration_ms: 726.193292
+  type: 'test'
+  ...
+# Subtest: unsupported exclusion through the original Working journal refuses before changing any data
+ok 58 - unsupported exclusion through the original Working journal refuses before changing any data
+  ---
+  duration_ms: 472.299333
+  type: 'test'
+  ...
+# Subtest: resident negative intent refuses incoming recovery and remains byte-for-byte unchanged
+ok 59 - resident negative intent refuses incoming recovery and remains byte-for-byte unchanged
+  ---
+  duration_ms: 540.710167
+  type: 'test'
+  ...
+# Subtest: existing-only opening refuses when database inventory is unavailable instead of probing by create
+ok 60 - existing-only opening refuses when database inventory is unavailable instead of probing by create
+  ---
+  duration_ms: 0.204792
+  type: 'test'
+  ...
+1..60
+# tests 72
+# suites 0
+# pass 72
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 22432.456125

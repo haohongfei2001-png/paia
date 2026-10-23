@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: original Organize RPC has a configured LocalOrganizeSession owner and remains default off
+ok 1 - original Organize RPC has a configured LocalOrganizeSession owner and remains default off
+  ---
+  duration_ms: 42.577167
+  type: 'test'
+  ...
+# Subtest: qualified static route and exact dynamic Organize request key have separate original job identities
+ok 2 - qualified static route and exact dynamic Organize request key have separate original job identities
+  ---
+  duration_ms: 39.542459
+  type: 'test'
+  ...
+# Subtest: UIR03 disposable worker preserves source/manifest bytes and uses only static original references
+ok 3 - UIR03 disposable worker preserves source/manifest bytes and uses only static original references
+  ---
+  duration_ms: 1399.261541
+  type: 'test'
+  ...
+# Subtest: actual statically instrumented worker shares its real Store and runs observation with dynamic import forbidden
+ok 4 - actual statically instrumented worker shares its real Store and runs observation with dynamic import forbidden
+  ---
+  duration_ms: 1658.046125
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3377.778875
