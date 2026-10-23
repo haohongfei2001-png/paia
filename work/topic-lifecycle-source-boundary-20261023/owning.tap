@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: real source issuer cannot turn enabled maintenance purpose or public field scopes into Topic identity authority
+ok 1 - real source issuer cannot turn enabled maintenance purpose or public field scopes into Topic identity authority
+  ---
+  duration_ms: 78.4245
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 218.932666
