@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-24",
+  "timezone": "Asia/Shanghai",
+  "integrationHead": "8f1fc0f68f66c3c91c12e14e00f43d9e857fa1c1",
+  "remoteMain": "0ce10a79f65ca9c811a32c1b0e6db2d833b85f9a",
+  "remotePR313": "02144bccf5e0e0b6842aaa4e7c6958cedecdfde1",
+  "primaryHead": "3bbd033b760701b5267a813d23ea94d26760c3b0",
+  "trackedIntegrationClean": true,
+  "relatedRunningProcessesFound": false,
+  "preservedStashes": [
+    "4899de01",
+    "7467d1e4",
+    "f309f5f8",
+    "9854d87f"
+  ],
+  "resumedWriters": [
+    "manual-prompt-conflict-consumer",
+    "sync-local-lifecycle",
+    "recoverable-checkpoint-publication"
+  ],
+  "executionLimitsUnchanged": true,
+  "qualified129": "FAIL; consumed; not retried",
+  "note": "Inspection only. All existing agent changes and untracked release artifacts preserved. No cloud or runtime tests executed during resumption."
+}
