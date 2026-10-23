@@ -27,10 +27,11 @@ export async function prepareMixedNonemptyMerge(store,core,stage,localOperations
  const operations=new Map(localOperations.map(o=>[o.revisionId,o]));for(const group of remotePlan.groups)for(const op of group.operations){const prior=operations.get(op.revisionId);if(prior&&!equal(prior,op))refuse();operations.set(op.revisionId,op);}
  const merged=await prepareCurrentMixedGroupCheckpointPlan(core,[...operations.values()]),known=new Set(localOperations.map(o=>o.revisionId)),incoming=merged.groups.filter(g=>g.operations.some(o=>!known.has(o.revisionId)));
  if(incoming.some(g=>g.operations.some(o=>known.has(o.revisionId)||o.deviceId===core.deviceId)))refuse();
- // Each incoming family uses its original predecessor-aware owner. Other
- // families and interleaved owner cuts need their own preparation; portable
- // rows alone cannot authorize adoption.
- if(incoming.some(g=>!['inputWorkingCommit','humanLibraryCommit'].includes(g.type))||incoming.some(g=>g.type==='humanLibraryCommit')&&incoming.some(g=>g.type==='inputWorkingCommit'))fail('BNS_GROUP_MERGE_OWNER_UNSUPPORTED');
+ // Original graph order places independent Human owners before Working. The
+ // exact private future view links their shared history allocator; other
+ // families and source-linked/interleaved cuts still need their own owners.
+ if(incoming.some(g=>!['inputWorkingCommit','humanLibraryCommit'].includes(g.type)))fail('BNS_GROUP_MERGE_OWNER_UNSUPPORTED');
+ let workingSeen=false;for(const group of incoming){if(group.type==='inputWorkingCommit')workingSeen=true;else if(workingSeen||group.prepared.descriptor.value.kind.startsWith('source-'))fail('BNS_GROUP_MERGE_OWNER_UNSUPPORTED');}
  const afterPlan=await prepareGroupCheckpointPlan(core,[...operations.values()]),afterScope=await prepareGroupScope(afterPlan,{store}),prior=snapshot.meta.find(r=>r.id===mixedTimelineKey(core,namespace));
  const timeline=prior?clone(prior):{id:mixedTimelineKey(core,namespace),version:1,namespace,base:transactions.map(tx=>tx.map(g=>g.id)),batches:[]},previous=new Set([...timeline.base.flat(),...timeline.batches.flatMap(b=>[...b.local,...b.incoming])]);
  const local=transactions.flat().filter(g=>!previous.has(g.id)).map(g=>g.id);timeline.batches.push({restoreId,before:plan.digest,after:merged.digest,local,incoming:incoming.map(g=>g.id)});if(timeline.batches.length>128||bytes(timeline).length>2*1024*1024)fail('BNS_GROUP_RESOURCE_LIMIT');

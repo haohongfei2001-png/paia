@@ -1,3 +1,4 @@
+import {projectOriginalWorkingHistory} from './input-working-commit.js';
 import {sourceLinkedDescriptor,portableSourceLinkedEvidence} from './source-linked-evidence.js';
 import {validateEvidence,checkEvidenceInTransaction,planEvidenceProjection} from '../thought-evidence.js';
 import {initialSourcePlanBorrows,initialSourcePlan} from './source-bootstrap-plan.js';
@@ -412,6 +413,16 @@ export function advanceHumanGraphSource(cap,plan,group){
  const g=futureGraphs.get(cap);if(!g)fail('BNS_HUMAN_PLAN_REQUIRED');requireOriginalGroupCheckpointPlan(g.core,plan);if(!plan.groups.includes(group)||group.type!=='sourceBootstrapCommit'||g.state.sources.length)fail('BNS_HUMAN_UNSUPPORTED');
  const e=initialSourcePlan(group.capability),sequence=(g.state.base.revision?.value||0)+1,h=e.baselineRevision;
  if(g.state.revisions.some(row=>row.id===h.id))fail('BNS_HUMAN_CHANGED');replaceHumanRow(g,g.state.revisions,{...h,sequence,listKey:[h.entityKey,sequence],documentList:[h.documentId,sequence]});g.state.base.revision={id:'revision-sequence',value:sequence};g.state.base.generation+=group.operations.length;g.state.sources.push(e);
+}
+// The finite mixed continuation orders every independent Human owner first.
+// Working then advances only history/protocol counters through its original
+// private application; no caller DTO or post-write sample can seed this view.
+export async function advanceHumanGraphWorking(cap,plan,group,application){
+ const g=futureGraphs.get(cap);if(!g)fail('BNS_HUMAN_PLAN_REQUIRED');requireOriginalGroupCheckpointPlan(g.core,plan);
+ if(!plan.groups.includes(group)||group.type!=='inputWorkingCommit'||g.used.has(application)||g.state.sources.length)fail('BNS_HUMAN_UNSUPPORTED');
+ const result=await projectOriginalWorkingHistory(g.store,g.core,application,group,g.state.revisions,g.state.base.revision?.value||0,g.workingMappings??new Map());
+ for(const row of result.rows)replaceHumanRow(g,g.state.revisions,row);
+ if(g.state.revisions.length>128)fail('BNS_HUMAN_GRAPH_LIMIT');g.state.base.revision={id:'revision-sequence',value:result.revisionSequence};g.state.base.generation+=result.operationCount;g.workingMappings=result.mappings;g.used.add(application);
 }
 async function futureSourceEvidence(g,wire){
  const e=g.state.sources.find(e=>e.input.id===wire.inputId);if(!e||e.input.excluded||e.input.branchStatus||e.inputState.removalState!=='active'||e.inputState.sourcePurged||e.source.id!==wire.sourceRecordIds?.[0]||e.input.provenance.length!==1)fail('BNS_SOURCE_LINKED_EVIDENCE_CHANGED');
