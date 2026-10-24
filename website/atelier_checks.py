@@ -6,7 +6,7 @@ from html.parser import HTMLParser
 import hashlib,json,re
 
 def enabled(root):
-    return any(f'data-atelier-version="{v}"' in (root/'index.html').read_text() for v in (9,10,11,12))
+    return any(f'data-atelier-version="{v}"' in (root/'index.html').read_text() for v in (9,10,11,12,13))
 
 class Tags(HTMLParser):
     def __init__(self,text):
@@ -14,6 +14,9 @@ class Tags(HTMLParser):
     def handle_starttag(self,t,a):self.items.append((t,dict(a)))
 
 def verify_static(root,check):
+    if 'data-atelier-version="13"' in (root/'index.html').read_text():
+        from world13_checks import static
+        return static(root,check)
     if 'data-atelier-version="12"' in (root/'index.html').read_text():
         from polish12_checks import static
         return static(root,check)
@@ -46,6 +49,9 @@ def verify_static(root,check):
     check((root/'assets/website/type/atelier-serif-sc-OFL.txt').exists(),'Atelier: licensed locally hosted CJK heading font')
 
 def verify_home(page,check,label,deep=False,out=None):
+    if page.locator("body").get_attribute("data-atelier-version")=="13":
+        from world13_checks import home
+        return home(page,check,label,deep,out)
     if page.locator("body").get_attribute("data-atelier-version")=="12":
         from polish12_checks import home
         return home(page,check,label,deep,out)
