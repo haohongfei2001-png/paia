@@ -100,3 +100,7 @@ html[lang=en] .p12-home .p11-mind .p10-thought-line{font:25px/1.45 var(--p10-dis
 .p12-mobile-break{display:none}
 @media(max-width:640px){.p12-mobile-break{display:inline}.p12-home .p11-mind .p10-thought-three{top:662px}}
 @media(max-width:350px){.p12-home .p11-mind .p10-thought-three{top:705px}}
+
+/* English receives its own compact working-page scale, not the old 76px hero. */
+html[lang='en'] .p12-demo .d11-intro h1{font:400 46px/1.12 var(--p10-display);letter-spacing:-.015em}
+@media(max-width:640px){html[lang='en'] .p12-demo .d11-intro h1{font-size:38px}}
