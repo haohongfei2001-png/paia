@@ -83,3 +83,6 @@ body[data-site-polish='12']:is([data-page='help.html'],[data-page='status.html']
 /* Supersede the earlier utility-page forced sans face, not its task heading. */
 html body[data-site-polish='12']:is([data-page='download.html'],[data-page='beta.html'],[data-page='help.html'],[data-page='status.html'],[data-page='contact.html'],[data-page='thanks.html']) main h1{font-family:PaiaEditorial12,'Songti SC',serif!important;font-weight:300!important}
 html[lang='en'] body[data-site-polish='12']:is([data-page='download.html'],[data-page='beta.html'],[data-page='help.html'],[data-page='status.html'],[data-page='contact.html'],[data-page='thanks.html']) main h1{font-family:'Instrument Serif',Georgia,serif!important;font-weight:400!important}
+
+body[data-site-polish='12'] .header-actions>.ed-mobile-primary{background:#6884b7;color:#fff;border:1px solid transparent;border-radius:30px;box-shadow:none;font-size:12px;min-height:40px;padding:10px 16px}
+body[data-site-polish='12'] .header-actions>.ed-mobile-primary:hover{background:#566fa1}

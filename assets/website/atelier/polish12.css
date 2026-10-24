@@ -119,3 +119,6 @@ html[lang='en'] .p12-demo .d11-intro h1{font:400 46px/1.12 var(--p10-display);le
  html[lang='en'] .p12-home .p11-mind .p10-thought-line{font-size:22px;line-height:1.35}
  html[lang='en'] .p12-home .p11-mind .p10-thought-three{top:690px}
 }
+
+.p12-demo .d11-intro h1 .p12-demo-lead{color:#34443f}.p12-demo .d11-intro h1 .p12-demo-end{white-space:nowrap}
+@media(max-width:640px){.p12-demo .d11-intro h1 .p12-demo-end{display:block}}
