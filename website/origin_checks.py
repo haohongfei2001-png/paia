@@ -21,6 +21,8 @@ def verify_typography(page, check, label='site'):
                  page.locator('body').get_attribute('data-page') in editorial_pages)
     family = page.locator('h1').evaluate('e=>getComputedStyle(e).fontFamily')
     expected = 'Instrument Serif' if editorial else 'sans-serif'
+    if page.locator('body').get_attribute('data-site-polish')=='12' and page.locator('body').get_attribute('data-page') in ('download.html','beta.html','help.html','status.html','contact.html','thanks.html'):
+        expected='Instrument Serif' if page.locator('html').get_attribute('lang')=='en' else 'PaiaEditorial12'
     test(expected in family, 'primary heading retains its editorial or product UI type role')
     test('PAIA Display' in page.locator('.wordmark').first.evaluate('e=>getComputedStyle(e).fontFamily'), 'original PAIA brand typography retained')
     test(page.locator('.header-inner').evaluate("e=>getComputedStyle(e).backdropFilter.includes('blur(')"), 'navigation uses the shared glass surface')

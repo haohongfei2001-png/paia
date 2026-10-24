@@ -1,3 +1,5 @@
+> **Atelier V12:** current homepage, example, and shared interior finish. See [POLISH_V12.md](POLISH_V12.md). Historical notes below retain their original scope.
+
 > Current homepage and product example: **V11**. See [REFINEMENT_V11.md](REFINEMENT_V11.md). Earlier notes below describe their original release.
 
 # PAIA Atelier V10 — visual narrative homepage

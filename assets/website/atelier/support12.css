@@ -1,0 +1,88 @@
+/* Shared brand chrome for interior routes; their content and form owners stay. */
+@font-face{font-family:PaiaEditorial12;src:url('/assets/website/type/atelier-editorial-v12.woff2') format('woff2');font-weight:300;font-style:normal;font-display:swap}
+body[data-site-polish='12']{--p12-ink:#35403c;--p12-blue:#6884b7;--p12-paper:#fbfaf8;--p12-border:#e4e1df;--focus:#5676ad;background:#fff;color:var(--p12-ink)}
+body[data-site-polish='12'] .header-inner{border-color:#eeece7;border-radius:40px;background:rgba(250,248,242,.9);backdrop-filter:blur(22px) saturate(135%);box-shadow:0 9px 34px #71634b09;min-height:65px;padding-inline:23px}
+body[data-site-polish='12'] .header-brand-mark{width:27px;height:30px;margin-right:7px}
+body[data-site-polish='12'] .wordmark{color:#30382f;font-weight:400;letter-spacing:.015em}
+body[data-site-polish='12'] .desktop-nav{gap:27px}
+body[data-site-polish='12'] .desktop-nav a,body[data-site-polish='12'] .language{color:#636c66;font-weight:400;font-size:13px}
+body[data-site-polish='12'] .button{background:#6884b7;border:1px solid transparent;box-shadow:none;border-radius:40px;font-size:14px;font-weight:400;padding:13px 23px;line-height:1.5;min-height:44px}
+body[data-site-polish='12'] .button:hover{background:#566fa1;box-shadow:0 7px 18px #677eab20;transform:translateY(-1px)}
+body[data-site-polish='12'] .button-small{padding:10px 20px;font-size:13px;min-height:40px}
+body[data-site-polish='12'] .text-link{color:#586f91;font-size:13px;text-underline-offset:5px;text-decoration-thickness:1px;min-height:40px;display:inline-flex;align-items:center}
+body[data-site-polish='12'] .eyebrow{font-size:10px;letter-spacing:.16em;font-weight:500;color:#738078}
+body[data-site-polish='12'] .lead{color:#64716d;line-height:1.9;font-size:17px}
+body[data-site-polish='12'] .site-footer{border-top-color:#e7e5e0;padding-top:57px;padding-bottom:35px}
+body[data-site-polish='12'] .footer-main strong{color:#6c746e;font-size:12px;letter-spacing:.04em}
+body[data-site-polish='12'] .footer-main nav a{font-size:13px;color:#747b76;line-height:1.8}
+body[data-site-polish='12'] .footer-bottom{border-color:#ebe9e4;color:#7e857e;font-size:11px}
+body[data-site-polish='12'] .mobile-menu>summary{border-radius:50%;min-height:44px;min-width:44px}
+body[data-site-polish='12'] .mobile-menu nav{border:1px solid #e9e5df;background:#fffdf8;border-radius:18px;box-shadow:0 14px 35px #6b61541a}
+/* Release, help and contact share the current editorial heading, not old SaaS blue. */
+body[data-site-polish='12']:is([data-page='download.html'],[data-page='beta.html'],[data-page='help.html'],[data-page='status.html'],[data-page='contact.html'],[data-page='thanks.html']) h1{font-family:PaiaEditorial12,'Songti SC',serif;font-weight:300;font-size:clamp(42px,4.2vw,62px);line-height:1.35;letter-spacing:-.015em;color:#36423c}
+html[lang='en'] body[data-site-polish='12']:is([data-page='download.html'],[data-page='beta.html'],[data-page='help.html'],[data-page='status.html'],[data-page='contact.html'],[data-page='thanks.html']) h1{font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(46px,5.3vw,74px);line-height:1.12}
+body[data-site-polish='12']:is([data-page='download.html'],[data-page='beta.html'],[data-page='help.html'],[data-page='status.html'],[data-page='contact.html'],[data-page='thanks.html']){background:#fbfaf8}
+.p12-release-intro{padding-top:79px;padding-bottom:43px;gap:70px;align-items:end}.p12-release-intro h1{margin-top:22px}.p12-release-intro .lead{padding-bottom:5px}
+.p12-release-layout{gap:74px;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);padding-bottom:100px}
+.p12-release-layout .release-download{background:linear-gradient(125deg,#fffefc,#fff);border:1px solid #e7e4df;border-radius:24px;padding:36px 42px 25px;box-shadow:0 30px 55px -45px #6d625e55;position:relative}
+.p12-release-icon{display:flex;align-items:center;gap:12px;padding-bottom:30px}
+.p12-release-icon img{width:37px;height:42px}.p12-release-icon .release-app-wordmark{font:36px 'PAIA Display',Georgia,serif;margin:0;color:#3c443e}
+.p12-release-layout .release-download h2{font:300 34px/1.5 PaiaEditorial12,'Songti SC',serif;letter-spacing:0;margin:0 0 18px;color:#3f4a44}
+html[lang=en] .p12-release-layout .release-download h2{font:400 42px/1.13 'Instrument Serif',Georgia,serif}
+.p12-release-layout .release-download>p:not(.release-availability):not(.p12-example-boundary){font-size:14px;line-height:1.8;color:#69736f}
+.p12-release-layout .release-availability{font-size:13px;color:#846f5b;margin-top:22px;padding-left:14px;position:relative}
+.p12-release-layout .release-availability:before{content:'';width:5px;height:5px;background:#c1a37c;border-radius:50%;position:absolute;left:0;top:.6em}
+.p12-release-layout .release-install-actions{margin-top:20px;display:flex;flex-wrap:wrap;gap:18px}
+.p12-release-layout .p12-try-primary{font-size:15px;padding:15px 26px}
+.p12-release-layout .p12-example-boundary{font-size:12px!important;color:#758078;line-height:1.7;margin:13px 0 0}
+.p12-install-later{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:28px;padding-top:20px;border-top:1px solid #ece8e2}
+.p12-install-pending{border:1px solid #e4e3dd;background:#f5f4f0;border-radius:30px;padding:9px 13px;color:#8b918a;font-size:12px;min-height:36px;cursor:not-allowed;flex-shrink:0}
+.p12-install-later>span{font-size:11px;color:#7a827b;line-height:1.8;max-width:220px}
+.p12-release-layout .release-permission-link{border-top:0!important;margin:12px 0 0;padding:0!important}
+.p12-first-experience{padding-top:12px}.p12-first-experience>p{margin-bottom:15px}.p12-first-experience ol{margin-top:18px}
+.p12-first-experience li{border-bottom:1px solid #e7e3de;padding-top:25px;padding-bottom:25px}
+.p12-first-experience li:before{color:#9d9c90;font:20px 'Instrument Serif',Georgia,serif}
+.p12-experience-link{display:block;text-decoration:none}.p12-experience-link h3{display:flex;justify-content:space-between;gap:15px;font-size:17px;font-weight:500;line-height:1.65;color:#485950;margin-bottom:8px}.p12-experience-link h3 span{color:#8e9b8c;font-size:17px;transition:transform .2s}
+.p12-experience-link p{font-size:13px;line-height:1.9;color:#707a73}.p12-experience-link:hover h3 span{transform:translate(2px,-2px)}
+.p12-first-experience .release-help-link{border:0;padding-top:16px;display:flex;gap:25px;flex-wrap:wrap}
+/* Comfortable long-form support without rewriting policies or form consent. */
+body[data-site-polish='12'] .release-help-layout{gap:75px}
+body[data-site-polish='12'] .release-help-content{background:#fff;border:1px solid #e8e5df;border-radius:20px;padding:30px 36px}
+body[data-site-polish='12'] .release-help-content section{padding-bottom:22px}
+body[data-site-polish='12'] .release-help-content h2{font-size:20px;font-weight:500;color:#44554b}
+body[data-site-polish='12'] .nr-details{border-color:#eae6df}
+body[data-site-polish='12'] .nr-details summary{font-size:16px;line-height:1.7;font-weight:400;color:#435349;min-height:60px}
+body[data-site-polish='12'] .nr-details p{font-size:14px;line-height:1.95;color:#66736a}
+body[data-site-polish='12'] .release-help-index a{color:#6e7b6d;font-size:13px;min-height:40px}
+body[data-site-polish='12'] .release-help-end .text-link{margin-right:20px}
+body[data-site-polish='12'] .beta-form{background:#fff;border-color:#e5e2db;border-radius:22px;box-shadow:0 25px 55px -45px #71665355}
+body[data-site-polish='12'] .beta-form h2{font-size:22px;font-weight:500;color:#3f5145}
+body[data-site-polish='12'] .beta-form :is(input:not([type=checkbox]):not([type=hidden]),select,textarea){border-radius:9px;border-color:#d9ded8;background:#fffefc;color:#405049;font-size:16px}
+body[data-site-polish='12'] .beta-form label{color:#4c5e52;font-weight:400}
+body[data-site-polish='12'] .beta-form .field-hint,body[data-site-polish='12'] .beta-form .small{font-size:12px;color:#6d7971;line-height:1.8}
+body[data-site-polish='12'] .beta-aside{color:#5d6d60}.p12-first-experience a:focus-visible{outline:2px solid #6884b7;outline-offset:7px;border-radius:4px}
+@media(max-width:900px){body[data-site-polish='12'] .desktop-nav{gap:17px}.p12-release-layout{grid-template-columns:1.15fr 1fr;gap:32px}.p12-release-layout .release-download{padding:29px}.p12-release-layout .release-download h2{font-size:29px}body[data-site-polish='12'] .release-help-layout{gap:28px}}
+@media(max-width:640px){
+ body[data-site-polish='12'] .header-inner{padding-inline:14px;border-radius:33px;min-height:60px}.p12-release-intro{padding-top:37px;padding-bottom:28px;gap:22px}
+ body[data-site-polish='12']:is([data-page='download.html'],[data-page='beta.html'],[data-page='help.html'],[data-page='status.html'],[data-page='contact.html'],[data-page='thanks.html']) h1{font-size:39px;line-height:1.38}
+ html[lang='en'] body[data-site-polish='12']:is([data-page='download.html'],[data-page='beta.html'],[data-page='help.html'],[data-page='status.html'],[data-page='contact.html'],[data-page='thanks.html']) h1{font-size:47px;line-height:1.12}
+ .p12-release-layout{display:block;padding-bottom:55px}.p12-release-layout .release-download{padding:27px 23px 20px;border-radius:20px}.p12-release-icon{padding-bottom:25px}.p12-release-layout .release-download h2{font-size:29px}
+ .p12-first-experience{padding-top:45px}.p12-first-experience li{padding-block:20px}.p12-first-experience .release-help-link{padding-top:20px}
+ body[data-site-polish='12'] .release-help-content{padding:22px 20px}body[data-site-polish='12'] .nr-details summary{font-size:15px}body[data-site-polish='12'] .lead{font-size:15px}
+ .p12-install-later{gap:12px}.p12-install-later>span{max-width:none}.p12-release-layout .release-install-actions .button{width:100%}
+ body[data-site-polish='12'] .site-footer{padding-top:40px}body[data-site-polish='12'] .button-small{font-size:12px;padding:9px 15px}
+}
+@media(prefers-reduced-motion:reduce){body[data-site-polish='12'] .button,.p12-experience-link h3 span{transition:none}}
+@media(forced-colors:active){body[data-site-polish='12'] .button{border:1px solid ButtonText}.p12-install-pending{color:GrayText;border-color:GrayText}.p12-release-layout .release-download{border-color:CanvasText}}
+
+@font-face{font-family:'PAIA Display V12';src:url('/assets/website/type/instrument-serif.woff2') format('woff2');font-weight:400;font-display:swap}
+body[data-site-polish='12'] .wordmark,.p12-release-icon .release-app-wordmark{font-family:'PAIA Display V12','PAIA Display',serif;font-size:36px}
+body[data-site-polish='12']:is([data-page='help.html'],[data-page='status.html'],[data-page='contact.html']) h1{font-size:42px!important;line-height:1.3}
+@media(max-width:640px){body[data-site-polish='12']:is([data-page='help.html'],[data-page='status.html'],[data-page='contact.html']) h1{font-size:35px!important}}
+
+/* Supersede the earlier utility-page forced sans face, not its task heading. */
+html body[data-site-polish='12']:is([data-page='download.html'],[data-page='beta.html'],[data-page='help.html'],[data-page='status.html'],[data-page='contact.html'],[data-page='thanks.html']) main h1{font-family:PaiaEditorial12,'Songti SC',serif!important;font-weight:300!important}
+html[lang='en'] body[data-site-polish='12']:is([data-page='download.html'],[data-page='beta.html'],[data-page='help.html'],[data-page='status.html'],[data-page='contact.html'],[data-page='thanks.html']) main h1{font-family:'Instrument Serif',Georgia,serif!important;font-weight:400!important}
+
+body[data-site-polish='12'] .header-actions>.ed-mobile-primary{background:#6884b7;color:#fff;border:1px solid transparent;border-radius:30px;box-shadow:none;font-size:12px;min-height:40px;padding:10px 16px}
+body[data-site-polish='12'] .header-actions>.ed-mobile-primary:hover{background:#566fa1}

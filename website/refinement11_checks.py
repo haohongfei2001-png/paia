@@ -43,7 +43,7 @@ def home(page,check,label,deep=False,out=None):
     check(page.locator('.p10-thought-line').evaluate_all('es=>{const r=es.map(e=>e.getBoundingClientRect());return r.every((v,i)=>i===r.length-1||v.bottom+12<=r[i+1].top)}'),label+': expression blocks do not collide')
     check(page.locator('.p10-thought-three').evaluate('e=>e.getBoundingClientRect().bottom+8<document.querySelector(".p10-mind-paper footer").getBoundingClientRect().top'),label+': last expression clears the continuation line')
 
-def demo(page,check,label,deep=False,out=None):
+def demo(page,check,label,deep=False,out=None,expected_writing=None):
     page.wait_for_selector('body[data-atelier-ready=true]');page.evaluate('document.fonts.ready')
     zh=page.locator('html').get_attribute('lang').startswith('zh')
     def test(ok,name):check(ok,label+': '+name)
@@ -104,7 +104,7 @@ def demo(page,check,label,deep=False,out=None):
     test(page.locator('#section-title').inner_text()==before,'IME composition blocks destructive navigation')
     page.locator('#writing-end').dispatch_event('compositionend',{'data':'未完成'})
     page.locator('#topic-grid [data-topic=writing][data-section="0"]').click()
-    test(page.locator('#topic-prose .v8-entry-body').inner_text()==('我想写得更清楚一点。' if zh else 'I want to write a little more clearly.'),'homepage example continues into matching real text')
+    test(page.locator('#topic-prose .v8-entry-body').inner_text()==(expected_writing or ('我想写得更清楚一点。' if zh else 'I want to write a little more clearly.')),'homepage example continues into matching real text')
     # Query composition commits once, not half-composed.
     query.fill('');query.dispatch_event('compositionstart',{'data':'第一'})
     query.evaluate("e=>{e.value='unmatched-half-composition';e.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true}));}")

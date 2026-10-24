@@ -1,3 +1,5 @@
+> **Atelier V12:** current homepage, example, and shared interior finish. See [website/atelier/POLISH_V12.md](website/atelier/POLISH_V12.md). Historical notes below retain their original scope.
+
 > **Atelier V11 · 2026-10-23.** Refines the accepted V10 presentation and replaces the obsolete public demo with the current product model. See [refinement notes](website/atelier/REFINEMENT_V11.md). Extension and services are unchanged.
 
 > **23 October 2026 — Atelier V10 visual narrative.** The current homepage

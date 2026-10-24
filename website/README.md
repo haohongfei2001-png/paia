@@ -1,3 +1,5 @@
+> **Atelier V12:** current homepage, example, and shared interior finish. See [atelier/POLISH_V12.md](atelier/POLISH_V12.md). Historical notes below retain their original scope.
+
 > Current homepage and product example: **V11**. See [atelier/REFINEMENT_V11.md](atelier/REFINEMENT_V11.md). Earlier notes below describe their original release.
 
 > Current home: **Atelier V10**, presentation-led, with optional independent demo.
