@@ -59,3 +59,9 @@ Assist original command/session promises now remain tracked beyond UI races and 
 Cold Working preparations now have an actual applications-first consumer with finally/await release, a prerequisite for later generic composition. Old Human-first refusal created zero capabilities, not a leak; reorder-without-finally is the explicitly counterfactual red. Final owning16/16, original small84/84, R36/36.
 
 Root combined thirty complete small synthetic files606/606 after correcting a sparse checkout fixture prerequisite; the original525pass/1file-import-failure log remains. This is seven scoped packages, NOT completion of seven product plans.
+
+## Next original source-task settlement
+
+Next tracks original task and insertion transport settlement independently of UI maps/races. Final tab-local correction preserves unrelated-tab operations; sticky UNKNOWN and cold/global nonqualification remain. Original red and cross-tab51/56 failure retained; final12 files309/309 and root42-file combined915/915. Selection stays closed.
+
+Topic window parameters and default-off dual-qualification implementation proceed under current development authority; only real grants, extra source reads and activation need a later explicit decision. No production issuer or service is enabled.
