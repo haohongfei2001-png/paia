@@ -112,3 +112,10 @@ html[lang='en'] .p12-demo .d11-intro h1{font:400 46px/1.12 var(--p10-display);le
  html[lang='en'] .p12-demo .d11-intro h1{font-size:34px;line-height:1.12}
  html[lang='en'] .p12-demo .d11-heading h2{font-size:29px;line-height:1.25}
 }
+
+@media(max-width:640px){html[lang='en'] .p12-home .p11-mind .p10-mind-paper h3{font-size:32px;line-height:1.2}}
+@media(max-width:350px){
+ html[lang='en'] .p12-home .p11-mind .p10-mind-paper h3{font-size:30px}
+ html[lang='en'] .p12-home .p11-mind .p10-thought-line{font-size:22px;line-height:1.35}
+ html[lang='en'] .p12-home .p11-mind .p10-thought-three{top:690px}
+}
