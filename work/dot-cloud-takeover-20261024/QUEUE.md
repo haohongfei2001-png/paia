@@ -71,3 +71,21 @@ Topic window parameters and default-off dual-qualification implementation procee
 Exact reviewed Source/Working projections now feed the original named Human owners, retain real invalidation/epoch terminal evidence and release capabilities. Context singles execute after Human with their original causal/manual predecessors unchanged. Corrected candidate241/241 and combined nine engineering slices46-file980/980 pass; original Context ordering red0/4 and all historical failures remain archived.
 
 The unchanged automatic helper and consumed one-time phase diagnostic still FAIL at fresh C protected activation. No new C run, current resource total, unique-cause claim, native-linked acceptance or guard relaxation. Native browser components remain NOT_RUN due to verified cloud startup/setup failures. These scoped passes do not complete any of the seven product plans or reopen exhausted Full/129-group/100k/cloud allowances.
+
+## Protected namespace capacity read reuse
+
+Reviewed protected/default-checkpoint-only capacity code reuses actual terminal body reads while retaining exact original preimage capacity, strict namespace ranges, all final fences and unchanged ordinary bounds. Generic/debug/ordinary-R scans remain; deferred error ordering is explicitly documented. Author215/215, independent62/62; root47-file990/990 plus separate protected-group26/26. The original automatic CFAIL is not rerun or relabeled. Local code and evidence are prepared, with public evidence publication pending explicit approval.
+
+## Default-off Topic identity dual qualification
+
+Exact reviewed identity issuer/dispatch slice is integrated with independent field permission, original restore authority, deny-only late-retirement checks and synchronous serial ownership. Author435/435; root unique58-file union1451/1451, all previous48 files retained. Four negative-control histories remain failures. Original production Input-only issuer and null service configuration are unchanged; genuine production structural preparation, consent, activation and native Source/Release qualification remain unavailable/unaccepted. Public evidence publication awaits approval; no remote or installed behavior is inferred.
+
+## Working conflict candidate and Settings authority settlement
+
+Exact five-path Working retention candidate is integrated with original closed-graph/protocol-only/ticket/owner guards and retained receipt classification; successful native retain/reopen/rollback remains NOT_RUN, not accepted by pure/nonnative Node cases. Original import-cycle failure remains documented; final independent137 log retained, author12 summary is tool-output-only.
+
+Settings Assist now remains noneditable until queued authority reads settle; exact original mounted listeners are covered through synthetic PresentationNode only, no disposal/native guarantee. Original red0/3 logs preserved, final17 and related34 overlap. Root unique68-file union1588/1588 includes every prior58 file and all selected new owning regressions. No browser, Full, original C/phase/129/100k reruns, remote mutation or seven-plan completion claim.
+
+## Current publication checkpoint
+
+Generic linked composition/evidence tree0365b6f94e61c9cdde649d43ca3aea89bd684189 is published as9fe28f44010cd1e4277e4dae57242f70e4c9a5a5 on the nontriggering development branch; root verified ref and zero Actions runs. Main is unchanged. Earlier preparation-time pending-upload statements are historical. Capacity, Topic and Working/Settings results above are still cloud-prepared until separately published; this local integration does not claim their publication.

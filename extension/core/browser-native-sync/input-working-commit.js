@@ -1,10 +1,12 @@
 import {initialSourcePlan} from './source-bootstrap-plan.js';
+import {retainOriginalWorkingConflict,readOriginalWorkingConflict} from './working-conflict-retention.js';
 import {enqueueInvalidation} from '../thought-maintenance.js';
 import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {registerRepositoryFinalReadFence} from '../idb-repository.js';
 import {remoteWorkingHistoryRow} from '../ia-store-owner.js';
 import {CONSENT_VERSION} from '../constants.js';
-import {InputWorkingSyncJournal} from './input-working-journal.js';
+import {InputWorkingSyncJournal,assertOriginalInputWorkingOwner} from './input-working-journal.js';
+import {requireOriginalJournalRestoreFence} from './prompt-journal.js';
 import {FilterIntentSyncJournal} from './filter-intent-journal.js';
 import {projectEntity} from './codecs.js';
 import {clone,equal,fail,bytes} from './value.js';
@@ -13,10 +15,11 @@ import {CORE_LIMITS} from './core.js';
 import {WorkingReceiveInbox,workingGroups,workingGroup} from './input-working-inbox.js';
 const editable=new Set(['libraryText','note','editedAt','revision','userEdited']);
 const identity=b=>Object.fromEntries(Object.entries(b).filter(([key])=>!editable.has(key)));
+const originalWorkingReceivers=new WeakMap();
 // Explicit local dependency injection. No worker registration or Source creation.
 export class InputWorkingCommitReceiver{
   #inbox;
- constructor(store,core,{filterJournal}={}){if(store.repository!==core.repository||!(filterJournal instanceof FilterIntentSyncJournal)||filterJournal.core!==core)fail('BNS_WORKING_BINDING_REQUIRED');this.store=store;this.core=core;this.filter=filterJournal;this.journal=new InputWorkingSyncJournal(core,{filterJournal,logicalCommits:true});this.#inbox=new WorkingReceiveInbox(core);}
+ constructor(store,core,{filterJournal}={}){if(store.repository!==core.repository||!(filterJournal instanceof FilterIntentSyncJournal)||filterJournal.core!==core)fail('BNS_WORKING_BINDING_REQUIRED');this.store=store;this.core=core;this.filter=filterJournal;this.journal=new InputWorkingSyncJournal(core,{filterJournal,logicalCommits:true});this.#inbox=new WorkingReceiveInbox(core);originalWorkingReceivers.set(this,Object.freeze({store,core,filter:this.filter,journal:this.journal}));}
  async #capture(t){const fence=await this.#inbox.fence(t);await this.journal.fence.snapshot(t);await this.#permission(t);return fence;}
  async #permission(t){const control=await this.store.control(t);if(control.settings.consentVersion!==CONSENT_VERSION||control.settings.enabled!==true)fail('BNS_WORKING_PERMISSION_REQUIRED');}
  async receiveSegment(ref,get){
@@ -43,6 +46,10 @@ export class InputWorkingCommitReceiver{
  }
  async cleanupInbox(options){return this.store.run(()=>this.core.transaction(true,t=>this.#inbox.cleanup(t,options)));}
  async receive(input){return this.#receive(input,null);}
+ // Explicit original-owner intake. This retains protocol branches, never
+ // applies either body, completes an inbox claim, or activates a checkpoint.
+ async retainConflict(input,options){return retainOriginalWorkingConflict(this,input,options);}
+ async readConflict(inputId,options){return readOriginalWorkingConflict(this,inputId,options);}
  async applyRestored(t,application,sourceProof){
   const a=workingApplications.get(application);if(!a||a.receiver!==this)fail('BNS_PREPARATION_REQUIRED');
   const before=await this.journal.snapshot(t,a.descriptor.inputId,a.descriptor.documentId,this.store.clock()),sources=await this.filter.restoredSources(t,sourceProof,a.keeps.map(x=>x.value.id));
@@ -68,7 +75,7 @@ export class InputWorkingCommitReceiver{
    await this.filter.current(t,sources);
    const control=await this.store.control(t);if(control.settings.consentVersion!==CONSENT_VERSION||control.settings.enabled!==true)fail('BNS_WORKING_PERMISSION_REQUIRED');
    if(JSON.stringify(await this.journal.snapshot(t,descriptor.inputId,descriptor.documentId,this.store.clock()))!==JSON.stringify(before))fail('BNS_OWNER_CHANGED');
-   const duplicate=await this.core.get(t,'receipt',prepared.descriptor.operationId);if(duplicate){if(duplicate.digest!==prepared.descriptor.revisionId)fail('BNS_OPERATION_COLLISION');if(claim)await this.#inbox.finish(t,claim);return {state:'duplicate'};}
+   const duplicate=await this.core.get(t,'receipt',prepared.descriptor.operationId);if(duplicate){if(duplicate.digest!==prepared.descriptor.revisionId)fail('BNS_OPERATION_COLLISION');await this.core.requireWorkingAppliedReceipt(t,prepared);if(claim)await this.#inbox.finish(t,claim);return {state:'duplicate'};}
    return applyWorkingOwner(this,t,application,before,claim?()=>this.#inbox.finish(t,claim):null);
   }));
  }
@@ -77,14 +84,19 @@ export class InputWorkingCommitReceiver{
 const workingApplications=new WeakMap();
 export async function prepareWorkingApplication(receiver,input){
  if(!(receiver instanceof InputWorkingCommitReceiver))fail('BNS_WORKING_BINDING_REQUIRED');
-  const prepared=await receiver.core.prepareWorkingReceive(input),descriptor=prepared.descriptor.value,entities=prepared.members.map(op=>({operation:op,type:op.value.entityType,value:op.value.entity}));
+ const prepared=await receiver.core.prepareWorkingReceive(input),shape=describeOriginalWorkingGroup(prepared);
+ const cap=Object.freeze({});workingApplications.set(cap,{receiver,prepared,...shape});return cap;
+}
+// Pure shape only. No native witness or retention/application capability.
+export function describeOriginalWorkingGroup(prepared){
+  const descriptor=prepared.descriptor.value,entities=prepared.members.map(op=>({operation:op,type:op.value.entityType,value:op.value.entity}));
   const one=type=>{const rows=entities.filter(x=>x.type===type);if(rows.length!==1)fail('BNS_WORKING_COMMIT_INVALID');return rows[0];},block=one('input'),state=one('inputState'),history=entities.filter(x=>x.type==='revision'),keeps=entities.filter(x=>x.type==='filterIntent');
   if(block.value.id!==descriptor.inputId||state.value.id!==descriptor.inputId||block.value.documentId!==descriptor.documentId||state.value.documentId!==descriptor.documentId||!history.length||history.length>96||!keeps.length||keeps.length>16||history.some(x=>x.value.entityId!==descriptor.inputId||x.value.documentId!==descriptor.documentId)||keeps.some(x=>x.value.reason!=='user_edit'))fail('BNS_WORKING_COMMIT_INVALID');
   const snapshot=b=>({libraryText:b.libraryText,note:b.note,excluded:b.excluded,originalTextReference:b.originalTextReference,provenanceSignature:b.provenanceSignature});
   const ordered=[...history].sort((a,b)=>a.value.sequence-b.value.sequence);
   if(ordered.some((item,index)=>index>0&&!equal(ordered[index-1].value.after,item.value.before)))fail('BNS_WORKING_HISTORY_INCOMPLETE');
   if(new Set(ordered.map(x=>x.value.sequence)).size!==ordered.length||!equal(ordered.at(-1).value.after,snapshot(block.value))||history.some(x=>!equal(x.value.sourceRecordIds,state.value.sourceRecordIds)))fail('BNS_WORKING_HISTORY_INCOMPLETE');
- const cap=Object.freeze({});workingApplications.set(cap,{receiver,prepared,descriptor,entities,block,state,history,keeps});return cap;
+ return {descriptor,entities,block,state,history,keeps};
 }
 function qualifyWorking(application,before,sources){
  const a=workingApplications.get(application);if(!a)fail('BNS_PREPARATION_REQUIRED');const {descriptor,block,state,keeps}=a;
@@ -94,6 +106,21 @@ function qualifyWorking(application,before,sources){
   const keys=before.b.provenance.map(p=>sources.sources.find(rows=>rows.some(row=>row.id===p.sourceRecordId))?.[0]?.sourceKey);
   if(keys.some(x=>!x)||!equal([...new Set(keys)].sort(),keeps.map(x=>x.value.id).sort()))fail('BNS_WORKING_SOURCE_CLOSURE');
 
+}
+
+export function qualifyOriginalWorkingRetentionApplication(receiver,application,before,sources){const a=workingApplications.get(application);if(!a||a.receiver!==receiver)fail('BNS_PREPARATION_REQUIRED');qualifyWorking(application,before,sources);return true;}
+export function readOriginalWorkingRetentionPreparation(receiver,application){const a=workingApplications.get(application);if(!a||a.receiver!==receiver)fail('BNS_PREPARATION_REQUIRED');return a.prepared;}
+
+const receiverPrototype=InputWorkingCommitReceiver.prototype,receiverMethods=Object.getOwnPropertyNames(receiverPrototype).filter(name=>name!=='constructor').map(name=>[name,Object.getOwnPropertyDescriptor(receiverPrototype,name)]);
+export function requireOriginalWorkingRetentionReceiver(receiver){
+ const binding=originalWorkingReceivers.get(receiver);if(!binding||Object.getPrototypeOf(receiver)!==receiverPrototype)fail('BNS_WORKING_RETENTION_REQUIRED');
+ for(const [name,value]of Object.entries(binding)){const d=Object.getOwnPropertyDescriptor(receiver,name);if(!d||!Object.hasOwn(d,'value')||d.value!==value)fail('BNS_WORKING_RETENTION_REQUIRED');}
+ for(const [name,expected]of receiverMethods){const d=Object.getOwnPropertyDescriptor(receiverPrototype,name);if(Object.hasOwn(receiver,name)||!d||['value','get','set','writable','enumerable','configurable'].some(k=>d[k]!==expected[k]))fail('BNS_WORKING_RETENTION_REQUIRED');}
+ assertOriginalInputWorkingOwner(binding.journal,binding.core);
+ for(const fence of [binding.journal.fence,binding.filter.fence,binding.store.inputWorkingJournal?.fence]){
+  if(!fence)fail('BNS_WORKING_RETENTION_REQUIRED');requireOriginalJournalRestoreFence(fence,binding.core);
+ }
+ return binding;
 }
 async function applyWorkingOwner(receiver,t,application,before,finish){
  const a=workingApplications.get(application);if(!a||a.receiver!==receiver)fail('BNS_PREPARATION_REQUIRED');const {prepared,descriptor,entities,block,state,history,keeps}=a;

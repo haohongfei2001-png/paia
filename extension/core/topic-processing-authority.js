@@ -1,3 +1,4 @@
+import {assertMaintenanceProcessingRawDenialFacts} from './ai-usage/maintenance-processing-denial.js';
 import {assertSectionPromotionPendingLocator,readSectionPromotionRecoveryLocator,assertSectionPromotionRecoveryLocatorFacts,assertSectionPromotionRecoveryLocatorSnapshot,registerSectionPromotionRecoveryLocatorFence} from './ai-usage/section-promotion-checkpoint.js';
 import {readSectionPromotionRecoveryAuthority,assertSectionPromotionRecoveryAuthorityFacts,assertSectionPromotionRecoveryAuthoritySnapshot,registerSectionPromotionRecoveryAuthorityFence} from './ai-usage/section-promotion-recovery-authority.js';
 import {requireRepositoryTransactionScope} from './idb-repository.js';
@@ -56,7 +57,7 @@ function receiptFacts(owner,grant){
   need(!grant.invalid,'STALE_BASE');const {receipt,lease,raw}=grant,now=current(owner);
   if(lease.invalid||now.wall>=receipt.expiresAt||now.wall>=lease.deadline||now.mono>=lease.deadlineMono){lease.invalid=true;fail('STALE_BASE');}
   need(!signalAborted(receipt.revocationSignal),'STALE_BASE');
-  const value=data(raw,RECEIPT_FIELDS);for(const key of RECEIPT_FIELDS)if(key!=='scope')need(value[key]===receipt[key],'STALE_BASE');scopeData(value.scope,receipt.scope);if(owner.confirmationLocator!==null)assertSectionPromotionRecoveryLocatorFacts(owner.confirmationLocator,owner.store);if(owner.recoveryAuthority!==null)assertSectionPromotionRecoveryAuthorityFacts(owner.recoveryAuthority,owner.store,owner.locator);
+  const value=data(raw,RECEIPT_FIELDS);for(const key of RECEIPT_FIELDS)if(key!=='scope')need(value[key]===receipt[key],'STALE_BASE');scopeData(value.scope,receipt.scope);if(owner.confirmationLocator!==null)assertSectionPromotionRecoveryLocatorFacts(owner.confirmationLocator,owner.store);if(owner.recoveryAuthority!==null)assertSectionPromotionRecoveryAuthorityFacts(owner.recoveryAuthority,owner.store,owner.locator);assertMaintenanceProcessingRawDenialFacts(raw,owner.store);
  }catch(error){grant.invalid=true;throw error;}
 }
 function receiptCurrent(owner,grant){

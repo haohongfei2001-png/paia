@@ -36,7 +36,7 @@ const own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
 const withoutId=({id,...row})=>row;
 const canonicalGenerationStates=new WeakMap(),canonicalGenerationProofs=new WeakMap(),canonicalGenerationPublications=new WeakMap(),canonicalGenerationBindings=new WeakMap();
 function originalGenerationBinding(restore){const b=canonicalGenerationBindings.get(restore);if(!b||['store','live','stage','restoreId'].some(key=>Object.getOwnPropertyDescriptor(restore,key)?.value!==b[key]))fail('BNS_GENERATION_PROOF_REQUIRED');return b;}
-const generationRepositoryAuthorities=new WeakMap(),defaultCheckpoint=async()=>{};
+const generationRepositoryAuthorities=new WeakMap(),generationStorageChecks=new WeakMap(),defaultCheckpoint=async()=>{};
 export function readOriginalGroupGenerationRepositoryAuthority(token,repository,scope){
  const r=generationRepositoryAuthorities.get(token);if(!r)return null;const b=originalGenerationBinding(r.restore);
  if(b.store.repository!==repository||b.live.repository!==repository||b.stage.repository!==repository||b.live.prefix!==r.livePrefix||b.stage.prefix!==r.stagePrefix||b.stage.fixedNamespace!==r.namespace||Object.getOwnPropertyDescriptor(r.restore,'checkpoint')?.value!==r.checkpoint||scope!==null&&r.scope!==null&&r.scope!==scope)fail('GENERATION_REPOSITORY_WRITE_DENIED');
@@ -50,14 +50,15 @@ async function generationTerminal(restore,t){
  for(const table of t.tx.objectStoreNames){
   const rows=[];let after=null;
   do{const page=await t.primaryRangePage(table,{after,limit:64});for(const row of page.rows){if(table==='meta'&&typeof row.key==='string'&&row.key.startsWith('aiu:delta:'))continue;let value=clone(row.value);if(table==='meta'&&row.key==='backup-data-generation'&&t.backupChanged)value={...value,value:value.value+1};rows.push([row.key,value]);}after=page.next;}while(after);
+  if(table==='meta')requireGenerationStorageBudgets(restore,t,rows);
   const counts=table==='meta'?ranges.map(key=>({key,count:rows.filter(([id])=>key.includes(id)).length})):[{count:await t.count(table)}];snapshots.push({table,counts,rows});
  }
  registerRepositoryFinalReadFence(store.repository,t,{isCurrent:()=>{originalGenerationBinding(restore);return true;},plan:function*(){for(const {table,counts,rows}of snapshots){for(const {key,count}of counts)if((yield {method:'count',table,...(key?{key}:{})})!==count)throw new ArchiveError('BNS_RESTORE_STAGE_CHANGED');for(const [key,value]of rows)if(!equalSourceWorkingPhysicalTree(yield {method:'get',table,key},value))throw new ArchiveError('BNS_RESTORE_STAGE_CHANGED');}return true;}});
 }
 async function generationTransaction(restore,kind,fn,stores){
- const b=originalGenerationBinding(restore),token=Object.freeze(Object.create(null));let semantic;
+ const b=originalGenerationBinding(restore),token=Object.freeze(Object.create(null));let semantic,scope;
  generationRepositoryAuthorities.set(token,{restore,scope:null,livePrefix:b.live.prefix,stagePrefix:b.stage.prefix,namespace:b.stage.fixedNamespace,checkpoint:Object.getOwnPropertyDescriptor(restore,'checkpoint')?.value,authority:Object.freeze({kind:Object.getOwnPropertyDescriptor(restore,'checkpoint')?.value===defaultCheckpoint?kind:'group-debug',prefix:b.stage.prefix+'generation:'+b.stage.fixedNamespace+':'})});
- try{return await originalGenerationRepositoryTransaction(b.store.repository,token,async t=>{registerRepositoryWorkLimit(b.store.repository,t);requireRepositoryTransactionDataMethods(b.store.repository,t);try{const result=await fn(t);await generationTerminal(restore,t);return result;}catch(e){if(e instanceof SyncError)semantic=e;throw e;}},stores);}catch(e){throw semantic??e;}finally{generationRepositoryAuthorities.delete(token);}
+ try{return await originalGenerationRepositoryTransaction(b.store.repository,token,async t=>{scope=t;registerRepositoryWorkLimit(b.store.repository,t);requireRepositoryTransactionDataMethods(b.store.repository,t);const authority=generationRepositoryAuthorities.get(token);if(authority.scope===t&&authority.checkpoint===defaultCheckpoint&&['group-stage','group-apply'].includes(kind))generationStorageChecks.set(t,{restore,stage:b.stage,token,kind,checks:[]});try{const result=await fn(t);await generationTerminal(restore,t);return result;}catch(e){if(e instanceof SyncError)semantic=e;throw e;}},stores);}catch(e){throw semantic??e;}finally{generationStorageChecks.delete(scope);generationRepositoryAuthorities.delete(token);}
 }
 async function authority(store,core,t){const c=await store.control(t);if(!c.settings.enabled||c.settings.consentVersion!==CONSENT_VERSION)fail('BNS_GROUP_PERMISSION');return{namespace:await core.bind(t),generation:(await core.get(t,'generation'))?.value||0,ownerGeneration:(await t.get('meta','backup-data-generation'))?.value||0,fence:await new JournalRestoreFence(core).snapshot(t),settings:c.settings};}
 function chargeRecoveryValue(core,value,physical=false){const ticket=currentOriginalRecoveryWork(core.repository);if(ticket)chargeOriginalRecoveryWork(core.repository,ticket,physical?measureSourceWorkingPhysicalTree(value).B:bytes(value).length);}
@@ -168,7 +169,28 @@ export async function prepareValidatedGroupedCheckpointGraph(core,items,manifest
 }
 // Both protocol namespaces count toward one explicit local admission budget.
 // Reuse the two existing per-batch byte envelopes; never count just wire bodies.
-async function requireStorageBudget(t,stage,replayId){
+function requireGenerationStorageBudgets(restore,t,rows){
+ const held=generationStorageChecks.get(t);if(!held)return;
+ if(held.restore!==restore)fail('BNS_GENERATION_PROOF_REQUIRED');readOriginalGroupGenerationRepositoryAuthority(held.token,held.stage.repository,t);
+ for(const check of held.checks){let total=0,matched=!check.before;
+  for(const range of check.ranges)for(const [key,row]of rows)if(range.includes(key)){
+   let value=row;if(check.before&&key===check.before.id){if(!equal(row,{...check.before,phase:'activated'}))fail('BNS_RESTORE_STAGE_CHANGED');value=check.before;matched=true;}
+   if((total+=bytes(value).length)>CORE_LIMITS.batchBytes*2)fail('BNS_GROUP_RESOURCE_LIMIT');
+  }
+  if(!matched)fail('BNS_RESTORE_STAGE_CHANGED');
+ }
+}
+async function requireStorageBudget(t,stage,replayId,before=null){
+ const held=generationStorageChecks.get(t);
+ // Only the original protected writer with its fixed callback can defer this
+ // scan. Generic and debug transactions retain the original admission point.
+ if(held&&held.stage===stage&&(held.kind==='group-stage'&&before===null||held.kind==='group-apply'&&before?.phase==='validated'&&before.replayId===replayId)){
+  readOriginalGroupGenerationRepositoryAuthority(held.token,stage.repository,t);
+  // After this point the fixed apply tail writes only the out-of-namespace
+  // active pointer and this exact restore phase. Count its original preimage,
+  // not a smaller final row. Consumer publication is refused before staging.
+  held.checks.push({ranges:[stage.fixedNamespace,replayId].map(namespace=>{const prefix=stage.prefix+'generation:'+namespace+':';return IDBKeyRange.bound(prefix,prefix+'\uffff',false,true);}),before:before?clone(before):null});return;
+ }
  let total=0,rows=0;for(const namespace of [stage.fixedNamespace,replayId]){let after=null;do{const page=await t.primaryRangePage('meta',{prefix:stage.prefix+'generation:'+namespace+':',after,limit:100});for(const {value}of page.rows){rows++;if((total+=bytes(value).length)>CORE_LIMITS.batchBytes*2)fail('BNS_GROUP_RESOURCE_LIMIT');}after=page.next;}while(after);}return {rows,bytes:total};
 }
 export class GroupedCheckpointRestore{
@@ -294,7 +316,7 @@ export class GroupedCheckpointRestore{
    if((await t.primaryRangePage('meta',{prefix:replay.prefix+'generation:'+replay.fixedNamespace+':',limit:1})).rows.length)fail('BNS_RESTORE_STAGE_CHANGED');
    for(const [group,cap]of applications){if(['savedWorkBootstrap','savedWorkSuccessor'].includes(group.type))await applySavedWorkGroupStep(t,savedApplication,group.id);else if(group.type==='contextMutationCommit')await applyContextGroupStep(t,contextApplication,group.id);else if(group.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,group.id);else if(group.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(group.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(group.type==='inputWorkingCommit')await working.applyRestored(t,cap,sourceProof);else if(group.type==='filterIntent')await filter.applyRestored(t,cap,sourceProof);else{replay.materialize=group.type==='contextDesired'?desired:group.type==='topicDesired'?topicDesired:group.type==='promptBinding'?bindingMaterializer:manual.materialize;const result=await replay.applyInTransaction(t,group.operations[0],{materialize:group.type!=='consumerPreference'});if(result.state!=='applied')requireResolvedPromptReplayConflict(replay,plan,group,result);}await this.checkpoint('applied-group',group.id);}
    const publication=consumerApplication?await applyRestoredConsumerPreferenceOwners(t,consumerApplication):null;
-   await requireGroupScope(this.store,t,canonical);if(humanApplication)await sealHumanWorkingGroupApplication(t,humanApplication);if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');await requireStorageBudget(t,this.stage,state.replayId);
+   await requireGroupScope(this.store,t,canonical);if(humanApplication)await sealHumanWorkingGroupApplication(t,humanApplication);if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');await requireStorageBudget(t,this.stage,state.replayId,state);
    for(const expected of plan.heads){const actual=await replay.get(t,'head',expected.type,expected.entityId);if(!actual||!equal(withoutId(actual),expected))fail('BNS_CHECKPOINT_HEAD');}
    for(const expected of frontiers){const actual=await replay.get(t,'frontier',expected.deviceId);if(!actual||!equal(withoutId(actual),expected))fail('BNS_CHECKPOINT_FRONTIER');}
    await this.checkpoint('before-activation',t);await t.put('meta',{id:this.live.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:state.graphDigest});

@@ -8,12 +8,14 @@ import {readMaintenanceLifecycleSelection} from './ai-usage/local-maintenance-se
 // Explicit local consumer of an already-prepared private maintenance selection.
 // It neither enumerates Topics nor enables scheduling, providers or Sync.
 export class TopicLifecycleDispatch {
- #selection;#consumer;#requests;#running=null;#now=null;#closed=false;
+ #selection;#policy;#consumer;#requests;#running=null;#now=null;#closed=false;
  constructor(store,selection,{policy,previousObservedAt=null}={}){
   const held=readMaintenanceLifecycleSelection(selection,store),checked=topicLifecyclePolicy(policy);
   if(held.selection.length>checked.maxTopics)throw new ArchiveError('TOPIC_ACTIVITY_POLICY_INVALID');
-  this.#selection=held;
-  this.#consumer=new TopicLifecycleConsumer(new TopicLifecycleService(store,{resolveProcessing:held.resolveProcessing}),{policy:checked,previousObservedAt});
+  this.#selection=held;this.#policy=checked;
+  const service=new TopicLifecycleService(store,{resolveProcessing:held.resolveProcessing,...(held.strictQualification?{resolveQualification:held.resolveQualification,strictQualification:true}:{})});
+  if(held.enterAction){const change=service.changeInactive;service.changeInactive=async(request,options)=>{held.enterAction(request);try{return await change.call(service,request,options);}finally{held.leaveAction();}};}
+  this.#consumer=new TopicLifecycleConsumer(service,{policy:checked,previousObservedAt});
   // The original job and selected revision, plus the whole explicit policy,
   // identify one action. A lost response must not create a new operation ID.
   this.#requests=Promise.all(held.selection.map(async item=>({...structuredClone(item),to:'dormant',operationId:'topic-activity:'+await hashText(JSON.stringify({version:1,jobId:held.jobId,policy:checked,id:item.id,revision:item.expectedRevision}))})));
@@ -26,8 +28,8 @@ export class TopicLifecycleDispatch {
   this.#running=this.#run(now).finally(()=>{this.#running=null;});return this.#running;
  }
  async #run(now){
-  const held=this.#selection;held.begin();
-  try{const requests=await this.#requests;held.assertCurrent();return await this.#consumer.run(requests,{now,workBudget:held.workBudget});}
-  finally{held.end();}
+  const held=this.#selection;let entered=false;
+  try{if(held.reserve)held.reserve();else held.begin();entered=true;const requests=await this.#requests;if(held.reserve)await held.begin(requests,this.#policy);held.assertCurrent();return await this.#consumer.run(requests,{now,workBudget:held.workBudget});}
+  finally{if(entered)held.end();}
  }
 }
