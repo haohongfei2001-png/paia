@@ -1,3 +1,4 @@
+import {PROMPT_INSERTION_RUNTIME,validPromptInsertionEnvelope,validatePromptInsertionRuntimeRow} from './prompt-insertion-runtime-format.js';
 import {topicIdentityMetaAllowed,validTopicIdentity,validTopicNameRegistry,validOrganizationIntents} from './topic-identity-backup.js';
 import {PROMPT_REUSE_ROW,validPromptPreferences} from './prompt-reuse-preferences.js';
 import {THOUGHT_LAYOUT_ROW,validThoughtLayout} from './thought-binding.js';
@@ -50,10 +51,21 @@ export function projectBackupEntity(section,value){const result={};for(const key
 export function validateBackupHeader(row){safeJSON(row);if(!plain(row)||row.type!=='header'||row.format!=='PAIA Backup'||row.formatVersion!==BACKUP_VERSION||row.schemaVersion!==BACKUP_SCHEMA||typeof row.appVersion!=='string'||!/^0\.(7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55)\.\d+(\.\d+)?$/.test(row.appVersion)||!Number.isFinite(Date.parse(row.createdAt))||JSON.stringify(row.contentSections)!==JSON.stringify(Object.keys(BACKUP_SECTIONS)))backupError('BACKUP_VERSION_UNSUPPORTED');return row;}
 export const IMPORT_EVIDENCE_FIELDS=['id','sourceKey','provider','profileId','profileVersion','branch','parentSourceKey','conflict'];
 export const projectImportEvidence=row=>Object.fromEntries(IMPORT_EVIDENCE_FIELDS.filter(k=>row[k]!==undefined).map(k=>[k,row[k]]));
+// Narrow deny-only recognition of the local insertion v1 wire/claim shape.
+// This is not a runtime validator or an authority import from background code.
+function localInsertionResult(v){
+ const keys=(x,names)=>plain(x)&&Object.keys(x).length===names.length&&names.every(k=>Object.hasOwn(x,k));
+ const envelope=validPromptInsertionEnvelope;
+ if(plain(v)&&v.id===PROMPT_INSERTION_RUNTIME){try{validatePromptInsertionRuntimeRow(v);return true;}catch{/* Not this exact reserved local format. */}}
+ return envelope(v)||keys(v,['envelope','state'])&&envelope(v.envelope)&&['pending','inserted','not_inserted','not_dispatched'].includes(v.state)||keys(v,['version','envelope','outcome'])&&v.version===1&&envelope(v.envelope)&&['inserted','not_inserted','unknown'].includes(v.outcome);
+}
 export function validateBackupItem(row){safeJSON(row);if(!plain(row)||row.type!=='item'||!Object.hasOwn(BACKUP_SECTIONS,row.section)||!plain(row.value)||typeof row.value.id!=='string'||!row.value.id.length||row.value.id.length>500||Object.keys(row).some(k=>!['type','section','value','order','state','working'].includes(k))||Object.keys(row.value).some(k=>!BACKUP_SECTIONS[row.section].includes(k)))backupError('BACKUP_INVALID');
  // Local Context acknowledgments are nonportable. Reject either marker
  // even when a projected receipt has lost its restore epoch or spoofs an owner.
  if(row.section==='receipts'&&(['context-cards','context-topic-access','context-maintenance'].includes(row.value.namespace)||row.value.id.startsWith('context:')||row.value.id.startsWith('context-topic:')||row.value.id.startsWith('context-maintenance:')))backupError('BACKUP_INVALID');
+ // Original Prompt insertion evidence is device-local even when laundered
+ // through the generic body-free receipts projection.
+ if(row.section==='receipts'&&(row.value.namespace==='prompt-insertion'||row.value.id==='prompt-insertion-runtime:v1'||row.value.id.startsWith('prompt-insertion:')||localInsertionResult(row.value.result)))backupError('BACKUP_INVALID');
  if(row.order!==undefined&&(!Number.isSafeInteger(row.order)||row.order<0))backupError('BACKUP_INVALID');
  if(row.section==='sources'&&(!validPortableSourceRecord(row.value)||!Number.isSafeInteger(row.order)))backupError('BACKUP_INVALID');
  if(row.section==='sources'&&row.value.importEvidence!==undefined){const e=row.value.importEvidence;if(!plain(e)||Object.keys(e).some(k=>!IMPORT_EVIDENCE_FIELDS.includes(k))||e.id!==row.value.sourceKey||e.sourceKey!==row.value.sourceKey||!/^([a-f0-9]{64})$/.test(e.sourceKey)||e.provider!=='official_export'||e.parentSourceKey===e.sourceKey||e.conflict&&e.branch!=='ambiguous'||!['current','other','ambiguous'].includes(e.branch)||e.parentSourceKey!==null&&!/^[a-f0-9]{64}$/.test(e.parentSourceKey)||typeof e.conflict!=='boolean'||e.profileId!==undefined&&(typeof e.profileId!=='string'||!/^[-a-z0-9]{1,80}$/.test(e.profileId))||e.profileVersion!==undefined&&(!Number.isInteger(e.profileVersion)||e.profileVersion<1||e.profileVersion>1000))backupError('BACKUP_INVALID');}

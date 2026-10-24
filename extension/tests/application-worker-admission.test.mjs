@@ -77,3 +77,10 @@ test('actual default unopened Store is initialized before original owners bind t
  await assert.rejects(w.bridge.coordination.holdApplicationSources(),{code:'GENERATION_WORKER_NOT_QUIET'});
  assert.equal((await w.rpc('PAIA_PROMPT_QUERY')).ok,true,'refused full scope did not strand original manual intake');
 });
+
+// Provide the real API shape without fabricating a receiver or native success.
+test('synthetic worker tab lookup remains unavailable and emits no receiver message',async t=>{
+ const w=await selectionAdmissionWorker(t),before=w.sent.length;
+ await assert.rejects(w.api.tabs.get(7),{message:'SYNTHETIC_TAB_UNAVAILABLE'});
+ assert.equal(w.sent.length,before,'unavailable lookup cannot create a receiver message or ACK');
+});

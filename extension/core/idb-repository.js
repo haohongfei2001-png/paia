@@ -545,8 +545,8 @@ export class ArchiveRepository {
    r.onerror=()=>reject(fail());r.onblocked=()=>{blocked=true;reject(fail());};r.onsuccess=()=>{const db=r.result;if(blocked){db.close();return;}db.onversionchange=()=>{db.close();this.db=null;};resolve(db);};
   });
  }
- async transaction(write,fn,stores=this.stores,shadowAuthority=null,selectionAuthority=null){
-  const writeState=repositoryWrites.get(this);if(!writeState)throw fail();const recoveryTicket=ordinaryRecoveryWindows.get(this),recovery=recoveryTicket?recoveryWork(recoveryTicket,this):null;if(recovery?.pending){recovery.failed=true;if(recovery.scope)workAbort(recovery.scope);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}let activeToken=null;let recoveryPending;if(recovery){let resolve;recoveryPending={settled:new Promise(r=>resolve=r),resolve:()=>resolve()};recovery.pending=recoveryPending;}try{
+ async transaction(write,fn,stores=this.stores,shadowAuthority=null,selectionAuthority=null,restrictionTicket=null){
+  const writeState=repositoryWrites.get(this);if(!writeState)throw fail();const ambientTicket=ordinaryRecoveryWindows.get(this);if(restrictionTicket!==null&&ambientTicket){recoveryWork(restrictionTicket,this).failed=true;recoveryWork(ambientTicket,this).failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}const recoveryTicket=restrictionTicket??ambientTicket,recovery=recoveryTicket?recoveryWork(recoveryTicket,this):null;if(recovery?.pending){recovery.failed=true;if(recovery.scope)workAbort(recovery.scope);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}let activeToken=null;let recoveryPending;if(recovery){let resolve;recoveryPending={settled:new Promise(r=>resolve=r),resolve:()=>resolve()};recovery.pending=recoveryPending;}try{
   if(recovery&&(shadowAuthority!==null||selectionAuthority!==null))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
   if(write&&shadowAuthority===null){activeToken=await prepareOriginalActiveRepositoryWrite(this,!!recovery);if(activeToken)shadowAuthority=activeToken;}
   if(write){writeState.generation=Object.freeze({});writeState.active++;}
@@ -696,4 +696,11 @@ export function openOriginalExistingRepository(repository){if(!repositoryWrites.
 export function originalApplicationSelectionTransaction(repository,token,fn,stores){
  if(!repositoryWrites.has(repository)||!readOriginalApplicationSelectionAuthority(token,repository,null))throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');
  return promptTransactionMethod.value.call(repository,true,fn,stores,null,token);
+}
+
+// Restriction-only explicit ordinary work attribution. It does not install an
+// ambient window, lend generation/selection authority, or relax any limit.
+export function originalRestrictedRepositoryTransaction(repository,ticket,write,fn,stores){
+ recoveryWork(ticket,repository);
+ return promptTransactionMethod.value.call(repository,write,fn,stores,null,null,ticket);
 }

@@ -12,15 +12,16 @@ const exact=(r,keys)=>own(r,keys)&&Object.keys(r).length===keys.length;
 const fail=(code='FORBIDDEN')=>{throw new ArchiveError(code);};
 const presented=(id,value)=>value.kind==='SUGGESTION'?{id,kind:value.kind,text:value.text,condition:value.condition}:{id,kind:value.kind,reason:value.reason};
 const hostKey=host=>host.tabId+':'+host.documentId;
+const digest=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value)))),x=>x.toString(16).padStart(2,'0')).join('');
 // A same-object session with replaced callbacks is not a source receipt.
 // Bind the original private-brand methods before any source assembly occurs.
 const sessionSelection=Object.freeze({hold:LocalAssistSession.prototype.holdForApplicationSelection,current:LocalAssistSession.prototype.applicationSelectionHeld,fence:LocalAssistSession.prototype.fenceApplicationSelection,release:LocalAssistSession.prototype.releaseApplicationSelection});
 // A source-authenticated, prospective completed-reply opportunity owns generation.
 // The private R3 surface consumes an already generated result; it never triggers AI.
 export class AssistPromptCommands {
- #selectionSource;
+ #selectionSource;#receipts;#receiptCap;#receiptBirth;
  #tasks=new Set();#selectionHold=null;#admission=0;#disposed=false;#insertionUnknown=false;
- constructor(store,api,{configuration,surface=null}={}){
+ constructor(store,api,{configuration,surface=null,insertionReceipts=null}={}){
   this.store=store;this.api=api;this.surface=surface;this.hosts=new Map();this.views=new Map();this.activations=new Map();
   this.consent=new AssistConsent(api,{consented:async()=> (await store.status()).consented===true});
   this.lease=new AssistReplyLease({runtimeId:api.runtime.id,tabs:api.tabs,
@@ -30,13 +31,14 @@ export class AssistPromptCommands {
    },current:(host,binding)=>{const known=this.hosts.get(hostKey(host));return !!known&&this.consent.isCurrent(known.authorization)&&equal(known.binding,binding);}
   });
   this.session=createConfiguredAssistSession(store,{lease:this.lease,...(configuration===undefined?{}:{configuration})});
-  this.#selectionSource={store,api,surface,session:this.session};
+  this.#selectionSource={store,api,surface,session:this.session};this.#receipts=insertionReceipts;this.#receiptBirth={repository:store.repository,database:store.repository?.db,databaseId:store.databaseId};this.#receiptCap=insertionReceipts?.registerProducer('assist',this)??null;
   this.consent.onInvalidate(()=>{this.lease.invalidate();this.views.clear();this.clearActivations();for(const host of this.hosts.values()){host.binding=null;void this.#track(this.api.tabs.sendMessage(host.sender.tab.id,{type:'PAIA_PROMPT_ASSIST_AUTH_CHANGED'},{documentId:host.sender.documentId})).catch(()=>{});}this.changed();});
   this.storage=(changes,area)=>{if(area==='local'&&changes[ASSIST_AUTH_KEY]){this.consent.invalidate();void this.notifyHosts();}};
   api.storage?.onChanged?.addListener(this.storage);
  }
  // The session is created above from this exact Store, never supplied by a
  // caller. A replaced or absent session cannot become provider settlement.
+ insertionReceiptSourceIs(receipts,store){const birth=this.#receiptBirth,source=this.#selectionSource;return this.#receipts===receipts&&!this.#disposed&&source.store===store&&this.store===source.store&&this.api===source.api&&this.surface===source.surface&&this.session===source.session&&birth.repository===store.repository&&birth.database===store.repository?.db&&birth.databaseId===store.databaseId;}
  applicationSelectionSourceIs(store){const source=this.#selectionSource;return !this.#disposed&&source.store===store&&this.store===source.store&&this.api===source.api&&this.surface===source.surface&&this.session===source.session&&source.session!==null;}
  #track(task){this.#tasks.add(task);const done=()=>this.#tasks.delete(task);void task.then(done,done);return task;}
  #admit(){if(this.#disposed||this.#selectionHold)fail('STALE_BASE');return this.#admission;}
@@ -129,9 +131,9 @@ export class AssistPromptCommands {
  async #cancelTab(tabId){for(const [identity,state]of this.activations)if(state.host?.sender.tab.id===tabId)await this.cancel(identity);for(const [id,view]of this.views)if(view.host.sender.tab.id===tabId)this.views.delete(id);}
  async cancel(identity){this.#restrict();return this.#track(this.#cancel(identity));}
  async #cancel(identity){const state=this.activations.get(identity);if(state){state.stopped=true;if(state.handle&&!state.finished)try{await this.session.stop(state.handle);}catch{/* Original UNKNOWN is retained. */}}for(const [id,v]of this.views)if(v.identity===identity)this.views.delete(id);return {cancelled:true};}
- async card(command,tab,{identity,assertCurrent}){const restrictive=['assist_cancel','assist_dismiss'].includes(command?.type);if(restrictive)this.#restrict();const admission=restrictive?this.#admission:this.#admit(),fence=async()=>{if(!restrictive)this.#assertAdmission(admission);await assertCurrent();if(!restrictive)this.#assertAdmission(admission);};return this.#track(this.#card(command,tab,{identity,assertCurrent:fence}));}
- async #card(command,tab,{identity,assertCurrent}){
-  const c=command,fields={assist_status:['type'],assist_current:['type'],assist_activate:['type'],assist_cancel:['type'],assist_result:['type','id'],assist_insert:['type','id','operationId','conditionPresented'],assist_dismiss:['type','id']}[c?.type];
+ async card(command,tab,{identity,assertCurrent}){const restrictive=['assist_cancel','assist_dismiss'].includes(command?.type),receiptEpoch=restrictive?null:this.#receipts?.admissionEpoch(this.#receiptCap)??null;if(restrictive)this.#restrict();const admission=restrictive?this.#admission:this.#admit(),fence=async()=>{if(!restrictive)this.#assertAdmission(admission);await assertCurrent();if(!restrictive)this.#assertAdmission(admission);};const promise=this.#track(this.#card(command,tab,{identity,assertCurrent:fence,receiptEpoch}));if(command?.type==='assist_insert')this.#receipts?.trackContinuation(this.#receiptCap,promise,receiptEpoch);return promise;}
+ async #card(command,tab,{identity,assertCurrent,receiptEpoch}){
+  const c=command,fields={assist_status:['type'],assist_current:['type'],assist_activate:['type'],assist_cancel:['type'],assist_result:['type','id'],assist_insert:['type','id','operationId','conditionPresented',...(Object.hasOwn(c,'insertionAction')?['insertionAction']:[])],assist_dismiss:['type','id']}[c?.type];
   if(!fields||!exact(c,fields)||fields.includes('id')&&!uuid(c.id))fail();await assertCurrent();const auth=await this.status();
   const host=[...this.hosts.values()].find(h=>h.sender.tab.id===tab.id&&h.sender.url===tab.url);
   if(c.type==='assist_status'){let ready=false;if(host&&this.consent.isCurrent(auth))try{await this.lease.observe(host.sender);ready=true;}catch{/* Metadata-only readiness remains unavailable. */}await assertCurrent();return {available:auth.serviceAvailable,enabled:auth.replyAccess&&auth.remoteProcessing,ready:ready&&this.consent.isCurrent(auth)};}
@@ -139,19 +141,43 @@ export class AssistPromptCommands {
   if(c.type==='assist_dismiss'){const v=this.views.get(c.id);if(v&&v.host===host)this.views.delete(c.id);return {dismissed:true};}
   if(!auth.serviceAvailable)fail('AI_SERVICE_UNAVAILABLE');if(!this.consent.isCurrent(auth)||!host)fail('UNAVAILABLE');
   if(c.type==='assist_activate')fail('FORBIDDEN');
-  if(c.type==='assist_current'){const view=[...this.views.values()].find(v=>v.host===host);if(!view)return {result:null};try{const value=await this.session.result(view.handle);await assertCurrent();return {result:presented(view.id,value)};}catch{this.views.delete(view.id);await this.announce(view.state,false);return {result:null};}}
+  if(c.type==='assist_current'){const view=[...this.views.values()].find(v=>v.host===host);if(!view)return {result:null};try{const value=await this.session.result(view.handle);await assertCurrent();return {result:await this.#presentInsertion(view,value,tab,host,auth,identity,assertCurrent,receiptEpoch)};}catch{this.views.delete(view.id);await this.announce(view.state,false);return {result:null};}}
 
   const view=this.views.get(c.id);if(!view||view.host!==host)fail('STALE_BASE');view.assertCurrent=assertCurrent;await assertCurrent();const result=await this.session.result(view.handle);
-  if(c.type==='assist_result')return presented(view.id,result);
+  if(c.type==='assist_result')return this.#presentInsertion(view,result,tab,host,auth,identity,assertCurrent,receiptEpoch);
+  if(this.#receipts&&(!c.insertionAction||!equal(c.insertionAction,view.insertionAction)||c.operationId!==c.insertionAction.operationId))fail('STALE_BASE');
   if(!uuid(c.operationId)||typeof c.conditionPresented!=='boolean'||view.attempted||result.kind!=='SUGGESTION'||result.condition&&!c.conditionPresented)fail('STALE_BASE');
   view.attempted=true;view.inserting=c.operationId;let timer;
   try{
    const response=await this.session.insert(view.handle,{operationId:c.operationId,conditionPresented:c.conditionPresented,controller:{insert:async payload=>{
     await payload.qualify();await assertCurrent();if(!this.consent.isCurrent(auth)||this.views.get(c.id)!==view)fail('STALE_BASE');
-    let proved=false;try{const sent=this.#track(this.api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_ASSIST_INSERT',id:view.id,generation:auth.generation,binding:payload.binding,text:payload.text,condition:payload.condition,conditionPresented:c.conditionPresented,operationId:c.operationId},{documentId:host.sender.documentId}));const response=await Promise.race([sent,new Promise(resolve=>{timer=setTimeout(()=>resolve({status:'uncertain'}),2000);})]);proved=response?.status==='failed'||response?.status==='inserted'&&response.verified===true;return response;}finally{if(!proved)this.#insertionUnknown=true;}
+    let proved=false,uiOpen=true;try{
+     const message={type:'PAIA_PROMPT_ASSIST_INSERT',id:view.id,generation:auth.generation,binding:payload.binding,text:payload.text,condition:payload.condition,conditionPresented:c.conditionPresented,operationId:c.operationId};
+     let original;
+     if(this.#receipts){
+      const eventContext=this.#receipts.beginInsertion(this.#receiptCap,c.insertionAction);
+      const receiver=await this.#receipts.resolveReceiver(tab.id,tab.url,host.sender.documentId,eventContext),binding=await this.#insertionBinding(view,result,auth,identity,receiver);
+      const current=async()=>{if(!uiOpen)fail('STALE_BASE');await payload.qualify();await assertCurrent();await this.top(host.sender);const authorization=await this.store.status();if(!authorization.consented||await digest(['assist',auth.generation,authorization.epoch])!==binding.authorizationDigest)fail('STALE_BASE');if(!payload.isCurrent()||!this.consent.isCurrent(auth)||this.views.get(c.id)!==view||this.hosts.get(hostKey({tabId:tab.id,documentId:host.sender.documentId}))!==host)fail('STALE_BASE');};
+      original=this.#receipts.dispatch(this.#receiptCap,{...binding,action:c.insertionAction,message},current);
+     }else original=this.api.tabs.sendMessage(tab.id,message,{documentId:host.sender.documentId});
+     // Keep original source revalidation inside the UI race and retirement drain.
+     const sent=this.#track(original),response=await Promise.race([sent,new Promise(resolve=>{timer=setTimeout(()=>{uiOpen=false;resolve({status:'uncertain'});},2000);})]);proved=response?.status==='failed'||response?.status==='inserted'&&response.verified===true;return response;
+    }finally{uiOpen=false;if(!proved)this.#insertionUnknown=true;}
    }}});
    const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';return {status,verified:status==='inserted'};
   }catch{return {status:'uncertain',verified:false};}finally{clearTimeout(timer);view.inserting=null;}
+ }
+ async #insertionBinding(view,value,auth,identity,receiver){
+  const authorization=await this.store.status();if(!authorization.consented)fail('CONSENT_REQUIRED');return {receiver,sourceDigest:await digest([view.id,view.identity,view.state.replyBinding,value.kind,value.text,value.condition]),authorizationDigest:await digest(['assist',auth.generation,authorization.epoch]),initiatorDigest:await digest(identity)};
+ }
+ async #presentInsertion(view,value,tab,host,auth,identity,assertCurrent,receiptEpoch){
+  const result=presented(view.id,value);if(!this.#receipts||value.kind!=='SUGGESTION')return result;
+  if(typeof identity!=='string'||!identity||view.attempted)fail('STALE_BASE');
+  const receiver=await this.#receipts.resolveReceiver(tab.id,tab.url,host.sender.documentId),binding=await this.#insertionBinding(view,value,auth,identity,receiver);
+  await this.session.qualify(view.handle);await assertCurrent();if(!this.consent.isCurrent(auth)||this.views.get(view.id)!==view)fail('STALE_BASE');
+  if(view.insertionAction){if(!equal(view.insertionBinding,binding)||view.insertionAction.receiptEpoch!==receiptEpoch)fail('STALE_BASE');}else{let issued=view.insertionIssue;if(issued){if(!equal(issued.binding,binding)||issued.receiptEpoch!==receiptEpoch)fail('STALE_BASE');}else{issued={binding,receiptEpoch,promise:this.#receipts.issueAction(this.#receiptCap,{...binding,receiptEpoch})};view.insertionIssue=issued;}view.insertionAction=await issued.promise;view.insertionBinding=binding;}
+  await this.session.qualify(view.handle);await assertCurrent();if(!this.consent.isCurrent(auth)||this.views.get(view.id)!==view)fail('STALE_BASE');
+  return {...result,insertionAction:structuredClone(view.insertionAction)};
  }
  // This composes the real session and command tasks only. It is explicitly
  // not a cold insertion witness, host freeze ACK, or global activation permit.

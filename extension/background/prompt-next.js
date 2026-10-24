@@ -11,16 +11,18 @@ const site=url=>{try{return new URL(url).origin==='https://chatgpt.com';}catch{r
 const supported=url=>{try{const u=new URL(url);return u.origin==='https://chatgpt.com'&&/^\/(?:g\/[^/]+\/)?c\/[a-zA-Z0-9_-]+\/?$/.test(u.pathname);}catch{return false;}};
 const validBinding=b=>own(b,['url','conversation','cycle','replyId','revision'])&&supported(b.url)&&b.conversation===new URL(b.url).pathname&&Number.isSafeInteger(b.cycle)&&b.cycle>0&&Number.isSafeInteger(b.revision)&&b.revision>=0&&typeof b.replyId==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$/.test(b.replyId);
 const fail=(code='FORBIDDEN')=>{throw new ArchiveError(code);};
+const digest=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value)))),x=>x.toString(16).padStart(2,'0')).join('');
 export class NextPromptCommands{
- #selectionSource;
+ #selectionSource;#receipts;#receiptCap;#receiptBirth;
  #insertions=new WeakMap();
  #tasks=new Set();#admissions=new Set();#selectionHold=null;#admission=0;#authorizationEpoch=0;#disposed=false;#insertionUnknown=false;
- constructor(service,api,surface){this.service=service;this.api=api;this.surface=surface;this.#selectionSource={service,store:service?.s,api,surface};this.instance=crypto.randomUUID();this.groups=new Map();this.serial=0;this.changing=false;this.tail=Promise.resolve();this.offers=new Map();}
+ constructor(service,api,surface,{insertionReceipts=null}={}){this.service=service;this.api=api;this.surface=surface;this.#selectionSource={service,store:service?.s,api,surface};this.#receipts=insertionReceipts;const store=service?.s;this.#receiptBirth={repository:store?.repository,database:store?.repository?.db,databaseId:store?.databaseId};this.#receiptCap=insertionReceipts?.registerProducer('next',this)??null;this.instance=crypto.randomUUID();this.groups=new Map();this.serial=0;this.changing=false;this.tail=Promise.resolve();this.offers=new Map();}
  // Identity is fixed at original construction, not refreshed from mutable
  // public fields when a later coordinator asks for source settlement.
+ insertionReceiptSourceIs(receipts,store){const source=this.#selectionSource,birth=this.#receiptBirth;return this.#receipts===receipts&&!this.#disposed&&source.store===store&&this.service===source.service&&this.service?.s===source.store&&this.api===source.api&&this.surface===source.surface&&birth.repository===store.repository&&birth.database===store.repository?.db&&birth.databaseId===store.databaseId;}
  applicationSelectionSourceIs(store){const source=this.#selectionSource;return !this.#disposed&&source.store===store&&this.service===source.service&&this.service?.s===source.store&&this.api===source.api&&this.surface===source.surface;}
  #track(task,admission=null){this.#tasks.add(task);const done=()=>{this.#tasks.delete(task);if(admission)this.#admissions.delete(admission);};void task.then(done,done);return task;}
- #admit(tabId=null){if(this.#disposed||this.#selectionHold)fail();const admission={generation:this.#admission,tabId,valid:true};if(Number.isInteger(tabId))this.#admissions.add(admission);return admission;}
+ #admit(tabId=null){if(this.#disposed||this.#selectionHold)fail();const admission={generation:this.#admission,receiptEpoch:this.#receipts?.admissionEpoch(this.#receiptCap)??null,tabId,valid:true};if(Number.isInteger(tabId))this.#admissions.add(admission);return admission;}
  #assertAdmission(admission){if(this.#disposed||this.#selectionHold||!admission.valid||admission.generation!==this.#admission)fail();}
  #restrict(){this.#admission++;if(this.#selectionHold)this.#selectionHold.valid=false;}
  // Tab lifecycle events retire only that tab's original continuations. The
@@ -90,7 +92,7 @@ export class NextPromptCommands{
  }
  async handle(r,sender){
   const restrictive=r?.type==='PAIA_PROMPT_NEXT_CONFIGURE'&&r.enabled===false||r?.type==='PAIA_PROMPT_NEXT_INVALIDATE';
-  const admission=restrictive?{generation:this.#admission,valid:true}:this.#admit(['PAIA_PROMPT_NEXT_CONFIGURE','PAIA_PROMPT_NEXT_STATUS'].includes(r?.type)?null:sender.tab?.id);return this.#track(this.#handle(r,sender,admission),admission);
+  const admission=restrictive?{generation:this.#admission,valid:true}:this.#admit(['PAIA_PROMPT_NEXT_CONFIGURE','PAIA_PROMPT_NEXT_STATUS'].includes(r?.type)?null:sender.tab?.id);const promise=this.#track(this.#handle(r,sender,admission),admission);if(r?.type==='PAIA_PROMPT_NEXT_RPC'&&r.command?.type==='insert')this.#receipts?.trackContinuation(this.#receiptCap,promise,admission.receiptEpoch);return promise;
  }
  async #handle(r,sender,admission){
   const api=this.api,popup=sender.id===api.runtime.id&&(!sender.tab||sender.frameId===0&&!sender.tab.incognito)&&sender.url===api.runtime.getURL('ui/popup.html');
@@ -154,32 +156,41 @@ export class NextPromptCommands{
   const dismiss=c?.type==='hide'&&own(c,['type']);
   const {tab,live}=await this.assertCurrent(g,{requireFamily:!dismiss});
   this.#assertAdmission(admission);if(live.nonce!==r.nonce)fail();
-  if(c?.type==='get'&&own(c,['type'])){await this.resolveFamily(g);this.#assertAdmission(admission);return {id:g.id,type:g.type,sourceType:g.sourceType,condition:g.condition,choices:g.choices.map(x=>({...x,attempted:g.attempted.has(x.id)})),dark:live.dark};}
+  if(this.#receipts&&(typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle!=='active'))fail();
+  const identity=JSON.stringify({tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,documentId:sender.documentId??null,nonce:r.nonce,url:sender.url});
+  const current=async()=>{this.#assertAdmission(admission);const value=await this.assertCurrent(g);if(value.live.nonce!==r.nonce)fail();
+   // The old capsule remains a supported caller, but its top-document nonce
+   // cannot prove that the initiating private iframe survived an await.
+   if(this.#receipts){if(typeof api.runtime.getContexts!=='function')fail('UNAVAILABLE');const contexts=await api.runtime.getContexts({documentIds:[sender.documentId]});if(value.tab.windowId!==tab.windowId||!contexts.some(c=>c.documentId===sender.documentId&&c.tabId===tab.id&&c.windowId===tab.windowId&&c.frameId===sender.frameId&&c.documentUrl===sender.url&&c.incognito!==true))fail();}
+   this.#assertAdmission(admission);};
+  if(c?.type==='get'&&own(c,['type'])){await this.resolveFamily(g);this.#assertAdmission(admission);const choices=[];for(const choice of g.choices){const presented=await this.#presentInsertion(g,choice,tab,identity,current,admission.receiptEpoch);choices.push({id:choice.id,text:choice.text,label:choice.label,...(presented.insertionAction?{insertionAction:presented.insertionAction}:{}),attempted:g.attempted.has(choice.id)});}return {id:g.id,type:g.type,sourceType:g.sourceType,condition:g.condition,choices,dark:live.dark};}
   if(c?.type==='hide'&&own(c,['type'])){await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_HIDE',nonce:r.nonce},{documentId:g.documentId});return {};}
   if(c?.type==='resize'&&own(c,['type','height'])&&Number.isFinite(c.height)&&c.height>=44&&c.height<=400){await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_RESIZE',nonce:r.nonce,height:c.height},{documentId:g.documentId});return {};}
   if(c?.type==='copy'&&own(c,['type','id'])){const choice=g.choices.find(x=>x.id===c.id);if(!choice||!['failed','uncertain'].includes(g.outcomes.get(choice.id)))fail();await this.resolveFamily(g);this.#assertAdmission(admission);return {text:choice.text};}
-  if(c?.type!=='insert'||!own(c,['type','id','operationId'])||!uuid(c.operationId))fail();
+  if(c?.type!=='insert'||!own(c,['type','id','operationId','insertionAction'])||!uuid(c.operationId))fail();
   const choice=g.choices.find(x=>x.id===c.id);if(!choice||g.attempted.has(choice.id)||!quickPromptEligible(choice.text))fail();
+  if(this.#receipts&&(!c.insertionAction||!same(c.insertionAction,choice.insertionAction)||c.operationId!==c.insertionAction.operationId))fail();
   g.attempted.add(choice.id);
   const pending={operationId:c.operationId,choiceId:choice.id,checked:false};this.#insertions.set(g,pending);
   let result;
   try{
    await this.resolveFamily(g);
-   result=await this.#dispatchInsertion(tab,g,choice,c.operationId,admission);
+   result=await this.#dispatchInsertion(tab,g,choice,c.operationId,admission,{action:c.insertionAction,identity,assertCurrent:current});
   }catch{result={status:'uncertain'};}finally{if(this.#insertions.get(g)===pending)this.#insertions.delete(g);}
   const status=result?.status==='inserted'&&result.verified===true?'inserted':result?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted'};
  }
- async card(command,tab,options={}){const admission=this.#admit(tab.id);return this.#track(this.#card(command,tab,options,admission),admission);}
- async #card(command,tab,{assertCurrent:originalCurrent=async()=>{}},admission){
+ async card(command,tab,options={}){const admission=this.#admit(tab.id),promise=this.#track(this.#card(command,tab,options,admission),admission);if(command?.type==='next_insert')this.#receipts?.trackContinuation(this.#receiptCap,promise,admission.receiptEpoch);return promise;}
+ async #card(command,tab,{identity=null,assertCurrent:originalCurrent=async()=>{}},admission){
   const assertCurrent=async()=>{this.#assertAdmission(admission);await originalCurrent();this.#assertAdmission(admission);};
   if(['next_current','next_result','next_insert'].includes(command?.type)){
-   const keys=command.type==='next_current'?['type']:command.type==='next_result'?['type','id']:['type','id','operationId','conditionPresented'];if(!own(command,keys)||Object.keys(command).length!==keys.length)fail();
+   const keys=command.type==='next_current'?['type']:command.type==='next_result'?['type','id']:['type','id','operationId','conditionPresented',...(Object.hasOwn(command,'insertionAction')?['insertionAction']:[])];if(!own(command,keys)||Object.keys(command).length!==keys.length)fail();
    await assertCurrent();const g=this.groups.get(tab.id);if(!g||g.retired){if(command.type==='next_current')return {result:null};fail();}await this.resolveFamily(g);await assertCurrent();
    const choice=command.type==='next_current'?g.choices.find(x=>!g.attempted.has(x.id)&&quickPromptEligible(x.text)):g.choices.find(x=>x.id===command.id);
    if(!choice||g.condition||!quickPromptEligible(choice.text)){if(command.type==='next_current')return {result:null};fail();}
-   const result={id:choice.id,kind:'SUGGESTION',text:choice.text,condition:''};if(command.type==='next_current')return {result};if(command.type==='next_result')return result;
+   const result=command.type==='next_insert'?null:await this.#presentInsertion(g,choice,tab,identity,assertCurrent,admission.receiptEpoch);if(command.type==='next_current')return {result};if(command.type==='next_result')return result;
+   if(this.#receipts&&(!command.insertionAction||!same(command.insertionAction,choice.insertionAction)||command.operationId!==command.insertionAction.operationId))fail();
    if(!uuid(command.operationId)||command.conditionPresented!==true||g.attempted.has(choice.id))fail();
-   g.attempted.add(choice.id);const pending={operationId:command.operationId,choiceId:choice.id,checked:false};this.#insertions.set(g,pending);let response;try{await this.resolveFamily(g);await assertCurrent();response=await this.#dispatchInsertion(tab,g,choice,command.operationId,admission);}catch{response={status:'uncertain'};}finally{if(this.#insertions.get(g)===pending)this.#insertions.delete(g);}
+   g.attempted.add(choice.id);const pending={operationId:command.operationId,choiceId:choice.id,checked:false};this.#insertions.set(g,pending);let response;try{await this.resolveFamily(g);await assertCurrent();response=await this.#dispatchInsertion(tab,g,choice,command.operationId,admission,{action:command.insertionAction,identity,assertCurrent});}catch{response={status:'uncertain'};}finally{if(this.#insertions.get(g)===pending)this.#insertions.delete(g);}
    const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted'};
   }
   if(command?.type==='next_available'&&own(command,['type'])){
@@ -195,19 +206,41 @@ export class NextPromptCommands{
   fail();
  }
 
+ async #insertionBinding(group,choice,identity,receiver){
+  const authorization=await this.service.s.status();if(!authorization.consented)fail();return {receiver,sourceDigest:await digest([group.id,group.binding,group.sourceType,group.family??null,group.condition,choice.id,choice.text]),authorizationDigest:await digest(['next',group.authorization,authorization.epoch]),initiatorDigest:await digest(identity)};
+ }
+ async #presentInsertion(group,choice,tab,identity,assertCurrent,receiptEpoch){
+  const result={id:choice.id,kind:'SUGGESTION',text:choice.text,condition:''};if(!this.#receipts||group.attempted.has(choice.id))return result;
+  if(typeof identity!=='string'||!identity)fail();
+  const receiver=await this.#receipts.resolveReceiver(tab.id,group.binding.url,group.documentId),binding=await this.#insertionBinding(group,choice,identity,receiver);
+  await this.resolveFamily(group);await assertCurrent();
+  if(choice.insertionAction){if(!same(choice.insertionBinding,binding)||choice.insertionAction.receiptEpoch!==receiptEpoch)fail();}else{let issued=choice.insertionIssue;if(issued){if(!same(issued.binding,binding)||issued.receiptEpoch!==receiptEpoch)fail();}else{issued={binding,receiptEpoch,promise:this.#receipts.issueAction(this.#receiptCap,{...binding,receiptEpoch})};choice.insertionIssue=issued;}choice.insertionAction=await issued.promise;choice.insertionBinding=binding;}
+  await this.resolveFamily(group);await assertCurrent();
+  return {...result,insertionAction:structuredClone(choice.insertionAction)};
+ }
+
  // Both original insertion consumers share the same dispatch boundary. The
  // bounded UI response is not the original transport's settlement: retain that
  // promise independently, and never turn a late response into a replay or proof.
- async #dispatchInsertion(tab,g,choice,operationId,admission){
-  this.#assertAdmission(admission);let timer,proved=false;
+ async #dispatchInsertion(tab,g,choice,operationId,admission,{action,identity,assertCurrent}={}){
+  this.#assertAdmission(admission);let timer,proved=false,uiOpen=true;
   try{
-   const sent=this.#track(this.api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_INSERT',id:g.id,text:choice.text,sourceType:g.sourceType,operationId,choiceId:choice.id,binding:g.binding,authorization:g.authorization},{documentId:g.documentId}));
-   const result=await Promise.race([sent,new Promise(resolve=>{timer=setTimeout(()=>resolve({status:'uncertain'}),2000);})]);
+   const message={type:'PAIA_PROMPT_NEXT_INSERT',id:g.id,text:choice.text,sourceType:g.sourceType,operationId,choiceId:choice.id,binding:g.binding,authorization:g.authorization};
+   let original;
+   if(this.#receipts){
+    const eventContext=this.#receipts.beginInsertion(this.#receiptCap,action);
+    const receiver=await this.#receipts.resolveReceiver(tab.id,g.binding.url,g.documentId,eventContext),binding=await this.#insertionBinding(g,choice,identity,receiver);
+    const current=async()=>{if(!uiOpen)fail();this.#assertAdmission(admission);await this.resolveFamily(g);await assertCurrent();const authorization=await this.service.s.status();if(!authorization.consented||await digest(['next',g.authorization,authorization.epoch])!==binding.authorizationDigest)fail();this.#assertAdmission(admission);if(g.retired||this.groups.get(tab.id)!==g||!g.attempted.has(choice.id))fail();};
+    original=this.#receipts.dispatch(this.#receiptCap,{...binding,action,message},current);
+   }else original=this.api.tabs.sendMessage(tab.id,message,{documentId:g.documentId});
+   // Exact settlement cannot revive a changed view or extend its UI deadline.
+   const sent=this.#track(original);
+   const result=await Promise.race([sent,new Promise(resolve=>{timer=setTimeout(()=>{uiOpen=false;resolve({status:'uncertain'});},2000);})]);
    proved=result?.status==='failed'||result?.status==='inserted'&&result.verified===true;return result;
-  }finally{clearTimeout(timer);if(!proved)this.#insertionUnknown=true;}
+  }finally{uiOpen=false;clearTimeout(timer);if(!proved)this.#insertionUnknown=true;}
  }
- // Instance-local source-task proof only. No cold insertion journal or host
- // freeze acknowledgement exists here; this token cannot authorize global
+ // Instance-local source-task proof only. The separately injected prospective
+ // insertion owner is not consumed by this token, which cannot authorize global
  // selection. Clearing groups, release, a later success, or a fresh instance
  // never supplies those separate facts. UNKNOWN is sticky and constant-space.
  #held(hold){const store=this.service?.s;return this.#selectionHold===hold&&hold.valid&&!this.#disposed&&hold.admission===this.#admission&&hold.service===this.service&&hold.store===store&&hold.repository===store.repository&&hold.database===store.repository?.db&&hold.databaseId===store.databaseId&&hold.api===this.api&&hold.surface===this.surface;}

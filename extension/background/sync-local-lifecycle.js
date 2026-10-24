@@ -1,3 +1,4 @@
+import {assertSourceBootstrapUnionSelection} from '../core/browser-native-sync/source-bootstrap-union.js';
 import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork} from '../core/idb-repository.js';
 import {ContextCardsService,readContextCards} from '../core/context-cards.js';
 import {ContextMutationSyncJournal} from '../core/browser-native-sync/context-mutation-journal.js';
@@ -70,12 +71,12 @@ function trusted(request,sender,api){
 function checked(row){
  if(!exact(row,['version','bindingId','generation','revision','mode','task','error','contextEnrollment'])||row.version!==1||!hash(row.bindingId)||!hash(row.generation)||!Number.isSafeInteger(row.revision)||row.revision<1||!states.has(row.mode)||row.error!==null&&(typeof row.error!=='string'||!/^(BNS_|STORAGE_|CONTROL_|BACKUP_)[A-Z_]+$/.test(row.error)))fail('BNS_SYNC_STATE_CORRUPT');
  if(row.contextEnrollment!==undefined&&row.contextEnrollment!==null){const value=row.contextEnrollment;if(!exact(value,['version','databaseId','namespace','epoch'])||Object.keys(value).length!==4||value.version!==1||!opaque(value.databaseId)||value.namespace!=='initial'&&!opaque(value.namespace)||value.epoch!==null&&!opaque(value.epoch))fail('BNS_SYNC_STATE_CORRUPT');}
- if(row.task!==null){const task=row.task;if(!exact(task,['kind','id','phase','reference'])||!['publication','checkpoint','restore'].includes(task.kind)||!opaque(task.id)||!['reserved','running','unknown','confirmed'].includes(task.phase))fail('BNS_SYNC_STATE_CORRUPT');if(task.kind==='publication'&&task.reference!==null)fail('BNS_SYNC_STATE_CORRUPT');if(task.reference!==null){assertProtocolObjectReference(task.reference);if(task.reference.kind!=='checkpoint-manifest')fail('BNS_SYNC_STATE_CORRUPT');}}
+ if(row.task!==null){const task=row.task;if(!exact(task,['kind','id','phase','reference'])||!['publication','checkpoint','restore'].includes(task.kind)||!opaque(task.id)||!['reserved','running','unknown','confirmed'].includes(task.phase))fail('BNS_SYNC_STATE_CORRUPT');if(task.kind==='publication'&&task.reference!==null)fail('BNS_SYNC_STATE_CORRUPT');if(task.reference!==null){if(task.kind==='restore'&&task.reference.kind==='source-bootstrap-union')assertSourceBootstrapUnionSelection(task.reference);else{assertProtocolObjectReference(task.reference);if(task.reference.kind!=='checkpoint-manifest')fail('BNS_SYNC_STATE_CORRUPT');}}}
  return row;
 }
 
 class SyncLifecycle {
- #store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#continuationSaving=false;#busy=false;#suspended=false;#selectionHeld=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;#contextService=null;#contextJournal=null;
+ #taskFailure=null;#store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#continuationSaving=false;#busy=false;#suspended=false;#selectionHeld=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;#contextService=null;#contextJournal=null;
  constructor(store,api,config,binding,bindingId,generation,core){this.#store=store;this.#api=api;this.#config=config;this.#binding=binding;this.#bindingId=bindingId;this.#generation=generation;this.#core=core;this.#journal=new PreparedPublicationJournal(core,{checkpoint:()=>this.#allowed()});}
  #hostCurrent(){try{return this.#config.isCurrent(this.#binding)===true;}catch{return false;}}
  #allowed(){if(this.#suspended||this.#blocked||this.#uncertain||!this.#row||this.#row.mode!=='active'||this.#row.bindingId!==this.#bindingId||this.#row.generation!==this.#generation||!this.#hostCurrent())fail('BNS_SYNC_PAUSED');}
@@ -94,7 +95,7 @@ class SyncLifecycle {
    this.#row=next;return next;
   });this.#write=action.catch(()=>{});return action;
  }
- #view(){return Object.freeze({version:1,scope:this.#promptService?'source-working-prompt':'source-working-only',wholeArchiveComplete:false,contextCommands:!!this.#contextService,needsContextEnrollment:!!this.#contextService&&this.#contextService.syncJournal!==this.#contextJournal,purgeProtection:'original-journal-fail-closed',portablePreferences:this.#store.consumerPreferenceJournal===this.#preferenceJournal,needsPreferenceEnrollment:this.#store.consumerPreferenceJournal!==this.#preferenceJournal,needsPromptEnrollment:!!this.#promptService&&this.#promptService.syncJournal!==this.#promptJournal,resumeAvailable:!this.#suspended&&!this.#uncertain&&!this.#busy&&this.#hostCurrent()&&(!this.#row||this.#row.bindingId===this.#bindingId&&(this.#row.mode!=='disconnected'||this.#row.generation!==this.#generation)),unsupportedOwners:this.#promptService?['human-library',this.#contextService?'automatic-context':'context','topic','nonportable-settings','edited-source-purge']:['human-library','prompt','context','topic','nonportable-settings','edited-source-purge'],state:this.#suspended?'suspended':this.#uncertain?'settlement-unknown':this.#row?.mode??'not-started',busy:this.#busy,task:this.#row?.task?{kind:this.#row.task.kind,phase:this.#row.task.phase}:null,error:this.#row?.error??null,productionActivation:false});}
+ #view(){const recoveryError=this.#taskFailure?.revision===this.#row?.revision?this.#taskFailure?.error:null;return Object.freeze({version:1,scope:this.#promptService?'source-working-prompt':'source-working-only',wholeArchiveComplete:false,contextCommands:!!this.#contextService,needsContextEnrollment:!!this.#contextService&&this.#contextService.syncJournal!==this.#contextJournal,purgeProtection:'original-journal-fail-closed',portablePreferences:this.#store.consumerPreferenceJournal===this.#preferenceJournal,needsPreferenceEnrollment:this.#store.consumerPreferenceJournal!==this.#preferenceJournal,needsPromptEnrollment:!!this.#promptService&&this.#promptService.syncJournal!==this.#promptJournal,resumeAvailable:!this.#suspended&&!this.#uncertain&&!this.#busy&&this.#hostCurrent()&&(!this.#row||this.#row.bindingId===this.#bindingId&&(this.#row.mode!=='disconnected'||this.#row.generation!==this.#generation)),unsupportedOwners:this.#promptService?['human-library',this.#contextService?'automatic-context':'context','topic','nonportable-settings','edited-source-purge']:['human-library','prompt','context','topic','nonportable-settings','edited-source-purge'],state:this.#suspended?'suspended':this.#uncertain?'settlement-unknown':this.#row?.mode??'not-started',busy:this.#busy,task:this.#row?.task?{kind:this.#row.task.kind,phase:recoveryError&&this.#row.task.phase!=='confirmed'?'unknown':this.#row.task.phase}:null,error:recoveryError??this.#row?.error??null,productionActivation:false});}
  async attachPreferences(){
   this.#preferenceJournal=new ConsumerPreferenceSyncJournal(this.#core);
   // Existing original intents/terminal receipts are recovered by the original
@@ -225,11 +226,12 @@ class SyncLifecycle {
   this.#allowed();if(this.#busy)fail('BNS_SYNC_BUSY');
   const old=this.#row.task;if(old&&old.phase!=='confirmed'&&old.kind!==kind)fail('BNS_SYNC_TASK_PENDING');
   if(continuation&&(!old||old.kind!=='restore'))fail('BNS_RESTORE_NOT_READY');
-  this.#busy=true;const serial=this.#serial;
+  this.#taskFailure=null;this.#busy=true;const serial=this.#serial;let boundedRecovery=kind==='restore';
   try{
    const current=()=>{this.#allowed();if(serial!==this.#serial)fail('BNS_RECOVERY_INTERRUPTED');};
-   if(!old||old.phase==='confirmed'&&!continuation)await this.#save(row=>({...row,task:{kind,id:crypto.randomUUID(),phase:'reserved',reference:null},error:null}));
-   current();const id=this.#row.task.id,transport=this.#openTransport(serial);
+   const reserve=!old||old.phase==='confirmed'&&!continuation,id=reserve?crypto.randomUUID():old.id;
+   if(kind==='publication'&&reserve)await this.#save(row=>({...row,task:{kind,id,phase:'reserved',reference:null},error:null}));
+   current();const transport=this.#openTransport(serial);
    if(kind==='publication'){
     let state=await this.#journal.state(id);current();
     if(!state){state=await this.#journal.prepare({publicationId:id});current();if(state.state==='nothing_to_prepare'){await this.#save(row=>({...row,task:null,error:null}));return Object.freeze({...this.#view(),busy:false});}}
@@ -238,17 +240,22 @@ class SyncLifecycle {
     // retransmission, including its durable unknown-attempt and missing guards.
     await this.#journal.run(id,transport);
    }else{
-    this.#restore=new LocalSyncRecoverySession(this.#core,{store:this.#store,transport,restoreId:id,checkpoint:async(phase,reference)=>{current();if(phase==='selected-causal-tail'||phase==='confirmed-causal-tail'){this.#continuationSaving=true;try{await this.#save(row=>{current();if(row.task?.kind!=='restore'||row.task.id!==id||phase==='confirmed-causal-tail'&&!equal(row.task.reference,reference))fail('BNS_SYNC_STATE_CHANGED');return {...row,task:{...row.task,reference:clone(reference),phase:phase==='selected-causal-tail'?'running':'confirmed'},error:null};},currentOriginalRecoveryWork(this.#store.repository));}finally{this.#continuationSaving=false;}}current();}});
-    let ref=this.#row.task.reference;
+    this.#restore=new LocalSyncRecoverySession(this.#core,{store:this.#store,transport,restoreId:id,checkpoint:async(phase,reference)=>{current();if(phase==='reserved-restore-task'){this.#continuationSaving=true;try{await this.#save(row=>{current();if(!reserve||!equal(row.task,old))fail('BNS_SYNC_STATE_CHANGED');return {...row,task:{kind:'restore',id,phase:'reserved',reference:null},error:null};},currentOriginalRecoveryWork(this.#store.repository));}finally{this.#continuationSaving=false;}}else if(['selected-causal-tail','confirmed-causal-tail','selected-source-bootstrap-union','confirmed-source-bootstrap-union'].includes(phase)){this.#continuationSaving=true;try{await this.#save(row=>{current();if(row.task?.kind!=='restore'||row.task.id!==id||phase.startsWith('confirmed-')&&!equal(row.task.reference,reference))fail('BNS_SYNC_STATE_CHANGED');return {...row,task:{...row.task,reference:clone(reference),phase:phase.startsWith('selected-')?'running':'confirmed'},error:null};},currentOriginalRecoveryWork(this.#store.repository));}finally{this.#continuationSaving=false;}}current();}});
+    if(reserve)await this.#restore.reserveTask();current();let ref=this.#row.task.reference;if(ref?.kind==='checkpoint-manifest')boundedRecovery=false;
     if(continuation&&ref!==null)await this.#restore.continueTask(ref);
-    else{if(ref===null){ref=await this.#restore.discover();current();await this.#save(row=>({...row,task:{...row.task,reference:clone(ref)},error:null}));}
-     current();await this.#save(row=>({...row,task:{...row.task,phase:'running'},error:null}));current();await this.#restore.recover(ref);}
+    else{if(ref===null){ref=await this.#restore.discover();current();if(ref.kind!=='source-bootstrap-union'){boundedRecovery=false;await this.#save(row=>({...row,task:{...row.task,reference:clone(ref)},error:null}));}}
+     current();if(ref.kind!=='source-bootstrap-union')await this.#save(row=>({...row,task:{...row.task,phase:'running'},error:null}));current();await this.#restore.recover(ref);}
    }
    // A confirmed original commit is retained even when pause arrived after it.
    // Updating this local task state never undoes the user's durable pause.
    if(this.#row.task.phase!=='confirmed')await this.#save(row=>({...row,task:{...row.task,phase:'confirmed'},error:null}));return Object.freeze({...this.#view(),busy:false});
   }catch(error){
-   if(error?.code==='BNS_SYNC_OUTCOME_UNKNOWN')this.#uncertain=true;this.#invalidate();if(this.#row?.task&&!this.#uncertain&&!this.#suspended)await this.#save(row=>({...row,task:row.task.phase==='confirmed'?row.task:{...row.task,phase:'unknown'},error:safeError(error)}));throw error;
+   if(error?.code==='BNS_SYNC_OUTCOME_UNKNOWN')this.#uncertain=true;
+   // A union or not-yet-classified recovery owns one finite ticket. Failure
+   // cannot open a new chrome.local read/write budget to record its own error.
+   // Keep the exact durable task for cold continuation; only the view changes.
+   if(boundedRecovery)this.#taskFailure={revision:this.#row?.revision,error:safeError(error)};
+   this.#invalidate();if(!boundedRecovery&&this.#row?.task&&!this.#uncertain&&!this.#suspended)await this.#save(row=>({...row,task:row.task.phase==='confirmed'?row.task:{...row.task,phase:'unknown'},error:safeError(error)}));throw error;
   }finally{this.#transport?.close();this.#transport=null;this.#restore=null;this.#busy=false;}
  }
  async handle(request,sender){

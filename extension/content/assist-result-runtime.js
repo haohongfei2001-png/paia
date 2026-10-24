@@ -8,9 +8,10 @@ class AssistResultController {
  scan(delivered=[]){if(this.disposed||!this.enabled)return null;const current=this.reader.current,records=[...delivered,...this.observer.takeRecords()];const mutated=records.some(r=>current&&(r.target===current||current.contains(r.target))||r.type==='childList'&&[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&n.matches?.('[data-message-author-role],[data-testid^="conversation-turn"],[data-testid="stop-button"],[data-testid="continue-button"]')));const state=this.reader.observe(this.clock(),mutated);if(state.invalidated)this.onInvalidated();return state;}
  probe({snapshot=false}={}){const state=this.scan();if(!state?.ready)return state;return {...state,...(snapshot?{snapshot:this.reader.snapshot()}:{})};}
  current(binding){const s=this.scan();return s?.ready===true&&JSON.stringify(s.binding)===JSON.stringify(binding);}
- async insert({binding,text,condition,operationId,isCurrent,qualify,conditionPresented=false}){
+ async insert({binding,text,condition,operationId,isCurrent,qualify,conditionPresented=false,insertionMessage}){
   const current=()=>this.current(binding)&&typeof isCurrent==='function'&&isCurrent()===true;
   if(condition&&!conditionPresented||typeof qualify!=='function'||!current())return {status:'failed',reason:'stale_assist'};
+  if(insertionMessage?.insertionReceipt)return this.composer.insert({text,operationId,url:binding.url,guard:current,insertionMessage,lane:'assist',qualify:async()=>{try{return await qualify()===true&&current();}catch{return false;}}});
   // The private host may await a transport handoff after session.result().
   // Re-read its actual dependencies here, then enter the synchronous native
   // composer transaction without another asynchronous transport boundary.

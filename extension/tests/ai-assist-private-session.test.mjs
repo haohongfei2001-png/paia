@@ -72,20 +72,53 @@ test('eight still-qualified DEFER results retain their slots and do not admit a 
 test('held post-key canonical retirement reads preserve identical-evaluation singleflight for two and ten callers',async()=>{for(const count of [2,10]){const f=await fixture(),cards=new ContextCardsService(f.s),ids=[crypto.randomUUID(),crypto.randomUUID()];for(const id of ids)await cards.change({kind:'put',card:'rules',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:0,body:'Synthetic singleflight scope '+id,section:'Synthetic'});for(const key of ['global','rules'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});f.ids.push(ids[0]);await f.session.prepare({lease:f.cap});f.ids.splice(0,f.ids.length,ids[1]);const read=f.session.foundation.read.bind(f.session.foundation);let retirementReads=0,held=0,release;const hold=new Promise(r=>release=r);f.session.foundation.read=async fn=>{if(fn.toString().includes('const out=[];for(const s of idle')){retirementReads++;if(retirementReads>count){held++;if(held===count)release();await hold;}}return read(fn);};const results=await Promise.allSettled(Array.from({length:count},()=>f.session.prepare({lease:f.cap})));assert.equal(held,count,'all final canonical retirement reads are held');assert.ok(results.every(x=>x.status==='fulfilled'),'same evaluation survives retirement await');assert.equal(new Set(results.map(x=>x.value)).size,1);await Promise.all(results.map(x=>f.session.run(x.value)));assert.equal(f.calls(),1);assert.equal((await all(f.s)).organizerJobs.length,2);}});
 
 
-for(const stop of ['timeout','dismiss','dispose','lease-revoke'])for(const late of ['fulfilled','rejected'])test('bounded '+stop+' settles an ignored-signal Assist provider and rejects late '+late+' publication',async()=>{
+for(const stop of ['timeout','dismiss','dispose','lease-revoke'])for(const late of ['fulfilled','rejected'])test('bounded '+stop+' settles an ignored-signal Assist provider and rejects late '+late+' publication',async t=>{
  const f=await fixture();f.s.organizerBudget.limits.timeoutMs=25;let enter,release,rejectLate,physical,controls,physicalCalls=0;
  const entered=new Promise(r=>enter=r),held=new Promise((resolve,reject)=>{release=resolve;rejectLate=reject;}),execute=f.provider.execute;
  f.provider.execute=(request,execution)=>{physicalCalls++;controls=execution;physical=held.then(()=>execute(request));enter();return physical;};
- const handle=await f.session.prepare({lease:f.cap});let reason;const running=f.session.run(handle).then(()=>{assert.fail('stopped attempt cannot publish');},e=>{reason=e.code;});await entered;
+ const handle=await f.session.prepare({lease:f.cap});
+ // Admission is not provider-entry coverage. Control only the test clock so
+ // the unchanged 25 ms timer cannot expire before this case's genuine entry.
+ t.mock.timers.enable({apis:['setTimeout']});
+ const settled=f.session.run(handle).then(value=>({kind:'fulfilled',value}),error=>({kind:'rejected',error}));
+ try{
+ const first=await Promise.race([entered.then(()=>({kind:'entered'})),settled]);
+ assert.equal(first.kind,'entered','post-entry case must genuinely enter its provider, not settle during admission');
  assert.equal(controls.timeoutMs,25);assert.ok(controls.signal instanceof AbortSignal);assert.equal(controls.signal.aborted,false);
  if(stop==='dismiss')f.session.dismiss(handle);if(stop==='dispose')f.session.dispose();if(stop==='lease-revoke')f.lease.configure({replyAccess:false,remoteProcessing:true});
  if(stop!=='timeout')assert.equal(controls.signal.aborted,true,'actual lifecycle immediately aborts the private provider signal');
- await running;assert.equal(reason,stop==='timeout'?'OUTCOME_UNKNOWN':'STALE_BASE');assert.equal(controls.signal.aborted,true);
+ if(stop==='timeout')t.mock.timers.tick(25);
+ const outcome=await settled;assert.equal(outcome.kind,'rejected','stopped attempt cannot publish');assert.equal(outcome.error.code,stop==='timeout'?'OUTCOME_UNKNOWN':'STALE_BASE');assert.equal(controls.signal.aborted,true);
  const before=await all(f.s),writes=f.s.repository.metrics.writes;assert.equal(before.organizerUsage.length,1);assert.equal(before.organizerUsage[0].attemptCount,1);assert.equal(before.organizerUsage[0].state,'OUTCOME_UNKNOWN');assert.equal(before.organizerUsage[0].spendState,'RESERVATION_RETAINED');assert.equal(before.organizerWorkItems.length,0);
  if(late==='fulfilled'){release();assert.equal(await physical,suggestion);}else{rejectLate(Error('PRIVATE_LATE_PROVIDER_ERROR'));await assert.rejects(physical);}
  await Promise.resolve();assert.deepEqual(await all(f.s),before);assert.equal(f.s.repository.metrics.writes,writes);assert.equal(physicalCalls,1);
  await assert.rejects(async()=>f.session.run(handle));await assert.rejects(async()=>f.session.result(handle));let inserts=0;await assert.rejects(f.session.insert(handle,{controller:{insert(){inserts++;}},operationId:crypto.randomUUID()}));assert.equal(inserts,0);assert.equal(physicalCalls,1);
  if(stop==='timeout'||stop==='dismiss'){const cold=new LocalAssistSession(f.s,{lease:f.lease,provider:f.provider,resolveAuthority:authority,clock:()=>1000}),retry=await cold.prepare({lease:f.cap});await assert.rejects(cold.run(retry),{code:'OUTCOME_UNKNOWN'});assert.equal(physicalCalls,1);assert.deepEqual(await all(f.s),before);}
+ }finally{f.session.dismiss(handle);release();await physical?.catch(()=>{});await settled;t.mock.timers.reset();}
+});
+
+test('original 25 ms Assist expiry before provider entry retains UNKNOWN reservation and cannot dispatch late',async t=>{
+ const f=await fixture();f.s.organizerBudget.limits.timeoutMs=25;
+ let enterQualification,releaseQualification,finishQualification,qualifiedReads=0,qualificationHeld=false,physicalCalls=0;
+ const entered=new Promise(r=>enterQualification=r),held=new Promise(r=>releaseQualification=r),finished=new Promise(r=>finishQualification=r);
+ const handle=await f.session.prepare({lease:f.cap}),read=f.session.foundation.read.bind(f.session.foundation);
+ f.session.foundation.read=async fn=>{
+  const final=fn.toString().includes('const job=await this.foundation.job(t,s.job.id)')&&++qualifiedReads===3;
+  if(final){qualificationHeld=true;enterQualification();await held;}
+  try{return await read(fn);}finally{if(final)finishQualification();}
+ };
+ f.provider.execute=async()=>{physicalCalls++;return suggestion;};
+ t.mock.timers.enable({apis:['setTimeout']});
+ const settled=f.session.run(handle).then(value=>({kind:'fulfilled',value}),error=>({kind:'rejected',error}));
+ try{
+  const first=await Promise.race([entered.then(()=>({kind:'qualification-held'})),settled]);
+  assert.equal(first.kind,'qualification-held');assert.equal(qualifiedReads,3,'hold the actual final pre-provider qualification');
+  t.mock.timers.tick(25);const outcome=await settled;assert.equal(outcome.kind,'rejected');assert.equal(outcome.error.code,'OUTCOME_UNKNOWN');
+  const before=await all(f.s);assert.equal(before.organizerUsage.length,1);assert.equal(before.organizerUsage[0].attemptCount,1);assert.equal(before.organizerUsage[0].state,'OUTCOME_UNKNOWN');assert.equal(before.organizerUsage[0].spendState,'RESERVATION_RETAINED');assert.equal(before.organizerWorkItems.length,0);assert.equal(physicalCalls,0);
+  releaseQualification();await finished;await new Promise(r=>setImmediate(r));
+  assert.equal(physicalCalls,0,'late qualified work cannot dispatch after the original deadline');assert.deepEqual(await all(f.s),before);
+  await assert.rejects(f.session.run(handle),{code:'OUTCOME_UNKNOWN'});await assert.rejects(f.session.result(handle));assert.equal(physicalCalls,0);
+ }finally{releaseQualification();f.session.dismiss(handle);if(qualificationHeld)await finished;await settled;t.mock.timers.reset();}
 });
 
 

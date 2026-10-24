@@ -1,3 +1,4 @@
+import {PROMPT_INSERTION_RUNTIME,validatePromptInsertionRuntimeRow} from '../prompt-insertion-runtime-format.js';
 import {consumeOriginalDefaultMemoryRow} from './local-memory-default.js';
 import {archiveYearKey,archiveYearMeta} from '../archive-year-index.js';
 import {consumeMixedPublicationMetadata,mixedConfigurationReplay} from './mixed-configuration.js';
@@ -19,6 +20,16 @@ import {equal,exact,hash,count,opaque,fail} from './value.js';
 
 const refuse=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
 const iso=value=>typeof value==='string'&&Number.isFinite(Date.parse(value));
+
+// Exact local receipt inventory, not a portable entity or a live grant. Raw
+// rows remain untouched for the original complete source-cut equality checks.
+function consumeLocalPromptInsertionRuntime(remaining,databaseId){
+ if(!remaining.has(PROMPT_INSERTION_RUNTIME))return;
+ const row=remaining.get(PROMPT_INSERTION_RUNTIME);
+ try{validatePromptInsertionRuntimeRow(row);}catch{refuse();}
+ if(row.databaseId!==databaseId)refuse();
+ remaining.delete(PROMPT_INSERTION_RUNTIME);
+}
 
 // Local annual metadata is a disposable projection of the original, already
 // qualified blockIndex cut. Consume only exact rows; never exempt a namespace.
@@ -119,7 +130,7 @@ function assertCurrentMixedDefaultMeta(core,store,scope,plan,raw,control,databas
    take(key('humanMapping',head.entityId),{type,local:physical(type,row),wire:physical(type,op.value.after),revisionId:op.revisionId});
   }
  }
- const remaining=new Map([...meta].filter(([id])=>!used.has(id)));consumeArchiveYearMetadata(remaining,rows);consumeOriginalMixedManualMeta(core,store,scope,plan,raw,control,nonce,remaining);for(const id of meta.keys())if(!used.has(id)&&!remaining.has(id))used.add(id);
+ const remaining=new Map([...meta].filter(([id])=>!used.has(id)));consumeArchiveYearMetadata(remaining,rows);consumeLocalPromptInsertionRuntime(remaining,databaseId);consumeOriginalMixedManualMeta(core,store,scope,plan,raw,control,nonce,remaining);for(const id of meta.keys())if(!used.has(id)&&!remaining.has(id))used.add(id);
  // Exact original keyed name/pair inventories were already compared by the
  // original Human body consumer. Derived IDs come only from the private query
  // owner after complete exact matching, never arbitrary prefix exemption.
@@ -174,7 +185,7 @@ function qualifyLocal(core,scope,plan,rows,control,databaseId,replay){
  // The preceding canonical checker individually checked every original protocol
  // ID, including full operations/receipt/head/history and foreign namespaces.
  // No unvalidated protocol prefix or arbitrary local key is exempted here.
- const remaining=new Map(rows.meta.filter(row=>!admitted.has(row.id)).map(row=>[row.id,row]));consumeMixedPublicationMetadata(remaining);consumeOriginalDefaultMemoryRow(remaining);consumeArchiveYearMetadata(remaining,rows);
+ const remaining=new Map(rows.meta.filter(row=>!admitted.has(row.id)).map(row=>[row.id,row]));consumeMixedPublicationMetadata(remaining);consumeOriginalDefaultMemoryRow(remaining);consumeArchiveYearMetadata(remaining,rows);consumeLocalPromptInsertionRuntime(remaining,databaseId);
  for(const row of remaining.values())if(!row.id.startsWith('bns:'))refuse();
 }
 

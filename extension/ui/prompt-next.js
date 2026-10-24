@@ -21,7 +21,7 @@ function resize(){void rpc({type:'resize',height:Math.min(400,Math.max(44,Math.c
 async function insert(choice,button){
  if(busy||choice.attempted)return;busy=true;choice.attempted=true;timing();for(const b of choices.querySelectorAll('button'))b.disabled=true;dismiss.disabled=true;status.textContent='正在插入…';resize();
  let result;
- try{result=await rpc({type:'insert',id:choice.id,operationId:crypto.randomUUID()});}catch{result={status:'uncertain'};}
+ try{result=await rpc({type:'insert',id:choice.id,operationId:choice.insertionAction?.operationId??crypto.randomUUID(),...(choice.insertionAction?{insertionAction:choice.insertionAction}:{})});}catch{result={status:'uncertain'};}
  const success=result.status==='inserted'&&result.verified===true;
  if(!success&&result.status!=='failed')insertionUnconfirmed=true;
  status.textContent=success?'已插入，未发送。':result.status==='failed'?'无法安全插入。请检查输入框。':'插入结果未确认。请先检查草稿，不会自动重试。';

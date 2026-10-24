@@ -7,6 +7,16 @@ export class SettingsAssistState {
  get editable(){return !!this.value&&!this.error&&!this.busy;}
  emit(){this.changed(this);}
  async load(){if(this.busy){this.pending=true;return false;}return this.#read();}
+ async invalidate(){
+  // Unlike an ordinary refresh, an authority-change notice immediately fences
+  // the old generation. Invalidate any earlier read, including a queued read
+  // during a save, and keep the existing owner busy until the latest read wins.
+  ++this.epoch;this.pending=true;if(this.busy)return false;
+  this.busy=true;this.feedback='reading';this.emit();
+  try{while(this.pending){this.pending=false;await this.#read();}}
+  finally{this.busy=false;this.emit();}
+  return !this.error;
+ }
  async #read(){const epoch=++this.epoch;try{const value=snapshot(await this.send(READ));if(epoch!==this.epoch)return false;this.value=value;this.error=false;this.feedback='';}catch{if(epoch!==this.epoch)return false;this.error=true;this.feedback='read-error';}this.emit();return !this.error;}
  async configure(field,enabled){
   if(!this.editable||!fields.includes(field)||typeof enabled!=='boolean')return false;

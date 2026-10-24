@@ -28,6 +28,7 @@ import {ContextTopicAccessService} from '../core/context-topic-access.js';
 import {PromptSurfaceCommands} from './prompt-surface.js';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
 import {PromptReuseCommands} from './prompt-reuse-commands.js';
+import {PromptInsertionReceipts} from './prompt-insertion-receipts.js';
 import {ArchiveOriginalQuery} from '../core/archive-original-query.js';
 import {installCaptureRecovery} from './capture-recovery.js';
 import {ArchiveNavigationQuery} from '../core/archive-navigation-query.js';
@@ -64,7 +65,7 @@ import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
 let syncSuspended=false;
 let applicationWorkerCoordination;
-let store,syncLifecycle,maintenanceProcessing,maintenanceConfiguration,maintenanceRunner,contextConnections,localScopePreviewCapability,contextScopePreview,thoughtLibraryRead,sectionPromotion,thoughtSectionReading,promptReuse,archiveArrival,promptSurface,promptNext,promptAssist,legacyUsage,passport,revisit,readerState,sourceStructure,archiveNavigation,archiveOriginal,archiveOrderPreference,sourceOrderRegistry,originalOrganizer,organizeConfiguration,organizeActionSource,aiOrganizer,boundedOrganizer,onboarding,integrity,memory,contextTopics,contextCards,backups,imports,runner,safety,libraryRunner;
+let store,promptInsertionReceipts,syncLifecycle,maintenanceProcessing,maintenanceConfiguration,maintenanceRunner,contextConnections,localScopePreviewCapability,contextScopePreview,thoughtLibraryRead,sectionPromotion,thoughtSectionReading,promptReuse,archiveArrival,promptSurface,promptNext,promptAssist,legacyUsage,passport,revisit,readerState,sourceStructure,archiveNavigation,archiveOriginal,archiveOrderPreference,sourceOrderRegistry,originalOrganizer,organizeConfiguration,organizeActionSource,aiOrganizer,boundedOrganizer,onboarding,integrity,memory,contextTopics,contextCards,backups,imports,runner,safety,libraryRunner;
 const startupEvents=createApplicationStartupEvents(chrome);
 const aiFilterRuntime=createAIFilterRuntime(chrome,{getStore:()=>store,policy:readAIFilterPolicyConfiguration()});
 async function initializeApplicationServices(){
@@ -75,6 +76,7 @@ store=await selectOriginalApplicationStore(chrome.storage.local,{aiFilterAuthori
 // after construction to adopt a replacement generation.
 await store.recoverControlPublication();
 await store.status();
+promptInsertionReceipts=new PromptInsertionReceipts(store,chrome);
 maintenanceProcessing=new MaintenanceProcessingCommands(store,startupEvents);
 maintenanceConfiguration=aiFilterRuntime.configureService(configureMaintenanceProcessingSource(maintenanceProcessing,store,readMaintenanceServiceConfiguration(store)),readMaintenanceIdentityCurrentnessEndpoint());
 maintenanceRunner=createMaintenanceRunner(store,maintenanceConfiguration);
@@ -84,12 +86,12 @@ contextScopePreview=new ContextReadService(store,{localPreviewCapability:localSc
 thoughtLibraryRead=new ThoughtLibraryReadModel(store);
 sectionPromotion=new TopicSectionPromotionCommands(store,chrome,{promotionSession:readMaintenanceRunnerSession(maintenanceRunner,store),checkpointStorage:{session:chrome.storage.session||null}});
 thoughtSectionReading=new ThoughtSectionReading(thoughtLibraryRead);
-promptReuse= new PromptReuseCommands(new PromptReuseService(store,{historyCandidates:createConfiguredHistoricalCandidateSession(store)}),chrome);
+promptReuse= new PromptReuseCommands(new PromptReuseService(store,{historyCandidates:createConfiguredHistoricalCandidateSession(store)}),chrome,{insertionReceipts:promptInsertionReceipts});
 archiveArrival= new ArchiveArrival(promptReuse.service,chrome);
 promptSurface= new PromptSurfaceCommands(promptReuse,chrome,{openArchiveArrival:(descriptor,source)=>archiveArrival.open(descriptor,source)});
-promptNext= new NextPromptCommands(promptReuse.service,chrome,promptSurface);
+promptNext= new NextPromptCommands(promptReuse.service,chrome,promptSurface,{insertionReceipts:promptInsertionReceipts});
 promptSurface.next=promptNext;
-promptAssist=new AssistPromptCommands(store,startupEvents,{surface:promptSurface});
+promptAssist=new AssistPromptCommands(store,startupEvents,{surface:promptSurface,insertionReceipts:promptInsertionReceipts});
 promptSurface.assist=promptAssist;
 legacyUsage= new LegacyUsageRecords(store);
 passport= new PassportService(store);
@@ -119,8 +121,8 @@ libraryRunner=new LibraryRunner(store);
 // admitted global selection contract exists; construction grants no readiness.
 applicationWorkerCoordination=createApplicationWorkerCoordination({store,safety,libraryRunner,filterRunner:runner,maintenanceRunner,contextConnections,promptAssist,promptNext,promptCommands:promptReuse,promptSurface});
 }
-chrome.tabs?.onRemoved?.addListener(id=>{void trackApplicationWork(ready.then(()=>{promptSurface.removeTab(id);promptNext.removeTab(id);promptAssist.removeTab(id);archiveArrival.removeTab(id);}).catch(()=>{}));});
-chrome.tabs?.onUpdated?.addListener((id,change)=>{void trackApplicationWork(ready.then(()=>{if(change.url||change.status==='loading'){promptNext.removeTab(id);promptAssist.removeTab(id);}archiveArrival.changedTab(id,change);}).catch(()=>{}));});
+chrome.tabs?.onRemoved?.addListener(id=>{void trackApplicationWork(ready.then(()=>{promptInsertionReceipts.removeTab(id);promptSurface.removeTab(id);promptNext.removeTab(id);promptAssist.removeTab(id);archiveArrival.removeTab(id);}).catch(()=>{}));});
+chrome.tabs?.onUpdated?.addListener((id,change)=>{void trackApplicationWork(ready.then(()=>{if(change.url||change.status==='loading'){promptInsertionReceipts.removeTab(id);promptNext.removeTab(id);promptAssist.removeTab(id);}archiveArrival.changedTab(id,change);}).catch(()=>{}));});
 // Missing new suggestion preferences are off; installation/update never resets a user preference.
 let recoveryDrafts=null;
 const recoveryDraftStore=()=>recoveryDrafts??=new RecoveryDraftStore(chrome.storage.local);
@@ -241,6 +243,10 @@ async function handle(request, sender) {
   if(request.type.startsWith('PAIA_SYNC_'))return syncLifecycle.handle(request,sender);
   if(request.type.startsWith('PAIA_MAINTENANCE_PROCESSING_'))return maintenanceProcessing.handle(request,sender);
   if(request.type.startsWith('PAIA_ARCHIVE_ARRIVAL_'))return archiveArrival.handle(request,sender);
+  if(request.type==='PAIA_PROMPT_INSERTION_RECEIVER_REGISTER')return promptInsertionReceipts.registerReceiver(request,sender);
+  if(request.type==='PAIA_PROMPT_INSERTION_ACK')return promptInsertionReceipts.handleAck(request,sender);
+  if(request.type==='PAIA_PROMPT_INSERTION_RECONCILE')return promptInsertionReceipts.handleReconcile(request,sender);
+  if(request.type==='PAIA_PROMPT_INSERTION_QUALIFY')return promptInsertionReceipts.handleQualify(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_ASSIST_'))return promptAssist.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_NEXT_'))return promptNext.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_SURFACE_'))return promptSurface.handle(request,sender);

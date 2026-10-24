@@ -1,9 +1,10 @@
+import {assertSourceBootstrapUnionSelection,prepareSourceBootstrapUnion,readSourceBootstrapUnionProof} from './source-bootstrap-union.js';
 import {queueOriginalIndexedStoreWork} from '../indexed-store.js';
 import {createOriginalRecoveryWork,chargeOriginalRecoveryWork,tightenOriginalRecoveryWork,withOriginalRecoveryWork,finishOriginalRecoveryWork} from '../idb-repository.js';
 import {SourcePurgeGroupedCheckpointRestore,validateSourcePurgeCheckpointGraph,validateSourcePurgeCheckpointTail,requireCheckpointRevisionRetention} from './source-purge-group.js';
 import {sourcePurgeRestoreKey,sourcePurgeProtocolControls} from './source-purge-protocol-controls.js';
 import {StagedSyncRestore,checkpointItems} from './checkpoints.js';
-import {validateGroupedCheckpointGraph} from './group-checkpoint.js';
+import {validateGroupedCheckpointGraph,requireActivatedSourceBootstrapUnion} from './group-checkpoint.js';
 import {assertProtocolObjectReference,readObject,SEGMENT_PROFILE} from './segments.js';
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
 import {bytes,clone,decodeJSON,equal,exact,fail,hash,opaque,SyncError} from './value.js';
@@ -12,7 +13,7 @@ import {bytes,clone,decodeJSON,equal,exact,fail,hash,opaque,SyncError} from './v
 // Core/store and a transport; this module creates no provider, account or grant.
 // Durable progress belongs exclusively to the existing staged restore owner.
 export class LocalSyncRecoverySession {
- #activationWork=null;#discovered=null;#restore;#restoreId;#checkpoint;#negative=false;#transport;#core;#store;#discoveryTimeoutMs;#readTimeoutMs;#cancelRead=null;#recoveryState='not-restored';#busy=false;#paused=false;#closed=false;#serial=0;#ref=null;#state='idle';#error=null;
+ #taskReserved=false;#taskWork=null;#activationWork=null;#discovered=null;#restore;#restoreId;#checkpoint;#negative=false;#transport;#core;#store;#discoveryTimeoutMs;#readTimeoutMs;#cancelReads=new Set();#recoveryState='not-restored';#busy=false;#paused=false;#closed=false;#serial=0;#ref=null;#state='idle';#error=null;
  constructor(core,{store,transport,restoreId=crypto.randomUUID(),checkpoint=async()=>{},discoveryTimeoutMs=30000,readTimeoutMs=30000}={}){
   if(store?.repository!==core?.repository||!core?.repository||typeof transport?.get!=='function'||!opaque(restoreId)||typeof checkpoint!=='function'||!Number.isSafeInteger(discoveryTimeoutMs)||discoveryTimeoutMs<1||discoveryTimeoutMs>30000||!Number.isSafeInteger(readTimeoutMs)||readTimeoutMs<1||readTimeoutMs>30000)fail('BNS_RECOVERY_BINDING');
   this.#restoreId=restoreId;this.#checkpoint=checkpoint;this.#transport=transport;this.#core=core;this.#store=store;this.#discoveryTimeoutMs=discoveryTimeoutMs;this.#readTimeoutMs=readTimeoutMs;
@@ -23,13 +24,13 @@ export class LocalSyncRecoverySession {
  #check(serial=this.#serial){if(this.#closed||this.#paused||serial!==this.#serial)fail('BNS_RECOVERY_INTERRUPTED');}
  async #run(state,action){
   this.#check();if(this.#busy)fail('BNS_RECOVERY_BUSY');this.#busy=true;this.#state=state;this.#error=null;const serial=this.#serial;
-  let result;try{result=await action(serial);}catch(error){this.#state=state==='applying'?'settlement-unknown':'incomplete';if(state==='applying')this.#recoveryState='settlement-unknown';this.#error=typeof error?.code==='string'&&/^(BNS_|STORAGE_|CONTROL_|BACKUP_)[A-Z_]+$/.test(error.code)?error.code:'BNS_RECOVERY_UNKNOWN';throw error;}
+  let result;try{result=await action(serial);}catch(error){this.#state=state==='applying'?'settlement-unknown':'incomplete';if(state==='applying'&&this.#recoveryState!=='restored')this.#recoveryState='settlement-unknown';this.#error=typeof error?.code==='string'&&/^(BNS_|STORAGE_|CONTROL_|BACKUP_)[A-Z_]+$/.test(error.code)?error.code:'BNS_RECOVERY_UNKNOWN';throw error;}
   finally{this.#busy=false;}
   return result===undefined?this.snapshot():result;
  }
- pause(){this.#paused=true;++this.#serial;this.#cancelRead?.();}
+ pause(){this.#paused=true;++this.#serial;for(const cancel of this.#cancelReads)cancel();}
  resume(){if(this.#closed)fail('BNS_RECOVERY_INTERRUPTED');if(this.#busy)fail('BNS_RECOVERY_BUSY');this.#paused=false;}
- close(){this.#closed=true;++this.#serial;this.#cancelRead?.();}
+ close(){this.#closed=true;++this.#serial;for(const cancel of this.#cancelReads)cancel();}
  #transportBytes(reference,raw){
   // Bound our reader's copy, not allocations made inside an injected transport.
   assertProtocolObjectReference(reference);
@@ -37,9 +38,9 @@ export class LocalSyncRecoverySession {
  }
  async #readUntil(action,deadline,serial,limitCode='BNS_RECOVERY_DISCOVERY_LIMIT'){
   this.#check(serial);const remaining=deadline-performance.now();if(remaining<=0)fail(limitCode);
-  let timer,cancel;const interruption=new Promise((_,reject)=>{cancel=()=>reject(new SyncError('BNS_RECOVERY_INTERRUPTED'));this.#cancelRead=cancel;timer=setTimeout(()=>{++this.#serial;reject(new SyncError(limitCode));},remaining);});
+  let timer,cancel;const interruption=new Promise((_,reject)=>{cancel=()=>reject(new SyncError('BNS_RECOVERY_INTERRUPTED'));this.#cancelReads.add(cancel);timer=setTimeout(()=>{++this.#serial;reject(new SyncError(limitCode));},remaining);});
   try{const result=await Promise.race([Promise.resolve().then(()=>{this.#check(serial);return action();}),interruption]);this.#check(serial);if(performance.now()>=deadline){++this.#serial;fail(limitCode);}return result;}
-  finally{clearTimeout(timer);if(this.#cancelRead===cancel)this.#cancelRead=null;}
+  finally{clearTimeout(timer);this.#cancelReads.delete(cancel);}
  }
  #work(timeout,serial=this.#serial){return {deadline:performance.now()+timeout,ticket:createOriginalRecoveryWork(this.#core.repository,{ms:timeout,isCurrent:()=>this.#check(serial)})};}
  #native(work,action){return withOriginalRecoveryWork(this.#core.repository,work.ticket,action);}
@@ -104,7 +105,31 @@ export class LocalSyncRecoverySession {
   }
   this.#state='validated';
  }
+ // A local selection is never sent to a provider or interpreted as a remote
+ // checkpoint. Its proof and every original owner action share one ticket.
+ #union(reference){return reference?.kind==='source-bootstrap-union';}
+ #unionReader(work,serial){return async reference=>{this.#check(serial);this.#charge(work,0,0);assertProtocolObjectReference(reference);const raw=await this.#readUntil(()=>this.#transport.get(clone(reference)),work.deadline,serial,'BNS_RECOVERY_READ_LIMIT');this.#check(serial);this.#charge(work,0,0);return this.#transportBytes(reference,raw);};}
+ async #unionCheckpoint(phase,reference,work,serial){
+  await this.#native(work,()=>this.#readUntil(()=>this.#checkpoint(phase,clone(reference)),work.deadline,serial,'BNS_SYNC_OUTCOME_UNKNOWN'));this.#check(serial);this.#charge(work,0,0);
+ }
+ async #stageUnion(reference,serial,work=null,discovered=this.#discovered){
+  assertSourceBootstrapUnionSelection(reference);reference=clone(reference);work??=discovered?.ref.selectionId===reference.selectionId?discovered.work:null;
+  this.#discovered=null;this.#activationWork=null;work??=this.#work(this.#readTimeoutMs,serial);
+  try{
+   work.deadline=Math.min(work.deadline,performance.now()+this.#readTimeoutMs);tightenOriginalRecoveryWork(this.#core.repository,work.ticket,Math.max(Number.EPSILON,work.deadline-performance.now()));
+   const held=await this.#stored(work,serial),row=held.row;
+   if(held.negative||row&&(row.kind!=='source-bootstrap-union-restore'||!equal(row.selection,reference)))fail('BNS_RESTORE_ID_COLLISION');
+   this.#ref=clone(reference);this.#negative=false;
+   if(!row)await this.#native(work,()=>this.#readUntil(async()=>{
+    const proof=discovered?.proof??await prepareSourceBootstrapUnion(this.#core,{store:this.#store,selection:reference,get:this.#unionReader(work,serial)});
+    if(!equal(readSourceBootstrapUnionProof(proof,{core:this.#core,store:this.#store}).selection,reference))fail('BNS_RESTORE_STAGE_CHANGED');
+    await this.#restore.grouped.stageSourceBootstrapUnion(proof);
+   },work.deadline,serial,'BNS_RECOVERY_READ_LIMIT'));
+   this.#check(serial);this.#charge(work,0,0);this.#activationWork=work;this.#state=row?.phase==='activated'?'confirmation-needed':'validated';
+  }catch(error){finishOriginalRecoveryWork(this.#core.repository,work.ticket);throw error;}
+ }
  async #stage(ref,serial,work=null,discovered=this.#discovered){
+  if(this.#union(ref))return this.#stageUnion(ref,serial,work,discovered);
   work??=discovered?.ref.id===ref?.id?discovered.work:null;this.#discovered=null;this.#activationWork=null;const startedWork=work??this.#work(this.#readTimeoutMs),detached=clone(ref),held=await this.#stored(startedWork,serial);this.#check(serial);
   const row=held.row,previous=row?.manifestRef??this.#ref,advancing=!!previous&&previous.id!==detached?.id;
   if(advancing&&(!row||row.phase!=='validated'||held.negative&&row.version!==1))fail('BNS_RESTORE_ID_COLLISION');
@@ -126,20 +151,29 @@ export class LocalSyncRecoverySession {
   // A previous activation still requires the original replay/epoch proof.
   this.#state=['activated','merged'].includes(result.phase)?'confirmation-needed':'validated';
  }
+ // Reserve the durable lifecycle identity before discovery, on the same
+ // finite invocation ticket later used by a selected local sibling union.
+ async reserveTask(){return this.#run('reserving',async serial=>{
+  if(this.#taskReserved||this.#taskWork||this.#discovered||this.#activationWork)fail('BNS_RECOVERY_BUSY');this.#taskReserved=true;const work=this.#work(this.#discoveryTimeoutMs,serial);
+  try{await this.#unionCheckpoint('reserved-restore-task',null,work,serial);this.#taskWork=work;}
+  catch(error){finishOriginalRecoveryWork(this.#core.repository,work.ticket);throw error;}
+ });}
  async stage(ref){return this.#run('reading',serial=>this.#stage(ref,serial));}
+
  // A confirmed native activation is never undone by a later pause or lost
  // lifecycle acknowledgement. The latter may still leave the task uncertain.
  async #activate(serial,confirmed=null){
   this.#check(serial);this.#recoveryState='unconfirmed';const work=this.#activationWork;this.#activationWork=null;
-  const apply=async()=>{const result=await this.#restore.activate();if(result?.state!=='activated')fail('BNS_RESTORE_NOT_READY');this.#state='restored';this.#recoveryState='restored';if(confirmed)await confirmed();};
-  try{if(work)await this.#native(work,apply);else await apply();}catch(error){if(this.#recoveryState!=='restored')this.#recoveryState='settlement-unknown';throw error;}finally{if(work)finishOriginalRecoveryWork(this.#core.repository,work.ticket);}
+  const apply=async()=>{const result=await this.#restore.activate();if(result?.state!=='activated')fail('BNS_RESTORE_NOT_READY');this.#state='restored';this.#recoveryState='restored';if(this.#union(this.#ref)){if(!work)fail('BNS_SOURCE_UNION_WORK_REQUIRED');await this.#readUntil(()=>this.#checkpoint('confirmed-source-bootstrap-union',clone(this.#ref)),work.deadline,serial,'BNS_SYNC_OUTCOME_UNKNOWN');}if(confirmed)await confirmed();};
+  try{if(work)await this.#native(work,()=>this.#union(this.#ref)?this.#readUntil(apply,work.deadline,serial,'BNS_RECOVERY_READ_LIMIT'):apply());else await apply();}catch(error){if(this.#recoveryState!=='restored')this.#recoveryState='settlement-unknown';throw error;}finally{if(work)finishOriginalRecoveryWork(this.#core.repository,work.ticket);}
  }
  async activate(){return this.#run('applying',serial=>this.#activate(serial));}
  // Fixed lifecycle continuation: no caller can supply a replacement reference.
  // The held lifecycle ref is an anchor, authenticated alongside the original
  // durable stage before the existing callback may CAS its selected candidate.
  async continueTask(reference){return this.#run('reading',async serial=>{
-  const anchor=clone(reference),work=this.#work(this.#readTimeoutMs,serial);let used=false;
+  const anchor=clone(reference);if(this.#union(anchor)){await this.#stageUnion(anchor,serial);return this.#activate(serial);}
+  const work=this.#work(this.#readTimeoutMs,serial);let used=false;
   try{
    const held=await this.#stored(work,serial);this.#check(serial);
    if(!held.negative||held.row?.version!==1||held.row.phase!=='validated'||held.row.manifest?.coverage?.some(x=>!['sourceBootstrapMember','sourceBootstrapCommit','sourcePurgeIntent'].includes(x.type))){
@@ -161,11 +195,22 @@ export class LocalSyncRecoverySession {
  async recover(ref){await this.stage(ref);return this.activate();}
  async resumeStored(){
   return this.#run('reading',async serial=>{
-   const {row}=await this.#stored();this.#check(serial);if(!row?.manifestRef)fail('BNS_RESTORE_NOT_READY');
-   this.#ref=clone(row.manifestRef);this.#state=['validated','publishing','activated','merged'].includes(row.phase)?'confirmation-needed':'incomplete';
+   const {row}=await this.#stored();this.#check(serial);if(!row?.manifestRef&&!row?.selection)fail('BNS_RESTORE_NOT_READY');
+   if(row.selection)assertSourceBootstrapUnionSelection(row.selection);this.#ref=clone(row.selection??row.manifestRef);this.#state=['validated','publishing','activated','merged'].includes(row.phase)?'confirmation-needed':'incomplete';
   });
  }
- async continueStored(){await this.resumeStored();return this.recover(this.#ref);}
+ async continueStored(){
+  await this.#run('reading',async serial=>{
+   const work=this.#work(this.#readTimeoutMs,serial);let union=false,finished=false;
+   try{
+    const {row}=await this.#stored(work,serial),reference=row?.selection??row?.manifestRef;if(!reference)fail('BNS_RESTORE_NOT_READY');
+    union=this.#union(reference);
+    if(union)await this.#stageUnion(reference,serial,work);
+    else{finishOriginalRecoveryWork(this.#core.repository,work.ticket);finished=true;await this.#stage(reference,serial);}
+   }finally{if(!union&&!finished)finishOriginalRecoveryWork(this.#core.repository,work.ticket);}
+  });return this.activate();
+ }
+
  // Exhaust the bounded listing and authenticate manifests with the original
  // owner before following its explicit supersession parents. Historical cuts
  // are supported; incomparable heads still need the causal/merge owner. No
@@ -173,7 +218,7 @@ export class LocalSyncRecoverySession {
  async #discover(serial,work=null,held=null){
    this.#discovered=null;
    if(typeof this.#transport.listCheckpoints!=='function')fail('BNS_RECOVERY_DISCOVERY_UNAVAILABLE');
-   let cursor=null;const cursors=new Set(),refs=new Map();let scanned=0,pages=0;const continuationWork=!!work;work??=this.#work(this.#discoveryTimeoutMs);const deadline=work.deadline;held??=await this.#stored(work,serial,'BNS_RECOVERY_DISCOVERY_LIMIT');
+   let cursor=null;const cursors=new Set(),refs=new Map();let scanned=0,pages=0;const continuationWork=!!work;work??=this.#taskWork;this.#taskWork=null;work??=this.#work(this.#discoveryTimeoutMs);const deadline=work.deadline;held??=await this.#stored(work,serial,'BNS_RECOVERY_DISCOVERY_LIMIT');
    do{
     if(++pages>4096||performance.now()>=deadline)fail('BNS_RECOVERY_DISCOVERY_LIMIT');
     this.#check(serial);const page=await this.#readUntil(()=>this.#transport.listCheckpoints({cursor,limit:100}),deadline,serial);this.#check(serial);
@@ -198,6 +243,27 @@ export class LocalSyncRecoverySession {
    for(let index=0;index<ready.length;index++){visited++;for(const child of children.get(ready[index])){remaining.set(child,remaining.get(child)-1);if(remaining.get(child)===0)ready.push(child);}}
    if(visited!==refs.size)fail('BNS_RECOVERY_DISCOVERY_INVALID');
    const heads=[...children].filter(([,list])=>list.length===0).map(([id])=>id);
+   if(heads.length===2){
+    const headRefs=heads.map(id=>refs.get(id)),parentIds=heads.map(id=>manifests.get(id).parents);
+    if(parentIds.some(list=>list.length!==1)||parentIds[0][0]!==parentIds[1][0]||!refs.has(parentIds[0][0]))fail('BNS_RECOVERY_MULTIPLE_CHECKPOINTS');
+    const ancestorRef=refs.get(parentIds[0][0]);let proof,selection;
+    await this.#native(work,async()=>{
+     proof=await prepareSourceBootstrapUnion(this.#core,{store:this.#store,ancestorRef,headRefs,get:this.#unionReader(work,serial)});
+     const verified=readSourceBootstrapUnionProof(proof,{core:this.#core,store:this.#store});selection=verified.selection;
+     // Older advertised ancestors are not discarded just because the immediate
+     // sibling union is valid. Each complete historical cut must be retained.
+     const proven=new Set([ancestorRef.id,...headRefs.map(ref=>ref.id)]);
+     for(const [id,manifest]of manifests)if(!proven.has(id)){
+      const items=[];for await(const item of checkpointItems(manifest,get)){this.#charge(work,bytes(item).length,1,'BNS_RECOVERY_DISCOVERY_LIMIT');items.push(item);}
+      await validateGroupedCheckpointGraph(this.#core,items,manifest,{store:this.#store});await requireCheckpointRevisionRetention(this.#core,items,verified.items);
+     }
+    });
+    if(held.negative||held.row&&(held.row.kind!=='source-bootstrap-union-restore'||!equal(held.row.selection,selection)))fail('BNS_RESTORE_ID_COLLISION');
+    this.#check(serial);this.#charge(work,0,0,'BNS_RECOVERY_DISCOVERY_LIMIT');
+    this.#state='discovered';this.#discovered={ref:clone(selection),refs,parents,manifests,cuts,proof,work};
+    await this.#unionCheckpoint('selected-source-bootstrap-union',selection,work,serial);
+    return {discovered:this.#discovered,work,serial};
+   }
    if(heads.length!==1)fail('BNS_RECOVERY_MULTIPLE_CHECKPOINTS');
    // Classify the actual sole successor, not the number of historical cuts.
    // Re-discovering an unchanged staged head keeps its original owner profile.
@@ -220,6 +286,26 @@ export class LocalSyncRecoverySession {
    this.#state='discovered';this.#discovered={ref:clone(refs.get(heads[0])),refs,parents,manifests,cuts,work};return {discovered:this.#discovered,work,serial};
  }
  async discover(){return this.#run('discovering',async serial=>clone((await this.#discover(serial)).discovered.ref));}
+ // Publication may consume two remote parents only after the original atomic
+ // union activation is proven, under this discovery's SAME remaining ticket.
+ async discoverPublicationParents(){return this.#run('discovering',async serial=>{
+  const result=await this.#discover(serial),{ref,work}=result.discovered;
+  try{
+   await this.#native(work,()=>this.#readUntil(async()=>{
+    if(this.#union(ref))await requireActivatedSourceBootstrapUnion(this.#core,{store:this.#store,selection:ref});
+    else{
+     const active=await this.#core.transaction(false,t=>t.get('meta',this.#core.prefix+'active'));
+     if(this.#union(active?.selection)){
+      await requireActivatedSourceBootstrapUnion(this.#core,{store:this.#store,selection:active.selection});
+      const retained=new Set(),queue=[ref.id];for(let at=0;at<queue.length;at++){const id=queue[at];if(retained.has(id))continue;retained.add(id);queue.push(...result.discovered.parents.get(id)??[]);}
+      if(active.selection.headRefs.some(parent=>!retained.has(parent.id)||!equal(result.discovered.refs.get(parent.id),parent)))fail('BNS_CHECKPOINT_PUBLICATION_REMOTE_CHANGED');
+     }
+    }
+   },work.deadline,serial,'BNS_RECOVERY_READ_LIMIT'));this.#check(serial);this.#charge(work,0,0);return clone(ref);
+  }
+  finally{this.#discovered=null;finishOriginalRecoveryWork(this.#core.repository,work.ticket);}
+ });}
+
  async recoverDiscovered(){
   const result=await this.#run('discovering',serial=>this.#discover(serial));
   await this.#run('reading',serial=>{this.#check(result.serial);return this.#stage(result.discovered.ref,serial,result.work,result.discovered);});return this.activate();

@@ -32,7 +32,7 @@
   if(r.type==='PAIA_PROMPT_ASSIST_INSERT'){
    const generation=authorization,contextFence=contextEpoch;
    if(!generation||r.generation!==generation){reply({status:'failed',reason:'stale_assist'});return;}
-   controller.insert({...r,isCurrent:()=>!disposed&&contextEpoch===contextFence&&authorization===generation&&r.generation===generation,qualify:async()=>{const result=await rpc('QUALIFY',{id:r.id,operationId:r.operationId,generation});return contextEpoch===contextFence&&result.qualified===true&&result.generation===authorization;}}).then(reply,()=>reply({status:'failed',reason:'stale_assist'}));return true;
+   controller.insert({...r,insertionMessage:r,isCurrent:()=>!disposed&&contextEpoch===contextFence&&authorization===generation&&r.generation===generation,qualify:async()=>{const result=await rpc('QUALIFY',{id:r.id,operationId:r.operationId,generation});return contextEpoch===contextFence&&result.qualified===true&&result.generation===authorization;}}).then(reply,()=>reply({status:'failed',reason:'stale_assist'}));return true;
   }
  };
  const storage=(changes,area)=>{if(area==='local'&&changes.promptAssistAutomaticPreferenceV2){authorization=null;controller.configure(false);void sync();}};

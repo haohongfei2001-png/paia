@@ -1,3 +1,9 @@
+import {flushNavigationWrites} from '../archive-navigation-invalidation.js';
+import {flushSemanticWrites} from '../ai-usage/delta.js';
+import {decideLight,FILTER_VERSIONS} from '../smart-filter.js';
+import {requireSourcePurgeProtocolControlReceipts} from './source-purge-protocol-controls.js';
+import {protocolPhysicalId} from './physical-key.js';
+import {prepareStoredSourceBootstrapUnion,readSourceBootstrapUnionProof,requireSourceBootstrapUnionProof,assertSourceBootstrapUnionSelection} from './source-bootstrap-union.js';
 import {prepareContextGroupApplication,applyContextGroupStep,prepareContextGenerationPublication,requireContextGenerationPublication,releaseContextGenerationPublication} from './context-mutation-group.js';
 import {requireResolvedPromptReplayConflict} from './resolved-prompt-replay.js';
 import {observeOriginalControlPublication,requireOriginalControlObservation} from '../indexed-store.js';
@@ -27,13 +33,14 @@ import {JournalRestoreFence,readRestoreEpoch,preparePromptBindingReplay} from '.
 import {ArchiveError,CONSENT_VERSION} from '../constants.js';
 import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque,SyncError} from './value.js';
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
-import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,originalGenerationRepositoryTransaction,requireRepositoryTransactionDataMethods,awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
+import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,originalGenerationRepositoryTransaction,requireRepositoryTransactionDataMethods,awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
 import {finalConsumerPreferenceOperations,prepareRestoredConsumerPreferenceApplication,applyRestoredConsumerPreferenceOwners} from './consumer-preference-restore.js';
 import {CONSUMER_PUBLICATION_PENDING_ID,requireConsumerPublicationSettled} from './consumer-publication-state.js';
 import {sealManualMergeTransaction} from './manual-merge-terminal.js';
 import {topicDesiredMaterializer} from './topic-desired-journal.js';
 const own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
 const withoutId=({id,...row})=>row;
+const sourceUnionProofs=new WeakMap();
 const canonicalGenerationStates=new WeakMap(),canonicalGenerationProofs=new WeakMap(),canonicalGenerationPublications=new WeakMap(),canonicalGenerationBindings=new WeakMap();
 function originalGenerationBinding(restore){const b=canonicalGenerationBindings.get(restore);if(!b||['store','live','stage','restoreId'].some(key=>Object.getOwnPropertyDescriptor(restore,key)?.value!==b[key]))fail('BNS_GENERATION_PROOF_REQUIRED');return b;}
 const generationRepositoryAuthorities=new WeakMap(),generationStorageChecks=new WeakMap(),defaultCheckpoint=async()=>{};
@@ -193,11 +200,172 @@ async function requireStorageBudget(t,stage,replayId,before=null){
  }
  let total=0,rows=0;for(const namespace of [stage.fixedNamespace,replayId]){let after=null;do{const page=await t.primaryRangePage('meta',{prefix:stage.prefix+'generation:'+namespace+':',after,limit:100});for(const {value}of page.rows){rows++;if((total+=bytes(value).length)>CORE_LIMITS.batchBytes*2)fail('BNS_GROUP_RESOURCE_LIMIT');}after=page.next;}while(after);}return {rows,bytes:total};
 }
+const sourceUnionKind='source-bootstrap-union-restore';
+function sourceUnionTicket(restore){
+ originalGenerationBinding(restore);requireOriginalGenerationCoreMethods(restore.live);requireOriginalGenerationCoreMethods(restore.stage);const ticket=currentOriginalRecoveryWork(restore.live.repository);
+ if(!ticket)fail('BNS_SOURCE_UNION_WORK_REQUIRED');checkOriginalRecoveryWork(restore.live.repository,ticket);
+ if(restore.profile!==SEGMENT_PROFILE||restore.live.fixedNamespace!==null||restore.stage.fixedNamespace!==restore.restoreId)fail('BNS_SOURCE_UNION_PROOF_REQUIRED');return ticket;
+}
+function sourceUnionState(restore,row){
+ const keys=['id','version','kind','databaseId','deviceId','selection','receipt','phase','base','replayId','received','graphDigest',...(row?.phase==='activated'?['sourceCut']:[]),...(Object.hasOwn(row??{},'cleanup')?['cleanup']:[])];
+ if(!own(row,keys)||row.databaseId!==restore.store.databaseId||row.deviceId!==restore.live.deviceId||row.kind!==sourceUnionKind||row.version!==1||!['validated','activated','abandoned'].includes(row.phase)||!opaque(row.replayId)||row.replayId===restore.restoreId||!hash(row.graphDigest)||!Number.isSafeInteger(row.received)||row.received<1||row.received>384||row.id!==restore.stage.prefix+'generation:'+restore.restoreId+':restore:'||!own(row.base,['namespace','generation','ownerGeneration','fence','settings']))fail('BNS_RESTORE_STAGE_CHANGED');
+ const b=row.base,f=b.fence,settings=b.settings;
+ if(b.namespace!=='initial'||b.generation!==0||!Number.isSafeInteger(b.ownerGeneration)||b.ownerGeneration<0||!own(f,['epoch','namespace','marker'])||f.namespace!=='initial'||f.epoch!==null&&!opaque(f.epoch)||typeof f.marker!=='boolean'||!own(settings,['consentVersion','consentAt','enabled','epoch'])||settings.consentVersion!==CONSENT_VERSION||settings.enabled!==true||!Number.isSafeInteger(settings.epoch)||settings.epoch<1||typeof settings.consentAt!=='string'||!Number.isFinite(Date.parse(settings.consentAt)))fail('BNS_RESTORE_STAGE_CHANGED');
+ if(row.phase==='activated'&&!own(row.sourceCut,['version','inputStates','revisionAllocations','metadata','filterInputs','filterMetadata','filterSequenceBase']))fail('BNS_RESTORE_STAGE_CHANGED');
+ assertSourceBootstrapUnionSelection(row.selection);
+ if(row.selection.datasetId!==restore.live.datasetId||!equal(row.selection,row.receipt?.selection)||row.graphDigest!==row.receipt?.graphDigest)fail('BNS_RESTORE_STAGE_CHANGED');
+ if(Object.hasOwn(row,'cleanup')&&(!own(row.cleanup,['namespace','after','complete'])||!Number.isSafeInteger(row.cleanup.namespace)||row.cleanup.namespace<0||row.cleanup.namespace>2||row.cleanup.after!==null&&typeof row.cleanup.after!=='string'||typeof row.cleanup.complete!=='boolean'))fail('BNS_RESTORE_STAGE_CHANGED');
+}
+async function sourceUnionReplayId(restore,base,selection){
+ sourceUnionTicket(restore);const identity={version:1,kind:'source-bootstrap-union-replay',restoreId:restore.restoreId,datasetId:restore.live.datasetId,deviceId:restore.live.deviceId,databaseId:restore.store.databaseId,selectionId:selection.selectionId,base};chargeRecoveryValue(restore.live,identity);const id=await digest(identity);sourceUnionTicket(restore);return id;
+}
+async function requireOrdinarySourceUnion(restore,t){
+ sourceUnionTicket(restore);
+ if(await t.get('meta','canonical-generation:repository-protection:v1'))fail('BNS_SOURCE_UNION_PROTECTED_UNSUPPORTED');
+ await requireNoSourcePurgeDeny(restore.live,t);await requireConsumerPublicationSettled(t);
+}
+async function requireSourceUnionInventory(restore,t,state,items){
+ const prefix=restore.stage.prefix+'generation:'+restore.restoreId+':',expected=new Map(items.map((item,index)=>[prefix+'groupItem:'+String(index).padStart(4,'0'),item]));
+ let count=0,after=null;do{const page=await t.primaryRangePage('meta',{prefix,after,limit:100});for(const {value}of page.rows){if(value.id===state.id){if(!equal(value,state))fail('BNS_RESTORE_STAGE_CHANGED');continue;}if(!expected.has(value.id)||!own(value,['id','item'])||!equal(value.item,expected.get(value.id)))fail('BNS_RESTORE_STAGE_CHANGED');count++;}after=page.next;}while(after);
+ if(state.phase==='validated'&&count!==items.length||state.cleanup?.complete&&count!==0)fail('BNS_RESTORE_STAGE_CHANGED');
+}
+function sourceUnionProtocolRows(replay,packet,epoch){
+ const key=(kind,...ids)=>protocolPhysicalId(replay.prefix,replay.fixedNamespace,kind,ids),rows=new Map(),add=(kind,ids,value)=>{const id=key(kind,...ids);if(rows.has(id))fail('BNS_GROUP_DUPLICATE');rows.set(id,{id,...value});};
+ for(const op of packet.operations){add('revision',[op.revisionId],{operation:op,redacted:false});add('receipt',[op.operationId],{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence});add('sequence',[op.deviceId,String(op.sequence).padStart(16,'0')],{operationId:op.operationId,digest:op.revisionId});add('entityRevision',[op.type,op.entityId,op.revisionId],{revisionId:op.revisionId});}
+ for(const head of packet.heads)add('head',[head.type,head.entityId],head);for(const frontier of packet.frontiers)add('frontier',[frontier.deviceId],frontier);
+ add('generation',[],{value:packet.operations.length});add('ownerRecoveryEpoch',[],{version:1,epoch});return rows;
+}
+async function requireSourceUnionProtocol(replay,t,expected){
+ const rows=await readGroupRows(t,'meta',{prefix:replay.prefix+'generation:'+replay.fixedNamespace+':'});
+ if(rows.length!==expected.size||rows.some(row=>!expected.has(row.id)||!equal(row,expected.get(row.id))))fail('BNS_GROUP_COMMIT_UNPROVEN');
+}
+const sourceUnionPhysicalMetadata=['sequence','revision-sequence','input-delta-sequence','thought-sequence','thought-epoch','thought-suppression-key'];
+// A local physical receipt from the actual Source owners, never portable wire
+// state. Canonical bodies remain solely in their original tables/operations.
+// Rebuildable filter evaluation may advance the broad backup generation but
+// cannot alter original allocation, local suppression or epoch identities.
+async function prepareSourceUnionLocalIdentity(restore){
+ const row=(await restore.store.run(()=>restore.live.transaction(false,t=>t.get('meta','thought-suppression-key'),['meta'])))??null;chargeRecoveryValue(restore.live,row);const fingerprint=await digest(row);sourceUnionTicket(restore);return {row,fingerprint};
+}
+async function sourceUnionPhysicalCut(t,identity){
+ const inputStates=await readGroupRows(t,'inputStates'),revisionAllocations=(await readGroupRows(t,'revisions')).map(({id,sequence,listKey,documentList})=>({id,sequence,listKey,documentList})),metadata=[];
+ for(const id of sourceUnionPhysicalMetadata){const row=(await t.get('meta',id))??null;if(id==='thought-suppression-key'){if(!equalSourceWorkingPhysicalTree(row,identity.row))fail('BNS_RESTORE_LOCAL_CHANGED');metadata.push({id,fingerprint:identity.fingerprint});}else metadata.push({id,row});}
+ const filterInputs=[],evaluated=[],runtime=new Set(['decision','reasonCode','pendingKey','failed','evaluatedAt','decisionSequence','filteredKey']),allowed=new Set(['id','documentId','authorship','userEdited','filterOverride','presence','evaluationRevision','basedOnContentRevision',...Object.keys(FILTER_VERSIONS),...runtime]);
+ for(const row of await readGroupRows(t,'filterInputs')){
+  if(Object.keys(row).some(key=>!allowed.has(key))||!Number.isSafeInteger(row.evaluationRevision)||row.evaluationRevision<0||Object.hasOwn(row,'failed')&&typeof row.failed!=='boolean'||!Object.entries(FILTER_VERSIONS).every(([key,value])=>row[key]===value))fail('BNS_RESTORE_LOCAL_CHANGED');
+  const state=inputStates.find(state=>state.id===row.id);if(!state||row.basedOnContentRevision!==state.contentRevision)fail('BNS_RESTORE_LOCAL_CHANGED');
+  if(Object.hasOwn(row,'evaluatedAt')){
+   const source=await t.get('records',state.sourceRecordIds[0]),decision=decideLight({text:source?.value.originalText,...row});
+   if(typeof row.evaluatedAt!=='string'||!Number.isFinite(Date.parse(row.evaluatedAt))||row.pendingKey!==1||row.failed!==false||!Number.isSafeInteger(row.decisionSequence)||row.decisionSequence<1||!Object.entries(decision).every(([key,value])=>equal(row[key],value))||Object.hasOwn(row,'filteredKey')!== (row.decision==='filter')||row.decision==='filter'&&!equal(row.filteredKey,[0,-row.decisionSequence,row.id]))fail('BNS_RESTORE_LOCAL_CHANGED');evaluated.push(row.decisionSequence);
+  }else if(row.pendingKey!==0||row.decision!=='uncertain'||row.reasonCode!=='metadata_unknown'||Object.hasOwn(row,'decisionSequence')||Object.hasOwn(row,'filteredKey'))fail('BNS_RESTORE_LOCAL_CHANGED');
+  filterInputs.push(Object.fromEntries(Object.entries(row).filter(([key])=>!runtime.has(key))));
+ }
+ const filter=await t.get('meta','smart-filter');if(!filter||!Number.isSafeInteger(filter.decisionSequence)||filter.decisionSequence<evaluated.length||!['idle','running','failed'].includes(filter.taskState)||Object.hasOwn(filter,'lastCheckedAt')&&!Number.isFinite(filter.lastCheckedAt))fail('BNS_RESTORE_LOCAL_CHANGED');
+ const filterSequenceBase=filter.decisionSequence-evaluated.length;evaluated.sort((a,b)=>a-b);if(evaluated.some((value,index)=>value!==filterSequenceBase+index+1))fail('BNS_RESTORE_LOCAL_CHANGED');
+ const filterMetadata=Object.fromEntries(Object.entries(filter).filter(([key])=>!['taskState','lastCheckedAt','decisionSequence'].includes(key)));
+ return {version:1,inputStates,revisionAllocations,metadata,filterInputs,filterMetadata,filterSequenceBase};
+}
+async function requireSourceUnionPhysicalCut(t,expected,identity){
+ if(expected?.version!==1||!equalSourceWorkingPhysicalTree(await sourceUnionPhysicalCut(t,identity),expected))fail('BNS_RESTORE_LOCAL_CHANGED');
+}
+// Snapshot every actual table/key/value before either debug hook. Project the
+// SAME original finalizers into a clone-only overlay: no ignored meta prefix,
+// alternate materializer, native grant or write through this read projection.
+async function sealSourceUnionTerminal(restore,t,updates=[]){
+ const tables=new Map();for(const table of t.tx.objectStoreNames)tables.set(table,new Map((await readGroupRows(t,table)).map(row=>[row.id,clone(row)])));
+ const current=()=>{sourceUnionTicket(restore);return true;},retain=(table,key,value)=>{current();chargeRecoveryValue(restore.live,value,true);const rows=tables.get(table);if(!rows)fail('BNS_RESTORE_STAGE_CHANGED');if(value===null)rows.delete(key);else rows.set(key,clone(value));};
+ for(const {table,key,value}of updates)retain(table,key,value);
+ const snapshotChanges=input=>new Map([...(input??[])].map(([key,value])=>{chargeRecoveryValue(restore.live,[key,value],true);return [key,clone(value)];}));
+ const names=Object.freeze([...t.tx.objectStoreNames]);chargeRecoveryValue(restore.live,names,true);const tx=Object.freeze({objectStoreNames:Object.freeze({contains:name=>names.includes(name)})});
+ const projected={tx,semanticEnabled:t.semanticEnabled,navigationChanges:snapshotChanges(t.navigationChanges),semanticChanges:snapshotChanges(t.semanticChanges),aiUsageBoundaryChanged:t.aiUsageBoundaryChanged,
+  get:async(table,key)=>{current();const value=tables.get(table)?.get(key);chargeRecoveryValue(restore.live,value,true);return clone(value);},
+  put:async(table,value)=>retain(table,value.id,value),delete:async(table,key)=>retain(table,key,null),
+  rangePage:async(...args)=>{current();return clone(await t.rangePage(...args));}
+ };
+ await flushNavigationWrites(projected);await flushSemanticWrites(projected);
+ if(t.backupChanged){const row=tables.get('meta').get('backup-data-generation');retain('meta','backup-data-generation',{id:'backup-data-generation',value:(row?.value||0)+1});}
+ current();registerRepositoryFinalReadFence(restore.store.repository,t,{isCurrent:current,plan:function*(){for(const [table,rows]of tables){if((yield {method:'count',table})!==rows.size)throw new ArchiveError('BNS_RESTORE_STAGE_CHANGED');for(const [key,value]of rows)if(!equalSourceWorkingPhysicalTree(yield {method:'get',table,key},value))throw new ArchiveError('BNS_RESTORE_STAGE_CHANGED');}return true;}});
+}
 export class GroupedCheckpointRestore{
  constructor(core,{store,restoreId,profile=SEGMENT_PROFILE,checkpoint=defaultCheckpoint,sourcePurgeProjection=false}){
   if(store?.repository!==core.repository||!opaque(restoreId))fail('BNS_GROUP_BINDING');if(typeof sourcePurgeProjection!=='boolean')fail('BNS_GROUP_BINDING');if(sourcePurgeProjection){if(sourcePurgeProjection!==true||checkpoint!==defaultCheckpoint)fail('BNS_GROUP_BINDING');return new SourcePurgeGroupedCheckpointRestore(core,{store,restoreId,profile});}this.store=store;this.live=core;this.restoreId=restoreId;this.profile=profile;this.checkpoint=checkpoint;
   this.stage=new BrowserNativeSyncCore(core.repository,{datasetId:core.datasetId,deviceId:core.deviceId,namespace:restoreId});
   canonicalGenerationBindings.set(this,{store,live:core,stage:this.stage,restoreId});
+ }
+ // This is a LOCAL selection, not a checkpoint-manifest or a second restore.
+ // The proof retains all three authenticated original cuts. Its work ticket is
+ // supplied by the consumer and stays unchanged across staging and activation.
+ async stageSourceBootstrapUnion(proof){
+  const ticket=sourceUnionTicket(this),packet=readSourceBootstrapUnionProof(proof,{core:this.live,store:this.store});
+  await this.store.finishFoundation();sourceUnionTicket(this);
+  const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(this.live,[]));
+  const base=await this.store.run(()=>this.live.transaction(false,async t=>{await requireOrdinarySourceUnion(this,t);return authority(this.store,this.live,t);})),replayId=await sourceUnionReplayId(this,base,packet.selection);
+  const state=await this.store.run(()=>this.stage.transaction(true,async t=>{
+   await requireOrdinarySourceUnion(this,t);await requireSourceBootstrapUnionProof(proof,{core:this.live,store:this.store},t);
+   const old=await this.stage.get(t,'restore');
+   if(old){sourceUnionState(this,old);if(!['validated','activated'].includes(old.phase)||!equal(old.selection,packet.selection)||!equal(old.receipt,packet.receipt)||old.received!==packet.items.length)fail('BNS_RESTORE_ID_COLLISION');await requireSourceUnionInventory(this,t,old,packet.items);return old;}
+   if((await t.primaryRangePage('meta',{prefix:this.stage.prefix+'generation:'+this.restoreId+':',limit:1})).rows.length)fail('BNS_RESTORE_ID_COLLISION');
+   if(!equal(await authority(this.store,this.live,t),base))fail('BNS_RESTORE_LOCAL_CHANGED');
+   if(base.namespace!=='initial'||base.generation!==0||await t.get('meta',this.live.prefix+'active'))fail('BNS_SOURCE_UNION_TARGET_NOT_EMPTY');
+   await requireGroupScope(this.store,t,empty);await this.store.qualifyControlPublicationRead(t);
+   for(const kind of ['revision','pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_SOURCE_UNION_TARGET_NOT_EMPTY');
+   for(let index=0;index<packet.items.length;index++)await this.stage.put(t,'groupItem',[String(index).padStart(4,'0')],{item:packet.items[index]});
+   const row={version:1,kind:sourceUnionKind,databaseId:this.store.databaseId,deviceId:this.live.deviceId,selection:packet.selection,receipt:packet.receipt,phase:'validated',base,replayId,received:packet.items.length,graphDigest:packet.graphDigest};
+   await this.stage.put(t,'restore',[],row);await requireStorageBudget(t,this.stage,replayId);await sealSourceUnionTerminal(this,t);await this.checkpoint('source-union-staged',t);const written=await this.stage.get(t,'restore');if(!equal(written,{...row,id:await this.stage.idIn(t,'restore')}))fail('BNS_RESTORE_STAGE_CHANGED');return written;
+  }));
+  sourceUnionState(this,state);sourceUnionProofs.set(this,{proof,ticket,state:clone(state)});return state;
+ }
+ async #activateSourceBootstrapUnion(state){
+  const ticket=sourceUnionTicket(this);sourceUnionState(this,state);if(!['validated','activated'].includes(state.phase))fail('BNS_RESTORE_NOT_READY');if(state.replayId!==await sourceUnionReplayId(this,state.base,state.selection))fail('BNS_RESTORE_STAGE_CHANGED');
+  const replay=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.replayId});
+  const cached=sourceUnionProofs.get(this);let proof;
+  if(cached?.ticket===ticket&&equal(cached.state,state))proof=cached.proof;
+  else{
+   const operations=state.phase==='activated'?await allOperations(replay):(await stageItems(this.stage)).filter(item=>item.kind==='revision').map(item=>item.operation);
+   proof=await prepareStoredSourceBootstrapUnion(this.live,{store:this.store,receipt:state.receipt,operations});
+  }
+  const packet=readSourceBootstrapUnionProof(proof,{core:this.live,store:this.store});
+  if(!equal(packet.selection,state.selection)||!equal(packet.receipt,state.receipt)||packet.items.length!==state.received||packet.graphDigest!==state.graphDigest)fail('BNS_RESTORE_STAGE_CHANGED');
+  const plan=await prepareGroupCheckpointPlan(replay,packet.operations),canonical=await prepareGroupScope(plan,{store:this.store});
+  if(plan.digest!==packet.graphDigest||!equal(plan.heads,packet.heads)||!equal(canonical.ownerScope,packet.ownerScope))fail('BNS_RESTORE_STAGE_CHANGED');
+  const localIdentity=await prepareSourceUnionLocalIdentity(this);
+  const active={id:this.live.prefix+'active',namespace:state.replayId,restoreId:this.restoreId,selection:state.selection,graphDigest:state.graphDigest},protocol=sourceUnionProtocolRows(replay,packet,state.base.fence.epoch);
+  if(state.phase==='activated'){
+   // Original provider allocation/attempt controls are local transport receipts,
+   // not canonical operations. Authenticate their exact existing publication
+   // journal before retaining them; no other extra protocol row is admitted.
+   const prefix=replay.prefix+'generation:'+state.replayId+':',controls=await this.store.run(()=>replay.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix})).filter(row=>row.id.startsWith(prefix+'google-appdata-allocation:')||row.id.startsWith(prefix+'onedrive-upload-attempt:')),['meta']));
+   for(const row of await requireSourcePurgeProtocolControlReceipts(this.store,this.live,controls,state.replayId)){if(protocol.has(row.id))fail('BNS_RESTORE_STAGE_CHANGED');protocol.set(row.id,row);}
+   return this.store.run(()=>this.live.transaction(false,async t=>{
+   await requireOrdinarySourceUnion(this,t);await requireSourceBootstrapUnionProof(proof,{core:this.live,store:this.store},t);await requireSourceUnionInventory(this,t,state,packet.items);
+   if(!equal(await this.stage.get(t,'restore'),state)||!equal((await t.get('meta',active.id))??null,active))fail('BNS_RESTORE_LOCAL_CHANGED');
+   const current=await authority(this.store,this.live,t);
+   if(current.namespace!==state.replayId||current.generation!==packet.operations.length||!Number.isSafeInteger(current.ownerGeneration)||current.ownerGeneration<state.base.ownerGeneration+1||current.fence.epoch!==state.base.fence.epoch||!equal(current.settings,state.base.settings))fail('BNS_RESTORE_LOCAL_CHANGED');
+   await requireSourceUnionProtocol(replay,t,protocol);await requireGroupScope(this.store,t,canonical);await requireSourceUnionPhysicalCut(t,state.sourceCut,localIdentity);return {state:'activated',namespace:state.replayId,selection:state.selection};
+  }));
+  }
+  if(state.phase!=='validated')fail('BNS_RESTORE_NOT_READY');
+  // Actual original Source applications are prepared outside the transaction.
+  // There is one original activation, never one restore per incoming head.
+  const applications=[];for(const group of plan.groups){if(group.type!=='sourceBootstrapCommit')fail('BNS_GROUP_OWNER_UNSUPPORTED');applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);sourceUnionTicket(this);}
+  const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(this.live,[]));
+  return this.store.run(()=>this.live.transaction(true,async t=>{
+   await requireOrdinarySourceUnion(this,t);await requireSourceBootstrapUnionProof(proof,{core:this.live,store:this.store},t);await requireSourceUnionInventory(this,t,state,packet.items);
+   if(!equal(await this.stage.get(t,'restore'),state)||!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');
+   if(state.base.namespace!=='initial'||state.base.generation!==0||await t.get('meta',active.id))fail('BNS_SOURCE_UNION_TARGET_NOT_EMPTY');
+   await this.store.qualifyControlPublicationRead(t);await requireGroupScope(this.store,t,empty);
+   for(const kind of ['revision','pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_SOURCE_UNION_TARGET_NOT_EMPTY');
+   if((await t.primaryRangePage('meta',{prefix:replay.prefix+'generation:'+state.replayId+':',limit:1})).rows.length)fail('BNS_RESTORE_STAGE_CHANGED');
+   for(const [group,application]of applications){await applyBootstrapApplication(t,application);await this.checkpoint('source-union-applied-group',group.id);}
+   await requireSourceUnionProtocol(replay,t,protocol);await requireGroupScope(this.store,t,canonical);
+   if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');await requireStorageBudget(t,this.stage,state.replayId,state);const sourceCut=await sourceUnionPhysicalCut(t,localIdentity);
+   const completed={...withoutId(state),phase:'activated',sourceCut};await sealSourceUnionTerminal(this,t,[{table:'meta',key:active.id,value:active},{table:'meta',key:state.id,value:{...completed,id:state.id}}]);
+   await this.checkpoint('before-activation',t);await requireOrdinarySourceUnion(this,t);await requireSourceBootstrapUnionProof(proof,{core:this.live,store:this.store},t);await requireSourceUnionInventory(this,t,state,packet.items);if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');await this.store.qualifyControlPublicationRead(t);await requireSourceUnionPhysicalCut(t,sourceCut,localIdentity);await t.put('meta',active);await this.stage.put(t,'restore',[],completed);
+   await requireSourceUnionProtocol(replay,t,protocol);await requireGroupScope(this.store,t,canonical);
+   await this.checkpoint('after-activation',t);
+   registerRepositoryFinalReadFence(this.store.repository,t,{isCurrent:()=>{sourceUnionTicket(this);return true;},plan:function*(){if(!equal(yield {method:'get',table:'meta',key:active.id},active)||!equal(yield {method:'get',table:'meta',key:state.id},{...completed,id:state.id}))throw new ArchiveError('BNS_RESTORE_STAGE_CHANGED');return true;}});
+   return {state:'activated',namespace:state.replayId,selection:state.selection};
+  }));
  }
  // A bounded consumer for an independently staged canonical database. Only
  // the original authenticated stage can mint proof; owner application remains
@@ -269,7 +437,7 @@ export class GroupedCheckpointRestore{
   await this.stage.transaction(true,async t=>{await requireNoSourcePurgeDeny(this.live,t);const current=await this.stage.get(t,'restore');if(current.phase!=='staging'||current.received!==items.length||items.length!==current.manifest.itemCount)fail('BNS_RESTORE_STAGE_CHANGED');await this.stage.put(t,'restore',[],{...withoutId(current),phase:'validated',graphDigest:compiled.plan.digest});},['meta']);return this.stage.read('restore');
  }
  async activate(){
-  const state=await this.stage.read('restore');if(!state||!['validated','activated','merged','publishing','merging-saved'].includes(state.phase))fail('BNS_RESTORE_NOT_READY');
+  const state=await this.stage.read('restore');if(state?.kind===sourceUnionKind)return this.#activateSourceBootstrapUnion(state);if(!state||!['validated','activated','merged','publishing','merging-saved'].includes(state.phase))fail('BNS_RESTORE_NOT_READY');
   if(state.phase==='merged')return this.confirmManualMerge(state);
   if(state.phase==='publishing'){
    if(!this.store.consumerPreferenceJournal)fail('BNS_CONSUMER_PREFERENCE_OWNER_REQUIRED');
@@ -458,8 +626,10 @@ export class GroupedCheckpointRestore{
  }
  async cleanup({abandon=false,limit=100}={}){
   if(typeof abandon!=='boolean'||!Number.isSafeInteger(limit)||limit<1||limit>100)fail('BNS_GROUP_CLEANUP_INVALID');
+  const prior=await this.stage.read('restore');if(prior?.kind===sourceUnionKind){sourceUnionTicket(this);sourceUnionState(this,prior);if(prior.replayId!==await sourceUnionReplayId(this,prior.base,prior.selection))fail('BNS_RESTORE_STAGE_CHANGED');}
   return this.stage.transaction(true,async t=>{
    const row=await this.stage.get(t,'restore');if(!row)fail('BNS_RESTORE_NOT_READY');
+   if(row.kind===sourceUnionKind||prior?.kind===sourceUnionKind){sourceUnionTicket(this);if(!equal(row,prior))fail('BNS_RESTORE_STAGE_CHANGED');await requireOrdinarySourceUnion(this,t);}
    const active=await t.get('meta',this.live.prefix+'active');
    if(!['activated','merged','abandoned'].includes(row.phase)&&!abandon)fail('BNS_RESTORE_NOT_READY');
    if(row.phase!=='activated'&&active?.namespace===row.replayId)fail('BNS_RESTORE_STAGE_CHANGED');
@@ -480,6 +650,7 @@ export class GroupedCheckpointRestore{
   if(!ref||typeof get!=='function'||!Array.isArray(operations))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
   ref=clone(ref);assertProtocolObjectReference(ref,this.profile);
   const old=await this.stage.read('restore');if(old?.phase!=='validated')fail('BNS_RESTORE_NOT_READY');
+  if(old.kind===sourceUnionKind)fail('BNS_SOURCE_UNION_TAIL_UNSUPPORTED');
   const m=await manifest(ref,get,this.live,this.profile,supported);if(!m.parents.includes(old.manifestId))fail('BNS_GROUP_TAIL_INVALID');
   const oldItems=await stageItems(this.stage);
   const items=[];for await(const page of groupOperationPages(checkpointItems(m,get,{profile:this.profile})))for(const item of page){chargeRecoveryValue(this.stage,item);items.push(item);}
@@ -494,6 +665,20 @@ export class GroupedCheckpointRestore{
    await this.stage.put(t,'restore',[],{...withoutId(old),manifestId:ref.id,manifestRef:clone(ref),manifest:m,received:items.length,graphDigest:compiled.plan.digest});await requireStorageBudget(t,this.stage,old.replayId);
   },['meta']);return {state:'validated',operations:delta.length};
  }
+}
+
+// Only the actual completed LOCAL restore can authorize publication to consume
+// its two remote heads. Selection DTOs and source-only rows do not suffice.
+export async function requireActivatedSourceBootstrapUnion(core,{store,selection}={}){
+ if(store?.repository!==core?.repository)fail('BNS_GROUP_BINDING');const ticket=currentOriginalRecoveryWork(core.repository);if(!ticket)fail('BNS_SOURCE_UNION_WORK_REQUIRED');checkOriginalRecoveryWork(core.repository,ticket);if(selection!==undefined)assertSourceBootstrapUnionSelection(selection);
+ const active=await store.run(()=>core.transaction(false,t=>t.get('meta',core.prefix+'active')));
+ if(!active||!own(active,['id','namespace','restoreId','selection','graphDigest'])||!opaque(active.restoreId)||selection!==undefined&&!equal(active.selection,selection))fail('BNS_SOURCE_UNION_ACTIVATION_REQUIRED');
+ selection=clone(active.selection);assertSourceBootstrapUnionSelection(selection);
+ const restore=new GroupedCheckpointRestore(core,{store,restoreId:active.restoreId});
+ const row=await restore.stage.read('restore');if(row?.phase!=='activated')fail('BNS_SOURCE_UNION_ACTIVATION_REQUIRED');
+ await restore.activate();checkOriginalRecoveryWork(core.repository,ticket);
+ const freeze=value=>{if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
+ return Object.freeze({selection:freeze(clone(selection)),parents:Object.freeze(selection.headRefs.map(ref=>ref.id)),graphDigest:row.graphDigest,namespace:row.replayId,restoreId:active.restoreId});
 }
 
 // Fixed original-owner entry for CanonicalGenerationPublication. No supplied

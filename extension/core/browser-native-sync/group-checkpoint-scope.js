@@ -1,3 +1,4 @@
+import {PROMPT_INSERTION_RUNTIME,validatePromptInsertionRuntimeRow} from '../prompt-insertion-runtime-format.js';
 import {contextMutationItemAtEpoch} from './context-mutation-codec.js';
 import {requireOriginalDefaultMemoryRow,consumeOriginalDefaultMemoryRow} from './local-memory-default.js';
 import {requireSourcePurgeRemainingCanonicalProof} from './source-purge-negative.js';
@@ -113,6 +114,7 @@ export async function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,
  for(const row of Object.values(raw.points))if(row)rows.delete(row.id);
  for(const list of Object.values(raw.prefixes))for(const row of list)rows.delete(row.id);
  for(const [id,row]of rows){
+  if(id===PROMPT_INSERTION_RUNTIME){requireLocalPromptInsertionRuntime(row,databaseId);continue;}
   if(id==='memory:config'){requireOriginalDefaultMemoryRow(row);continue;}
   if(id===CONTEXT_CARDS_ROW){if(!equal(row,emptyContext()))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
   if(id===PROMPT_REUSE_ROW){if(!equal(row,emptyPromptPreferences()))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
@@ -136,6 +138,12 @@ export async function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,
  }
  const revision=raw.points['revision-sequence'];if((revision?.value||0)!==Math.max(0,...raw.rows.revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  return true;
+}
+// The retained native raw cut still includes this exact row. Consume only its
+// local validation inventory; immutable historical restore origins are not grants.
+function requireLocalPromptInsertionRuntime(row,databaseId){
+ try{validatePromptInsertionRuntimeRow(row);}catch{fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(row.databaseId!==databaseId)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
 }
 function physicalPromptCompanion(row,prompt){
  if(row?.id!==PROMPT_CORRECTION_BINDING_ROW)fail('BNS_GROUP_COMMIT_UNPROVEN');const portable=validatePromptCorrectionCompanion({...row,id:PROMPT_REUSE_ROW});promptCorrectionEnvelope(portable,prompt);return portable;
@@ -220,6 +228,7 @@ export async function requireGroupScope(store,t,scope,residentRetention=null){
  const keys=[...await t.keys('meta',null,IDBKeyRange.upperBound(corePrefix,true),10000),...await t.keys('meta',null,IDBKeyRange.lowerBound(corePrefix+'\uffff'),10000)];
  if(keys.length>10000)fail('BNS_GROUP_RESOURCE_LIMIT');
  for(const key of keys){
+  if(key===PROMPT_INSERTION_RUNTIME){requireLocalPromptInsertionRuntime(await t.get('meta',key),store.databaseId);continue;}
   if(key==='memory:config'){requireOriginalDefaultMemoryRow(await t.get('meta',key));continue;}
   if(human?.allowed.has(key))continue;
   if(key===CONTEXT_CARDS_ROW||key===PROMPT_REUSE_ROW||counters.has(key))continue;

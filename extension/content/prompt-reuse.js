@@ -17,7 +17,7 @@
   if(sender.id!==chrome.runtime.id||sender.tab||request?.type!=='PAIA_PROMPT_INSERT_SELECTED')return;
   if(Object.hasOwn(request,'activationKey')&&!['Enter',' '].includes(request.activationKey)){reply({status:'failed',reason:'invalid_request'});return;}
   if(request.activationKey)guardActivation(request.activationKey);
-  adapter.insert(request).then(result=>{if(result.status==='failed')releaseActivation?.();reply(result);},()=>reply({status:'uncertain',reason:'readback_unconfirmed'}));return true;
+  adapter.insert({...request,insertionMessage:request,lane:'manual'}).then(result=>{if(result.status==='failed')releaseActivation?.();reply(result);},()=>reply({status:'uncertain',reason:'readback_unconfirmed'}));return true;
  };
  chrome.runtime.onMessage.addListener(listener);
  globalThis.PAIAPromptReuseController={dispose(){releaseActivation?.();adapter.dispose();chrome.runtime.onMessage.removeListener(listener);}};

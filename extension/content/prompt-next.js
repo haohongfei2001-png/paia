@@ -78,12 +78,16 @@
   if(r.type==='PAIA_PROMPT_NEXT_REOPEN'&&r.id===candidate){show(true).then(reply);return true;}
   if(r.type==='PAIA_PROMPT_NEXT_INSERT'){
    const ticket=epoch;
-   // Recheck with the worker immediately before the synchronous native edit.
-   (async()=>{const state=await rpc('STATUS');if(r.sourceType==='PROMPT_FAMILY'){const qualified=await rpc('INSERT_CURRENT',{id:r.id,operationId:r.operationId,choiceId:r.choiceId});if(!qualified.current)throw Error('stale_family');}return state;})().then(state=>{
-    scan();
-    if(ticket!==epoch||!state.enabled||state.generation!==authorization||r.authorization!==authorization||r.id!==candidate||!same(r.binding,binding))return {status:'failed',reason:'stale_candidate'};
-    inserting=true;return composer.insert({text:r.text,operationId:r.operationId,url:r.binding.url,guard:()=>{const pending=observer.takeRecords();scan(replyMutation(pending));return ticket===epoch&&r.authorization===authorization&&r.id===candidate&&same(r.binding,binding);}}).finally(()=>{inserting=false;});
-   }).then(reply,()=>reply({status:'failed',reason:'permission_revoked'}));return true;
+   const current=()=>{const pending=observer.takeRecords();scan(replyMutation(pending));return ticket===epoch&&r.authorization===authorization&&r.id===candidate&&same(r.binding,binding);};
+   // Receipt admission precedes the existing final lane qualification. Neither
+   // transport evidence nor a cached ACK can refresh a stale reply candidate.
+   const qualify=async()=>{
+    const state=await rpc('STATUS');
+    if(r.sourceType==='PROMPT_FAMILY'){const qualified=await rpc('INSERT_CURRENT',{id:r.id,operationId:r.operationId,choiceId:r.choiceId});if(!qualified.current)return false;}
+    scan();return ticket===epoch&&state.enabled&&state.generation===authorization&&current();
+   };
+   const insert=()=>{if(!r.insertionReceipt)inserting=true;return composer.insert({text:r.text,operationId:r.operationId,url:r.binding.url,guard:current,insertionMessage:r,lane:'next',...(r.insertionReceipt?{qualify:async()=>{const qualified=await qualify();if(qualified)inserting=true;return qualified;}}:{})}).finally(()=>{inserting=false;});};
+   (r.insertionReceipt?insert():qualify().then(qualified=>qualified?insert():{status:'failed',reason:'stale_candidate'})).then(reply,()=>reply({status:'failed',reason:'permission_revoked'}));return true;
   }
  };
  chrome.runtime.onMessage.addListener(messages);

@@ -135,7 +135,7 @@ export class PromptSurfaceCommands{
     await context.assertCurrent();if(value?.result?.kind==='SUGGESTION')return {source:'assist',result:value.result};
     const local=await this.next?.card({type:'next_current'},tab,context);await context.assertCurrent();return {source:'local',result:local?.result??null};
    }
-   const keys=c.type==='suggestion_result'?['type','source','id']:['type','source','id','operationId','conditionPresented'];
+   const keys=c.type==='suggestion_result'?['type','source','id']:['type','source','id','operationId','conditionPresented',...(Object.hasOwn(c,'insertionAction')?['insertionAction']:[])];
    if(!own(c,keys)||Object.keys(c).length!==keys.length||!['assist','local'].includes(c.source))fail();
    const {source:kind,...command}=c;command.type=(kind==='assist'?'assist_':'next_')+(c.type==='suggestion_result'?'result':'insert');
    return kind==='assist'?this.assist.card(command,tab,context):this.next.card(command,tab,context);
@@ -198,17 +198,18 @@ export class PromptSurfaceCommands{
    this.#assertAdmission(admission);return this.openArchiveArrival(descriptor,{tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url});
   }
   if(c.type==='members'&&own(c,['type','id']))return this.commands.service.members(c.id);
-  if(!['PAIA_PROMPT_QUERY','PAIA_PROMPT_CHANGE','PAIA_PROMPT_CONFLICT_RESOLVE','PAIA_PROMPT_COPY_TEXT','PAIA_PROMPT_INSERT','PAIA_PROMPT_HISTORY_QUERY','PAIA_PROMPT_HISTORY_SAVE','PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_SELECTION_INSERT'].includes(c.type))fail();
-  if(c.type==='PAIA_PROMPT_INSERT'||c.type==='PAIA_PROMPT_SELECTION_INSERT'){
-   if(!own(c,c.type==='PAIA_PROMPT_INSERT'?['type','id','text','operationId']:['type','ref','range','operationId','target','activationKey']))fail();
+  if(!['PAIA_PROMPT_QUERY','PAIA_PROMPT_CHANGE','PAIA_PROMPT_CONFLICT_RESOLVE','PAIA_PROMPT_COPY_TEXT','PAIA_PROMPT_INSERT_PREPARE','PAIA_PROMPT_INSERT','PAIA_PROMPT_HISTORY_QUERY','PAIA_PROMPT_HISTORY_SAVE','PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_SELECTION_INSERT'].includes(c.type))fail();
+  if(c.type==='PAIA_PROMPT_INSERT_PREPARE'||c.type==='PAIA_PROMPT_INSERT'||c.type==='PAIA_PROMPT_SELECTION_INSERT'){
+   if(!own(c,c.type==='PAIA_PROMPT_INSERT_PREPARE'?['type','id','text']:c.type==='PAIA_PROMPT_INSERT'?['type','id','text','operationId','insertionAction']:['type','ref','range','operationId','target','activationKey','insertionAction']))fail();
    if(Object.hasOwn(c,'activationKey')&&!['Enter',' '].includes(c.activationKey))fail();
-   if(c.type==='PAIA_PROMPT_SELECTION_INSERT'){const target=c.target;if(typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active'||!target||!own(target,['url','documentId','nonce'])||Object.keys(target).length!==3||target.url!==tab.url||target.documentId!==sender.documentId||target.nonce!==r.nonce)fail();const source={tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url};return this.commands.dispatch({type:c.type,ref:c.ref,range:c.range,operationId:c.operationId,tabId:tab.id,url:tab.url,...(c.activationKey?{activationKey:c.activationKey}:{})},{assertTarget:async()=>{this.#assertAdmission(admission);await this.#currentSelectionTarget(source,admission);this.#assertAdmission(admission);},targetIdentity:source});}
-   return this.commands.dispatch({...c,tabId:tab.id,url:tab.url});
+   if(c.type==='PAIA_PROMPT_SELECTION_INSERT'){const target=c.target;if(typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active'||!target||!own(target,['url','documentId','nonce'])||Object.keys(target).length!==3||target.url!==tab.url||target.documentId!==sender.documentId||target.nonce!==r.nonce)fail();const source={tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url};return this.commands.dispatch({type:c.type,ref:c.ref,range:c.range,operationId:c.operationId,...(c.insertionAction?{insertionAction:c.insertionAction}:{}),tabId:tab.id,url:tab.url,...(c.activationKey?{activationKey:c.activationKey}:{})},{assertTarget:async()=>{this.#assertAdmission(admission);await this.#currentSelectionTarget(source,admission);this.#assertAdmission(admission);},targetIdentity:source});}
+   const source={tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url};
+   return this.commands.dispatch({...c,tabId:tab.id,url:tab.url},{targetIdentity:source,assertTarget:async()=>{this.#assertAdmission(admission);await this.#currentSelectionTarget(source,admission);this.#assertAdmission(admission);}});
   }
   const reading=['PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_HISTORY_QUERY','PAIA_PROMPT_QUERY'].includes(c.type);
   const readSource=reading?{tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url}:null;
   if(reading)await this.currentReadTarget(readSource);
-  const result=await this.commands.dispatch(c);
+  const result=await this.commands.dispatch(c,c.type==='PAIA_PROMPT_SELECTION_READ'&&c.prepareInsertion===true?{targetIdentity:readSource,assertTarget:async()=>{this.#assertAdmission(admission);await this.#currentSelectionTarget(readSource,admission);this.#assertAdmission(admission);}}:{});
   // An original read can yield while the iframe/chat is replaced or consent is
   // revoked. Do not deliver its body to the formerly valid private surface.
   if(reading){

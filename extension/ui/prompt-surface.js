@@ -163,8 +163,13 @@ async function insert(item,b,reviewed=false,key=null){
  if(editing||busy||drag||composing||attempted.has(item.id))return;
  const selectedRange=checking?.item===item?checking.range:null;if(!selectedRange&&!quickPromptEligible(item.text)){tell('最多 150 个字符；编辑仍保留。');return;}
  attempted.add(item.id);const original=list.querySelector(`[data-id="${item.id}"] .insert`);if(original)original.disabled=true;b.disabled=true;pending(true);tell('正在插入…');
- let verified=false;
- try{const typed=true;const r=await rpc(typed?{type:'PAIA_PROMPT_SELECTION_INSERT',...(key?{activationKey:key}:{}),ref:checking?.item===item?checking.ref:selectionRef(item),range:checking?.item===item?checking.range:null,target:checking?.item===item?checking.target:mode==='search'?history.target:candidateTarget,operationId:crypto.randomUUID()}:{type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});verified=r.status==='inserted'&&r.verified===true;if(!verified&&r.status!=='failed')insertionUnconfirmed=true;tell(verified?'已插入，未发送。':r.reason==='unsupported_line_endings'?'当前输入框无法原样保留 CRLF 换行，请复制原文。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch{insertionUnconfirmed=true;tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
+ let verified=false;const ticket=epoch;
+ try{const ref=checking?.item===item?checking.ref:selectionRef(item),range=checking?.item===item?checking.range:null;
+  // The accepted click receives one original, source-bound action. Its issued
+  // operation ID and epoch are echoed unchanged, never freshened on insertion.
+  const prepared=await rpc({type:'PAIA_PROMPT_SELECTION_READ',ref,range,prepareInsertion:true});
+  if(disposed||ticket!==epoch||!prepared.insertionAction||prepared.text!==(range?item.text.slice(range.start,range.end):item.text)||!currentItems().some(x=>x.id===item.id&&x.text===item.text))throw Error('changed');
+  const r=await rpc({type:'PAIA_PROMPT_SELECTION_INSERT',...(key?{activationKey:key}:{}),ref,range,target:prepared.target,operationId:prepared.insertionAction.operationId,insertionAction:prepared.insertionAction});if(disposed||ticket!==epoch)return;verified=r.status==='inserted'&&r.verified===true;if(!verified&&r.status!=='failed')insertionUnconfirmed=true;tell(verified?'已插入，未发送。':r.reason==='unsupported_line_endings'?'当前输入框无法原样保留 CRLF 换行，请复制原文。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch{if(disposed||ticket!==epoch)return;insertionUnconfirmed=true;tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{if(!disposed&&ticket===epoch)pending(false);}
  if(verified){const feedback=b.id==='capsule-use'?b:original?.closest('.row');if(feedback)feedback.dataset.inserted='true';setTimeout(()=>{if(feedback)delete feedback.dataset.inserted;attempted.delete(item.id);if(original&&currentItems().some(current=>current.id===item.id&&current.text===item.text&&!current.hidden&&quickPromptEligible(current.text)))setPendingEligibility(original,false);paintCapsule();},480);paintCapsule();leaveCheck(false);return;}
  const copy=button('复制',()=>copyWhole(item,true));status.append(copy);
 }
