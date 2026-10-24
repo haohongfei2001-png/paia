@@ -12,7 +12,28 @@ services, installation availability, contact transport or workflow permissions.
 Do not promise background delivery. Complete deployment in the active task or
 report the specific verified blocker without claiming success.
 
-## Current promotion
+## Current release — V15, 24 October 2026
+
+The official home now renders the complete Thought folio via spatial-folio15.js.
+It uses ordinary page flow rather than the rejected three-viewport sticky scene.
+The shell entry is presentation15.js?v=20261024-v15. This version-specific URL
+must not be reused for future changed runtime bytes. Both locale templates and
+the /en/ generated alias carry data-website-release="atelier-v15-20261024".
+The historical data-atelier-version=13 denotes only the unchanged fallback.
+The painted body and #thoughts report data-spatial15=ready.
+
+The previous entry URL was reused from V13 while its response allowed caching
+for 600 seconds. This made stale-runtime display possible after deployment;
+public byte equality in a cold browser alone did not rule that out. Future
+releases must version their actual entry dependencies, regenerate their public
+HTML and test a previous-cache scenario. A manual hard refresh is not a release
+strategy. Existing cached documents may still remain until HTTP revalidation;
+release links can explicitly request the current page query.
+
+The existing visual source, all real-product boundaries, other page sections,
+and independent tests are unchanged by this release-delivery fix.
+
+## Historical V14 promotion
 
 Base main: e56fecf43be89a9c2faed82f38fa3d55bffb750c.
 The /design/thought-space/ visual study is promoted into the existing official

@@ -15,7 +15,8 @@ def static(root,check):
     for lang,prefix in [('zh','zh/'),('en','')]:
         text=(root/(prefix+'index.html')).read_text();parsed=Fragments(text)
         check('data-atelier-version="13"' in text,prefix+': exact no-script homepage shell')
-        check('presentation13.js' in text and 'presentation11.js' not in text,prefix+': single existing shell-motion entry')
+        check('presentation15.js?v=20261024-v15' in text and 'presentation13.js?' not in text,prefix+': immutable V15 shell entry avoids stale V13 cache')
+        check('data-website-release="atelier-v15-20261024"' in text,prefix+': deployed release identity is current')
         check('world13.css' in text,prefix+': prior shell styling retained')
         for selector,digest in lock['home_fragments'][lang].items():
             nodes=find(parsed,selector)
@@ -26,7 +27,8 @@ def static(root,check):
         check('class="p10-daily-scene"' not in text and 'id="daily-title"' in text,prefix+': minor details remain subordinate')
         check('/demo.html#topic-reader' in text,prefix+': topic link retains exact destination')
         check(not any(x in text for x in ['data-topic-search','data-open-source','data-view-source','data-reading-style']),prefix+': retired source/search/actions stay absent')
-    code=(root/'assets/website/atelier/presentation13.js').read_text()
+    code=(root/'assets/website/atelier/presentation15.js').read_text()
+    check(code==(root/'assets/website/atelier/presentation13.js').read_text(),'V15 release entry preserves already verified behavior exactly')
     check(not re.search(r'\b(fetch|XMLHttpRequest|WebSocket|sendBeacon)\s*\(',code),'shell has no data transport')
     check('localStorage' not in code and 'sessionStorage' not in code,'shell has no persistence')
     check(all(x in code for x in ['subjectVisible','visibilitychange','prefers-reduced-motion','manualFloat=true']),'visibility and R3 ownership retained')
