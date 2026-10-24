@@ -6,7 +6,7 @@ import {ArchiveError} from '../core/constants.js';
 import {qualifyContextConnectionConfiguration,validContextPairingAuthorization,isCurrentContextPairingAuthorization} from './context-connection-policy.js';
 
 export const CONTEXT_CONNECTION_KEY='paia.context-connections.v1';
-const HOST='com.paia.context_read',LEASE=3600000;
+const HOST='com.paia.context_read',LEASE=3600000,EXPOSURE_LIMIT=8;
 export const CONTEXT_RESUME_WITNESS='context-connection-runtime:v1';
 const uuid=x=>typeof x==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(x);
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
@@ -15,6 +15,11 @@ const fail=(code='INVALID_REQUEST')=>{throw new ArchiveError(code);};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const revision=x=>Number.isSafeInteger(x)&&x>=0;
 const validRow=row=>exact(row,['version','revision','profileId','databaseId','restoreEpoch','connections'])&&row.version===1&&revision(row.revision)&&uuid(row.profileId)&&typeof row.databaseId==='string'&&row.databaseId.length<=200&&typeof row.restoreEpoch==='string'&&row.restoreEpoch.length<=512&&Array.isArray(row.connections)&&row.connections.length<=8&&new Set(row.connections.map(c=>c.id)).size===row.connections.length&&row.connections.every(c=>exact(c,['id','target','state','generation','credentialHash','expiresAt','port',...(Object.hasOwn(c,'authorization')?['authorization','resumeState']:[])])&&(!Object.hasOwn(c,'authorization')||validContextPairingAuthorization(c.authorization)&&['dirty','clean'].includes(c.resumeState))&&uuid(c.id)&&c.target==='chatgpt'&&['enabled','paused','revoked'].includes(c.state)&&revision(c.generation)&&c.generation>0&&(c.credentialHash===null||/^[a-f0-9]{64}$/.test(c.credentialHash))&&(c.state==='revoked'?c.credentialHash===null:typeof c.credentialHash==='string')&&Number.isSafeInteger(c.expiresAt)&&Number.isSafeInteger(c.port)&&c.port>=1024&&c.port<=65535);
+
+// Value v2 stays under the original nonportable key. Publication and transport
+// facts are independent: settled/clean never means an earlier listener closed.
+const validExposure=c=>exact(c,['id','profileId','databaseId','restoreEpoch','connectionId','generation','configurationGeneration','hostNonce','closeGeneration','state'])&&uuid(c.id)&&uuid(c.profileId)&&typeof c.databaseId==='string'&&c.databaseId.length<=200&&typeof c.restoreEpoch==='string'&&c.restoreEpoch.length<=512&&uuid(c.connectionId)&&revision(c.generation)&&c.generation>0&&revision(c.closeGeneration)&&c.closeGeneration===c.generation+1&&typeof c.configurationGeneration==='string'&&/^[a-f0-9]{64}$/.test(c.configurationGeneration)&&uuid(c.hostNonce)&&['unresolved','closed'].includes(c.state);
+const validWitness=w=>exact(w,['id','version','operationId','phase','row',...(w?.version===2?['transport']:[])])&&w.id===CONTEXT_RESUME_WITNESS&&[1,2].includes(w.version)&&uuid(w.operationId)&&['pending','settled'].includes(w.phase)&&validRow(w.row)&&(w.version===1||exact(w.transport,['version','legacyUnknown','exposures'])&&w.transport.version===1&&typeof w.transport.legacyUnknown==='boolean'&&Array.isArray(w.transport.exposures)&&w.transport.exposures.length<=EXPOSURE_LIMIT&&w.transport.exposures.every(validExposure)&&new Set(w.transport.exposures.map(c=>c.id)).size===w.transport.exposures.length);
 
 const hash=async text=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),x=>x.toString(16).padStart(2,'0')).join('');
 const credential=()=>{const b=crypto.getRandomValues(new Uint8Array(32));return btoa(String.fromCharCode(...b)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');};
@@ -32,6 +37,9 @@ export class ContextConnections {
   this.#storageListener=(changes,area)=>{if(area==='local'&&Object.hasOwn(changes,CONTEXT_CONNECTION_KEY)&&!same(changes[CONTEXT_CONNECTION_KEY]?.newValue,this.#pendingWrite??this.#row))this.invalidate();};api.storage?.onChanged?.addListener(this.#storageListener);
   this.#permissionListener=change=>{if(change?.permissions?.includes('nativeMessaging'))this.invalidate();};api.permissions?.onRemoved?.addListener(this.#permissionListener);
  }
+ // Source assembly identity only. This private-brand check does not acquire a
+ // hold, expose the Store or establish host/listener settlement.
+ applicationSelectionSourceIs(store){return !this.#disposed&&this.#store===store;}
  #ticket(id=null){return {epoch:this.#epochGeneration,admission:this.#admissionGeneration,denial:id?this.#denials.get(id)||0:0};}
  #allowed(ticket,id=null){return !this.#disposed&&ticket?.epoch===this.#epochGeneration&&(!id||ticket.denial===(this.#denials.get(id)||0));}
  #assertTicket(ticket,id=null){if(!this.#allowed(ticket,id))fail('CONTEXT_INVALIDATED');}
@@ -48,28 +56,78 @@ export class ContextConnections {
   this.#observedRow=structuredClone(value??null);
   const epoch=await this.#epoch();
   const witness=await this.#store.repository.transaction(false,t=>t.get('meta',CONTEXT_RESUME_WITNESS),['meta']);
-  if(witness!==undefined&&witness!==null&&(!exact(witness,['id','version','operationId','phase','row'])||witness.id!==CONTEXT_RESUME_WITNESS||witness.version!==1||!uuid(witness.operationId)||!['pending','settled'].includes(witness.phase)||!validRow(witness.row)))fail('STORAGE_FAILED');
+  if(witness!==undefined&&witness!==null&&!validWitness(witness))fail('STORAGE_FAILED');
   this.#witness=witness??null;if(value&&(value.databaseId!==this.#store.databaseId||value.restoreEpoch!==epoch)){this.invalidate();return {stale:true,row:value,epoch};}
   const uncertain=!!(value?.connections.some(c=>c.authorization)||witness)&&(!witness||witness.phase!=='settled'||!same(witness.row,value));
   if(this.#row&&!same(this.#row,value??null))this.invalidate();this.#row=value??null;this.#witness=witness??null;return {stale:false,uncertain,row:this.#row,epoch};
  }
+ #binding(restoreEpoch){return {repository:this.#store.repository,database:this.#store.repository.db,databaseId:this.#store.databaseId,restoreEpoch};}
+ #bindingCurrent(binding){return this.#ready()&&binding.repository===this.#store.repository&&binding.database===binding.repository.db&&binding.databaseId===this.#store.databaseId;}
+ async #boundEpoch(t,binding){if(!this.#bindingCurrent(binding)||((await t.get('meta','recovery-restore-epoch'))?.value||'initial')!==binding.restoreEpoch||!this.#bindingCurrent(binding))fail('CONTEXT_INVALIDATED');}
+ async #readWitness(binding){return binding.repository.transaction(false,async t=>{await this.#boundEpoch(t,binding);const witness=(await t.get('meta',CONTEXT_RESUME_WITNESS))??null;if(witness&&!validWitness(witness))fail('STORAGE_FAILED');return witness;},['meta']);}
+ #rememberWitness(witness){if(this.#selectionHold?.ready&&!same(witness,this.#witness))this.#selectionHold.valid=false;this.#witness=structuredClone(witness);}
+ async #witnessCAS(expected,next,binding,check=()=>{}){
+  if(!validWitness(next)||next.version!==2)fail('STORAGE_FAILED');
+  try{await binding.repository.transaction(true,async t=>{await this.#boundEpoch(t,binding);check();if(!same((await t.get('meta',CONTEXT_RESUME_WITNESS))??null,expected))fail('STALE_BASE');await t.put('meta',next);check();if(!this.#bindingCurrent(binding))fail('CONTEXT_INVALIDATED');},['meta']);}
+  catch(error){
+   // A rejected transaction promise can have an unknown commit outcome. Never
+   // repeat the write; only this exact durable value can confirm the transition.
+   const actual=await this.#readWitness(binding);check();if(!same(actual,next))throw error;
+  }
+  check();if(!this.#bindingCurrent(binding))fail('CONTEXT_INVALIDATED');this.#rememberWitness(next);
+ }
+ #transport(){return this.#witness?.version===2?structuredClone(this.#witness.transport):{version:1,legacyUnknown:!!this.#witness||this.#unobservedHosts||!!this.#observedRow?.connections.length,exposures:[]};}
+ #transportUnsettled(){return !!this.#witness&&(this.#witness.version!==2||this.#witness.transport.legacyUnknown||this.#witness.transport.exposures.some(c=>c.state!=='closed'));}
  async #persist(row,ticket,id=null){
   this.#assertTicket(ticket,id);if(!validRow(row))fail('STORAGE_FAILED');this.#pendingWrite=row;
-  const useWitness=!!this.#witness||row.connections.some(c=>c.authorization),prior=structuredClone(this.#witness),pending={id:CONTEXT_RESUME_WITNESS,version:1,operationId:crypto.randomUUID(),phase:'pending',row:structuredClone(row)};
-  const transition=async(expected,next)=>this.#store.repository.transaction(true,async t=>{
-   this.#assertTicket(ticket,id);if(!this.#ready()||((await t.get('meta','recovery-restore-epoch'))?.value||'initial')!==row.restoreEpoch)fail('CONTEXT_INVALIDATED');
-   if(!same((await t.get('meta',CONTEXT_RESUME_WITNESS))??null,expected))fail('STALE_BASE');await t.put('meta',next);this.#assertTicket(ticket,id);
-  },['meta']);
+  const prior=structuredClone(this.#witness),pending={id:CONTEXT_RESUME_WITNESS,version:2,operationId:crypto.randomUUID(),phase:'pending',row:structuredClone(row),transport:this.#transport()},binding=this.#binding(row.restoreEpoch),check=()=>this.#assertTicket(ticket,id);
   try{
-   // Chrome storage has no CAS. The original IDB meta transaction owns a
-   // bounded write-ahead witness. Any unknown/interrupted mirror write remains
-   // pending, so a clean-looking Chrome row alone never authorizes cold resume.
-   if(useWitness){await transition(prior,pending);this.#witness=structuredClone(pending);}
-   await this.#api.storage.local.set({[CONTEXT_CONNECTION_KEY]:row});this.#assertTicket(ticket,id);const read=(await this.#api.storage.local.get(CONTEXT_CONNECTION_KEY))[CONTEXT_CONNECTION_KEY];this.#assertTicket(ticket,id);if(!same(row,read))fail('STALE_BASE');
-   if(useWitness){const settled={...pending,phase:'settled'};await transition(pending,settled);this.#witness=structuredClone(settled);}
+   // Preserve every transport claim while the original publication CAS binds
+   // the exact Chrome write/readback. No registry flag settles an exposure.
+   await this.#witnessCAS(prior,pending,binding,check);
+   await this.#api.storage.local.set({[CONTEXT_CONNECTION_KEY]:row});check();const read=(await this.#api.storage.local.get(CONTEXT_CONNECTION_KEY))[CONTEXT_CONNECTION_KEY];check();if(!same(row,read))fail('STALE_BASE');
+   await this.#witnessCAS(pending,{...pending,phase:'settled'},binding,check);
    this.#row=structuredClone(row);this.#observedRow=structuredClone(row);this.#loaded=true;
   }catch(error){this.invalidate();throw error;}finally{this.#pendingWrite=null;}
  }
+ #exposureAdmission(state,row){
+  const c=row?.connections.find(c=>c.id===state.connectionId);
+  if(!this.#bindingCurrent(state.binding)||!state.current||this.#ports.get(state.connectionId)!==state||!this.#allowed(state.ticket,state.connectionId)||this.#selectionHold||state.ticket.admission!==this.#admissionGeneration||!same(this.#row,row)||row.profileId!==state.profileId||row.databaseId!==state.databaseId||row.restoreEpoch!==state.restoreEpoch||c?.state!=='enabled'||c.generation!==state.generation||c.expiresAt!==state.expiresAt||c.expiresAt<=Date.now()||c.authorization&&!this.#authorizationCurrent(c.authorization))fail('CONTEXT_INVALIDATED');
+ }
+ async #configure(state,connection,send){
+  const row=structuredClone(this.#row),prior=structuredClone(this.#witness);this.#exposureAdmission(state,row);
+  if(prior?.version!==2||prior.phase!=='settled'||!same(prior.row,row)||!Number.isSafeInteger(state.generation+1))fail('CONTEXT_INVALIDATED');
+  const claim={id:crypto.randomUUID(),profileId:state.profileId,databaseId:state.databaseId,restoreEpoch:state.restoreEpoch,connectionId:state.connectionId,generation:state.generation,configurationGeneration:state.configurationGeneration,hostNonce:state.hostNonce,closeGeneration:state.generation+1,state:'unresolved'},next=structuredClone(prior),claims=next.transport.exposures;
+  // The sole compaction operation atomically replaces one durably CLOSED slot
+  // with a fresh unresolved identity. Unknown/legacy evidence is never evicted.
+  let replace=claims.findIndex(c=>c.state==='closed'&&c.connectionId===claim.connectionId);
+  if(replace<0&&claims.length===EXPOSURE_LIMIT)replace=claims.findIndex(c=>c.state==='closed');
+  if(replace>=0)claims[replace]=claim;else{if(claims.length>=EXPOSURE_LIMIT)fail('RESOURCE_LIMIT');claims.push(claim);}
+  state.exposure=structuredClone(claim);
+  await this.#witnessCAS(prior,next,state.binding,()=>this.#exposureAdmission(state,row));
+  state.closure='configured';await this.#permission();this.#exposureAdmission(state,row);
+  if(!same((await this.#api.storage.local.get(CONTEXT_CONNECTION_KEY))[CONTEXT_CONNECTION_KEY],row))fail('STALE_BASE');
+  // Configure is synchronous under the final original read lock. A competing
+  // witness write cannot slip between this exact durable check and the send.
+  await state.binding.repository.transaction(false,async t=>{await this.#boundEpoch(t,state.binding);if(!same(await t.get('meta',CONTEXT_RESUME_WITNESS),next))fail('STALE_BASE');this.#exposureAdmission(state,row);if(!same(this.#witness,next))fail('STALE_BASE');send({version:1,type:'configure',hostNonce:state.hostNonce,connectionId:connection.id,generation:connection.generation,credentialHash:connection.credentialHash,expiresAt:connection.expiresAt,port:connection.port});},['meta']);
+ }
+ async #settleExposure(state){
+  if(state.settling)return state.settling;
+  const settle=async()=>{
+   const prior=await this.#readWitness(state.binding);if(prior?.version!==2||!state.exposure)return false;
+   const index=prior.transport.exposures.findIndex(c=>c.id===state.exposure.id),claim=prior.transport.exposures[index];
+   if(!claim||!same({...claim,state:'unresolved'},state.exposure))return false;
+   if(claim.state!=='closed'){const next=structuredClone(prior);next.transport.exposures[index].state='closed';await this.#witnessCAS(prior,next,state.binding);}
+   else this.#rememberWitness(prior);
+   const wasUnknown=state.closure==='unknown';state.closure='closed';if(wasUnknown)this.#unsettledHosts--;
+   // A late exact source ACK may settle its retained durable claim. It cannot
+   // resurrect an already failed retirement/hold or start any replacement.
+   if(state.current&&this.#ports.get(state.connectionId)===state&&this.#allowed(state.ticket,state.connectionId)&&state.retiring){const retirement=state.retiring;state.retiring=null;retirement.resolve();}
+   return true;
+  };
+  const task=settle();state.settling=task;try{return await task;}finally{state.settling=null;}
+ }
+
  #notify(){try{this.#api.runtime.sendMessage?.({type:'PAIA_CONTEXT_CARDS_CHANGED'})?.catch(()=>{});}catch{/* Observation does not grant transport access. */}}
  #close(id,expected=null){const state=this.#ports.get(id);if(!state||expected&&expected!==state)return;this.#ports.delete(id);state.current=false;if(state.closure==='configured'){state.closure='unknown';this.#unsettledHosts++;}clearTimeout(state.timer);clearTimeout(state.renewTimer);state.retiring?.reject(new ArchiveError('CONTEXT_INVALIDATED'));state.retiring=null;for(const request of state.requests.values())request.abort();state.requests.clear();try{state.port.disconnect();}catch{/* Already disconnected. */}this.#notify();}
  async #handover(id,ticket,{allowStarting=false}={}){
@@ -79,7 +137,7 @@ export class ContextConnections {
   // source host's versioned close ACK may permit a replacement live process.
   if(!state.ready&&!allowStarting||state.handover!=='closed-listener-ack-v1'){this.#close(id,state);fail('CONTEXT_INVALIDATED');}
   state.ready=false;clearTimeout(state.timer);clearTimeout(state.renewTimer);for(const request of state.requests.values())request.abort();state.requests.clear();this.#notify();
-  try{await new Promise((resolve,reject)=>{state.closeGeneration=state.generation+1;state.retiring={generation:state.closeGeneration,resolve,reject};state.timer=setTimeout(()=>reject(new ArchiveError('CONTEXT_INVALIDATED')),3000);state.port.postMessage({version:1,type:'revoke',hostNonce:state.hostNonce,generation:state.retiring.generation});});this.#assertTicket(ticket,id);}finally{this.#close(id,state);}
+  try{await new Promise((resolve,reject)=>{state.closeGeneration=state.exposure?.closeGeneration;if(state.closeGeneration!==state.generation+1||!Number.isSafeInteger(state.closeGeneration))fail('CONTEXT_INVALIDATED');state.retiring={generation:state.closeGeneration,resolve,reject};state.timer=setTimeout(()=>reject(new ArchiveError('CONTEXT_INVALIDATED')),3000);state.port.postMessage({version:1,type:'revoke',hostNonce:state.hostNonce,generation:state.retiring.generation});});this.#assertTicket(ticket,id);}finally{this.#close(id,state);}
  }
  invalidate(){if(this.#selectionHold)this.#selectionHold.valid=false;this.#epochGeneration++;this.#denials.clear();for(const id of [...this.#ports.keys()])this.#close(id);this.#row=null;}
  async status(){
@@ -161,7 +219,8 @@ export class ContextConnections {
  }
  async #connect(connection,ticket){
   if(this.#selectionHold||ticket.admission!==this.#admissionGeneration)fail('CONTEXT_INVALIDATED');await this.#permission();this.#assertTicket(ticket,connection.id);if(this.#selectionHold||ticket.admission!==this.#admissionGeneration)fail('CONTEXT_INVALIDATED');if(!this.#row||!this.#ready()||connection.state!=='enabled'||connection.expiresAt<=Date.now()||connection.authorization&&!this.#authorizationCurrent(connection.authorization))fail('CONTEXT_INVALIDATED');
-  const port=this.#api.runtime.connectNative(HOST);if(this.#selectionHold||ticket.admission!==this.#admissionGeneration||!this.#allowed(ticket,connection.id)){try{port.disconnect();}catch{}fail('CONTEXT_INVALIDATED');}const state={port,ticket,caller:Object.freeze({}),connectionId:connection.id,generation:connection.generation,expiresAt:connection.expiresAt,profileId:this.#row.profileId,restoreEpoch:this.#row.restoreEpoch,databaseId:this.#row.databaseId,hostNonce:null,ready:false,current:true,closure:'not-configured',closeGeneration:null,requests:new Map(),timer:null,renewTimer:null};
+  if(this.#witness?.version!==2||this.#witness.transport.exposures.length>=EXPOSURE_LIMIT&&this.#witness.transport.exposures.every(c=>c.state!=='closed'))fail('RESOURCE_LIMIT');
+  const binding=this.#binding(this.#row.restoreEpoch),configurationGeneration=await hash(JSON.stringify({configuration:this.#configuration,extensionId:this.#api.runtime.id,host:HOST}));this.#assertTicket(ticket,connection.id);if(!this.#bindingCurrent(binding)||this.#selectionHold||ticket.admission!==this.#admissionGeneration)fail('CONTEXT_INVALIDATED');const port=this.#api.runtime.connectNative(HOST);if(!this.#bindingCurrent(binding)||this.#selectionHold||ticket.admission!==this.#admissionGeneration||!this.#allowed(ticket,connection.id)){try{port.disconnect();}catch{}fail('CONTEXT_INVALIDATED');}const state={port,ticket,binding,configurationGeneration,exposure:null,settling:null,caller:Object.freeze({}),connectionId:connection.id,generation:connection.generation,expiresAt:connection.expiresAt,profileId:this.#row.profileId,restoreEpoch:this.#row.restoreEpoch,databaseId:this.#row.databaseId,hostNonce:null,ready:false,current:true,closure:'not-configured',closeGeneration:null,requests:new Map(),timer:null,renewTimer:null};
   this.#ports.set(connection.id,state);this.#callers.set(state.caller,state);
   const send=port.postMessage.bind(port); // actual source NativePort primitive
   // A delayed old disconnect/message/expiry must not close a replacement port
@@ -174,7 +233,7 @@ export class ContextConnections {
  #live(state){
   const now=Date.now();if(now<this.#lastClock){this.invalidate();return false;}this.#lastClock=now;
   const c=this.#row?.connections.find(c=>c.id===state?.connectionId);
-  return !this.#suspending&&!this.#selectionHold&&!!state&&state.ticket.admission===this.#admissionGeneration&&this.#allowed(state.ticket,state.connectionId)&&this.#ready()&&state.current&&state.ready&&this.#ports.get(state.connectionId)===state&&state.expiresAt>now&&this.#row?.databaseId===this.#store.databaseId&&this.#row.profileId===state.profileId&&this.#row.restoreEpoch===state.restoreEpoch&&c?.state==='enabled'&&c.generation===state.generation&&c.expiresAt===state.expiresAt&&(!c.authorization||this.#authorizationCurrent(c.authorization)&&this.#witness?.phase==='settled'&&same(this.#witness.row,this.#row));
+  return !this.#suspending&&!this.#selectionHold&&!!state&&state.ticket.admission===this.#admissionGeneration&&this.#allowed(state.ticket,state.connectionId)&&this.#bindingCurrent(state.binding)&&state.current&&state.ready&&this.#ports.get(state.connectionId)===state&&state.expiresAt>now&&this.#row?.databaseId===this.#store.databaseId&&this.#row.profileId===state.profileId&&this.#row.restoreEpoch===state.restoreEpoch&&c?.state==='enabled'&&c.generation===state.generation&&c.expiresAt===state.expiresAt&&!!state.exposure&&this.#witness?.version===2&&this.#witness.transport.exposures.some(claim=>same(claim,state.exposure))&&this.#witness.phase==='settled'&&same(this.#witness.row,this.#row)&&(!c.authorization||this.#authorizationCurrent(c.authorization));
  }
  async #verify(caller,store){
   const state=this.#callers.get(caller);if(store!==this.#store||!this.#live(state))return null;
@@ -189,15 +248,15 @@ export class ContextConnections {
  async #message(state,message,send){
   // A late exact source ACK can settle only its original retired transport.
   // Disconnect, timeout and a different host/generation never supply this fact.
-  if(state.closure==='unknown'&&this.#closeAcknowledged(state,message)){state.closure='closed';this.#unsettledHosts--;return;}
+  if(state.closure==='unknown'&&this.#closeAcknowledged(state,message)){await this.#settleExposure(state);return;}
   if(!state.current||!this.#allowed(state.ticket,state.connectionId)||this.#ports.get(state.connectionId)!==state||!plain(message)||message.version!==1)fail();
   if(this.#selectionHold&&!state.retiring&&message.type==='request')return;
   if(message.type==='hello'){
    const enhanced=exact(message,['version','type','hostNonce','handover'])&&message.handover==='closed-listener-ack-v1';if(state.hostNonce||!enhanced&&!exact(message,['version','type','hostNonce'])||!uuid(message.hostNonce))fail();state.hostNonce=message.hostNonce;state.handover=enhanced?message.handover:null;
    const connection=this.#row?.connections.find(c=>c.id===state.connectionId);if(!connection||connection.authorization&&!enhanced||connection.generation!==state.generation||await this.#epoch()!==state.restoreEpoch||!state.current)fail();
-   if(state.ticket.admission!==this.#admissionGeneration)return;state.closure='configured';send({version:1,type:'configure',hostNonce:state.hostNonce,connectionId:connection.id,generation:connection.generation,credentialHash:connection.credentialHash,expiresAt:connection.expiresAt,port:connection.port});return;
+   if(state.ticket.admission!==this.#admissionGeneration)return;await this.#configure(state,connection,send);return;
   }
-  if(state.retiring){if(this.#closeAcknowledged(state,message)){const retirement=state.retiring;state.closure='closed';state.retiring=null;retirement.resolve();}return;}
+  if(state.retiring){if(this.#closeAcknowledged(state,message))await this.#settleExposure(state);return;}
   if(message.hostNonce!==state.hostNonce||message.generation!==state.generation)fail();
   if(message.type==='ready'){
    const connection=this.#row?.connections.find(c=>c.id===state.connectionId);if(!exact(message,['version','type','hostNonce','generation','port'])||state.ready||message.port!==connection?.port||await this.#epoch()!==state.restoreEpoch||!state.current)fail();if(state.ticket.admission!==this.#admissionGeneration)return;state.ready=true;clearTimeout(state.timer);state.timer=setTimeout(()=>this.#close(state.connectionId,state),Math.max(1,state.expiresAt-Date.now()));this.#scheduleRenewal(state);this.#notify();return;
@@ -241,7 +300,7 @@ export class ContextConnections {
    }
    await this.#drainSelection(hold);
    if(this.#configuration)await this.#permission();
-   const {row,epoch,stale,uncertain}=await this.#load();if(stale||uncertain||!this.#selectionCurrent(hold)||this.#unobservedHosts||this.#unsettledHosts)fail('CONTEXT_INVALIDATED');
+   const {row,epoch,stale,uncertain}=await this.#load();if(stale||uncertain||!this.#selectionCurrent(hold)||this.#unobservedHosts||this.#unsettledHosts||this.#transportUnsettled())fail('CONTEXT_INVALIDATED');
    hold.row=structuredClone(row);hold.witness=structuredClone(this.#witness);hold.restoreEpoch=epoch;hold.ready=true;
    if(!this.applicationSelectionHeld(token))fail('CONTEXT_INVALIDATED');return token;
   };
@@ -249,7 +308,7 @@ export class ContextConnections {
   catch(error){hold.valid=false;for(const [id,state]of [...this.#ports])if(state.ticket.admission!==this.#admissionGeneration)this.#close(id,state);if(this.#selectionHold===hold)this.#selectionHold=null;throw error;}
   finally{clearTimeout(timer);}
  }
- applicationSelectionHeld(token){const h=this.#selectionHold;return !!h&&h.token===token&&h.ready&&this.#selectionCurrent(h)&&this.#ready()&&!this.#commands&&!this.#pendingWrite&&!this.#serialTasks.size&&!this.#nativeTasks.size&&!this.#ports.size&&!this.#unobservedHosts&&!this.#unsettledHosts&&same(h.row,this.#row)&&same(h.witness,this.#witness);}
+ applicationSelectionHeld(token){const h=this.#selectionHold;return !!h&&h.token===token&&h.ready&&this.#selectionCurrent(h)&&this.#ready()&&!this.#commands&&!this.#pendingWrite&&!this.#serialTasks.size&&!this.#nativeTasks.size&&!this.#ports.size&&!this.#unobservedHosts&&!this.#unsettledHosts&&!this.#transportUnsettled()&&same(h.row,this.#row)&&same(h.witness,this.#witness);}
  async fenceApplicationSelection(token){
   if(!this.applicationSelectionHeld(token))fail('CONTEXT_INVALIDATED');const h=this.#selectionHold;
   try{if(this.#configuration)await this.#permission();const {row,epoch,stale,uncertain}=await this.#load();if(stale||uncertain||epoch!==h.restoreEpoch||!same(row,h.row)||!same(this.#witness,h.witness)||!this.applicationSelectionHeld(token))fail('CONTEXT_INVALIDATED');return true;}

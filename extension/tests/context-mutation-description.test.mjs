@@ -8,7 +8,9 @@ import {digest} from '../core/browser-native-sync/value.js';
 const op=()=>crypto.randomUUID(),clone=structuredClone;
 const read=s=>s.repository.transaction(false,t=>readContextCards(t));
 const put=(extra={})=>({kind:'put',operationId:op(),epoch:'initial',itemId:op(),expectedRevision:0,body:'SYNTHETIC literal\r\nbody',section:'SYNTHETIC',card:'info',...extra});
-async function fixture(){const {s}=await setup(OrganizerStore);await s.finishFoundation();return {s,c:new ContextCardsService(s)};}
+// These non-journal fixtures model the journal's single captured operation time;
+// separate wall-clock reads must not make a valid descriptor baseline accidental.
+async function fixture({clock=()=> '2026-10-24T00:00:00.000Z'}={}){const {s}=await setup(OrganizerStore,{clock});await s.finishFoundation();return {s,c:new ContextCardsService(s)};}
 // These refs are explicitly description-validator fixtures, not sealed Core
 // ancestry or a materializer. Full Core admission is covered separately.
 async function description(f,command){
@@ -21,6 +23,14 @@ async function description(f,command){
 }
 const verify=p=>verifyContextMutationDescription(p.value,p.members,p.before);
 test('original literal put descriptor carries body once and reproduces original command digest',async()=>{const f=await fixture(),p=await description(f,put()),r=await verify(p);assert.deepEqual(r.row,p.after);assert.deepEqual(r.result,p.result);assert.equal(Object.hasOwn(p.value.command,'body'),false);assert.equal(JSON.stringify({value:p.value,members:p.members}).split('SYNTHETIC literal').length-1,1);});
+test('description refuses a non-journal put whose original timestamps differ',async()=>{
+ let tick=Date.parse('2026-10-24T00:00:00.000Z');const f=await fixture({clock:()=>new Date(tick++).toISOString()}),command=put(),before=await read(f.s);
+ assert.equal(f.c.syncJournal,null);assert.equal((await f.c.change(command)).ok,true);
+ const after=await read(f.s),item=after.items.find(value=>value.id===command.itemId);
+ assert.equal(Date.parse(item.updatedAt)-Date.parse(item.createdAt),1);
+ await assert.rejects(prepareContextMutationDescription(before,after,command,item.updatedAt),{code:'BNS_CONTEXT_MUTATION_INVALID'});
+ assert.deepEqual(await read(f.s),after);
+});
 test('original cross-card move and exact old receipt undo preserve order and literal body',async()=>{const f=await fixture(),c=put();await f.c.change(c);let row=await read(f.s);const move={kind:'move',operationId:op(),epoch:'initial',itemId:c.itemId,expectedRevision:1,fromCard:'info',toCard:'rules',expectedAccess:Object.fromEntries(['global','info','rules'].map(k=>[k,row.access[k]]))};const p=await description(f,move);assert.deepEqual((await verify(p)).row,p.after);const undo={...move,operationId:op(),expectedRevision:2,fromCard:'rules',toCard:'info',undoOf:move.operationId};const q=await description(f,undo);assert.deepEqual((await verify(q)).row,q.after);assert.equal(q.after.items[0].order,0);assert.equal(q.after.items[0].body,c.body);});
 test('original adjacent reorder records exactly two owner changes and preserves full group',async()=>{const f=await fixture(),cs=[put(),put(),put()];for(const c of cs)await f.c.change(c);const p=await description(f,{kind:'reorder',operationId:op(),epoch:'initial',itemId:cs[1].itemId,expectedRevision:1,adjacentId:cs[0].itemId,adjacentRevision:1,direction:'up',card:'info',section:'SYNTHETIC'});assert.equal(p.members.length,2);assert.deepEqual((await verify(p)).row,p.after);assert.deepEqual(p.before.items[2],p.after.items[2]);});
 test('missing sibling cannot validate a two-owner mutation',async()=>{const f=await fixture(),a=put(),b=put();await f.c.change(a);await f.c.change(b);const p=await description(f,{kind:'reorder',operationId:op(),epoch:'initial',itemId:b.itemId,expectedRevision:1,adjacentId:a.itemId,adjacentRevision:1,direction:'up',card:'info',section:'SYNTHETIC'});p.members.pop();await assert.rejects(verify(p));});

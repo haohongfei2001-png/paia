@@ -2,6 +2,7 @@ import {AssistConsent,ASSIST_AUTH_KEY,ASSIST_CONSENT_VERSION} from './assist-con
 import {ASSIST_LIMITS} from '../core/ai-usage/assist-response.js';
 import {AssistReplyLease} from './assist-reply-lease.js';
 import {createConfiguredAssistSession} from '../core/ai-usage/configured-assist-session.js';
+import {LocalAssistSession} from '../core/ai-usage/local-assist-session.js';
 import {ArchiveError} from '../core/constants.js';
 import {topicRootTarget} from '../core/topic-root-target.js';
 import {own,quickPromptEligible} from '../core/prompt-reuse-preferences.js';
@@ -11,9 +12,13 @@ const exact=(r,keys)=>own(r,keys)&&Object.keys(r).length===keys.length;
 const fail=(code='FORBIDDEN')=>{throw new ArchiveError(code);};
 const presented=(id,value)=>value.kind==='SUGGESTION'?{id,kind:value.kind,text:value.text,condition:value.condition}:{id,kind:value.kind,reason:value.reason};
 const hostKey=host=>host.tabId+':'+host.documentId;
+// A same-object session with replaced callbacks is not a source receipt.
+// Bind the original private-brand methods before any source assembly occurs.
+const sessionSelection=Object.freeze({hold:LocalAssistSession.prototype.holdForApplicationSelection,current:LocalAssistSession.prototype.applicationSelectionHeld,fence:LocalAssistSession.prototype.fenceApplicationSelection,release:LocalAssistSession.prototype.releaseApplicationSelection});
 // A source-authenticated, prospective completed-reply opportunity owns generation.
 // The private R3 surface consumes an already generated result; it never triggers AI.
 export class AssistPromptCommands {
+ #selectionSource;
  #tasks=new Set();#selectionHold=null;#admission=0;#disposed=false;#insertionUnknown=false;
  constructor(store,api,{configuration,surface=null}={}){
   this.store=store;this.api=api;this.surface=surface;this.hosts=new Map();this.views=new Map();this.activations=new Map();
@@ -25,10 +30,14 @@ export class AssistPromptCommands {
    },current:(host,binding)=>{const known=this.hosts.get(hostKey(host));return !!known&&this.consent.isCurrent(known.authorization)&&equal(known.binding,binding);}
   });
   this.session=createConfiguredAssistSession(store,{lease:this.lease,...(configuration===undefined?{}:{configuration})});
+  this.#selectionSource={store,api,surface,session:this.session};
   this.consent.onInvalidate(()=>{this.lease.invalidate();this.views.clear();this.clearActivations();for(const host of this.hosts.values()){host.binding=null;void this.#track(this.api.tabs.sendMessage(host.sender.tab.id,{type:'PAIA_PROMPT_ASSIST_AUTH_CHANGED'},{documentId:host.sender.documentId})).catch(()=>{});}this.changed();});
   this.storage=(changes,area)=>{if(area==='local'&&changes[ASSIST_AUTH_KEY]){this.consent.invalidate();void this.notifyHosts();}};
   api.storage?.onChanged?.addListener(this.storage);
  }
+ // The session is created above from this exact Store, never supplied by a
+ // caller. A replaced or absent session cannot become provider settlement.
+ applicationSelectionSourceIs(store){const source=this.#selectionSource;return !this.#disposed&&source.store===store&&this.store===source.store&&this.api===source.api&&this.surface===source.surface&&this.session===source.session&&source.session!==null;}
  #track(task){this.#tasks.add(task);const done=()=>this.#tasks.delete(task);void task.then(done,done);return task;}
  #admit(){if(this.#disposed||this.#selectionHold)fail('STALE_BASE');return this.#admission;}
  #assertAdmission(admission){if(this.#disposed||this.#selectionHold||admission!==this.#admission)fail('STALE_BASE');}
@@ -154,13 +163,13 @@ export class AssistPromptCommands {
  async #sourceSnapshot(){return this.store.repository.transaction(false,async t=>({epoch:(await t.get('meta','recovery-restore-epoch'))??null,gate:(await t.get('meta','gate'))??null}),['meta']);}
  async holdForApplicationSelection(){
   this.#admit();const token=Object.freeze(Object.create(null)),hold={token,valid:true,repository:this.store.repository,database:this.store.repository.db,databaseId:this.store.databaseId,session:this.session,sessionToken:null,ready:false,snapshot:null};this.#selectionHold=hold;this.clearActivations(true);hold.admission=this.#admission;this.views.clear();this.lease.invalidate();let timer;
-  const session=this.session?.holdForApplicationSelection().then(value=>{hold.sessionToken=value;if(!this.#held(hold))hold.session.releaseApplicationSelection(value);return value;});
-  const acquire=async()=>{await Promise.all([this.#drain(hold),session]);if(this.#insertionUnknown)fail('OUTCOME_UNKNOWN');hold.snapshot=await this.#sourceSnapshot();if(!this.#held(hold)||this.#tasks.size||hold.session&&!hold.session.applicationSelectionHeld(hold.sessionToken))fail('STALE_BASE');hold.ready=true;return token;};
+  const session=hold.session?sessionSelection.hold.call(hold.session).then(value=>{hold.sessionToken=value;if(!this.#held(hold))sessionSelection.release.call(hold.session,value);return value;}):null;
+  const acquire=async()=>{await Promise.all([this.#drain(hold),session]);if(this.#insertionUnknown)fail('OUTCOME_UNKNOWN');hold.snapshot=await this.#sourceSnapshot();if(!this.#held(hold)||this.#tasks.size||hold.session&&!sessionSelection.current.call(hold.session,hold.sessionToken))fail('STALE_BASE');hold.ready=true;return token;};
   try{return await Promise.race([acquire(),new Promise((_,reject)=>{timer=setTimeout(()=>{hold.valid=false;reject(new ArchiveError('OUTCOME_UNKNOWN'));},30000);})]);}
-  catch(error){hold.valid=false;if(hold.sessionToken)hold.session.releaseApplicationSelection(hold.sessionToken);if(this.#selectionHold===hold)this.#selectionHold=null;throw error;}finally{clearTimeout(timer);}
+  catch(error){hold.valid=false;if(hold.sessionToken)sessionSelection.release.call(hold.session,hold.sessionToken);if(this.#selectionHold===hold)this.#selectionHold=null;throw error;}finally{clearTimeout(timer);}
  }
- applicationSelectionHeld(token){const hold=this.#selectionHold;return !!hold&&hold.token===token&&hold.ready&&this.#held(hold)&&!this.#tasks.size&&!this.#insertionUnknown&&(!hold.session||hold.session.applicationSelectionHeld(hold.sessionToken));}
- async fenceApplicationSelection(token){if(!this.applicationSelectionHeld(token))fail('STALE_BASE');const hold=this.#selectionHold;try{if(hold.session)await hold.session.fenceApplicationSelection(hold.sessionToken);if(!equal(await this.#sourceSnapshot(),hold.snapshot)||!this.applicationSelectionHeld(token))fail('STALE_BASE');return true;}catch(error){hold.valid=false;throw error;}}
- releaseApplicationSelection(token){const hold=this.#selectionHold;if(hold?.token!==token)return false;hold.valid=false;if(hold.sessionToken)hold.session.releaseApplicationSelection(hold.sessionToken);this.#selectionHold=null;return true;}
+ applicationSelectionHeld(token){const hold=this.#selectionHold;return !!hold&&hold.token===token&&hold.ready&&this.#held(hold)&&!this.#tasks.size&&!this.#insertionUnknown&&(!hold.session||sessionSelection.current.call(hold.session,hold.sessionToken));}
+ async fenceApplicationSelection(token){if(!this.applicationSelectionHeld(token))fail('STALE_BASE');const hold=this.#selectionHold;try{if(hold.session)await sessionSelection.fence.call(hold.session,hold.sessionToken);if(!equal(await this.#sourceSnapshot(),hold.snapshot)||!this.applicationSelectionHeld(token))fail('STALE_BASE');return true;}catch(error){hold.valid=false;throw error;}}
+ releaseApplicationSelection(token){const hold=this.#selectionHold;if(hold?.token!==token)return false;hold.valid=false;if(hold.sessionToken)sessionSelection.release.call(hold.session,hold.sessionToken);this.#selectionHold=null;return true;}
  dispose(){this.#disposed=true;this.#restrict();this.api.storage?.onChanged?.removeListener(this.storage);this.consent.dispose();this.session?.dispose();this.lease.dispose();this.hosts.clear();this.views.clear();this.clearActivations();}
 }

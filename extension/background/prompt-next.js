@@ -12,9 +12,13 @@ const supported=url=>{try{const u=new URL(url);return u.origin==='https://chatgp
 const validBinding=b=>own(b,['url','conversation','cycle','replyId','revision'])&&supported(b.url)&&b.conversation===new URL(b.url).pathname&&Number.isSafeInteger(b.cycle)&&b.cycle>0&&Number.isSafeInteger(b.revision)&&b.revision>=0&&typeof b.replyId==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$/.test(b.replyId);
 const fail=(code='FORBIDDEN')=>{throw new ArchiveError(code);};
 export class NextPromptCommands{
+ #selectionSource;
  #insertions=new WeakMap();
  #tasks=new Set();#admissions=new Set();#selectionHold=null;#admission=0;#authorizationEpoch=0;#disposed=false;#insertionUnknown=false;
- constructor(service,api,surface){this.service=service;this.api=api;this.surface=surface;this.instance=crypto.randomUUID();this.groups=new Map();this.serial=0;this.changing=false;this.tail=Promise.resolve();this.offers=new Map();}
+ constructor(service,api,surface){this.service=service;this.api=api;this.surface=surface;this.#selectionSource={service,store:service?.s,api,surface};this.instance=crypto.randomUUID();this.groups=new Map();this.serial=0;this.changing=false;this.tail=Promise.resolve();this.offers=new Map();}
+ // Identity is fixed at original construction, not refreshed from mutable
+ // public fields when a later coordinator asks for source settlement.
+ applicationSelectionSourceIs(store){const source=this.#selectionSource;return !this.#disposed&&source.store===store&&this.service===source.service&&this.service?.s===source.store&&this.api===source.api&&this.surface===source.surface;}
  #track(task,admission=null){this.#tasks.add(task);const done=()=>{this.#tasks.delete(task);if(admission)this.#admissions.delete(admission);};void task.then(done,done);return task;}
  #admit(tabId=null){if(this.#disposed||this.#selectionHold)fail();const admission={generation:this.#admission,tabId,valid:true};if(Number.isInteger(tabId))this.#admissions.add(admission);return admission;}
  #assertAdmission(admission){if(this.#disposed||this.#selectionHold||!admission.valid||admission.generation!==this.#admission)fail();}

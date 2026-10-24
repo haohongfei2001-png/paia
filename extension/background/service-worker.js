@@ -1,5 +1,6 @@
 import {createApplicationEditorGuard} from './application-editor-guard.js';
-import {createApplicationSelectionCommands} from './application-selection-commands.js';
+import {createApplicationWorkerCoordination} from './application-worker-coordination.js';
+import {createApplicationSelectionCommands,assertApplicationWorkerAdmission,createApplicationWorkerActivity} from './application-selection-commands.js';
 import {createConfiguredSyncLifecycle,syncLifecycleError} from './sync-local-lifecycle.js';
 import {MaintenanceProcessingCommands,configureMaintenanceProcessingSource} from './maintenance-processing-commands.js';
 import {createAIFilterRuntime} from './ai-filter-commands.js';
@@ -62,11 +63,18 @@ import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.j
 import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
 let syncSuspended=false;
+let applicationWorkerCoordination;
 let store,syncLifecycle,maintenanceProcessing,maintenanceConfiguration,maintenanceRunner,contextConnections,localScopePreviewCapability,contextScopePreview,thoughtLibraryRead,sectionPromotion,thoughtSectionReading,promptReuse,archiveArrival,promptSurface,promptNext,promptAssist,legacyUsage,passport,revisit,readerState,sourceStructure,archiveNavigation,archiveOriginal,archiveOrderPreference,sourceOrderRegistry,originalOrganizer,organizeConfiguration,organizeActionSource,aiOrganizer,boundedOrganizer,onboarding,integrity,memory,contextTopics,contextCards,backups,imports,runner,safety,libraryRunner;
 const startupEvents=createApplicationStartupEvents(chrome);
 const aiFilterRuntime=createAIFilterRuntime(chrome,{getStore:()=>store,policy:readAIFilterPolicyConfiguration()});
 async function initializeApplicationServices(){
 store=await selectOriginalApplicationStore(chrome.storage.local,{aiFilterAuthority:aiFilterRuntime.authority});
+// Default selection returns the original unopened Store. Recover its original
+// publication, then establish its real database/control identity before any
+// owner captures an immutable birth binding. Never refresh an owner's binding
+// after construction to adopt a replacement generation.
+await store.recoverControlPublication();
+await store.status();
 maintenanceProcessing=new MaintenanceProcessingCommands(store,startupEvents);
 maintenanceConfiguration=aiFilterRuntime.configureService(configureMaintenanceProcessingSource(maintenanceProcessing,store,readMaintenanceServiceConfiguration(store)),readMaintenanceIdentityCurrentnessEndpoint());
 maintenanceRunner=createMaintenanceRunner(store,maintenanceConfiguration);
@@ -104,12 +112,15 @@ contextTopics=new ContextTopicAccessService(store);
 contextCards=new ContextCardsService(store,{topicSummary:(t,epoch)=>contextTopics.summaryInTransaction(t,epoch)});
 backups=new BackupService(store,{appVersion:chrome.runtime.getManifest().version});
 imports= new ImportHandler(store,chrome.runtime);
-runner=new FilterRunner(store,{changed:()=>{void runtime.sendMessage?.({type:'ARCHIVE_CHANGED'}).catch(()=>{});}});
+runner=new FilterRunner(store,{changed:()=>{void trackApplicationWork(runtime.sendMessage?.({type:'ARCHIVE_CHANGED'})).catch(()=>{});}});
 safety=new SafetyRunner(store);
 libraryRunner=new LibraryRunner(store);
+// Real original instances only. No command consumes a source hold until an
+// admitted global selection contract exists; construction grants no readiness.
+applicationWorkerCoordination=createApplicationWorkerCoordination({store,safety,libraryRunner,filterRunner:runner,maintenanceRunner,contextConnections,promptAssist,promptNext,promptCommands:promptReuse,promptSurface});
 }
-chrome.tabs?.onRemoved?.addListener(id=>{void ready.then(()=>{promptSurface.removeTab(id);promptNext.removeTab(id);promptAssist.removeTab(id);archiveArrival.removeTab(id);}).catch(()=>{});});
-chrome.tabs?.onUpdated?.addListener((id,change)=>{void ready.then(()=>{if(change.url||change.status==='loading'){promptNext.removeTab(id);promptAssist.removeTab(id);}archiveArrival.changedTab(id,change);}).catch(()=>{});});
+chrome.tabs?.onRemoved?.addListener(id=>{void trackApplicationWork(ready.then(()=>{promptSurface.removeTab(id);promptNext.removeTab(id);promptAssist.removeTab(id);archiveArrival.removeTab(id);}).catch(()=>{}));});
+chrome.tabs?.onUpdated?.addListener((id,change)=>{void trackApplicationWork(ready.then(()=>{if(change.url||change.status==='loading'){promptNext.removeTab(id);promptAssist.removeTab(id);}archiveArrival.changedTab(id,change);}).catch(()=>{}));});
 // Missing new suggestion preferences are off; installation/update never resets a user preference.
 let recoveryDrafts=null;
 const recoveryDraftStore=()=>recoveryDrafts??=new RecoveryDraftStore(chrome.storage.local);
@@ -154,50 +165,54 @@ const UPDATE_STATE_KEY='paia-consumer-update:v1';
 // never force a worker reload while an archive page may have unsaved edits.
 chrome.runtime.onUpdateAvailable?.addListener(details=>{
   if(typeof details?.version!=='string')return;
-  void ready.then(()=>chrome.storage.local.set({[UPDATE_STATE_KEY]:{
+  void trackApplicationWork(ready.then(()=>chrome.storage.local.set({[UPDATE_STATE_KEY]:{
     state:'available',fromVersion:chrome.runtime.getManifest().version,toVersion:details.version,at:Date.now(),
-  }})).catch(()=>{});
+  }})).catch(()=>{}));
 });
 chrome.runtime.onInstalled?.addListener(details=>{
   if(details?.reason!=='update')return;
-  void ready.then(()=>chrome.storage.local.set({[UPDATE_STATE_KEY]:{
+  void trackApplicationWork(ready.then(()=>chrome.storage.local.set({[UPDATE_STATE_KEY]:{
     state:'installed',fromVersion:details.previousVersion||null,toVersion:chrome.runtime.getManifest().version,at:Date.now(),
-  }})).catch(()=>{});
+  }})).catch(()=>{}));
 });
 // ChatGPT source ordering remains unavailable until a live provider contract is certified.
 // No credential reader or direct provider is constructed by this worker.
 const unavailableSession={get:async()=>{throw new ArchiveError('UNAVAILABLE');},set:async()=>{throw new ArchiveError('UNAVAILABLE');},remove:async()=>{throw new ArchiveError('UNAVAILABLE');}};
 const privacySession=chrome.storage.session||unavailableSession;
-chrome.runtime.onConnect?.addListener(port=>{if(port.name==='official-export-session')port.onDisconnect.addListener(()=>{void ready.then(()=>imports.disconnect(port.sender)).catch(()=>{});});});
-chrome.runtime.onConnect?.addListener(port=>{if(port.name.startsWith('bounded-organizer:')&&isExtensionPage(port.sender)){const id=port.name.slice('bounded-organizer:'.length);port.onDisconnect.addListener(()=>{void ready.then(()=>{if(boundedOrganizer.currentId===id&&boundedOrganizer.running)return boundedOrganizer.stop();}).catch(()=>{});});}});
+chrome.runtime.onConnect?.addListener(port=>{if(port.name==='official-export-session')port.onDisconnect.addListener(()=>{void trackApplicationWork(ready.then(()=>imports.disconnect(port.sender)).catch(()=>{}));});});
+chrome.runtime.onConnect?.addListener(port=>{if(port.name.startsWith('bounded-organizer:')&&isExtensionPage(port.sender)){const id=port.name.slice('bounded-organizer:'.length);port.onDisconnect.addListener(()=>{void trackApplicationWork(ready.then(()=>{if(boundedOrganizer.currentId===id&&boundedOrganizer.running)return boundedOrganizer.stop();}).catch(()=>{}));});}});
 // Fail closed if storage isolation cannot be established; never expose records
 // directly to a content script, including the brief worker-startup period.
 const applicationIsolation=chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
-const ready = applicationIsolation.then(initializeApplicationServices).then(()=>store.recoverControlPublication()).then(async()=>{syncLifecycle=await createConfiguredSyncLifecycle(store,chrome);await syncLifecycle.attachPromptService(promptReuse.service);await syncLifecycle.attachContextService(contextCards);if(syncSuspended)syncLifecycle.suspend();});
+const ready = applicationIsolation.then(initializeApplicationServices).then(async()=>{syncLifecycle=await createConfiguredSyncLifecycle(store,chrome);await syncLifecycle.attachPromptService(promptReuse.service);await syncLifecycle.attachContextService(contextCards);if(syncSuspended)syncLifecycle.suspend();});
 const applicationEditors=createApplicationEditorGuard(chrome);
+const applicationWorkerActivity=createApplicationWorkerActivity({remaining:()=>[safety?.running,libraryRunner?.running,runner?.running]});
+function trackApplicationWork(task){return applicationWorkerActivity.track(task);}
 chrome.runtime.onConnect?.addListener(port=>applicationEditors.connect(port));
 const applicationSelection=createApplicationSelectionCommands(chrome,{isolated:()=>applicationIsolation,ready:()=>ready,lifecycle:()=>syncLifecycle});
 const privacyReady=Promise.resolve(privacySession.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'}));
 privacyReady.catch(()=>{});
 ready.catch(() => {});
+trackApplicationWork(ready).catch(()=>{});
 // Register synchronously; startup only reconciles local receipts, never unknown IO.
-chrome.runtime.onStartup?.addListener(()=>{void ready.then(()=>syncLifecycle.reconcile()).catch(()=>{});});
+chrome.runtime.onStartup?.addListener(()=>{void trackApplicationWork(ready.then(()=>syncLifecycle.reconcile()).catch(()=>{}));});
 chrome.runtime.onSuspend?.addListener(()=>{syncSuspended=true;syncLifecycle?.suspend();applicationSelection.close();});
-chrome.runtime.onSuspendCanceled?.addListener(()=>{syncSuspended=false;void ready.then(()=>syncLifecycle.resumeAfterSuspend()).catch(()=>{});});
+chrome.runtime.onSuspendCanceled?.addListener(()=>{syncSuspended=false;void trackApplicationWork(ready.then(()=>syncLifecycle.resumeAfterSuspend()).catch(()=>{}));});
 installCaptureRecovery(chrome, ready);
 // Register lifecycle listeners synchronously; the fixed facade reaches the one
 // selected owner only after initialization. It grants no store/writer capability.
 installContextConnectionLifecycle({
- resumeAuthorized:()=>ready.then(()=>contextConnections.resumeAuthorized()),
+ resumeAuthorized:()=>trackApplicationWork(ready.then(()=>contextConnections.resumeAuthorized())),
  // A worker suspended before initialization has no live connection to checkpoint.
  // Do not promise deferred suspension work that Chrome may never execute.
- checkpointForSuspend:()=>contextConnections?contextConnections.checkpointForSuspend():Promise.resolve({state:'uninitialized'}),
- resumeAfterSuspend:()=>contextConnections?contextConnections.resumeAfterSuspend():Promise.resolve({resumed:0}),
- dispose:()=>{void ready.then(()=>contextConnections.dispose()).catch(()=>{});},
+ checkpointForSuspend:()=>trackApplicationWork(contextConnections?contextConnections.checkpointForSuspend():Promise.resolve({state:'uninitialized'})),
+ resumeAfterSuspend:()=>trackApplicationWork(contextConnections?contextConnections.resumeAfterSuspend():Promise.resolve({resumed:0})),
+ dispose:()=>{void trackApplicationWork(ready.then(()=>contextConnections.dispose()).catch(()=>{}));},
 },chrome,ready);
 const backupReady=ready.then(()=>backups.recoverSettings());backupReady.catch(()=>{});
 const originalReady=Promise.all([ready,privacyReady,backupReady]).then(()=>Promise.all([originalOrganizer.reconcileInterrupted(),aiOrganizer.reconcileInterrupted(),boundedOrganizer.reconcileInterrupted()]));
 originalReady.catch(()=>{});
+trackApplicationWork(originalReady).catch(()=>{});
 
 function isExtensionPage(sender) {
   if (sender.id !== chrome.runtime.id) return false;
@@ -213,6 +228,7 @@ function isChatGPTContent(sender) {
 
 async function handle(request, sender) {
   if(typeof request?.type==='string'&&request.type.startsWith('PAIA_GENERATION_'))return applicationSelection.handle(request,sender);
+  assertApplicationWorkerAdmission(applicationEditors,request,sender);
   if(request?.type==='PAIA_SYNC_STATUS'&&applicationSelection.enabled){
    await applicationIsolation;try{await ready;}catch(error){if(error?.code!=='GENERATION_SELECTION_PENDING')throw error;}
    const view=syncLifecycle?await syncLifecycle.handle(request,sender):{version:1,state:'unavailable',reason:'provider-not-configured',productionActivation:false};
@@ -220,6 +236,8 @@ async function handle(request, sender) {
   }
   await ready;
   if (!request || typeof request.type !== 'string') throw new ArchiveError('INVALID_REQUEST');
+  // Startup awaits cannot carry an earlier admission across a newly held page.
+  assertApplicationWorkerAdmission(applicationEditors,request,sender);
   if(request.type.startsWith('PAIA_SYNC_'))return syncLifecycle.handle(request,sender);
   if(request.type.startsWith('PAIA_MAINTENANCE_PROCESSING_'))return maintenanceProcessing.handle(request,sender);
   if(request.type.startsWith('PAIA_ARCHIVE_ARRIVAL_'))return archiveArrival.handle(request,sender);
@@ -509,7 +527,7 @@ async function handle(request, sender) {
     case 'GET_LIBRARY_REMOVED': return store.removedEntries(request.options);
     case 'SEARCH_LIBRARY': return store.searchLibrary(request.options);
     case 'GET_LIBRARY_LAYOUT': return store.layoutStatus(request.id);
-    case 'RETRY_LIBRARY_MAINTENANCE': void libraryRunner.wake({retry:true});return {ok:true};
+    case 'RETRY_LIBRARY_MAINTENANCE': void trackApplicationWork(libraryRunner.wake({retry:true}));return {ok:true};
     case 'REBUILD_LIBRARY_SEARCH': return store.rebuildLibrarySearch();
     case 'CREATE_LIBRARY_ENTRY': {
       const r=request.entry;
@@ -558,18 +576,28 @@ async function handle(request, sender) {
 }
 
 const runtime=chrome.runtime;
-let importNotification;
+let importNotification=null;
 function notifyArchiveChanged(type){
- const send=()=>{importNotification=null;return Promise.resolve(chrome.runtime.sendMessage?.({type:'ARCHIVE_CHANGED',cause:type})).catch(()=>{});};
- if(type==='IMPORT_COMMIT'){if(!importNotification)importNotification=setTimeout(()=>{void send();},500);return Promise.resolve();}
- if(importNotification)clearTimeout(importNotification);return send();
+ const send=cause=>trackApplicationWork(Promise.resolve(chrome.runtime.sendMessage?.({type:'ARCHIVE_CHANGED',cause})).catch(()=>{}));
+ if(type==='IMPORT_COMMIT'){
+  if(!importNotification){
+   let settle;const pending=new Promise(resolve=>settle=resolve);
+   const notification={timer:null,settle};importNotification=notification;trackApplicationWork(pending);
+   notification.timer=setTimeout(()=>{if(importNotification===notification)importNotification=null;void send(type).finally(settle);},500);
+  }
+  return Promise.resolve();
+ }
+ // Coalescing a timer does not lose its accepted publication tail. The original
+ // pending promise settles only after the replacement notification completes.
+ const previous=importNotification;importNotification=null;if(previous)clearTimeout(previous.timer);
+ const result=send(type);if(previous)void result.finally(previous.settle);return result;
 }
 function notifySourceStructureChanged(){
- return Promise.resolve(chrome.runtime.sendMessage?.({type:'SOURCE_STRUCTURE_CHANGED'})).catch(()=>{});
+ return trackApplicationWork(Promise.resolve(chrome.runtime.sendMessage?.({type:'SOURCE_STRUCTURE_CHANGED'})).catch(()=>{}));
 }
 // Original Organizer is cost-gated: capture, startup, timers, and rerenders may
 // maintain local state but can never dispatch its remote provider.
-const scheduleFilter=(options)=>Promise.all([safety.wake(options),libraryRunner.wake(options),runner.wake(options)]);
+const scheduleFilter=(options)=>trackApplicationWork(Promise.all([safety.wake(options),libraryRunner.wake(options),runner.wake(options)]));
 // Only original successful semantic-write messages offer an opportunity. Reads,
 // settings, source metadata and duplicate capture never spend an accumulated
 // Maintenance window. The session still proves actual eligible delta/consent.
@@ -585,7 +613,8 @@ const maintenanceMutation=(request,data)=>{
  return true;
 };
 let maintenanceOpportunity=null;
-const scheduleMaintenance=(local=ready.then(()=>scheduleFilter()))=>{
+const scheduleMaintenance=(local=trackApplicationWork(ready.then(()=>scheduleFilter())))=>{
+ trackApplicationWork(local);
  // Coalescing optional remote work must not skip ordinary local maintenance
  // for writes arriving while the earlier opportunity is still in flight.
  if(maintenanceOpportunity){void local.catch(()=>{});return maintenanceOpportunity;}
@@ -596,19 +625,19 @@ const scheduleMaintenance=(local=ready.then(()=>scheduleFilter()))=>{
   if(safety.failed||libraryRunner.failed||runner.failed)return;
   return maintenanceRunner.wake();
  }).catch(()=>{});
- maintenanceOpportunity=task;
+ maintenanceOpportunity=task;trackApplicationWork(task);
  void task.finally(()=>{if(maintenanceOpportunity===task)maintenanceOpportunity=null;});
  return task;
 };
 const localToolRequest=type=>['PAIA_MAINTENANCE_PROCESSING_STATUS','PAIA_MAINTENANCE_PROCESSING_CONFIGURE'].includes(type)||type==='PAIA_LIBRARY_SECTION_PROMOTION'||['PAIA_SETTINGS_AI_STYLE','PAIA_SETTINGS_UPDATE_STATUS','GET_LIBRARY_ROOT_PROJECTION','GET_LIBRARY_ROOT_PREVIEWS','GET_LIBRARY_SECTION_PROJECTION','GET_LIBRARY_SECTION_READING','GET_LIBRARY_TOPIC_READING_METADATA'].includes(type)||type.startsWith('PAIA_PROMPT_')||type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
 const startupMaintenance=()=>{void scheduleMaintenance();};
 runtime.onStartup?.addListener(startupMaintenance);
-runtime.onInstalled?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
+runtime.onInstalled?.addListener(()=>{void trackApplicationWork(ready.then(()=>scheduleFilter()).catch(()=>{}));});
 // Startup may reconcile an unknown prior outcome, but it never dispatches Original.
 if(runtime.onStartup)startupMaintenance();
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  handle(request, sender)
+  const accepted=handle(request, sender)
     .then(async data => {
       if(request.type.startsWith('PAIA_GENERATION_')){sendResponse({ok:true,data});return;}
       if(request.type.startsWith('PAIA_SYNC_')){
@@ -620,15 +649,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if(request.type==='PURGE_SOURCE')await notifyArchiveChanged(request.type);
       if(['PAIA_CONTEXT_CARDS_CHANGE','PAIA_CONTEXT_TOPICS_CHANGE'].includes(request.type)&&data?.ok===true)await promptAssist.contextChanged();
       sendResponse({ ok: true, data });
-      if(request.type==='CONSENT'||request.type==='UPDATE_PREFERENCES'&&data?.ok===true&&['appearance','language'].some(key=>Object.hasOwn(request.changes||{},key)))void chrome.tabs.query({url:'https://chatgpt.com/*'}).then(tabs=>Promise.allSettled(tabs.filter(t=>!t.incognito).map(t=>chrome.tabs.sendMessage(t.id,{type:'PAIA_PROMPT_SURFACE_ACTIVATE',...(request.type==='UPDATE_PREFERENCES'?{reason:'display-preferences'}:{})},{frameId:0})))).catch(()=>{});
+      if(request.type==='CONSENT'||request.type==='UPDATE_PREFERENCES'&&data?.ok===true&&['appearance','language'].some(key=>Object.hasOwn(request.changes||{},key)))void trackApplicationWork(chrome.tabs.query({url:'https://chatgpt.com/*'}).then(tabs=>Promise.allSettled(tabs.filter(t=>!t.incognito).map(t=>chrome.tabs.sendMessage(t.id,{type:'PAIA_PROMPT_SURFACE_ACTIVATE',...(request.type==='UPDATE_PREFERENCES'?{reason:'display-preferences'}:{})},{frameId:0})))).catch(()=>{}));
       if(request.type==='OBSERVE_SOURCE_STRUCTURE'&&data?.event===true)void notifySourceStructureChanged();
-      if(['PAIA_CONTEXT_CARDS_CHANGE','PAIA_CONTEXT_TOPICS_CHANGE'].includes(request.type)&&data?.ok===true)void chrome.runtime.sendMessage?.({type:'PAIA_CONTEXT_CARDS_CHANGED'}).catch(()=>{});
-      if(request.type==='PAIA_PROMPT_CHANGE')void chrome.runtime.sendMessage?.({type:'PAIA_PROMPT_CHANGED'}).catch(()=>{});
-      if(isAIStyleOnlyRequest(request)&&data?.ok===true&&data.changed===true)void chrome.runtime.sendMessage?.({type:'PAIA_SETTINGS_AI_STYLE_CHANGED'}).catch(()=>{});
+      if(['PAIA_CONTEXT_CARDS_CHANGE','PAIA_CONTEXT_TOPICS_CHANGE'].includes(request.type)&&data?.ok===true)void trackApplicationWork(chrome.runtime.sendMessage?.({type:'PAIA_CONTEXT_CARDS_CHANGED'})).catch(()=>{});
+      if(request.type==='PAIA_PROMPT_CHANGE')void trackApplicationWork(chrome.runtime.sendMessage?.({type:'PAIA_PROMPT_CHANGED'})).catch(()=>{});
+      if(isAIStyleOnlyRequest(request)&&data?.ok===true&&data.changed===true)void trackApplicationWork(chrome.runtime.sendMessage?.({type:'PAIA_SETTINGS_AI_STYLE_CHANGED'})).catch(()=>{});
       if(request.type==='SET_THOUGHT_REVERSE_EDIT')notifyArchiveChanged(request.type);
-      if(['PAIA_READER_CONFIGURE','PAIA_READER_CAPTURE_SCOPE'].includes(request.type))void chrome.runtime.sendMessage?.({type:'PAIA_READER_POLICY_CHANGED'}).catch(()=>{});
+      if(['PAIA_READER_CONFIGURE','PAIA_READER_CAPTURE_SCOPE'].includes(request.type))void trackApplicationWork(chrome.runtime.sendMessage?.({type:'PAIA_READER_POLICY_CHANGED'})).catch(()=>{});
       if(maintenanceMutation(request,data)){
-        const local=ready.then(()=>scheduleFilter());
+        const local=trackApplicationWork(ready.then(()=>scheduleFilter()));
         if(maintenanceRunner.consumeSemanticWrite(data))void scheduleMaintenance(local);
         else void local.catch(()=>{});
       }
@@ -636,6 +665,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if(request.type!=='PURGE_SOURCE'&&archiveMutation&&!isAIStyleOnlyRequest(request)&&!localToolRequest(request.type)&&!['PAIA_MEMORY_STATUS','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_MEMORY_ENTRIES'].includes(request.type)&&!request.type.startsWith('PAIA_INTEGRITY_')&&!['PAIA_BACKUP_BEGIN_EXPORT','PAIA_BACKUP_EXPORT_PAGE','PAIA_BACKUP_BEGIN_RESTORE','PAIA_BACKUP_STAGE','PAIA_BACKUP_PREVIEW','PAIA_BACKUP_CANCEL','GET_BOUNDED_ORGANIZER','GET_LIBRARY_REMOVED_TOPICS','GET_LIBRARY_REMOVED_PLACEMENTS','GET_LIBRARY_RENAME_SUGGESTIONS','GET_LIBRARY_MERGE_SUGGESTIONS','GET_ORGANIZER_CONTROLS','GET_AI_PRESENTATION_REVISIONS','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME','GET_AI_PRESENTATION_STATUS','GET_ORIGINAL_ORGANIZER_STATUS','GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK','LIBRARY_UPDATES','LIBRARY_ORGANIZER_JOBS','GET_LIBRARY_UNPLACED','GET_LIBRARY_PLACEMENT','LIBRARY_INDEX_PAGE','GET_LIBRARY_ROOT_SEARCH','TOPIC_DOCUMENT_PAGE','GET_LIBRARY_TOPIC_TIMELINE','GET_LIBRARY_TOPIC','GET_LIBRARY_ENTRY','GET_LIBRARY_PATHS','GET_LIBRARY_PROVENANCE','GET_LIBRARY_REMOVED','SEARCH_LIBRARY','GET_LIBRARY_LAYOUT','GET_LIBRARY_FOUNDATION_STATUS','GET_LIBRARY_DUAL_VIEW_STATUS','PREVIEW_AI_LIBRARY_UPDATE','FILTER_DIAGNOSTICS','FILTER_STATUS','FILTER_NOTICE','FILTER_RECENT','SEARCH_INPUTS','GET_INPUT','GET_IA_STATUS','GET_REVISIONS','GET_THOUGHTS','GET_THOUGHT','GET_STATUS','GET_STATE','GET_PAGE','GET_MIGRATION_STATUS','RESPONSE_POLL','RESPONSE_VIEW','RESPONSE_ARM','DIAGNOSTIC','GET_ONBOARDING','SET_ONBOARDING','IMPORT_LATEST','IMPORT_CANCEL','IMPORT_CAPABILITIES','IMPORT_TASKS','IMPORT_STATUS','IMPORT_BEGIN','IMPORT_PREFLIGHT','IMPORT_READY','IMPORT_PAUSE'].includes(request.type))notifyArchiveChanged(request.type);
     })
     .catch(error => sendResponse({ ok: false, ...(['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)?{phase:'message_handler'}:{}), ...(request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&error?.phase==='promotion_not_confirmed'?{phase:'promotion_not_confirmed'}:{}), error: typeof request?.type==='string'&&request.type.startsWith('PAIA_SYNC_')?syncLifecycleError(error):request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&['BNS_GROUP_OWNER_UNSUPPORTED','BNS_HUMAN_UNSUPPORTED_MUTATION'].includes(error?.code)?error.code:typeof request?.type==='string' && request.type.startsWith('IMPORT_') ? safeImportError(error) : ['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)&&!(error instanceof ArchiveError)?'INTERNAL_RUNTIME_ERROR':safeErrorCode(error) }));
+  trackApplicationWork(accepted);
   return true;
 });
 

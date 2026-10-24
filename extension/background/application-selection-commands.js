@@ -28,3 +28,26 @@ export function createApplicationSelectionCommands(api,{isolated,ready,lifecycle
   }finally{busy=false;}
  }});
 }
+
+// Worker ingress is denied before every early dispatcher while the original
+// page guard holds that sender. Only audited observation/restriction commands
+// remain reachable; their original owners still validate all fields and callers.
+// No prefix (including GET/STATUS) grants a blanket bypass to future commands.
+const selectionObservations=new Set(['GET_STATUS','RESPONSE_POLL','PAIA_SYNC_STATUS','PAIA_GENERATION_STATUS','PAIA_MAINTENANCE_PROCESSING_STATUS','PAIA_AI_FILTER_STATUS','PAIA_CONTEXT_CONNECTIONS_STATUS','PAIA_PROMPT_ASSIST_STATUS','PAIA_PROMPT_NEXT_STATUS','PAIA_PROMPT_SURFACE_SETTINGS_STATUS','IMPORT_CAPABILITIES','IMPORT_LATEST','IMPORT_TASKS','IMPORT_STATUS']);
+const selectionRestrictions=new Set(['PAIA_SYNC_PAUSE','PAIA_SYNC_DISCONNECT','PAIA_PROMPT_ASSIST_INVALIDATE','PAIA_PROMPT_NEXT_INVALIDATE','PAIA_PROMPT_SURFACE_REQUEST_CLOSE','IMPORT_PAUSE','IMPORT_CANCEL','PAIA_BACKUP_CANCEL','PAIA_INTEGRITY_CANCEL','STOP_BOUNDED_ORGANIZER','STOP_AI_PRESENTATION','STOP_ORIGINAL_LIBRARY_VIEW','PAIA_PASSPORT_REVOKE','PAIA_PASSPORT_REVOKE_ALL']);
+export function assertApplicationWorkerAdmission(editors,request,sender){
+ const type=request?.type;
+ const restriction=selectionRestrictions.has(type)||type==='CONSENT'&&request.accepted===false||type==='SET_ENABLED'&&request.enabled===false||type==='PAIA_PROMPT_NEXT_CONFIGURE'&&request.enabled===false||type==='PAIA_MAINTENANCE_PROCESSING_CONFIGURE'&&request.enabled===false||type==='PAIA_PROMPT_ASSIST_CONFIGURE'&&(request.replyAccess===false&&request.remoteProcessing===false)||type==='PAIA_AI_FILTER_CONFIGURE'&&(request.optIn===false&&request.remoteProcessing===false)||type==='PAIA_CONTEXT_CONNECTIONS_CHANGE'&&['pause','revoke'].includes(request.options?.action)||type==='PAIA_PROMPT_SURFACE_RPC'&&(['assist_cancel','assist_dismiss'].includes(request.command?.type)||request.command?.type==='close'&&Object.keys(request.command).length===1);
+ if(!selectionObservations.has(type)&&!restriction&&editors.blocksMutation(sender))fail('GENERATION_EDITOR_PROTECTION_REQUIRED');
+}
+// Observe actual accepted worker promises, including successors added before a
+// predecessor settles. Draining is not admission control, an owner receipt, a
+// host/provider witness, or a global selection permit. A future admitted
+// consumer must first acquire the real ingress/owner holds and revalidate them.
+export function createApplicationWorkerActivity({remaining=()=>[]}={}){
+ const tasks=new Set();let revision=0;
+ const track=value=>{const task=Promise.resolve(value);tasks.add(task);revision++;const done=()=>{tasks.delete(task);revision++;};void task.then(done,done);return task;};
+ return Object.freeze({track,async drain(){
+  for(;;){const at=revision,pending=[...tasks,...remaining()].filter(Boolean);if(pending.length){await Promise.allSettled(pending);continue;}await Promise.resolve();if(at===revision&&!tasks.size&&!remaining().filter(Boolean).length)return;}
+ }});
+}
