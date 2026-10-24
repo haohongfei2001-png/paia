@@ -1,0 +1,27 @@
+✔ original untouched Human pending queue remains a complete grouped checkpoint input (191.72096ms)
+✔ original grouped exporter refuses a missing entry search locator before publishing (76.383379ms)
+✔ original grouped exporter refuses a missing topic search locator before publishing (82.418599ms)
+✔ original grouped exporter refuses a missing section search locator before publishing (73.464194ms)
+✔ an entirely absent Human queue is not an empty complete pending cut (77.328584ms)
+✔ original pending-only scope still refuses same-count foreign owner (72.314878ms)
+✔ original pending-only scope still refuses wrong version (70.675786ms)
+✔ original pending-only scope still refuses partial phase (61.107472ms)
+✔ original pending-only scope still refuses nonzero offset (61.458129ms)
+✔ original pending-only scope still refuses extra field (73.769779ms)
+✔ original pending-only scope still refuses unowned migration row (53.807871ms)
+✔ real removed Human owner retains its mandatory pending locator (131.874568ms)
+✔ real partially written search is not reclassified as untouched pending search (80.203511ms)
+✔ real completed search is not reclassified as untouched pending search (128.204291ms)
+✔ a same-transaction missing locator rejects and rolls every store back (67.93319ms)
+✔ existing source-linked Human pending locator keeps its original source IDs (91.466154ms)
+✔ existing source-linked Human pending locator cannot disappear (82.075811ms)
+✔ real Saved partition does not inflate Human completeness (132.077464ms)
+✔ real Saved partition cannot substitute for the missing Human locator (117.122721ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2074.948606

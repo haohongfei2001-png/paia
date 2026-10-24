@@ -1,0 +1,20 @@
+Commit: eeebc743e146a5fb622f18bc5dab8e98b4e86682
+Parent: f0f7e072d945581216d2c93fe62f38a73cc2205f
+
+commit eeebc743e146a5fb622f18bc5dab8e98b4e86682
+Author:     Codex <codex@openai.com>
+AuthorDate: Fri Oct 23 17:17:11 2026 -0700
+Commit:     Codex <codex@openai.com>
+CommitDate: Fri Oct 23 17:17:11 2026 -0700
+
+    Require complete Human pending-search locators
+
+ .../browser-native-sync/human-library-scope.js     |  8 +-
+ .../tests/human-scope-search-completeness.test.mjs | 90 ++++++++++++++++++++++
+ 2 files changed, 97 insertions(+), 1 deletion(-)
+
+Worktree status (empty is clean):
+
+Runtime/test SHA256:
+72f3c2e3dac4e09077854ba18b89f1b03288387234f7b0103144831db442a839  extension/core/browser-native-sync/human-library-scope.js
+f8da36492dd988c737697bbf9a874112c792849720f82b5c342de3f5257c7029  extension/tests/human-scope-search-completeness.test.mjs

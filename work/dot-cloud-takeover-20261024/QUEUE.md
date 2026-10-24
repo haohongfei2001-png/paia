@@ -45,5 +45,5 @@ Do not publish an old generated package as current. Final delivery requires exac
 ## Continuing packages after C/Q
 
 - Assist original task settlement: original background/session owners; implementation begins, no financial UNKNOWN rewrite or global activation unlock.
-- Human locator completeness: original non-native scope reproduced missing Entry/Topic/Section locators accepted by grouped export; original negative 1/4 retained, implementation in progress. Native-linked guard remains unchanged.
+- Human locator completeness: original non-native scope reproduced missing Entry/Topic/Section locators accepted by grouped export; original negative 1/4 retained; implemented, independently code-reviewed, new owning 19/19 and original regressions 52/52, combined C/Q/H 217/217. Native-linked guard remains unchanged.
 - Recovery tail integration remains blocked on original native/compiler cumulative meter propagation. Earlier local passes are not final qualification; reviewer-found control-read accounting gap must be fixed, not disclosed away.

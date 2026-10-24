@@ -135,7 +135,13 @@ export async function requireHumanScope(store,t,scope){
  // Only untouched original search queue locators are admitted in this first
  // group seam. Indexed/posting/projection qualification remains a separate
  // actual-owner design; no arbitrary derivative store is exempted.
- if(await t.count('librarySearchTerms'))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');for(const row of await readGroupRows(t,'libraryMigrationItems')){const saved=originalSavedHumanScopePartition(scope,store);if(saved?.entries.includes(row.ownerId))continue;const owner=p.rows[row.ownerKind]?.find(item=>item.id===row.ownerId);if(!owner||!['entry','topic','section'].includes(row.ownerKind)||!equal(row,{id:JSON.stringify(['search',row.ownerKind,row.ownerId]),entityKind:'search',statusKey:0,ownerKind:row.ownerKind,ownerId:row.ownerId,version:ownerVersion(row.ownerKind,owner),phase:'delete',offset:0,sourceRecordIds:owner.sourceRecordIds??[]}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(await t.count('librarySearchTerms'))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ // This pending-only profile owes one original locator for every Human
+ // search owner, not merely valid rows for whichever locators survived.
+ // Saved has its own exact partition; do not count its rows as Human work.
+ const pending=new Set();for(const kind of ['entry','topic','section'])for(const owner of p.rows[kind])pending.add(owner);
+ for(const row of await readGroupRows(t,'libraryMigrationItems')){const saved=originalSavedHumanScopePartition(scope,store);if(saved?.entries.includes(row.ownerId))continue;const owner=p.rows[row.ownerKind]?.find(item=>item.id===row.ownerId);if(!owner||!['entry','topic','section'].includes(row.ownerKind)||!equal(row,{id:JSON.stringify(['search',row.ownerKind,row.ownerId]),entityKind:'search',statusKey:0,ownerKind:row.ownerKind,ownerId:row.ownerId,version:ownerVersion(row.ownerKind,owner),phase:'delete',offset:0,sourceRecordIds:owner.sourceRecordIds??[]})||!pending.delete(owner))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(pending.size)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  return {allowed,history:p.rows.history};
 }
 export async function requireHumanCurrentGroupScope(store,t,scope,plan){

@@ -1,0 +1,71 @@
+✔ original untouched Human pending queue remains a complete grouped checkpoint input (183.527541ms)
+✖ original grouped exporter refuses a missing entry search locator before publishing (99.60564ms)
+✖ original grouped exporter refuses a missing topic search locator before publishing (80.448654ms)
+✖ original grouped exporter refuses a missing section search locator before publishing (79.050167ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 794.930499
+
+✖ failing tests:
+
+test at extension/tests/human-scope-search-completeness.test.mjs:26:47
+✖ original grouped exporter refuses a missing entry search locator before publishing (99.60564ms)
+  AssertionError [ERR_ASSERTION]: a missing required locator must not be admitted
+  + actual - expected
+  
+  + undefined
+  - 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-human-search/extension/tests/human-scope-search-completeness.test.mjs:29:52)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'BNS_GROUP_CANONICAL_UNREPRESENTED',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/human-scope-search-completeness.test.mjs:26:47
+✖ original grouped exporter refuses a missing topic search locator before publishing (80.448654ms)
+  AssertionError [ERR_ASSERTION]: a missing required locator must not be admitted
+  + actual - expected
+  
+  + undefined
+  - 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-human-search/extension/tests/human-scope-search-completeness.test.mjs:29:52)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'BNS_GROUP_CANONICAL_UNREPRESENTED',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/human-scope-search-completeness.test.mjs:26:47
+✖ original grouped exporter refuses a missing section search locator before publishing (79.050167ms)
+  AssertionError [ERR_ASSERTION]: a missing required locator must not be admitted
+  + actual - expected
+  
+  + undefined
+  - 'BNS_GROUP_CANONICAL_UNREPRESENTED'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-human-search/extension/tests/human-scope-search-completeness.test.mjs:29:52)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'BNS_GROUP_CANONICAL_UNREPRESENTED',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

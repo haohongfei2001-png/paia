@@ -1,0 +1,12 @@
+✔ original untouched Human pending queue remains a complete grouped checkpoint input (166.96874ms)
+✔ original grouped exporter refuses a missing entry search locator before publishing (70.34859ms)
+✔ original grouped exporter refuses a missing topic search locator before publishing (62.134639ms)
+✔ original grouped exporter refuses a missing section search locator before publishing (55.821734ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 667.988102
