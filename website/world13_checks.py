@@ -51,6 +51,9 @@ def home(page,check,label,deep=False,out=None):
     ck(page.locator('#context [contenteditable]').count()==0,'overview exposes directories, never private body content')
     ck(page.locator('#prompt-draft').get_attribute('readonly') is not None,'animation cannot overwrite visitor-authored text')
     ck(page.locator('.p13-boundary').is_visible(),'fictional no-connection boundary visible')
+    ck(page.locator('.privacy-home img').evaluate('e=>e.complete&&e.naturalWidth>0'),'original privacy symbol decoded')
+    if page.viewport_size['width']<=700:
+        ck(page.locator('.p13-private').evaluate('e=>e.querySelector(".text-arrow").getBoundingClientRect().bottom+5<e.querySelector(".privacy-art").getBoundingClientRect().top'),'privacy text and orbit never collide')
     if page.locator('.menu-toggle').is_visible():
         b=page.locator('.menu-toggle');b.focus();page.keyboard.press('Enter');ck(page.locator('#mobile-nav').is_visible(),'keyboard opens mobile menu');page.keyboard.press('Escape');ck(not page.locator('#mobile-nav').is_visible() and b.evaluate('e=>e===document.activeElement'),'Escape restores menu focus')
     # Required content is always rendered, including the static/instant scene.
