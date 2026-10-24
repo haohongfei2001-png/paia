@@ -78,10 +78,10 @@
  reduce.addEventListener('change',()=>{if(reduce.matches){cancelAnimationFrame(raf);raf=0;stories.forEach(s=>{s.showFinal();s.el.getAnimations({subtree:true}).forEach(a=>a.finish());});}else requestView();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;last=0;stories.forEach(s=>s.el.getAnimations({subtree:true}).forEach(a=>a.pause()));}else{stories.filter(s=>s.visible&&!s.paused).forEach(s=>s.el.getAnimations({subtree:true}).forEach(a=>a.play()));schedule();}});
  // A failed static asset must leave the previous readable chapter, never blank.
- document.body.dataset.spatial14='loading';
- import('/assets/website/atelier/spatial-home.js?release=20261024-live').then(m=>m.mount()).catch(()=>{
+ document.body.dataset.spatial15='loading';
+ import('/assets/website/atelier/spatial-folio15.js?release=20261024-v15').then(m=>m.mount()).catch(()=>{
   const thought=$('#thoughts');
   if(thought.shadowRoot){thought.shadowRoot.replaceChildren(document.createElement('slot'));thought.removeAttribute('style');}
-  document.body.dataset.spatial14='fallback';
+  document.body.dataset.spatial15='fallback';
  }).finally(()=>{document.body.dataset.atelierReady='true';});
 })();
