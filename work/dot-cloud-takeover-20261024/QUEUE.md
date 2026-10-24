@@ -51,3 +51,11 @@ Do not publish an old generated package as current. Final delivery requires exac
 ## Saved restore search discovery
 
 New Saved bootstrap writes now schedule the original pending locator and prove it in the original terminal, preserving existing marker and duplicate behavior. Original empty-target-complete negative 1/2 remains; final owning26/26 and four original files98/98, independently reviewed. This fixes newly restored data, not automatic repair of already-bad historical profiles. Combined C/Q/H/R/S nineteen complete synthetic files:424/424,15366.269491ms.
+
+## Assist source-task and cold Working lifetime checkpoints
+
+Assist original command/session promises now remain tracked beyond UI races and map clearing; sticky constant-space UNKNOWN survives lost dispatch ACK and later success. This is warm source-task evidence only, not absent-session/cold insertion/provider/global proof; all selection gates remain closed. Final owning134/134 with prior failures preserved.
+
+Cold Working preparations now have an actual applications-first consumer with finally/await release, a prerequisite for later generic composition. Old Human-first refusal created zero capabilities, not a leak; reorder-without-finally is the explicitly counterfactual red. Final owning16/16, original small84/84, R36/36.
+
+Root combined thirty complete small synthetic files606/606 after correcting a sparse checkout fixture prerequisite; the original525pass/1file-import-failure log remains. This is seven scoped packages, NOT completion of seven product plans.

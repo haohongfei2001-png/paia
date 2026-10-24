@@ -1,0 +1,10 @@
+Environment: cloud synthetic only
+v24.19.0
+node --check extension/background/prompt-assist.js
+node --check extension/core/ai-usage/local-assist-session.js
+node --check extension/tests/assist-source-quiescence.test.mjs
+git diff --check e956b80e72cc6c5cf32641e22e52d8eea4799dca HEAD
+git status --porcelain
+HEAD / tree
+6cae8f63c313f0d2d041aa1d4977ba6059b317e2
+81b5de076a183a97ec8a87f749662b2d5733456f

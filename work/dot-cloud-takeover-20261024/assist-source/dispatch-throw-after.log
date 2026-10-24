@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: lost original UNKNOWN settlement acknowledgement survives original backup replacement of transient rows
+ok 1 - lost original UNKNOWN settlement acknowledgement survives original backup replacement of transient rows
+  ---
+  duration_ms: 126.767145
+  type: 'test'
+  ...
+# Subtest: hidden original server provider tail and lost settlement ACK stay unproved after transient restore
+ok 2 - hidden original server provider tail and lost settlement ACK stay unproved after transient restore
+  ---
+  duration_ms: 273.577393
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 793.4297

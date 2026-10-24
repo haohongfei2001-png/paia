@@ -1,0 +1,40 @@
+✖ actual Human preparation refusal revokes every previously prepared original Working capability (359.527943ms)
+✖ successful cold Working activation revokes its original capability only after the real owner completes (212.023034ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 871.803373
+
+✖ failing tests:
+
+test at extension/tests/working-application-lifetime.test.mjs:26:1
+✖ actual Human preparation refusal revokes every previously prepared original Working capability (359.527943ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-working-lifetime/extension/tests/working-application-lifetime.test.mjs:27:303)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'BNS_PREPARATION_REQUIRED' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/working-application-lifetime.test.mjs:29:1
+✖ successful cold Working activation revokes its original capability only after the real owner completes (212.023034ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-working-lifetime/extension/tests/working-application-lifetime.test.mjs:30:285)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'BNS_PREPARATION_REQUIRED' },
+    operator: 'rejects',
+    diff: 'simple'
+  }

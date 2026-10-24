@@ -1,0 +1,824 @@
+TAP version 13
+# Subtest: reply-only actual Foundation plan/dispatch/atomic result and ten activations share one result without fake Source
+ok 1 - reply-only actual Foundation plan/dispatch/atomic result and ten activations share one result without fake Source
+  ---
+  duration_ms: 263.316156
+  type: 'test'
+  ...
+# Subtest: remote consent separate from reply access and caller metadata cannot mint a lease
+ok 2 - remote consent separate from reply access and caller metadata cannot mint a lease
+  ---
+  duration_ms: 35.181739
+  type: 'test'
+  ...
+# Subtest: DEFER reused and expiry/dismiss/new session cannot redispatch settled evaluation
+ok 3 - DEFER reused and expiry/dismiss/new session cannot redispatch settled evaluation
+  ---
+  duration_ms: 162.012347
+  type: 'test'
+  ...
+# Subtest: unknown provider outcome and malformed response never produce result or a second attempt
+ok 4 - unknown provider outcome and malformed response never produce result or a second attempt
+  ---
+  duration_ms: 141.441092
+  type: 'test'
+  ...
+# Subtest: strict response and Unicode/aggregate byte limits reject before useful result
+ok 5 - strict response and Unicode/aggregate byte limits reject before useful result
+  ---
+  duration_ms: 0.793455
+  type: 'test'
+  ...
+# Subtest: newer reply and consent ABA invalidate old prepared/current results
+ok 6 - newer reply and consent ABA invalidate old prepared/current results
+  ---
+  duration_ms: 50.153279
+  type: 'test'
+  ...
+# Subtest: actual relevant Context permission/text changes invalidate, unrelated edit preserves result
+ok 7 - actual relevant Context permission/text changes invalidate, unrelated edit preserves result
+  ---
+  duration_ms: 158.036808
+  type: 'test'
+  ...
+# Subtest: actual ACK abort rolls metadata back, same private response settles without another dispatch
+ok 8 - actual ACK abort rolls metadata back, same private response settles without another dispatch
+  ---
+  duration_ms: 87.135947
+  type: 'test'
+  ...
+# Subtest: dispose during final ACK await rolls result/job settlement back
+ok 9 - dispose during final ACK await rolls result/job settlement back
+  ---
+  duration_ms: 65.194584
+  type: 'test'
+  ...
+# Subtest: generic facet and local resolution reject new kind, restore epoch denies result
+ok 10 - generic facet and local resolution reject new kind, restore epoch denies result
+  ---
+  duration_ms: 68.902415
+  type: 'test'
+  ...
+# Subtest: oversized complete reply is rejected rather than truncated, before a job or attempt
+ok 11 - oversized complete reply is rejected rather than truncated, before a job or attempt
+  ---
+  duration_ms: 22.58175
+  type: 'test'
+  ...
+# Subtest: reply access revocation during an external probe denies capability publication
+ok 12 - reply access revocation during an external probe denies capability publication
+  ---
+  duration_ms: 20.134405
+  type: 'test'
+  ...
+# Subtest: clock rollback invalidates leases rather than extending private lifetime
+ok 13 - clock rollback invalidates leases rather than extending private lifetime
+  ---
+  duration_ms: 30.899132
+  type: 'test'
+  ...
+# Subtest: scope permission revocation after settlement denies sensitive cached text
+ok 14 - scope permission revocation after settlement denies sensitive cached text
+  ---
+  duration_ms: 141.354093
+  type: 'test'
+  ...
+# Subtest: missing actual authority stays unavailable despite lease consent, and no local result is a financial claim
+ok 15 - missing actual authority stays unavailable despite lease consent, and no local result is a financial claim
+  ---
+  duration_ms: 29.782027
+  type: 'test'
+  ...
+# Subtest: three job kinds share one bounded semantic scan; 101 rows cause zero writes
+ok 16 - three job kinds share one bounded semantic scan; 101 rows cause zero writes
+  ---
+  duration_ms: 74.261551
+  type: 'test'
+  ...
+# Subtest: reply-only planned job is cancelled by actual gate fence despite zero dependencies
+ok 17 - reply-only planned job is cancelled by actual gate fence despite zero dependencies
+  ---
+  duration_ms: 40.510896
+  type: 'test'
+  ...
+# Subtest: lost private output after RESPONSE_RECORDED abort is not a free retry
+ok 18 - lost private output after RESPONSE_RECORDED abort is not a free retry
+  ---
+  duration_ms: 86.310335
+  type: 'test'
+  ...
+# Subtest: nine concurrent distinct reply leases are bounded after asynchronous probes
+ok 19 - nine concurrent distinct reply leases are bounded after asynchronous probes
+  ---
+  duration_ms: 35.64888
+  type: 'test'
+  ...
+# Subtest: session capacity rechecked at publication for concurrent real selected Context scopes
+ok 20 - session capacity rechecked at publication for concurrent real selected Context scopes
+  ---
+  duration_ms: 276.269628
+  type: 'test'
+  ...
+# Subtest: revocation during tab qualification stops the next metadata or sensitive reply probe
+ok 21 - revocation during tab qualification stops the next metadata or sensitive reply probe
+  ---
+  duration_ms: 133.513917
+  type: 'test'
+  ...
+# Subtest: postcommit status await cannot publish after actual selected Context revocation
+ok 22 - postcommit status await cannot publish after actual selected Context revocation
+  ---
+  duration_ms: 120.980269
+  type: 'test'
+  ...
+# Subtest: actual backup replace clears Assist transient metadata and denies old private result
+ok 23 - actual backup replace clears Assist transient metadata and denies old private result
+  ---
+  duration_ms: 99.359832
+  type: 'test'
+  ...
+# Subtest: Assist leaves real pre-existing Source, Working and human Entry bodies byte-for-byte unchanged
+ok 24 - Assist leaves real pre-existing Source, Working and human Entry bodies byte-for-byte unchanged
+  ---
+  duration_ms: 104.119194
+  type: 'test'
+  ...
+# Subtest: actual selected Context deletion and restore ABA never revive a prepared result handle
+ok 25 - actual selected Context deletion and restore ABA never revive a prepared result handle
+  ---
+  duration_ms: 129.435943
+  type: 'test'
+  ...
+# Subtest: inactive host tab refuses metadata/body probes even with both private consents
+ok 26 - inactive host tab refuses metadata/body probes even with both private consents
+  ---
+  duration_ms: 38.751971
+  type: 'test'
+  ...
+# Subtest: host tab becoming inactive during provider await denies settlement and private publication
+ok 27 - host tab becoming inactive during provider await denies settlement and private publication
+  ---
+  duration_ms: 46.565343
+  type: 'test'
+  ...
+# Subtest: sequential superseding completed replies retire private slots while durable attempts and old handles stay fenced
+ok 28 - sequential superseding completed replies retire private slots while durable attempts and old handles stay fenced
+  ---
+  duration_ms: 518.769991
+  type: 'test'
+  ...
+# Subtest: superseding replies cannot evict eight still-running private attempts to admit a ninth
+ok 29 - superseding replies cannot evict eight still-running private attempts to admit a ninth
+  ---
+  duration_ms: 484.530304
+  type: 'test'
+  ...
+# Subtest: sequential actual relevant Context revisions retire only invalid private outputs
+ok 30 - sequential actual relevant Context revisions retire only invalid private outputs
+  ---
+  duration_ms: 915.632495
+  type: 'test'
+  ...
+# Subtest: eight still-qualified DEFER results retain their slots and do not admit a ninth live selection
+ok 31 - eight still-qualified DEFER results retain their slots and do not admit a ninth live selection
+  ---
+  duration_ms: 1197.809182
+  type: 'test'
+  ...
+# Subtest: held post-key canonical retirement reads preserve identical-evaluation singleflight for two and ten callers
+ok 32 - held post-key canonical retirement reads preserve identical-evaluation singleflight for two and ten callers
+  ---
+  duration_ms: 476.232844
+  type: 'test'
+  ...
+# Subtest: bounded timeout settles an ignored-signal Assist provider and rejects late fulfilled publication
+ok 33 - bounded timeout settles an ignored-signal Assist provider and rejects late fulfilled publication
+  ---
+  duration_ms: 99.392953
+  type: 'test'
+  ...
+# Subtest: bounded timeout settles an ignored-signal Assist provider and rejects late rejected publication
+ok 34 - bounded timeout settles an ignored-signal Assist provider and rejects late rejected publication
+  ---
+  duration_ms: 108.719776
+  type: 'test'
+  ...
+# Subtest: bounded dismiss settles an ignored-signal Assist provider and rejects late fulfilled publication
+ok 35 - bounded dismiss settles an ignored-signal Assist provider and rejects late fulfilled publication
+  ---
+  duration_ms: 49.365738
+  type: 'test'
+  ...
+# Subtest: bounded dismiss settles an ignored-signal Assist provider and rejects late rejected publication
+ok 36 - bounded dismiss settles an ignored-signal Assist provider and rejects late rejected publication
+  ---
+  duration_ms: 59.475132
+  type: 'test'
+  ...
+# Subtest: bounded dispose settles an ignored-signal Assist provider and rejects late fulfilled publication
+ok 37 - bounded dispose settles an ignored-signal Assist provider and rejects late fulfilled publication
+  ---
+  duration_ms: 31.159799
+  type: 'test'
+  ...
+# Subtest: bounded dispose settles an ignored-signal Assist provider and rejects late rejected publication
+ok 38 - bounded dispose settles an ignored-signal Assist provider and rejects late rejected publication
+  ---
+  duration_ms: 33.653669
+  type: 'test'
+  ...
+# Subtest: bounded lease-revoke settles an ignored-signal Assist provider and rejects late fulfilled publication
+ok 39 - bounded lease-revoke settles an ignored-signal Assist provider and rejects late fulfilled publication
+  ---
+  duration_ms: 30.890132
+  type: 'test'
+  ...
+# Subtest: bounded lease-revoke settles an ignored-signal Assist provider and rejects late rejected publication
+ok 40 - bounded lease-revoke settles an ignored-signal Assist provider and rejects late rejected publication
+  ---
+  duration_ms: 51.058829
+  type: 'test'
+  ...
+# Subtest: Assist disposal aborts transport even when lease unsubscribe throws
+ok 41 - Assist disposal aborts transport even when lease unsubscribe throws
+  ---
+  duration_ms: 46.301459
+  type: 'test'
+  ...
+# Subtest: lease configure notifies every boundary subscriber despite unsubscribe during notification
+ok 42 - lease configure notifies every boundary subscriber despite unsubscribe during notification
+  ---
+  duration_ms: 0.458985
+  type: 'test'
+  ...
+# Subtest: lease invalidate notifies every boundary subscriber despite unsubscribe during notification
+ok 43 - lease invalidate notifies every boundary subscriber despite unsubscribe during notification
+  ---
+  duration_ms: 0.172023
+  type: 'test'
+  ...
+# Subtest: lease dispose notifies every boundary subscriber despite unsubscribe during notification
+ok 44 - lease dispose notifies every boundary subscriber despite unsubscribe during notification
+  ---
+  duration_ms: 0.091755
+  type: 'test'
+  ...
+# Subtest: revocation aborts actual Assist even if an earlier observer unsubscribes the session
+ok 45 - revocation aborts actual Assist even if an earlier observer unsubscribes the session
+  ---
+  duration_ms: 43.000252
+  type: 'test'
+  ...
+# Subtest: final actual Assist insertion handoff rejects relevant Context revocation and edit
+ok 46 - final actual Assist insertion handoff rejects relevant Context revocation and edit
+  ---
+  duration_ms: 249.081501
+  type: 'test'
+  ...
+# Subtest: actual content owner awaits strict final qualification and rechecks lifecycle before composer
+ok 47 - actual content owner awaits strict final qualification and rechecks lifecycle before composer
+  ---
+  duration_ms: 210.677058
+  type: 'test'
+  ...
+# Subtest: private content insertion fails closed for absent false or nonboolean qualification and keeps final sync guard
+ok 48 - private content insertion fails closed for absent false or nonboolean qualification and keeps final sync guard
+  ---
+  duration_ms: 0.636297
+  type: 'test'
+  ...
+# Subtest: unchanged and irrelevant Context allow actual insertion with one generation and no redispatch
+ok 49 - unchanged and irrelevant Context allow actual insertion with one generation and no redispatch
+  ---
+  duration_ms: 92.006138
+  type: 'test'
+  ...
+# Subtest: automatic intent cannot borrow a manual lease or a content-shaped automatic boolean
+ok 50 - automatic intent cannot borrow a manual lease or a content-shaped automatic boolean
+  ---
+  duration_ms: 13.109911
+  type: 'test'
+  ...
+# Subtest: automatic original private lease uses the genuine Foundation result path and mode revocation invalidates it
+ok 51 - automatic original private lease uses the genuine Foundation result path and mode revocation invalidates it
+  ---
+  duration_ms: 49.869698
+  type: 'test'
+  ...
+# Subtest: actual Assist composition is source-owned and unconfigured service fails closed
+ok 52 - actual Assist composition is source-owned and unconfigured service fails closed
+  ---
+  duration_ms: 0.882366
+  type: 'test'
+  ...
+# Subtest: actual default-off worker owner refuses page configuration and remote activation with no service
+ok 53 - actual default-off worker owner refuses page configuration and remote activation with no service
+  ---
+  duration_ms: 148.192783
+  type: 'test'
+  ...
+# Subtest: never-dispatched actual service source hold is opaque, read-only and rejects new intake
+ok 54 - never-dispatched actual service source hold is opaque, read-only and rejects new intake
+  ---
+  duration_ms: 108.150881
+  type: 'test'
+  ...
+# Subtest: original registration continuation drains after hold without a false terminal receipt
+ok 55 - original registration continuation drains after hold without a false terminal receipt
+  ---
+  duration_ms: 155.51954
+  type: 'test'
+  ...
+# Subtest: original registration continuation drains after removeTab map invalidation without a false terminal receipt
+ok 56 - original registration continuation drains after removeTab map invalidation without a false terminal receipt
+  ---
+  duration_ms: 104.323901
+  type: 'test'
+  ...
+# Subtest: preparation awaiting its initial original surface qualification cannot escape a later hold
+ok 57 - preparation awaiting its initial original surface qualification cannot escape a later hold
+  ---
+  duration_ms: 40.629296
+  type: 'test'
+  ...
+# Subtest: automatic opportunity awaiting its original reply probe remains tracked before activation exists
+ok 58 - automatic opportunity awaiting its original reply probe remains tracked before activation exists
+  ---
+  duration_ms: 48.149195
+  type: 'test'
+  ...
+# Subtest: original fire-and-forget invalidation cancellation remains pending after maps clear
+ok 59 - original fire-and-forget invalidation cancellation remains pending after maps clear
+  ---
+  duration_ms: 392.114871
+  type: 'test'
+  ...
+# Subtest: original body-free report task settles before the source hold and never redispatches
+ok 60 - original body-free report task settles before the source hold and never redispatches
+  ---
+  duration_ms: 306.524811
+  type: 'test'
+  ...
+# Subtest: lost original result-report acknowledgement stays pending and refuses source qualification
+ok 61 - lost original result-report acknowledgement stays pending and refuses source qualification
+  ---
+  duration_ms: 345.804021
+  type: 'test'
+  ...
+# Subtest: context-change notification already entered remains tracked after activation invalidation
+ok 62 - context-change notification already entered remains tracked after activation invalidation
+  ---
+  duration_ms: 48.018925
+  type: 'test'
+  ...
+# Subtest: ignored-signal private provider remains a real task after bounded run settles; UNKNOWN is preserved
+ok 63 - ignored-signal private provider remains a real task after bounded run settles; UNKNOWN is preserved
+  ---
+  duration_ms: 62.925591
+  type: 'test'
+  ...
+# Subtest: cold session reads original durable UNKNOWN rather than trusting empty private maps
+ok 64 - cold session reads original durable UNKNOWN rather than trusting empty private maps
+  ---
+  duration_ms: 51.063346
+  type: 'test'
+  ...
+# Subtest: original service dispatch UNKNOWN cannot become a source permit after its bounded wrapper settles
+ok 65 - original service dispatch UNKNOWN cannot become a source permit after its bounded wrapper settles
+  ---
+  duration_ms: 245.927618
+  type: 'test'
+  ...
+# Subtest: an exact original inserted response may settle live tasks, without claiming cold insertion proof
+ok 66 - an exact original inserted response may settle live tasks, without claiming cold insertion proof
+  ---
+  duration_ms: 331.807999
+  type: 'test'
+  ...
+# Subtest: two-second insertion uncertainty still drains original transport and never becomes confirmed by a late reply
+ok 67 - two-second insertion uncertainty still drains original transport and never becomes confirmed by a late reply
+  ---
+  duration_ms: 320.449579
+  type: 'test'
+  ...
+# Subtest: held cancel stays restrictive and invalidates the source proof
+ok 68 - held cancel stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 27.216627
+  type: 'test'
+  ...
+# Subtest: held revoke stays restrictive and invalidates the source proof
+ok 69 - held revoke stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 39.336563
+  type: 'test'
+  ...
+# Subtest: held remove-tab stays restrictive and invalidates the source proof
+ok 70 - held remove-tab stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 22.113148
+  type: 'test'
+  ...
+# Subtest: held context stays restrictive and invalidates the source proof
+ok 71 - held context stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 19.422535
+  type: 'test'
+  ...
+# Subtest: timed-out source acquisition cannot re-admit old pre-registration automatic work after release
+ok 72 - timed-out source acquisition cannot re-admit old pre-registration automatic work after release
+  ---
+  duration_ms: 55.319069
+  type: 'test'
+  ...
+# Subtest: original epoch replacement, database identity and disposal invalidate source tokens
+ok 73 - original epoch replacement, database identity and disposal invalidate source tokens
+  ---
+  duration_ms: 26.806998
+  type: 'test'
+  ...
+# Subtest: an unrelated later confirmed insertion cannot erase an earlier source insertion UNKNOWN
+ok 74 - an unrelated later confirmed insertion cannot erase an earlier source insertion UNKNOWN
+  ---
+  duration_ms: 650.494285
+  type: 'test'
+  ...
+# Subtest: unchanged original terminal receipt is required; a forged terminal label never closes missing source evidence
+ok 75 - unchanged original terminal receipt is required; a forged terminal label never closes missing source evidence
+  ---
+  duration_ms: 305.847557
+  type: 'test'
+  ...
+# Subtest: post-acquisition original report metadata replacement invalidates the exact final fence
+ok 76 - post-acquisition original report metadata replacement invalidates the exact final fence
+  ---
+  duration_ms: 219.240123
+  type: 'test'
+  ...
+# Subtest: source release never starts work itself and a genuinely new reply uses the unchanged original path
+ok 77 - source release never starts work itself and a genuinely new reply uses the unchanged original path
+  ---
+  duration_ms: 243.790682
+  type: 'test'
+  ...
+# Subtest: lost original UNKNOWN settlement acknowledgement survives original backup replacement of transient rows
+ok 78 - lost original UNKNOWN settlement acknowledgement survives original backup replacement of transient rows
+  ---
+  duration_ms: 118.466639
+  type: 'test'
+  ...
+# Subtest: hidden original server provider tail and lost settlement ACK stay unproved after transient restore
+ok 79 - hidden original server provider tail and lost settlement ACK stay unproved after transient restore
+  ---
+  duration_ms: 324.79957
+  type: 'test'
+  ...
+# Subtest: a later confirmed original dispatch cannot erase earlier lost settlement evidence
+not ok 80 - a later confirmed original dispatch cannot erase earlier lost settlement evidence
+  ---
+  duration_ms: 104.806659
+  type: 'test'
+  location: '/workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-assist/extension/tests/assist-source-quiescence.test.mjs:98:1'
+  failureType: 'testCodeFailure'
+  error: 'OUTCOME_UNKNOWN'
+  code: 'OUTCOME_UNKNOWN'
+  stack: |-
+    fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-assist/extension/core/ai-usage/contracts.js:6:52)
+    file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-assist/extension/core/ai-usage/foundation.js:249:136
+    async ArchiveRepository.transaction (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-assist/extension/core/idb-repository.js:536:319)
+    async file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-assist/extension/core/indexed-store.js:290:185
+    async file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-assist/extension/core/indexed-store.js:203:11
+  ...
+# Subtest: unproved pre-controller failure remains conservative without a cold insertion witness
+ok 81 - unproved pre-controller failure remains conservative without a cold insertion witness
+  ---
+  duration_ms: 72.694975
+  type: 'test'
+  ...
+# Subtest: Assist boundary: a cancelled automatic opportunity does not replay; a new reply follows the original prepublication boundary
+ok 82 - Assist boundary: a cancelled automatic opportunity does not replay; a new reply follows the original prepublication boundary
+  ---
+  duration_ms: 642.370868
+  type: 'test'
+  ...
+# Subtest: Assist boundary: authenticated host navigation during proof acquisition cannot reach physical provider
+ok 83 - Assist boundary: authenticated host navigation during proof acquisition cannot reach physical provider
+  ---
+  duration_ms: 103.749461
+  type: 'test'
+  ...
+# Subtest: Assist final physical-send fence rejects host navigation after the original dispatch record has committed
+ok 84 - Assist final physical-send fence rejects host navigation after the original dispatch record has committed
+  ---
+  duration_ms: 247.565294
+  type: 'test'
+  ...
+# Subtest: default source-owned signed Assist assembly selects independently granted automatic current-conversation Info
+ok 85 - default source-owned signed Assist assembly selects independently granted automatic current-conversation Info
+  ---
+  duration_ms: 1274.135598
+  type: 'test'
+  ...
+# Subtest: default source-owned signed Assist assembly refuses selected Context with no independent processing capability
+ok 86 - default source-owned signed Assist assembly refuses selected Context with no independent processing capability
+  ---
+  duration_ms: 105.169472
+  type: 'test'
+  ...
+# Subtest: source service assembly rejects Context selectors and processing accessors without invoking them
+ok 87 - source service assembly rejects Context selectors and processing accessors without invoking them
+  ---
+  duration_ms: 46.971812
+  type: 'test'
+  ...
+# Subtest: signed final physical-send fence rejects selected item change after original dispatch record
+ok 88 - signed final physical-send fence rejects selected item change after original dispatch record
+  ---
+  duration_ms: 939.139712
+  type: 'test'
+  ...
+# Subtest: signed final physical-send fence rejects selected source change after original dispatch record
+ok 89 - signed final physical-send fence rejects selected source change after original dispatch record
+  ---
+  duration_ms: 815.347469
+  type: 'test'
+  ...
+# Subtest: signed final physical-send fence rejects selected working change after original dispatch record
+ok 90 - signed final physical-send fence rejects selected working change after original dispatch record
+  ---
+  duration_ms: 840.533479
+  type: 'test'
+  ...
+# Subtest: signed final physical-send fence rejects selected processing change after original dispatch record
+ok 91 - signed final physical-send fence rejects selected processing change after original dispatch record
+  ---
+  duration_ms: 684.236733
+  type: 'test'
+  ...
+# Subtest: default source-owned signed Assist includes an exact one-hop automatic Context Item from another conversation
+ok 92 - default source-owned signed Assist includes an exact one-hop automatic Context Item from another conversation
+  ---
+  duration_ms: 1449.704382
+  type: 'test'
+  ...
+# Subtest: signed cross-conversation discovery cannot turn a missing foreign Item field grant into any remote call
+ok 93 - signed cross-conversation discovery cannot turn a missing foreign Item field grant into any remote call
+  ---
+  duration_ms: 115.547638
+  type: 'test'
+  ...
+# Subtest: signed last physical-send fence rejects a one-hop Source chatKey change even when both Item bodies are unchanged
+ok 94 - signed last physical-send fence rejects a one-hop Source chatKey change even when both Item bodies are unchanged
+  ---
+  duration_ms: 1006.525093
+  type: 'test'
+  ...
+# Subtest: configured default source route invokes separate label discovery then exact human Item body processing
+ok 95 - configured default source route invokes separate label discovery then exact human Item body processing
+  ---
+  duration_ms: 433.21665
+  type: 'test'
+  ...
+# Subtest: configured source defaults to refusing new label purpose even when ordinary body processing exists
+ok 96 - configured source defaults to refusing new label purpose even when ordinary body processing exists
+  ---
+  duration_ms: 26.274691
+  type: 'test'
+  ...
+# Subtest: configured discovery capability rejects unknown keys, symbols and accessors without invoking them
+ok 97 - configured discovery capability rejects unknown keys, symbols and accessors without invoking them
+  ---
+  duration_ms: 17.629089
+  type: 'test'
+  ...
+# Subtest: signed last physical-send fence refuses revoked discovery without renewing the original human body receipt
+ok 98 - signed last physical-send fence refuses revoked discovery without renewing the original human body receipt
+  ---
+  duration_ms: 294.627609
+  type: 'test'
+  ...
+# Subtest: actual content script and result controller reject Context revoke during final qualification ACK
+ok 99 - actual content script and result controller reject Context revoke during final qualification ACK
+  ---
+  duration_ms: 743.909371
+  type: 'test'
+  ...
+# Subtest: a delivered Context notification grants nothing; fresh original worker qualification can still insert an unrelated cached result
+ok 100 - a delivered Context notification grants nothing; fresh original worker qualification can still insert an unrelated cached result
+  ---
+  duration_ms: 456.801148
+  type: 'test'
+  ...
+# Subtest: actual content owner rejects delayed availability for a different reply or old consent generation
+ok 101 - actual content owner rejects delayed availability for a different reply or old consent generation
+  ---
+  duration_ms: 382.597947
+  type: 'test'
+  ...
+# Subtest: actual prospective content observer ignores one hundred unrelated redraws after its single automatic evaluation
+ok 102 - actual prospective content observer ignores one hundred unrelated redraws after its single automatic evaluation
+  ---
+  duration_ms: 370.070197
+  type: 'test'
+  ...
+# Subtest: a failed Settings disable clears the original content automatic offer even without a storage change event
+ok 103 - a failed Settings disable clears the original content automatic offer even without a storage change event
+  ---
+  duration_ms: 318.920857
+  type: 'test'
+  ...
+# Subtest: actual automatic Assist opportunity composes signed service owners, genuine local result and one paid child for ten identical opportunities
+ok 104 - actual automatic Assist opportunity composes signed service owners, genuine local result and one paid child for ten identical opportunities
+  ---
+  duration_ms: 649.60826
+  type: 'test'
+  ...
+# Subtest: ordinary actual surface status/open never creates a job, declaration, reservation or provider request
+ok 105 - ordinary actual surface status/open never creates a job, declaration, reservation or provider request
+  ---
+  duration_ms: 93.161488
+  type: 'test'
+  ...
+# Subtest: actual surface rejects forged frame/nonce/configuration before a signed service request
+ok 106 - actual surface rejects forged frame/nonce/configuration before a signed service request
+  ---
+  duration_ms: 43.423604
+  type: 'test'
+  ...
+# Subtest: consent/reply withdrawal after real signed settlement withholds output and never exposes or inserts stale body
+ok 107 - consent/reply withdrawal after real signed settlement withholds output and never exposes or inserts stale body
+  ---
+  duration_ms: 288.463731
+  type: 'test'
+  ...
+# Subtest: new reply invalidates old result and late insertion without changing the stable local prompts
+ok 108 - new reply invalidates old result and late insertion without changing the stable local prompts
+  ---
+  duration_ms: 271.547401
+  type: 'test'
+  ...
+# Subtest: original local ACK failure reuses only the retained validated response, with no second paid dispatch
+ok 109 - original local ACK failure reuses only the retained validated response, with no second paid dispatch
+  ---
+  duration_ms: 366.157122
+  type: 'test'
+  ...
+# Subtest: lost result ACK reports the original metadata again without a provider retry
+ok 110 - lost result ACK reports the original metadata again without a provider retry
+  ---
+  duration_ms: 299.50926
+  type: 'test'
+  ...
+# Subtest: same live prospective reply retains cache for unrelated Context changes but qualifies a new relevant Context-change opportunity
+ok 111 - same live prospective reply retains cache for unrelated Context changes but qualifies a new relevant Context-change opportunity
+  ---
+  duration_ms: 827.534856
+  type: 'test'
+  ...
+# Subtest: final insertion requalifies selected independent Context after the worker-to-content handoff
+ok 112 - final insertion requalifies selected independent Context after the worker-to-content handoff
+  ---
+  duration_ms: 464.752631
+  type: 'test'
+  ...
+# Subtest: real signed DEFER settles spend but reports no effective result and shares the same cached evaluation
+ok 113 - real signed DEFER settles spend but reports no effective result and shares the same cached evaluation
+  ---
+  duration_ms: 470.02575
+  type: 'test'
+  ...
+# Subtest: actual original Prompt view state traverses authenticated surface RPC and requires presentation before insertion
+ok 114 - actual original Prompt view state traverses authenticated surface RPC and requires presentation before insertion
+  ---
+  duration_ms: 306.129088
+  type: 'test'
+  ...
+# Subtest: actual two Settings UI states use owner CAS so one cannot restore the other window's revoked permission
+ok 115 - actual two Settings UI states use owner CAS so one cannot restore the other window's revoked permission
+  ---
+  duration_ms: 26.499099
+  type: 'test'
+  ...
+# Subtest: actual surface cancellation before declaration prevents a paid request and stops only that pending owner
+ok 116 - actual surface cancellation before declaration prevents a paid request and stops only that pending owner
+  ---
+  duration_ms: 89.345638
+  type: 'test'
+  ...
+# Subtest: actual surface cancellation after provider dispatch leaves the original possibly billed attempt and cannot publish late output
+ok 117 - actual surface cancellation after provider dispatch leaves the original possibly billed attempt and cannot publish late output
+  ---
+  duration_ms: 290.570501
+  type: 'test'
+  ...
+# Subtest: a profile denial never retries automatically and a genuinely new reply can create its own paid opportunity
+ok 118 - a profile denial never retries automatically and a genuinely new reply can create its own paid opportunity
+  ---
+  duration_ms: 361.085568
+  type: 'test'
+  ...
+# Subtest: cancelling a saved preflight before publication restores only its own never-sent marker and permits the same reply
+ok 119 - cancelling a saved preflight before publication restores only its own never-sent marker and permits the same reply
+  ---
+  duration_ms: 362.007642
+  type: 'test'
+  ...
+# Subtest: same-document conversation navigation retires the old reply and registers only the new canonical host
+ok 120 - same-document conversation navigation retires the old reply and registers only the new canonical host
+  ---
+  duration_ms: 546.835225
+  type: 'test'
+  ...
+# Subtest: the actual configured route still needs both independent current Settings consents before any remote request
+ok 121 - the actual configured route still needs both independent current Settings consents before any remote request
+  ---
+  duration_ms: 34.02805
+  type: 'test'
+  ...
+# Subtest: cold restart cannot rebill or recover the body of an old reply, even with lost provider acknowledgement
+ok 122 - cold restart cannot rebill or recover the body of an old reply, even with lost provider acknowledgement
+  ---
+  duration_ms: 497.591659
+  type: 'test'
+  ...
+# Subtest: lost reservation acknowledgement cancels only the original provably unsent hold; no new paid replay
+ok 123 - lost reservation acknowledgement cancels only the original provably unsent hold; no new paid replay
+  ---
+  duration_ms: 200.804754
+  type: 'test'
+  ...
+# Subtest: UNKNOWN original financial outcome retains its hold through cold recovery and never admits a fresh paid retry
+ok 124 - UNKNOWN original financial outcome retains its hold through cold recovery and never admits a fresh paid retry
+  ---
+  duration_ms: 325.240591
+  type: 'test'
+  ...
+# Subtest: only the original private Assist recovery handle and observed original status/cancellation can release a hold
+ok 125 - only the original private Assist recovery handle and observed original status/cancellation can release a hold
+  ---
+  duration_ms: 184.222817
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original marker
+ok 126 - Assist final recovery transaction rolls back a changed original marker
+  ---
+  duration_ms: 327.073118
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original job
+ok 127 - Assist final recovery transaction rolls back a changed original job
+  ---
+  duration_ms: 288.528879
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original attempt
+ok 128 - Assist final recovery transaction rolls back a changed original attempt
+  ---
+  duration_ms: 245.55784
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original reply-fence
+ok 129 - Assist final recovery transaction rolls back a changed original reply-fence
+  ---
+  duration_ms: 230.273191
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original flight
+ok 130 - Assist final recovery transaction rolls back a changed original flight
+  ---
+  duration_ms: 264.02377
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original dispatch
+ok 131 - Assist final recovery transaction rolls back a changed original dispatch
+  ---
+  duration_ms: 249.063249
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original authority
+ok 132 - Assist final recovery transaction rolls back a changed original authority
+  ---
+  duration_ms: 275.485658
+  type: 'test'
+  ...
+# Subtest: Assist recovery transport and final write both reject revoked current authority without admitting another paid operation
+ok 133 - Assist recovery transport and final write both reject revoked current authority without admitting another paid operation
+  ---
+  duration_ms: 295.038576
+  type: 'test'
+  ...
+# Subtest: Assist cold recovery retries only an identical original FAILED result after losing the remote result ACK
+ok 134 - Assist cold recovery retries only an identical original FAILED result after losing the remote result ACK
+  ---
+  duration_ms: 331.871726
+  type: 'test'
+  ...
+1..134
+# tests 134
+# suites 0
+# pass 133
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9693.298701

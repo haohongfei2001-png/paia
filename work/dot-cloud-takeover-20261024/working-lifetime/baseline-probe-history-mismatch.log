@@ -1,0 +1,27 @@
+✔ baseline original Human-first refusal creates no Working capability and preserves every row (359.598433ms)
+✖ baseline actual successful Working capability remains consumable after cold activation (219.990497ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 908.658104
+
+✖ failing tests:
+
+test at ../evidence-working-lifetime/observe-working-baseline.test.mjs:29:1
+✖ baseline actual successful Working capability remains consumable after cold activation (219.990497ms)
+  Error [SyncError]: BNS_WORKING_HISTORY_CHANGED
+      at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-working-lifetime/extension/core/browser-native-sync/value.js:5:32)
+      at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-working-lifetime/extension/core/browser-native-sync/input-working-commit.js:122:98
+      at async file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-working-lifetime/extension/core/browser-native-sync/core.js:184:127
+      at async ArchiveRepository.transaction (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-working-lifetime/extension/core/idb-repository.js:579:510)
+      at async BrowserNativeSyncCore.transaction (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-working-lifetime/extension/core/browser-native-sync/core.js:184:66)
+      at async projectOriginalWorkingHistory (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-working-lifetime/extension/core/browser-native-sync/input-working-commit.js:117:2)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/evidence-working-lifetime/observe-working-baseline.test.mjs:30:197)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    code: 'BNS_WORKING_HISTORY_CHANGED'
+  }

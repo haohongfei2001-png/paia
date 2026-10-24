@@ -1,0 +1,10 @@
+✔ baseline original Human-first refusal creates no Working capability and preserves every row (323.755317ms)
+✔ baseline actual successful Working capability remains consumable after cold activation (195.889082ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 828.456643

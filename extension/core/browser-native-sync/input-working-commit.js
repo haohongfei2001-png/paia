@@ -127,3 +127,9 @@ export async function projectOriginalWorkingHistory(store,core,application,group
  },['meta']);
  return {rows,mappings,revisionSequence:sequence,operationCount:a.prepared.members.length+1};
 }
+
+// Only the owning restore can consume its exact private preparation. Invalid
+// bindings do not dispose another restore's capability.
+export function releaseOriginalWorkingApplication(store,core,application){
+ const a=workingApplications.get(application);if(!a)return false;if(a.receiver.store!==store||a.receiver.core!==core)fail('BNS_PREPARATION_REQUIRED');return workingApplications.delete(application);
+}

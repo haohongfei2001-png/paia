@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: never-dispatched actual service source hold is opaque, read-only and rejects new intake
+ok 1 - never-dispatched actual service source hold is opaque, read-only and rejects new intake
+  ---
+  duration_ms: 79.896763
+  type: 'test'
+  ...
+# Subtest: original registration continuation drains after hold without a false terminal receipt
+ok 2 - original registration continuation drains after hold without a false terminal receipt
+  ---
+  duration_ms: 83.610294
+  type: 'test'
+  ...
+# Subtest: original registration continuation drains after removeTab map invalidation without a false terminal receipt
+ok 3 - original registration continuation drains after removeTab map invalidation without a false terminal receipt
+  ---
+  duration_ms: 65.06561
+  type: 'test'
+  ...
+# Subtest: preparation awaiting its initial original surface qualification cannot escape a later hold
+ok 4 - preparation awaiting its initial original surface qualification cannot escape a later hold
+  ---
+  duration_ms: 27.951816
+  type: 'test'
+  ...
+# Subtest: automatic opportunity awaiting its original reply probe remains tracked before activation exists
+ok 5 - automatic opportunity awaiting its original reply probe remains tracked before activation exists
+  ---
+  duration_ms: 27.593164
+  type: 'test'
+  ...
+# Subtest: original fire-and-forget invalidation cancellation remains pending after maps clear
+ok 6 - original fire-and-forget invalidation cancellation remains pending after maps clear
+  ---
+  duration_ms: 279.880725
+  type: 'test'
+  ...
+# Subtest: original body-free report task settles before the source hold and never redispatches
+ok 7 - original body-free report task settles before the source hold and never redispatches
+  ---
+  duration_ms: 199.168155
+  type: 'test'
+  ...
+# Subtest: lost original result-report acknowledgement stays pending and refuses source qualification
+ok 8 - lost original result-report acknowledgement stays pending and refuses source qualification
+  ---
+  duration_ms: 208.069313
+  type: 'test'
+  ...
+# Subtest: context-change notification already entered remains tracked after activation invalidation
+ok 9 - context-change notification already entered remains tracked after activation invalidation
+  ---
+  duration_ms: 20.31775
+  type: 'test'
+  ...
+# Subtest: ignored-signal private provider remains a real task after bounded run settles; UNKNOWN is preserved
+ok 10 - ignored-signal private provider remains a real task after bounded run settles; UNKNOWN is preserved
+  ---
+  duration_ms: 62.050819
+  type: 'test'
+  ...
+# Subtest: cold session reads original durable UNKNOWN rather than trusting empty private maps
+ok 11 - cold session reads original durable UNKNOWN rather than trusting empty private maps
+  ---
+  duration_ms: 29.672791
+  type: 'test'
+  ...
+# Subtest: original service dispatch UNKNOWN cannot become a source permit after its bounded wrapper settles
+ok 12 - original service dispatch UNKNOWN cannot become a source permit after its bounded wrapper settles
+  ---
+  duration_ms: 166.769218
+  type: 'test'
+  ...
+# Subtest: an exact original inserted response may settle live tasks, without claiming cold insertion proof
+ok 13 - an exact original inserted response may settle live tasks, without claiming cold insertion proof
+  ---
+  duration_ms: 226.108556
+  type: 'test'
+  ...
+# Subtest: two-second insertion uncertainty still drains original transport and never becomes confirmed by a late reply
+ok 14 - two-second insertion uncertainty still drains original transport and never becomes confirmed by a late reply
+  ---
+  duration_ms: 215.221714
+  type: 'test'
+  ...
+# Subtest: held cancel stays restrictive and invalidates the source proof
+ok 15 - held cancel stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 22.096004
+  type: 'test'
+  ...
+# Subtest: held revoke stays restrictive and invalidates the source proof
+ok 16 - held revoke stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 23.076135
+  type: 'test'
+  ...
+# Subtest: held remove-tab stays restrictive and invalidates the source proof
+ok 17 - held remove-tab stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 22.354611
+  type: 'test'
+  ...
+# Subtest: held context stays restrictive and invalidates the source proof
+ok 18 - held context stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 29.336147
+  type: 'test'
+  ...
+# Subtest: timed-out source acquisition cannot re-admit old pre-registration automatic work after release
+ok 19 - timed-out source acquisition cannot re-admit old pre-registration automatic work after release
+  ---
+  duration_ms: 45.396981
+  type: 'test'
+  ...
+# Subtest: original epoch replacement, database identity and disposal invalidate source tokens
+ok 20 - original epoch replacement, database identity and disposal invalidate source tokens
+  ---
+  duration_ms: 20.917233
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2294.56068

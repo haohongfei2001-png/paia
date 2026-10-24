@@ -1,0 +1,44 @@
+✔ stage/recover consumes a direct authenticated successor through the original tail owner and activates once (359.158434ms)
+✔ fresh store and session reopen the original validated cut before consuming its successor (256.056882ms)
+✔ recoverDiscovered follows the complete listed parent chain with one final activation (379.523631ms)
+✔ discover then recover follows the complete listed parent chain with one final activation (354.686235ms)
+✔ a skipped or unavailable checkpoint parent is not invented from revision inclusion (196.305074ms)
+✔ a claimed successor which drops retained revisions preserves every prior stage and canonical row (228.684076ms)
+✔ genuine incomparable checkpoint heads remain rejected even when one cut contains more revisions (143.588636ms)
+✔ positive/negative owner transition remains refused without dropping its original stage false (258.958041ms)
+✔ positive/negative owner transition remains refused without dropping its original stage true (239.094899ms)
+✔ lost original tail commit acknowledgement is recovered from the durable new manifest after a cold reopen (204.748219ms)
+✔ native tail transaction failure rolls back staged items and receipt state, then the same task retries (236.841048ms)
+✔ original tail authority fence rejects local-edit after full preflight without erasing it (175.162123ms)
+✔ original tail authority fence rejects restore-epoch after full preflight without erasing it (194.402803ms)
+✔ pause during original-owner tail reread settles early and fences late transport bytes (214.926788ms)
+✔ close during original-owner tail reread settles early and fences late transport bytes (209.303767ms)
+✔ pause after a durable tail commit preserves the advanced validated cut without early canonical activation (194.222679ms)
+✔ discovered recovery does not reset the 4096-reference work ticket before staging (180.153975ms)
+✔ already activated task cannot silently retarget its durable manifest (136.922558ms)
+✔ tail preflight cannot replace a mutated durable revision inventory with caller-derived deltas (146.831152ms)
+✔ tail reader deadline settles a held original-owner reread and preserves cold continuation (493.557037ms)
+✔ a causal route does not reset its deadline after the first durable tail edge (710.113568ms)
+✔ one Source byte-boundary route retains all cuts and refuses its cumulative 2 MiB read budget (450.569452ms)
+✔ confirmed tail activation remains restored when pause arrives after original commit (195.930797ms)
+✔ confirmed tail activation remains restored when close arrives after original commit (187.780965ms)
+✔ final activation shares the tail ticket and an actual native reference overflow rolls it back (268.111133ms)
+✔ ordinary recovery work brands repository and invocation without accepting copied tickets or raised caps (35.615368ms)
+✔ original pre-callback control reads and failed native work consume the same ordinary ticket (12.059436ms)
+✔ original native payload reads accumulate across work windows and failed balance never resets (21.681539ms)
+✔ ordinary recovery windows reject reentry and concurrent double tickets (12.416943ms)
+✔ closing a work window waits for an already-started late scope and never falls back to default work (12.783223ms)
+✔ foreign canonicalGeneration stage is not admitted by the new ordinary tail (123.069107ms)
+✔ foreign unknownOwner stage is not admitted by the new ordinary tail (120.174831ms)
+✔ unchanged non-Source staged head keeps original recovery profile with historical listing false (72.185854ms)
+✔ unchanged non-Source staged head keeps original recovery profile with historical listing true (75.215369ms)
+✔ new non-Source successor stays fail-closed without changing its original staged head (53.538267ms)
+✔ shortened read phase tightens the original private deadline rather than starting a new clock (41.317293ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7539.584588

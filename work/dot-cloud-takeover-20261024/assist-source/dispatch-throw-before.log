@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: lost original UNKNOWN settlement acknowledgement survives original backup replacement of transient rows
+not ok 1 - lost original UNKNOWN settlement acknowledgement survives original backup replacement of transient rows
+  ---
+  duration_ms: 131.259108
+  type: 'test'
+  location: '/workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-assist/extension/tests/assist-source-quiescence.test.mjs:86:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'OUTCOME_UNKNOWN'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-assist/extension/tests/assist-source-quiescence.test.mjs:89:438)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 608.855239

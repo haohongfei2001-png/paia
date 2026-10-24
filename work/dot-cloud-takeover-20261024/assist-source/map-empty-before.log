@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: original Assist invalidation does not establish source task settlement from empty maps
+not ok 1 - original Assist invalidation does not establish source task settlement from empty maps
+  ---
+  duration_ms: 143.606254
+  type: 'test'
+  location: '/workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/evidence/assist-quiescence/map-empty-before.test.mjs:4:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    empty original maps are not an acknowledged drain of the still-pending original registration continuation
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/evidence/assist-quiescence/map-empty-before.test.mjs:5:538)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 694.141199

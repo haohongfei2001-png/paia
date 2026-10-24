@@ -11,7 +11,7 @@ import {readCanonicalCheckpointProof,requireCanonicalCheckpointProof,requireCano
 import {prepareSavedWorkGroupApplication,applySavedWorkGroupStep,sealSavedWorkGroupActivation,prepareSavedWorkReceive,commitSavedWorkEdit,sealSavedWorkCurrentScope,sealSavedWorkMergeProgress,prepareSavedMixedRetention,sealSavedMixedRetention} from './saved-work-bootstrap.js';
 import {groupOperationPages,createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget,readGroupRows} from './group-page-reader.js';
 import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,captureMixedCurrentGroupProjection,requireMixedCurrentGroupProjection,encodeMixedCurrentGroupCheckpoint,publishMixedCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
-import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-working-commit.js';
+import {InputWorkingCommitReceiver,prepareWorkingApplication,releaseOriginalWorkingApplication} from './input-working-commit.js';
 import {prepareHumanGroupApplication,prepareHumanIncrementalGroupApplication,requireHumanGroupApplication,applyHumanGroupStep} from './human-library-group.js';
 import {FilterIntentSyncJournal,prepareRestoredFilterSources,prepareFilterApplication} from './filter-intent-journal.js';
 import {manualSyncOwners} from './manual-owners.js';
@@ -276,12 +276,12 @@ export class GroupedCheckpointRestore{
   if(localOperations.length)return plan.groups.some(g=>g.type==='savedWorkBootstrap')?this.mergeSaved(state,plan,localOperations):plan.groups.every(g=>['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(g.type))?this.mergeSourceWorking(state,plan,localOperations):plan.groups.some(g=>g.type==='sourceBootstrapCommit')&&plan.groups.some(g=>g.type==='humanLibraryCommit')?this.mergeMixed(state,plan,localOperations):this.mergeManual(state,plan,localOperations);
   const filter=new FilterIntentSyncJournal(replay),working=new InputWorkingCommitReceiver(this.store,replay,{filterJournal:filter}),manual=manualSyncOwners(replay),desired=contextDesiredMaterializer(replay),topicDesired=topicDesiredMaterializer(replay),consumerOperations=finalConsumerPreferenceOperations(plan),bindingMaterializer=preparePromptBindingReplay(replay,plan);
   const sourceProof=await prepareRestoredFilterSources(canonical.expected.records.map(row=>({...row})));
+  const applications=[];try{for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);else if(group.type==='sourceAppendCommit'){const anchor=plan.groups.find(x=>x.id===group.prepared.descriptor.value.bootstrap.revisionId);applications.push([group,await prepareAppendApplication(this.store,replay,group.operations,anchor.operations)]);}else if(group.type==='inputWorkingCommit')applications.push([group,await prepareWorkingApplication(working,group.operations)]);else if(group.type==='filterIntent')applications.push([group,await prepareFilterApplication(filter,group.operations[0])]);else applications.push([group,null]);}
   const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan),savedApplication=await prepareSavedWorkGroupApplication(this.store,replay,plan,this.stage,state,humanApplication),contextApplication=await prepareContextGroupApplication(this.store,replay,plan,{live:this.live,generationProof});
-  const applications=[];for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);else if(group.type==='sourceAppendCommit'){const anchor=plan.groups.find(x=>x.id===group.prepared.descriptor.value.bootstrap.revisionId);applications.push([group,await prepareAppendApplication(this.store,replay,group.operations,anchor.operations)]);}else if(group.type==='inputWorkingCommit')applications.push([group,await prepareWorkingApplication(working,group.operations)]);else if(group.type==='filterIntent')applications.push([group,await prepareFilterApplication(filter,group.operations[0])]);else applications.push([group,null]);}
   const consumerApplication=consumerOperations.length?await prepareRestoredConsumerPreferenceApplication(this.store,replay,plan,this.stage,state):null;
   const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(replay,[]));
   const applyTransaction=generationProof?(fn=>generationTransaction(this,'group-apply',fn)):(fn=>this.live.transaction(true,fn));
-  return this.store.run(async()=>{const result=await applyTransaction(async t=>{
+  return await this.store.run(async()=>{const result=await applyTransaction(async t=>{
    if(state.manifest.ownerScope.version===2||savedApplication||generationProof)registerRepositoryWorkLimit(this.store.repository,t);
    await requireNoSourcePurgeDeny(this.live,t);
    if(generationProof)await requireCanonicalCheckpointProof(generationProof,{store:this.store,core:this.live},t);
@@ -313,6 +313,7 @@ export class GroupedCheckpointRestore{
    }
    return {state:publishing?'publishing':'activated',namespace:state.replayId};
   });if(result.state==='publishing'){await this.store.publish();return {state:'activated',namespace:state.replayId};}return result;});
+  }finally{for(const [group,cap]of applications)if(group.type==='inputWorkingCommit')releaseOriginalWorkingApplication(this.store,replay,cap);}
  }
  // Source/Working union uses one bounded original-owner transaction. Failure
  // rolls back this whole checkpoint merge; local queued work stays untouched.

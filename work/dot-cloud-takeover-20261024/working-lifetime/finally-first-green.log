@@ -1,0 +1,10 @@
+✔ actual Human preparation refusal revokes every previously prepared original Working capability (378.937378ms)
+✔ successful cold Working activation revokes its original capability only after the real owner completes (208.293439ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 907.557404

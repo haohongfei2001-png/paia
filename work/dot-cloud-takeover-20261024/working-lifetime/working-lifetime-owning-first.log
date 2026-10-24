@@ -1,0 +1,22 @@
+✔ actual Human preparation refusal revokes every previously prepared original Working capability (341.212229ms)
+✔ successful cold Working activation revokes its original capability only after the real owner completes (201.928982ms)
+✔ exact original release rejects foreign store/core without disposing the valid capability (164.232268ms)
+✔ copied, unknown and separately prepared capabilities cannot release one another (164.557688ms)
+✔ two actual Working preparations release on successful cold apply (259.97561ms)
+✔ two actual Working preparations release on real Human refusal (281.482042ms)
+✔ actual transaction rejection at before-activation releases its capability and rolls every table back (167.210819ms)
+✔ actual transaction rejection at after-activation releases its capability and rolls every table back (171.544872ms)
+✔ native transaction abort after original writes releases the capability and allows explicit fresh retry (205.022964ms)
+✔ prepared capability stays live through actual owner and before native completion, then is revoked (178.471518ms)
+✔ failure preparing a later genuine Working group releases the earlier exact preparation without writes (230.490353ms)
+✔ actual owner failure after canonical writes releases the preparation without preserving partial data (157.650415ms)
+✔ already activated duplicate prepares no new Working capability and preserves every row (153.606229ms)
+✔ cold Source and independent Human without Working remains an original successful zero-capability path (165.876584ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3171.602994

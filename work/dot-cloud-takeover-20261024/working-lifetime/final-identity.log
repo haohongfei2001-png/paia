@@ -1,0 +1,8 @@
+v24.19.0
+{"platform":"linux","arch":"x64"}
+0130ad1080761616b198a1dcc2b299424f638fc0
+e6233e232ad2545c924d51b20d30803ef88477dc
+codex/dot-cloud-working-lifetime-20261024
+ea8d9cb00dcb36185524afca89b00a23ca0965f40472350d64c9e16336481f15  extension/core/browser-native-sync/input-working-commit.js
+04f9a20743895f6db8866ad877479c92145e81f8021d6cd1e6e5d5bd872c52bc  extension/core/browser-native-sync/group-checkpoint.js
+c45b654a26a3611c75a72f324a38bccef054c3f03fa55e034148c2cc5d1d9803  extension/tests/working-application-lifetime.test.mjs
