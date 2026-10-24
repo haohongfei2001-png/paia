@@ -1,0 +1,197 @@
+{
+  "scope": "Offline synthetic visual/component prototype only; NOT installed extension / native host / provider qualification",
+  "render_method": "Exact self-contained HTML loaded with Chromium page.set_content; managed environment blocks file and localhost URL navigation; no policy change or network used",
+  "timestamp_utc": "2026-10-18T02:00:03.240037+00:00",
+  "browser": "144.0.7559.96",
+  "executable": "/usr/bin/chromium",
+  "viewport_css": [
+    1440,
+    960
+  ],
+  "dpr": [
+    1,
+    2
+  ],
+  "narrow_viewport_css": [
+    390,
+    844
+  ],
+  "source_sha256": {
+    "index.html": "32af9dd32f2e5b43e9efd180e966558d1166a9b480b28b7bee676c87fb6b0a26",
+    "component.css": "a641a3236d71a620dc93faa795d5c956fe9eb9cf2faff8d370ff1d23838b0030",
+    "component.js": "99e94dc3b0f5d416ec7d26bb14770e45e196d0dc484f998ab756a2b0639f3e6a",
+    "demo.css": "fdfc08e6c21a30d0061e59b01ad752a896eed8ba293574d8f7fb30006a245ffa",
+    "demo.js": "4035704eec999e86136cddad2ea6984d9c8ba7ea5479dfc6f99ce7c3f8932956",
+    "PAIA_Float_R1.html": "18c22eec7c2dd7d11c0fc128f2480df25bf495317194e63ebb525c53f45e294f",
+    "build.py": "1cd996690204fc9e050821cfe65da03d793e955e8bc20c954cfb5d416290df4f"
+  },
+  "checks": [
+    {
+      "name": "01 Same 48px circle / 21×14 cards / exact three rear offsets",
+      "status": "PASS",
+      "duration_ms": 978.2
+    },
+    {
+      "name": "02 Repeated same-coordinate pointer open/close; no insertion",
+      "status": "PASS",
+      "duration_ms": 330.1
+    },
+    {
+      "name": "03 Anchor and foreground do not drift during animation frames",
+      "status": "PASS",
+      "duration_ms": 381.3
+    },
+    {
+      "name": "04 Capsule body, circle and noninteractive neck stay separate",
+      "status": "PASS",
+      "duration_ms": 344.2
+    },
+    {
+      "name": "05 Pointer insertion preserves selected text and suffix, returns draft focus",
+      "status": "PASS",
+      "duration_ms": 243.4
+    },
+    {
+      "name": "06 Keyboard navigation, more access and held-activation suppression",
+      "status": "PASS",
+      "duration_ms": 263.2
+    },
+    {
+      "name": "07 Double-click produces one fixture insertion",
+      "status": "PASS",
+      "duration_ms": 240.8
+    },
+    {
+      "name": "08 Search reaches later history fixtures; empty query has no feed",
+      "status": "PASS",
+      "duration_ms": 297.0
+    },
+    {
+      "name": "09 Search defers changes during composition",
+      "status": "PASS",
+      "duration_ms": 261.5
+    },
+    {
+      "name": "10 Long-only search stays truthful and cannot quick-insert whole body",
+      "status": "PASS",
+      "duration_ms": 281.2
+    },
+    {
+      "name": "11 Grapheme 150/151 boundary and preserved oversize draft",
+      "status": "PASS",
+      "duration_ms": 325.7
+    },
+    {
+      "name": "12 Edit/save operates on revisioned local fixture data",
+      "status": "PASS",
+      "duration_ms": 385.1
+    },
+    {
+      "name": "13 Dirty guard and theme switch preserve unsaved work",
+      "status": "PASS",
+      "duration_ms": 520.1
+    },
+    {
+      "name": "14 Persistent save error stays in flow and does not cover Save",
+      "status": "PASS",
+      "duration_ms": 441.5
+    },
+    {
+      "name": "15 More operations: hide, restore and create are reachable and functional",
+      "status": "PASS",
+      "duration_ms": 601.7
+    },
+    {
+      "name": "16 Same-board split editor produces two fixture expressions",
+      "status": "PASS",
+      "duration_ms": 368.0
+    },
+    {
+      "name": "17 Natural composer growth tracks exactly with a 12px gap",
+      "status": "PASS",
+      "duration_ms": 323.7
+    },
+    {
+      "name": "18 Insufficient-space fallback/restoration preserves editor and logical mode",
+      "status": "PASS",
+      "duration_ms": 549.9
+    },
+    {
+      "name": "19 Short-view editor can scroll to Save even with persistent status",
+      "status": "PASS",
+      "duration_ms": 526.3
+    },
+    {
+      "name": "20 390px viewport: constrained board and unchanged 48px target",
+      "status": "PASS",
+      "duration_ms": 427.0
+    },
+    {
+      "name": "21 200% component text keeps fixed board and reachable internal overflow",
+      "status": "PASS",
+      "duration_ms": 290.1
+    },
+    {
+      "name": "22 Empty, one and many results use the same outer geometry",
+      "status": "PASS",
+      "duration_ms": 230.4
+    },
+    {
+      "name": "23 Reduced-motion preference removes nonessential transitions",
+      "status": "PASS",
+      "duration_ms": 199.9
+    },
+    {
+      "name": "24 Forced-colors retains card outlines and keyboard focus",
+      "status": "FAIL",
+      "error": "Focus outline absent",
+      "duration_ms": 250.4
+    },
+    {
+      "name": "25 Explicit demo adapter denial/unknown does not insert or retry",
+      "status": "PASS",
+      "duration_ms": 263.6
+    },
+    {
+      "name": "26 Demo adapter refuses an intervening fixture revision change",
+      "status": "PASS",
+      "duration_ms": 217.1
+    },
+    {
+      "name": "27 Hidden recommendation is removed from the capsule",
+      "status": "PASS",
+      "duration_ms": 202.6
+    },
+    {
+      "name": "28 Actual Chromium screenshots: three states, two themes, long view, editor, DPR2",
+      "status": "PASS",
+      "duration_ms": 1982.3
+    },
+    {
+      "name": "29 No unhandled JavaScript errors in the complete offline run",
+      "status": "PASS",
+      "duration_ms": 0.0
+    },
+    {
+      "name": "30 No network requests from the self-contained prototype",
+      "status": "PASS",
+      "duration_ms": 0.0
+    }
+  ],
+  "passed": 29,
+  "failed": 1,
+  "page_errors": [],
+  "network_requests": [],
+  "not_verified": [
+    "Actual Chrome extension/source-release integration",
+    "Current authenticated ChatGPT appearance or selectors",
+    "Production source/history/privacy/receiver/undo implementation",
+    "Screen-reader and OS IME behaviour",
+    "Human sustained comfort",
+    "Physical 120Hz",
+    "Native event-to-paint p95",
+    "Live provider usefulness",
+    "Safari/Firefox"
+  ],
+  "independent_review": "Not performed; self-review and recorded Chromium checks only"
+}
