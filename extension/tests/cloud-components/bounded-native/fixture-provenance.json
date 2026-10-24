@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "originalPreparationBaseCommit": "50e7eec3eeba85448fc52db4c08873151dc52980",
+  "originalFixturePath": "extension/tests/cloud-components/recovery-saved-fixture.mjs",
+  "originalSourceFixtureSha256": "f7f9e0ab8334141c203f95f3b23c2097ee6d24534142799c743738ea193f46fd",
+  "caseBodies": [
+    {
+      "id": "RECOVERY_WORK_BUDGET",
+      "name": "R control reads exhaust original work ticket before write callback",
+      "sha256": "a1a375a11ff77f19ef504a6a5cb7fa9626c02dbfeb80917a69a498ca5b7bec1e"
+    },
+    {
+      "id": "RECOVERY_NATIVE_ABORT_COLD",
+      "name": "R successor native abort preserves staged cut and cold original recovery succeeds",
+      "sha256": "864d3635e15cc5711a6f23be1ed15f3b905744c8dd55c19f6f1cbe88b1c2309a"
+    },
+    {
+      "id": "SAVED_EMPTY_SEARCH_COLD",
+      "name": "Saved completed-empty search receives exact locator and survives cold duplicate",
+      "sha256": "c0f83c4c7750c0697da35c246ceea1cbd2e8045c871c4d995d6a76888f999932"
+    },
+    {
+      "id": "SAVED_MISSING_LOCATOR_ABORT",
+      "name": "Saved missing genuine search locator aborts full native activation",
+      "sha256": "5ee9e560154d7f8c59fd64fae11f30fe18b22e08b60fb813ea2ec405dcd7d368"
+    }
+  ],
+  "scope": "Four original case bodies unchanged; imports, fixed-ID sequencing, per-case response and cleanup wrapper adapted. Original preparation and failed launch evidence remain untouched."
+}

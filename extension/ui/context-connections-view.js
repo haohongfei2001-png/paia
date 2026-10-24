@@ -8,27 +8,42 @@ const states={connected:['已连接','Connected'],paused:['已暂停','Paused'],
 // Existing Context connection detail only. No new navigation destination,
 // body preview, AI directory or implicit permission/connection is created.
 export class ContextConnectionsView {
- constructor({host,status}){this.host=host;this.status=status;this.active=true;this.busy=false;this.secret=null;this.secretTimer=null;this.onLocale=()=>this.localize();document.addEventListener?.('paia:preferences-applied',this.onLocale);this.render();}
+ constructor({host,status}){this.host=host;this.status=status;this.active=true;this.readGeneration=0;this.updateGeneration=0;this.busy=false;this.secret=null;this.secretTimer=null;this.onLocale=()=>this.localize();document.addEventListener?.('paia:preferences-applied',this.onLocale);this.render();}
  localize(){if(!this.active)return;if(!this.secret){if(!this.busy)this.render();return;}this.secretHeading.textContent=copy('保存这次连接凭证','Save this connection credential');this.secretExplanation.textContent=this.credentialExplanation();this.secretCopy.textContent=copy('复制凭证','Copy credential');this.secretDone.textContent=copy('已保存，隐藏凭证','Saved, hide credential');this.secretInput.setAttribute('aria-label',copy('一次性显示的连接凭证','Connection credential shown once'));}
  credentialExplanation(){if(this.credentialAuthorizationExpiresAt)return copy('这次授权有效至 '+new Date(this.credentialAuthorizationExpiresAt).toLocaleString('zh-CN')+'。正常查询无需再次打开 PAIA；运行连接会在授权内续期。暂停、撤销、恢复资料库或无法确认上次关闭状态后不会自动恢复。凭证仅在此显示一次，60 秒后隐藏；仅填写到已核验的专用 ChatGPT 认证设置。','This authorization is valid until '+new Date(this.credentialAuthorizationExpiresAt).toLocaleString('en')+'. Normal queries do not require reopening PAIA; runtime connections renew within this authorization. Paused, revoked, restored or unconfirmed shutdown states do not resume automatically. This credential is shown once and hidden after 60 seconds; enter it only in the verified dedicated ChatGPT authentication settings.');return copy('本次连接有效期为 1 小时，到期需重新配对。凭证仅在此显示一次，60 秒后隐藏。把它填入已核验的专用 ChatGPT 连接认证设置。不要分享、放进网址或发到聊天中。','This connection expires in one hour and requires pairing again. The credential is shown once and hidden after 60 seconds. Enter it only in the verified dedicated ChatGPT connection authentication settings. Do not share it, put it in a URL or send it in chat.');}
- update(status){if(!this.active)return;this.status=status;if(!this.busy&&!this.secret)this.render();}
+ update(status){if(!this.active)return;++this.readGeneration;++this.updateGeneration;this.status=status;if(!this.busy&&!this.secret)this.render();}
  clearSecret(){clearTimeout(this.secretTimer);this.secretTimer=null;if(this.secretInput)this.secretInput.value='';this.secret=null;this.secretInput=null;}
- async refresh(){try{const status=await request('PAIA_CONTEXT_CONNECTIONS_STATUS');if(this.active){this.status=status;if(!this.secret)this.render();}}catch{this.notice(copy('无法读取连接状态。','Could not read connection status.'));}}
+ async refresh(){
+  if(!this.active)return;const generation=++this.readGeneration;
+  // Only the latest live read may publish. Parent snapshots and mutation
+  // admission also retire older reads without changing durable authority.
+  try{const status=await request('PAIA_CONTEXT_CONNECTIONS_STATUS');if(this.active&&generation===this.readGeneration){this.status=status;if(!this.secret)this.render();}}
+  catch{if(this.active&&generation===this.readGeneration)this.notice(copy('无法读取连接状态。','Could not read connection status.'));}
+ }
  notice(text){if(this.feedback)this.feedback.textContent=text;}
  async perform(work){
-  if(this.busy||!this.active)return;this.busy=true;this.host.querySelectorAll('button,input').forEach(node=>node.disabled=true);
-  try{const result=await work();if(!this.active)return;if(result?.credential)this.showCredential(result.credential,result);else await this.refresh();}
-  catch(error){if(this.active)this.notice(error?.code==='STALE_BASE'?copy('连接状态已变化，请刷新后重试。','Connection changed. Refresh before trying again.'):copy('操作未得到持久确认；请刷新核对。此提示不代表已暂停或已撤销。','The change was not durably confirmed. Refresh to check; this does not confirm a pause or revocation.'));}
+  if(this.busy||!this.active)return;++this.readGeneration;const status=this.status,generation=this.updateGeneration,current=()=>this.active&&generation===this.updateGeneration&&this.status===status;this.busy=true;this.host.querySelectorAll('button,input').forEach(node=>node.disabled=true);
+  try{
+   const result=await work(current);if(!this.active||result===null)return;
+   if(result?.credential){
+    // The owner may notify before returning its one-time credential. Keep a
+    // matching/newer result, but never cover a newer restriction or unknown state.
+    const observed=this.status,compatible=current()||observed?.available&&observed.reason==='ready'&&Number.isSafeInteger(observed.revision)&&Number.isSafeInteger(result.revision)&&(result.revision>observed.revision||result.revision===observed.revision&&observed.connections?.some(c=>c.id===result.id&&['connected','disconnected'].includes(c.state)));
+    if(compatible)this.showCredential(result.credential,result);
+   }else await this.refresh();
+  }
+  catch(error){if(this.active&&(current()||this.status?.revision===status?.revision&&this.status?.available===status?.available&&this.status?.reason===status?.reason))this.notice(error?.code==='STALE_BASE'?copy('连接状态已变化，请刷新后重试。','Connection changed. Refresh before trying again.'):copy('操作未得到持久确认；请刷新核对。此提示不代表已暂停或已撤销。','The change was not durably confirmed. Refresh to check; this does not confirm a pause or revocation.'));}
   finally{this.busy=false;if(this.active&&!this.secret)this.render();}
  }
  change(connection,action){return this.perform(()=>request('PAIA_CONTEXT_CONNECTIONS_CHANGE',{options:{id:connection.id,action,expectedRevision:this.status.revision,...(action==='reconnect'&&this.status.authorizationPolicy?{authorizationPolicyId:this.status.authorizationPolicy.id}:{})}}));}
  pair(){
-  if(!this.ack?.checked||!this.status?.available||this.busy)return;
+  if(!this.active||!this.ack?.checked||!this.status?.available||this.busy)return;
   const port=Number(this.port.value);if(!Number.isInteger(port)||port<1024||port>65535){this.notice(copy('请输入 1024–65535 之间的本机端口。','Enter a local port between 1024 and 65535.'));return;}
   // Permission is requested only in this explicit user gesture, after the
   // selected destination/data-flow explanation and acknowledgement.
+  const type=this.status.reason==='store_changed'?'PAIA_CONTEXT_CONNECTIONS_REPAIR':'PAIA_CONTEXT_CONNECTIONS_PAIR',options={expectedRevision:this.status.revision,port,...(this.status.authorizationPolicy?{authorizationPolicyId:this.status.authorizationPolicy.id}:{})};
   const permitted=chrome.permissions.request({permissions:['nativeMessaging']});
-  return this.perform(async()=>{if(await permitted!==true)throw Error('PERMISSION_DENIED');return request(this.status.reason==='store_changed'?'PAIA_CONTEXT_CONNECTIONS_REPAIR':'PAIA_CONTEXT_CONNECTIONS_PAIR',{options:{expectedRevision:this.status.revision,port,...(this.status.authorizationPolicy?{authorizationPolicyId:this.status.authorizationPolicy.id}:{})}});});
+  return this.perform(async current=>{if(await permitted!==true)throw Error('PERMISSION_DENIED');if(!current())return null;return request(type,{options});});
  }
  showCredential(value,result={}){
   this.credentialAuthorizationExpiresAt=result.persistent===true&&Number.isSafeInteger(result.authorizationExpiresAt)?result.authorizationExpiresAt:null;this.clearSecret();this.secret=value;this.host.replaceChildren();const heading=element('h2','context-connection-heading',copy('保存这次连接凭证','Save this connection credential'));
@@ -56,5 +71,5 @@ export class ContextConnectionsView {
   this.host.append(button(copy('刷新状态','Refresh status'),()=>void this.refresh()));this.feedback=element('p','context-notice',prior);this.feedback.setAttribute('role','status');this.host.append(this.feedback);
   if(this.busy)this.host.querySelectorAll('button,input').forEach(node=>node.disabled=true);
  }
- close(){this.active=false;document.removeEventListener?.('paia:preferences-applied',this.onLocale);this.clearSecret();this.host.replaceChildren();}
+ close(){this.active=false;++this.readGeneration;++this.updateGeneration;document.removeEventListener?.('paia:preferences-applied',this.onLocale);this.clearSecret();this.host.replaceChildren();}
 }

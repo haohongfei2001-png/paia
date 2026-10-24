@@ -807,6 +807,100 @@ test('CTX4 newly acknowledged editors retain canonical order when middle delete 
  assert.deepEqual((await c.snapshot()).items.filter(item=>item.card==='info').map(item=>item.id),ordered);
 }));
 
+for(const card of cards)for(const waitingOn of ['other','target'])test(`CTX4-02 ${card} delete preserves IME begun during a held ${waitingOn} save`,()=>fixture(async({c,recovery,makePage,transport,dispatch,calls})=>{
+ const second=put(card,{body:'SYNTHETIC second editor'});await c.change(second);
+ const page=makePage();await page.open(card);await tick();
+ const target=[...page.editors.values()].find(editor=>editor.id!==second.itemId),other=page.editors.get(second.itemId),saving=waitingOn==='other'?other:target;
+ const root=target.root,field=target.field,before=structuredClone(target.saved),held=deferred(),entered=deferred();
+ saving.field.textContent='SYNTHETIC settled pre-delete edit';saving.field.listeners.get('input')({isComposing:false});saving.autosave.cancel();
+ if(saving.recovery.running)await saving.recovery.running;
+ transport.dispatch=async message=>{if(message.type==='PAIA_CONTEXT_CARDS_CHANGE'&&message.change.itemId===saving.id&&message.change.kind==='put'){entered.resolve();await held.promise;}return dispatch(message);};
+ const originalSelection=Object.getOwnPropertyDescriptor(globalThis,'getSelection');let selection;
+ globalThis.getSelection=()=>selection;
+ try{
+  const actualRemove=page.remove.bind(page);let removing;page.remove=editor=>{removing=actualRemove(editor);return removing;};
+  target.menu.querySelectorAll('button').find(button=>button.textContent==='Delete').onclick();assert.ok(removing);await entered.promise;
+  target.field.focus();target.field.listeners.get('compositionstart')({});
+  const text='SYNTHETIC 正在输入未完成的文字';field.textContent=text;field.listeners.get('input')({isComposing:true});
+  const node=field.firstChild;let selectionWrites=0;
+  selection={rangeCount:1,isCollapsed:false,anchorNode:node,anchorOffset:12,focusNode:node,focusOffset:4,setBaseAndExtent(){selectionWrites++;}};
+  assert.equal(target.local,waitingOn==='other'?before.body:'SYNTHETIC settled pre-delete edit','the IME input listener must not collect unfinished text');
+  if(waitingOn==='other')assert.equal(target.dirty(),false,'uncommitted composition is not a dirty local body');
+  const targetClears=calls.filter(call=>call.type==='PAIA_RECOVERY_DRAFT_CLEAR'&&call.draft.ownerId===target.id).length;
+  held.resolve();await removing;
+  assert.equal(calls.filter(call=>call.change?.kind==='delete').length,0,'a resumed delete must not dispatch against a composing target');
+  assert.equal(page.editors.get(target.id),target);assert.equal(target.root,root);assert.equal(target.field,field);
+  assert.equal(root.isConnected,true);assert.equal(target.surface.controller.signal.aborted,false);
+  assert.equal(target.composing,true);assert.equal(field.textContent,text);assert.equal(field.firstChild,node);
+  assert.equal(document.activeElement,field);assert.equal(selectionWrites,0);assert.equal(selection.anchorNode,node);assert.equal(selection.focusNode,node);
+  assert.equal(page.busy,false);assert.equal(page.page.inert,false);assert.equal(page.journal.undo.length,0);
+  assert.equal((await c.snapshot()).items.find(item=>item.id===target.id).body,waitingOn==='other'?before.body:'SYNTHETIC settled pre-delete edit');
+  if(waitingOn==='other')assert.equal(calls.filter(call=>call.type==='PAIA_RECOVERY_DRAFT_CLEAR'&&call.draft.ownerId===target.id).length,targetClears);
+  target.field.listeners.get('compositionend')({});target.autosave.cancel();if(target.recovery.running)await target.recovery.running;
+  assert.equal(target.local,text);assert.equal((await recovery.load('context_item',target.id)).operation.change.body,text);
+  assert.equal(await target.flush(),true);assert.equal((await c.snapshot()).items.find(item=>item.id===target.id).body,text);
+  assert.equal(calls.filter(call=>call.change?.kind==='delete').length,0,'ending composition must not replay the cancelled delete');
+  await page.remove(target);
+  const deletes=calls.filter(call=>call.change?.kind==='delete');assert.equal(deletes.length,1);assert.equal(deletes[0].change.itemId,target.id);
+  assert.equal(page.editors.has(target.id),false);assert.equal(root.isConnected,false);assert.equal(page.journal.undo.length,1);
+  await page.undoDelete();assert.equal(page.editors.get(target.id).saved.body,text);assert.equal(page.journal.undo.length,0);
+ }finally{held.resolve();if(originalSelection)Object.defineProperty(globalThis,'getSelection',originalSelection);else delete globalThis.getSelection;}
+}));
+
+for(const state of ['composing','dirty'])test(`CTX4-02 fresh delete retains ${state} intent arriving during recovery clear`,()=>fixture(async({recovery,makePage,transport,dispatch,calls})=>{
+ const page=makePage();await page.open('info');await page.addItem();
+ const target=[...page.editors.values()].find(editor=>editor.fresh),held=deferred(),entered=deferred();
+ target.field.textContent='SYNTHETIC prior fresh draft';target.field.listeners.get('input')({isComposing:false});target.autosave.cancel();if(target.recovery.running)await target.recovery.running;
+ const oldToken=target.recovery.currentToken;
+ transport.dispatch=async message=>{if(message.type==='PAIA_RECOVERY_DRAFT_CLEAR'&&message.draft.ownerId===target.id&&message.draft.token===oldToken){entered.resolve();await held.promise;}return dispatch(message);};
+ try{
+  target.field.textContent='';target.field.listeners.get('input')({isComposing:false});await entered.promise;
+  const removing=page.remove(target);await tick();target.field.focus();
+  if(state==='composing')target.field.listeners.get('compositionstart')({});
+  const text='SYNTHETIC newer fresh draft 新文字';target.field.textContent=text;target.field.listeners.get('input')({isComposing:state==='composing'});target.autosave.cancel();
+  held.resolve();await removing;
+  assert.equal(page.editors.get(target.id),target);assert.equal(target.root.isConnected,true);assert.equal(target.disposed,undefined);
+  assert.equal(target.field.textContent,text);assert.equal(document.activeElement,target.field);assert.equal(target.fresh,true);
+  assert.equal(calls.filter(call=>call.change?.kind==='delete').length,0);assert.equal(page.journal.undo.length,0);
+  if(state==='composing'){assert.equal(target.composing,true);target.field.listeners.get('compositionend')({});target.autosave.cancel();}
+  if(target.recovery.running)await target.recovery.running;
+  assert.equal((await recovery.load('context_item',target.id)).operation.change.body,text);
+  assert.equal(await target.flush(),true);assert.equal(target.saved.body,text);
+ }finally{held.resolve();}
+}));
+
+for(const cancellation of ['close','reopen','replace'])test(`CTX4-02 delete preflight cancels after original owner ${cancellation}`,()=>fixture(async({c,makePage,transport,dispatch,calls})=>{
+ const second=put('info',{body:'SYNTHETIC second editor'});await c.change(second);
+ const page=makePage();await page.open('info');await tick();
+ const target=[...page.editors.values()].find(editor=>editor.id!==second.itemId),other=page.editors.get(second.itemId),before=structuredClone(target.saved),held=deferred(),entered=deferred();
+ other.field.textContent='SYNTHETIC held other edit';other.field.listeners.get('input')({isComposing:false});other.autosave.cancel();if(other.recovery.running)await other.recovery.running;
+ transport.dispatch=async message=>{if(message.change?.kind==='put'&&message.change.itemId===other.id){entered.resolve();await held.promise;}return dispatch(message);};
+ try{
+  const removing=page.remove(target);await entered.promise;
+  if(cancellation==='close')page.close();
+  else if(cancellation==='reopen')await page.open('info');
+  else{page.close();await page.open('info');assert.notEqual(page.editors.get(target.id),target);}
+  const current=page.editors.get(target.id),focus=document.activeElement;
+  held.resolve();await removing;
+  assert.equal(calls.filter(call=>call.change?.kind==='delete').length,0);assert.equal(page.journal.undo.length,0);
+  assert.equal((await c.snapshot()).items.find(item=>item.id===target.id).body,before.body);
+  assert.equal(page.editors.get(target.id),current);assert.equal(document.activeElement,focus);assert.equal(page.busy,false);
+ }finally{held.resolve();}
+}));
+
+test('CTX4-02 delete retains a failed target draft and normal blank saved/fresh deletion still works',()=>fixture(async({c,recovery,makePage,calls})=>{
+ const page=makePage();await page.open('info');await tick();const target=[...page.editors.values()][0];
+ const text='SYNTHETIC failed target edit';target.field.textContent=text;target.field.listeners.get('input')({isComposing:false});target.autosave.cancel();if(target.recovery.running)await target.recovery.running;target.failed=true;
+ await page.remove(target);assert.equal(calls.filter(call=>call.change?.kind==='delete').length,0);assert.equal(page.editors.get(target.id),target);
+ assert.equal((await recovery.load('context_item',target.id)).operation.change.body,text);
+ target.field.textContent='';target.field.listeners.get('input')({isComposing:false});target.autosave.cancel();
+ await page.remove(target);assert.equal(calls.filter(call=>call.change?.kind==='delete').length,1);assert.equal(page.editors.has(target.id),false);
+ await page.undoDelete();assert.equal(page.editors.get(target.id).saved.body,target.saved.body);
+ await page.addItem();const fresh=[...page.editors.values()].find(editor=>editor.fresh);await page.remove(fresh);
+ assert.equal(page.editors.has(fresh.id),false);assert.equal(calls.filter(call=>call.change?.kind==='delete').length,1);
+ assert.equal((await c.snapshot()).items.some(item=>item.id===fresh.id),false);
+}));
+
 // Presentation DTO only: domain eligibility/lineage is tested by the real
 // Maintenance owner suite. No automatic row or permission is persisted here.
 test('Now same-revision temporal refresh preserves the actual editor, draft, focus and Undo journal',()=>fixture(async({makePage,calls})=>{
