@@ -97,7 +97,7 @@ for relative in ('index.html', 'zh/index.html'):
     doc = Document(source)
     check('Watch the film' not in source and 'A PAIA user' not in source, f'{relative}: no invented film or testimonial')
     if ATELIER:
-        if any(f'data-atelier-version="{v}"' in source for v in (10,11,12)):
+        if any(f'data-atelier-version="{v}"' in source for v in (10,11,12,13)):
             check({'archive','thoughts','context'}.issubset({a.get('id') for _,a in doc.tags}),f'{relative}: three spaces retain distinct presentation')
         else:
             check(sum('data-pd-tab' in attrs for _, attrs in doc.tags) == 3, f'{relative}: three approved Atelier spaces')
@@ -510,7 +510,10 @@ try:
             load(page, locale + 'index.html', scripts=False)
             if ATELIER:
                 check(page.locator('h1').is_visible() and page.locator('#archive').is_visible() and page.locator('#context').is_visible(), f'{locale}: static core content without JS')
-                if page.locator('body').get_attribute('data-atelier-version') in ('10','11','12'):
+                if page.locator('body').get_attribute('data-atelier-version') == '13':
+                    check(page.locator('.p13-input').count()==4 and page.locator('.p13-archive-window').is_visible(),f'{locale}: complete archive composition without JavaScript')
+                    check(page.locator('.p13-thought-entry').count()==2 and page.locator('.p13-chapter-sheet').is_visible(),f'{locale}: complete real chapter without JavaScript')
+                elif page.locator('body').get_attribute('data-atelier-version') in ('10','11','12'):
                     check(page.locator('.p10-found-quote').is_visible(),f'{locale}: complete archive illustration without JavaScript')
                     check(page.locator('.p10-phrase').count()==3 and page.locator('.p10-mind-paper').is_visible(),f'{locale}: complete thought illustration without JavaScript')
                 else:

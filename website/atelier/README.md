@@ -1,3 +1,5 @@
+> **Atelier V13 homepage:** coherent product outcomes and subordinate everyday details. See [PRODUCT_WORLD_V13.md](PRODUCT_WORLD_V13.md). Product example and interior routes retain V12.
+
 > **Atelier V12:** current homepage, example, and shared interior finish. See [POLISH_V12.md](POLISH_V12.md). Historical notes below retain their original scope.
 
 > Current homepage and product example: **V11**. See [REFINEMENT_V11.md](REFINEMENT_V11.md). Earlier notes below describe their original release.

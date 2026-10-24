@@ -26,6 +26,7 @@ if ATELIER:
     paths += ['assets/website/type/atelier-serif-sc.woff2','assets/website/type/atelier-serif-sc-OFL.txt']
     if (ROOT/'assets/website/type/atelier-editorial-v10.woff2').exists():paths += ['assets/website/type/atelier-editorial-v10.woff2']
 if (ROOT/'assets/website/type/atelier-editorial-v12.woff2').exists():paths += ['assets/website/type/atelier-editorial-v12.woff2']
+if (ROOT/'assets/website/type/atelier-world-v13.woff2').exists():paths += ['assets/website/type/atelier-world-v13.woff2']
 paths = list(dict.fromkeys(paths))
 checks = []
 try:
