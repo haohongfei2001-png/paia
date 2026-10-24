@@ -31,15 +31,18 @@ def static(root,check):
     check('localStorage' not in code and 'sessionStorage' not in code,'shell has no persistence')
     check(all(x in code for x in ['subjectVisible','visibilitychange','prefers-reduced-motion','manualFloat=true']),'visibility and R3 ownership retained')
     check("el.dataset.story!=='thoughts'" in code,'old thought timer does not compete with native spatial scroll')
-    check('spatial-home.js' in code and "dataset.spatial14='fallback'" in code,'official homepage enables spatial component with readable failure fallback')
-    spatial=(root/'assets/website/atelier/spatial-home.js').read_text()
-    check("['index.html','space.css']" in spatial and "'/design/thought-space/'" in spatial,'fixed own-origin static asset paths only')
-    check("credentials:'omit'" in spatial and 'AbortController' in spatial,'static reads omit credentials and have finite timeout')
-    check(not re.search(r'\b(localStorage|sessionStorage|XMLHttpRequest|WebSocket|sendBeacon)\b',spatial),'no storage or additional data channel')
-    check('attachShadow' in spatial and "host.style.padding='0'" in spatial,'material system is mounted at real homepage thought section')
-    check('new Function' not in spatial and 'eval(' not in spatial,'no fetched code execution')
-    check((root/'design/thought-space/index.html').exists() and (root/'design/thought-space/space.css').exists(),'approved spatial assets exist in deployment')
+    check('spatial-folio15.js' in code and "dataset.spatial15='fallback'" in code,'homepage enables V15 with original semantic fallback')
+    spatial=(root/'assets/website/atelier/spatial-folio15.js').read_text()
+    css=(root/'assets/website/atelier/thought15.css').read_text()
+    structure=(root/'assets/website/atelier/thought15.html').read_text()
+    check("['thought15.html','thought15.css']" in spatial,'only fixed own-origin presentation assets')
+    check("credentials:'omit'" in spatial and 'AbortController' in spatial,'public design assets omit credentials and time out')
+    check(not re.search(r'\b(localStorage|sessionStorage|XMLHttpRequest|WebSocket|sendBeacon)\b',spatial),'no private storage or active data channel')
+    check('attachShadow' in spatial and "host.style.padding='0'" in spatial,'V15 mounted on exact official section')
+    check('eval(' not in spatial and 'new Function' not in spatial,'no execution of fetched text')
+    check('pa15-story' in structure and '.pa15-stage' in css,'V15 complete design source')
+    check((root/'design/thought-space/index.html').exists(),'previous isolated study remains available')
 
 def home(page,check,label,deep=False,out=None):
-    from spatial_home_checks import home as verify_rendered_home
+    from spatial_folio15_checks import home as verify_rendered_home
     return verify_rendered_home(page,check,label,deep,out)
