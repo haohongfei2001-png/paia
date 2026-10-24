@@ -6,6 +6,7 @@ sys.dont_write_bytecode = True
 from home import render as render_home
 from atelier_home import render as render_atelier, render_demo as render_atelier_demo
 from launch_copy import product_copy
+from polish12 import decorate as polish_interior, download as render_polished_download
 from launch_pages import download as render_download, help_page as render_help, contact as render_contact, installation
 from pages import render_pages
 from product_pages import render_demo, render_trust, render_status, render_about
@@ -113,6 +114,7 @@ def build(lang):
             out = render_atelier(lang)
         elif page == 'demo.html':
             out = render_atelier_demo(lang)
+        out = polish_interior(out, page)
         dest=ROOT/('' if en else 'zh')/page
         dest.parent.mkdir(parents=True,exist_ok=True)
         write(dest,out)
@@ -131,7 +133,7 @@ def build(lang):
     demo=render_demo(t,a,button)
     shell('demo.html',t('PAIA — 找回、整理、复用的交互示例','PAIA — An interactive example of finding, organizing and reusing'),t('用虚构数据体验输入档案、个人提示词、主题阅读和四卡 Context；无需安装，不连接私人档案或 AI。','Try the archive, personal prompts, topic reading and four-card Context with fictional data. No installation, personal archive or AI connection.'),demo,True)
 
-    download_body = render_download(t,a,button)
+    download_body = render_polished_download(t,a,button,installation)
     shell('download.html',t('获取 PAIA','Get PAIA'),t('从桌面 Chrome 和 ChatGPT 开始。安装、首次设置与使用帮助。','Start with Chrome on desktop and ChatGPT. Installation, first steps and help.'),download_body)
     # Preserve old bookmarks, but canonicalize them to the product entry.
     shell('beta.html',t('获取 PAIA','Get PAIA'),t('从桌面 Chrome 和 ChatGPT 开始。','Start with Chrome on desktop and ChatGPT.'),download_body,True)

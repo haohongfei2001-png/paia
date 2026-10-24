@@ -7,7 +7,7 @@ import hashlib, json, os
 from core_checks import verify_core
 from origin_checks import verify_hero, verify_origin, verify_typography
 from presentation_checks import verify_presentation
-from refinement11_checks import demo as verify_demo11
+from polish12_checks import demo as verify_demo11
 from atelier_checks import enabled as atelier_enabled, verify_home as verify_atelier_home
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +25,7 @@ if ATELIER:
     paths += [p.relative_to(ROOT).as_posix() for p in (ROOT/'assets/website/atelier').glob('*') if p.is_file()]
     paths += ['assets/website/type/atelier-serif-sc.woff2','assets/website/type/atelier-serif-sc-OFL.txt']
     if (ROOT/'assets/website/type/atelier-editorial-v10.woff2').exists():paths += ['assets/website/type/atelier-editorial-v10.woff2']
+if (ROOT/'assets/website/type/atelier-editorial-v12.woff2').exists():paths += ['assets/website/type/atelier-editorial-v12.woff2']
 paths = list(dict.fromkeys(paths))
 checks = []
 try:
@@ -67,7 +68,7 @@ try:
                 def live_check(value, label):
                     checks.append({'path':relative,'viewport':width,'interaction':label,'pass':bool(value)})
                     if not value: raise AssertionError(label)
-                if page.locator('body').get_attribute('data-atelier-demo')=='11':
+                if page.locator('body').get_attribute('data-atelier-demo') in ('11','12'):
                     verify_demo11(page,live_check,relative+str(width),deep=relative in ('demo.html','zh/demo.html'),out=OUT)
                 elif not (ATELIER and Path(relative).name=='index.html'):
                     verify_typography(page, live_check, relative)
@@ -79,7 +80,7 @@ try:
                     page.screenshot(path=str(OUT / f'live-{relative.replace("/", "-")}-{width}-hero.png'), animations='disabled')
                 if not ATELIER and Path(relative).name == 'index.html':
                     verify_presentation(page,live_check,relative,motion=True)
-                if relative in ('demo.html','zh/demo.html') and page.locator('body').get_attribute('data-atelier-demo')!='11':
+                if relative in ('demo.html','zh/demo.html') and page.locator('body').get_attribute('data-atelier-demo') not in ('11','12'):
                     verify_core(page, live_check, en=not relative.startswith('zh/'), download_dir=OUT)
                     verify_origin(page, live_check, en=not relative.startswith('zh/'))
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')

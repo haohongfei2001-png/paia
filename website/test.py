@@ -18,8 +18,8 @@ from atelier_checks import enabled as atelier_enabled, verify_static as verify_a
 
 ROOT = Path(__file__).resolve().parents[1]
 ATELIER = atelier_enabled(ROOT)
-DEMO11 = 'data-atelier-demo="11"' in (ROOT/'demo.html').read_text()
-from refinement11_checks import demo as verify_demo11
+DEMO11 = any(f'data-atelier-demo="{v}"' in (ROOT/'demo.html').read_text() for v in (11,12))
+from polish12_checks import demo as verify_demo11
 OFFLINE = '--offline-render' in sys.argv
 OUT = Path(os.environ.get('WEBSITE_TEST_OUTPUT', ROOT / 'website-test-artifacts'))
 OUT.mkdir(parents=True, exist_ok=True)
@@ -97,7 +97,7 @@ for relative in ('index.html', 'zh/index.html'):
     doc = Document(source)
     check('Watch the film' not in source and 'A PAIA user' not in source, f'{relative}: no invented film or testimonial')
     if ATELIER:
-        if any(f'data-atelier-version="{v}"' in source for v in (10,11)):
+        if any(f'data-atelier-version="{v}"' in source for v in (10,11,12)):
             check({'archive','thoughts','context'}.issubset({a.get('id') for _,a in doc.tags}),f'{relative}: three spaces retain distinct presentation')
         else:
             check(sum('data-pd-tab' in attrs for _, attrs in doc.tags) == 3, f'{relative}: three approved Atelier spaces')
@@ -510,7 +510,7 @@ try:
             load(page, locale + 'index.html', scripts=False)
             if ATELIER:
                 check(page.locator('h1').is_visible() and page.locator('#archive').is_visible() and page.locator('#context').is_visible(), f'{locale}: static core content without JS')
-                if page.locator('body').get_attribute('data-atelier-version') in ('10','11'):
+                if page.locator('body').get_attribute('data-atelier-version') in ('10','11','12'):
                     check(page.locator('.p10-found-quote').is_visible(),f'{locale}: complete archive illustration without JavaScript')
                     check(page.locator('.p10-phrase').count()==3 and page.locator('.p10-mind-paper').is_visible(),f'{locale}: complete thought illustration without JavaScript')
                 else:
