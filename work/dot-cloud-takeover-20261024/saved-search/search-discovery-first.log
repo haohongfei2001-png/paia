@@ -1,0 +1,27 @@
+✔ real cold Saved restore queues discovery with original rebuild marker absent (408.320504ms)
+✔ real cold Saved restore queues discovery with original rebuild marker complete (287.399562ms)
+✔ real cold Saved restore queues discovery with original rebuild marker past entries (258.176751ms)
+✔ two genuine Saved members and independent Human keep all three actual search locators (458.010455ms)
+✔ original direct Source+Saved receiver schedules discovery and preserves indexed duplicate facts (163.301616ms)
+✔ original standalone Saved owner schedules the same locator after real Source receive (153.315014ms)
+✔ legacy cold Saved no-locator profile remains exportable without altering local data (252.890841ms)
+✔ new direct Saved owner does not overwrite identical existing locator (142.907907ms)
+✔ new direct Saved owner does not overwrite changed version existing locator (123.372165ms)
+✔ new direct Saved owner does not overwrite in-progress existing locator (125.025388ms)
+✔ direct Saved receive preserves an unrelated pending task rather than clearing the queue (146.966165ms)
+✔ group final fence rejects missing pending search after actual owners and rolls all tables back (204.112085ms)
+✔ group final fence rejects version pending search after actual owners and rolls all tables back (217.915126ms)
+✔ group final fence rejects phase pending search after actual owners and rolls all tables back (220.947898ms)
+✔ group final fence rejects same-count replacement pending search after actual owners and rolls all tables back (210.533546ms)
+✔ group final fence rejects extra pending search after actual owners and rolls all tables back (233.08067ms)
+✔ failure after original standalone Saved writer includes new locator in atomic rollback (113.032062ms)
+✔ original terminal deletion facts still abort Source+Saved+search activation (207.324813ms)
+✔ real Entry removal stays unsearchable and duplicate Saved replay cannot resurrect or requeue it (170.94682ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4401.53394

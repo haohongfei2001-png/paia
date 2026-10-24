@@ -1,0 +1,27 @@
+✔ untouched real cold Saved restore has no locator and rebuilds through original maintenance (446.180041ms)
+✖ hypothesis: a previously completed empty search index must not hide genuinely restored Saved content (258.090326ms)
+ℹ {"complete":true,"indexing":false,"items":0,"queue":0,"postings":0}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1023.309637
+
+✖ failing tests:
+
+test at ../evidence-saved-search-review/saved-search-original-owner.test.mjs:34:1
+✖ hypothesis: a previously completed empty search index must not hide genuinely restored Saved content (258.090326ms)
+  AssertionError [ERR_ASSERTION]: retained content is either found or truthfully rebuilding, never silently complete-and-missing
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/evidence-saved-search-review/saved-search-original-owner.test.mjs:37:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

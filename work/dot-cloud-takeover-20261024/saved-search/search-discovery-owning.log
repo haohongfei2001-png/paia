@@ -1,0 +1,31 @@
+✔ real cold Saved restore queues discovery with original rebuild marker absent (682.737925ms)
+✔ real cold Saved restore queues discovery with original rebuild marker complete (420.868945ms)
+✔ real cold Saved restore queues discovery with original rebuild marker past entries (360.713127ms)
+✔ two genuine Saved members and independent Human keep all three actual search locators (615.818723ms)
+✔ original direct Source+Saved receiver schedules discovery and preserves indexed duplicate facts (202.115523ms)
+✔ original standalone Saved owner schedules the same locator after real Source receive (130.829047ms)
+✔ legacy cold Saved no-locator profile remains exportable without altering local data (357.390352ms)
+✔ new direct Saved owner does not overwrite identical existing locator (200.391156ms)
+✔ new direct Saved owner does not overwrite changed version existing locator (179.212259ms)
+✔ new direct Saved owner does not overwrite in-progress existing locator (163.349114ms)
+✔ direct Saved receive preserves an unrelated pending task rather than clearing the queue (164.365639ms)
+✔ group final fence rejects missing pending search after actual owners and rolls all tables back (236.548181ms)
+✔ group final fence rejects version pending search after actual owners and rolls all tables back (231.657938ms)
+✔ group final fence rejects phase pending search after actual owners and rolls all tables back (283.479046ms)
+✔ group final fence rejects same-count replacement pending search after actual owners and rolls all tables back (247.962983ms)
+✔ group final fence rejects extra pending search after actual owners and rolls all tables back (231.701682ms)
+✔ failure after original standalone Saved writer includes new locator in atomic rollback (108.490006ms)
+✔ original terminal deletion facts still abort Source+Saved+search activation (204.40856ms)
+✔ real Entry removal stays unsearchable and duplicate Saved replay cannot resurrect or requeue it (225.325295ms)
+✔ standalone original final fence rejects missing locator after Saved writer returned (131.218482ms)
+✔ standalone original final fence rejects phase locator after Saved writer returned (135.619379ms)
+✔ mixed final fence keeps exact Human locator proof when Saved queues coexist: missing (280.781409ms)
+✔ mixed final fence keeps exact Human locator proof when Saved queues coexist: phase (266.553223ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6473.935796

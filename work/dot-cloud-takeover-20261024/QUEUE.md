@@ -20,7 +20,7 @@ The latest handoff remains `work/dot-handoff-20261024/PAIA-DOT-HANDOFF-20261024.
 | --- | --- | --- | --- |
 | Q | background/context-connections.js | Correct hold admission and exact transport close settlement; permit pause/revoke and retain unknown outcomes | Implemented and independently code-reviewed; final 44/44 synthetic owner tests, integrated C+Q 146/146; not activation qualification |
 | C | core/browser-native-sync/canonical-generation-checkpoint-stage.js | Remove provably redundant item/page reads while preserving complete row comparison and all terminal fences/budgets | Implemented and independently code-reviewed; 49/49 owning and 53/53 adjacent synthetic tests; no native/performance claim |
-| R | core/browser-native-sync/recovery-session.js | Consume only proven legal causal successors from persistent validated staging through existing tail owner | Implementation in progress, not arbitrary fork resolution |
+| R | core/browser-native-sync/recovery-session.js | Consume only proven legal causal successors from persistent validated staging through existing tail owner | Implemented with original restriction-only work window, independently code-reviewed; 102/102 owning and combined C/Q/H/R 319/319; not arbitrary fork resolution |
 
 Each package owns only its associated tests. Shared activation, compiler, worker and repository internals remain unchanged unless subsequently assigned a separate reviewed package. Root owns integration and this queue. The Context seven-file WIP is not accepted by this schedule; no whole evidence branch is merged.
 
@@ -46,4 +46,8 @@ Do not publish an old generated package as current. Final delivery requires exac
 
 - Assist original task settlement: original background/session owners; implementation begins, no financial UNKNOWN rewrite or global activation unlock.
 - Human locator completeness: original non-native scope reproduced missing Entry/Topic/Section locators accepted by grouped export; original negative 1/4 retained; implemented, independently code-reviewed, new owning 19/19 and original regressions 52/52, combined C/Q/H 217/217. Native-linked guard remains unchanged.
-- Recovery tail integration remains blocked on original native/compiler cumulative meter propagation. Earlier local passes are not final qualification; reviewer-found control-read accounting gap must be fixed, not disclosed away.
+- Recovery tail cumulative meter propagation is implemented and independently reviewed; original failed transport-only attempts remain failures. New admission remains ordinary Source/Working with explicit negative/active-generation/unsupported-family refusal; native browser qualification is still pending.
+
+## Saved restore search discovery
+
+New Saved bootstrap writes now schedule the original pending locator and prove it in the original terminal, preserving existing marker and duplicate behavior. Original empty-target-complete negative 1/2 remains; final owning26/26 and four original files98/98, independently reviewed. This fixes newly restored data, not automatic repair of already-bad historical profiles. Combined C/Q/H/R/S nineteen complete synthetic files:424/424,15366.269491ms.

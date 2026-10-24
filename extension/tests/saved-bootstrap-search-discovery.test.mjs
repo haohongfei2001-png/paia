@@ -1,0 +1,126 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
+import {LibraryDocumentsStore} from '../core/library-documents-store.js';
+import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';
+import {SourceBootstrapJournal} from '../core/browser-native-sync/source-bootstrap-journal.js';
+import {HumanLibrarySyncJournal} from '../core/browser-native-sync/human-library-journal.js';
+import {SourceSavedWorkReceiver} from '../core/browser-native-sync/saved-work-receive.js';
+import {SourceBootstrapReceiver} from '../core/browser-native-sync/source-bootstrap-receive.js';
+import {prepareSavedWorkBootstrap,applySavedWorkBootstrap,prepareSavedWorkPublication,publishSavedWorkBootstrap} from '../core/browser-native-sync/saved-work-bootstrap.js';
+import {buildCheckpoint,StagedSyncRestore} from '../core/browser-native-sync/checkpoints.js';
+import {planSearchQueueLocator} from '../core/library-search.js';
+import {local,capture} from './harness/thought-m1.mjs';
+globalThis.IDBKeyRange=IDBKeyRange;
+const id=()=>crypto.randomUUID(),generator={providerId:'fixture',providerVersion:'1',modelVersion:'deterministic-1',taskSchemaVersion:1,promptTemplateVersion:1,policyVersion:1};
+const snapshot=s=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(s.repository.stores.map(async name=>[name,await t.all(name)]))));
+async function device(t){const s=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory(),name:'SYNTHETIC_'+id()});await s.consent(true);await s.finishFoundation();t.after(()=>s.repository.close());return {s,core:new BrowserNativeSyncCore(s.repository,{datasetId:'SYNTHETIC_saved_search_discovery',deviceId:id()})};}
+function transport(){const rows=new Map();return {async putImmutable(ref,bytes){rows.set(ref.id,bytes.slice());},async get(ref){return rows.get(ref.id)?.slice();}};}
+async function fixture(t,{human=false,count=1,bodyWords=0}={}){
+ const a=await device(t);a.entries=[];a.operations=[];
+ if(human){a.s.humanLibraryJournal=new HumanLibrarySyncJournal(a.core);a.human=await a.s.createEntry({actor:'user',body:'SYNTHETIC humansearchneedle independent body',type:'idea',formation:'explicit',evidence:[],operationId:id()});a.s.humanLibraryJournal=null;}
+ a.s.sourceBootstrapJournal=new SourceBootstrapJournal(a.core);await a.s.capture(capture((await a.s.status()).epoch));a.input=(await a.s.snapshot()).library.blocks[0];
+ a.source=[];for await(const r of a.core.rows('revision'))if(r.operation.type.startsWith('sourceBootstrap'))a.source.push(r.operation);
+ for(let n=0;n<count;n++){
+  const evidence=await a.s.evidenceFor([{inputId:a.input.id,role:'primary',selectedFields:['body']}]),entry=await a.s.createEntry({actor:'ai',operationId:id(),body:'SYNTHETIC saved original '+n,type:'idea',formation:'explicit',evidence,generator});
+  await a.s.editEntry({id:entry.id,expectedRevision:0,operationId:id(),changes:{body:'SYNTHETIC savedsearchneedle protected body '+n+' '+Array.from({length:bodyWords},(_,i)=>'syntheticword'+i).join(' ')}});a.entries.push(entry);
+  a.operations.push(await publishSavedWorkBootstrap(a.s,await prepareSavedWorkPublication(a.s,a.core,entry.id)));
+ }
+ a.cloud=transport();a.cut=await buildCheckpoint(a.core,a.cloud,{grouped:{store:a.s}});return a;
+}
+async function maintenance(s){for(let n=0;n<10;n++)if(!(await s.processLibraryMaintenance()).pending)return;assert.fail('small original maintenance did not settle');}
+const marker=rows=>rows.meta.find(row=>row.id==='library-search-rebuild');
+async function staged(t,a,{search='absent',checkpoint=async()=>{}}={}){
+ const b=await device(t);
+ if(search==='complete'){await maintenance(b.s);assert.equal(marker(await snapshot(b.s)).complete,true);}
+ if(search==='past entries'){await b.s.processLibraryMaintenance();assert.deepEqual(marker(await snapshot(b.s)),{id:'library-search-rebuild',phase:1,cursor:null,complete:false});}
+ b.marker=marker(await snapshot(b.s));b.owner=new StagedSyncRestore(b.core,{grouped:{store:b.s},checkpoint});await b.owner.stageCheckpoint(a.cut.ref,ref=>a.cloud.get(ref));return b;
+}
+const receiveInput=a=>({sourceOperations:a.source,operation:a.operations[0]});
+function assertQueue(rows){assert.deepEqual(rows.libraryMigrationItems.sort((a,b)=>a.id.localeCompare(b.id)),rows.thoughts.map(row=>planSearchQueueLocator('entry',row)).sort((a,b)=>a.id.localeCompare(b.id)));}
+async function assertDiscoverable(s,entries,query='savedsearchneedle'){
+ const pending=await s.searchLibrary({query});assert.equal(pending.complete,false);assert.equal(pending.indexing,true);
+ await maintenance(s);const result=await s.searchLibrary({query});assert.equal(result.complete,true);assert.equal(result.indexing,false);assert.deepEqual(result.items.map(row=>row.entryId).sort(),entries.map(row=>row.id).sort());
+}
+for(const search of ['absent','complete','past entries'])test('real cold Saved restore queues discovery with original rebuild marker '+search,async t=>{
+ const a=await fixture(t),b=await staged(t,a,{search});await b.owner.activate();const rows=await snapshot(b.s);assertQueue(rows);assert.equal(rows.librarySearchTerms.length,0);assert.deepEqual(marker(rows),b.marker);
+ await buildCheckpoint(b.core,transport(),{grouped:{store:b.s}});assert.deepEqual(await snapshot(b.s),rows);
+ await assertDiscoverable(b.s,a.entries);
+ const indexed=await snapshot(b.s);await b.owner.activate();assert.deepEqual(await snapshot(b.s),indexed,'already activated/indexed duplicate does not requeue or overwrite');
+});
+test('two genuine Saved members and independent Human keep all three actual search locators',async t=>{
+ const a=await fixture(t,{human:true,count:2}),b=await staged(t,a,{search:'complete'});await b.owner.activate();const rows=await snapshot(b.s);assert.equal(rows.thoughts.length,3);assertQueue(rows);assert.deepEqual(marker(rows),b.marker);
+ await assertDiscoverable(b.s,a.entries);const human=await b.s.searchLibrary({query:'humansearchneedle'});assert.equal(human.complete,true);assert.deepEqual(human.items.map(row=>row.entryId),[a.human.id]);
+});
+test('original direct Source+Saved receiver schedules discovery and preserves indexed duplicate facts',async t=>{
+ const a=await fixture(t),b=await device(t);await maintenance(b.s);const receiver=new SourceSavedWorkReceiver(b.s,b.core);assert.equal((await receiver.receiveOperation(receiveInput(a))).state,'bootstrapped');assertQueue(await snapshot(b.s));await assertDiscoverable(b.s,a.entries);
+ const indexed=await snapshot(b.s);assert.equal((await receiver.receiveOperation(receiveInput(a))).state,'duplicate');assert.deepEqual(await snapshot(b.s),indexed);
+});
+test('original standalone Saved owner schedules the same locator after real Source receive',async t=>{
+ const a=await fixture(t),b=await device(t);await maintenance(b.s);await new SourceBootstrapReceiver(b.s,b.core).receive(a.source);const cap=await prepareSavedWorkBootstrap(b.s,b.core,a.operations[0].value.payload);await applySavedWorkBootstrap(b.s,cap);assertQueue(await snapshot(b.s));await assertDiscoverable(b.s,a.entries);
+});
+test('legacy cold Saved no-locator profile remains exportable without altering local data',async t=>{
+ const a=await fixture(t),b=await staged(t,a);await b.owner.activate();
+ // Exact derivative shape emitted by the original owner, preserved in the red evidence.
+ await b.s.repository.transaction(true,async tx=>{for(const row of await tx.all('libraryMigrationItems'))await tx.delete('libraryMigrationItems',row.id);});
+ const legacy=await snapshot(b.s);assert.equal(legacy.libraryMigrationItems.length,0);assert.equal(legacy.librarySearchTerms.length,0);assert.equal(marker(legacy),undefined);await buildCheckpoint(b.core,transport(),{grouped:{store:b.s}});assert.deepEqual(await snapshot(b.s),legacy);
+});
+for(const pending of ['identical','changed version','in-progress'])test('new direct Saved owner does not overwrite '+pending+' existing locator',async t=>{
+ const a=await fixture(t),b=await device(t),row=planSearchQueueLocator('entry',a.operations[0].value.payload.entry);
+ if(pending==='changed version')row.version='SYNTHETIC stale version';if(pending==='in-progress'){row.phase='write';row.offset=1;}
+ await b.s.repository.transaction(true,tx=>tx.put('libraryMigrationItems',row));const before=await snapshot(b.s),receiver=new SourceSavedWorkReceiver(b.s,b.core);
+ if(pending==='identical'){await receiver.receiveOperation(receiveInput(a));assert.deepEqual((await snapshot(b.s)).libraryMigrationItems,[row]);await assertDiscoverable(b.s,a.entries);}
+ else{await assert.rejects(receiver.receiveOperation(receiveInput(a)));assert.deepEqual(await snapshot(b.s),before);}
+});
+test('direct Saved receive preserves an unrelated pending task rather than clearing the queue',async t=>{
+ const a=await fixture(t),b=await device(t),other={...planSearchQueueLocator('entry',a.operations[0].value.payload.entry),id:'SYNTHETIC unrelated pending',ownerId:'SYNTHETIC other'};
+ await b.s.repository.transaction(true,tx=>tx.put('libraryMigrationItems',other));await new SourceSavedWorkReceiver(b.s,b.core).receiveOperation(receiveInput(a));assert.ok((await snapshot(b.s)).libraryMigrationItems.some(row=>JSON.stringify(row)===JSON.stringify(other)));
+});
+for(const drift of ['missing','version','phase','same-count replacement','extra'])test('group final fence rejects '+drift+' pending search after actual owners and rolls all tables back',async t=>{
+ const a=await fixture(t);let injected=false;const b=await staged(t,a,{search:'complete',checkpoint:async(name,tx)=>{
+  if(name!=='after-activation')return;const key=planSearchQueueLocator('entry',a.operations[0].value.payload.entry).id,row=await tx.get('libraryMigrationItems',key);assert.ok(row,'actual writer supplied the pending locator');
+  if(['missing','same-count replacement'].includes(drift))await tx.delete('libraryMigrationItems',key);
+  if(drift==='version')await tx.put('libraryMigrationItems',{...row,version:'SYNTHETIC different'});
+  if(drift==='phase')await tx.put('libraryMigrationItems',{...row,phase:'write',offset:1});
+  if(['same-count replacement','extra'].includes(drift))await tx.put('libraryMigrationItems',{...row,id:'SYNTHETIC foreign locator',ownerId:'SYNTHETIC foreign'});injected=true;
+ }});const before=await snapshot(b.s);await assert.rejects(b.owner.activate());assert.equal(injected,true);assert.deepEqual(await snapshot(b.s),before);
+});
+test('failure after original standalone Saved writer includes new locator in atomic rollback',async t=>{
+ const a=await fixture(t),b=await device(t);await new SourceBootstrapReceiver(b.s,b.core).receive(a.source);const cap=await prepareSavedWorkBootstrap(b.s,b.core,a.operations[0].value.payload),before=await snapshot(b.s);let saw=false;
+ await assert.rejects(b.s.foundationWrite(async tx=>{await b.s.applySavedWorkBootstrapInTransaction(tx,cap);assert.ok(await tx.get('libraryMigrationItems',planSearchQueueLocator('entry',a.operations[0].value.payload.entry).id));saw=true;throw Error('SYNTHETIC after queue');}));assert.equal(saw,true);assert.deepEqual(await snapshot(b.s),before);
+});
+test('original terminal deletion facts still abort Source+Saved+search activation',async t=>{
+ const a=await fixture(t);let injected=false;const b=await staged(t,a,{checkpoint:async(name,tx)=>{if(name!=='after-activation')return;await tx.put('tombstones',{id:'SYNTHETIC late deletion fact'});injected=true;}});const before=await snapshot(b.s);await assert.rejects(b.owner.activate());assert.equal(injected,true);assert.deepEqual(await snapshot(b.s),before);
+});
+test('real Entry removal stays unsearchable and duplicate Saved replay cannot resurrect or requeue it',async t=>{
+ const a=await fixture(t),b=await device(t),receiver=new SourceSavedWorkReceiver(b.s,b.core);await receiver.receiveOperation(receiveInput(a));await maintenance(b.s);await b.s.removeEntry({id:a.entries[0].id,expectedRevision:1,operationId:id()});await maintenance(b.s);
+ const removed=await snapshot(b.s);assert.equal(removed.thoughts[0].lifecycle,'removed');assert.equal(removed.libraryMigrationItems.length,0);const result=await b.s.searchLibrary({query:'savedsearchneedle'});assert.equal(result.complete,true);assert.equal(result.items.length,0);
+ assert.equal((await receiver.receiveOperation(receiveInput(a))).state,'duplicate');assert.deepEqual(await snapshot(b.s),removed);assert.equal((await b.s.searchLibrary({query:'savedsearchneedle'})).items.length,0);
+});
+for(const drift of ['missing','phase'])test('standalone original final fence rejects '+drift+' locator after Saved writer returned',async t=>{
+ const a=await fixture(t),b=await device(t);await new SourceBootstrapReceiver(b.s,b.core).receive(a.source);const cap=await prepareSavedWorkBootstrap(b.s,b.core,a.operations[0].value.payload),before=await snapshot(b.s);let injected=false;
+ await assert.rejects(b.s.foundationWrite(async tx=>{await b.s.applySavedWorkBootstrapInTransaction(tx,cap);const key=planSearchQueueLocator('entry',a.operations[0].value.payload.entry).id,row=await tx.get('libraryMigrationItems',key);assert.ok(row);if(drift==='missing')await tx.delete('libraryMigrationItems',key);else await tx.put('libraryMigrationItems',{...row,phase:'write',offset:1});injected=true;}));assert.equal(injected,true);assert.deepEqual(await snapshot(b.s),before);
+});
+for(const drift of ['missing','phase'])test('mixed final fence keeps exact Human locator proof when Saved queues coexist: '+drift,async t=>{
+ const a=await fixture(t,{human:true});let injected=false;const b=await staged(t,a,{checkpoint:async(name,tx)=>{
+  if(name!=='after-activation')return;const key=JSON.stringify(['search','entry',a.human.id]),row=await tx.get('libraryMigrationItems',key);assert.equal(row?.ownerId,a.human.id);assert.ok(await tx.get('libraryMigrationItems',JSON.stringify(['search','entry',a.entries[0].id])));
+  if(drift==='missing')await tx.delete('libraryMigrationItems',key);else await tx.put('libraryMigrationItems',{...row,phase:'write',offset:1});injected=true;
+ }});const before=await snapshot(b.s);await assert.rejects(b.owner.activate());assert.equal(injected,true);assert.deepEqual(await snapshot(b.s),before);
+});
+for(const mode of ['group','direct'])test(mode+' duplicate preserves a genuine partially indexed task without rewinding its cursor',async t=>{
+ const a=await fixture(t,{bodyWords:220});let b,replay;
+ if(mode==='group'){b=await staged(t,a,{search:'complete'});await b.owner.activate();replay=()=>b.owner.activate();}
+ else{b=await device(t);await maintenance(b.s);const receiver=new SourceSavedWorkReceiver(b.s,b.core);await receiver.receiveOperation(receiveInput(a));replay=()=>receiver.receiveOperation(receiveInput(a));}
+ await b.s.processLibraryMaintenance();const partial=await snapshot(b.s),task=partial.libraryMigrationItems[0];assert.equal(task.phase,'write');assert.equal(task.offset,200);assert.ok(partial.librarySearchTerms.length>0);assert.equal((await b.s.searchLibrary({query:'savedsearchneedle'})).complete,false);
+ await replay();assert.deepEqual(await snapshot(b.s),partial);await maintenance(b.s);const result=await b.s.searchLibrary({query:'savedsearchneedle'});assert.equal(result.complete,true);assert.deepEqual(result.items.map(row=>row.entryId),[a.entries[0].id]);
+});
+test('Saved-only terminal count rejects a foreign locator injected in the final backup-generation tail',async t=>{
+ const a=await fixture(t);let injected=false;const b=await staged(t,a,{checkpoint:async(name,tx)=>{
+  if(name!=='after-activation')return;const original=tx.put.bind(tx);tx.put=async(table,row,...args)=>{
+   const result=await original(table,row,...args);if(!injected&&table==='meta'&&row.id==='backup-data-generation'){
+    const task={...planSearchQueueLocator('entry',a.operations[0].value.payload.entry),id:'SYNTHETIC late extra locator',ownerId:'SYNTHETIC foreign'};
+    await new Promise((resolve,reject)=>{const request=tx.tx.objectStore('libraryMigrationItems').put(task);request.onsuccess=resolve;request.onerror=reject;});injected=true;
+   }return result;
+  };
+ }});const before=await snapshot(b.s);await assert.rejects(b.owner.activate());assert.equal(injected,true);assert.deepEqual(await snapshot(b.s),before);
+});

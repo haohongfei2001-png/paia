@@ -1,0 +1,6 @@
+274b6ddc6fde873a9d864cc25c77127df1b9f8b88c2171618d350ad0ae57d470  extension/core/browser-native-sync/recovery-session.js
+156a53110f906fdc8876631cec92012c3a7e220829dbf392a027c3194756c938  extension/core/browser-native-sync/group-checkpoint.js
+30182c9dd8f199a07a6b00e414e798713ddee9c31cc43e23fa93fe629cb3b505  extension/core/browser-native-sync/group-checkpoint-plan.js
+c6f221dfcccc6019cac810abd71981428f7a522d98d785b5d3bfa626441a73c6  extension/core/idb-repository.js
+09f4310433aacc38ccc7c881e995d15cdaec3d80686db73d299cc384384a1474  extension/core/browser-native-sync/canonical-generation-publication.js
+7c2a9719215f0bc02b7851275d13c8202ede013ff7ee6ad0760e112cf1ff7f05  extension/tests/browser-native-sync-recovery-causal-tail.test.mjs

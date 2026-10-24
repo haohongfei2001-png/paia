@@ -1,0 +1,48 @@
+✔ generation publication starts empty, stages invisibly and commits exact durable identity (40.663725ms)
+✔ generation publication phases preserve whole old/new data and reject stale writers (21.9619ms)
+✔ generation restart recovers reserved without exposing staging or replaying payload (19.890119ms)
+✔ generation restart recovers source-retired without exposing staging or replaying payload (11.624885ms)
+✔ generation restart recovers target-ready without exposing staging or replaying payload (15.151167ms)
+✔ generation old in-flight writer invalidates reservation and discarded target cannot be republished (12.535278ms)
+✔ generation old writer paused before native TX is rejected after retirement (11.964565ms)
+✔ generation lost publication response is resolved from receipt without duplicate transition (4.538883ms)
+✔ generation foreign registry cannot attach or delete an active generation (5.132157ms)
+✔ generation persistent generation catalog prevents restart collision (2.626496ms)
+✔ generation persistent database catalog prevents restart collision (2.909594ms)
+✔ generation persistent name catalog prevents restart collision (5.950737ms)
+✔ generation active and pending participants cannot be deleted; old retired DB is preserved until separate deletion (10.449096ms)
+✔ generation rejects preexisting canonical payload even when meta is empty (2.853713ms)
+✔ generation original new thought-library DDL marker alone is permitted (2.813345ms)
+✔ generation rejects fake capabilities, getter definitions and mutable repository identity (2.30291ms)
+✔ generation final root drift rolls back original publication TX (7.164616ms)
+✔ generation final receipt drift rolls back original publication TX (3.708916ms)
+✔ generation final gate drift rolls back original publication TX (3.528195ms)
+✔ generation active lookup refuses altered durable publication receipt (3.743326ms)
+✔ generation staging callback cannot overwrite gate and failures roll back payload (1.985262ms)
+✔ generation original per-TX byte limit is registered before callback and rolls back (9.946786ms)
+✔ generation registry rejects non-null falsy active or pending false (4.733753ms)
+✔ generation registry rejects non-null falsy active or pending 0 (1.084313ms)
+✔ generation registry rejects non-null falsy active or pending "" (1.06811ms)
+✔ generation initial reservation is reported pending with no active generation (2.72664ms)
+✔ generation drifted source identity is refused before persistent reservation (5.401576ms)
+✔ generation publication receipt tampering prevents new writes and reservations (5.627851ms)
+✔ generation reservation terminal also seals the previous active receipt (10.046431ms)
+✔ generation recover refuses unattached generations and leaves durable pending intact (5.387446ms)
+✔ generation crash after target invalidation resumes pending cancellation without publishing stale graph (9.004658ms)
+✔ generation concurrent advances produce exact conflicts or one commit and remain recoverable (11.083987ms)
+✔ committed work includes original final reads and is an immutable numeric-only receipt (26.085068ms)
+✔ committed accounting does not keep charging user pause after completion (18.451436ms)
+✔ foreign repository and fabricated scope cannot get accounting evidence (3.648479ms)
+✔ unmetered transaction does not manufacture a zero-cost receipt (1.937253ms)
+✔ aborted native transaction cannot produce committed work (2.438634ms)
+✔ failed terminal fence cannot produce committed work (2.127336ms)
+✔ private resource overrun cannot be reset through public diagnostics (1.349075ms)
+✔ control diagnostics count genuine completed scope once without granting task refund (2.251065ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 628.707641

@@ -1,0 +1,484 @@
+✖ stage/recover consumes a direct authenticated successor through the original tail owner and activates once (263.610648ms)
+✖ fresh store and session reopen the original validated cut before consuming its successor (154.704808ms)
+✖ recoverDiscovered follows the complete listed parent chain with one final activation (226.628416ms)
+✖ discover then recover follows the complete listed parent chain with one final activation (225.652588ms)
+✖ a skipped or unavailable checkpoint parent is not invented from revision inclusion (216.200538ms)
+✖ a claimed successor which drops retained revisions preserves every prior stage and canonical row (213.740867ms)
+✖ genuine incomparable checkpoint heads remain rejected even when one cut contains more revisions (143.88925ms)
+✔ positive/negative owner transition remains refused without dropping its original stage false (280.478417ms)
+✔ positive/negative owner transition remains refused without dropping its original stage true (285.322683ms)
+✖ lost original tail commit acknowledgement is recovered from the durable new manifest after a cold reopen (153.035629ms)
+✖ native tail transaction failure rolls back staged items and receipt state, then the same task retries (161.872197ms)
+✖ original tail authority fence rejects local-edit after full preflight without erasing it (137.781931ms)
+✖ original tail authority fence rejects restore-epoch after full preflight without erasing it (196.150936ms)
+✖ pause during original-owner tail reread settles early and fences late transport bytes (133.821192ms)
+✖ close during original-owner tail reread settles early and fences late transport bytes (159.717564ms)
+✖ pause after a durable tail commit preserves the advanced validated cut without early canonical activation (131.657511ms)
+✖ discovered recovery does not reset the 4096-reference work ticket before staging (221.348859ms)
+✔ already activated task cannot silently retarget its durable manifest (168.46901ms)
+✖ tail preflight cannot replace a mutated durable revision inventory with caller-derived deltas (159.887433ms)
+✖ tail reader deadline settles a held original-owner reread and preserves cold continuation (145.030641ms)
+✖ a causal route does not reset its deadline after the first durable tail edge (202.36288ms)
+✖ one Source byte-boundary route retains all cuts and refuses its cumulative 2 MiB read budget (345.987204ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 3
+ℹ fail 19
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4682.020174
+
+✖ failing tests:
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:49:1
+✖ stage/recover consumes a direct authenticated successor through the original tail owner and activates once (263.610648ms)
+  Error [SyncError]: BNS_GROUP_OWNER_UNSUPPORTED
+      at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+      at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+      at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+      at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+      at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+      at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+      at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+      at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:51:60)
+      at async Test.run (node:internal/test_runner/test:1389:7) {
+    code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:54:1
+✖ fresh store and session reopen the original validated cut before consuming its successor (154.704808ms)
+  Error [SyncError]: BNS_GROUP_OWNER_UNSUPPORTED
+      at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+      at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+      at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+      at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+      at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+      at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+      at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+      at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+      at async LocalSyncRecoverySession.recover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:122:21)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:56:2) {
+    code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:58:65
+✖ recoverDiscovered follows the complete listed parent chain with one final activation (226.628416ms)
+  Error [SyncError]: BNS_GROUP_OWNER_UNSUPPORTED
+      at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+      at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+      at #discover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:156:31)
+      at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+      at async LocalSyncRecoverySession.recoverDiscovered (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:180:16)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:60:32)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:58:65
+✖ discover then recover follows the complete listed parent chain with one final activation (225.652588ms)
+  Error [SyncError]: BNS_GROUP_OWNER_UNSUPPORTED
+      at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+      at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+      at #discover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:156:31)
+      at async file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:178:71
+      at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:60:81)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:63:1
+✖ a skipped or unavailable checkpoint parent is not invented from revision inclusion (216.200538ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  -   code: 'BNS_GROUP_TAIL_INVALID'
+    }
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:65:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_GROUP_OWNER_UNSUPPORTED
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+        at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+        at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+        at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+        at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async LocalSyncRecoverySession.recover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:122:21)
+        at async waitForActual (node:assert:646:5),
+    expected: { code: 'BNS_GROUP_TAIL_INVALID' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:68:1
+✖ a claimed successor which drops retained revisions preserves every prior stage and canonical row (213.740867ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  -   code: 'BNS_GROUP_TAIL_INVALID'
+    }
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:70:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_GROUP_OWNER_UNSUPPORTED
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+        at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+        at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+        at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+        at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async LocalSyncRecoverySession.recover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:122:21)
+        at async waitForActual (node:assert:646:5),
+    expected: { code: 'BNS_GROUP_TAIL_INVALID' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:72:1
+✖ genuine incomparable checkpoint heads remain rejected even when one cut contains more revisions (143.88925ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  -   code: 'BNS_RECOVERY_MULTIPLE_CHECKPOINTS'
+    }
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:74:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_GROUP_OWNER_UNSUPPORTED
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+        at #discover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:156:31)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async LocalSyncRecoverySession.recoverDiscovered (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:180:16)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:74:2)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    expected: { code: 'BNS_RECOVERY_MULTIPLE_CHECKPOINTS' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:80:1
+✖ lost original tail commit acknowledgement is recovered from the durable new manifest after a cold reopen (153.035629ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /lost committed tail acknowledgement/. Input:
+  
+  'SyncError: BNS_GROUP_OWNER_UNSUPPORTED'
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:83:6)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_GROUP_OWNER_UNSUPPORTED
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+        at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+        at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+        at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+        at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async LocalSyncRecoverySession.recover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:122:21)
+        at async waitForActual (node:assert:646:5),
+    expected: /lost committed tail acknowledgement/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:87:1
+✖ native tail transaction failure rolls back staged items and receipt state, then the same task retries (161.872197ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  -   code: 'STORAGE_FAILED'
+    }
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:90:6)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_GROUP_OWNER_UNSUPPORTED
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+        at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+        at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+        at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+        at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25),
+    expected: { code: 'STORAGE_FAILED' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:93:52
+✖ original tail authority fence rejects local-edit after full preflight without erasing it (137.781931ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  -   code: 'BNS_RESTORE_LOCAL_CHANGED'
+    }
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:95:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_GROUP_OWNER_UNSUPPORTED
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+        at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+        at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+        at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+        at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async LocalSyncRecoverySession.recover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:122:21)
+        at async waitForActual (node:assert:646:5),
+    expected: { code: 'BNS_RESTORE_LOCAL_CHANGED' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:93:52
+✖ original tail authority fence rejects restore-epoch after full preflight without erasing it (196.150936ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  -   code: 'BNS_RESTORE_LOCAL_CHANGED'
+    }
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:95:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_GROUP_OWNER_UNSUPPORTED
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+        at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+        at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+        at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+        at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async LocalSyncRecoverySession.recover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:122:21)
+        at async waitForActual (node:assert:646:5),
+    expected: { code: 'BNS_RESTORE_LOCAL_CHANGED' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:97:39
+✖ pause during original-owner tail reread settles early and fences late transport bytes (133.821192ms)
+  Error [SyncError]: BNS_GROUP_OWNER_UNSUPPORTED
+      at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+      at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+      at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+      at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+      at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+      at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+      at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+      at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+      at async LocalSyncRecoverySession.recover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:122:21) {
+    code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:97:39
+✖ close during original-owner tail reread settles early and fences late transport bytes (159.717564ms)
+  Error [SyncError]: BNS_GROUP_OWNER_UNSUPPORTED
+      at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+      at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+      at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+      at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+      at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+      at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+      at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+      at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+      at async LocalSyncRecoverySession.recover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:122:21) {
+    code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:102:1
+✖ pause after a durable tail commit preserves the advanced validated cut without early canonical activation (131.657511ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  -   code: 'BNS_RECOVERY_INTERRUPTED'
+    }
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:104:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_GROUP_OWNER_UNSUPPORTED
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+        at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+        at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+        at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+        at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async LocalSyncRecoverySession.recover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:122:21)
+        at async waitForActual (node:assert:646:5),
+    expected: { code: 'BNS_RECOVERY_INTERRUPTED' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:107:1
+✖ discovered recovery does not reset the 4096-reference work ticket before staging (221.348859ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'BNS_RECOVERY_DISCOVERY_LIMIT'
+  -   code: 'BNS_RECOVERY_READ_LIMIT'
+    }
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:110:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_RECOVERY_DISCOVERY_LIMIT
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #charge (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:46:186)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:49:101
+        at readObject (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/segments.js:34:63)
+        at #discover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:151:37)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async LocalSyncRecoverySession.recoverDiscovered (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:180:16)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:110:2),
+    expected: { code: 'BNS_RECOVERY_READ_LIMIT' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:116:1
+✖ tail preflight cannot replace a mutated durable revision inventory with caller-derived deltas (159.887433ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  -   code: 'BNS_GROUP_TAIL_INVALID'
+    }
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:118:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_GROUP_OWNER_UNSUPPORTED
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+        at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+        at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+        at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+        at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async LocalSyncRecoverySession.recover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:122:21)
+        at async waitForActual (node:assert:646:5),
+    expected: { code: 'BNS_GROUP_TAIL_INVALID' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:120:1
+✖ tail reader deadline settles a held original-owner reread and preserves cold continuation (145.030641ms)
+  Error [SyncError]: BNS_GROUP_OWNER_UNSUPPORTED
+      at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+      at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+      at #advance (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:72:21)
+      at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:58
+      at withOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:104:345)
+      at #native (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:44:30)
+      at #stage (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:106:35)
+      at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+      at async LocalSyncRecoverySession.recover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:122:21) {
+    code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:126:1
+✖ a causal route does not reset its deadline after the first durable tail edge (202.36288ms)
+  Error [SyncError]: BNS_GROUP_OWNER_UNSUPPORTED
+      at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+      at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+      at #discover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:156:31)
+      at async file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:178:71
+      at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:127:291)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    code: 'BNS_GROUP_OWNER_UNSUPPORTED'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:131:1
+✖ one Source byte-boundary route retains all cuts and refuses its cumulative 2 MiB read budget (345.987204ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  SyncError: BNS_GROUP_OWNER_UNSUPPORTED
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:133:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_GROUP_OWNER_UNSUPPORTED
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #ordinaryTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:69:267)
+        at #discover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:156:31)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async LocalSyncRecoverySession.recoverDiscovered (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:180:16)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:133:2)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }

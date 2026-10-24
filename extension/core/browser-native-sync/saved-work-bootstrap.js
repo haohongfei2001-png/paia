@@ -94,10 +94,15 @@ export async function requireSavedWorkBootstrap(t,cap,store){
 export async function finishSavedWorkBootstrap(t,cap,store){
  const p=plans.get(cap);if(!p||p.store!==store||p.duplicate||p.transaction!==t)fail('BNS_SAVED_WORK_CAPABILITY');const actual=await ownedRows(t,p.payload.entry.id);
  if(!equal(actual,{entry:p.expected.entry,history:p.expected.history,provenance:[p.expected.provenance],dependencies:[p.expected.dependency],placements:0,suppressions:0}))fail('BNS_SAVED_WORK_CHANGED');
+ // Restored canonical rows already carry searchVersion. The ordinary queue
+ // helper would skip them, even if this installation completed an empty rebuild.
+ const search=planSearchQueueLocator('entry',p.expected.entry),pending=await t.get('libraryMigrationItems',search.id);
+ if(pending&&!equal(pending,search))fail('BNS_SAVED_WORK_CHANGED');if(!pending)await t.put('libraryMigrationItems',search);
  if(p.physicalMapping)await p.core.put(t,'savedPhysical',[p.payload.entry.id],p.physicalMapping);await p.core.put(t,'savedWorkBootstrap',[p.payload.entry.id],{version:1,digest:p.wireDigest});if(!p.before.authority.fence.marker)await p.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:p.before.authority.fence.epoch});
  const receiptKey=await p.core.idIn(t,'savedWorkBootstrap',p.payload.entry.id),markerKey=await p.core.idIn(t,'ownerRecoveryEpoch');
  const points=[...p.before.destination.source.rows.map(row=>['meta',row.id,row]),['meta',receiptKey,{id:receiptKey,version:1,digest:p.wireDigest}],['meta',markerKey,{id:markerKey,version:1,epoch:p.before.authority.fence.epoch}],...p.before.authority.roots.map(([id,row])=>['meta',id,p.group&&id===p.core.prefix+'active'?p.group.active:row]),...(p.group?[['meta',p.group.terminal.id,p.group.terminal]]:[]),['meta','thought-sequence',{id:'thought-sequence',value:p.group?.finalSequence??Math.max(p.before.authority.sequence?.value||0,p.expected.entry.updatedSequence)}],['meta','revision-sequence',{id:'revision-sequence',value:p.group?.finalRevision??p.expected.history.at(-1).sequence}],['meta','backup-data-generation',{id:'backup-data-generation',value:p.before.authority.generation+1}],['thoughts',p.expected.entry.id,p.expected.entry],['provenance',p.expected.provenance.id,p.expected.provenance],['dependencies',p.expected.dependency.id,p.expected.dependency],...p.expected.history.map(h=>['revisions',h.id,h])];
  const check=()=>{if(Date.now()-p.start>30000)fail('BNS_SAVED_WORK_LIMIT');assertOriginalControlSettingsFacts(store,p.currentControl);return true;};
+ points.push(['libraryMigrationItems',search.id,search]);
  registerRepositoryFinalReadFence(store.repository,t,{isCurrent:check,plan:function*(){
   for(const fact of p.facts)if(!equal(fact.project(yield {method:'get',table:fact.table,key:fact.key},check),fact.expected))fail('BNS_SAVED_WORK_CHANGED');
   for(const [table,key,expected]of points)if(!equal((yield {method:'get',table,key})??null,expected))fail('BNS_SAVED_WORK_CHANGED');
@@ -219,7 +224,8 @@ export async function prepareSavedWorkGroupApplication(store,core,plan,stage,sta
  const protocol=[...savedGroupProtocolIntent(core,plan),...[...members.values()].flatMap(cap=>{const p=plans.get(cap);if(!p.physicalMapping)return [];const id=protocolPhysicalId(core.prefix,core.fixedNamespace,'savedPhysical',[p.expected.entry.id]);return [[id,{id,...p.physicalMapping}]];}),...mappingRows.entries(),...stageRows.map(row=>[row.id,row])],active={id:core.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:plan.digest},terminal={...clone(state),phase:'activated'};
  retained+=bytes({state,protocol,plan,human}).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');
  for(const member of members.values())plans.get(member).group={plan,stage,state,active,terminal,entryCount:members.size+(human?.state.thoughts.length||0),finalSequence:sequence.value,finalRevision:revision.value};
- const search=human?.search||[];
+ const search=[...members.values()].map(member=>planSearchQueueLocator('entry',plans.get(member).expected.entry));
+ retained+=bytes(search).length;if(retained>limit)fail('BNS_SAVED_WORK_LIMIT');search.push(...(human?.search||[]));
  const cap=Object.freeze({});groups.set(cap,{store,core,plan,stage,state,active,terminal,protocol,human,search,members,start:startedAt,next:0,applied:new Set()});return cap;
 }
 export async function applySavedWorkGroupStep(t,cap,id){
@@ -238,11 +244,12 @@ export async function sealSavedWorkGroupActivation(t,cap){
  await sealSavedProtocol(t,g.core,g.protocol,g.start);
  const stagePrefix=protocolPhysicalId(g.stage.prefix,g.stage.fixedNamespace,'groupItem',[]),replayPrefix=g.core.prefix+'generation:'+g.core.fixedNamespace+':',stageRange=IDBKeyRange.bound(stagePrefix,stagePrefix+'\uffff'),replayRange=IDBKeyRange.bound(replayPrefix,replayPrefix+'\uffff'),replayCount=g.protocol.filter(([id,row])=>row&&id.startsWith(replayPrefix)).length+g.members.size+1;
  registerRepositoryFinalReadFence(g.store.repository,t,{isCurrent:()=>{if(Date.now()-g.start>30000)fail('BNS_SAVED_WORK_LIMIT');return true;},plan:function*(){
+  // Both original owners supplied pending search intents before any writes.
+  for(const row of g.search)if(!equal((yield {method:'get',table:'libraryMigrationItems',key:row.id})??null,row))fail('BNS_SAVED_WORK_CHANGED');
+  if((yield {method:'count',table:'libraryMigrationItems'})!==g.search.length)fail('BNS_SAVED_WORK_CHANGED');
   if(g.human){
    // Original Human plans supplied these expectations before either owner ran.
    // Both partitions retain exact rows; whole-table counts close extra writes.
-   for(const row of g.search)if(!equal((yield {method:'get',table:'libraryMigrationItems',key:row.id})??null,row))fail('BNS_SAVED_WORK_CHANGED');
-   if((yield {method:'count',table:'libraryMigrationItems'})!==g.search.length)fail('BNS_SAVED_WORK_CHANGED');
    for(const table of ['thoughts','revisions','operationReceipts','topics','sections','placements','thoughtSuppressions','provenance','dependencies']){
     const rows=g.human.state[table];for(const row of rows)if(!equal((yield {method:'get',table,key:row.id})??null,row))fail('BNS_SAVED_WORK_CHANGED');
     const extra=table==='thoughts'||table==='provenance'||table==='dependencies'?g.members.size:table==='revisions'?1+[...g.members.values()].reduce((n,cap)=>n+plans.get(cap).expected.history.length,0):0;

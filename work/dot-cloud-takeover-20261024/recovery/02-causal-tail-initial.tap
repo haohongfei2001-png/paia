@@ -1,0 +1,56 @@
+✔ stage/recover consumes a direct authenticated successor through the original tail owner and activates once (312.773699ms)
+✔ fresh store and session reopen the original validated cut before consuming its successor (243.268016ms)
+✔ recoverDiscovered follows the complete listed parent chain with one final activation (340.040635ms)
+✔ discover then recover follows the complete listed parent chain with one final activation (315.149525ms)
+✔ a skipped or unavailable checkpoint parent is not invented from revision inclusion (181.928746ms)
+✔ a claimed successor which drops retained revisions preserves every prior stage and canonical row (205.066655ms)
+✔ genuine incomparable checkpoint heads remain rejected even when one cut contains more revisions (144.133028ms)
+✔ positive/negative owner transition remains refused without dropping its original stage false (241.194584ms)
+✔ positive/negative owner transition remains refused without dropping its original stage true (219.539324ms)
+✖ lost original tail commit acknowledgement is recovered from the durable new manifest after a cold reopen (176.611448ms)
+✖ native tail transaction failure rolls back staged items and receipt state, then the same task retries (192.453114ms)
+✔ original tail authority fence rejects local-edit after full preflight without erasing it (192.159265ms)
+✔ original tail authority fence rejects restore-epoch after full preflight without erasing it (149.40757ms)
+✔ pause during original-owner tail reread settles early and fences late transport bytes (243.07335ms)
+✔ close during original-owner tail reread settles early and fences late transport bytes (189.597364ms)
+✔ pause after a durable tail commit preserves the advanced validated cut without early canonical activation (185.34141ms)
+✔ discovered recovery does not reset the 4096-reference work ticket before staging (187.995056ms)
+✔ already activated task cannot silently retarget its durable manifest (132.328735ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 16
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4152.313707
+
+✖ failing tests:
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:79:1
+✖ lost original tail commit acknowledgement is recovered from the durable new manifest after a cold reopen (176.611448ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:82:6)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /lost committed tail acknowledgement/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:86:1
+✖ native tail transaction failure rolls back staged items and receipt state, then the same task retries (192.453114ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:89:6)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'STORAGE_FAILED' },
+    operator: 'rejects',
+    diff: 'simple'
+  }

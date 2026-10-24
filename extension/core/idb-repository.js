@@ -92,19 +92,61 @@ export function requireRepositoryWriteFence(repository,token){
  if(!observed||observed.repository!==repository||observed.state!==state||state.active!==0||observed.generation!==state.generation||observed.db!==repository.db||observed.factory!==repository.factory||observed.name!==repository.name)throw new ArchiveError('STALE_BASE');
  return true;
 }
+// Restriction-only ordinary recovery work. The opaque ticket is bound to one
+// repository and one invocation; it lends no transaction or generation authority.
+const ordinaryRecoveryWork=new WeakMap(),ordinaryRecoveryWindows=new WeakMap();
+function recoveryWork(ticket,repository){
+ const p=ordinaryRecoveryWork.get(ticket);
+ if(!p||p.repository!==repository||p.closed||p.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
+ try{
+  if(p.name!==repository.name||p.factory!==repository.factory||p.database!==null&&p.database!==repository.db||p.isCurrent()===false)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
+  if(p.database===null&&repository.db!==null)p.database=repository.db;
+  if(workClock()>=p.deadline||p.refs>4096||p.bytes>2*1024*1024)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
+ }catch(e){p.failed=true;throw e;}return p;
+}
+export function createOriginalRecoveryWork(repository,{ms=30000,isCurrent=()=>true}={}){
+ if(!repositoryWrites.has(repository)||!Number.isFinite(ms)||ms<=0||ms>30000||typeof isCurrent!=='function')throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
+ const ticket=Object.freeze({});ordinaryRecoveryWork.set(ticket,{repository,name:repository.name,factory:repository.factory,database:repository.db,deadline:workClock()+ms,isCurrent,refs:0,bytes:0,failed:false,closed:false,window:false,scope:null,pending:null});return ticket;
+}
+export function chargeOriginalRecoveryWork(repository,ticket,length,references=1){
+ const p=recoveryWork(ticket,repository);
+ if(!Number.isSafeInteger(length)||length<0||!Number.isSafeInteger(references)||references<0){p.failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
+ p.refs+=references;p.bytes+=length;recoveryWork(ticket,repository);
+}
+export function checkOriginalRecoveryWork(repository,ticket){recoveryWork(ticket,repository);}
+export function tightenOriginalRecoveryWork(repository,ticket,ms){const p=recoveryWork(ticket,repository);if(!Number.isFinite(ms)||ms<=0||ms>30000){p.failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}p.deadline=Math.min(p.deadline,workClock()+ms);}
+export function currentOriginalRecoveryWork(repository){return ordinaryRecoveryWindows.get(repository)??null;}
+export function finishOriginalRecoveryWork(repository,ticket){const p=ordinaryRecoveryWork.get(ticket);if(!p||p.repository!==repository||p.window||p.scope||p.pending)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');p.closed=true;}
+export async function withOriginalRecoveryWork(repository,ticket,action){
+ const p=recoveryWork(ticket,repository),active=ordinaryRecoveryWindows.get(repository);
+ if(p.window||active||typeof action!=='function'){p.failed=true;if(active)ordinaryRecoveryWork.get(active).failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
+ p.window=true;ordinaryRecoveryWindows.set(repository,ticket);
+ // A successful original commit remains successful if cancellation arrives
+ // after native settlement. Every native operation and terminal fence already
+ // checked the ticket; do not reinterpret that confirmed receipt afterwards.
+ try{const value=await action();if(p.failed||p.closed||p.pending)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');return value;}
+ catch(e){p.failed=true;throw e;}
+ finally{
+  // Do not remove the window while an already-started original transaction is
+  // opening, executing or settling. A failed late scope can never fall back to
+  // an unmetered default transaction after Promise.race settles a caller.
+  if(p.pending){p.failed=true;if(p.scope)workAbort(p.scope);await p.pending.settled;}
+  ordinaryRecoveryWindows.delete(repository);p.window=false;
+ }
+}
 const repositoryScopes=new WeakMap();
 const repositoryNativeScopes=new WeakMap();
 // Optional finite work envelope belongs to the original scope, never mutable
 // diagnostics. It meters request references and physical payload operands/results,
 // including repeated reads and finalizer work; not browser heap or disk bytes.
 const workClock=globalThis.performance.now.bind(globalThis.performance);
-function workAbort(record){if(record.workLimit)record.workLimit.failed=true;record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}}
+function workAbort(record){if(record.recoveryWork)ordinaryRecoveryWork.get(record.recoveryWork).failed=true;if(record.workLimit)record.workLimit.failed=true;record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}}
 function workRefuse(record){workAbort(record);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
-function workCheck(record){const b=record?.workLimit;if(b&&(workClock()-b.started>=b.ms||b.refs>b.references||b.bytes>b.byteLimit))workRefuse(record);}
+function workCheck(record){if(record?.recoveryWork)try{recoveryWork(record.recoveryWork,record.repository);}catch{workRefuse(record);}const b=record?.workLimit;if(b&&(workClock()-b.started>=b.ms||b.refs>b.references||b.bytes>b.byteLimit))workRefuse(record);}
 function workCharge(scope,refs=0,value,hasValue=false){
  const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx),b=record?.workLimit;if(!b)return;if(record.scope!==scope||!sameScope(record))workRefuse(record);
- workCheck(record);b.refs+=refs;workCheck(record);
- if(hasValue){try{b.bytes+=measureSourceWorkingPhysicalTree(value,Math.min(2*1024*1024,b.byteLimit)).B;}catch{workRefuse(record);}workCheck(record);}
+ workCheck(record);b.refs+=refs;if(record.recoveryWork)try{chargeOriginalRecoveryWork(record.repository,record.recoveryWork,0,refs);}catch{workRefuse(record);}workCheck(record);
+ if(hasValue){try{const length=measureSourceWorkingPhysicalTree(value,Math.min(2*1024*1024,b.byteLimit)).B;b.bytes+=length;if(record.recoveryWork)chargeOriginalRecoveryWork(record.repository,record.recoveryWork,length,0);}catch{workRefuse(record);}workCheck(record);}
 }
 function workResult(scope,value){workCharge(scope,0,value,true);return value;}
 function workRow(scope,value){workCharge(scope,1,value,true);return value;}
@@ -504,15 +546,16 @@ export class ArchiveRepository {
   });
  }
  async transaction(write,fn,stores=this.stores,shadowAuthority=null,selectionAuthority=null){
-  const writeState=repositoryWrites.get(this);if(!writeState)throw fail();let activeToken=null;
-  if(write&&shadowAuthority===null){activeToken=await prepareOriginalActiveRepositoryWrite(this);if(activeToken)shadowAuthority=activeToken;}
+  const writeState=repositoryWrites.get(this);if(!writeState)throw fail();const recoveryTicket=ordinaryRecoveryWindows.get(this),recovery=recoveryTicket?recoveryWork(recoveryTicket,this):null;if(recovery?.pending){recovery.failed=true;if(recovery.scope)workAbort(recovery.scope);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}let activeToken=null;let recoveryPending;if(recovery){let resolve;recoveryPending={settled:new Promise(r=>resolve=r),resolve:()=>resolve()};recovery.pending=recoveryPending;}try{
+  if(recovery&&(shadowAuthority!==null||selectionAuthority!==null))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+  if(write&&shadowAuthority===null){activeToken=await prepareOriginalActiveRepositoryWrite(this,!!recovery);if(activeToken)shadowAuthority=activeToken;}
   if(write){writeState.generation=Object.freeze({});writeState.active++;}
   try{
-  await this.open();if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
+  await this.open();if(recovery)recoveryWork(recoveryTicket,this);if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
   const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
   const native=nativeTransactionEvidence(tx);
   let release;const record={scope,started:workClock(),phase:'callback',terminalFailed:false,finalReadFences:[],organizeAbortBindings:null,repository:this,transaction:tx,transactionAbort:native?nativeTransactionAbort:tx.abort,dataPrototype:originalPrototypeOf(scope),nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
-  repositoryScopes.set(scope,record);repositoryNativeScopes.set(tx,record);
+  repositoryScopes.set(scope,record);repositoryNativeScopes.set(tx,record);if(recovery){record.recoveryWork=recoveryTicket;recovery.scope=record;}
   const maybeRelease=()=>{if(record.nativeSettled&&record.unwound)release();};
   const done=new Promise((resolve,reject)=>{
    // False native events do not consume either listener or settle any state.
@@ -533,8 +576,9 @@ export class ArchiveRepository {
   });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{if(write){await beginSelectionWrite(this,scope,record,selectionAuthority);await beginShadowWrite(this,scope,record,shadowAuthority);}else{const limits=originalPhasedHumanReadWork(this,scope)??readOriginalCheckpointCompileWork(this,scope);if(limits)registerOriginalWorkLimit(this,scope,limits,true);}const result=await fn(scope);if(write){await finishSelectionWrite(this,scope,record);await finishShadowWrite(this,scope,record);}record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{if(record.originalSuccess&&record.workLimit&&!record.workLimit.failed)record.committedWork=Object.freeze({references:record.workLimit.refs,bytes:record.workLimit.bytes,activeMs:Math.max(0,workClock()-record.workLimit.started)});clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;maybeRelease();if(!write){settleOriginalPhasedHumanReadWork(this,scope);settleOriginalCheckpointCompileWork(this,scope);}}
+  try{if(recovery){recoveryWork(recoveryTicket,this);registerOriginalWorkLimit(this,scope,{references:4096-recovery.refs,bytes:2*1024*1024-recovery.bytes,ms:recovery.deadline-workClock()},!write);}if(write){await beginSelectionWrite(this,scope,record,selectionAuthority);await beginShadowWrite(this,scope,record,shadowAuthority);}else{const limits=originalPhasedHumanReadWork(this,scope)??readOriginalCheckpointCompileWork(this,scope);if(limits)registerOriginalWorkLimit(this,scope,limits,true);}const result=await fn(scope);if(write){await finishSelectionWrite(this,scope,record);await finishShadowWrite(this,scope,record);}record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){if(recovery)recovery.failed=true;try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{if(record.originalSuccess&&record.workLimit&&!record.workLimit.failed)record.committedWork=Object.freeze({references:record.workLimit.refs,bytes:record.workLimit.bytes,activeMs:Math.max(0,workClock()-record.workLimit.started)});clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;if(recovery?.scope===record)recovery.scope=null;maybeRelease();if(!write){settleOriginalPhasedHumanReadWork(this,scope);settleOriginalCheckpointCompileWork(this,scope);}}
   }finally{if(activeToken)releaseOriginalActiveRepositoryWrite(activeToken);if(write)writeState.active--;}
+  }catch(error){if(recovery)recovery.failed=true;throw error;}finally{if(recoveryPending){if(recovery.pending===recoveryPending)recovery.pending=null;recoveryPending.resolve();}}
  }
  async initialize(){
   await this.open();let m=await this.transaction(false,t=>t.get('meta','migration'));

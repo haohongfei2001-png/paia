@@ -1,0 +1,26 @@
+✔ stage/recover consumes a direct authenticated successor through the original tail owner and activates once (343.270182ms)
+✔ fresh store and session reopen the original validated cut before consuming its successor (233.751806ms)
+✔ recoverDiscovered follows the complete listed parent chain with one final activation (369.893229ms)
+✔ discover then recover follows the complete listed parent chain with one final activation (372.224595ms)
+✔ a skipped or unavailable checkpoint parent is not invented from revision inclusion (219.623607ms)
+✔ a claimed successor which drops retained revisions preserves every prior stage and canonical row (230.820502ms)
+✔ genuine incomparable checkpoint heads remain rejected even when one cut contains more revisions (158.330015ms)
+✔ positive/negative owner transition remains refused without dropping its original stage false (297.953553ms)
+✔ positive/negative owner transition remains refused without dropping its original stage true (285.697644ms)
+✔ lost original tail commit acknowledgement is recovered from the durable new manifest after a cold reopen (241.524596ms)
+✔ native tail transaction failure rolls back staged items and receipt state, then the same task retries (234.776981ms)
+✔ original tail authority fence rejects local-edit after full preflight without erasing it (158.78102ms)
+✔ original tail authority fence rejects restore-epoch after full preflight without erasing it (163.757299ms)
+✔ pause during original-owner tail reread settles early and fences late transport bytes (252.684083ms)
+✔ close during original-owner tail reread settles early and fences late transport bytes (242.26752ms)
+✔ pause after a durable tail commit preserves the advanced validated cut without early canonical activation (232.463005ms)
+✔ discovered recovery does not reset the 4096-reference work ticket before staging (201.487182ms)
+✔ already activated task cannot silently retarget its durable manifest (149.595535ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4729.213508

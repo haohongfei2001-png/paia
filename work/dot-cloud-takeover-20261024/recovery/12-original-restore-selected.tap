@@ -1,0 +1,11 @@
+✔ grouped checkpoint restores actual journaled Source into an empty target atomically (246.193479ms)
+✔ unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch (801.995933ms)
+✔ successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations (413.062317ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1828.703002

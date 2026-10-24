@@ -1,0 +1,13 @@
+✔ native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes (110.799416ms)
+✔ actual Source append and sequential Working groups form a complete causal plan regardless of arrival order (173.603088ms)
+✔ missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan (56.808856ms)
+✔ operation budget counts all ancestry rather than current heads (41.995356ms)
+✔ actual canonical inventory binds bootstrap plus Working and rejects an unjournaled human title (80.46339ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 797.1908

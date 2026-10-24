@@ -1,0 +1,34 @@
+✔ local discovery traverses empty pages and restores original Source/Working with sender closed (311.752033ms)
+✔ missing or corrupt transport bytes never activate; restart resumes original durable stage (194.576786ms)
+✔ pause during held transport rejects late completion and preserves original destination (180.653284ms)
+✔ activation rollback and local edits keep their original exact owner fences (184.660543ms)
+✔ discovery refuses missing instead of selecting an arbitrary checkpoint (93.267093ms)
+✔ discovery refuses multiple instead of selecting an arbitrary checkpoint (88.146528ms)
+✔ discovery refuses cycle instead of selecting an arbitrary checkpoint (78.185494ms)
+✔ discovery refuses malformed instead of selecting an arbitrary checkpoint (83.464638ms)
+✔ historical checkpoints select the authenticated unique causal descendant, not list order (342.698741ms)
+✔ two genuine incomparable checkpoints cannot be silently chosen (150.588527ms)
+✔ pause after the real activation commit preserves the confirmed restored outcome (172.643804ms)
+✔ close after the real activation commit preserves the confirmed restored outcome (225.251154ms)
+✔ pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt (200.694826ms)
+✔ lost post-commit response stays settlement-unknown until original durable activation proof is checked (172.564146ms)
+✔ discovery enforces cumulative object budget before fetching or activating (78.551687ms)
+✔ claimed parent alone cannot make an older valid cut supersede newer canonical revisions (144.897829ms)
+✔ discovery deadline settles held listing and fences late completion (105.701613ms)
+✔ discovery deadline settles held object and fences late completion (128.129396ms)
+✔ pause settles a held discovery without pretending to cancel underlying transport (73.19129ms)
+✔ close settles a held discovery without pretending to cancel underlying transport (77.289102ms)
+✔ stage rejects transport length mismatch before the object reader copies bytes (67.225724ms)
+✔ discover rejects transport length mismatch before the object reader copies bytes (75.799337ms)
+✔ pause settles held staging before host completion and late bytes cannot change original destination (154.481022ms)
+✔ close settles held staging before host completion and late bytes cannot change original destination (73.558149ms)
+✔ staging deadline bounds held object and permits original durable-stage resume (212.848367ms)
+✔ late prior-stage bytes cannot disturb a new confirmed recovery after pause and resume (151.368077ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4137.042373

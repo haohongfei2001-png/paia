@@ -1,0 +1,7 @@
+v24.19.0
+{"platform":"linux","arch":"x64"}
+30802c1448e244878e636549735125f259355db8
+eeebc743e146a5fb622f18bc5dab8e98b4e86682
+codex/dot-cloud-saved-search-discovery-20261024
+a08b3a367f40a5700d56251e98d7f884cc053cc387fd4f45aecbfeff78341277  extension/core/browser-native-sync/saved-work-bootstrap.js
+66c60b2a1617d63cc9523e9a41279ab415add0bddd46662ee3fae418ecc888d2  extension/tests/saved-bootstrap-search-discovery.test.mjs

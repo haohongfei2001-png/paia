@@ -20,7 +20,7 @@ export const CANONICAL_GENERATION_GATE='canonical-generation:gate:v1';
 const qualifiedGraph='canonical-generation:qualified-graph:v1';
 const receipts='canonical-generation:receipt:',deletions='canonical-generation:deletion:',invalidations='canonical-generation:invalidated:',catalog='canonical-generation:catalog:';
 const activeRepositories=new WeakMap(),activeSourceWorkingRows=new WeakMap();
-export async function prepareOriginalActiveRepositoryWrite(repository){const binding=activeRepositories.get(repository);if(!binding)return null;return binding.prepare();}
+export async function prepareOriginalActiveRepositoryWrite(repository,ordinaryOnly=false){const binding=activeRepositories.get(repository);if(!binding)return null;if(ordinaryOnly)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');return binding.prepare();}
 export function releaseOriginalActiveRepositoryWrite(token){const row=repositoryAuthorities.get(token);if(row?.authority.kind==='active-library')repositoryAuthorities.delete(token);}
 const handles=new WeakMap(),seals=new WeakMap(),bases=new WeakMap(),repositoryAuthorities=new WeakMap();
 const completionSecret=Object.freeze({}),completionSessions=new WeakMap();

@@ -1,0 +1,90 @@
+✔ stage/recover consumes a direct authenticated successor through the original tail owner and activates once (360.434341ms)
+✔ fresh store and session reopen the original validated cut before consuming its successor (237.983365ms)
+✔ recoverDiscovered follows the complete listed parent chain with one final activation (371.441835ms)
+✔ discover then recover follows the complete listed parent chain with one final activation (365.473529ms)
+✔ a skipped or unavailable checkpoint parent is not invented from revision inclusion (217.436246ms)
+✔ a claimed successor which drops retained revisions preserves every prior stage and canonical row (223.327764ms)
+✔ genuine incomparable checkpoint heads remain rejected even when one cut contains more revisions (147.984235ms)
+✔ positive/negative owner transition remains refused without dropping its original stage false (249.560369ms)
+✔ positive/negative owner transition remains refused without dropping its original stage true (240.119393ms)
+✔ lost original tail commit acknowledgement is recovered from the durable new manifest after a cold reopen (214.762087ms)
+✔ native tail transaction failure rolls back staged items and receipt state, then the same task retries (240.724729ms)
+✔ original tail authority fence rejects local-edit after full preflight without erasing it (198.996701ms)
+✔ original tail authority fence rejects restore-epoch after full preflight without erasing it (192.869657ms)
+✔ pause during original-owner tail reread settles early and fences late transport bytes (214.946173ms)
+✔ close during original-owner tail reread settles early and fences late transport bytes (219.228442ms)
+✔ pause after a durable tail commit preserves the advanced validated cut without early canonical activation (201.507244ms)
+✖ discovered recovery does not reset the 4096-reference work ticket before staging (192.113387ms)
+✔ already activated task cannot silently retarget its durable manifest (154.883347ms)
+✔ tail preflight cannot replace a mutated durable revision inventory with caller-derived deltas (154.40983ms)
+✔ tail reader deadline settles a held original-owner reread and preserves cold continuation (514.036397ms)
+✔ a causal route does not reset its deadline after the first durable tail edge (710.145673ms)
+✖ one Source byte-boundary route retains all cuts and refuses its cumulative 2 MiB read budget (460.378105ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 20
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6412.373272
+
+✖ failing tests:
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:107:1
+✖ discovered recovery does not reset the 4096-reference work ticket before staging (192.113387ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'BNS_RECOVERY_DISCOVERY_LIMIT'
+  -   code: 'BNS_RECOVERY_READ_LIMIT'
+    }
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:110:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: SyncError: BNS_RECOVERY_DISCOVERY_LIMIT
+        at fail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/value.js:5:32)
+        at #charge (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:46:186)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:49:101
+        at readObject (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/segments.js:34:63)
+        at #discover (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:151:37)
+        at async #run (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:25:25)
+        at async LocalSyncRecoverySession.recoverDiscovered (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/recovery-session.js:180:16)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:110:2),
+    expected: { code: 'BNS_RECOVERY_READ_LIMIT' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:131:1
+✖ one Source byte-boundary route retains all cuts and refuses its cumulative 2 MiB read budget (460.378105ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  Error: BNS_GROUP_RESOURCE_LIMIT
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:133:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: BNS_GROUP_RESOURCE_LIMIT
+        at recoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:98:272)
+        at chargeOriginalRecoveryWork (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:100:317)
+        at chargeRecoveryValue (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:63:110)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:65:157
+        at Array.map (<anonymous>)
+        at file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:65:147
+        at async file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/core.js:184:127
+        at async ArchiveRepository.transaction (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/idb-repository.js:546:510)
+        at async BrowserNativeSyncCore.transaction (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/core.js:184:66)
+        at async GroupedCheckpointRestore.reconcileTail (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:461:18),
+    operator: 'rejects',
+    diff: 'simple'
+  }

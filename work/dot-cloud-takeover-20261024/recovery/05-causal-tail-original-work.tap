@@ -1,0 +1,274 @@
+✖ stage/recover consumes a direct authenticated successor through the original tail owner and activates once (108.92706ms)
+✖ fresh store and session reopen the original validated cut before consuming its successor (51.552867ms)
+✖ recoverDiscovered follows the complete listed parent chain with one final activation (44.772797ms)
+✖ discover then recover follows the complete listed parent chain with one final activation (50.86896ms)
+✖ a skipped or unavailable checkpoint parent is not invented from revision inclusion (43.709239ms)
+✖ a claimed successor which drops retained revisions preserves every prior stage and canonical row (43.414942ms)
+✖ genuine incomparable checkpoint heads remain rejected even when one cut contains more revisions (44.929249ms)
+✖ positive/negative owner transition remains refused without dropping its original stage false (50.23792ms)
+✖ positive/negative owner transition remains refused without dropping its original stage true (46.316621ms)
+✖ lost original tail commit acknowledgement is recovered from the durable new manifest after a cold reopen (50.981909ms)
+✖ native tail transaction failure rolls back staged items and receipt state, then the same task retries (51.402029ms)
+✖ original tail authority fence rejects local-edit after full preflight without erasing it (42.82095ms)
+✖ original tail authority fence rejects restore-epoch after full preflight without erasing it (52.110577ms)
+✖ pause during original-owner tail reread settles early and fences late transport bytes (44.579501ms)
+✖ close during original-owner tail reread settles early and fences late transport bytes (53.675562ms)
+✖ pause after a durable tail commit preserves the advanced validated cut without early canonical activation (48.21838ms)
+✖ discovered recovery does not reset the 4096-reference work ticket before staging (58.678089ms)
+✖ already activated task cannot silently retarget its durable manifest (45.227151ms)
+✖ tail preflight cannot replace a mutated durable revision inventory with caller-derived deltas (37.291539ms)
+✖ tail reader deadline settles a held original-owner reread and preserves cold continuation (42.121015ms)
+✖ a causal route does not reset its deadline after the first durable tail edge (36.623139ms)
+✖ one Source byte-boundary route retains all cuts and refuses its cumulative 2 MiB read budget (72.709129ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 0
+ℹ fail 22
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1441.657667
+
+✖ failing tests:
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:49:1
+✖ stage/recover consumes a direct authenticated successor through the original tail owner and activates once (108.92706ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:50:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:54:1
+✖ fresh store and session reopen the original validated cut before consuming its successor (51.552867ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:55:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:58:65
+✖ recoverDiscovered follows the complete listed parent chain with one final activation (44.772797ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:59:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:58:65
+✖ discover then recover follows the complete listed parent chain with one final activation (50.86896ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:59:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:63:1
+✖ a skipped or unavailable checkpoint parent is not invented from revision inclusion (43.709239ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:64:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:68:1
+✖ a claimed successor which drops retained revisions preserves every prior stage and canonical row (43.414942ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:69:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:72:1
+✖ genuine incomparable checkpoint heads remain rejected even when one cut contains more revisions (44.929249ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:73:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:76:35
+✖ positive/negative owner transition remains refused without dropping its original stage false (50.23792ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:77:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:76:35
+✖ positive/negative owner transition remains refused without dropping its original stage true (46.316621ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:77:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:80:1
+✖ lost original tail commit acknowledgement is recovered from the durable new manifest after a cold reopen (50.981909ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:81:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:87:1
+✖ native tail transaction failure rolls back staged items and receipt state, then the same task retries (51.402029ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:88:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:93:52
+✖ original tail authority fence rejects local-edit after full preflight without erasing it (42.82095ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:94:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:93:52
+✖ original tail authority fence rejects restore-epoch after full preflight without erasing it (52.110577ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:94:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:97:39
+✖ pause during original-owner tail reread settles early and fences late transport bytes (44.579501ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:98:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:97:39
+✖ close during original-owner tail reread settles early and fences late transport bytes (53.675562ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:98:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:102:1
+✖ pause after a durable tail commit preserves the advanced validated cut without early canonical activation (48.21838ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:103:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:107:1
+✖ discovered recovery does not reset the 4096-reference work ticket before staging (58.678089ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:108:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:112:1
+✖ already activated task cannot silently retarget its durable manifest (45.227151ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:113:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:116:1
+✖ tail preflight cannot replace a mutated durable revision inventory with caller-derived deltas (37.291539ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:117:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:120:1
+✖ tail reader deadline settles a held original-owner reread and preserves cold continuation (42.121015ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:121:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:126:1
+✖ a causal route does not reset its deadline after the first durable tail edge (36.623139ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:127:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:131:1
+✖ one Source byte-boundary route retains all cuts and refuses its cumulative 2 MiB read budget (72.709129ms)
+  ReferenceError: recoveryWork is not defined
+      at finishOriginalCompiledGraph (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:170:2)
+      at async prepareGroupCheckpointPlanInternal (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint-plan.js:98:13)
+      at async buildGroupedCheckpoint (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/core/browser-native-sync/group-checkpoint.js:110:89)
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:33:14)
+      at async TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-recovery/extension/tests/browser-native-sync-recovery-causal-tail.test.mjs:132:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

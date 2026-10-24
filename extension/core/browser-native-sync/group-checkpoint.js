@@ -6,7 +6,7 @@ import {prepareMixedNonemptyMerge,prepareMixedNonemptyResult,requireMixedNonempt
 import {prepareSourceWorkingMerge,prepareSourceWorkingMergeResult,requireSourceWorkingMergeBase,requireSourceWorkingMergeResult,sealSourceWorkingMerge} from './source-working-merge.js';
 import {requireOriginalLibraryDocumentsGenerationMethods} from '../library-documents-owner.js';
 import {requireNoSourcePurgeDeny} from './source-purge-journal.js';
-import {equalSourceWorkingPhysicalTree} from './source-working-physical.js';
+import {equalSourceWorkingPhysicalTree,measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {readCanonicalCheckpointProof,requireCanonicalCheckpointProof,requireCanonicalCheckpointInputProof} from './canonical-generation-checkpoint-stage.js';
 import {prepareSavedWorkGroupApplication,applySavedWorkGroupStep,sealSavedWorkGroupActivation,prepareSavedWorkReceive,commitSavedWorkEdit,sealSavedWorkCurrentScope,sealSavedWorkMergeProgress,prepareSavedMixedRetention,sealSavedMixedRetention} from './saved-work-bootstrap.js';
 import {groupOperationPages,createGroupPageBudget,chargeGroupPageValue,checkGroupPageBudget,readGroupRows} from './group-page-reader.js';
@@ -27,7 +27,7 @@ import {JournalRestoreFence,readRestoreEpoch,preparePromptBindingReplay} from '.
 import {ArchiveError,CONSENT_VERSION} from '../constants.js';
 import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque,SyncError} from './value.js';
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
-import {originalGenerationRepositoryTransaction,requireRepositoryTransactionDataMethods,awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
+import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,originalGenerationRepositoryTransaction,requireRepositoryTransactionDataMethods,awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
 import {finalConsumerPreferenceOperations,prepareRestoredConsumerPreferenceApplication,applyRestoredConsumerPreferenceOwners} from './consumer-preference-restore.js';
 import {CONSUMER_PUBLICATION_PENDING_ID,requireConsumerPublicationSettled} from './consumer-publication-state.js';
 import {sealManualMergeTransaction} from './manual-merge-terminal.js';
@@ -60,8 +60,9 @@ async function generationTransaction(restore,kind,fn,stores){
  try{return await originalGenerationRepositoryTransaction(b.store.repository,token,async t=>{registerRepositoryWorkLimit(b.store.repository,t);requireRepositoryTransactionDataMethods(b.store.repository,t);try{const result=await fn(t);await generationTerminal(restore,t);return result;}catch(e){if(e instanceof SyncError)semantic=e;throw e;}},stores);}catch(e){throw semantic??e;}finally{generationRepositoryAuthorities.delete(token);}
 }
 async function authority(store,core,t){const c=await store.control(t);if(!c.settings.enabled||c.settings.consentVersion!==CONSENT_VERSION)fail('BNS_GROUP_PERMISSION');return{namespace:await core.bind(t),generation:(await core.get(t,'generation'))?.value||0,ownerGeneration:(await t.get('meta','backup-data-generation'))?.value||0,fence:await new JournalRestoreFence(core).snapshot(t),settings:c.settings};}
-async function allOperations(core){const operations=[],budget=createGroupPageBudget();for await(const row of core.rows('revision')){if(row.redacted)fail('BNS_GROUP_OWNER_UNSUPPORTED');chargeGroupPageValue(budget,row.operation);operations.push(row.operation);}checkGroupPageBudget(budget);return operations;}
-async function stageItems(stage){return stage.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix:await stage.idIn(t,'groupItem')})).map(row=>row.item),['meta']);}
+function chargeRecoveryValue(core,value,physical=false){const ticket=currentOriginalRecoveryWork(core.repository);if(ticket)chargeOriginalRecoveryWork(core.repository,ticket,physical?measureSourceWorkingPhysicalTree(value).B:bytes(value).length);}
+async function allOperations(core){const operations=[],budget=createGroupPageBudget();for await(const row of core.rows('revision')){if(row.redacted)fail('BNS_GROUP_OWNER_UNSUPPORTED');chargeGroupPageValue(budget,row.operation);chargeRecoveryValue(core,row.operation);operations.push(row.operation);}checkGroupPageBudget(budget);return operations;}
+async function stageItems(stage){return stage.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix:await stage.idIn(t,'groupItem')})).map(row=>{chargeRecoveryValue(stage,row,true);return row.item;}),['meta']);}
 async function requireCommittedPlan(core,t,plan){
  const operations=plan.groups.flatMap(group=>group.operations);
  for(const op of operations){
@@ -458,7 +459,7 @@ export class GroupedCheckpointRestore{
   const old=await this.stage.read('restore');if(old?.phase!=='validated')fail('BNS_RESTORE_NOT_READY');
   const m=await manifest(ref,get,this.live,this.profile,supported);if(!m.parents.includes(old.manifestId))fail('BNS_GROUP_TAIL_INVALID');
   const oldItems=await stageItems(this.stage);
-  const items=[];for await(const page of groupOperationPages(checkpointItems(m,get,{profile:this.profile})))items.push(...page);
+  const items=[];for await(const page of groupOperationPages(checkpointItems(m,get,{profile:this.profile})))for(const item of page){chargeRecoveryValue(this.stage,item);items.push(item);}
   const replay=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:old.replayId}),compiled=await compile(replay,items,m,this.store);
   const prior=new Map(oldItems.filter(x=>x.kind==='revision').map(x=>[x.operation.revisionId,x.operation])),next=new Map(items.filter(x=>x.kind==='revision').map(x=>[x.operation.revisionId,x.operation]));
   for(const [id,op]of prior)if(!equal(next.get(id)??null,op))fail('BNS_GROUP_TAIL_INVALID');

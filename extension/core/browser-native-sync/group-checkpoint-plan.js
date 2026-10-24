@@ -1,3 +1,4 @@
+import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork} from '../idb-repository.js';
 import {contextMutationDependencies,validateContextMutationPlanOrder} from './context-mutation-graph.js';
 import {normalizeSavedPayload} from './saved-work-successor-codec.js';
 import {groupOperationPages,createGroupPageBudget,checkGroupPageBudget} from './group-page-reader.js';
@@ -54,6 +55,7 @@ export function requireSelectedCurrentSourceWorkingGroupPlan(core,plan){
 // A bounded immutable causal plan only. This module never writes canonical or
 // protocol rows. Domain capabilities are minted by the existing strict owners.
 async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorking){
+ const recoveryWork=currentOriginalRecoveryWork(core.repository);
  const binding={core,datasetId:core.datasetId,repository:core.repository,prefix:core.prefix,fixedNamespace:core.fixedNamespace,currentSourceWorking};
  if(currentSourceWorking&&(!Array.isArray(input)||input.length>CORE_LIMITS.batch))fail('BNS_GROUP_RESOURCE_LIMIT');
  const pageBudget=currentSourceWorking||Array.isArray(input)&&input.length<=CORE_LIMITS.batch?null:createGroupPageBudget();
@@ -63,9 +65,9 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
  // retain the original batch envelope; paged graphs share a new work ticket.
  for await(const page of pageBudget?groupOperationPages(input,{budget:pageBudget}):[input])for(const candidate of page){
   if(!pageBudget&&operations.length>=CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');
-  const operationBytes=bytes(candidate).length;size+=operationBytes;if(size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
+  const operationBytes=bytes(candidate).length;if(recoveryWork)chargeOriginalRecoveryWork(core.repository,recoveryWork,operationBytes);size+=operationBytes;if(size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
   const op=currentSourceWorking==='mixed'?await validateFrozenOperation(candidate):await validateOperation(candidate);originalOperationSizes.set(op,operationBytes);
-  if(currentSourceWorking)requireOriginalSourceWorkingCore(core);else if(pageBudget)checkGroupPageBudget(pageBudget);
+  if(recoveryWork)checkOriginalRecoveryWork(core.repository,recoveryWork);if(currentSourceWorking)requireOriginalSourceWorkingCore(core);else if(pageBudget)checkGroupPageBudget(pageBudget);
   if(op.datasetId!==core.datasetId)fail('BNS_DATASET_MISMATCH');
   if(currentSourceWorking===true&&!['sourceBootstrapCommit','sourceBootstrapMember','sourceAppendCommit','sourceAppendMember','inputWorkingCommit','inputWorkingMember'].includes(op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   if(op.kind!=='put'||!members.has(op.type)&&!singles.has(op.type)&&!Object.hasOwn(families,op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
@@ -165,7 +167,7 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
  const plan=freeze({heads:[...heads].map(([key,revisions])=>({type:JSON.parse(key)[0],entityId:JSON.parse(key)[1],revisions,purged:false,fence:null})).sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId]))),groups:ordered,operationCount:operations.length,operationBytes:size,digest:await digest(graph)});
  if(currentSourceWorking)requireOriginalSourceWorkingCore(core);
  if(core.datasetId!==binding.datasetId||core.repository!==binding.repository||core.prefix!==binding.prefix||core.fixedNamespace!==binding.fixedNamespace)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
- originalPlans.set(plan,binding);return plan;
+ const recoveryWork=currentOriginalRecoveryWork(core.repository);if(recoveryWork)checkOriginalRecoveryWork(core.repository,recoveryWork);originalPlans.set(plan,binding);return plan;
 }
 
 export async function prepareGroupCheckpointPlan(core,input){return prepareGroupCheckpointPlanInternal(core,input,false);}
