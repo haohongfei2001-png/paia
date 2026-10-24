@@ -14,6 +14,8 @@ def home(page,check,label,deep=False,out=None):
     width=page.viewport_size['width']
     ck(h.evaluate('e=>!!e.shadowRoot'),'real official thought is rendered through Shadow DOM')
     ck(h.get_attribute('data-spatial15')=='ready','visible visual version marked V15')
+    ck(page.locator('script[src*="presentation15.js"]').count()==1 and page.locator('script[src*="presentation13.js"]').count()==0,'fresh versioned runtime entry, no cached V13 URL')
+    ck(page.locator('body').get_attribute('data-website-release')=='atelier-v15-20261024','public document identifies the current release')
     ck(page.locator('h1').count()==1 and page.locator('#hero-title').is_visible(),'original hero preserved')
     ck(page.locator('.word-tag').count()==4 and page.locator('#why .manifesto-body').is_visible(),'original colored words and manifesto')
     ck(page.locator('main>section').evaluate_all('es=>es.map(e=>e.id)')==['top','why','archive','thoughts','context','how','story','get-paia'],'existing page narrative order')
