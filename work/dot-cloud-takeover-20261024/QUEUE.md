@@ -139,3 +139,12 @@ The separate partial Source-continuation candidate is excluded in full: no conti
 Latest main reverified by root at 17:04 UTC is `8522134ac23a8e563161b4e3633d56e858e01d5c`. The six commits from the previously known c7fcea main through PR325–330 affect43 website/design-preview/root README paths only, with no extension, services or workflow changes. They are separate website history, not merged or reverted by this development candidate, and not product qualification.
 
 This entry records an accepted local tree ready for root's guarded development-branch publication. It does not claim that a remote write, main merge, Actions run, native/Full test, installation or final release has occurred. Existing prior artifacts and root staging remain unchanged.
+
+
+## Verified accepted engineering-evidence publication — 2026-10-24 19:53 UTC
+
+The development branch `codex/dot-cloud-integration-20261024` now points to published commit `6668b3812841974fff25aad31950ea11dd16e9aa`, exact accepted tree `7de0fe62536136d79076fe58a1ab6c2421b00337`, with parent `eda95c40a7cf3c95336dbb4af36db74fae03bd0c`. Root verified the exact 60-path publication and guarded branch readback, zero Actions runs for that commit, and unchanged main `8522134ac23a8e563161b4e3633d56e858e01d5c`. The publication tool-confirmation/card wait is resolved; earlier readiness and pending-publication statements remain historical, not current blockers.
+
+Published evidence retains the original receipt **128 whole files / 2744 passed**, bounded Source-bootstrap union **137 whole files / 2931 passed**, and Settings authority invalidation **five whole files / 53 passed**. These successive and overlapping scopes are not additive. All first failures and negative controls remain intact; the prepared 138-file full combination is **NOT_RUN**. No tests were rerun for publication. This development-branch publication is not whole-product or seven-plan completion, main integration, native/Full acceptance, installation or deployment.
+
+Partial Source-continuation candidate `7ceb73c31b749c7e72cb4e3f32416c4437d9d222` remains excluded and **FAIL / unqualified**. None of its runtime, tests, partial patch or evidence was published in this accepted tree. Later Source additions/edits and general merge completion remain unsupported here; all existing external qualifications and exhausted-run restrictions remain unchanged.
