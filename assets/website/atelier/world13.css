@@ -213,3 +213,6 @@ html[lang=en] .p13-home{--w-face:Instrument,Georgia,serif}
  .p13-topic-space{padding-top:28px}.p13-topic-rose{transform:translateX(-6px) rotate(-2.4deg)}
  .p13-topic-sand{transform:translateX(8px) rotate(1.4deg)}
 }
+
+.p13-private .p13-detail-copy p{max-width:190px}.p13-private .p13-detail-copy .text-arrow{max-width:190px}
+@media(max-width:700px){.p13-home .p13-description{justify-self:auto;width:100%;margin-left:0;margin-right:0;text-align:left}.p13-private{min-height:440px!important}.p13-private .p13-detail-copy{max-width:100%}.p13-private .privacy-art{left:50%;right:auto;bottom:12px;transform:translateX(-50%)}.p13-private .p13-detail-copy p{max-width:none}.p13-private .text-arrow{margin-top:12px}}
