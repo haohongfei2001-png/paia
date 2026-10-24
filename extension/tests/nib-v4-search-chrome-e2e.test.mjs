@@ -6,11 +6,23 @@ import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually,conversation} from './harness/fake-chatgpt.mjs';
+import {finishNIBSearch} from './harness/nib-search-cleanup.mjs';
+import {createNIBSearchOwnerCopy} from './harness/nib-search-owner-copy.mjs';
 import {routeComposer} from './harness/prompt-composer.mjs';
 import {findInputPage} from '../ui/input-search.js';
 import {PROMPT_HISTORY_SCOPE} from '../core/prompt-selection.js';
 const root=fileURLToPath(new URL('..',import.meta.url)),out=join(root,'work/nib-v4-s1-search'),body='NIB_S1_QUERY NIB_S1_BODY EXACT 👩🏽‍💻é\n  不要删除原文。';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+// Failure-only reuse of the original bounded owner evidence, as in the CPV
+// surface native test. No new RPC, material read, retry or acceptance condition.
+async function promptReadFailureEvidence(context){
+ let timer;try{
+  const worker=context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));
+  if(!worker)return {available:false,rows:[]};
+  const rows=await Promise.race([worker.evaluate(()=>typeof globalThis.__nibSearchReadRefusals==='function'?globalThis.__nibSearchReadRefusals():null),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('PROMPT_REFUSAL_DIAGNOSTIC_TIMEOUT')),1000);})]);
+  return Array.isArray(rows)?{available:true,rows}:{available:false,rows:[]};
+ }catch{return {available:false,rows:[]};}finally{clearTimeout(timer);}
+}
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});if(r.ok!==true){
  // Failure-only original IDB state: no retry, queue drain, changed assertion or
  // extra work on the successful action path. All fixture data is synthetic.
@@ -34,8 +46,9 @@ for(const variant of (process.env.NIB_SEARCH_VARIANTS||'source,release').split('
  assert.ok(['source','release'].includes(variant));await mkdir(out,{recursive:true});const before=await identity(),extensionPath=variant==='source'?root:process.env.NIB_RELEASE_PATH||await mkdtemp(join(root,'work/nib-s1-search-release-'));
  if(variant==='release'&&!process.env.NIB_RELEASE_PATH)execFileSync('python3',['scripts/build_current_release.py',extensionPath],{cwd:root,stdio:'pipe'});
  const packed=variant==='release'?await releaseVector(extensionPath,before):null;
- const h=await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true}),cases=[];
- let frame,capturePage,clickSettled,caseAttempt=0;const check=(name,fn)=>t.test(name,async()=>{const attempt=++caseAttempt;let failure;try{await fn();cases.push(name);}catch(error){failure=error;try{const state=frame&&!frame.isDetached()?await frame.evaluate(()=>({mode:document.documentElement.dataset.mode,layoutPending:document.documentElement.hasAttribute('data-layout-pending'),focused:{tag:document.activeElement?.tagName,id:document.activeElement?.id,row:document.activeElement?.closest('.row')?.dataset.id},rows:document.querySelectorAll('.row').length,checkVisible:!document.getElementById('check-text').hidden,refreshDisabled:document.getElementById('refresh').disabled,status:document.getElementById('status').textContent,listScroll:document.getElementById('list').scrollTop,rpcResults:globalThis.s1RpcResults??[]})):null;await writeFile(join(out,variant+'-failure-'+attempt+'.json'),JSON.stringify({name,state,error:error.message},null,2)+'\n');if(frame&&!frame.isDetached())await frame.page().screenshot({path:join(out,variant+'-failure-'+attempt+'.png')});}catch(diagnosticError){console.error('Failure evidence unavailable',diagnosticError.message);}console.error(name,error.stack);throw error;}finally{try{if(frame&&!frame.isDetached()&&await frame.locator('#check-text').isVisible())await clickSettled(frame.getByRole('button',{name:/^(?:返回|Back)$/}));}catch(error){if(failure)console.error('Cleanup after '+name,error.stack);else throw error;}}});
+ const ownerCopy=process.env.NIB_SEARCH_OWNER_DIAGNOSTICS==='1'?await createNIBSearchOwnerCopy(extensionPath):null;
+ const h=await FakeChatGPT.start({extensionPath:ownerCopy?.path||extensionPath,headless:true,launchThroughPort:true}).catch(error=>finishNIBSearch(error,[['owner-copy',()=>ownerCopy?.close()]])),cases=[];
+ let frame,capturePage,clickSettled,primaryError,caseAttempt=0;const check=(name,fn)=>t.test(name,async()=>{const attempt=++caseAttempt;let failure;try{await fn();cases.push(name);}catch(error){failure=error;try{const state=frame&&!frame.isDetached()?await frame.evaluate(()=>({mode:document.documentElement.dataset.mode,layoutPending:document.documentElement.hasAttribute('data-layout-pending'),focused:{tag:document.activeElement?.tagName,id:document.activeElement?.id,row:document.activeElement?.closest('.row')?.dataset.id},rows:document.querySelectorAll('.row').length,checkVisible:!document.getElementById('check-text').hidden,refreshDisabled:document.getElementById('refresh').disabled,status:document.getElementById('status').textContent,listScroll:document.getElementById('list').scrollTop,rpcResults:globalThis.s1RpcResults??[]})):null;await writeFile(join(out,variant+'-failure-'+attempt+'.json'),JSON.stringify({name,state,error:error.message,promptReadRefusals:await promptReadFailureEvidence(h.context)},null,2)+'\n');if(frame&&!frame.isDetached())await frame.page().screenshot({path:join(out,variant+'-failure-'+attempt+'.png')});}catch(diagnosticError){console.error('Failure evidence unavailable',diagnosticError.message);}console.error(name,error.stack);throw error;}finally{try{if(frame&&!frame.isDetached()&&await frame.locator('#check-text').isVisible())await clickSettled(frame.getByRole('button',{name:/^(?:返回|Back)$/}));}catch(error){if(failure)console.error('Cleanup after '+name,error.stack);else throw error;}}});
  try{
   await h.archive.locator('#enable-consent').waitFor({state:'visible'});await h.archive.locator('#enable-consent').click();await rpc(h.archive,'FILTER_MODE',{mode:'off'});await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
   const c=conversation('nib-s1-ui-synthetic');c.messages=Array.from({length:55},(_,i)=>({id:'nib-s1-'+i,text:i===0?body:'NIB_S1_QUERY unique rare original '+i}));const capture=await h.open(c);
@@ -171,5 +184,12 @@ await rpc(h.archive,'EDIT_DOCUMENT',{edit:{operationId:crypto.randomUUID(),docum
   assert.equal(cases.length,16,'all original and current qualification cases must pass');
   const after=await identity();assert.deepEqual(after,before);assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   await writeFile(join(out,variant+'.json'),JSON.stringify({variant,before,after,releaseVector:packed,generatedWorkerDiagnosticsOmission:variant==='release',cases,caseCount:cases.length,widthProof,contrastProof,headless:true,networkZero:true,originalQualifiedSearch:true,exactSelectedRange:true,originalOneShot:true,representativeOriginalOwner:true,representativeLateBodyFenced:true,completeHiddenPinOrder:true,sourceWorkingUnchangedByReuse:true,fullS1:false,formalMain:false,installed:false},null,2)+'\n');
- }finally{await capturePage?.close();await h.close();}
+ }catch(error){primaryError=error;throw error;}finally{
+  await finishNIBSearch(primaryError,[
+   ['capture-page',()=>capturePage?.close()],
+   ['owner-diagnostic',async()=>{if(ownerCopy)await writeFile(join(out,variant+'-owner-diagnostic.json'),JSON.stringify({binding:ownerCopy.binding,refusals:await promptReadFailureEvidence(h.context)},null,2)+'\n');}],
+   ['harness',()=>h.close()],
+   ['owner-copy',()=>ownerCopy?.close()]
+  ]);
+ }
 });

@@ -88,7 +88,7 @@
  function mount(){
   if(host?.isConnected||disposed)return;
   if(!document.documentElement)return;
-  releaseDrag();host=document.createElement('div');host.dataset.paiaPromptSurface='';root=host.attachShadow({mode:'closed'});
+  releaseDrag();host=document.createElement('div');host.hidden=true;host.dataset.paiaPromptSurface='';root=host.attachShadow({mode:'closed'});
   const style=document.createElement('style');style.textContent=`
 /* Exact R3 palette and R1 gradient roles, scoped to the original host. */
 :host{color-scheme:light;pointer-events:none;--brand:#657999;--surface:#fff;--line:#dce0e7;--hover:#f3f5f8;--active:#e9edf3;--muted:#6d7480;--rear-a:#93a2be;--rear-b:#8192b1;--front-a:#899bb9;--front-b:#667c9f;--rear-alpha-a:.27;--rear-alpha-b:.37;--front-alpha-a:.36;--front-alpha-b:.55;--edge-a:#fff;--edge-b:#7185a6;--edge-alpha-a:.92;--edge-alpha-b:.30;--rear-edge:#7185a6;--rear-edge-alpha:.26;--anchor-shadow:0 2px 4px #17253e05,0 6px 18px #17253e0b;--panel-shadow:0 2px 5px #17253e04,0 10px 28px #17253e0c;--speed:80ms;--ease:cubic-bezier(.2,.7,.2,1)}
