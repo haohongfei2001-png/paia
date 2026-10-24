@@ -1,0 +1,49 @@
+{
+  "id": "PAIA-FLOAT-UI-1.2-R2",
+  "scope": "Offline Chromium prototype / self-review only",
+  "browser": "144.0.7559.96",
+  "base_main": "34f5188d52ada449b99ac88fb6451db8dabcea6f",
+  "r1_head": "7e5322d2241fd13112751a5170d3902179e00081",
+  "regression": {
+    "passed": 30,
+    "failed": 0,
+    "at_utc": "2026-10-18T03:21:08.255735+00:00",
+    "report": "verification.json",
+    "report_sha256": "fa1ca07781e13e15b160dd38269234cd426ab96d3d39a18d37c4c42c6a864bee",
+    "case04_delta": "Old neck position is now active text area per the later owner request. Other29 cases retained."
+  },
+  "geometry": {
+    "passed": 16,
+    "failed": 0,
+    "at_utc": "2026-10-18T03:16:44.201513+00:00",
+    "report": "geometry-verification.json",
+    "report_sha256": "2ed4ecb4d259926a28a5cdfbeb1dbfef00e5e7a9bb0c4ec9b59c4e21ce017b89",
+    "cases": "G01-G16"
+  },
+  "page_errors": [],
+  "external_requests": [],
+  "source_sha256": {
+    "index.html": "22d9830b0ea125e4dc08ff7625c2e2163a9a805a93fc63bfb40652c30c568896",
+    "component.css": "3a768c540aae8b8c794a377b13609a51ead19792c1868aa36838c6956dd80c49",
+    "component.js": "e116a64a53fe5e5b5060741d93ca87ea26525582e87e1c30071cefa83bfc8f29",
+    "demo.css": "fdfc08e6c21a30d0061e59b01ad752a896eed8ba293574d8f7fb30006a245ffa",
+    "demo.js": "e84b30322a78216388e7a8fb6d80bbf56e59bb29ecf6bed5a5b005d1b5b98cdf",
+    "geometry.css": "a4305aefcb3ff4ccf4e859c567b1b5ae95296e72edb8f199536d5c6712dfd674",
+    "geometry.js": "b163b263c15b49a0f34a39bb45ded76a2902826ce5341d2a3ccfa119bd698efa",
+    "build.py": "e8241af69f95ae92ad89a048899380f49cd10c955b57b026f5508f03dbcea8d1",
+    "verify.py": "52fefbf7f3292cb443db4649e04d974b64eb3be36ffd05f06fa98bf71d0fad66",
+    "verify_r1_inherited.py": "e42d5178af2a366d1a130583de2e633da77339b8d004b67cf96fa9882ca1b4ad",
+    "verify_geometry.py": "8be8fbae9d54137fe3d93f86dff4bf32e48c6d3d9dd1c981dfdd03030eadcede",
+    "tokens.json": "630948e670b03e07bab3ee29ae3b89118a7be82478fb8b168cebd0d7603d77ab",
+    "tokens-r1.json": "c524725e502522ff78805d2b7f9c6870d0a3837125c1a0ca5ac0e3d7b02b2688"
+  },
+  "unchanged": "R1 component.css/js, demo.css/js, six card SVGs, tokens-r1.json and verify_r1_inherited.py are exact inherited bytes",
+  "not_verified": [
+    "Installed extension / current authenticated ChatGPT",
+    "Production frame isolation and native receiver/undo",
+    "Spoken screen reader / OS IME",
+    "Physical120Hz / native event-to-paint p95",
+    "Live provider / sustained human comfort"
+  ],
+  "independent_reviewer": false
+}
