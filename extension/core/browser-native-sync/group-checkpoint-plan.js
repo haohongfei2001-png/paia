@@ -154,9 +154,25 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
  }
  const human=groups.filter(group=>group.type==='humanLibraryCommit'),linked=human.filter(group=>group.prepared.descriptor.value.kind.startsWith('source-'));
  if(linked.length){
-  if(binding.currentSourceWorking||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1||groups.some(group=>!['humanLibraryCommit','sourceBootstrapCommit'].includes(group.type)))fail('BNS_HUMAN_UNSUPPORTED');
-  for(const group of linked){const link=group.prepared.members.find(op=>op.value.entityType==='sourceLink');depend(group,createdInputs.get(link.value.after.evidence.inputId));}
+  if(binding.currentSourceWorking||groups.filter(group=>group.type==='sourceBootstrapCommit').length!==1||groups.some(group=>!['humanLibraryCommit','sourceBootstrapCommit','inputWorkingCommit','contextMutationCommit','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type)))fail('BNS_HUMAN_UNSUPPORTED');
+  // The linked original owner consumes the exact final Source/Working producer,
+  // not merely any bootstrap sharing an Input ID. Native-linked stays refused.
+  for(const group of linked){
+   const links=group.prepared.members.filter(op=>op.value.entityType==='sourceLink');if(!links.length)fail('BNS_GROUP_CAUSAL_GAP');
+   for(const link of links){
+    const e=link.value.after.evidence,source=createdInputs.get(e.inputId);if(!source)fail('BNS_GROUP_CAUSAL_GAP');
+    const initial=initialSourcePlan(source.capability);if(!equal([initial.source.id],e.sourceRecordIds)||!equal([initial.source.sourceKey],e.sourceIdentityTokens))fail('BNS_GROUP_CAUSAL_GAP');depend(group,source);
+    const working=groups.filter(g=>g.type==='inputWorkingCommit'&&g.prepared.descriptor.value.inputId===e.inputId),states=working.map(g=>({group:g,state:g.prepared.members.find(op=>op.value.entityType==='inputState')?.value.entity}));
+    if(states.some(x=>!x.state)||states.length&&Math.max(...states.map(x=>x.state.contentRevision))!==e.basedOnContentRevision)fail('BNS_GROUP_CAUSAL_GAP');
+    if(e.basedOnContentRevision===initial.inputState.contentRevision){if(working.length)fail('BNS_GROUP_CAUSAL_GAP');}
+    else{const producers=states.filter(x=>x.state.contentRevision===e.basedOnContentRevision);if(producers.length!==1)fail('BNS_GROUP_CAUSAL_GAP');depend(group,producers[0].group);}
+   }
+  }
   for(const group of groups)if(group.type==='sourceBootstrapCommit')for(const other of human.filter(g=>!linked.includes(g)))group.dependencies.add(other.id);
+  // These independent owners do not participate in the Human future view.
+  // Execute their actual protocol writes only after every Human owner, while
+  // retaining their own parent chains and each mutation's exact predecessors.
+  for(const group of groups)if(['contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type))for(const other of human)depend(group,other);
  }else{for(const group of human)if([...group.dependencies].some(id=>!human.some(other=>other.id===id)))fail('BNS_HUMAN_UNSUPPORTED');for(const group of groups)if(group.type!=='humanLibraryCommit')for(const other of human)group.dependencies.add(other.id);}
 
  const done=new Set(),ordered=[];

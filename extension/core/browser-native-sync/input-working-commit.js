@@ -1,3 +1,7 @@
+import {initialSourcePlan} from './source-bootstrap-plan.js';
+import {enqueueInvalidation} from '../thought-maintenance.js';
+import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
+import {registerRepositoryFinalReadFence} from '../idb-repository.js';
 import {remoteWorkingHistoryRow} from '../ia-store-owner.js';
 import {CONSENT_VERSION} from '../constants.js';
 import {InputWorkingSyncJournal} from './input-working-journal.js';
@@ -43,7 +47,16 @@ export class InputWorkingCommitReceiver{
   const a=workingApplications.get(application);if(!a||a.receiver!==this)fail('BNS_PREPARATION_REQUIRED');
   const before=await this.journal.snapshot(t,a.descriptor.inputId,a.descriptor.documentId,this.store.clock()),sources=await this.filter.restoredSources(t,sourceProof,a.keeps.map(x=>x.value.id));
   qualifyWorking(application,before,sources);await this.#permission(t);
-  return applyWorkingOwner(this,t,application,before,null);
+  if(a.future&&((await t.get('meta','thought-epoch'))?.value||0)!==a.future.beforeEpoch)fail('BNS_WORKING_HISTORY_CHANGED');
+  const result=await applyWorkingOwner(this,t,application,before,null);
+  if(a.future){
+   const expected=a.future.effect,event=await t.edge('invalidations','bySequence',expected.sequence),{id,at,...facts}=event??{};
+   if(!id||typeof at!=='string'||!Number.isFinite(Date.parse(at))||!equal(facts,expected)||((await t.get('meta','thought-epoch'))?.value||0)!==expected.sequence)fail('BNS_WORKING_HISTORY_CHANGED');
+   // The actual original event, not a manufactured success DTO, remains a
+   // terminal obligation through later Human/Context writes and rollback.
+   registerRepositoryFinalReadFence(this.store.repository,t,{isCurrent:()=>{if(workingApplications.get(application)!==a)fail('BNS_PREPARATION_REQUIRED');return true;},plan:function*(){if(!equal(yield {method:'get',table:'invalidations',key:id},event))fail('BNS_WORKING_HISTORY_CHANGED');return true;}});
+  }
+  return result;
  }
 
  async #receive(input,claim){
@@ -111,7 +124,7 @@ async function applyWorkingOwner(receiver,t,application,before,finish){
 // private application can select rows; the Human future graph supplies its
 // private evolving history/counter. Actual writes still use applyWorkingOwner.
 export async function projectOriginalWorkingHistory(store,core,application,group,currentHistory,revisionSequence,previousMappings){
- const a=workingApplications.get(application);if(!a||a.receiver.store!==store||a.receiver.core!==core||store.repository!==core.repository||group.type!=='inputWorkingCommit'||group.id!==a.prepared.descriptor.revisionId||group.operations.length!==a.prepared.members.length+1||group.operations.some(op=>![...a.prepared.members,a.prepared.descriptor].some(expected=>equal(op,expected))))fail('BNS_PREPARATION_REQUIRED');
+ const a=requireOriginalWorkingApplication(store,core,application,group);
  if(!Number.isSafeInteger(revisionSequence)||revisionSequence<0||!(previousMappings instanceof Map))fail('BNS_WORKING_HISTORY_CHANGED');
  const rows=[],mappings=new Map(previousMappings);let sequence=revisionSequence;
  await core.transaction(false,async t=>{
@@ -132,4 +145,33 @@ export async function projectOriginalWorkingHistory(store,core,application,group
 // bindings do not dispose another restore's capability.
 export function releaseOriginalWorkingApplication(store,core,application){
  const a=workingApplications.get(application);if(!a)return false;if(a.receiver.store!==store||a.receiver.core!==core)fail('BNS_PREPARATION_REQUIRED');return workingApplications.delete(application);
+}
+
+function requireOriginalWorkingApplication(store,core,application,group){
+ const a=workingApplications.get(application);if(!a||a.receiver.store!==store||a.receiver.core!==core||store.repository!==core.repository||group?.type!=='inputWorkingCommit'||group.id!==a.prepared.descriptor.revisionId||!Array.isArray(group.operations)||group.operations.length!==a.prepared.members.length+1||new Set(group.operations.map(op=>op.revisionId)).size!==group.operations.length||group.operations.some(op=>![...a.prepared.members,a.prepared.descriptor].some(expected=>equal(op,expected))))fail('BNS_PREPARATION_REQUIRED');return a;
+}
+// Run the fixed original invalidation writer over its exact two-row detached
+// effect. This is a readonly prediction, never a transaction or write authority.
+export async function projectOriginalWorkingInvalidation(core,plan,group,epoch){
+ requireOriginalGroupCheckpointPlan(core,plan);if(!plan.groups.includes(group)||group.type!=='inputWorkingCommit'||!Number.isSafeInteger(epoch)||epoch<0)fail('BNS_PREPARATION_REQUIRED');
+ const state=group.prepared.members.find(op=>op.value.entityType==='inputState')?.value.entity;if(!state)fail('BNS_WORKING_COMMIT_INVALID');
+ let counter={id:'thought-epoch',value:epoch},event=null;
+ const scratch={async get(table,id){if(table!=='meta'||id!=='thought-epoch')fail('BNS_WORKING_HISTORY_CHANGED');return clone(counter);},async put(table,row){if(table==='meta'&&row.id==='thought-epoch'){counter=clone(row);return;}if(table==='invalidations'&&!event){event=clone(row);return;}fail('BNS_WORKING_HISTORY_CHANGED');}};
+ await enqueueInvalidation({uuid:()=>group.id,clock:()=> '1970-01-01T00:00:00.000Z'},scratch,state.id,'source_updated',state.contentRevision);
+ if(!Number.isSafeInteger(counter.value)||counter.value<1||event?.sequence!==counter.value)fail('BNS_WORKING_HISTORY_BOUND');const {id,at,...effect}=event;return effect;
+}
+// Exact original cap + original compiled group project only one private future
+// Source. Caller DTOs cannot replace an operation or select unrelated rows.
+export async function projectOriginalWorkingSource(store,core,application,plan,group,source,epoch){
+ const a=requireOriginalWorkingApplication(store,core,application,group);requireOriginalGroupCheckpointPlan(core,plan);
+ if(!plan.groups.includes(group)||!source||source.input.id!==a.descriptor.inputId||a.future)fail('BNS_PREPARATION_REQUIRED');
+ const bootstrap=plan.groups.find(g=>g.type==='sourceBootstrapCommit'&&g.prepared.descriptor.value.inputId===a.descriptor.inputId),initial=bootstrap?initialSourcePlan(bootstrap.capability):null;
+ if(!initial||!equal(source.source,initial.source)||!equal(source.timeEvidence,initial.timeEvidence)||!equal(source.inputDocument,initial.inputDocument)||!equal(source.baselineRevision,initial.baselineRevision))fail('BNS_WORKING_SOURCE_CLOSURE');
+ const prior=op=>op.parents.length===1?plan.groups.flatMap(g=>g.operations).find(row=>row.revisionId===op.parents[0])?.value.entity:null;
+ if(!equal(source.input,prior(a.block.operation)??initial.input)||!equal(source.inputState,prior(a.state.operation)??initial.inputState))fail('BNS_WORKING_STALE');
+ const {input:b,inputState:state}=source,sourceRefs=[{id:source.source.id,sourceKey:source.source.sourceKey,dedupeKey:source.source.dedupeKey,contentHash:source.source.contentHash}];
+ qualifyWorking(application,{b,state,sourceRefs},{sources:[[source.source]]});
+ if(a.block.value.revision!==b.revision+1||a.state.value.contentRevision!==state.contentRevision+1)fail('BNS_WORKING_STALE');
+ const effect=await projectOriginalWorkingInvalidation(core,plan,group,epoch);a.future={beforeEpoch:epoch,effect};
+ return {source:{...clone(source),input:clone(a.block.value),inputState:clone(a.state.value)},epoch:effect.sequence};
 }

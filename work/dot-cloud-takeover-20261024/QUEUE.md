@@ -26,7 +26,7 @@ Each package owns only its associated tests. Shared activation, compiler, worker
 
 ## Whole-programme continuation map
 
-1. Topic/Thought: preserve implemented formation, lifecycle and Source/Input consumers. Remaining issuer/window policy requires an explicit decision; real semantic quality and complete visual acceptance remain separate.
+1. Topic/Thought: preserve implemented formation, lifecycle and Source/Input consumers. Default-off issuer/window and dual-qualification engineering continues; real grants, extra source reads and production activation require explicit decisions. Real semantic quality and complete visual acceptance remain separate.
 2. Context: finish automatic Source/Working/Human lineage composition and refusal cleanup after C; qualify native future views and complete table/search comparison independently. Q is only the native connection owner portion, not full background/host quiescence.
 3. Settings: retain six groups/22 operations. Map current operation evidence and complete meaningful integration/visual/device checks; historical 4/6 does not become 6/6 by adding unrelated passes. Existing-library selection depends on qualified protection.
 4. AI Usage: continue original Assist/session/ledger settlement and durable UNKNOWN qualification. No real identity, paid provider, SQL deployment or billing qualification is inferred from synthetic results.
@@ -65,3 +65,9 @@ Root combined thirty complete small synthetic files606/606 after correcting a sp
 Next tracks original task and insertion transport settlement independently of UI maps/races. Final tab-local correction preserves unrelated-tab operations; sticky UNKNOWN and cold/global nonqualification remain. Original red and cross-tab51/56 failure retained; final12 files309/309 and root42-file combined915/915. Selection stays closed.
 
 Topic window parameters and default-off dual-qualification implementation proceed under current development authority; only real grants, extra source reads and activation need a later explicit decision. No production issuer or service is enabled.
+
+## Generic cold Source/Working/linked Human composition
+
+Exact reviewed Source/Working projections now feed the original named Human owners, retain real invalidation/epoch terminal evidence and release capabilities. Context singles execute after Human with their original causal/manual predecessors unchanged. Corrected candidate241/241 and combined nine engineering slices46-file980/980 pass; original Context ordering red0/4 and all historical failures remain archived.
+
+The unchanged automatic helper and consumed one-time phase diagnostic still FAIL at fresh C protected activation. No new C run, current resource total, unique-cause claim, native-linked acceptance or guard relaxation. Native browser components remain NOT_RUN due to verified cloud startup/setup failures. These scoped passes do not complete any of the seven product plans or reopen exhausted Full/129-group/100k/cloud allowances.
