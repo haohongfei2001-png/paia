@@ -52,13 +52,10 @@
   updateControl(){if(!this.button)return;const stopped=this.paused||this.done;this.button.setAttribute('aria-pressed',String(this.paused));this.button.setAttribute('aria-label',this.done?words('重播演示','Replay presentation'):stopped?words('继续演示','Resume presentation'):words('暂停演示','Pause presentation'));this.button.querySelector('span').textContent=this.done?'↺':stopped?'▷':'Ⅱ';const label=$('.p10-control-label',this.button);if(label)label.textContent=this.done?words('重播','Replay'):stopped?words('继续','Resume'):words('暂停','Pause');}
   advance(dt){this.elapsed=Math.min(this.duration,this.elapsed+dt);const progress=this.elapsed/this.duration;const beats={archive:[.2,.5,.8],thoughts:[.23,.53,.83],reuse:[.18,.38,.72],edit:[.28,.5,.76],daily:[.25,.51,.8]}[this.key]||[.2,.5,.8];const phase=progress<beats[0]?0:progress<beats[1]?1:progress<beats[2]?2:3;this.setPhase(phase);if(progress===1){this.done=true;this.el.dataset.storyState='complete';this.updateControl();}}
  }
- const stories=$$('[data-story]').map(el=>new Story(el));
+ // Thought Library now has its own native-scroll spatial owner.
+ const stories=$$('[data-story]').filter(el=>el.dataset.story!=='thoughts').map(el=>new Story(el));
  function schedule(){if(!raf&&!document.hidden&&!reduce.matches){last=0;raf=requestAnimationFrame(tick);}}
- // Count visible elapsed time, not a capped frame budget. Otherwise a busy
- // device stretches a finite presentation indefinitely at a low frame rate.
  function tick(time){const delta=last?Math.max(0,time-last):0;last=time;let active=false;for(const story of stories){if(story.visible&&story.started&&!story.done&&!story.paused){story.advance(delta);active=true;}}raf=active?requestAnimationFrame(tick):0;if(!active)last=0;}
- // Start only when the subject, not merely its section heading, is in view.
- // The observer is a wake-up signal; layout bounds govern actual readability.
  let viewTick=false;
  function sampleView(){
   viewTick=false;const top=100,bottom=innerHeight-24,available=Math.max(180,bottom-top);
@@ -80,7 +77,11 @@
  if(reduce.matches)stories.forEach(s=>s.showFinal());
  reduce.addEventListener('change',()=>{if(reduce.matches){cancelAnimationFrame(raf);raf=0;stories.forEach(s=>{s.showFinal();s.el.getAnimations({subtree:true}).forEach(a=>a.finish());});}else requestView();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;last=0;stories.forEach(s=>s.el.getAnimations({subtree:true}).forEach(a=>a.pause()));}else{stories.filter(s=>s.visible&&!s.paused).forEach(s=>s.el.getAnimations({subtree:true}).forEach(a=>a.play()));schedule();}});
- // Every expression stays in its DOM node and reading order. Only visual
- // composition changes; there is no generated replacement or service action.
- document.body.dataset.atelierReady='true';
+ // A failed static asset must leave the previous readable chapter, never blank.
+ document.body.dataset.spatial14='loading';
+ import('/assets/website/atelier/spatial-home.js?release=20261024-live').then(m=>m.mount()).catch(()=>{
+  const thought=$('#thoughts');
+  if(thought.shadowRoot){thought.shadowRoot.replaceChildren(document.createElement('slot'));thought.removeAttribute('style');}
+  document.body.dataset.spatial14='fallback';
+ }).finally(()=>{document.body.dataset.atelierReady='true';});
 })();
