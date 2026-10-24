@@ -18,7 +18,7 @@ The latest handoff remains `work/dot-handoff-20261024/PAIA-DOT-HANDOFF-20261024.
 
 | Package | Exclusive runtime writer | Intended bounded outcome | Current qualification |
 | --- | --- | --- | --- |
-| Q | background/context-connections.js | Correct hold admission and exact transport close settlement; permit pause/revoke and retain unknown outcomes | Implementation in progress, not activation qualification |
+| Q | background/context-connections.js | Correct hold admission and exact transport close settlement; permit pause/revoke and retain unknown outcomes | Implemented and independently code-reviewed; final 44/44 synthetic owner tests, integrated C+Q 146/146; not activation qualification |
 | C | core/browser-native-sync/canonical-generation-checkpoint-stage.js | Remove provably redundant item/page reads while preserving complete row comparison and all terminal fences/budgets | Implemented and independently code-reviewed; 49/49 owning and 53/53 adjacent synthetic tests; no native/performance claim |
 | R | core/browser-native-sync/recovery-session.js | Consume only proven legal causal successors from persistent validated staging through existing tail owner | Implementation in progress, not arbitrary fork resolution |
 
@@ -41,3 +41,9 @@ PR312's two Full attempts, PR313's first Full, Browser2's single diagnostic, ori
 Necessary owning synthetic tests, data consistency, migration, rollback and safety checks continue. Full regressions, platform and complete visual acceptance are concentrated at meaningful milestones, not waived. New large matrices or exhausted-run replacements require a bounded proposal with budget and stop conditions. Real accounts, private data, credentials, paid calls, security changes, installs, deployments and irreversible actions are not expanded.
 
 Do not publish an old generated package as current. Final delivery requires exact source/tree/package identity, seven-plan outcome mapping, preserved failures, remaining external qualifications and upgrade/rollback instructions. No package, main integration, installation or final acceptance has occurred in this cloud-continuation checkpoint.
+
+## Continuing packages after C/Q
+
+- Assist original task settlement: original background/session owners; implementation begins, no financial UNKNOWN rewrite or global activation unlock.
+- Human locator completeness: original non-native scope reproduced missing Entry/Topic/Section locators accepted by grouped export; original negative 1/4 retained, implementation in progress. Native-linked guard remains unchanged.
+- Recovery tail integration remains blocked on original native/compiler cumulative meter propagation. Earlier local passes are not final qualification; reviewer-found control-read accounting gap must be fixed, not disclosed away.

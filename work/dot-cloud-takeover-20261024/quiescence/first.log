@@ -1,0 +1,45 @@
+✔ empty original owner issues only an opaque instance-bound proof and performs no writes (65.901401ms)
+✔ default-unqualified empty owner proves no native host without enabling configuration (29.971679ms)
+✔ exact original close ACK drains a live host without changing pairing or clean witness (39.973855ms)
+✔ hold rejects new pairing and reconnect but release preserves explicit reconnect semantics (32.16719ms)
+✔ pause intent invalidates a completed hold synchronously and persists through original owner (25.491564ms)
+✔ revoke intent invalidates a completed hold synchronously and persists through original owner (31.443398ms)
+✔ pause while close ACK is pending is not swallowed even when persistence fails (23.97699ms)
+✔ disconnect during pre-hold serial drain cannot disappear from the proof (19.375787ms)
+✔ a second transport disconnect during the first ACK cannot yield zero-map success (23.565594ms)
+✖ foreign version nonce generation or protocol ACK never settles the original transport (23.89596ms)
+(node:24) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 10)
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ missing ACK times out unknown; late exact ACK can settle only that source transport (23.827249ms)
+✔ never-configured native host closes safely and late hello cannot configure it (20.09748ms)
+✔ configure sent before ready is retired by exact source ACK rather than suppressing handshake (26.654067ms)
+✔ pair already awaiting permission settles but creates no native host after hold begins (17.799262ms)
+✔ hold waits original serial persistence acknowledgement and rejects stale mirror outcome (19.627177ms)
+✔ permission removal immediately invalidates an original hold and never reconnects on release (28.617217ms)
+✔ permission recheck detects an unannounced loss before final fence (15.951899ms)
+✔ final fence rejects pending original witness replacement even with identical row (18.900926ms)
+✔ final fence rejects settled original witness replacement even with identical row (24.785252ms)
+✔ cold nonempty registry cannot use dirty or clean-looking rows as host closure proof (19.328997ms)
+✔ external registry replacement after invalidation cannot become a known empty owner (16.740592ms)
+✔ suspend invalidates hold without publishing clean state; cancel does not strand lifecycle (27.281542ms)
+✔ original lifecycle startup while held never queues a native resume (14.934429ms)
+✔ restore epoch or database identity changes invalidate the proof (15.300808ms)
+✔ closed database and disposal cannot retain a successful final fence (43.161154ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 24
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30687.728424
+
+✖ failing tests:
+
+test at extension/tests/context-connections-quiescence.test.mjs:53:1
+✖ foreign version nonce generation or protocol ACK never settles the original transport (23.89596ms)
+  Error: CONTEXT_INVALIDATED
+      at #close (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-quiescence/extension/background/context-connections.js:74:308)
+      at retire (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-quiescence/extension/background/context-connections.js:169:74) {
+    code: 'CONTEXT_INVALIDATED'
+  }

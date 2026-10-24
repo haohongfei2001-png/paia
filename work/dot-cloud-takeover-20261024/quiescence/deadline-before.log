@@ -1,0 +1,33 @@
+TAP version 13
+# Subtest: held operation has the unchanged thirty-second bound and never reports undrained success
+not ok 1 - held operation has the unchanged thirty-second bound and never reports undrained success
+  ---
+  duration_ms: 64.447795
+  type: 'test'
+  location: '/workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-quiescence/extension/tests/context-connections-quiescence.test.mjs:110:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'CONTEXT_INVALIDATED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'CONTEXT_INVALIDATED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-cloud-dev-20261024/worktree-quiescence/extension/tests/context-connections-quiescence.test.mjs:111:623)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 373.300289

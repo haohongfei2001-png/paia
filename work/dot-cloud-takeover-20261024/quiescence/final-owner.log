@@ -1,0 +1,250 @@
+TAP version 13
+# Subtest: source policy is exact finite and frozen, with no duration selected by an RPC
+ok 1 - source policy is exact finite and frozen, with no duration selected by an RPC
+  ---
+  duration_ms: 0.971981
+  type: 'test'
+  ...
+# Subtest: source config accessors are not invoked before qualification
+ok 2 - source config accessors are not invoked before qualification
+  ---
+  duration_ms: 0.126637
+  type: 'test'
+  ...
+# Subtest: authorization binds exact host, original source lifetime, extension, policy and qualification
+ok 3 - authorization binds exact host, original source lifetime, extension, policy and qualification
+  ---
+  duration_ms: 0.38039
+  type: 'test'
+  ...
+# Subtest: empty original owner issues only an opaque instance-bound proof and performs no writes
+ok 4 - empty original owner issues only an opaque instance-bound proof and performs no writes
+  ---
+  duration_ms: 75.064816
+  type: 'test'
+  ...
+# Subtest: default-unqualified empty owner proves no native host without enabling configuration
+ok 5 - default-unqualified empty owner proves no native host without enabling configuration
+  ---
+  duration_ms: 29.475168
+  type: 'test'
+  ...
+# Subtest: exact original close ACK drains a live host without changing pairing or clean witness
+ok 6 - exact original close ACK drains a live host without changing pairing or clean witness
+  ---
+  duration_ms: 33.0498
+  type: 'test'
+  ...
+# Subtest: hold rejects new pairing and reconnect but release preserves explicit reconnect semantics
+ok 7 - hold rejects new pairing and reconnect but release preserves explicit reconnect semantics
+  ---
+  duration_ms: 25.579994
+  type: 'test'
+  ...
+# Subtest: pause intent invalidates a completed hold synchronously and persists through original owner
+ok 8 - pause intent invalidates a completed hold synchronously and persists through original owner
+  ---
+  duration_ms: 25.243529
+  type: 'test'
+  ...
+# Subtest: revoke intent invalidates a completed hold synchronously and persists through original owner
+ok 9 - revoke intent invalidates a completed hold synchronously and persists through original owner
+  ---
+  duration_ms: 25.256849
+  type: 'test'
+  ...
+# Subtest: pause while close ACK is pending is not swallowed even when persistence fails
+ok 10 - pause while close ACK is pending is not swallowed even when persistence fails
+  ---
+  duration_ms: 25.647433
+  type: 'test'
+  ...
+# Subtest: disconnect during pre-hold serial drain cannot disappear from the proof
+ok 11 - disconnect during pre-hold serial drain cannot disappear from the proof
+  ---
+  duration_ms: 20.396383
+  type: 'test'
+  ...
+# Subtest: a second transport disconnect during the first ACK cannot yield zero-map success
+ok 12 - a second transport disconnect during the first ACK cannot yield zero-map success
+  ---
+  duration_ms: 25.946955
+  type: 'test'
+  ...
+# Subtest: foreign version ACK never settles the original transport
+ok 13 - foreign version ACK never settles the original transport
+  ---
+  duration_ms: 24.147675
+  type: 'test'
+  ...
+# Subtest: foreign nonce ACK never settles the original transport
+ok 14 - foreign nonce ACK never settles the original transport
+  ---
+  duration_ms: 20.271235
+  type: 'test'
+  ...
+# Subtest: foreign generation ACK never settles the original transport
+ok 15 - foreign generation ACK never settles the original transport
+  ---
+  duration_ms: 23.022304
+  type: 'test'
+  ...
+# Subtest: foreign protocol ACK never settles the original transport
+ok 16 - foreign protocol ACK never settles the original transport
+  ---
+  duration_ms: 29.149358
+  type: 'test'
+  ...
+# Subtest: foreign extra field ACK never settles the original transport
+ok 17 - foreign extra field ACK never settles the original transport
+  ---
+  duration_ms: 18.894193
+  type: 'test'
+  ...
+# Subtest: missing ACK times out unknown; late exact ACK can settle only that source transport
+ok 18 - missing ACK times out unknown; late exact ACK can settle only that source transport
+  ---
+  duration_ms: 3024.858023
+  type: 'test'
+  ...
+# Subtest: never-configured native host closes safely and late hello cannot configure it
+ok 19 - never-configured native host closes safely and late hello cannot configure it
+  ---
+  duration_ms: 36.449359
+  type: 'test'
+  ...
+# Subtest: configure sent before ready is retired by exact source ACK rather than suppressing handshake
+ok 20 - configure sent before ready is retired by exact source ACK rather than suppressing handshake
+  ---
+  duration_ms: 31.41679
+  type: 'test'
+  ...
+# Subtest: pair already awaiting permission settles but creates no native host after hold begins
+ok 21 - pair already awaiting permission settles but creates no native host after hold begins
+  ---
+  duration_ms: 25.081433
+  type: 'test'
+  ...
+# Subtest: hold waits original serial persistence acknowledgement and rejects stale mirror outcome
+ok 22 - hold waits original serial persistence acknowledgement and rejects stale mirror outcome
+  ---
+  duration_ms: 47.479815
+  type: 'test'
+  ...
+# Subtest: permission removal immediately invalidates an original hold and never reconnects on release
+ok 23 - permission removal immediately invalidates an original hold and never reconnects on release
+  ---
+  duration_ms: 25.920598
+  type: 'test'
+  ...
+# Subtest: permission recheck detects an unannounced loss before final fence
+ok 24 - permission recheck detects an unannounced loss before final fence
+  ---
+  duration_ms: 24.924782
+  type: 'test'
+  ...
+# Subtest: final fence rejects pending original witness replacement even with identical row
+ok 25 - final fence rejects pending original witness replacement even with identical row
+  ---
+  duration_ms: 29.986704
+  type: 'test'
+  ...
+# Subtest: final fence rejects settled original witness replacement even with identical row
+ok 26 - final fence rejects settled original witness replacement even with identical row
+  ---
+  duration_ms: 21.828514
+  type: 'test'
+  ...
+# Subtest: cold nonempty registry cannot use dirty or clean-looking rows as host closure proof
+ok 27 - cold nonempty registry cannot use dirty or clean-looking rows as host closure proof
+  ---
+  duration_ms: 24.182539
+  type: 'test'
+  ...
+# Subtest: external registry replacement after invalidation cannot become a known empty owner
+ok 28 - external registry replacement after invalidation cannot become a known empty owner
+  ---
+  duration_ms: 36.700917
+  type: 'test'
+  ...
+# Subtest: suspend invalidates hold without publishing clean state; cancel does not strand lifecycle
+ok 29 - suspend invalidates hold without publishing clean state; cancel does not strand lifecycle
+  ---
+  duration_ms: 25.243772
+  type: 'test'
+  ...
+# Subtest: original lifecycle startup while held never queues a native resume
+ok 30 - original lifecycle startup while held never queues a native resume
+  ---
+  duration_ms: 17.748368
+  type: 'test'
+  ...
+# Subtest: restore epoch or database identity changes invalidate the proof
+ok 31 - restore epoch or database identity changes invalidate the proof
+  ---
+  duration_ms: 25.211734
+  type: 'test'
+  ...
+# Subtest: closed database and disposal cannot retain a successful final fence
+ok 32 - closed database and disposal cannot retain a successful final fence
+  ---
+  duration_ms: 40.148193
+  type: 'test'
+  ...
+# Subtest: an entered original native list read must settle before exact host ACK and proof
+ok 33 - an entered original native list read must settle before exact host ACK and proof
+  ---
+  duration_ms: 24.088722
+  type: 'test'
+  ...
+# Subtest: a renewal already queued behind permission settles without reopening a host
+ok 34 - a renewal already queued behind permission settles without reopening a host
+  ---
+  duration_ms: 818.312524
+  type: 'test'
+  ...
+# Subtest: a ready message racing hold cannot schedule a renewed host
+ok 35 - a ready message racing hold cannot schedule a renewed host
+  ---
+  duration_ms: 24.990769
+  type: 'test'
+  ...
+# Subtest: held operation has the unchanged thirty-second bound and never reports undrained success
+ok 36 - held operation has the unchanged thirty-second bound and never reports undrained success
+  ---
+  duration_ms: 16.52723
+  type: 'test'
+  ...
+# Subtest: renewal already waiting for original close ACK cannot create a replacement after hold
+ok 37 - renewal already waiting for original close ACK cannot create a replacement after hold
+  ---
+  duration_ms: 817.176747
+  type: 'test'
+  ...
+# Subtest: hold cancels the original Context read and drains its promise without publishing a result
+ok 38 - hold cancels the original Context read and drains its promise without publishing a result
+  ---
+  duration_ms: 31.593639
+  type: 'test'
+  ...
+# Subtest: normal source suspend cancellation still resumes its exact clean authorization without a selection
+ok 39 - normal source suspend cancellation still resumes its exact clean authorization without a selection
+  ---
+  duration_ms: 19.971591
+  type: 'test'
+  ...
+# Subtest: cold clean source resume remains supported but does not erase earlier host uncertainty
+ok 40 - cold clean source resume remains supported but does not erase earlier host uncertainty
+  ---
+  duration_ms: 20.099043
+  type: 'test'
+  ...
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5927.182654
