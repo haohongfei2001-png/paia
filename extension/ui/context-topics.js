@@ -21,7 +21,7 @@ function pageValid(page){
 // connection here. Saved selection and present eligibility remain separate.
 export class ContextTopicInputs {
  constructor({host,access,send=request,onStateChange=()=>{}}){
-  this.send=send;this.access=access;this.onStateChange=onStateChange;this.active=true;this.generation=0;this.rows=new Map();this.nodes=new Map();this.openNodes=new Map();this.rowNodes=new Map();this.viewer=null;this.order=[];this.focusId=null;this.openFocusId=null;this.focusIntent=null;this.busy=false;this.loading=false;this.failedRead=false;this.lastAttempt=null;this.commit=new ContextTopicCommitSession(send);this.query='';this.selectedOnly=false;this.composing=false;
+  this.send=send;this.access=access;this.onStateChange=onStateChange;this.active=true;this.generation=0;this.rows=new Map();this.nodes=new Map();this.openNodes=new Map();this.rowNodes=new Map();this.viewer=null;this.order=[];this.focusId=null;this.openFocusId=null;this.focusIntent=null;this.busy=false;this.loading=false;this.readNavigation=false;this.failedRead=false;this.lastAttempt=null;this.commit=new ContextTopicCommitSession(send);this.query='';this.selectedOnly=false;this.composing=false;
   this.root=element('div','context-inputs');this.note=element('p','topics-note');this.field=element('div','topic-field');this.field.setAttribute('role','group');this.field.setAttribute('aria-label',copy('思想库主题','Thought Library Topics'));
   this.footnote=element('p','topics-note',copy('新主题默认仅自己可见。','New Topics are private by default.'));this.status=element('div','context-notice');this.status.setAttribute('role','status');this.createFilters();this.root.append(this.toolbar,this.note,this.filterStatus,this.field,this.footnote,this.status);host.append(this.root);
   this.field.addEventListener('keydown',event=>this.move(event));
@@ -47,29 +47,31 @@ export class ContextTopicInputs {
  paint(){
   this.search?.close();this.search=null;this.query='';this.field.hidden=false;this.filterStatus.hidden=false;
   this.root.setAttribute('aria-busy',String(this.loading||this.busy));
-  const visible=this.visibleIds(),shown=new Set(visible);
+  const visible=this.visibleIds(),shown=new Set(visible),blockNavigation=this.loading&&!this.readNavigation;
   for(const [node,on]of [[this.allFilter,!this.selectedOnly],[this.selectedFilter,this.selectedOnly]]){node.setAttribute('aria-pressed',String(on));node.dataset.on=String(on);}
   for(const node of [this.allFilter,this.selectedFilter])node.disabled=this.loading||this.busy||this.failedRead||this.pending;
   this.filterStatus.textContent=this.failedRead?copy('主题名称暂不可用，请重试读取。','Topic names are unavailable. Retry loading.'):this.selectedOnly&&!visible.length?copy('尚未选择主题。','No Topics selected.') : '';
   if(!this.loading&&!this.busy&&!this.failedRead){const row=this.rows.get(this.focusId);if(!row||!shown.has(this.focusId)||(row.enabled?!row.canDisable:!row.canEnable))this.focusId=visible.find(id=>{const value=this.rows.get(id);return value.enabled?value.canDisable:value.canEnable;})||null;}
   if(!shown.has(this.openFocusId))this.openFocusId=this.focusId||visible[0]||null;
-  for(const [id,node]of this.nodes){const row=this.rows.get(id);if(!row)continue;node.hidden=!shown.has(id);this.rowNodes.get(id).hidden=node.hidden;this.openNodes.get(id).tabIndex=id===this.openFocusId?0:-1;this.openNodes.get(id).disabled=this.loading||this.busy||this.failedRead||this.pending;node.dataset.on=String(row.enabled);node.dataset.paused=String(row.enabled&&(!row.policyAllowed||!this.access.global.enabled||!this.access.inputs.enabled));node.setAttribute('aria-pressed',String(row.enabled));node.querySelector('.context-topic-state').textContent=row.enabled?(node.dataset.paused==='true'?copy('选择已保留','Choice retained'):copy('允许读取','Readable')):copy('仅自己','Only me');node.tabIndex=id===this.focusId?0:-1;node.disabled=this.loading||this.busy||this.failedRead||(row.enabled?!row.canDisable:!row.canEnable);node.title=row.enabled&&!row.policyAllowed?explain(row.reason):copy('仅保存主题选择；外部读取目前不可用。','Saves the Topic choice only. External reading is unavailable.');}
+  for(const [id,node]of this.nodes){const row=this.rows.get(id);if(!row)continue;node.hidden=!shown.has(id);this.rowNodes.get(id).hidden=node.hidden;this.openNodes.get(id).hidden=node.hidden;this.openNodes.get(id).tabIndex=id===this.openFocusId?0:-1;this.openNodes.get(id).disabled=blockNavigation||this.busy||this.failedRead||this.pending;this.openNodes.get(id).setAttribute('aria-disabled',String(this.loading||this.openNodes.get(id).disabled));node.dataset.on=String(row.enabled);node.dataset.paused=String(row.enabled&&(!row.policyAllowed||!this.access.global.enabled||!this.access.inputs.enabled));node.setAttribute('aria-pressed',String(row.enabled));node.querySelector('.context-topic-state').textContent=row.enabled?(node.dataset.paused==='true'?copy('选择已保留','Choice retained'):copy('允许读取','Readable')):copy('仅自己','Only me');node.tabIndex=id===this.focusId?0:-1;node.disabled=blockNavigation||this.busy||this.failedRead||(row.enabled?!row.canDisable:!row.canEnable);node.setAttribute('aria-disabled',String(this.loading||node.disabled));node.title=row.enabled&&!row.policyAllowed?explain(row.reason):copy('仅保存主题选择；外部读取目前不可用。','Saves the Topic choice only. External reading is unavailable.');}
  }
  notify(text,action=null){this.status.replaceChildren(element('span','',text));if(action)this.status.append(button(action.text,action.run));}
  rememberFocus(topicId=null){
   const focused=document.activeElement;
-  if(this.field.contains(focused)||this.status.contains(focused)){const id=topicId||focused?.dataset?.topicId||this.focusIntent?.topicId||this.focusId;if(id)this.focusIntent={topicId:id,origin:focused};}
+  if(this.field.contains(focused)||this.status.contains(focused)){const id=topicId||focused?.dataset?.topicId||this.focusIntent?.topicId||this.focusId;if(id)this.focusIntent={topicId:id,origin:focused,reading:focused?.classList?.contains('context-topic-open')===true};}
   else if(focused&&focused!==document.body)this.focusIntent=null;
  }
  restoreFocus(failed=false){
   const intent=this.focusIntent;this.focusIntent=null;if(!this.active||!intent)return;
   const focused=document.activeElement;if(focused&&focused!==document.body&&focused!==intent.origin&&focused.dataset?.topicId!==intent.topicId)return;
-  const wanted=this.nodes.get(intent.topicId),target=failed?this.status.querySelector('button'):wanted&&!wanted.disabled&&!wanted.hidden?wanted:this.nodes.get(this.focusId);
+  const nodes=intent.reading?this.openNodes:this.nodes,wanted=nodes.get(intent.topicId),target=failed?this.status.querySelector('button'):wanted&&!wanted.disabled&&!wanted.hidden?wanted:nodes.get(intent.reading?this.openFocusId:this.focusId);
   if(target&&!target.disabled&&!target.hidden)target.focus({preventScroll:true});else if(!failed&&!this.allFilter.disabled)this.allFilter.focus({preventScroll:true});
  }
  async refresh(){
   if(!this.active||this.busy||this.pending)return false;
-  this.viewer?.invalidate();this.search?.invalidate();this.rememberFocus();const generation=++this.generation;this.loading=true;this.failedRead=false;this.paint();
+  this.viewer?.invalidate();this.search?.invalidate();this.rememberFocus();const generation=++this.generation;
+  // Retain local directory navigation, never activation, while replacing a usable read.
+  this.readNavigation=!this.failedRead&&this.nodes.size>0;this.loading=true;this.paint();
   try{
    const rows=[],ids=new Set(),cursors=new Set();let cursor=null,epoch=null,authority=null,selectedCount=null;
    do{
@@ -82,18 +84,18 @@ export class ContextTopicInputs {
     cursor=page.nextCursor;
     if(cursor!==null){const key=JSON.stringify(cursor);if(!page.items.length||cursors.has(key)||cursors.size>=41)throw Error('TOPICS_INCOMPLETE');cursors.add(key);}
    }while(cursor!==null);
-   this.epoch=epoch;this.authority=authority;this.selectedCount=selectedCount;this.receive(rows,this.focusIntent?.topicId);if(this.choiceRefusal)this.notify(explain(this.choiceRefusal));else this.status.replaceChildren();return true;
+   this.failedRead=false;this.epoch=epoch;this.authority=authority;this.selectedCount=selectedCount;this.receive(rows,this.focusIntent?.topicId);if(this.choiceRefusal)this.notify(explain(this.choiceRefusal));else this.status.replaceChildren();return true;
   }catch{
    if(!this.active||generation!==this.generation)return false;
    this.failedRead=true;this.notify(copy('暂时无法读取主题，已有选择未被更改。','Topics could not be read. Existing choices are unchanged.'),{text:copy('重试','Retry'),run:()=>void this.refresh()});return false;
-  }finally{if(this.active&&generation===this.generation){this.loading=false;this.paint();this.restoreFocus(this.failedRead);this.onStateChange();}}
+  }finally{if(this.active&&generation===this.generation){this.loading=false;this.readNavigation=false;this.paint();this.restoreFocus(this.failedRead);this.onStateChange();}}
  }
  receive(rows,previousFocus=null){
   const focused=document.activeElement?.dataset?.topicId||previousFocus,oldIndex=this.order.indexOf(focused);this.rows=new Map(rows.map(row=>[row.topicId,row]));this.order=rows.map(row=>row.topicId);
   for(const [id,node]of this.nodes)if(!this.rows.has(id)){this.rowNodes.get(id)?.remove();this.rowNodes.delete(id);this.openNodes.delete(id);this.nodes.delete(id);}
   for(const [index,row]of rows.entries()){
    let node=this.nodes.get(row.topicId);
-   if(!node){node=button('',()=>void this.toggle(row.topicId));node.className='topic-access';node.dataset.topicId=row.topicId;node.addEventListener('focus',()=>{this.focusId=row.topicId;this.openFocusId=row.topicId;this.paint();});const track=element('span','context-switch');track.setAttribute('aria-hidden','true');node.append(element('span','topic-name'),element('span','context-topic-state'),track);this.nodes.set(row.topicId,node);const line=element('div','context-topic-row'),open=button('',()=>void this.openTopic(row.topicId));open.className='context-topic-open';open.dataset.topicId=row.topicId;open.addEventListener('focus',()=>{this.openFocusId=row.topicId;this.paint();});line.append(open,node);this.openNodes.set(row.topicId,open);this.rowNodes.set(row.topicId,line);}
+   if(!node){node=button('',()=>void this.toggle(row.topicId));node.className='topic-access';node.dataset.topicId=row.topicId;node.addEventListener('focus',()=>{this.focusId=row.topicId;this.openFocusId=row.topicId;if(this.loading&&this.readNavigation)this.rememberFocus(row.topicId);this.paint();});const track=element('span','context-switch');track.setAttribute('aria-hidden','true');node.append(element('span','topic-name'),element('span','context-topic-state'),track);this.nodes.set(row.topicId,node);const line=element('div','context-topic-row'),open=button('',()=>void this.openTopic(row.topicId));open.className='context-topic-open';open.dataset.topicId=row.topicId;open.addEventListener('focus',()=>{this.openFocusId=row.topicId;if(this.loading&&this.readNavigation)this.rememberFocus(row.topicId);this.paint();});line.append(open,node);this.openNodes.set(row.topicId,open);this.rowNodes.set(row.topicId,line);}
    node.querySelector('.topic-name').textContent=row.name;this.openNodes.get(row.topicId).textContent=row.name;
    const line=this.rowNodes.get(row.topicId);if(this.field.children[index]!==line)this.field.insertBefore(line,this.field.children[index]||null);
   }
@@ -110,12 +112,12 @@ export class ContextTopicInputs {
  }
  move(event){
   const reading=event.target?.classList?.contains('context-topic-open');
-  const order=this.visibleIds(),id=event.target?.closest?.('[data-topic-id]')?.dataset.topicId,index=order.indexOf(id);if(index<0||this.loading||this.busy||event.isComposing||event.keyCode===229||event.altKey||event.ctrlKey||event.metaKey)return;
+  const order=this.visibleIds(),id=event.target?.closest?.('[data-topic-id]')?.dataset.topicId,index=order.indexOf(id);if(index<0||!this.active||(this.loading&&!this.readNavigation)||this.busy||this.failedRead||event.isComposing||event.keyCode===229||event.altKey||event.ctrlKey||event.metaKey)return;
   let next;
   if(event.key==='Home')next=0;else if(event.key==='End')next=order.length-1;else if(['ArrowLeft','ArrowUp'].includes(event.key))next=Math.max(0,index-1);else if(['ArrowRight','ArrowDown'].includes(event.key))next=Math.min(order.length-1,index+1);else return;
   event.preventDefault();const step=event.key==='Home'?1:event.key==='End'?-1:next>=index?1:-1;
   const nodes=reading?this.openNodes:this.nodes;while(next>=0&&next<order.length&&nodes.get(order[next])?.disabled)next+=step;
-  const target=nodes.get(order[next]);if(target&&!target.disabled){if(reading)this.openFocusId=order[next];else this.focusId=order[next];this.paint();target.focus();target.scrollIntoView({block:'nearest'});}
+  const target=nodes.get(order[next]);if(target&&!target.disabled){if(reading)this.openFocusId=order[next];else this.focusId=order[next];if(this.loading)this.focusIntent={topicId:order[next],origin:target,reading};this.paint();target.focus();target.scrollIntoView({block:'nearest'});}
  }
  async toggle(id){
   if(!this.active||this.busy||this.loading||this.failedRead)return false;
@@ -125,22 +127,22 @@ export class ContextTopicInputs {
   return this.save(change);
  }
  async save(change){
-  if(!this.active||this.busy)return false;this.choiceRefusal=null;this.rememberFocus(change.topicId);this.busy=true;++this.generation;this.lastAttempt=change;this.paint();this.onStateChange();this.notify(copy('正在保存选择…','Saving choice…'));
+  if(!this.active||this.busy||this.loading||this.failedRead||!this.authority)return false;this.choiceRefusal=null;this.rememberFocus(change.topicId);this.busy=true;++this.generation;this.lastAttempt=change;this.paint();this.onStateChange();this.notify(copy('正在保存选择…','Saving choice…'));
   let acknowledgment=null,error=null;
   try{acknowledgment=await this.commit.save(change);}catch(reason){error=reason;}
   finally{this.busy=false;if(this.active){this.paint();this.onStateChange();}}
   if(!this.active)return false;
   if(error){
-   if(error.code==='CONTEXT_INVALIDATED'){this.lastAttempt=null;const refreshed=await this.refresh();if(refreshed)this.notify(copy('内容已更新，请重新核对主题选择。','The data changed. Review the current Topic choices.'));return false;}
+   if(error.code==='CONTEXT_INVALIDATED'){this.lastAttempt=null;this.failedRead=true;const refreshed=await this.refresh();if(refreshed)this.notify(copy('内容已更新，请重新核对主题选择。','The data changed. Review the current Topic choices.'));return false;}
    this.unconfirmed();this.restoreFocus(true);return false;
   }
-  this.lastAttempt=null;this.choiceRefusal=acknowledgment.result.ok?null:acknowledgment.result.reason;
+  this.lastAttempt=null;this.choiceRefusal=acknowledgment.result.ok?null:acknowledgment.result.reason;if(!acknowledgment.result.ok)this.failedRead=true;
   const refreshed=await this.refresh();
   if(acknowledgment.result.ok){if(refreshed){this.notify(copy('选择已保存。外部读取目前不可用。','Choice saved. External reading is unavailable.'));}return true;}
   if(refreshed)this.notify(explain(acknowledgment.result.reason));return false;
  }
  unconfirmed(){this.notify(copy('选择尚未确认，请核对上次操作。','The choice is unconfirmed. Check the previous operation.'),{text:copy('核对上次操作','Check previous operation'),run:()=>{const change=this.commit.pending?.change||this.lastAttempt;if(change)void this.save(change);else void this.refresh();}});}
  leave(){if(this.busy||this.pending){this.unconfirmed();return false;}this.suspend();return true;}
- suspend(){this.search?.close();this.search=null;this.viewer?.close();++this.generation;this.loading=false;this.focusIntent=null;}
+ suspend(){this.search?.close();this.search=null;this.viewer?.close();++this.generation;this.loading=false;this.readNavigation=false;this.focusIntent=null;}
  close(){this.search?.close();this.search=null;this.active=false;this.viewer?.close();++this.generation;this.focusIntent=null;this.host.removeEventListener?.('focusin',this.cancelMovedFocus);this.host.removeEventListener?.('pointerdown',this.cancelMovedFocus);}
 }

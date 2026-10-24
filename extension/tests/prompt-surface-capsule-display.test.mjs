@@ -31,7 +31,9 @@ function privateFixture({capsule=true,appearance='system',language='system',dark
 // with an observable MediaQueryList. Every host runtime function stays original.
 async function hostFixture(preferences={appearance:'system',language:'system'}){
  let dark=false,nextNonce=0;const mediaHandlers=new Set(),media={get matches(){return dark;},addEventListener:(_name,fn)=>mediaHandlers.add(fn),removeEventListener:(_name,fn)=>mediaHandlers.delete(fn)};
- let fixture=section(hostTests,'async function hostFixture(','\ntest(\'disposing the host');
+ // End at the fixture's own top-level closing brace, not a later test name:
+ // registration loops between the fixture and that test must never execute here.
+ let fixture=section(hostTests,'async function hostFixture(','\n}\n')+'\n}';
  fixture=fixture.replace("matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}})","matchMedia:q=>q.includes('prefers-color-scheme')?media:{matches:true,addEventListener(){},removeEventListener(){}}");
  fixture=fixture.replace('randomUUID:()=>nonce','randomUUID:uuid');
  fixture=fixture.replace("await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8')",'layoutSource').replace("await readFile(new URL('../content/prompt-surface.js',import.meta.url),'utf8')",'hostSource');
