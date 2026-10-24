@@ -86,7 +86,9 @@ export function readCanonicalCheckpointProof(proof,options){const p=held(proof,o
 async function requireProof(proof,options,t,sealGate){
  const p=held(proof,options),repository=p.binding.repository;requireRepositoryTransactionDataMethods(repository,t);registerRepositoryWorkLimit(repository,t);
  await requireNoSourcePurgeDeny(p.binding.core,t);
- const points=[p.state,p.gate,...p.items,...p.pages];for(const row of points)if(!equal(await t.get('meta',row.id)??null,row))fail();
+ const points=[p.state,p.gate,...p.items,...p.pages];for(const row of [p.state,p.gate])if(!equal(await t.get('meta',row.id)??null,row))fail();
+ // The complete metered prefix reads below validate every item/page value and
+ // primary key. Do not read those bodies twice before the unchanged final fence.
  const itemRows=await readRows(t,ITEM),pageRows=await readRows(t,PAGE);if(!equal(itemRows,p.items)||!equal(pageRows,p.pages))fail();
  sealRows(repository,t,sealGate?points:points.filter(row=>row.id!==CANONICAL_GENERATION_GATE),[[ITEM,p.items.length],[PAGE,p.pages.length]],()=>{held(proof,options);return true;});return true;
 }

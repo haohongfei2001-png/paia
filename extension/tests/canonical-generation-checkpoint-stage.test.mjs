@@ -1,6 +1,6 @@
 import {decodeCheckpointManifestStorage} from '../core/browser-native-sync/checkpoint-manifest-storage.js';
 import test from 'node:test';import assert from 'node:assert/strict';
-import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
+import {IDBFactory,IDBKeyRange,IDBObjectStore} from './vendor/fake-indexeddb/build/esm/index.js';
 import {ArchiveRepository} from '../core/idb-repository.js';
 import {LibraryFoundationStore} from '../core/thought-store.js';
 import {local,capture} from './harness/thought-m1.mjs';
@@ -10,7 +10,7 @@ import {buildCheckpoint} from '../core/browser-native-sync/checkpoints.js';
 import {protocolObject} from '../core/browser-native-sync/segments.js';
 import {bytes} from '../core/browser-native-sync/value.js';
 import {CanonicalGenerationPublication,CANONICAL_GENERATION_GATE as GATE} from '../core/browser-native-sync/canonical-generation-publication.js';
-import {CanonicalGenerationCheckpointStage,readCanonicalCheckpointProof,requireCanonicalCheckpointProof,CANONICAL_CHECKPOINT_STATE as STATE,CANONICAL_CHECKPOINT_PREFIX as PREFIX} from '../core/browser-native-sync/canonical-generation-checkpoint-stage.js';
+import {CanonicalGenerationCheckpointStage,readCanonicalCheckpointProof,requireCanonicalCheckpointProof,requireCanonicalCheckpointProofForSeal,requireCanonicalCheckpointInputProof,CANONICAL_CHECKPOINT_STATE as STATE,CANONICAL_CHECKPOINT_PREFIX as PREFIX} from '../core/browser-native-sync/canonical-generation-checkpoint-stage.js';
 globalThis.IDBKeyRange=IDBKeyRange;
 const read=(r,id)=>r.transaction(false,t=>t.get('meta',id),['meta']);
 const cloud=()=>{const rows=new Map();return {rows,async putImmutable(ref,raw){rows.set(ref.id,raw.slice());},async get(ref){return rows.get(ref.id)?.slice();}};};
@@ -71,4 +71,78 @@ for(const version of [1,2])test('generation checkpoint authenticates original gz
 });
 for(const defect of ['bytes','manifest'])test('generation checkpoint rejects durable manifest '+defect+' mismatch',async t=>{
  const f=await fixture(t);await f.stage.stageCheckpoint(f.cp.ref,r=>f.transport.get(r));await f.store.repository.transaction(true,async t=>{const state=await t.get('meta',STATE);if(defect==='bytes')state.manifestEncoded=state.manifestEncoded[0]==='A'?'B'+state.manifestEncoded.slice(1):'A'+state.manifestEncoded.slice(1);else state.manifest.parents=['c'.repeat(64)];await t.put('meta',state);});await assert.rejects(f.stage.validate());assert.equal((await read(f.store.repository,STATE)).phase,'authenticated');
+});
+
+const checkpointRows=r=>r.transaction(false,async tx=>Object.fromEntries(await Promise.all(r.stores.map(async name=>[name,await tx.all(name)]))));
+async function proofFixture(t){
+ const f=await fixture(t);await f.stage.stageCheckpoint(f.cp.ref,r=>f.transport.get(r));
+ return {...f,proof:await f.stage.validate()};
+}
+for(const [name,requireProof]of [['apply',requireCanonicalCheckpointProof],['seal',requireCanonicalCheckpointProofForSeal],['input',requireCanonicalCheckpointInputProof]])test('generation checkpoint '+name+' reads item/page bodies once before preserving every terminal point read',async t=>{
+ const f=await proofFixture(t),state=await read(f.store.repository,STATE),gets=[],original=IDBObjectStore.prototype.get;let transaction;
+ t.mock.method(IDBObjectStore.prototype,'get',function(key){
+  if(this.transaction===transaction&&this.name==='meta'&&typeof key==='string'&&(key.startsWith(PREFIX+'item:')||key.startsWith(PREFIX+'page:')))gets.push(key);
+  return original.call(this,key);
+ });
+ await f.store.repository.transaction(true,async tx=>{
+  transaction=tx.tx;await requireProof(f.proof,f,tx);
+  assert.deepEqual(gets,[],'the complete prefix read must not be preceded by duplicate body gets');
+ });
+ const expected=[...Array.from({length:state.received},(_,n)=>PREFIX+'item:'+String(n).padStart(8,'0')),...Array.from({length:state.pages},(_,n)=>PREFIX+'page:'+String(n).padStart(8,'0'))];
+ assert.deepEqual(gets,expected,'the terminal fence still physically reads every original item and page exactly once');
+});
+for(const family of ['item','page'])for(const defect of ['missing','changed','same-count-replacement','extra'])test('generation checkpoint complete prefix rejects '+family+' '+defect+' before returning proof and rolls back all tables',async t=>{
+ const f=await proofFixture(t),before=await checkpointRows(f.store.repository),id=PREFIX+family+':00000000',extra=PREFIX+family+':99999999';let returned=false;
+ await assert.rejects(f.store.repository.transaction(true,async tx=>{
+  const row=await tx.get('meta',id);await tx.put('meta',{id:'synthetic-owner-write',value:true});
+  if(defect==='missing'||defect==='same-count-replacement')await tx.delete('meta',id);
+  if(defect==='changed')await tx.put('meta',{...row,synthetic:true});
+  if(defect==='extra'||defect==='same-count-replacement')await tx.put('meta',{...row,id:extra});
+  await requireCanonicalCheckpointProof(f.proof,f,tx);returned=true;
+ }));
+ assert.equal(returned,false);assert.deepEqual(await checkpointRows(f.store.repository),before);
+});
+for(const family of ['item','page'])for(const defect of ['key-value-mismatch','read-error'])test('generation checkpoint consumed '+family+' cursor '+defect+' cannot return proof or commit',async t=>{
+ const f=await proofFixture(t),before=await checkpointRows(f.store.repository),id=PREFIX+family+':00000000',original=IDBObjectStore.prototype.openCursor;let transaction,injected=false,returned=false;
+ // A key-path store cannot persist mismatched primary keys. Corrupt only the
+ // consumed fake-IDB cursor delivery, never the owner or private proof methods.
+ t.mock.method(IDBObjectStore.prototype,'openCursor',function(...args){
+  const request=original.apply(this,args);
+  if(this.transaction===transaction&&this.name==='meta')request.addEventListener('success',()=>{
+   const cursor=request.result;if(injected||cursor?.key!==id)return;injected=true;
+   if(defect==='key-value-mismatch')cursor.value={...cursor.value,id:id+':wrong'};
+   else Object.defineProperty(cursor,'value',{get(){throw new DOMException('SYNTHETIC cursor delivery failure','UnknownError');}});
+  });
+  return request;
+ });
+ await assert.rejects(f.store.repository.transaction(true,async tx=>{
+  transaction=tx.tx;await tx.put('meta',{id:'synthetic-owner-write',value:true});await requireCanonicalCheckpointProof(f.proof,f,tx);returned=true;
+ }));
+ assert.equal(injected,true);assert.equal(returned,false);assert.deepEqual(await checkpointRows(f.store.repository),before);
+});
+for(const family of ['item','page'])test('generation checkpoint repeated proof observes intervening '+family+' writes in the same transaction',async t=>{
+ const f=await proofFixture(t),before=await checkpointRows(f.store.repository),id=PREFIX+family+':00000000';let returned=0;
+ await assert.rejects(f.store.repository.transaction(true,async tx=>{
+  await requireCanonicalCheckpointProof(f.proof,f,tx);returned++;
+  await tx.put('meta',{id:'synthetic-owner-write',value:true});await tx.put('meta',{...await tx.get('meta',id),synthetic:true});
+  await requireCanonicalCheckpointProof(f.proof,f,tx);returned++;
+ }));
+ assert.equal(returned,1);assert.deepEqual(await checkpointRows(f.store.repository),before);
+});
+for(const family of ['item','page'])for(const defect of ['missing','same-count-replacement'])test('generation checkpoint terminal still rejects late '+family+' '+defect+' after complete prefix validation',async t=>{
+ const f=await proofFixture(t),before=await checkpointRows(f.store.repository),id=PREFIX+family+':00000000';let validated=false;
+ await assert.rejects(f.store.repository.transaction(true,async tx=>{
+  await requireCanonicalCheckpointProof(f.proof,f,tx);validated=true;const row=await tx.get('meta',id);
+  await tx.put('meta',{id:'synthetic-owner-write',value:true});await tx.delete('meta',id);
+  if(defect==='same-count-replacement')await tx.put('meta',{...row,id:PREFIX+family+':99999999'});
+ }));
+ assert.equal(validated,true);assert.deepEqual(await checkpointRows(f.store.repository),before);
+});
+test('generation checkpoint complete prefix reads retain the ordinary twoMiB transaction byte ceiling',async t=>{
+ const f=await proofFixture(t),before=await checkpointRows(f.store.repository),id=PREFIX+'item:00000000';
+ await assert.rejects(f.store.repository.transaction(true,async tx=>{
+  await tx.put('meta',{...await tx.get('meta',id),syntheticPadding:'x'.repeat(2*1024*1024)});
+  await requireCanonicalCheckpointProof(f.proof,f,tx);
+ }),{code:'BNS_GROUP_RESOURCE_LIMIT'});
+ assert.deepEqual(await checkpointRows(f.store.repository),before);
 });
