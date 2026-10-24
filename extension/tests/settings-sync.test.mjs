@@ -52,3 +52,9 @@ test('late cancellation reply after leaving Settings is ignored',async t=>{
 });
 
 test('malformed selection restart entitlement exposes no selection action',async t=>{const f=fixture(t,async()=>({ok:true,data:{...unavailable,applicationSelection:selectionState('outcome-unknown',{reloadRequired:true})}}));await f.open();assert.equal(f.buttons().length,0);assert.equal(f.calls.length,1);});
+
+
+test('active but unenrolled Context honestly gates NOW until explicit Resume and never dispatches the hidden action',async t=>{
+ let value=state({state:'active',contextCommands:true,needsContextEnrollment:true});const f=fixture(t,async({type})=>{if(type==='PAIA_SYNC_RESUME')value={...value,needsContextEnrollment:false};return {ok:true,data:value};});await f.open();assert.equal(f.button('RESUME').hidden,false);assert.equal(f.button('NOW').hidden,true);assert.match(f.content.textContent,/Context 显式登记/);f.button('NOW').listeners.get('click')();assert.equal(f.calls.filter(x=>x.type==='PAIA_SYNC_NOW').length,0);
+ f.language('en');assert.match(f.content.textContent,/explicitly enroll Context before saving a checkpoint/);await f.click('RESUME');assert.equal(f.button('RESUME').hidden,true);assert.equal(f.button('NOW').hidden,false);assert.equal(f.calls.filter(x=>x.type==='PAIA_SYNC_RESUME').length,1);
+});

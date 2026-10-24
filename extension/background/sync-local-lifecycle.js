@@ -1,3 +1,4 @@
+import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork} from '../core/idb-repository.js';
 import {ContextCardsService,readContextCards} from '../core/context-cards.js';
 import {ContextMutationSyncJournal} from '../core/browser-native-sync/context-mutation-journal.js';
 import {OriginalApplicationGenerationSelection} from '../core/browser-native-sync/application-generation-selection.js';
@@ -18,7 +19,7 @@ import {PreparedPublicationJournal} from '../core/browser-native-sync/publicatio
 import {LocalSyncRecoverySession} from '../core/browser-native-sync/recovery-session.js';
 import {GoogleDriveAppDataTransport} from '../core/browser-native-sync/providers/google-drive.js';
 import {OneDriveAppFolderTransport} from '../core/browser-native-sync/providers/onedrive.js';
-import {clone,digest,equal,exact,hash,opaque} from '../core/browser-native-sync/value.js';
+import {bytes,clone,digest,equal,exact,hash,opaque} from '../core/browser-native-sync/value.js';
 import {assertProtocolObjectReference} from '../core/browser-native-sync/segments.js';
 import {readSyncLifecycleConfiguration} from './sync-lifecycle-configuration.js';
 
@@ -67,26 +68,28 @@ function trusted(request,sender,api){
  if(!exact(request,['type'])||!['PAIA_SYNC_STATUS','PAIA_SYNC_NOW','PAIA_SYNC_RESTORE','PAIA_SYNC_CONTINUE','PAIA_SYNC_PAUSE','PAIA_SYNC_RESUME','PAIA_SYNC_DISCONNECT'].includes(request.type))fail('INVALID_REQUEST');
 }
 function checked(row){
- if(!exact(row,['version','bindingId','generation','revision','mode','task','error'])||row.version!==1||!hash(row.bindingId)||!hash(row.generation)||!Number.isSafeInteger(row.revision)||row.revision<1||!states.has(row.mode)||row.error!==null&&(typeof row.error!=='string'||!/^(BNS_|STORAGE_|CONTROL_|BACKUP_)[A-Z_]+$/.test(row.error)))fail('BNS_SYNC_STATE_CORRUPT');
+ if(!exact(row,['version','bindingId','generation','revision','mode','task','error','contextEnrollment'])||row.version!==1||!hash(row.bindingId)||!hash(row.generation)||!Number.isSafeInteger(row.revision)||row.revision<1||!states.has(row.mode)||row.error!==null&&(typeof row.error!=='string'||!/^(BNS_|STORAGE_|CONTROL_|BACKUP_)[A-Z_]+$/.test(row.error)))fail('BNS_SYNC_STATE_CORRUPT');
+ if(row.contextEnrollment!==undefined&&row.contextEnrollment!==null){const value=row.contextEnrollment;if(!exact(value,['version','databaseId','namespace','epoch'])||Object.keys(value).length!==4||value.version!==1||!opaque(value.databaseId)||value.namespace!=='initial'&&!opaque(value.namespace)||value.epoch!==null&&!opaque(value.epoch))fail('BNS_SYNC_STATE_CORRUPT');}
  if(row.task!==null){const task=row.task;if(!exact(task,['kind','id','phase','reference'])||!['publication','checkpoint','restore'].includes(task.kind)||!opaque(task.id)||!['reserved','running','unknown','confirmed'].includes(task.phase))fail('BNS_SYNC_STATE_CORRUPT');if(task.kind==='publication'&&task.reference!==null)fail('BNS_SYNC_STATE_CORRUPT');if(task.reference!==null){assertProtocolObjectReference(task.reference);if(task.reference.kind!=='checkpoint-manifest')fail('BNS_SYNC_STATE_CORRUPT');}}
  return row;
 }
 
 class SyncLifecycle {
- #store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#busy=false;#suspended=false;#selectionHeld=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;#contextService=null;#contextJournal=null;
+ #store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#continuationSaving=false;#busy=false;#suspended=false;#selectionHeld=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;#contextService=null;#contextJournal=null;
  constructor(store,api,config,binding,bindingId,generation,core){this.#store=store;this.#api=api;this.#config=config;this.#binding=binding;this.#bindingId=bindingId;this.#generation=generation;this.#core=core;this.#journal=new PreparedPublicationJournal(core,{checkpoint:()=>this.#allowed()});}
  #hostCurrent(){try{return this.#config.isCurrent(this.#binding)===true;}catch{return false;}}
  #allowed(){if(this.#suspended||this.#blocked||this.#uncertain||!this.#row||this.#row.mode!=='active'||this.#row.bindingId!==this.#bindingId||this.#row.generation!==this.#generation||!this.#hostCurrent())fail('BNS_SYNC_PAUSED');}
- #invalidate(){++this.#serial;this.#transport?.close();this.#transport=null;this.#restore?.pause();this.#checkpoint?.pause();}
- async #read(){const value=(await this.#api.storage.local.get(ROW))?.[ROW];return value===undefined?null:checked(clone(value));}
- async #save(update){
+ #invalidate(){if(this.#continuationSaving)this.#uncertain=true;++this.#serial;this.#transport?.close();this.#transport=null;this.#restore?.pause();this.#checkpoint?.pause();}
+ async #read(work=null){if(work)chargeOriginalRecoveryWork(this.#store.repository,work,bytes(ROW).length,1);const value=(await this.#api.storage.local.get(ROW))?.[ROW];if(work)chargeOriginalRecoveryWork(this.#store.repository,work,bytes(value??null).length,0);return value===undefined?null:checked(clone(value));}
+ async #save(update,work=null){
+  if(this.#uncertain||this.#suspended)fail('BNS_SYNC_OUTCOME_UNKNOWN');
   const action=this.#write.then(async()=>{
-   if(this.#uncertain||this.#suspended)fail('BNS_SYNC_OUTCOME_UNKNOWN');const before=this.#row,current=await this.#read();if(!equal(current,before)){this.#uncertain=true;this.#invalidate();fail('BNS_SYNC_STATE_CHANGED');}
+   if(this.#uncertain||this.#suspended)fail('BNS_SYNC_OUTCOME_UNKNOWN');const before=this.#row,current=await this.#read(work);if(!equal(current,before)){this.#uncertain=true;this.#invalidate();fail('BNS_SYNC_STATE_CHANGED');}
    const next=checked({...update(clone(before)),revision:(before?.revision??0)+1});
    // A rejected storage acknowledgement is not proof of rollback. Read the
    // exact durable row once; do not repeat the write or perform any transfer.
-   let writeError=null;try{await this.#api.storage.local.set({[ROW]:next});}catch(error){writeError=error;}
-   let observed;try{observed=await this.#read();}catch{this.#uncertain=true;this.#invalidate();fail('BNS_SYNC_OUTCOME_UNKNOWN');}
+   let writeError=null;try{if(work)chargeOriginalRecoveryWork(this.#store.repository,work,bytes({[ROW]:next}).length,1);await this.#api.storage.local.set({[ROW]:next});if(work)checkOriginalRecoveryWork(this.#store.repository,work);}catch(error){writeError=error;}
+   let observed;try{observed=await this.#read(work);}catch{this.#uncertain=true;this.#invalidate();fail('BNS_SYNC_OUTCOME_UNKNOWN');}
    if(!equal(observed,next)){this.#uncertain=true;this.#invalidate();fail(writeError?'BNS_SYNC_OUTCOME_UNKNOWN':'BNS_SYNC_STATE_CHANGED');}
    this.#row=next;return next;
   });this.#write=action.catch(()=>{});return action;
@@ -130,11 +133,17 @@ class SyncLifecycle {
   let represented=!!await this.#core.read('contextMutationState');
   for(const key of ['info','rules','now','inputs'])if(await this.#core.read('head','contextDesired',key)){represented=true;break;}
   for(const item of row.items)if(await this.#contextHead(item)){represented=true;break;}
+  // A prior explicit empty enrollment is local to this exact physical store,
+  // protocol namespace and restore epoch. Active mode alone is never proof.
+  if(!represented&&this.#row?.contextEnrollment&&this.#row.bindingId===this.#bindingId&&this.#row.generation===this.#generation&&this.#hostCurrent()){
+   const enrolled=this.#row,current=await this.#contextJournal.emptyEnrollment(service);
+   represented=this.#row===enrolled&&enrolled.bindingId===this.#bindingId&&enrolled.generation===this.#generation&&this.#hostCurrent()&&equal(enrolled.contextEnrollment,current);
+  }
   if(represented)service.syncJournal=this.#contextJournal;
  }
  async #contextHead(item){return await this.#core.read('head','contextMutationMember',item.id)??await this.#core.read('head',({info:'contextItem',rules:'contextRulesItem',now:'contextNowItem'})[item.card],item.id);}
  async #enrollContext(){
-  if(!this.#contextService)return;
+  if(!this.#contextService)return null;
   const service=this.#contextService,journal=this.#contextJournal;
   if(service.syncJournal!==null&&service.syncJournal!==journal)fail('BNS_SYNC_OWNER_BUSY');
   service.syncJournal=journal;
@@ -143,6 +152,7 @@ class SyncLifecycle {
   // transaction. Failure retains earlier exact receipts; no bulk rewrite.
   for(const item of row.items)if(!await this.#contextHead(item))await journal.bootstrapItem(service,item.id);
   for(const key of ['info','rules','now','inputs'])if(row.access[key].revision>0&&!await this.#core.read('head','contextDesired',key))await journal.bootstrapAccess(key);
+  return journal.emptyEnrollment(service);
  }
  applicationSelectionAvailable(){return !this.#busy&&!this.#uncertain&&!this.#suspended&&!this.#selectionHeld&&(!this.#row?.task||this.#row.task.phase==='confirmed');}
  reserveApplicationSelection(){if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');this.#busy=true;this.#selectionHeld=true;this.#invalidate();let released=false;return safeBeforeDispatch=>{if(!released){released=true;this.#busy=false;if(safeBeforeDispatch===true)this.#selectionHeld=false;else this.suspend();}};}
@@ -179,8 +189,8 @@ class SyncLifecycle {
   try{
    await this.#enrollPreferences();current();
    await this.#enrollPrompt();current();
-   await this.#enrollContext();current();
-   await this.#save(row=>{current();return {...this.#initial(row),generation:this.#generation,mode:'active',error:null};});current();this.#blocked=false;return Object.freeze({...this.#view(),busy:false});
+   const contextEnrollment=await this.#enrollContext();current();
+   await this.#save(row=>{current();return {...this.#initial(row),generation:this.#generation,mode:'active',error:null,...(contextEnrollment?{contextEnrollment}:{})};});current();this.#blocked=false;return Object.freeze({...this.#view(),busy:false});
   }finally{this.#busy=false;}
  }
  #openTransport(serial){
@@ -228,17 +238,17 @@ class SyncLifecycle {
     // retransmission, including its durable unknown-attempt and missing guards.
     await this.#journal.run(id,transport);
    }else{
-    this.#restore=new LocalSyncRecoverySession(this.#core,{store:this.#store,transport,restoreId:id,checkpoint:async()=>current()});
+    this.#restore=new LocalSyncRecoverySession(this.#core,{store:this.#store,transport,restoreId:id,checkpoint:async(phase,reference)=>{current();if(phase==='selected-causal-tail'||phase==='confirmed-causal-tail'){this.#continuationSaving=true;try{await this.#save(row=>{current();if(row.task?.kind!=='restore'||row.task.id!==id||phase==='confirmed-causal-tail'&&!equal(row.task.reference,reference))fail('BNS_SYNC_STATE_CHANGED');return {...row,task:{...row.task,reference:clone(reference),phase:phase==='selected-causal-tail'?'running':'confirmed'},error:null};},currentOriginalRecoveryWork(this.#store.repository));}finally{this.#continuationSaving=false;}}current();}});
     let ref=this.#row.task.reference;
-    if(ref===null){ref=await this.#restore.discover();current();await this.#save(row=>({...row,task:{...row.task,reference:clone(ref)},error:null}));}
-    current();await this.#save(row=>({...row,task:{...row.task,phase:'running'},error:null}));current();
-    await this.#restore.recover(ref);
+    if(continuation&&ref!==null)await this.#restore.continueTask(ref);
+    else{if(ref===null){ref=await this.#restore.discover();current();await this.#save(row=>({...row,task:{...row.task,reference:clone(ref)},error:null}));}
+     current();await this.#save(row=>({...row,task:{...row.task,phase:'running'},error:null}));current();await this.#restore.recover(ref);}
    }
    // A confirmed original commit is retained even when pause arrived after it.
    // Updating this local task state never undoes the user's durable pause.
-   await this.#save(row=>({...row,task:{...row.task,phase:'confirmed'},error:null}));return Object.freeze({...this.#view(),busy:false});
+   if(this.#row.task.phase!=='confirmed')await this.#save(row=>({...row,task:{...row.task,phase:'confirmed'},error:null}));return Object.freeze({...this.#view(),busy:false});
   }catch(error){
-   this.#invalidate();if(this.#row?.task&&!this.#uncertain&&!this.#suspended)await this.#save(row=>({...row,task:row.task.phase==='confirmed'?row.task:{...row.task,phase:'unknown'},error:safeError(error)}));throw error;
+   if(error?.code==='BNS_SYNC_OUTCOME_UNKNOWN')this.#uncertain=true;this.#invalidate();if(this.#row?.task&&!this.#uncertain&&!this.#suspended)await this.#save(row=>({...row,task:row.task.phase==='confirmed'?row.task:{...row.task,phase:'unknown'},error:safeError(error)}));throw error;
   }finally{this.#transport?.close();this.#transport=null;this.#restore=null;this.#busy=false;}
  }
  async handle(request,sender){

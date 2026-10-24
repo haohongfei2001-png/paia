@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {setup} from './harness/thought-m1.mjs';
+import {setup,local} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {ContextCardsService,readContextCards} from '../core/context-cards.js';
 import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';
@@ -15,7 +15,7 @@ test('actual two owner reorder, cross-card move and undo preserve their original
 test('a split group and direct generic remote operation cannot write any canonical or protocol row',async t=>{const a=await device(t),b=await device(t),c=put();await a.service.change(c);const operations=await group(a,c.operationId),before=await snapshot(b);await assert.rejects(b.journal.receive(b.service,operations.slice(0,1)));await assert.rejects(b.core.receiveBatch(operations.slice(0,1)));assert.deepEqual(await snapshot(b),before);});
 
 import {ContextManualSyncJournal,contextManualMaterializer} from '../core/browser-native-sync/context-journal.js';
-import {IDBObjectStore} from './vendor/fake-indexeddb/build/esm/index.js';
+import {IDBObjectStore,IDBFactory} from './vendor/fake-indexeddb/build/esm/index.js';
 import {inputEdit} from './harness/thought-m1.mjs';
 import {ContextMaintenanceService} from '../core/context-maintenance.js';
 import {readContextTopicScope} from '../core/context-topic-scope.js';
@@ -105,4 +105,29 @@ test('captured automatic Input text is rechecked even if a late raw write does n
  const state=await a.s.repository.transaction(false,t=>t.get('blocks',f.input.id));
  const tx=a.s.repository.db.transaction(['blocks'],'readwrite'),done=new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error);});tx.objectStore('blocks').put({...state,value:{...state.value,libraryText:'SYNTHETIC late replacement'}});await done;
  try{await assert.rejects(fenceContextLineage(a.s,result.captured),{code:'CONTEXT_INVALIDATED'});}finally{releaseContextLineage(result.captured);}
+});
+
+
+test('empty enrollment snapshot is readonly original-owner data, not journal binding or a portable mutation',async t=>{
+ const a=await device(t),plain=new ContextCardsService(a.s),before=await snapshot(a),value=await a.journal.emptyEnrollment(plain);assert.deepEqual(value,{version:1,databaseId:a.s.databaseId,namespace:'initial',epoch:null});assert.equal(plain.syncJournal,null);await assert.rejects(a.journal.bootstrapItem(plain,op()),e=>e.code==='BNS_CONTEXT_OWNER_REQUIRED');assert.deepEqual(await snapshot(a),before);
+ const b=await device(t);await assert.rejects(a.journal.emptyEnrollment(b.service),e=>e.code==='BNS_CONTEXT_OWNER_REQUIRED');await assert.rejects(a.journal.emptyEnrollment({...plain}),e=>e.code==='CONTEXT_INVALIDATED');
+ const other=new ContextCardsService(a.s,{syncJournal:new ContextMutationSyncJournal(a.core,{store:a.s})});await assert.rejects(a.journal.emptyEnrollment(other),e=>e.code==='BNS_CONTEXT_OWNER_REQUIRED');
+ await plain.change(put());assert.equal(await a.journal.emptyEnrollment(plain),null);assert.equal(await a.core.read('contextMutationState'),undefined);
+});
+for(const altered of ['migration','restore-epoch','fence'])test('empty enrollment snapshot refuses changed original '+altered+' without writes',async t=>{
+ const a=await device(t),plain=new ContextCardsService(a.s);
+ if(altered==='migration')await a.s.repository.transaction(true,async t=>{const migration=await t.get('meta','migration');await t.put('meta',{...migration,databaseId:'SYNTHETIC_foreign_database'});},['meta']);
+ if(altered==='restore-epoch')await a.core.transaction(true,async t=>{await t.put('meta',{id:'recovery-restore-epoch',value:'SYNTHETIC_new_epoch'});await a.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:null});},['meta']);
+ if(altered==='fence')a.journal.restoreFence={core:a.core,snapshot:async()=>({namespace:'initial',epoch:null})};
+ const before=await snapshot(a);await assert.rejects(a.journal.emptyEnrollment(plain));assert.deepEqual(await snapshot(a),before);assert.equal(plain.syncJournal,null);
+});
+
+
+test('empty enrollment cannot initialize a fresh genuine store or open a closed database',async t=>{
+ const storage=local(),factory=new IDBFactory(),s=new OrganizerStore(storage,{indexedDB:factory}),core=new BrowserNativeSyncCore(s.repository,{datasetId,deviceId:op()}),journal=new ContextMutationSyncJournal(core,{store:s}),service=new ContextCardsService(s),before=await factory.databases();t.after(()=>s.repository.db?.close());
+ await assert.rejects(journal.emptyEnrollment(service),e=>e.code==='BNS_CONTEXT_OWNER_CHANGED');assert.deepEqual(await factory.databases(),before);assert.equal(s.loaded,false);assert.equal(s.repository.db,undefined);
+ const a=await device(t);await a.s.repository.close();const dbs=await a.indexedDB.databases();await assert.rejects(a.journal.emptyEnrollment(new ContextCardsService(a.s)),e=>e.code==='BNS_CONTEXT_OWNER_CHANGED');assert.equal(a.s.repository.db,null);assert.deepEqual(await a.indexedDB.databases(),dbs);
+});
+test('empty enrollment rejects a substituted repository result before it can serve as original proof',async t=>{
+ const a=await device(t),plain=new ContextCardsService(a.s),original=a.s.repository.transaction;let called=false;a.s.repository.transaction=async()=>{called=true;return {version:1,databaseId:a.s.databaseId,namespace:'initial',epoch:null};};try{await assert.rejects(a.journal.emptyEnrollment(plain),e=>e.code==='BNS_CONTEXT_OWNER_CHANGED');assert.equal(called,false);assert.equal(plain.syncJournal,null);}finally{a.s.repository.transaction=original;}
 });

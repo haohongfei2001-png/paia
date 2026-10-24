@@ -52,6 +52,14 @@ const error=code=>{throw new ArchiveError(code);};
 const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(!c.settings.enabled)error('PAUSED');if(epoch!==c.settings.epoch)error('STALE_CAPTURE');};
 const localPublicationOwners=new WeakMap(),originalLocalControls=new WeakMap(),nativeControlObservations=new WeakMap(),originalControlIdentityFailures=new WeakMap();
 const promptControlExecutions=new WeakMap(),promptActiveExecutions=new WeakMap(),promptControlObservations=new WeakMap();
+const originalQueueOnly=Symbol('original-store-queue-only'),OriginalQueuePromise=Promise,originalQueueThen=Promise.prototype.then;
+// Use the native tail's settlement, never a mutable .then return value. The
+// native completion is resolved only by the original one-shot queued action.
+function originalQueueTask(tail,action){
+ return new OriginalQueuePromise((resolve,reject)=>{let entered=false;
+  try{originalQueueThen.call(tail,()=>{if(entered){reject(new ArchiveError('BNS_RECOVERY_BINDING'));return;}entered=true;try{originalQueueThen.call(action(),resolve,reject);}catch(error){reject(error);}},reject);}catch{reject(new ArchiveError('BNS_RECOVERY_BINDING'));}
+ });
+}
 // This projection is minted only by the original load/publication assignments.
 // It never inspects preference, profile, diagnostic or other semantic material.
 const originalControlSettings=new WeakMap(),settingKeys=['enabled','epoch','consentVersion'];
@@ -183,7 +191,7 @@ export function requireOriginalConsumerPublicationEvidence(store,reservation,kin
 export class IndexedArchiveStore {
  #preferencePublication=null;
  constructor(local,options={}){originalLocalControls.set(this,{local,get:local.get,set:local.set,kind:local===globalThis.chrome?.storage?.local?'chrome-sdk':'original-injected-adapter'});this.local=local;this.repository=new ArchiveRepository(local,options);originalLocalControls.get(this).repository=this.repository;this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;this.sourcePurgeJournal=options.sourcePurgeJournal??null;this.consumerPreferenceJournal=options.consumerPreferenceJournal??null;this.localPublicationTerminal=local===globalThis.chrome?.storage?.local||options.localPublicationTerminal===true;}
- run(fn){const task=this.tail.then(async()=>{
+ run(fn,queueOnly=null){const execute=async()=>{
   // Install before any prelude await. An overlapping genuine run permanently
   // supersedes this opaque execution; neither completion nor this prelude may
   // restore an older execution after a public-tail alias. Any overlap also
@@ -194,6 +202,9 @@ export class IndexedArchiveStore {
   if(active.size){execution.interfered=true;for(const prior of active)prior.interfered=true;}
   active.add(execution);promptControlExecutions.set(this,execution);
   try{
+   // Queue admission alone grants no control or transaction authority. Recovery
+   // opens its already-created ticket only after preceding local work settles.
+   if(queueOnly===originalQueueOnly){if(execution.interfered)error('BNS_RECOVERY_BINDING');const result=await fn();if(execution.interfered)error('BNS_RECOVERY_BINDING');return result;}
    if(!this.loaded){await this.repository.initialize();this.loaded=true;}
    const before=await this.repository.transaction(false,readControlPublicationFence,['meta']),local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY],after=await this.repository.transaction(false,readControlPublicationFence,['meta']);
    if(!controlPublicationEqual(before,after))error('CONTROL_PUBLICATION_CHANGED');if(Object.hasOwn(local,'controlPublication'))validateControlPublicationStamp(local.controlPublication);
@@ -202,7 +213,8 @@ export class IndexedArchiveStore {
    this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;if(#preferencePublication in this)this.#preferencePublication=null;this.changedSources=new Set();rememberOriginalControlSettings(this);
    return await fn();
   }finally{execution.active=false;active.delete(execution);if(!active.size)promptActiveExecutions.delete(this);if(promptControlExecutions.get(this)===execution)promptControlExecutions.delete(this);}
- });this.tail=task.catch(()=>{});return task;}
+ };const task=queueOnly===originalQueueOnly?originalQueueTask(this.tail,execute):this.tail.then(execute);
+ this.tail=queueOnly===originalQueueOnly?new OriginalQueuePromise(resolve=>{originalQueueThen.call(task,()=>resolve(),()=>resolve());}):task.catch(()=>{});return task;}
  // Explicit startup repair of an original local publication, never a replay.
  // Prepared but unobserved SDK writes remain held: a restart is not an ACK.
  recoverControlPublication(){const task=this.tail.then(async()=>{
@@ -482,6 +494,16 @@ export class IndexedArchiveStore {
  recoverMigration(){const task=this.tail.then(async()=>{await this.repository.recoverMigration();this.loaded=false;return {ok:true};});this.tail=task.catch(()=>{});return task;}
  snapshot(){return this.run(async()=>{if(await this.repository.transaction(false,t=>t.count('records'))>1000)error('INVALID_REQUEST');const s=await this.repository.materialize();const total=s.records.filter(r=>!r.deletedAt).length;return {...s,schemaVersion:6,stats:{total,hidden:s.records.filter(r=>r.hidden&&!r.deletedAt).length,trash:s.records.filter(r=>r.deletedAt).length,bytes:0,quotaBytes:0},diagnostics:this.volatileError?{...s.diagnostics,lastError:this.volatileError}:s.diagnostics,adapterVersion:ADAPTER_VERSION};});}
  page(options={}){return this.run(()=>this.repository.transaction(false,async t=>queryPage(t,await this.control(t),options)));}
+}
+
+// Captured original scheduling on the existing Store tail, without the normal
+// initialize/control-refresh prelude. This is queue ordering, never a read/write
+// grant: the caller still enters the original Core/repository transaction owner.
+const originalIndexedQueueRun=IndexedArchiveStore.prototype.run;
+export function queueOriginalIndexedStoreWork(store,repository,action){
+ const bound=originalLocalControls.get(store),database=repository?.db;
+ const current=()=>{if(!bound||bound.repository!==repository||settingsData(store,'repository')!==repository||settingsData(store,'local')!==bound.local||settingsMethod(bound.local,'get')!==bound.get||settingsMethod(bound.local,'set')!==bound.set||settingsData(store,'loaded')!==true||!database||repository.db!==database||typeof action!=='function')error('BNS_RECOVERY_BINDING');};
+ current();return originalIndexedQueueRun.call(store,async()=>{current();const result=await action();current();return result;},originalQueueOnly);
 }
 
 // Read-only source identity for optional Prompt work reuse. These descriptors

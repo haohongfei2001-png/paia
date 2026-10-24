@@ -26,13 +26,13 @@ import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
 import {protocolPhysicalId} from './physical-key.js';
 import {acceptSequence} from './core.js';
 import {JournalRestoreFence} from './prompt-journal.js';
-import {registerRepositoryWorkLimit} from '../idb-repository.js';
+import {registerRepositoryWorkLimit,currentOriginalRecoveryWork} from '../idb-repository.js';
 import {readControlPublicationFence} from '../local-control-publication.js';
 import {CONSENT_VERSION} from '../constants.js';
 import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {bytes,clone,decodeJSON,digest,equal,fail,opaque} from './value.js';
 const deny=()=>fail('BNS_SOURCE_PURGE_GROUP_UNSUPPORTED'),changed=()=>fail('BNS_SOURCE_PURGE_GROUP_CHANGED'),strip=({id,...v})=>v;
-const configs=new WeakMap(),staged=new WeakMap(),serials=new WeakMap(),dispatchCuts=new WeakMap(),consumerApplications=new WeakMap();
+const configs=new WeakMap(),staged=new WeakMap(),serials=new WeakMap(),dispatchCuts=new WeakMap(),consumerApplications=new WeakMap(),tailPlans=new WeakMap();
 export function requireOriginalSourcePurgeConsumerApplication(token,core,plan){
  const p=consumerApplications.get(token);if(!p||p.core!==core||p.plan!==plan||p.owner.current()!==p.config)changed();return p;
 }
@@ -112,6 +112,18 @@ export async function requireCheckpointRevisionRetention(core,old,next,code='BNS
   if(item.redacted||!target||!equal({...item.operation,value:null},target.before)||!equal(after,{kind:'revision',operation:target.before,redacted:true}))fail(code);
  }
 }
+// Exact supported negative delta, shared by route preflight and the original
+// durable owner. This returns checked data, never a write capability.
+export async function validateSourcePurgeCheckpointTail(core,previous,next,manifest){
+ if(manifest.ownerScope.version!==1||manifest.coverage.some(x=>!['sourceBootstrapMember','sourceBootstrapCommit','sourcePurgeIntent'].includes(x.type)))deny();
+ const prior=await compileSourcePurgeClosure(core,previous),after=await validateSourcePurgeCheckpointGraph(core,next,manifest);
+ if(prior.positivePlan.groups.some(g=>g.type!=='sourceBootstrapCommit'))deny();await requireCheckpointRevisionRetention(core,previous,next);
+ const known=new Map(previous.filter(r=>r.kind==='revision').map(r=>[r.operation.revisionId,r])),delta=next.filter(r=>r.kind==='revision'&&!known.has(r.operation.revisionId)).map(r=>r.operation),sort=rows=>[...rows].sort((a,b)=>a.revisionId.localeCompare(b.revisionId));
+ const oldNegatives=new Set(prior.negative.map(n=>n.operations.at(-1).revisionId)),added=after.negative.filter(n=>!oldNegatives.has(n.operations.at(-1).revisionId));
+ if(!added.length||!equal(sort(delta),sort(added.flatMap(n=>n.operations))))fail('BNS_GROUP_TAIL_INVALID');
+ for(const n of added)for(const target of n.intent.targets){const row=known.get(target.before.revisionId);if(!row||row.redacted||!equal({...row.operation,value:null},target.before))fail('BNS_GROUP_TAIL_INVALID');}
+ return delta;
+}
 export function requireSourcePurgeDispatchCut(core,store,result){const p=dispatchCuts.get(result);if(!p||p.core!==core||p.store!==store||store.tail!==p.tail)changed();requireOriginalGenerationCoreMethods(core);requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalControlObservation(store,p.observation);return true;}
 export const hasSourcePurgeDispatchCut=result=>dispatchCuts.has(result);
 async function capture(store,core){return store.run(()=>core.transaction(false,async t=>({base:await authority(store,core,t),raw:await sourcePurgeGroupSnapshot(core,t)})));}
@@ -134,9 +146,11 @@ export class SourcePurgeGroupedCheckpointRestore{
   await c.checkpoint('validated');work.current();
   let progress=null;if(c.persistent){
    const id=sourcePurgeRestoreKey(c.core,c.restoreId),existing=before.raw.meta.find(r=>r.id===id),baseRaw={...before.raw,meta:before.raw.meta.filter(r=>r.id!==id)},baseDigest=await physicalDigest(baseRaw),revisionIds=items.filter(r=>r.kind==='revision').map(r=>r.operation.revisionId).sort();
-   if(existing){sourcePurgeProtocolControls(c.core,[existing],before.base.namespace);if(!equal(existing.manifestRef,selected)||!equal(existing.manifest,manifest)||!equal(existing.revisionIds,revisionIds)||existing.databaseId!==c.store.databaseId||existing.epoch!==before.base.fence.epoch)changed();
+   if(existing){sourcePurgeProtocolControls(c.core,[existing],before.base.namespace);const tail=tailPlans.get(this);if(existing.databaseId!==c.store.databaseId||existing.epoch!==before.base.fence.epoch)changed();
+    if(tail){if(existing.version!==1||existing.phase!=='validated'||!equal(existing,tail.old)||!equal(selected,tail.ref)||!equal(manifest,tail.manifest)||!equal(revisionIds,tail.revisionIds))changed();}
+    else if(!equal(existing.manifestRef,selected)||!equal(existing.manifest,manifest)||!equal(existing.revisionIds,revisionIds))changed();
     if(existing.phase==='activated'){await requireCheckpointRevisionRetention(c.core,items,local.items);const now=await capture(c.store,c.core);if(!equalSourceWorkingPhysicalTree(now,before))changed();await c.checkpoint('replay');staged.set(this,{before,physical:{terminal:before.raw},manifestId:selected.id,phase:'activated'});return {phase:'activated',manifestId:selected.id};}
-    if(existing.baseDigest!==baseDigest)changed();progress=existing;
+    if(existing.baseDigest!==baseDigest)changed();progress=tail?{...existing,manifestRef:selected,manifest,revisionIds}:existing;
    }else{progress={id,version:closure.positivePlan.groups.some(g=>g.type==='consumerPreference')?2:1,...(closure.positivePlan.groups.some(g=>g.type==='consumerPreference')?{portableDigest:closure.positivePlan.digest}:{}),restoreId:c.restoreId,datasetId:c.datasetId,deviceId:c.deviceId,databaseId:c.store.databaseId,namespace:before.base.namespace,epoch:before.base.fence.epoch,manifestRef:selected,manifest,phase:'validated',baseDigest,revisionIds};
     const terminal={...before.raw,meta:[...before.raw.meta,progress].sort((a,b)=>a.id.localeCompare(b.id))};await c.store.run(()=>c.core.transaction(true,async t=>{registerRepositoryWorkLimit(c.repository,t);work.current();const base=await authority(c.store,c.core,t);if(!equalSourceWorkingPhysicalTree(base,before.base))changed();await requireSourcePurgeGroupRows(c.core,t,before.raw);await c.checkpoint('progress');work.current();await t.put('meta',progress);sealSourcePurgeGroupRows(c.store,c.core,t,before.raw,terminal,()=>{this.current();work.current();assertOriginalControlSettingsFacts(c.store,base.controlFacts);});}));
     before=await capture(c.store,c.core);local=await qualify(c.store,c.core,before.raw,before.base);
@@ -148,11 +162,40 @@ export class SourcePurgeGroupedCheckpointRestore{
   let consumer=null;
   if(positive.some(g=>g.type==='consumerPreference')){if(!progress||progress.version!==2)deny();const token=Object.freeze({});consumerApplications.set(token,{owner:this,config:c,core:c.core,store:c.store,plan:merged.positivePlan,state:clone(progress),revisionIds:positive.flatMap(g=>g.operations).map(op=>op.revisionId)});consumer=await prepareSourcePurgeConsumerApplication(c.store,c.core,merged.positivePlan,token);}
   const portable={plan:merged.positivePlan,bindingReplay:preparePromptBindingReplay(c.core,merged.positivePlan),consumer,beforeControl:clone(before.base.control),controlDigest:await controlPublicationDigest(c.store.controlPublicationLoadedRow()),progress};
-  const protocol=protocolRows(c.core,before.base.namespace,mergedItems,before.raw,local.generation+positive.reduce((n,g)=>n+g.operations.length,0)+negative.length*8,before.base.fence.epoch,positive.length>0,[...local.active.protocol,...local.working.protocol,...local.portable,...local.controls.map(r=>progress&&r.id===progress.id?{...r,phase:'activated'}:r)]),physical=positive.some(g=>g.type!=='sourceBootstrapCommit')?null:await planSourcePurgeGroupPhysical(c.store,c.core,before.raw,positive,negative,protocol,local.active);work.retain({protocol,physical});this.current();work.current();const now=await capture(c.store,c.core);if(!equalSourceWorkingPhysicalTree(now,before))changed();staged.set(this,{before,apps,negApps,physical,working,sources,positive,negative,protocol,active:local.active,progress,portable,manifestId:selected.id,phase:'validated'});return {phase:'validated',manifestId:selected.id};});
+  const protocol=protocolRows(c.core,before.base.namespace,mergedItems,before.raw,local.generation+positive.reduce((n,g)=>n+g.operations.length,0)+negative.length*8,before.base.fence.epoch,positive.length>0,[...local.active.protocol,...local.working.protocol,...local.portable,...local.controls.map(r=>progress&&r.id===progress.id?{...progress,phase:'activated'}:r)]),physical=positive.some(g=>g.type!=='sourceBootstrapCommit')?null:await planSourcePurgeGroupPhysical(c.store,c.core,before.raw,positive,negative,protocol,local.active);work.retain({protocol,physical});this.current();work.current();const now=await capture(c.store,c.core);if(!equalSourceWorkingPhysicalTree(now,before))changed();
+  const tail=tailPlans.get(this);if(tail){
+   const terminal={...before.raw,meta:before.raw.meta.map(row=>row.id===progress.id?progress:row)};
+   await c.store.run(()=>c.core.transaction(true,async t=>{registerRepositoryWorkLimit(c.repository,t);this.current();work.current();const base=await authority(c.store,c.core,t);if(!equalSourceWorkingPhysicalTree(base,before.base))changed();await requireSourcePurgeGroupRows(c.core,t,before.raw);await c.checkpoint('tail-progress',t);work.current();await t.put('meta',progress);sealSourcePurgeGroupRows(c.store,c.core,t,before.raw,terminal,()=>{this.current();work.current();assertOriginalControlSettingsFacts(c.store,base.controlFacts);});}));
+   before=await capture(c.store,c.core);if(!equalSourceWorkingPhysicalTree(before.raw,terminal))changed();
+  }staged.set(this,{before,apps,negApps,physical,working,sources,positive,negative,protocol,active:local.active,progress,portable,manifestId:selected.id,phase:'validated'});return {phase:'validated',manifestId:selected.id};});
+ }
+ // Re-read the exact durable stage and its original local base before the
+ // lifecycle may persist a different candidate. No refreshed base is adopted.
+ async requireContinuationStage(expected,manifest,items){
+  const c=this.current();if(!currentOriginalRecoveryWork(c.repository)||!c.persistent)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+  const before=await capture(c.store,c.core),row=before.raw.meta.find(r=>r.id===sourcePurgeRestoreKey(c.core,c.restoreId));
+  if(!equal(row,expected)||row?.version!==1||row.phase!=='validated'||row.databaseId!==c.store.databaseId||row.namespace!==before.base.namespace||row.epoch!==before.base.fence.epoch)changed();
+  sourcePurgeProtocolControls(c.core,[row],before.base.namespace);
+  if(!equal(row.manifest,manifest)||!equal(row.revisionIds,items.filter(r=>r.kind==='revision').map(r=>r.operation.revisionId).sort())||row.baseDigest!==await physicalDigest({...before.raw,meta:before.raw.meta.filter(r=>r.id!==row.id)}))changed();
+  await qualify(c.store,c.core,before.raw,before.base);await validateSourcePurgeCheckpointGraph(c.core,items,manifest);this.current();
+  if(!equalSourceWorkingPhysicalTree(await capture(c.store,c.core),before))changed();return true;
+ }
+ // Advance only this owner's original validated v1 negative cut. The caller's
+ // delta is checked against authenticated complete graphs; it is not authority.
+ async reconcileTail(operations,{ref,get}={}){
+  const c=this.current();if(!currentOriginalRecoveryWork(c.repository))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');if(!c.persistent||!Array.isArray(operations)||typeof get!=='function'||tailPlans.has(this))deny();
+  const old=await this.stage.read('restore');if(old?.version!==1||old.phase!=='validated')fail('BNS_RESTORE_NOT_READY');
+  sourcePurgeProtocolControls(c.core,[old],old.namespace);const selected=clone(ref);assertProtocolObjectReference(selected,c.profile);
+  const read=async reference=>{const m=decodeJSON(await readObject(reference,get,{profile:c.profile}));assertGroupedCheckpointManifest(m,{core:c.core});if(m.ownerScope.version!==1||m.coverage.some(x=>!['sourceBootstrapMember','sourceBootstrapCommit','sourcePurgeIntent'].includes(x.type)))deny();const items=[];for await(const item of checkpointItems(m,get,{profile:c.profile}))items.push(item);const closure=await validateSourcePurgeCheckpointGraph(c.core,items,m);return {m,items,closure};};
+  const prior=await read(old.manifestRef),next=await read(selected);
+  if(!equal(prior.m,old.manifest)||!equal(prior.items.filter(r=>r.kind==='revision').map(r=>r.operation.revisionId).sort(),old.revisionIds)||next.m.parents.length!==1||next.m.parents[0]!==old.manifestRef.id)fail('BNS_GROUP_TAIL_INVALID');
+  const delta=await validateSourcePurgeCheckpointTail(c.core,prior.items,next.items,next.m),sort=rows=>[...rows].sort((a,b)=>a.revisionId.localeCompare(b.revisionId));if(!equal(sort(delta),sort(operations)))fail('BNS_GROUP_TAIL_INVALID');
+  tailPlans.set(this,{old,ref:selected,manifest:next.m,revisionIds:next.items.filter(r=>r.kind==='revision').map(r=>r.operation.revisionId).sort()});
+  try{return await this.stageCheckpoint(selected,get);}finally{tailPlans.delete(this);}
  }
  async activate(){const c=this.current(),p=staged.get(this);if(!p)fail('BNS_RESTORE_NOT_READY');const work=budget(()=>staged.get(this)===p);if(p.phase==='activated'){const now=await capture(c.store,c.core);if(!equalSourceWorkingPhysicalTree(now.raw,p.physical.terminal))changed();return {state:'activated'};}
   return work.run(()=>c.store.run(async()=>{let physical=p.physical;const result=await c.core.transaction(true,async t=>{
-   registerRepositoryWorkLimit(c.repository,t);this.current();await c.checkpoint('activate');work.current();const activeAuthority=await authority(c.store,c.core,t);if(!equalSourceWorkingPhysicalTree(activeAuthority,p.before.base))changed();await requireSourcePurgeGroupRows(c.core,t,p.before.raw);
+   registerRepositoryWorkLimit(c.repository,t);this.current();await c.checkpoint('activate',t);work.current();const activeAuthority=await authority(c.store,c.core,t);if(!equalSourceWorkingPhysicalTree(activeAuthority,p.before.base))changed();await requireSourcePurgeGroupRows(c.core,t,p.before.raw);
    for(const app of p.negApps)await applyColdSourcePurgeApplication(t,app);
    if(p.positive.length&&!await c.core.get(t,'ownerRecoveryEpoch')){const fence=await new JournalRestoreFence(c.core).snapshot(t);await c.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:fence.epoch});}
    const bindingReplay=p.portable.bindingReplay;

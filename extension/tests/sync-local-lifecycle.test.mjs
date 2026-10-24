@@ -209,3 +209,97 @@ test('explicit pause during enrollment wins over an earlier Resume and refuses s
  ConsumerPreferenceSyncJournal.prototype.bootstrap=async function(...args){enter();await wait;return bootstrap.apply(this,args);};t.after(()=>{ConsumerPreferenceSyncJournal.prototype.bootstrap=bootstrap;release();});
  const pending=command(x.owner,'RESUME'),rejected=assert.rejects(pending,{code:'BNS_RECOVERY_INTERRUPTED'});await entered;await assert.rejects(command(x.owner,'RESUME'),{code:'BNS_SYNC_BUSY'});await command(x.owner,'PAUSE');release();await rejected;assert.equal((await row(f)).mode,'paused');assert.equal((await x.owner.snapshot()).busy,false);assert.equal(f.cloud.requests.length,0);assert.equal((await row(f)).task,null);
 });
+
+import {SourcePurgeJournal} from '../core/browser-native-sync/source-purge-journal.js';
+import {sourcePurgeRestoreKey} from '../core/browser-native-sync/source-purge-protocol-controls.js';
+async function negativeContinuation(t,{extraPositive=false}={}){
+ const cloud=fakeDrive(),a=new LibraryFoundationStore(local(),{indexedDB:new IDBFactory()});t.after(()=>a.repository.db?.close());await a.consent(true);await a.finishFoundation();
+ const core=new BrowserNativeSyncCore(a.repository,{datasetId:'SYNTHETIC_google_data',deviceId:'SYNTHETIC_negative_sender'});a.sourceBootstrapJournal=new SourceBootstrapJournal(core);a.sourcePurgeJournal=new SourcePurgeJournal(core);
+ for(let n=0;n<2;n++){const q=capture((await a.status()).epoch,'SYNTHETIC_negative_message_'+n,'SYNTHETIC negative Source '+n);q.chat={id:'SYNTHETIC_negative_chat_'+n,url:'https://chatgpt.com/c/SYNTHETIC_negative_chat_'+n,title:'SYNTHETIC negative '+n};await a.capture(q);}
+ const originals=(await a.snapshot()).records,publisher=new RecoverableCheckpointPublication(core,{store:a,binding:{...binding,provider:'google-drive-appdata'},request:cloud.request,isCurrent:()=>true});
+ await a.purge(originals[0].id,true);await a.drainPurgeCleanup();await publisher.prepare();const first=await publisher.publish(),f=await configured(t,{cloud,deviceId:'SYNTHETIC_negative_receiver'});let x=await f.open();await command(x.owner,'RESUME');
+ const transaction=x.store.repository.transaction;let aborted=0;x.store.repository.transaction=function(write,fn,stores){return transaction.call(this,write,async tx=>{const result=await fn(tx);if(write&&result?.state==='activated'&&!aborted++){throw Error('SYNTHETIC interrupted negative activation');}return result;},stores);};
+ try{await assert.rejects(command(x.owner,'RESTORE'),{code:'STORAGE_FAILED'});}finally{x.store.repository.transaction=transaction;}
+ assert.equal(aborted,1);const saved=await row(f),held=await x.core.transaction(false,tx=>tx.get('meta',sourcePurgeRestoreKey(x.core,saved.task.id)));assert.equal(held.phase,'validated');assert.equal(held.version,1);assert.equal((await x.store.snapshot()).records.length,0);
+ await a.purge(originals[1].id,true);await a.drainPurgeCleanup();if(extraPositive){const q=capture((await a.status()).epoch,'SYNTHETIC_extra_positive','SYNTHETIC unsupported tail addition');q.chat={id:'SYNTHETIC_extra_chat',url:'https://chatgpt.com/c/SYNTHETIC_extra_chat',title:'SYNTHETIC extra'};await a.capture(q);}await publisher.prepare();const last=await publisher.publish();publisher.close();await a.repository.close();x=await cold(f,x);
+ return {f,x,first,last,saved,originals};
+}
+test('trusted CONTINUE advances the same validated negative task to its real second-purge descendant',async t=>{
+ const {f,x,last,saved}=await negativeContinuation(t);let materialized=0;const apply=x.store.applyInitialSource;x.store.applyInitialSource=async function(...args){materialized++;return apply.apply(this,args);};await command(x.owner,'CONTINUE');assert.equal(materialized,0,'no ancestor Source application may occur even transiently');assert.equal((await x.store.snapshot()).records.length,0,'the second permanently ignored Source must never be materialized from the pinned ancestor');
+ const state=await row(f);assert.equal(state.task.id,saved.task.id);assert.equal(state.task.phase,'confirmed');assert.deepEqual(state.task.reference,last.ref);const data=await x.core.transaction(false,tx=>tx.all('tombstones'));assert.equal(data.length,2);assert.ok(data.every(r=>r.value.status==='permanently_ignored'));
+});
+const negativeStage=(x,id)=>x.core.transaction(false,tx=>tx.get('meta',sourcePurgeRestoreKey(x.core,id)));
+for(const failure of ['candidate-saved','candidate-not-saved','tail-ack-lost','confirmation-not-saved','confirmation-ack-lost'])test('trusted negative CONTINUE preserves two-store outcome through '+failure+' and cold retry',async t=>{
+ const f0=await negativeContinuation(t),{f,last,first,saved}=f0;let x=f0.x,hit=0;const set=f.storage.set.bind(f.storage),transaction=x.store.repository.transaction;
+ if(failure==='tail-ack-lost')x.store.repository.transaction=function(write,fn,stores){return transaction.call(this,write,fn,stores).then(async result=>{if(write&&!hit&&(await transaction.call(this,false,tx=>tx.get('meta',sourcePurgeRestoreKey(x.core,saved.task.id)),['meta']))?.manifestRef.id===last.ref.id){hit++;throw Error('SYNTHETIC lost durable negative tail acknowledgement');}return result;});};
+ else f.storage.set=async values=>{const task=values[ROW]?.task,selected=task?.reference?.id===last.ref.id&&task.phase==='running',confirmed=task?.reference?.id===last.ref.id&&task.phase==='confirmed',match=failure.startsWith('candidate')?selected:confirmed;if(!hit&&match){hit++;if(failure.endsWith('not-saved'))throw Error('SYNTHETIC original lifecycle write refused');await set(values);if(failure==='candidate-saved')f.setCurrent(false);else throw Error('SYNTHETIC original lifecycle acknowledgement lost');return;}return set(values);};
+ if(failure!=='tail-ack-lost')x=await cold(f,x);
+ try{if(failure==='confirmation-ack-lost')await command(x.owner,'CONTINUE');else await assert.rejects(command(x.owner,'CONTINUE'));}finally{f.storage.set=set;x.store.repository.transaction=transaction;f.setCurrent(true);}
+ assert.equal(hit,1);const task=(await row(f)).task,stage=await negativeStage(x,saved.task.id);assert.equal(task.id,saved.task.id);
+ if(failure==='candidate-not-saved'){assert.deepEqual(task.reference,first.ref);assert.deepEqual(stage.manifestRef,first.ref);}else assert.deepEqual(task.reference,last.ref);
+ if(failure==='candidate-saved'){assert.deepEqual(stage.manifestRef,first.ref);assert.equal((await x.store.snapshot()).records.length,0);}
+ if(failure==='tail-ack-lost'){assert.deepEqual(stage.manifestRef,last.ref);assert.equal(stage.phase,'validated');assert.equal((await x.store.snapshot()).records.length,0);}
+ if(failure.startsWith('confirmation')){assert.equal(stage.phase,'activated');assert.equal((await x.core.transaction(false,tx=>tx.all('tombstones'))).length,2);}
+ x=await cold(f,x);await command(x.owner,'CONTINUE');assert.equal((await row(f)).task.id,saved.task.id);assert.equal((await row(f)).task.phase,'confirmed');assert.deepEqual((await row(f)).task.reference,last.ref);assert.equal((await x.store.snapshot()).records.length,0);assert.equal((await x.core.transaction(false,tx=>tx.all('tombstones'))).length,2);
+});
+test('trusted negative CONTINUE refuses an authenticated unsupported positive addition before replacing either binding',async t=>{
+ const {f,x,first,saved}=await negativeContinuation(t,{extraPositive:true}),before=await negativeStage(x,saved.task.id);await assert.rejects(command(x.owner,'CONTINUE'),{code:'BNS_GROUP_TAIL_INVALID'});assert.deepEqual((await row(f)).task.reference,first.ref);assert.deepEqual(await negativeStage(x,saved.task.id),before);assert.equal((await x.store.snapshot()).records.length,0);assert.equal((await x.core.transaction(false,tx=>tx.all('tombstones'))).length,0);
+});
+
+test('trusted negative CONTINUE and PAUSE settle promptly when candidate storage acknowledgement is held',async t=>{
+ const fixture=await negativeContinuation(t),{f,last,saved}=fixture;let x=fixture.x,enter,release,hit=0,settled=false;const set=f.storage.set.bind(f.storage),entered=new Promise(r=>enter=r),waiting=new Promise(r=>release=r);
+ f.storage.set=async values=>{if(values[ROW]?.task?.reference?.id===last.ref.id&&values[ROW]?.task?.phase==='running'&&!hit++){enter();await waiting;}return set(values);};x=await cold(f,x);
+ const pending=command(x.owner,'CONTINUE').then(value=>{settled=true;return {value};},error=>{settled=true;return {error};});await entered;const paused=command(x.owner,'PAUSE').catch(error=>({error}));
+ let early;try{await new Promise(r=>setTimeout(r,150));early=settled;assert.equal((await x.owner.snapshot()).state,'settlement-unknown');assert.equal((await negativeStage(x,saved.task.id)).phase,'validated');assert.equal((await x.store.snapshot()).records.length,0);}finally{release();await pending;await paused;f.storage.set=set;}
+ assert.equal(early,true,'cancellation must not queue another write behind the uncertain candidate set');x=await cold(f,x);await command(x.owner,'CONTINUE');assert.equal((await row(f)).task.phase,'confirmed');assert.equal((await x.core.transaction(false,tx=>tx.all('tombstones'))).length,2);
+});
+
+
+import {ContextCardsService} from '../core/context-cards.js';
+const attachContext=async x=>{const service=new ContextCardsService(x.store);await x.owner.attachContextService(service);return service;};
+const enrollmentTables=x=>x.store.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(x.store.repository.stores.map(async name=>[name,await t.all(name)]))));
+for(const mutation of ['absent','database','namespace','epoch','physical-namespace','physical-epoch','nonempty','access','binding','generation'])test('cold empty Context enrollment refuses '+mutation+' without enrolling from active mode or repairing its receipt',async t=>{
+ const f=await configured(t),x=await f.open();await attachContext(x);await command(x.owner,'RESUME');const enrolled=await row(f);assert.ok(enrolled.contextEnrollment);const changed=structuredClone(enrolled);
+ if(mutation==='absent')delete changed.contextEnrollment;
+ if(mutation==='database')changed.contextEnrollment.databaseId='SYNTHETIC_foreign_database';
+ if(mutation==='namespace')changed.contextEnrollment.namespace='SYNTHETIC_foreign_namespace';
+ if(mutation==='epoch')changed.contextEnrollment.epoch='SYNTHETIC_foreign_restore_epoch';
+ if(mutation==='binding')changed.bindingId='a'.repeat(64);
+ if(mutation==='generation')changed.generation='b'.repeat(64);
+ if(mutation==='physical-namespace')await x.core.transaction(true,t=>t.put('meta',{id:x.core.prefix+'active',namespace:'SYNTHETIC_next_namespace'}),['meta']);
+ if(mutation==='physical-epoch')await x.core.transaction(true,async t=>{await t.put('meta',{id:'recovery-restore-epoch',value:'SYNTHETIC_next_restore_epoch'});await x.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:'SYNTHETIC_next_restore_epoch'});},['meta']);
+ if(mutation==='nonempty'||mutation==='access'){const plain=new ContextCardsService(x.store);await plain.change(mutation==='access'?{kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key:'global',enabled:true,expectedRevision:0}:{kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:crypto.randomUUID(),expectedRevision:0,body:'SYNTHETIC unmanaged item',section:'SYNTHETIC',card:'info'});}
+ await f.storage.set({[ROW]:changed});const y=await cold(f,x),before=await enrollmentTables(y),saved=await row(f),service=await attachContext(y);assert.equal(service.syncJournal,null);assert.equal((await command(y.owner,'STATUS')).needsContextEnrollment,true);assert.deepEqual(await row(f),saved);assert.deepEqual(await enrollmentTables(y),before);assert.equal(f.cloud.requests.length,0);
+ if(!['binding','generation'].includes(mutation))await assert.rejects(command(y.owner,'NOW'),e=>e.code==='BNS_CONTEXT_BOOTSTRAP_REQUIRED');
+});
+for(const corruption of ['version','extra','missing','epoch-type'])test('malformed empty Context enrollment '+corruption+' fails closed before cold attachment',async t=>{
+ const f=await configured(t),x=await f.open();await attachContext(x);await command(x.owner,'RESUME');const saved=await row(f);
+ if(corruption==='version')saved.contextEnrollment.version=2;
+ if(corruption==='extra')saved.contextEnrollment.enabled=true;
+ if(corruption==='missing')delete saved.contextEnrollment.epoch;
+ if(corruption==='epoch-type')saved.contextEnrollment.epoch={value:'SYNTHETIC'};
+ await f.storage.set({[ROW]:saved});const before=await enrollmentTables(x);await assert.rejects(cold(f,x),e=>e.code==='BNS_SYNC_STATE_CORRUPT');assert.deepEqual(await row(f),saved);assert.equal(f.cloud.requests.length,0);const store=new LibraryFoundationStore(f.storage,{indexedDB:f.factory});await store.finishFoundation();assert.deepEqual(await enrollmentTables({store}),before);await store.repository.close();
+});
+
+
+test('empty enrollment ignores substituted public Store.run rather than accepting forged or delayed snapshots',async t=>{
+ const f=await configured(t),x=await f.open();await attachContext(x);await command(x.owner,'RESUME');const enrolled=await row(f),y=await cold(f,x),plain=new ContextCardsService(y.store);await plain.change({kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:crypto.randomUUID(),expectedRevision:0,body:'SYNTHETIC unmanaged content',section:'SYNTHETIC',card:'info'});
+ let calls=0;y.store.run=async()=>{calls++;return structuredClone(enrolled.contextEnrollment);};const before=await enrollmentTables(y),service=await attachContext(y);assert.equal(service.syncJournal,null);assert.equal(calls,0);assert.equal((await y.owner.snapshot()).needsContextEnrollment,true);assert.deepEqual(await enrollmentTables(y),before);assert.deepEqual(await row(f),enrolled);
+});
+
+import {IDBObjectStore} from './vendor/fake-indexeddb/build/esm/index.js';
+for(const during of ['host','lifecycle'])test('held original readonly empty proof cannot attach after '+during+' changes',async t=>{
+ const f=await configured(t),x=await f.open();await attachContext(x);await command(x.owner,'RESUME');const y=await cold(f,x),service=new ContextCardsService(y.store),get=IDBObjectStore.prototype.get;let reads=0,enter,release,released=false;
+ const entered=new Promise(r=>enter=r),held=new Promise(r=>release=()=>{released=true;r();});
+ IDBObjectStore.prototype.get=function(key){const request=get.call(this,key);if(this.name==='meta'&&key==='context-cards:v1'&&++reads===2){const store=this;Object.defineProperty(request,'onsuccess',{configurable:true,set(callback){request.addEventListener('success',event=>{const keepAlive=()=>{if(released)return;const next=get.call(store,'SYNTHETIC_readonly_hold');next.onsuccess=keepAlive;};keepAlive();enter();void held.then(()=>callback.call(request,event));},{once:true});}});}return request;};
+ try{const attaching=y.owner.attachContextService(service);await entered;if(during==='host')f.setCurrent(false);else await command(y.owner,'PAUSE');release();await attaching;assert.equal(service.syncJournal,null);assert.equal((await y.owner.snapshot()).needsContextEnrollment,true);assert.equal(f.cloud.requests.length,0);}finally{release();IDBObjectStore.prototype.get=get;}
+});
+
+
+import {readOriginalLifecycleV1} from './fixtures/sync-lifecycle-v1-reader.mjs';
+test('original v1 reader fails closed; explicit paused rollback removes only the local optional receipt and preserves original data/tasks',async t=>{
+ const f=await configured(t),x=await f.open();await attachContext(x);await command(x.owner,'RESUME');await command(x.owner,'PAUSE');const paused=await row(f),before=await enrollmentTables(x);assert.ok(paused.contextEnrollment);assert.throws(()=>readOriginalLifecycleV1(paused),e=>e.code==='BNS_SYNC_STATE_CORRUPT');
+ // Model an explicitly requested paused rollback, never startup/status repair.
+ const rollback=structuredClone(paused);delete rollback.contextEnrollment;assert.deepEqual(readOriginalLifecycleV1(rollback),rollback);await f.storage.set({[ROW]:rollback});const y=await cold(f,x),service=await attachContext(y);assert.equal(service.syncJournal,null);assert.equal((await command(y.owner,'STATUS')).state,'paused');assert.equal((await y.owner.snapshot()).needsContextEnrollment,true);assert.deepEqual(await row(f),rollback);assert.deepEqual(await enrollmentTables(y),before);assert.equal(f.cloud.requests.length,0);
+ assert.deepEqual({...rollback,contextEnrollment:paused.contextEnrollment},paused);
+});

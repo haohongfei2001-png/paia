@@ -1,6 +1,7 @@
+import {queueOriginalIndexedStoreWork} from '../indexed-store.js';
 import {createOriginalRecoveryWork,chargeOriginalRecoveryWork,tightenOriginalRecoveryWork,withOriginalRecoveryWork,finishOriginalRecoveryWork} from '../idb-repository.js';
-import {SourcePurgeGroupedCheckpointRestore,validateSourcePurgeCheckpointGraph,requireCheckpointRevisionRetention} from './source-purge-group.js';
-import {sourcePurgeRestoreKey} from './source-purge-protocol-controls.js';
+import {SourcePurgeGroupedCheckpointRestore,validateSourcePurgeCheckpointGraph,validateSourcePurgeCheckpointTail,requireCheckpointRevisionRetention} from './source-purge-group.js';
+import {sourcePurgeRestoreKey,sourcePurgeProtocolControls} from './source-purge-protocol-controls.js';
 import {StagedSyncRestore,checkpointItems} from './checkpoints.js';
 import {validateGroupedCheckpointGraph} from './group-checkpoint.js';
 import {assertProtocolObjectReference,readObject,SEGMENT_PROFILE} from './segments.js';
@@ -48,8 +49,11 @@ export class LocalSyncRecoverySession {
  #reader(work,serial,code='BNS_RECOVERY_READ_LIMIT'){
   return async reference=>{this.#check(serial);assertProtocolObjectReference(reference);this.#charge(work,reference.encodedBytes+reference.decodedBytes,1,code);return this.#transportBytes(reference,await this.#readUntil(()=>this.#transport.get(clone(reference)),work.deadline,serial,code));};
  }
- async #stored(work=null){
-  if(work)return this.#native(work,()=>this.#stored());
+ async #stored(work=null,serial=this.#serial,limitCode='BNS_RECOVERY_READ_LIMIT'){
+  // Wait on the SAME original local queue before admitting the recovery window.
+  // The existing ticket/deadline already includes this wait; neither a timed-out
+  // nor an interrupted queued callback may later open a window or read storage.
+  if(work)return this.#readUntil(()=>queueOriginalIndexedStoreWork(this.#store,this.#core.repository,()=>{this.#check(serial);this.#charge(work,0,0,limitCode);return this.#native(work,()=>this.#stored());}),work.deadline,serial,limitCode);
   const negative=await this.#core.transaction(false,t=>t.get('meta',sourcePurgeRestoreKey(this.#core,this.#restoreId)));
   return {negative:!!negative,row:negative??await this.#restore.stage.read('restore')};
  }
@@ -67,6 +71,16 @@ export class LocalSyncRecoverySession {
   const path=[];for(let id=towardHead.get(previous);id!==null;id=towardHead.get(id)){const next=discovered.refs.get(id);if(!next)fail('BNS_GROUP_TAIL_INVALID');path.push(next);}return path;
  }
  #ordinaryTail(manifest){if(manifest.ownerScope.version!==1||manifest.coverage.some(x=>!['sourceBootstrapMember','sourceBootstrapCommit','sourceAppendMember','sourceAppendCommit','inputWorkingMember','inputWorkingCommit','filterIntent'].includes(x.type)))fail('BNS_GROUP_OWNER_UNSUPPORTED');}
+ #negativeTail(manifest){if(manifest.ownerScope.version!==1||!manifest.ownerScope.families.some(x=>x.type==='sourcePurgeIntent')||manifest.coverage.some(x=>!['sourceBootstrapMember','sourceBootstrapCommit','sourcePurgeIntent'].includes(x.type)))fail('BNS_GROUP_OWNER_UNSUPPORTED');}
+ async #advanceNegative(row,ref,manifest,get,work,serial,discovered){
+  if(row.version!==1||row.phase!=='validated')fail('BNS_RESTORE_ID_COLLISION');sourcePurgeProtocolControls(this.#core,[row],row.namespace);
+  this.#negativeTail(row.manifest);this.#negativeTail(manifest);
+  const path=this.#tailPath(row.manifestRef.id,ref,manifest,discovered),old=decodeJSON(await readObject(row.manifestRef,get),SEGMENT_PROFILE.decoded);assertGroupedCheckpointManifest(old,{core:this.#core});if(!equal(old,row.manifest))fail('BNS_RESTORE_STAGE_CHANGED');
+  let prior=await this.#tailItems(old,get,work,serial),parent=row.manifestRef.id;await validateSourcePurgeCheckpointGraph(this.#core,prior,old);if(!equal(prior.filter(r=>r.kind==='revision').map(r=>r.operation.revisionId).sort(),row.revisionIds))fail('BNS_RESTORE_STAGE_CHANGED');const steps=[];
+  for(const next of path){const m=next.id===ref.id?manifest:decodeJSON(await readObject(next,get),SEGMENT_PROFILE.decoded);assertGroupedCheckpointManifest(m,{core:this.#core});this.#negativeTail(m);if(m.parents.length!==1||m.parents[0]!==parent)fail('BNS_GROUP_TAIL_INVALID');const items=await this.#tailItems(m,get,work,serial);const operations=await validateSourcePurgeCheckpointTail(this.#core,prior,items,m);steps.push({ref:next,operations});prior=items;parent=next.id;this.#check(serial);this.#charge(work,0,0);}
+  await this.#checkpoint('validated-tail');this.#check(serial);this.#charge(work,0,0);
+  for(const step of steps){await this.#restore.reconcileTail(step.operations,{ref:step.ref,get});this.#ref=clone(step.ref);this.#check(serial);this.#charge(work,0,0);await this.#checkpoint('reconciled-tail');this.#check(serial);this.#charge(work,0,0);}this.#state='validated';
+ }
  async #advance(row,ref,manifest,get,work,serial,discovered){
   if(!exact(row,['id','manifestId','manifestRef','manifest','phase','base','replayId','received','graphDigest'])||Object.keys(row).length!==9||row.phase!=='validated'||row.manifestId!==row.manifestRef?.id||this.#negative||row.manifest?.ownerScope?.families.some(x=>x.type==='sourcePurgeIntent')||manifest.ownerScope.families.some(x=>x.type==='sourcePurgeIntent'))fail('BNS_RESTORE_ID_COLLISION');
   this.#ordinaryTail(row.manifest);this.#ordinaryTail(manifest);
@@ -91,9 +105,9 @@ export class LocalSyncRecoverySession {
   this.#state='validated';
  }
  async #stage(ref,serial,work=null,discovered=this.#discovered){
-  work??=discovered?.ref.id===ref?.id?discovered.work:null;this.#discovered=null;this.#activationWork=null;const startedWork=work??this.#work(this.#readTimeoutMs),detached=clone(ref),held=await this.#stored(startedWork);this.#check(serial);
+  work??=discovered?.ref.id===ref?.id?discovered.work:null;this.#discovered=null;this.#activationWork=null;const startedWork=work??this.#work(this.#readTimeoutMs),detached=clone(ref),held=await this.#stored(startedWork,serial);this.#check(serial);
   const row=held.row,previous=row?.manifestRef??this.#ref,advancing=!!previous&&previous.id!==detached?.id;
-  if(advancing&&(!row||held.negative||row.phase!=='validated'))fail('BNS_RESTORE_ID_COLLISION');
+  if(advancing&&(!row||row.phase!=='validated'||held.negative&&row.version!==1))fail('BNS_RESTORE_ID_COLLISION');
   if(row?.manifestRef)this.#ref=clone(row.manifestRef);else this.#ref=detached;
   // Ordinary stage keeps its existing owner limits. A tail (including every
   // intermediate edge) shares one finite read ticket; discovered recovery
@@ -103,22 +117,47 @@ export class LocalSyncRecoverySession {
   const deadline=Math.min(work?.deadline??Infinity,performance.now()+this.#readTimeoutMs);if(work){work.deadline=deadline;tightenOriginalRecoveryWork(this.#core.repository,work.ticket,Math.max(Number.EPSILON,deadline-performance.now()));}
   const get=work?this.#reader(work,serial):async reference=>{this.#check(serial);const raw=await this.#readUntil(()=>this.#transport.get(clone(reference)),deadline,serial,'BNS_RECOVERY_READ_LIMIT');this.#check(serial);return this.#transportBytes(reference,raw);};
   const manifest=decodeJSON(await readObject(detached,get),SEGMENT_PROFILE.decoded);assertGroupedCheckpointManifest(manifest,{core:this.#core});
-  if(advancing){await this.#native(work,()=>this.#advance(row,detached,manifest,get,work,serial,discovered));this.#activationWork=work;return;}
+  if(advancing&&!held.negative&&manifest.ownerScope.families.some(x=>x.type==='sourcePurgeIntent'))fail('BNS_RESTORE_ID_COLLISION');
+  if(advancing&&held.negative&&!manifest.ownerScope.families.some(x=>x.type==='sourcePurgeIntent'))fail('BNS_RESTORE_ID_COLLISION');
   if(manifest.ownerScope.families.some(x=>x.type==='sourcePurgeIntent')){this.#restore=new SourcePurgeGroupedCheckpointRestore(this.#core,{store:this.#store,restoreId:this.#restoreId,persistent:true,isCurrent:()=>{this.#check(serial);return true;},checkpoint:async(...args)=>{this.#check(serial);await this.#checkpoint(...args);this.#check(serial);}});this.#negative=true;}else if(this.#negative||held.negative)fail('BNS_RESTORE_ID_COLLISION');
-  const result=await this.#restore.stageCheckpoint(detached,get);this.#check(serial);if(performance.now()>=deadline)fail('BNS_RECOVERY_READ_LIMIT');
+  if(advancing){await this.#native(work,()=>held.negative?this.#advanceNegative(row,detached,manifest,get,work,serial,discovered):this.#advance(row,detached,manifest,get,work,serial,discovered));this.#activationWork=work;return;}
+  const result=work&&held.negative?await this.#native(work,()=>this.#restore.stageCheckpoint(detached,get)):await this.#restore.stageCheckpoint(detached,get);this.#check(serial);if(performance.now()>=deadline)fail('BNS_RECOVERY_READ_LIMIT');
+  if(work&&held.negative)this.#activationWork=work;
   // A previous activation still requires the original replay/epoch proof.
   this.#state=['activated','merged'].includes(result.phase)?'confirmation-needed':'validated';
  }
  async stage(ref){return this.#run('reading',serial=>this.#stage(ref,serial));}
- async activate(){
-  return this.#run('applying',async serial=>{
-   this.#check(serial);this.#recoveryState='unconfirmed';const work=this.#activationWork;this.#activationWork=null;let result;try{result=work?await this.#native(work,()=>this.#restore.activate()):await this.#restore.activate();}finally{if(work)finishOriginalRecoveryWork(this.#core.repository,work.ticket);}
-   // Pause fences upcoming reads and the owner's in-transaction checkpoints.
-   // It cannot undo a committed transaction or consumer publication. Once the
-   // owner confirms activation, report that outcome even if paused or closed.
-   if(result?.state!=='activated')fail('BNS_RESTORE_NOT_READY');this.#state='restored';this.#recoveryState='restored';
-  });
+ // A confirmed native activation is never undone by a later pause or lost
+ // lifecycle acknowledgement. The latter may still leave the task uncertain.
+ async #activate(serial,confirmed=null){
+  this.#check(serial);this.#recoveryState='unconfirmed';const work=this.#activationWork;this.#activationWork=null;
+  const apply=async()=>{const result=await this.#restore.activate();if(result?.state!=='activated')fail('BNS_RESTORE_NOT_READY');this.#state='restored';this.#recoveryState='restored';if(confirmed)await confirmed();};
+  try{if(work)await this.#native(work,apply);else await apply();}catch(error){if(this.#recoveryState!=='restored')this.#recoveryState='settlement-unknown';throw error;}finally{if(work)finishOriginalRecoveryWork(this.#core.repository,work.ticket);}
  }
+ async activate(){return this.#run('applying',serial=>this.#activate(serial));}
+ // Fixed lifecycle continuation: no caller can supply a replacement reference.
+ // The held lifecycle ref is an anchor, authenticated alongside the original
+ // durable stage before the existing callback may CAS its selected candidate.
+ async continueTask(reference){return this.#run('reading',async serial=>{
+  const anchor=clone(reference),work=this.#work(this.#readTimeoutMs,serial);let used=false;
+  try{
+   const held=await this.#stored(work,serial);this.#check(serial);
+   if(!held.negative||held.row?.version!==1||held.row.phase!=='validated'||held.row.manifest?.coverage?.some(x=>!['sourceBootstrapMember','sourceBootstrapCommit','sourcePurgeIntent'].includes(x.type))){
+    if(held.row?.manifestRef&&!equal(held.row.manifestRef,anchor))fail('BNS_RESTORE_ID_COLLISION');
+    finishOriginalRecoveryWork(this.#core.repository,work.ticket);await this.#stage(anchor,serial);return this.#activate(serial);
+   }
+   sourcePurgeProtocolControls(this.#core,[held.row],held.row.namespace);
+   const result=await this.#discover(serial,work,held),selected=result.discovered,base=held.row.manifestRef.id;
+   const chain=[base],path=selected.ref.id===base?[]:this.#tailPath(base,selected.ref,selected.manifests.get(selected.ref.id),selected);
+   for(const ref of path){const m=selected.manifests.get(ref.id);this.#negativeTail(m);if(m.parents.length!==1||m.parents[0]!==chain.at(-1))fail('BNS_GROUP_TAIL_INVALID');await this.#native(work,()=>validateSourcePurgeCheckpointTail(this.#core,selected.cuts.get(chain.at(-1)),selected.cuts.get(ref.id),m));this.#check(serial);this.#charge(work,0,0);chain.push(ref.id);}
+   if(!chain.includes(anchor?.id)||!equal(selected.refs.get(anchor.id),anchor))fail('BNS_GROUP_TAIL_INVALID');
+   const owner=new SourcePurgeGroupedCheckpointRestore(this.#core,{store:this.#store,restoreId:this.#restoreId,persistent:true,isCurrent:()=>{this.#check(serial);return true;}});
+   if(!equal(selected.refs.get(base),held.row.manifestRef))fail('BNS_RESTORE_STAGE_CHANGED');await this.#native(work,()=>owner.requireContinuationStage(held.row,selected.manifests.get(base),selected.cuts.get(base)));this.#check(serial);this.#charge(work,0,0);
+   await this.#native(work,()=>this.#readUntil(()=>this.#checkpoint('selected-causal-tail',clone(selected.ref)),work.deadline,serial,'BNS_SYNC_OUTCOME_UNKNOWN'));this.#check(serial);this.#charge(work,0,0);
+   await this.#stage(selected.ref,serial,work,selected);this.#activationWork=work;used=true;
+   await this.#activate(serial,()=>this.#readUntil(()=>this.#checkpoint('confirmed-causal-tail',clone(selected.ref)),work.deadline,serial,'BNS_SYNC_OUTCOME_UNKNOWN'));
+  }finally{if(!used)finishOriginalRecoveryWork(this.#core.repository,work.ticket);}
+ });}
  async recover(ref){await this.stage(ref);return this.activate();}
  async resumeStored(){
   return this.#run('reading',async serial=>{
@@ -131,10 +170,10 @@ export class LocalSyncRecoverySession {
  // owner before following its explicit supersession parents. Historical cuts
  // are supported; incomparable heads still need the causal/merge owner. No
  // timestamp, listing order or largest item count wins this selection.
- async #discover(serial){
+ async #discover(serial,work=null,held=null){
    this.#discovered=null;
    if(typeof this.#transport.listCheckpoints!=='function')fail('BNS_RECOVERY_DISCOVERY_UNAVAILABLE');
-   let cursor=null;const cursors=new Set(),refs=new Map();let scanned=0,pages=0;const work=this.#work(this.#discoveryTimeoutMs),deadline=work.deadline;const held=await this.#stored(work);
+   let cursor=null;const cursors=new Set(),refs=new Map();let scanned=0,pages=0;const continuationWork=!!work;work??=this.#work(this.#discoveryTimeoutMs);const deadline=work.deadline;held??=await this.#stored(work,serial,'BNS_RECOVERY_DISCOVERY_LIMIT');
    do{
     if(++pages>4096||performance.now()>=deadline)fail('BNS_RECOVERY_DISCOVERY_LIMIT');
     this.#check(serial);const page=await this.#readUntil(()=>this.#transport.listCheckpoints({cursor,limit:100}),deadline,serial);this.#check(serial);
@@ -162,14 +201,14 @@ export class LocalSyncRecoverySession {
    if(heads.length!==1)fail('BNS_RECOVERY_MULTIPLE_CHECKPOINTS');
    // Classify the actual sole successor, not the number of historical cuts.
    // Re-discovering an unchanged staged head keeps its original owner profile.
-   const tail=held.row?.phase==='validated'&&!held.negative&&heads[0]!==held.row.manifestId;
+   const tail=held.row?.phase==='validated'&&heads[0]!==held.row.manifestRef?.id,negativeTail=tail&&held.negative;
    let decodedItems=0;
    for(const [id,manifest]of manifests){
-    if(tail)this.#ordinaryTail(manifest);
-    const items=[];for await(const item of checkpointItems(manifest,get)){if(++decodedItems>4096)fail('BNS_RECOVERY_DISCOVERY_LIMIT');if(tail)this.#charge(work,bytes(item).length,1,'BNS_RECOVERY_DISCOVERY_LIMIT');items.push(item);}
+    if(tail&&!negativeTail)this.#ordinaryTail(manifest);
+    const items=[];for await(const item of checkpointItems(manifest,get)){if(++decodedItems>4096)fail('BNS_RECOVERY_DISCOVERY_LIMIT');if(tail||continuationWork)this.#charge(work,bytes(item).length,1,'BNS_RECOVERY_DISCOVERY_LIMIT');items.push(item);}
     // Reuse the exact staged owner's graph/heads/frontier/scope compiler.
     const validate=async()=>{if(manifest.ownerScope.families.some(x=>x.type==='sourcePurgeIntent'))await validateSourcePurgeCheckpointGraph(this.#core,items,manifest);else await validateGroupedCheckpointGraph(this.#core,items,manifest,{store:this.#store});};
-    if(tail)await this.#native(work,validate);else await validate();
+    if(tail||continuationWork)await this.#native(work,validate);else await validate();
     this.#check(serial);if(performance.now()>=deadline)fail('BNS_RECOVERY_DISCOVERY_LIMIT');cuts.set(id,items);
    }
    // A parent pointer alone is not a retention proof: the producer accepts
@@ -178,7 +217,7 @@ export class LocalSyncRecoverySession {
    // Current projections or compaction that cannot prove this are refused.
    const selected=cuts.get(heads[0]);for(const revisions of cuts.values())await requireCheckpointRevisionRetention(this.#core,revisions,selected);
    this.#check(serial);this.#charge(work,0,0,'BNS_RECOVERY_DISCOVERY_LIMIT');
-   this.#state='discovered';this.#discovered={ref:clone(refs.get(heads[0])),refs,parents,work};return {discovered:this.#discovered,work,serial};
+   this.#state='discovered';this.#discovered={ref:clone(refs.get(heads[0])),refs,parents,manifests,cuts,work};return {discovered:this.#discovered,work,serial};
  }
  async discover(){return this.#run('discovering',async serial=>clone((await this.#discover(serial)).discovered.ref));}
  async recoverDiscovered(){

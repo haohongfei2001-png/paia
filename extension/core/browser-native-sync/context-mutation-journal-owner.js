@@ -6,15 +6,16 @@ import {readableContextItems,fenceContextLineage,releaseContextLineage} from '..
 import {prepareContextMutationDescription,verifyContextMutationDescription,prepareContextBootstrapDescription,contextMutationItemAtEpoch as localContextItem} from './context-mutation-codec.js';
 import {clone,digest,equal,fail} from './value.js';
 import {hashText} from '../dedupe.js';
-import {registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
-import {readRestoreEpoch} from './prompt-journal.js';
+import {registerRepositoryWorkLimit,registerRepositoryFinalReadFence,originalRepositoryTransactionOwner,requireRepositoryTransactionDataMethods,requireRepositoryTransactionSucceeded} from '../idb-repository.js';
+import {readOriginalControlSettings,assertOriginalControlSettingsFacts} from '../indexed-store.js';
+import {readRestoreEpoch,requireOriginalJournalRestoreFence} from './prompt-journal.js';
 const originalJournals=new WeakMap(),localPreparations=new WeakMap(),localTransactions=new WeakMap(),applications=new WeakMap(),preparedContexts=new WeakMap(),releasedPreparations=new WeakSet();
 const legacy={info:'contextItem',rules:'contextRulesItem',now:'contextNowItem'};
-function binding(journal,service){
+function binding(journal,service,allowUnboundRead=false){
  const bound=originalJournals.get(journal);requireOriginalContextCardsService(service);
  if(Object.getPrototypeOf(journal)!==originalJournalPrototype)fail('BNS_CONTEXT_OWNER_REQUIRED');
  for(const [name,expected]of originalJournalMethods){const actual=Object.getOwnPropertyDescriptor(originalJournalPrototype,name);if(Object.getOwnPropertyDescriptor(journal,name)||!actual||['value','get','set','writable','enumerable','configurable'].some(key=>actual[key]!==expected[key]))fail('BNS_CONTEXT_OWNER_REQUIRED');}
- if(!bound||journal.core!==bound.core||service.syncJournal!==journal||service.s!==bound.store||bound.store.repository!==bound.core.repository)fail('BNS_CONTEXT_OWNER_REQUIRED');
+ if(!bound||journal.core!==bound.core||service.syncJournal!==journal&&(!allowUnboundRead||service.syncJournal!==null)||service.s!==bound.store||bound.store.repository!==bound.core.repository)fail('BNS_CONTEXT_OWNER_REQUIRED');
  requireOriginalLibraryDocumentsGenerationMethods(bound.store);requireOriginalContextMutationCore(bound.core);return bound;
 }
 export function isOriginalContextMutationJournal(journal,service){try{binding(journal,service);return true;}catch{return false;}}
@@ -34,6 +35,26 @@ export function originalContextMutationConstructor(){
  if(originalConstructor)return originalConstructor;
  originalConstructor=class ContextMutationSyncJournal extends originalContextDesiredConstructor(){
  constructor(core,{store}){super(core);if(store?.repository!==core?.repository)fail('BNS_CONTEXT_OWNER_REQUIRED');requireOriginalLibraryDocumentsGenerationMethods(store);originalJournals.set(this,{core,store});}
+ // Read-only qualification for a local lifecycle enrollment receipt. Empty
+ // enrollment is not a Context mutation or a portable desired-access intent.
+ // An unbound genuine service may be inspected, but receives no capability.
+ async emptyEnrollment(service){
+  const {core,store}=binding(this,service,true),repository=core.repository,database=repository.db;
+  const current=()=>{binding(this,service,true);requireOriginalJournalRestoreFence(this.restoreFence,core);if(store.loaded!==true||!database||repository.db!==database||!originalRepositoryTransactionOwner(repository))fail('BNS_CONTEXT_OWNER_CHANGED');};
+  current();let scope,value,controls;
+  // Do not call public Store.run: it can initialize a fresh store and is not
+  // part of the original method-identity contract. This is an existing-only
+  // original readonly transaction; neither a wrapper result nor a clone is proof.
+  await core.transaction(false,async t=>{
+   current();requireRepositoryTransactionDataMethods(repository,t);scope=t;
+   controls=readOriginalControlSettings(store,t);await store.qualifyControlPublicationRead(t);await service.admitted(t);
+   const migration=await t.get('meta','migration'),fence=await this.restoreFence.snapshot(t);
+   if(migration?.phase!=='active'||migration.databaseId!==store.databaseId)fail('BNS_CONTEXT_OWNER_CHANGED');
+   value=equal(await readContextCards(t),emptyContextCards())?{version:1,databaseId:migration.databaseId,namespace:fence.namespace,epoch:fence.epoch}:null;
+   current();assertOriginalControlSettingsFacts(store,controls);
+  },['meta']);
+  requireRepositoryTransactionSucceeded(repository,scope);current();assertOriginalControlSettingsFacts(store,controls);return value;
+ }
  async prepare(before,after,command,owner){
   if(command.kind==='access')return super.prepare(before,after,command);
   const service=owner?.service,{core,store}=binding(this,service);

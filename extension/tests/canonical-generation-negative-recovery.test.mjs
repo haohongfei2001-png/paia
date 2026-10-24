@@ -46,13 +46,27 @@ test('cold selected library permanently ignores old Source, receives independent
  cold.store.filterIntentJournal=new FilterIntentSyncJournal(cold.core);cold.store.inputWorkingJournal=new InputWorkingSyncJournal(cold.core,{filterJournal:cold.store.filterIntentJournal,logicalCommits:true});await inputEdit(cold.store,'block:'+other.id,{note:'SYNTHETIC retained human note'});const again=await f.cold();assert.equal((await again.store.input('block:'+other.id)).note,'SYNTHETIC retained human note');assert.equal((await again.store.snapshot()).records.length,2);assert.deepEqual((await snapshot(again.store)).tombstones,denied.tombstones);
  const stable=await snapshot(again.store);await assert.rejects(new SourceBootstrapReceiver(again.store,again.core).receive(old.find(group=>group.at(-1).value.sourceId===selected.id)));assert.deepEqual(await snapshot(again.store),stable);
 });
-for(const defect of ['unbound','completed','control','resident-copy','unknown-namespace','post-restore-source','filter-owner'])test('selected Source purge refuses '+defect+' and preserves every table',async t=>{
+for(const defect of ['unbound','completed','control','resident-copy','unknown-namespace','post-restore-source'])test('selected Source purge refuses '+defect+' and preserves every table',async t=>{
  const f=await fixture(t);let cold=await f.cold(),selected=(await cold.store.snapshot()).records[0];
  if(defect==='unbound'){const store=new LibraryDocumentsStore(f.storage,{indexedDB:f.factory,name:f.b.repository.name});t.after(()=>store.repository.db?.close());cold={store,core:journals(store,'synthetic_B')};}
  else if(defect==='post-restore-source'){const q=capture((await cold.store.status()).epoch,'synthetic-unqualified-source','SYNTHETIC new local Source');q.chat={id:'synthetic-unqualified-chat',url:'https://chatgpt.com/c/synthetic-unqualified-chat',title:'SYNTHETIC local'};await cold.store.capture(q);}
- else if(defect==='filter-owner')cold.store.filterIntentJournal=new FilterIntentSyncJournal(cold.core);
  else await raw(cold.store.repository,s=>{if(defect==='resident-copy')s.put({id:'canonical-generation:checkpoint:synthetic-extra',body:'SYNTHETIC resident copy'});else if(defect==='unknown-namespace')s.put({id:cold.core.prefix+'generation:synthetic-other:groupItem:0000',body:'SYNTHETIC staged copy'});else{const req=s.get(defect==='control'?'canonical-generation:qualified-graph:v1':cold.core.prefix+'generation:synthetic_initial_restore:restore:');req.onsuccess=()=>s.put({...req.result,synthetic:true});}});
  const before=await snapshot(cold.store);await assert.rejects(cold.store.purge(selected.id,true));assert.deepEqual(await snapshot(cold.store),before);
+});
+test('cold selected Source purges through its original Filter owner and keeps permanent denial across reopen',async t=>{
+ const f=await fixture(t),cold=await f.cold(),records=(await cold.store.snapshot()).records,selected=records[0],other=records[1],before=await snapshot(cold.store),filter=new FilterIntentSyncJournal(cold.core);
+ cold.store.filterIntentJournal=filter;await cold.store.purge(selected.id,true);await cold.store.drainPurgeCleanup();
+ const after=await snapshot(cold.store),queued=await outbox(cold.core),denyId=cold.core.prefix+'sourcePurgeDeny:'+selected.sourceKey;
+ assert.equal(cold.store.filterIntentJournal,filter);assert.deepEqual(after.records,before.records.filter(row=>row.id===other.id));assert.deepEqual(after.blocks,before.blocks.filter(row=>row.id==='block:'+other.id));assert.deepEqual(after.filterInputs,before.filterInputs.filter(row=>row.id==='block:'+other.id));assert.deepEqual(after.filterIntents,before.filterIntents);
+ assert.equal(JSON.stringify(after).includes(selected.originalText),false);assert.equal(queued.length,8);assert.ok(after.meta.find(row=>row.id===denyId));assert.equal(after.tombstones.find(row=>row.id==='source:'+selected.sourceKey).value.status,'permanently_ignored');
+ const again=await f.cold();again.store.filterIntentJournal=new FilterIntentSyncJournal(again.core);assert.deepEqual(await snapshot(again.store),after);
+ const old=(await groups(f.coreA)).find(group=>group.at(-1).value.sourceId===selected.id);assert.ok(old);await assert.rejects(new SourceBootstrapReceiver(again.store,again.core).receive(old));assert.deepEqual(await snapshot(again.store),after);assert.deepEqual(await outbox(again.core),queued);
+});
+for(const defect of ['forged','rebound'])test('selected Source purge refuses '+defect+' Filter owner and preserves every table',async t=>{
+ const f=await fixture(t),cold=await f.cold(),selected=(await cold.store.snapshot()).records[0],original=new FilterIntentSyncJournal(cold.core);
+ if(defect==='forged')cold.store.filterIntentJournal=Object.create(Object.getPrototypeOf(original),Object.getOwnPropertyDescriptors(original));
+ else{cold.store.filterIntentJournal=original;original.core=new BrowserNativeSyncCore(cold.store.repository,{datasetId:cold.core.datasetId,deviceId:cold.core.deviceId});}
+ const before=await snapshot(cold.store);await assert.rejects(cold.store.purge(selected.id,true),{code:'BNS_FILTER_WRITER_UNSUPPORTED'});assert.deepEqual(await snapshot(cold.store),before);
 });
 for(const defect of ['other-source','new-meta','gate','outbox','completed'])test('late '+defect+' change inside original purge rolls back the full selected library',async t=>{
  const f=await fixture(t),cold=await f.cold(),records=(await cold.store.snapshot()).records,selected=records[0],other=records[1],before=await snapshot(cold.store),original=cold.store.beforeSourcePurge.bind(cold.store);let injected=false;
