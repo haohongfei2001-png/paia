@@ -3,7 +3,7 @@ import {inputProjection} from './thought-evidence.js';
 import {prefix} from './thought-model.js';
 import {safeOffset} from './reader-state.js';
 import {AI_FIELDS,isStoredAIPresentation} from './organizer/ai-contract.js';
-import {observedPromptFilterRead,promptFilterReadIsStatic,originalPromptFilterOwner} from './smart-filter-store.js';
+import {observedPromptFilterRead,promptFilterReadIsStatic,originalPromptFilterOwner} from './smart-filter-store-owner.js';
 import {requireRepositoryTransactionDataMethods,requireRepositoryTransactionScope,requireRepositoryTransactionSucceeded} from './idb-repository.js';
 const fail=(code,restriction)=>{const error=new ArchiveError(code||'MEMORY_INVALID');if(restriction)error.restriction=restriction;throw error;};
 export const own=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));

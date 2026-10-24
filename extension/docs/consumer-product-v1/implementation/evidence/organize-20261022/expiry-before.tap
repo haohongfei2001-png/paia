@@ -1,0 +1,84 @@
+TAP version 13
+# (node:23096) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: retained storage continuation lifecycle: retry-before-expiry
+ok 1 - retained storage continuation lifecycle: retry-before-expiry
+  ---
+  duration_ms: 383.406917
+  type: 'test'
+  ...
+# Subtest: retained storage continuation lifecycle: expiry-next-access
+not ok 2 - retained storage continuation lifecycle: expiry-next-access
+  ---
+  duration_ms: 284.817125
+  type: 'test'
+  location: 'extension/tests/ai-maintenance-session-expiry-lifecycle.test.mjs:88:95'
+  failureType: 'testCodeFailure'
+  error: |-
+    processing expiry must retire the retained rollback handle while idle, before another owner read
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://extension/tests/ai-maintenance-session-expiry-lifecycle.test.mjs:97:49)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retained storage continuation lifecycle: idle-revoke
+not ok 3 - retained storage continuation lifecycle: idle-revoke
+  ---
+  duration_ms: 294.34375
+  type: 'test'
+  location: 'extension/tests/ai-maintenance-session-expiry-lifecycle.test.mjs:88:95'
+  failureType: 'testCodeFailure'
+  error: |-
+    processing expiry must retire the retained rollback handle while idle, before another owner read
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://extension/tests/ai-maintenance-session-expiry-lifecycle.test.mjs:97:49)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retained storage continuation lifecycle: idle-dispose
+not ok 4 - retained storage continuation lifecycle: idle-dispose
+  ---
+  duration_ms: 265.584792
+  type: 'test'
+  location: 'extension/tests/ai-maintenance-session-expiry-lifecycle.test.mjs:88:95'
+  failureType: 'testCodeFailure'
+  error: |-
+    processing expiry must retire the retained rollback handle while idle, before another owner read
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file://extension/tests/ai-maintenance-session-expiry-lifecycle.test.mjs:97:49)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 1
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1409.143458

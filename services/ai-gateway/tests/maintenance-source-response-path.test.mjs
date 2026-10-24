@@ -173,23 +173,48 @@ test('NO_CHANGE cannot borrow a sent Item to ACK an unrelated newly selected Inp
  let before;const f=await maintenanceServiceFixture(t,{configure:async({local})=>{before=(await pendingExisting(local)).item;const {capture}=await import('../../../extension/tests/harness/thought-m1.mjs');await local.s.capture(capture((await local.s.status()).epoch,'synthetic-unrelated-existing-check','SYNTHETIC different new Input outside original Item provenance'));},transformResponse:({value,payload})=>{assert.equal(payload.material.inputs.length,2);existingGroup(value,payload,'NO_CHANGE');}}),result=await f.run();assert.equal(result.state,'PARTIAL',JSON.stringify(result));assert.equal((await acks(f)).filter(a=>a.jobId===result.jobId&&a.unit.facet==='context').length,0);assert.equal(result.facets.filter(x=>x.facet==='context'&&x.state==='DEFERRED').reduce((n,x)=>n+x.units,0),2);assert.deepEqual((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.find(i=>i.id===before.id),before);await f.run();assert.equal(f.physical(),1);
 });
 
-for(const operation of ['UPDATE','NO_CHANGE'])test('same-child ungranted partial-excerpt Entry refuses existing Context '+operation,async t=>{
- let before,topicId,priorEntries,priorPlacements,priorDependencies,inputId,excerpt;
+async function partialExcerptFixture(t,operation='UPDATE'){
+ let before,topicId,inputId,excerpt,prior;
  const f=await maintenanceServiceFixture(t,{configure:async({local})=>{
   const pending=await pendingExisting(local);before=pending.item;topicId=pending.topic.id;
-  priorEntries=new Set((await rows(local.s,'thoughts')).map(e=>e.id));priorPlacements=new Set((await rows(local.s,'placements')).map(p=>p.id));priorDependencies=new Set((await rows(local.s,'dependencies')).map(d=>d.id));
+  prior=Object.fromEntries(await Promise.all(['thoughts','placements','dependencies','provenance','operationReceipts','records','blocks','inputStates'].map(async n=>[n,await rows(local.s,n)])));
  },transformResponse:({value,payload})=>{
   const relation=value.topic.relations.find(r=>r.topicId===topicId);assert.ok(relation,'the old Topic identity was actually sent');relation.relation='same';
   const input=payload.material.inputs[0];inputId=input.inputId;excerpt=input.body.slice(0,32);assert.ok(input.body.length>excerpt.length);
-  // A fresh exact excerpt differs from the old whole-Input mirror, so this
-  // attempts original new graph staging rather than reused membership.
   const span=value.citations.length;value.citations.push({inputId,field:'body',start:0,end:excerpt.length});value.topic.entries=[{span,type:'idea',entryId:''}];value.topic.additional=[];
   existingGroup(value,payload,operation);
- }}),result=await f.run();
- assert.equal(result.state,'PARTIAL',JSON.stringify(result));assert.equal(f.physical(),1);assert.ok(result.facets.some(x=>x.facet==='topic'&&x.state==='FAILED'&&x.reason==='UNAVAILABLE'));
- assert.equal((await rows(f.s,'thoughts')).filter(e=>!priorEntries.has(e.id)).length,0);assert.equal((await rows(f.s,'placements')).filter(p=>!priorPlacements.has(p.id)).length,0);assert.equal((await rows(f.s,'dependencies')).filter(d=>!priorDependencies.has(d.id)).length,0);
- assert.equal((await acks(f)).filter(a=>a.jobId===result.jobId).length,0);assert.deepEqual((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.find(i=>i.id===before.id),before);
- const graph={entries:await rows(f.s,'thoughts'),placements:await rows(f.s,'placements'),dependencies:await rows(f.s,'dependencies')};await f.run();assert.equal(f.physical(),1);assert.deepEqual({entries:await rows(f.s,'thoughts'),placements:await rows(f.s,'placements'),dependencies:await rows(f.s,'dependencies')},graph);
+ }});
+ return {f,before,topicId,prior,input:()=>({inputId,excerpt})};
+}
+for(const operation of ['UPDATE','NO_CHANGE'])test('same-child ungranted partial-excerpt commits only independently authorized Topic before refusing Context '+operation,async t=>{
+ const {f,before,topicId,prior,input}=await partialExcerptFixture(t,operation),transaction=f.s.repository.transaction.bind(f.s.repository),commit=contextDeferTopic.TopicFormationService.prototype.commit;
+ let afterTopic=false,textReads=0;
+ t.mock.method(contextDeferTopic.TopicFormationService.prototype,'commit',async function(...args){const result=await commit.apply(this,args);if(this.store===f.s)afterTopic=true;return result;});
+ f.s.repository.transaction=(write,fn,...args)=>transaction(write,async tx=>{const get=tx.get.bind(tx);tx.get=async(n,id)=>{const row=await get(n,id);if(afterTopic&&n==='thoughts'&&row&&!prior.thoughts.some(e=>e.id===id))for(const key of ['thoughtText','title','note']){const d=Object.getOwnPropertyDescriptor(row,key);if(d)Object.defineProperty(row,key,{enumerable:d.enumerable,configurable:true,get(){textReads++;return d.value;}});}return row;};return fn(tx);},...args);
+ let result;try{result=await f.run();}finally{f.s.repository.transaction=transaction;}
+ assert.equal(afterTopic,true);assert.equal(textReads,0,'Context must not acquire any new Entry field');assert.equal(result.state,'PARTIAL',JSON.stringify(result));assert.equal(f.physical(),1);assert.ok(result.facets.some(x=>x.facet==='topic'&&x.state==='COMMITTED'));
+ const {inputId,excerpt}=input(),created=(await rows(f.s,'thoughts')).filter(e=>!prior.thoughts.some(p=>p.id===e.id));assert.equal(created.length,1);assert.equal(created[0].thoughtText,excerpt);assert.notEqual(created[0].bodyBinding,'input');
+ const placements=(await rows(f.s,'placements')).filter(p=>!prior.placements.some(x=>x.id===p.id)),dependencies=(await rows(f.s,'dependencies')).filter(d=>!prior.dependencies.some(x=>x.id===d.id));assert.equal(placements.length,1);assert.equal(placements[0].entryId,created[0].id);assert.equal(placements[0].topicId,topicId);assert.equal(dependencies.length,1);assert.equal(dependencies[0].targetId,created[0].id);assert.equal(dependencies[0].inputId,inputId);
+ assert.deepEqual((await acks(f)).filter(a=>a.jobId===result.jobId).map(a=>a.unit.facet),['topic']);assert.equal(f.server.saved().rows[0].settlement.usdMicros,120);assert.deepEqual((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.find(i=>i.id===before.id),before);
+ const graph=await Promise.all(Object.keys(prior).map(n=>rows(f.s,n))),usage=await rows(f.s,'organizerUsage');await f.run();assert.equal(f.physical(),1);assert.deepEqual(await Promise.all(Object.keys(prior).map(n=>rows(f.s,n))),graph);assert.deepEqual(await rows(f.s,'organizerUsage'),usage);
+});
+for(const drift of ['source','protected','revoke','graph','ack-abort'])test('partial-excerpt Topic final '+drift+' still rolls back original mutation and ACK',async t=>{
+ const {f,before,prior}=await partialExcerptFixture(t),transaction=f.s.repository.transaction.bind(f.s.repository);let reached=false;
+ f.s.repository.transaction=(write,fn,...args)=>transaction(write,async tx=>{if(write){const put=tx.put.bind(tx);tx.put=async(n,row,...rest)=>{const result=await put(n,row,...rest);
+  if(!reached&&n==='organizerWorkItems'&&row.state==='ACKNOWLEDGED'&&row.unit?.facet==='topic'){
+   reached=true;
+   if(drift==='ack-abort')throw Error('SYNTHETIC original Topic ACK storage rollback');
+   if(drift==='revoke')f.contextAbort.abort();
+   if(drift==='protected'){const card=await tx.get('meta',CONTEXT_CARDS_ROW);card.items.find(i=>i.id===before.id).protected=true;await put('meta',card);}
+   if(drift==='source'){const inputId=JSON.parse(row.unit.key)[1],block=await tx.get('blocks',inputId),source=await tx.get('records',block.value.originalTextReference);source.value.originalText='SYNTHETIC final Source drift';await put('records',source);}
+   if(drift==='graph'){const p=prior.placements[0],e=prior.thoughts[0],id=crypto.randomUUID();await put('thoughts',{...e,id});await put('placements',{...p,id:JSON.stringify([p.topicId,p.layoutGeneration,id]),entryId:id,rank:'999999999999'});}
+  }return result;};}return fn(tx);},...args);
+ const result=await f.run();f.s.repository.transaction=transaction;
+ assert.equal(reached,true);assert.equal(result.state,drift==='revoke'?'UNAVAILABLE':'PARTIAL',JSON.stringify(result));assert.equal(f.physical(),1);assert.equal((await acks(f)).filter(a=>a.jobId===result.jobId).length,0);
+ for(const [name,rowsBefore]of Object.entries(prior))assert.deepEqual(await rows(f.s,name),rowsBefore,name+' rolled back');
+ assert.deepEqual((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.find(i=>i.id===before.id),before);assert.equal(f.server.saved().rows[0].settlement.usdMicros,120);
+ if(drift==='ack-abort'||drift==='source'){const next=await f.run();assert.ok(next.facets.some(x=>x.facet==='topic'&&x.state==='COMMITTED'));assert.deepEqual((await acks(f)).filter(a=>a.jobId===result.jobId).map(a=>a.unit.facet),['topic']);}else {await f.run();assert.equal((await acks(f)).filter(a=>a.jobId===result.jobId).length,0);}
+ assert.equal(f.physical(),1);
 });
 
 async function existingGraphFixture(t,operation){
@@ -231,3 +256,107 @@ for(const stage of ['receipt','ack','counter'])for(const drift of ['body','sourc
  assert.deepEqual((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.find(i=>i.id===before.id),before);assert.deepEqual((await rows(f.s,'operationReceipts')).filter(r=>r.namespace==='context-maintenance'),receipts);assert.deepEqual(await read(f.s,'blocks',inputId),block);assert.deepEqual(await read(f.s,'records',sourceId),source);
  await f.run();assert.equal(f.physical(),1);assert.equal((await acks(f)).filter(a=>a.jobId===result.jobId&&a.unit.facet==='context').length,0);
 });
+
+// Current-main paid Context DEFER terminal fence regressions. The original
+// registered source root above is preserved byte-for-byte; no CI root is replaced.
+import * as contextDeferFoundation from '../../../extension/core/ai-usage/foundation.js';
+import * as contextDeferTopic from '../../../extension/core/topic-formation.js';
+import * as contextDeferMaintenance from '../../../extension/core/context-maintenance.js';
+import * as contextDeferScope from '../../../extension/core/context-topic-scope.js';
+import * as contextDeferQualification from '../../../extension/core/ai-usage/maintenance-qualification.js';
+{
+const {AIUsageFoundation}=contextDeferFoundation;
+const {TopicFormationService}=contextDeferTopic;
+const {ContextMaintenanceService}=contextDeferMaintenance;
+const {CONTEXT_TOPIC_SCOPE_LIMITS}=contextDeferScope;
+const {maintenanceQualificationWorkBudget}=contextDeferQualification;
+const rows=(store,name)=>store.repository.transaction(false,t=>t.all(name));
+const read=(store,name,key)=>store.repository.transaction(false,t=>t.get(name,key));
+const deferGroup=keys=>({operation:'DEFER',reason:'Not enough evidence',unitKeys:keys,topicId:'',itemId:'',expectedRevision:0,card:'info',body:'',section:'',temporal:emptyTemporal()});
+async function mixedFixture(t){
+ let payload;
+ const f=await maintenanceServiceFixture(t,{inputs:2,transformResponse:arg=>{payload=arg.payload;const first=arg.value.context.groups[0],keys=first.unitKeys;assert.equal(keys.length,2);arg.value.context.groups=[{...first,unitKeys:[keys[0]]},deferGroup([keys[1]])];}});
+ t.after(()=>{f.session.dispose();return f.s.repository.close();});return {f,payload:()=>payload};
+}
+
+// Uses the existing signed source mixed ADD/DEFER fixture. Topic succeeds;
+// no continuation after Topic refusal, old-evidence selection, or Filter lease.
+for(const drift of [false,true])test('current signed Context DEFER fences the original receipt after its last put: '+(drift?'receipt drift':'unchanged positive'),async t=>{
+ let payload;
+ const f=await maintenanceServiceFixture(t,{inputs:2,transformResponse:arg=>{payload=arg.payload;const first=arg.value.context.groups[0],keys=first.unitKeys;assert.equal(keys.length,2);arg.value.context.groups=[{...first,unitKeys:[keys[0]]},deferGroup([keys[1]])];}});
+ t.after(()=>{f.session.dispose();return f.s.repository.close();});
+ const repository=f.s.repository,transaction=repository.transaction.bind(repository),apply=AIUsageFoundation.prototype.applyFacet;
+ let active=null,receiptBefore,puts=0,injected=false,priorAcks,priorContext;
+ t.mock.method(AIUsageFoundation.prototype,'applyFacet',async function(tx,job,index,options){
+  if(this.s===f.s&&options.facet==='context'&&options.outcome==='DEFER'){
+   assert.equal(active,null);active={jobId:job.id,childId:job.childIds[index],units:options.units.map(canonical)};
+   assert.equal(active.units.length,1);assert.equal(active.childId,payload.childOperationId);
+   receiptBefore=structuredClone(await tx.get('organizerUsage','aiu:attempt:'+active.childId));
+   priorAcks=(await tx.all('organizerWorkItems')).filter(row=>row.state==='ACKNOWLEDGED');priorContext=await tx.get('meta',CONTEXT_CARDS_ROW);
+  }
+  return apply.call(this,tx,job,index,options);
+ });
+ repository.transaction=(write,fn,...args)=>transaction(write,async tx=>{
+  if(write){const put=tx.put.bind(tx);tx.put=async(table,row,...rest)=>{const value=await put(table,row,...rest);
+   if(active&&table==='organizerWorkItems'&&row.jobId===active.jobId&&row.state==='DEFERRED'&&row.unit?.facet==='context'&&active.units.includes(canonical(row.unit))){
+    puts++;if(drift&&puts===active.units.length){injected=true;await put('organizerUsage',{...receiptBefore,operationReceiptId:'SYNTHETIC changed after original final DEFER put'});}
+   }return value;};
+  }return fn(tx);
+ },...args);
+ const result=await f.run(),work=await rows(f.s,'organizerWorkItems'),deferred=work.filter(row=>row.jobId===result.jobId&&row.state==='DEFERRED'&&row.unit?.facet==='context'),receipt=await read(f.s,'organizerUsage',receiptBefore.id);
+ assert.equal(puts,1);assert.equal(injected,drift);assert.equal(priorAcks.filter(row=>row.unit?.facet==='topic').length,2);assert.equal(priorAcks.filter(row=>row.unit?.facet==='context').length,1);
+ assert.deepEqual(work.filter(row=>row.state==='ACKNOWLEDGED'),priorAcks);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),priorContext);
+ assert.equal(f.physical(),1);assert.equal(f.calls.filter(call=>call.path==='/api/provider').length,1);assert.equal(f.server.saved().rows.length,1);assert.equal(f.server.saved().rows[0].settlement.usdMicros,120);
+ t.diagnostic(JSON.stringify({drift,puts,injected,deferred:deferred.length,receiptUnchanged:receipt.operationReceiptId===receiptBefore.operationReceiptId,state:result.state,facets:result.facets}));
+ if(drift){assert.deepEqual(deferred,[]);assert.deepEqual(receipt,receiptBefore);}else{assert.deepEqual(deferred.map(row=>canonical(row.unit)),active.units);assert.equal(receipt.operationReceiptId,receiptBefore.operationReceiptId);}
+});
+
+// These controls reuse the frozen DEFER fence's actual-owner observation points,
+// but exercise current-main mixed ADD/DEFER, never its separate continuation path.
+for(const mode of ['ledger','budget-exhaustion','store-getter','db-getter','dispose','signal','authority-await','storage-retry'])test('current signed Context DEFER original terminal boundary: '+mode,async t=>{
+ const {f,payload}=await mixedFixture(t),repository=f.s.repository,database=repository.db,transaction=repository.transaction.bind(repository),prepare=TopicFormationService.prototype.prepare,seam=AIUsageFoundation.prototype.deferMaintenanceContextInTransaction,current=AIUsageFoundation.prototype.current,write=AIUsageFoundation.prototype.write,maintain=ContextMaintenanceService.prototype.maintain;
+ const deferScopes=new WeakSet(),storeDescriptor=Object.getOwnPropertyDescriptor(f.s,'repository'),dbDescriptor=Object.getOwnPropertyDescriptor(repository,'db'),observations={first:[],terminal:[],tailBefore:null,puts:0,getters:0,held:false,authorityDrift:false,seams:0,contextCalls:0};
+ let ledger,active=null,receiptBefore,acksBefore,contextBefore,graphBefore,release,arrive,storageFailed=false;const entered=new Promise(resolve=>{arrive=resolve;}),restore=()=>{Object.defineProperty(f.s,'repository',storeDescriptor);Object.defineProperty(repository,'db',dbDescriptor);};
+ t.mock.method(TopicFormationService.prototype,'prepare',function(...args){if(this.store===f.s)ledger=maintenanceQualificationWorkBudget(this.retrieval.guard.qualification(),f.s);return prepare.apply(this,args);});
+ t.mock.method(ContextMaintenanceService.prototype,'maintain',function(...args){observations.contextCalls++;return maintain.apply(this,args);});
+ t.mock.method(AIUsageFoundation.prototype,'write',function(fn){if(this.s===f.s&&new Error().stack.includes('#deferContextGroups'))return write.call(this,tx=>{deferScopes.add(tx);return fn(tx);});return write.call(this,fn);});
+ t.mock.method(AIUsageFoundation.prototype,'deferMaintenanceContextInTransaction',async function(tx,id,childId,options){
+  if(this.s!==f.s)return seam.call(this,tx,id,childId,options);observations.seams++;active={id,childId,units:options.units.map(canonical)};assert.equal(active.units.length,1);receiptBefore??=structuredClone(await tx.get('organizerUsage','aiu:attempt:'+childId));acksBefore??=(await tx.all('organizerWorkItems')).filter(row=>row.jobId===id&&row.state==='ACKNOWLEDGED');contextBefore??=await tx.get('meta',CONTEXT_CARDS_ROW);graphBefore??=Object.fromEntries(await Promise.all(['thoughts','placements','dependencies','provenance','topics','sections','operationReceipts'].map(async name=>[name,await tx.all(name)])));
+  try{return await seam.call(this,tx,id,childId,options);}finally{active=null;}
+ });
+ t.mock.method(AIUsageFoundation.prototype,'current',async function(tx,job,...rest){const result=await current.call(this,tx,job,...rest);if(mode==='authority-await'&&active&&this.s===f.s&&job.id===active.id&&!observations.authorityDrift){observations.authorityDrift=true;await Promise.resolve();await tx.put('organizerUsage',{...receiptBefore,operationReceiptId:'SYNTHETIC changed during original DEFER authority await'});}return result;});
+ repository.transaction=(write,fn,...args)=>transaction(write,async tx=>{
+  if(!write)return fn(tx);let writerCheck=false;const get=tx.get.bind(tx),put=tx.put.bind(tx),objectStore=tx.tx.objectStore.bind(tx.tx),wrapped=new WeakSet();
+  tx.get=async(table,key,...rest)=>{const stack=new Error().stack,own=table==='organizerUsage'&&payload()&&key==='aiu:attempt:'+payload().childOperationId&&stack.includes('#checkContextGroupReceipt')&&deferScopes.has(tx),prior=ledger?.reads;const row=await get(table,key,...rest);if(!own)return row;writerCheck=true;let observed=false;return new Proxy(row,{get(target,name,receiver){if(name==='id'&&!observed&&new Error().stack.includes('account')){observed=true;observations.first.push({before:prior,after:ledger.reads});}return Reflect.get(target,name,receiver);}});};
+  tx.put=async(table,row,...rest)=>{const value=await put(table,row,...rest);if(writerCheck&&active&&table==='organizerWorkItems'&&row.jobId===active.id&&row.state==='DEFERRED'&&row.unit?.facet==='context'){observations.puts++;if(observations.puts===1){if(mode==='budget-exhaustion')ledger.reads=CONTEXT_TOPIC_SCOPE_LIMITS.reads;observations.tailBefore=ledger.reads;if(mode==='storage-retry'&&!storageFailed){storageFailed=true;throw Error('SYNTHETIC original final DEFER put storage rollback');}}}return value;};
+  tx.tx.objectStore=name=>{const store=objectStore(name);if(name!=='organizerUsage'||wrapped.has(store))return store;wrapped.add(store);const read=store.get.bind(store);store.get=key=>{const terminal=writerCheck&&payload()&&key==='aiu:attempt:'+payload().childOperationId&&new Error().stack.includes('runFinalReadFences'),request=read(key);if(!terminal)return request;observations.terminal.push(ledger.reads);
+   if(mode==='store-getter'||mode==='db-getter'){const object=mode==='store-getter'?f.s:repository,name=mode==='store-getter'?'repository':'db',prior=mode==='store-getter'?repository:database;Object.defineProperty(object,name,{configurable:true,enumerable:true,get(){observations.getters++;return prior;}});}
+   if(mode==='dispose'||mode==='signal'){let handler;Object.defineProperty(request,'onsuccess',{configurable:true,enumerable:true,get(){return handler;},set(value){handler=event=>{observations.held=true;release=()=>value.call(request,event);arrive();};}});}return request;};return store;};
+  return fn(tx);
+ },...args).finally(restore);
+ let result;try{const running=f.run();if(mode==='dispose'||mode==='signal'){let timer;try{await Promise.race([entered,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('actual final DEFER receipt get not reached')),5000);})]);if(mode==='dispose')f.session.dispose();else f.contextAbort.abort();const finish=release;release=null;finish();}finally{clearTimeout(timer);release?.();}result=await running;}else result=await running;}finally{restore();repository.transaction=transaction;}
+ const savedWork=(await rows(f.s,'organizerWorkItems')).filter(row=>row.jobId===result.jobId),deferred=savedWork.filter(row=>row.state==='DEFERRED'&&row.unit?.facet==='context'),usage=await read(f.s,'organizerUsage',receiptBefore.id);
+ t.diagnostic(JSON.stringify({mode,observations,state:result.state,facets:result.facets,physical:f.physical()}));assert.ok(ledger);assert.equal(observations.first.length,1);assert.equal(observations.first[0].after,observations.first[0].before+1);assert.equal(observations.puts,1);assert.equal(observations.getters,0);assert.deepEqual(savedWork.filter(row=>row.state==='ACKNOWLEDGED'),acksBefore);assert.equal(acksBefore.filter(row=>row.unit.facet==='context').length,1);assert.equal(acksBefore.filter(row=>row.unit.facet==='topic').length,2);assert.deepEqual(usage,receiptBefore);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),contextBefore);for(const [name,before]of Object.entries(graphBefore))assert.deepEqual(await rows(f.s,name),before);
+ if(mode==='budget-exhaustion'||mode==='storage-retry')assert.equal(observations.terminal.length,0);else{assert.equal(observations.terminal.length,1);assert.equal(observations.terminal[0],observations.tailBefore+1);}if(mode==='authority-await')assert.equal(observations.authorityDrift,true);if(mode==='dispose'||mode==='signal')assert.equal(observations.held,true);
+ if(mode==='ledger')assert.equal(deferred.length,1);else assert.deepEqual(deferred,[]);
+ if(mode==='storage-retry'){const calls=observations.contextCalls,retry=await f.run(),after=(await rows(f.s,'organizerWorkItems')).filter(row=>row.jobId===result.jobId);assert.ok(retry.facets.some(row=>row.facet==='context'&&row.state==='DEFERRED'),JSON.stringify(retry));assert.equal(observations.seams,2);assert.equal(observations.contextCalls,calls,'earlier Context ADD is not replayed');assert.deepEqual(after.filter(row=>row.state==='ACKNOWLEDGED'),acksBefore);assert.equal(after.filter(row=>row.state==='DEFERRED'&&row.unit?.facet==='context').length,1);assert.deepEqual(await read(f.s,'organizerUsage',receiptBefore.id),receiptBefore);}
+ else if(['authority-await','store-getter','db-getter'].includes(mode)){const calls=observations.contextCalls,seams=observations.seams;await f.run();assert.equal(observations.contextCalls,calls);assert.equal(observations.seams,seams,'an observed terminal rejection does not refresh the original paid response');assert.deepEqual((await rows(f.s,'organizerWorkItems')).filter(row=>row.jobId===result.jobId),savedWork);}
+ assert.equal(f.physical(),1);assert.equal(f.calls.filter(call=>call.path==='/api/provider').length,1);assert.equal(f.server.saved().rows.length,1);assert.equal(f.server.saved().rows[0].settlement.usdMicros,120);
+});
+
+test('current Context DEFER fixed seam rejects foreign scope, job, facet and callback overrides',async t=>{
+ const {f,payload}=await mixedFixture(t),seam=AIUsageFoundation.prototype.deferMaintenanceContextInTransaction;let foundation,originalOptions,closed;
+ t.mock.method(AIUsageFoundation.prototype,'deferMaintenanceContextInTransaction',function(tx,id,childId,options){if(this.s===f.s){foundation=this;originalOptions=structuredClone(options);}return seam.call(this,tx,id,childId,options);});
+ const result=await f.run(),id=result.jobId,childId=payload().childOperationId,repository=f.s.repository,work=await rows(f.s,'organizerWorkItems'),paid=await rows(f.s,'organizerUsage');assert.ok(foundation);let callbacks=0;
+ const call=(tx,options=originalOptions,owner=foundation)=>seam.call(owner,tx,id,childId,options),invalid=promise=>assert.rejects(promise,error=>error.code==='INVALID_REQUEST'),scope=promise=>assert.rejects(promise,error=>['BNS_HUMAN_RETENTION_REQUIRED','STALE_BASE'].includes(error.code));
+ await scope(call(null));await repository.transaction(false,tx=>scope(call(tx)));
+ await repository.transaction(true,async tx=>{
+  closed=tx;await scope(call(Object.create(tx)));await scope(call(tx,originalOptions,new AIUsageFoundation({repository:{db:repository.db}})));
+  await invalid(call(tx,{...originalOptions,isCurrent:()=>{callbacks++;return true;}}));await invalid(call(tx,{...originalOptions,operationReceiptId:'SYNTHETIC caller replacement'}));await invalid(call(tx,{...originalOptions,facet:'filter'}));
+  const descriptor=Object.getOwnPropertyDescriptor(repository,'db');Object.defineProperty(repository,'db',{...descriptor,value:{}});try{await scope(call(tx));}finally{Object.defineProperty(repository,'db',descriptor);}
+  const job=foundation.job.bind(foundation);foundation.job=async()=>({type:'AI_ORGANIZE'});try{await invalid(call(tx));}finally{foundation.job=job;}
+  await invalid(call(tx,{...originalOptions,units:payload().coverage.filter(unit=>unit.facet==='topic')}));
+ });
+ await scope(call(closed));assert.equal(callbacks,0);assert.deepEqual(await rows(f.s,'organizerWorkItems'),work);assert.deepEqual(await rows(f.s,'organizerUsage'),paid);assert.equal(f.physical(),1);
+});
+}

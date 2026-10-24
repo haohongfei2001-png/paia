@@ -8,7 +8,7 @@ import {checkEvidenceInTransaction} from './thought-evidence.js';
 
 // Every actual identity call, including legacy calls, belongs to its original
 // transaction. Field qualification never supplies this independent capability.
-const processingUses=new WeakMap(),finalCollections=new WeakMap(),readCollections=new WeakMap();
+const processingUses=new WeakMap(),finalCollections=new WeakMap(),readCollections=new WeakMap(),preparedProcessingModes=new WeakMap();
 function originalTransaction(store,t){
  for(let scope=t,depth=0;scope&&depth<16;scope=Object.getPrototypeOf(scope),depth++){
   try{return {scope,identity:requireRepositoryTransactionScope(store.repository,scope)};}catch(error){if(Object.hasOwn(scope,'tx'))throw error;}
@@ -20,6 +20,12 @@ function recordFor(guard,t,{create=false}={}){
  if(!record||record.scope!==original.scope||record.identity!==original.identity)fail();return record;
 }
 
+
+function processingMode(guard,t){
+ const record=recordFor(guard,t);if(!record.uses.length)fail();
+ const legacy=record.uses.some(use=>use===null),genuine=record.uses.some(use=>use!==null);
+ if(legacy&&genuine)fail();return genuine?'authority':'legacy';
+}
 
 function processingCurrent(guard,t){
   const record=recordFor(guard,t);if(!record.uses.length||record.uses.some(x=>x===null)||!record.budget)fail();
@@ -103,14 +109,28 @@ export class TopicProcessingGuard {
   if(checkEvidence)await checkEvidenceInTransaction(this.store,t,evidence);
   return {processingEpoch,gateEpoch:gate.epoch,thoughtEpoch:(await t.get('meta','thought-epoch'))?.value??0,generation:(await t.get('meta','backup-data-generation'))?.value??0,...await topicIdentityBase(t)};
  }
- async prepare(scope){
+ // Existing direct callers retain their original preparation contract. The
+ // lifecycle owner opts into private cross-phase provenance, never a DTO mode.
+ async prepare(scope){return this.#prepare(scope,false);}
+ async prepareWithProcessingMode(scope){return this.#prepare(scope,true);}
+ registerPreparedProcessingFinalFence(t,prepared,{qualification=null}={}){
+  const held=preparedProcessingModes.get(prepared),record=recordFor(this,t);if(record.registered)fail();
+  if(!held||held.guard!==this||held.store!==this.store||held.repository!==this.store.repository||held.database!==this.store.repository.db||prepared.evidence!==held.evidence||prepared.authority!==held.authority||processingMode(this,t)!==held.mode)fail();
+  // Legacy DTOs have no synchronous original issuer to fence. Preserve their
+  // historical direct API without claiming (or fabricating) strict authority.
+  if(held.mode==='legacy'){record.registered=true;return false;}
+  return this.registerProcessingFinalFence(t,{qualification});
+ }
+ async #prepare(scope,trackProcessingMode){
   if(!Array.isArray(scope)||!scope.length||scope.length>100)fail();
   for(const s of scope){keys(s,['inputId','role','selectedFields'],['inputId','role','selectedFields']);if(!idOK(s.inputId)||!['primary','supporting'].includes(s.role))fail();}
   await this.store.finishFoundation();
-  const authority=await this.store.run(()=>this.store.repository.transaction(false,t=>this.authority(t,scope,{checkEvidence:false})));
+  const store=this.store,repository=store.repository,database=repository.db;let mode=null;
+  const track=fn=>!trackProcessingMode?fn:async t=>{const value=await fn(t),actual=processingMode(this,t);if(this.store!==store||store.repository!==repository||repository.db!==database||mode!==null&&mode!==actual)fail();mode=actual;return value;};
+  const authority=await this.store.run(()=>this.store.repository.transaction(false,track(t=>this.authority(t,scope,{checkEvidence:false}))));
   const evidence=await this.store.evidenceFor(scope,{qualification:this.qualification()});
-  await this.store.run(()=>this.store.repository.transaction(false,t=>this.check(t,{evidence,authority})));
-  return {evidence,authority};
+  await this.store.run(()=>this.store.repository.transaction(false,track(t=>this.check(t,{evidence,authority}))));
+  const prepared={evidence,authority};if(trackProcessingMode)preparedProcessingModes.set(prepared,{guard:this,store,repository,database,evidence,authority,mode});return prepared;
  }
  async check(t,prepared,{generation=true}={}){
   await assertTopicIdentityBase(t,prepared?.authority);

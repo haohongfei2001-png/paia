@@ -1,5 +1,5 @@
 import {applyDocumentEdit} from '../workspace.js';
-import {inputEditJournalData,planInputRevision,REVISION_POLICY} from '../ia-store.js';
+import {inputEditJournalData,planInputRevision,REVISION_POLICY} from '../ia-store-owner.js';
 import {projectEntity} from './codecs.js';
 import {FilterIntentSyncJournal} from './filter-intent-journal.js';
 import {JournalRestoreFence} from './prompt-journal.js';

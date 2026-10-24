@@ -1,0 +1,52 @@
+{
+  "observedRun": "39788048944",
+  "attempt": 1,
+  "head": "ca55e4de49b1f29be4c4085625d0f18be42f343a",
+  "image": "20261012.334.1",
+  "platform": "Ubuntu24.04 amd64 / APT2.8.3",
+  "files": {
+    "01autoremove": {
+      "installedPath": "/etc/apt/apt.conf.d/01autoremove",
+      "bytes": 399,
+      "sha256": "35b4360d9126e5e5efc1ce42cea8a957ba42921de749ad8502922d536c9f385c",
+      "officialSource": "https://raw.githubusercontent.com/Debian/apt/2.8.1/debian/apt.conf.autoremove"
+    },
+    "20apt-esm-hook.conf": {
+      "installedPath": "/etc/apt/apt.conf.d/20apt-esm-hook.conf",
+      "bytes": 392,
+      "sha256": "f7ab45bab1355711fcd031d78299cc3c7767654e7bf3f66a716ee3f2eae93733",
+      "officialSource": "https://raw.githubusercontent.com/canonical/ubuntu-pro-client/edd557122037276e5dc8ec803b5e48fd6c6fc62c/apt-hook/20apt-esm-hook.conf"
+    },
+    "20snapd.conf": {
+      "installedPath": "/etc/apt/apt.conf.d/20snapd.conf",
+      "bytes": 127,
+      "sha256": "4f1a710936d83d53caa575af269db4311d7b461bdb1bb94ced5b1d331b0886ac",
+      "officialSource": "https://raw.githubusercontent.com/canonical/snapd/38078ae775e4c41807f60e17b24d1af6f0c26801/data/apt/20snapd.conf"
+    },
+    "50appstream": {
+      "installedPath": "/etc/apt/apt.conf.d/50appstream",
+      "bytes": 2569,
+      "sha256": "8e89df0e4cfa24c7db4a165e776f40af7e0477f0d290bea4334edf6655db72bd",
+      "officialSource": "https://archive.ubuntu.com/ubuntu/pool/main/a/appstream/appstream_1.0.2-1build6_amd64.deb"
+    },
+    "50command-not-found": {
+      "installedPath": "/etc/apt/apt.conf.d/50command-not-found",
+      "bytes": 625,
+      "sha256": "3a6f9f5244e49bee66ce65101fb73e16ba90f7a6cbd19befeefdf2c63209e2f1",
+      "officialSource": "https://archive.ubuntu.com/ubuntu/pool/main/c/command-not-found/command-not-found_23.04.0build1_all.deb"
+    },
+    "99needrestart": {
+      "installedPath": "/etc/apt/apt.conf.d/99needrestart",
+      "bytes": 343,
+      "sha256": "d453d945957bf2fb33a26cb74eacd38244291919715a1bb1d6179d0290c95c52",
+      "officialSource": "https://archive.ubuntu.com/ubuntu/pool/main/n/needrestart/needrestart_3.6-7ubuntu4.5_all.deb"
+    }
+  },
+  "aptImplementation": {
+    "url": "https://archive.ubuntu.com/ubuntu/pool/main/a/apt/apt_2.8.3.tar.xz",
+    "sha256": "088522b3613b28fdbcfa61f1f7e476bf6dc6b0120a8f74409e9527580c9f9d3b",
+    "dsc": "https://archive.ubuntu.com/ubuntu/pool/main/a/apt/apt_2.8.3.dsc",
+    "dscSha256": "1d41cd04115e1a79f0fa4d738e5c34603ae8a4f40122d8a18a622fd6d20a5523",
+    "dscSha256Match": true
+  }
+}

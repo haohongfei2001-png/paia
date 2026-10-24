@@ -1,0 +1,164 @@
+TAP version 13
+# Subtest: Organize signed native source original sender and atomic result
+ok 1 - Organize signed native source original sender and atomic result
+  ---
+  duration_ms: 2715.023291
+  type: 'test'
+  ...
+# {"variant":"source","browser":"155.0.8059.85","native":true,"senders":2,"physical":1,"job":"COMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize signed native release original sender and atomic result
+ok 2 - Organize signed native release original sender and atomic result
+  ---
+  duration_ms: 4023.36625
+  type: 'test'
+  ...
+# {"variant":"release","browser":"155.0.8059.85","native":true,"senders":2,"physical":1,"job":"COMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native source last Topic fence control
+ok 3 - Organize native source last Topic fence control
+  ---
+  duration_ms: 3900.515542
+  type: 'test'
+  ...
+# {"variant":"source","mode":"control","terminal":{"attached":1,"hit":0,"events":[{"kind":"complete","trusted":true}]},"physical":2,"job":"COMMITTED"}
+# Subtest: Organize native source last Topic fence synchronous
+ok 4 - Organize native source last Topic fence synchronous
+  ---
+  duration_ms: 3915.759917
+  type: 'test'
+  ...
+# {"variant":"source","mode":"synchronous","terminal":{"attached":1,"hit":1,"events":[{"kind":"invalidate"},{"kind":"abort","trusted":true}]},"physical":2,"job":"RESPONSE_RECORDED"}
+# Subtest: Organize native source last Topic fence queued
+ok 5 - Organize native source last Topic fence queued
+  ---
+  duration_ms: 3277.828833
+  type: 'test'
+  ...
+# {"variant":"source","mode":"queued","terminal":{"attached":1,"hit":1,"events":[{"kind":"invalidate"},{"kind":"abort","trusted":true}]},"physical":2,"job":"RESPONSE_RECORDED"}
+# Subtest: Organize native release last Topic fence control
+ok 6 - Organize native release last Topic fence control
+  ---
+  duration_ms: 2920.323042
+  type: 'test'
+  ...
+# {"variant":"release","mode":"control","terminal":{"attached":1,"hit":0,"events":[{"kind":"complete","trusted":true}]},"physical":2,"job":"COMMITTED"}
+# Subtest: Organize native release last Topic fence synchronous
+ok 7 - Organize native release last Topic fence synchronous
+  ---
+  duration_ms: 2682.347208
+  type: 'test'
+  ...
+# {"variant":"release","mode":"synchronous","terminal":{"attached":1,"hit":1,"events":[{"kind":"invalidate"},{"kind":"abort","trusted":true}]},"physical":2,"job":"RESPONSE_RECORDED"}
+# Subtest: Organize native release last Topic fence queued
+ok 8 - Organize native release last Topic fence queued
+  ---
+  duration_ms: 2687.469333
+  type: 'test'
+  ...
+# {"variant":"release","mode":"queued","terminal":{"attached":1,"hit":1,"events":[{"kind":"invalidate"},{"kind":"abort","trusted":true}]},"physical":2,"job":"RESPONSE_RECORDED"}
+# Subtest: Organize native source held provider invalidate
+ok 9 - Organize native source held provider invalidate
+  ---
+  duration_ms: 1717.374333
+  type: 'test'
+  ...
+# {"variant":"source","mode":"invalidate","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native source held provider close
+ok 10 - Organize native source held provider close
+  ---
+  duration_ms: 1789.019375
+  type: 'test'
+  ...
+# {"variant":"source","mode":"close","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native source held provider edit
+ok 11 - Organize native source held provider edit
+  ---
+  duration_ms: 2600.221625
+  type: 'test'
+  ...
+# {"variant":"source","mode":"edit","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native source held provider undo
+ok 12 - Organize native source held provider undo
+  ---
+  duration_ms: 2663.728625
+  type: 'test'
+  ...
+# {"variant":"source","mode":"undo","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native release held provider invalidate
+ok 13 - Organize native release held provider invalidate
+  ---
+  duration_ms: 1809.4605
+  type: 'test'
+  ...
+# {"variant":"release","mode":"invalidate","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native release held provider close
+ok 14 - Organize native release held provider close
+  ---
+  duration_ms: 1843.829875
+  type: 'test'
+  ...
+# {"variant":"release","mode":"close","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native release held provider edit
+ok 15 - Organize native release held provider edit
+  ---
+  duration_ms: 2677.339708
+  type: 'test'
+  ...
+# {"variant":"release","mode":"edit","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native release held provider undo
+ok 16 - Organize native release held provider undo
+  ---
+  duration_ms: 2592.461708
+  type: 'test'
+  ...
+# {"variant":"release","mode":"undo","physical":1,"job":"EXPIRED_UNCOMMITTED","bridge":{"requests":8,"aborts":0,"errors":[]}}
+# Subtest: Organize native real 30-second selection expiry and separate 35-second HTTP abort
+ok 17 - Organize native real 30-second selection expiry and separate 35-second HTTP abort
+  ---
+  duration_ms: 37425.208541
+  type: 'test'
+  ...
+# {"elapsed":35271.1845,"job":"OUTCOME_UNKNOWN","bridge":{"requests":6,"aborts":1,"errors":[]}}
+# Subtest: Organize native retained CAS result needs fresh action after real first deadline and no extra provider
+ok 18 - Organize native retained CAS result needs fresh action after real first deadline and no extra provider
+  ---
+  duration_ms: 31828.33775
+  type: 'test'
+  ...
+# {"elapsed":30202.060708000005,"sameJob":true,"physical":1}
+# Subtest: configured original source UI click reaches original worker action and saved candidate
+ok 19 - configured original source UI click reaches original worker action and saved candidate
+  ---
+  duration_ms: 3114.127958
+  type: 'test'
+  ...
+# {"variant":"source","trustedClick":true,"originalWorker":true,"physical":1,"candidate":true}
+# Subtest: configured original release UI click reaches original worker action and saved candidate
+ok 20 - configured original release UI click reaches original worker action and saved candidate
+  ---
+  duration_ms: 4454.061208
+  type: 'test'
+  ...
+# {"variant":"release","trustedClick":true,"originalWorker":true,"physical":1,"candidate":true}
+# Subtest: configured original source UI stop refuses a late result without another attempt
+ok 21 - configured original source UI stop refuses a late result without another attempt
+  ---
+  duration_ms: 2569.293583
+  type: 'test'
+  ...
+# {"variant":"source","stopped":true,"candidate":false,"physical":1,"status":"上一次请求结果未知，为避免重复收费已暂停。请核对当前内容后，再决定是否重试生成 AI整理"}
+# Subtest: configured original release UI stop refuses a late result without another attempt
+ok 22 - configured original release UI stop refuses a late result without another attempt
+  ---
+  duration_ms: 2425.273625
+  type: 'test'
+  ...
+# {"variant":"release","stopped":true,"candidate":false,"physical":1,"status":"上一次请求结果未知，为避免重复收费已暂停。请核对当前内容后，再决定是否重试生成 AI整理"}
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113456.560083

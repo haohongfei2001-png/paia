@@ -47,7 +47,7 @@ test('retired signals reject even old valid enum events without examining privat
 
 test('Universal Search remains a read coordinator, not another persistence or network layer',()=>{
  const core=fs.readFileSync(new URL('../core/universal-search.js',import.meta.url),'utf8');
- const store=fs.readFileSync(new URL('../core/organizer/store.js',import.meta.url),'utf8');
+ const store=fs.readFileSync(new URL('../core/organizer/store-owner.js',import.meta.url),'utf8');
  assert.equal(/\.put\s*\(|objectStore|indexedDB|fetch\s*\(|XMLHttpRequest|WebSocket/.test(core),false);
  assert.match(store,/o\?\.universal===true/);assert.match(store,/new UniversalSearchService/);
  assert.equal(/embedding|vector/i.test(core),false);

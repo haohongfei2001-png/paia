@@ -1,0 +1,38 @@
+TAP version 13
+# Subtest: native actual metadata cumulative read bound source
+ok 1 - native actual metadata cumulative read bound source
+  ---
+  duration_ms: 3231.761125
+  type: 'test'
+  ...
+# {"variant":"source","requests":4096,"passes":454,"error":"BUDGET_EXCEEDED","refused":true,"current":false,"elapsed":1012.7000000001863}
+# Subtest: native actual metadata cumulative read bound release
+ok 2 - native actual metadata cumulative read bound release
+  ---
+  duration_ms: 7813.336084
+  type: 'test'
+  ...
+# {"variant":"release","requests":4096,"passes":454,"error":"BUDGET_EXCEEDED","refused":true,"current":false,"elapsed":1521.6000000005588}
+# Subtest: native actual authorized material cumulative 2MiB bound source
+ok 3 - native actual authorized material cumulative 2MiB bound source
+  ---
+  duration_ms: 2509.035333
+  type: 'test'
+  ...
+# {"variant":"source","passes":10,"bodyBytes":100030,"requests":622,"error":"BUDGET_EXCEEDED","byteOwner":true,"refused":true,"current":false}
+# Subtest: native actual authorized material cumulative 2MiB bound release
+ok 4 - native actual authorized material cumulative 2MiB bound release
+  ---
+  duration_ms: 2561.558875
+  type: 'test'
+  ...
+# {"variant":"release","passes":10,"bodyBytes":100030,"requests":594,"error":"BUDGET_EXCEEDED","byteOwner":true,"refused":true,"current":false}
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16571.739417

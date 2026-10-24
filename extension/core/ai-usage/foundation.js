@@ -1,3 +1,4 @@
+import {beginOriginalOrganizePlan,qualifyOriginalOrganizePlanTransaction,assertOriginalOrganizePlanFacts,releaseOriginalOrganizePlan} from '../organizer/organize-plan-source.js';
 import {sourcePresent} from '../thought-source-presence.js';
 import {readMaintenanceQualifiedSourcePresence} from './maintenance-qualification.js';
 import {needsMaintenanceProcessingContext} from './maintenance-processing-source-denial.js';
@@ -183,9 +184,10 @@ export class AIUsageFoundation {
   await assertAssistIntent(this,t,job);
   await assertOrganizeStyle(this.s,t,job);
  }
- async plan(request){
+ async plan(request,sourcePlan=null){
   // Capture caller-owned evidence before any authority or storage await.
-  request=structuredClone(request);
+  request=sourcePlan!==null?beginOriginalOrganizePlan(sourcePlan,this.s,request):structuredClone(request);
+  try{
   exact(request,['type','items','coverage','children','contractVersion','routeVersion','intent','organizeStyle','organizeRequestKey','maintenanceRequestKey','assistIntent','commitMode','replyObligation','historicalIntent','candidateObligation'],['type','items','coverage','contractVersion','routeVersion','intent']);
   const {type,items,contractVersion,routeVersion,intent}=request;
   if(!validOrganizeRequestKey(request))fail();const organizeRequest=Object.hasOwn(request,'organizeRequestKey')?{organizeRequestKey:request.organizeRequestKey}:{};
@@ -222,6 +224,7 @@ export class AIUsageFoundation {
   const flightId='aiu:flight:'+await digest([snapshot.authority.principalId,snapshot.authority.libraryId,type,type==='AI_MAINTENANCE'?'library':candidates?'historical-candidates':targetScopes]);
   const proposed={...organizeRequest,...maintenanceRequest,...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:reply?ASSIST_RESULT_KIND:candidates?HISTORICAL_CANDIDATE_KIND:atomic?ATOMIC:KIND,...(reply?{replyObligation,resultCommitted:false}:candidates?{candidateObligation,historicalIntent,resultCommitted:false}:{}),...(atomic?{commitMode:request.commitMode}:{}),type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,scopeFingerprint,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
   let created=false;const result=await this.write(async t=>{
+   if(sourcePlan!==null)await qualifyOriginalOrganizePlanTransaction(sourcePlan,this.s,t,request);
    await this.current(t,proposed);
    const prior=await t.get('organizerJobs',id);if(prior){if(!knownJob(prior)||prior.kind!==proposed.kind)fail();if(prior.organizeRequestKey!==proposed.organizeRequestKey||prior.maintenanceRequestKey!==proposed.maintenanceRequestKey)fail('RESULT_BINDING_MISMATCH');
     if(!equal(prior.authority,proposed.authority)&&prior.cancelEpoch===0&&['PLANNED','RESERVED'].includes(prior.state)){
@@ -256,7 +259,8 @@ export class AIUsageFoundation {
    if(atomic&&allCovered.length)fail('STALE_BASE');
    proposed.committedCoverage=allCovered;await t.put('organizerJobs',proposed);await t.put('meta',{id:flightId,jobId:id});created=true;return safeJob(proposed);
   });
-  if(created&&type==='AI_MAINTENANCE')this.#createdMaintenancePlans.set(result,canonical({id,authority:proposed.authority,coverage:proposed.coverage,childIds:proposed.childIds}));return result;
+  if(sourcePlan!==null)assertOriginalOrganizePlanFacts(sourcePlan,this.s);
+  if(created&&type==='AI_MAINTENANCE')this.#createdMaintenancePlans.set(result,canonical({id,authority:proposed.authority,coverage:proposed.coverage,childIds:proposed.childIds}));return result;  }finally{if(sourcePlan!==null)releaseOriginalOrganizePlan(sourcePlan);}
  }
  async #putJob(t,job){
   const receipt=await domainResultReceipt(t,job);
@@ -951,10 +955,23 @@ export class AIUsageFoundation {
  async commitFacet(id,childId,{facet,units,outcome='COMMITTED',retryCondition=null}={}){
   units=structuredClone(units);
   if(!['COMMITTED','NO_CHANGE','DEFER'].includes(outcome)||retryCondition!==null&&!opaque(retryCondition))fail();
-  return this.write(async t=>{const job=await this.job(t,id);if(atomicJob(job)||isPrivateResultJob(job))fail();await this.current(t,job);const index=job.childIds.indexOf(childId),receipt=await t.get('organizerUsage',receiptId(childId));
-   if(index<0||!receipt||receipt.jobId!==id||!['RESPONSE_RECORDED','VALIDATED','COMMITTED'].includes(receipt.state))fail();
-   return this.applyFacet(t,job,index,{facet,units,outcome,retryCondition});
-  });
+  return this.write(async t=>this.#commitFacetInTransaction(t,await this.job(t,id),childId,{facet,units,outcome,retryCondition}));
+ }
+ async #commitFacetInTransaction(t,job,childId,options){
+  if(atomicJob(job)||isPrivateResultJob(job))fail();await this.current(t,job);const index=job.childIds.indexOf(childId),receipt=await t.get('organizerUsage',receiptId(childId));
+  if(index<0||!receipt||receipt.jobId!==job.id||!['RESPONSE_RECORDED','VALIDATED','COMMITTED'].includes(receipt.state))fail();
+  return this.applyFacet(t,job,index,options);
+ }
+ // Fixed internal seam for the Session's original paid Context DEFER groups.
+ // The Session owns the old receipt and registers its closed Repository fence;
+ // this method accepts neither a receipt override nor an optional callback.
+ async deferMaintenanceContextInTransaction(t,id,childId,options={}){
+  exact(options,['units','retryCondition']);let {units,retryCondition}=options;
+  const repository=this.s.repository,identity=requireRepositoryTransactionScope(repository,t);
+  if(identity.mode!=='readwrite'||identity.database!==repository.db)fail('STALE_BASE');
+  units=structuredClone(units);if(!opaque(retryCondition))fail();
+  const job=await this.job(t,id);if(job.type!=='AI_MAINTENANCE')fail();
+  return this.#commitFacetInTransaction(t,job,childId,{facet:'context',units,outcome:'DEFER',retryCondition});
  }
  // Trusted feature callback alone supplies private output and synchronous fence.
  async commitAssistResult(id){
@@ -1005,7 +1022,8 @@ export class AIUsageFoundation {
    if(result?.committed!==true||!equal((result.coverage||[]).map(unitKey).sort(),job.coverage.map(unitKey).sort()))fail('STALE_BASE');
    await this.current(t,job);
    if(typeof result.isCurrent!=='function'||result.isCurrent()!==true)fail('STALE_BASE');
-   for(let i=0;i<job.childIds.length;i++)await this.settleFacet(t,job,i,job.childCoverage[i],{outcome:'COMMITTED'});
+   if(Object.hasOwn(result,'outcome')&&!['COMMITTED','NO_CHANGE'].includes(result.outcome))fail('STALE_BASE');
+   for(let i=0;i<job.childIds.length;i++)await this.settleFacet(t,job,i,job.childCoverage[i],{outcome:result.outcome??'COMMITTED'});
    if(result.isCurrent()!==true)fail('STALE_BASE');
    return safeJob(job);
   });
@@ -1024,6 +1042,7 @@ export class AIUsageFoundation {
    // Optional private owner fence. It is supplied only by a trusted committer,
    // never a request/provider DTO; promises and nonfunctions fail closed.
    const assertOwner=()=>{if(Object.hasOwn(result,'isCurrent')&&(typeof result.isCurrent!=='function'||result.isCurrent()!==true))fail('STALE_BASE');};
+   if(Object.hasOwn(result,'outcome')){if(job.type!=='AI_ORGANIZE'||facet!=='organize'||!['COMMITTED','NO_CHANGE'].includes(result.outcome))fail('STALE_BASE');outcome=result.outcome;}
    assertOwner();const settled=await this.settleFacet(t,job,index,remaining,{outcome,local});assertOwner();
    // Trusted owner only, never serialized or accepted from a request/provider.
    // This fence follows every settlement write, including NO_CHANGE counters;

@@ -6,14 +6,14 @@ import {assertSourceWorkingSpecialScalars} from './source-working-derived.js';
 import {defaults} from '../workspace.js';
 import {CONSENT_VERSION} from '../constants.js';
 import {FILTER_VERSIONS} from '../smart-filter.js';
-import {REVISION_POLICY} from '../ia-store.js';
+import {REVISION_POLICY} from '../ia-store-owner.js';
 import {deltaDescription,deltaSignature,KNOWN_PREFIX,DIRTY_PREFIX,DELTA_COUNTER,HUMAN_FENCE,observeSemanticChange,semanticDeltaLiveEligible,planSemanticDeltaWrite} from '../ai-usage/delta.js';
 import {requireOriginalCurrentMixedGroupScope,originalMixedRestoredMetadataReplay} from './group-checkpoint-scope.js';
 import {consumeOriginalMixedManualMeta} from './group-checkpoint-scope.js';
 import {requireOriginalMixedNativeBodiesConsumed,originalMixedNativeDerivedMetaIds} from './human-library-plan.js';
 import {checkCurrentGroupProtocolRows} from './current-group-protocol-rows.js';
 import {physical} from './human-library-journal.js';
-import {planInitialFilter} from '../smart-filter-store.js';
+import {planInitialFilter} from '../smart-filter-store-owner.js';
 import {equal,exact,hash,count,opaque,fail} from './value.js';
 
 const refuse=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
