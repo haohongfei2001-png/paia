@@ -18,6 +18,18 @@ const editable=card=>['info','rules','now'].includes(card);
 const itemCopy={info:{add:['添加信息','Add information'],placeholder:['写下一条信息…','Write some information…'],section:['补充信息','Additional information']},rules:{add:['添加规则','Add rule'],placeholder:['写下一条规则…','Write a rule…'],section:['工作方式','Ways of working']},now:{add:['添加当前状态','Add current focus'],placeholder:['写下当前的重点…','Write your current focus…'],section:['阶段重点','Current priorities']}};
 const button=(text,fn,className='')=>{const b=element('button',className,text);b.type='button';b.onclick=fn;return b;};
 
+// A committed mutation may finish later, but focus still belongs to the latest
+// user gesture. Keep this lease local to the original page and release it on
+// every outcome; it never cancels or rolls back the durable mutation.
+function completionFocus(page,origin){
+ const generation=page.openGeneration,card=page.card,root=page.page,epoch=page.snapshot?.epoch,controller=new AbortController();
+ const inside=()=>!document.activeElement||document.activeElement===document.body||origin?.contains(document.activeElement);
+ let intended=inside();const cancel=()=>{intended=false;},options={capture:true,signal:controller.signal};
+ for(const event of ['pointerdown','keydown','beforeinput','input','compositionstart'])document.addEventListener(event,cancel,options);
+ document.addEventListener('focusin',event=>{if(!origin?.contains(event.target))cancel();},options);
+ return {current:()=>intended&&page.active&&page.openGeneration===generation&&page.card===card&&page.page===root&&page.snapshot?.epoch===epoch&&inside(),close:()=>controller.abort()};
+}
+
 // Fixed presentation copy and decorative paths from the approved white Context original.
 // These describe cards, never infer categories or facts from private Items.
 const detailDescriptions={info:['让 AI 了解你的背景。这里的内容，由你直接维护。','Let AI understand your background. You maintain this content directly.'],rules:['告诉 AI 怎样与你一起工作。不是更多指令，而是更合适的回答。','Tell AI how to work with you, for more suitable answers.'],now:['留下此刻重要的事。重点变化时，直接修改这里。','Keep what matters now. Edit this when your priorities change.'],inputs:['按主题选择，不必重复整理。未开放的内容，仍然只有你自己能看。','Choose by Topic without reorganizing. Unselected content stays private.']};
@@ -108,7 +120,24 @@ export class ContextItemEditor {
    return copied===true;
   }finally{this.copying=false;}
  }
- async undo(){this.reorderSelection=null;this.menu.open=false;if(!await this.flush())return;const prior=this.journal.undo.at(-1);if(!prior||!prior.body.trim())return;this.local=prior.body;this.field.textContent=prior.body;this.changed();this.undoOperationId=this.operation().operationId;await this.flush(true);this.field.focus();}
+ async undo(){
+  this.reorderSelection=null;this.menu.open=false;
+  const generation=this.page.openGeneration,epoch=this.epoch,editEpoch=this.copyEpoch||0,body=this.field.innerText;
+  // Selection commands need not emit a pointer/key event. Compare the actual
+  // range after flush; a delayed no-op selectionchange must not cancel Undo.
+  const selectionKeys=['rangeCount','anchorNode','anchorOffset','focusNode','focusOffset','isCollapsed'],selection=globalThis.getSelection?.(),range=selectionKeys.map(key=>selection?.[key]);
+  const sameSelection=()=>{const current=globalThis.getSelection?.();return selectionKeys.every((key,index)=>current?.[key]===range[index]);};
+  const live=()=>!this.disposed&&this.page.active&&this.page.openGeneration===generation&&this.epoch===epoch&&this.page.editors.get(this.id)===this;
+  if(!live()||this.composing)return;
+  const focus=completionFocus(this.page,this.root);
+  try{
+   if(!await this.flush()||!live()||this.composing||this.dirty()||this.conflicted||(this.copyEpoch||0)!==editEpoch||this.field.innerText!==body||!sameSelection()||!focus.current())return;
+   const prior=this.journal.undo.at(-1);if(!prior||!prior.body.trim())return;
+   this.local=prior.body;this.field.textContent=prior.body;this.changed();this.undoOperationId=this.operation().operationId;
+   const appliedEpoch=this.copyEpoch||0;await this.flush(true);
+   if(live()&&!this.composing&&(this.copyEpoch||0)===appliedEpoch&&focus.current())this.field.focus();
+  }finally{focus.close();}
+ }
  dispose(){this.disposed=true;this.temporalStatus?.dispose();this.basis?.close();this.copyFeedback.replaceChildren();this.autosave.dispose();this.surface.dispose();}
 }
 
@@ -129,7 +158,7 @@ export class ContextCardsPage {
    this.localizeEditable();this.paintAccess();const maintenance=this.page.querySelector('.maintenance');if(maintenance)maintenance.textContent=this.maintenanceText();this.connectionsView?.update(snapshot.connectionStatus);
    if(!this.card)this.paintHomeEntries();
    else if(editable(this.card)){
-    for(const [id,editor]of this.editors){const item=snapshot.items.find(x=>x.id===id&&x.card===this.card);editor.outsideCard=snapshot.items.some(x=>x.id===id&&x.card!==this.card);editor.receive(item,snapshot.epoch);if(!item&&!editor.fresh&&!editor.dirty()&&!editor.composing&&!editor.saving&&!editor.commit.pending&&!editor.recoveryPending){editor.dispose();editor.root.remove();this.editors.delete(id);}}
+    for(const [id,editor]of this.editors){const item=snapshot.items.find(x=>x.id===id&&x.card===this.card);editor.outsideCard=snapshot.items.some(x=>x.id===id&&x.card!==this.card);editor.receive(item,snapshot.epoch);if(!item&&!editor.fresh&&!editor.dirty()&&!editor.composing&&!editor.saving&&!editor.commit.pending&&!editor.recoveryPending&&!editor.conflicted){editor.dispose();editor.root.remove();this.editors.delete(id);}}
     for(const item of snapshot.items)if(item.card===this.card&&!this.editors.has(item.id))this.mountItem(item);
     this.orderItems();this.paintEmpty();
    }else if(this.inputs){this.inputs.setAccess(snapshot.access);await this.inputs.refresh();}
@@ -342,8 +371,44 @@ export class ContextCardsPage {
   // Awaited saves leave the original editor editable. Composition may have
   // started without changing local/dirty; never consume that newer intent.
   if(this.busy||!live()||editor.composing||editor.saving||editor.commit.pending||editor.conflicted||editor.local.trim()&&editor.dirty())return;
-  editor.menu.open=false;if(editor.fresh){if(!await editor.clearDraft())return;if(this.busy||!live()||editor.composing||editor.dirty())return;editor.dispose();editor.root.remove();this.editors.delete(editor.id);this.paintEmpty();return;}this.busy=true;try{const ack=await this.deleteCommit.save({kind:'delete',operationId:crypto.randomUUID(),epoch:this.snapshot.epoch,itemId:editor.id,expectedRevision:editor.saved.revision});if(!ack.result.ok){editor.conflicted=true;editor.feedbackFailure(true);return;}if(ack.change.kind!=='delete'||ack.change.itemId!==editor.id||ack.result.itemId!==editor.id||ack.result.lifecycle!=='removed')throw Error('SAVE_OUTCOME_UNKNOWN');await editor.recovery.clear().catch(()=>{});editor.dispose();editor.root.remove();this.editors.delete(editor.id);this.journal.record({itemId:ack.result.itemId,revision:ack.result.revision,deletedBy:ack.result.deletedBy});await this.refresh({force:true});this.notice(copy('已删除，不会自动加回。','Deleted. It will not be automatically restored.'),true);this.add.focus();}catch{this.unconfirmed(copy('删除尚未确认，请核对上次操作。','Deletion is unconfirmed. Check the previous operation.'));}finally{this.busy=false;}}
- async undoDelete(){if(this.busy)return;const prior=this.journal.undo.at(-1);if(!prior)return;this.busy=true;try{const ack=await this.deleteCommit.save({kind:'restore',operationId:crypto.randomUUID(),epoch:this.snapshot.epoch,itemId:prior.itemId,expectedRevision:prior.revision,deletedBy:prior.deletedBy});if(!ack.result.ok||ack.change.kind!=='restore'||ack.result.itemId!==prior.itemId||ack.result.lifecycle!=='active')throw Error('conflict');this.journal.undo.pop();await this.refresh({force:true});this.notice(copy('已撤销删除。','Deletion undone.'));this.editors.get(prior.itemId)?.field.focus();}catch{this.unconfirmed(copy('撤销尚未保存，请核对上次操作。','Undo has not been saved. Check the previous operation.'));}finally{this.busy=false;}}
+  editor.menu.open=false;if(editor.fresh){if(!await editor.clearDraft())return;if(this.busy||!live()||editor.composing||editor.dirty())return;editor.dispose();editor.root.remove();this.editors.delete(editor.id);this.paintEmpty();return;}
+  const epoch=this.snapshot.epoch,root=this.page,body=editor.field.innerText,editEpoch=editor.copyEpoch||0,token=editor.recovery.currentToken;
+  const pageLive=()=>this.active&&this.openGeneration===generation&&this.card===card&&this.page===root&&this.snapshot?.epoch===epoch;
+  const focus=completionFocus(this,editor.root);this.busy=true;
+  try{
+   const ack=await this.deleteCommit.save({kind:'delete',operationId:crypto.randomUUID(),epoch,itemId:editor.id,expectedRevision:editor.saved.revision});
+   if(!live()||!pageLive())return;
+   if(!ack.result.ok){editor.conflicted=true;editor.feedbackFailure(true);return;}
+   if(ack.change.kind!=='delete'||ack.change.itemId!==editor.id||ack.result.itemId!==editor.id||ack.result.lifecycle!=='removed')throw Error('SAVE_OUTCOME_UNKNOWN');
+   // Never clear the token acquired by a newer edit, including one protected
+   // before the deletion committed. Removed Items gain no recovery authority.
+   if(token)await editor.recovery.discard(token).catch(()=>{});
+   if(!live()||!pageLive())return;
+   const retained=editor.composing||(editor.copyEpoch||0)!==editEpoch||editor.field.innerText!==body||editor.saving||editor.commit.pending||editor.conflicted;
+   if(retained){if(!editor.composing)editor.collect();editor.autosave.cancel();editor.conflicted=true;editor.feedbackFailure(true);}
+   else{editor.dispose();editor.root.remove();this.editors.delete(editor.id);}
+   this.journal.record({itemId:ack.result.itemId,revision:ack.result.revision,deletedBy:ack.result.deletedBy});
+   await this.refresh({force:true});if(!pageLive())return;
+   this.notice(copy('已删除，不会自动加回。','Deleted. It will not be automatically restored.'),true);
+   if(!retained&&focus.current())this.add.focus();
+  }catch{if(pageLive())this.unconfirmed(copy('删除尚未确认，请核对上次操作。','Deletion is unconfirmed. Check the previous operation.'));}
+  finally{focus.close();this.busy=false;}
+ }
+ async undoDelete(){
+  if(this.busy)return;const prior=this.journal.undo.at(-1);if(!prior)return;
+  const generation=this.openGeneration,card=this.card,root=this.page,epoch=this.snapshot.epoch;
+  const live=()=>this.active&&this.openGeneration===generation&&this.card===card&&this.page===root&&this.snapshot?.epoch===epoch;
+  const focus=completionFocus(this,this.message);this.busy=true;
+  try{
+   const ack=await this.deleteCommit.save({kind:'restore',operationId:crypto.randomUUID(),epoch,itemId:prior.itemId,expectedRevision:prior.revision,deletedBy:prior.deletedBy});
+   if(!live())return;
+   if(!ack.result.ok||ack.change.kind!=='restore'||ack.result.itemId!==prior.itemId||ack.result.lifecycle!=='active')throw Error('conflict');
+   if(this.journal.undo.at(-1)===prior)this.journal.undo.pop();await this.refresh({force:true});if(!live())return;
+   const restoreFocus=focus.current();this.notice(copy('已撤销删除。','Deletion undone.'));const editor=this.editors.get(prior.itemId);
+   if(editor&&!editor.disposed&&!editor.composing&&!editor.dirty()&&!editor.conflicted&&restoreFocus)editor.field.focus();
+  }catch{if(live())this.unconfirmed(copy('撤销尚未保存，请核对上次操作。','Undo has not been saved. Check the previous operation.'));}
+  finally{focus.close();this.busy=false;}
+ }
  async keepConflict(editor){
   if(this.busy||editor.composing)return;const text=editor.local;if(!text.trim())return;
   // Commit the replacement independently before touching the original draft.

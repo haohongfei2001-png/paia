@@ -51,7 +51,7 @@ async function fixture(run,{seed=true}={}){
  const items=seed?cards.map(card=>put(card)):[];
  for(const item of items)await c.change(item);
  const body=new Node('body'),documentListeners=new Map();
- globalThis.document={addEventListener(type,listener){if(!documentListeners.has(type))documentListeners.set(type,[]);documentListeners.get(type).push(listener);},removeEventListener(type,listener){const listeners=documentListeners.get(type)||[];documentListeners.set(type,listeners.filter(value=>value!==listener));},dispatchEvent(event){for(const listener of documentListeners.get(event.type)||[])listener(event);},body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
+ globalThis.document={addEventListener(type,listener,options={}){if(options.signal?.aborted)return;if(!documentListeners.has(type))documentListeners.set(type,[]);documentListeners.get(type).push(listener);options.signal?.addEventListener('abort',()=>this.removeEventListener(type,listener),{once:true});},removeEventListener(type,listener){const listeners=documentListeners.get(type)||[];documentListeners.set(type,listeners.filter(value=>value!==listener));},dispatchEvent(event){for(const listener of documentListeners.get(event.type)||[])listener(event);},body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
  const dispatch=async message=>{
   switch(message.type){
    case 'PAIA_CONTEXT_CARDS_SNAPSHOT':return c.snapshot(message.mode);
@@ -67,7 +67,7 @@ async function fixture(run,{seed=true}={}){
  const transport={dispatch};
  globalThis.chrome={runtime:{sendMessage:async message=>{calls.push(structuredClone(message));try{return {ok:true,data:await transport.dispatch(message)};}catch(error){return {ok:false,error:error.code||'STORAGE_FAILED'};}}}};
  const makePage=()=>{const host=new Node('main');body.append(host);const page=new ContextCardsPage({host,onNavigate:card=>navigations.push(card)});pages.push(page);return page;};
- try{await run({s,c,recovery,calls,navigations,items,transport,dispatch,makePage});}
+ try{await run({s,c,recovery,calls,navigations,items,transport,dispatch,makePage,documentListeners});}
  finally{for(const page of pages)page.close();await tick();for(const [key,value]of globals)if(value)Object.defineProperty(globalThis,key,value);else delete globalThis[key];}
 }
 
@@ -926,4 +926,180 @@ test('Now restored unsaved draft hides saved automatic expiry without changing i
  editor.saved={...editor.saved,origin:'automatic',protected:false,userEdited:false,maintenance:{temporal:{temporalScope:null,uncertainty:null,validUntil:'2020-01-01T00:00:00.000Z'}}};const before=structuredClone(editor.saved);editor.temporalStatus.refresh();assert.equal(editor.temporalNode.hidden,false);
  const change={...put('now'),itemId:editor.id,expectedRevision:editor.saved.revision,body:'SYNTHETIC protected recovered human draft'};await recovery.save(draft(change));await editor.recover();
  assert.equal(editor.local,change.body);assert.equal(editor.field.textContent,change.body);assert.equal(editor.temporalNode.hidden,true);assert.deepEqual(editor.saved,before);assert.equal(editor.dirty(),true);
+}));
+
+// Hold genuine Context mutation completion, not a mocked controller or ACK.
+for(const card of cards)for(const kind of ['delete','restore'])for(const state of ['focus','draft','composing'])test(`CTX4-02 ${card} held ${kind} ACK preserves newer sibling ${state} intent`,()=>fixture(async({c,recovery,makePage,transport,dispatch,calls})=>{
+ const second=put(card,{body:'SYNTHETIC sibling saved body'});await c.change(second);
+ const page=makePage();await page.open(card);await tick();
+ const target=[...page.editors.values()].find(editor=>editor.id!==second.itemId),sibling=page.editors.get(second.itemId);
+ if(kind==='restore')await page.remove(target);
+ const trigger=kind==='delete'?target.menu.querySelectorAll('button').find(node=>node.textContent==='Delete'):page.message.querySelector('button');trigger.focus();
+ const held=deferred(),entered=deferred();transport.dispatch=async message=>{const result=await dispatch(message);if(message.change?.kind===kind){entered.resolve(result);await held.promise;}return result;};
+ const previousSelection=Object.getOwnPropertyDescriptor(globalThis,'getSelection');let selection,writes=[];globalThis.getSelection=()=>selection;
+ try{
+  const settling=kind==='delete'?page.remove(target):page.undoDelete(),result=await entered.promise;
+  assert.equal(result.ok,true);assert.equal(result.lifecycle,kind==='delete'?'removed':'active');assert.equal(page.busy,true);
+  sibling.field.focus();document.dispatchEvent({type:'focusin',target:sibling.field});
+  const text=state==='focus'?sibling.saved.body:`SYNTHETIC newer sibling ${state} body`;
+  if(state==='composing')sibling.field.listeners.get('compositionstart')({});
+  if(state!=='focus'){sibling.field.textContent=text;sibling.field.listeners.get('input')({isComposing:state==='composing'});sibling.autosave.cancel();if(sibling.recovery.running)await sibling.recovery.running;}
+  const node=sibling.field.firstChild;selection={rangeCount:1,isCollapsed:false,anchorNode:node,anchorOffset:15,focusNode:node,focusOffset:3,setBaseAndExtent(...values){writes.push(values);}};
+  held.resolve();await settling;
+  assert.equal(page.editors.get(sibling.id),sibling);assert.equal(sibling.root.isConnected,true);assert.equal(sibling.field.textContent,text);
+  assert.equal(document.activeElement,sibling.field,'the committed mutation must not steal newer sibling focus');
+  assert.ok(writes.every(values=>values[0]===node&&values[1]===15&&values[2]===node&&values[3]===3),'refresh may preserve only the current selection');
+  assert.equal(selection.anchorNode,node);assert.equal(selection.focusNode,node);assert.equal(sibling.composing,state==='composing');
+  assert.equal(page.journal.undo.length,kind==='delete'?1:0);assert.equal(page.editors.has(target.id),kind==='restore');
+  assert.equal((await c.snapshot()).items.some(item=>item.id===target.id),kind==='restore');assert.equal(calls.filter(call=>call.change?.kind===kind).length,1);
+  if(state==='composing'){sibling.field.listeners.get('compositionend')({});sibling.autosave.cancel();if(sibling.recovery.running)await sibling.recovery.running;}
+  if(state!=='focus')assert.equal((await recovery.load('context_item',sibling.id)).operation.change.body,text);
+ }finally{held.resolve();if(previousSelection)Object.defineProperty(globalThis,'getSelection',previousSelection);else delete globalThis.getSelection;}
+}));
+
+for(const kind of ['delete','restore'])for(const phase of ['refresh','focus-return'])test(`CTX4-02 ${kind} completion respects newer intent through ${phase}`,()=>fixture(async({c,makePage,transport,dispatch})=>{
+ const second=put('info');await c.change(second);const page=makePage();await page.open('info');await tick();
+ const target=[...page.editors.values()].find(editor=>editor.id!==second.itemId),sibling=page.editors.get(second.itemId);
+ if(kind==='restore')await page.remove(target);
+ const trigger=kind==='delete'?target.menu.querySelector('summary'):page.message.querySelector('button');trigger.focus();
+ const held=deferred(),entered=deferred();transport.dispatch=async message=>{const result=await dispatch(message);if(phase==='refresh'?message.type==='PAIA_CONTEXT_CARDS_SNAPSHOT':message.change?.kind===kind){entered.resolve();await held.promise;}return result;};
+ try{const settling=kind==='delete'?page.remove(target):page.undoDelete();await entered.promise;
+  sibling.field.focus();document.dispatchEvent({type:'focusin',target:sibling.field});
+  if(phase==='refresh'){sibling.field.listeners.get('compositionstart')({});sibling.field.textContent='SYNTHETIC held-refresh composition';}
+  else{document.activeElement=document.body;document.dispatchEvent({type:'pointerdown',target:document.body});}
+  const focus=document.activeElement;held.resolve();await settling;
+  assert.equal(document.activeElement,focus,'later intent remains authoritative even after returning focus to body');assert.equal(page.editors.get(sibling.id),sibling);
+  assert.equal((await c.snapshot()).items.some(item=>item.id===target.id),kind==='restore');
+  if(phase==='refresh'){assert.equal(sibling.composing,true);assert.equal(sibling.field.textContent,'SYNTHETIC held-refresh composition');}
+ }finally{held.resolve();}
+}));
+
+for(const card of cards)test(`CTX4-02 ${card} unchanged delete and restore retain their normal focus destinations`,()=>fixture(async({makePage,calls})=>{
+ const page=makePage();await page.open(card);await tick();const target=[...page.editors.values()][0];target.menu.querySelector('summary').focus();
+ await page.remove(target);assert.equal(document.activeElement,page.add);assert.equal(page.journal.undo.length,1);
+ page.message.querySelector('button').focus();await page.undoDelete();assert.equal(document.activeElement,page.editors.get(target.id).field);assert.equal(page.journal.undo.length,0);
+ assert.deepEqual(calls.filter(call=>call.change?.kind==='delete'||call.change?.kind==='restore').map(call=>call.change.kind),['delete','restore']);
+}));
+
+for(const timing of ['before-commit','after-commit'])for(const state of ['draft','composing'])test(`CTX4-02 delete ACK retains newer target ${state} begun ${timing} without restoring the Item`,()=>fixture(async({c,recovery,makePage,transport,dispatch,calls})=>{
+ const page=makePage();await page.open('rules');await tick();const target=[...page.editors.values()][0],saved=structuredClone(target.saved),held=deferred(),entered=deferred();
+ // Match the production recovery admission: removed Items cannot acquire or
+ // reload recovery authority. Raw storage below is not a cold-recovery claim.
+ transport.dispatch=async message=>{
+  if(message.type==='PAIA_RECOVERY_DRAFT_SAVE')await c.recoverySources(message.draft);
+  if(message.change?.kind==='delete'){
+   if(timing==='before-commit'){entered.resolve();await held.promise;return dispatch(message);}
+   const result=await dispatch(message);entered.resolve();await held.promise;return result;
+  }return dispatch(message);
+ };
+ try{const removing=page.remove(target);await entered.promise;target.field.focus();
+  if(state==='composing')target.field.listeners.get('compositionstart')({});
+  const text=`SYNTHETIC newer target ${state} ${timing}`;target.field.textContent=text;target.field.listeners.get('input')({isComposing:state==='composing'});target.autosave.cancel();if(target.recovery.running)await target.recovery.running;
+  const newerToken=target.recovery.currentToken;
+  if(state==='draft'&&timing==='before-commit')assert.equal((await recovery.load('context_item',target.id)).token,newerToken);
+  if(state==='draft'&&timing==='after-commit')assert.equal(await recovery.load('context_item',target.id),null,'production refuses post-tombstone draft protection');
+  held.resolve();await removing;
+  assert.equal(page.editors.get(target.id),target,'a legitimate deletion ACK must not dispose newer live human text');assert.equal(target.root.isConnected,true);assert.equal(target.disposed,undefined);
+  assert.equal(target.field.textContent,text);assert.equal(target.composing,state==='composing');assert.equal(target.conflicted,true);assert.equal(document.activeElement,target.field);
+  assert.equal((await c.snapshot()).items.some(item=>item.id===target.id),false);assert.equal(page.journal.undo.length,1);assert.equal(target.saved.body,saved.body);
+  assert.equal(calls.filter(call=>call.change?.kind==='restore').length,0);assert.equal(calls.filter(call=>call.change?.kind==='put').length,0);
+  if(state==='draft'&&timing==='before-commit')assert.equal((await recovery.load('context_item',target.id)).token,newerToken,'delete completion must not clear the newer token');
+  await page.refresh();assert.equal(page.editors.get(target.id),target);assert.equal(await page.leave(),false);
+  if(state==='composing'){target.field.listeners.get('compositionend')({});target.autosave.cancel();if(target.recovery.running)await target.recovery.running;}
+  await page.keepConflict(target);
+  const snapshot=await c.snapshot();assert.equal(snapshot.items.some(item=>item.id===target.id),false);assert.equal(snapshot.items.filter(item=>item.body===text).length,1,'only explicit Keep as new creates an independent Item');assert.equal(page.editors.has(target.id),false);
+ }finally{held.resolve();}
+}));
+
+for(const card of cards)for(const state of ['composing','completed-composition'])test(`CTX4-02 ${card} edit undo rechecks newer ${state} intent after a held save`,()=>fixture(async({c,makePage,transport,dispatch,calls})=>{
+ const page=makePage();await page.open(card);await tick();const editor=[...page.editors.values()][0],held=deferred(),entered=deferred();
+ editor.field.textContent='SYNTHETIC pending saved B';editor.field.listeners.get('input')({isComposing:false});editor.autosave.cancel();if(editor.recovery.running)await editor.recovery.running;
+ transport.dispatch=async message=>{const result=await dispatch(message);if(message.change?.kind==='put'){entered.resolve();await held.promise;}return result;};
+ try{const saving=editor.flush();await entered.promise;const undoing=editor.undo();editor.field.focus();
+  if(state==='composing'){editor.field.listeners.get('compositionstart')({});editor.field.textContent='SYNTHETIC unfinished IME X';editor.field.listeners.get('input')({isComposing:true});}
+  else{editor.field.listeners.get('compositionstart')({});editor.field.listeners.get('compositionend')({});editor.autosave.cancel();if(editor.recovery.running)await editor.recovery.running;}
+  const text=editor.field.textContent;held.resolve();await Promise.all([saving,undoing]);
+  assert.equal(editor.field.textContent,text,'an old undo gesture cannot overwrite newer in-flight editor intent');assert.equal(editor.composing,state==='composing');
+  assert.equal((await c.snapshot()).items.find(item=>item.id===editor.id).body,'SYNTHETIC pending saved B');assert.equal(calls.filter(call=>call.change?.kind==='put').length,1,'the interrupted undo must not dispatch a second mutation');
+  assert.equal(editor.journal.undo.length,1,'the earlier edit remains available to a new explicit undo');
+ }finally{held.resolve();}
+}));
+
+for(const priorToken of [false,true])test(`CTX4-02 delete clears only its ${priorToken?'captured token':'absent token'} and retains admitted newer recovery`,()=>fixture(async({c,recovery,makePage,transport,dispatch,calls})=>{
+ const page=makePage();await page.open('info');await tick();const editor=[...page.editors.values()][0],held=deferred(),entered=deferred();
+ if(priorToken){const change=editor.operation();await c.recoverySources(draft(change));await editor.recovery.protect({type:'PAIA_CONTEXT_CARDS_CHANGE',change},change.operationId);}
+ const captured=editor.recovery.currentToken;
+ transport.dispatch=async message=>{if(message.type==='PAIA_RECOVERY_DRAFT_SAVE')await c.recoverySources(message.draft);if(message.change?.kind==='delete'){entered.resolve();await held.promise;}return dispatch(message);};
+ try{const removing=page.remove(editor);await entered.promise;editor.field.textContent='SYNTHETIC pretransaction protected B';editor.field.listeners.get('input')({isComposing:false});editor.autosave.cancel();if(editor.recovery.running)await editor.recovery.running;
+  const newer=await recovery.load('context_item',editor.id);assert.notEqual(newer.token,captured);held.resolve();await removing;
+  assert.equal(page.editors.get(editor.id),editor);assert.equal((await recovery.load('context_item',editor.id)).token,newer.token);
+  assert.deepEqual(calls.filter(call=>call.type==='PAIA_RECOVERY_DRAFT_CLEAR'&&call.draft.ownerId===editor.id).map(call=>call.draft.token),priorToken?[captured]:[]);
+  await assert.rejects(c.recoverySources(newer,{stored:true}),{code:'CONTEXT_INVALIDATED'},'preserved raw token does not grant removed-Item cold recovery');
+ }finally{held.resolve();}
+}));
+
+for(const location of ['sibling','target'])test(`CTX4-02 delete completion retains ${location} composition begun during exact recovery-token clear`,()=>fixture(async({c,makePage,transport,dispatch,calls})=>{
+ const second=put('rules');await c.change(second);const page=makePage();await page.open('rules');await tick();const target=[...page.editors.values()].find(editor=>editor.id!==second.itemId),sibling=page.editors.get(second.itemId),held=deferred(),entered=deferred();
+ const change=target.operation();await target.recovery.protect({type:'PAIA_CONTEXT_CARDS_CHANGE',change},change.operationId);
+ transport.dispatch=async message=>{if(message.type==='PAIA_RECOVERY_DRAFT_CLEAR'&&message.draft.ownerId===target.id){entered.resolve();await held.promise;}return dispatch(message);};
+ try{const removing=page.remove(target);await entered.promise;assert.equal((await c.snapshot()).items.some(item=>item.id===target.id),false);
+  const editor=location==='target'?target:sibling;editor.field.focus();document.dispatchEvent({type:'focusin',target:editor.field});editor.field.listeners.get('compositionstart')({});editor.field.textContent='SYNTHETIC composition during cleanup';
+  held.resolve();await removing;assert.equal(page.editors.get(editor.id),editor);assert.equal(editor.composing,true);assert.equal(editor.field.textContent,'SYNTHETIC composition during cleanup');assert.equal(document.activeElement,editor.field);
+  assert.equal(page.editors.has(target.id),location==='target');assert.equal(page.journal.undo.length,1);assert.equal(calls.filter(call=>call.change?.kind==='restore'||call.change?.kind==='put').length,0);
+ }finally{held.resolve();}
+}));
+
+test('CTX4-02 newer completed composition keeps a clean conflicted deleted editor through refresh until explicit discard',()=>fixture(async({makePage,transport,dispatch})=>{
+ const page=makePage();await page.open('now');await tick();const editor=[...page.editors.values()][0],held=deferred(),entered=deferred();
+ transport.dispatch=async message=>{const result=await dispatch(message);if(message.change?.kind==='delete'){entered.resolve();await held.promise;}return result;};
+ const previousWindow=Object.getOwnPropertyDescriptor(globalThis,'window');globalThis.window={confirm:()=>true};
+ try{const removing=page.remove(editor);await entered.promise;editor.field.listeners.get('compositionstart')({});editor.field.listeners.get('compositionend')({});if(editor.discarding)await editor.discarding;
+  assert.equal(editor.dirty(),false);held.resolve();await removing;assert.equal(editor.conflicted,true);assert.equal(page.editors.get(editor.id),editor);
+  await page.refresh();assert.equal(page.editors.get(editor.id),editor);assert.equal(await page.leave(),false);
+  assert.equal(await page.discardConflict(editor),true);assert.equal(page.editors.has(editor.id),false);
+ }finally{held.resolve();if(previousWindow)Object.defineProperty(globalThis,'window',previousWindow);else delete globalThis.window;}
+}));
+
+for(const state of ['typing','selection'])test(`CTX4-02 edit undo started during dirty save preserves later ${state}`,()=>fixture(async({c,makePage,transport,dispatch,calls})=>{
+ const page=makePage();await page.open('info');await tick();const editor=[...page.editors.values()][0],held=deferred(),entered=deferred();
+ editor.field.textContent='SYNTHETIC first B';editor.field.listeners.get('input')({isComposing:false});editor.autosave.cancel();if(editor.recovery.running)await editor.recovery.running;
+ let heldOnce=false;transport.dispatch=async message=>{const result=await dispatch(message);if(message.change?.kind==='put'&&!heldOnce){heldOnce=true;entered.resolve();await held.promise;}return result;};
+ const previousSelection=Object.getOwnPropertyDescriptor(globalThis,'getSelection');let selection;globalThis.getSelection=()=>selection;
+ try{editor.menu.querySelector('summary').focus();const undoing=editor.undo();await entered.promise;editor.field.focus();
+  if(state==='typing'){editor.field.textContent='SYNTHETIC newer C';editor.field.listeners.get('input')({isComposing:false});editor.autosave.cancel();if(editor.recovery.running)await editor.recovery.running;}
+  else{document.dispatchEvent({type:'keydown',target:editor.field,key:'ArrowLeft',shiftKey:true});const node=editor.field.firstChild;selection={rangeCount:1,isCollapsed:false,anchorNode:node,anchorOffset:8,focusNode:node,focusOffset:2};}
+  const text=editor.field.textContent,node=editor.field.firstChild;held.resolve();await undoing;
+  assert.equal(editor.field.textContent,text);assert.equal(editor.field.firstChild,node);assert.equal((await c.snapshot()).items.find(item=>item.id===editor.id).body,text);
+  assert.equal(calls.filter(call=>call.change?.kind==='put').length,state==='typing'?2:1);assert.equal(editor.journal.undo.length,state==='typing'?2:1);
+  if(state==='selection'){assert.equal(selection.anchorNode,node);assert.equal(selection.anchorOffset,8);assert.equal(selection.focusOffset,2);}
+ }finally{held.resolve();if(previousSelection)Object.defineProperty(globalThis,'getSelection',previousSelection);else delete globalThis.getSelection;}
+}));
+
+for(const kind of ['delete','restore'])for(const boundary of ['close','reopen','epoch'])test(`CTX4-02 held ${kind} completion rejects stale ${boundary} page ownership`,()=>fixture(async({makePage,transport,dispatch})=>{
+ const page=makePage();await page.open('info');await tick();const target=[...page.editors.values()][0];if(kind==='restore')await page.remove(target);
+ const held=deferred(),entered=deferred();transport.dispatch=async message=>{const result=await dispatch(message);if(message.change?.kind===kind){entered.resolve();await held.promise;}return result;};
+ try{const pending=kind==='delete'?page.remove(target):page.undoDelete();await entered.promise;
+  if(boundary==='close')page.close();else if(boundary==='reopen')await page.open('info');else page.snapshot={...page.snapshot,epoch:'SYNTHETIC successor epoch'};
+  const editors=[...page.editors],journal=structuredClone(page.journal.undo),message=page.message?.textContent,focus=document.activeElement;
+  held.resolve();await pending;assert.deepEqual([...page.editors],editors);assert.deepEqual(page.journal.undo,journal);assert.equal(page.message?.textContent,message);assert.equal(document.activeElement,focus);
+ }finally{held.resolve();}
+}));
+
+test('CTX4-02 completion focus listeners release after success, restore, empty undo and failed mutation',()=>fixture(async({makePage,transport,dispatch,documentListeners})=>{
+ const count=()=>[...documentListeners.values()].reduce((sum,list)=>sum+list.length,0),page=makePage();await page.open('info');await tick();const baseline=count(),editor=[...page.editors.values()][0];
+ await editor.undo();assert.equal(count(),baseline,'an empty edit-undo journal releases its temporary intent listeners');
+ await page.remove(editor);assert.equal(count(),baseline);await page.undoDelete();assert.equal(count(),baseline);
+ transport.dispatch=message=>{if(message.change?.kind==='delete')throw Error('SYNTHETIC rejected transport');return dispatch(message);};
+ await page.remove(page.editors.get(editor.id));assert.equal(count(),baseline,'a rejected mutation releases its temporary intent listeners');assert.equal(page.busy,false);
+}));
+
+for(const changed of [true,false])test(`CTX4-02 edit undo ${changed?'preserves changed':'ignores unchanged'} selection-only intent after a held save`,()=>fixture(async({makePage,transport,dispatch,calls})=>{
+ const page=makePage();await page.open('info');await tick();const editor=[...page.editors.values()][0],originalBody=editor.saved.body,held=deferred(),entered=deferred();
+ editor.field.textContent='SYNTHETIC pending selection body B';editor.changed();editor.autosave.cancel();if(editor.recovery.running)await editor.recovery.running;editor.field.focus();
+ const previous=Object.getOwnPropertyDescriptor(globalThis,'getSelection'),node=editor.field.firstChild,selection={rangeCount:1,isCollapsed:true,anchorNode:node,anchorOffset:0,focusNode:node,focusOffset:0};globalThis.getSelection=()=>selection;
+ let heldOnce=false;transport.dispatch=async message=>{const result=await dispatch(message);if(message.change?.kind==='put'&&!heldOnce){heldOnce=true;entered.resolve();await held.promise;}return result;};
+ try{const undoing=editor.undo();await entered.promise;if(changed){selection.isCollapsed=false;selection.anchorOffset=4;selection.focusOffset=12;}document.dispatchEvent({type:'selectionchange',target:document});held.resolve();await undoing;
+  assert.equal(editor.field.textContent,changed?'SYNTHETIC pending selection body B':originalBody);assert.equal(calls.filter(call=>call.change?.kind==='put').length,changed?1:2);assert.equal(editor.journal.undo.length,changed?1:0);
+  if(changed){assert.equal(editor.field.firstChild,node);assert.equal(selection.anchorOffset,4);assert.equal(selection.focusOffset,12);}
+ }finally{held.resolve();if(previous)Object.defineProperty(globalThis,'getSelection',previous);else delete globalThis.getSelection;}
 }));
