@@ -22,7 +22,7 @@ import {acceptSequence} from './core.js';
 import {protocolPhysicalId} from './physical-key.js';
 import {deltaDescription,deltaSignature,KNOWN_PREFIX,DIRTY_PREFIX,HUMAN_FENCE,DELTA_COUNTER} from '../ai-usage/delta.js';
 import {emptyContextCards as emptyContext} from '../context-cards.js';
-import {REVISION_POLICY} from '../ia-store.js';
+import {REVISION_POLICY} from '../ia-store-owner.js';
 import {FILTER_VERSIONS} from '../smart-filter.js';
 import {finalConsumerPreferenceOperations,consumerDisplayPreferences,requireConsumerPreferenceOwners} from './consumer-preference-restore.js';
 import {originalGroupCheckpointCore,originalGroupCheckpointCoreOrNull} from './group-checkpoint-plan.js';

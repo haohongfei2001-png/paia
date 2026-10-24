@@ -10,6 +10,14 @@ export async function samplePreGateFilter(store,originalRun,preDispatch,trace){
  catch(error){if(error?.code!=='CONTROL_PUBLICATION_CHANGED'||calls!==1||attempts.length!==2||attempts.some((event,index)=>event.attempt!==index+1||event.entered||!event.initialized||event.code!=='CONTROL_PUBLICATION_CHANGED'))throw error;return {pending:true};}
  finally{store.run=priorRun;trace.push({phase:'filter-status',calls,attempts});if(trace.length>100)trace.shift();}
 }
+// Counts and fixed state labels only: never persist row IDs, scopes or bodies.
+export function observePreGateMaintenance({iteration,filter,catalog,settled,prior,complete,stable}){
+ const nav=row=>row.id.startsWith('ans:index'),previous=new Map((prior?JSON.parse(prior):[]).map(row=>[row.id,JSON.stringify(row)]));
+ const changed=settled.filter(row=>previous.get(row.id)!==JSON.stringify(row)),ids=new Set(settled.map(row=>row.id));
+ const removed=[...previous.keys()].filter(id=>!ids.has(id));
+ const labels=(value,allowed)=>allowed.includes(value)?value:'unknown';
+ return {iteration,filter:{mode:labels(filter.mode,['light','off']),pending:filter.pending,taskState:labels(filter.taskState,['idle','running','failed'])},catalog:catalog?{phase:labels(catalog.phase,['building','complete']),pending:catalog.pending,revision:catalog.revision}:null,navigation:{scopes:settled.filter(row=>row.id.startsWith('ans:index-state:v1:scope:')).length,unfinishedScopes:settled.filter(row=>row.id.startsWith('ans:index-state:v1:scope:')&&(row.shadow||row.activeRevision!==row.revision)).length,dirty:settled.filter(row=>row.id.startsWith('ans:index-state:v1:dirty:')).length,gc:settled.filter(row=>row.id.startsWith('ans:index-state:v1:gc:')).length},changes:{navigation:changed.filter(nav).length,other:changed.filter(row=>!nav(row)).length,removed:removed.length},complete,stableBefore:stable};
+}
 // Synthetic historical state admission, ONLY in automation's isolated profile.
 // Current worker denial + whole-database/recovery equality must pass FIRST.
 // The pinned pre-gate body forms the old state; current UI/read/release guards
@@ -27,7 +35,7 @@ export async function admitPreGatePurgeBrowserFixture(page,id,{allowCurrentPure=
   const store=new OrganizerStore(chrome.storage.local);
   // This independent fixture instance can race the real worker while acquiring
   // its initial read fence. Never replay an entered callback or the pinned body.
-  const preDispatchRead=${runWithPreDispatchReadRetry.toString()},originalRun=store.run,sampleFilter=${samplePreGateFilter.toString()},trace=globalThis.__preGateFixtureTrace=[];let failure=null;
+  const preDispatchRead=${runWithPreDispatchReadRetry.toString()},originalRun=store.run,sampleFilter=${samplePreGateFilter.toString()},observeMaintenance=${observePreGateMaintenance.toString()},trace=globalThis.__preGateFixtureTrace=[];let failure=null;
   try{
   const stage=async(label,fn)=>{try{return await fn();}catch(cause){throw new Error('HISTORICAL_FIXTURE_STAGE:'+label+':'+(cause?.code||cause?.message||'UNKNOWN'),{cause});}};
   const initialization={phase:'initialize',entered:false};trace.push(initialization);await stage('initialize',()=>originalRun.call(store,()=>{initialization.entered=true;}));if(!store.loaded)throw Error('HISTORICAL_FIXTURE_NOT_INITIALIZED');
@@ -48,7 +56,9 @@ export async function admitPreGatePurgeBrowserFixture(page,id,{allowCurrentPure=
    }
    const settled=await store.repository.transaction(false,t=>t.all('meta'),['meta']),catalog=settled.find(row=>row.id==='ans:index-state:v1:catalog');
    complete&&=catalog?.phase==='complete'&&!catalog.pending&&!settled.some(row=>row.id.startsWith('ans:index-state:v1:dirty:')||row.id.startsWith('ans:index-state:v1:gc:')||row.id.startsWith('ans:index-state:v1:scope:')&&(row.shadow||row.activeRevision!==row.revision));
-   const current=JSON.stringify(settled);stable=complete&&current===prior?stable+1:0;prior=current;
+   const current=JSON.stringify(settled);
+   const event=trace.at(-1);if(event?.phase==='filter-status')event.maintenance=observeMaintenance({iteration:n,filter,catalog,settled,prior,complete,stable});
+   stable=complete&&current===prior?stable+1:0;prior=current;
    if(stable<8)await new Promise(resolve=>setTimeout(resolve,25));
   }if(stable<8)throw Error('HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED');
   const preview=await chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT',id});

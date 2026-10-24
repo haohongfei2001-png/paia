@@ -45,6 +45,7 @@ export const STATUS_LABELS = Object.freeze({
   WORKER_INTERRUPTED: '后台任务已中断，可继续整理',
   MANUAL_RECOVERY_REQUIRED: '整理任务需要人工恢复',
   REQUEST_ALREADY_IN_FLIGHT: '已有一次整理请求正在进行',
+  PROTECTED_FIELDS: '整理字段均受人工保护，本次未更新；待处理内容和已有整理均保留。',
   OUTCOME_UNKNOWN: '上一次请求结果未知，为避免重复收费已暂停。请核对当前内容后，再决定是否重试',
   RESPONSE_BODY_READ_FAILED: '读取服务响应失败',
   INVALID_JSON: 'AI整理返回格式异常，本次没有修改思想库',

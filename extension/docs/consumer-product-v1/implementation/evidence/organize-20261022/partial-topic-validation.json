@@ -1,0 +1,111 @@
+{
+  "baseCommit": "8aa47383b4b442561e2e96788521637000bcba81",
+  "originalBase": "6be0cc3db19ce9d7d12afbd61be0c93e0dceb5dc",
+  "environment": {
+    "node": "22.23.4",
+    "python": "3.12.14",
+    "playwright": "1.63.0",
+    "chrome": "155.0.8059.85"
+  },
+  "logs": {
+    "partial-topic-targeted.tap": {
+      "originalSha256": "0c460bdca439b3eb9ab0993db95914d363277e4ff3115627fb327f3fb176fb23",
+      "publicSha256": "8866da3823d4a0a0583e6066219d3a75f901ce47e8b807845a69ac50247ed541",
+      "sanitization": "Local path prefix removed and trailing whitespace trimmed; original raw digest preserved."
+    },
+    "partial-topic-affected.tap": {
+      "originalSha256": "0b29af0950caa3c106e342faac0c4f57e0d2c46ebffec7ff3b05054156cd768a",
+      "publicSha256": "0b29af0950caa3c106e342faac0c4f57e0d2c46ebffec7ff3b05054156cd768a"
+    },
+    "partial-topic-native.tap": {
+      "originalSha256": "31f67b955e69cd6b1651bbab945635edd5155932c783f3c4922e8c62dfe85aab",
+      "publicSha256": "8ca6af7193c4dfc6475f1ecbcc96933ad7d4a3b0a76efdb7d9157505ed4e2f0a"
+    },
+    "partial-topic-native-final.tap": {
+      "originalSha256": "00839bcf1b6ecc912229b1d2d125c792d7f0b73af90be6665a8d77e4b2a82d81",
+      "publicSha256": "00839bcf1b6ecc912229b1d2d125c792d7f0b73af90be6665a8d77e4b2a82d81"
+    },
+    "partial-topic-native-corrected.tap": {
+      "originalSha256": "095ed68dbba5ec9a8d433d7e0997fecc691a6e93e8d161751a08267ba0dff7eb",
+      "publicSha256": "095ed68dbba5ec9a8d433d7e0997fecc691a6e93e8d161751a08267ba0dff7eb"
+    },
+    "partial-topic-full-unit-summary.json": {
+      "originalSha256": "06ac10929a593e41f65e606a58b1203d8620c0f974488a5e6d395af0e1ab04a0",
+      "publicSha256": "06ac10929a593e41f65e606a58b1203d8620c0f974488a5e6d395af0e1ab04a0"
+    },
+    "native-budget-bytes.tap": {
+      "originalSha256": "0aca6bb7b9d825854433502ea42b1079bb5fef72a7959fed42b1aa0139098330",
+      "publicSha256": "0aca6bb7b9d825854433502ea42b1079bb5fef72a7959fed42b1aa0139098330"
+    },
+    "native-budget-bytes-final.tap": {
+      "originalSha256": "6e32eb873c6a9b29d86256cd3594c4d754f8168f002381b1f0af51a02b86363f",
+      "publicSha256": "9145e88eb981ba10d8684ed6e8a3d7ba3baf80990feccdfabba86af2f2b95fc9"
+    },
+    "native-budget-bytes-metered.tap": {
+      "originalSha256": "a149b215701bffeee6c426079b367b6baca1113b5f9be4f1d61f08e911f0795f",
+      "publicSha256": "a149b215701bffeee6c426079b367b6baca1113b5f9be4f1d61f08e911f0795f"
+    },
+    "native-bytes-probe.tap": {
+      "originalSha256": "c00bf7cb3d089c34bb8ccfcedf8ee59b7baa2997fe918af93a784b946cdaefca",
+      "publicSha256": "c00bf7cb3d089c34bb8ccfcedf8ee59b7baa2997fe918af93a784b946cdaefca"
+    },
+    "native-bytes-diagnose.tap": {
+      "originalSha256": "f7e9876b0f32952616abe4a011fd10ed964fe64293626fb5376b3f83ff247b87",
+      "publicSha256": "f7e9876b0f32952616abe4a011fd10ed964fe64293626fb5376b3f83ff247b87"
+    },
+    "partial-topic-full-unit.txt": {
+      "originalSha256": "909abe9db6f669c0ff364e17d24aa0909d6c0ac681d2dc4fc2889a8a3c96e00a",
+      "publicSha256": "d7335d0cc9bfffbd3b9a3f5348ee75bb17c50e64759c28f6656e51aaa7069eb7",
+      "sanitization": "Local path prefix removed and trailing whitespace trimmed; original raw digest preserved."
+    }
+  },
+  "code": {
+    "extension/core/ai-usage/local-maintenance-session.js": "18367ae09c472a382c80b6ffde79456e022535493115ec4436b27f1057056e08",
+    "extension/core/ai-usage/maintenance-existing-context.js": "d8e1793ff6294d2a921935a9956f60516c82ab34765193a97f06ee9d70bfda2a",
+    "extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs": "d847060e92ddc49bf8cb5177be2ef904e2b67cd81b83e7b18a9380cda0987760",
+    "services/ai-gateway/tests/maintenance-source-response-path.test.mjs": "77ab68f512675d9a9b70195c88ed3f937f32b81ad8b8428fc7ec88ac11c04683",
+    "services/ai-gateway/tests/organize-native-fixture.mjs": "52cf40cd58a4efca30d97e59fa8590a201c04009e254ee66f0ac1a31ac71d1a8",
+    "services/ai-gateway/tests/organize-source-native-budget.test.mjs": "a6ebd149cc86dd3a398260f8657fd6efca4fa1c9e179e79d5c2fda405d6a9c9d"
+  },
+  "patchSha256": "96161eda0fb7c75c77d60e5b5a3c584347bdd78a4378503315878a2679a3a131",
+  "targeted": {
+    "passed": 88,
+    "failed": 0,
+    "skipped": 0
+  },
+  "native": {
+    "passed": 184,
+    "failed": 0,
+    "skipped": 0,
+    "priorFailed": {
+      "passed": 180,
+      "failed": 4,
+      "note": "Two Source/release retry expectation failures and two failed parents; original stronger stale-child retirement retained."
+    }
+  },
+  "fullUnit": {
+    "commit": "e16cfd55d2c9be5a19b5055d3798acd06b996ca8",
+    "total": 11670,
+    "passed": 11670,
+    "failed": 0,
+    "skipped": 0,
+    "sourcePackageGuards": 21218,
+    "runtimeResources": 607,
+    "developmentAudit": "PASS"
+  },
+  "runtimeCommit": "e16cfd55d2c9be5a19b5055d3798acd06b996ca8",
+  "runtimeTree": "2fc4fb1344ab52d5b2771d1ba1ab6dfdf83d04cf",
+  "byteBoundary": {
+    "commit": "2947b587c4a9aa3ca0fced611dd2e56095a382b7",
+    "tree": "73efffb5f7a638b760df3e75d598d3cb1d8670aa",
+    "passed": 2,
+    "failed": 0,
+    "retainedAndFieldDebits": 21,
+    "attemptedMaterialBytes": 2129967,
+    "refusedDebitBytes": 102697,
+    "lastSuccessfulMaterialBytes": 2027270,
+    "limit": 2097152,
+    "physicalProviderRequests": 0,
+    "note": "Direct original qualification owner with native IDB and real Chrome sender, not a second UI or provider journey."
+  }
+}

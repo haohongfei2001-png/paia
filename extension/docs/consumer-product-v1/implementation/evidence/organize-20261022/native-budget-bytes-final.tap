@@ -1,0 +1,48 @@
+TAP version 13
+# Subtest: native actual authorized material cumulative 2MiB bound source
+not ok 1 - native actual authorized material cumulative 2MiB bound source
+  ---
+  duration_ms: 2052.782416
+  type: 'test'
+  location: '<worktree>/services/ai-gateway/tests/organize-source-native-budget.test.mjs:26:43'
+  failureType: 'testCodeFailure'
+  error: 'actual UTF-8 body debits alone cross 2MiB at refusal'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file://<worktree>/services/ai-gateway/tests/organize-source-native-budget.test.mjs:47:300)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# {"variant":"source","passes":10,"bodyBytes":100030,"bodyCharges":10,"requests":587,"error":"BUDGET_EXCEEDED","byteOwner":true,"refused":true,"current":false}
+# Subtest: native actual authorized material cumulative 2MiB bound release
+not ok 2 - native actual authorized material cumulative 2MiB bound release
+  ---
+  duration_ms: 3536.54275
+  type: 'test'
+  location: '<worktree>/services/ai-gateway/tests/organize-source-native-budget.test.mjs:26:43'
+  failureType: 'testCodeFailure'
+  error: 'actual UTF-8 body debits alone cross 2MiB at refusal'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file://<worktree>/services/ai-gateway/tests/organize-source-native-budget.test.mjs:47:300)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"variant":"release","passes":10,"bodyBytes":100030,"bodyCharges":10,"requests":589,"error":"BUDGET_EXCEEDED","byteOwner":true,"refused":true,"current":false}
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5951.189584

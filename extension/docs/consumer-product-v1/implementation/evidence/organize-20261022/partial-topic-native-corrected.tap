@@ -1,0 +1,1116 @@
+TAP version 13
+# Subtest: CTX4-05 native source dormant maintenance transaction and lineage fences
+    # Subtest: no-change-complete
+    ok 1 - no-change-complete
+      ---
+      duration_ms: 126.101917
+      type: 'test'
+      ...
+    # Subtest: no-change-stale
+    ok 2 - no-change-stale
+      ---
+      duration_ms: 101.76225
+      type: 'test'
+      ...
+    # Subtest: no-change-protected
+    ok 3 - no-change-protected
+      ---
+      duration_ms: 92.805125
+      type: 'test'
+      ...
+    # Subtest: no-change-excluded
+    ok 4 - no-change-excluded
+      ---
+      duration_ms: 82.303041
+      type: 'test'
+      ...
+    # Subtest: no-change-revoked
+    ok 5 - no-change-revoked
+      ---
+      duration_ms: 74.071167
+      type: 'test'
+      ...
+    # Subtest: no-change-receipt-abort
+    ok 6 - no-change-receipt-abort
+      ---
+      duration_ms: 90.102708
+      type: 'test'
+      ...
+    # Subtest: no-change-generation-abort
+    ok 7 - no-change-generation-abort
+      ---
+      duration_ms: 89.757417
+      type: 'test'
+      ...
+    # Subtest: current-input-mirror
+    ok 8 - current-input-mirror
+      ---
+      duration_ms: 143.274834
+      type: 'test'
+      ...
+    # Subtest: deep-read-pagination-and-revocation
+    ok 9 - deep-read-pagination-and-revocation
+      ---
+      duration_ms: 506.600208
+      type: 'test'
+      ...
+    # Subtest: default-denied
+    ok 10 - default-denied
+      ---
+      duration_ms: 96.07975
+      type: 'test'
+      ...
+    # Subtest: commit-replay-human-takeover-delete-undo
+    ok 11 - commit-replay-human-takeover-delete-undo
+      ---
+      duration_ms: 300.181208
+      type: 'test'
+      ...
+    # Subtest: post-commit-regrant-before-settlement
+    ok 12 - post-commit-regrant-before-settlement
+      ---
+      duration_ms: 80.042792
+      type: 'test'
+      ...
+    # Subtest: maintain-hash-race
+    ok 13 - maintain-hash-race
+      ---
+      duration_ms: 85.596
+      type: 'test'
+      ...
+    # Subtest: snapshot-hash-race
+    ok 14 - snapshot-hash-race
+      ---
+      duration_ms: 133.050583
+      type: 'test'
+      ...
+    # Subtest: shallow-hash-race
+    ok 15 - shallow-hash-race
+      ---
+      duration_ms: 156.22125
+      type: 'test'
+      ...
+    # Subtest: recovery-hash-race
+    ok 16 - recovery-hash-race
+      ---
+      duration_ms: 157.0535
+      type: 'test'
+      ...
+    # Subtest: item-cancel
+    ok 17 - item-cancel
+      ---
+      duration_ms: 77.074
+      type: 'test'
+      ...
+    # Subtest: item-revoke
+    ok 18 - item-revoke
+      ---
+      duration_ms: 76.283791
+      type: 'test'
+      ...
+    # Subtest: receipt-cancel
+    ok 19 - receipt-cancel
+      ---
+      duration_ms: 77.357041
+      type: 'test'
+      ...
+    # Subtest: receipt-revoke
+    ok 20 - receipt-revoke
+      ---
+      duration_ms: 82.318875
+      type: 'test'
+      ...
+    # Subtest: post-callback-cancel
+    ok 21 - post-callback-cancel
+      ---
+      duration_ms: 69.56625
+      type: 'test'
+      ...
+    # Subtest: post-callback-revoke
+    ok 22 - post-callback-revoke
+      ---
+      duration_ms: 82.793958
+      type: 'test'
+      ...
+    # Subtest: post-callback-expiry
+    ok 23 - post-callback-expiry
+      ---
+      duration_ms: 1074.93775
+      type: 'test'
+      ...
+    # Subtest: closed-database-before-write
+    ok 24 - closed-database-before-write
+      ---
+      duration_ms: 84.004417
+      type: 'test'
+      ...
+    # Subtest: denied-input-before-hash
+    ok 25 - denied-input-before-hash
+      ---
+      duration_ms: 68.154
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-complete
+    ok 26 - unified-maintenance-authored-context-complete
+      ---
+      duration_ms: 306.368834
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-body-edit
+    ok 27 - unified-maintenance-authored-context-body-edit
+      ---
+      duration_ms: 270.41175
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-coalesced-placement
+    ok 28 - unified-maintenance-authored-context-coalesced-placement
+      ---
+      duration_ms: 278.001125
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-restore
+    ok 29 - unified-maintenance-authored-context-restore
+      ---
+      duration_ms: 296.448084
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-edit-restore
+    ok 30 - unified-maintenance-authored-context-edit-restore
+      ---
+      duration_ms: 300.453083
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-grant-denied
+    ok 31 - unified-maintenance-authored-context-grant-denied
+      ---
+      duration_ms: 46.547416
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-payload-grant-denied
+    ok 32 - unified-maintenance-authored-context-payload-grant-denied
+      ---
+      duration_ms: 113.377042
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-ack-abort
+    ok 33 - unified-maintenance-authored-context-ack-abort
+      ---
+      duration_ms: 339.769583
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-restore-drift
+    ok 34 - unified-maintenance-authored-context-restore-drift
+      ---
+      duration_ms: 174.469958
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-hash-race
+    ok 35 - unified-maintenance-authored-context-hash-race
+      ---
+      duration_ms: 114.877333
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-entry-context-complete
+    ok 36 - unified-maintenance-entry-context-complete
+      ---
+      duration_ms: 475.601583
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-entry-context-stale
+    ok 37 - unified-maintenance-entry-context-stale
+      ---
+      duration_ms: 380.961459
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-entry-context-ack-abort
+    ok 38 - unified-maintenance-entry-context-ack-abort
+      ---
+      duration_ms: 521.651417
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-placement-context-complete
+    ok 39 - unified-maintenance-placement-context-complete
+      ---
+      duration_ms: 642.6175
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-placement-context-stale
+    ok 40 - unified-maintenance-placement-context-stale
+      ---
+      duration_ms: 573.444375
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-placement-context-ack-abort
+    ok 41 - unified-maintenance-placement-context-ack-abort
+      ---
+      duration_ms: 739.37125
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-placement-context-mixed
+    ok 42 - unified-maintenance-placement-context-mixed
+      ---
+      duration_ms: 1147.504459
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-placement-context-mixed-race
+    ok 43 - unified-maintenance-placement-context-mixed-race
+      ---
+      duration_ms: 1358.934708
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-complete
+    ok 44 - unified-maintenance-mixed-complete
+      ---
+      duration_ms: 509.067916
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-defer
+    ok 45 - unified-maintenance-mixed-defer
+      ---
+      duration_ms: 72.190459
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-close
+    ok 46 - unified-maintenance-mixed-close
+      ---
+      duration_ms: 61.228292
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-post-callback
+    ok 47 - unified-maintenance-mixed-post-callback
+      ---
+      duration_ms: 73.384
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-dispose
+    ok 48 - unified-maintenance-mixed-dispose
+      ---
+      duration_ms: 68.541166
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-capacity
+    ok 49 - unified-maintenance-mixed-capacity
+      ---
+      duration_ms: 878.308292
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-no-change-complete
+    ok 50 - unified-maintenance-no-change-complete
+      ---
+      duration_ms: 439.420125
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-no-change-receipt
+    ok 51 - unified-maintenance-no-change-receipt
+      ---
+      duration_ms: 518.911125
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-no-change-ack
+    ok 52 - unified-maintenance-no-change-ack
+      ---
+      duration_ms: 543.200209
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-no-change-generation
+    ok 53 - unified-maintenance-no-change-generation
+      ---
+      duration_ms: 561.125708
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-processing
+    ok 54 - unified-maintenance-material-denied-processing
+      ---
+      duration_ms: 52.888792
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-context-processing
+    ok 55 - unified-maintenance-material-denied-context-processing
+      ---
+      duration_ms: 42.14075
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-context-revoke
+    ok 56 - unified-maintenance-material-denied-context-revoke
+      ---
+      duration_ms: 40.915375
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-exclusion
+    ok 57 - unified-maintenance-material-denied-exclusion
+      ---
+      duration_ms: 45.023917
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-material-missing
+    ok 58 - unified-maintenance-material-denied-material-missing
+      ---
+      duration_ms: 42.749958
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-material-expired
+    ok 59 - unified-maintenance-material-denied-material-expired
+      ---
+      duration_ms: 38.940208
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-current-working-cross-conversation
+    ok 60 - unified-maintenance-current-working-cross-conversation
+      ---
+      duration_ms: 399.791209
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"denied":true}
+    ok 61 - unified-maintenance-{"denied":true}
+      ---
+      duration_ms: 31.674958
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{}
+    ok 62 - unified-maintenance-{}
+      ---
+      duration_ms: 289.948917
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"adapterMode":"swap"}
+    ok 63 - unified-maintenance-{"adapterMode":"swap"}
+      ---
+      duration_ms: 173.7145
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"item"}
+    ok 64 - unified-maintenance-{"phase":"item"}
+      ---
+      duration_ms: 368.998875
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"receipt"}
+    ok 65 - unified-maintenance-{"phase":"receipt"}
+      ---
+      duration_ms: 361.275083
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"ack"}
+    ok 66 - unified-maintenance-{"phase":"ack"}
+      ---
+      duration_ms: 343.803208
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"job"}
+    ok 67 - unified-maintenance-{"phase":"job"}
+      ---
+      duration_ms: 329.906042
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"generation"}
+    ok 68 - unified-maintenance-{"phase":"generation"}
+      ---
+      duration_ms: 384.369083
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"generation","mode":"revoke"}
+    ok 69 - unified-maintenance-{"phase":"generation","mode":"revoke"}
+      ---
+      duration_ms: 325.334917
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"generation","mode":"cancel"}
+    ok 70 - unified-maintenance-{"phase":"generation","mode":"cancel"}
+      ---
+      duration_ms: 341.984833
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"generation","mode":"expiry"}
+    ok 71 - unified-maintenance-{"phase":"generation","mode":"expiry"}
+      ---
+      duration_ms: 1405.677291
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"topic-domain"}
+    ok 72 - unified-maintenance-{"phase":"topic-domain"}
+      ---
+      duration_ms: 435.014667
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"topic-ack"}
+    ok 73 - unified-maintenance-{"phase":"topic-ack"}
+      ---
+      duration_ms: 397.077292
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-complete
+    ok 74 - unified-maintenance-partial-excerpt-complete
+      ---
+      duration_ms: 652.051625
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-source
+    ok 75 - unified-maintenance-partial-excerpt-source
+      ---
+      duration_ms: 650.63375
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-protected
+    ok 76 - unified-maintenance-partial-excerpt-protected
+      ---
+      duration_ms: 684.676667
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-revoke
+    ok 77 - unified-maintenance-partial-excerpt-revoke
+      ---
+      duration_ms: 598.689083
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-graph
+    ok 78 - unified-maintenance-partial-excerpt-graph
+      ---
+      duration_ms: 617.945625
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-ack-abort
+    ok 79 - unified-maintenance-partial-excerpt-ack-abort
+      ---
+      duration_ms: 647.170459
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-idle-processing-expiry
+    ok 80 - unified-maintenance-idle-processing-expiry
+      ---
+      duration_ms: 3102.727458
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-complete
+    ok 81 - repository-terminal-complete
+      ---
+      duration_ms: 11.350667
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-finalizer-source
+    ok 82 - repository-terminal-finalizer-source
+      ---
+      duration_ms: 16.707458
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-finalizer-revoke
+    ok 83 - repository-terminal-finalizer-revoke
+      ---
+      duration_ms: 14.19
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-finalizer-expiry
+    ok 84 - repository-terminal-finalizer-expiry
+      ---
+      duration_ms: 83.623291
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-caught-terminal-write
+    ok 85 - repository-terminal-caught-terminal-write
+      ---
+      duration_ms: 10.050375
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-non-idb-promise
+    ok 86 - repository-terminal-non-idb-promise
+      ---
+      duration_ms: 10.454417
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-second-fence-revoke
+    ok 87 - repository-terminal-second-fence-revoke
+      ---
+      duration_ms: 65.066
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-native-auto-complete-control
+    ok 88 - repository-terminal-native-auto-complete-control
+      ---
+      duration_ms: 6.196375
+      type: 'test'
+      ...
+    # Subtest: repository-collections-complete
+    ok 89 - repository-collections-complete
+      ---
+      duration_ms: 10.018958
+      type: 'test'
+      ...
+    # Subtest: repository-collections-last-owner-revoke
+    ok 90 - repository-collections-last-owner-revoke
+      ---
+      duration_ms: 61.088459
+      type: 'test'
+      ...
+    # Subtest: worker-recovery-batch-final-fence
+    ok 91 - worker-recovery-batch-final-fence
+      ---
+      duration_ms: 2561.497208
+      type: 'test'
+      ...
+    1..91
+ok 1 - CTX4-05 native source dormant maintenance transaction and lineage fences
+  ---
+  duration_ms: 32597.817291
+  type: 'test'
+  ...
+# Subtest: CTX4-05 native release dormant maintenance transaction and lineage fences
+    # Subtest: no-change-complete
+    ok 1 - no-change-complete
+      ---
+      duration_ms: 122.837125
+      type: 'test'
+      ...
+    # Subtest: no-change-stale
+    ok 2 - no-change-stale
+      ---
+      duration_ms: 98.176417
+      type: 'test'
+      ...
+    # Subtest: no-change-protected
+    ok 3 - no-change-protected
+      ---
+      duration_ms: 93.812208
+      type: 'test'
+      ...
+    # Subtest: no-change-excluded
+    ok 4 - no-change-excluded
+      ---
+      duration_ms: 81.539875
+      type: 'test'
+      ...
+    # Subtest: no-change-revoked
+    ok 5 - no-change-revoked
+      ---
+      duration_ms: 73.018083
+      type: 'test'
+      ...
+    # Subtest: no-change-receipt-abort
+    ok 6 - no-change-receipt-abort
+      ---
+      duration_ms: 91.603959
+      type: 'test'
+      ...
+    # Subtest: no-change-generation-abort
+    ok 7 - no-change-generation-abort
+      ---
+      duration_ms: 94.145
+      type: 'test'
+      ...
+    # Subtest: current-input-mirror
+    ok 8 - current-input-mirror
+      ---
+      duration_ms: 139.647583
+      type: 'test'
+      ...
+    # Subtest: deep-read-pagination-and-revocation
+    ok 9 - deep-read-pagination-and-revocation
+      ---
+      duration_ms: 529.044333
+      type: 'test'
+      ...
+    # Subtest: default-denied
+    ok 10 - default-denied
+      ---
+      duration_ms: 66.488792
+      type: 'test'
+      ...
+    # Subtest: commit-replay-human-takeover-delete-undo
+    ok 11 - commit-replay-human-takeover-delete-undo
+      ---
+      duration_ms: 254.774833
+      type: 'test'
+      ...
+    # Subtest: post-commit-regrant-before-settlement
+    ok 12 - post-commit-regrant-before-settlement
+      ---
+      duration_ms: 83.566417
+      type: 'test'
+      ...
+    # Subtest: maintain-hash-race
+    ok 13 - maintain-hash-race
+      ---
+      duration_ms: 89.281542
+      type: 'test'
+      ...
+    # Subtest: snapshot-hash-race
+    ok 14 - snapshot-hash-race
+      ---
+      duration_ms: 139.820333
+      type: 'test'
+      ...
+    # Subtest: shallow-hash-race
+    ok 15 - shallow-hash-race
+      ---
+      duration_ms: 141.111709
+      type: 'test'
+      ...
+    # Subtest: recovery-hash-race
+    ok 16 - recovery-hash-race
+      ---
+      duration_ms: 162.397792
+      type: 'test'
+      ...
+    # Subtest: item-cancel
+    ok 17 - item-cancel
+      ---
+      duration_ms: 92.858291
+      type: 'test'
+      ...
+    # Subtest: item-revoke
+    ok 18 - item-revoke
+      ---
+      duration_ms: 82.102166
+      type: 'test'
+      ...
+    # Subtest: receipt-cancel
+    ok 19 - receipt-cancel
+      ---
+      duration_ms: 93.855292
+      type: 'test'
+      ...
+    # Subtest: receipt-revoke
+    ok 20 - receipt-revoke
+      ---
+      duration_ms: 78.415083
+      type: 'test'
+      ...
+    # Subtest: post-callback-cancel
+    ok 21 - post-callback-cancel
+      ---
+      duration_ms: 83.824167
+      type: 'test'
+      ...
+    # Subtest: post-callback-revoke
+    ok 22 - post-callback-revoke
+      ---
+      duration_ms: 88.558125
+      type: 'test'
+      ...
+    # Subtest: post-callback-expiry
+    ok 23 - post-callback-expiry
+      ---
+      duration_ms: 1093.050084
+      type: 'test'
+      ...
+    # Subtest: closed-database-before-write
+    ok 24 - closed-database-before-write
+      ---
+      duration_ms: 90.076625
+      type: 'test'
+      ...
+    # Subtest: denied-input-before-hash
+    ok 25 - denied-input-before-hash
+      ---
+      duration_ms: 77.760458
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-complete
+    ok 26 - unified-maintenance-authored-context-complete
+      ---
+      duration_ms: 334.510417
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-body-edit
+    ok 27 - unified-maintenance-authored-context-body-edit
+      ---
+      duration_ms: 311.527708
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-coalesced-placement
+    ok 28 - unified-maintenance-authored-context-coalesced-placement
+      ---
+      duration_ms: 328.83275
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-restore
+    ok 29 - unified-maintenance-authored-context-restore
+      ---
+      duration_ms: 374.368209
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-edit-restore
+    ok 30 - unified-maintenance-authored-context-edit-restore
+      ---
+      duration_ms: 341.2635
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-grant-denied
+    ok 31 - unified-maintenance-authored-context-grant-denied
+      ---
+      duration_ms: 54.372625
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-payload-grant-denied
+    ok 32 - unified-maintenance-authored-context-payload-grant-denied
+      ---
+      duration_ms: 126.432333
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-ack-abort
+    ok 33 - unified-maintenance-authored-context-ack-abort
+      ---
+      duration_ms: 359.438167
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-restore-drift
+    ok 34 - unified-maintenance-authored-context-restore-drift
+      ---
+      duration_ms: 329.040375
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-authored-context-hash-race
+    ok 35 - unified-maintenance-authored-context-hash-race
+      ---
+      duration_ms: 118.21125
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-entry-context-complete
+    ok 36 - unified-maintenance-entry-context-complete
+      ---
+      duration_ms: 448.599833
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-entry-context-stale
+    ok 37 - unified-maintenance-entry-context-stale
+      ---
+      duration_ms: 392.026459
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-entry-context-ack-abort
+    ok 38 - unified-maintenance-entry-context-ack-abort
+      ---
+      duration_ms: 503.104416
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-placement-context-complete
+    ok 39 - unified-maintenance-placement-context-complete
+      ---
+      duration_ms: 651.096625
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-placement-context-stale
+    ok 40 - unified-maintenance-placement-context-stale
+      ---
+      duration_ms: 569.195833
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-placement-context-ack-abort
+    ok 41 - unified-maintenance-placement-context-ack-abort
+      ---
+      duration_ms: 736.779416
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-placement-context-mixed
+    ok 42 - unified-maintenance-placement-context-mixed
+      ---
+      duration_ms: 1162.220875
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-placement-context-mixed-race
+    ok 43 - unified-maintenance-placement-context-mixed-race
+      ---
+      duration_ms: 1407.055875
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-complete
+    ok 44 - unified-maintenance-mixed-complete
+      ---
+      duration_ms: 367.141625
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-defer
+    ok 45 - unified-maintenance-mixed-defer
+      ---
+      duration_ms: 75.187292
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-close
+    ok 46 - unified-maintenance-mixed-close
+      ---
+      duration_ms: 67.636042
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-post-callback
+    ok 47 - unified-maintenance-mixed-post-callback
+      ---
+      duration_ms: 77.207625
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-dispose
+    ok 48 - unified-maintenance-mixed-dispose
+      ---
+      duration_ms: 70.286792
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-mixed-capacity
+    ok 49 - unified-maintenance-mixed-capacity
+      ---
+      duration_ms: 950.963917
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-no-change-complete
+    ok 50 - unified-maintenance-no-change-complete
+      ---
+      duration_ms: 555.080541
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-no-change-receipt
+    ok 51 - unified-maintenance-no-change-receipt
+      ---
+      duration_ms: 533.713334
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-no-change-ack
+    ok 52 - unified-maintenance-no-change-ack
+      ---
+      duration_ms: 528.881084
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-no-change-generation
+    ok 53 - unified-maintenance-no-change-generation
+      ---
+      duration_ms: 564.187459
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-processing
+    ok 54 - unified-maintenance-material-denied-processing
+      ---
+      duration_ms: 44.238458
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-context-processing
+    ok 55 - unified-maintenance-material-denied-context-processing
+      ---
+      duration_ms: 41.399125
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-context-revoke
+    ok 56 - unified-maintenance-material-denied-context-revoke
+      ---
+      duration_ms: 49.386833
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-exclusion
+    ok 57 - unified-maintenance-material-denied-exclusion
+      ---
+      duration_ms: 50.991708
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-material-missing
+    ok 58 - unified-maintenance-material-denied-material-missing
+      ---
+      duration_ms: 42.185959
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-material-denied-material-expired
+    ok 59 - unified-maintenance-material-denied-material-expired
+      ---
+      duration_ms: 43.020208
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-current-working-cross-conversation
+    ok 60 - unified-maintenance-current-working-cross-conversation
+      ---
+      duration_ms: 418.62725
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"denied":true}
+    ok 61 - unified-maintenance-{"denied":true}
+      ---
+      duration_ms: 33.760917
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{}
+    ok 62 - unified-maintenance-{}
+      ---
+      duration_ms: 304.543333
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"adapterMode":"swap"}
+    ok 63 - unified-maintenance-{"adapterMode":"swap"}
+      ---
+      duration_ms: 189.6565
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"item"}
+    ok 64 - unified-maintenance-{"phase":"item"}
+      ---
+      duration_ms: 357.934959
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"receipt"}
+    ok 65 - unified-maintenance-{"phase":"receipt"}
+      ---
+      duration_ms: 379.826291
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"ack"}
+    ok 66 - unified-maintenance-{"phase":"ack"}
+      ---
+      duration_ms: 363.793667
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"job"}
+    ok 67 - unified-maintenance-{"phase":"job"}
+      ---
+      duration_ms: 371.511667
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"generation"}
+    ok 68 - unified-maintenance-{"phase":"generation"}
+      ---
+      duration_ms: 367.214708
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"generation","mode":"revoke"}
+    ok 69 - unified-maintenance-{"phase":"generation","mode":"revoke"}
+      ---
+      duration_ms: 302.38625
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"generation","mode":"cancel"}
+    ok 70 - unified-maintenance-{"phase":"generation","mode":"cancel"}
+      ---
+      duration_ms: 338.976958
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"generation","mode":"expiry"}
+    ok 71 - unified-maintenance-{"phase":"generation","mode":"expiry"}
+      ---
+      duration_ms: 1251.606208
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"topic-domain"}
+    ok 72 - unified-maintenance-{"phase":"topic-domain"}
+      ---
+      duration_ms: 356.7955
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-{"phase":"topic-ack"}
+    ok 73 - unified-maintenance-{"phase":"topic-ack"}
+      ---
+      duration_ms: 328.872167
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-complete
+    ok 74 - unified-maintenance-partial-excerpt-complete
+      ---
+      duration_ms: 670.231167
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-source
+    ok 75 - unified-maintenance-partial-excerpt-source
+      ---
+      duration_ms: 627.557459
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-protected
+    ok 76 - unified-maintenance-partial-excerpt-protected
+      ---
+      duration_ms: 619.122542
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-revoke
+    ok 77 - unified-maintenance-partial-excerpt-revoke
+      ---
+      duration_ms: 624.696875
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-graph
+    ok 78 - unified-maintenance-partial-excerpt-graph
+      ---
+      duration_ms: 670.513041
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-partial-excerpt-ack-abort
+    ok 79 - unified-maintenance-partial-excerpt-ack-abort
+      ---
+      duration_ms: 689.686791
+      type: 'test'
+      ...
+    # Subtest: unified-maintenance-idle-processing-expiry
+    ok 80 - unified-maintenance-idle-processing-expiry
+      ---
+      duration_ms: 3104.638458
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-complete
+    ok 81 - repository-terminal-complete
+      ---
+      duration_ms: 11.243167
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-finalizer-source
+    ok 82 - repository-terminal-finalizer-source
+      ---
+      duration_ms: 8.379959
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-finalizer-revoke
+    ok 83 - repository-terminal-finalizer-revoke
+      ---
+      duration_ms: 11.053416
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-finalizer-expiry
+    ok 84 - repository-terminal-finalizer-expiry
+      ---
+      duration_ms: 13.347375
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-caught-terminal-write
+    ok 85 - repository-terminal-caught-terminal-write
+      ---
+      duration_ms: 7.000291
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-non-idb-promise
+    ok 86 - repository-terminal-non-idb-promise
+      ---
+      duration_ms: 7.210292
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-second-fence-revoke
+    ok 87 - repository-terminal-second-fence-revoke
+      ---
+      duration_ms: 8.413375
+      type: 'test'
+      ...
+    # Subtest: repository-terminal-native-auto-complete-control
+    ok 88 - repository-terminal-native-auto-complete-control
+      ---
+      duration_ms: 6.536167
+      type: 'test'
+      ...
+    # Subtest: repository-collections-complete
+    ok 89 - repository-collections-complete
+      ---
+      duration_ms: 10.599708
+      type: 'test'
+      ...
+    # Subtest: repository-collections-last-owner-revoke
+    ok 90 - repository-collections-last-owner-revoke
+      ---
+      duration_ms: 15.480166
+      type: 'test'
+      ...
+    # Subtest: worker-recovery-batch-final-fence
+    ok 91 - worker-recovery-batch-final-fence
+      ---
+      duration_ms: 1494.745542
+      type: 'test'
+      ...
+    1..91
+ok 2 - CTX4-05 native release dormant maintenance transaction and lineage fences
+  ---
+  duration_ms: 33400.347834
+  type: 'test'
+  ...
+1..2
+# tests 184
+# suites 0
+# pass 184
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 66141.428208

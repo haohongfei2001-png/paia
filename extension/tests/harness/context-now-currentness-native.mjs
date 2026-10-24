@@ -14,6 +14,7 @@ import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {admitPreGatePurgeBrowserFixture} from './pre-gate-purge-browser-fixture.mjs';
+import {startNavigatorSourceFixture,awaitNavigatorSourceCompletion} from './navigator-source-completion.mjs';
 
 const root=resolve(process.env.PAIA_EXTENSION_ROOT||fileURLToPath(new URL('../../',import.meta.url)));
 const {FakeChatGPT,eventually}=await import(pathToFileURL(join(root,'tests/harness/fake-chatgpt.mjs')));
@@ -37,12 +38,14 @@ function offline(h){assert.equal(h.externalRequests,0);assert.equal(h.extensionN
 let ownedRelease=null,releasePromise=null;
 after(async()=>{if(ownedRelease)await rm(ownedRelease,{recursive:true,force:true});});
 const releasePath=()=>process.env.PAIA_NOW_RELEASE_PATH?Promise.resolve(process.env.PAIA_NOW_RELEASE_PATH):(releasePromise??=(async()=>{ownedRelease=await mkdtemp(join(tmpdir(),'paia-now-native-'));execFileSync('python3',['scripts/build_current_release.py',ownedRelease],{cwd:root,stdio:'pipe'});return ownedRelease;})());
-async function fixture(t,variant,{neighbor=false}={}){
+async function fixture(t,variant,{neighbor=false,qualifyCapture=false}={}){
  const extensionPath=variant==='source'?root:await releasePath();
- const h=await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true}),p=h.archive;
+ const captureFixture=qualifyCapture?await startNavigatorSourceFixture({extensionPath,launchThroughPort:true}):null;
+ const h=captureFixture?.harness||await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true}),p=h.archive;
  const dir=join(root,'work/context-now-currentness-native',variant,t.name.replace(/[^a-zA-Z0-9-]+/g,'-'));
  t.after(async()=>{try{await p.evaluate(()=>{globalThis.__nowRelease?.();globalThis.__nowRestoreTransport?.();return globalThis.__nowNative?.close();});}catch{}
-  await h.close();});
+  if(captureFixture)await captureFixture.close();else await h.close();});
+ if(captureFixture){const start=p.locator('#onboarding-start');if(await start.count()&&await start.isVisible())await start.click();await p.locator('#enable-consent').waitFor({state:'visible'});}
  await p.setViewportSize({width:1280,height:900});await p.locator('#enable-consent').click();
  await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true,'actual explicit consent settles');
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
@@ -51,7 +54,11 @@ async function fixture(t,variant,{neighbor=false}={}){
   {id:'now-unrelated-user',text:'SYNTHETIC unrelated user Source remains exact.'}
  ]},{arrival:'dom-first'});
  await eventually(async()=>(await h.state()).records.length===2,'all and only two user Sources captured');await capture.close();
- const seed=await p.evaluate(async({body,neighbor,expiryMs})=>{
+ // A saved Source is not completion of its optional queue writes. Use the
+ // existing original-worker completion barrier before freezing filter mode;
+ // off correctly preserves pending work and cannot drain it for the oracle.
+ const captureCompletion=captureFixture?await awaitNavigatorSourceCompletion(captureFixture):null;
+ const seed=await p.evaluate(async({body,neighbor,expiryMs,qualifyCapture})=>{
   const [{OrganizerStore},{ContextMaintenanceService},{ContextCardsService,CONTEXT_CARDS_ROW},{ContextReadService},{readContextTopicScope},{inputProjection},{hashText}]=await Promise.all([
    import(chrome.runtime.getURL('core/organizer/store.js')),import(chrome.runtime.getURL('core/context-maintenance.js')),
    import(chrome.runtime.getURL('core/context-cards.js')),import(chrome.runtime.getURL('core/context-read.js')),
@@ -61,7 +68,9 @@ async function fixture(t,variant,{neighbor=false}={}){
   // maintenance.temporal by a meta put or substitute the projection function.
   await import(chrome.runtime.getURL('core/context-temporal.js'));
   if(!(indexedDB instanceof IDBFactory)||!/\[native code\]/.test(IDBFactory.prototype.open.toString())||!(crypto.subtle instanceof SubtleCrypto)||!/\[native code\]/.test(SubtleCrypto.prototype.digest.toString()))throw Error('Native IndexedDB/WebCrypto required');
-  const s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID();await s.finishFoundation();await s.setFilterMode('off');
+  const s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID();await s.finishFoundation();
+  if(qualifyCapture){const filter=await s.filterStatus();if(filter.mode!=='light'||filter.pending!==0||filter.taskState!=='idle')throw Error('NOW_CAPTURE_FILTER_NOT_SETTLED');}
+  await s.setFilterMode('off');
   const snapshot=await s.snapshot(),source=snapshot.records.find(r=>r.sourceMessageId==='now-qualified-user'),unrelated=snapshot.records.find(r=>r.sourceMessageId==='now-unrelated-user');
   if(!source||!unrelated)throw Error('Actual captured Source identities missing');
   const input=snapshot.library.blocks.find(b=>b.originalTextReference===source.id);if(!input)throw Error('Canonical Input missing');
@@ -88,7 +97,7 @@ async function fixture(t,variant,{neighbor=false}={}){
    async refuseOverwrite(){const current=(await canonical()).items.find(x=>x.id===change.itemId);return service.maintain(caller,{...change,operationId:op(),card:current.card,expectedRevision:current.revision,body:'SYNTHETIC forbidden automatic overwrite'});},
    close:()=>s.repository.close()};
   return {id:change.itemId,epoch:change.epoch,sourceId:source.id,unrelatedId:unrelated.id,humanThoughtId:humanThought.id,deadline:Date.parse(validUntil),temporal:change.temporal,body,revision:1};
- },{body:BODY,neighbor,expiryMs:EXPIRY_MS});
+ },{body:BODY,neighbor,expiryMs:EXPIRY_MS,qualifyCapture});
  await p.bringToFront();
  await openNow(p);
  await field(p,seed.id).waitFor();assert.equal(await field(p,seed.id).innerText(),BODY);
@@ -96,7 +105,7 @@ async function fixture(t,variant,{neighbor=false}={}){
  const rights=await privateGrants(p);assert.equal(rights.access.global.enabled,false);assert.equal(rights.access.now.enabled,false);assert.equal(rights.capabilities.external,false);assert.equal(rights.connections,0);
  const before=await protectedOwners(p);assert.equal((await p.evaluate(()=>__nowNative.denyRead())).available,false,'time metadata cannot bypass the original closed read gate');
  async function finish(){assert.deepEqual(await protectedOwners(p),before,'Source/Working/Thought/placement/history bytes are preserved');assert.deepEqual(await privateGrants(p),rights,'deadline and UI do not grant access or attach a connection');offline(h);}
- async function evidence(name,details={}){await mkdir(dir,{recursive:true});await p.screenshot({path:join(dir,name+'.png')});await writeFile(join(dir,name+'.json'),JSON.stringify({checkpoint:CHECKPOINT,variant,id:seed.id,deadline:seed.deadline,actualBrowserNow:await p.evaluate(()=>Date.now()),network:{external:h.externalRequests,provider:h.deepSeekRequests.length,extension:h.extensionNetworkRequests},verified:true,...details,scope:'This component receipt is not whole-programme, installation or owner visual acceptance.'},null,2));}
+ async function evidence(name,details={}){await mkdir(dir,{recursive:true});await p.screenshot({path:join(dir,name+'.png')});await writeFile(join(dir,name+'.json'),JSON.stringify({checkpoint:CHECKPOINT,variant,id:seed.id,deadline:seed.deadline,actualBrowserNow:await p.evaluate(()=>Date.now()),network:{external:h.externalRequests,provider:h.deepSeekRequests.length,extension:h.extensionNetworkRequests},verified:true,...(captureFixture?{captureCompletion,captureBinding:captureFixture.binding,maintenance:await p.evaluate(()=>globalThis.__preGateFixtureTrace||[])}:{}),...details,scope:'This component receipt is not whole-programme, installation or owner visual acceptance.'},null,2));}
  return {h,p,seed,before,rights,finish,evidence};
 }
 
@@ -154,7 +163,7 @@ for(const variant of ['source','release']){
  });
 
  test('Now current B-02 refusal and historical Source purge retire the timer and reject an older actual snapshot '+variant,{timeout:60000},async t=>{
-  const f=await fixture(t,variant),{p,seed}=f;
+  const f=await fixture(t,variant,{qualifyCapture:true}),{p,seed}=f;
   await item(p,seed.id).evaluate(node=>{globalThis.__nowPurgedField=node.querySelector('.item-text');globalThis.__nowPurgedStatus=node.querySelector('.item-temporal');});
   // Hold delivery of one genuine successful UI snapshot. No reply fields or
   // statuses are fabricated. The direct send remains available for the oracle.
