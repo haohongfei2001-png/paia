@@ -1,0 +1,91 @@
+✔ actual Settings keeps original complete-cut preparation read-only while cross-page editor protection is unavailable (1548.27348ms)
+✔ failed ready retains actual Settings pending CONTINUE without initializing a second writer (1270.106968ms)
+✔ failed ready retains actual Settings pending CANCEL without initializing a second writer (1026.439548ms)
+✔ fixed selection messages reject caller data, subframes, incognito and malformed roots before writes (745.450908ms)
+✔ default fixed source remains unavailable without selection controls or mutations (85.170649ms)
+✔ unknown SDK outcome remains reachable before ready, never resends or exposes restart (881.219655ms)
+✔ selection cannot activate while a real original checkpoint request is in flight (1530.618089ms)
+✔ without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker (1576.458096ms)
+✔ a prepared interrupted operation cannot bypass the editor gate through continue before ready (1178.876569ms)
+✔ even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension (1090.706046ms)
+✔ actual worker page hold covers early Prompt, Import, Sync, settings and capture ingress (324.038178ms)
+✔ original page save remains admitted before its FROZEN acknowledgement and denied afterward (165.066922ms)
+✔ actual post-response host notification remains in the worker drain until physical settlement (177.314992ms)
+✔ original delayed Import notification remains tracked through coalesced replacement (135.269056ms)
+✔ fixed admission exceptions preserve restrictions but never grant a prefix bypass (1.016686ms)
+✔ worker activity observes original nested tails and subsequent local drains without issuing a receipt (0.766809ms)
+✔ actual local maintenance successor remains in worker drain after its first wake settles (156.553196ms)
+✔ actual Import notification timer drains only after its original publication settles (657.626288ms)
+✔ actual default unopened Store is initialized before original owners bind their lifetime identity (169.160489ms)
+✔ synthetic worker tab lookup remains unavailable and emits no receiver message (172.983225ms)
+✔ read-only Settings destinations retain content and use labeled native dialogs without mounting side effects (2.73093ms)
+✔ guarded detail close and native Escape share one held owner acknowledgement (6.899005ms)
+✔ busy refusal and rejected close acknowledgement retain the original detail for explicit retry (1.504915ms)
+✔ destination presentation preserves the actual existing button listener and changes no owner state (0.81469ms)
+✖ google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C (1004.522803ms)
+✖ onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C (1003.439965ms)
+✖ actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer (233.254717ms)
+✔ unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim (172.305357ms)
+✔ google original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore (1476.148984ms)
+✔ onedrive original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore (1128.253886ms)
+✔ google explicit empty Context enrollment survives the original cold worker without manufacturing content or access (225.64436ms)
+✔ onedrive explicit empty Context enrollment survives the original cold worker without manufacturing content or access (213.664096ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 29
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7517.160149
+
+✖ failing tests:
+
+test at extension/tests/sync-worker-checkpoint-prompt.test.mjs:13:41
+✖ google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C (1004.522803ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/sync-worker-checkpoint-prompt.test.mjs:16:161)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/sync-worker-checkpoint-prompt.test.mjs:13:41
+✖ onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C (1003.439965ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/sync-worker-checkpoint-prompt.test.mjs:16:161)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/sync-worker-checkpoint-prompt.test.mjs:20:1
+✖ actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer (233.254717ms)
+  Error: CONTROL_PUBLICATION_CHANGED
+      at error (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/core/indexed-store.js:51:26)
+      at OrganizerStore.qualifyControlPublicationRead (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/core/indexed-store.js:247:409)
+      at async file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/core/browser-native-sync/context-mutation-journal-owner.js:50:50
+      at async file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/core/browser-native-sync/core.js:192:127
+      at async ArchiveRepository.transaction (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/core/idb-repository.js:579:510)
+      at async BrowserNativeSyncCore.transaction (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/core/browser-native-sync/core.js:192:66)
+      at async ContextMutationSyncJournal.emptyEnrollment (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/core/browser-native-sync/context-mutation-journal-owner.js:48:3)
+      at async SyncLifecycle.attachContextService (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/work/sync-lifecycle-test-fixtures/consumer-8ajYs2/background/sync-local-lifecycle.js:140:37)
+      at async file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/work/sync-lifecycle-test-fixtures/consumer-8ajYs2/background/service-worker.js:189:212 {
+    code: 'CONTROL_PUBLICATION_CHANGED'
+  }

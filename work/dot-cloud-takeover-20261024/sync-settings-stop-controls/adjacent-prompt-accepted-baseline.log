@@ -1,0 +1,63 @@
+✖ google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C (801.442631ms)
+✖ onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C (736.862332ms)
+✖ actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer (211.874914ms)
+✔ unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim (180.686449ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2240.762712
+
+✖ failing tests:
+
+test at ../baseline/extension/tests/sync-worker-checkpoint-prompt.test.mjs:13:41
+✖ google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C (801.442631ms)
+  AssertionError [ERR_ASSERTION]: {"ok":false,"error":"BNS_GROUP_RESOURCE_LIMIT"}
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/baseline/extension/tests/sync-worker-checkpoint-prompt.test.mjs:16:243)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../baseline/extension/tests/sync-worker-checkpoint-prompt.test.mjs:13:41
+✖ onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C (736.862332ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/baseline/extension/tests/sync-worker-checkpoint-prompt.test.mjs:16:161)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../baseline/extension/tests/sync-worker-checkpoint-prompt.test.mjs:20:1
+✖ actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer (211.874914ms)
+  Error: CONTROL_PUBLICATION_CHANGED
+      at error (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/baseline/extension/core/indexed-store.js:51:26)
+      at OrganizerStore.qualifyControlPublicationRead (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/baseline/extension/core/indexed-store.js:247:409)
+      at async file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/baseline/extension/core/browser-native-sync/context-mutation-journal-owner.js:50:50
+      at async file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/baseline/extension/core/browser-native-sync/core.js:192:127
+      at async ArchiveRepository.transaction (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/baseline/extension/core/idb-repository.js:579:510)
+      at async BrowserNativeSyncCore.transaction (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/baseline/extension/core/browser-native-sync/core.js:192:66)
+      at async ContextMutationSyncJournal.emptyEnrollment (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/baseline/extension/core/browser-native-sync/context-mutation-journal-owner.js:48:3)
+      at async SyncLifecycle.attachContextService (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/baseline/work/sync-lifecycle-test-fixtures/consumer-HyGiyE/background/sync-local-lifecycle.js:140:37)
+      at async file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/baseline/work/sync-lifecycle-test-fixtures/consumer-HyGiyE/background/service-worker.js:189:212 {
+    code: 'CONTROL_PUBLICATION_CHANGED'
+  }

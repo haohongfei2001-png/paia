@@ -1,0 +1,233 @@
+✔ Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal (9.025165ms)
+✔ qualified local facade renders explicit partial scope and user-only zero-argument transitions (3.302839ms)
+✔ one explicit publish survives double click; unknown result exposes status only and no automatic replay (1.739088ms)
+✔ restore continuation is only the original task and completion never says whole archive synchronized (1.115421ms)
+✔ close/reopen fences late status; malformed or fake full-sync state cannot expose actions (1.125075ms)
+✔ invalid configured result and hidden Settings cannot be used as permission or overwrite late UI (0.78854ms)
+✔ original Data group placement and fixed worker request retain a single owner (1.926474ms)
+✔ leaving Settings during an outstanding status never renders that late configuration (0.624389ms)
+✔ configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics (0.964599ms)
+✔ all selection states keep activation, continued switching and restart unavailable without an original cross-page editor guard (2.429464ms)
+✔ safe cancellation retains double-click and unknown-response guards without automatic replay (1.122972ms)
+✔ late cancellation reply after leaving Settings is ignored (0.669726ms)
+✔ malformed selection restart entitlement exposes no selection action (0.613963ms)
+✔ active but unenrolled Context honestly gates NOW until explicit Resume and never dispatches the hidden action (0.734601ms)
+✖ mounted PAUSE stays available during held NOW and fences its late ACK (2.051909ms)
+✖ mounted DISCONNECT stays available during held NOW and fences its late ACK (1.257479ms)
+✖ mounted PAUSE stays available during held RESTORE and fences its late ACK (0.793307ms)
+✖ mounted DISCONNECT stays available during held RESTORE and fences its late ACK (2.101111ms)
+✖ mounted PAUSE stays available during held STATUS and fences its late ACK (0.969967ms)
+✖ mounted DISCONNECT stays available during held STATUS and fences its late ACK (0.685669ms)
+✖ reopened busy worker permits only STATUS and PAUSE, not transfer or enrollment (1.032609ms)
+✖ reopened busy worker permits only STATUS and DISCONNECT, not transfer or enrollment (0.754931ms)
+✖ late error from superseded transfer cannot overwrite confirmed pause or clear a newer status flight (1.105666ms)
+✖ late invalid from superseded transfer cannot overwrite confirmed pause or clear a newer status flight (0.85618ms)
+✖ pending stop rejects duplicate and contrary stop clicks; failed stop remains uncertain until status (0.862028ms)
+✖ stop remains available after an uncertain ordinary operation without allowing a replay (1.993202ms)
+✔ selection holds do not become a stop-command concurrency bypass (1.449983ms)
+✖ close and reopen after a stop fences all earlier responses (0.800688ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 15
+ℹ fail 13
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 142.939617
+
+✖ failing tests:
+
+test at extension/tests/settings-sync.test.mjs:63:92
+✖ mounted PAUSE stays available during held NOW and fences its late ACK (2.051909ms)
+  AssertionError [ERR_ASSERTION]: PAUSE is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:69:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:63:92
+✖ mounted DISCONNECT stays available during held NOW and fences its late ACK (1.257479ms)
+  AssertionError [ERR_ASSERTION]: DISCONNECT is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:69:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:63:92
+✖ mounted PAUSE stays available during held RESTORE and fences its late ACK (0.793307ms)
+  AssertionError [ERR_ASSERTION]: PAUSE is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:69:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:63:92
+✖ mounted DISCONNECT stays available during held RESTORE and fences its late ACK (2.101111ms)
+  AssertionError [ERR_ASSERTION]: DISCONNECT is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:69:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:63:92
+✖ mounted PAUSE stays available during held STATUS and fences its late ACK (0.969967ms)
+  AssertionError [ERR_ASSERTION]: PAUSE is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:69:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:63:92
+✖ mounted DISCONNECT stays available during held STATUS and fences its late ACK (0.685669ms)
+  AssertionError [ERR_ASSERTION]: DISCONNECT is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:69:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:72:42
+✖ reopened busy worker permits only STATUS and PAUSE, not transfer or enrollment (1.032609ms)
+  AssertionError [ERR_ASSERTION]: PAUSE is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:75:143)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:72:42
+✖ reopened busy worker permits only STATUS and DISCONNECT, not transfer or enrollment (0.754931ms)
+  AssertionError [ERR_ASSERTION]: DISCONNECT is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:75:143)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:77:42
+✖ late error from superseded transfer cannot overwrite confirmed pause or clear a newer status flight (1.105666ms)
+  AssertionError [ERR_ASSERTION]: PAUSE is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:79:46)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:77:42
+✖ late invalid from superseded transfer cannot overwrite confirmed pause or clear a newer status flight (0.85618ms)
+  AssertionError [ERR_ASSERTION]: PAUSE is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:79:46)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:83:1
+✖ pending stop rejects duplicate and contrary stop clicks; failed stop remains uncertain until status (0.862028ms)
+  AssertionError [ERR_ASSERTION]: PAUSE is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:85:46)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:88:1
+✖ stop remains available after an uncertain ordinary operation without allowing a replay (1.993202ms)
+  AssertionError [ERR_ASSERTION]: PAUSE is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:89:255)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-sync.test.mjs:96:1
+✖ close and reopen after a stop fences all earlier responses (0.800688ms)
+  AssertionError [ERR_ASSERTION]: PAUSE is actionable
+      at Object.click (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:14:171)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/settings-sync.test.mjs:97:305)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

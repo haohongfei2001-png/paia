@@ -1,0 +1,42 @@
+✖ mounted Settings PAUSE stops held original publication with no extra transfer or task replacement (277.163067ms)
+✖ mounted Settings DISCONNECT stops held original publication with no extra transfer or task replacement (177.454603ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 810.106512
+
+✖ failing tests:
+
+test at extension/tests/sync-local-lifecycle.test.mjs:318:42
+✖ mounted Settings PAUSE stops held original publication with no extra transfer or task replacement (277.163067ms)
+  AssertionError [ERR_ASSERTION]: mounted owner PAUSE is actionable
+      at Object.start (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/sync-local-lifecycle.test.mjs:316:146)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/sync-local-lifecycle.test.mjs:323:25)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/sync-local-lifecycle.test.mjs:318:42
+✖ mounted Settings DISCONNECT stops held original publication with no extra transfer or task replacement (177.454603ms)
+  AssertionError [ERR_ASSERTION]: mounted owner DISCONNECT is actionable
+      at Object.start (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/sync-local-lifecycle.test.mjs:316:146)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-sync-settings-stop-controls-20261024T2044Z/tree/extension/tests/sync-local-lifecycle.test.mjs:323:25)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

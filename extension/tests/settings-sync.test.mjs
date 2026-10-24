@@ -58,3 +58,53 @@ test('active but unenrolled Context honestly gates NOW until explicit Resume and
  let value=state({state:'active',contextCommands:true,needsContextEnrollment:true});const f=fixture(t,async({type})=>{if(type==='PAIA_SYNC_RESUME')value={...value,needsContextEnrollment:false};return {ok:true,data:value};});await f.open();assert.equal(f.button('RESUME').hidden,false);assert.equal(f.button('NOW').hidden,true);assert.match(f.content.textContent,/Context 显式登记/);f.button('NOW').listeners.get('click')();assert.equal(f.calls.filter(x=>x.type==='PAIA_SYNC_NOW').length,0);
  f.language('en');assert.match(f.content.textContent,/explicitly enroll Context before saving a checkpoint/);await f.click('RESUME');assert.equal(f.button('RESUME').hidden,true);assert.equal(f.button('NOW').hidden,false);assert.equal(f.calls.filter(x=>x.type==='PAIA_SYNC_RESUME').length,1);
 });
+
+const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
+for(const operation of ['NOW','RESTORE','STATUS'])for(const stop of ['PAUSE','DISCONNECT'])test(`mounted ${stop} stays available during held ${operation} and fences its late ACK`,async t=>{
+ const old=deferred(),stopped=stop==='PAUSE'?'paused':'disconnected';let held=false;
+ const f=fixture(t,async({type})=>type==='PAIA_SYNC_'+operation&&held?old.promise:({ok:true,data:state({state:type==='PAIA_SYNC_'+stop?stopped:'active',resumeAvailable:stopped!=='disconnected'})}));
+ await f.open();held=true;await f.click(operation);
+ for(const command of ['NOW','RESTORE','RESUME','CONTINUE','GENERATION_PREPARE']){f.button(command).listeners.get('click')();}
+ assert.equal(f.calls.length,2,'only the original ordinary action dispatches');
+ await f.click(stop);assert.equal(f.content.dataset.syncState,stopped);assert.match(f.content.textContent,stop==='PAUSE'?/传输已暂停/:/本机连接已断开/);
+ old.resolve({ok:true,data:state({state:'active'})});await tick();assert.equal(f.content.dataset.syncState,stopped);assert.equal(f.button('NOW').hidden,true);assert.equal(f.calls.length,3);
+});
+for(const stop of ['PAUSE','DISCONNECT'])test(`reopened busy worker permits only STATUS and ${stop}, not transfer or enrollment`,async t=>{
+ const stopped=stop==='PAUSE'?'paused':'disconnected';let current=state({state:'active',busy:true,resumeAvailable:false,task:{kind:'restore',phase:'running'}});
+ const f=fixture(t,async({type})=>{if(type==='PAIA_SYNC_'+stop)current={...current,state:stopped};return {ok:true,data:current};});await f.open();
+ assert.equal(f.button('NOW').hidden,true);assert.equal(f.button('RESTORE').hidden,true);assert.equal(f.button('RESUME').hidden,true);await f.click(stop);assert.equal(f.content.dataset.syncState,stopped);assert.equal(f.button('RESUME').hidden,true,'stop ACK does not claim old worker is idle');
+});
+for(const outcome of ['error','invalid'])test(`late ${outcome} from superseded transfer cannot overwrite confirmed pause or clear a newer status flight`,async t=>{
+ const old=deferred(),status=deferred();let reads=0;const f=fixture(t,async({type})=>type==='PAIA_SYNC_NOW'?old.promise:type==='PAIA_SYNC_PAUSE'?{ok:true,data:state({state:'paused'})}:++reads===1?{ok:true,data:state({state:'active'})}:status.promise);
+ await f.open();await f.click('NOW');await f.click('PAUSE');await f.click('STATUS');
+ old.resolve(outcome==='error'?{ok:false,error:'SYNTHETIC_LATE_ERROR'}:{ok:true,data:{state:'active'}});await tick();assert.equal(f.content.dataset.syncState,'paused');assert.equal(f.button('STATUS').disabled,true,'old finally cannot clear newer busy');assert.doesNotMatch(f.content.textContent,/先核对状态/);
+ status.resolve({ok:true,data:state({state:'paused'})});await tick();assert.match(f.content.textContent,/传输已暂停/);assert.equal(f.button('STATUS').disabled,false);
+});
+test('pending stop rejects duplicate and contrary stop clicks; failed stop remains uncertain until status',async t=>{
+ const old=deferred(),stop=deferred();let reads=0;const f=fixture(t,async({type})=>type==='PAIA_SYNC_NOW'?old.promise:type==='PAIA_SYNC_PAUSE'?stop.promise:{ok:true,data:state({state:++reads===1?'active':'paused'})});
+ await f.open();await f.click('NOW');await f.click('PAUSE');for(const command of ['PAUSE','DISCONNECT','NOW','RESTORE','RESUME','STATUS'])f.button(command).listeners.get('click')();assert.equal(f.calls.length,3);
+ stop.resolve({ok:false,error:'SYNTHETIC_STOP_UNKNOWN'});await tick();assert.match(f.content.textContent,/先核对状态/);assert.equal(f.button('NOW').hidden,true);old.resolve({ok:true,data:state({state:'active'})});await tick();assert.match(f.content.textContent,/先核对状态/);await f.click('STATUS');assert.match(f.content.textContent,/传输已暂停/);assert.equal(f.calls.length,4);
+});
+test('stop remains available after an uncertain ordinary operation without allowing a replay',async t=>{
+ const f=fixture(t,async({type})=>type==='PAIA_SYNC_NOW'?{ok:false,error:'SYNTHETIC_UNKNOWN'}:{ok:true,data:state({state:type==='PAIA_SYNC_PAUSE'?'paused':'active'})});await f.open();await f.click('NOW');assert.equal(f.button('NOW').hidden,true);await f.click('PAUSE');assert.match(f.content.textContent,/传输已暂停/);assert.equal(f.calls.filter(x=>x.type==='PAIA_SYNC_NOW').length,1);
+});
+test('selection holds do not become a stop-command concurrency bypass',async t=>{
+ let choice=selectionState('not-prepared',{busy:true});const f=fixture(t,async()=>({ok:true,data:state({state:'active',busy:true,applicationSelection:choice})}));await f.open();
+ for(const value of [choice,...['prepared','outcome-unknown','finishing','selected','restart-requested'].map(x=>selectionState(x))]){choice=value;await f.click('STATUS');for(const stop of ['PAUSE','DISCONNECT']){assert.equal(f.button(stop).hidden,true);f.button(stop).listeners.get('click')();}}
+ assert.ok(f.calls.every(x=>x.type==='PAIA_SYNC_STATUS'));
+});
+test('close and reopen after a stop fences all earlier responses',async t=>{
+ const old=deferred(),stop=deferred();let reads=0;const f=fixture(t,async({type})=>type==='PAIA_SYNC_NOW'?old.promise:type==='PAIA_SYNC_PAUSE'?stop.promise:{ok:true,data:++reads===1?state({state:'active'}):state({state:'disconnected',resumeAvailable:false})});await f.open();await f.click('NOW');await f.click('PAUSE');f.detail.dialog.close();await f.open();old.resolve({ok:true,data:state({state:'active'})});stop.resolve({ok:true,data:state({state:'paused'})});await tick();assert.equal(f.content.dataset.syncState,'disconnected');assert.equal(f.button('NOW').hidden,true);assert.equal(f.calls.length,4);
+});
+for(const stop of ['PAUSE','DISCONNECT'])test(`active enrollment Resume remains stoppable by ${stop} without adopting its late ACK`,async t=>{
+ const old=deferred();const f=fixture(t,async({type})=>type==='PAIA_SYNC_RESUME'?old.promise:{ok:true,data:state({state:type==='PAIA_SYNC_'+stop?(stop==='PAUSE'?'paused':'disconnected'):'active',needsContextEnrollment:true})});await f.open();await f.click('RESUME');await f.click(stop);old.resolve({ok:true,data:state({state:'active',needsContextEnrollment:false})});await tick();assert.equal(f.content.dataset.syncState,stop==='PAUSE'?'paused':'disconnected');assert.equal(f.button('NOW').hidden,true);assert.equal(f.calls.length,3);
+});
+test('not-started enrollment can be disconnected without broadening active-only pause availability',async t=>{
+ const old=deferred();const f=fixture(t,async({type})=>type==='PAIA_SYNC_RESUME'?old.promise:{ok:true,data:state(type==='PAIA_SYNC_DISCONNECT'?{state:'disconnected',resumeAvailable:false}:{})});await f.open();await f.click('RESUME');assert.equal(f.button('PAUSE').hidden,true);await f.click('DISCONNECT');old.resolve({ok:true,data:state({state:'active'})});await tick();assert.equal(f.content.dataset.syncState,'disconnected');assert.equal(f.button('RESUME').hidden,true);
+});
+test('superseded transfer finally cannot unlock a newly authorized Resume flight',async t=>{
+ const old=deferred(),resume=deferred();const f=fixture(t,async({type})=>type==='PAIA_SYNC_NOW'?old.promise:type==='PAIA_SYNC_RESUME'?resume.promise:{ok:true,data:state({state:type==='PAIA_SYNC_PAUSE'?'paused':'active'})});await f.open();await f.click('NOW');await f.click('PAUSE');await f.click('RESUME');old.resolve({ok:true,data:state({state:'active'})});await tick();assert.equal(f.button('RESUME').disabled,true);assert.equal(f.button('NOW').hidden,true);assert.equal(f.content.dataset.syncState,'paused');resume.resolve({ok:true,data:state({state:'active'})});await tick();assert.equal(f.button('NOW').disabled,false);assert.equal(f.button('NOW').hidden,false);
+});
+test('generation preparation remains single-flight rather than accepting concurrent Sync stop commands',async t=>{
+ const prepared=deferred();const f=fixture(t,async({type})=>type==='PAIA_GENERATION_PREPARE'?prepared.promise:{ok:true,data:state({state:'active',applicationSelection:selectionState('not-prepared')})});await f.open();await f.click('GENERATION_PREPARE');for(const name of ['PAUSE','DISCONNECT']){assert.equal(f.button(name).disabled,true);f.button(name).listeners.get('click')();}assert.equal(f.calls.length,2);prepared.resolve({ok:true,data:selectionState('review-ready')});await tick();assert.equal(f.button('PAUSE').disabled,false);
+});

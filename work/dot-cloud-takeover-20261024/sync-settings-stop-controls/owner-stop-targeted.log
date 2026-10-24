@@ -1,0 +1,13 @@
+✔ mounted Settings PAUSE stops held original publication with no extra transfer or task replacement (242.579716ms)
+✔ mounted Settings DISCONNECT stops held original publication with no extra transfer or task replacement (152.391933ms)
+✔ mounted Settings stop does not grant consent and explicit resume still needs the original consent owner (40.231178ms)
+✔ mounted Settings PAUSE stops held original restore without applying data or replacing its task (97.054345ms)
+✔ mounted Settings DISCONNECT stops held original restore without applying data or replacing its task (101.441875ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 989.071109

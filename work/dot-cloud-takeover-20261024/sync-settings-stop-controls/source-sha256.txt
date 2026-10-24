@@ -1,0 +1,3 @@
+d9401b4697106b92669b33b328f783aaae900bf63c26f87edf085075a26ed633  extension/ui/settings-sync.js
+0f5b5b3699113fb311e600cc69f340882d8fdc9bfd04d7f54a032025a97b3ce0  extension/tests/settings-sync.test.mjs
+e2ebcb0a0bbb38c6343ffb462f517e2f4f4a476525ceaa3417be520e7cfc31c5  extension/tests/sync-local-lifecycle.test.mjs

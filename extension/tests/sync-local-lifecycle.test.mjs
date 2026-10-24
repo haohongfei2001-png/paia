@@ -303,3 +303,43 @@ test('original v1 reader fails closed; explicit paused rollback removes only the
  const rollback=structuredClone(paused);delete rollback.contextEnrollment;assert.deepEqual(readOriginalLifecycleV1(rollback),rollback);await f.storage.set({[ROW]:rollback});const y=await cold(f,x),service=await attachContext(y);assert.equal(service.syncJournal,null);assert.equal((await command(y.owner,'STATUS')).state,'paused');assert.equal((await y.owner.snapshot()).needsContextEnrollment,true);assert.deepEqual(await row(f),rollback);assert.deepEqual(await enrollmentTables(y),before);assert.equal(f.cloud.requests.length,0);
  assert.deepEqual({...rollback,contextEnrollment:paused.contextEnrollment},paused);
 });
+
+// Exercise the mounted Settings handlers against the original lifecycle owner,
+// not a reimplementation of its stop/consent/task rules.
+function mountedOwner(t,owner){
+ const previous={document:globalThis.document,chrome:globalThis.chrome},body=new PresentationNode('body'),calls=[];let pending;
+ const make=tag=>{const n=new PresentationNode(tag);if(tag==='dialog'){n.showModal=()=>n.open=true;n.close=()=>{n.open=false;n.listeners.get('close')?.();};}return n;};
+ globalThis.document={body,documentElement:{lang:'en'},getElementById:id=>id==='settings-panel'?{hidden:false}:null,createElement:make,createElementNS:(_ns,tag)=>make(tag)};
+ globalThis.chrome={runtime:{sendMessage:message=>{calls.push(message);return pending=owner.handle(message,sender).then(data=>({ok:true,data}),error=>({ok:false,error:syncLifecycleError(error)}));}}};
+ const detail=mountSettingsSync({mountDetail:mountSettingsDetail,language:()=> 'en'});body.append(detail.row);t.after(()=>{detail.dialog.close();globalThis.document=previous.document;globalThis.chrome=previous.chrome;});
+ const button=command=>detail.dialog.children[1].children.flatMap(n=>n.children??[]).find(n=>n.dataset.syncCommand===command),settle=async()=>{const value=await pending;await new Promise(r=>setImmediate(r));return value;};
+ return {detail,calls,button,open:async()=>{detail.row.listeners.get('click')();return settle();},start:command=>{const b=button(command);assert.ok(b&&!b.hidden&&!b.disabled,'mounted owner '+command+' is actionable');b.listeners.get('click')();return pending;},settle};
+}
+for(const stop of ['PAUSE','DISCONNECT'])test(`mounted Settings ${stop} stops held original publication with no extra transfer or task replacement`,async t=>{
+ const f=await configured(t),x=await f.open();await source(x);await command(x.owner,'RESUME');const ui=mountedOwner(t,x.owner);await ui.open();
+ let enter,release,held=false;const entered=new Promise(r=>enter=r),gate=new Promise(r=>release=r);t.after(()=>release());
+ f.conf.request=async r=>{const result=await f.cloud.request(r);if(r.method==='POST'&&!held){held=true;enter();await gate;}return result;};
+ const operation=ui.start('NOW');await entered;const original=await row(f),requests=f.cloud.requests.length;
+ const stopped=await ui.start(stop);await ui.settle();assert.equal(stopped.ok,true);assert.equal(stopped.data.busy,true);assert.equal(stopped.data.state,stop==='PAUSE'?'paused':'disconnected');assert.equal((await row(f)).task.id,original.task.id);assert.equal(f.cloud.requests.length,requests);
+ for(const name of ['NOW','RESTORE','RESUME','CONTINUE']){assert.equal(ui.button(name).hidden,true);ui.button(name).listeners.get('click')();}assert.equal(ui.calls.length,3);
+ release();assert.equal((await operation).ok,false);await new Promise(r=>setImmediate(r));assert.match(ui.detail.dialog.textContent,stop==='PAUSE'?/Transfers are paused/:/This device is disconnected/);assert.equal(f.cloud.requests.length,requests);assert.equal((await row(f)).task.id,original.task.id);
+ await ui.start('STATUS');await ui.settle();assert.equal(ui.button('RESUME').hidden,stop==='DISCONNECT');assert.equal(f.cloud.requests.length,requests);
+ if(stop==='PAUSE'){
+  assert.equal((await ui.start('RESUME')).ok,true);await ui.settle();assert.equal((await row(f)).task.id,original.task.id);assert.equal(f.cloud.requests.length,requests,'explicit resume alone never transfers');
+ }
+ assert.ok(ui.calls.every(message=>Object.keys(message).length===1));
+});
+test('mounted Settings stop does not grant consent and explicit resume still needs the original consent owner',async t=>{
+ const f=await configured(t,{consented:false}),x=await f.open();await command(x.owner,'PAUSE');const ui=mountedOwner(t,x.owner);await ui.open();
+ assert.equal((await ui.start('RESUME')).error,'CONSENT_REQUIRED');await ui.settle();assert.equal((await row(f)).mode,'paused');assert.equal(f.cloud.requests.length,0);
+ await ui.start('STATUS');await ui.settle();await x.store.consent(true);assert.equal((await ui.start('RESUME')).ok,true);await ui.settle();assert.equal((await row(f)).mode,'active');assert.equal(f.cloud.requests.length,0);
+});
+for(const stop of ['PAUSE','DISCONNECT'])test(`mounted Settings ${stop} stops held original restore without applying data or replacing its task`,async t=>{
+ const cloud=fakeDrive(),sourceStore=new LibraryFoundationStore(local(),{indexedDB:new IDBFactory()});t.after(()=>sourceStore.repository.db?.close());await sourceStore.consent(true);await sourceStore.finishFoundation();
+ const sourceCore=new BrowserNativeSyncCore(sourceStore.repository,{datasetId:'SYNTHETIC_google_data',deviceId:'SYNTHETIC_stop_sender'});sourceStore.sourceBootstrapJournal=new SourceBootstrapJournal(sourceCore);await sourceStore.capture(capture((await sourceStore.status()).epoch));await buildCheckpoint(sourceCore,new GoogleDriveAppDataTransport(sourceCore,{binding,request:cloud.request,isCurrent:()=>true}),{grouped:{store:sourceStore}});
+ const f=await configured(t,{cloud,deviceId:'SYNTHETIC_stop_receiver'}),x=await f.open();await command(x.owner,'RESUME');const baseline=await x.store.snapshot(),ui=mountedOwner(t,x.owner);await ui.open();
+ let enter,release,held=false;const entered=new Promise(r=>enter=r),gate=new Promise(r=>release=r);t.after(()=>release());
+ f.conf.request=async r=>{const result=await cloud.request(r);if(r.url.includes('alt=media')&&!held){held=true;enter();await gate;}return result;};
+ const operation=ui.start('RESTORE');await entered;const original=await row(f),requests=cloud.requests.length;assert.equal((await ui.start(stop)).ok,true);await ui.settle();assert.equal((await row(f)).task.id,original.task.id);assert.equal(cloud.requests.length,requests);
+ release();assert.equal((await operation).ok,false);await new Promise(r=>setImmediate(r));assert.match(ui.detail.dialog.textContent,stop==='PAUSE'?/Transfers are paused/:/This device is disconnected/);assert.deepEqual((await x.store.snapshot()).records,baseline.records);assert.equal(cloud.requests.length,requests);assert.equal((await row(f)).task.id,original.task.id);assert.equal(ui.calls.length,3);
+});
