@@ -237,3 +237,16 @@
 
 /* The reflective highlight also moves on the compositor, never by layout. */
 .p16-edge-light{left:0;transform:translate3d(var(--shine-x),0,75px) rotate(-20deg)}
+
+/* A laptop's short viewport gets a tighter optical object, not cropped reading. */
+@media(min-width:901px) and (max-height:820px){
+ .p16-pinned{top:76px;height:calc(100svh - 88px);min-height:0;padding-top:10px;padding-bottom:42px}
+ .p16-reader{min-height:0}.p16-toolbar{height:52px}.p16-workspace-content{padding:15px;gap:17px}
+ .p16-reader .p13-reader-bar{height:44px}.p16-reader .p13-reader-tabs{height:40px}
+ .p16-reader .p13-reader-body{padding:19px 32px 17px}.p16-reader .p13-reader-body h3{font-size:31px;margin:7px 0 16px}
+ .p16-reader .p13-entry-body p{font-size:14px;line-height:1.8;margin-bottom:8px}
+ .p16-reader .p13-thought-entry+.p13-thought-entry{padding-top:15px;margin-top:16px}
+ .p16-reader .p13-thought-entry time{margin-bottom:8px}.p16-reader .p13-reader-footer{padding:13px 0 15px;margin-inline:32px}
+ .p16-topic-rail{padding-top:15px}.p16-topic{padding-block:13px}.p16-topic+.p16-topic{margin-top:5px}
+ .p16-topic-chapters{gap:8px;margin-top:10px}.p16-rail-caption{margin-bottom:10px}
+}
