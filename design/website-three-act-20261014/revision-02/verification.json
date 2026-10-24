@@ -1,0 +1,204 @@
+{
+  "checks": [
+    {
+      "check": "zh: no simulator operations",
+      "pass": true
+    },
+    {
+      "check": "zh: only four private directory categories",
+      "pass": true
+    },
+    {
+      "check": "zh: four complete original expressions",
+      "pass": true
+    },
+    {
+      "check": "zh: no private body or input descendants",
+      "pass": true
+    },
+    {
+      "check": "zh: fits desktop",
+      "pass": true
+    },
+    {
+      "check": "zh: original",
+      "pass": true
+    },
+    {
+      "check": "zh: original content does not collide with footer",
+      "pass": true
+    },
+    {
+      "check": "zh: organized",
+      "pass": true
+    },
+    {
+      "check": "zh: organized content does not collide with footer",
+      "pass": true
+    },
+    {
+      "check": "zh: orb",
+      "pass": true
+    },
+    {
+      "check": "zh: capsule",
+      "pass": true
+    },
+    {
+      "check": "zh: board",
+      "pass": true
+    },
+    {
+      "check": "zh: anchor fixed within native one-pixel scroll rounding",
+      "pass": true
+    },
+    {
+      "check": "zh: no page errors",
+      "pass": true
+    },
+    {
+      "check": "zh/1920: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/768: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/390: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/320: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "zh: 200% text reflow",
+      "pass": true
+    },
+    {
+      "check": "zh: prose actually enlarged at 200%",
+      "pass": true
+    },
+    {
+      "check": "en: no simulator operations",
+      "pass": true
+    },
+    {
+      "check": "en: only four private directory categories",
+      "pass": true
+    },
+    {
+      "check": "en: four complete original expressions",
+      "pass": true
+    },
+    {
+      "check": "en: no private body or input descendants",
+      "pass": true
+    },
+    {
+      "check": "en: fits desktop",
+      "pass": true
+    },
+    {
+      "check": "en: original",
+      "pass": true
+    },
+    {
+      "check": "en: original content does not collide with footer",
+      "pass": true
+    },
+    {
+      "check": "en: organized",
+      "pass": true
+    },
+    {
+      "check": "en: organized content does not collide with footer",
+      "pass": true
+    },
+    {
+      "check": "en: orb",
+      "pass": true
+    },
+    {
+      "check": "en: capsule",
+      "pass": true
+    },
+    {
+      "check": "en: board",
+      "pass": true
+    },
+    {
+      "check": "en: anchor fixed within native one-pixel scroll rounding",
+      "pass": true
+    },
+    {
+      "check": "en: no page errors",
+      "pass": true
+    },
+    {
+      "check": "en/1920: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "en/1280: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "en/1024: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "en/768: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "en/390: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "en/320: no horizontal overflow",
+      "pass": true
+    },
+    {
+      "check": "en: 200% text reflow",
+      "pass": true
+    },
+    {
+      "check": "en: prose actually enlarged at 200%",
+      "pass": true
+    }
+  ],
+  "performance": {
+    "previous": {
+      "LayoutCount": 123,
+      "RecalcStyleCount": 134,
+      "LayoutDuration": 0.15149,
+      "RecalcStyleDuration": 0.028721,
+      "ScriptDuration": 0.02438,
+      "TaskDuration": 0.28911499999999996,
+      "raf_interval_p95_ms": 16.700000000000273,
+      "note": "Different transformation ranges, same 180 frames; rendering-work diagnostic, not physical-screen FPS."
+    },
+    "revision": {
+      "LayoutCount": 3,
+      "RecalcStyleCount": 178,
+      "LayoutDuration": 0.000231,
+      "RecalcStyleDuration": 0.004256,
+      "ScriptDuration": 0.01057,
+      "TaskDuration": 0.048515,
+      "raf_interval_p95_ms": 16.799999999999727,
+      "note": "Different transformation ranges, same 180 frames; rendering-work diagnostic, not physical-screen FPS."
+    }
+  },
+  "scope": "isolated headless Chromium; not physical monitor or universal FPS certification",
+  "failed": []
+}
