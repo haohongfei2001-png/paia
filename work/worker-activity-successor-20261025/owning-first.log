@@ -1,0 +1,160 @@
+TAP version 13
+# Subtest: original dispatch registers before invoking callback and excludes only its accepted promise
+ok 1 - original dispatch registers before invoking callback and excludes only its accepted promise
+  ---
+  duration_ms: 0.718541
+  type: 'test'
+  ...
+# Subtest: selection drain still waits children, broadcasts, and another accepted dispatch
+ok 2 - selection drain still waits children, broadcasts, and another accepted dispatch
+  ---
+  duration_ms: 1.916417
+  type: 'test'
+  ...
+# Subtest: ordinary drain includes every accepted request and cannot borrow a private exclusion
+ok 3 - ordinary drain includes every accepted request and cannot borrow a private exclusion
+  ---
+  duration_ms: 26.169167
+  type: 'test'
+  ...
+# Subtest: forged, foreign factory, ended and reused controls never exclude work
+ok 4 - forged, foreign factory, ended and reused controls never exclude work
+  ---
+  duration_ms: 0.229875
+  type: 'test'
+  ...
+# Subtest: second drain rejects without releasing the first owner or its pending tasks
+ok 5 - second drain rejects without releasing the first owner or its pending tasks
+  ---
+  duration_ms: 0.452208
+  type: 'test'
+  ...
+# Subtest: timeout invalidates exclusion but preserves real tracked work and late settlement never revives control
+ok 6 - timeout invalidates exclusion but preserves real tracked work and late settlement never revives control
+  ---
+  duration_ms: 40.689209
+  type: 'test'
+  ...
+# Subtest: dispatch deadline begins before handler waits and cannot be reset when drain finally starts
+ok 7 - dispatch deadline begins before handler waits and cannot be reset when drain finally starts
+  ---
+  duration_ms: 24.990375
+  type: 'test'
+  ...
+# Subtest: remaining owner work and successor track registrations remain visible
+ok 8 - remaining owner work and successor track registrations remain visible
+  ---
+  duration_ms: 0.510541
+  type: 'test'
+  ...
+# Subtest: captured Promise invocation ignores mutable own call and resolve overrides
+ok 9 - captured Promise invocation ignores mutable own call and resolve overrides
+  ---
+  duration_ms: 0.284709
+  type: 'test'
+  ...
+# Subtest: synchronous and rejected handlers settle original accepted work without leaking drain ownership
+ok 10 - synchronous and rejected handlers settle original accepted work without leaking drain ownership
+  ---
+  duration_ms: 0.315833
+  type: 'test'
+  ...
+# Subtest: invalid activity budget is rejected: 0
+ok 11 - invalid activity budget is rejected: 0
+  ---
+  duration_ms: 0.105
+  type: 'test'
+  ...
+# Subtest: invalid activity budget is rejected: -1
+ok 12 - invalid activity budget is rejected: -1
+  ---
+  duration_ms: 0.029084
+  type: 'test'
+  ...
+# Subtest: invalid activity budget is rejected: 30001
+ok 13 - invalid activity budget is rejected: 30001
+  ---
+  duration_ms: 0.02275
+  type: 'test'
+  ...
+# Subtest: invalid activity budget is rejected: Infinity
+ok 14 - invalid activity budget is rejected: Infinity
+  ---
+  duration_ms: 0.020125
+  type: 'test'
+  ...
+# Subtest: invalid activity budget is rejected: 1.5
+ok 15 - invalid activity budget is rejected: 1.5
+  ---
+  duration_ms: 0.01875
+  type: 'test'
+  ...
+# Subtest: actual worker page hold covers early Prompt, Import, Sync, settings and capture ingress
+ok 16 - actual worker page hold covers early Prompt, Import, Sync, settings and capture ingress
+  ---
+  duration_ms: 136.6665
+  type: 'test'
+  ...
+# Subtest: original page save remains admitted before its FROZEN acknowledgement and denied afterward
+ok 17 - original page save remains admitted before its FROZEN acknowledgement and denied afterward
+  ---
+  duration_ms: 72.102625
+  type: 'test'
+  ...
+# Subtest: actual post-response host notification remains in the worker drain until physical settlement
+ok 18 - actual post-response host notification remains in the worker drain until physical settlement
+  ---
+  duration_ms: 64.04125
+  type: 'test'
+  ...
+# Subtest: original delayed Import notification remains tracked through coalesced replacement
+ok 19 - original delayed Import notification remains tracked through coalesced replacement
+  ---
+  duration_ms: 58.9245
+  type: 'test'
+  ...
+# Subtest: fixed admission exceptions preserve restrictions but never grant a prefix bypass
+ok 20 - fixed admission exceptions preserve restrictions but never grant a prefix bypass
+  ---
+  duration_ms: 0.397
+  type: 'test'
+  ...
+# Subtest: worker activity observes original nested tails and subsequent local drains without issuing a receipt
+ok 21 - worker activity observes original nested tails and subsequent local drains without issuing a receipt
+  ---
+  duration_ms: 0.392375
+  type: 'test'
+  ...
+# Subtest: actual local maintenance successor remains in worker drain after its first wake settles
+ok 22 - actual local maintenance successor remains in worker drain after its first wake settles
+  ---
+  duration_ms: 65.927625
+  type: 'test'
+  ...
+# Subtest: actual Import notification timer drains only after its original publication settles
+ok 23 - actual Import notification timer drains only after its original publication settles
+  ---
+  duration_ms: 571.382625
+  type: 'test'
+  ...
+# Subtest: actual default unopened Store is initialized before original owners bind their lifetime identity
+ok 24 - actual default unopened Store is initialized before original owners bind their lifetime identity
+  ---
+  duration_ms: 78.370542
+  type: 'test'
+  ...
+# Subtest: synthetic worker tab lookup remains unavailable and emits no receiver message
+ok 25 - synthetic worker tab lookup remains unavailable and emits no receiver message
+  ---
+  duration_ms: 56.046625
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1296.186709

@@ -1,0 +1,5 @@
+{
+  "extension/tests/application-worker-admission.test.mjs": true,
+  "extension/tests/application-selection-consumer.test.mjs": true,
+  "extension/tests/application-selection-editor-safety.test.mjs": true
+}

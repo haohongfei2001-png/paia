@@ -191,7 +191,7 @@ const applicationEditors=createApplicationEditorGuard(chrome);
 const applicationWorkerActivity=createApplicationWorkerActivity({remaining:()=>[safety?.running,libraryRunner?.running,runner?.running]});
 function trackApplicationWork(task){return applicationWorkerActivity.track(task);}
 chrome.runtime.onConnect?.addListener(port=>applicationEditors.connect(port));
-const applicationSelection=createApplicationSelectionCommands(chrome,{isolated:()=>applicationIsolation,ready:()=>ready,lifecycle:()=>syncLifecycle});
+const applicationSelection=createApplicationSelectionCommands(chrome,{isolated:()=>applicationIsolation,ready:()=>ready,lifecycle:()=>syncLifecycle,activity:applicationWorkerActivity});
 const privacyReady=Promise.resolve(privacySession.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'}));
 privacyReady.catch(()=>{});
 ready.catch(() => {});
@@ -228,8 +228,8 @@ function isChatGPTContent(sender) {
   catch { return false; }
 }
 
-async function handle(request, sender) {
-  if(typeof request?.type==='string'&&request.type.startsWith('PAIA_GENERATION_'))return applicationSelection.handle(request,sender);
+async function handle(request, sender, activityControl) {
+  if(typeof request?.type==='string'&&request.type.startsWith('PAIA_GENERATION_'))return applicationSelection.handle(request,sender,activityControl);
   assertApplicationWorkerAdmission(applicationEditors,request,sender);
   if(request?.type==='PAIA_SYNC_STATUS'&&applicationSelection.enabled){
    await applicationIsolation;try{await ready;}catch(error){if(error?.code!=='GENERATION_SELECTION_PENDING')throw error;}
@@ -643,7 +643,7 @@ runtime.onInstalled?.addListener(()=>{void trackApplicationWork(ready.then(()=>s
 if(runtime.onStartup)startupMaintenance();
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const accepted=handle(request, sender)
+  const accepted=applicationWorkerActivity.dispatch(control=>handle(request, sender, control)
     .then(async data => {
       if(request.type.startsWith('PAIA_GENERATION_')){sendResponse({ok:true,data});return;}
       if(request.type.startsWith('PAIA_SYNC_')){
@@ -670,8 +670,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       else if(request.type!=='OBSERVE_SOURCE_STRUCTURE'&&!isAIStyleOnlyRequest(request)&&!localToolRequest(request.type)&&(!request.type.startsWith('IMPORT_')||['IMPORT_COMMIT','IMPORT_COMPLETE','IMPORT_RESOLVE_BRANCH'].includes(request.type))&&!['GET_ONBOARDING','SET_ONBOARDING'].includes(request.type)&&!request.type.startsWith('PAIA_MEMORY_')&&!request.type.startsWith('PAIA_INTEGRITY_')&&!request.type.startsWith('PAIA_BACKUP_')&&request.type!=='GET_BOUNDED_ORGANIZER'&&!['GET_AI_PRESENTATION_STATUS','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME'].includes(request.type)&&request.type!=='GET_ORIGINAL_ORGANIZER_STATUS'&&request.type!=='GET_DEEPSEEK_STATUS'&&request.type!=='FILTER_DIAGNOSTICS'&&!['SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK'].includes(request.type))void scheduleFilter({retry:['FILTER_RECOVER','FILTER_MODE'].includes(request.type)});
       if(request.type!=='PURGE_SOURCE'&&archiveMutation&&!isAIStyleOnlyRequest(request)&&!localToolRequest(request.type)&&!['PAIA_MEMORY_STATUS','PAIA_MEMORY_BUILD','PAIA_MEMORY_SHARE','PAIA_MEMORY_ENTRIES'].includes(request.type)&&!request.type.startsWith('PAIA_INTEGRITY_')&&!['PAIA_BACKUP_BEGIN_EXPORT','PAIA_BACKUP_EXPORT_PAGE','PAIA_BACKUP_BEGIN_RESTORE','PAIA_BACKUP_STAGE','PAIA_BACKUP_PREVIEW','PAIA_BACKUP_CANCEL','GET_BOUNDED_ORGANIZER','GET_LIBRARY_REMOVED_TOPICS','GET_LIBRARY_REMOVED_PLACEMENTS','GET_LIBRARY_RENAME_SUGGESTIONS','GET_LIBRARY_MERGE_SUGGESTIONS','GET_ORGANIZER_CONTROLS','GET_AI_PRESENTATION_REVISIONS','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME','GET_AI_PRESENTATION_STATUS','GET_ORIGINAL_ORGANIZER_STATUS','GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK','LIBRARY_UPDATES','LIBRARY_ORGANIZER_JOBS','GET_LIBRARY_UNPLACED','GET_LIBRARY_PLACEMENT','LIBRARY_INDEX_PAGE','GET_LIBRARY_ROOT_SEARCH','TOPIC_DOCUMENT_PAGE','GET_LIBRARY_TOPIC_TIMELINE','GET_LIBRARY_TOPIC','GET_LIBRARY_ENTRY','GET_LIBRARY_PATHS','GET_LIBRARY_PROVENANCE','GET_LIBRARY_REMOVED','SEARCH_LIBRARY','GET_LIBRARY_LAYOUT','GET_LIBRARY_FOUNDATION_STATUS','GET_LIBRARY_DUAL_VIEW_STATUS','PREVIEW_AI_LIBRARY_UPDATE','FILTER_DIAGNOSTICS','FILTER_STATUS','FILTER_NOTICE','FILTER_RECENT','SEARCH_INPUTS','GET_INPUT','GET_IA_STATUS','GET_REVISIONS','GET_THOUGHTS','GET_THOUGHT','GET_STATUS','GET_STATE','GET_PAGE','GET_MIGRATION_STATUS','RESPONSE_POLL','RESPONSE_VIEW','RESPONSE_ARM','DIAGNOSTIC','GET_ONBOARDING','SET_ONBOARDING','IMPORT_LATEST','IMPORT_CANCEL','IMPORT_CAPABILITIES','IMPORT_TASKS','IMPORT_STATUS','IMPORT_BEGIN','IMPORT_PREFLIGHT','IMPORT_READY','IMPORT_PAUSE'].includes(request.type))notifyArchiveChanged(request.type);
     })
-    .catch(error => sendResponse({ ok: false, ...(['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)?{phase:'message_handler'}:{}), ...(request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&error?.phase==='promotion_not_confirmed'?{phase:'promotion_not_confirmed'}:{}), error: typeof request?.type==='string'&&request.type.startsWith('PAIA_SYNC_')?syncLifecycleError(error):request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&['BNS_GROUP_OWNER_UNSUPPORTED','BNS_HUMAN_UNSUPPORTED_MUTATION'].includes(error?.code)?error.code:typeof request?.type==='string' && request.type.startsWith('IMPORT_') ? safeImportError(error) : ['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)&&!(error instanceof ArchiveError)?'INTERNAL_RUNTIME_ERROR':safeErrorCode(error) }));
-  trackApplicationWork(accepted);
+    .catch(error => sendResponse({ ok: false, ...(['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)?{phase:'message_handler'}:{}), ...(request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&error?.phase==='promotion_not_confirmed'?{phase:'promotion_not_confirmed'}:{}), error: typeof request?.type==='string'&&request.type.startsWith('PAIA_SYNC_')?syncLifecycleError(error):request?.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&['BNS_GROUP_OWNER_UNSUPPORTED','BNS_HUMAN_UNSUPPORTED_MUTATION'].includes(error?.code)?error.code:typeof request?.type==='string' && request.type.startsWith('IMPORT_') ? safeImportError(error) : ['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)&&!(error instanceof ArchiveError)?'INTERNAL_RUNTIME_ERROR':safeErrorCode(error) }))
+  );
   return true;
 });
 

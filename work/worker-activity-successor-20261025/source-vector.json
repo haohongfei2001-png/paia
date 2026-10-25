@@ -1,0 +1,8 @@
+{
+  "extension/background/application-selection-commands.js": "2b3832cf41564b3430c0ca354a2f152ad63307557e3a96b697f14d172aa553fd",
+  "extension/background/service-worker.js": "346932de5cb66b7a79a098f8b48e04e4d83248fd7f1a4b75d8a9e56762b2a82a",
+  "extension/tests/application-worker-activity-control.test.mjs": "e9de84a7992a0d2a3c412337946e1bb34311541de05fc4547a8a194e2744e71c",
+  "extension/tests/application-worker-admission.test.mjs": "0726f31d8425587d85135708f47e0e301b3b055a6eeae65a2da6b6c1a626d34a",
+  "extension/tests/application-selection-consumer.test.mjs": "3c5c34a380df29018ee0895afd4adfe5d24fc3e5fafef05d6a0e8e9359b0944f",
+  "extension/tests/application-selection-editor-safety.test.mjs": "3820eb87c6941f140c2f18baadfd9210a027cdbc0b38fcbb269a43c06eb9edac"
+}

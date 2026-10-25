@@ -1,0 +1,17 @@
+[
+  {
+    "path": "extension/background/application-selection-commands.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/service-worker.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-worker-activity-control.test.mjs",
+    "exit": 0,
+    "output": ""
+  }
+]
