@@ -1,0 +1,124 @@
+// Private VM fixture copied from the original owning receipt test; shared harness is unchanged.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFile} from 'node:fs/promises';
+import {webcrypto} from 'node:crypto';
+const contractURL=new URL(process.env.PAIA_INSERTION_RECEIPT_MODULE||'../background/prompt-insertion-receipts.js',import.meta.url);
+const {PromptInsertionReceipts,PROMPT_INSERTION_RUNTIME,promptInsertionDigest,validPromptInsertionEnvelope}=await import(contractURL);
+
+const source=await readFile(process.env.PAIA_DOCUMENT_HOLD_SOURCE||new URL('../adapter/chatgpt-composer.js',import.meta.url),'utf8');
+const flush=async()=>{for(let i=0;i<8;i++)await new Promise(setImmediate);};
+function events(){const listeners=new Map();return {addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,new Set());listeners.get(type).add(fn);},removeEventListener(type,fn){listeners.get(type)?.delete(fn);},emit(type,event){for(const fn of [...listeners.get(type)||[]])fn(event);}};}
+function fixture({draft='SYNTHETIC draft',offset=4,accepted=true,trusted=true,caret=true,mutate=true}={}){
+ let originalActionCount=0,registrationDomain='5'.repeat(64),retirementSummary={domainDigest:'5'.repeat(64),retiredEpochFloor:0,retiredRanges:[]},now=0,remainingMs=30000,qualified=true,acceptAck=true,retiredAck=false,rpcHandler=null,protocolHandler=null,ownerToken=webcrypto.randomUUID(),recoveryToken=webcrypto.randomUUID();
+ let registrationHandler=null;const settledOperations=new Set();
+ const domainDigest='5'.repeat(64),receiver={tabId:7,windowId:1,documentId:'synthetic-real-top-document'},receiptEpoch=webcrypto.randomUUID();
+ const deadlineTimers=new Map();let timerId=0;const timers=[],commands=[],messages=[],listeners=new Set(),location={origin:'https://chatgpt.com',href:'https://chatgpt.com/c/synthetic-original'};
+ let hold=false,commandResolve;const commandEntered=new Promise(resolve=>commandResolve=resolve);
+ const document={...events(),activeElement:null};
+ const root={nodeType:1,tagName:'HTML',parentElement:null};
+ const node={...events(),nodeType:1,tagName:'DIV',isConnected:true,isContentEditable:true,parentElement:root,querySelector:()=>null,closest:()=>null,getClientRects:()=>[{}],getBoundingClientRect:()=>({width:500,height:100}),contains(value){return value===this||value===text;},focus(){document.activeElement=this;},classList:{contains:()=>false}};
+ const text={nodeType:3,data:draft,parentNode:node,parentElement:node};node.childNodes=[text];
+ let range;
+ const logical=(container,n)=>container===text?n:n?text.data.length:0;
+ function makeRange(){return {startContainer:text,endContainer:text,startOffset:0,endOffset:0,setStart(container,n){this.startContainer=container;this.startOffset=n;},collapse(){this.endContainer=this.startContainer;this.endOffset=this.startOffset;},compareBoundaryPoints(_,other){return Math.sign(logical(this.startContainer,this.startOffset)-logical(other.startContainer,other.startOffset));}};}
+ range=makeRange();range.setStart(text,offset);range.collapse();
+ const selection={rangeCount:1,getRangeAt:()=>range,removeAllRanges(){this.rangeCount=0;},addRange(value){range=value;this.rangeCount=1;}};
+ Object.assign(document,{documentElement:root,defaultView:{...events(),getComputedStyle:()=>({display:'block',visibility:'visible',contentVisibility:'visible',opacity:'1'})},querySelectorAll:()=>[node],createRange:makeRange,getSelection:()=>selection,execCommand(command,_,insertion){commands.push({command,insertion});commandResolve();const at=logical(range.startContainer,range.startOffset);if(mutate){text.data=text.data.slice(0,at)+insertion+text.data.slice(at);if(caret){range=makeRange();range.setStart(text,at+insertion.length);range.collapse();}}const event={isTrusted:trusted,inputType:'insertText',isComposing:false,target:node};node.emit('input',event);document.emit('input',event);return accepted;}});
+ const context=vm.createContext({document,location,crypto:webcrypto,TextEncoder,queueMicrotask,performance:{now:()=>now},setTimeout(fn,ms){if(ms===30000){const id=++timerId;deadlineTimers.set(id,fn);return id;}if(hold)timers.push(fn);else queueMicrotask(fn);},clearTimeout(id){deadlineTimers.delete(id);},chrome:{runtime:{id:'synthetic-extension',onMessage:{addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)},sendMessage:async message=>{messages.push(structuredClone(message));if(protocolHandler&&message.type.startsWith('PAIA_PROMPT_INSERTION_'))return protocolHandler(structuredClone(message));if(message.type==='PAIA_PROMPT_INSERTION_RECEIVER_REGISTER'){const response={ok:true,data:{registered:true,version:1,ownerToken,recoveryToken:message.recoveryToken??ownerToken,domainDigest:registrationDomain,receiver:{...receiver,nonce:message.nonce}}};return registrationHandler?registrationHandler(message,response):response;}if(message.type==='PAIA_PROMPT_INSERTION_QUALIFY')return {ok:true,data:{qualified:(typeof qualified==='function'?await qualified(message):qualified)&&!settledOperations.has(message.envelope.operationId),remainingMs}};if(message.type==='PAIA_PROMPT_INSERTION_RECONCILE')return {ok:true,data:{ownerToken,recoveryToken,retirementSummary,results:await Promise.all(message.acks.map(async ack=>{const settled=!retiredAck&&(typeof acceptAck==='function'?await acceptAck({ack}):acceptAck);if(settled)settledOperations.add(ack.envelope.operationId);return {claimId:ack.envelope.claimId,...(retiredAck?{settled:false,retired:true}:{settled})};}))}};
+ if(message.type==='PAIA_PROMPT_INSERTION_ACK'){const settled=!retiredAck&&(typeof acceptAck==='function'?await acceptAck(message):acceptAck);if(settled)settledOperations.add(message.ack.envelope.operationId);return {ok:true,data:retiredAck?{settled:false,retired:true}:{settled}};}if(rpcHandler)return rpcHandler(message);return {ok:false};}}}});
+ const reload=()=>vm.runInContext(source,context);reload();
+ const adapter=()=>new context.PAIAChatGPTComposerAdapter({document,location});
+ const dispatch=(message,sender={id:'synthetic-extension'})=>new Promise(resolve=>{let answered=false,async=false;for(const listener of [...listeners]){if(listener(message,sender,value=>{answered=true;resolve(value);})===true)async=true;}if(!answered&&!async)resolve(undefined);});
+ const admitted=async({lane='manual',epoch=1,receiptEpoch:token=receiptEpoch,domainDigest:domain=domainDigest,operationId=webcrypto.randomUUID(),text='SYNTHETIC receipt insertion',fields={}}={})=>{
+  const actionId=webcrypto.randomUUID();recoveryToken=actionId;if(originalActionCount>=500){ownerToken=webcrypto.randomUUID();originalActionCount=0;}originalActionCount++;
+  if(domain!==registrationDomain){registrationDomain=domain;ownerToken=webcrypto.randomUUID();originalActionCount=1;retirementSummary={domainDigest:domain,retiredEpochFloor:0,retiredRanges:[]};}
+  const {nonce}=await dispatch({type:'PAIA_PROMPT_INSERTION_RECEIVER_PROBE',version:1,recoveryToken});
+  const message={type:{manual:'PAIA_PROMPT_INSERT_SELECTED',assist:'PAIA_PROMPT_ASSIST_INSERT',next:'PAIA_PROMPT_NEXT_INSERT'}[lane],operationId,text,url:location.href,...fields};
+  const envelope={version:1,claimId:webcrypto.randomUUID(),actionId,operationId,receiptEpoch:token,domainDigest:domain,epoch,lane,receiver:{...receiver,nonce},sourceDigest:'1'.repeat(64),authorizationDigest:'2'.repeat(64),initiatorDigest:'3'.repeat(64)};
+  envelope.digest=await promptInsertionDigest({domain:'paia-prompt-insertion-v1',envelope,message});
+  assert.equal(validPromptInsertionEnvelope(envelope),true);
+  return {...message,insertionReceipt:envelope};
+ };
+ return {async binding(){const {nonce}=await this.probe();return {receiver:{...receiver,nonce},ownerToken,domainDigest:registrationDomain,challenge:webcrypto.randomUUID()};},expire(){now+=30000;for(const fn of [...deadlineTimers.values()])fn();},document,node,text,context,adapter,reload,commands,commandEntered,messages,location,selection,dispatch,probe:()=>dispatch({type:'PAIA_PROMPT_INSERTION_RECEIVER_PROBE',version:1,recoveryToken}),admitted,receiptEpoch,domainDigest,setRegistration(fn){registrationHandler=fn;},setRpc(fn){rpcHandler=fn;},setProtocol(fn){protocolHandler=fn;},setSummary(value){retirementSummary=value;},qualification(value){qualified=value;},advance(ms){now+=ms;},budget(ms){remainingMs=ms;},acceptAck(value){acceptAck=value;},retiredAck(value){retiredAck=value;},changeOwnerToken(){ownerToken=webcrypto.randomUUID();originalActionCount=0;recoveryToken=webcrypto.randomUUID();return ownerToken;},setNativeTrusted(value){trusted=value;},insert(adapter,message,extra={}){return adapter.insert({text:message.text,operationId:message.operationId,url:message.url,lane:message.insertionReceipt.lane,insertionMessage:message,...extra});},hold(){hold=true;},async release(){hold=false;for(const fn of timers.splice(0))fn();await flush();},request(fields={}){return {text:'SYNTHETIC insertion',operationId:webcrypto.randomUUID(),url:location.href,...fields};}};
+}
+
+const control=(f,binding,kind='HOLD',extra={})=>f.dispatch({type:'PAIA_PROMPT_INSERTION_DOCUMENT_'+kind,version:1,...binding,...extra});
+const isHeld=result=>result?.held===true;
+
+test('prospective registered original document holds shared three-lane admission and exact release never replays',async()=>{
+ const f=fixture(),a=f.adapter(),b=await f.binding(),held=await control(f,b);assert.equal(isHeld(held),true);assert.equal(held.remainingMs,30000);
+ for(let n=0;n<3;n++){f.reload();assert.equal((await f.adapter().insert(f.request())).reason,'document_selection_held');}
+ assert.equal(f.commands.length,0);assert.equal(isHeld(await control(f,b,'FENCE')),true);
+ assert.equal((await control(f,{...b,challenge:webcrypto.randomUUID()},'RELEASE')).released,false);
+ assert.equal((await control(f,b,'RELEASE')).released,true);assert.equal((await control(f,b,'RELEASE')).released,false);
+ assert.equal(isHeld(await control(f,b)),false);assert.equal(f.commands.length,0);
+ const next=await f.binding();assert.equal(isHeld(await control(f,next)),true);await control(f,next,'RELEASE');a.dispose();
+});
+
+for(const field of ['receiver','ownerToken','domainDigest','extra'])test('exact document binding rejects '+field+' without closing original admission',async()=>{
+ const f=fixture();f.adapter();const b=await f.binding(),bad={...b};
+ if(field==='receiver')bad.receiver={...b.receiver,documentId:'foreign-document'};else if(field==='ownerToken')bad.ownerToken=webcrypto.randomUUID();else if(field==='domainDigest')bad.domainDigest='9'.repeat(64);else bad.extra=true;
+ assert.equal(isHeld(await control(f,bad)),false);assert.equal(isHeld(await control(f,b)),true);await control(f,b,'RELEASE');
+});
+
+test('unregistered, foreign sender and legacy document histories cannot acquire positive proof',async()=>{
+ const f=fixture(),a=f.adapter(),fake={receiver:{tabId:7,windowId:1,documentId:'synthetic-real-top-document',nonce:webcrypto.randomUUID()},ownerToken:webcrypto.randomUUID(),domainDigest:f.domainDigest,challenge:webcrypto.randomUUID()};
+ assert.equal(isHeld(await control(f,fake)),false);
+ await a.insert(f.request());const b=await f.binding();assert.equal(isHeld(await control(f,b)),false);
+ const clean=fixture();clean.adapter();const cb=await clean.binding();
+ for(const sender of [{id:'foreign'},{id:'synthetic-extension',tab:{id:7}}])assert.equal(await clean.dispatch({type:'PAIA_PROMPT_INSERTION_DOCUMENT_HOLD',version:1,...cb},sender),undefined);
+ assert.equal(isHeld(await control(clean,cb)),true);await control(clean,cb,'RELEASE');
+});
+
+test('accepted receipt pending digest is registered before the first await and cannot enter native after hold',async()=>{
+ const f=fixture(),a=f.adapter(),m=await f.admitted(),b=await f.binding();let complete;
+ const original=f.context.crypto;f.context.crypto={...original,subtle:{digest:()=>new Promise(resolve=>complete=()=>original.subtle.digest('SHA-256',new Uint8Array()).then(resolve))}};
+ // Deliberately invalid digest completion still proves the original call did not enter native.
+ const operation=f.insert(a,m),holding=control(f,b);let finished=false;holding.then(()=>finished=true);await flush();assert.equal(finished,false);
+ complete();await operation;assert.equal(isHeld(await holding),true);assert.equal(f.commands.length,0);await control(f,b,'RELEASE');
+});
+
+test('hold during original lane qualification prevents native entry through the final private guard',async()=>{
+ const f=fixture(),a=f.adapter(),m=await f.admitted(),b=await f.binding();let finish,entered;const ready=new Promise(resolve=>entered=resolve);
+ const operation=f.insert(a,m,{qualify:()=>{entered();return new Promise(resolve=>finish=resolve);}});await ready;
+ const holding=control(f,b);finish(true);assert.equal((await operation).insertionAck.outcome,'not_inserted');assert.equal(isHeld(await holding),true);assert.equal(f.commands.length,0);await control(f,b,'RELEASE');
+});
+
+test('already entered native operation must complete actual verification and ACK publication before held proof',async()=>{
+ const f=fixture(),a=f.adapter(),m=await f.admitted(),b=await f.binding();f.hold();const operation=f.insert(a,m);await f.commandEntered;
+ const holding=control(f,b);let finished=false;holding.then(()=>finished=true);await flush();assert.equal(finished,false);
+ await f.release();assert.equal((await operation).insertionAck.outcome,'inserted');assert.equal(isHeld(await holding),true);assert.equal(f.commands.length,1);await control(f,b,'RELEASE');
+});
+
+test('UNKNOWN after native entry stays UNKNOWN and failed hold remains closed until exact release',async()=>{
+ const f=fixture({trusted:false}),a=f.adapter(),m=await f.admitted(),b=await f.binding();assert.equal((await f.insert(a,m)).insertionAck.outcome,'unknown');
+ assert.equal(isHeld(await control(f,b)),false);assert.equal((await a.insert(f.request())).reason,'document_selection_held');
+ assert.equal((await f.dispatch({type:'PAIA_PROMPT_INSERTION_RECEIPT_READ',version:1,envelope:m.insertionReceipt})).outcome,'unknown');await control(f,b,'RELEASE');
+});
+
+test('fixed deadline and original navigation identity never revive old proof',async()=>{
+ const f=fixture(),a=f.adapter(),b=await f.binding();assert.equal(isHeld(await control(f,b)),true);f.advance(30000);
+ assert.equal(isHeld(await control(f,b,'FENCE')),false);await assert.doesNotReject(a.insert(f.request()));assert.equal(f.commands.length,0);await control(f,b,'RELEASE');
+ const c=await f.binding();assert.equal(isHeld(await control(f,c)),true);f.location.href+='-changed';assert.equal(isHeld(await control(f,c,'FENCE')),false);f.location.href=f.location.href.replace('-changed','');assert.equal(isHeld(await control(f,c,'FENCE')),false);await control(f,c,'RELEASE');
+});
+
+test('pending timeout retains actual task and late completion cannot resurrect holder',async()=>{
+ const f=fixture(),a=f.adapter(),m=await f.admitted(),b=await f.binding();f.hold();const operation=f.insert(a,m);await f.commandEntered;
+ const holding=control(f,b);f.expire();assert.equal(isHeld(await holding),false);assert.equal((await a.insert(f.request())).reason,'document_selection_held');
+ await f.release();await operation;assert.equal(isHeld(await control(f,b,'FENCE')),false);assert.equal(f.commands.length,1);await control(f,b,'RELEASE');
+});
+
+test('pagehide and runtime replacement reject held proof without interpreting disposal as terminal',async()=>{
+ for(const kind of ['pagehide','runtime']){const f=fixture();f.adapter();const b=await f.binding();assert.equal(isHeld(await control(f,b)),true);
+ if(kind==='pagehide')f.document.defaultView.emit('pagehide',{});else f.context.chrome.runtime.sendMessage=async()=>({ok:true});
+ assert.equal(isHeld(await control(f,b,'FENCE')),false);await control(f,b,'RELEASE');}
+});
+
+test('old shared constructor remains unsupported rather than being silently replaced by new bundle',async()=>{
+ const f=fixture();f.adapter();const old=f.context.PAIAChatGPTComposerAdapter;f.reload();assert.equal(f.context.PAIAChatGPTComposerAdapter,old);
+ const c=vm.createContext({Symbol});vm.runInContext("Object.defineProperty(globalThis,Symbol.for('paia.original-composer.document-inventory.v1'),{value:function Old(){}})",c);
+ vm.runInContext(source,c);assert.equal(c.PAIAChatGPTComposerAdapter.name,'Old');
+});
+

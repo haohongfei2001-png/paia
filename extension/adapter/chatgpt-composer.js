@@ -2,6 +2,50 @@
 (() => {
  'use strict';
  const LIMIT=200000;
+ const NativePromise=Promise,apply=Reflect.apply,originalThen=Promise.prototype.then,originalResolve=Promise.resolve;
+ const originalSetTimeout=globalThis.setTimeout,originalClearTimeout=globalThis.clearTimeout;
+ const originalClock=globalThis.performance,originalNow=originalClock?.now;
+ const monotonic=()=>typeof originalNow==='function'?apply(originalNow,originalClock,[]):NaN;
+ const observe=(promise,yes,no)=>apply(originalThen,promise,[yes,no]);
+ const resolved=value=>apply(originalResolve,NativePromise,[value]);
+ const selectionReply=(held=false)=>({version:1,held});
+ const notifySelection=state=>{state.selectionHold?.check?.();};
+ const selectionBinding=(state,message)=>state.protocolActive&&state.receiver&&state.ownerToken===message.ownerToken&&state.ownerDomain===message.domainDigest&&canonical(state.receiver)===canonical(message.receiver);
+ const selectionIdentity=(state,hold)=>!state.documentRetired&&state.document===globalThis.document&&state.location===globalThis.location&&state.location.href===hold.url&&globalThis.chrome?.runtime===state.runtime&&state.runtime.id===state.runtimeId&&state.runtime.sendMessage===state.runtimeSend&&state.runtime.onMessage===state.runtimeMessages&&state.runtimeMessages.addListener===state.runtimeAdd&&selectionBinding(state,hold.binding);
+ const selectionLive=(state,hold)=>{
+  if(state.selectionHold!==hold||hold.invalid)return false;
+  const now=monotonic();if(!Number.isFinite(now)||now<hold.started||now>=hold.deadline||!selectionIdentity(state,hold)){hold.invalid=true;return false;}
+  return true;
+ };
+ const selectionQuiet=state=>!state.selectionPending.size&&!state.registration&&![...state.receipts.values()].some(entry=>entry.active||entry.publishing);
+ const selectionTerminal=state=>!state.attempts.size&&![...state.receipts.values()].some(entry=>!entry.nativeTerminal||!entry.ack||entry.ack.outcome==='unknown');
+ const selectionProof=(state,hold)=>({version:1,held:true,challenge:hold.binding.challenge,receiver:copy(state.receiver),ownerToken:state.ownerToken,domainDigest:state.ownerDomain,remainingMs:Math.max(0,hold.deadline-monotonic())});
+ function documentSelection(state,message){
+  const type=message.type,valid=exact(message,['type','version','receiver','ownerToken','domainDigest','challenge'])&&message.version===1&&validReceiver(message.receiver)&&UUID.test(message.ownerToken)&&HASH.test(message.domainDigest)&&UUID.test(message.challenge);
+  if(!valid)return resolved(selectionReply());
+  const hold=state.selectionHold;
+  // Compare only the immutable binding; wire type differs across the three calls.
+  const binding={receiver:copy(message.receiver),ownerToken:message.ownerToken,domainDigest:message.domainDigest,challenge:message.challenge};
+  const sameHold=hold&&canonical(hold.binding)===canonical(binding);
+  if(type==='PAIA_PROMPT_INSERTION_DOCUMENT_RELEASE'){
+   if(!sameHold)return resolved({version:1,released:false});
+   hold.invalid=true;hold.finish?.(selectionReply());state.selectionHold=null;return resolved({version:1,released:true,challenge:binding.challenge});
+  }
+  if(type==='PAIA_PROMPT_INSERTION_DOCUMENT_FENCE'){
+   if(!sameHold||!hold.ready||!selectionLive(state,hold)||!selectionQuiet(state)||!selectionTerminal(state)||state.admissionSerial!==hold.serial){if(sameHold)hold.invalid=true;return resolved(selectionReply());}
+   return resolved(selectionProof(state,hold));
+  }
+  if(hold||!selectionBinding(state,binding)||state.attempts.size||state.selectionChallenges.size>=128||state.selectionChallenges.has(binding.challenge)||state.admissionClosed)return resolved(selectionReply());
+  const started=monotonic();if(!Number.isFinite(started)||state.admissionSerial>=Number.MAX_SAFE_INTEGER)return resolved(selectionReply());
+  const next={binding,started,deadline:started+30000,url:state.location.href,invalid:false,ready:false,serial:++state.admissionSerial};
+  state.selectionChallenges.add(binding.challenge);state.selectionHold=next;
+  return new NativePromise(resolve=>{
+   let done=false,timer;next.finish=value=>{if(done)return;done=true;if(timer!==undefined&&typeof originalClearTimeout==='function')apply(originalClearTimeout,globalThis,[timer]);next.check=null;resolve(value);};
+   next.check=()=>{if(!selectionLive(state,next)){next.finish(selectionReply());return;}if(!selectionQuiet(state))return;if(!selectionTerminal(state)){next.invalid=true;next.finish(selectionReply());return;}next.serial=state.admissionSerial;next.ready=true;next.finish(selectionProof(state,next));};
+   timer=apply(originalSetTimeout,globalThis,[()=>{next.invalid=true;next.finish(selectionReply());},30000]);next.check();
+  });
+ }
+
  // Manifest and Release use classic scripts in one top-document isolated world.
  // Keep the original physical boundary even if independently loaded lane bundles
  // evaluate this adapter again. Page JavaScript cannot reach this isolated slot.
@@ -70,7 +114,7 @@
    // this entry's own private native terminal proof may consume it.
    if(exact(value,['settled','retired'])&&value.settled===false&&value.retired===true){entry.retirementConfirmed=true;entry.recoveredOwnerToken=ownerToken;}
   },()=>{}).finally(()=>{
-   entry.publishing=null;reclaimRetired(state,entry);
+   entry.publishing=null;reclaimRetired(state,entry);notifySelection(state);
   });
  }
  function validRetirementSummary(value){
@@ -106,7 +150,7 @@
    for(const value of result.results){const entry=entries.find(item=>item.ack.envelope.claimId===value.claimId);if(value.settled){entry.acknowledged=true;entry.recoveredOwnerToken=ownerToken;}else if(value.retired){entry.retirementConfirmed=true;entry.recoveredOwnerToken=ownerToken;}}
    reclaimSummary(state,result.retirementSummary);
   }catch{/* This event has one bounded batch, never an automatic retry queue. */}
-  finally{for(const entry of entries){if(entry.publishing===pending)entry.publishing=null;reclaimRetired(state,entry);}}
+  finally{for(const entry of entries){if(entry.publishing===pending)entry.publishing=null;reclaimRetired(state,entry);notifySelection(state);}}
  }
  async function registered(state,recoveryToken=null){
   if(state.registration&&state.registrationToken!==recoveryToken)throw Error('receiver registration busy');
@@ -120,15 +164,20 @@
    // remainder remains evidence, not a new loop or a completeness claim.
    await reconcile(state,result.ownerToken,result.recoveryToken);
    return state.receiver;
-  })().finally(()=>{state.registration=null;state.registrationToken=null;});}
+  })().finally(()=>{state.registration=null;state.registrationToken=null;notifySelection(state);});}
   return state.registration;
  }
  function receiverRuntime(state){
   const api=globalThis.chrome?.runtime;if(!api?.onMessage?.addListener||!globalThis.crypto?.subtle)return;
+  state.runtime=api;state.runtimeId=api.id;state.runtimeSend=api.sendMessage;state.runtimeMessages=api.onMessage;state.runtimeAdd=api.onMessage.addListener;
   state.nonce=globalThis.crypto.randomUUID();
   api.onMessage.addListener((message,sender,reply)=>{
-   if(sender.id!==api.id||sender.tab)return;
+   if(sender.id!==state.runtimeId||sender.tab)return;
+   if(['PAIA_PROMPT_INSERTION_DOCUMENT_HOLD','PAIA_PROMPT_INSERTION_DOCUMENT_FENCE','PAIA_PROMPT_INSERTION_DOCUMENT_RELEASE'].includes(message?.type)){
+    observe(documentSelection(state,message),reply,()=>reply(selectionReply()));return true;
+   }
    if(message?.type==='PAIA_PROMPT_INSERTION_RECEIVER_PROBE'){
+    if(state.selectionHold){reply(null);return;}
     if(!exact(message,['type','version','recoveryToken'])||message.version!==VERSION||!UUID.test(message.recoveryToken)){reply(null);return;}
     registered(state,message.recoveryToken).then(()=>reply({version:VERSION,nonce:state.nonce}),()=>reply(null));return true;
    }
@@ -143,16 +192,16 @@
    }
   });
  }
- const stateFor=document=>{
+ const stateFor=(document,location)=>{
   let state=inventory.documents.get(document);
-  if(!state){state={saved:null,composing:new WeakSet(),busy:false,attempts:new Map(),receipts:new Map(),receiptBytes:0,protocolActive:false,admissionSerial:0,admissionClosed:false,retirements:new Map(),receiver:null,ownerToken:null,ownerDomain:null,recoveryToken:null,reconciledEvents:new Set(),registration:null,registrationToken:null,nonce:null};inventory.documents.set(document,state);receiverRuntime(state);}
+  if(!state){state={document,location,selectionHold:null,selectionPending:new Set(),selectionChallenges:new Set(),documentRetired:false,saved:null,composing:new WeakSet(),busy:false,attempts:new Map(),receipts:new Map(),receiptBytes:0,protocolActive:false,admissionSerial:0,admissionClosed:false,retirements:new Map(),receiver:null,ownerToken:null,ownerDomain:null,recoveryToken:null,reconciledEvents:new Set(),registration:null,registrationToken:null,nonce:null};inventory.documents.set(document,state);document.defaultView?.addEventListener('pagehide',()=>{state.documentRetired=true;if(state.selectionHold){state.selectionHold.invalid=true;notifySelection(state);}});receiverRuntime(state);}
   return state;
  };
  const proven=(result,proof)=>{inventory.proofs.set(result,proof);return result;};
  class ChatGPTComposerAdapter{
   #state;
   constructor({document=globalThis.document,location=globalThis.location}={}){
-   this.document=document;this.location=location;this.#state=stateFor(document);this.composing=this.#state.composing;this.disposed=false;
+   this.document=document;this.location=location;this.#state=stateFor(document,location);this.composing=this.#state.composing;this.disposed=false;
    this.listeners=[];
    for(const event of ['selectionchange','pointerup','focusout'])this.listen(event,()=>this.remember());
    this.listen('compositionstart',e=>{const node=this.find();if(node?.contains(e.target)){this.composing.add(node);this.saved=null;}});
@@ -240,10 +289,16 @@
    const r=this.document.createRange();r.setStart(p.node,p.offset);r.collapse(true);
    const selection=this.document.getSelection();selection.removeAllRanges();selection.addRange(r);return true;
   }
-  async insert(request){
+  insert(request){
+   const state=this.#state;if(state.selectionHold)return resolved({status:'failed',reason:'document_selection_held'});
+   const token=Object.freeze(Object.create(null)),serial=state.admissionSerial;state.selectionPending.add(token);
+   let result;try{result=this.#insertAccepted(request,serial);}catch(error){state.selectionPending.delete(token);notifySelection(state);throw error;}
+   const task=resolved(result);observe(task,()=>{state.selectionPending.delete(token);notifySelection(state);},()=>{state.selectionPending.delete(token);notifySelection(state);});return task;
+  }
+  async #insertAccepted(request,serial){
    const {text,operationId,url,guard,insertionMessage,lane,qualify}=request||{};
    if(typeof operationId!=='string'||!/^[a-f0-9-]{36}$/.test(operationId)||typeof text!=='string'||!text.trim()||text.length>LIMIT||text.includes('\r'))return {status:'failed',reason:'invalid_request'};
-   if(insertionMessage?.insertionReceipt||Object.hasOwn(request,'insertionReceipt'))return this.#withReceipt({text,operationId,url,guard,insertionMessage,lane,qualify});
+   if(insertionMessage?.insertionReceipt||Object.hasOwn(request,'insertionReceipt'))return this.#withReceipt({text,operationId,url,guard,insertionMessage,lane,qualify},serial);
    if(this.#state.protocolActive)return {status:'uncertain',reason:'legacy_insertion_unqualified'};
    // A legacy request cannot bypass a new receipt's physical operation identity.
    if(this.#state.receipts.has(operationId))return {status:'uncertain',reason:'readback_unconfirmed',replayed:true};
@@ -251,9 +306,9 @@
    // Legacy attempts have no qualified epoch retirement. Retain their body-free
    // result for this document rather than evicting and enabling an old replay.
    if(this.#state.attempts.size>=500)return {status:'failed',reason:'reload_required'};
-   const pending=this.#once(text,url,guard);this.#state.attempts.set(operationId,pending);return pending;
+   const pending=this.#once(text,url,()=>!this.#state.selectionHold&&this.#state.admissionSerial===serial&&(!guard||guard()));this.#state.attempts.set(operationId,pending);return pending;
   }
-  async #withReceipt({text,operationId,url,guard,insertionMessage,lane,qualify}){
+  async #withReceipt({text,operationId,url,guard,insertionMessage,lane,qualify},acceptedSerial){
    const invalid=()=>({status:'failed',reason:'invalid_insertion_receipt'}),state=this.#state;
    let envelope,message,envelopeKey;
    try{
@@ -269,7 +324,7 @@
     const hash=[...new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
     if(hash!==envelope.digest)return invalid();
    }catch{return invalid();}
-   if(state.admissionClosed||retiredEnvelope(state,envelope))return invalid();
+   if(state.selectionHold||state.admissionSerial!==acceptedSerial||state.admissionClosed||retiredEnvelope(state,envelope))return invalid();
    const previous=state.receipts.get(operationId);
    if(previous){if(previous.envelopeKey!==envelopeKey)return invalid();return {...copy(await previous.pending),replayed:true};}
    if(state.attempts.has(operationId))return {status:'uncertain',reason:'readback_unconfirmed',replayed:true};
@@ -289,7 +344,7 @@
      // shared admission, so no new asynchronous boundary follows that check.
      const claim={};let eligible=true;
      if(typeof qualify==='function')try{eligible=await qualify()===true;}catch{eligible=false;}
-     const result=await this.#once(text,url,()=>!state.admissionClosed&&state.admissionSerial===serial&&withinBudget()&&!retiredEnvelope(state,envelope)&&(!guard||guard()),claim,eligible&&withinBudget());
+     const result=await this.#once(text,url,()=>!state.selectionHold&&!state.admissionClosed&&state.admissionSerial===serial&&withinBudget()&&!retiredEnvelope(state,envelope)&&(!guard||guard()),claim,eligible&&withinBudget());
      const proof=inventory.proofs.get(result),outcome=proof?.claim===claim?(proof.kind==='inserted'?'inserted':proof.kind==='not_entered'?'not_inserted':'unknown'):'unknown';
      const ack={version:VERSION,envelope,outcome};entry.nativeTerminal=proof?.claim===claim&&['inserted','not_entered'].includes(proof.kind);entry.ack=copy(ack);
      // Publication is evidence-only. Its eventual response cannot update the
