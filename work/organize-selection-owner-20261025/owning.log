@@ -1,0 +1,242 @@
+TAP version 13
+# Subtest: explicit three-request authorization stops at exactly three and 50 Inputs
+ok 1 - explicit three-request authorization stops at exactly three and 50 Inputs
+  ---
+  duration_ms: 907.672583
+  type: 'test'
+  ...
+# Subtest: second Provider error stops at two without a third request or retry
+ok 2 - second Provider error stops at two without a third request or retry
+  ---
+  duration_ms: 557.748417
+  type: 'test'
+  ...
+# Subtest: partial validation stops immediately while retaining valid committed work
+ok 3 - partial validation stops immediately while retaining valid committed work
+  ---
+  duration_ms: 464.581666
+  type: 'test'
+  ...
+# Subtest: authorization is idempotent and cannot be expanded/replayed
+ok 4 - authorization is idempotent and cannot be expanded/replayed
+  ---
+  duration_ms: 462.71325
+  type: 'test'
+  ...
+# Subtest: stop aborts current request and fences all later batches
+ok 5 - stop aborts current request and fences all later batches
+  ---
+  duration_ms: 434.825
+  type: 'test'
+  ...
+# Subtest: worker restart marks active authorization interrupted and never resumes
+ok 6 - worker restart marks active authorization interrupted and never resumes
+  ---
+  duration_ms: 348.126917
+  type: 'test'
+  ...
+# Subtest: single and bounded actions share flight fence and daily budget
+ok 7 - single and bounded actions share flight fence and daily budget
+  ---
+  duration_ms: 752.116542
+  type: 'test'
+  ...
+# Subtest: D3 AI requires separate exact Topic confirmations, rejects old broad scope and stops after an error
+ok 8 - D3 AI requires separate exact Topic confirmations, rejects old broad scope and stops after an error
+  ---
+  duration_ms: 293.50375
+  type: 'test'
+  ...
+# Subtest: exact default assembly holds all three originals and release never replays denied actions
+ok 9 - exact default assembly holds all three originals and release never replays denied actions
+  ---
+  duration_ms: 49.909458
+  type: 'test'
+  ...
+# Subtest: default original wake has real local work and public running cannot hide pending work
+ok 10 - default original wake has real local work and public running cannot hide pending work
+  ---
+  duration_ms: 40.870708
+  type: 'test'
+  ...
+# Subtest: direct original stop is tracked before its first await
+ok 11 - direct original stop is tracked before its first await
+  ---
+  duration_ms: 23.517625
+  type: 'test'
+  ...
+# Subtest: direct original reconcileInterrupted is tracked before its first await
+ok 12 - direct original reconcileInterrupted is tracked before its first await
+  ---
+  duration_ms: 26.158375
+  type: 'test'
+  ...
+# Subtest: direct original run is privately tracked and its rejection cannot poison later holds
+ok 13 - direct original run is privately tracked and its rejection cannot poison later holds
+  ---
+  duration_ms: 19.68
+  type: 'test'
+  ...
+# Subtest: bounded patch includes maintenance writes in admission
+ok 14 - bounded patch includes maintenance writes in admission
+  ---
+  duration_ms: 19.568666
+  type: 'test'
+  ...
+# Subtest: bounded reconcileInterrupted includes maintenance writes in admission
+ok 15 - bounded reconcileInterrupted includes maintenance writes in admission
+  ---
+  duration_ms: 20.309709
+  type: 'test'
+  ...
+# Subtest: bounded status includes maintenance writes in admission
+ok 16 - bounded status includes maintenance writes in admission
+  ---
+  duration_ms: 18.777709
+  type: 'test'
+  ...
+# Subtest: configured status compatibility maintenance is tracked even for strict null owner
+ok 17 - configured status compatibility maintenance is tracked even for strict null owner
+  ---
+  duration_ms: 20.700417
+  type: 'test'
+  ...
+# Subtest: busy bounded original chain finishes naturally with no hold-induced stop or cancellation
+ok 18 - busy bounded original chain finishes naturally with no hold-induced stop or cancellation
+  ---
+  duration_ms: 32.85525
+  type: 'test'
+  ...
+# Subtest: second hold and failed composition never release another owners token
+ok 19 - second hold and failed composition never release another owners token
+  ---
+  duration_ms: 16.591042
+  type: 'test'
+  ...
+# Subtest: tokens reject foreign owner, wrong store, clones, released reuse and cold lookalikes
+ok 20 - tokens reject foreign owner, wrong store, clones, released reuse and cold lookalikes
+  ---
+  duration_ms: 27.955166
+  type: 'test'
+  ...
+# Subtest: non-null malformed and unavailable configurations cannot masquerade as null birth
+ok 21 - non-null malformed and unavailable configurations cannot masquerade as null birth
+  ---
+  duration_ms: 12.37475
+  type: 'test'
+  ...
+# Subtest: changed dependencies, prototype, required methods and child ownership invalidate proof
+ok 22 - changed dependencies, prototype, required methods and child ownership invalidate proof
+  ---
+  duration_ms: 25.862708
+  type: 'test'
+  ...
+# Subtest: repository/database replacement cannot refresh a warm birth binding
+ok 23 - repository/database replacement cannot refresh a warm birth binding
+  ---
+  duration_ms: 13.662167
+  type: 'test'
+  ...
+# Subtest: deadline expiration invalidates proof but retains admission until exact release
+ok 24 - deadline expiration invalidates proof but retains admission until exact release
+  ---
+  duration_ms: 40.563709
+  type: 'test'
+  ...
+# Subtest: two pending original tasks are not erased by one rejection or mutable running state
+ok 25 - two pending original tasks are not erased by one rejection or mutable running state
+  ---
+  duration_ms: 16.838542
+  type: 'test'
+  ...
+# Subtest: warm hold preserves durable UNKNOWN rows and does not assert historical settlement
+ok 26 - warm hold preserves durable UNKNOWN rows and does not assert historical settlement
+  ---
+  duration_ms: 14.600334
+  type: 'test'
+  ...
+# Subtest: real configured factory birth remains unsupported after local service invalidation
+not ok 27 - real configured factory birth remains unsupported after local service invalidation
+  ---
+  duration_ms: 14.422792
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/organize-selection-owner/extension/tests/organize-application-selection-hold.test.mjs:142:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/organize-selection-owner/extension/tests/organize-application-selection-hold.test.mjs:148:89)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: original Organize RPC has a configured LocalOrganizeSession owner and remains default off
+ok 28 - original Organize RPC has a configured LocalOrganizeSession owner and remains default off
+  ---
+  duration_ms: 39.294792
+  type: 'test'
+  ...
+# Subtest: qualified static route and exact dynamic Organize request key have separate original job identities
+ok 29 - qualified static route and exact dynamic Organize request key have separate original job identities
+  ---
+  duration_ms: 59.108917
+  type: 'test'
+  ...
+# Subtest: simple Original runner sends one direct five-item batch and commits only locally sliced bodies
+ok 30 - simple Original runner sends one direct five-item batch and commits only locally sliced bodies
+  ---
+  duration_ms: 152.747667
+  type: 'test'
+  ...
+# Subtest: simple Original provider failures leave cursor, Input and Library unchanged
+ok 31 - simple Original provider failures leave cursor, Input and Library unchanged
+  ---
+  duration_ms: 249.283041
+  type: 'test'
+  ...
+# Subtest: one invalid item becomes terminal manual-required while valid items commit and cursor advances
+ok 32 - one invalid item becomes terminal manual-required while valid items commit and cursor advances
+  ---
+  duration_ms: 69.783292
+  type: 'test'
+  ...
+# Subtest: a committed deterministic batch receipt advances a lost cursor without another provider call
+ok 33 - a committed deterministic batch receipt advances a lost cursor without another provider call
+  ---
+  duration_ms: 49.341333
+  type: 'test'
+  ...
+# Subtest: a failed batch retries only after a new explicit action and keeps its deterministic batch id
+ok 34 - a failed batch retries only after a new explicit action and keeps its deterministic batch id
+  ---
+  duration_ms: 49.210875
+  type: 'test'
+  ...
+# Subtest: legacy Organizer jobs cannot block the simple runner or submit after their fence is invalidated
+ok 35 - legacy Organizer jobs cannot block the simple runner or submit after their fence is invalidated
+  ---
+  duration_ms: 38.517583
+  type: 'test'
+  ...
+# Subtest: simple runner exposes only the fixed six-state lifecycle and atomically stores receipt plus cursor
+ok 36 - simple runner exposes only the fixed six-state lifecycle and atomically stores receipt plus cursor
+  ---
+  duration_ms: 35.930417
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 35
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4399.329125

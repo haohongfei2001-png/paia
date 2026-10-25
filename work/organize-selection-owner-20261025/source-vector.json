@@ -1,0 +1,25 @@
+{
+  "base": "5274854d5b498d03161b69472cbe6dbe84f8b025",
+  "files": [
+    {
+      "path": "extension/core/organizer/application-selection-owner.js",
+      "sha256": "f96c45daf5316ddf55af58c31b9b1e51a99945a6551d6428314813c352dd717e"
+    },
+    {
+      "path": "extension/core/organizer/original-simple.js",
+      "sha256": "ce83f0971a672ae2bf809df4d69bc715bf435b325e8f4dd87ddf11bf4324c2db"
+    },
+    {
+      "path": "extension/core/organizer/configured-organize-runner.js",
+      "sha256": "a36ae8b86cbc34c9fac79dd1e1c15848a8f6159434d6f6c912aa32186341c8d6"
+    },
+    {
+      "path": "extension/core/organizer/bounded-workflow.js",
+      "sha256": "96d99fbf868105944e366d401b2fbc5e36e3f4895b2266eb28c8ce1839e1d783"
+    },
+    {
+      "path": "extension/tests/organize-application-selection-hold.test.mjs",
+      "sha256": "60dde42c0051ce392a336992c88daa03a0effab403d44f11135a3431f7bee1fe"
+    }
+  ]
+}
