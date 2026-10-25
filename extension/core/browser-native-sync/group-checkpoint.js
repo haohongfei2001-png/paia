@@ -256,7 +256,7 @@ async function sourceUnionPhysicalCut(t,identity,working=null){
  for(const id of sourceUnionPhysicalMetadata){const row=(await t.get('meta',id))??null;if(id==='thought-suppression-key'){if(!equalSourceWorkingPhysicalTree(row,identity.row))fail('BNS_RESTORE_LOCAL_CHANGED');metadata.push({id,fingerprint:identity.fingerprint});}else metadata.push({id,row});}
  const filterInputs=[],evaluated=[],runtime=new Set(['decision','reasonCode','pendingKey','failed','evaluatedAt','decisionSequence','filteredKey']),allowed=new Set(['id','documentId','authorship','userEdited','filterOverride','presence','evaluationRevision','basedOnContentRevision',...Object.keys(FILTER_VERSIONS),...runtime]);
  for(const row of await readGroupRows(t,'filterInputs')){
-  const edit=working?.groups.find(group=>group.prepared.descriptor.value.inputId===row.id);if(edit){filterInputs.push(requireSourceUnionWorkingFilter(edit,working.cut.filterInputs.find(item=>item.id===row.id),row));continue;}
+  const edits=working?.groups.filter(group=>group.prepared.descriptor.value.inputId===row.id);if(edits?.length){filterInputs.push(requireSourceUnionWorkingFilter(edits,working.cut.filterInputs.find(item=>item.id===row.id),row));continue;}
   if(Object.keys(row).some(key=>!allowed.has(key))||!Number.isSafeInteger(row.evaluationRevision)||row.evaluationRevision<0||Object.hasOwn(row,'failed')&&typeof row.failed!=='boolean'||!Object.entries(FILTER_VERSIONS).every(([key,value])=>row[key]===value))fail('BNS_RESTORE_LOCAL_CHANGED');
   const state=inputStates.find(state=>state.id===row.id);if(!state||row.basedOnContentRevision!==state.contentRevision)fail('BNS_RESTORE_LOCAL_CHANGED');
   if(Object.hasOwn(row,'evaluatedAt')){

@@ -1,0 +1,140 @@
+TAP version 13
+# Subtest: actual second Store protocol mutation during provider await cannot borrow first repository fence
+ok 1 - actual second Store protocol mutation during provider await cannot borrow first repository fence
+  ---
+  duration_ms: 739.601667
+  type: 'test'
+  ...
+# Subtest: first Working union continuation does not adopt a real second edit after parent discovery
+ok 2 - first Working union continuation does not adopt a real second edit after parent discovery
+  ---
+  duration_ms: 456.668167
+  type: 'test'
+  ...
+# Subtest: second coalesced Working edit after original sibling union publishes and restores through cold reopen
+ok 3 - second coalesced Working edit after original sibling union publishes and restores through cold reopen
+  ---
+  duration_ms: 1071.454125
+  type: 'test'
+  ...
+# Subtest: second allocated Working edit after original sibling union publishes and restores through cold reopen
+ok 4 - second allocated Working edit after original sibling union publishes and restores through cold reopen
+  ---
+  duration_ms: 1071.3755
+  type: 'test'
+  ...
+# Subtest: third coalesced Working edit after original sibling union publishes and restores through cold reopen
+not ok 5 - third coalesced Working edit after original sibling union publishes and restores through cold reopen
+  ---
+  duration_ms: 1106.255791
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/tests/source-union-publication-continuation.test.mjs:271:181'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CHECKPOINT_PUBLICATION_LIMIT'
+  code: 'BNS_CHECKPOINT_PUBLICATION_LIMIT'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/value.js:5:32)
+    chargeOriginalCheckpointPublicationWork (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/checkpoint-publication.js:26:54)
+    requireSourceUnionPublicationCut (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/group-checkpoint.js:709:93)
+    async file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/group-checkpoint.js:124:695
+    async file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/core.js:192:127
+    async ArchiveRepository.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/idb-repository.js:581:510)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/core.js:192:66)
+    async execute (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/indexed-store.js:215:11)
+  ...
+# Subtest: third allocated Working edit after original sibling union publishes and restores through cold reopen
+not ok 6 - third allocated Working edit after original sibling union publishes and restores through cold reopen
+  ---
+  duration_ms: 1008.092833
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/tests/source-union-publication-continuation.test.mjs:271:181'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CHECKPOINT_PUBLICATION_LIMIT'
+  code: 'BNS_CHECKPOINT_PUBLICATION_LIMIT'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/value.js:5:32)
+    chargeOriginalCheckpointPublicationWork (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/checkpoint-publication.js:26:54)
+    requireSourceUnionPublicationCut (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/group-checkpoint.js:709:93)
+    async file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/group-checkpoint.js:124:695
+    async file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/core.js:192:127
+    async ArchiveRepository.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/idb-repository.js:581:510)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/browser-native-sync/core.js:192:66)
+    async execute (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-repeat/extension/core/indexed-store.js:215:11)
+  ...
+# Subtest: second Working continuation lost upload ACK resumes exact cold task without duplicate POST
+ok 7 - second Working continuation lost upload ACK resumes exact cold task without duplicate POST
+  ---
+  duration_ms: 1622.293875
+  type: 'test'
+  ...
+# Subtest: second Working edit publishes a descendant after the first edit was already published
+ok 8 - second Working edit publishes a descendant after the first edit was already published
+  ---
+  duration_ms: 1521.574166
+  type: 'test'
+  ...
+# Subtest: second Working continuation refuses prior-typed-history without publication or row changes
+ok 9 - second Working continuation refuses prior-typed-history without publication or row changes
+  ---
+  duration_ms: 409.852208
+  type: 'test'
+  ...
+# Subtest: second Working continuation refuses member-parent without publication or row changes
+ok 10 - second Working continuation refuses member-parent without publication or row changes
+  ---
+  duration_ms: 403.082542
+  type: 'test'
+  ...
+# Subtest: second Working continuation refuses physical-history without publication or row changes
+ok 11 - second Working continuation refuses physical-history without publication or row changes
+  ---
+  duration_ms: 441.417
+  type: 'test'
+  ...
+# Subtest: second Working continuation refuses allocation without publication or row changes
+ok 12 - second Working continuation refuses allocation without publication or row changes
+  ---
+  duration_ms: 437.232792
+  type: 'test'
+  ...
+# Subtest: second Working continuation refuses filter-evaluation without publication or row changes
+ok 13 - second Working continuation refuses filter-evaluation without publication or row changes
+  ---
+  duration_ms: 433.628792
+  type: 'test'
+  ...
+# Subtest: second Working continuation refuses missing-first-event without publication or row changes
+ok 14 - second Working continuation refuses missing-first-event without publication or row changes
+  ---
+  duration_ms: 542.968
+  type: 'test'
+  ...
+# Subtest: second Working continuation refuses missing-first-receipt without publication or row changes
+ok 15 - second Working continuation refuses missing-first-receipt without publication or row changes
+  ---
+  duration_ms: 452.2405
+  type: 'test'
+  ...
+# Subtest: second Working continuation retains the original cumulative ticket ceiling
+ok 16 - second Working continuation retains the original cumulative ticket ceiling
+  ---
+  duration_ms: 369.463917
+  type: 'test'
+  ...
+# Subtest: second Working continuation refuses a real third edit during parent discovery
+ok 17 - second Working continuation refuses a real third edit during parent discovery
+  ---
+  duration_ms: 485.307459
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 15
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12815.621042

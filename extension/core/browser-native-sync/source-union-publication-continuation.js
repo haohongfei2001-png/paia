@@ -1,6 +1,6 @@
 import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,recordIndex,blockIndex,sourceCount,chatOf} from '../idb-repository.js';
 import {describeOriginalWorkingGroup} from './input-working-commit.js';
-import {inputEditJournalData} from '../ia-store-owner.js';
+import {inputEditJournalData,planInputRevision} from '../ia-store-owner.js';
 import {planInitialFilter} from '../smart-filter-store-owner.js';
 import {SOURCE_BOOTSTRAP_TYPES} from './source-bootstrap-codec.js';
 import {SOURCE_APPEND_TYPES} from './source-append-codec.js';
@@ -40,9 +40,9 @@ export function sourceUnionPublicationGroups(core,plan,original){
   for(let i=0;i<ops.length;i++)if(ops[i].deviceId!==core.deviceId||ops[i].sequence!==++sequence||i<types.length&&ops[i].value.entityType!==types[i])invalid();
  }
  const working=added.filter(group=>group.type==='inputWorkingCommit');
- // First bounded continuation: one genuine first edit of a retained Input.
- // Further mixed/local tails retain their explicit unsupported status.
- if(working.length&&(working.length!==1||added.length!==1))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+ // One retained Input's complete sequential local Working chain only. Other
+ // Inputs and mixed Source/Human/Context tails keep their separate qualification.
+ if(working.length&&(working.length!==added.length||new Set(working.map(group=>group.prepared.descriptor.value.inputId)).size!==1))fail('BNS_GROUP_OWNER_UNSUPPORTED');
  return {previous,added,working};
 }
 
@@ -94,43 +94,59 @@ export async function requireSourceUnionPublicationPhysical(core,t,originalCut,c
 }
 
 
-// Original protection keeps its local timestamp, but only this exact first
-// typed edit can qualify its fixed body-free state. No filter decision or
+// Original protection keeps its local timestamp; only this complete sequential
+// typed edit chain can qualify its fixed body-free state. No filter decision or
 // content counter is borrowed from the current row being checked.
-export function requireSourceUnionWorkingFilter(group,original,row){
- const {block}=describeOriginalWorkingGroup(group.prepared);
+export function requireSourceUnionWorkingFilter(groups,original,row){
+ const shapes=groups.map(group=>describeOriginalWorkingGroup(group.prepared));if(!shapes.length)invalid();const {block}=shapes.at(-1);
+ if(shapes.some((shape,index)=>shape.block.value.id!==block.value.id||shape.block.value.revision!==index+1))invalid();
  if(!original||original.evaluationRevision!==0||original.basedOnContentRevision!==0||original.userEdited!==false||original.filterOverride!=='none'||typeof row.overrideAt!=='string'||!Number.isFinite(Date.parse(row.overrideAt)))invalid();
- const expected={...original,userEdited:true,filterOverride:'keep',overrideReason:'user_edit',overrideAt:row.overrideAt,evaluationRevision:1,failed:false,pendingKey:1,decision:'keep',reasonCode:'user_protected'};
+ const expected={...original,userEdited:true,filterOverride:'keep',overrideReason:'user_edit',overrideAt:row.overrideAt,evaluationRevision:shapes.length,failed:false,pendingKey:1,decision:'keep',reasonCode:'user_protected'};
  if(row.id!==block.value.id||!equalSourceWorkingPhysicalTree(row,expected))invalid();
  return stableFilter(row);
 }
 async function requireWorkingPhysical(core,t,originalCut,currentCut,groups,canonical){
- const group=groups.working[0],shape=describeOriginalWorkingGroup(group.prepared),{block,state,history,keeps,descriptor}=shape;
- const sourceGroup=groups.previous.find(g=>entities(g).input.id===descriptor.inputId);if(!sourceGroup)invalid();
- const original=entities(sourceGroup),before=original.input,after=block.value,editable=new Set(['libraryText','note','editedAt','revision']);
+ const shapes=groups.working.map(group=>describeOriginalWorkingGroup(group.prepared)),first=shapes[0];
+ const sourceGroup=groups.previous.find(g=>entities(g).input.id===first.descriptor.inputId);if(!sourceGroup)invalid();
+ const original=entities(sourceGroup),before=original.input,editable=new Set(['libraryText','note','editedAt','revision']);
  const fixed=value=>Object.fromEntries(Object.entries(value).filter(([key])=>!editable.has(key)));
- if(!equal(fixed(before),fixed(after))||before.revision!==0||before.libraryText!==null||before.note||after.revision!==1||after.libraryText===before.libraryText&&after.note===before.note||block.operation.parents.length||state.operation.parents.length)invalid();
- if(!equal(descriptor.sourceRefs,[{id:original.source.id,sourceKey:original.source.sourceKey,dedupeKey:original.source.dedupeKey,contentHash:original.source.contentHash}])||keeps.length!==1||keeps[0].value.id!==original.source.sourceKey||keeps[0].operation.parents.length)invalid();
+ if(before.revision!==0||before.libraryText!==null||before.note)invalid();
  const expected=clone(originalCut),metadata=new Map(expected.metadata.map(row=>[row.id,row])),delta=metadata.get('input-delta-sequence')?.row,revision=metadata.get('revision-sequence')?.row,epoch=metadata.get('thought-epoch')?.row??{id:'thought-epoch',value:0};
  metadata.get('thought-epoch').row=epoch;
  if(!delta||!revision||!epoch||!Number.isSafeInteger(epoch.value)||epoch.value<0)invalid();
  const initial=expected.inputStates.find(row=>row.id===before.id),allocation=expected.revisionAllocations.find(row=>row.id===original.baselineRevision.id);
- if(!initial||!allocation||history.length!==2||history.some(item=>item.operation.parents.length))invalid();
- const baseline=history.find(item=>item.value.id===allocation.id),fresh=history.find(item=>item.value.id!==allocation.id);
- if(!baseline||!fresh||!equal(baseline.value,{...original.baselineRevision,...allocation}))invalid();
- const data=inputEditJournalData(before,after,{}),row=fresh.value;
- if(!equal(Object.fromEntries(Object.keys(data).map(key=>[key,row[key]])),data)||row.entityKey!=='input:'+before.id||row.sequence!==revision.value+1||!equal(row.listKey,[row.entityKey,row.sequence])||!equal(row.documentList,[row.documentId,row.sequence])||row.at!==after.editedAt||row.windowStartedAt!==after.editedAt)invalid();
- const nextState={...initial,contentRevision:initial.contentRevision+1,deltaSequence:delta.value+1};if(!equal(state.value,nextState))invalid();expected.inputStates[expected.inputStates.indexOf(initial)]=nextState;
- expected.revisionAllocations.push({id:row.id,sequence:row.sequence,listKey:row.listKey,documentList:row.documentList});revision.value++;delta.value++;epoch.value++;
- const filter=await t.get('filterInputs',before.id),oldFilter=expected.filterInputs.find(item=>item.id===before.id);const protectedFilter=requireSourceUnionWorkingFilter(group,oldFilter,filter);expected.filterInputs[expected.filterInputs.indexOf(oldFilter)]=protectedFilter;
+ if(!initial||!allocation)invalid();
+ let previousBlock=before,previousState=initial;
+ const historyRows=new Map([[allocation.id,{...original.baselineRevision,...allocation}]]),priorOperations=new Map(),events=[];
+ for(const shape of shapes){
+  const {block,state,history,keeps,descriptor}=shape,after=block.value;
+  if(!equal(fixed(before),fixed(after))||after.revision!==previousBlock.revision+1||after.libraryText===previousBlock.libraryText&&after.note===previousBlock.note)invalid();
+  if(!equal(descriptor.sourceRefs,[{id:original.source.id,sourceKey:original.source.sourceKey,dedupeKey:original.source.dedupeKey,contentHash:original.source.contentHash}])||keeps.length!==1||keeps[0].value.id!==original.source.sourceKey)invalid();
+  for(const item of shape.entities){const prior=priorOperations.get(item.operation.entityId);if(!equal(item.operation.parents,prior?[prior.revisionId]:[]))invalid();}
+  // The original planner consumes a bounded, already authenticated transient
+  // history view. It cannot access a repository or write; exact rows below
+  // prove both fresh allocation and the original coalescing operation.
+  const data=inputEditJournalData(previousBlock,after,{}),candidate=history.find(item=>!historyRows.has(item.value.id)&&item.value.sequence===revision.value+1);
+  charge(core,[previousBlock,data,[...historyRows.values()],history.map(item=>item.value)]);
+  const planned=await planInputRevision({edge:async()=>[...historyRows.values()].sort((a,b)=>a.sequence-b.sequence).at(-1),get:async(table,id)=>{if(table!=='meta'||id!=='revision-sequence')invalid();return clone(revision);}},data,{now:after.editedAt,uuid:()=>{if(!candidate)invalid();return candidate.value.id;}});
+  historyRows.set(planned.row.id,planned.row);if(planned.sequence)revision.value=planned.sequence.value;
+  if(history.length!==historyRows.size||history.some(item=>!equal(item.value,historyRows.get(item.value.id))))invalid();
+  const nextState={...previousState,contentRevision:previousState.contentRevision+1,deltaSequence:delta.value+1};if(!equal(state.value,nextState))invalid();
+  delta.value++;epoch.value++;events.push({descriptor,contentRevision:nextState.contentRevision,sequence:epoch.value});
+  for(const item of shape.entities)priorOperations.set(item.operation.entityId,item.operation);
+  previousBlock=after;previousState=nextState;
+ }
+ expected.inputStates[expected.inputStates.indexOf(initial)]=previousState;
+ expected.revisionAllocations=expected.revisionAllocations.filter(row=>row.id!==allocation.id);
+ for(const row of historyRows.values())expected.revisionAllocations.push({id:row.id,sequence:row.sequence,listKey:row.listKey,documentList:row.documentList});
+ const filter=await t.get('filterInputs',before.id),oldFilter=expected.filterInputs.find(item=>item.id===before.id);expected.filterInputs[expected.filterInputs.indexOf(oldFilter)]=requireSourceUnionWorkingFilter(groups.working,oldFilter,filter);
  for(const name of ['inputStates','revisionAllocations','filterInputs'])order(expected[name]);charge(core,expected);if(!equalSourceWorkingPhysicalTree(currentCut,expected))invalid();
- // Original Source indexes and document allocations are unchanged by editing
- // Working text. Reuse the exact source-only reconstruction for these tables.
  const sourceOnly={previous:groups.previous,added:[],working:[]};await requireSourceUnionPublicationPhysical(core,t,originalCut,originalCut,sourceOnly,canonical);
- const invalidations=await readGroupRows(t,'invalidations'),receipts=await readGroupRows(t,'operationReceipts');
- charge(core,invalidations);charge(core,receipts);
- if(invalidations.length!==1||receipts.length!==1)invalid();
- const event=invalidations[0],receipt=receipts[0];
- if(typeof event.id!=='string'||!event.id||typeof event.at!=='string'||!Number.isFinite(Date.parse(event.at))||!equal(event,{id:event.id,eventSchema:2,inputId:before.id,reason:'source_updated',contentRevision:1,sequence:epoch.value,at:event.at,stateKey:0,state:'pending',cursor:null,dependencyAck:false,organizerAck:false}))invalid();
- if(typeof receipt.createdAt!=='string'||!Number.isFinite(Date.parse(receipt.createdAt))||!(/^[a-f0-9]{64}$/).test(receipt.digest)||!equal(receipt,{id:descriptor.id,namespace:'working-input',schemaVersion:1,ownerId:descriptor.documentId,createdAt:receipt.createdAt,digest:receipt.digest,result:{ok:true}}))invalid();
+ const invalidations=await readGroupRows(t,'invalidations'),receipts=await readGroupRows(t,'operationReceipts');charge(core,invalidations);charge(core,receipts);
+ if(invalidations.length!==events.length||receipts.length!==events.length)invalid();
+ for(const {descriptor,contentRevision,sequence} of events){
+  const event=invalidations.find(row=>row.sequence===sequence),receipt=receipts.find(row=>row.id===descriptor.id);
+  if(!event||typeof event.id!=='string'||!event.id||typeof event.at!=='string'||!Number.isFinite(Date.parse(event.at))||!equal(event,{id:event.id,eventSchema:2,inputId:before.id,reason:'source_updated',contentRevision,sequence,at:event.at,stateKey:0,state:'pending',cursor:null,dependencyAck:false,organizerAck:false}))invalid();
+  if(!receipt||typeof receipt.createdAt!=='string'||!Number.isFinite(Date.parse(receipt.createdAt))||!(/^[a-f0-9]{64}$/).test(receipt.digest)||!equal(receipt,{id:descriptor.id,namespace:'working-input',schemaVersion:1,ownerId:descriptor.documentId,createdAt:receipt.createdAt,digest:receipt.digest,result:{ok:true}}))invalid();
+ }
 }

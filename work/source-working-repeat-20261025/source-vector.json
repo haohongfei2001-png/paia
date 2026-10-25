@@ -1,0 +1,14 @@
+{
+  "extension/core/browser-native-sync/group-checkpoint.js": {
+    "sha256": "243b9a1fc6289be60b114dfca87a80e3c33eaea2bd8be1ce3adcca54fb9dcb38",
+    "gitBlob": "9bb706c1c776ae7aa55756c9ddf0c3fdc1d3c15f"
+  },
+  "extension/core/browser-native-sync/source-union-publication-continuation.js": {
+    "sha256": "0914bf39f3b10db362dc528c06ba57b3dc365535b1a7528fdcb72289e4ed3634",
+    "gitBlob": "6855046e4001d006f07e235b06cffbe2515e2838"
+  },
+  "extension/tests/source-union-publication-continuation.test.mjs": {
+    "sha256": "c4372734f8eb2065e37e858ab5067a0ba80ceee9804d767a0adc039d72020bcb",
+    "gitBlob": "d5c72b2911c4bf5b3a77be2621a23448c9b09a6f"
+  }
+}

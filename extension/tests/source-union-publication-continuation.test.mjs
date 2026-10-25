@@ -230,9 +230,9 @@ test('original Working edit after Source union publishes and cold restores compl
 });
 
 async function firstWorking(t){const f=await restored(t,{added:0});f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});const input=(await f.c.store.snapshot()).library.blocks[0];await inputEdit(f.c.store,input.id,{note:'SYNTHETIC checked Working edit'});return {...f,inputId:input.id};}
-for(const kind of ['source','baseline','history','state','owner','history-map','outbox','filter','event','receipt','extra-event','second-edit'])test('first Working union continuation refuses '+kind+' with exact rows and no publication',async t=>{
+for(const kind of ['source','baseline','history','state','owner','history-map','outbox','filter','event','receipt','extra-event','other-input-edit'])test('first Working union continuation refuses '+kind+' with exact rows and no publication',async t=>{
  const f=await firstWorking(t);
- if(kind==='second-edit')await inputEdit(f.c.store,f.inputId,{note:'SYNTHETIC separate later edit'});
+ if(kind==='other-input-edit')await inputEdit(f.c.store,(await f.c.store.snapshot()).library.blocks.find(row=>row.id!==f.inputId).id,{note:'SYNTHETIC separate Input edit'});
  else await f.c.core.transaction(true,async tx=>{
   if(kind==='source'){const row=(await tx.all('records'))[0];row.value.originalText+=' SYNTHETIC wrong';await tx.put('records',row);}
   else if(kind==='baseline'||kind==='history'){const row=(await tx.all('revisions')).find(row=>kind==='baseline'?row.reason==='baseline':row.reason!=='baseline');row.after.note+=' SYNTHETIC wrong';await tx.put('revisions',row);}
@@ -261,4 +261,41 @@ test('first Working union prepare completes original disposable cleanup before p
  const f=await fixture(t),session=recovery(f.c,f.cloud);await session.recoverDiscovered();const restore=new GroupedCheckpointRestore(f.c.core,{store:f.c.store,restoreId:session.restoreId}),original=await restore.stage.read('restore');assert.notEqual(original.cleanup?.complete,true);
  f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});await inputEdit(f.c.store,(await f.c.store.snapshot()).library.blocks[0].id,{note:'SYNTHETIC first edit before cleanup'});
  const pub=producer(f.c,f.cloud);await pub.prepare();await pub.publish();const after=await restore.stage.read('restore');assert.equal(after.cleanup.complete,true);assert.deepEqual(after.sourceCut,original.sourceCut);assert.deepEqual(after.receipt,original.receipt);
+});
+
+async function repeatWorking(t,{edits=2,separate=false}={}){
+ const f=await firstWorking(t);const first=(await state(f.c)).revisions.find(row=>row.reason!=='baseline');
+ if(separate){let now=Date.parse(first.at);f.c.store.clock=()=>new Date(now+=120000).toISOString();}
+ for(let n=1;n<edits;n++)await inputEdit(f.c.store,f.inputId,{note:'SYNTHETIC continuous Working '+n});return {...f,separate};
+}
+for(const [name,options] of [['second coalesced',{edits:2}],['second allocated',{edits:2,separate:true}]])test(name+' Working edit after original sibling union publishes and restores through cold reopen',async t=>{
+ const f=await repeatWorking(t,options),expected=await state(f.c);assert.equal(expected.revisions.length,options.separate?3+options.edits:4);assert.equal((await f.c.store.input(f.inputId)).revision,options.edits);
+ f.c=await reopen(t,f.c);const pub=producer(f.c,f.cloud);await pub.prepare();assert.equal((await pub.publish()).state,'confirmed');
+ const d=await fresh(t,'SYNTHETIC_repeat_working_restore');await recovery(d,f.cloud).recoverDiscovered();const cold=await reopen(t,d),actual=await state(cold),sort=rows=>rows.slice().sort((a,b)=>a.id.localeCompare(b.id)),history=rows=>sort(rows.map(({sequence,listKey,documentList,...row})=>row));
+ assert.deepEqual(sort(actual.records.map(r=>r.value)),sort(expected.records.map(r=>r.value)));assert.deepEqual(sort(actual.blocks.map(r=>r.value)),sort(expected.blocks.map(r=>r.value)));assert.deepEqual(history(actual.revisions),history(expected.revisions));assert.deepEqual(sort(actual.filterIntents),sort(expected.filterIntents));assert.deepEqual((await f.restore.stage.read('restore')).sourceCut,f.original.sourceCut);
+});
+
+test('second Working continuation lost upload ACK resumes exact cold task without duplicate POST',async t=>{
+ const f=await repeatWorking(t),pub=producer(f.c,f.cloud),prepared=await pub.prepare();f.cloud.loseNextPost();await assert.rejects(pub.publish());f.c=await reopen(t,f.c);const cold=producer(f.c,f.cloud);assert.equal((await cold.status()).taskId,prepared.taskId);assert.equal((await cold.publish()).ref.id,prepared.ref.id);
+ const posts=f.cloud.requests.filter(r=>r.method==='POST'),ids=posts.map(r=>new TextDecoder().decode(r.body).match(/"id":"([^"]+)"/)?.[1]);assert.equal(new Set(ids).size,ids.length);const n=writes(f.cloud);assert.equal((await cold.publish()).ref.id,prepared.ref.id);assert.equal(writes(f.cloud),n);
+});
+test('second Working edit publishes a descendant after the first edit was already published',async t=>{
+ const f=await firstWorking(t),first=producer(f.c,f.cloud);await first.prepare();const parent=await first.publish();await inputEdit(f.c.store,f.inputId,{note:'SYNTHETIC second publication'});const expected=await state(f.c),next=producer(f.c,f.cloud);await next.prepare();const done=await next.publish();assert.deepEqual((await manifest(f,done.ref)).parents,[parent.ref.id]);
+ const d=await fresh(t,'SYNTHETIC_second_publication');await recovery(d,f.cloud).recoverDiscovered();const cold=await reopen(t,d),actual=await state(cold),sort=rows=>rows.slice().sort((a,b)=>a.id.localeCompare(b.id));assert.deepEqual(sort(actual.records.map(r=>r.value)),sort(expected.records.map(r=>r.value)));assert.deepEqual(sort(actual.blocks.map(r=>r.value)),sort(expected.blocks.map(r=>r.value)));
+});
+for(const kind of ['prior-typed-history','member-parent','physical-history','allocation','filter-evaluation','missing-first-event','missing-first-receipt'])test('second Working continuation refuses '+kind+' without publication or row changes',async t=>{
+ const f=await repeatWorking(t);await f.c.core.transaction(true,async tx=>{
+  if(kind==='prior-typed-history'||kind==='member-parent'){const prefix=await f.c.core.idIn(tx,'revision'),rows=(await tx.all('meta')).filter(row=>row.id.startsWith(prefix)&&row.operation.type==='inputWorkingMember'),row=kind==='prior-typed-history'?rows.find(row=>row.operation.value.entityType==='revision'):rows.find(row=>row.operation.parents.length);assert.ok(row);if(kind==='prior-typed-history')row.operation.value.entity.after.note+=' SYNTHETIC wrong';else row.operation.parents=[];await tx.put('meta',row);}
+  else if(kind==='physical-history'){const row=(await tx.all('revisions')).find(row=>row.reason!=='baseline');row.before.note+=' SYNTHETIC wrong';await tx.put('revisions',row);}
+  else if(kind==='allocation'){const row=await tx.get('meta','revision-sequence');row.value++;await tx.put('meta',row);}
+  else if(kind==='filter-evaluation'){const row=await tx.get('filterInputs',f.inputId);row.evaluationRevision=1;await tx.put('filterInputs',row);}
+  else {const table=kind==='missing-first-event'?'invalidations':'operationReceipts',rows=await tx.all(table);await tx.delete(table,rows[0].id);}
+ });await unchangedRefusal(f,()=>producer(f.c,f.cloud).prepare());
+});
+test('second Working continuation retains the original cumulative ticket ceiling',async t=>{
+ const f=await repeatWorking(t);await unchangedRefusal(f,()=>window(f.c,ticket=>{chargeOriginalRecoveryWork(f.c.core.repository,ticket,2*1024*1024);return requireSourceBootstrapUnionPublication(f.c.core,{store:f.c.store});}));
+});
+test('second Working continuation refuses a real third edit during parent discovery',async t=>{
+ const f=await repeatWorking(t),original=LocalSyncRecoverySession.prototype.discoverPublicationParents;let changed=false;t.after(()=>{LocalSyncRecoverySession.prototype.discoverPublicationParents=original;});
+ LocalSyncRecoverySession.prototype.discoverPublicationParents=async function(...args){const value=await original.apply(this,args);if(!changed){changed=true;await inputEdit(f.c.store,f.inputId,{note:'SYNTHETIC concurrent third intent'});}return value;};const n=writes(f.cloud);await assert.rejects(producer(f.c,f.cloud).prepare());assert.equal(writes(f.cloud),n);assert.equal((await f.c.store.input(f.inputId)).note,'SYNTHETIC concurrent third intent');
 });
