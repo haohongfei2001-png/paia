@@ -7,14 +7,15 @@ This is PAIA only, continuing the seven effective plans from the supplied verifi
 - Published Settings three fixes are retained from 27ddcd1/b7c6ecd; do not repeat them.
 - User-approved receipt-only compatibility and draft-preserving manual refresh guidance are implemented. Historical UNKNOWN, old constructors and unfinished operations remain; refresh is not completion proof.
 - Current-top exact document inventory integrated at a3359fd. Original 201/202 and corrected affected 51/51 are separate. This is not global/lifetime host coverage.
-- Retained Input Working tails integrated at b25daa6, following two-Input proof 397dad0. Original117/117 then separate4/6+2/2. Source/Working mixed continuation is the next coherent algorithm package, not a renewed count gate.
+- Retained Input Working tails integrated at b25daa6, following two-Input proof 397dad0. Original117/117 then separate4/6+2/2. Mixed Source/Working successor 7eabab1 is HELD after its one 15/16 matrix: four families completed publication/fresh/cold, fifth bootstrap/edit/append/edit hit original publication budget. It is not integrated and its failed original test remains unchanged.
 - Current offline package source a3359fd: 81 changed-script syntax checks, 24,886 static package guards, 708 files. See BUILD-a3359fd.md. It is not installed or native/browser certified.
 
 ## Current independent owners
 
 - Root owns exact integration and shared coordination. Primary checkout and its preserved untracked files/stashes stay untouched.
-- Source line owns a new chronological SourceBootstrap/SourceAppend/Working proof in one independent checkout, only continuation.js, the precise group-checkpoint filter-baseline caller and owning tests/evidence. Original two-sibling receipt and all budgets stay fixed. Design reviewed; implementation/verification pending.
-- Assist line owns signed service-fixture extraction and test-only receipt bridge. Review found default-unit pg dependency and missing signed revocation inheritance; fixes pending. Default browser owning rewire must remain a separate preparation candidate while its service dependencies, cancellation signal and selected-Context path are unqualified. It must not be activated merely by merging helper tests.
+- Source mixed successor is frozen HELD, not an active retry. The Source line is now auditing the exact remaining global original-owner selection dependencies against current-top inventory, without runtime changes or execution.
+- Assist signed service extraction and bounded test bridge integrated at e9e387d / cleanup30a99ca from6bad910/d666783; both independent-review P2 findings are closed. Five test/helper source paths only; default native owning files remain exactly unchanged. Evidence stays 82/83 +1/1, then11/12 +0/1 +1/1, not a fabricated full green aggregate. The native draft remains HELD; original assertion mapping is being completed without browser execution, fake receipts or new default service dependencies.
+- Independent review is deriving exact reverse accounting/deadline prerequisites from original code; no failed positive is rerun and no budget is expanded.
 
 ## Held and external boundaries
 

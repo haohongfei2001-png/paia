@@ -1,0 +1,18 @@
+{
+  "commit": "7eabab1259b935ac8908185f5ceceabf2b779f5d",
+  "parent": "4d39d7ff01e9efc334991eb590bedc1b34914136",
+  "path": "/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-mixed-working",
+  "disposition": "HELD_NOT_INTEGRATED",
+  "verifiedManifestEntries": 20,
+  "manifestSha256": "3e5892126dce542c08e788a79d0a6f9dc395ec096eae1129ae13f7e2f5d25ca3",
+  "result": "15/16",
+  "realSuccessfulPublishFreshColdFamilies": 4,
+  "failedPositive": "bootstrap -> Working -> append -> Working",
+  "failurePhase": "publish",
+  "error": "BNS_CHECKPOINT_PUBLICATION_LIMIT",
+  "failedPositivePostFailureSnapshots": "NOT_COLLECTED",
+  "writesDuringFailedPublication": "UNKNOWN; diagnostic 11 is fixture lifetime total",
+  "failedTestRetainedInOwningFile": true,
+  "retried": false,
+  "budgetChanged": false
+}

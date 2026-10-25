@@ -42,3 +42,16 @@ The new Node tests prove parser rejection and fixture profile/tokenizer transpor
 ## Disposition
 
 Do not integrate these four reviewed bytes as complete preparation until the default-dependency and signed-revocation findings are resolved or narrowed explicitly. Preserve current source/log snapshots, then validate only changed owning boundaries. No additional native or full-suite execution is requested by this review.
+
+
+## Frozen follow-up — 6bad9106595e8ba2d7d4dd4bc8effb23bffee83f
+
+Read-only follow-up found both P2 issues closed for the narrowed integratable five-path preparation. All five final source hashes and 24 evidence manifest entries match; the checkout is clean. Both original native owning files equal base 815584c bytes and the native draft exists only as HELD evidence.
+
+The real service tests now reside in `services/ai-gateway/tests/assist-native-service-bridge.test.mjs`; the only new default extension test calls pure source-generation/projection/tiny stage functions, never createAssistNativeService. The helper retains its deferred service import. No router exception or default service install is added.
+
+Bridge requireSigned checks the original extracted live state before admission and after each original operation settles. Its private dispatch translates only the original ASSIST_NATIVE_SERVICE_REVOKED code to an explicit revoked response. The authenticated relay carries that reason; generated configuration permanently closes its own live state and notifies original invalidation subscribers before refusing the result. Ordinary loss remains unavailable, not fabricated revocation. Pending real tasks remain tracked. This closes the demonstrated afterResponse revoke mismatch for the preparation, without claiming asynchronous out-of-band/native account revocation certification.
+
+Read the final exact hook control: the original provider parser rejects an invalid request, then its actual response hook invokes revoke; bridge refuses the response, worker configuration becomes non-current/null-profile and later calls cannot reach service. This is 1/1, TAP 172.037958 ms, not a successful completion/provider journey. Preserve earlier 82/83 + targeted1/1, then 11/12 + diagnostic0/1 + exact hook1/1 separately. The failed attempted producer fixture hit STALE_BASE before HTTP and is not relabelled successful.
+
+Request.signal propagation remains absent and explicitly documented. Default native service dependencies, actual selected Context, full old native assertion mapping and actual Chrome sender/transport remain unfinished. These are accurately HELD and do not block integrating the limited fixture extraction/pure helper preparation. They do block treating this package as a fixed native Assist journey. No further tests were executed by this reviewer and no native run is requested.
