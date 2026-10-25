@@ -1,0 +1,20 @@
+{
+  "readAt": "2026-10-25T09:22:18.121Z",
+  "source": "GitHub connector fetch_commit; read-only; no repository mutations",
+  "refs": [
+    {
+      "ref": "main",
+      "sha": "8522134ac23a8e563161b4e3633d56e858e01d5c",
+      "message": "website: optical PAIA presentation with layered native-scroll depth (#330)\n\n* website: create a large optical PAIA presentation with native scroll depth\n\n* website: fit optical reading to short laptop viewports",
+      "url": "https://github.com/haohongfei2001-png/paia/commit/8522134ac23a8e563161b4e3633d56e858e01d5c",
+      "error": false
+    },
+    {
+      "ref": "codex/dot-cloud-integration-20261024",
+      "sha": "b7c6ecdc39f1010dfcf4736df08e5ac89385b0ac",
+      "message": "docs: preserve final development handoff archive without applying pending patches",
+      "url": "https://github.com/haohongfei2001-png/paia/commit/b7c6ecdc39f1010dfcf4736df08e5ac89385b0ac",
+      "error": false
+    }
+  ]
+}
