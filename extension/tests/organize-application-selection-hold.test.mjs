@@ -154,3 +154,19 @@ test('unbound legacy construction stays usable without granting a selection capa
  const o=new SimpleOriginalOrganizerRunner(),ai=createConfiguredOrganizeRunner(undefined,null);
  assert.equal(ai.available(),false);assert.throws(()=>holdOriginal(o,undefined),capability);assert.throws(()=>holdConfigured(ai,undefined),capability);
 });
+
+for(const mode of ['detached','foreign-call','spread-copy'])test('factory private owner binding rejects held '+mode+' status and wake',async()=>{
+ const {s,ai}=await fixture(),before=await meta(s),token=holdConfigured(ai,s);
+ const invoke=(name)=>{const method=ai[name];return mode==='detached'?method({summaryOnly:true}):mode==='foreign-call'?Reflect.apply(method,{},[{summaryOnly:true}]):({...ai})[name]({summaryOnly:true});};
+ try{for(const name of ['status','wake'])await assert.rejects(()=>invoke(name),busy);assert.equal(currentConfigured(ai,s,token),true);assert.deepEqual(await meta(s),before);}
+ finally{releaseConfigured(ai,s,token);}
+});
+
+test('factory private owner binding tracks unheld detached maintenance until actual settlement',async()=>{
+ const {s,ai}=await fixture(),entered=deferred(),finish=deferred(),compat=s.libraryCompatibilityStatus.bind(s);
+ s.libraryCompatibilityStatus=async(...args)=>{entered.resolve();await finish.promise;return compat(...args);};
+ const status=ai.status,work=status({summaryOnly:true});await entered.promise;let accidental;
+ try{assert.throws(()=>{accidental=holdConfigured(ai,s);},busy);}
+ finally{if(accidental)releaseConfigured(ai,s,accidental);finish.resolve();await work;}
+ const token=holdConfigured(ai,s);assert.equal(currentConfigured(ai,s,token),true);releaseConfigured(ai,s,token);
+});

@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: factory private owner binding rejects held detached status and wake
+not ok 1 - factory private owner binding rejects held detached status and wake
+  ---
+  duration_ms: 37.38475
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/organize-selection-owner/extension/tests/organize-application-selection-hold.test.mjs:158:61'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'GENERATION_WORKER_BUSY'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/organize-selection-owner/extension/tests/organize-application-selection-hold.test.mjs:161:42)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: factory private owner binding rejects held foreign-call status and wake
+not ok 2 - factory private owner binding rejects held foreign-call status and wake
+  ---
+  duration_ms: 18.985625
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/organize-selection-owner/extension/tests/organize-application-selection-hold.test.mjs:158:61'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'GENERATION_WORKER_BUSY'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/organize-selection-owner/extension/tests/organize-application-selection-hold.test.mjs:161:42)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: factory private owner binding rejects held spread-copy status and wake
+not ok 3 - factory private owner binding rejects held spread-copy status and wake
+  ---
+  duration_ms: 15.164167
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/organize-selection-owner/extension/tests/organize-application-selection-hold.test.mjs:158:61'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'GENERATION_WORKER_BUSY'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/organize-selection-owner/extension/tests/organize-application-selection-hold.test.mjs:161:42)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: factory private owner binding tracks unheld detached maintenance until actual settlement
+not ok 4 - factory private owner binding tracks unheld detached maintenance until actual settlement
+  ---
+  duration_ms: 16.695333
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/organize-selection-owner/extension/tests/organize-application-selection-hold.test.mjs:165:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'GENERATION_WORKER_BUSY'
+  operator: 'throws'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/organize-selection-owner/extension/tests/organize-application-selection-hold.test.mjs:169:13)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 309.813875

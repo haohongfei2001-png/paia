@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: exact default assembly holds all three originals and release never replays denied actions
+ok 1 - exact default assembly holds all three originals and release never replays denied actions
+  ---
+  duration_ms: 40.269042
+  type: 'test'
+  ...
+# Subtest: default original wake has real local work and public running cannot hide pending work
+ok 2 - default original wake has real local work and public running cannot hide pending work
+  ---
+  duration_ms: 26.952042
+  type: 'test'
+  ...
+# Subtest: direct original stop is tracked before its first await
+ok 3 - direct original stop is tracked before its first await
+  ---
+  duration_ms: 16.263
+  type: 'test'
+  ...
+# Subtest: direct original reconcileInterrupted is tracked before its first await
+ok 4 - direct original reconcileInterrupted is tracked before its first await
+  ---
+  duration_ms: 14.676625
+  type: 'test'
+  ...
+# Subtest: direct original run is privately tracked and its rejection cannot poison later holds
+ok 5 - direct original run is privately tracked and its rejection cannot poison later holds
+  ---
+  duration_ms: 13.888791
+  type: 'test'
+  ...
+# Subtest: bounded patch includes maintenance writes in admission
+ok 6 - bounded patch includes maintenance writes in admission
+  ---
+  duration_ms: 12.768791
+  type: 'test'
+  ...
+# Subtest: bounded reconcileInterrupted includes maintenance writes in admission
+ok 7 - bounded reconcileInterrupted includes maintenance writes in admission
+  ---
+  duration_ms: 13.888833
+  type: 'test'
+  ...
+# Subtest: bounded status includes maintenance writes in admission
+ok 8 - bounded status includes maintenance writes in admission
+  ---
+  duration_ms: 12.586667
+  type: 'test'
+  ...
+# Subtest: configured status compatibility maintenance is tracked even for strict null owner
+ok 9 - configured status compatibility maintenance is tracked even for strict null owner
+  ---
+  duration_ms: 15.139791
+  type: 'test'
+  ...
+# Subtest: busy bounded original chain finishes naturally with no hold-induced stop or cancellation
+ok 10 - busy bounded original chain finishes naturally with no hold-induced stop or cancellation
+  ---
+  duration_ms: 22.058875
+  type: 'test'
+  ...
+# Subtest: second hold and failed composition never release another owners token
+ok 11 - second hold and failed composition never release another owners token
+  ---
+  duration_ms: 10.590792
+  type: 'test'
+  ...
+# Subtest: tokens reject foreign owner, wrong store, clones, released reuse and cold lookalikes
+ok 12 - tokens reject foreign owner, wrong store, clones, released reuse and cold lookalikes
+  ---
+  duration_ms: 24.635417
+  type: 'test'
+  ...
+# Subtest: non-null malformed and unavailable configurations cannot masquerade as null birth
+ok 13 - non-null malformed and unavailable configurations cannot masquerade as null birth
+  ---
+  duration_ms: 12.814584
+  type: 'test'
+  ...
+# Subtest: changed dependencies, prototype, required methods and child ownership invalidate proof
+ok 14 - changed dependencies, prototype, required methods and child ownership invalidate proof
+  ---
+  duration_ms: 21.762958
+  type: 'test'
+  ...
+# Subtest: repository/database replacement cannot refresh a warm birth binding
+ok 15 - repository/database replacement cannot refresh a warm birth binding
+  ---
+  duration_ms: 12.409333
+  type: 'test'
+  ...
+# Subtest: deadline expiration invalidates proof but retains admission until exact release
+ok 16 - deadline expiration invalidates proof but retains admission until exact release
+  ---
+  duration_ms: 39.154708
+  type: 'test'
+  ...
+# Subtest: two pending original tasks are not erased by one rejection or mutable running state
+ok 17 - two pending original tasks are not erased by one rejection or mutable running state
+  ---
+  duration_ms: 15.661292
+  type: 'test'
+  ...
+# Subtest: warm hold preserves durable UNKNOWN rows and does not assert historical settlement
+ok 18 - warm hold preserves durable UNKNOWN rows and does not assert historical settlement
+  ---
+  duration_ms: 13.515417
+  type: 'test'
+  ...
+# Subtest: real configured factory birth remains unsupported after local service invalidation
+ok 19 - real configured factory birth remains unsupported after local service invalidation
+  ---
+  duration_ms: 13.141166
+  type: 'test'
+  ...
+# Subtest: unbound legacy construction stays usable without granting a selection capability
+ok 20 - unbound legacy construction stays usable without granting a selection capability
+  ---
+  duration_ms: 0.087584
+  type: 'test'
+  ...
+# Subtest: factory private owner binding rejects held detached status and wake
+ok 21 - factory private owner binding rejects held detached status and wake
+  ---
+  duration_ms: 12.082083
+  type: 'test'
+  ...
+# Subtest: factory private owner binding rejects held foreign-call status and wake
+ok 22 - factory private owner binding rejects held foreign-call status and wake
+  ---
+  duration_ms: 14.108084
+  type: 'test'
+  ...
+# Subtest: factory private owner binding rejects held spread-copy status and wake
+ok 23 - factory private owner binding rejects held spread-copy status and wake
+  ---
+  duration_ms: 11.765375
+  type: 'test'
+  ...
+# Subtest: factory private owner binding tracks unheld detached maintenance until actual settlement
+ok 24 - factory private owner binding tracks unheld detached maintenance until actual settlement
+  ---
+  duration_ms: 14.901584
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 611.25825

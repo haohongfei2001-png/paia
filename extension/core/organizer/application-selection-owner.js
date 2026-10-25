@@ -9,8 +9,10 @@ const value=(object,key)=>{const d=own(object,key);return d&&Object.hasOwn(d,'va
 
 export function createOrganizeSelectionOwnerRegistry(){
  const records=new WeakMap();let classPrototype=null,classMethods=null;
- function wrap(method){return function(...args){
-  const record=records.get(this);
+ function wrap(method,owner=null){return function(...args){
+  // Factory methods close over their original owner and remain valid when detached.
+  // Class methods retain their original receiver semantics.
+  const record=records.get(owner??this);
   if(record?.hold)return apply(rejected,NativePromise,[new ArchiveError('GENERATION_WORKER_BUSY')]);
   // Register before invoking the original body, including synchronous nested work.
   const pending=Object.freeze(Object.create(null));record?.pending.add(pending);
@@ -24,7 +26,7 @@ export function createOrganizeSelectionOwnerRegistry(){
   classPrototype=target;classMethods=new Map();
   for(const name of names){const d=own(target,name);if(typeof d?.value!=='function')throw new Error('Missing original Organize method');const method=wrap(d.value);Object.defineProperty(target,name,{...d,value:method});classMethods.set(name,method);}
  }
- function instrumentObject(target,names){const methods=new Map();for(const name of names){const d=own(target,name);if(typeof d?.value!=='function')throw new Error('Missing original Organize method');const method=wrap(d.value);Object.defineProperty(target,name,{...d,value:method});methods.set(name,method);}return methods;}
+ function instrumentObject(target,names){const methods=new Map();for(const name of names){const d=own(target,name);if(typeof d?.value!=='function')throw new Error('Missing original Organize method');const method=wrap(d.value,target);Object.defineProperty(target,name,{...d,value:method});methods.set(name,method);}return methods;}
  function register(owner,store,{qualified=false,bindings=[],methods=null}={}){
   if(records.has(owner))throw new Error('Organize owner already registered');
   const repository=store?.repository,database=repository?.db;
