@@ -1,0 +1,6 @@
+{
+  "extension/core/browser-native-sync/source-union-publication-continuation.js": "ad8065ce7681701e23429f4c5565299af286792d0aa1a796dcc6342fd943d8bd",
+  "extension/core/browser-native-sync/group-checkpoint.js": "a7a1010e6856c70dbd02421bf60ec7062f22e873db55b744d6cc6500cab20cf3",
+  "extension/tests/source-union-mixed-working-tail.test.mjs": "9987d4473a69207083a92fd6d80bac443cd4524d479ec4dc7e430fa02f1bcc6c",
+  "extension/tests/source-union-publication-continuation.test.mjs": "d0c749ef9d1e771d70f2fd37d145a68cb5162eb0f204d072e6b4141a4963c589"
+}

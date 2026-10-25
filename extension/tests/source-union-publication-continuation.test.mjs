@@ -57,18 +57,19 @@ test('lost upload acknowledgement with a new local group cold resumes the same p
  const f=await restored(t),pub=producer(f.c,f.cloud),prepared=await pub.prepare();f.cloud.loseNextPost();await assert.rejects(pub.publish());f.c=await reopen(t,f.c);const cold=producer(f.c,f.cloud);assert.equal((await cold.status()).taskId,prepared.taskId);assert.equal((await cold.publish()).ref.id,prepared.ref.id);
  const posts=f.cloud.requests.filter(r=>r.method==='POST'),ids=posts.map(r=>new TextDecoder().decode(r.body).match(/"id":"([^"]+)"/)?.[1]);assert.equal(new Set(ids).size,ids.length);
 });
-for(const kind of ['plain-edit','working','foreign-device','same-device-remote','protected','human','context'])test('publication refuses '+kind+' and leaves all current rows untouched',async t=>{
+for(const kind of ['plain-edit','working-source-mismatch','foreign-device','same-device-remote','protected','human','context'])test('publication refuses '+kind+' and leaves all current rows untouched',async t=>{
  const f=await restored(t);
- if(kind==='plain-edit'||kind==='working'){
-  if(kind==='working'){f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});}
+ if(kind==='plain-edit'||kind==='working-source-mismatch'){
+  if(kind==='working-source-mismatch'){f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});}
   await inputEdit(f.c.store,(await f.c.store.snapshot()).library.blocks[0].id,{note:'SYNTHETIC unrelated edit'});
+  if(kind==='working-source-mismatch')await f.c.core.transaction(true,async tx=>{const row=(await tx.all('records'))[0];await tx.put('records',{...row,value:{...row.value,originalText:row.value.originalText+' SYNTHETIC unauthorized'}});});
  }else if(kind==='foreign-device'||kind==='same-device-remote'){
   const foreign=await fresh(t,kind==='foreign-device'?'SYNTHETIC_foreign':f.c.core.deviceId);
   if(kind==='same-device-remote'){const cp=await buildCheckpoint(f.c.core,transport(f.c,f.cloud),{grouped:{store:f.c.store}}),owner=new StagedSyncRestore(foreign.core,{grouped:{store:foreign.store}});await owner.stageCheckpoint(cp.ref,r=>transport(foreign,f.cloud).get(r));await owner.activate();}
   await source(foreign,'remote_new');const rows=[];for await(const row of foreign.core.rows('revision'))if(row.operation.deviceId===foreign.core.deviceId&&row.operation.type==='sourceBootstrapCommit'&&row.operation.value.sourceId===(await foreign.store.snapshot()).records.find(r=>r.chatId==='SYNTHETIC_chat_remote_new').id)rows.push(row.operation);
   const descriptor=rows[0],ops=[];for await(const row of foreign.core.rows('revision'))if(descriptor.value.members.some(ref=>ref.revisionId===row.operation.revisionId))ops.push(row.operation);ops.push(descriptor);await new SourceBootstrapReceiver(f.c.store,f.c.core).receive(ops);
  }else if(kind==='protected')await new Promise((resolve,reject)=>{const tx=f.c.store.repository.db.transaction('meta','readwrite');tx.objectStore('meta').put({id:'canonical-generation:repository-protection:v1',version:1});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});else await f.c.core.transaction(true,t=>t.put(kind==='human'?'thoughts':'meta',kind==='protected'?{id:'canonical-generation:repository-protection:v1',version:1}:kind==='human'?{id:'SYNTHETIC_foreign_human',body:'SYNTHETIC user content'}:{id:'context-cards:v1',unexpected:true}));
- await unchangedRefusal(f,()=>producer(f.c,f.cloud).prepare());
+ await unchangedRefusal(f,()=>producer(f.c,f.cloud).prepare(),kind==='working-source-mismatch'?'BNS_GROUP_CANONICAL_UNREPRESENTED':undefined);
 });
 
 for(const kind of ['missing-outbox','acknowledged-outbox','foreign-outbox','device-sequence','extra-device','head','generation','unknown-protocol','missing-member','old-revision','restore-device','restore-database','restore-selection','sourceCut-origin','active-origin'])test('publication refuses tampered '+kind+' provenance before any upload',async t=>{
@@ -203,9 +204,9 @@ test('append publication lost upload ACK resumes its exact durable task after co
  const posts=f.cloud.requests.filter(row=>row.method==='POST'),ids=posts.map(row=>new TextDecoder().decode(row.body).match(/"id":"([^"]+)"/)?.[1]);assert.equal(new Set(ids).size,ids.length);
  const before=await state(f.c);await assert.rejects(appendSource(f.c,'ancestor','lost_ack'),{code:'BNS_SOURCE_BOOTSTRAP_UNAVAILABLE'});assert.deepEqual(await state(f.c),before);
 });
-for(const kind of ['missing-append-member','missing-append-descriptor','missing-anchor-receipt','missing-append-outbox','extra-document-allocation','changed-document-display','changed-old-source','changed-append-source','working-after-append'])test('append continuation refuses '+kind+' without publication writes',async t=>{
+for(const kind of ['missing-append-member','missing-append-descriptor','missing-anchor-receipt','missing-append-outbox','extra-document-allocation','changed-document-display','changed-old-source','changed-append-source','working-after-append-counter'])test('append continuation refuses '+kind+' without publication writes',async t=>{
  const f=await restored(t,{added:0});await appendSource(f.c,'ancestor','negative');
- if(kind==='working-after-append'){f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});await inputEdit(f.c.store,(await f.c.store.snapshot()).library.blocks.at(-1).id,{note:'SYNTHETIC separate Working authority'});}
+ if(kind==='working-after-append-counter'){f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});await inputEdit(f.c.store,(await f.c.store.snapshot()).library.blocks.at(-1).id,{note:'SYNTHETIC separate Working authority'});await f.c.core.transaction(true,async tx=>{const row=await tx.get('meta','input-delta-sequence');await tx.put('meta',{...row,value:row.value-1});});}
  else await f.c.core.transaction(true,async tx=>{
   const prefix=await f.c.core.idIn(tx,'revision'),revisions=(await tx.all('meta')).filter(row=>row.id.startsWith(prefix)),descriptor=revisions.find(row=>row.operation.type==='sourceAppendCommit').operation,member=revisions.find(row=>row.operation.type==='sourceAppendMember').operation;
   if(kind==='missing-append-member'||kind==='missing-append-descriptor')await tx.delete('meta',await f.c.core.idIn(tx,'revision',kind==='missing-append-member'?member.revisionId:descriptor.revisionId));
@@ -215,7 +216,7 @@ for(const kind of ['missing-append-member','missing-append-descriptor','missing-
   else if(kind==='changed-document-display'){const row=(await tx.all('documents')).find(row=>row.id===descriptor.value.documentId);row.libraryDisplay=[1,row.id];await tx.put('documents',row);}
   else{const row=(await tx.all('records')).find(row=>(row.id===descriptor.value.sourceId)===(kind==='changed-append-source'));row.value.originalText+=' SYNTHETIC unauthorized source edit';await tx.put('records',row);}
  });
- await unchangedRefusal(f,()=>producer(f.c,f.cloud).prepare());
+ await unchangedRefusal(f,()=>producer(f.c,f.cloud).prepare(),kind==='working-after-append-counter'?'BNS_SOURCE_UNION_CONTINUATION_INVALID':undefined);
 });
 
 for(const anchor of ['ancestor','local_0'])test('single original append to '+anchor+' publishes and restores exact Source on a cold new installation',async t=>{

@@ -256,7 +256,7 @@ async function sourceUnionPhysicalCut(t,identity,working=null){
  for(const id of sourceUnionPhysicalMetadata){const row=(await t.get('meta',id))??null;if(id==='thought-suppression-key'){if(!equalSourceWorkingPhysicalTree(row,identity.row))fail('BNS_RESTORE_LOCAL_CHANGED');metadata.push({id,fingerprint:identity.fingerprint});}else metadata.push({id,row});}
  const filterInputs=[],evaluated=[],runtime=new Set(['decision','reasonCode','pendingKey','failed','evaluatedAt','decisionSequence','filteredKey']),allowed=new Set(['id','documentId','authorship','userEdited','filterOverride','presence','evaluationRevision','basedOnContentRevision',...Object.keys(FILTER_VERSIONS),...runtime]);
  for(const row of await readGroupRows(t,'filterInputs')){
-  const edits=working?.groups.filter(group=>group.prepared.descriptor.value.inputId===row.id);if(edits?.length){filterInputs.push(requireSourceUnionWorkingFilter(edits,working.cut.filterInputs.find(item=>item.id===row.id),row));continue;}
+  const edits=working?.groups.filter(group=>group.prepared.descriptor.value.inputId===row.id);if(edits?.length){filterInputs.push(requireSourceUnionWorkingFilter(edits,working.cut.filterInputs.find(item=>item.id===row.id)??working.initialFilters?.get(row.id),row));continue;}
   if(Object.keys(row).some(key=>!allowed.has(key))||!Number.isSafeInteger(row.evaluationRevision)||row.evaluationRevision<0||Object.hasOwn(row,'failed')&&typeof row.failed!=='boolean'||!Object.entries(FILTER_VERSIONS).every(([key,value])=>row[key]===value))fail('BNS_RESTORE_LOCAL_CHANGED');
   const state=inputStates.find(state=>state.id===row.id);if(!state||row.basedOnContentRevision!==state.contentRevision)fail('BNS_RESTORE_LOCAL_CHANGED');
   if(Object.hasOwn(row,'evaluatedAt')){
@@ -749,7 +749,7 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
   if(!equal(await restore.stage.get(t,'restore'),state)||!equal(await t.get('meta',active.id),active))fail('BNS_RESTORE_LOCAL_CHANGED');
   const current=await authority(store,core,t);if(current.namespace!==state.replayId||current.generation!==operations.length||!Number.isSafeInteger(current.ownerGeneration)||current.ownerGeneration<state.base.ownerGeneration+1+groups.added.length||current.fence.epoch!==state.base.fence.epoch||!equal(current.settings,state.base.settings))fail('BNS_RESTORE_LOCAL_CHANGED');
   await requireSourceUnionProtocol(replay,t,protocol);await requireGroupScope(store,t,canonical);
-  await requireSourceUnionPublicationPhysical(core,t,state.sourceCut,await sourceUnionPhysicalCut(t,identity,{groups:groups.working,cut:state.sourceCut}),groups,canonical);
+  await requireSourceUnionPublicationPhysical(core,t,state.sourceCut,await sourceUnionPhysicalCut(t,identity,{groups:groups.working,cut:state.sourceCut,initialFilters:groups.initialFilters}),groups,canonical);
   if(publicationWork&&retain){
    chargeOriginalCheckpointPublicationWork(publicationWork,core,store,undefined,0);const tables=new Map();
    for(const table of t.tx.objectStoreNames)tables.set(table,await readGroupRows(t,table));

@@ -1,0 +1,85 @@
+import {createOriginalRecoveryWork,withOriginalRecoveryWork,finishOriginalRecoveryWork,currentOriginalRecoveryWork,chargeOriginalRecoveryWork} from '../core/idb-repository.js';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
+import {LibraryDocumentsStore} from '../core/library-documents-store.js';
+import {local,capture,inputEdit} from './harness/thought-m1.mjs';
+import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';
+import {SourceBootstrapJournal} from '../core/browser-native-sync/source-bootstrap-journal.js';
+import {buildCheckpoint,StagedSyncRestore} from '../core/browser-native-sync/checkpoints.js';
+import {LocalSyncRecoverySession} from '../core/browser-native-sync/recovery-session.js';
+import {RecoverableCheckpointPublication} from '../core/browser-native-sync/checkpoint-publication.js';
+import {GoogleDriveAppDataTransport,GOOGLE_APPDATA_SCOPE} from '../core/browser-native-sync/providers/google-drive.js';
+import {readObject} from '../core/browser-native-sync/segments.js';
+import {fakeGoogleCheckpointHTTP} from './harness/checkpoint-publication-http.mjs';
+globalThis.IDBKeyRange=IDBKeyRange;
+const datasetId='SYNTHETIC_union_runtime',binding={subject:'SYNTHETIC_google_subject',clientId:'000000000000-synthetic.apps.googleusercontent.com',generation:'SYNTHETIC_generation',scopes:[GOOGLE_APPDATA_SCOPE]};
+async function fresh(t,deviceId,{storage=local()}={}){const factory=new IDBFactory(),store=new LibraryDocumentsStore(storage,{indexedDB:factory});await store.consent(true);await store.finishFoundation();t.after(()=>store.repository.db?.close());const core=new BrowserNativeSyncCore(store.repository,{datasetId,deviceId});store.sourceBootstrapJournal=new SourceBootstrapJournal(core);return {store,core,storage,factory};}
+async function reopen(t,f){const deviceId=f.core.deviceId;await f.store.repository.close();const store=new LibraryDocumentsStore(f.storage,{indexedDB:f.factory});await store.finishFoundation();t.after(()=>store.repository.db?.close());const core=new BrowserNativeSyncCore(store.repository,{datasetId,deviceId});store.sourceBootstrapJournal=new SourceBootstrapJournal(core);return {...f,store,core};}
+async function source(f,name){const request=capture((await f.store.status()).epoch,'SYNTHETIC_message_'+name,'SYNTHETIC exact '+name+' 中文🙂');request.chat={id:'SYNTHETIC_chat_'+name,url:'https://chatgpt.com/c/SYNTHETIC_chat_'+name,title:'SYNTHETIC '+name};await f.store.capture(request);}
+async function appendSource(f,chatName,name,{time=null,order=2}={}){const request=capture((await f.store.status()).epoch,'SYNTHETIC_append_'+name,'SYNTHETIC exact append '+name+' 中文🙂');request.chat={id:'SYNTHETIC_chat_'+chatName,url:'https://chatgpt.com/c/SYNTHETIC_chat_'+chatName,title:'SYNTHETIC '+chatName};request.messages[0].pageOrder=order;if(time!==null)request.messages[0].sourceTime={state:'valid',createTime:time,updateTime:null};await f.store.capture(request);}
+const transport=(f,cloud)=>new GoogleDriveAppDataTransport(f.core,{binding,request:cloud.request,isCurrent:()=>true});
+const producer=(f,cloud)=>new RecoverableCheckpointPublication(f.core,{store:f.store,binding:{...binding,provider:'google-drive-appdata'},request:cloud.request,isCurrent:()=>true});
+const recovery=(f,cloud,options={})=>new LocalSyncRecoverySession(f.core,{store:f.store,transport:transport(f,cloud),...options});
+const canonical=f=>f.store.repository.transaction(false,async tx=>Object.fromEntries(await Promise.all([...tx.tx.objectStoreNames].filter(k=>k!=='meta').map(async k=>[k,await tx.all(k)]))));
+const writes=cloud=>cloud.requests.filter(r=>['POST','PUT'].includes(r.method)).length;
+async function fixture(t,{receiverStorage}={}){const cloud=fakeGoogleCheckpointHTTP(binding),seed=await fresh(t,'SYNTHETIC_seed');await source(seed,'ancestor');const ancestor=await buildCheckpoint(seed.core,transport(seed,cloud),{grouped:{store:seed.store}}),heads=[];
+ for(const name of ['left','right']){const f=await fresh(t,'SYNTHETIC_'+name);const owner=new StagedSyncRestore(f.core,{grouped:{store:f.store}});await owner.stageCheckpoint(ancestor.ref,ref=>transport(f,cloud).get(ref));await owner.activate();await source(f,name);heads.push(await buildCheckpoint(f.core,transport(f,cloud),{grouped:{store:f.store},parents:[ancestor.ref.id]}));}
+ return {cloud,seed,ancestor,heads,c:await fresh(t,'SYNTHETIC_receiver',receiverStorage?{storage:receiverStorage}:{})};}
+
+import {GroupedCheckpointRestore,requireActivatedSourceBootstrapUnion,requireSourceBootstrapUnionPublication} from '../core/browser-native-sync/group-checkpoint.js';
+import {InputWorkingSyncJournal} from '../core/browser-native-sync/input-working-journal.js';
+import {FilterIntentSyncJournal} from '../core/browser-native-sync/filter-intent-journal.js';
+import {SourceBootstrapReceiver} from '../core/browser-native-sync/source-bootstrap-receive.js';
+import {FilterRunner} from '../core/filter-runner.js';
+const state=f=>f.store.repository.transaction(false,async t=>Object.fromEntries(await Promise.all([...t.tx.objectStoreNames].map(async name=>[name,await t.all(name)]))));
+async function window(f,fn,options){const ticket=createOriginalRecoveryWork(f.core.repository,options);try{return await withOriginalRecoveryWork(f.core.repository,ticket,()=>fn(ticket));}finally{finishOriginalRecoveryWork(f.core.repository,ticket);}}
+const qualify=f=>window(f,()=>requireSourceBootstrapUnionPublication(f.core,{store:f.store}));
+async function restored(t,{added=1}={}){const f=await fixture(t),session=recovery(f.c,f.cloud);await session.recoverDiscovered();const restore=new GroupedCheckpointRestore(f.c.core,{store:f.c.store,restoreId:session.restoreId});while(!(await window(f.c,()=>restore.cleanup())).complete){}const original=await restore.stage.read('restore');for(let i=0;i<added;i++)await source(f.c,'local_'+i);return {...f,session,restore,original};}
+async function manifest(f,ref){return JSON.parse(new TextDecoder().decode(await readObject(ref,r=>transport(f.c,f.cloud).get(r))));}
+async function unchangedRefusal(f,code,action=()=>qualify(f.c)){const before=await state(f.c),n=writes(f.cloud);await assert.rejects(action,{code});assert.deepEqual(await state(f.c),before);assert.equal(writes(f.cloud),n);}
+
+function bindWorking(f){f.store.filterIntentJournal=new FilterIntentSyncJournal(f.core);f.store.inputWorkingJournal=new InputWorkingSyncJournal(f.core,{filterJournal:f.store.filterIntentJournal,logicalCommits:true});}
+async function inputFor(f,chat,name){const snap=await f.store.snapshot(),record=snap.records.find(r=>r.chatId==='SYNTHETIC_chat_'+chat&&(!name||r.sourceMessageId==='SYNTHETIC_append_'+name));assert.ok(record);return snap.library.blocks.find(b=>b.sourceRecordId===record.id);}
+async function mixed(t,kind){
+ const f=await restored(t,{added:0});f.before=await state(f.c);bindWorking(f.c);f.edited=[];f.sourceEvents=0;
+ const edit=async(id,note)=>{await inputEdit(f.c.store,id,{note:'SYNTHETIC '+note});f.edited.push(id);};
+ if(kind==='append-edit'){await appendSource(f.c,'ancestor','new');f.sourceEvents++;await edit((await inputFor(f.c,'ancestor','new')).id,'new Input edit');}
+ else if(kind==='retained-append-edit'){await edit((await inputFor(f.c,'ancestor')).id,'retained edit');await appendSource(f.c,'ancestor','new');f.sourceEvents++;await edit((await inputFor(f.c,'ancestor','new')).id,'new Input edit');}
+ else if(kind==='bootstrap-edit-append-edit'){await source(f.c,'new');f.sourceEvents++;await edit((await inputFor(f.c,'new')).id,'new conversation edit');await appendSource(f.c,'new','new');f.sourceEvents++;await edit((await inputFor(f.c,'new','new')).id,'appended edit');}
+ else{
+  const a=(await inputFor(f.c,'ancestor')).id;await edit(a,'first edit');f.first=(await state(f.c)).revisions.find(row=>row.entityId===a&&row.reason!=='baseline');assert.ok(f.first);
+  await appendSource(f.c,'ancestor','between');f.sourceEvents++;f.c.store.clock=()=>new Date(Date.parse(f.first.at)+(kind==='allocated'?120000:1000)).toISOString();await edit(a,'second edit');
+ }
+ return f;
+}
+let resourceStopped=false;
+for(const kind of ['append-edit','retained-append-edit','coalesced','allocated','bootstrap-edit-append-edit'])test('mixed Source Working '+kind+' publishes and cold restores',async t=>{
+ if(resourceStopped){t.skip('Earlier original-budget failure; remaining mixed positives not executed');return;}
+ let f,phase='setup';try{
+  f=await mixed(t,kind);const expected=await state(f.c),counter=(rows,id)=>rows.meta.find(row=>row.id===id)?.value??0;
+  assert.equal(counter(expected,'input-delta-sequence'),counter(f.before,'input-delta-sequence')+f.sourceEvents+f.edited.length);assert.equal(counter(expected,'thought-epoch'),counter(f.before,'thought-epoch')+f.edited.length);
+  assert.deepEqual(expected.invalidations.slice().sort((a,b)=>a.sequence-b.sequence).map(row=>row.inputId),f.edited);assert.equal(expected.operationReceipts.length,f.edited.length);
+  for(const old of f.before.records)assert.deepEqual(expected.records.find(row=>row.id===old.id),old);
+  for(const old of f.before.blocks)if(!f.edited.includes(old.id))assert.deepEqual(expected.blocks.find(row=>row.id===old.id),old);
+  if(f.first){const rows=expected.revisions.filter(row=>row.entityId===f.edited[0]&&row.reason!=='baseline');assert.equal(rows.length,kind==='coalesced'?1:2);if(kind==='coalesced'){assert.equal(rows[0].id,f.first.id);assert.equal(rows[0].sequence,f.first.sequence);assert.ok(counter(expected,'revision-sequence')>rows[0].sequence);}else assert.equal(Math.max(...rows.map(row=>row.sequence)),counter(expected,'revision-sequence'));}
+  const ops=expected.meta.map(row=>row.operation).filter(Boolean),working=ops.filter(op=>op.type==='inputWorkingMember'&&op.value.entityType==='input');
+  for(const id of new Set(f.edited))assert.deepEqual(working.filter(op=>op.value.entity.id===id).sort((a,b)=>a.sequence-b.sequence)[0].parents,[]);
+  f.c=await reopen(t,f.c);const pub=producer(f.c,f.cloud);phase='prepare';const prepared=await pub.prepare();phase='publish';const done=await pub.publish();assert.equal(done.state,'confirmed');assert.equal(done.ref.id,prepared.ref.id);assert.deepEqual((await manifest(f,done.ref)).parents,f.heads.map(head=>head.ref.id).sort());
+  phase='fresh recovery';const d=await fresh(t,'SYNTHETIC_mixed_receiver_'+kind);await recovery(d,f.cloud).recoverDiscovered();phase='cold reopen';const actual=await state(await reopen(t,d)),sort=rows=>rows.slice().sort((a,b)=>a.id.localeCompare(b.id)),history=rows=>sort(rows.map(({sequence,listKey,documentList,...row})=>row));
+  assert.deepEqual(sort(actual.records.map(r=>r.value)),sort(expected.records.map(r=>r.value)));assert.deepEqual(sort(actual.blocks.map(r=>r.value)),sort(expected.blocks.map(r=>r.value)));assert.deepEqual(history(actual.revisions),history(expected.revisions));assert.deepEqual(sort(actual.filterIntents),sort(expected.filterIntents));assert.deepEqual(actual.times,expected.times);assert.deepEqual(sort(actual.documents.map(r=>r.value)),sort(expected.documents.map(r=>r.value)));assert.deepEqual((await f.restore.stage.read('restore')).sourceCut,f.original.sourceCut);
+ }catch(error){t.diagnostic(JSON.stringify({kind,phase,code:error?.code??null,syntheticWrites:f?writes(f.cloud):null}));if(/LIMIT|BOUND|TIMEOUT/.test(error?.code??''))resourceStopped=true;throw error;}
+});
+for(const kind of ['source-anchor','working-parent','source-ref','global-revision','global-delta','event-input','receipt-owner','unedited-input','new-filter-baseline'])test('mixed tail refuses '+kind+' with exact failure and unchanged rows',async t=>{
+ const f=await mixed(t,'append-edit'),id=f.edited[0];
+ await f.c.core.transaction(true,async tx=>{
+  if(kind==='source-anchor'||kind==='working-parent'){const prefix=await f.c.core.idIn(tx,'revision'),rows=(await tx.all('meta')).filter(row=>row.id.startsWith(prefix)),row=rows.find(row=>row.operation.type===(kind==='source-anchor'?'sourceAppendCommit':'inputWorkingMember'));assert.ok(row);if(kind==='source-anchor')row.operation.value.bootstrap.operationId+='wrong';else row.operation.parents=['f'.repeat(64)];await tx.put('meta',row);}
+  else if(kind==='source-ref'){const row=await tx.get('inputStates',id),other=(await tx.all('inputStates')).find(row=>row.id!==id);await tx.put('inputStates',{...row,sourceRecordIds:other.sourceRecordIds});}
+  else if(kind==='global-revision'||kind==='global-delta'){const key=kind==='global-revision'?'revision-sequence':'input-delta-sequence',row=await tx.get('meta',key);await tx.put('meta',{...row,value:row.value-1});}
+  else if(kind==='event-input'){const row=(await tx.all('invalidations'))[0];await tx.put('invalidations',{...row,inputId:'SYNTHETIC_wrong_input'});}
+  else if(kind==='receipt-owner'){const row=(await tx.all('operationReceipts'))[0];await tx.put('operationReceipts',{...row,ownerId:'SYNTHETIC_wrong_document'});}
+  else if(kind==='unedited-input'){const row=(await tx.all('blocks')).find(row=>row.id!==id);await tx.put('blocks',{...row,value:{...row.value,note:'SYNTHETIC unauthorized'}});}
+  else{const row=await tx.get('filterInputs',id);await tx.put('filterInputs',{...row,authorship:'user_edited'});}
+ });
+ const code=['source-anchor','working-parent'].includes(kind)?'BNS_OPERATION_DIGEST':['source-ref','unedited-input'].includes(kind)?'BNS_GROUP_CANONICAL_UNREPRESENTED':'BNS_SOURCE_UNION_CONTINUATION_INVALID';await unchangedRefusal(f,code,()=>producer(f.c,f.cloud).prepare());
+});

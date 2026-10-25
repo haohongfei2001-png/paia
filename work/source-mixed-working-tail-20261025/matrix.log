@@ -1,0 +1,121 @@
+TAP version 13
+# Subtest: mixed Source Working append-edit publishes and cold restores
+ok 1 - mixed Source Working append-edit publishes and cold restores
+  ---
+  duration_ms: 1129.030083
+  type: 'test'
+  ...
+# Subtest: mixed Source Working retained-append-edit publishes and cold restores
+ok 2 - mixed Source Working retained-append-edit publishes and cold restores
+  ---
+  duration_ms: 1109.853333
+  type: 'test'
+  ...
+# Subtest: mixed Source Working coalesced publishes and cold restores
+ok 3 - mixed Source Working coalesced publishes and cold restores
+  ---
+  duration_ms: 1062.963125
+  type: 'test'
+  ...
+# Subtest: mixed Source Working allocated publishes and cold restores
+ok 4 - mixed Source Working allocated publishes and cold restores
+  ---
+  duration_ms: 1094.083084
+  type: 'test'
+  ...
+# Subtest: mixed Source Working bootstrap-edit-append-edit publishes and cold restores
+not ok 5 - mixed Source Working bootstrap-edit-append-edit publishes and cold restores
+  ---
+  duration_ms: 848.943709
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-mixed-working/extension/tests/source-union-mixed-working-tail.test.mjs:57:111'
+  failureType: 'testCodeFailure'
+  error: 'BNS_CHECKPOINT_PUBLICATION_LIMIT'
+  code: 'BNS_CHECKPOINT_PUBLICATION_LIMIT'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-mixed-working/extension/core/browser-native-sync/value.js:5:32)
+    chargeOriginalCheckpointPublicationWork (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-mixed-working/extension/core/browser-native-sync/checkpoint-publication.js:26:54)
+    requireSourceUnionPublicationCut (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-mixed-working/extension/core/browser-native-sync/group-checkpoint.js:709:93)
+    async file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-mixed-working/extension/core/browser-native-sync/group-checkpoint.js:124:695
+    async file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-mixed-working/extension/core/browser-native-sync/core.js:192:127
+    async ArchiveRepository.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-mixed-working/extension/core/idb-repository.js:581:510)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-mixed-working/extension/core/browser-native-sync/core.js:192:66)
+    async execute (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-mixed-working/extension/core/indexed-store.js:215:11)
+  ...
+# {"kind":"bootstrap-edit-append-edit","phase":"publish","code":"BNS_CHECKPOINT_PUBLICATION_LIMIT","syntheticWrites":11}
+# Subtest: mixed tail refuses source-anchor with exact failure and unchanged rows
+ok 6 - mixed tail refuses source-anchor with exact failure and unchanged rows
+  ---
+  duration_ms: 385.245333
+  type: 'test'
+  ...
+# Subtest: mixed tail refuses working-parent with exact failure and unchanged rows
+ok 7 - mixed tail refuses working-parent with exact failure and unchanged rows
+  ---
+  duration_ms: 397.648208
+  type: 'test'
+  ...
+# Subtest: mixed tail refuses source-ref with exact failure and unchanged rows
+ok 8 - mixed tail refuses source-ref with exact failure and unchanged rows
+  ---
+  duration_ms: 418.9525
+  type: 'test'
+  ...
+# Subtest: mixed tail refuses global-revision with exact failure and unchanged rows
+ok 9 - mixed tail refuses global-revision with exact failure and unchanged rows
+  ---
+  duration_ms: 410.061542
+  type: 'test'
+  ...
+# Subtest: mixed tail refuses global-delta with exact failure and unchanged rows
+ok 10 - mixed tail refuses global-delta with exact failure and unchanged rows
+  ---
+  duration_ms: 402.956291
+  type: 'test'
+  ...
+# Subtest: mixed tail refuses event-input with exact failure and unchanged rows
+ok 11 - mixed tail refuses event-input with exact failure and unchanged rows
+  ---
+  duration_ms: 396.352875
+  type: 'test'
+  ...
+# Subtest: mixed tail refuses receipt-owner with exact failure and unchanged rows
+ok 12 - mixed tail refuses receipt-owner with exact failure and unchanged rows
+  ---
+  duration_ms: 402.523875
+  type: 'test'
+  ...
+# Subtest: mixed tail refuses unedited-input with exact failure and unchanged rows
+ok 13 - mixed tail refuses unedited-input with exact failure and unchanged rows
+  ---
+  duration_ms: 405.71625
+  type: 'test'
+  ...
+# Subtest: mixed tail refuses new-filter-baseline with exact failure and unchanged rows
+ok 14 - mixed tail refuses new-filter-baseline with exact failure and unchanged rows
+  ---
+  duration_ms: 396.74325
+  type: 'test'
+  ...
+# Subtest: publication refuses working-source-mismatch and leaves all current rows untouched
+ok 15 - publication refuses working-source-mismatch and leaves all current rows untouched
+  ---
+  duration_ms: 478.839625
+  type: 'test'
+  ...
+# Subtest: append continuation refuses working-after-append-counter without publication writes
+ok 16 - append continuation refuses working-after-append-counter without publication writes
+  ---
+  duration_ms: 417.241292
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 15
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10096.798125

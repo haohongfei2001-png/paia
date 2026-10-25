@@ -1,0 +1,19 @@
+{
+  "base": "4d39d7ff01e9efc334991eb590bedc1b34914136",
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "--test-name-pattern=mixed Source Working|mixed tail refuses|publication refuses working-source-mismatch|append continuation refuses working-after-append-counter",
+    "extension/tests/source-union-mixed-working-tail.test.mjs",
+    "extension/tests/source-union-publication-continuation.test.mjs"
+  ],
+  "cwd": "/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-mixed-working",
+  "node": "v22.23.3",
+  "source": {
+    "extension/core/browser-native-sync/source-union-publication-continuation.js": "a004288b6e63cae01d40af831f56b37e96871337fbfbe84ceafe9f551e9f3bf7",
+    "extension/core/browser-native-sync/group-checkpoint.js": "a7a1010e6856c70dbd02421bf60ec7062f22e873db55b744d6cc6500cab20cf3",
+    "extension/tests/source-union-mixed-working-tail.test.mjs": "c2a950c440517eb008f63579e24afcfe0fc0d5f316fb74f679ebae9e11529d0e",
+    "extension/tests/source-union-publication-continuation.test.mjs": "d0c749ef9d1e771d70f2fd37d145a68cb5162eb0f204d072e6b4141a4963c589"
+  }
+}
