@@ -11,7 +11,7 @@ Two original owning test files now cover the real default worker constructor ove
 ## Actual validation (separate attempts)
 
 - First baseline invocation: 0/2, exit1. The default-worker new positive assertion failed as intended; the sources test module failed to load because this fresh worktree lacked pg. This setup failure is retained in before.log and is not counted as a product failure.
-- Reused existing PAIA services/ai-gateway/node_modules through an ignored local symlink. Existing pg8.23.1 matches the locked dependency. No install/download/network call.
+- Reused existing PAIA services/ai-gateway/node_modules through a temporary local symlink. After testing, only that newly created symlink was removed; the original dependency directory is unchanged. Existing pg8.23.1 matches the locked dependency. No install/download/network call.
 - Effective new-contract baseline: 4/10 passed, 6 failed, exit1, 485.097375ms. Before-dependencies-ready log is preserved. The failing cases require the null live hold that baseline rejects; four existing/early-refusal negatives passed.
 - Final seven whole owning files, one batch: **157/157**, exit0, 46324.565459ms; no failures/cancelled/skipped/todo. Exact command in commands.txt; full TAP after.log retained.
 - Actual runtime: Node22.23.3, macOS arm64; service protocols and IndexedDB synthetic. No browser/native/performance evidence, no real account/provider, no cloud CI, Full, build or deployment.
