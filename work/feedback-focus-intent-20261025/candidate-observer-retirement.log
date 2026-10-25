@@ -1,0 +1,30 @@
+✔ failed copy retains newer same-dialog focus and unchanged feedback text (2.490332ms)
+✔ failed copy retains newer same-text selection even when focus returns (0.572502ms)
+✔ failed copy retains selection-only changes without focus or body change (0.438915ms)
+✔ unchanged failed copy still focuses and selects current text for manual copying (1.150422ms)
+✔ successful copy preserves newer focus and removes temporary intent observers (0.698036ms)
+✔ superseded unsettled copy retires observers without old completion removing the new observer (0.583247ms)
+✔ close retires pending copy observers before clipboard settles (0.590918ms)
+✔ new IME composition retires pending copy observers before clipboard settles (0.597258ms)
+✔ external native close retires pending observers without touching a later reopened attempt (1.007801ms)
+✔ typed feedback source-free validation uses original owner without Source/transaction reads (55.795598ms)
+✔ feedback CAS binds token to immutable payload; clear requires matching token and keeps other kinds (1.740018ms)
+✔ real recovery session restores exact text and serializes newer edits after held acknowledgement (1.307342ms)
+✔ lost acknowledgement retries original token; competing tab cannot overwrite (0.614734ms)
+✔ no consent is session-only; IME does not write, failed persistence retains body (0.447107ms)
+✔ restore/revoke or owner invalidation cannot turn late ACK into current saved status (0.724064ms)
+✔ failed initial read never permits overwrite of existing draft (0.423302ms)
+✔ dialog IME/failed-save leave stays open; explicit copy uses current text and mail URL has no content (1.930008ms)
+✔ unknown save remains lifecycle-dirty when user returns to previously saved text (0.575726ms)
+✔ late feedback copy failure cannot focus or select a closed dialog (0.922035ms)
+✔ late feedback copy completion cannot replace a reopened same-body dialog status (1.119827ms)
+✔ an older feedback copy failure cannot replace a newer successful copy (1.594134ms)
+✔ feedback copy completions cannot interrupt a newer IME composition or authorize failed-save departure (1.64578ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 365.177881

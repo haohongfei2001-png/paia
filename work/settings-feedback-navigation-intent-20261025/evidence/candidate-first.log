@@ -1,0 +1,49 @@
+✔ a pending directory return preserves the next Reading keyboard focus and selection (2.426019ms)
+✔ an older frame cannot revive after returning to the same group (0.663896ms)
+✔ a non-focusing activation also invalidates an older queued return (0.60482ms)
+✔ a user-selected visible control keeps focus and scroll before restoration (0.648233ms)
+✔ uninterrupted original saved-control restoration retains its recorded scroll (0.652139ms)
+✔ closing and reopening Settings cannot revive its previous queued focus (0.781009ms)
+✔ latest group intent waits for the original feedback save then wins once (6.121434ms)
+✔ latest directory request is not lost behind a held category request (1.682675ms)
+✔ refused original save retains draft and never admits latest destination (1.451525ms)
+✔ About intent retires an older guarded route without inventing another save (1.331749ms)
+✔ hide and reopen cannot revive an old category intent (1.408482ms)
+✔ invalid group does not cancel a legitimate pending route or dispatch another save (1.464073ms)
+✔ a latest history restoration retains its no-push choice after original save (2.698915ms)
+✔ newer focus after admitted navigation survives queued restoration (1.617278ms)
+✔ composing feedback refuses navigation without any persistence (1.234727ms)
+✔ rejected leave remains on original group without unhandled rejection (1.350927ms)
+node:fs:484
+    return binding.readFileUtf8(path, stringToFlags(options.flag));
+                   ^
+
+Error: ENOENT: no such file or directory, open '/workspace/scratch/ff1c41bf9b29/paia-settings-navigation-intent-20261025T0347Z/tree/extension/ui/archive.js'
+    at readFileSync (node:fs:484:20)
+    at read (file:///workspace/scratch/ff1c41bf9b29/paia-settings-navigation-intent-20261025T0347Z/tree/extension/tests/settings-restore-intent.test.mjs:7:18)
+    at file:///workspace/scratch/ff1c41bf9b29/paia-settings-navigation-intent-20261025T0347Z/tree/extension/tests/settings-restore-intent.test.mjs:9:15
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/workspace/scratch/ff1c41bf9b29/paia-settings-navigation-intent-20261025T0347Z/tree/extension/ui/archive.js'
+}
+
+Node.js v24.19.0
+✖ extension/tests/settings-restore-intent.test.mjs (51.964682ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 16
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 97.187423
+
+✖ failing tests:
+
+test at extension/tests/settings-restore-intent.test.mjs:1:1
+✖ extension/tests/settings-restore-intent.test.mjs (51.964682ms)
+  'test failed'

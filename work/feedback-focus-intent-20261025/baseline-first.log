@@ -1,0 +1,1575 @@
+✖ failed copy retains newer same-dialog focus and unchanged feedback text (20.356258ms)
+✖ failed copy retains newer same-text selection even when focus returns (10.09735ms)
+✖ failed copy retains selection-only changes without focus or body change (1.031359ms)
+✔ unchanged failed copy still focuses and selects current text for manual copying (0.819687ms)
+✔ successful copy preserves newer focus and removes temporary intent observers (2.479642ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 2
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 123.037902
+
+✖ failing tests:
+
+test at extension/tests/settings-feedback-focus-intent.test.mjs:16:1
+✖ failed copy retains newer same-dialog focus and unchanged feedback text (20.356258ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be reference-equal to "expected":
+  + actual - expected
+  ... Skipped lines
+  
+  + <ref *6> Node {
+  +   'aria-describedby': 'settings-feedback-status',
+  - <ref *1> Node {
+      _text: '',
+  +   attributes: Map(1) {
+  +     'aria-describedby' => 'settings-feedback-status'
+  +   },
+  +   childNodes: [],
+  -   attributes: Map(0) {},
+  -   childNodes: [
+  -     PresentationNode {
+  -       _text: 'Close',
+  -       attributes: Map(0) {},
+  -       childNodes: [],
+  -       classList: {
+  -         add: [Function: add],
+  -         contains: [Function: contains],
+  -         remove: [Function: remove],
+  -         toggle: [Function: toggle]
+  -       },
+  -       className: '',
+  -       dataset: {},
+  -       hidden: false,
+  -       listeners: Map(0) {},
+  -       namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -       nodeType: 3,
+  -       parentElement: [Circular *1],
+  -       tagName: '#TEXT',
+  -       value: ''
+  -     }
+  -   ],
+      classList: {
+        add: [Function: add],
+        contains: [Function: contains],
+        remove: [Function: remove],
+        toggle: [Function: toggle]
+  ...
+      dataset: {},
+  +   disabled: false,
+      hidden: false,
+  +   id: 'settings-feedback-body',
+  +   listeners: Map(4) {
+  +     'blur' => [Function (anonymous)],
+  +     'compositionend' => [Function (anonymous)],
+  +     'compositionstart' => [Function (anonymous)],
+  +     'input' => [Function (anonymous)]
+  -   id: 'settings-feedback-close',
+  -   listeners: Map(1) {
+  -     'click' => [Function (anonymous)]
+      },
+      namespaceURI: 'http://www.w3.org/1999/xhtml',
+      nodeType: 1,
+  +   parentElement: <ref *4> Node {
+  +     'aria-labelledby': 'settings-feedback-title',
+  -   parentElement: <ref *3> Node {
+        _text: '',
+  +     attributes: Map(1) {
+  +       'aria-labelledby' => 'settings-feedback-title'
+  +     },
+  -     attributes: Map(0) {},
+        childNodes: [
+          <ref *2> Node {
+            _text: '',
+            attributes: Map(0) {},
+            childNodes: [
+  +           <ref *1> Node {
+  +             _text: '',
+  +             attributes: Map(0) {},
+  +             childNodes: [
+  +               PresentationNode {
+  +                 _text: 'Feedback',
+  +                 attributes: Map(0) {},
+  +                 childNodes: [],
+  +                 classList: {
+  +                   add: [Function: add],
+  +                   contains: [Function: contains],
+  +                   remove: [Function: remove],
+  +                   toggle: [Function: toggle]
+  +                 },
+  +                 className: '',
+  +                 dataset: {},
+  +                 hidden: false,
+  +                 listeners: Map(0) {},
+  +                 namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +                 nodeType: 3,
+  +                 parentElement: [Circular *1],
+  +                 tagName: '#TEXT',
+  +                 value: ''
+  +               }
+  +             ],
+  +             classList: {
+  +               add: [Function: add],
+  +               contains: [Function: contains],
+  +               remove: [Function: remove],
+  +               toggle: [Function: toggle]
+  +             },
+  +             className: '',
+  +             dataset: {},
+  +             hidden: false,
+  +             id: 'settings-feedback-title',
+  +             listeners: Map(0) {},
+  +             namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +             nodeType: 1,
+  +             parentElement: [Circular *2],
+  +             tagName: 'H2',
+  +             value: ''
+  +           },
+  +           <ref *3> Node {
+  +             _text: '',
+  +             attributes: Map(0) {},
+  +             childNodes: [
+  +               PresentationNode {
+  +                 _text: 'Close',
+  +                 attributes: Map(0) {},
+  +                 childNodes: [],
+  +                 classList: {
+  +                   add: [Function: add],
+  +                   contains: [Function: contains],
+  +                   remove: [Function: remove],
+  +                   toggle: [Function: toggle]
+  +                 },
+  +                 className: '',
+  +                 dataset: {},
+  +                 hidden: false,
+  +                 listeners: Map(0) {},
+  +                 namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +                 nodeType: 3,
+  +                 parentElement: [Circular *3],
+  +                 tagName: '#TEXT',
+  +                 value: ''
+  +               }
+  +             ],
+  +             classList: {
+  +               add: [Function: add],
+  +               contains: [Function: contains],
+  +               remove: [Function: remove],
+  +               toggle: [Function: toggle]
+  +             },
+  +             className: '',
+  +             dataset: {},
+  +             hidden: false,
+  +             id: 'settings-feedback-close',
+  +             listeners: Map(1) {
+  +               'click' => [Function (anonymous)]
+  +             },
+  +             namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +             nodeType: 1,
+  +             parentElement: [Circular *2],
+  +             tagName: 'BUTTON',
+  +             type: 'button',
+  +             value: ''
+  +           }
+  +         ],
+  +         classList: {
+  +           add: [Function: add],
+  +           contains: [Function: contains],
+  +           remove: [Function: remove],
+  +           toggle: [Function: toggle]
+  +         },
+  +         className: '',
+  +         dataset: {},
+  +         hidden: false,
+  +         listeners: Map(0) {},
+  +         namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +         nodeType: 1,
+  +         parentElement: [Circular *4],
+  +         tagName: 'HEADER',
+  +         value: ''
+  +       },
+  +       <ref *5> Node {
+  +         _text: '',
+  +         attributes: Map(0) {},
+  +         childNodes: [
+              PresentationNode {
+  +             _text: 'Feedback text',
+  -             _text: 'Feedback',
+                attributes: Map(0) {},
+                childNodes: [],
+                classList: {
+                  add: [Function: add],
+                  contains: [Function: contains],
+  ...
+                nodeType: 3,
+  +             parentElement: [Circular *5],
+  -             parentElement: [Circular *2],
+                tagName: '#TEXT',
+                value: ''
+              }
+            ],
+            classList: {
+  ...
+            hidden: false,
+  +         htmlFor: 'settings-feedback-body',
+  -         id: 'settings-feedback-title',
+            listeners: Map(0) {},
+            namespaceURI: 'http://www.w3.org/1999/xhtml',
+            nodeType: 1,
+  +         parentElement: [Circular *4],
+  +         tagName: 'LABEL',
+  -         parentElement: [Circular *3],
+  -         tagName: 'H2',
+            value: ''
+          },
+  +       [Circular *6],
+  +       <ref *7> Node {
+  +         _text: '',
+  +         attributes: Map(1) {
+  +           'role' => 'status'
+  -       [Circular *1]
+  -     ],
+  -     classList: {
+  -       add: [Function: add],
+  -       contains: [Function: contains],
+  -       remove: [Function: remove],
+  -       toggle: [Function: toggle]
+  -     },
+  -     className: '',
+  -     dataset: {},
+  -     hidden: false,
+  -     listeners: Map(0) {},
+  -     namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -     nodeType: 1,
+  -     parentElement: <ref *5> Node {
+  -       'aria-labelledby': 'settings-feedback-title',
+  -       _text: '',
+  -       attributes: Map(1) {
+  -         'aria-labelledby' => 'settings-feedback-title'
+  -       },
+  -       childNodes: [
+  -         [Circular *3],
+  -         <ref *4> Node {
+  -           _text: '',
+  -           attributes: Map(0) {},
+  -           childNodes: [
+  -             PresentationNode {
+  -               _text: 'Feedback text',
+  -               attributes: Map(0) {},
+  -               childNodes: [],
+  -               classList: {
+  -                 add: [Function: add],
+  -                 contains: [Function: contains],
+  -                 remove: [Function: remove],
+  -                 toggle: [Function: toggle]
+  -               },
+  -               className: '',
+  -               dataset: {},
+  -               hidden: false,
+  -               listeners: Map(0) {},
+  -               namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -               nodeType: 3,
+  -               parentElement: [Circular *4],
+  -               tagName: '#TEXT',
+  -               value: ''
+  -             }
+  -           ],
+  -           classList: {
+  -             add: [Function: add],
+  -             contains: [Function: contains],
+  -             remove: [Function: remove],
+  -             toggle: [Function: toggle]
+  -           },
+  -           className: '',
+  -           dataset: {},
+  -           hidden: false,
+  -           htmlFor: 'settings-feedback-body',
+  -           listeners: Map(0) {},
+  -           namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -           nodeType: 1,
+  -           parentElement: [Circular *5],
+  -           tagName: 'LABEL',
+  -           value: ''
+            },
+  +         childNodes: [
+  +           PresentationNode {
+  +             _text: 'Could not copy. Select the text and use system copy.',
+  +             attributes: Map(0) {},
+  +             childNodes: [],
+  +             classList: {
+  +               add: [Function: add],
+  +               contains: [Function: contains],
+  +               remove: [Function: remove],
+  +               toggle: [Function: toggle]
+  -         Node {
+  -           'aria-describedby': 'settings-feedback-status',
+  -           _text: '',
+  -           attributes: Map(1) {
+  -             'aria-describedby' => 'settings-feedback-status'
+  -           },
+  -           childNodes: [],
+  -           classList: {
+  -             add: [Function: add],
+  -             contains: [Function: contains],
+  -             remove: [Function: remove],
+  -             toggle: [Function: toggle]
+  -           },
+  -           className: '',
+  -           dataset: {},
+  -           disabled: false,
+  -           hidden: false,
+  -           id: 'settings-feedback-body',
+  -           listeners: Map(4) {
+  -             'blur' => [Function (anonymous)],
+  -             'compositionend' => [Function (anonymous)],
+  -             'compositionstart' => [Function (anonymous)],
+  -             'input' => [Function (anonymous)]
+  -           },
+  -           namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -           nodeType: 1,
+  -           parentElement: [Circular *5],
+  -           selected: 1,
+  -           selectionDirection: 'forward',
+  -           selectionEnd: 18,
+  -           selectionStart: 0,
+  -           tagName: 'TEXTAREA',
+  -           value: 'SYNTHETIC feedback'
+  -         },
+  -         <ref *6> Node {
+  -           _text: '',
+  -           attributes: Map(1) {
+  -             'role' => 'status'
+  -           },
+  -           childNodes: [
+  -             PresentationNode {
+  -               _text: 'Could not copy. Select the text and use system copy.',
+  -               attributes: Map(0) {},
+  -               childNodes: [],
+  -               classList: {
+  -                 add: [Function: add],
+  -                 contains: [Function: contains],
+  -                 remove: [Function: remove],
+  -                 toggle: [Function: toggle]
+  -               },
+  -               className: '',
+  -               dataset: {},
+  -               hidden: false,
+  -               listeners: Map(0) {},
+  -               namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -               nodeType: 3,
+  -               parentElement: [Circular *6],
+  -               tagName: '#TEXT',
+  -               value: ''
+                },
+  +             className: '',
+  +             dataset: {},
+  +             hidden: false,
+  +             listeners: Map(0) {},
+  +             namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +             nodeType: 3,
+  +             parentElement: [Circular *7],
+  +             tagName: '#TEXT',
+  +             value: ''
+  -           ],
+  -           classList: {
+  -             add: [Function: add],
+  -             contains: [Function: contains],
+  -             remove: [Function: remove],
+  -             toggle: [Function: toggle]
+              },
+  +         ],
+  +         classList: {
+  +           add: [Function: add],
+  +           contains: [Function: contains],
+  +           remove: [Function: remove],
+  +           toggle: [Function: toggle]
+  -           className: '',
+  -           dataset: {},
+  -           hidden: false,
+  -           id: 'settings-feedback-status',
+  -           listeners: Map(0) {},
+  -           namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -           nodeType: 1,
+  -           parentElement: [Circular *5],
+  -           role: 'status',
+  -           tagName: 'P',
+  -           value: ''
+            },
+  +         className: '',
+  +         dataset: {},
+  +         hidden: false,
+  +         id: 'settings-feedback-status',
+  +         listeners: Map(0) {},
+  +         namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +         nodeType: 1,
+  +         parentElement: [Circular *4],
+  +         role: 'status',
+  +         tagName: 'P',
+  +         value: ''
+  +       },
+  +       <ref *9> Node {
+  +         _text: '',
+  +         attributes: Map(0) {},
+  +         childNodes: [
+  +           <ref *8> Node {
+  +             _text: '',
+  +             attributes: Map(0) {},
+  +             childNodes: [
+  +               PresentationNode {
+  +                 _text: 'Retry',
+  +                 attributes: Map(0) {},
+  +                 childNodes: [],
+  +                 classList: {
+  +                   add: [Function: add],
+  +                   contains: [Function: contains],
+  +                   remove: [Function: remove],
+  +                   toggle: [Function: toggle]
+  -         <ref *8> Node {
+  -           _text: '',
+  -           attributes: Map(0) {},
+  -           childNodes: [
+  -             <ref *7> Node {
+  -               _text: '',
+  -               attributes: Map(0) {},
+  -               childNodes: [
+  -                 PresentationNode {
+  -                   _text: 'Retry',
+  -                   attributes: Map(0) {},
+  -                   childNodes: [],
+  -                   classList: {
+  -                     add: [Function: add],
+  -                     contains: [Function: contains],
+  -                     remove: [Function: remove],
+  -                     toggle: [Function: toggle]
+  -                   },
+  -                   className: '',
+  -                   dataset: {},
+  -                   hidden: false,
+  -                   listeners: Map(0) {},
+  -                   namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -                   nodeType: 3,
+  -                   parentElement: [Circular *7],
+  -                   tagName: '#TEXT',
+  -                   value: ''
+                    },
+  +                 className: '',
+  +                 dataset: {},
+  +                 hidden: false,
+  +                 listeners: Map(0) {},
+  +                 namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +                 nodeType: 3,
+  +                 parentElement: [Circular *8],
+  +                 tagName: '#TEXT',
+  +                 value: ''
+  -               ],
+  -               classList: {
+  -                 add: [Function: add],
+  -                 contains: [Function: contains],
+  -                 remove: [Function: remove],
+  -                 toggle: [Function: toggle]
+                  },
+  +             ],
+  +             classList: {
+  +               add: [Function: add],
+  +               contains: [Function: contains],
+  +               remove: [Function: remove],
+  +               toggle: [Function: toggle]
+  -               className: '',
+  -               dataset: {},
+  -               disabled: false,
+  -               hidden: true,
+  -               id: 'settings-feedback-retry',
+  -               listeners: Map(1) {
+  -                 'click' => [AsyncFunction (anonymous)]
+  -               },
+  -               namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -               nodeType: 1,
+  -               parentElement: [Circular *8],
+  -               tagName: 'BUTTON',
+  -               type: 'button',
+  -               value: ''
+                },
+  +             className: '',
+  +             dataset: {},
+  +             disabled: false,
+  +             hidden: true,
+  +             id: 'settings-feedback-retry',
+  +             listeners: Map(1) {
+  +               'click' => [AsyncFunction (anonymous)]
+  +             },
+  +             namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +             nodeType: 1,
+  +             parentElement: [Circular *9],
+  +             tagName: 'BUTTON',
+  +             type: 'button',
+  +             value: ''
+  +           },
+  +           <ref *10> Node {
+  +             _text: '',
+  +             attributes: Map(0) {},
+  +             childNodes: [
+  +               PresentationNode {
+  +                 _text: 'Copy text',
+  +                 attributes: Map(0) {},
+  +                 childNodes: [],
+  +                 classList: {
+  +                   add: [Function: add],
+  +                   contains: [Function: contains],
+  +                   remove: [Function: remove],
+  +                   toggle: [Function: toggle]
+  -             <ref *9> Node {
+  -               _text: '',
+  -               attributes: Map(0) {},
+  -               childNodes: [
+  -                 PresentationNode {
+  -                   _text: 'Copy text',
+  -                   attributes: Map(0) {},
+  -                   childNodes: [],
+  -                   classList: {
+  -                     add: [Function: add],
+  -                     contains: [Function: contains],
+  -                     remove: [Function: remove],
+  -                     toggle: [Function: toggle]
+  -                   },
+  -                   className: '',
+  -                   dataset: {},
+  -                   hidden: false,
+  -                   listeners: Map(0) {},
+  -                   namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -                   nodeType: 3,
+  -                   parentElement: [Circular *9],
+  -                   tagName: '#TEXT',
+  -                   value: ''
+                    },
+  +                 className: '',
+  +                 dataset: {},
+  +                 hidden: false,
+  +                 listeners: Map(0) {},
+  +                 namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +                 nodeType: 3,
+  +                 parentElement: [Circular *10],
+  +                 tagName: '#TEXT',
+  +                 value: ''
+  -               ],
+  -               classList: {
+  -                 add: [Function: add],
+  -                 contains: [Function: contains],
+  -                 remove: [Function: remove],
+  -                 toggle: [Function: toggle]
+                  },
+  +             ],
+  +             classList: {
+  +               add: [Function: add],
+  +               contains: [Function: contains],
+  +               remove: [Function: remove],
+  +               toggle: [Function: toggle]
+  -               className: '',
+  -               dataset: {},
+  -               disabled: false,
+  -               hidden: false,
+  -               id: 'settings-feedback-copy',
+  -               listeners: Map(1) {
+  -                 'click' => [AsyncFunction (anonymous)]
+  -               },
+  -               namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -               nodeType: 1,
+  -               parentElement: [Circular *8],
+  -               tagName: 'BUTTON',
+  -               type: 'button',
+  -               value: ''
+                },
+  +             className: '',
+  +             dataset: {},
+  +             disabled: false,
+  +             hidden: false,
+  +             id: 'settings-feedback-copy',
+  +             listeners: Map(1) {
+  +               'click' => [AsyncFunction (anonymous)]
+  +             },
+  +             namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +             nodeType: 1,
+  +             parentElement: [Circular *9],
+  +             tagName: 'BUTTON',
+  +             type: 'button',
+  +             value: ''
+  +           },
+  +           <ref *11> Node {
+  +             _text: '',
+  +             attributes: Map(0) {},
+  +             childNodes: [
+  +               PresentationNode {
+  +                 _text: 'Open email app',
+  +                 attributes: Map(0) {},
+  +                 childNodes: [],
+  +                 classList: {
+  +                   add: [Function: add],
+  +                   contains: [Function: contains],
+  +                   remove: [Function: remove],
+  +                   toggle: [Function: toggle]
+  -             <ref *10> Node {
+  -               _text: '',
+  -               attributes: Map(0) {},
+  -               childNodes: [
+  -                 PresentationNode {
+  -                   _text: 'Open email app',
+  -                   attributes: Map(0) {},
+  -                   childNodes: [],
+  -                   classList: {
+  -                     add: [Function: add],
+  -                     contains: [Function: contains],
+  -                     remove: [Function: remove],
+  -                     toggle: [Function: toggle]
+  -                   },
+  -                   className: '',
+  -                   dataset: {},
+  -                   hidden: false,
+  -                   listeners: Map(0) {},
+  -                   namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -                   nodeType: 3,
+  -                   parentElement: [Circular *10],
+  -                   tagName: '#TEXT',
+  -                   value: ''
+                    },
+  +                 className: '',
+  +                 dataset: {},
+  +                 hidden: false,
+  +                 listeners: Map(0) {},
+  +                 namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +                 nodeType: 3,
+  +                 parentElement: [Circular *11],
+  +                 tagName: '#TEXT',
+  +                 value: ''
+  -               ],
+  -               classList: {
+  -                 add: [Function: add],
+  -                 contains: [Function: contains],
+  -                 remove: [Function: remove],
+  -                 toggle: [Function: toggle]
+                  },
+  +             ],
+  +             classList: {
+  +               add: [Function: add],
+  +               contains: [Function: contains],
+  +               remove: [Function: remove],
+  +               toggle: [Function: toggle]
+  -               className: '',
+  -               dataset: {},
+  -               hidden: false,
+  -               href: 'mailto:haohongfei2001@gmail.com',
+  -               id: 'settings-feedback-mail',
+  -               listeners: Map(1) {
+  -                 'click' => [Function (anonymous)]
+  -               },
+  -               namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -               nodeType: 1,
+  -               parentElement: [Circular *8],
+  -               tagName: 'A',
+  -               value: ''
+                },
+  +             className: '',
+  +             dataset: {},
+  +             hidden: false,
+  +             href: 'mailto:haohongfei2001@gmail.com',
+  +             id: 'settings-feedback-mail',
+  +             listeners: Map(1) {
+  +               'click' => [Function (anonymous)]
+  +             },
+  +             namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +             nodeType: 1,
+  +             parentElement: [Circular *9],
+  +             tagName: 'A',
+  +             value: ''
+  -           ],
+  -           classList: {
+  -             add: [Function: add],
+  -             contains: [Function: contains],
+  -             remove: [Function: remove],
+  -             toggle: [Function: toggle]
+              },
+  -           className: 'ux-settings-consent-actions',
+  -           dataset: {},
+  -           hidden: false,
+  -           listeners: Map(0) {},
+  -           namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -           nodeType: 1,
+  -           parentElement: [Circular *5],
+  -           tagName: 'DIV',
+  -           value: ''
+  -         }
+  -       ],
+  -       classList: {
+  -         add: [Function: add],
+  -         contains: [Function: contains],
+  -         remove: [Function: remove],
+  -         toggle: [Function: toggle]
+  -       },
+  -       className: 'ux-settings-detail-dialog',
+  -       dataset: {},
+  -       hidden: false,
+  -       id: 'settings-feedback-dialog',
+  -       listeners: Map(2) {
+  -         'cancel' => [Function (anonymous)],
+  -         'paia:request-close' => [Function (anonymous)]
+  -       },
+  -       namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -       nodeType: 1,
+  -       open: true,
+  -       parentElement: Node {
+  -         _text: '',
+  -         attributes: Map(0) {},
+  -         childNodes: [
+  -           [Circular *5]
+            ],
+            classList: {
+              add: [Function: add],
+              contains: [Function: contains],
+              remove: [Function: remove],
+              toggle: [Function: toggle]
+            },
+  +         className: 'ux-settings-consent-actions',
+  -         className: '',
+            dataset: {},
+            hidden: false,
+            listeners: Map(0) {},
+            namespaceURI: 'http://www.w3.org/1999/xhtml',
+            nodeType: 1,
+  +         parentElement: [Circular *4],
+  +         tagName: 'DIV',
+  -         parentElement: null,
+  -         tagName: 'BODY',
+            value: ''
+          },
+  +     ],
+  +     classList: {
+  +       add: [Function: add],
+  +       contains: [Function: contains],
+  +       remove: [Function: remove],
+  +       toggle: [Function: toggle]
+  +     },
+  +     className: 'ux-settings-detail-dialog',
+  +     dataset: {},
+  +     hidden: false,
+  +     id: 'settings-feedback-dialog',
+  +     listeners: Map(2) {
+  +       'cancel' => [Function (anonymous)],
+  +       'paia:request-close' => [Function (anonymous)]
+  +     },
+  +     namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +     nodeType: 1,
+  +     open: true,
+  +     parentElement: Node {
+  +       _text: '',
+  +       attributes: Map(0) {},
+  +       childNodes: [
+  +         [Circular *4]
+  +       ],
+  +       classList: {
+  +         add: [Function: add],
+  +         contains: [Function: contains],
+  +         remove: [Function: remove],
+  +         toggle: [Function: toggle]
+  +       },
+  +       className: '',
+  +       dataset: {},
+  +       hidden: false,
+  +       listeners: Map(0) {},
+  +       namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +       nodeType: 1,
+  +       parentElement: null,
+  +       tagName: 'BODY',
+  -       tagName: 'DIALOG',
+          value: ''
+        },
+  +     tagName: 'DIALOG',
+  -     tagName: 'HEADER',
+        value: ''
+      },
+  +   selected: 1,
+  +   selectionDirection: 'forward',
+  +   selectionEnd: 18,
+  +   selectionStart: 0,
+  +   tagName: 'TEXTAREA',
+  +   value: 'SYNTHETIC feedback'
+  -   tagName: 'BUTTON',
+  -   type: 'button',
+  -   value: ''
+    }
+  
+      at file:///workspace/scratch/ff1c41bf9b29/paia-feedback-focus-20261025T0341Z/tree/extension/tests/settings-feedback-focus-intent.test.mjs:16:289
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-feedback-focus-20261025T0341Z/tree/extension/tests/settings-feedback-focus-intent.test.mjs:13:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Node],
+    expected: [Node],
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-feedback-focus-intent.test.mjs:17:1
+✖ failed copy retains newer same-text selection even when focus returns (10.09735ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be reference-equal to "expected":
+  + actual - expected
+  ... Skipped lines
+  
+  + <ref *6> Node {
+  +   'aria-describedby': 'settings-feedback-status',
+  - <ref *1> Node {
+      _text: '',
+  +   attributes: Map(1) {
+  +     'aria-describedby' => 'settings-feedback-status'
+  +   },
+  +   childNodes: [],
+  -   attributes: Map(0) {},
+  -   childNodes: [
+  -     PresentationNode {
+  -       _text: 'Copy text',
+  -       attributes: Map(0) {},
+  -       childNodes: [],
+  -       classList: {
+  -         add: [Function: add],
+  -         contains: [Function: contains],
+  -         remove: [Function: remove],
+  -         toggle: [Function: toggle]
+  -       },
+  -       className: '',
+  -       dataset: {},
+  -       hidden: false,
+  -       listeners: Map(0) {},
+  -       namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -       nodeType: 3,
+  -       parentElement: [Circular *1],
+  -       tagName: '#TEXT',
+  -       value: ''
+  -     }
+  -   ],
+      classList: {
+        add: [Function: add],
+        contains: [Function: contains],
+        remove: [Function: remove],
+        toggle: [Function: toggle]
+  ...
+      hidden: false,
+  +   id: 'settings-feedback-body',
+  +   listeners: Map(4) {
+  +     'blur' => [Function (anonymous)],
+  +     'compositionend' => [Function (anonymous)],
+  +     'compositionstart' => [Function (anonymous)],
+  +     'input' => [Function (anonymous)]
+  -   id: 'settings-feedback-copy',
+  -   listeners: Map(1) {
+  -     'click' => [AsyncFunction (anonymous)]
+      },
+      namespaceURI: 'http://www.w3.org/1999/xhtml',
+      nodeType: 1,
+  +   parentElement: <ref *4> Node {
+  +     'aria-labelledby': 'settings-feedback-title',
+  -   parentElement: <ref *3> Node {
+        _text: '',
+  +     attributes: Map(1) {
+  +       'aria-labelledby' => 'settings-feedback-title'
+  +     },
+  -     attributes: Map(0) {},
+        childNodes: [
+          <ref *2> Node {
+            _text: '',
+            attributes: Map(0) {},
+            childNodes: [
+  +           <ref *1> Node {
+  +             _text: '',
+  +             attributes: Map(0) {},
+  +             childNodes: [
+  +               PresentationNode {
+  +                 _text: 'Feedback',
+  +                 attributes: Map(0) {},
+  +                 childNodes: [],
+  +                 classList: {
+  +                   add: [Function: add],
+  +                   contains: [Function: contains],
+  +                   remove: [Function: remove],
+  +                   toggle: [Function: toggle]
+  +                 },
+  +                 className: '',
+  +                 dataset: {},
+  +                 hidden: false,
+  +                 listeners: Map(0) {},
+  +                 namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +                 nodeType: 3,
+  +                 parentElement: [Circular *1],
+  +                 tagName: '#TEXT',
+  +                 value: ''
+  +               }
+  +             ],
+  +             classList: {
+  +               add: [Function: add],
+  +               contains: [Function: contains],
+  +               remove: [Function: remove],
+  +               toggle: [Function: toggle]
+  +             },
+  +             className: '',
+  +             dataset: {},
+  +             hidden: false,
+  +             id: 'settings-feedback-title',
+  +             listeners: Map(0) {},
+  +             namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +             nodeType: 1,
+  +             parentElement: [Circular *2],
+  +             tagName: 'H2',
+  +             value: ''
+  +           },
+  +           <ref *3> Node {
+  +             _text: '',
+  +             attributes: Map(0) {},
+  +             childNodes: [
+  +               PresentationNode {
+  +                 _text: 'Close',
+  +                 attributes: Map(0) {},
+  +                 childNodes: [],
+  +                 classList: {
+  +                   add: [Function: add],
+  +                   contains: [Function: contains],
+  +                   remove: [Function: remove],
+  +                   toggle: [Function: toggle]
+  +                 },
+  +                 className: '',
+  +                 dataset: {},
+  +                 hidden: false,
+  +                 listeners: Map(0) {},
+  +                 namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +                 nodeType: 3,
+  +                 parentElement: [Circular *3],
+  +                 tagName: '#TEXT',
+  +                 value: ''
+  +               }
+  +             ],
+  +             classList: {
+  +               add: [Function: add],
+  +               contains: [Function: contains],
+  +               remove: [Function: remove],
+  +               toggle: [Function: toggle]
+  +             },
+  +             className: '',
+  +             dataset: {},
+  +             hidden: false,
+  +             id: 'settings-feedback-close',
+  +             listeners: Map(1) {
+  +               'click' => [Function (anonymous)]
+  +             },
+  +             namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +             nodeType: 1,
+  +             parentElement: [Circular *2],
+  +             tagName: 'BUTTON',
+  +             type: 'button',
+  +             value: ''
+  +           }
+  +         ],
+  +         classList: {
+  +           add: [Function: add],
+  +           contains: [Function: contains],
+  +           remove: [Function: remove],
+  +           toggle: [Function: toggle]
+  +         },
+  +         className: '',
+  +         dataset: {},
+  +         hidden: false,
+  +         listeners: Map(0) {},
+  +         namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +         nodeType: 1,
+  +         parentElement: [Circular *4],
+  +         tagName: 'HEADER',
+  +         value: ''
+  +       },
+  +       <ref *5> Node {
+  +         _text: '',
+  +         attributes: Map(0) {},
+  +         childNodes: [
+              PresentationNode {
+  +             _text: 'Feedback text',
+  -             _text: 'Retry',
+                attributes: Map(0) {},
+                childNodes: [],
+                classList: {
+                  add: [Function: add],
+                  contains: [Function: contains],
+  ...
+                nodeType: 3,
+  +             parentElement: [Circular *5],
+  -             parentElement: [Circular *2],
+                tagName: '#TEXT',
+                value: ''
+              }
+            ],
+            classList: {
+  ...
+            dataset: {},
+  +         hidden: false,
+  +         htmlFor: 'settings-feedback-body',
+  +         listeners: Map(0) {},
+  -         disabled: false,
+  -         hidden: true,
+  -         id: 'settings-feedback-retry',
+  -         listeners: Map(1) {
+  -           'click' => [AsyncFunction (anonymous)]
+  -         },
+            namespaceURI: 'http://www.w3.org/1999/xhtml',
+            nodeType: 1,
+  +         parentElement: [Circular *4],
+  +         tagName: 'LABEL',
+  -         parentElement: [Circular *3],
+  -         tagName: 'BUTTON',
+  -         type: 'button',
+            value: ''
+          },
+  +       [Circular *6],
+  +       <ref *7> Node {
+  -       [Circular *1],
+  -       <ref *4> Node {
+            _text: '',
+  +         attributes: Map(1) {
+  +           'role' => 'status'
+  +         },
+  -         attributes: Map(0) {},
+            childNodes: [
+              PresentationNode {
+  +             _text: 'Could not copy. Select the text and use system copy.',
+  -             _text: 'Open email app',
+                attributes: Map(0) {},
+                childNodes: [],
+                classList: {
+                  add: [Function: add],
+                  contains: [Function: contains],
+  ...
+                nodeType: 3,
+  +             parentElement: [Circular *7],
+  -             parentElement: [Circular *4],
+                tagName: '#TEXT',
+                value: ''
+              }
+            ],
+            classList: {
+  ...
+            hidden: false,
+  +         id: 'settings-feedback-status',
+  +         listeners: Map(0) {},
+  +         namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +         nodeType: 1,
+  +         parentElement: [Circular *4],
+  +         role: 'status',
+  +         tagName: 'P',
+  +         value: ''
+  +       },
+  +       <ref *9> Node {
+  +         _text: '',
+  +         attributes: Map(0) {},
+  +         childNodes: [
+  +           <ref *8> Node {
+  +             _text: '',
+  +             attributes: Map(0) {},
+  +             childNodes: [
+  +               PresentationNode {
+  +                 _text: 'Retry',
+  +                 attributes: Map(0) {},
+  +                 childNodes: [],
+  +                 classList: {
+  +                   add: [Function: add],
+  +                   contains: [Function: contains],
+  +                   remove: [Function: remove],
+  +                   toggle: [Function: toggle]
+  +                 },
+  +                 className: '',
+  +                 dataset: {},
+  +                 hidden: false,
+  +                 listeners: Map(0) {},
+  +                 namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +                 nodeType: 3,
+  +                 parentElement: [Circular *8],
+  +                 tagName: '#TEXT',
+  +                 value: ''
+  +               }
+  +             ],
+  +             classList: {
+  +               add: [Function: add],
+  +               contains: [Function: contains],
+  +               remove: [Function: remove],
+  +               toggle: [Function: toggle]
+  +             },
+  +             className: '',
+  +             dataset: {},
+  +             disabled: false,
+  +             hidden: true,
+  +             id: 'settings-feedback-retry',
+  +             listeners: Map(1) {
+  +               'click' => [AsyncFunction (anonymous)]
+  +             },
+  +             namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +             nodeType: 1,
+  +             parentElement: [Circular *9],
+  +             tagName: 'BUTTON',
+  +             type: 'button',
+  +             value: ''
+  +           },
+  +           <ref *10> Node {
+  +             _text: '',
+  +             attributes: Map(0) {},
+  +             childNodes: [
+  +               PresentationNode {
+  +                 _text: 'Copy text',
+  +                 attributes: Map(0) {},
+  +                 childNodes: [],
+  +                 classList: {
+  +                   add: [Function: add],
+  +                   contains: [Function: contains],
+  +                   remove: [Function: remove],
+  +                   toggle: [Function: toggle]
+  +                 },
+  +                 className: '',
+  +                 dataset: {},
+  +                 hidden: false,
+  +                 listeners: Map(0) {},
+  +                 namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +                 nodeType: 3,
+  +                 parentElement: [Circular *10],
+  +                 tagName: '#TEXT',
+  +                 value: ''
+  +               }
+  +             ],
+  +             classList: {
+  +               add: [Function: add],
+  +               contains: [Function: contains],
+  +               remove: [Function: remove],
+  +               toggle: [Function: toggle]
+  +             },
+  +             className: '',
+  +             dataset: {},
+  +             disabled: false,
+  +             hidden: false,
+  +             id: 'settings-feedback-copy',
+  +             listeners: Map(1) {
+  +               'click' => [AsyncFunction (anonymous)]
+  +             },
+  +             namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +             nodeType: 1,
+  +             parentElement: [Circular *9],
+  +             tagName: 'BUTTON',
+  +             type: 'button',
+  +             value: ''
+  +           },
+  +           <ref *11> Node {
+  +             _text: '',
+  +             attributes: Map(0) {},
+  +             childNodes: [
+  +               PresentationNode {
+  +                 _text: 'Open email app',
+  +                 attributes: Map(0) {},
+  +                 childNodes: [],
+  +                 classList: {
+  +                   add: [Function: add],
+  +                   contains: [Function: contains],
+  +                   remove: [Function: remove],
+  +                   toggle: [Function: toggle]
+  +                 },
+  +                 className: '',
+  +                 dataset: {},
+  +                 hidden: false,
+  +                 listeners: Map(0) {},
+  +                 namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +                 nodeType: 3,
+  +                 parentElement: [Circular *11],
+  +                 tagName: '#TEXT',
+  +                 value: ''
+  +               }
+  +             ],
+  +             classList: {
+  +               add: [Function: add],
+  +               contains: [Function: contains],
+  +               remove: [Function: remove],
+  +               toggle: [Function: toggle]
+  +             },
+  +             className: '',
+  +             dataset: {},
+  +             hidden: false,
+  +             href: 'mailto:haohongfei2001@gmail.com',
+  +             id: 'settings-feedback-mail',
+  +             listeners: Map(1) {
+  +               'click' => [Function (anonymous)]
+  +             },
+  +             namespaceURI: 'http://www.w3.org/1999/xhtml',
+  +             nodeType: 1,
+  +             parentElement: [Circular *9],
+  +             tagName: 'A',
+  +             value: ''
+  +           }
+  +         ],
+  +         classList: {
+  +           add: [Function: add],
+  +           contains: [Function: contains],
+  +           remove: [Function: remove],
+  +           toggle: [Function: toggle]
+  -         href: 'mailto:haohongfei2001@gmail.com',
+  -         id: 'settings-feedback-mail',
+  -         listeners: Map(1) {
+  -           'click' => [Function (anonymous)]
+            },
+  +         className: 'ux-settings-consent-actions',
+  +         dataset: {},
+  +         hidden: false,
+  +         listeners: Map(0) {},
+            namespaceURI: 'http://www.w3.org/1999/xhtml',
+            nodeType: 1,
+  +         parentElement: [Circular *4],
+  +         tagName: 'DIV',
+  -         parentElement: [Circular *3],
+  -         tagName: 'A',
+            value: ''
+          }
+        ],
+        classList: {
+          add: [Function: add],
+  ...
+        },
+  +     className: 'ux-settings-detail-dialog',
+  -     className: 'ux-settings-consent-actions',
+        dataset: {},
+        hidden: false,
+  +     id: 'settings-feedback-dialog',
+  +     listeners: Map(2) {
+  +       'cancel' => [Function (anonymous)],
+  +       'paia:request-close' => [Function (anonymous)]
+  +     },
+  -     listeners: Map(0) {},
+        namespaceURI: 'http://www.w3.org/1999/xhtml',
+        nodeType: 1,
+  +     open: true,
+  +     parentElement: Node {
+  -     parentElement: <ref *8> Node {
+  -       'aria-labelledby': 'settings-feedback-title',
+          _text: '',
+  +       attributes: Map(0) {},
+  -       attributes: Map(1) {
+  -         'aria-labelledby' => 'settings-feedback-title'
+  -       },
+          childNodes: [
+  +         [Circular *4]
+  -         <ref *6> Node {
+  -           _text: '',
+  -           attributes: Map(0) {},
+  -           childNodes: [
+  -             <ref *5> Node {
+  -               _text: '',
+  -               attributes: Map(0) {},
+  -               childNodes: [
+  -                 PresentationNode {
+  -                   _text: 'Feedback',
+  -                   attributes: Map(0) {},
+  -                   childNodes: [],
+  -                   classList: {
+  -                     add: [Function: add],
+  -                     contains: [Function: contains],
+  -                     remove: [Function: remove],
+  -                     toggle: [Function: toggle]
+  -                   },
+  -                   className: '',
+  -                   dataset: {},
+  -                   hidden: false,
+  -                   listeners: Map(0) {},
+  -                   namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -                   nodeType: 3,
+  -                   parentElement: [Circular *5],
+  -                   tagName: '#TEXT',
+  -                   value: ''
+  -                 }
+  -               ],
+  -               classList: {
+  -                 add: [Function: add],
+  -                 contains: [Function: contains],
+  -                 remove: [Function: remove],
+  -                 toggle: [Function: toggle]
+  -               },
+  -               className: '',
+  -               dataset: {},
+  -               hidden: false,
+  -               id: 'settings-feedback-title',
+  -               listeners: Map(0) {},
+  -               namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -               nodeType: 1,
+  -               parentElement: [Circular *6],
+  -               tagName: 'H2',
+  -               value: ''
+  -             },
+  -             <ref *7> Node {
+  -               _text: '',
+  -               attributes: Map(0) {},
+  -               childNodes: [
+  -                 PresentationNode {
+  -                   _text: 'Close',
+  -                   attributes: Map(0) {},
+  -                   childNodes: [],
+  -                   classList: {
+  -                     add: [Function: add],
+  -                     contains: [Function: contains],
+  -                     remove: [Function: remove],
+  -                     toggle: [Function: toggle]
+  -                   },
+  -                   className: '',
+  -                   dataset: {},
+  -                   hidden: false,
+  -                   listeners: Map(0) {},
+  -                   namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -                   nodeType: 3,
+  -                   parentElement: [Circular *7],
+  -                   tagName: '#TEXT',
+  -                   value: ''
+  -                 }
+  -               ],
+  -               classList: {
+  -                 add: [Function: add],
+  -                 contains: [Function: contains],
+  -                 remove: [Function: remove],
+  -                 toggle: [Function: toggle]
+  -               },
+  -               className: '',
+  -               dataset: {},
+  -               hidden: false,
+  -               id: 'settings-feedback-close',
+  -               listeners: Map(1) {
+  -                 'click' => [Function (anonymous)]
+  -               },
+  -               namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -               nodeType: 1,
+  -               parentElement: [Circular *6],
+  -               tagName: 'BUTTON',
+  -               type: 'button',
+  -               value: ''
+  -             }
+  -           ],
+  -           classList: {
+  -             add: [Function: add],
+  -             contains: [Function: contains],
+  -             remove: [Function: remove],
+  -             toggle: [Function: toggle]
+  -           },
+  -           className: '',
+  -           dataset: {},
+  -           hidden: false,
+  -           listeners: Map(0) {},
+  -           namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -           nodeType: 1,
+  -           parentElement: [Circular *8],
+  -           tagName: 'HEADER',
+  -           value: ''
+  -         },
+  -         <ref *9> Node {
+  -           _text: '',
+  -           attributes: Map(0) {},
+  -           childNodes: [
+  -             PresentationNode {
+  -               _text: 'Feedback text',
+  -               attributes: Map(0) {},
+  -               childNodes: [],
+  -               classList: {
+  -                 add: [Function: add],
+  -                 contains: [Function: contains],
+  -                 remove: [Function: remove],
+  -                 toggle: [Function: toggle]
+  -               },
+  -               className: '',
+  -               dataset: {},
+  -               hidden: false,
+  -               listeners: Map(0) {},
+  -               namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -               nodeType: 3,
+  -               parentElement: [Circular *9],
+  -               tagName: '#TEXT',
+  -               value: ''
+  -             }
+  -           ],
+  -           classList: {
+  -             add: [Function: add],
+  -             contains: [Function: contains],
+  -             remove: [Function: remove],
+  -             toggle: [Function: toggle]
+  -           },
+  -           className: '',
+  -           dataset: {},
+  -           hidden: false,
+  -           htmlFor: 'settings-feedback-body',
+  -           listeners: Map(0) {},
+  -           namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -           nodeType: 1,
+  -           parentElement: [Circular *8],
+  -           tagName: 'LABEL',
+  -           value: ''
+  -         },
+  -         Node {
+  -           'aria-describedby': 'settings-feedback-status',
+  -           _text: '',
+  -           attributes: Map(1) {
+  -             'aria-describedby' => 'settings-feedback-status'
+  -           },
+  -           childNodes: [],
+  -           classList: {
+  -             add: [Function: add],
+  -             contains: [Function: contains],
+  -             remove: [Function: remove],
+  -             toggle: [Function: toggle]
+  -           },
+  -           className: '',
+  -           dataset: {},
+  -           disabled: false,
+  -           hidden: false,
+  -           id: 'settings-feedback-body',
+  -           listeners: Map(4) {
+  -             'blur' => [Function (anonymous)],
+  -             'compositionend' => [Function (anonymous)],
+  -             'compositionstart' => [Function (anonymous)],
+  -             'input' => [Function (anonymous)]
+  -           },
+  -           namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -           nodeType: 1,
+  -           parentElement: [Circular *8],
+  -           selected: 1,
+  -           selectionDirection: 'forward',
+  -           selectionEnd: 18,
+  -           selectionStart: 0,
+  -           tagName: 'TEXTAREA',
+  -           value: 'SYNTHETIC feedback'
+  -         },
+  -         <ref *10> Node {
+  -           _text: '',
+  -           attributes: Map(1) {
+  -             'role' => 'status'
+  -           },
+  -           childNodes: [
+  -             PresentationNode {
+  -               _text: 'Could not copy. Select the text and use system copy.',
+  -               attributes: Map(0) {},
+  -               childNodes: [],
+  -               classList: {
+  -                 add: [Function: add],
+  -                 contains: [Function: contains],
+  -                 remove: [Function: remove],
+  -                 toggle: [Function: toggle]
+  -               },
+  -               className: '',
+  -               dataset: {},
+  -               hidden: false,
+  -               listeners: Map(0) {},
+  -               namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -               nodeType: 3,
+  -               parentElement: [Circular *10],
+  -               tagName: '#TEXT',
+  -               value: ''
+  -             }
+  -           ],
+  -           classList: {
+  -             add: [Function: add],
+  -             contains: [Function: contains],
+  -             remove: [Function: remove],
+  -             toggle: [Function: toggle]
+  -           },
+  -           className: '',
+  -           dataset: {},
+  -           hidden: false,
+  -           id: 'settings-feedback-status',
+  -           listeners: Map(0) {},
+  -           namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -           nodeType: 1,
+  -           parentElement: [Circular *8],
+  -           role: 'status',
+  -           tagName: 'P',
+  -           value: ''
+  -         },
+  -         [Circular *3]
+          ],
+          classList: {
+            add: [Function: add],
+            contains: [Function: contains],
+            remove: [Function: remove],
+            toggle: [Function: toggle]
+          },
+  +       className: '',
+  -       className: 'ux-settings-detail-dialog',
+          dataset: {},
+          hidden: false,
+  +       listeners: Map(0) {},
+  -       id: 'settings-feedback-dialog',
+  -       listeners: Map(2) {
+  -         'cancel' => [Function (anonymous)],
+  -         'paia:request-close' => [Function (anonymous)]
+  -       },
+          namespaceURI: 'http://www.w3.org/1999/xhtml',
+          nodeType: 1,
+  +       parentElement: null,
+  +       tagName: 'BODY',
+  -       open: true,
+  -       parentElement: Node {
+  -         _text: '',
+  -         attributes: Map(0) {},
+  -         childNodes: [
+  -           [Circular *8]
+  -         ],
+  -         classList: {
+  -           add: [Function: add],
+  -           contains: [Function: contains],
+  -           remove: [Function: remove],
+  -           toggle: [Function: toggle]
+  -         },
+  -         className: '',
+  -         dataset: {},
+  -         hidden: false,
+  -         listeners: Map(0) {},
+  -         namespaceURI: 'http://www.w3.org/1999/xhtml',
+  -         nodeType: 1,
+  -         parentElement: null,
+  -         tagName: 'BODY',
+  -         value: ''
+  -       },
+  -       tagName: 'DIALOG',
+          value: ''
+        },
+  +     tagName: 'DIALOG',
+  -     tagName: 'DIV',
+        value: ''
+      },
+  +   selected: 1,
+  +   selectionDirection: 'forward',
+  +   selectionEnd: 18,
+  +   selectionStart: 0,
+  +   tagName: 'TEXTAREA',
+  +   value: 'SYNTHETIC feedback'
+  -   tagName: 'BUTTON',
+  -   type: 'button',
+  -   value: ''
+    }
+  
+      at file:///workspace/scratch/ff1c41bf9b29/paia-feedback-focus-20261025T0341Z/tree/extension/tests/settings-feedback-focus-intent.test.mjs:17:407
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-feedback-focus-20261025T0341Z/tree/extension/tests/settings-feedback-focus-intent.test.mjs:13:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Node],
+    expected: [Node],
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-feedback-focus-intent.test.mjs:18:1
+✖ failed copy retains selection-only changes without focus or body change (1.031359ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 4
+  
+      at file:///workspace/scratch/ff1c41bf9b29/paia-feedback-focus-20261025T0341Z/tree/extension/tests/settings-feedback-focus-intent.test.mjs:18:237
+      at async fixture (file:///workspace/scratch/ff1c41bf9b29/paia-feedback-focus-20261025T0341Z/tree/extension/tests/settings-feedback-focus-intent.test.mjs:13:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 4,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

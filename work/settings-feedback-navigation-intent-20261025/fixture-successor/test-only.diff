@@ -1,0 +1,13 @@
+diff --git a/extension/tests/settings-feedback-navigation-intent.test.mjs b/extension/tests/settings-feedback-navigation-intent.test.mjs
+index 325af69..796587f 100644
+--- a/extension/tests/settings-feedback-navigation-intent.test.mjs
++++ b/extension/tests/settings-feedback-navigation-intent.test.mjs
+@@ -13,7 +13,7 @@ function setup(){
+  const document={activeElement:null},make=id=>{const node={id,hidden:false,dataset:{},setAttribute(){},getClientRects(){return this.hidden?[]:[{}];},focus(){document.activeElement=this;}};nodes.set(id,node);return node;};
+  document.body=make('body');document.activeElement=make('feedback-body');const dialog={open:true,close(){this.open=false;}};
+  const session={loaded:true,body:'synthetic unsaved feedback',composing:false,edit(value){this.body=value;},flush(){writes.push(this.body);return held;}};
+- const fctx={dialog,session,field:{value:session.body},closing:false,opening:1,copiedBody:null,outcome:null,sync(){}};
++ const fctx={activeCopyObservation:null,dialog,session,field:{value:session.body},closing:false,opening:1,copiedBody:null,outcome:null,sync(){}};
+  vm.createContext(fctx);vm.runInContext(leave+';globalThis.originalLeave=leave;',fctx);
+  const keys=['content','reading','ai','privacy','data','about'],groups=new Map(keys.map(key=>[key,make('section-'+key)]));
+  for(const key of keys)make('ux-settings-'+key+'-title');make('ux-settings-shell');make('ux-settings-group-back');

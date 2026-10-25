@@ -1,0 +1,33 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const source=readFileSync(new URL('../ui/settings-preferences.js',import.meta.url),'utf8');
+const feedback=readFileSync(new URL('../ui/settings-feedback.js',import.meta.url),'utf8');
+const activation=source.slice(source.indexOf('function activateGroup('),source.indexOf('function setupSettingsShell('));
+const visibility=source.slice(source.indexOf('export function presentSettingsPreferences('),source.indexOf('export {presentSettingsRecovery')).replace('export ','');
+const leave=feedback.slice(feedback.indexOf(' async function leave(){'),feedback.indexOf(" mail.addEventListener('click'"));
+const turn=()=>new Promise(resolve=>setImmediate(resolve));
+function setup(){
+ let resolve,reject;const held=new Promise((a,b)=>{resolve=a;reject=b;}),frames=[],routes=[],nodes=new Map(),writes=[];
+ const document={activeElement:null},make=id=>{const node={id,hidden:false,dataset:{},setAttribute(){},getClientRects(){return this.hidden?[]:[{}];},focus(){document.activeElement=this;}};nodes.set(id,node);return node;};
+ document.body=make('body');document.activeElement=make('feedback-body');const dialog={open:true,close(){this.open=false;}};
+ const session={loaded:true,body:'synthetic unsaved feedback',composing:false,edit(value){this.body=value;},flush(){writes.push(this.body);return held;}};
+ const fctx={activeCopyObservation:null,dialog,session,field:{value:session.body},closing:false,opening:1,copiedBody:null,outcome:null,sync(){}};
+ vm.createContext(fctx);vm.runInContext(leave+';globalThis.originalLeave=leave;',fctx);
+ const keys=['content','reading','ai','privacy','data','about'],groups=new Map(keys.map(key=>[key,make('section-'+key)]));
+ for(const key of keys)make('ux-settings-'+key+'-title');make('ux-settings-shell');make('ux-settings-group-back');
+ const context={pendingGroupLeave:null,group:'about',groupFocusSerial:0,groups,tabs:new Map(keys.map(key=>[key,make('tab-'+key)])),positions:new Map(),settingsVisible:true,rememberPosition(){},syncSettingsLocale(){},onRouteChange(value){routes.push({group:context.group,...value});},about:{feedback:{dialog},leave:()=>fctx.originalLeave(),refresh(){}},captureConsent:null,maintenanceProcessing:null,style:null,promptPosition:null,promptNext:null,promptAssist:null,compact:()=>true,requestAnimationFrame:fn=>frames.push(fn),document,$:id=>nodes.get(id),scrollTo(){}};
+ vm.createContext(context);vm.runInContext(activation+visibility+';globalThis.go=activateGroup;globalThis.visible=presentSettingsPreferences;',context);
+ return {context,session,dialog,fctx,resolve,reject,frames,routes,writes,document,nodes};
+}
+test('latest group intent waits for the original feedback save then wins once',async()=>{const f=setup();f.context.go('reading',{focus:true});f.context.go('data',{focus:true});assert.equal(f.context.group,'about');assert.deepEqual(f.writes,[f.session.body]);assert.deepEqual(f.routes,[]);f.resolve(true);await turn();assert.equal(f.context.group,'data');assert.equal(f.dialog.open,false);assert.deepEqual(f.routes,[{group:'data',replace:false}]);f.frames.forEach(fn=>fn());assert.equal(f.document.activeElement.id,'ux-settings-data-title');});
+test('latest directory request is not lost behind a held category request',async()=>{const f=setup();f.context.go('reading');f.context.go('index');f.resolve(true);await turn();assert.equal(f.context.group,'index');assert.equal(f.routes.length,1);assert.equal(f.writes.length,1);});
+test('refused original save retains draft and never admits latest destination',async()=>{const f=setup();f.context.go('reading');f.context.go('data');f.resolve(false);await turn();assert.equal(f.context.group,'about');assert.equal(f.dialog.open,true);assert.equal(f.session.body,'synthetic unsaved feedback');assert.deepEqual(f.routes,[]);assert.equal(f.writes.length,1);});
+test('About intent retires an older guarded route without inventing another save',async()=>{const f=setup();f.context.go('reading');f.context.go('about');f.resolve(true);await turn();assert.equal(f.context.group,'about');assert.deepEqual(f.routes,[]);assert.equal(f.writes.length,1);});
+test('hide and reopen cannot revive an old category intent',async()=>{const f=setup();f.context.go('reading');f.context.visible({visible:false});f.context.visible({visible:true});f.resolve(true);await turn();assert.equal(f.context.group,'about');assert.deepEqual(f.routes,[]);});
+test('invalid group does not cancel a legitimate pending route or dispatch another save',async()=>{const f=setup();f.context.go('reading');f.context.go('not-a-group');assert.equal(f.writes.length,1);f.resolve(true);await turn();assert.equal(f.context.group,'reading');assert.equal(f.routes.length,1);});
+test('a latest history restoration retains its no-push choice after original save',async()=>{const f=setup();f.context.go('reading');f.context.go('privacy',{history:false,focus:true});f.resolve(true);await turn();assert.equal(f.context.group,'privacy');assert.deepEqual(f.routes,[]);});
+test('newer focus after admitted navigation survives queued restoration',async()=>{const f=setup();f.context.go('reading',{focus:true});f.context.go('data',{focus:true});f.resolve(true);await turn();const latest={id:'new-user-choice',getClientRects:()=>[{}]};f.document.activeElement=latest;f.frames.forEach(fn=>fn());assert.equal(f.document.activeElement,latest);});
+test('composing feedback refuses navigation without any persistence',async()=>{const f=setup();f.session.composing=true;f.context.go('reading');f.context.go('data');await turn();assert.equal(f.context.group,'about');assert.equal(f.dialog.open,true);assert.deepEqual(f.routes,[]);assert.deepEqual(f.writes,[]);});
+test('rejected leave remains on original group without unhandled rejection',async()=>{const f=setup();f.context.go('reading');f.context.go('data');f.reject(Error('synthetic unexpected leave failure'));await turn();assert.equal(f.context.group,'about');assert.equal(f.dialog.open,true);assert.deepEqual(f.routes,[]);});

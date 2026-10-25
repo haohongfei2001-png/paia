@@ -1,0 +1,84 @@
+✖ latest group intent waits for the original feedback save then wins once (6.753184ms)
+✖ latest directory request is not lost behind a held category request (2.218624ms)
+✔ refused original save retains draft and never admits latest destination (1.645151ms)
+✔ About intent retires an older guarded route without inventing another save (1.763654ms)
+✔ hide and reopen cannot revive an old category intent (1.647147ms)
+✔ invalid group does not cancel a legitimate pending route or dispatch another save (1.463693ms)
+✖ a latest history restoration retains its no-push choice after original save (2.561127ms)
+✔ newer focus after admitted navigation survives queued restoration (1.771787ms)
+✔ composing feedback refuses navigation without any persistence (1.259383ms)
+✖ rejected leave remains on original group without unhandled rejection (1.66521ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 6
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 104.457531
+
+✖ failing tests:
+
+test at extension/tests/settings-feedback-navigation-intent.test.mjs:24:1
+✖ latest group intent waits for the original feedback save then wins once (6.753184ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'reading' !== 'data'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-settings-navigation-intent-20261025T0347Z/tree/extension/tests/settings-feedback-navigation-intent.test.mjs:24:325)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'reading',
+    expected: 'data',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-feedback-navigation-intent.test.mjs:25:1
+✖ latest directory request is not lost behind a held category request (2.218624ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'reading' !== 'index'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-settings-navigation-intent-20261025T0347Z/tree/extension/tests/settings-feedback-navigation-intent.test.mjs:25:184)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'reading',
+    expected: 'index',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-feedback-navigation-intent.test.mjs:30:1
+✖ a latest history restoration retains its no-push choice after original save (2.561127ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'reading'
+  - 'privacy'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-settings-navigation-intent-20261025T0347Z/tree/extension/tests/settings-feedback-navigation-intent.test.mjs:30:221)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'reading',
+    expected: 'privacy',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/settings-feedback-navigation-intent.test.mjs:33:1
+✖ rejected leave remains on original group without unhandled rejection (1.66521ms)
+  Error: synthetic unexpected leave failure
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-settings-navigation-intent-20261025T0347Z/tree/extension/tests/settings-feedback-navigation-intent.test.mjs:33:157)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

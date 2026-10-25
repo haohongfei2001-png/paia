@@ -1,0 +1,18 @@
+✔ old allowed close cannot dismiss a reopened detail (4.899435ms)
+✔ old rejected close cannot annotate a reopened detail (1.005489ms)
+✔ reopened detail can request its own guard while prior guard is pending (1.010495ms)
+✔ queued old native close event does not release a new pending guard (0.937799ms)
+✔ close superseded before guard microtask does not call old owner for new opening (0.737875ms)
+✔ current rejection retains detail and permits explicit retry without duplicating pending guard (0.615425ms)
+✔ read-only Settings destinations retain content and use labeled native dialogs without mounting side effects (1.746148ms)
+✔ guarded detail close and native Escape share one held owner acknowledgement (3.690086ms)
+✔ busy refusal and rejected close acknowledgement retain the original detail for explicit retry (1.249378ms)
+✔ destination presentation preserves the actual existing button listener and changes no owner state (0.838493ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 91.079711

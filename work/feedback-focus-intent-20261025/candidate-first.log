@@ -1,0 +1,26 @@
+✔ failed copy retains newer same-dialog focus and unchanged feedback text (2.959059ms)
+✔ failed copy retains newer same-text selection even when focus returns (0.688412ms)
+✔ failed copy retains selection-only changes without focus or body change (0.431985ms)
+✔ unchanged failed copy still focuses and selects current text for manual copying (1.303035ms)
+✔ successful copy preserves newer focus and removes temporary intent observers (0.958879ms)
+✔ typed feedback source-free validation uses original owner without Source/transaction reads (60.435901ms)
+✔ feedback CAS binds token to immutable payload; clear requires matching token and keeps other kinds (2.216708ms)
+✔ real recovery session restores exact text and serializes newer edits after held acknowledgement (1.36754ms)
+✔ lost acknowledgement retries original token; competing tab cannot overwrite (0.552462ms)
+✔ no consent is session-only; IME does not write, failed persistence retains body (0.475619ms)
+✔ restore/revoke or owner invalidation cannot turn late ACK into current saved status (0.863039ms)
+✔ failed initial read never permits overwrite of existing draft (0.417143ms)
+✔ dialog IME/failed-save leave stays open; explicit copy uses current text and mail URL has no content (1.702753ms)
+✔ unknown save remains lifecycle-dirty when user returns to previously saved text (0.722672ms)
+✔ late feedback copy failure cannot focus or select a closed dialog (0.958038ms)
+✔ late feedback copy completion cannot replace a reopened same-body dialog status (1.075321ms)
+✔ an older feedback copy failure cannot replace a newer successful copy (0.765836ms)
+✔ feedback copy completions cannot interrupt a newer IME composition or authorize failed-save departure (1.999729ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 394.229739

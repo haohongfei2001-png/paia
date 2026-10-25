@@ -1,0 +1,2 @@
+Initial full extension archive failed on unavailable screenshot blob6fdf24514e3a0540a761a22f636a40924c98648f; no lazy fetch, no root changes. Partial extraction retained in tree/.
+Selected source/test archive emitted the same unrelated missing screenshot warning; required runtime/test files were materialized. Exact baseline test/harness hashes independently compared against Git; no fixture changes. No missing blob fetched.

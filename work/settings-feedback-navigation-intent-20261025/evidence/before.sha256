@@ -1,0 +1,4 @@
+76e82fd84dc93b48b60808eaf63ffb3bbc1bd9006e882cf957ad3b5970168faa  extension/ui/settings-preferences.js
+f102fb3a387e01e54b98bd32cf3918e706fd07094847585fe88b600443ab8845  extension/tests/settings-feedback-navigation-intent.test.mjs
+543eccce57ced7f5020181b9d3b449a4d52e547f5468b6eccc920c32d3434ed9  extension/tests/settings-directory-focus-frame.test.mjs
+68c48bc13947539c2ea5e5ac9b0dc6033a1726579bc4ee43ab2ae152227bdcb2  extension/tests/settings-restore-intent.test.mjs

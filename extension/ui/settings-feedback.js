@@ -52,17 +52,35 @@ const messages={
 export function mountSettingsFeedback(host,{send,language=()=>document.documentElement.lang,control}={}){
  const node=(tag,id)=>{const el=document.createElement(tag);if(id)el.id=id;return el;},dialog=node('dialog','settings-feedback-dialog'),header=node('header'),title=node('h2','settings-feedback-title'),field=node('textarea','settings-feedback-body'),label=node('label'),note=node('p','settings-feedback-status'),actions=node('div'),close=node('button','settings-feedback-close'),retry=node('button','settings-feedback-retry'),copy=node('button','settings-feedback-copy'),mail=node('a','settings-feedback-mail');
  dialog.className='ux-settings-detail-dialog';dialog.setAttribute('aria-labelledby',title.id);field.setAttribute('aria-describedby',note.id);label.htmlFor=field.id;note.setAttribute('role','status');actions.className='ux-settings-consent-actions';for(const b of [close,retry,copy])b.type='button';mail.href='mailto:haohongfei2001@gmail.com';header.append(title,close);actions.append(retry,copy,mail);dialog.append(header,label,field,note,actions);host.append(dialog);
- let outcome=null,closing=false,copiedBody=null,opening=0,copyRequest=0;
+ let outcome=null,closing=false,copiedBody=null,opening=0,copyRequest=0,activeCopyObservation=null;
  const session=new SettingsFeedbackSession({send,changed:()=>{outcome=null;sync();}});
  function sync(){const zh=language()==='zh-CN',text=(a,b)=>zh?a:b;title.textContent=text('反馈','Feedback');label.textContent=text('反馈正文','Feedback text');close.textContent=text('关闭','Close');copy.textContent=text('复制正文','Copy text');retry.textContent=text('重试','Retry');mail.textContent=text('打开邮件应用','Open email app');field.disabled=!session.loaded;copy.disabled=!session.loaded||session.composing;retry.hidden=!['read-error','save-error'].includes(session.state);retry.disabled=!!session.saving||session.composing;const message=messages[outcome||session.state]||messages.ready;note.textContent=message[zh?0:1];}
- field.addEventListener('input',()=>{outcome=null;session.edit(field.value);if(!session.composing)void session.flush();});field.addEventListener('compositionstart',()=>{++copyRequest;session.composing=true;outcome=null;sync();});field.addEventListener('compositionend',()=>{session.composing=false;session.edit(field.value);void session.flush();});field.addEventListener('blur',()=>{if(!session.composing)void session.flush();});
+ field.addEventListener('input',()=>{outcome=null;session.edit(field.value);if(!session.composing)void session.flush();});field.addEventListener('compositionstart',()=>{++copyRequest;activeCopyObservation?.();session.composing=true;outcome=null;sync();});field.addEventListener('compositionend',()=>{session.composing=false;session.edit(field.value);void session.flush();});field.addEventListener('blur',()=>{if(!session.composing)void session.flush();});
  retry.addEventListener('click',async()=>{outcome=null;if(!session.loaded){if(await session.load())field.value=session.body;}else await session.flush();sync();});
- copy.addEventListener('click',async()=>{if(session.composing||!dialog.open)return;const value=field.value,generation=opening,ticket=++copyRequest;session.edit(value);const ok=await copyReadingText(value,{fallback:false});if(generation!==opening||ticket!==copyRequest||!dialog.open)return;if(ok)copiedBody=value;if(field.value===value){outcome=ok?'copied':'copy-error';sync();if(!ok){field.focus();field.select();}}});
- async function leave(){if(closing)return false;if(!dialog.open)return true;if(!session.loaded&&!session.body){opening++;session.generation++;dialog.close();return true;}if(session.composing){outcome='composing';sync();return false;}closing=true;try{session.edit(field.value);if(!await session.flush()&&copiedBody!==session.body)return false;opening++;dialog.close();return true;}finally{closing=false;}}
+ copy.addEventListener('click',async()=>{
+  if(session.composing||!dialog.open)return;
+  const value=field.value,generation=opening,ticket=++copyRequest;session.edit(value);
+  const focused=document.activeElement,start=field.selectionStart,end=field.selectionEnd,direction=field.selectionDirection;
+  activeCopyObservation?.();
+  let newerIntent=false;const changed=()=>{newerIntent=true;},events=['focusin','selectionchange','pointerdown','keydown','input'];
+  // Track intervening intent, including away-and-back changes, only while this
+  // original clipboard attempt is pending. Copy's initiating click is already past.
+  for(const type of events)document.addEventListener?.(type,changed,true);
+  let observing=true;const retire=()=>{if(!observing)return;observing=false;for(const type of events)document.removeEventListener?.(type,changed,true);if(activeCopyObservation===retire)activeCopyObservation=null;};activeCopyObservation=retire;
+  let ok;try{ok=await copyReadingText(value,{fallback:false});}
+  finally{retire();}
+  if(generation!==opening||ticket!==copyRequest||!dialog.open)return;
+  if(ok)copiedBody=value;
+  if(field.value===value){outcome=ok?'copied':'copy-error';sync();
+   if(!ok&&!newerIntent&&document.activeElement===focused&&field.selectionStart===start&&field.selectionEnd===end&&field.selectionDirection===direction){field.focus();field.select();}
+  }
+ });
+ async function leave(){if(closing)return false;if(!dialog.open)return true;if(!session.loaded&&!session.body){opening++;session.generation++;activeCopyObservation?.();dialog.close();return true;}if(session.composing){outcome='composing';sync();return false;}closing=true;try{session.edit(field.value);if(!await session.flush()&&copiedBody!==session.body)return false;opening++;activeCopyObservation?.();dialog.close();return true;}finally{closing=false;}}
  mail.addEventListener('click',event=>{if(!event.isTrusted)event.preventDefault();});
  const runtime=globalThis.chrome?.runtime,storage=globalThis.chrome?.storage;
  runtime?.onMessage?.addListener(message=>{if(session.generation>0&&message?.type==='ARCHIVE_CHANGED'&&['PAIA_BACKUP_RESTORE','CONSENT'].includes(message.cause))session.invalidate();});
  storage?.onChanged?.addListener((changes,area)=>{if(area!=='local'||!session.loaded)return;const change=changes['paia-recovery-draft:v1:settings_feedback:'+FEEDBACK_DRAFT_OWNER];if(change){const token=change.newValue?.token;if(token!==session.pending?.token&&token!==session.token)session.invalidate();}});
+ dialog.addEventListener('close',()=>{if(!dialog.open)activeCopyObservation?.();});
  close.addEventListener('click',()=>void leave());for(const type of ['cancel','paia:request-close'])dialog.addEventListener(type,event=>{event.preventDefault();void leave();});
- return {dialog,session,sync,leave,async show(){if(dialog.open)return;const generation=++opening;outcome=null;dialog.showModal();sync();await session.validate();if(generation!==opening||!dialog.open)return;field.value=session.body;if(dialog.open&&session.loaded)field.focus();sync();},control};
+ return {dialog,session,sync,leave,async show(){if(dialog.open)return;const generation=++opening;activeCopyObservation?.();outcome=null;dialog.showModal();sync();await session.validate();if(generation!==opening||!dialog.open)return;field.value=session.body;if(dialog.open&&session.loaded)field.focus();sync();},control};
 }

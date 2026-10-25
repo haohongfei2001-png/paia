@@ -1,0 +1,103 @@
+✖ old allowed close cannot dismiss a reopened detail (5.502163ms)
+✖ old rejected close cannot annotate a reopened detail (1.773627ms)
+✖ reopened detail can request its own guard while prior guard is pending (1.293737ms)
+✖ queued old native close event does not release a new pending guard (1.037768ms)
+✖ close superseded before guard microtask does not call old owner for new opening (1.06645ms)
+✔ current rejection retains detail and permits explicit retry without duplicating pending guard (2.07222ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 1
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.22226
+
+✖ failing tests:
+
+test at tests/settings-detail-close-lifetime.test.mjs:18:1
+✖ old allowed close cannot dismiss a reopened detail (5.502163ms)
+  AssertionError [ERR_ASSERTION]: the old acknowledgement belongs only to the old opening
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-settings-close-lifetime-20261025T0341Z/source/extension/tests/settings-detail-close-lifetime.test.mjs:19:159)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/settings-detail-close-lifetime.test.mjs:21:1
+✖ old rejected close cannot annotate a reopened detail (1.773627ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Could not close; retry: Restore'
+  - 'Close Restore'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-settings-close-lifetime-20261025T0341Z/source/extension/tests/settings-detail-close-lifetime.test.mjs:22:190)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Could not close; retry: Restore',
+    expected: 'Close Restore',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/settings-detail-close-lifetime.test.mjs:24:1
+✖ reopened detail can request its own guard while prior guard is pending (1.293737ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-settings-close-lifetime-20261025T0341Z/source/extension/tests/settings-detail-close-lifetime.test.mjs:26:80)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/settings-detail-close-lifetime.test.mjs:28:1
+✖ queued old native close event does not release a new pending guard (1.037768ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 2
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-settings-close-lifetime-20261025T0341Z/source/extension/tests/settings-detail-close-lifetime.test.mjs:30:120)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/settings-detail-close-lifetime.test.mjs:32:1
+✖ close superseded before guard microtask does not call old owner for new opening (1.06645ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-settings-close-lifetime-20261025T0341Z/source/extension/tests/settings-detail-close-lifetime.test.mjs:33:136)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -24,7 +24,7 @@ const PREFS=[
  ['ux-reading-width','readingWidth','阅读宽度','Reading width',[['narrow','紧凑','Compact'],['standard','标准','Standard'],['wide','宽','Wide']]],
  ['time-display','timeDisplay','时间显示','Time display',[['date_and_time','标准','Standard'],['date_and_seconds','详细','Detailed']]]
 ];
-let maintenanceProcessing=null,captureConsent=null,style=null,promptNext=null,promptAssist=null,promptPosition=null,about=null,settingsDetails=null,settingsVisible=false,onBack=()=>{},onRouteChange=()=>{},group=null,installed=false,restoring=false,groupFocusSerial=0;
+let maintenanceProcessing=null,captureConsent=null,style=null,promptNext=null,promptAssist=null,promptPosition=null,about=null,settingsDetails=null,settingsVisible=false,onBack=()=>{},onRouteChange=()=>{},group=null,installed=false,restoring=false,groupFocusSerial=0,pendingGroupLeave=null;
 const groups=new Map(),tabs=new Map(),positions=new Map();
 const archiveOrderSettings=new ArchiveOrderSettings();
 const local=new SettingsLocalState({send:request,changed:()=>applyPreferences()});
@@ -88,8 +88,21 @@ export function captureSettingsView(){return {settingsGroup:group||'index',setti
 export function captureSettingsRestoreIntent(){return groupFocusSerial;}
 export function restoreSettingsView(value={},intent=groupFocusSerial){if(intent!==groupFocusSerial)return;const key=value.settingsGroup==='index'?'index':SETTINGS_LABELS[value.settingsGroup]?value.settingsGroup:null;if(key===null)return;restoring=true;try{if(value.settingsPosition)positions.set(key,value.settingsPosition);activateGroup(key,{history:false,focus:true});}finally{restoring=false;}}
 function activateGroup(key,{history=true,focus=false}={}){
- if(key!=='about'&&about?.feedback?.dialog.open){const expected=groupFocusSerial,visible=settingsVisible;void about.leave().then(ok=>{if(ok&&groupFocusSerial===expected&&settingsVisible===visible)activateGroup(key,{history,focus});});return;}
- if(key!=='index'&&!groups.has(key))return;const serial=++groupFocusSerial;if(history)rememberPosition();const changed=group!==key;group=key;const index=key==='index';$('ux-settings-shell').dataset.settingsIndex=String(index);
+ if(key!=='index'&&!groups.has(key))return;
+ if(key!=='about'&&about?.feedback?.dialog.open){
+  // Category intent may change while the original feedback owner saves. Share
+  // that one leave result; a later click neither retries nor bypasses the guard.
+  const intent={key,history,focus,serial:groupFocusSerial,visible:settingsVisible};
+  if(pendingGroupLeave){pendingGroupLeave.intent=intent;return;}
+  const pending={intent};pendingGroupLeave=pending;
+  void (async()=>{try{const ok=await about.leave();
+   if(pendingGroupLeave!==pending)return;
+   pendingGroupLeave=null;const latest=pending.intent;
+   if(ok&&groupFocusSerial===latest.serial&&settingsVisible===latest.visible)activateGroup(latest.key,{history:latest.history,focus:latest.focus});
+  }catch{if(pendingGroupLeave===pending)pendingGroupLeave=null;}})();
+  return;
+ }
+ const serial=++groupFocusSerial;if(history)rememberPosition();const changed=group!==key;group=key;const index=key==='index';$('ux-settings-shell').dataset.settingsIndex=String(index);
  for(const [name,section]of groups)section.hidden=index||name!==key;for(const [name,tab]of tabs)tab.setAttribute('aria-current',name===key?'page':'false');
  const feedback=$('ux-settings-feedback');if(feedback){const host=groups.get(key);if(host)host.insertBefore(feedback,host.children[1]||null);else $('ux-settings-header')?.append(feedback);const retry=$('settings-read-retry');if(retry)feedback.after(retry);}
  $('ux-settings-group-back').hidden=index;syncSettingsLocale();if(history&&changed)onRouteChange({replace:false});if(settingsVisible&&key==='about')void about?.refresh();if(settingsVisible&&key==='ai'){void style?.refresh();void promptPosition?.refresh();void promptNext?.refresh();void promptAssist?.refresh();void maintenanceProcessing?.refresh();}
@@ -127,7 +140,7 @@ export function installSettingsPreferences({back=()=>{},routeChanged=()=>{},back
  globalThis.matchMedia?.('(prefers-color-scheme: dark)')?.addEventListener?.('change',()=>{if(uxPreferences.appearance==='system')applyPreferences();});globalThis.addEventListener?.('languagechange',()=>{if(uxPreferences.language==='system')applyPreferences();});globalThis.matchMedia?.('(max-width:1023px)')?.addEventListener?.('change',()=>{if(!compact()&&group==='index')activateGroup('content',{history:false});});
  const savePosition=()=>{if(settingsVisible&&!restoring){rememberPosition();onRouteChange({replace:true});}};globalThis.addEventListener?.('scroll',savePosition,{passive:true});$('settings-panel')?.addEventListener('focusin',savePosition);
 }
-export function presentSettingsPreferences({visible=false}={}){const opening=visible&&!settingsVisible;if(!visible&&settingsVisible){rememberPosition();groupFocusSerial++;}settingsVisible=visible;captureConsent?.sync();maintenanceProcessing?.sync();if(opening){syncSettingsLocale();if(group===null)activateGroup(compact()?'index':'content',{history:false});else if(group==='about')void about?.refresh();else if(group==='ai'){void style?.refresh();void promptPosition?.refresh();void promptNext?.refresh();void promptAssist?.refresh();void maintenanceProcessing?.refresh();}}}
+export function presentSettingsPreferences({visible=false}={}){const opening=visible&&!settingsVisible;if(!visible&&settingsVisible){rememberPosition();groupFocusSerial++;pendingGroupLeave=null;}settingsVisible=visible;captureConsent?.sync();maintenanceProcessing?.sync();if(opening){syncSettingsLocale();if(group===null)activateGroup(compact()?'index':'content',{history:false});else if(group==='about')void about?.refresh();else if(group==='ai'){void style?.refresh();void promptPosition?.refresh();void promptNext?.refresh();void promptAssist?.refresh();void maintenanceProcessing?.refresh();}}}
 export {presentSettingsRecovery} from './maintenance-recovery.js';
 
 export function canLeaveSettingsCapture(){return captureConsent?.canLeave()!==false;}

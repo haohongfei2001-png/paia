@@ -25,17 +25,20 @@ export function mountSettingsDetail({id,title,dialogTitle=()=>title,content,valu
  // Keep sequential keyboard navigation inside the open modal. Native dialog
  // Escape/close and return focus remain browser-owned.
  installSettingsDialogKeyboard(dialog);
- let closing=false;
+ let opening=0,closing=null;
  const requestClose=()=>{
   if(!beforeClose){dialog.close();return;}
   if(closing||!dialog.open)return;
-  closing=true;close.disabled=true;
-  return Promise.resolve().then(beforeClose).then(allowed=>{if(allowed===true&&dialog.open)dialog.close();}).catch(()=>{
+  const attempt={opening};closing=attempt;close.disabled=true;
+  const current=()=>closing===attempt&&opening===attempt.opening&&dialog.open;
+  return Promise.resolve().then(()=>current()?beforeClose():false).then(allowed=>{if(allowed===true&&current())dialog.close();}).catch(()=>{
    // Failed owner acknowledgement leaves the detail and its current state open.
-   close.setAttribute('aria-label',(language()==='zh-CN'?'尚未关闭，请重试：':'Could not close; retry: ')+heading.textContent);
-  }).finally(()=>{closing=false;close.disabled=false;});
+   if(current())close.setAttribute('aria-label',(language()==='zh-CN'?'尚未关闭，请重试：':'Could not close; retry: ')+heading.textContent);
+  }).finally(()=>{if(closing===attempt){closing=null;close.disabled=false;}});
  };
- row.addEventListener('click',()=>{if(dialog.open)return;sync();dialog.showModal();void onOpen();});close.addEventListener('click',()=>void requestClose());
+ // A new presentation owns its own close request. Late acknowledgement,
+ // failure and cleanup from an older opening cannot affect this one.
+ row.addEventListener('click',()=>{if(dialog.open)return;opening++;closing=null;close.disabled=false;sync();dialog.showModal();void onOpen();});close.addEventListener('click',()=>void requestClose());
  if(beforeClose)for(const type of ['cancel','paia:request-close'])dialog.addEventListener(type,event=>{event.preventDefault();void requestClose();});sync();
  return {row,dialog,sync};
 }

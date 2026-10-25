@@ -1,0 +1,55 @@
+✔ a pending directory return preserves the next Reading keyboard focus and selection (2.779736ms)
+✔ an older frame cannot revive after returning to the same group (0.815669ms)
+✔ a non-focusing activation also invalidates an older queued return (0.80293ms)
+✔ a user-selected visible control keeps focus and scroll before restoration (0.587965ms)
+✔ uninterrupted original saved-control restoration retains its recorded scroll (0.689454ms)
+✔ closing and reopening Settings cannot revive its previous queued focus (0.787879ms)
+✔ latest group intent waits for the original feedback save then wins once (6.727238ms)
+✔ latest directory request is not lost behind a held category request (1.681011ms)
+✔ refused original save retains draft and never admits latest destination (2.268214ms)
+✔ About intent retires an older guarded route without inventing another save (1.694451ms)
+✔ hide and reopen cannot revive an old category intent (1.603968ms)
+✔ invalid group does not cancel a legitimate pending route or dispatch another save (1.691967ms)
+✔ a latest history restoration retains its no-push choice after original save (2.74799ms)
+✔ newer focus after admitted navigation survives queued restoration (1.325929ms)
+✔ composing feedback refuses navigation without any persistence (1.221475ms)
+✔ rejected leave remains on original group without unhandled rejection (1.51744ms)
+✔ reload preserves an admitted Reading choice during PAIA_MEMORY_STATUS (11.372226ms)
+✔ reload preserves an admitted Reading choice during GET_MIGRATION_STATUS (2.561475ms)
+✔ popstate preserves an admitted Reading choice during PAIA_MEMORY_STATUS (2.884099ms)
+✔ popstate preserves an admitted Reading choice during GET_MIGRATION_STATUS (3.099126ms)
+✔ restore preserves reverse, ABA and same-group intent: ai (2.052647ms)
+✔ restore preserves reverse, ABA and same-group intent: reading-content (1.822259ms)
+✔ restore preserves reverse, ABA and same-group intent: content (1.958078ms)
+✔ reload without intervening intent restores saved AI, position and return origin (2.40816ms)
+✔ popstate without intervening intent restores saved AI, position and return origin (1.682082ms)
+✔ settled restoration keeps ordinary selection, history and compact focus behavior (2.482449ms)
+✔ original leave failed-save still prevents Settings reads and restoration (1.281113ms)
+✔ original leave capture-refusal still prevents Settings reads and restoration (1.128048ms)
+✖ a refused About leave is not a newer admitted group intent (1.134477ms)
+✔ a superseding popstate retains original navigation currentness and final history owner (1.852874ms)
+✔ ordinary Back and Forward retain saved groups after a prior interrupted restoration (3.46309ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 30
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 132.58883
+
+✖ failing tests:
+
+test at extension/tests/settings-restore-intent.test.mjs:69:1
+✖ a refused About leave is not a newer admitted group intent (1.134477ms)
+  ReferenceError: pendingGroupLeave is not defined
+      at activateGroup (evalmachine.<anonymous>:15:3)
+      at evalmachine.<anonymous>:1:35
+      at Object.originalGroupClick (evalmachine.<anonymous>:1:72)
+      at TestContext.<anonymous> (file:///workspace/scratch/ff1c41bf9b29/paia-settings-navigation-intent-20261025T0347Z/tree/extension/tests/settings-restore-intent.test.mjs:70:135)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

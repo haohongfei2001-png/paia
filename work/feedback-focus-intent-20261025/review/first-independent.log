@@ -1,0 +1,34 @@
+✔ failed copy retains newer same-dialog focus and unchanged feedback text (2.232486ms)
+✔ failed copy retains newer same-text selection even when focus returns (0.599933ms)
+✔ failed copy retains selection-only changes without focus or body change (0.483411ms)
+✔ unchanged failed copy still focuses and selects current text for manual copying (1.261056ms)
+✔ successful copy preserves newer focus and removes temporary intent observers (0.706149ms)
+✔ typed feedback source-free validation uses original owner without Source/transaction reads (57.403337ms)
+✔ feedback CAS binds token to immutable payload; clear requires matching token and keeps other kinds (1.50182ms)
+✔ real recovery session restores exact text and serializes newer edits after held acknowledgement (1.157683ms)
+✔ lost acknowledgement retries original token; competing tab cannot overwrite (0.663186ms)
+✔ no consent is session-only; IME does not write, failed persistence retains body (0.357456ms)
+✔ restore/revoke or owner invalidation cannot turn late ACK into current saved status (0.831594ms)
+✔ failed initial read never permits overwrite of existing draft (0.368261ms)
+✔ dialog IME/failed-save leave stays open; explicit copy uses current text and mail URL has no content (1.974426ms)
+✔ unknown save remains lifecycle-dirty when user returns to previously saved text (0.554686ms)
+✔ late feedback copy failure cannot focus or select a closed dialog (0.999851ms)
+✔ late feedback copy completion cannot replace a reopened same-body dialog status (1.271301ms)
+✔ an older feedback copy failure cannot replace a newer successful copy (0.74749ms)
+✔ feedback copy completions cannot interrupt a newer IME composition or authorize failed-save departure (1.87509ms)
+✔ independent focus away and back with identical final snapshot retains newer intent (2.556302ms)
+✔ independent selection ABA with original final range does not select all (0.945621ms)
+✔ independent direction-only change is retained without event (0.684458ms)
+✔ independent outside-dialog focus is retained without event (1.263519ms)
+✔ independent pointerdown intent retains identical final snapshot (0.831103ms)
+✔ independent keydown intent retains identical final snapshot (0.44161ms)
+✔ independent input intent retains identical final snapshot (0.627754ms)
+✔ independent overlapping pending attempts clean only their own observers (0.949567ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 385.421279

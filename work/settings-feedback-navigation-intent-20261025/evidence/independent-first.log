@@ -1,0 +1,39 @@
+✔ a pending directory return preserves the next Reading keyboard focus and selection (3.186762ms)
+✔ an older frame cannot revive after returning to the same group (1.01234ms)
+✔ a non-focusing activation also invalidates an older queued return (0.894557ms)
+✔ a user-selected visible control keeps focus and scroll before restoration (0.691197ms)
+✔ uninterrupted original saved-control restoration retains its recorded scroll (0.703375ms)
+✔ closing and reopening Settings cannot revive its previous queued focus (0.724066ms)
+✔ latest group intent waits for the original feedback save then wins once (5.99044ms)
+✔ latest directory request is not lost behind a held category request (2.006915ms)
+✔ refused original save retains draft and never admits latest destination (1.325191ms)
+✔ About intent retires an older guarded route without inventing another save (1.315296ms)
+✔ hide and reopen cannot revive an old category intent (1.44014ms)
+✔ invalid group does not cancel a legitimate pending route or dispatch another save (1.2632ms)
+✔ a latest history restoration retains its no-push choice after original save (2.305084ms)
+✔ newer focus after admitted navigation survives queued restoration (1.417817ms)
+✔ composing feedback refuses navigation without any persistence (1.320694ms)
+✔ rejected leave remains on original group without unhandled rejection (1.50118ms)
+✔ reload preserves an admitted Reading choice during PAIA_MEMORY_STATUS (9.460529ms)
+✔ reload preserves an admitted Reading choice during GET_MIGRATION_STATUS (1.911394ms)
+✔ popstate preserves an admitted Reading choice during PAIA_MEMORY_STATUS (3.453966ms)
+✔ popstate preserves an admitted Reading choice during GET_MIGRATION_STATUS (1.585103ms)
+✔ restore preserves reverse, ABA and same-group intent: ai (1.769595ms)
+✔ restore preserves reverse, ABA and same-group intent: reading-content (1.444216ms)
+✔ restore preserves reverse, ABA and same-group intent: content (1.522552ms)
+✔ reload without intervening intent restores saved AI, position and return origin (1.838837ms)
+✔ popstate without intervening intent restores saved AI, position and return origin (1.490004ms)
+✔ settled restoration keeps ordinary selection, history and compact focus behavior (1.977581ms)
+✔ original leave failed-save still prevents Settings reads and restoration (1.194088ms)
+✔ original leave capture-refusal still prevents Settings reads and restoration (1.044719ms)
+✔ a refused About leave is not a newer admitted group intent (0.959693ms)
+✔ a superseding popstate retains original navigation currentness and final history owner (1.77971ms)
+✔ ordinary Back and Forward retain saved groups after a prior interrupted restoration (2.849696ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 117.365159
