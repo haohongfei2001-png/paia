@@ -4,7 +4,7 @@ import {createOriginalRecoveryWork,chargeOriginalRecoveryWork,tightenOriginalRec
 import {SourcePurgeGroupedCheckpointRestore,validateSourcePurgeCheckpointGraph,validateSourcePurgeCheckpointTail,requireCheckpointRevisionRetention} from './source-purge-group.js';
 import {sourcePurgeRestoreKey,sourcePurgeProtocolControls} from './source-purge-protocol-controls.js';
 import {StagedSyncRestore,checkpointItems} from './checkpoints.js';
-import {validateGroupedCheckpointGraph,requireActivatedSourceBootstrapUnion} from './group-checkpoint.js';
+import {validateGroupedCheckpointGraph,requireSourceBootstrapUnionPublication} from './group-checkpoint.js';
 import {assertProtocolObjectReference,readObject,SEGMENT_PROFILE} from './segments.js';
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
 import {bytes,clone,decodeJSON,equal,exact,fail,hash,opaque,SyncError} from './value.js';
@@ -288,15 +288,15 @@ export class LocalSyncRecoverySession {
  async discover(){return this.#run('discovering',async serial=>clone((await this.#discover(serial)).discovered.ref));}
  // Publication may consume two remote parents only after the original atomic
  // union activation is proven, under this discovery's SAME remaining ticket.
- async discoverPublicationParents(){return this.#run('discovering',async serial=>{
+ async discoverPublicationParents({publicationWork=null}={}){return this.#run('discovering',async serial=>{
   const result=await this.#discover(serial),{ref,work}=result.discovered;
   try{
    await this.#native(work,()=>this.#readUntil(async()=>{
-    if(this.#union(ref))await requireActivatedSourceBootstrapUnion(this.#core,{store:this.#store,selection:ref});
+    if(this.#union(ref))await requireSourceBootstrapUnionPublication(this.#core,{store:this.#store,selection:ref,publicationWork});
     else{
      const active=await this.#core.transaction(false,t=>t.get('meta',this.#core.prefix+'active'));
      if(this.#union(active?.selection)){
-      await requireActivatedSourceBootstrapUnion(this.#core,{store:this.#store,selection:active.selection});
+      await requireSourceBootstrapUnionPublication(this.#core,{store:this.#store,selection:active.selection,publicationWork});
       const retained=new Set(),queue=[ref.id];for(let at=0;at<queue.length;at++){const id=queue[at];if(retained.has(id))continue;retained.add(id);queue.push(...result.discovered.parents.get(id)??[]);}
       if(active.selection.headRefs.some(parent=>!retained.has(parent.id)||!equal(result.discovered.refs.get(parent.id),parent)))fail('BNS_CHECKPOINT_PUBLICATION_REMOTE_CHANGED');
      }

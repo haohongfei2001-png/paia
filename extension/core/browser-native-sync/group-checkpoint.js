@@ -1,3 +1,5 @@
+import {chargeOriginalCheckpointPublicationWork,requireOriginalCheckpointPublicationControls} from './checkpoint-publication.js';
+import {sourceUnionPublicationGroups,requireSourceUnionPublicationPhysical} from './source-union-publication-continuation.js';
 import {flushNavigationWrites} from '../archive-navigation-invalidation.js';
 import {flushSemanticWrites} from '../ai-usage/delta.js';
 import {decideLight,FILTER_VERSIONS} from '../smart-filter.js';
@@ -33,14 +35,14 @@ import {JournalRestoreFence,readRestoreEpoch,preparePromptBindingReplay} from '.
 import {ArchiveError,CONSENT_VERSION} from '../constants.js';
 import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque,SyncError} from './value.js';
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
-import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,originalGenerationRepositoryTransaction,requireRepositoryTransactionDataMethods,awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
+import {observeRepositoryWriteFence,requireRepositoryWriteFence,currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,originalGenerationRepositoryTransaction,requireRepositoryTransactionDataMethods,awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
 import {finalConsumerPreferenceOperations,prepareRestoredConsumerPreferenceApplication,applyRestoredConsumerPreferenceOwners} from './consumer-preference-restore.js';
 import {CONSUMER_PUBLICATION_PENDING_ID,requireConsumerPublicationSettled} from './consumer-publication-state.js';
 import {sealManualMergeTransaction} from './manual-merge-terminal.js';
 import {topicDesiredMaterializer} from './topic-desired-journal.js';
 const own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
 const withoutId=({id,...row})=>row;
-const sourceUnionProofs=new WeakMap();
+const sourceUnionProofs=new WeakMap(),sourceUnionPublicationCuts=new WeakMap();
 const canonicalGenerationStates=new WeakMap(),canonicalGenerationProofs=new WeakMap(),canonicalGenerationPublications=new WeakMap(),canonicalGenerationBindings=new WeakMap();
 function originalGenerationBinding(restore){const b=canonicalGenerationBindings.get(restore);if(!b||['store','live','stage','restoreId'].some(key=>Object.getOwnPropertyDescriptor(restore,key)?.value!==b[key]))fail('BNS_GENERATION_PROOF_REQUIRED');return b;}
 const generationRepositoryAuthorities=new WeakMap(),generationStorageChecks=new WeakMap(),defaultCheckpoint=async()=>{};
@@ -89,7 +91,7 @@ export function requireGroupedCheckpointDispatchCut(core,store,result){
  if(hasSourcePurgeDispatchCut(result))return requireSourcePurgeDispatchCut(core,store,result);
  const proof=checkpointDispatchCuts.get(result);
  if(!proof||proof.core!==core||proof.store!==store||store.repository!==core.repository||store.tail!==proof.tail)fail('BNS_SNAPSHOT_CHANGED');
- requireOriginalGenerationCoreMethods(core);requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalControlObservation(store,proof.observation);return true;
+ requireOriginalGenerationCoreMethods(core);requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalControlObservation(store,proof.observation);if(proof.union){chargeOriginalCheckpointPublicationWork(proof.union.work,core,store,undefined,0);requireRepositoryWriteFence(core.repository,proof.union.fence);}return true;
 }
 async function buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents,mixed=false){
  let cap;
@@ -107,7 +109,8 @@ async function buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,
  }catch(error){if(error?.code==='BNS_HUMAN_CHANGED')fail('BNS_SNAPSHOT_CHANGED');throw error;}
  finally{if(cap)releaseHumanCurrentUnindexedProjection(cap);}
 }
-export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGMENT_PROFILE,parents=[],currentHumanProjection=false,currentSourceWorkingProjection=false,currentMixedProjection=false,sourcePurgeProjection=false,dispatchQualification=false}={}){
+export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGMENT_PROFILE,parents=[],currentHumanProjection=false,currentSourceWorkingProjection=false,currentMixedProjection=false,sourcePurgeProjection=false,dispatchQualification=false,publicationWork=null,publicationFinalCut=false}={}){
+ if(typeof publicationFinalCut!=='boolean'||publicationFinalCut&&!publicationWork)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');let union=publicationWork?sourceUnionPublicationCuts.get(publicationWork):null;if(publicationWork)chargeOriginalCheckpointPublicationWork(publicationWork,core,store,undefined,0);if(union&&[currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection,sourcePurgeProjection].some(value=>value!==false))fail('BNS_SOURCE_UNION_PROOF_REQUIRED');
  if(typeof dispatchQualification!=='boolean'||dispatchQualification&&[currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection].some(value=>value!==false))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  if(typeof sourcePurgeProjection!=='boolean')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  if(sourcePurgeProjection){if([currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection].some(value=>value!==false))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');return buildSourcePurgeGroupedCheckpoint(core,transport,{store,profile,parents,dispatchQualification});}
@@ -117,11 +120,12 @@ export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGME
  if(store?.repository!==core.repository)fail('BNS_GROUP_BINDING');await store.finishFoundation();
  const cut=await store.run(()=>core.transaction(false,t=>authority(store,core,t))),plan=await prepareGroupCheckpointPlan(core,await allOperations(core)),scope=await prepareGroupScope(plan,{store});
  let dispatchProof=null,contextPublication=null;
- const verifyCut=async()=>{let originalScope,calls=0,observation;const check=async()=>{if(dispatchQualification)observation=(await observeOriginalControlPublication(store)).token;return core.transaction(false,async t=>{if(++calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScope=t;if(currentHumanProjection)await requireGroupCurrentProjection(store,core,t,scope,plan);else{if(!equal(await authority(store,core,t),cut))fail('BNS_SNAPSHOT_CHANGED');await requireCommittedPlan(core,t,plan);await requireGroupScope(store,t,scope);await requireContextGenerationPublication(t,store,core,plan,contextPublication);}});};
+ if(publicationWork){chargeOriginalCheckpointPublicationWork(publicationWork,core,store,undefined,0);const active=await core.transaction(false,t=>t.get('meta',core.prefix+'active'));chargeOriginalCheckpointPublicationWork(publicationWork,core,store,active);if(active?.selection?.kind==='source-bootstrap-union'){if(!union||union.core!==core||union.store!==store)fail('BNS_SOURCE_UNION_PROOF_REQUIRED');}}
+ const verifyCut=async(terminal=false)=>{let originalScope,calls=0,observation,unionFence;const check=async()=>{if(dispatchQualification)observation=(await observeOriginalControlPublication(store)).token;return core.transaction(false,async t=>{if(++calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScope=t;if(currentHumanProjection)await requireGroupCurrentProjection(store,core,t,scope,plan);else{if(!equal(await authority(store,core,t),cut))fail('BNS_SNAPSHOT_CHANGED');await requireCommittedPlan(core,t,plan);await requireGroupScope(store,t,scope);await requireContextGenerationPublication(t,store,core,plan,contextPublication);}if(union&&(!publicationFinalCut||terminal))unionFence=await requireSourceUnionPublicationCut(publicationWork,union,t,publicationFinalCut&&terminal);});};
   // The native certificate pins the settled Store tail. Direct readonly Core
   // inspection leaves that tail intact; a genuine Store operation invalidates
   // it. Never rebind the tail to accommodate an intervening queued operation.
-  if(currentHumanProjection){await check();if(calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');await awaitRepositoryTransactionSettled(core.repository,originalScope);requireRepositoryCommittedIdentity(core.repository,originalScope);}else{const pending=store.run(check),tail=store.tail;await pending;if(dispatchQualification){if(store.tail!==tail)fail('BNS_SNAPSHOT_CHANGED');requireOriginalControlObservation(store,observation);dispatchProof={core,store,tail,observation};}}
+  if(currentHumanProjection){await check();if(calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');await awaitRepositoryTransactionSettled(core.repository,originalScope);requireRepositoryCommittedIdentity(core.repository,originalScope);}else{const pending=store.run(check),tail=store.tail;await pending;if(dispatchQualification){if(store.tail!==tail)fail('BNS_SNAPSHOT_CHANGED');requireOriginalControlObservation(store,observation);dispatchProof={core,store,tail,observation,...(union?{union:{work:publicationWork,fence:unionFence}}:{})};}}
  };
  let currentPrepared=false;try{contextPublication=await prepareContextGenerationPublication(store,core,plan);if(currentHumanProjection){await prepareGroupCurrentProjection(store,core,scope,plan);currentPrepared=true;}
  await verifyCut();
@@ -135,7 +139,7 @@ export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGME
  }
  // A transport await may overlap a local edit; never advertise a stale cut as a
  // completed current checkpoint even though its immutable object may exist.
- await verifyCut();
+ await verifyCut(true);
  const result={ref,manifest,cut:currentHumanProjection?checkpoint.cut:cut};if(dispatchQualification){checkpointDispatchCuts.set(result,dispatchProof);requireGroupedCheckpointDispatchCut(core,store,result);}return result;
  }catch(error){if(currentHumanProjection&&error?.code==='BNS_HUMAN_CHANGED')fail('BNS_SNAPSHOT_CHANGED');throw error;}finally{releaseContextGenerationPublication(contextPublication);if(currentPrepared)releaseGroupCurrentProjection(scope);}
 }
@@ -679,6 +683,73 @@ export async function requireActivatedSourceBootstrapUnion(core,{store,selection
  await restore.activate();checkOriginalRecoveryWork(core.repository,ticket);
  const freeze=value=>{if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
  return Object.freeze({selection:freeze(clone(selection)),parents:Object.freeze(selection.headRefs.map(ref=>ref.id)),graphDigest:row.graphDigest,namespace:row.replayId,restoreId:active.restoreId});
+}
+
+// Full private cut survives discovery, but no recovery ticket is reopened.
+// Only changed repository generations pay a new comparison on the EXISTING
+// producer ledger. Its sole allowed changes are exact original transport
+// controls authenticated against that producer's validated publication journal.
+async function requireSourceUnionPublicationCut(work,cut,t,force=false){
+ const {core,store}=cut;chargeOriginalCheckpointPublicationWork(work,core,store,undefined,0);
+ try{requireRepositoryWriteFence(core.repository,cut.fence);if(!force)return cut.fence;}catch(error){if(error?.code!=='STALE_BASE')throw error;}
+ const prefix=core.prefix+'generation:'+cut.namespace+':',control=row=>row.id.startsWith(prefix+'google-appdata-allocation:')||row.id.startsWith(prefix+'onedrive-upload-attempt:');
+ for(const table of t.tx.objectStoreNames){
+  const current=[];let after=null;for(;;){
+   // These original tables are id-keyed. Bounded getAll returns the actual
+   // values once, rather than rematerializing every key beside row.id.
+   chargeOriginalCheckpointPublicationWork(work,core,store,after,1);const rows=await t.all(table,null,after===null?undefined:IDBKeyRange.lowerBound(after,true),64);chargeOriginalCheckpointPublicationWork(work,core,store,rows,rows.length);
+   if(!Array.isArray(rows)||rows.length>64)fail('BNS_GROUP_PAGE_INVALID');for(const row of rows){if(typeof row?.id!=='string'||after!==null&&row.id<=after)fail('BNS_GROUP_PAGE_INVALID');current.push(row);after=row.id;}if(rows.length<64)break;
+  }
+  const expected=cut.tables.get(table);if(!expected)fail('BNS_SOURCE_UNION_PROOF_REQUIRED');chargeOriginalCheckpointPublicationWork(work,core,store,expected);
+  if(table==='meta'){
+   const oldControls=expected.filter(control),nowControls=current.filter(control);requireOriginalCheckpointPublicationControls(work,core,store,nowControls,cut.namespace);
+   if(oldControls.some(row=>!equalSourceWorkingPhysicalTree(nowControls.find(now=>now.id===row.id),row))||!equalSourceWorkingPhysicalTree(current.filter(row=>!control(row)),expected.filter(row=>!control(row))))fail('BNS_SOURCE_UNION_CONTINUATION_INVALID');
+  }else if(!equalSourceWorkingPhysicalTree(current,expected))fail('BNS_SOURCE_UNION_CONTINUATION_INVALID');
+ }
+ if([...t.tx.objectStoreNames].length!==cut.tables.size)fail('BNS_SOURCE_UNION_PROOF_REQUIRED');
+ cut.fence=observeRepositoryWriteFence(core.repository);return cut.fence;
+}
+
+// Separate publication continuation: the original restore acknowledgment above
+// remains exact. Only receipt-declared historical operations reauthenticate the
+// old union; the complete current graph must independently prove fresh local
+// Source groups and all of their original physical/protocol provenance.
+export async function requireSourceBootstrapUnionPublication(core,{store,selection,publicationWork=null}={}){
+ if(store?.repository!==core?.repository)fail('BNS_GROUP_BINDING');const ticket=currentOriginalRecoveryWork(core.repository);if(!ticket)fail('BNS_SOURCE_UNION_WORK_REQUIRED');checkOriginalRecoveryWork(core.repository,ticket);if(selection!==undefined)assertSourceBootstrapUnionSelection(selection);
+ const active=await store.run(()=>core.transaction(false,t=>t.get('meta',core.prefix+'active')));
+ if(!active||!own(active,['id','namespace','restoreId','selection','graphDigest'])||!opaque(active.restoreId)||selection!==undefined&&!equal(active.selection,selection))fail('BNS_SOURCE_UNION_ACTIVATION_REQUIRED');
+ const restore=new GroupedCheckpointRestore(core,{store,restoreId:active.restoreId});sourceUnionTicket(restore);
+ const state=await restore.stage.read('restore');sourceUnionState(restore,state);
+ if(state.phase!=='activated'||state.replayId!==await sourceUnionReplayId(restore,state.base,state.selection)||!equal(active,{id:core.prefix+'active',namespace:state.replayId,restoreId:restore.restoreId,selection:state.selection,graphDigest:state.graphDigest}))fail('BNS_SOURCE_UNION_ACTIVATION_REQUIRED');
+ const replay=new BrowserNativeSyncCore(core.repository,{datasetId:core.datasetId,deviceId:core.deviceId,namespace:state.replayId}),operations=await allOperations(replay);
+ if(operations.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');if(operations.some(op=>!['sourceBootstrapMember','sourceBootstrapCommit'].includes(op.type)))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+ if(!Array.isArray(state.receipt?.cuts)||state.receipt.cuts.length!==3||state.receipt.cuts.some(cut=>!Array.isArray(cut.items)))fail('BNS_RESTORE_STAGE_CHANGED');
+ // Do not let a caller choose an arbitrary old subset. The original receipt's
+ // own ordered hash chains authenticate every declared revision and each cut.
+ const ids=new Set(state.receipt.cuts.flatMap(cut=>cut.items.filter(item=>item.kind==='revision').map(item=>item.revisionId))),original=operations.filter(op=>ids.has(op.revisionId));
+ const proof=await prepareStoredSourceBootstrapUnion(core,{store,receipt:state.receipt,operations:original}),packet=readSourceBootstrapUnionProof(proof,{core,store});
+ if(packet.items.length!==state.received||packet.graphDigest!==state.graphDigest)fail('BNS_RESTORE_STAGE_CHANGED');
+ const plan=await prepareGroupCheckpointPlan(replay,operations),groups=sourceUnionPublicationGroups(core,plan,packet),canonical=await prepareGroupScope(plan,{store}),frontiers=new Map();
+ for(const op of operations)frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));
+ const protocol=sourceUnionProtocolRows(replay,{operations,heads:plan.heads,frontiers:[...frontiers].map(([deviceId,value])=>({deviceId,...value}))},state.base.fence.epoch);
+ for(const group of groups.added)for(const op of group.operations){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,'outbox',[op.operationId]);protocol.set(id,{id,operationId:op.operationId,revisionId:op.revisionId,state:'queued'});}
+ if(groups.added.length){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,'device',[core.deviceId]);protocol.set(id,{id,sequence:groups.added.length*7});}
+ const prefix=replay.prefix+'generation:'+state.replayId+':',controls=await store.run(()=>replay.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix})).filter(row=>row.id.startsWith(prefix+'google-appdata-allocation:')||row.id.startsWith(prefix+'onedrive-upload-attempt:')),['meta']));
+ for(const row of await requireSourcePurgeProtocolControlReceipts(store,core,controls,state.replayId)){if(protocol.has(row.id))fail('BNS_RESTORE_STAGE_CHANGED');protocol.set(row.id,row);}
+ const identity=await prepareSourceUnionLocalIdentity(restore);
+ await store.run(()=>core.transaction(false,async t=>{
+  await requireOrdinarySourceUnion(restore,t);await requireSourceBootstrapUnionProof(proof,{core,store},t);await requireSourceUnionInventory(restore,t,state,packet.items);
+  if(!equal(await restore.stage.get(t,'restore'),state)||!equal(await t.get('meta',active.id),active))fail('BNS_RESTORE_LOCAL_CHANGED');
+  const current=await authority(store,core,t);if(current.namespace!==state.replayId||current.generation!==operations.length||!Number.isSafeInteger(current.ownerGeneration)||current.ownerGeneration<state.base.ownerGeneration+1+groups.added.length||current.fence.epoch!==state.base.fence.epoch||!equal(current.settings,state.base.settings))fail('BNS_RESTORE_LOCAL_CHANGED');
+  await requireSourceUnionProtocol(replay,t,protocol);await requireGroupScope(store,t,canonical);
+  await requireSourceUnionPublicationPhysical(core,t,state.sourceCut,await sourceUnionPhysicalCut(t,identity),groups);
+  if(publicationWork){
+   chargeOriginalCheckpointPublicationWork(publicationWork,core,store,undefined,0);const tables=new Map();
+   for(const table of t.tx.objectStoreNames)tables.set(table,await readGroupRows(t,table));
+   if(sourceUnionPublicationCuts.has(publicationWork))fail('BNS_SOURCE_UNION_PROOF_REQUIRED');sourceUnionPublicationCuts.set(publicationWork,{core,store,namespace:state.replayId,tables,fence:observeRepositoryWriteFence(core.repository)});
+  }
+ }));checkOriginalRecoveryWork(core.repository,ticket);
+ return {selection:clone(state.selection),parents:state.selection.headRefs.map(ref=>ref.id),graphDigest:plan.digest,namespace:state.replayId,restoreId:restore.restoreId};
 }
 
 // Fixed original-owner entry for CanonicalGenerationPublication. No supplied

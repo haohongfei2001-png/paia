@@ -1,0 +1,7 @@
+{
+  "extension/core/browser-native-sync/checkpoint-publication.js": "a64270ab56f7fcc5e2dbf7e8541db00f16e919a580e5a13654b4bd03c6267490",
+  "extension/core/browser-native-sync/group-checkpoint.js": "b194d0f05ae11fe3d4f2a27a959fa24c706a2af1d694a1262916d10a4d783695",
+  "extension/core/browser-native-sync/recovery-session.js": "eec66feff1a6783d031524b000d2ada34827ee404a9f36b9c10c8ca3ec145c71",
+  "extension/core/browser-native-sync/source-union-publication-continuation.js": "be58e87f33bb280bfca0f3b0a4b15fa8f79c5ed2335efe0821115aac1b894092",
+  "extension/tests/source-union-publication-continuation.test.mjs": "e089d56921a464a73f927b103035aff9471219f1cb1c15d999011a6f10830c5f"
+}
