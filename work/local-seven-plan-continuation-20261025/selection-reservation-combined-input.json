@@ -1,0 +1,36 @@
+{
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "extension/tests/application-existing-selection.test.mjs",
+    "extension/tests/application-existing-selection-requalification.test.mjs",
+    "extension/tests/application-selection-editor-safety.test.mjs",
+    "extension/tests/application-selection-consumer.test.mjs",
+    "extension/tests/application-selection-dispatch-lifetime.test.mjs",
+    "extension/tests/application-selection-review-restriction.test.mjs",
+    "extension/tests/sync-local-lifecycle.test.mjs",
+    "extension/tests/sync-cold-control-enrollment.test.mjs",
+    "extension/tests/sync-context-terminal-enrollment.test.mjs",
+    "extension/tests/sync-context-enrollment-settlement.test.mjs",
+    "extension/tests/sync-worker-context-consumer.test.mjs",
+    "extension/tests/settings-sync.test.mjs"
+  ],
+  "head": "031af6eafdf27f1be6cea5ebb36e0765c88a9e3d",
+  "sha256": {
+    "extension/tests/application-existing-selection.test.mjs": "16a7ce98bca17a5cdd5abd1e661ffac48549398a8c302d9210af1c59bef7071d",
+    "extension/tests/application-existing-selection-requalification.test.mjs": "cb14ce74c87d3e4e9841940e029564516d8dc8e34aa716fa7919edabcbfb55d4",
+    "extension/tests/application-selection-editor-safety.test.mjs": "3820eb87c6941f140c2f18baadfd9210a027cdbc0b38fcbb269a43c06eb9edac",
+    "extension/tests/application-selection-consumer.test.mjs": "3c5c34a380df29018ee0895afd4adfe5d24fc3e5fafef05d6a0e8e9359b0944f",
+    "extension/tests/application-selection-dispatch-lifetime.test.mjs": "d525ce1119393814057be9eab8cb662d9dbf634d8d00fd7e51f62aa572f953e0",
+    "extension/tests/application-selection-review-restriction.test.mjs": "cf08c5d23c47faba6f197411f776f3c0ca6df7543b190873a24f25a961d5e0a0",
+    "extension/tests/sync-local-lifecycle.test.mjs": "ba0cb0b72d615dfdbbdc8ac2ee5d585d06ba14a8123e10df480951b643c81c62",
+    "extension/tests/sync-cold-control-enrollment.test.mjs": "8526fde1716a413be430eb0543d4de2a73822bffe67a2905a6b5f155e8cf7e9d",
+    "extension/tests/sync-context-terminal-enrollment.test.mjs": "cce476a9941de23560b3671f1b6994dcd2ffe417141f59396322f08f9023b94a",
+    "extension/tests/sync-context-enrollment-settlement.test.mjs": "c71261e11adc6d3c4538c4ff244757dc3e9d43cdd477f33b7060982e1c5fcc74",
+    "extension/tests/sync-worker-context-consumer.test.mjs": "2fa9e710dc41cc1fe8124df85f2ba6173861afeadd1556a223ecb01ac1aad8a4",
+    "extension/tests/settings-sync.test.mjs": "183905265ae8afc0030256124f202fab1ff2a294915698219476a7a2c8207e55",
+    "extension/core/browser-native-sync/application-generation-selection.js": "90c38ced258d1ac4168abeab27dc242b465fd8337d5fae70bc41af4ea0415056",
+    "extension/background/sync-local-lifecycle.js": "068ad9fcb4f18a663eba99b203e025a1810efa2cb06a7594c8c7eac567d4123f"
+  }
+}

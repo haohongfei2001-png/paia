@@ -22,9 +22,9 @@ Completed local implementation successors (not product acceptance):
 Actively executing independent local packages:
 
 - Root: shared worker integration and remaining global original-owner dependencies. The production ACTIVATE/CONTINUE/RESTART refusal remains.
-- Sync line: original accepted-entry tracking, private reviewed-owner reservation and conservative release classification; no global activation or arbitrary caller readiness callback.
+- Sync original accepted-entry tracking, private reviewed-owner reservation and conservative release classification are integrated. Independent review corrected preaccepted status/continue/cancel tracking; integration corrected read-only PREPARE versus actual reservation qualification. Final twelve-file 219/219; original 216/219 and all negative controls retained. See SELECTION-RESERVATION.md. No global activation or arbitrary readiness callback.
 - Host line: adapter prospective document protocol is integrated `4235752` (95/95, independent review); next is its exact original known-receiver consumer, not an all-host inventory or legacy absence proof.
-- Root/review: warm core private lifetime and captured SDK boundary is implemented (SELECTION-DISPATCH.md, 47/47); lifecycle token composition remains incomplete and cannot rely on dynamic imports or caller booleans.
+- Root/review: warm core private lifetime and captured SDK boundary is implemented (SELECTION-DISPATCH.md, 47/47); lifecycle reservation now imposes only an original private restriction; it is not consumed as activation authority and cannot rely on dynamic imports or caller booleans.
 - Independent review line: frozen successor review, not repeated already-passing runs.
 
 Next dependency work after those owners: original global editor/host coverage; same reviewed semantic cut requalification with full raw proofs, not unconditional reprepare or metadata removal; original Sync reservation sequencing; terminal-state release preserving dispatched/UNKNOWN; cold CONTINUE remains denied without its own complete proof. Existing-library selection is still NOT_COMPLETE.

@@ -52,3 +52,18 @@ Final root dependency hashes, superseding the core/new-test hashes above:
 Lifecycle commit and its two source hashes remain as listed above. Its 164/164 run used the earlier `996deaa8...` dependency; the final follow-up 8/8 is separate evidence and must not be presented as a new combined 164/164 execution.
 
 Final scoped conclusion: P2 closed; no remaining blocker identified for this original-owner restriction and idle lifecycle reservation package. This remains restriction-only, not a guarded activation/global silence capability. All limitations and historical evidence above remain effective.
+
+## Integration closure — read-only review versus strict reservation
+
+The first twelve-file integration run exposed three real Settings PREPARE failures (216/219): the new reservation prerequisite `Context settled` had also been put into `applicationSelectionAvailable`, which the existing read-only Settings review consumes. A freshly attached, unenrolled Context therefore blocked the original complete-cut review. This was an integration regression, not evidence that Context was eligible for a hold.
+
+The final narrow correction is independently reviewed: `applicationSelectionAvailable`/`applicationSelectionOwner` retain original private identity, accepted pending entries, busy, blocked, uncertain, suspended, existing holder and durable-task checks; only the Context-settled prerequisite moves to `reserveApplicationSelection` before the core restriction is acquired. The reservation's continuing `r.check` also explicitly requires Context to remain settled. No activation gate or Context enrollment is supplied by read-only review.
+
+The actual worker control now prepares the original complete cut before Context resume, proves another original prepared owner cannot reserve (`BNS_SYNC_TASK_PENDING`), and verifies the unchanged raw snapshot, zero reloads and zero cloud requests. The in-flight checkpoint control checks readiness refusal and exact original-owner acquisition failure; an absent reservation owner is correctly rejected as `BNS_SYNC_SELECTION_INVALID` under the new private-owner contract.
+
+Final independently matched SHA-256 values:
+
+- lifecycle: `9fcfb100728968625c1256d371aed073694bee990d43185b1fda33540c04a9c2`
+- selection consumer test: `735d25a699d5073fa90c605206bdf2d7cd5076099356c740dedc8dc1a5e26fda`
+
+Read final `selection-reservation-final.log` and result JSON: twelve whole files, 219/219, exit 0, no fail/cancel/skip/todo, TAP 71916.049583 ms, `sourceUnchanged=true`. Original 216/219 remains separate retained failure evidence. Reviewer ran no tests. No additional scoped blocker found in this correction; the global activation and real browser limitations remain unchanged.

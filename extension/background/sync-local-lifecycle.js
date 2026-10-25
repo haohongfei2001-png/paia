@@ -189,16 +189,18 @@ class SyncLifecycle {
   try{task=body(entry);}catch(error){this.#entries.delete(entry);return new OriginalSettlementPromise((_,reject)=>reject(error));}
   return new OriginalSettlementPromise((resolve,reject)=>{settlementApply(originalSettlementThen,task,[value=>{this.#entries.delete(entry);resolve(value);},error=>{this.#entries.delete(entry);reject(error);}]);});
  }
- applicationSelectionAvailable(){return !this.#entries.size&&!this.#busy&&!this.#blocked&&!this.#uncertain&&!this.#suspended&&!this.#selectionHeld&&this.#selectionIdentity()&&(!this.#contextService||this.#contextSettled)&&(!this.#row||this.#row.bindingId===this.#bindingId&&this.#row.generation===this.#generation&&!['disconnected','account-changed'].includes(this.#row.mode))&&(!this.#row?.task||this.#row.task.phase==='confirmed');}
+ applicationSelectionAvailable(){return !this.#entries.size&&!this.#busy&&!this.#blocked&&!this.#uncertain&&!this.#suspended&&!this.#selectionHeld&&this.#selectionIdentity()&&(!this.#row||this.#row.bindingId===this.#bindingId&&this.#row.generation===this.#generation&&!['disconnected','account-changed'].includes(this.#row.mode))&&(!this.#row?.task||this.#row.task.phase==='confirmed');}
  reserveApplicationSelection(owner){
   if(arguments.length!==1||selectionOwners.get(owner)!==this)fail('BNS_SYNC_SELECTION_INVALID');
-  if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');
+  // Read-only preparation may inspect an unenrolled Context cut. Reserving
+  // that original review still requires the separately settled Context owner.
+  if(!this.applicationSelectionAvailable()||this.#contextService&&!this.#contextSettled)fail('BNS_SYNC_TASK_PENDING');
   const review=readOriginalApplicationSelectionReview(owner,this.#store,this.#core,this.#local),before=clone(this.#row),reviewHold=holdOriginalApplicationSelectionReview(owner,this.#store,this.#core,this.#local);
   this.#invalidate();this.#busy=true;this.#selectionHeld=true;
   const r={owner,reviewHold,operationId:review.operationId,serial:this.#serial,before,deadline:selectionNow()+30000,phase:'reserved',invalid:false,released:false,releasing:false};
   r.check=(entry=null)=>{
    try{
-    if(r.invalid||r.released||r.releasing&&!entry||this.#selection!==r||!this.#selectionHeld||!this.#busy||this.#serial!==r.serial||this.#blocked||this.#uncertain||this.#suspended||selectionNow()>=r.deadline||!this.#selectionIdentity()||!equal(this.#row,r.before)||[...this.#entries].some(active=>active!==entry&&active.kind!=='view')||entry&&!this.#entries.has(entry))fail('BNS_SYNC_SELECTION_INVALID');
+    if(r.invalid||r.released||r.releasing&&!entry||this.#selection!==r||!this.#selectionHeld||!this.#busy||this.#serial!==r.serial||this.#blocked||this.#uncertain||this.#suspended||this.#contextService&&!this.#contextSettled||selectionNow()>=r.deadline||!this.#selectionIdentity()||!equal(this.#row,r.before)||[...this.#entries].some(active=>active!==entry&&active.kind!=='view')||entry&&!this.#entries.has(entry))fail('BNS_SYNC_SELECTION_INVALID');
     if(readOriginalApplicationSelectionReview(owner,this.#store,this.#core,this.#local).operationId!==r.operationId)fail('BNS_SYNC_SELECTION_INVALID');requireOriginalApplicationSelectionReviewHold(reviewHold,owner);
    }catch(error){r.invalid=true;throw error;}
   };
