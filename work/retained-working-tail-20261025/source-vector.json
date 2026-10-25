@@ -1,0 +1,6 @@
+{
+  "extension/core/browser-native-sync/source-union-publication-continuation.js": "eeac1f51492ce56411a2dcd7f7e4560bd653ddf4b5c9e1d0a2c8fdae79a23571",
+  "extension/tests/source-union-publication-continuation.test.mjs": "adbc26e004b687839156fc7bfe0d9b8dde43ccda641f46656eb21bf7d5e28fbc",
+  "extension/tests/source-union-two-input-working.test.mjs": "e03c41fd6de6126ff53256adb7f60d2b5dd631ffeaca44cb4ed0979dd97408a2",
+  "extension/tests/source-union-retained-working-tail.test.mjs": "7c8860224c65dd09431345ba771b70681befa490b7979c04c111858947b1d019"
+}

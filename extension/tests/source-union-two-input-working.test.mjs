@@ -69,6 +69,11 @@ for(const kind of ['source-ref','working-owner','working-history-owner','history
  const code=['working-owner','working-history-owner'].includes(kind)?'BNS_GROUP_COMMIT_UNPROVEN':['source-ref','history-input','unedited-input'].includes(kind)?'BNS_GROUP_CANONICAL_UNREPRESENTED':'BNS_SOURCE_UNION_CONTINUATION_INVALID';
  await unchangedRefusal(f,code,()=>producer(f.c,f.cloud).prepare());
 });
-for(const kind of ['third-input','repeat-on-two-inputs'])test('two Input finite shape still refuses '+kind,async t=>{
- const f=await twoWorking(t);await inputEdit(f.c.store,f.ids[kind==='third-input'?2:0],{note:'SYNTHETIC outside finite two-edit scope'});await unchangedRefusal(f,'BNS_GROUP_OWNER_UNSUPPORTED',()=>producer(f.c,f.cloud).prepare());
+for(const kind of ['third-input-delta','repeat-input-parent'])test('retained Working tail refuses '+kind,async t=>{
+ const f=await twoWorking(t);await inputEdit(f.c.store,f.ids[kind==='third-input-delta'?2:0],{note:'SYNTHETIC next genuine edit'});
+ await f.c.core.transaction(true,async tx=>{
+  if(kind==='third-input-delta'){const row=await tx.get('meta','input-delta-sequence');await tx.put('meta',{...row,value:row.value-1});}
+  else{const prefix=await f.c.core.idIn(tx,'revision'),rows=(await tx.all('meta')).filter(row=>row.id.startsWith(prefix)&&row.operation.type==='inputWorkingMember'),row=rows.find(row=>row.operation.value.entityType==='input'&&row.operation.parents.length);assert.ok(row);const foreign=rows.find(other=>other.operation.value.entityType==='input'&&other.operation.value.entity.id!==row.operation.value.entity.id);assert.ok(foreign);row.operation.parents=[foreign.operation.revisionId];await tx.put('meta',row);}
+ });
+ await unchangedRefusal(f,kind==='third-input-delta'?'BNS_SOURCE_UNION_CONTINUATION_INVALID':'BNS_OPERATION_DIGEST',()=>producer(f.c,f.cloud).prepare());
 });

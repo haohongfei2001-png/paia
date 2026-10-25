@@ -37,7 +37,7 @@ async function window(f,fn,options){const ticket=createOriginalRecoveryWork(f.co
 const qualify=f=>window(f,()=>requireSourceBootstrapUnionPublication(f.core,{store:f.store}));
 async function restored(t,{added=1}={}){const f=await fixture(t),session=recovery(f.c,f.cloud);await session.recoverDiscovered();const restore=new GroupedCheckpointRestore(f.c.core,{store:f.c.store,restoreId:session.restoreId});while(!(await window(f.c,()=>restore.cleanup())).complete){}const original=await restore.stage.read('restore');for(let i=0;i<added;i++)await source(f.c,'local_'+i);return {...f,session,restore,original};}
 async function manifest(f,ref){return JSON.parse(new TextDecoder().decode(await readObject(ref,r=>transport(f.c,f.cloud).get(r))));}
-async function unchangedRefusal(f,action=()=>qualify(f.c)){const before=await state(f.c),n=writes(f.cloud);await assert.rejects(action);assert.deepEqual(await state(f.c),before);assert.equal(writes(f.cloud),n);}
+async function unchangedRefusal(f,action=()=>qualify(f.c),code){const before=await state(f.c),n=writes(f.cloud);await assert.rejects(action,code?{code}:undefined);assert.deepEqual(await state(f.c),before);assert.equal(writes(f.cloud),n);}
 
 test('fresh local complete Source group survives cold reopen and publishes both exact original heads',async t=>{
  const f=await restored(t),original=structuredClone(f.original);await unchangedRefusal(f,()=>window(f.c,()=>requireActivatedSourceBootstrapUnion(f.c.core,{store:f.c.store})));await unchangedRefusal(f,()=>recovery(f.c,f.cloud,{restoreId:f.session.restoreId}).continueStored());
@@ -235,9 +235,9 @@ test('original Working edit after Source union publishes and cold restores compl
 });
 
 async function firstWorking(t){const f=await restored(t,{added:0});f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});const input=(await f.c.store.snapshot()).library.blocks[0];await inputEdit(f.c.store,input.id,{note:'SYNTHETIC checked Working edit'});return {...f,inputId:input.id};}
-for(const kind of ['source','baseline','history','state','owner','history-map','outbox','filter','event','receipt','extra-event','other-inputs-edit'])test('first Working union continuation refuses '+kind+' with exact rows and no publication',async t=>{
+for(const kind of ['source','baseline','history','state','owner','history-map','outbox','filter','event','receipt','extra-event','other-inputs-source-mismatch'])test('first Working union continuation refuses '+kind+' with exact rows and no publication',async t=>{
  const f=await firstWorking(t);
- if(kind==='other-inputs-edit')for(const input of (await f.c.store.snapshot()).library.blocks.filter(row=>row.id!==f.inputId))await inputEdit(f.c.store,input.id,{note:'SYNTHETIC separate Input edit'});
+ if(kind==='other-inputs-source-mismatch'){for(const input of (await f.c.store.snapshot()).library.blocks.filter(row=>row.id!==f.inputId))await inputEdit(f.c.store,input.id,{note:'SYNTHETIC separate Input edit'});await f.c.core.transaction(true,async tx=>{const row=(await tx.all('records'))[0];row.value.originalText+=' SYNTHETIC unjournaled Source mismatch';await tx.put('records',row);});}
  else await f.c.core.transaction(true,async tx=>{
   if(kind==='source'){const row=(await tx.all('records'))[0];row.value.originalText+=' SYNTHETIC wrong';await tx.put('records',row);}
   else if(kind==='baseline'||kind==='history'){const row=(await tx.all('revisions')).find(row=>kind==='baseline'?row.reason==='baseline':row.reason!=='baseline');row.after.note+=' SYNTHETIC wrong';await tx.put('revisions',row);}
@@ -248,7 +248,7 @@ for(const kind of ['source','baseline','history','state','owner','history-map','
   else if(kind==='filter'){const row=await tx.get('filterInputs',f.inputId);row.userEdited=false;await tx.put('filterInputs',row);}
   else if(kind==='event'||kind==='extra-event'){const row=(await tx.all('invalidations'))[0];if(kind==='event')row.organizerAck=true;else {row.id+='-extra';row.sequence++;}await tx.put('invalidations',row);}
   else {const row=(await tx.all('operationReceipts'))[0];row.ownerId+='-other';await tx.put('operationReceipts',row);}
- });await unchangedRefusal(f,()=>producer(f.c,f.cloud).prepare());
+ });await unchangedRefusal(f,()=>producer(f.c,f.cloud).prepare(),kind==='other-inputs-source-mismatch'?'BNS_GROUP_CANONICAL_UNREPRESENTED':undefined);
 });
 test('first Working union continuation preserves immutable original ticket exhaustion',async t=>{
  const f=await firstWorking(t);await unchangedRefusal(f,()=>window(f.c,ticket=>{chargeOriginalRecoveryWork(f.c.core.repository,ticket,2*1024*1024);return requireSourceBootstrapUnionPublication(f.c.core,{store:f.c.store});}));

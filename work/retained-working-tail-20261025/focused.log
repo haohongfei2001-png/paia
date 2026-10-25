@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: first Working union continuation refuses other-inputs-source-mismatch with exact rows and no publication
+ok 1 - first Working union continuation refuses other-inputs-source-mismatch with exact rows and no publication
+  ---
+  duration_ms: 783.330166
+  type: 'test'
+  ...
+# Subtest: retained Working tail coalesced-2+1 publishes exact history and cold restores
+not ok 2 - retained Working tail coalesced-2+1 publishes exact history and cold restores
+  ---
+  duration_ms: 1241.939083
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-two-input-working/extension/tests/source-union-retained-working-tail.test.mjs:49:68'
+  failureType: 'testCodeFailure'
+  error: 'BNS_IDENTITY_INVALID'
+  code: 'BNS_IDENTITY_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-two-input-working/extension/core/browser-native-sync/value.js:5:32)
+    new BrowserNativeSyncCore (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-two-input-working/extension/core/browser-native-sync/core.js:185:44)
+    fresh (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-two-input-working/extension/tests/source-union-retained-working-tail.test.mjs:17:257)
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-two-input-working/extension/tests/source-union-retained-working-tail.test.mjs:68:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: retained Working tail allocated-2+1 publishes exact history and cold restores
+not ok 3 - retained Working tail allocated-2+1 publishes exact history and cold restores
+  ---
+  duration_ms: 869.315041
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-two-input-working/extension/tests/source-union-retained-working-tail.test.mjs:49:68'
+  failureType: 'testCodeFailure'
+  error: 'BNS_IDENTITY_INVALID'
+  code: 'BNS_IDENTITY_INVALID'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-two-input-working/extension/core/browser-native-sync/value.js:5:32)
+    new BrowserNativeSyncCore (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-two-input-working/extension/core/browser-native-sync/core.js:185:44)
+    fresh (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-two-input-working/extension/tests/source-union-retained-working-tail.test.mjs:17:257)
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-two-input-working/extension/tests/source-union-retained-working-tail.test.mjs:68:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retained Working tail three-inputs publishes exact history and cold restores
+ok 4 - retained Working tail three-inputs publishes exact history and cold restores
+  ---
+  duration_ms: 1213.538541
+  type: 'test'
+  ...
+# Subtest: retained Working tail refuses third-input-delta
+ok 5 - retained Working tail refuses third-input-delta
+  ---
+  duration_ms: 788.602875
+  type: 'test'
+  ...
+# Subtest: retained Working tail refuses repeat-input-parent
+ok 6 - retained Working tail refuses repeat-input-parent
+  ---
+  duration_ms: 457.209
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 4
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3634.64475

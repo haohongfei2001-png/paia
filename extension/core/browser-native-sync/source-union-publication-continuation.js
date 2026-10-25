@@ -40,11 +40,9 @@ export function sourceUnionPublicationGroups(core,plan,original){
   for(let i=0;i<ops.length;i++)if(ops[i].deviceId!==core.deviceId||ops[i].sequence!==++sequence||i<types.length&&ops[i].value.entityType!==types[i])invalid();
  }
  const working=added.filter(group=>group.type==='inputWorkingCommit');
- // Retain the original one-Input sequential chain. The additional finite
- // shape is exactly two retained Inputs with one genuine edit each; mixed
- // Source/Human/Context tails and wider multi-Input histories remain separate.
- const inputCount=new Set(working.map(group=>group.prepared.descriptor.value.inputId)).size;
- if(working.length&&(working.length!==added.length||inputCount!==1&&(inputCount!==2||working.length!==2)))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+ // A complete Working-only tail may revisit any original retained Input.
+ // Every original owner/history proof and cumulative work bound still applies.
+ if(working.length&&working.length!==added.length)fail('BNS_GROUP_OWNER_UNSUPPORTED');
  return {previous,added,working};
 }
 
