@@ -1,0 +1,135 @@
+// Paired actual receipt-owner / VM adapter protocol. Native DOM and Chrome transport remain synthetic.
+// Private VM fixture copied from prompt-composer-selection-hold; no shared harness changes.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFile} from 'node:fs/promises';
+import {webcrypto} from 'node:crypto';
+const contractURL=new URL('../background/prompt-insertion-receipts.js',import.meta.url);
+const {PromptInsertionReceipts,PROMPT_INSERTION_RUNTIME,promptInsertionDigest,validPromptInsertionEnvelope}=await import(contractURL);
+
+const source=await readFile(new URL('../adapter/chatgpt-composer.js',import.meta.url),'utf8');
+const flush=async()=>{for(let i=0;i<8;i++)await new Promise(setImmediate);};
+function events(){const listeners=new Map();return {addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,new Set());listeners.get(type).add(fn);},removeEventListener(type,fn){listeners.get(type)?.delete(fn);},emit(type,event){for(const fn of [...listeners.get(type)||[]])fn(event);}};}
+function fixture({draft='SYNTHETIC draft',offset=4,accepted=true,trusted=true,caret=true,mutate=true}={}){
+ let originalActionCount=0,registrationDomain='5'.repeat(64),retirementSummary={domainDigest:'5'.repeat(64),retiredEpochFloor:0,retiredRanges:[]},now=0,remainingMs=30000,qualified=true,acceptAck=true,retiredAck=false,rpcHandler=null,protocolHandler=null,ownerToken=webcrypto.randomUUID(),recoveryToken=webcrypto.randomUUID();
+ let registrationHandler=null;const settledOperations=new Set();
+ const domainDigest='5'.repeat(64),receiver={tabId:7,windowId:1,documentId:'synthetic-real-top-document'},receiptEpoch=webcrypto.randomUUID();
+ const deadlineTimers=new Map();let timerId=0;const timers=[],commands=[],messages=[],listeners=new Set(),location={origin:'https://chatgpt.com',href:'https://chatgpt.com/c/synthetic-original'};
+ let hold=false,commandResolve;const commandEntered=new Promise(resolve=>commandResolve=resolve);
+ const document={...events(),activeElement:null};
+ const root={nodeType:1,tagName:'HTML',parentElement:null};
+ const node={...events(),nodeType:1,tagName:'DIV',isConnected:true,isContentEditable:true,parentElement:root,querySelector:()=>null,closest:()=>null,getClientRects:()=>[{}],getBoundingClientRect:()=>({width:500,height:100}),contains(value){return value===this||value===text;},focus(){document.activeElement=this;},classList:{contains:()=>false}};
+ const text={nodeType:3,data:draft,parentNode:node,parentElement:node};node.childNodes=[text];
+ let range;
+ const logical=(container,n)=>container===text?n:n?text.data.length:0;
+ function makeRange(){return {startContainer:text,endContainer:text,startOffset:0,endOffset:0,setStart(container,n){this.startContainer=container;this.startOffset=n;},collapse(){this.endContainer=this.startContainer;this.endOffset=this.startOffset;},compareBoundaryPoints(_,other){return Math.sign(logical(this.startContainer,this.startOffset)-logical(other.startContainer,other.startOffset));}};}
+ range=makeRange();range.setStart(text,offset);range.collapse();
+ const selection={rangeCount:1,getRangeAt:()=>range,removeAllRanges(){this.rangeCount=0;},addRange(value){range=value;this.rangeCount=1;}};
+ Object.assign(document,{documentElement:root,defaultView:{...events(),getComputedStyle:()=>({display:'block',visibility:'visible',contentVisibility:'visible',opacity:'1'})},querySelectorAll:()=>[node],createRange:makeRange,getSelection:()=>selection,execCommand(command,_,insertion){commands.push({command,insertion});commandResolve();const at=logical(range.startContainer,range.startOffset);if(mutate){text.data=text.data.slice(0,at)+insertion+text.data.slice(at);if(caret){range=makeRange();range.setStart(text,at+insertion.length);range.collapse();}}const event={isTrusted:trusted,inputType:'insertText',isComposing:false,target:node};node.emit('input',event);document.emit('input',event);return accepted;}});
+ const context=vm.createContext({document,location,crypto:webcrypto,TextEncoder,queueMicrotask,performance:{now:()=>now},setTimeout(fn,ms){if(ms===30000){const id=++timerId;deadlineTimers.set(id,fn);return id;}if(hold)timers.push(fn);else queueMicrotask(fn);},clearTimeout(id){deadlineTimers.delete(id);},chrome:{runtime:{id:'synthetic-extension',onMessage:{addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)},sendMessage:async message=>{messages.push(structuredClone(message));if(protocolHandler&&message.type.startsWith('PAIA_PROMPT_INSERTION_'))return protocolHandler(structuredClone(message));if(message.type==='PAIA_PROMPT_INSERTION_RECEIVER_REGISTER'){const response={ok:true,data:{registered:true,version:1,ownerToken,recoveryToken:message.recoveryToken??ownerToken,domainDigest:registrationDomain,receiver:{...receiver,nonce:message.nonce}}};return registrationHandler?registrationHandler(message,response):response;}if(message.type==='PAIA_PROMPT_INSERTION_QUALIFY')return {ok:true,data:{qualified:(typeof qualified==='function'?await qualified(message):qualified)&&!settledOperations.has(message.envelope.operationId),remainingMs}};if(message.type==='PAIA_PROMPT_INSERTION_RECONCILE')return {ok:true,data:{ownerToken,recoveryToken,retirementSummary,results:await Promise.all(message.acks.map(async ack=>{const settled=!retiredAck&&(typeof acceptAck==='function'?await acceptAck({ack}):acceptAck);if(settled)settledOperations.add(ack.envelope.operationId);return {claimId:ack.envelope.claimId,...(retiredAck?{settled:false,retired:true}:{settled})};}))}};
+ if(message.type==='PAIA_PROMPT_INSERTION_ACK'){const settled=!retiredAck&&(typeof acceptAck==='function'?await acceptAck(message):acceptAck);if(settled)settledOperations.add(message.ack.envelope.operationId);return {ok:true,data:retiredAck?{settled:false,retired:true}:{settled}};}if(rpcHandler)return rpcHandler(message);return {ok:false};}}}});
+ const reload=()=>vm.runInContext(source,context);reload();
+ const adapter=()=>new context.PAIAChatGPTComposerAdapter({document,location});
+ const dispatch=(message,sender={id:'synthetic-extension'})=>new Promise(resolve=>{let answered=false,async=false;for(const listener of [...listeners]){if(listener(message,sender,value=>{answered=true;resolve(value);})===true)async=true;}if(!answered&&!async)resolve(undefined);});
+ const admitted=async({lane='manual',epoch=1,receiptEpoch:token=receiptEpoch,domainDigest:domain=domainDigest,operationId=webcrypto.randomUUID(),text='SYNTHETIC receipt insertion',fields={}}={})=>{
+  const actionId=webcrypto.randomUUID();recoveryToken=actionId;if(originalActionCount>=500){ownerToken=webcrypto.randomUUID();originalActionCount=0;}originalActionCount++;
+  if(domain!==registrationDomain){registrationDomain=domain;ownerToken=webcrypto.randomUUID();originalActionCount=1;retirementSummary={domainDigest:domain,retiredEpochFloor:0,retiredRanges:[]};}
+  const {nonce}=await dispatch({type:'PAIA_PROMPT_INSERTION_RECEIVER_PROBE',version:1,recoveryToken});
+  const message={type:{manual:'PAIA_PROMPT_INSERT_SELECTED',assist:'PAIA_PROMPT_ASSIST_INSERT',next:'PAIA_PROMPT_NEXT_INSERT'}[lane],operationId,text,url:location.href,...fields};
+  const envelope={version:1,claimId:webcrypto.randomUUID(),actionId,operationId,receiptEpoch:token,domainDigest:domain,epoch,lane,receiver:{...receiver,nonce},sourceDigest:'1'.repeat(64),authorizationDigest:'2'.repeat(64),initiatorDigest:'3'.repeat(64)};
+  envelope.digest=await promptInsertionDigest({domain:'paia-prompt-insertion-v1',envelope,message});
+  assert.equal(validPromptInsertionEnvelope(envelope),true);
+  return {...message,insertionReceipt:envelope};
+ };
+ return {async binding(){const {nonce}=await this.probe();return {receiver:{...receiver,nonce},ownerToken,domainDigest:registrationDomain,challenge:webcrypto.randomUUID()};},expire(){now+=30000;for(const fn of [...deadlineTimers.values()])fn();},document,node,text,context,adapter,reload,commands,commandEntered,messages,location,selection,dispatch,probe:()=>dispatch({type:'PAIA_PROMPT_INSERTION_RECEIVER_PROBE',version:1,recoveryToken}),admitted,receiptEpoch,domainDigest,setRegistration(fn){registrationHandler=fn;},setRpc(fn){rpcHandler=fn;},setProtocol(fn){protocolHandler=fn;},setSummary(value){retirementSummary=value;},qualification(value){qualified=value;},advance(ms){now+=ms;},budget(ms){remainingMs=ms;},acceptAck(value){acceptAck=value;},retiredAck(value){retiredAck=value;},changeOwnerToken(){ownerToken=webcrypto.randomUUID();originalActionCount=0;recoveryToken=webcrypto.randomUUID();return ownerToken;},setNativeTrusted(value){trusted=value;},insert(adapter,message,extra={}){return adapter.insert({text:message.text,operationId:message.operationId,url:message.url,lane:message.insertionReceipt.lane,insertionMessage:message,...extra});},hold(){hold=true;},async release(){hold=false;for(const fn of timers.splice(0))fn();await flush();},request(fields={}){return {text:'SYNTHETIC insertion',operationId:webcrypto.randomUUID(),url:location.href,...fields};}};
+}
+
+import {setup} from './harness/thought-m1.mjs';
+import {OrganizerStore} from '../core/organizer/store.js';
+import {PromptReuseService} from '../core/prompt-reuse-service.js';
+import {PromptReuseCommands} from '../background/prompt-reuse-commands.js';
+const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
+async function paired(t,options={}){
+ const f=fixture(options),adapter=f.adapter(),{s,storage}=await setup(OrganizerStore);
+ await s.finishFoundation();
+ const sender={id:'synthetic-extension',tab:{id:7,windowId:1},frameId:0,documentId:'synthetic-real-top-document',documentLifecycle:'active',url:f.location.href};
+ const outbound=[],inbound=[],state={control:null,ack:null};let owner,cap;
+ const api={runtime:{id:sender.id,getURL:p=>'chrome-extension://'+sender.id+'/'+p},storage:{local:storage},windows:{get:async()=>({focused:true})},tabs:{get:async()=>({id:7,windowId:1,url:f.location.href,incognito:false,discarded:false}),sendMessage:async(tabId,message,options)=>{
+  assert.equal(tabId,7);assert.ok(options.documentId===sender.documentId||options.frameId===0);
+  outbound.push(structuredClone(message));
+  const actual=message.type==='PAIA_PROMPT_INSERT_SELECTED'?f.insert(adapter,structuredClone(message)):f.dispatch(structuredClone(message),{id:sender.id});
+  const result=message.type.startsWith('PAIA_PROMPT_INSERTION_DOCUMENT_')&&state.control?await state.control(message,actual):await actual;
+  return result===undefined?undefined:structuredClone(result);
+ }};
+ owner=new PromptInsertionReceipts(s,api);
+ const register=owner.registerProducer;owner.registerProducer=function(...args){cap=register.apply(this,args);return cap;};
+ const producer=new PromptReuseCommands(new PromptReuseService(s),api,{insertionReceipts:owner});delete owner.registerProducer;
+ f.setProtocol(async message=>{
+  inbound.push(structuredClone(message));
+  const methods={PAIA_PROMPT_INSERTION_RECEIVER_REGISTER:'registerReceiver',PAIA_PROMPT_INSERTION_QUALIFY:'handleQualify',PAIA_PROMPT_INSERTION_ACK:'handleAck',PAIA_PROMPT_INSERTION_RECONCILE:'handleReconcile'};
+  assert.ok(methods[message.type],message.type);
+  try{if(message.type==='PAIA_PROMPT_INSERTION_ACK'&&state.ack)await state.ack(message);const data=await owner[methods[message.type]](structuredClone(message),sender);return {ok:true,data:structuredClone(data)};}
+  catch(error){return {ok:false,error:error.code||'STORAGE_FAILED'};}
+ });
+ const receiver=await owner.resolveReceiver(7,f.location.href,sender.documentId);assert.equal(receiver.documentId,sender.documentId);
+ const read=()=>s.repository.transaction(false,t=>t.get('meta',PROMPT_INSERTION_RUNTIME),['meta']);
+ const dispatch=async()=>{
+  const binding={receiptEpoch:owner.admissionEpoch(cap),receiver,sourceDigest:await owner.digest(['paired','source']),authorizationDigest:await owner.digest(['paired','consent']),initiatorDigest:await owner.digest(['paired',crypto.randomUUID()])};
+  const action=await owner.issueAction(cap,binding);
+  return owner.dispatch(cap,{action,...Object.fromEntries(['sourceDigest','authorizationDigest','initiatorDigest'].map(key=>[key,binding[key]])),receiver,message:{type:'PAIA_PROMPT_INSERT_SELECTED',text:'SYNTHETIC paired insertion',url:f.location.href,operationId:action.operationId}},async()=>{});
+ };
+ t.after(async()=>{owner.dispose();producer.dispose();adapter.dispose();await flush();s.repository.db?.close();});
+ return {f,s,owner,cap,adapter,read,dispatch,inbound,outbound,state};
+}
+
+test('actual owner and actual VM document complete read-only HOLD FENCE RELEASE with shared admission',async t=>{
+ const p=await paired(t),before=await p.read(),token=await p.owner.holdKnownDocumentsForApplicationSelection();
+ assert.equal(p.owner.knownDocumentsHeldForApplicationSelection(token),true);
+ assert.equal((await p.adapter.insert(p.f.request())).reason,'document_selection_held');
+ assert.equal(await p.owner.fenceKnownDocumentsForApplicationSelection(token),true);
+ assert.equal(await p.owner.releaseKnownDocumentsForApplicationSelection(token),true);
+ assert.equal(await p.owner.releaseKnownDocumentsForApplicationSelection(token),false);
+ assert.equal(p.f.commands.length,0);assert.deepEqual(await p.read(),before);
+ assert.equal((await p.owner.inspect()).legacyCoverageUnknown,true);
+ assert.deepEqual(p.outbound.filter(m=>m.type.startsWith('PAIA_PROMPT_INSERTION_DOCUMENT_')).map(m=>m.type.split('_').at(-1)),['HOLD','FENCE','FENCE','RELEASE']);
+});
+
+test('actual signed insertion and durable ACK precede paired physical and worker quiet',async t=>{
+ const p=await paired(t);assert.equal((await p.dispatch()).status,'inserted');await flush();
+ assert.equal(p.f.commands.length,1);assert.equal((await p.read()).claims[0].state,'inserted');
+ assert.ok(p.inbound.some(m=>m.type==='PAIA_PROMPT_INSERTION_QUALIFY'));assert.ok(p.inbound.some(m=>m.type==='PAIA_PROMPT_INSERTION_ACK'));
+ const before=await p.read(),token=await p.owner.holdKnownDocumentsForApplicationSelection();
+ assert.equal(await p.owner.fenceKnownDocumentsForApplicationSelection(token),true);assert.deepEqual(await p.read(),before);
+ assert.equal(await p.owner.releaseKnownDocumentsForApplicationSelection(token),true);assert.equal(p.f.commands.length,1);
+});
+
+test('paired hold waits original already-entered native verification and original pending ACK',async t=>{
+ const p=await paired(t),ackEntered=deferred(),ackDone=deferred();p.f.hold();p.state.ack=async()=>{ackEntered.resolve();await ackDone.promise;};
+ const operation=p.dispatch();await p.f.commandEntered;
+ const holding=p.owner.holdKnownDocumentsForApplicationSelection();let held=false;holding.then(()=>held=true);await flush();assert.equal(held,false);
+ await p.f.release();await ackEntered.promise;await flush();assert.equal(held,false);ackDone.resolve();
+ assert.equal((await operation).status,'inserted');const token=await holding;
+ assert.equal((await p.read()).claims[0].state,'inserted');assert.equal(p.f.commands.length,1);
+ assert.equal(await p.owner.releaseKnownDocumentsForApplicationSelection(token),true);
+});
+
+test('actual ambiguous native readback keeps durable pending and rejects paired hold without replay',async t=>{
+ const p=await paired(t,{trusted:false});assert.equal((await p.dispatch()).status,'uncertain');await flush();
+ const before=await p.read();assert.equal(before.claims[0].state,'pending');let failure;
+ try{await p.owner.holdKnownDocumentsForApplicationSelection();assert.fail('unknown native must not qualify');}catch(error){failure=error;}
+ assert.deepEqual(await p.read(),before);assert.equal(p.f.commands.length,1);
+ assert.equal(await p.owner.releaseFailedKnownDocumentsForApplicationSelection(failure),true);assert.equal(p.f.commands.length,1);
+ assert.equal((await p.owner.inspect()).legacyCoverageUnknown,true);
+});
+
+test('actual late adapter HOLD completion receives one exact RELEASE and cannot reopen timed-out owner',async t=>{
+ const p=await paired(t),entered=deferred(),late=deferred();p.state.control=async(message,actual)=>{const proof=await actual;if(message.type.endsWith('HOLD')){assert.equal(proof.held,true);entered.resolve();await late.promise;}return proof;};
+ t.mock.timers.enable({apis:['setTimeout']});
+ const holding=p.owner.holdKnownDocumentsForApplicationSelection();holding.catch(()=>{});await entered.promise;t.mock.timers.tick(30001);let failure;
+ try{await holding;assert.fail('deadline must refuse');}catch(error){failure=error;}
+ assert.equal(p.outbound.filter(m=>m.type.endsWith('_RELEASE')).length,0);
+ late.resolve();await flush();assert.equal(p.outbound.filter(m=>m.type.endsWith('_RELEASE')).length,1);
+ assert.equal(await p.owner.releaseFailedKnownDocumentsForApplicationSelection(failure),false);
+ assert.throws(()=>p.owner.admissionEpoch(p.cap),{code:'PROMPT_INSERTION_HELD'});assert.equal(p.f.commands.length,0);t.mock.timers.reset();
+});

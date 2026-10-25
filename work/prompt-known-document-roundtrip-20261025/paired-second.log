@@ -1,0 +1,42 @@
+TAP version 13
+# Subtest: actual owner and actual VM document complete read-only HOLD FENCE RELEASE with shared admission
+ok 1 - actual owner and actual VM document complete read-only HOLD FENCE RELEASE with shared admission
+  ---
+  duration_ms: 83.435541
+  type: 'test'
+  ...
+# Subtest: actual signed insertion and durable ACK precede paired physical and worker quiet
+ok 2 - actual signed insertion and durable ACK precede paired physical and worker quiet
+  ---
+  duration_ms: 369.685541
+  type: 'test'
+  ...
+# Subtest: paired hold waits original already-entered native verification and original pending ACK
+ok 3 - paired hold waits original already-entered native verification and original pending ACK
+  ---
+  duration_ms: 122.796209
+  type: 'test'
+  ...
+# Subtest: actual ambiguous native readback keeps durable pending and rejects paired hold without replay
+ok 4 - actual ambiguous native readback keeps durable pending and rejects paired hold without replay
+  ---
+  duration_ms: 61.999167
+  type: 'test'
+  ...
+# (node:43313) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: actual late adapter HOLD completion receives one exact RELEASE and cannot reopen timed-out owner
+ok 5 - actual late adapter HOLD completion receives one exact RELEASE and cannot reopen timed-out owner
+  ---
+  duration_ms: 28.580583
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 876.12075

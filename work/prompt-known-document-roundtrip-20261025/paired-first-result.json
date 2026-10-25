@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "extension/tests/prompt-known-document-roundtrip.test.mjs"
+  ],
+  "head": "1fae48018540ba15def12feb0f3b919bef9cf1de",
+  "exit": 1,
+  "wallMs": 189.96837502345443,
+  "before": {
+    "extension/tests/prompt-known-document-roundtrip.test.mjs": "a966469585c136d3bb2ea6d129b4cf6551f483488c064cc95b2f37671fac740b",
+    "extension/background/prompt-insertion-receipts.js": "f2f6ca682b76ce6f39635315f6317284236be067da185984ad5b0adf2741b285",
+    "extension/adapter/chatgpt-composer.js": "9d7a23ef76df650671ec07dee338251e93e25dcff3d79a35b2c564e049bce43c",
+    "extension/background/prompt-reuse-commands.js": "7420052faa1b75a7c00968eb24ad2e57b40654cdebd91dd55d226304f194875e"
+  },
+  "after": {
+    "extension/tests/prompt-known-document-roundtrip.test.mjs": "a966469585c136d3bb2ea6d129b4cf6551f483488c064cc95b2f37671fac740b",
+    "extension/background/prompt-insertion-receipts.js": "f2f6ca682b76ce6f39635315f6317284236be067da185984ad5b0adf2741b285",
+    "extension/adapter/chatgpt-composer.js": "9d7a23ef76df650671ec07dee338251e93e25dcff3d79a35b2c564e049bce43c",
+    "extension/background/prompt-reuse-commands.js": "7420052faa1b75a7c00968eb24ad2e57b40654cdebd91dd55d226304f194875e"
+  },
+  "sourceUnchanged": true
+}
