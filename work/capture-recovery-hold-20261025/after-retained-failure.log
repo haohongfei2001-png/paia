@@ -1,0 +1,192 @@
+TAP version 13
+# Subtest: capture recovery hosted gate is opt-in draft, exact head, read-only and complete owning lifecycle scope
+ok 1 - capture recovery hosted gate is opt-in draft, exact head, read-only and complete owning lifecycle scope
+  ---
+  duration_ms: 0.673791
+  type: 'test'
+  ...
+# Subtest: recovery registers events before isolation, then injects exact packaged worlds into only the probed main document
+ok 2 - recovery registers events before isolation, then injects exact packaged worlds into only the probed main document
+  ---
+  duration_ms: 3.150458
+  type: 'test'
+  ...
+# Subtest: healthy runtime is untouched by ordinary activation, but same-version extension reload replaces its generation
+ok 3 - healthy runtime is untouched by ordinary activation, but same-version extension reload replaces its generation
+  ---
+  duration_ms: 0.132291
+  type: 'test'
+  ...
+# Subtest: recovery refuses unrelated, incognito, discarded, frozen and navigated documents
+ok 4 - recovery refuses unrelated, incognito, discarded, frozen and navigated documents
+  ---
+  duration_ms: 0.134333
+  type: 'test'
+  ...
+# Subtest: withheld permission or closed document does not poison subsequent recovery; failed isolation never injects
+ok 5 - withheld permission or closed document does not poison subsequent recovery; failed isolation never injects
+  ---
+  duration_ms: 0.139416
+  type: 'test'
+  ...
+# Subtest: concurrent recovery is single-flight and a pending update is not lost
+ok 6 - concurrent recovery is single-flight and a pending update is not lost
+  ---
+  duration_ms: 1.038584
+  type: 'test'
+  ...
+# Subtest: only supported permission/activation/resume events request another bounded check
+ok 7 - only supported permission/activation/resume events request another bounded check
+  ---
+  duration_ms: 0.430709
+  type: 'test'
+  ...
+# Subtest: probe returns finite health only, and cannot read body or run outside top-level ChatGPT
+ok 8 - probe returns finite health only, and cannot read body or run outside top-level ChatGPT
+  ---
+  duration_ms: 0.601208
+  type: 'test'
+  ...
+# Subtest: document lifecycle replacement tears down once; page-triggered retirement cannot authorize or restart
+ok 9 - document lifecycle replacement tears down once; page-triggered retirement cannot authorize or restart
+  ---
+  duration_ms: 1.171
+  type: 'test'
+  ...
+# Subtest: forced update queued behind a delayed healthy probe cannot be dropped
+ok 10 - forced update queued behind a delayed healthy probe cannot be dropped
+  ---
+  duration_ms: 0.349541
+  type: 'test'
+  ...
+# Subtest: ordinary startup waits for document_idle readiness without retiring already authorized metadata
+ok 11 - ordinary startup waits for document_idle readiness without retiring already authorized metadata
+  ---
+  duration_ms: 0.277292
+  type: 'test'
+  ...
+# Subtest: startup grace is bounded and cannot inject into a navigated document
+ok 12 - startup grace is bounded and cannot inject into a navigated document
+  ---
+  duration_ms: 0.184166
+  type: 'test'
+  ...
+# Subtest: forced replacement queued during startup grace wins exactly once
+ok 13 - forced replacement queued during startup grace wins exactly once
+  ---
+  duration_ms: 0.315417
+  type: 'test'
+  ...
+# Subtest: capture recovery live hold is private, single-use and releases without inventing work
+ok 14 - capture recovery live hold is private, single-use and releases without inventing work
+  ---
+  duration_ms: 0.419042
+  type: 'test'
+  ...
+# Subtest: hold drains the actual pending probe and cancels its not-yet-dispatched forced replacement
+ok 15 - hold drains the actual pending probe and cancels its not-yet-dispatched forced replacement
+  ---
+  duration_ms: 0.296417
+  type: 'test'
+  ...
+# Subtest: hold waits for one dispatched world but cannot dispatch the remaining worlds or replay on release
+ok 16 - hold waits for one dispatched world but cannot dispatch the remaining worlds or replay on release
+  ---
+  duration_ms: 0.259875
+  type: 'test'
+  ...
+# Subtest: hold tracks repairAll pending isolation before any per-tab task exists
+ok 17 - hold tracks repairAll pending isolation before any per-tab task exists
+  ---
+  duration_ms: 0.164125
+  type: 'test'
+  ...
+# Subtest: hold tracks repairAll pending query before any per-tab task exists
+ok 18 - hold tracks repairAll pending query before any per-tab task exists
+  ---
+  duration_ms: 0.218292
+  type: 'test'
+  ...
+# Subtest: hold drains accepted startup grace without issuing a subsequent probe
+ok 19 - hold drains accepted startup grace without issuing a subsequent probe
+  ---
+  duration_ms: 0.223541
+  type: 'test'
+  ...
+# Subtest: eligible installed while held invalidates the live receipt without starting work
+ok 20 - eligible installed while held invalidates the live receipt without starting work
+  ---
+  duration_ms: 0.572417
+  type: 'test'
+  ...
+# Subtest: eligible startup while held invalidates the live receipt without starting work
+ok 21 - eligible startup while held invalidates the live receipt without starting work
+  ---
+  duration_ms: 0.37325
+  type: 'test'
+  ...
+# Subtest: eligible activated while held invalidates the live receipt without starting work
+ok 22 - eligible activated while held invalidates the live receipt without starting work
+  ---
+  duration_ms: 0.216209
+  type: 'test'
+  ...
+# Subtest: eligible updated while held invalidates the live receipt without starting work
+ok 23 - eligible updated while held invalidates the live receipt without starting work
+  ---
+  duration_ms: 0.161416
+  type: 'test'
+  ...
+# (node:3658) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: eligible permission while held invalidates the live receipt without starting work
+ok 24 - eligible permission while held invalidates the live receipt without starting work
+  ---
+  duration_ms: 0.211417
+  type: 'test'
+  ...
+# Subtest: capture hold deadline does not clear an unresolved script or authorize its late continuation
+ok 25 - capture hold deadline does not clear an unresolved script or authorize its late continuation
+  ---
+  duration_ms: 1.006042
+  type: 'test'
+  ...
+# Subtest: changed original script executor invalidates a held capture source instead of refreshing its identity
+ok 26 - changed original script executor invalidates a held capture source instead of refreshing its identity
+  ---
+  duration_ms: 0.131417
+  type: 'test'
+  ...
+# Subtest: a rejected already-issued probe fails hold without being relabelled as settled-safe
+ok 27 - a rejected already-issued probe fails hold without being relabelled as settled-safe
+  ---
+  duration_ms: 0.245167
+  type: 'test'
+  ...
+# Subtest: a request during acquisition cannot be mistaken for a successful quiet receipt
+ok 28 - a request during acquisition cannot be mistaken for a successful quiet receipt
+  ---
+  duration_ms: 0.2205
+  type: 'test'
+  ...
+# Subtest: frozen capture/network/resolver bytes remain pinned with reviewed official-time, CFH, CPV1-01.2 and CPV1-01.4 additions
+ok 29 - frozen capture/network/resolver bytes remain pinned with reviewed official-time, CFH, CPV1-01.2 and CPV1-01.4 additions
+  ---
+  duration_ms: 7.487917
+  type: 'test'
+  ...
+# Subtest: Settings carries original safe recovery actions with bounded stale-error eligibility in both languages
+ok 30 - Settings carries original safe recovery actions with bounded stale-error eligibility in both languages
+  ---
+  duration_ms: 1.3235
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53.736584

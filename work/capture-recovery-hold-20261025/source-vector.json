@@ -1,0 +1,21 @@
+{
+  "base": "b7c6ecdc39f1010dfcf4736df08e5ac89385b0ac",
+  "changed": {
+    "extension/background/capture-recovery.js": {
+      "before": "e4c4bb145d4f5773203ef84b1ad7ac86df6eb6c66ada87a9f80efce2d5e94ae3",
+      "after": "fe82efd282bdc345c25b07ddbb4e6b30a06af334148f3ce173d93d97ba37f873"
+    },
+    "extension/tests/capture-recovery.test.mjs": {
+      "before": "47f0416889d0b150af3ff1977df5b307e1dfe18b58434b2178e9b280bb535bcd",
+      "after": "7a6d480dbfe7daafe5f2708656bdea4beface017962e54b35e40d5a894fd0d10"
+    }
+  },
+  "unchanged": {
+    "extension/background/service-worker.js": "f90c1d79dc7a1993787d93e418c3311a3c7c32dd4a0f7a01490cb3ea12c8ef25",
+    "extension/background/application-worker-coordination.js": "330855d81eb32d5cd4a1ddde8dc895cb0a242ce178f9574f789ff392589ac5df",
+    "extension/background/application-selection-commands.js": "92d4800443277a560a78a3af34ff9f183e6e4f40e71ebbc08953390f78f54f78",
+    "extension/ui/settings-sync.js": "d9401b4697106b92669b33b328f783aaae900bf63c26f87edf085075a26ed633",
+    "extension/content/capture.js": "47f150abbd4f9d7ae5573398da1ab61fad252fd70d670f06fefcb97de4d49496",
+    "extension/manifest.json": "d4d6caeb9ad11b77aa1044a21de2e4585059af7e9d41e7e914e439a8df15e551"
+  }
+}

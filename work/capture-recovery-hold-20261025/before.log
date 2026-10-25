@@ -1,0 +1,238 @@
+TAP version 13
+# Subtest: withheld permission or closed document does not poison subsequent recovery; failed isolation never injects
+ok 1 - withheld permission or closed document does not poison subsequent recovery; failed isolation never injects
+  ---
+  duration_ms: 1.291833
+  type: 'test'
+  ...
+# Subtest: capture recovery live hold is private, single-use and releases without inventing work
+not ok 2 - capture recovery live hold is private, single-use and releases without inventing work
+  ---
+  duration_ms: 0.62775
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:129:1'
+  failureType: 'testCodeFailure'
+  error: 'f.api.applicationSelectionSourceIs is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:130:39)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+# Subtest: hold drains the actual pending probe and cancels its not-yet-dispatched forced replacement
+not ok 3 - hold drains the actual pending probe and cancels its not-yet-dispatched forced replacement
+  ---
+  duration_ms: 1.90375
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:137:1'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:138:154)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hold waits for one dispatched world but cannot dispatch the remaining worlds or replay on release
+not ok 4 - hold waits for one dispatched world but cannot dispatch the remaining worlds or replay on release
+  ---
+  duration_ms: 0.265667
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:143:1'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:145:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hold tracks repairAll pending isolation before any per-tab task exists
+not ok 5 - hold tracks repairAll pending isolation before any per-tab task exists
+  ---
+  duration_ms: 0.235208
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:150:42'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:152:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hold tracks repairAll pending query before any per-tab task exists
+not ok 6 - hold tracks repairAll pending query before any per-tab task exists
+  ---
+  duration_ms: 4.040875
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:150:42'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:152:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# (node:1970) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: hold drains accepted startup grace without issuing a subsequent probe
+not ok 7 - hold drains accepted startup grace without issuing a subsequent probe
+  ---
+  duration_ms: 0.222667
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:156:1'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:158:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: eligible installed while held invalidates the live receipt without starting work
+not ok 8 - eligible installed while held invalidates the live receipt without starting work
+  ---
+  duration_ms: 0.14575
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:162:79'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:163:38)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: eligible startup while held invalidates the live receipt without starting work
+not ok 9 - eligible startup while held invalidates the live receipt without starting work
+  ---
+  duration_ms: 0.292375
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:162:79'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:163:38)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: eligible activated while held invalidates the live receipt without starting work
+not ok 10 - eligible activated while held invalidates the live receipt without starting work
+  ---
+  duration_ms: 0.2155
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:162:79'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:163:38)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: eligible updated while held invalidates the live receipt without starting work
+not ok 11 - eligible updated while held invalidates the live receipt without starting work
+  ---
+  duration_ms: 0.1075
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:162:79'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:163:38)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: eligible permission while held invalidates the live receipt without starting work
+not ok 12 - eligible permission while held invalidates the live receipt without starting work
+  ---
+  duration_ms: 0.102125
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:162:79'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:163:38)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: capture hold deadline does not clear an unresolved script or authorize its late continuation
+not ok 13 - capture hold deadline does not clear an unresolved script or authorize its late continuation
+  ---
+  duration_ms: 1.105792
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:169:1'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:171:22)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: changed original script executor invalidates a held capture source instead of refreshing its identity
+not ok 14 - changed original script executor invalidates a held capture source instead of refreshing its identity
+  ---
+  duration_ms: 0.096458
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:179:1'
+  failureType: 'testCodeFailure'
+  error: 'f.api.holdForApplicationSelection is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/capture-recovery-hold/extension/tests/capture-recovery.test.mjs:180:80)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 1
+# fail 13
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 63.455292

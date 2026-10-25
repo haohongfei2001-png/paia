@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "extension/tests/capture-recovery.test.mjs",
+    "extension/tests/settings-capture-recovery.test.mjs",
+    "extension/tests/capture-recovery-ci-wiring.test.mjs",
+    "extension/tests/frozen-capture.test.mjs"
+  ],
+  "exitCode": 0
+}

@@ -12,20 +12,21 @@ function fixture(options={}) {
  const chrome={
   runtime:{getManifest:()=>manifest,onInstalled:event('installed'),onStartup:event('startup')},
   tabs:{onActivated:event('activated'),onUpdated:event('updated'),
-   async query(query){calls.push(['query',query]);return tabs;},
+   async query(query){calls.push(['query',query]);if(options.queryHold)await options.queryHold;return tabs;},
    async get(id){calls.push(['get',id]);return tabs.find(t=>t.id===id);}},
   permissions:{onAdded:event('permission')},
   scripting:{async executeScript(request){
    calls.push(['execute',request]);
    if(options.failFirst&&attempts++===0)throw Error('withheld');
    if(request.func&&options.probeHold)await options.probeHold;
+   if(request.func&&options.rejectProbe)throw options.rejectProbe;
    if(request.func&&typeof options.probe==='function')return options.probe(request);
    if(request.func)return options.probe||[{documentId:'document-a',result:{active:false,ready:false,version:null}}];
    if(options.hold)await options.hold;
    return [{documentId:'document-a',result:undefined}];
   }}
  };
- return {api:installCaptureRecovery(chrome,options.ready||Promise.resolve(),options.waitForStartup?{waitForStartup:options.waitForStartup}:{}),calls,events};
+ return {api:installCaptureRecovery(chrome,options.ready||Promise.resolve(),options.waitForStartup?{waitForStartup:options.waitForStartup}:{}),chrome,calls,events};
 }
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 test('recovery registers events before isolation, then injects exact packaged worlds into only the probed main document',async()=>{
@@ -119,4 +120,84 @@ test('forced replacement queued during startup grace wins exactly once', async (
  let release;const f=fixture({waitForStartup:()=>new Promise(resolve=>{release=resolve;}),probe:[{documentId:'document-a',result:{active:true,ready:false,version:manifest.version}}]});
  const ordinary=f.api.repair(1);await tick();const forced=f.api.repair(1,true);release();
  await Promise.all([ordinary,forced]);assert.equal(f.calls.filter(c=>c[1]?.files).length,3);
+});
+
+
+const deferred=()=>{let resolve;return {promise:new Promise(r=>{resolve=r;}),resolve:()=>resolve()};};
+const injectionCount=f=>f.calls.filter(c=>c[1]?.files).length;
+async function stillPending(promise){let settled=false;void promise.then(()=>{settled=true;},()=>{settled=true;});await tick();assert.equal(settled,false);}
+
+test('capture recovery live hold is private, single-use and releases without inventing work',async()=>{
+ const f=fixture();assert.equal(f.api.applicationSelectionSourceIs(f.chrome),true);assert.equal(f.api.applicationSelectionSourceIs({...f.chrome}),false);
+ const token=await f.api.holdForApplicationSelection();assert.equal(Object.getPrototypeOf(token),null);assert.equal(Object.isFrozen(token),true);assert.deepEqual(Object.keys(token),[]);
+ assert.equal(f.api.applicationSelectionHeld(token),true);assert.equal(f.api.applicationSelectionHeld({...token}),false);assert.equal(await f.api.fenceApplicationSelection(token),true);
+ assert.equal(f.api.releaseApplicationSelection({}),false);await assert.rejects(f.api.holdForApplicationSelection(),{code:'GENERATION_WORKER_NOT_QUIET'});
+ assert.deepEqual(f.calls,[]);assert.equal(f.api.releaseApplicationSelection(token),true);assert.equal(f.api.releaseApplicationSelection(token),false);assert.equal(f.api.applicationSelectionHeld(token),false);await tick();assert.deepEqual(f.calls,[]);
+});
+
+test('hold drains the actual pending probe and cancels its not-yet-dispatched forced replacement',async()=>{
+ const probe=deferred(),f=fixture({probeHold:probe.promise});const ordinary=f.api.repair(1);await tick();const forced=f.api.repair(1,true),holding=f.api.holdForApplicationSelection();
+ await stillPending(holding);assert.equal(f.calls.filter(c=>c[0]==='execute').length,1);probe.resolve();assert.deepEqual(await Promise.all([ordinary,forced]),[{status:'interrupted',reason:'application_selection_hold'},{status:'interrupted',reason:'application_selection_hold'}]);const token=await holding;
+ assert.equal(injectionCount(f),0);assert.equal(await f.api.fenceApplicationSelection(token),true);f.api.releaseApplicationSelection(token);await tick();assert.equal(injectionCount(f),0);
+});
+
+test('hold waits for one dispatched world but cannot dispatch the remaining worlds or replay on release',async()=>{
+ const world=deferred(),f=fixture({hold:world.promise}),repair=f.api.repair(1);await tick();assert.equal(injectionCount(f),1);
+ const holding=f.api.holdForApplicationSelection();await stillPending(holding);world.resolve();assert.deepEqual(await repair,{status:'interrupted',reason:'application_selection_hold'});const token=await holding;
+ assert.equal(injectionCount(f),1);f.api.releaseApplicationSelection(token);await tick();assert.equal(injectionCount(f),1);
+ f.events.updated(1,{status:'complete'});await tick();assert.equal(injectionCount(f),4,'only the later original event requests a new original repair');
+});
+
+for(const stage of ['isolation','query'])test('hold tracks repairAll pending '+stage+' before any per-tab task exists',async()=>{
+ const wait=deferred(),f=fixture(stage==='isolation'?{ready:wait.promise}:{queryHold:wait.promise}),repair=f.api.repairAll(true);await tick();
+ const holding=f.api.holdForApplicationSelection();await stillPending(holding);wait.resolve();await repair;const token=await holding;
+ assert.equal(f.calls.filter(c=>c[0]==='query').length,stage==='query'?1:0);assert.equal(f.calls.filter(c=>c[0]==='get').length,0);assert.equal(injectionCount(f),0);assert.equal(await f.api.fenceApplicationSelection(token),true);f.api.releaseApplicationSelection(token);
+});
+
+test('hold drains accepted startup grace without issuing a subsequent probe',async()=>{
+ const wait=deferred(),f=fixture({waitForStartup:()=>wait.promise,probe:[{documentId:'document-a',result:{active:true,ready:false,version:manifest.version}}]}),repair=f.api.repair(1);await tick();
+ const holding=f.api.holdForApplicationSelection();await stillPending(holding);wait.resolve();await repair;const token=await holding;
+ assert.equal(f.calls.filter(c=>c[0]==='execute').length,1);assert.equal(injectionCount(f),0);f.api.releaseApplicationSelection(token);
+});
+
+for(const event of ['installed','startup','activated','updated','permission'])test('eligible '+event+' while held invalidates the live receipt without starting work',async()=>{
+ const f=fixture(),token=await f.api.holdForApplicationSelection();f.events.updated(1,{title:'unrelated'});assert.equal(f.api.applicationSelectionHeld(token),true);
+ if(event==='activated')f.events.activated({tabId:1});else if(event==='updated')f.events.updated(1,{frozen:false});else if(event==='permission')f.events.permission({permissions:['scripting']});else f.events[event]();
+ await tick();assert.deepEqual(f.calls,[]);assert.equal(f.api.applicationSelectionHeld(token),false);await assert.rejects(f.api.fenceApplicationSelection(token),{code:'GENERATION_WORKER_NOT_QUIET'});
+ assert.equal(f.api.releaseApplicationSelection(token),true);await tick();assert.deepEqual(f.calls,[]);
+});
+
+test('capture hold deadline does not clear an unresolved script or authorize its late continuation',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const probe=deferred(),f=fixture({probeHold:probe.promise}),repair=f.api.repair(1);await tick();
+ const holding=f.api.holdForApplicationSelection(),failure=holding.catch(error=>error);
+ t.mock.timers.tick(29999);await stillPending(holding);t.mock.timers.tick(1);const error=await failure;assert.equal(error.code,'GENERATION_WORKER_NOT_QUIET');
+ await assert.rejects(f.api.holdForApplicationSelection(),{code:'GENERATION_WORKER_NOT_QUIET'});
+ assert.deepEqual(await f.api.repair(1),{status:'not-admitted',reason:'application_selection_hold'});assert.equal(f.api.applicationSelectionHeld(error),false);await assert.rejects(f.api.fenceApplicationSelection(error));
+ assert.equal(f.api.releaseApplicationSelection({...error}),false);assert.equal(f.api.releaseApplicationSelection(new Error(error.message)),false);
+ assert.equal(f.api.releaseApplicationSelection(error),true);assert.equal(f.api.releaseApplicationSelection(error),false);
+ // Explicit release is not cancellation or quietness: the next hold still
+ // waits for the same issued Chrome promise, which timeout did not erase.
+ const again=f.api.holdForApplicationSelection();await stillPending(again);probe.resolve();assert.deepEqual(await repair,{status:'interrupted',reason:'application_selection_hold'});const token=await again;
+ assert.equal(injectionCount(f),0);assert.equal(f.calls.filter(c=>c[0]==='execute').length,1);assert.equal(await f.api.fenceApplicationSelection(token),true);f.api.releaseApplicationSelection(token);await tick();assert.equal(injectionCount(f),0);
+});
+
+test('changed original script executor invalidates a held capture source instead of refreshing its identity',async()=>{
+ const f=fixture(),original=f.chrome.scripting.executeScript,token=await f.api.holdForApplicationSelection();f.chrome.scripting.executeScript=async()=>[];
+ assert.equal(f.api.applicationSelectionSourceIs(f.chrome),false);assert.equal(f.api.applicationSelectionHeld(token),false);await assert.rejects(f.api.fenceApplicationSelection(token),{code:'GENERATION_WORKER_NOT_QUIET'});
+ f.api.releaseApplicationSelection(token);await assert.rejects(f.api.holdForApplicationSelection(),{code:'GENERATION_WORKER_NOT_QUIET'});f.chrome.scripting.executeScript=original;assert.deepEqual(f.calls,[]);
+});
+
+
+test('a rejected already-issued probe fails hold without being relabelled as settled-safe',async()=>{
+ const probe=deferred(),cause=Error('SYNTHETIC uncertain probe'),f=fixture({probeHold:probe.promise,rejectProbe:cause}),repair=f.api.repair(1);await tick();
+ const holding=f.api.holdForApplicationSelection(),failure=holding.catch(error=>error);probe.resolve();await repair;const error=await failure;
+ assert.equal(error.code,'GENERATION_WORKER_NOT_QUIET');assert.equal(f.api.applicationSelectionHeld(error),false);await assert.rejects(f.api.holdForApplicationSelection());
+ assert.equal(f.api.releaseApplicationSelection({...error}),false);assert.equal(f.api.releaseApplicationSelection(error),true);assert.equal(injectionCount(f),0);
+});
+
+test('a request during acquisition cannot be mistaken for a successful quiet receipt',async()=>{
+ const probe=deferred(),f=fixture({probeHold:probe.promise}),repair=f.api.repair(1);await tick();const holding=f.api.holdForApplicationSelection(),failure=holding.catch(error=>error);
+ assert.deepEqual(await f.api.repairAll(true),{status:'not-admitted',reason:'application_selection_hold'});probe.resolve();await repair;const error=await failure;
+ assert.equal(error.code,'GENERATION_WORKER_NOT_QUIET');assert.equal(f.api.applicationSelectionHeld(error),false);assert.deepEqual(await f.api.repair(1),{status:'not-admitted',reason:'application_selection_hold'});
+ assert.equal(f.api.releaseApplicationSelection(error),true);assert.equal(injectionCount(f),0);
 });

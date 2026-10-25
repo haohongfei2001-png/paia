@@ -1,5 +1,9 @@
 /* Trusted, event-driven replacement of stale capture runtimes. No page reloads. */
+import {ArchiveError} from '../core/constants.js';
 const CHATGPT = 'https://chatgpt.com/*';
+const holdFailure = () => { throw new ArchiveError('GENERATION_WORKER_NOT_QUIET'); };
+const notAdmitted = Object.freeze({status: 'not-admitted', reason: 'application_selection_hold'});
+const interrupted = Object.freeze({status: 'interrupted', reason: 'application_selection_hold'});
 function allowedTab(tab) {
   if (!Number.isInteger(tab?.id) || tab.incognito || tab.discarded || tab.frozen) return false;
   try { return new URL(tab.url).origin === 'https://chatgpt.com'; } catch { return false; }
@@ -16,29 +20,73 @@ function probeCapture() {
 
 export function installCaptureRecovery(chrome, ready, {waitForStartup = ms => new Promise(resolve => setTimeout(resolve, ms))} = {}) {
   if (!chrome.scripting?.executeScript || !chrome.tabs?.query) return;
-  const pending = new Map();
+  const pending = new Map(), tasks = new Set();
+  const scripting = chrome.scripting, tabs = chrome.tabs, runtime = chrome.runtime;
+  const execute = scripting.executeScript, get = tabs.get, query = tabs.query, getManifest = runtime.getManifest;
+  let admission = 0, selectionHold = null;
+  const sourceCurrent = () => chrome.scripting === scripting && chrome.tabs === tabs && chrome.runtime === runtime &&
+    scripting.executeScript === execute && tabs.get === get && tabs.query === query && runtime.getManifest === getManifest;
+  const track = promise => { tasks.add(promise); const done = () => tasks.delete(promise); void promise.then(done, done); return promise; };
+  const enter = () => { if (selectionHold) { selectionHold.valid = false; return null; } return admission; };
+  const admitted = serial => selectionHold === null && serial === admission;
+  const taskFailed = error => { if (selectionHold) { selectionHold.valid = false; selectionHold.taskFailure ??= error; } };
+  // Only live work accepted by this original owner is covered. No host/editor,
+  // cold capture, successful insertion or global selection proof is produced.
+  const held = state => selectionHold === state && state.valid && state.admission === admission && sourceCurrent();
+  async function holdForApplicationSelection() {
+    if (selectionHold || !sourceCurrent()) holdFailure();
+    const token = Object.freeze(Object.create(null)), state = {token, valid: true, ready: false, admission: ++admission};
+    selectionHold = state; let timer;
+    const drain = async () => {
+      for (;;) { if (!held(state)) holdFailure(); const accepted = [...tasks]; if (!accepted.length) break; await Promise.allSettled(accepted); }
+      if (!held(state) || tasks.size) holdFailure(); state.ready = true; return token;
+    };
+    try { return await Promise.race([drain(), new Promise((_, reject) => {
+      timer = setTimeout(() => { state.valid = false; reject(new ArchiveError('GENERATION_WORKER_NOT_QUIET')); }, 30000);
+    })]); }
+    catch (error) {
+      // A failed acquisition has no successful token. Retain its exact Error
+      // identity for explicit owner release, never as a quietness receipt.
+      state.valid = false; state.failure = error; throw error;
+    }
+    finally { clearTimeout(timer); }
+  }
+  const applicationSelectionHeld = token => !!selectionHold && selectionHold.token === token && selectionHold.ready && held(selectionHold) && tasks.size === 0;
+  async function fenceApplicationSelection(token) {
+    if (!applicationSelectionHeld(token)) { if (selectionHold?.token === token) selectionHold.valid = false; holdFailure(); }
+    return true;
+  }
+  function releaseApplicationSelection(token) {
+    if (!selectionHold || selectionHold.token !== token && (!selectionHold.failure || selectionHold.failure !== token)) return false;
+    selectionHold.valid = false; selectionHold = null; admission++; return true;
+  }
   const manifest = chrome.runtime.getManifest();
   // The install manifest is the sole source of bundled file paths/worlds.
   const scripts = manifest.content_scripts.filter(group =>
     group.matches?.length === 1 && group.matches[0] === CHATGPT && group.all_frames !== true);
   async function repair(tabId, force = false) {
     if (!Number.isInteger(tabId)) return;
+    const serial = enter(); if (serial === null) return notAdmitted;
     if (pending.has(tabId)) {
-      if (force) pending.get(tabId).force = true;
+      if (force && pending.get(tabId).admission === serial) pending.get(tabId).force = true;
       return pending.get(tabId).promise;
     }
-    const task = {force, promise: null};
+    const task = {force, promise: null, admission: serial};
     pending.set(tabId, task);
-    task.promise = (async () => {
+    task.promise = track((async () => {
       await ready; // The same fail-closed storage isolation gate as all capture.
+      if (!admitted(serial)) return interrupted;
       do {
         const replacing = task.force;
         task.force = false;
+        if (!admitted(serial)) return interrupted;
         const tab = await chrome.tabs.get(tabId);
+        if (!admitted(serial)) return interrupted;
         if (!allowedTab(tab)) return;
         let [probe] = await chrome.scripting.executeScript({
           target: {tabId, frameIds: [0]}, world: 'ISOLATED', func: probeCapture
         });
+        if (!admitted(serial)) return interrupted;
         if (!probe?.documentId || !probe.result) return;
         // document_start bridges can already hold authorized response metadata
         // while document_idle capture is still waiting for its first status.
@@ -48,10 +96,12 @@ export function installCaptureRecovery(chrome, ready, {waitForStartup = ms => ne
         for (let attempt = 0; !replacing && !task.force && attempt < 20 &&
           probe.result.active && !probe.result.ready && probe.result.version === manifest.version; attempt++) {
           await waitForStartup(250);
+          if (!admitted(serial)) return interrupted;
           if (task.force) break;
           const [next] = await chrome.scripting.executeScript({
             target: {tabId, documentIds: [documentId]}, world: 'ISOLATED', func: probeCapture
           });
+          if (!admitted(serial)) return interrupted;
           if (next?.documentId !== documentId || !next.result) return;
           probe = next;
         }
@@ -63,6 +113,7 @@ export function installCaptureRecovery(chrome, ready, {waitForStartup = ms => ne
         // Pin every world to the exact document probed above. A tab navigating
         // to another permitted origin can never receive the capture bundle.
         for (const group of scripts) {
+          if (!admitted(serial)) return interrupted;
           await chrome.scripting.executeScript({
             target: {tabId, documentIds: [probe.documentId]},
             world: group.world || 'ISOLATED', files: group.js
@@ -71,18 +122,25 @@ export function installCaptureRecovery(chrome, ready, {waitForStartup = ms => ne
         // Injection is not a capture-success acknowledgement. Fresh status,
         // consent/epoch checks and durable source writes stay in their owners.
       } while (task.force);
-    })().catch(() => {
+    })().catch(error => {
+      taskFailed(error);
       // Closed/navigated tabs and withheld site access are expected failures.
       // A later eligible event can retry; no attempted/healthy flag is persisted.
-    }).finally(() => { if (pending.get(tabId) === task) pending.delete(tabId); });
+    }).finally(() => { if (pending.get(tabId) === task) pending.delete(tabId); }));
     return task.promise;
   }
   async function repairAll(force = false) {
-    try {
-      await ready;
-      const tabs = await chrome.tabs.query({url: [CHATGPT]});
-      await Promise.all(tabs.filter(allowedTab).map(tab => repair(tab.id, force)));
-    } catch {} // Permission absence never falls back to broad tab enumeration.
+    const serial = enter(); if (serial === null) return notAdmitted;
+    return track((async () => {
+      try {
+        await ready;
+        if (!admitted(serial)) return interrupted;
+        const tabs = await chrome.tabs.query({url: [CHATGPT]});
+        if (!admitted(serial)) return interrupted;
+        await Promise.all(tabs.filter(allowedTab).map(tab => repair(tab.id, force)));
+        if (!admitted(serial)) return interrupted;
+      } catch (error) { taskFailed(error); } // Permission absence never falls back to broad tab enumeration.
+    })());
   }
   // Listener registration is synchronous, including when the worker is waking.
   chrome.runtime.onInstalled?.addListener(() => { void repairAll(true); });
@@ -94,5 +152,10 @@ export function installCaptureRecovery(chrome, ready, {waitForStartup = ms => ne
   chrome.permissions?.onAdded?.addListener(change => {
     if (change.origins?.includes(CHATGPT) || change.permissions?.includes('scripting')) void repairAll();
   });
-  return {repair, repairAll};
+  // Release (success token or exact failed-acquisition Error) never cancels
+  // already-issued Chrome work, certifies quietness, or replays a task. Only a
+  // later original eligible event/explicit repair may request work again.
+  return Object.freeze({repair, repairAll, holdForApplicationSelection, applicationSelectionHeld,
+    fenceApplicationSelection, releaseApplicationSelection,
+    applicationSelectionSourceIs: api => api === chrome && sourceCurrent()});
 }
