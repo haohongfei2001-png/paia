@@ -109,3 +109,7 @@ No additional test run is authorized or claimed by this design. Existing quotas 
 The user explicitly approved local receipt-only admission and manual refresh guidance for old pages. Core 5416962 and UI cb20d29 implement that decision: a new constructor refuses unsigned native entry, exact document protocol/known holds require receipt-only-v1, and old protocol pages receive draft-preserving manual refresh guidance. Historical pending/UNKNOWN, legacyCoverageUnknown and already-loaded old constructors remain unchanged. This supersedes only the earlier compatibility-approval blocker, not the historical/lifetime/global proof requirements. The actual paired 5/5 seam and core/UI 158/158 are local synthetic evidence; they are not real-browser evidence.
 
 Current-top inventory implementation is the next separately owned local slice. The design uses only the existing origin query and scripting metadata capability, exact private registration and the same original cumulative ticket, without injection/reload, caller supplied map, new permissions or global activation. See current-host-inventory-design.md. It remains unable to reconstruct destroyed historical witnesses.
+
+## Implemented current-top successor
+
+Frozen b919626 is now integrated at a3359fd. The current-top slice described above is implemented and independently reviewed; original failure 201/202 and corrected affected 51/51 remain separate. Complete historical/lifetime/global coverage remains unproved; this does not change the global selection gate. See prompt-current-top-inventory-frozen-review.md.

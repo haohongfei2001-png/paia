@@ -70,3 +70,9 @@ Read-only frozen-source audit at 815584c identifies the original Assist private-
 397dad0 integrates the exact 17def613 two-Input proof implementation (117/117 local synthetic cases). b25daa6 then removes its temporary count-only gate, preserving complete per-Input reconstruction, shared global counters, two-sibling original ancestry and all original limits. A→B→A coalesced and allocated histories and A→B→C now complete original publication, fresh synthetic recovery and cold reopen. The follow-up evidence is first 4/6 (two new receiver fixture IDs rejected after publication), then only the corrected two cases 2/2; no combined 6/6 or repeated 117 claim. Both frozen independent source reviews are included. Mixed Source/Working/Human/Context tails, further incomparable heads and larger capacity remain separate.
 
 The 815584c offline artifact predates these runtime changes and is now historical. A fresh integrated build will be prepared at the next combined milestone.
+
+## Current-top inventory and combined offline milestone a3359fd
+
+Current top-document inventory is integrated from frozen b919626 at a3359fd: original exact browser metadata identities, private enrollment, shared original budget, complete map/final enumeration and original document holds. Independent frozen review found no blocker in this limited scope. First seven-file 201/202 regression remains; corrected affected two-file 51/51 is separate. Historical UNKNOWN/legacy lifetime coverage remain unresolved and ACTIVATE remains closed. This replaces the earlier “current-top inventory not yet implemented” status, without granting global host authority.
+
+One tracked-only offline build at a3359fd passed 24,886 package guards / 708 files and 81 changed-script syntax checks; see BUILD-a3359fd.md. The 815584c artifact is historical. Test-only Assist receipt preparation continues separately; no native execution is authorized.

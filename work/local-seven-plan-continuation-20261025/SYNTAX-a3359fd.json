@@ -1,0 +1,407 @@
+[
+  {
+    "path": "extension/adapter/chatgpt-composer.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/application-editor-guard.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/application-local-tools-coordination.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/application-selection-commands.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/application-transport-coordination.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/application-worker-coordination.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/capture-recovery.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/import-handler.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/prompt-assist.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/prompt-insertion-receipts.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/prompt-next.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/prompt-reuse-commands.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/prompt-surface.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/service-worker.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/background/sync-local-lifecycle.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/backup-service.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/browser-native-sync/application-generation-selection.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/browser-native-sync/checkpoint-publication.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/browser-native-sync/context-desired-journal-owner.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/browser-native-sync/context-mutation-journal-owner.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/browser-native-sync/group-checkpoint.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/browser-native-sync/recovery-session.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/browser-native-sync/source-union-publication-continuation.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/constants.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/idb-repository.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/import/ledger.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/indexed-store.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/integrity-checker.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/local-tool-selection-hold.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/organizer/application-selection-owner.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/organizer/bounded-workflow.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/organizer/configured-organize-runner.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/organizer/original-simple.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-editor-guard.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-existing-selection-requalification.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-local-tools-coordination.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-selection-consumer.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-selection-dispatch-lifetime.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-selection-review-restriction.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-selection-warm-reverse.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-transport-coordination.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-worker-activity-control.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-worker-admission.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-worker-coordination.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-worker-organize-hold.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/application-worker-sources.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/capture-recovery-package-guard.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/capture-recovery.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/checkpoint-publication-outbound.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/checkpoint-publication-third-working.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/cpv1-09-receipt-request-preparation.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/harness/selection-admission-worker.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/local-tools-selection-hold.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/organize-application-selection-hold.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/prompt-composer-selection-hold.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/prompt-current-top-inventory.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/prompt-insertion-known-document-hold.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/prompt-insertion-producer-receipts.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/prompt-insertion-receipt-hold.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/prompt-insertion-receipts.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/prompt-insertion-worker-receipts.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/prompt-known-document-roundtrip.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/prompt-original-composer-receipts.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/prompt-page-refresh-ui.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/settings-sync.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/source-union-publication-continuation.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/source-union-retained-working-tail.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/source-union-two-input-working.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/sync-cold-control-enrollment.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/sync-context-enrollment-settlement.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/sync-context-terminal-enrollment.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/sync-local-lifecycle.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/sync-worker-context-consumer.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/ui/application-editor-guard.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/ui/prompt-assist-state.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/ui/prompt-assist-view.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/ui/prompt-next.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/ui/prompt-reuse-test.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/ui/prompt-surface.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/ui/settings-sync.js",
+    "exit": 0,
+    "output": ""
+  }
+]
