@@ -1,0 +1,416 @@
+TAP version 13
+# Subtest: prospective registered original document holds shared three-lane admission and exact release never replays
+ok 1 - prospective registered original document holds shared three-lane admission and exact release never replays
+  ---
+  duration_ms: 2.62175
+  type: 'test'
+  ...
+# Subtest: exact document binding rejects receiver without closing original admission
+ok 2 - exact document binding rejects receiver without closing original admission
+  ---
+  duration_ms: 0.486625
+  type: 'test'
+  ...
+# Subtest: exact document binding rejects ownerToken without closing original admission
+ok 3 - exact document binding rejects ownerToken without closing original admission
+  ---
+  duration_ms: 0.467125
+  type: 'test'
+  ...
+# Subtest: exact document binding rejects domainDigest without closing original admission
+ok 4 - exact document binding rejects domainDigest without closing original admission
+  ---
+  duration_ms: 0.416875
+  type: 'test'
+  ...
+# Subtest: exact document binding rejects extra without closing original admission
+ok 5 - exact document binding rejects extra without closing original admission
+  ---
+  duration_ms: 0.390208
+  type: 'test'
+  ...
+# Subtest: unregistered and foreign sender histories cannot acquire proof; rejected bare requests never enter native
+ok 6 - unregistered and foreign sender histories cannot acquire proof; rejected bare requests never enter native
+  ---
+  duration_ms: 1.029209
+  type: 'test'
+  ...
+# Subtest: accepted receipt pending digest is registered before the first await and cannot enter native after hold
+ok 7 - accepted receipt pending digest is registered before the first await and cannot enter native after hold
+  ---
+  duration_ms: 5.315958
+  type: 'test'
+  ...
+# Subtest: hold during original lane qualification prevents native entry through the final private guard
+ok 8 - hold during original lane qualification prevents native entry through the final private guard
+  ---
+  duration_ms: 1.404875
+  type: 'test'
+  ...
+# Subtest: already entered native operation must complete actual verification and ACK publication before held proof
+ok 9 - already entered native operation must complete actual verification and ACK publication before held proof
+  ---
+  duration_ms: 1.469042
+  type: 'test'
+  ...
+# Subtest: UNKNOWN after native entry stays UNKNOWN and failed hold remains closed until exact release
+ok 10 - UNKNOWN after native entry stays UNKNOWN and failed hold remains closed until exact release
+  ---
+  duration_ms: 1.013625
+  type: 'test'
+  ...
+# Subtest: fixed deadline and original navigation identity never revive old proof
+ok 11 - fixed deadline and original navigation identity never revive old proof
+  ---
+  duration_ms: 0.573083
+  type: 'test'
+  ...
+# Subtest: pending timeout retains actual task and late completion cannot resurrect holder
+ok 12 - pending timeout retains actual task and late completion cannot resurrect holder
+  ---
+  duration_ms: 0.969625
+  type: 'test'
+  ...
+# Subtest: pagehide and runtime replacement reject held proof without interpreting disposal as terminal
+ok 13 - pagehide and runtime replacement reject held proof without interpreting disposal as terminal
+  ---
+  duration_ms: 0.589459
+  type: 'test'
+  ...
+# Subtest: old shared constructor remains unsupported rather than being silently replaced by new bundle
+ok 14 - old shared constructor remains unsupported rather than being silently replaced by new bundle
+  ---
+  duration_ms: 0.343167
+  type: 'test'
+  ...
+# Subtest: ACK publication remains tracked until original response without pretending response success is durable coverage
+ok 15 - ACK publication remains tracked until original response without pretending response success is durable coverage
+  ---
+  duration_ms: 1.123208
+  type: 'test'
+  ...
+# Subtest: second challenge, malformed fields, wrong nonce and runtime id mutation never release or refresh the first hold
+ok 16 - second challenge, malformed fields, wrong nonce and runtime id mutation never release or refresh the first hold
+  ---
+  duration_ms: 0.491042
+  type: 'test'
+  ...
+# Subtest: post-birth Promise then replacement cannot forge the original hold task result
+ok 17 - post-birth Promise then replacement cannot forge the original hold task result
+  ---
+  duration_ms: 0.319708
+  type: 'test'
+  ...
+# Subtest: retired document rejects new legacy insertion before admission
+ok 18 - retired document rejects new legacy insertion before admission
+  ---
+  duration_ms: 0.221583
+  type: 'test'
+  ...
+# Subtest: retired document rejects new receipt insertion before admission
+ok 19 - retired document rejects new receipt insertion before admission
+  ---
+  duration_ms: 0.567167
+  type: 'test'
+  ...
+# Subtest: retired document synchronous focus reentry blocks legacy native insertion
+ok 20 - retired document synchronous focus reentry blocks legacy native insertion
+  ---
+  duration_ms: 0.412
+  type: 'test'
+  ...
+# Subtest: retired document synchronous focus reentry blocks receipt native insertion
+ok 21 - retired document synchronous focus reentry blocks receipt native insertion
+  ---
+  duration_ms: 0.796917
+  type: 'test'
+  ...
+# Subtest: retired document synchronous place reentry blocks legacy native insertion
+ok 22 - retired document synchronous place reentry blocks legacy native insertion
+  ---
+  duration_ms: 0.247459
+  type: 'test'
+  ...
+# Subtest: retired document synchronous place reentry blocks receipt native insertion
+ok 23 - retired document synchronous place reentry blocks receipt native insertion
+  ---
+  duration_ms: 0.805917
+  type: 'test'
+  ...
+# Subtest: retired document synchronous final guard reentry blocks legacy native insertion
+ok 24 - retired document synchronous final guard reentry blocks legacy native insertion
+  ---
+  duration_ms: 0.221792
+  type: 'test'
+  ...
+# Subtest: retired document synchronous final guard reentry blocks receipt native insertion
+ok 25 - retired document synchronous final guard reentry blocks receipt native insertion
+  ---
+  duration_ms: 0.623458
+  type: 'test'
+  ...
+# Subtest: retired document pending digest continuation cannot enter native
+ok 26 - retired document pending digest continuation cannot enter native
+  ---
+  duration_ms: 0.673541
+  type: 'test'
+  ...
+# Subtest: retired document pending registration continuation cannot enter native
+ok 27 - retired document pending registration continuation cannot enter native
+  ---
+  duration_ms: 0.707792
+  type: 'test'
+  ...
+# Subtest: retired document pending qualification continuation cannot enter native
+ok 28 - retired document pending qualification continuation cannot enter native
+  ---
+  duration_ms: 0.779792
+  type: 'test'
+  ...
+# Subtest: retired document preserves already issued native inserted outcome and original ACK
+ok 29 - retired document preserves already issued native inserted outcome and original ACK
+  ---
+  duration_ms: 2.346375
+  type: 'test'
+  ...
+# Subtest: retired document preserves already issued native UNKNOWN outcome and original ACK
+ok 30 - retired document preserves already issued native UNKNOWN outcome and original ACK
+  ---
+  duration_ms: 0.924667
+  type: 'test'
+  ...
+# Subtest: retired document pageshow, exact release and constructor reuse cannot revive admission; a new document keeps legacy compatibility
+ok 31 - retired document pageshow, exact release and constructor reuse cannot revive admission; a new document keeps legacy compatibility
+  ---
+  duration_ms: 0.876084
+  type: 'test'
+  ...
+# Subtest: retired document pending original lane qualifier preserves not-entered ACK
+ok 32 - retired document pending original lane qualifier preserves not-entered ACK
+  ---
+  duration_ms: 0.603792
+  type: 'test'
+  ...
+# Subtest: nonempty entire original known map holds and fences readonly without global or legacy claims
+ok 33 - nonempty entire original known map holds and fences readonly without global or legacy claims
+  ---
+  duration_ms: 82.694583
+  type: 'test'
+  ...
+# Subtest: empty cold receiver map cannot become positive proof
+ok 34 - empty cold receiver map cannot become positive proof
+  ---
+  duration_ms: 21.013333
+  type: 'test'
+  ...
+# Subtest: registration admitted before hold cannot change frozen map after its original tabs await
+ok 35 - registration admitted before hold cannot change frozen map after its original tabs await
+  ---
+  duration_ms: 34.468
+  type: 'test'
+  ...
+# Subtest: actual tab window change refuses without fallback or discovery
+ok 36 - actual tab window change refuses without fallback or discovery
+  ---
+  duration_ms: 19.761625
+  type: 'test'
+  ...
+# Subtest: actual tab url change refuses without fallback or discovery
+ok 37 - actual tab url change refuses without fallback or discovery
+  ---
+  duration_ms: 21.628375
+  type: 'test'
+  ...
+# Subtest: actual tab discarded change refuses without fallback or discovery
+ok 38 - actual tab discarded change refuses without fallback or discovery
+  ---
+  duration_ms: 19.5605
+  type: 'test'
+  ...
+# Subtest: document nonce reply rejects and every attempted holder has exact cleanup
+ok 39 - document nonce reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 18.9415
+  type: 'test'
+  ...
+# Subtest: document owner reply rejects and every attempted holder has exact cleanup
+ok 40 - document owner reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 19.183583
+  type: 'test'
+  ...
+# Subtest: document domain reply rejects and every attempted holder has exact cleanup
+ok 41 - document domain reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 19.987125
+  type: 'test'
+  ...
+# Subtest: document challenge reply rejects and every attempted holder has exact cleanup
+ok 42 - document challenge reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 17.980958
+  type: 'test'
+  ...
+# Subtest: document zero reply rejects and every attempted holder has exact cleanup
+ok 43 - document zero reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 17.796875
+  type: 'test'
+  ...
+# Subtest: document overflow reply rejects and every attempted holder has exact cleanup
+ok 44 - document overflow reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 17.831166
+  type: 'test'
+  ...
+# Subtest: document shape reply rejects and every attempted holder has exact cleanup
+ok 45 - document shape reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 17.644
+  type: 'test'
+  ...
+# Subtest: document old reply rejects and every attempted holder has exact cleanup
+ok 46 - document old reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 17.474459
+  type: 'test'
+  ...
+# Subtest: negative HOLD followed by unknown RELEASE retains worker admission without retry
+ok 47 - negative HOLD followed by unknown RELEASE retains worker admission without retry
+  ---
+  duration_ms: 17.496834
+  type: 'test'
+  ...
+# Subtest: locally quiet documents cannot cover durable pending UNKNOWN claims
+ok 48 - locally quiet documents cannot cover durable pending UNKNOWN claims
+  ---
+  duration_ms: 46.410083
+  type: 'test'
+  ...
+# Subtest: frozen membership removal invalidates proof and still cleans exact removed receiver
+ok 49 - frozen membership removal invalidates proof and still cleans exact removed receiver
+  ---
+  duration_ms: 35.385084
+  type: 'test'
+  ...
+# Subtest: original gate snapshot change refuses fence without repairing it
+ok 50 - original gate snapshot change refuses fence without repairing it
+  ---
+  duration_ms: 72.017625
+  type: 'test'
+  ...
+# Subtest: original generation snapshot change refuses fence without repairing it
+ok 51 - original generation snapshot change refuses fence without repairing it
+  ---
+  duration_ms: 72.539166
+  type: 'test'
+  ...
+# Subtest: original ledger snapshot change refuses fence without repairing it
+ok 52 - original ledger snapshot change refuses fence without repairing it
+  ---
+  duration_ms: 70.991042
+  type: 'test'
+  ...
+# (node:53335) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: one timed-out raw HOLD remains tracked and its actual late result triggers only exact cleanup
+ok 53 - one timed-out raw HOLD remains tracked and its actual late result triggers only exact cleanup
+  ---
+  duration_ms: 19.332833
+  type: 'test'
+  ...
+# Subtest: dispose invalidates proof but retains exact attempted cleanup records
+ok 54 - dispose invalidates proof but retains exact attempted cleanup records
+  ---
+  duration_ms: 32.214792
+  type: 'test'
+  ...
+# Subtest: original pending insertion ACK can settle while acquiring all document holders
+ok 55 - original pending insertion ACK can settle while acquiring all document holders
+  ---
+  duration_ms: 69.851791
+  type: 'test'
+  ...
+# Subtest: an unresolved release cannot silently open admission or send repeated cleanup
+ok 56 - an unresolved release cannot silently open admission or send repeated cleanup
+  ---
+  duration_ms: 30.998416
+  type: 'test'
+  ...
+# Subtest: all document acquisitions and repeated fences share the original remaining deadline
+ok 57 - all document acquisitions and repeated fences share the original remaining deadline
+  ---
+  duration_ms: 66.031625
+  type: 'test'
+  ...
+# Subtest: unobservable original HOLD Promise never permits cleanup to reopen admission
+ok 58 - unobservable original HOLD Promise never permits cleanup to reopen admission
+  ---
+  duration_ms: 21.505333
+  type: 'test'
+  ...
+# Subtest: actual frozen receiver URL bytes consume the one original work budget before HOLD
+ok 59 - actual frozen receiver URL bytes consume the one original work budget before HOLD
+  ---
+  duration_ms: 22.404291
+  type: 'test'
+  ...
+# Subtest: each original tabs identity response charges actual URL bytes rather than a fixed allowance
+ok 60 - each original tabs identity response charges actual URL bytes rather than a fixed allowance
+  ---
+  duration_ms: 38.486917
+  type: 'test'
+  ...
+# Subtest: known old page cannot qualify selection without receipt-only profile at HOLD
+ok 61 - known old page cannot qualify selection without receipt-only profile at HOLD
+  ---
+  duration_ms: 19.255583
+  type: 'test'
+  ...
+# Subtest: known old page cannot qualify selection without receipt-only profile at FENCE
+ok 62 - known old page cannot qualify selection without receipt-only profile at FENCE
+  ---
+  duration_ms: 25.114166
+  type: 'test'
+  ...
+# Subtest: actual owner and actual VM document complete read-only HOLD FENCE RELEASE with shared admission
+ok 63 - actual owner and actual VM document complete read-only HOLD FENCE RELEASE with shared admission
+  ---
+  duration_ms: 76.057416
+  type: 'test'
+  ...
+# Subtest: actual signed insertion and durable ACK precede paired physical and worker quiet
+ok 64 - actual signed insertion and durable ACK precede paired physical and worker quiet
+  ---
+  duration_ms: 96.05775
+  type: 'test'
+  ...
+# Subtest: paired hold waits original already-entered native verification and original pending ACK
+ok 65 - paired hold waits original already-entered native verification and original pending ACK
+  ---
+  duration_ms: 81.643084
+  type: 'test'
+  ...
+# Subtest: actual ambiguous native readback keeps durable pending and rejects paired hold without replay
+ok 66 - actual ambiguous native readback keeps durable pending and rejects paired hold without replay
+  ---
+  duration_ms: 50.261542
+  type: 'test'
+  ...
+# (node:53342) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: actual late adapter HOLD completion receives one exact RELEASE and cannot reopen timed-out owner
+ok 67 - actual late adapter HOLD completion receives one exact RELEASE and cannot reopen timed-out owner
+  ---
+  duration_ms: 22.510708
+  type: 'test'
+  ...
+1..67
+# tests 67
+# suites 0
+# pass 67
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1868.720292

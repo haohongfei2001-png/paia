@@ -1,0 +1,15 @@
+{
+  "head": "54e15e911c297dd687d7162b7dcacb576c644c23",
+  "files": {
+    "extension/adapter/chatgpt-composer.js": "9d7a23ef76df650671ec07dee338251e93e25dcff3d79a35b2c564e049bce43c",
+    "extension/background/prompt-insertion-receipts.js": "f2f6ca682b76ce6f39635315f6317284236be067da185984ad5b0adf2741b285",
+    "extension/tests/prompt-composer-selection-hold.test.mjs": "e870c60e8bebc688640462fd120c10292777312a69cfc66b4ab8645caa5970ee",
+    "extension/tests/prompt-insertion-producer-receipts.test.mjs": "c0d6bf1dfea26405494e555c877b5fabe54eb84af779f1acf4ac0480842e75a6",
+    "extension/tests/prompt-insertion-known-document-hold.test.mjs": "023620bd2ec0bc27e8e2c7b9c1d1fa0169eed98af93a655b69d4ec8633d52987",
+    "extension/tests/prompt-insertion-receipt-hold.test.mjs": "178d76005aff6fbbd0570eb82c68c1ed1ea9c28fa631f5a2465317b5254f708c",
+    "extension/tests/prompt-original-composer-receipts.test.mjs": "66a3fc3a648d892a4a8acf1c4277e953bcac3780a9be3b15ffe1789050b7c056",
+    "extension/tests/prompt-known-document-roundtrip.test.mjs": "777b5fc49c80ba9472d61deb91d05e0389aeeae969dc9fe243f4ef00e09d39a6",
+    "extension/tests/prompt-insertion-worker-receipts.test.mjs": "d57c8c689026b323180820935c2972e59aa69e0c0cbe876215bcfdba0c9445e4",
+    "extension/tests/prompt-insertion-receipts.test.mjs": "a69574d28a292a6f0640ad4400ba2ccf915bba2d22b00b2fd215dc3dcaef3588"
+  }
+}

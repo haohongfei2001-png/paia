@@ -9,7 +9,7 @@ const {PromptInsertionReceipts,PROMPT_INSERTION_RUNTIME,promptInsertionDigest,va
 const source=await readFile(new URL('../adapter/chatgpt-composer.js',import.meta.url),'utf8');
 const flush=async()=>{for(let i=0;i<8;i++)await new Promise(setImmediate);};
 function events(){const listeners=new Map();return {addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,new Set());listeners.get(type).add(fn);},removeEventListener(type,fn){listeners.get(type)?.delete(fn);},emit(type,event){for(const fn of [...listeners.get(type)||[]])fn(event);}};}
-function fixture({draft='SYNTHETIC draft',offset=4,accepted=true,trusted=true,caret=true,mutate=true}={}){
+function fixture({adapterSource=source,draft='SYNTHETIC draft',offset=4,accepted=true,trusted=true,caret=true,mutate=true}={}){
  let originalActionCount=0,registrationDomain='5'.repeat(64),retirementSummary={domainDigest:'5'.repeat(64),retiredEpochFloor:0,retiredRanges:[]},now=0,remainingMs=30000,qualified=true,acceptAck=true,retiredAck=false,rpcHandler=null,protocolHandler=null,ownerToken=webcrypto.randomUUID(),recoveryToken=webcrypto.randomUUID();
  let registrationHandler=null;const settledOperations=new Set();
  const domainDigest='5'.repeat(64),receiver={tabId:7,windowId:1,documentId:'synthetic-real-top-document'},receiptEpoch=webcrypto.randomUUID();
@@ -27,7 +27,7 @@ function fixture({draft='SYNTHETIC draft',offset=4,accepted=true,trusted=true,ca
  Object.assign(document,{documentElement:root,defaultView:{...events(),getComputedStyle:()=>({display:'block',visibility:'visible',contentVisibility:'visible',opacity:'1'})},querySelectorAll:()=>[node],createRange:makeRange,getSelection:()=>selection,execCommand(command,_,insertion){commands.push({command,insertion});commandResolve();const at=logical(range.startContainer,range.startOffset);if(mutate){text.data=text.data.slice(0,at)+insertion+text.data.slice(at);if(caret){range=makeRange();range.setStart(text,at+insertion.length);range.collapse();}}const event={isTrusted:trusted,inputType:'insertText',isComposing:false,target:node};node.emit('input',event);document.emit('input',event);return accepted;}});
  const context=vm.createContext({document,location,crypto:webcrypto,TextEncoder,queueMicrotask,performance:{now:()=>now},setTimeout(fn){if(hold)timers.push(fn);else queueMicrotask(fn);},chrome:{runtime:{id:'synthetic-extension',onMessage:{addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)},sendMessage:async message=>{messages.push(structuredClone(message));if(protocolHandler&&message.type.startsWith('PAIA_PROMPT_INSERTION_'))return protocolHandler(structuredClone(message));if(message.type==='PAIA_PROMPT_INSERTION_RECEIVER_REGISTER'){const response={ok:true,data:{registered:true,version:1,ownerToken,recoveryToken:message.recoveryToken??ownerToken,domainDigest:registrationDomain,receiver:{...receiver,nonce:message.nonce}}};return registrationHandler?registrationHandler(message,response):response;}if(message.type==='PAIA_PROMPT_INSERTION_QUALIFY')return {ok:true,data:{qualified:(typeof qualified==='function'?await qualified(message):qualified)&&!settledOperations.has(message.envelope.operationId),remainingMs}};if(message.type==='PAIA_PROMPT_INSERTION_RECONCILE')return {ok:true,data:{ownerToken,recoveryToken,retirementSummary,results:await Promise.all(message.acks.map(async ack=>{const settled=!retiredAck&&(typeof acceptAck==='function'?await acceptAck({ack}):acceptAck);if(settled)settledOperations.add(ack.envelope.operationId);return {claimId:ack.envelope.claimId,...(retiredAck?{settled:false,retired:true}:{settled})};}))}};
  if(message.type==='PAIA_PROMPT_INSERTION_ACK'){const settled=!retiredAck&&(typeof acceptAck==='function'?await acceptAck(message):acceptAck);if(settled)settledOperations.add(message.ack.envelope.operationId);return {ok:true,data:retiredAck?{settled:false,retired:true}:{settled}};}if(rpcHandler)return rpcHandler(message);return {ok:false};}}}});
- const reload=()=>vm.runInContext(source,context);reload();
+ const reload=()=>vm.runInContext(adapterSource,context);reload();
  const adapter=()=>new context.PAIAChatGPTComposerAdapter({document,location});
  const dispatch=(message,sender={id:'synthetic-extension'})=>new Promise(resolve=>{let answered=false,async=false;for(const listener of [...listeners]){if(listener(message,sender,value=>{answered=true;resolve(value);})===true)async=true;}if(!answered&&!async)resolve(undefined);});
  const admitted=async({lane='manual',epoch=1,receiptEpoch:token=receiptEpoch,domainDigest:domain=domainDigest,operationId=webcrypto.randomUUID(),text='SYNTHETIC receipt insertion',fields={}}={})=>{
@@ -44,31 +44,31 @@ function fixture({draft='SYNTHETIC draft',offset=4,accepted=true,trusted=true,ca
 }
 
 test('independently re-evaluated original adapter shares one physical inventory across three lanes and disposal',async()=>{
- const f=fixture(),first=f.adapter(),constructor=f.context.PAIAChatGPTComposerAdapter,request=f.request();
- f.hold();const pending=first.insert(request);f.reload();assert.equal(f.context.PAIAChatGPTComposerAdapter,constructor);
- const second=f.adapter(),third=f.adapter();first.dispose();const duplicate=second.insert(request);await f.release();
+ const f=fixture(),first=f.adapter(),constructor=f.context.PAIAChatGPTComposerAdapter;f.acceptAck(false);const request=await f.admitted();
+ f.hold();const pending=f.insert(first,request);await f.commandEntered;f.reload();assert.equal(f.context.PAIAChatGPTComposerAdapter,constructor);
+ const second=f.adapter(),third=f.adapter();first.dispose();const duplicate=f.insert(second,request);await f.release();
  assert.equal((await pending).status,'inserted');assert.equal((await duplicate).replayed,true);assert.equal(f.commands.length,1);
- second.dispose();f.reload();assert.equal((await third.insert(request)).replayed,true);assert.equal(f.commands.length,1);
+ second.dispose();f.reload();assert.equal((await f.insert(third,request)).replayed,true);assert.equal(f.commands.length,1);
  assert.equal(Object.hasOwn(first,'attempts'),false);assert.equal(Object.hasOwn(first,'state'),false);
 });
 
 test('different original lanes serialize the native transaction rather than three independent busy flags',async()=>{
- const f=fixture(),first=f.adapter(),second=f.adapter();f.hold();const pending=first.insert(f.request());
- assert.equal((await second.insert(f.request())).reason,'busy');assert.equal(f.commands.length,1);await f.release();assert.equal((await pending).status,'inserted');
+ const f=fixture(),first=f.adapter(),second=f.adapter(),one=await f.admitted(),two=await f.admitted({lane:'assist'});f.hold();const pending=f.insert(first,one);await f.commandEntered;
+ assert.equal((await f.insert(second,two)).reason,'busy');assert.equal(f.commands.length,1);await f.release();assert.equal((await pending).status,'inserted');
 });
 
 for(const [name,options] of [['accepted',{accepted:false}],['trusted input',{trusted:false}],['caret',{caret:false}],['exact readback',{mutate:false}]])test('original native verification still refuses unproved '+name,async()=>{
- const f=fixture(options),result=await f.adapter().insert(f.request());assert.notEqual(result.status,'inserted');assert.equal(f.commands.length,1);
+ const f=fixture(options),adapter=f.adapter(),message=await f.admitted(),result=await f.insert(adapter,message);assert.notEqual(result.status,'inserted');assert.equal(f.commands.length,1);
 });
 
 test('the original model preserves selected draft, exact Unicode and line breaks without a send command',async()=>{
- const f=fixture({draft:'prefix suffix',offset:7}),request=f.request({text:'你好\n🙂'}),result=await f.adapter().insert(request);
+ const f=fixture({draft:'prefix suffix',offset:7}),adapter=f.adapter(),request=await f.admitted({text:'你好\n🙂'}),result=await f.insert(adapter,request);
  assert.equal(result.status,'inserted');assert.equal(result.verified,true);assert.equal(f.text.data,'prefix 你好\n🙂suffix');assert.deepEqual(f.commands,[{command:'insertText',insertion:'你好\n🙂'}]);
 });
 
 test('shared IME fence and lane disposal cannot authorize a new native edit',async()=>{
- const f=fixture(),first=f.adapter(),second=f.adapter();f.document.emit('compositionstart',{target:f.node});first.dispose();
- assert.equal((await second.insert(f.request())).reason,'composition_active');assert.equal(f.commands.length,0);
+ const f=fixture(),first=f.adapter(),second=f.adapter(),message=await f.admitted();f.document.emit('compositionstart',{target:f.node});first.dispose();
+ assert.equal((await f.insert(second,message)).reason,'composition_active');assert.equal(f.commands.length,0);
 });
 
 for(const lane of ['manual','assist','next'])test('original '+lane+' attempt returns and publishes an exact body-free native receipt',async()=>{
@@ -135,7 +135,7 @@ test('receipt control messages reject page/foreign senders and cannot clear the 
 test('retired receipt cannot downgrade to a legacy physical request after acknowledged cache reclamation',async()=>{
  const f=fixture(),adapter=f.adapter(),message=await f.admitted();await f.insert(adapter,message);await flush();
  await f.dispatch({type:'PAIA_PROMPT_INSERTION_EPOCH_RETIRE',version:1,retiredEpochFloor:0,domainDigest:f.domainDigest,receiptEpoch:f.receiptEpoch,epoch:1,settledClaimIds:[]});
- const {insertionReceipt,...legacy}=message;assert.equal((await adapter.insert(legacy)).status,'uncertain');assert.equal(f.commands.length,1);
+ const {insertionReceipt,...legacy}=message;assert.equal((await adapter.insert(legacy)).status,'failed');assert.equal(f.commands.length,1);
 });
 
 test('durable exact terminal retirement confirmation recovers a lost separate ACK response without deleting UNKNOWN',async()=>{
@@ -158,10 +158,10 @@ test('retirement during a pending original final qualifier rejects native entry 
  assert.equal((await pending).insertionAck.outcome,'not_inserted');assert.equal(f.commands.length,0);
 });
 
-test('bounded legacy evidence refuses capacity without clearing old operations on lane disposal',async()=>{
- const f=fixture({draft:'',offset:0}),adapter=f.adapter(),first=f.request({text:'x'});await adapter.insert(first);
- for(let n=1;n<500;n++)assert.equal((await adapter.insert(f.request({text:'x'}))).status,'inserted');adapter.dispose();f.reload();const next=f.adapter();
- assert.equal((await next.insert(f.request({text:'x'}))).reason,'reload_required');assert.equal((await next.insert(first)).replayed,true);assert.equal(f.commands.length,500);
+test('new constructors refuse all bare legacy operations without accumulating native attempts',async()=>{
+ const f=fixture({draft:'',offset:0}),adapter=f.adapter(),first=f.request({text:'x'});
+ for(let n=0;n<501;n++)assert.equal((await adapter.insert(n?f.request({text:'x'}):first)).reason,'page_refresh_required');adapter.dispose();f.reload();
+ assert.equal((await f.adapter().insert(first)).reason,'page_refresh_required');assert.equal(f.commands.length,0);assert.equal(f.text.data,'');
 });
 
 test('bounded unresolved v1 evidence refuses more work without evicting UNKNOWN on retirement',async()=>{
@@ -248,7 +248,7 @@ test('more than sixteen clean restored domains remain usable while an evicted ol
   currentDomain=n.toString(16).padStart(64,'0');const message=await f.admitted({domainDigest:currentDomain,receiptEpoch:webcrypto.randomUUID(),text:'x'});if(!first)first=message;
   assert.equal((await f.insert(adapter,message)).status,'inserted');await flush();await f.dispatch({type:'PAIA_PROMPT_INSERTION_EPOCH_RETIRE',version:1,domainDigest:currentDomain,receiptEpoch:message.insertionReceipt.receiptEpoch,epoch:1,settledClaimIds:[],retiredEpochFloor:1});
  }
- assert.equal(f.commands.length,25);assert.equal((await f.insert(adapter,first)).status,'failed');assert.equal(f.commands.length,25);const {insertionReceipt,...legacy}=first;assert.equal((await adapter.insert(legacy)).status,'uncertain');assert.equal(f.commands.length,25);
+ assert.equal(f.commands.length,25);assert.equal((await f.insert(adapter,first)).status,'failed');assert.equal(f.commands.length,25);const {insertionReceipt,...legacy}=first;assert.equal((await adapter.insert(legacy)).status,'failed');assert.equal(f.commands.length,25);
 });
 
 test('a held shared qualifier cannot cross clean-domain-summary eviction, and its unresolved domain stays retained',async()=>{
@@ -437,4 +437,17 @@ test('paired original owner action B cannot borrow action A held actual receiver
  const first=p.owner.resolveReceiver(7,p.f.location.href,null,eventA);await held.entered;
  await assert.rejects(p.owner.resolveReceiver(7,p.f.location.href,null,eventB));held.release();assert.equal((await first).documentId,'synthetic-real-top-document');assert.equal(p.f.commands.length,0);assert.equal(await p.read(),undefined);
  const registrations=p.f.messages.filter(message=>message.type==='PAIA_PROMPT_INSERTION_RECEIVER_REGISTER');assert.equal(registrations.filter(message=>message.recoveryToken===b.action.actionId).length,0);assert.equal(registrations.filter(message=>message.recoveryToken===a.action.actionId).length,2);
+});
+
+for(const lane of ['manual','assist','next'])test('receipt-only birth denies unregistered bare '+lane+' native edit',async()=>{
+ const f=fixture(),a=f.adapter();assert.equal((await a.insert(f.request({lane}))).reason,'page_refresh_required');assert.equal(f.commands.length,0);assert.equal(f.messages.length,0);
+ const reply=await f.probe();assert.equal(reply.profile,'receipt-only-v1');assert.equal((await a.insert(f.request({lane}))).reason,'page_refresh_required');assert.equal(f.commands.length,0);
+});
+test('new script preserves a loaded old constructor and cannot retroactively qualify it',async()=>{
+ const legacy=await readFile(new URL('../../work/receipt-only-host-20261025/before/extension/adapter/chatgpt-composer.js',import.meta.url),'utf8');
+ const f=fixture({adapterSource:legacy}),a=f.adapter(),constructor=f.context.PAIAChatGPTComposerAdapter;
+ vm.runInContext(source,f.context);assert.equal(f.context.PAIAChatGPTComposerAdapter,constructor);
+ // This is the retained old owner, not a public switch in the new constructor.
+ assert.equal((await a.insert(f.request())).status,'inserted');assert.equal(f.commands.length,1);
+ assert.equal((await f.probe()).profile,undefined);
 });

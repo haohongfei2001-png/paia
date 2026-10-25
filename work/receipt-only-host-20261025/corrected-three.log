@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: actual service worker creates original Store-bound insertion owner and routes authenticated receiver proof
+ok 1 - actual service worker creates original Store-bound insertion owner and routes authenticated receiver proof
+  ---
+  duration_ms: 388.850042
+  type: 'test'
+  ...
+# Subtest: retired receipt cannot downgrade to a legacy physical request after acknowledged cache reclamation
+ok 2 - retired receipt cannot downgrade to a legacy physical request after acknowledged cache reclamation
+  ---
+  duration_ms: 6.581125
+  type: 'test'
+  ...
+# Subtest: more than sixteen clean restored domains remain usable while an evicted old envelope still requires current original owner admission
+ok 3 - more than sixteen clean restored domains remain usable while an evicted old envelope still requires current original owner admission
+  ---
+  duration_ms: 13.987583
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 628.716875

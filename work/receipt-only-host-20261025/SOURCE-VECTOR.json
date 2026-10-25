@@ -1,0 +1,11 @@
+{
+  "extension/adapter/chatgpt-composer.js": "9a80cb354fabc906a5f22c63b6f952af350a2b4d9c286aa0d41135bd5a0eaa43",
+  "extension/background/prompt-insertion-receipts.js": "7bd38da05529a87f62c0078b81453a896b990bb0bd24bfcd54cf943c66180e69",
+  "extension/tests/prompt-composer-selection-hold.test.mjs": "1dc2e8767a2d07c69581a95eef21285743549b9664304c2cdef769f8c2da0a98",
+  "extension/tests/prompt-insertion-known-document-hold.test.mjs": "4f100d89a2261dd59b28e74cf8ccb66818f51017c216bdcabcdfb940245fea0c",
+  "extension/tests/prompt-insertion-producer-receipts.test.mjs": "08d85a2c8d1e23cddc5d5e4bf53e50608c3c856da091d41b7a2a7345b3c95f28",
+  "extension/tests/prompt-insertion-receipt-hold.test.mjs": "7daf63b53189f57325f95842cf2fc2bdca06be43614ea3fd30df6087d74e6ad9",
+  "extension/tests/prompt-insertion-receipts.test.mjs": "744f3e2c4bd2a179f5a2c0d9dd994514d07e829ee052a52b70ca23460e4bf78b",
+  "extension/tests/prompt-insertion-worker-receipts.test.mjs": "3bab144c91f8be9f920f5c958a518e86c1179092396e42201cbad54f89fc23e6",
+  "extension/tests/prompt-original-composer-receipts.test.mjs": "d143f922c8169782ba55f6db252c06855efec6a0a3768fee8bdeb508e0434640"
+}

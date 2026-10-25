@@ -19,7 +19,7 @@
  };
  const selectionQuiet=state=>!state.selectionPending.size&&!state.registration&&![...state.receipts.values()].some(entry=>entry.active||entry.publishing);
  const selectionTerminal=state=>!state.attempts.size&&![...state.receipts.values()].some(entry=>!entry.nativeTerminal||!entry.ack||entry.ack.outcome==='unknown');
- const selectionProof=(state,hold)=>({version:1,held:true,challenge:hold.binding.challenge,receiver:copy(state.receiver),ownerToken:state.ownerToken,domainDigest:state.ownerDomain,remainingMs:Math.max(0,hold.deadline-monotonic())});
+ const selectionProof=(state,hold)=>({version:1,profile:'receipt-only-v1',held:true,challenge:hold.binding.challenge,receiver:copy(state.receiver),ownerToken:state.ownerToken,domainDigest:state.ownerDomain,remainingMs:Math.max(0,hold.deadline-monotonic())});
  function documentSelection(state,message){
   const type=message.type,valid=exact(message,['type','version','receiver','ownerToken','domainDigest','challenge'])&&message.version===1&&validReceiver(message.receiver)&&UUID.test(message.ownerToken)&&HASH.test(message.domainDigest)&&UUID.test(message.challenge);
   if(!valid)return resolved(selectionReply());
@@ -179,7 +179,7 @@
    if(message?.type==='PAIA_PROMPT_INSERTION_RECEIVER_PROBE'){
     if(state.selectionHold){reply(null);return;}
     if(!exact(message,['type','version','recoveryToken'])||message.version!==VERSION||!UUID.test(message.recoveryToken)){reply(null);return;}
-    registered(state,message.recoveryToken).then(()=>reply({version:VERSION,nonce:state.nonce}),()=>reply(null));return true;
+    registered(state,message.recoveryToken).then(()=>reply({version:VERSION,nonce:state.nonce,profile:'receipt-only-v1'}),()=>reply(null));return true;
    }
    if(message?.type==='PAIA_PROMPT_INSERTION_EPOCH_RETIRE'){
     if(!exact(message,['type','version','domainDigest','receiptEpoch','epoch','settledClaimIds','retiredEpochFloor'])||message.version!==VERSION||!HASH.test(message.domainDigest)||!UUID.test(message.receiptEpoch)||!Array.isArray(message.settledClaimIds)||message.settledClaimIds.length>500||message.settledClaimIds.some(id=>!UUID.test(id))||new Set(message.settledClaimIds).size!==message.settledClaimIds.length||!Number.isSafeInteger(message.epoch)||message.epoch<1||!Number.isSafeInteger(message.retiredEpochFloor)||message.retiredEpochFloor<0){reply({retired:false});return;}
@@ -299,14 +299,9 @@
    const {text,operationId,url,guard,insertionMessage,lane,qualify}=request||{};
    if(typeof operationId!=='string'||!/^[a-f0-9-]{36}$/.test(operationId)||typeof text!=='string'||!text.trim()||text.length>LIMIT||text.includes('\r'))return {status:'failed',reason:'invalid_request'};
    if(insertionMessage?.insertionReceipt||Object.hasOwn(request,'insertionReceipt'))return this.#withReceipt({text,operationId,url,guard,insertionMessage,lane,qualify},serial);
-   if(this.#state.protocolActive)return {status:'uncertain',reason:'legacy_insertion_unqualified'};
-   // A legacy request cannot bypass a new receipt's physical operation identity.
-   if(this.#state.receipts.has(operationId))return {status:'uncertain',reason:'readback_unconfirmed',replayed:true};
-   if(this.#state.attempts.has(operationId))return {...await this.#state.attempts.get(operationId),replayed:true};
-   // Legacy attempts have no qualified epoch retirement. Retain their body-free
-   // result for this document rather than evicting and enabling an old replay.
-   if(this.#state.attempts.size>=500)return {status:'failed',reason:'reload_required'};
-   const pending=this.#once(text,url,()=>!this.#state.selectionHold&&this.#state.admissionSerial===serial&&(!guard||guard()));this.#state.attempts.set(operationId,pending);return pending;
+   // This constructor never admits a legacy physical edit. A pre-existing
+   // constructor remains untouched and is refused by the worker profile probe.
+   return {status:'failed',reason:'page_refresh_required'};
   }
   async #withReceipt({text,operationId,url,guard,insertionMessage,lane,qualify},acceptedSerial){
    const invalid=()=>({status:'failed',reason:'invalid_insertion_receipt'}),state=this.#state;

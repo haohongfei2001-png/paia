@@ -26,7 +26,7 @@ async function fixture(t,{assist=false}={}){
  const row=()=>s.repository.transaction(false,t=>t.get('meta',PROMPT_INSERTION_RUNTIME),['meta']);
  api.tabs.sendMessage=async(id,r,target)=>{
   sends.push({id,r:structuredClone(r),target:structuredClone(target)});
-  if(r.type==='PAIA_PROMPT_INSERTION_RECEIVER_PROBE'){await owner.registerReceiver({type:'PAIA_PROMPT_INSERTION_RECEIVER_REGISTER',version:1,nonce:receiverNonce,recoveryToken:r.recoveryToken},top);return {version:1,nonce:receiverNonce};}
+  if(r.type==='PAIA_PROMPT_INSERTION_RECEIVER_PROBE'){await owner.registerReceiver({type:'PAIA_PROMPT_INSERTION_RECEIVER_REGISTER',version:1,nonce:receiverNonce,recoveryToken:r.recoveryToken},top);return {version:1,nonce:receiverNonce,profile:'receipt-only-v1'};}
   if(r.type==='PAIA_PROMPT_SURFACE_PROBE')return {open:true,nonce,url:tab.url,idle:true};
   if(r.type==='PAIA_PROMPT_NEXT_PROBE')return {authorization:(await next.authorization()).generation,binding:reply,nonce,idle:true};
   if(r.type==='PAIA_PROMPT_ASSIST_PROBE')return {generation:r.generation,ready:true,binding:reply,...(r.snapshot?{snapshot:{completed:true,text:'SYNTHETIC newly completed reply.',blocks:1,excluded:false}}:{})};

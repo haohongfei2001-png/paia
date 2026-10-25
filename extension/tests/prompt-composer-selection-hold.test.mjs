@@ -63,10 +63,10 @@ for(const field of ['receiver','ownerToken','domainDigest','extra'])test('exact 
  assert.equal(isHeld(await control(f,bad)),false);assert.equal(isHeld(await control(f,b)),true);await control(f,b,'RELEASE');
 });
 
-test('unregistered, foreign sender and legacy document histories cannot acquire positive proof',async()=>{
+test('unregistered and foreign sender histories cannot acquire proof; rejected bare requests never enter native',async()=>{
  const f=fixture(),a=f.adapter(),fake={receiver:{tabId:7,windowId:1,documentId:'synthetic-real-top-document',nonce:webcrypto.randomUUID()},ownerToken:webcrypto.randomUUID(),domainDigest:f.domainDigest,challenge:webcrypto.randomUUID()};
  assert.equal(isHeld(await control(f,fake)),false);
- await a.insert(f.request());const b=await f.binding();assert.equal(isHeld(await control(f,b)),false);
+ assert.equal((await a.insert(f.request())).reason,'page_refresh_required');assert.equal(f.commands.length,0);const b=await f.binding();assert.equal(isHeld(await control(f,b)),true);await control(f,b,'RELEASE');
  const clean=fixture();clean.adapter();const cb=await clean.binding();
  for(const sender of [{id:'foreign'},{id:'synthetic-extension',tab:{id:7}}])assert.equal(await clean.dispatch({type:'PAIA_PROMPT_INSERTION_DOCUMENT_HOLD',version:1,...cb},sender),undefined);
  assert.equal(isHeld(await control(clean,cb)),true);await control(clean,cb,'RELEASE');
@@ -186,7 +186,7 @@ test('retired document pageshow, exact release and constructor reuse cannot revi
  const f=fixture();f.adapter();const b=await f.binding();assert.equal(isHeld(await control(f,b)),true);
  f.document.defaultView.emit('pagehide',{});assert.equal((await control(f,b,'RELEASE')).released,true);
  f.document.defaultView.emit('pageshow',{});f.reload();assert.equal((await f.adapter().insert(f.request())).reason,'document_retired');assert.equal(f.commands.length,0);
- const fresh=fixture();assert.equal((await fresh.adapter().insert(fresh.request())).status,'inserted');assert.equal(fresh.commands.length,1);
+ const fresh=fixture(),freshAdapter=fresh.adapter(),freshMessage=await fresh.admitted();assert.equal((await fresh.insert(freshAdapter,freshMessage)).status,'inserted');assert.equal(fresh.commands.length,1);
 });
 
 test('retired document pending original lane qualifier preserves not-entered ACK',async()=>{
