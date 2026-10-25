@@ -1,0 +1,29 @@
+TAP version 13
+# Subtest: original Working edit after Source union publishes and cold restores complete immutable Source and history
+not ok 1 - original Working edit after Source union publishes and cold restores complete immutable Source and history
+  ---
+  duration_ms: 505.989417
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/tests/source-union-publication-continuation.test.mjs:223:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_COMMIT_UNPROVEN'
+  code: 'BNS_GROUP_COMMIT_UNPROVEN'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/browser-native-sync/value.js:5:32)
+    requireSourceUnionProtocol (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/browser-native-sync/group-checkpoint.js:244:106)
+    async file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/browser-native-sync/group-checkpoint.js:751:3
+    async file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/browser-native-sync/core.js:192:127
+    async ArchiveRepository.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/idb-repository.js:581:510)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/browser-native-sync/core.js:192:66)
+    async execute (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/indexed-store.js:215:11)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 690.135834

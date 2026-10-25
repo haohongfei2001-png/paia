@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: original Working edit after Source union publishes and cold restores complete immutable Source and history
+ok 1 - original Working edit after Source union publishes and cold restores complete immutable Source and history
+  ---
+  duration_ms: 1020.280708
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1145.861708

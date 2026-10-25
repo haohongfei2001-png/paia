@@ -1,0 +1,992 @@
+TAP version 13
+# Subtest: grouped checkpoint restores actual journaled Source into an empty target atomically
+ok 1 - grouped checkpoint restores actual journaled Source into an empty target atomically
+  ---
+  duration_ms: 314.985958
+  type: 'test'
+  ...
+# Subtest: complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+ok 2 - complete admitted portfolio activates Source append, Working history, manual Prompt and all manual cards together
+  ---
+  duration_ms: 604.601625
+  type: 'test'
+  ...
+# Subtest: failure at applied-group rolls every canonical row, protocol row and active pointer back
+ok 3 - failure at applied-group rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 436.282083
+  type: 'test'
+  ...
+# Subtest: failure at before-activation rolls every canonical row, protocol row and active pointer back
+ok 4 - failure at before-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 491.335042
+  type: 'test'
+  ...
+# Subtest: failure at after-activation rolls every canonical row, protocol row and active pointer back
+ok 5 - failure at after-activation rolls every canonical row, protocol row and active pointer back
+  ---
+  duration_ms: 413.188958
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects local-capture without clobbering the new state
+ok 6 - prepared grouped activation rejects local-capture without clobbering the new state
+  ---
+  duration_ms: 288.751042
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects restore-epoch without clobbering the new state
+ok 7 - prepared grouped activation rejects restore-epoch without clobbering the new state
+  ---
+  duration_ms: 280.067125
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects permission without clobbering the new state
+ok 8 - prepared grouped activation rejects permission without clobbering the new state
+  ---
+  duration_ms: 302.530291
+  type: 'test'
+  ...
+# Subtest: prepared grouped activation rejects namespace without clobbering the new state
+ok 9 - prepared grouped activation rejects namespace without clobbering the new state
+  ---
+  duration_ms: 292.137334
+  type: 'test'
+  ...
+# Subtest: existing unjournaled Source and existing manual content block construction or target activation
+ok 10 - existing unjournaled Source and existing manual content block construction or target activation
+  ---
+  duration_ms: 299.207125
+  type: 'test'
+  ...
+# Subtest: unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+ok 11 - unknown activation acknowledgement after restart is idempotent but cannot cross a subsequent restore epoch
+  ---
+  duration_ms: 335.73975
+  type: 'test'
+  ...
+# Subtest: successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+ok 12 - successor full-scope manifest binds an exact tail and rejects proofless/missing/extra operations
+  ---
+  duration_ms: 136.994041
+  type: 'test'
+  ...
+# Subtest: same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+ok 13 - same-value restore during first object fetch cannot bind stale checkpoint content to a new epoch
+  ---
+  duration_ms: 49.75475
+  type: 'test'
+  ...
+# Subtest: bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+ok 14 - bounded cleanup preserves active replay and exact no-op ACK, while abandoned partial stage cannot activate
+  ---
+  duration_ms: 719.18325
+  type: 'test'
+  ...
+# {"syntheticGroupProfile":{"operations":128,"activationMs":127.46200000000044,"reads":2708,"writes":1161}}
+# Subtest: exact128 retained operations restore and the129th has explicit paged scope admission
+ok 15 - exact128 retained operations restore and the129th has explicit paged scope admission
+  ---
+  duration_ms: 1160.0625
+  type: 'test'
+  ...
+# Subtest: producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+ok 16 - producer scope requires committed protocol receipts, not matching canonical bytes plus a retained revision alone
+  ---
+  duration_ms: 27.73725
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale document inventory
+ok 17 - final transport publication cannot advertise stale document inventory
+  ---
+  duration_ms: 34.544042
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Prompt inventory
+ok 18 - final transport publication cannot advertise stale Prompt inventory
+  ---
+  duration_ms: 34.785292
+  type: 'test'
+  ...
+# Subtest: final transport publication cannot advertise stale Context inventory
+ok 19 - final transport publication cannot advertise stale Context inventory
+  ---
+  duration_ms: 33.297291
+  type: 'test'
+  ...
+# Subtest: final transport publication rechecks receipt proof even without a generation change
+ok 20 - final transport publication rechecks receipt proof even without a generation change
+  ---
+  duration_ms: 33.216292
+  type: 'test'
+  ...
+# Subtest: actual Working publication contains a required portable complete logical commit
+ok 21 - actual Working publication contains a required portable complete logical commit
+  ---
+  duration_ms: 118.859083
+  type: 'test'
+  ...
+# Subtest: actual maxOperations=1 publications require new codec even before descriptor and frozen old reader refuses every cut
+ok 22 - actual maxOperations=1 publications require new codec even before descriptor and frozen old reader refuses every cut
+  ---
+  duration_ms: 206.280083
+  type: 'test'
+  ...
+# Subtest: actual publication decode applies complete Working atomically without echo and replays after receiver recreation
+ok 23 - actual publication decode applies complete Working atomically without echo and replays after receiver recreation
+  ---
+  duration_ms: 177.423458
+  type: 'test'
+  ...
+# Subtest: each incomplete member and generic receive route refuses without canonical or protocol acknowledgement
+ok 24 - each incomplete member and generic receive route refuses without canonical or protocol acknowledgement
+  ---
+  duration_ms: 95.4895
+  type: 'test'
+  ...
+# Subtest: second real edit coalesces history using stable local mapping and preserves wire history
+ok 25 - second real edit coalesces history using stable local mapping and preserves wire history
+  ---
+  duration_ms: 208.810459
+  type: 'test'
+  ...
+# Subtest: exception after canonical writes rolls back whole closure, receipts and frontiers
+ok 26 - exception after canonical writes rolls back whole closure, receipts and frontiers
+  ---
+  duration_ms: 89.839584
+  type: 'test'
+  ...
+# Subtest: two valid logical commits cannot lend members to one another
+ok 27 - two valid logical commits cannot lend members to one another
+  ---
+  duration_ms: 145.910958
+  type: 'test'
+  ...
+# Subtest: current permission prevents entire remote closure with no derived Keep leakage
+ok 28 - current permission prevents entire remote closure with no derived Keep leakage
+  ---
+  duration_ms: 60.911084
+  type: 'test'
+  ...
+# Subtest: current localEdit prevents entire remote closure with no derived Keep leakage
+ok 29 - current localEdit prevents entire remote closure with no derived Keep leakage
+  ---
+  duration_ms: 59.592166
+  type: 'test'
+  ...
+# Subtest: current source prevents entire remote closure with no derived Keep leakage
+ok 30 - current source prevents entire remote closure with no derived Keep leakage
+  ---
+  duration_ms: 55.6935
+  type: 'test'
+  ...
+# Subtest: current restore prevents entire remote closure with no derived Keep leakage
+ok 31 - current restore prevents entire remote closure with no derived Keep leakage
+  ---
+  duration_ms: 54.45625
+  type: 'test'
+  ...
+# Subtest: local history counter is allocated independently and coalescing never imports sender sequence
+ok 32 - local history counter is allocated independently and coalescing never imports sender sequence
+  ---
+  duration_ms: 61.356125
+  type: 'test'
+  ...
+# Subtest: legacy Keep head cannot be bypassed by enabling wrapped publication
+ok 33 - legacy Keep head cannot be bypassed by enabling wrapped publication
+  ---
+  duration_ms: 21.357625
+  type: 'test'
+  ...
+# Subtest: old complete acknowledgement replays after a later legitimate receive without reverting current Working
+ok 34 - old complete acknowledgement replays after a later legitimate receive without reverting current Working
+  ---
+  duration_ms: 156.95825
+  type: 'test'
+  ...
+# Subtest: a resealed descriptor cannot omit an existing baseline while retaining a matching final after body
+ok 35 - a resealed descriptor cannot omit an existing baseline while retaining a matching final after body
+  ---
+  duration_ms: 56.080792
+  type: 'test'
+  ...
+# Subtest: receive then real local wrapped edit can return to original producer and accept its next descendant
+ok 36 - receive then real local wrapped edit can return to original producer and accept its next descendant
+  ---
+  duration_ms: 211.751167
+  type: 'test'
+  ...
+# Subtest: same Source identity with a different valid content snapshot cannot qualify the remote commit
+ok 37 - same Source identity with a different valid content snapshot cannot qualify the remote commit
+  ---
+  duration_ms: 60.433875
+  type: 'test'
+  ...
+# Subtest: malformed source descriptors reject typed without protocol or canonical writes
+ok 38 - malformed source descriptors reject typed without protocol or canonical writes
+  ---
+  duration_ms: 53.567958
+  type: 'test'
+  ...
+# Subtest: actual single Input human edit requires an atomic portable Working head
+ok 39 - actual single Input human edit requires an atomic portable Working head
+  ---
+  duration_ms: 98.918834
+  type: 'test'
+  ...
+# Subtest: optional Working binding must compose with actual Keep protection without bypassing its owner
+ok 40 - optional Working binding must compose with actual Keep protection without bypassing its owner
+  ---
+  duration_ms: 100.234584
+  type: 'test'
+  ...
+# Subtest: note-only edit preserves the canonical content-revision and paired protocol semantics
+ok 41 - note-only edit preserves the canonical content-revision and paired protocol semantics
+  ---
+  duration_ms: 65.200667
+  type: 'test'
+  ...
+# Subtest: lost acknowledgement replay returns the durable receipt without new history or outbox
+ok 42 - lost acknowledgement replay returns the durable receipt without new history or outbox
+  ---
+  duration_ms: 63.393625
+  type: 'test'
+  ...
+# Subtest: second human edit advances one existing Input head and preserves revision coalescing
+ok 43 - second human edit advances one existing Input head and preserves revision coalescing
+  ---
+  duration_ms: 73.454458
+  type: 'test'
+  ...
+# Subtest: failure after protocol writes rolls back canonical edits, protection, history and receipts together
+ok 44 - failure after protocol writes rolls back canonical edits, protection, history and receipts together
+  ---
+  duration_ms: 45.307417
+  type: 'test'
+  ...
+# Subtest: unsupported title remains fail closed with no canonical or protocol writes
+ok 45 - unsupported title remains fail closed with no canonical or protocol writes
+  ---
+  duration_ms: 31.611958
+  type: 'test'
+  ...
+# Subtest: unsupported removal remains fail closed with no canonical or protocol writes
+ok 46 - unsupported removal remains fail closed with no canonical or protocol writes
+  ---
+  duration_ms: 27.993375
+  type: 'test'
+  ...
+# Subtest: unsupported multiple remains fail closed with no canonical or protocol writes
+ok 47 - unsupported multiple remains fail closed with no canonical or protocol writes
+  ---
+  duration_ms: 34.50725
+  type: 'test'
+  ...
+# Subtest: a canonical edit after preparation invalidates all prepared journal writes
+ok 48 - a canonical edit after preparation invalidates all prepared journal writes
+  ---
+  duration_ms: 38.88025
+  type: 'test'
+  ...
+# Subtest: referenced Input refuses the incomplete Working-only bundle without losing Thought dependencies
+ok 49 - referenced Input refuses the incomplete Working-only bundle without losing Thought dependencies
+  ---
+  duration_ms: 31.155833
+  type: 'test'
+  ...
+# Subtest: aged history requires a future retirement bundle and is not silently republished or pruned
+ok 50 - aged history requires a future retirement bundle and is not silently republished or pruned
+  ---
+  duration_ms: 32.893375
+  type: 'test'
+  ...
+# Subtest: clock crossing the retention boundary after preparation cannot prune unretired history
+ok 51 - clock crossing the retention boundary after preparation cannot prune unretired history
+  ---
+  duration_ms: 59.739041
+  type: 'test'
+  ...
+# Subtest: bound explicit history pruning refuses missing retirement support without deleting data
+ok 52 - bound explicit history pruning refuses missing retirement support without deleting data
+  ---
+  duration_ms: 46.746334
+  type: 'test'
+  ...
+# Subtest: actual second capture appends to the bootstrap document with required complete outbox
+ok 53 - actual second capture appends to the bootstrap document with required complete outbox
+  ---
+  duration_ms: 184.211583
+  type: 'test'
+  ...
+# Subtest: real append publication preserves shared document, exact baseline and both Working edit directions
+ok 54 - real append publication preserves shared document, exact baseline and both Working edit directions
+  ---
+  duration_ms: 1007.335167
+  type: 'test'
+  ...
+# Subtest: concurrent distinct new messages commute without overwriting old Working history or human document fields
+ok 55 - concurrent distinct new messages commute without overwriting old Working history or human document fields
+  ---
+  duration_ms: 212.501291
+  type: 'test'
+  ...
+# Subtest: every incomplete/generic/applyPending append is rejected without any writes
+ok 56 - every incomplete/generic/applyPending append is rejected without any writes
+  ---
+  duration_ms: 161.020625
+  type: 'test'
+  ...
+# Subtest: producer and remote canonical/outbox exceptions roll back the full transaction
+ok 57 - producer and remote canonical/outbox exceptions roll back the full transaction
+  ---
+  duration_ms: 256.879708
+  type: 'test'
+  ...
+# Subtest: append anchor requires all committed receipts, current heads and retained baseline even while document remains
+ok 58 - append anchor requires all committed receipts, current heads and retained baseline even while document remains
+  ---
+  duration_ms: 734.026
+  type: 'test'
+  ...
+# Subtest: same Source identity concurrent captures conflict rather than silently dedupe
+ok 59 - same Source identity concurrent captures conflict rather than silently dedupe
+  ---
+  duration_ms: 154.759125
+  type: 'test'
+  ...
+# Subtest: replay after new Source deletion cannot resurrect it
+ok 60 - replay after new Source deletion cannot resurrect it
+  ---
+  duration_ms: 136.982542
+  type: 'test'
+  ...
+# Subtest: resealed invalid Source formation and baseline bindings reject complete closure
+ok 61 - resealed invalid Source formation and baseline bindings reject complete closure
+  ---
+  duration_ms: 134.824291
+  type: 'test'
+  ...
+# Subtest: different valid append members cannot be spliced into another descriptor
+ok 62 - different valid append members cannot be spliced into another descriptor
+  ---
+  duration_ms: 151.711792
+  type: 'test'
+  ...
+# Subtest: canonical refresh cannot overwrite human document fields inside append
+ok 63 - canonical refresh cannot overwrite human document fields inside append
+  ---
+  duration_ms: 127.866583
+  type: 'test'
+  ...
+# Subtest: frozen exact 031 reader refuses every actual single-member append publication
+ok 64 - frozen exact 031 reader refuses every actual single-member append publication
+  ---
+  duration_ms: 153.993833
+  type: 'test'
+  ...
+# Subtest: restore and permission changes during async closure validation cannot admit old append
+ok 65 - restore and permission changes during async closure validation cannot admit old append
+  ---
+  duration_ms: 338.733417
+  type: 'test'
+  ...
+# Subtest: concurrent local document edit during receive qualification rejects without clobbering edit
+ok 66 - concurrent local document edit during receive qualification rejects without clobbering edit
+  ---
+  duration_ms: 117.648292
+  type: 'test'
+  ...
+# Subtest: local producer before publication has committed anchor proof and remote no-outbox anchor also works
+ok 67 - local producer before publication has committed anchor proof and remote no-outbox anchor also works
+  ---
+  duration_ms: 151.103917
+  type: 'test'
+  ...
+# Subtest: real capture exclusion and Source tombstones reject append at producer and receiver
+ok 68 - real capture exclusion and Source tombstones reject append at producer and receiver
+  ---
+  duration_ms: 356.248958
+  type: 'test'
+  ...
+# Subtest: no-op unknown ACK recapture cannot produce a second append identity
+ok 69 - no-op unknown ACK recapture cannot produce a second append identity
+  ---
+  duration_ms: 129.724333
+  type: 'test'
+  ...
+# Subtest: partial committed append receipt is not a duplicate success
+ok 70 - partial committed append receipt is not a duplicate success
+  ---
+  duration_ms: 136.89825
+  type: 'test'
+  ...
+# Subtest: capture dispatch cannot rebind its original request to a changed valid namespace after the first read
+ok 71 - capture dispatch cannot rebind its original request to a changed valid namespace after the first read
+  ---
+  duration_ms: 93.912334
+  type: 'test'
+  ...
+# Subtest: fresh local complete Source group survives cold reopen and publishes both exact original heads
+ok 72 - fresh local complete Source group survives cold reopen and publishes both exact original heads
+  ---
+  duration_ms: 1854.5915
+  type: 'test'
+  ...
+# Subtest: two local groups publish through a genuine sole common descendant retaining both original siblings
+ok 73 - two local groups publish through a genuine sole common descendant retaining both original siblings
+  ---
+  duration_ms: 1805.701
+  type: 'test'
+  ...
+# Subtest: new local groups retain evaluated original and new filter decisions without changing stable sourceCut
+ok 74 - new local groups retain evaluated original and new filter decisions without changing stable sourceCut
+  ---
+  duration_ms: 460.253166
+  type: 'test'
+  ...
+# Subtest: lost upload acknowledgement with a new local group cold resumes the same publication without duplicate POST
+ok 75 - lost upload acknowledgement with a new local group cold resumes the same publication without duplicate POST
+  ---
+  duration_ms: 1119.426875
+  type: 'test'
+  ...
+# Subtest: publication refuses plain-edit and leaves all current rows untouched
+ok 76 - publication refuses plain-edit and leaves all current rows untouched
+  ---
+  duration_ms: 445.754042
+  type: 'test'
+  ...
+# Subtest: publication refuses working and leaves all current rows untouched
+ok 77 - publication refuses working and leaves all current rows untouched
+  ---
+  duration_ms: 468.846084
+  type: 'test'
+  ...
+# Subtest: publication refuses foreign-device and leaves all current rows untouched
+ok 78 - publication refuses foreign-device and leaves all current rows untouched
+  ---
+  duration_ms: 437.14575
+  type: 'test'
+  ...
+# Subtest: publication refuses same-device-remote and leaves all current rows untouched
+ok 79 - publication refuses same-device-remote and leaves all current rows untouched
+  ---
+  duration_ms: 621.430208
+  type: 'test'
+  ...
+# Subtest: publication refuses protected and leaves all current rows untouched
+ok 80 - publication refuses protected and leaves all current rows untouched
+  ---
+  duration_ms: 478.308625
+  type: 'test'
+  ...
+# Subtest: publication refuses human and leaves all current rows untouched
+ok 81 - publication refuses human and leaves all current rows untouched
+  ---
+  duration_ms: 409.24125
+  type: 'test'
+  ...
+# Subtest: publication refuses context and leaves all current rows untouched
+ok 82 - publication refuses context and leaves all current rows untouched
+  ---
+  duration_ms: 398.854333
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered missing-outbox provenance before any upload
+ok 83 - publication refuses tampered missing-outbox provenance before any upload
+  ---
+  duration_ms: 407.069417
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered acknowledged-outbox provenance before any upload
+ok 84 - publication refuses tampered acknowledged-outbox provenance before any upload
+  ---
+  duration_ms: 401.505667
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered foreign-outbox provenance before any upload
+ok 85 - publication refuses tampered foreign-outbox provenance before any upload
+  ---
+  duration_ms: 396.500125
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered device-sequence provenance before any upload
+ok 86 - publication refuses tampered device-sequence provenance before any upload
+  ---
+  duration_ms: 415.405125
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered extra-device provenance before any upload
+ok 87 - publication refuses tampered extra-device provenance before any upload
+  ---
+  duration_ms: 411.268792
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered head provenance before any upload
+ok 88 - publication refuses tampered head provenance before any upload
+  ---
+  duration_ms: 411.378833
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered generation provenance before any upload
+ok 89 - publication refuses tampered generation provenance before any upload
+  ---
+  duration_ms: 395.617792
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered unknown-protocol provenance before any upload
+ok 90 - publication refuses tampered unknown-protocol provenance before any upload
+  ---
+  duration_ms: 405.90275
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered missing-member provenance before any upload
+ok 91 - publication refuses tampered missing-member provenance before any upload
+  ---
+  duration_ms: 395.005792
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered old-revision provenance before any upload
+ok 92 - publication refuses tampered old-revision provenance before any upload
+  ---
+  duration_ms: 375.921625
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered restore-device provenance before any upload
+ok 93 - publication refuses tampered restore-device provenance before any upload
+  ---
+  duration_ms: 432.028541
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered restore-database provenance before any upload
+ok 94 - publication refuses tampered restore-database provenance before any upload
+  ---
+  duration_ms: 423.917083
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered restore-selection provenance before any upload
+ok 95 - publication refuses tampered restore-selection provenance before any upload
+  ---
+  duration_ms: 420.125125
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered sourceCut-origin provenance before any upload
+ok 96 - publication refuses tampered sourceCut-origin provenance before any upload
+  ---
+  duration_ms: 510.531542
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered active-origin provenance before any upload
+ok 97 - publication refuses tampered active-origin provenance before any upload
+  ---
+  duration_ms: 469.2985
+  type: 'test'
+  ...
+# Subtest: publication refuses changed old-input-allocation physical state
+ok 98 - publication refuses changed old-input-allocation physical state
+  ---
+  duration_ms: 400.701
+  type: 'test'
+  ...
+# Subtest: publication refuses changed new-input-allocation physical state
+ok 99 - publication refuses changed new-input-allocation physical state
+  ---
+  duration_ms: 380.043333
+  type: 'test'
+  ...
+# Subtest: publication refuses changed old-history-allocation physical state
+ok 100 - publication refuses changed old-history-allocation physical state
+  ---
+  duration_ms: 388.853166
+  type: 'test'
+  ...
+# Subtest: publication refuses changed new-history-allocation physical state
+ok 101 - publication refuses changed new-history-allocation physical state
+  ---
+  duration_ms: 383.495375
+  type: 'test'
+  ...
+# Subtest: publication refuses changed record-counter physical state
+ok 102 - publication refuses changed record-counter physical state
+  ---
+  duration_ms: 390.512583
+  type: 'test'
+  ...
+# Subtest: publication refuses changed history-counter physical state
+ok 103 - publication refuses changed history-counter physical state
+  ---
+  duration_ms: 414.836625
+  type: 'test'
+  ...
+# Subtest: publication refuses changed delta-counter physical state
+ok 104 - publication refuses changed delta-counter physical state
+  ---
+  duration_ms: 424.772416
+  type: 'test'
+  ...
+# Subtest: publication refuses changed record-index physical state
+ok 105 - publication refuses changed record-index physical state
+  ---
+  duration_ms: 437.925041
+  type: 'test'
+  ...
+# Subtest: publication refuses changed block-index physical state
+ok 106 - publication refuses changed block-index physical state
+  ---
+  duration_ms: 410.846542
+  type: 'test'
+  ...
+# Subtest: publication refuses changed document-sequence physical state
+ok 107 - publication refuses changed document-sequence physical state
+  ---
+  duration_ms: 384.99
+  type: 'test'
+  ...
+# Subtest: publication refuses changed filter-stable physical state
+ok 108 - publication refuses changed filter-stable physical state
+  ---
+  duration_ms: 394.839208
+  type: 'test'
+  ...
+# Subtest: publication refuses changed filter-runtime physical state
+ok 109 - publication refuses changed filter-runtime physical state
+  ---
+  duration_ms: 386.600291
+  type: 'test'
+  ...
+# Subtest: publication refuses changed extra-filter physical state
+ok 110 - publication refuses changed extra-filter physical state
+  ---
+  duration_ms: 436.290958
+  type: 'test'
+  ...
+# Subtest: publication refuses changed source-count physical state
+ok 111 - publication refuses changed source-count physical state
+  ---
+  duration_ms: 467.887542
+  type: 'test'
+  ...
+# Subtest: real repeated reads and new proof share the original reference quota without renewal
+ok 112 - real repeated reads and new proof share the original reference quota without renewal
+  ---
+  duration_ms: 522.198625
+  type: 'test'
+  ...
+# Subtest: expired original ticket cannot mint a publication continuation after held work resolves
+ok 113 - expired original ticket cannot mint a publication continuation after held work resolves
+  ---
+  duration_ms: 400.583833
+  type: 'test'
+  ...
+# Subtest: private publication cut rejects outbox change after discovery before encoding
+ok 114 - private publication cut rejects outbox change after discovery before encoding
+  ---
+  duration_ms: 590.57675
+  type: 'test'
+  ...
+# Subtest: private publication cut rejects active-pointer change after discovery before encoding
+ok 115 - private publication cut rejects active-pointer change after discovery before encoding
+  ---
+  duration_ms: 554.973833
+  type: 'test'
+  ...
+# Subtest: private publication cut rejects append change after discovery before encoding
+ok 116 - private publication cut rejects append change after discovery before encoding
+  ---
+  duration_ms: 613.954708
+  type: 'test'
+  ...
+# Subtest: private complete cut rejects outbox change allocated-before-post with truthful dispatched count
+ok 117 - private complete cut rejects outbox change allocated-before-post with truthful dispatched count
+  ---
+  duration_ms: 704.262166
+  type: 'test'
+  ...
+# Subtest: private complete cut rejects outbox change after-first-post with truthful dispatched count
+ok 118 - private complete cut rejects outbox change after-first-post with truthful dispatched count
+  ---
+  duration_ms: 699.960625
+  type: 'test'
+  ...
+# Subtest: actual second Store protocol mutation during provider await cannot borrow first repository fence
+ok 119 - actual second Store protocol mutation during provider await cannot borrow first repository fence
+  ---
+  duration_ms: 731.455084
+  type: 'test'
+  ...
+# Subtest: actual repeated complete-cut work exhausts the unchanged outer ledger without a replacement ticket
+ok 120 - actual repeated complete-cut work exhausts the unchanged outer ledger without a replacement ticket
+  ---
+  duration_ms: 1310.792625
+  type: 'test'
+  ...
+# Subtest: ordinary restored union can publish one new local group before disposable stage cleanup
+ok 121 - ordinary restored union can publish one new local group before disposable stage cleanup
+  ---
+  duration_ms: 875.292917
+  type: 'test'
+  ...
+# Subtest: publication prepare completes only the proven disposable stage and preserves every other physical row
+ok 122 - publication prepare completes only the proven disposable stage and preserves every other physical row
+  ---
+  duration_ms: 986.058958
+  type: 'test'
+  ...
+# Subtest: publication discovery without its private prepare work remains read only
+ok 123 - publication discovery without its private prepare work remains read only
+  ---
+  duration_ms: 462.188708
+  type: 'test'
+  ...
+# Subtest: forged publication cleanup token cannot authorize the original stage owner
+ok 124 - forged publication cleanup token cannot authorize the original stage owner
+  ---
+  duration_ms: 371.895625
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof active mutation before any deletion or upload
+ok 125 - prepare cleanup refuses post-proof active mutation before any deletion or upload
+  ---
+  duration_ms: 455.1725
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof receipt mutation before any deletion or upload
+ok 126 - prepare cleanup refuses post-proof receipt mutation before any deletion or upload
+  ---
+  duration_ms: 485.325375
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof stage-item mutation before any deletion or upload
+ok 127 - prepare cleanup refuses post-proof stage-item mutation before any deletion or upload
+  ---
+  duration_ms: 460.446791
+  type: 'test'
+  ...
+# Subtest: pause before prepare cleanup leaves the stage intact and a new explicit prepare can continue
+ok 128 - pause before prepare cleanup leaves the stage intact and a new explicit prepare can continue
+  ---
+  duration_ms: 977.167125
+  type: 'test'
+  ...
+# Subtest: a failed original cleanup page retains progress without publishing and explicit reentry completes safely
+ok 129 - a failed original cleanup page retains progress without publishing and explicit reentry completes safely
+  ---
+  duration_ms: 989.3665
+  type: 'test'
+  ...
+# Subtest: cleanup consumes the original cumulative recovery work and never renews an exhausted ticket
+ok 130 - cleanup consumes the original cumulative recovery work and never renews an exhausted ticket
+  ---
+  duration_ms: 471.245417
+  type: 'test'
+  ...
+# Subtest: publish never acquires prepare cleanup authority even when the old disposable stage reappears
+ok 131 - publish never acquires prepare cleanup authority even when the old disposable stage reappears
+  ---
+  duration_ms: 941.439125
+  type: 'test'
+  ...
+# Subtest: three original appends to ancestor retain exact rows and fail closed at cumulative publication budget
+ok 132 - three original appends to ancestor retain exact rows and fail closed at cumulative publication budget
+  ---
+  duration_ms: 1128.463541
+  type: 'test'
+  ...
+# {"resourceLimitPhase":"publish","syntheticWrites":3}
+# Subtest: three original appends to local_0 retain exact rows and fail closed at cumulative publication budget
+ok 133 - three original appends to local_0 retain exact rows and fail closed at cumulative publication budget
+  ---
+  duration_ms: 1522.245375
+  type: 'test'
+  ...
+# {"resourceLimitPhase":"publish","syntheticWrites":2}
+# Subtest: interleaved original groups qualify variable-width sequence but retain the cumulative publication ceiling
+ok 134 - interleaved original groups qualify variable-width sequence but retain the cumulative publication ceiling
+  ---
+  duration_ms: 1266.544292
+  type: 'test'
+  ...
+# {"resourceLimitPhase":"publish","syntheticWrites":2}
+# Subtest: append publication lost upload ACK resumes its exact durable task after cold reopen
+ok 135 - append publication lost upload ACK resumes its exact durable task after cold reopen
+  ---
+  duration_ms: 1081.855583
+  type: 'test'
+  ...
+# Subtest: append continuation refuses missing-append-member without publication writes
+ok 136 - append continuation refuses missing-append-member without publication writes
+  ---
+  duration_ms: 423.907667
+  type: 'test'
+  ...
+# Subtest: append continuation refuses missing-append-descriptor without publication writes
+ok 137 - append continuation refuses missing-append-descriptor without publication writes
+  ---
+  duration_ms: 678.782834
+  type: 'test'
+  ...
+# Subtest: append continuation refuses missing-anchor-receipt without publication writes
+ok 138 - append continuation refuses missing-anchor-receipt without publication writes
+  ---
+  duration_ms: 478.690708
+  type: 'test'
+  ...
+# Subtest: append continuation refuses missing-append-outbox without publication writes
+ok 139 - append continuation refuses missing-append-outbox without publication writes
+  ---
+  duration_ms: 511.021375
+  type: 'test'
+  ...
+# Subtest: append continuation refuses extra-document-allocation without publication writes
+ok 140 - append continuation refuses extra-document-allocation without publication writes
+  ---
+  duration_ms: 573.993958
+  type: 'test'
+  ...
+# Subtest: append continuation refuses changed-document-display without publication writes
+ok 141 - append continuation refuses changed-document-display without publication writes
+  ---
+  duration_ms: 481.766
+  type: 'test'
+  ...
+# Subtest: append continuation refuses changed-old-source without publication writes
+ok 142 - append continuation refuses changed-old-source without publication writes
+  ---
+  duration_ms: 459.944416
+  type: 'test'
+  ...
+# Subtest: append continuation refuses changed-append-source without publication writes
+ok 143 - append continuation refuses changed-append-source without publication writes
+  ---
+  duration_ms: 448.020584
+  type: 'test'
+  ...
+# Subtest: append continuation refuses working-after-append without publication writes
+ok 144 - append continuation refuses working-after-append without publication writes
+  ---
+  duration_ms: 448.9385
+  type: 'test'
+  ...
+# Subtest: single original append to ancestor publishes and restores exact Source on a cold new installation
+ok 145 - single original append to ancestor publishes and restores exact Source on a cold new installation
+  ---
+  duration_ms: 1127.066666
+  type: 'test'
+  ...
+# Subtest: single original append to local_0 publishes and restores exact Source on a cold new installation
+ok 146 - single original append to local_0 publishes and restores exact Source on a cold new installation
+  ---
+  duration_ms: 1388.046417
+  type: 'test'
+  ...
+# Subtest: original Working edit after Source union publishes and cold restores complete immutable Source and history
+ok 147 - original Working edit after Source union publishes and cold restores complete immutable Source and history
+  ---
+  duration_ms: 1122.884166
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses source with exact rows and no publication
+ok 148 - first Working union continuation refuses source with exact rows and no publication
+  ---
+  duration_ms: 466.560083
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses baseline with exact rows and no publication
+ok 149 - first Working union continuation refuses baseline with exact rows and no publication
+  ---
+  duration_ms: 492.115
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses history with exact rows and no publication
+ok 150 - first Working union continuation refuses history with exact rows and no publication
+  ---
+  duration_ms: 455.941291
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses state with exact rows and no publication
+ok 151 - first Working union continuation refuses state with exact rows and no publication
+  ---
+  duration_ms: 484.780125
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses owner with exact rows and no publication
+ok 152 - first Working union continuation refuses owner with exact rows and no publication
+  ---
+  duration_ms: 482.417125
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses history-map with exact rows and no publication
+ok 153 - first Working union continuation refuses history-map with exact rows and no publication
+  ---
+  duration_ms: 477.774666
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses outbox with exact rows and no publication
+ok 154 - first Working union continuation refuses outbox with exact rows and no publication
+  ---
+  duration_ms: 468.152708
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses filter with exact rows and no publication
+ok 155 - first Working union continuation refuses filter with exact rows and no publication
+  ---
+  duration_ms: 527.470375
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses event with exact rows and no publication
+ok 156 - first Working union continuation refuses event with exact rows and no publication
+  ---
+  duration_ms: 450.372875
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses receipt with exact rows and no publication
+ok 157 - first Working union continuation refuses receipt with exact rows and no publication
+  ---
+  duration_ms: 436.0075
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses extra-event with exact rows and no publication
+ok 158 - first Working union continuation refuses extra-event with exact rows and no publication
+  ---
+  duration_ms: 556.860583
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses second-edit with exact rows and no publication
+ok 159 - first Working union continuation refuses second-edit with exact rows and no publication
+  ---
+  duration_ms: 541.319667
+  type: 'test'
+  ...
+# Subtest: first Working union continuation preserves immutable original ticket exhaustion
+ok 160 - first Working union continuation preserves immutable original ticket exhaustion
+  ---
+  duration_ms: 390.048
+  type: 'test'
+  ...
+# Subtest: first Working union continuation lost upload ACK cold resumes the original task without repeated POST
+ok 161 - first Working union continuation lost upload ACK cold resumes the original task without repeated POST
+  ---
+  duration_ms: 1086.983125
+  type: 'test'
+  ...
+# Subtest: first Working union continuation does not adopt a real second edit after parent discovery
+ok 162 - first Working union continuation does not adopt a real second edit after parent discovery
+  ---
+  duration_ms: 1039.2845
+  type: 'test'
+  ...
+# Subtest: first Working union prepare completes original disposable cleanup before publishing
+ok 163 - first Working union prepare completes original disposable cleanup before publishing
+  ---
+  duration_ms: 1193.107875
+  type: 'test'
+  ...
+1..163
+# tests 163
+# suites 0
+# pass 163
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 57129.95475

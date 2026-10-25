@@ -219,3 +219,46 @@ for(const anchor of ['ancestor','local_0'])test('single original append to '+anc
  const d=await fresh(t,'SYNTHETIC_single_append_installation_'+anchor);await recovery(d,f.cloud).recoverDiscovered();const received=await d.store.snapshot(),sort=values=>values.slice().sort((a,b)=>a.id.localeCompare(b.id));assert.deepEqual(sort(received.records),sort(snapshot.records));assert.deepEqual(sort(received.library.blocks),sort(snapshot.library.blocks));assert.deepEqual(sort(received.library.documents),sort(snapshot.library.documents));
  const imported=await state(d);assert.equal(imported.inputStates.length,rows.inputStates.length);assert.equal(imported.revisions.length,rows.revisions.length);assert.deepEqual(imported.times,rows.times);const cold=await reopen(t,d);assert.deepEqual(sort((await cold.store.snapshot()).records),sort(snapshot.records));assert.deepEqual((await f.restore.stage.read('restore')).sourceCut,f.original.sourceCut);
 });
+
+test('original Working edit after Source union publishes and cold restores complete immutable Source and history',async t=>{
+ const f=await restored(t,{added:0}),before=await state(f.c);f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});
+ const input=(await f.c.store.snapshot()).library.blocks[0];await inputEdit(f.c.store,input.id,{note:'SYNTHETIC union Working note'});const edited=await state(f.c);assert.deepEqual(edited.records,before.records);assert.equal(edited.revisions.length,before.revisions.length+1);
+ f.c=await reopen(t,f.c);const pub=producer(f.c,f.cloud),prepared=await pub.prepare(),done=await pub.publish();assert.equal(done.ref.id,prepared.ref.id);assert.deepEqual((await manifest(f,done.ref)).parents,f.heads.map(h=>h.ref.id).sort());
+ const d=await fresh(t,'SYNTHETIC_working_cold_installation');await recovery(d,f.cloud).recoverDiscovered();const received=await state(d),sorted=rows=>rows.slice().sort((a,b)=>a.id.localeCompare(b.id));assert.deepEqual(sorted(received.records.map(r=>r.value)),sorted(edited.records.map(r=>r.value)));assert.deepEqual(sorted(received.blocks.map(r=>r.value)),sorted(edited.blocks.map(r=>r.value)));
+ const history=rows=>sorted(rows.map(({sequence,listKey,documentList,...r})=>r));assert.deepEqual(history(received.revisions),history(edited.revisions));assert.equal(received.revisions.length,4);assert.deepEqual(sorted(received.filterIntents),sorted(edited.filterIntents));
+ const cold=await reopen(t,d);assert.deepEqual(history((await state(cold)).revisions),history(edited.revisions));assert.deepEqual((await f.restore.stage.read('restore')).sourceCut,f.original.sourceCut);
+});
+
+async function firstWorking(t){const f=await restored(t,{added:0});f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});const input=(await f.c.store.snapshot()).library.blocks[0];await inputEdit(f.c.store,input.id,{note:'SYNTHETIC checked Working edit'});return {...f,inputId:input.id};}
+for(const kind of ['source','baseline','history','state','owner','history-map','outbox','filter','event','receipt','extra-event','second-edit'])test('first Working union continuation refuses '+kind+' with exact rows and no publication',async t=>{
+ const f=await firstWorking(t);
+ if(kind==='second-edit')await inputEdit(f.c.store,f.inputId,{note:'SYNTHETIC separate later edit'});
+ else await f.c.core.transaction(true,async tx=>{
+  if(kind==='source'){const row=(await tx.all('records'))[0];row.value.originalText+=' SYNTHETIC wrong';await tx.put('records',row);}
+  else if(kind==='baseline'||kind==='history'){const row=(await tx.all('revisions')).find(row=>kind==='baseline'?row.reason==='baseline':row.reason!=='baseline');row.after.note+=' SYNTHETIC wrong';await tx.put('revisions',row);}
+  else if(kind==='state'){const row=await tx.get('inputStates',f.inputId);row.deltaSequence++;await tx.put('inputStates',row);}
+  else if(kind==='owner'){const row=await f.c.core.get(tx,'workingOwner',f.inputId);row.deltaSequence++;await tx.put('meta',row);}
+  else if(kind==='history-map'){const rows=await tx.all('meta'),row=rows.find(row=>row.id.includes(':workingHistory:'));row.sequence++;await tx.put('meta',row);}
+  else if(kind==='outbox'){const rows=await tx.all('meta'),row=rows.find(row=>row.id.includes(':outbox:'));await tx.delete('meta',row.id);}
+  else if(kind==='filter'){const row=await tx.get('filterInputs',f.inputId);row.userEdited=false;await tx.put('filterInputs',row);}
+  else if(kind==='event'||kind==='extra-event'){const row=(await tx.all('invalidations'))[0];if(kind==='event')row.organizerAck=true;else {row.id+='-extra';row.sequence++;}await tx.put('invalidations',row);}
+  else {const row=(await tx.all('operationReceipts'))[0];row.ownerId+='-other';await tx.put('operationReceipts',row);}
+ });await unchangedRefusal(f,()=>producer(f.c,f.cloud).prepare());
+});
+test('first Working union continuation preserves immutable original ticket exhaustion',async t=>{
+ const f=await firstWorking(t);await unchangedRefusal(f,()=>window(f.c,ticket=>{chargeOriginalRecoveryWork(f.c.core.repository,ticket,2*1024*1024);return requireSourceBootstrapUnionPublication(f.c.core,{store:f.c.store});}));
+});
+test('first Working union continuation lost upload ACK cold resumes the original task without repeated POST',async t=>{
+ const f=await firstWorking(t),pub=producer(f.c,f.cloud),prepared=await pub.prepare();f.cloud.loseNextPost();await assert.rejects(pub.publish());f.c=await reopen(t,f.c);const cold=producer(f.c,f.cloud);assert.equal((await cold.status()).taskId,prepared.taskId);assert.equal((await cold.publish()).ref.id,prepared.ref.id);
+ const posts=f.cloud.requests.filter(r=>r.method==='POST'),ids=posts.map(r=>new TextDecoder().decode(r.body).match(/"id":"([^"]+)"/)?.[1]);assert.equal(new Set(ids).size,ids.length);
+});
+test('first Working union continuation does not adopt a real second edit after parent discovery',async t=>{
+ const f=await firstWorking(t),original=LocalSyncRecoverySession.prototype.discoverPublicationParents;let changed=false;t.after(()=>{LocalSyncRecoverySession.prototype.discoverPublicationParents=original;});
+ LocalSyncRecoverySession.prototype.discoverPublicationParents=async function(...args){const value=await original.apply(this,args);if(!changed){changed=true;await inputEdit(f.c.store,f.inputId,{note:'SYNTHETIC concurrent later intent'});}return value;};
+ const n=writes(f.cloud);await assert.rejects(producer(f.c,f.cloud).prepare());assert.equal(writes(f.cloud),n);assert.equal((await f.c.store.input(f.inputId)).note,'SYNTHETIC concurrent later intent');
+});
+test('first Working union prepare completes original disposable cleanup before publishing',async t=>{
+ const f=await fixture(t),session=recovery(f.c,f.cloud);await session.recoverDiscovered();const restore=new GroupedCheckpointRestore(f.c.core,{store:f.c.store,restoreId:session.restoreId}),original=await restore.stage.read('restore');assert.notEqual(original.cleanup?.complete,true);
+ f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});await inputEdit(f.c.store,(await f.c.store.snapshot()).library.blocks[0].id,{note:'SYNTHETIC first edit before cleanup'});
+ const pub=producer(f.c,f.cloud);await pub.prepare();await pub.publish();const after=await restore.stage.read('restore');assert.equal(after.cleanup.complete,true);assert.deepEqual(after.sourceCut,original.sourceCut);assert.deepEqual(after.receipt,original.receipt);
+});

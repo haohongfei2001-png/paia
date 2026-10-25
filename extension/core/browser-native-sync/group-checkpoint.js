@@ -1,5 +1,5 @@
 import {chargeOriginalCheckpointPublicationWork,requireOriginalCheckpointPublicationControls,requireOriginalCheckpointPublicationCleanup} from './checkpoint-publication.js';
-import {sourceUnionPublicationGroups,requireSourceUnionPublicationPhysical} from './source-union-publication-continuation.js';
+import {sourceUnionPublicationGroups,requireSourceUnionPublicationPhysical,requireSourceUnionWorkingFilter} from './source-union-publication-continuation.js';
 import {flushNavigationWrites} from '../archive-navigation-invalidation.js';
 import {flushSemanticWrites} from '../ai-usage/delta.js';
 import {decideLight,FILTER_VERSIONS} from '../smart-filter.js';
@@ -251,11 +251,12 @@ const sourceUnionPhysicalMetadata=['sequence','revision-sequence','input-delta-s
 async function prepareSourceUnionLocalIdentity(restore){
  const row=(await restore.store.run(()=>restore.live.transaction(false,t=>t.get('meta','thought-suppression-key'),['meta'])))??null;chargeRecoveryValue(restore.live,row);const fingerprint=await digest(row);sourceUnionTicket(restore);return {row,fingerprint};
 }
-async function sourceUnionPhysicalCut(t,identity){
+async function sourceUnionPhysicalCut(t,identity,working=null){
  const inputStates=await readGroupRows(t,'inputStates'),revisionAllocations=(await readGroupRows(t,'revisions')).map(({id,sequence,listKey,documentList})=>({id,sequence,listKey,documentList})),metadata=[];
  for(const id of sourceUnionPhysicalMetadata){const row=(await t.get('meta',id))??null;if(id==='thought-suppression-key'){if(!equalSourceWorkingPhysicalTree(row,identity.row))fail('BNS_RESTORE_LOCAL_CHANGED');metadata.push({id,fingerprint:identity.fingerprint});}else metadata.push({id,row});}
  const filterInputs=[],evaluated=[],runtime=new Set(['decision','reasonCode','pendingKey','failed','evaluatedAt','decisionSequence','filteredKey']),allowed=new Set(['id','documentId','authorship','userEdited','filterOverride','presence','evaluationRevision','basedOnContentRevision',...Object.keys(FILTER_VERSIONS),...runtime]);
  for(const row of await readGroupRows(t,'filterInputs')){
+  const edit=working?.groups.find(group=>group.prepared.descriptor.value.inputId===row.id);if(edit){filterInputs.push(requireSourceUnionWorkingFilter(edit,working.cut.filterInputs.find(item=>item.id===row.id),row));continue;}
   if(Object.keys(row).some(key=>!allowed.has(key))||!Number.isSafeInteger(row.evaluationRevision)||row.evaluationRevision<0||Object.hasOwn(row,'failed')&&typeof row.failed!=='boolean'||!Object.entries(FILTER_VERSIONS).every(([key,value])=>row[key]===value))fail('BNS_RESTORE_LOCAL_CHANGED');
   const state=inputStates.find(state=>state.id===row.id);if(!state||row.basedOnContentRevision!==state.contentRevision)fail('BNS_RESTORE_LOCAL_CHANGED');
   if(Object.hasOwn(row,'evaluatedAt')){
@@ -727,7 +728,7 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
  let state=await restore.stage.read('restore');sourceUnionState(restore,state);
  if(state.phase!=='activated'||state.replayId!==await sourceUnionReplayId(restore,state.base,state.selection)||!equal(active,{id:core.prefix+'active',namespace:state.replayId,restoreId:restore.restoreId,selection:state.selection,graphDigest:state.graphDigest}))fail('BNS_SOURCE_UNION_ACTIVATION_REQUIRED');
  const replay=new BrowserNativeSyncCore(core.repository,{datasetId:core.datasetId,deviceId:core.deviceId,namespace:state.replayId}),operations=await allOperations(replay);
- if(operations.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');if(operations.some(op=>!['sourceBootstrapMember','sourceBootstrapCommit','sourceAppendMember','sourceAppendCommit'].includes(op.type)))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+ if(operations.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');if(operations.some(op=>!['sourceBootstrapMember','sourceBootstrapCommit','sourceAppendMember','sourceAppendCommit','inputWorkingMember','inputWorkingCommit'].includes(op.type)))fail('BNS_GROUP_OWNER_UNSUPPORTED');
  if(!Array.isArray(state.receipt?.cuts)||state.receipt.cuts.length!==3||state.receipt.cuts.some(cut=>!Array.isArray(cut.items)))fail('BNS_RESTORE_STAGE_CHANGED');
  // Do not let a caller choose an arbitrary old subset. The original receipt's
  // own ordered hash chains authenticate every declared revision and each cut.
@@ -739,6 +740,7 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
  const protocol=sourceUnionProtocolRows(replay,{operations,heads:plan.heads,frontiers:[...frontiers].map(([deviceId,value])=>({deviceId,...value}))},state.base.fence.epoch);
  for(const group of groups.added)for(const op of group.operations){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,'outbox',[op.operationId]);protocol.set(id,{id,operationId:op.operationId,revisionId:op.revisionId,state:'queued'});}
  if(groups.added.length){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,'device',[core.deviceId]);protocol.set(id,{id,sequence:groups.added.reduce((n,group)=>n+group.operations.length,0)});}
+ for(const group of groups.working)for(const op of group.prepared.members){const value=op.value.entity,kind=op.value.entityType==='input'?'workingOwner':op.value.entityType==='revision'?'workingHistory':null;if(kind){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,kind,[value.id]);protocol.set(id,{id,revisionId:op.revisionId,...(kind==='workingOwner'?{deltaSequence:group.prepared.members.find(item=>item.value.entityType==='inputState').value.entity.deltaSequence}:{sequence:value.sequence})});}}
  const prefix=replay.prefix+'generation:'+state.replayId+':',controls=await store.run(()=>replay.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix})).filter(row=>row.id.startsWith(prefix+'google-appdata-allocation:')||row.id.startsWith(prefix+'onedrive-upload-attempt:')),['meta']));
  for(const row of await requireSourcePurgeProtocolControlReceipts(store,core,controls,state.replayId)){if(protocol.has(row.id))fail('BNS_RESTORE_STAGE_CHANGED');protocol.set(row.id,row);}
  const identity=await prepareSourceUnionLocalIdentity(restore),cleanup=publicationWork&&requireOriginalCheckpointPublicationCleanup(publicationWork,core,store)&&!state.cleanup?.complete;
@@ -747,7 +749,7 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
   if(!equal(await restore.stage.get(t,'restore'),state)||!equal(await t.get('meta',active.id),active))fail('BNS_RESTORE_LOCAL_CHANGED');
   const current=await authority(store,core,t);if(current.namespace!==state.replayId||current.generation!==operations.length||!Number.isSafeInteger(current.ownerGeneration)||current.ownerGeneration<state.base.ownerGeneration+1+groups.added.length||current.fence.epoch!==state.base.fence.epoch||!equal(current.settings,state.base.settings))fail('BNS_RESTORE_LOCAL_CHANGED');
   await requireSourceUnionProtocol(replay,t,protocol);await requireGroupScope(store,t,canonical);
-  await requireSourceUnionPublicationPhysical(core,t,state.sourceCut,await sourceUnionPhysicalCut(t,identity),groups,canonical);
+  await requireSourceUnionPublicationPhysical(core,t,state.sourceCut,await sourceUnionPhysicalCut(t,identity,{groups:groups.working,cut:state.sourceCut}),groups,canonical);
   if(publicationWork&&retain){
    chargeOriginalCheckpointPublicationWork(publicationWork,core,store,undefined,0);const tables=new Map();
    for(const table of t.tx.objectStoreNames)tables.set(table,await readGroupRows(t,table));

@@ -1,4 +1,6 @@
 import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,recordIndex,blockIndex,sourceCount,chatOf} from '../idb-repository.js';
+import {describeOriginalWorkingGroup} from './input-working-commit.js';
+import {inputEditJournalData} from '../ia-store-owner.js';
 import {planInitialFilter} from '../smart-filter-store-owner.js';
 import {SOURCE_BOOTSTRAP_TYPES} from './source-bootstrap-codec.js';
 import {SOURCE_APPEND_TYPES} from './source-append-codec.js';
@@ -18,9 +20,10 @@ function charge(core,value){const ticket=currentOriginalRecoveryWork(core.reposi
 export function sourceUnionPublicationGroups(core,plan,original){
  const retained=new Set(original.operations.map(op=>op.revisionId)),identities=new Set(),previous=[],added=[];
  for(const group of plan.groups){
-  if(!['sourceBootstrapCommit','sourceAppendCommit'].includes(group.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+  if(!['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   const n=group.operations.filter(op=>retained.has(op.revisionId)).length;
   if(n&&(n!==group.operations.length||group.type!=='sourceBootstrapCommit'))invalid();(n?previous:added).push(group);
+  if(group.type==='inputWorkingCommit')continue;
   const e=entities(group),claims=[...Object.entries(e).map(([kind,row])=>[kind,row.id]),['sourceKey',e.source.sourceKey],['dedupeKey',e.source.dedupeKey]];
   // Only an original bootstrap claims a conversation. Append's exact retained
   // bootstrap/document dependency was proved by the original group planner.
@@ -32,15 +35,20 @@ export function sourceUnionPublicationGroups(core,plan,original){
  if(added.length&&original.operations.some(op=>op.deviceId===core.deviceId))invalid();
  let sequence=0;
  for(const group of added){
-  const ops=group.operations,types=group.type==='sourceBootstrapCommit'?SOURCE_BOOTSTRAP_TYPES:SOURCE_APPEND_TYPES;
+  const ops=group.operations,types=group.type==='inputWorkingCommit'?group.prepared.members.map(op=>op.value.entityType):group.type==='sourceBootstrapCommit'?SOURCE_BOOTSTRAP_TYPES:SOURCE_APPEND_TYPES;
   if(ops.length!==types.length+1||group.prepared.descriptor.revisionId!==ops.at(-1).revisionId)invalid();
   for(let i=0;i<ops.length;i++)if(ops[i].deviceId!==core.deviceId||ops[i].sequence!==++sequence||i<types.length&&ops[i].value.entityType!==types[i])invalid();
  }
- return {previous,added};
+ const working=added.filter(group=>group.type==='inputWorkingCommit');
+ // First bounded continuation: one genuine first edit of a retained Input.
+ // Further mixed/local tails retain their explicit unsupported status.
+ if(working.length&&(working.length!==1||added.length!==1))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+ return {previous,added,working};
 }
 
 export async function requireSourceUnionPublicationPhysical(core,t,originalCut,currentCut,groups,canonical){
  charge(core,originalCut);charge(core,currentCut);
+ if(groups.working.length)return requireWorkingPhysical(core,t,originalCut,currentCut,groups,canonical);
  const expected=clone(originalCut),meta=new Map(expected.metadata.map(row=>[row.id,row]));
  if(meta.size!==expected.metadata.length||expected.inputStates.length!==groups.previous.length||expected.revisionAllocations.length!==groups.previous.length||expected.filterInputs.length!==groups.previous.length)invalid();
  const sequence=meta.get('sequence')?.row,history=meta.get('revision-sequence')?.row,delta=meta.get('input-delta-sequence')?.row;
@@ -83,4 +91,46 @@ export async function requireSourceUnionPublicationPhysical(core,t,originalCut,c
  for(const name of ['inputStates','revisionAllocations','filterInputs'])order(expected[name]);
  charge(core,expected);if(!equalSourceWorkingPhysicalTree(currentCut,expected))invalid();
  for(const [table,rows]of Object.entries(expectedRows)){order(rows);charge(core,rows);if(!equalSourceWorkingPhysicalTree(await readGroupRows(t,table),rows))invalid();}
+}
+
+
+// Original protection keeps its local timestamp, but only this exact first
+// typed edit can qualify its fixed body-free state. No filter decision or
+// content counter is borrowed from the current row being checked.
+export function requireSourceUnionWorkingFilter(group,original,row){
+ const {block}=describeOriginalWorkingGroup(group.prepared);
+ if(!original||original.evaluationRevision!==0||original.basedOnContentRevision!==0||original.userEdited!==false||original.filterOverride!=='none'||typeof row.overrideAt!=='string'||!Number.isFinite(Date.parse(row.overrideAt)))invalid();
+ const expected={...original,userEdited:true,filterOverride:'keep',overrideReason:'user_edit',overrideAt:row.overrideAt,evaluationRevision:1,failed:false,pendingKey:1,decision:'keep',reasonCode:'user_protected'};
+ if(row.id!==block.value.id||!equalSourceWorkingPhysicalTree(row,expected))invalid();
+ return stableFilter(row);
+}
+async function requireWorkingPhysical(core,t,originalCut,currentCut,groups,canonical){
+ const group=groups.working[0],shape=describeOriginalWorkingGroup(group.prepared),{block,state,history,keeps,descriptor}=shape;
+ const sourceGroup=groups.previous.find(g=>entities(g).input.id===descriptor.inputId);if(!sourceGroup)invalid();
+ const original=entities(sourceGroup),before=original.input,after=block.value,editable=new Set(['libraryText','note','editedAt','revision']);
+ const fixed=value=>Object.fromEntries(Object.entries(value).filter(([key])=>!editable.has(key)));
+ if(!equal(fixed(before),fixed(after))||before.revision!==0||before.libraryText!==null||before.note||after.revision!==1||after.libraryText===before.libraryText&&after.note===before.note||block.operation.parents.length||state.operation.parents.length)invalid();
+ if(!equal(descriptor.sourceRefs,[{id:original.source.id,sourceKey:original.source.sourceKey,dedupeKey:original.source.dedupeKey,contentHash:original.source.contentHash}])||keeps.length!==1||keeps[0].value.id!==original.source.sourceKey||keeps[0].operation.parents.length)invalid();
+ const expected=clone(originalCut),metadata=new Map(expected.metadata.map(row=>[row.id,row])),delta=metadata.get('input-delta-sequence')?.row,revision=metadata.get('revision-sequence')?.row,epoch=metadata.get('thought-epoch')?.row??{id:'thought-epoch',value:0};
+ metadata.get('thought-epoch').row=epoch;
+ if(!delta||!revision||!epoch||!Number.isSafeInteger(epoch.value)||epoch.value<0)invalid();
+ const initial=expected.inputStates.find(row=>row.id===before.id),allocation=expected.revisionAllocations.find(row=>row.id===original.baselineRevision.id);
+ if(!initial||!allocation||history.length!==2||history.some(item=>item.operation.parents.length))invalid();
+ const baseline=history.find(item=>item.value.id===allocation.id),fresh=history.find(item=>item.value.id!==allocation.id);
+ if(!baseline||!fresh||!equal(baseline.value,{...original.baselineRevision,...allocation}))invalid();
+ const data=inputEditJournalData(before,after,{}),row=fresh.value;
+ if(!equal(Object.fromEntries(Object.keys(data).map(key=>[key,row[key]])),data)||row.entityKey!=='input:'+before.id||row.sequence!==revision.value+1||!equal(row.listKey,[row.entityKey,row.sequence])||!equal(row.documentList,[row.documentId,row.sequence])||row.at!==after.editedAt||row.windowStartedAt!==after.editedAt)invalid();
+ const nextState={...initial,contentRevision:initial.contentRevision+1,deltaSequence:delta.value+1};if(!equal(state.value,nextState))invalid();expected.inputStates[expected.inputStates.indexOf(initial)]=nextState;
+ expected.revisionAllocations.push({id:row.id,sequence:row.sequence,listKey:row.listKey,documentList:row.documentList});revision.value++;delta.value++;epoch.value++;
+ const filter=await t.get('filterInputs',before.id),oldFilter=expected.filterInputs.find(item=>item.id===before.id);const protectedFilter=requireSourceUnionWorkingFilter(group,oldFilter,filter);expected.filterInputs[expected.filterInputs.indexOf(oldFilter)]=protectedFilter;
+ for(const name of ['inputStates','revisionAllocations','filterInputs'])order(expected[name]);charge(core,expected);if(!equalSourceWorkingPhysicalTree(currentCut,expected))invalid();
+ // Original Source indexes and document allocations are unchanged by editing
+ // Working text. Reuse the exact source-only reconstruction for these tables.
+ const sourceOnly={previous:groups.previous,added:[],working:[]};await requireSourceUnionPublicationPhysical(core,t,originalCut,originalCut,sourceOnly,canonical);
+ const invalidations=await readGroupRows(t,'invalidations'),receipts=await readGroupRows(t,'operationReceipts');
+ charge(core,invalidations);charge(core,receipts);
+ if(invalidations.length!==1||receipts.length!==1)invalid();
+ const event=invalidations[0],receipt=receipts[0];
+ if(typeof event.id!=='string'||!event.id||typeof event.at!=='string'||!Number.isFinite(Date.parse(event.at))||!equal(event,{id:event.id,eventSchema:2,inputId:before.id,reason:'source_updated',contentRevision:1,sequence:epoch.value,at:event.at,stateKey:0,state:'pending',cursor:null,dependencyAck:false,organizerAck:false}))invalid();
+ if(typeof receipt.createdAt!=='string'||!Number.isFinite(Date.parse(receipt.createdAt))||!(/^[a-f0-9]{64}$/).test(receipt.digest)||!equal(receipt,{id:descriptor.id,namespace:'working-input',schemaVersion:1,ownerId:descriptor.documentId,createdAt:receipt.createdAt,digest:receipt.digest,result:{ok:true}}))invalid();
 }

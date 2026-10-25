@@ -1,0 +1,117 @@
+TAP version 13
+# Subtest: original Working edit after Source union publishes and cold restores complete immutable Source and history
+ok 1 - original Working edit after Source union publishes and cold restores complete immutable Source and history
+  ---
+  duration_ms: 1118.867917
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses source with exact rows and no publication
+ok 2 - first Working union continuation refuses source with exact rows and no publication
+  ---
+  duration_ms: 452.824541
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses baseline with exact rows and no publication
+ok 3 - first Working union continuation refuses baseline with exact rows and no publication
+  ---
+  duration_ms: 426.965208
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses history with exact rows and no publication
+ok 4 - first Working union continuation refuses history with exact rows and no publication
+  ---
+  duration_ms: 1300.762167
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses state with exact rows and no publication
+ok 5 - first Working union continuation refuses state with exact rows and no publication
+  ---
+  duration_ms: 514.563208
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses owner with exact rows and no publication
+ok 6 - first Working union continuation refuses owner with exact rows and no publication
+  ---
+  duration_ms: 468.287
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses history-map with exact rows and no publication
+ok 7 - first Working union continuation refuses history-map with exact rows and no publication
+  ---
+  duration_ms: 433.859541
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses outbox with exact rows and no publication
+ok 8 - first Working union continuation refuses outbox with exact rows and no publication
+  ---
+  duration_ms: 397.891875
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses filter with exact rows and no publication
+ok 9 - first Working union continuation refuses filter with exact rows and no publication
+  ---
+  duration_ms: 421.280875
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses event with exact rows and no publication
+ok 10 - first Working union continuation refuses event with exact rows and no publication
+  ---
+  duration_ms: 500.656875
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses receipt with exact rows and no publication
+ok 11 - first Working union continuation refuses receipt with exact rows and no publication
+  ---
+  duration_ms: 406.756792
+  type: 'test'
+  ...
+# Subtest: first Working union continuation refuses extra-event with exact rows and no publication
+not ok 12 - first Working union continuation refuses extra-event with exact rows and no publication
+  ---
+  duration_ms: 360.805458
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/tests/source-union-publication-continuation.test.mjs:233:145'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/idb-repository.js:28:40)
+    request.onerror (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/idb-repository.js:29:124)
+    invokeEventListeners (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/tests/vendor/fake-indexeddb/build/esm/lib/FakeEventTarget.js:44:25)
+    FDBRequest.dispatchEvent (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/tests/vendor/fake-indexeddb/build/esm/lib/FakeEventTarget.js:85:7)
+    FDBTransaction._start (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/tests/vendor/fake-indexeddb/build/esm/FDBTransaction.js:173:19)
+    process.processImmediate (node:internal/timers:484:21)
+  ...
+# Subtest: first Working union continuation refuses second-edit with exact rows and no publication
+ok 13 - first Working union continuation refuses second-edit with exact rows and no publication
+  ---
+  duration_ms: 420.381666
+  type: 'test'
+  ...
+# Subtest: first Working union continuation preserves immutable original ticket exhaustion
+ok 14 - first Working union continuation preserves immutable original ticket exhaustion
+  ---
+  duration_ms: 347.337833
+  type: 'test'
+  ...
+# Subtest: first Working union continuation lost upload ACK cold resumes the original task without repeated POST
+ok 15 - first Working union continuation lost upload ACK cold resumes the original task without repeated POST
+  ---
+  duration_ms: 913.783042
+  type: 'test'
+  ...
+# Subtest: first Working union continuation does not adopt a real second edit after parent discovery
+ok 16 - first Working union continuation does not adopt a real second edit after parent discovery
+  ---
+  duration_ms: 449.050209
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 15
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9136.235042

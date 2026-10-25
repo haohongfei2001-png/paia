@@ -1,0 +1,24 @@
+{
+  "base": "adefc7374019d8127a0bfa56092eb82c49070b43",
+  "branch": "codex/local-source-working-continuation-20261025",
+  "paths": [
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint.js",
+      "baseSha256": "2e26d08b9213291aa64b118757d0e4dbc7540c4c2cace8d35f75c1558aa6cb63",
+      "candidateSha256": "70dc2fc9d96b12bc2b2a7adc8b1ce3f6e05523a2cc0f35cfc6394a85675a1a54",
+      "candidateBlob": "d9581b6d2ac80aa262dbd815b1f3d3c66446814e"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-union-publication-continuation.js",
+      "baseSha256": "9018f49dca88600acb2b151e9a15cf27b0c36d58568a7c6ac928a73a380f9656",
+      "candidateSha256": "dbebd40fe04dfc89c3c36e1a21861780a25dd0562bb973dd00b2f234590b1c2a",
+      "candidateBlob": "36efa2eff982f08b5608a4ea30ba18102db8ca60"
+    },
+    {
+      "path": "extension/tests/source-union-publication-continuation.test.mjs",
+      "baseSha256": "cfd2affc79536bb2c4e00e1992bfd31a4e3ebb94e5a16c83303f0194ed26dc87",
+      "candidateSha256": "a23df228f2d65044ac42732e7b991d4777a787e88c6a48961985f27e28fd1b4f",
+      "candidateBlob": "2eb9e6d474e82a8d8f4dd3c780a1ea55d5d2699a"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+TAP version 13
+# SYNTHETIC protocol mismatch [
+#   {
+#     id: 'bns:v1:SYNTHETIC_union_runtime:generation:fd3baba98168cdd8950634c51b6284180b15fc1b2234831c6e6b8b43f5e5abaf:workingHistory:1f476f1d-4902-40ff-9d60-206bb9b32a0e',
+#     actual: {
+#       revisionId: 'a5686e4ab389088a7eb567e228edd61609936cf08f6165fdbe0b66009a69a619',
+#       sequence: 1,
+#       id: 'bns:v1:SYNTHETIC_union_runtime:generation:fd3baba98168cdd8950634c51b6284180b15fc1b2234831c6e6b8b43f5e5abaf:workingHistory:1f476f1d-4902-40ff-9d60-206bb9b32a0e'
+#     },
+#     expected: undefined
+#   },
+#   {
+#     id: 'bns:v1:SYNTHETIC_union_runtime:generation:fd3baba98168cdd8950634c51b6284180b15fc1b2234831c6e6b8b43f5e5abaf:workingHistory:769b4faa-ee1a-4006-97c5-310349b1e761',
+#     actual: {
+#       revisionId: 'd97d60de8070765f4a93bca7e0e9443d663d534f64861a4736ff898081a246e2',
+#       sequence: 4,
+#       id: 'bns:v1:SYNTHETIC_union_runtime:generation:fd3baba98168cdd8950634c51b6284180b15fc1b2234831c6e6b8b43f5e5abaf:workingHistory:769b4faa-ee1a-4006-97c5-310349b1e761'
+#     },
+#     expected: undefined
+#   },
+#   {
+#     id: 'bns:v1:SYNTHETIC_union_runtime:generation:fd3baba98168cdd8950634c51b6284180b15fc1b2234831c6e6b8b43f5e5abaf:workingOwner:block%3A986b5629-dda7-421c-a0a6-4025c580d6af',
+#     actual: {
+#       revisionId: 'ce30808e7bd41c45b7b8473f1c9318174877d533b9924b204326c787a00e2b22',
+#       deltaSequence: 4,
+#       id: 'bns:v1:SYNTHETIC_union_runtime:generation:fd3baba98168cdd8950634c51b6284180b15fc1b2234831c6e6b8b43f5e5abaf:workingOwner:block%3A986b5629-dda7-421c-a0a6-4025c580d6af'
+#     },
+#     expected: undefined
+#   }
+# ]
+# Subtest: original Working edit after Source union publishes and cold restores complete immutable Source and history
+not ok 1 - original Working edit after Source union publishes and cold restores complete immutable Source and history
+  ---
+  duration_ms: 496.18525
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/tests/source-union-publication-continuation.test.mjs:223:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_COMMIT_UNPROVEN'
+  code: 'BNS_GROUP_COMMIT_UNPROVEN'
+  name: 'SyncError'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/browser-native-sync/value.js:5:32)
+    requireSourceUnionProtocol (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/browser-native-sync/group-checkpoint.js:244:291)
+    async file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/browser-native-sync/group-checkpoint.js:751:3
+    async file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/browser-native-sync/core.js:192:127
+    async ArchiveRepository.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/idb-repository.js:581:510)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/browser-native-sync/core.js:192:66)
+    async execute (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-working-continuation/extension/core/indexed-store.js:215:11)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 717.719084
