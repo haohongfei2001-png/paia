@@ -1,0 +1,13 @@
+{
+  "base": "914ff08fa261b040ae3c5ec610b9b4930a741998",
+  "files": {
+    "extension/background/capture-recovery.js": {
+      "before": "fe82efd282bdc345c25b07ddbb4e6b30a06af334148f3ce173d93d97ba37f873",
+      "after": "146c2836081d963dbf0c5e646cc9bcb5383b592830f72ae1b1ea81e452f88b12"
+    },
+    "extension/tests/capture-recovery.test.mjs": {
+      "before": "7a6d480dbfe7daafe5f2708656bdea4beface017962e54b35e40d5a894fd0d10",
+      "after": "e7cee9c7315a20f0d38b56642fd6c1cf6b17c748150f612e95d56d66a979891a"
+    }
+  }
+}

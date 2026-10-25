@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {webcrypto} from 'node:crypto';
 import {installCaptureRecovery} from '../background/capture-recovery.js';
+import * as captureRecovery from '../background/capture-recovery.js';
 const manifest=JSON.parse(await readFile(new URL('../manifest.json',import.meta.url)));
 function fixture(options={}) {
  const calls=[],events={};let attempts=0;
@@ -200,4 +201,32 @@ test('a request during acquisition cannot be mistaken for a successful quiet rec
  assert.deepEqual(await f.api.repairAll(true),{status:'not-admitted',reason:'application_selection_hold'});probe.resolve();await repair;const error=await failure;
  assert.equal(error.code,'GENERATION_WORKER_NOT_QUIET');assert.equal(f.api.applicationSelectionHeld(error),false);assert.deepEqual(await f.api.repair(1),{status:'not-admitted',reason:'application_selection_hold'});
  assert.equal(f.api.releaseApplicationSelection(error),true);assert.equal(injectionCount(f),0);
+});
+
+
+test('recovery factory identity rejects copied callbacks and foreign Chrome before composition',async()=>{
+ const f=fixture();assert.equal(typeof captureRecovery.isOriginalCaptureRecovery,'function');
+ assert.equal(captureRecovery.isOriginalCaptureRecovery(f.api,f.chrome),true);assert.equal(captureRecovery.isOriginalCaptureRecovery({...f.api},f.chrome),false);assert.equal(captureRecovery.isOriginalCaptureRecovery(f.api,{...f.chrome}),false);assert.equal(captureRecovery.isOriginalCaptureRecovery(null,f.chrome),false);
+ const token=await f.api.holdForApplicationSelection();assert.equal(captureRecovery.isOriginalCaptureRecovery(f.api,f.chrome),true);f.api.releaseApplicationSelection(token);
+});
+
+test('source replacement during original query refuses subsequent dispatch and cannot be restored into the old epoch',async()=>{
+ const query=deferred(),f=fixture({queryHold:query.promise}),repair=f.api.repairAll(true),original=f.chrome.scripting.executeScript;let forgedCalls=0;await tick();
+ f.chrome.scripting.executeScript=async()=>{forgedCalls++;return [];};query.resolve();await repair;
+ assert.equal(forgedCalls,0);assert.equal(f.calls.filter(c=>c[0]==='get').length,0);assert.equal(injectionCount(f),0);
+ f.chrome.scripting.executeScript=original;assert.equal(f.api.applicationSelectionSourceIs(f.chrome),false);assert.equal(captureRecovery.isOriginalCaptureRecovery(f.api,f.chrome),false);
+ await f.api.repair(1);assert.equal(f.calls.filter(c=>c[0]==='execute').length,0);await assert.rejects(f.api.holdForApplicationSelection());
+});
+
+test('source replacement observed while held remains revoked after the original method is restored',async()=>{
+ const f=fixture(),token=await f.api.holdForApplicationSelection(),original=f.chrome.tabs.get;f.chrome.tabs.get=async()=>undefined;
+ assert.equal(f.api.applicationSelectionHeld(token),false);f.chrome.tabs.get=original;assert.equal(f.api.applicationSelectionHeld(token),false);await assert.rejects(f.api.fenceApplicationSelection(token));f.api.releaseApplicationSelection(token);
+ assert.equal(captureRecovery.isOriginalCaptureRecovery(f.api,f.chrome),false);await f.api.repair(1);assert.deepEqual(f.calls,[]);
+});
+
+test('captured original capture methods ignore redirected call and apply properties',async()=>{
+ const f=fixture(),methods=[f.chrome.scripting.executeScript,f.chrome.tabs.get,f.chrome.tabs.query,f.chrome.runtime.getManifest],descriptors=[];
+ for(const method of methods)for(const key of ['call','apply']){descriptors.push([method,key,Object.getOwnPropertyDescriptor(method,key)]);Object.defineProperty(method,key,{value(){throw Error('SYNTHETIC_REDIRECT');},configurable:true});}
+ try{await f.api.repairAll(true);assert.equal(injectionCount(f),3);const token=await f.api.holdForApplicationSelection();assert.equal(await f.api.fenceApplicationSelection(token),true);f.api.releaseApplicationSelection(token);}
+ finally{for(const [method,key,descriptor]of descriptors)if(descriptor)Object.defineProperty(method,key,descriptor);else delete method[key];}
 });

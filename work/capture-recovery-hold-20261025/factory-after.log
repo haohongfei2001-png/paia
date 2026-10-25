@@ -1,0 +1,60 @@
+TAP version 13
+# Subtest: recovery registers events before isolation, then injects exact packaged worlds into only the probed main document
+ok 1 - recovery registers events before isolation, then injects exact packaged worlds into only the probed main document
+  ---
+  duration_ms: 2.538042
+  type: 'test'
+  ...
+# (node:5762) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: concurrent recovery is single-flight and a pending update is not lost
+ok 2 - concurrent recovery is single-flight and a pending update is not lost
+  ---
+  duration_ms: 0.321334
+  type: 'test'
+  ...
+# Subtest: capture hold deadline does not clear an unresolved script or authorize its late continuation
+ok 3 - capture hold deadline does not clear an unresolved script or authorize its late continuation
+  ---
+  duration_ms: 0.878375
+  type: 'test'
+  ...
+# Subtest: a rejected already-issued probe fails hold without being relabelled as settled-safe
+ok 4 - a rejected already-issued probe fails hold without being relabelled as settled-safe
+  ---
+  duration_ms: 0.573209
+  type: 'test'
+  ...
+# Subtest: recovery factory identity rejects copied callbacks and foreign Chrome before composition
+ok 5 - recovery factory identity rejects copied callbacks and foreign Chrome before composition
+  ---
+  duration_ms: 0.191625
+  type: 'test'
+  ...
+# Subtest: source replacement during original query refuses subsequent dispatch and cannot be restored into the old epoch
+ok 6 - source replacement during original query refuses subsequent dispatch and cannot be restored into the old epoch
+  ---
+  duration_ms: 0.28425
+  type: 'test'
+  ...
+# Subtest: source replacement observed while held remains revoked after the original method is restored
+ok 7 - source replacement observed while held remains revoked after the original method is restored
+  ---
+  duration_ms: 0.085125
+  type: 'test'
+  ...
+# Subtest: captured original capture methods ignore redirected call and apply properties
+ok 8 - captured original capture methods ignore redirected call and apply properties
+  ---
+  duration_ms: 0.169792
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 39.583333
