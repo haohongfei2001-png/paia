@@ -1,0 +1,320 @@
+TAP version 13
+# Subtest: actual original owner discovers two unregistered top documents and holds the exact complete current inventory
+ok 1 - actual original owner discovers two unregistered top documents and holds the exact complete current inventory
+  ---
+  duration_ms: 135.389917
+  type: 'test'
+  ...
+# Subtest: complete current inventory refuses empty without silently dropping a member
+ok 2 - complete current inventory refuses empty without silently dropping a member
+  ---
+  duration_ms: 23.432334
+  type: 'test'
+  ...
+# Subtest: complete current inventory refuses duplicate without silently dropping a member
+ok 3 - complete current inventory refuses duplicate without silently dropping a member
+  ---
+  duration_ms: 22.16225
+  type: 'test'
+  ...
+# Subtest: complete current inventory refuses frozen without silently dropping a member
+ok 4 - complete current inventory refuses frozen without silently dropping a member
+  ---
+  duration_ms: 20.395333
+  type: 'test'
+  ...
+# Subtest: complete current inventory refuses discarded without silently dropping a member
+ok 5 - complete current inventory refuses discarded without silently dropping a member
+  ---
+  duration_ms: 22.66375
+  type: 'test'
+  ...
+# Subtest: complete current inventory refuses incognito without silently dropping a member
+ok 6 - complete current inventory refuses incognito without silently dropping a member
+  ---
+  duration_ms: 19.980291
+  type: 'test'
+  ...
+# Subtest: complete current inventory refuses wrong-origin without silently dropping a member
+ok 7 - complete current inventory refuses wrong-origin without silently dropping a member
+  ---
+  duration_ms: 18.980458
+  type: 'test'
+  ...
+# Subtest: browser document identity refuses missing-document
+ok 8 - browser document identity refuses missing-document
+  ---
+  duration_ms: 21.774042
+  type: 'test'
+  ...
+# Subtest: browser document identity refuses duplicate-frame
+ok 9 - browser document identity refuses duplicate-frame
+  ---
+  duration_ms: 23.9595
+  type: 'test'
+  ...
+# Subtest: browser document identity refuses wrong-frame
+ok 10 - browser document identity refuses wrong-frame
+  ---
+  duration_ms: 22.837834
+  type: 'test'
+  ...
+# Subtest: browser document identity refuses document-changed
+ok 11 - browser document identity refuses document-changed
+  ---
+  duration_ms: 24.341125
+  type: 'test'
+  ...
+# Subtest: old protocol reply refuses enrollment and never receives a HOLD
+ok 12 - old protocol reply refuses enrollment and never receives a HOLD
+  ---
+  duration_ms: 36.233291
+  type: 'test'
+  ...
+# Subtest: original onCreated synchronously invalidates a ready inventory before worker-ready continuations
+ok 13 - original onCreated synchronously invalidates a ready inventory before worker-ready continuations
+  ---
+  duration_ms: 78.377292
+  type: 'test'
+  ...
+# Subtest: original onRemoved synchronously invalidates a ready inventory before worker-ready continuations
+ok 14 - original onRemoved synchronously invalidates a ready inventory before worker-ready continuations
+  ---
+  duration_ms: 73.123833
+  type: 'test'
+  ...
+# Subtest: original onReplaced synchronously invalidates a ready inventory before worker-ready continuations
+ok 15 - original onReplaced synchronously invalidates a ready inventory before worker-ready continuations
+  ---
+  duration_ms: 85.696958
+  type: 'test'
+  ...
+# Subtest: original onUpdated synchronously invalidates a ready inventory before worker-ready continuations
+ok 16 - original onUpdated synchronously invalidates a ready inventory before worker-ready continuations
+  ---
+  duration_ms: 73.759458
+  type: 'test'
+  ...
+# Subtest: changed final query refuses and cleans only already attempted exact HOLDs
+ok 17 - changed final query refuses and cleans only already attempted exact HOLDs
+  ---
+  duration_ms: 66.837666
+  type: 'test'
+  ...
+# Subtest: same tab new document at final enumeration refuses without replay
+ok 18 - same tab new document at final enumeration refuses without replay
+  ---
+  duration_ms: 71.065917
+  type: 'test'
+  ...
+# Subtest: private enrollment refuses another sender and unrelated public resolve while its original registration awaits
+ok 19 - private enrollment refuses another sender and unrelated public resolve while its original registration awaits
+  ---
+  duration_ms: 79.813167
+  type: 'test'
+  ...
+# Subtest: original registration final await rechecks event identity and cannot enroll a navigated document
+ok 20 - original registration final await rechecks event identity and cannot enroll a navigated document
+  ---
+  duration_ms: 34.475875
+  type: 'test'
+  ...
+# Subtest: missing inventory SDK capability refuses only this profile and leaves original receipt resolution usable
+ok 21 - missing inventory SDK capability refuses only this profile and leaves original receipt resolution usable
+  ---
+  duration_ms: 21.66975
+  type: 'test'
+  ...
+# Subtest: actual UTF8 identity budget rejects oversized inventory before any HOLD
+ok 22 - actual UTF8 identity budget rejects oversized inventory before any HOLD
+  ---
+  duration_ms: 24.4455
+  type: 'test'
+  ...
+# Subtest: multiple individually bounded URLs share one cumulative original inventory allowance
+ok 23 - multiple individually bounded URLs share one cumulative original inventory allowance
+  ---
+  duration_ms: 38.91425
+  type: 'test'
+  ...
+# (node:63320) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: late original query after deadline cannot reopen admission or invent document cleanup
+ok 24 - late original query after deadline cannot reopen admission or invent document cleanup
+  ---
+  duration_ms: 18.27775
+  type: 'test'
+  ...
+# Subtest: late actual VM HOLD receives one exact RELEASE after actual settlement and remains timed out
+ok 25 - late actual VM HOLD receives one exact RELEASE after actual settlement and remains timed out
+  ---
+  duration_ms: 43.022959
+  type: 'test'
+  ...
+# Subtest: dispose unregisters only its exact original topology listeners
+ok 26 - dispose unregisters only its exact original topology listeners
+  ---
+  duration_ms: 15.445375
+  type: 'test'
+  ...
+# Subtest: extra genuinely registered receiver missing from the current query is not deleted to manufacture completeness
+ok 27 - extra genuinely registered receiver missing from the current query is not deleted to manufacture completeness
+  ---
+  duration_ms: 42.637584
+  type: 'test'
+  ...
+# Subtest: genuine ambiguous native outcome and durable pending remain unchanged after current-top refusal
+ok 28 - genuine ambiguous native outcome and durable pending remain unchanged after current-top refusal
+  ---
+  duration_ms: 75.633167
+  type: 'test'
+  ...
+# Subtest: genuine prior terminal ACK remains intact through current-top inventory and release
+ok 29 - genuine prior terminal ACK remains intact through current-top inventory and release
+  ---
+  duration_ms: 95.339125
+  type: 'test'
+  ...
+# Subtest: public known-subset APIs cannot consume a current-top token or release its inventory hold
+ok 30 - public known-subset APIs cannot consume a current-top token or release its inventory hold
+  ---
+  duration_ms: 81.570208
+  type: 'test'
+  ...
+# Subtest: failed current-top inventory is not releasable through the subset error channel
+ok 31 - failed current-top inventory is not releasable through the subset error channel
+  ---
+  duration_ms: 71.179417
+  type: 'test'
+  ...
+# Subtest: changed top inventory cannot be requalified by calling the subset fence
+ok 32 - changed top inventory cannot be requalified by calling the subset fence
+  ---
+  duration_ms: 109.766458
+  type: 'test'
+  ...
+# Subtest: warm hold is readonly, retains legacy unknown, rejects new admissions and does not revive old actions
+ok 33 - warm hold is readonly, retains legacy unknown, rejects new admissions and does not revive old actions
+  ---
+  duration_ms: 111.702459
+  type: 'test'
+  ...
+# Subtest: hold drains already issued physical transport and its original terminal ledger settlement
+ok 34 - hold drains already issued physical transport and its original terminal ledger settlement
+  ---
+  duration_ms: 56.992583
+  type: 'test'
+  ...
+# Subtest: pending before physical send becomes original not_dispatched and does not send after hold
+ok 35 - pending before physical send becomes original not_dispatched and does not send after hold
+  ---
+  duration_ms: 47.935875
+  type: 'test'
+  ...
+# Subtest: settled transport with unknown native outcome refuses hold until exact original ACK settles
+ok 36 - settled transport with unknown native outcome refuses hold until exact original ACK settles
+  ---
+  duration_ms: 64.564042
+  type: 'test'
+  ...
+# Subtest: held receiver registration is an actual drain task, not an empty-set completion
+ok 37 - held receiver registration is an actual drain task, not an empty-set completion
+  ---
+  duration_ms: 29.19425
+  type: 'test'
+  ...
+# (node:63321) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: timeout keeps the actual underlying transport and pending claim until it really settles
+ok 38 - timeout keeps the actual underlying transport and pending claim until it really settles
+  ---
+  duration_ms: 60.27075
+  type: 'test'
+  ...
+# Subtest: fence rejects changed ledger without repairing it
+ok 39 - fence rejects changed ledger without repairing it
+  ---
+  duration_ms: 65.063958
+  type: 'test'
+  ...
+# Subtest: fence rejects changed gate without repairing it
+ok 40 - fence rejects changed gate without repairing it
+  ---
+  duration_ms: 62.424542
+  type: 'test'
+  ...
+# Subtest: fence rejects changed epoch without repairing it
+ok 41 - fence rejects changed epoch without repairing it
+  ---
+  duration_ms: 57.175834
+  type: 'test'
+  ...
+# Subtest: fence rejects changed generation without repairing it
+ok 42 - fence rejects changed generation without repairing it
+  ---
+  duration_ms: 83.384375
+  type: 'test'
+  ...
+# Subtest: late registered original continuation invalidates ready hold and remains tracked for a later hold
+ok 43 - late registered original continuation invalidates ready hold and remains tracked for a later hold
+  ---
+  duration_ms: 27.933167
+  type: 'test'
+  ...
+# Subtest: original owner identity refuses method and API-object replacement without using forged hold results
+ok 44 - original owner identity refuses method and API-object replacement without using forged hold results
+  ---
+  duration_ms: 16.419917
+  type: 'test'
+  ...
+# Subtest: an already entered ack original native read drains before the warm fence
+ok 45 - an already entered ack original native read drains before the warm fence
+  ---
+  duration_ms: 52.05875
+  type: 'test'
+  ...
+# Subtest: an already entered reconcile original native read drains before the warm fence
+ok 46 - an already entered reconcile original native read drains before the warm fence
+  ---
+  duration_ms: 54.633584
+  type: 'test'
+  ...
+# Subtest: captured SDK invocation ignores own call replacement
+ok 47 - captured SDK invocation ignores own call replacement
+  ---
+  duration_ms: 62.279833
+  type: 'test'
+  ...
+# Subtest: substituted Promise race and finally cannot manufacture drain completion while a real continuation remains pending
+ok 48 - substituted Promise race and finally cannot manufacture drain completion while a real continuation remains pending
+  ---
+  duration_ms: 25.662208
+  type: 'test'
+  ...
+# Subtest: a rejected original continuation cannot become warm proof after task-set removal
+ok 49 - a rejected original continuation cannot become warm proof after task-set removal
+  ---
+  duration_ms: 27.953958
+  type: 'test'
+  ...
+# Subtest: a unobservable original continuation cannot become warm proof after task-set removal
+ok 50 - a unobservable original continuation cannot become warm proof after task-set removal
+  ---
+  duration_ms: 33.69725
+  type: 'test'
+  ...
+# Subtest: action admission entered before hold cannot mint a usable capability after its native read resumes
+ok 51 - action admission entered before hold cannot mint a usable capability after its native read resumes
+  ---
+  duration_ms: 66.803875
+  type: 'test'
+  ...
+1..51
+# tests 51
+# suites 0
+# pass 51
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1782.871833

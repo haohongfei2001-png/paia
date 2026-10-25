@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "extension/tests/prompt-current-top-inventory.test.mjs",
+    "extension/tests/prompt-insertion-known-document-hold.test.mjs",
+    "extension/tests/prompt-known-document-roundtrip.test.mjs",
+    "extension/tests/prompt-insertion-receipt-hold.test.mjs",
+    "extension/tests/prompt-insertion-receipts.test.mjs",
+    "extension/tests/prompt-insertion-producer-receipts.test.mjs",
+    "extension/tests/prompt-insertion-worker-receipts.test.mjs"
+  ],
+  "exitCode": 1,
+  "wallMs": 44214.35724996263
+}

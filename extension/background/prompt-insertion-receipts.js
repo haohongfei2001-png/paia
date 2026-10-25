@@ -37,9 +37,10 @@ const originalIgnore=promise=>new OriginalPromise(resolve=>{try{originalObserve(
 const originalRace=tasks=>new OriginalPromise((resolve,reject)=>{for(const task of tasks)try{originalObserve(task,resolve,reject);}catch(error){reject(error);}});
 const originalAllSettled=tasks=>new OriginalPromise(resolve=>{let remaining=tasks.length;if(!remaining)return resolve();for(const task of tasks){const done=()=>{if(--remaining===0)resolve();};try{originalObserve(task,done,done);}catch{done();}}});
 const messageTypes={manual:'PAIA_PROMPT_INSERT_SELECTED',assist:'PAIA_PROMPT_ASSIST_INSERT',next:'PAIA_PROMPT_NEXT_INSERT'};
+function probeCurrentPromptTopDocument(){return {origin:location.origin,top:globalThis.top===globalThis};}
 export class PromptInsertionReceipts {
- #store;#repository;#database;#databaseId;#api;#tabs;#runtime;#send;#get;#runtimeId;#restoreEpoch;#domainDigest;#bindingTask=null;#birthGeneration=null;#origin=null;#disposed=false;#rotating=false;#receiptEpoch=crypto.randomUUID();#epoch=0;#epochTask=null;#liveRetirement=null;#producers=new Map();#caps=new WeakMap();#actions=new Map();#events=new WeakMap();#receivers=new Map();#tasks=new Set();#tail=originalResolveValue();#selectionHold=null;#trackingUnknown=false;#receiverVersion=0;#knownDocumentHold=null;
- constructor(store,api){requireOriginalLibraryDocumentsGenerationMethods(store);if(!store.repository?.db||typeof api?.tabs?.sendMessage!=='function'||typeof api?.tabs?.get!=='function'||!id(api?.runtime?.id))fail('PROMPT_INSERTION_CAPABILITY');this.#store=store;this.#repository=store.repository;this.#database=store.repository.db;this.#databaseId=store.databaseId;this.#api=api;this.#tabs=api.tabs;this.#runtime=api.runtime;this.#send=api.tabs.sendMessage;this.#get=api.tabs.get;this.#runtimeId=api.runtime.id;void this.#initializeBinding().catch(()=>{});}
+ #store;#repository;#database;#databaseId;#api;#tabs;#runtime;#send;#get;#runtimeId;#restoreEpoch;#domainDigest;#bindingTask=null;#birthGeneration=null;#origin=null;#disposed=false;#rotating=false;#receiptEpoch=crypto.randomUUID();#epoch=0;#epochTask=null;#liveRetirement=null;#producers=new Map();#caps=new WeakMap();#actions=new Map();#events=new WeakMap();#receivers=new Map();#tasks=new Set();#tail=originalResolveValue();#selectionHold=null;#trackingUnknown=false;#receiverVersion=0;#knownDocumentHold=null;#topDocumentHold=null;#inventorySource=null;#topologyVersion=0;
+ constructor(store,api){requireOriginalLibraryDocumentsGenerationMethods(store);if(!store.repository?.db||typeof api?.tabs?.sendMessage!=='function'||typeof api?.tabs?.get!=='function'||!id(api?.runtime?.id))fail('PROMPT_INSERTION_CAPABILITY');this.#store=store;this.#repository=store.repository;this.#database=store.repository.db;this.#databaseId=store.databaseId;this.#api=api;this.#tabs=api.tabs;this.#runtime=api.runtime;this.#send=api.tabs.sendMessage;this.#get=api.tabs.get;this.#runtimeId=api.runtime.id;this.#inventoryInstall();void this.#initializeBinding().catch(()=>{});}
  #identity(){requireOriginalLibraryDocumentsGenerationMethods(this.#store);if(this.#disposed||this.#store.repository!==this.#repository||this.#repository.db!==this.#database||this.#store.databaseId!==this.#databaseId||this.#api.tabs!==this.#tabs||this.#api.runtime!==this.#runtime||this.#api.tabs.sendMessage!==this.#send||this.#api.tabs.get!==this.#get||this.#api.runtime.id!==this.#runtimeId)fail();}
  #producer(cap){this.#identity();const p=this.#caps.get(cap),method=p&&sourceMethods[p.lane];if(!p||Object.getPrototypeOf(p.owner)!==prototypes[p.lane]||typeof method!=='function'||originalApply(method,p.owner,[this,this.#store])!==true)fail('PROMPT_INSERTION_CAPABILITY');return p;}
  registerProducer(lane,owner){this.#admit();const method=sourceMethods[lane];if(!Object.hasOwn(prototypes,lane)||typeof method!=='function'||Object.getPrototypeOf(owner)!==prototypes[lane]||originalApply(method,owner,[this,this.#store])!==true||this.#producers.has(lane))fail('PROMPT_INSERTION_CAPABILITY');const cap=Object.freeze(Object.create(null)),p={lane,owner,cap};this.#producers.set(lane,p);this.#caps.set(cap,p);return cap;}
@@ -47,7 +48,7 @@ export class PromptInsertionReceipts {
  digest(value){return promptInsertionDigest(value);}
  #track(promise){const task=new OriginalPromise((resolve,reject)=>{try{originalObserve(promise,resolve,reject);}catch(error){this.#trackingUnknown=true;reject(error);}});this.#tasks.add(task);originalObserve(task,()=>this.#tasks.delete(task),()=>this.#tasks.delete(task));return task;}
  #admit(settlement=false){this.#identity();if(this.#selectionHold&&(!settlement||this.#selectionHold.ready||!this.#selectionHold.valid))fail('PROMPT_INSERTION_HELD');}
- #entry(fn,settlement=false){this.#admit(settlement);let resolve,reject;const pending=new OriginalPromise((a,b)=>{resolve=a;reject=b;}),task=this.#track(pending);try{originalObserve((async()=>fn(task))(),resolve,reject);}catch(error){reject(error);}return task;}
+ #entry(fn,settlement=false,enrollment=null){if(enrollment)this.#topCheck(enrollment.d);else this.#admit(settlement);let resolve,reject;const pending=new OriginalPromise((a,b)=>{resolve=a;reject=b;}),task=this.#track(pending);try{originalObserve((async()=>fn(task))(),resolve,reject);}catch(error){reject(error);}return task;}
  applicationSelectionSourceIs(store,api=this.#api){try{this.#identity();return this.#original()&&this.#store===store&&this.#api===api;}catch{return false;}}
  #original(){if(Object.getPrototypeOf(this)!==originalReceiptPrototype)return false;for(const [name,expected]of originalReceiptMethods){if(Object.hasOwn(this,name)||Object.getOwnPropertyDescriptor(originalReceiptPrototype,name)?.value!==expected)return false;}return true;}
 
@@ -64,9 +65,9 @@ export class PromptInsertionReceipts {
  async #initializeBinding(){if(!this.#bindingTask)this.#bindingTask=this.#track((async()=>{const row=await this.#tx(false,t=>this.#read(t)),domainDigest=await promptInsertionDigest({domain:'paia-prompt-insertion-source-v1',databaseId:this.#databaseId,restoreEpoch:this.#restoreEpoch});this.#identity();if(row&&row.domainDigest!==await promptInsertionDigest({domain:'paia-prompt-insertion-source-v1',databaseId:row.databaseId,restoreEpoch:row.restoreEpoch}))fail();this.#identity();this.#birthGeneration=row?.nextEpoch??0;this.#domainDigest=domainDigest;this.#origin=row?{databaseId:row.databaseId,restoreEpoch:row.restoreEpoch,domainDigest:row.domainDigest}:{databaseId:this.#databaseId,restoreEpoch:this.#restoreEpoch,domainDigest};})());return this.#bindingTask;}
  async #change(fn,work=this.#work()){await this.#initializeBinding();return this.#serial(async()=>{let proposed;try{await this.#tx(true,async t=>{const row=await this.#read(t),base=row??{id:PROMPT_INSERTION_RUNTIME,version:1,databaseId:this.#databaseId,restoreEpoch:this.#restoreEpoch,revision:0,nextEpoch:0,retiredEpochFloor:0,legacyCoverageUnknown:true,domainDigest:this.#domainDigest,retiredRanges:[],epochs:[],claims:[]};proposed=await fn(structuredClone(base),row);if(!proposed)return;if(base.revision>=Number.MAX_SAFE_INTEGER)fail('RESOURCE_LIMIT');proposed.revision=base.revision+1;validateRow(proposed);await t.put('meta',proposed);this.#identity();},work);}catch(error){if(!proposed)throw error;const actual=await this.#tx(false,t=>this.#read(t),work);if(!actual||!same(actual,proposed))throw error;}this.#identity();return proposed;});}
  #sourceSender(sender,receiver=null){if(sender?.id!==this.#runtimeId||sender.tab?.incognito||sender.frameId!==0||!id(sender.documentId)||sender.documentLifecycle!=='active'||!site(sender.url)||!integer(sender.tab?.id)||!integer(sender.tab?.windowId))fail('FORBIDDEN');if(receiver&&(sender.tab.id!==receiver.tabId||sender.tab.windowId!==receiver.windowId||sender.documentId!==receiver.documentId))fail('FORBIDDEN');}
- #recoveryEvent(receiver,token){const known=this.#receivers.get(receiver.tabId);if(!known||!same(known.receiver,receiver))fail();if(token===this.#receiptEpoch){if(known.initialEvent?.token!==token)known.initialEvent={token,work:null,consumed:false};return known.initialEvent;}const a=this.#actions.get(token);if(!a||!a.work||!same(a.receiver,receiver))fail();this.#current(a);this.#checkWork(a.work);return a.recoveryEvent;}
- async registerReceiver(request,sender){return this.#entry(()=>this.#registerReceiver(request,sender),false);}
- async #registerReceiver(request,sender){this.#identity();await this.#initializeBinding();if(!(exact(request,['type','version','nonce'])||exact(request,['type','version','nonce','recoveryToken']))||request.type!=='PAIA_PROMPT_INSERTION_RECEIVER_REGISTER'||request.version!==1||!uuid(request.nonce)||Object.hasOwn(request,'recoveryToken')&&!uuid(request.recoveryToken))fail('INVALID_REQUEST');this.#sourceSender(sender);const prior=this.#receivers.get(sender.tab.id),tab=await originalApply(this.#get,this.#tabs,[sender.tab.id]);this.#identity();if(this.#knownDocumentHold)this.#admit();if(this.#receivers.get(sender.tab.id)!==prior||tab.incognito||tab.discarded||!site(tab.url)||tab.windowId!==sender.tab.windowId)fail();const receiver={tabId:tab.id,windowId:tab.windowId,documentId:sender.documentId,nonce:request.nonce};if(prior&&prior.receiver.documentId===receiver.documentId&&prior.receiver.nonce!==receiver.nonce)fail();if(!prior&&this.#receivers.size>=PROMPT_INSERTION_LIMITS.receivers)fail('RESOURCE_LIMIT');const token=request.recoveryToken??this.#receiptEpoch;if(token!==this.#receiptEpoch){const a=this.#actions.get(token);if(!a||!a.work||!same(a.receiver,receiver))fail();this.#current(a);this.#checkWork(a.work);}if(this.#receiverVersion>=Number.MAX_SAFE_INTEGER)fail('RESOURCE_LIMIT');if(!prior||!same(prior.receiver,receiver))this.#receivers.set(tab.id,{receiver,url:tab.url});else if(prior.url!==tab.url)this.#receivers.set(tab.id,{...prior,url:tab.url});this.#receiverVersion++;this.#recoveryEvent(receiver,token);return {registered:true,version:1,ownerToken:this.#receiptEpoch,recoveryToken:token,domainDigest:this.#domainDigest,receiver:structuredClone(receiver)};}
+ #recoveryEvent(receiver,token){const known=this.#receivers.get(receiver.tabId);if(!known||!same(known.receiver,receiver))fail();const d=this.#topDocumentHold,e=d?.enrollment;if(e&&d.phase==='enrolling'&&token===e.token&&receiver.tabId===e.tab.id&&receiver.windowId===e.tab.windowId&&receiver.documentId===e.tab.documentId){this.#topCheck(d);return e.event;}if(token===this.#receiptEpoch){if(known.initialEvent?.token!==token)known.initialEvent={token,work:null,consumed:false};return known.initialEvent;}const a=this.#actions.get(token);if(!a||!a.work||!same(a.receiver,receiver))fail();this.#current(a);this.#checkWork(a.work);return a.recoveryEvent;}
+ async registerReceiver(request,sender){const enrollment=this.#topRegistration(request,sender);return this.#entry(()=>this.#registerReceiver(request,sender,enrollment),false,enrollment);}
+ async #registerReceiver(request,sender,enrollment=null){this.#identity();await this.#initializeBinding();if(!(exact(request,['type','version','nonce'])||exact(request,['type','version','nonce','recoveryToken']))||request.type!=='PAIA_PROMPT_INSERTION_RECEIVER_REGISTER'||request.version!==1||!uuid(request.nonce)||Object.hasOwn(request,'recoveryToken')&&!uuid(request.recoveryToken))fail('INVALID_REQUEST');this.#sourceSender(sender);const prior=this.#receivers.get(sender.tab.id),tab=enrollment?await this.#topCall(enrollment.d,this.#tabs,this.#get,[sender.tab.id]):await originalApply(this.#get,this.#tabs,[sender.tab.id]);this.#identity();if(enrollment){const d=this.#topRegistrationCurrent(enrollment,request,sender);this.#topCharge(d,{request,receiver:{tabId:sender.tab.id,windowId:sender.tab.windowId,documentId:sender.documentId,url:sender.url}});this.#topTab(d,tab);}else if(this.#knownDocumentHold||this.#topDocumentHold)this.#admit();if(this.#receivers.get(sender.tab.id)!==prior||tab.incognito||tab.discarded||!site(tab.url)||tab.windowId!==sender.tab.windowId)fail();const receiver={tabId:tab.id,windowId:tab.windowId,documentId:sender.documentId,nonce:request.nonce};if(prior&&prior.receiver.documentId===receiver.documentId&&prior.receiver.nonce!==receiver.nonce)fail();if(!prior&&this.#receivers.size>=PROMPT_INSERTION_LIMITS.receivers)fail('RESOURCE_LIMIT');const token=request.recoveryToken??this.#receiptEpoch;if(enrollment){this.#topRegistrationCurrent(enrollment,request,sender);}else if(token!==this.#receiptEpoch){const a=this.#actions.get(token);if(!a||!a.work||!same(a.receiver,receiver))fail();this.#current(a);this.#checkWork(a.work);}if(this.#receiverVersion>=Number.MAX_SAFE_INTEGER)fail('RESOURCE_LIMIT');if(!prior||!same(prior.receiver,receiver))this.#receivers.set(tab.id,{receiver,url:tab.url});else if(prior.url!==tab.url)this.#receivers.set(tab.id,{...prior,url:tab.url});this.#receiverVersion++;const event=this.#recoveryEvent(receiver,token);if(enrollment)event.work=enrollment.d.hold.work;return {registered:true,version:1,ownerToken:this.#receiptEpoch,recoveryToken:token,domainDigest:this.#domainDigest,receiver:structuredClone(receiver)};}
  async resolveReceiver(tabId,url,expectedDocumentId=null,eventContext=null){return this.#entry(()=>this.#resolveReceiver(tabId,url,expectedDocumentId,eventContext),false);}
  async #resolveReceiver(tabId,url,expectedDocumentId=null,eventContext=null){this.#identity();if(!integer(tabId)||!site(url)||expectedDocumentId!==null&&!id(expectedDocumentId))fail('INVALID_REQUEST');const a=eventContext===null?null:this.#events.get(eventContext);if(eventContext!==null&&!a)fail('PROMPT_INSERTION_CAPABILITY');if(a){this.#current(a);if(a.receiver.tabId!==tabId||expectedDocumentId!==null&&a.receiver.documentId!==expectedDocumentId)fail();}const work=a?.work??this.#work(),token=a?.action.actionId??this.#receiptEpoch,check=()=>{this.#checkWork(work);this.#identity();if(a)this.#current(a);else if(token!==this.#receiptEpoch)fail();};return this.#source(work,async()=>{check();const tab=await originalApply(this.#get,this.#tabs,[tabId]);check();if(tab.incognito||tab.discarded||tab.url!==url)fail();const probe={type:'PAIA_PROMPT_INSERTION_RECEIVER_PROBE',version:1,recoveryToken:token},top=await originalApply(this.#send,this.#tabs,[tabId,probe,{frameId:0}]);check();const known=this.#receivers.get(tabId);if(!exact(top,['version','nonce','profile'])||top.version!==1||top.profile!=='receipt-only-v1')fail('PROMPT_PAGE_REFRESH_REQUIRED');if(!known||known.url!==url||known.receiver.nonce!==top.nonce||known.receiver.windowId!==tab.windowId||expectedDocumentId!==null&&known.receiver.documentId!==expectedDocumentId)fail();const exactProbe=await originalApply(this.#send,this.#tabs,[tabId,probe,{documentId:known.receiver.documentId}]),latest=await originalApply(this.#get,this.#tabs,[tabId]);check();if(!exact(exactProbe,['version','nonce','profile'])||exactProbe.version!==1||exactProbe.profile!=='receipt-only-v1')fail('PROMPT_PAGE_REFRESH_REQUIRED');if(!same(exactProbe,top)||this.#receivers.get(tabId)!==known||latest.incognito||latest.discarded||latest.url!==url||latest.windowId!==known.receiver.windowId)fail();return structuredClone(known.receiver);});}
  removeTab(tabId){if(this.#receiverVersion>=Number.MAX_SAFE_INTEGER){this.#trackingUnknown=true;}else this.#receiverVersion++;this.#receivers.delete(tabId);for(const a of this.#actions.values())if(a.receiver.tabId===tabId)a.valid=false;}
@@ -173,11 +174,111 @@ export class PromptInsertionReceipts {
   const acquire=(async()=>{for(const e of d.entries)await this.#knownAcquire(d,e);await this.#drain(hold);this.#knownCheck(d);const before=await this.#holdSnapshot(work);if(this.#trackingUnknown||before.ledger?.claims.some(c=>c.state==='pending'))fail('OUTCOME_UNKNOWN');await this.#knownFence(d);const after=await this.#holdSnapshot(work);this.#knownCheck(d);if(this.#tasks.size||!same(before,after))fail('OUTCOME_UNKNOWN');hold.snapshot=after;hold.ready=true;return d.token;})();
   try{return await this.#wait(work,acquire);}catch(error){if(error?.code==='BNS_GROUP_RESOURCE_LIMIT')work.failed=true;d.failed=true;d.error=error;hold.valid=false;hold.error=new ArchiveError('OUTCOME_UNKNOWN');this.#knownStartCleanup(d);throw error;}
  }
- knownDocumentsHeldForApplicationSelection(token){const d=this.#knownDocumentHold;return !!d&&d.token===token&&d.hold.ready&&this.#knownCurrent(d)&&!this.#tasks.size&&!this.#trackingUnknown;}
+ #knownHeld(d){return !!d&&d.hold.ready&&this.#knownCurrent(d)&&!this.#tasks.size&&!this.#trackingUnknown;}
+ knownDocumentsHeldForApplicationSelection(token){const d=this.#knownDocumentHold;return d!==this.#topDocumentHold&&d?.token===token&&this.#knownHeld(d);}
  async fenceKnownDocumentsForApplicationSelection(token){const d=this.#knownDocumentHold;if(!this.knownDocumentsHeldForApplicationSelection(token))fail('OUTCOME_UNKNOWN');try{await this.#knownFence(d);const snapshot=await this.#holdSnapshot(d.hold.work);if(!same(snapshot,d.hold.snapshot)||!this.knownDocumentsHeldForApplicationSelection(token))fail('OUTCOME_UNKNOWN');return true;}catch(error){if(error?.code==='BNS_GROUP_RESOURCE_LIMIT')d.hold.work.failed=true;d.failed=true;d.error=error;d.hold.valid=false;this.#knownStartCleanup(d);throw error;}}
- releaseKnownDocumentsForApplicationSelection(token){const d=this.#knownDocumentHold;return d?.token===token?this.#knownCleanup(d):originalResolveValue(false);}
- releaseFailedKnownDocumentsForApplicationSelection(error){const d=this.#knownDocumentHold;return d?.failed&&d.error===error&&error?this.#knownCleanup(d):originalResolveValue(false);}
- dispose(){if(this.#knownDocumentHold)this.#knownStartCleanup(this.#knownDocumentHold);if(this.#receiverVersion<Number.MAX_SAFE_INTEGER)this.#receiverVersion++;if(this.#selectionHold)this.#selectionHold.valid=false;this.#disposed=true;for(const a of this.#actions.values())a.valid=false;this.#receivers.clear();}
+ releaseKnownDocumentsForApplicationSelection(token){const d=this.#knownDocumentHold;return d!==this.#topDocumentHold&&d?.token===token?this.#knownCleanup(d):originalResolveValue(false);}
+ releaseFailedKnownDocumentsForApplicationSelection(error){const d=this.#knownDocumentHold;return d!==this.#topDocumentHold&&d?.failed&&d.error===error&&error?this.#knownCleanup(d):originalResolveValue(false);}
+ // Fixed origin/top-document metadata only; no capture repair or page content.
+ #inventoryInstall(){
+  const api=this.#api,tabs=this.#tabs,scripting=api.scripting;
+  if(typeof tabs.query!=='function'||typeof scripting?.executeScript!=='function')return;
+  const events=['onCreated','onRemoved','onReplaced','onUpdated'].map(key=>({key,event:tabs[key],add:tabs[key]?.addListener,remove:tabs[key]?.removeListener}));
+  if(events.some(e=>typeof e.add!=='function'||typeof e.remove!=='function'))return;
+  const source={scripting,execute:scripting.executeScript,query:tabs.query,events,installed:[]};
+  const changed=()=>{if(this.#topologyVersion<Number.MAX_SAFE_INTEGER)this.#topologyVersion++;else source.invalid=true;const d=this.#topDocumentHold;if(d){d.failed=true;d.hold.valid=false;this.#knownStartCleanup(d);}};
+  try{for(const e of events){originalApply(e.add,e.event,[changed]);source.installed.push({...e,listener:changed});}this.#inventorySource=source;}
+  catch{for(const e of source.installed)try{originalApply(e.remove,e.event,[e.listener]);}catch{};}
+ }
+ #inventoryIdentity(){
+  this.#identity();const s=this.#inventorySource;
+  if(!s||s.invalid||this.#api.scripting!==s.scripting||s.scripting.executeScript!==s.execute||this.#tabs.query!==s.query||s.events.some(e=>this.#tabs[e.key]!==e.event||e.event.addListener!==e.add||e.event.removeListener!==e.remove))fail('PROMPT_INSERTION_CAPABILITY');
+  return s;
+ }
+ #topCheck(d){this.#inventoryIdentity();if(this.#topDocumentHold!==d||d.failed||d.cleaning||d.topology!==this.#topologyVersion||!this.#held(d.hold))fail('OUTCOME_UNKNOWN');this.#checkWork(d.hold.work);}
+ #topRegistration(request,sender){
+  const d=this.#topDocumentHold,e=d?.enrollment;
+  if(!e||d.phase!=='enrolling'||request?.type!=='PAIA_PROMPT_INSERTION_RECEIVER_REGISTER'||request.recoveryToken!==e.token)return null;
+  this.#topCheck(d);this.#sourceSender(sender);if(sender.tab.id!==e.tab.id||sender.tab.windowId!==e.tab.windowId||sender.documentId!==e.tab.documentId||sender.url!==e.tab.url)fail('PROMPT_INSERTION_HELD');
+  return {d,e};
+ }
+ #topRegistrationCurrent(enrollment,request,sender){
+  const {d,e}=enrollment;this.#topCheck(d);
+  if(d.phase!=='enrolling'||d.enrollment!==e||this.#topRegistration(request,sender)?.e!==e)fail('PROMPT_INSERTION_HELD');
+  return d;
+ }
+ #topCharge(d,value,refs=1){this.#topCheck(d);this.#charge(d.hold.work,new TextEncoder().encode(promptInsertionEncoding(value)).length,refs);}
+ async #topCall(d,owner,method,args){
+  this.#topCheck(d);const parameters=method===this.#inventorySource?.execute?args.map(value=>({target:value.target,world:value.world,probe:'original-current-prompt-top-v1'})):args;this.#topCharge(d,parameters);let raw;
+  try{raw=originalApply(method,owner,args);}catch(error){this.#trackingUnknown=true;throw error;}
+  const result=await this.#wait(d.hold.work,this.#track(raw));this.#topCheck(d);return result;
+ }
+ #topTab(d,tab){
+  const value={id:tab?.id??null,windowId:tab?.windowId??null,url:tab?.url??null,incognito:tab?.incognito??null,discarded:tab?.discarded??null,frozen:tab?.frozen??false};this.#topCharge(d,value);
+  if(!integer(value.id)||!integer(value.windowId)||!site(value.url)||value.incognito!==false||value.discarded!==false||value.frozen!==false)fail('OUTCOME_UNKNOWN');return value;
+ }
+ async #topInventory(d){
+  const s=this.#inventoryIdentity();const raw=await this.#topCall(d,this.#tabs,s.query,[{url:['https://chatgpt.com/*']}]);
+  if(!Array.isArray(raw)||!raw.length||raw.length>PROMPT_INSERTION_LIMITS.receivers)fail('OUTCOME_UNKNOWN');
+  const tabs=raw.map(tab=>this.#topTab(d,tab)).sort((a,b)=>a.id-b.id);if(new Set(tabs.map(t=>t.id)).size!==tabs.length)fail('OUTCOME_UNKNOWN');
+  const result=[];
+  for(const tab of tabs){
+   const get=async()=>this.#topTab(d,await this.#topCall(d,this.#tabs,this.#get,[tab.id]));
+   if(!same(await get(),tab))fail('OUTCOME_UNKNOWN');
+   const probe=async target=>{const rows=await this.#topCall(d,s.scripting,s.execute,[{target,world:'ISOLATED',func:probeCurrentPromptTopDocument}]);if(!Array.isArray(rows)||rows.length!==1)fail('OUTCOME_UNKNOWN');const row=rows[0];this.#topCharge(d,{frameId:row?.frameId??null,documentId:row?.documentId??null,result:row?.result??null,error:row?.error?true:false});if(row?.frameId!==0||!id(row.documentId)||row.error||!exact(row.result,['origin','top'])||row.result.origin!=='https://chatgpt.com'||row.result.top!==true)fail('OUTCOME_UNKNOWN');return row.documentId;};
+   const documentId=await probe({tabId:tab.id,frameIds:[0]});if(await probe({tabId:tab.id,documentIds:[documentId]})!==documentId||!same(await get(),tab))fail('OUTCOME_UNKNOWN');result.push({...tab,documentId});
+  }
+  this.#topCheck(d);return result;
+ }
+ async #topEnroll(d,tab){
+  const e={tab,token:crypto.randomUUID(),event:{work:d.hold.work,consumed:false}};d.enrollment=e;
+  try{
+   const message={type:'PAIA_PROMPT_INSERTION_RECEIVER_PROBE',version:1,recoveryToken:e.token};
+   const top=await this.#topCall(d,this.#tabs,this.#send,[tab.id,message,{frameId:0}]);
+   this.#topCharge(d,top);if(!exact(top,['version','nonce','profile'])||top.version!==1||top.profile!=='receipt-only-v1')fail('PROMPT_PAGE_REFRESH_REQUIRED');
+   const known=this.#receivers.get(tab.id);if(!known||known.url!==tab.url||known.receiver.windowId!==tab.windowId||known.receiver.documentId!==tab.documentId||known.receiver.nonce!==top.nonce)fail('OUTCOME_UNKNOWN');
+   const exactProbe=await this.#topCall(d,this.#tabs,this.#send,[tab.id,message,{documentId:tab.documentId}]);
+   this.#topCharge(d,exactProbe);if(!same(top,exactProbe)||this.#receivers.get(tab.id)!==known)fail('OUTCOME_UNKNOWN');
+  }finally{if(d.enrollment===e)d.enrollment=null;}
+ }
+ async holdCurrentTopDocumentsForApplicationSelection(){
+  this.#admit();this.#inventoryIdentity();if(!this.#original()||this.#rotating||this.#knownDocumentHold||this.#topDocumentHold)fail('PROMPT_INSERTION_CAPABILITY');
+  const work=this.#work(),hold={token:Object.freeze(Object.create(null)),valid:true,ready:false,deadline:work.deadline,receiptEpoch:this.#receiptEpoch,work,snapshot:null,error:null};
+  const d={token:Object.freeze(Object.create(null)),hold,version:null,domainDigest:null,entries:[],failed:false,cleaning:false,error:null,topology:this.#topologyVersion,phase:'enumerating',enrollment:null,inventory:null};
+  this.#selectionHold=hold;this.#topDocumentHold=d;for(const a of this.#actions.values())if(!a.invoked)a.valid=false;
+  const acquire=(async()=>{
+   await this.#initializeBinding();this.#topCheck(d);d.domainDigest=this.#domainDigest;d.inventory=await this.#topInventory(d);d.phase='enrolling';
+   for(const tab of d.inventory)await this.#topEnroll(d,tab);
+   this.#topCheck(d);if(this.#receivers.size!==d.inventory.length)fail('OUTCOME_UNKNOWN');
+   for(const tab of d.inventory){const original=this.#receivers.get(tab.id);if(!original||original.url!==tab.url||original.receiver.documentId!==tab.documentId||original.receiver.windowId!==tab.windowId)fail('OUTCOME_UNKNOWN');const e={original,receiver:structuredClone(original.receiver),url:original.url,challenge:crypto.randomUUID(),attempted:false,settled:false,released:false,cleanupStarted:false};this.#topCharge(d,{receiver:e.receiver,url:e.url});d.entries.push(e);}
+   d.phase='holding';d.version=this.#receiverVersion;this.#knownDocumentHold=d;
+   for(const e of d.entries)await this.#knownAcquire(d,e);
+   await this.#drain(hold);this.#knownCheck(d);this.#topCheck(d);const before=await this.#holdSnapshot(work);if(this.#trackingUnknown||before.ledger?.claims.some(c=>c.state==='pending'))fail('OUTCOME_UNKNOWN');
+   await this.#knownFence(d);const finalInventory=await this.#topInventory(d);this.#topCharge(d,d.inventory);if(!same(finalInventory,d.inventory))fail('OUTCOME_UNKNOWN');
+   const after=await this.#holdSnapshot(work);this.#knownCheck(d);this.#topCheck(d);if(this.#tasks.size||!same(before,after))fail('OUTCOME_UNKNOWN');hold.snapshot=after;hold.ready=true;d.phase='ready';return d.token;
+  })();
+  try{return await this.#wait(work,acquire);}catch(error){if(error?.code==='BNS_GROUP_RESOURCE_LIMIT')work.failed=true;d.failed=true;d.error=error;hold.valid=false;hold.error=new ArchiveError('OUTCOME_UNKNOWN');this.#knownStartCleanup(d);throw error;}
+ }
+ currentTopDocumentsHeldForApplicationSelection(token){const d=this.#topDocumentHold;try{return !!d&&d.token===token&&d.phase==='ready'&&(this.#topCheck(d),this.#knownHeld(d));}catch{return false;}}
+ async fenceCurrentTopDocumentsForApplicationSelection(token){
+  const d=this.#topDocumentHold;if(!this.currentTopDocumentsHeldForApplicationSelection(token))fail('OUTCOME_UNKNOWN');
+  try{await this.#knownFence(d);const inventory=await this.#topInventory(d);this.#topCharge(d,d.inventory);if(!same(inventory,d.inventory))fail('OUTCOME_UNKNOWN');const snapshot=await this.#holdSnapshot(d.hold.work);if(!same(snapshot,d.hold.snapshot)||!this.currentTopDocumentsHeldForApplicationSelection(token))fail('OUTCOME_UNKNOWN');return true;}
+  catch(error){if(error?.code==='BNS_GROUP_RESOURCE_LIMIT')d.hold.work.failed=true;d.failed=true;d.error=error;d.hold.valid=false;this.#knownStartCleanup(d);throw error;}
+ }
+ async #topCleanup(d){
+  const known=this.#knownDocumentHold===d;
+  this.#knownStartCleanup(d);
+  // Known-stage RELEASE tasks belong to the original cleanup and must be
+  // awaited there, not mistaken for unfinished early enumeration. With no
+  // HOLD yet, timeout or unobserved original SDK work still cannot reopen.
+  if(!known&&(d.hold.work.failed||budgetClock()>=d.hold.deadline||this.#trackingUnknown||this.#tasks.size))return false;
+  if(!known)this.#knownDocumentHold=d;
+  const released=await this.#knownCleanup(d);if(released&&this.#topDocumentHold===d)this.#topDocumentHold=null;return released;
+ }
+ releaseCurrentTopDocumentsForApplicationSelection(token){const d=this.#topDocumentHold;return d?.token===token?this.#topCleanup(d):originalResolveValue(false);}
+ releaseFailedCurrentTopDocumentsForApplicationSelection(error){const d=this.#topDocumentHold;return d?.failed&&d.error===error&&error?this.#topCleanup(d):originalResolveValue(false);}
+
+ dispose(){if(this.#topDocumentHold){this.#topDocumentHold.failed=true;this.#knownStartCleanup(this.#topDocumentHold);}for(const e of this.#inventorySource?.installed??[])try{originalApply(e.remove,e.event,[e.listener]);}catch{}if(this.#knownDocumentHold)this.#knownStartCleanup(this.#knownDocumentHold);if(this.#receiverVersion<Number.MAX_SAFE_INTEGER)this.#receiverVersion++;if(this.#selectionHold)this.#selectionHold.valid=false;this.#disposed=true;for(const a of this.#actions.values())a.valid=false;this.#receivers.clear();}
 }
 
 const originalReceiptPrototype=PromptInsertionReceipts.prototype;
