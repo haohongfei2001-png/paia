@@ -1,0 +1,33 @@
+{
+  "rootCommit": "9bdef371f06666e123ff6fab7735408166c44b08",
+  "zip": "/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/PAIA-Codex-to-Dot-Local-Handoff-20261025.zip",
+  "bytes": 13187362,
+  "sha256": "7761ee9fb3325bddbeee7cd5dcf4b50e4df60d184372a72c9fad27c35be3fad8",
+  "zipEntries": 1438,
+  "checksummedEntries": 1437,
+  "inventoryEntries": 1436,
+  "crcAndAllManifestHashesVerified": true,
+  "bundlesRecovered": [
+    {
+      "commit": "9bdef371f06666e123ff6fab7735408166c44b08",
+      "tree": "b39d60d15e8995d53a67ea754f2c24b854c3f517",
+      "exactTreeRecovered": true
+    },
+    {
+      "commit": "7eabab1259b935ac8908185f5ceceabf2b779f5d",
+      "tree": "79e77a1d19f6ef1b015babc4574ba94e9cab244d",
+      "exactTreeRecovered": true
+    },
+    {
+      "commit": "f19171d3c3f612c298fa3dd84e9d1a1f79934601",
+      "tree": "e2dafc74c0ad01059e4843e43ea8533dd283edeb",
+      "exactTreeRecovered": true
+    },
+    {
+      "commit": "c7846285863e58f05a167673c4ab77f8a5f52bf4",
+      "tree": "3d3a70ecdfa05ada214a85a750f9097f32099d71",
+      "exactTreeRecovered": true
+    }
+  ],
+  "noRuntimeExecution": true
+}
