@@ -1,0 +1,3 @@
+Node22.23.3 macOS arm64; no browser/native/CI.
+Reused existing PAIA services dependencies via local ignored symlink: /Users/hhf/.codex/worktrees/organize-handoff-validation/paia/services/ai-gateway/node_modules
+pg=8.23.1

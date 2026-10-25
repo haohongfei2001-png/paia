@@ -31,7 +31,7 @@ export function createApplicationWorkerCoordination({store,safety,libraryRunner,
  const localCurrent=()=>storeCurrent()&&local.every(({owner,prototype})=>exact(owner,prototype)&&owner.store===store);
  const sourcesCurrent=()=>localCurrent()&&sources.every(({owner,prototype,hold,current,fence,release},i)=>exact(owner,prototype)&&[hold,current,fence,release].every(method=>typeof method==='function')&&owner.api===identities[i].api&&owner.service===identities[i].service&&owner.surface===identities[i].surface)&&
   contextMethods.source.call(contextConnections,store)===true&&assistMethods.source.call(promptAssist,store)===true&&nextMethods.source.call(promptNext,store)===true&&
-  exact(service,PromptReuseService.prototype)&&promptCommands.service===service&&service.s===store&&promptNext.service===service&&promptAssist.store===store&&promptAssist.session===session&&!!session&&
+  exact(service,PromptReuseService.prototype)&&promptCommands.service===service&&service.s===store&&promptNext.service===service&&promptAssist.store===store&&promptAssist.session===session&&
   promptSurface.commands===promptCommands&&promptSurface.assist===promptAssist&&promptSurface.next===promptNext&&promptAssist.surface===promptSurface&&promptNext.surface===promptSurface;
  const call=(entry,method,...args)=>entry[method].call(entry.owner,...args);
  // A failed cleanup cannot leave an apparently reusable coordinator. Continue

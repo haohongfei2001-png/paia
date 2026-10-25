@@ -1,0 +1,4 @@
+Baseline (both attempts):
+/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node --test --test-name-pattern='original null Assist|constructor null Assist|default unopened|configured Assist cannot|changed .* fence' extension/tests/application-worker-sources.test.mjs extension/tests/application-worker-admission.test.mjs
+Final once:
+/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node --test extension/tests/application-worker-sources.test.mjs extension/tests/application-worker-admission.test.mjs extension/tests/application-worker-coordination.test.mjs extension/tests/assist-source-quiescence.test.mjs extension/tests/prompt-insertion-receipts.test.mjs extension/tests/application-selection-editor-safety.test.mjs extension/tests/application-selection-consumer.test.mjs

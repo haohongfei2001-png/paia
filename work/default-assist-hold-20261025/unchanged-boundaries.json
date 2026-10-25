@@ -1,0 +1,7 @@
+{
+  "extension/background/application-selection-commands.js": "92d4800443277a560a78a3af34ff9f183e6e4f40e71ebbc08953390f78f54f78",
+  "extension/ui/settings-sync.js": "d9401b4697106b92669b33b328f783aaae900bf63c26f87edf085075a26ed633",
+  "extension/background/prompt-insertion-receipts.js": "4536d26f473381371f829fa51583410b7c1a6042305b50f560c80b14f79b6306",
+  "extension/background/context-connections.js": "93d1a8b633d5e773621679e8deb96d9b907968dd86576f1b8f10e55bef2db961",
+  "extension/background/sync-local-lifecycle.js": "2dc7787fb596a02c2fbdb0ea472592772aed9a74e654481c497190fb9e781022"
+}

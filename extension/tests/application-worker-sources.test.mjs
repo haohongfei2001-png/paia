@@ -56,9 +56,37 @@ test('local maintenance receipt never substitutes for all original sources',asyn
  const local=createApplicationWorkerCoordination({store:f.store,safety:f.safety,libraryRunner:f.libraryRunner,filterRunner:f.filterRunner,maintenanceRunner:f.maintenanceRunner});await assert.rejects(local.holdApplicationSources());assert.equal(f.safety.applicationSelectionHolding(),false);local.close();
 });
 
-test('absent configured Assist session and empty private maps cannot qualify provider settlement',async t=>{
- const f=await fixture(t,{configuredAssist:false}),before=await f.promptNext.authorization();assert.equal(f.promptAssist.session,null);assert.equal(f.promptAssist.views.size,0);assert.equal(f.promptAssist.activations.size,0);assert.equal(f.promptAssist.applicationSelectionSourceIs(f.store),false);
- await assert.rejects(f.coord.holdApplicationSources());assert.equal(f.safety.applicationSelectionHolding(),false);assert.deepEqual(await f.promptNext.authorization(),before);assert.equal(f.physical(),0);
+test('original null Assist session can join live holds without claiming provider settlement',async t=>{
+ const f=await fixture(t,{configuredAssist:false}),before=await metadata(f.store);assert.equal(f.promptAssist.session,null);assert.equal(f.promptAssist.applicationSelectionSourceIs(f.store),true);
+ const token=await f.coord.holdApplicationSources();assert.equal(f.coord.applicationSourcesHeld(token),true);assert.equal(await f.coord.fenceApplicationSources(token),true);
+ assert.deepEqual(await metadata(f.store),before);assert.equal(f.physical(),0);assert.equal(f.calls.length,0);
+ assert.equal(f.coord.releaseApplicationSources(token),true);await released(f);
+});
+
+for(const replacement of ['forged','genuine'])for(const timing of ['before-coordinator','after-hold'])test('constructor null Assist refuses '+replacement+' session replacement '+timing,async t=>{
+ const f=await fixture(t,{configuredAssist:false}),other=new AssistPromptCommands(f.store,f.api,{configuration:f.configuration,surface:f.promptSurface});t.after(()=>other.dispose());
+ const replacementSession=replacement==='forged'?Object.create(LocalAssistSession.prototype):other.session;
+ let token;if(timing==='after-hold')token=await f.coord.holdApplicationSources();
+ f.promptAssist.session=replacementSession;
+ try{
+  assert.equal(f.promptAssist.applicationSelectionSourceIs(f.store),false);
+  if(timing==='before-coordinator'){const coord=createApplicationWorkerCoordination(f.owners);await assert.rejects(coord.holdApplicationSources());coord.close();}
+  else{assert.equal(f.coord.applicationSourcesHeld(token),false);await assert.rejects(f.coord.fenceApplicationSources(token));}
+  assert.equal(f.safety.applicationSelectionHolding(),false);assert.equal(f.physical(),0);
+ }finally{f.promptAssist.session=null;}
+ await released(f);
+});
+
+test('configured Assist cannot replace its original session with null to evade its owner',async t=>{
+ const f=await fixture(t),original=f.promptAssist.session;f.promptAssist.session=null;
+ try{assert.equal(f.promptAssist.applicationSelectionSourceIs(f.store),false);const coord=createApplicationWorkerCoordination(f.owners);await assert.rejects(coord.holdApplicationSources());coord.close();assert.equal(f.safety.applicationSelectionHolding(),false);}finally{f.promptAssist.session=original;}
+ await released(f);
+});
+
+for(const key of ['recovery-restore-epoch','gate'])test('null Assist live hold still rejects changed '+key+' fence and releases sources',async t=>{
+ const f=await fixture(t,{configuredAssist:false}),token=await f.coord.holdApplicationSources();
+ await f.store.repository.transaction(true,t=>t.put('meta',{id:key,value:'SYNTHETIC changed'}),['meta']);
+ await assert.rejects(f.coord.fenceApplicationSources(token));assert.equal(f.coord.applicationSourcesHeld(token),false);assert.equal(f.safety.applicationSelectionHolding(),false);assert.equal(f.physical(),0);
 });
 
 for(const key of ['contextConnections','promptAssist','promptNext','promptCommands','promptSurface'])test('copied private-brand '+key+' cannot supply a source receipt',async t=>{

@@ -1,0 +1,21 @@
+{
+  "base": "b7c6ecdc39f1010dfcf4736df08e5ac89385b0ac",
+  "files": {
+    "extension/background/prompt-assist.js": {
+      "baselineSha256": "832fdc45339d093fb8379e7d6dc72c858d3760546e2cbc8ab0f483d1453f5a83",
+      "candidateSha256": "400939bf93f2529eca34790c352bee3fdbcf89c770f147296205dde01fa0bea6"
+    },
+    "extension/background/application-worker-coordination.js": {
+      "baselineSha256": "330855d81eb32d5cd4a1ddde8dc895cb0a242ce178f9574f789ff392589ac5df",
+      "candidateSha256": "b079147376e7194937b45180befd62d3d343bdf16f99b7db46517aae6d464300"
+    },
+    "extension/tests/application-worker-admission.test.mjs": {
+      "baselineSha256": "0726f31d8425587d85135708f47e0e301b3b055a6eeae65a2da6b6c1a626d34a",
+      "candidateSha256": "ca104acbceb605de094d1c07f1c3158ca3359b92158244dff32c072d9271c8cd"
+    },
+    "extension/tests/application-worker-sources.test.mjs": {
+      "baselineSha256": "d2b103153807b5761d72e9befc8a20d6527bb9d90cdfa80006dd8535a39bd1c5",
+      "candidateSha256": "8d29ec9ecba09a37b9b7d313707bcf0b317ebaf85d7a24d3553cf57c95837d04"
+    }
+  }
+}

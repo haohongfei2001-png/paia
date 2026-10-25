@@ -1,0 +1,146 @@
+TAP version 13
+# Subtest: actual default unopened Store is initialized before original owners bind their lifetime identity
+not ok 1 - actual default unopened Store is initialized before original owners bind their lifetime identity
+  ---
+  duration_ms: 116.856667
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-admission.test.mjs:69:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-admission.test.mjs:79:43)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: original null Assist session can join live holds without claiming provider settlement
+not ok 2 - original null Assist session can join live holds without claiming provider settlement
+  ---
+  duration_ms: 42.600583
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-sources.test.mjs:59:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-sources.test.mjs:60:132)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: constructor null Assist refuses forged session replacement before-coordinator
+ok 3 - constructor null Assist refuses forged session replacement before-coordinator
+  ---
+  duration_ms: 24.290792
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses forged session replacement after-hold
+not ok 4 - constructor null Assist refuses forged session replacement after-hold
+  ---
+  duration_ms: 20.411833
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-sources.test.mjs:66:103'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_WORKER_NOT_QUIET'
+  code: 'GENERATION_WORKER_NOT_QUIET'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:12:23)
+    hold (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:52:77)
+    Object.holdApplicationSources (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:73:30)
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-sources.test.mjs:69:57)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: constructor null Assist refuses genuine session replacement before-coordinator
+ok 5 - constructor null Assist refuses genuine session replacement before-coordinator
+  ---
+  duration_ms: 20.601
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses genuine session replacement after-hold
+not ok 6 - constructor null Assist refuses genuine session replacement after-hold
+  ---
+  duration_ms: 18.362334
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-sources.test.mjs:66:103'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_WORKER_NOT_QUIET'
+  code: 'GENERATION_WORKER_NOT_QUIET'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:12:23)
+    hold (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:52:77)
+    Object.holdApplicationSources (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:73:30)
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-sources.test.mjs:69:57)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: configured Assist cannot replace its original session with null to evade its owner
+ok 7 - configured Assist cannot replace its original session with null to evade its owner
+  ---
+  duration_ms: 19.304
+  type: 'test'
+  ...
+# Subtest: null Assist live hold still rejects changed recovery-restore-epoch fence and releases sources
+not ok 8 - null Assist live hold still rejects changed recovery-restore-epoch fence and releases sources
+  ---
+  duration_ms: 17.395208
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-sources.test.mjs:86:52'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_WORKER_NOT_QUIET'
+  code: 'GENERATION_WORKER_NOT_QUIET'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:12:23)
+    hold (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:52:77)
+    Object.holdApplicationSources (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:73:30)
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-sources.test.mjs:87:72)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: null Assist live hold still rejects changed gate fence and releases sources
+not ok 9 - null Assist live hold still rejects changed gate fence and releases sources
+  ---
+  duration_ms: 15.751375
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-sources.test.mjs:86:52'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_WORKER_NOT_QUIET'
+  code: 'GENERATION_WORKER_NOT_QUIET'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:12:23)
+    hold (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:52:77)
+    Object.holdApplicationSources (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/background/application-worker-coordination.js:73:30)
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/default-assist-hold/extension/tests/application-worker-sources.test.mjs:87:72)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late same-object session callback replacement cannot hide a changed original source fence
+ok 10 - late same-object session callback replacement cannot hide a changed original source fence
+  ---
+  duration_ms: 21.303209
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 4
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 485.097375

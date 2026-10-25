@@ -37,9 +37,10 @@ export class AssistPromptCommands {
   api.storage?.onChanged?.addListener(this.storage);
  }
  // The session is created above from this exact Store, never supplied by a
- // caller. A replaced or absent session cannot become provider settlement.
+ // caller. The original null session is only a live-instance fact; neither it
+ // nor a replaced session supplies cold provider settlement.
  insertionReceiptSourceIs(receipts,store){const birth=this.#receiptBirth,source=this.#selectionSource;return this.#receipts===receipts&&!this.#disposed&&source.store===store&&this.store===source.store&&this.api===source.api&&this.surface===source.surface&&this.session===source.session&&birth.repository===store.repository&&birth.database===store.repository?.db&&birth.databaseId===store.databaseId;}
- applicationSelectionSourceIs(store){const source=this.#selectionSource;return !this.#disposed&&source.store===store&&this.store===source.store&&this.api===source.api&&this.surface===source.surface&&this.session===source.session&&source.session!==null;}
+ applicationSelectionSourceIs(store){const source=this.#selectionSource;return !this.#disposed&&source.store===store&&this.store===source.store&&this.api===source.api&&this.surface===source.surface&&this.session===source.session;}
  #track(task){this.#tasks.add(task);const done=()=>this.#tasks.delete(task);void task.then(done,done);return task;}
  #admit(){if(this.#disposed||this.#selectionHold)fail('STALE_BASE');return this.#admission;}
  #assertAdmission(admission){if(this.#disposed||this.#selectionHold||admission!==this.#admission)fail('STALE_BASE');}

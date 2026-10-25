@@ -1,0 +1,956 @@
+TAP version 13
+# Subtest: actual Settings keeps original complete-cut preparation read-only while cross-page editor protection is unavailable
+ok 1 - actual Settings keeps original complete-cut preparation read-only while cross-page editor protection is unavailable
+  ---
+  duration_ms: 1054.920583
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CONTINUE without initializing a second writer
+ok 2 - failed ready retains actual Settings pending CONTINUE without initializing a second writer
+  ---
+  duration_ms: 786.141875
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CANCEL without initializing a second writer
+ok 3 - failed ready retains actual Settings pending CANCEL without initializing a second writer
+  ---
+  duration_ms: 701.601833
+  type: 'test'
+  ...
+# Subtest: fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+ok 4 - fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+  ---
+  duration_ms: 527.898625
+  type: 'test'
+  ...
+# Subtest: default fixed source remains unavailable without selection controls or mutations
+ok 5 - default fixed source remains unavailable without selection controls or mutations
+  ---
+  duration_ms: 372.619417
+  type: 'test'
+  ...
+# Subtest: unknown SDK outcome remains reachable before ready, never resends or exposes restart
+ok 6 - unknown SDK outcome remains reachable before ready, never resends or exposes restart
+  ---
+  duration_ms: 658.587125
+  type: 'test'
+  ...
+# Subtest: selection cannot activate while a real original checkpoint request is in flight
+ok 7 - selection cannot activate while a real original checkpoint request is in flight
+  ---
+  duration_ms: 812.303584
+  type: 'test'
+  ...
+# Subtest: without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+ok 8 - without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+  ---
+  duration_ms: 1046.849792
+  type: 'test'
+  ...
+# Subtest: a prepared interrupted operation cannot bypass the editor gate through continue before ready
+ok 9 - a prepared interrupted operation cannot bypass the editor gate through continue before ready
+  ---
+  duration_ms: 794.491958
+  type: 'test'
+  ...
+# Subtest: even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+ok 10 - even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+  ---
+  duration_ms: 748.896208
+  type: 'test'
+  ...
+# Subtest: actual worker page hold covers early Prompt, Import, Sync, settings and capture ingress
+ok 11 - actual worker page hold covers early Prompt, Import, Sync, settings and capture ingress
+  ---
+  duration_ms: 199.946084
+  type: 'test'
+  ...
+# Subtest: original page save remains admitted before its FROZEN acknowledgement and denied afterward
+ok 12 - original page save remains admitted before its FROZEN acknowledgement and denied afterward
+  ---
+  duration_ms: 136.291459
+  type: 'test'
+  ...
+# Subtest: actual post-response host notification remains in the worker drain until physical settlement
+ok 13 - actual post-response host notification remains in the worker drain until physical settlement
+  ---
+  duration_ms: 116.12225
+  type: 'test'
+  ...
+# Subtest: original delayed Import notification remains tracked through coalesced replacement
+ok 14 - original delayed Import notification remains tracked through coalesced replacement
+  ---
+  duration_ms: 97.037917
+  type: 'test'
+  ...
+# Subtest: fixed admission exceptions preserve restrictions but never grant a prefix bypass
+ok 15 - fixed admission exceptions preserve restrictions but never grant a prefix bypass
+  ---
+  duration_ms: 0.387458
+  type: 'test'
+  ...
+# Subtest: worker activity observes original nested tails and subsequent local drains without issuing a receipt
+ok 16 - worker activity observes original nested tails and subsequent local drains without issuing a receipt
+  ---
+  duration_ms: 0.316375
+  type: 'test'
+  ...
+# Subtest: actual local maintenance successor remains in worker drain after its first wake settles
+ok 17 - actual local maintenance successor remains in worker drain after its first wake settles
+  ---
+  duration_ms: 116.749375
+  type: 'test'
+  ...
+# Subtest: actual Import notification timer drains only after its original publication settles
+ok 18 - actual Import notification timer drains only after its original publication settles
+  ---
+  duration_ms: 605.40525
+  type: 'test'
+  ...
+# Subtest: actual default unopened Store is initialized before original owners bind their lifetime identity
+ok 19 - actual default unopened Store is initialized before original owners bind their lifetime identity
+  ---
+  duration_ms: 123.921375
+  type: 'test'
+  ...
+# Subtest: synthetic worker tab lookup remains unavailable and emits no receiver message
+ok 20 - synthetic worker tab lookup remains unavailable and emits no receiver message
+  ---
+  duration_ms: 97.997583
+  type: 'test'
+  ...
+# Subtest: original local owners hold intake and release only requested work once
+ok 21 - original local owners hold intake and release only requested work once
+  ---
+  duration_ms: 1.835791
+  type: 'test'
+  ...
+# Subtest: all intake gates close before an existing drain settles, requested wake is retained
+ok 22 - all intake gates close before an existing drain settles, requested wake is retained
+  ---
+  duration_ms: 0.20925
+  type: 'test'
+  ...
+# Subtest: idle release does not invent work
+ok 23 - idle release does not invent work
+  ---
+  duration_ms: 0.616541
+  type: 'test'
+  ...
+# Subtest: failed original maintenance prevents proof and never becomes an automatic retry
+ok 24 - failed original maintenance prevents proof and never becomes an automatic retry
+  ---
+  duration_ms: 0.219583
+  type: 'test'
+  ...
+# Subtest: library retry during hold cannot clear the original failure marker
+ok 25 - library retry during hold cannot clear the original failure marker
+  ---
+  duration_ms: 0.140042
+  type: 'test'
+  ...
+# Subtest: forged tokens and foreign repository identity fail without release
+ok 26 - forged tokens and foreign repository identity fail without release
+  ---
+  duration_ms: 0.100416
+  type: 'test'
+  ...
+# Subtest: closing during drain releases late holds and cannot publish a usable receipt
+ok 27 - closing during drain releases late holds and cannot publish a usable receipt
+  ---
+  duration_ms: 0.149084
+  type: 'test'
+  ...
+# Subtest: default-null remote lane hold does not access store; copied factory cannot qualify
+ok 28 - default-null remote lane hold does not access store; copied factory cannot qualify
+  ---
+  duration_ms: 0.158959
+  type: 'test'
+  ...
+# Subtest: copied local runner cannot qualify the private prototype guard
+ok 29 - copied local runner cannot qualify the private prototype guard
+  ---
+  duration_ms: 0.462917
+  type: 'test'
+  ...
+# Subtest: all genuine source tokens compose without becoming global selection authority
+ok 30 - all genuine source tokens compose without becoming global selection authority
+  ---
+  duration_ms: 83.920542
+  type: 'test'
+  ...
+# Subtest: local maintenance receipt never substitutes for all original sources
+ok 31 - local maintenance receipt never substitutes for all original sources
+  ---
+  duration_ms: 41.13075
+  type: 'test'
+  ...
+# Subtest: original null Assist session can join live holds without claiming provider settlement
+ok 32 - original null Assist session can join live holds without claiming provider settlement
+  ---
+  duration_ms: 46.837875
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses forged session replacement before-coordinator
+ok 33 - constructor null Assist refuses forged session replacement before-coordinator
+  ---
+  duration_ms: 44.975791
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses forged session replacement after-hold
+ok 34 - constructor null Assist refuses forged session replacement after-hold
+  ---
+  duration_ms: 47.580209
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses genuine session replacement before-coordinator
+ok 35 - constructor null Assist refuses genuine session replacement before-coordinator
+  ---
+  duration_ms: 39.28275
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses genuine session replacement after-hold
+ok 36 - constructor null Assist refuses genuine session replacement after-hold
+  ---
+  duration_ms: 40.495333
+  type: 'test'
+  ...
+# Subtest: configured Assist cannot replace its original session with null to evade its owner
+ok 37 - configured Assist cannot replace its original session with null to evade its owner
+  ---
+  duration_ms: 35.549
+  type: 'test'
+  ...
+# Subtest: null Assist live hold still rejects changed recovery-restore-epoch fence and releases sources
+ok 38 - null Assist live hold still rejects changed recovery-restore-epoch fence and releases sources
+  ---
+  duration_ms: 41.398625
+  type: 'test'
+  ...
+# Subtest: null Assist live hold still rejects changed gate fence and releases sources
+ok 39 - null Assist live hold still rejects changed gate fence and releases sources
+  ---
+  duration_ms: 35.004167
+  type: 'test'
+  ...
+# Subtest: copied private-brand contextConnections cannot supply a source receipt
+ok 40 - copied private-brand contextConnections cannot supply a source receipt
+  ---
+  duration_ms: 32.205875
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptAssist cannot supply a source receipt
+ok 41 - copied private-brand promptAssist cannot supply a source receipt
+  ---
+  duration_ms: 38.369417
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptNext cannot supply a source receipt
+ok 42 - copied private-brand promptNext cannot supply a source receipt
+  ---
+  duration_ms: 37.4975
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptCommands cannot supply a source receipt
+ok 43 - copied private-brand promptCommands cannot supply a source receipt
+  ---
+  duration_ms: 38.638375
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptSurface cannot supply a source receipt
+ok 44 - copied private-brand promptSurface cannot supply a source receipt
+  ---
+  duration_ms: 37.994584
+  type: 'test'
+  ...
+# Subtest: exact Context private store identity refuses a genuine foreign original owner
+ok 45 - exact Context private store identity refuses a genuine foreign original owner
+  ---
+  duration_ms: 59.937791
+  type: 'test'
+  ...
+# Subtest: forged replacement Assist session cannot refresh its original birth binding
+ok 46 - forged replacement Assist session cannot refresh its original birth binding
+  ---
+  duration_ms: 28.39275
+  type: 'test'
+  ...
+# Subtest: genuine replacement Assist session cannot refresh its original birth binding
+ok 47 - genuine replacement Assist session cannot refresh its original birth binding
+  ---
+  duration_ms: 25.091209
+  type: 'test'
+  ...
+# Subtest: Next constructor service binding cannot be refreshed before coordinator creation
+ok 48 - Next constructor service binding cannot be refreshed before coordinator creation
+  ---
+  duration_ms: 27.558
+  type: 'test'
+  ...
+# Subtest: replaced instance session callbacks cannot hide original durable provider UNKNOWN
+ok 49 - replaced instance session callbacks cannot hide original durable provider UNKNOWN
+  ---
+  duration_ms: 244.689792
+  type: 'test'
+  ...
+# Subtest: replaced prototype session callbacks cannot hide original durable provider UNKNOWN
+ok 50 - replaced prototype session callbacks cannot hide original durable provider UNKNOWN
+  ---
+  duration_ms: 173.315583
+  type: 'test'
+  ...
+# Subtest: late same-object session callback replacement cannot hide a changed original source fence
+ok 51 - late same-object session callback replacement cannot hide a changed original source fence
+  ---
+  duration_ms: 47.45025
+  type: 'test'
+  ...
+# Subtest: a competing composer cannot release another composer's private holds
+ok 52 - a competing composer cannot release another composer's private holds
+  ---
+  duration_ms: 36.677666
+  type: 'test'
+  ...
+# Subtest: all original intake gates close synchronously before the first source drain
+ok 53 - all original intake gates close synchronously before the first source drain
+  ---
+  duration_ms: 42.667875
+  type: 'test'
+  ...
+# Subtest: synchronous factory refusal releases early and late original acquisitions
+ok 54 - synchronous factory refusal releases early and late original acquisitions
+  ---
+  duration_ms: 38.336625
+  type: 'test'
+  ...
+# Subtest: close during pending drain releases every late receipt and forbids reuse
+ok 55 - close during pending drain releases every late receipt and forbids reuse
+  ---
+  duration_ms: 35.578166
+  type: 'test'
+  ...
+# Subtest: post-hold owner relinking invalidates full proof and final fence releases others
+ok 56 - post-hold owner relinking invalidates full proof and final fence releases others
+  ---
+  duration_ms: 39.223791
+  type: 'test'
+  ...
+# Subtest: final source epoch fence rejects metadata replacement and releases original tokens
+ok 57 - final source epoch fence rejects metadata replacement and releases original tokens
+  ---
+  duration_ms: 36.365542
+  type: 'test'
+  ...
+# Subtest: database replacement and forged source token never release someone else's hold
+ok 58 - database replacement and forged source token never release someone else's hold
+  ---
+  duration_ms: 33.912459
+  type: 'test'
+  ...
+# Subtest: cleanup exception still releases every other receipt and permanently closes the composer
+ok 59 - cleanup exception still releases every other receipt and permanently closes the composer
+  ---
+  duration_ms: 34.313791
+  type: 'test'
+  ...
+# Subtest: instance callback shadows cannot replace captured original owner methods
+ok 60 - instance callback shadows cannot replace captured original owner methods
+  ---
+  duration_ms: 31.976166
+  type: 'test'
+  ...
+# Subtest: cold persisted Context connection refuses composed proof despite empty host registry
+ok 61 - cold persisted Context connection refuses composed proof despite empty host registry
+  ---
+  duration_ms: 27.345459
+  type: 'test'
+  ...
+# Subtest: configured Maintenance remains explicitly unqualified, even while idle
+ok 62 - configured Maintenance remains explicitly unqualified, even while idle
+  ---
+  duration_ms: 26.404959
+  type: 'test'
+  ...
+# Subtest: never-dispatched actual service source hold is opaque, read-only and rejects new intake
+ok 63 - never-dispatched actual service source hold is opaque, read-only and rejects new intake
+  ---
+  duration_ms: 75.847042
+  type: 'test'
+  ...
+# Subtest: original registration continuation drains after hold without a false terminal receipt
+ok 64 - original registration continuation drains after hold without a false terminal receipt
+  ---
+  duration_ms: 118.201958
+  type: 'test'
+  ...
+# Subtest: original registration continuation drains after removeTab map invalidation without a false terminal receipt
+ok 65 - original registration continuation drains after removeTab map invalidation without a false terminal receipt
+  ---
+  duration_ms: 109.919625
+  type: 'test'
+  ...
+# Subtest: preparation awaiting its initial original surface qualification cannot escape a later hold
+ok 66 - preparation awaiting its initial original surface qualification cannot escape a later hold
+  ---
+  duration_ms: 39.702209
+  type: 'test'
+  ...
+# Subtest: automatic opportunity awaiting its original reply probe remains tracked before activation exists
+ok 67 - automatic opportunity awaiting its original reply probe remains tracked before activation exists
+  ---
+  duration_ms: 43.549708
+  type: 'test'
+  ...
+# Subtest: original fire-and-forget invalidation cancellation remains pending after maps clear
+ok 68 - original fire-and-forget invalidation cancellation remains pending after maps clear
+  ---
+  duration_ms: 317.931375
+  type: 'test'
+  ...
+# Subtest: original body-free report task settles before the source hold and never redispatches
+ok 69 - original body-free report task settles before the source hold and never redispatches
+  ---
+  duration_ms: 211.789958
+  type: 'test'
+  ...
+# Subtest: lost original result-report acknowledgement stays pending and refuses source qualification
+ok 70 - lost original result-report acknowledgement stays pending and refuses source qualification
+  ---
+  duration_ms: 207.060333
+  type: 'test'
+  ...
+# Subtest: context-change notification already entered remains tracked after activation invalidation
+ok 71 - context-change notification already entered remains tracked after activation invalidation
+  ---
+  duration_ms: 33.160583
+  type: 'test'
+  ...
+# Subtest: ignored-signal private provider remains a real task after bounded run settles; UNKNOWN is preserved
+ok 72 - ignored-signal private provider remains a real task after bounded run settles; UNKNOWN is preserved
+  ---
+  duration_ms: 87.062291
+  type: 'test'
+  ...
+# Subtest: cold session reads original durable UNKNOWN rather than trusting empty private maps
+ok 73 - cold session reads original durable UNKNOWN rather than trusting empty private maps
+  ---
+  duration_ms: 58.123542
+  type: 'test'
+  ...
+# Subtest: original service dispatch UNKNOWN cannot become a source permit after its bounded wrapper settles
+ok 74 - original service dispatch UNKNOWN cannot become a source permit after its bounded wrapper settles
+  ---
+  duration_ms: 197.539791
+  type: 'test'
+  ...
+# Subtest: an exact original inserted response may settle live tasks, without claiming cold insertion proof
+ok 75 - an exact original inserted response may settle live tasks, without claiming cold insertion proof
+  ---
+  duration_ms: 199.169666
+  type: 'test'
+  ...
+# (node:99453) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: two-second insertion uncertainty still drains original transport and never becomes confirmed by a late reply
+ok 76 - two-second insertion uncertainty still drains original transport and never becomes confirmed by a late reply
+  ---
+  duration_ms: 208.082666
+  type: 'test'
+  ...
+# Subtest: held cancel stays restrictive and invalidates the source proof
+ok 77 - held cancel stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 21.324
+  type: 'test'
+  ...
+# Subtest: held revoke stays restrictive and invalidates the source proof
+ok 78 - held revoke stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 25.41925
+  type: 'test'
+  ...
+# Subtest: held remove-tab stays restrictive and invalidates the source proof
+ok 79 - held remove-tab stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 21.019417
+  type: 'test'
+  ...
+# Subtest: held context stays restrictive and invalidates the source proof
+ok 80 - held context stays restrictive and invalidates the source proof
+  ---
+  duration_ms: 18.553583
+  type: 'test'
+  ...
+# Subtest: timed-out source acquisition cannot re-admit old pre-registration automatic work after release
+ok 81 - timed-out source acquisition cannot re-admit old pre-registration automatic work after release
+  ---
+  duration_ms: 50.796917
+  type: 'test'
+  ...
+# Subtest: original epoch replacement, database identity and disposal invalidate source tokens
+ok 82 - original epoch replacement, database identity and disposal invalidate source tokens
+  ---
+  duration_ms: 26.904792
+  type: 'test'
+  ...
+# Subtest: an unrelated later confirmed insertion cannot erase an earlier source insertion UNKNOWN
+ok 83 - an unrelated later confirmed insertion cannot erase an earlier source insertion UNKNOWN
+  ---
+  duration_ms: 364.733416
+  type: 'test'
+  ...
+# Subtest: unchanged original terminal receipt is required; a forged terminal label never closes missing source evidence
+ok 84 - unchanged original terminal receipt is required; a forged terminal label never closes missing source evidence
+  ---
+  duration_ms: 156.064292
+  type: 'test'
+  ...
+# Subtest: post-acquisition original report metadata replacement invalidates the exact final fence
+ok 85 - post-acquisition original report metadata replacement invalidates the exact final fence
+  ---
+  duration_ms: 133.286042
+  type: 'test'
+  ...
+# Subtest: source release never starts work itself and a genuinely new reply uses the unchanged original path
+ok 86 - source release never starts work itself and a genuinely new reply uses the unchanged original path
+  ---
+  duration_ms: 128.500625
+  type: 'test'
+  ...
+# Subtest: lost original UNKNOWN settlement acknowledgement survives original backup replacement of transient rows
+ok 87 - lost original UNKNOWN settlement acknowledgement survives original backup replacement of transient rows
+  ---
+  duration_ms: 50.848708
+  type: 'test'
+  ...
+# Subtest: hidden original server provider tail and lost settlement ACK stay unproved after transient restore
+ok 88 - hidden original server provider tail and lost settlement ACK stay unproved after transient restore
+  ---
+  duration_ms: 489.407208
+  type: 'test'
+  ...
+# Subtest: a later confirmed original dispatch cannot erase earlier lost settlement evidence
+ok 89 - a later confirmed original dispatch cannot erase earlier lost settlement evidence
+  ---
+  duration_ms: 135.597834
+  type: 'test'
+  ...
+# Subtest: unproved pre-controller failure remains conservative without a cold insertion witness
+ok 90 - unproved pre-controller failure remains conservative without a cold insertion witness
+  ---
+  duration_ms: 40.643417
+  type: 'test'
+  ...
+# Subtest: inspect is readonly and absence remains legacy unknown
+ok 91 - inspect is readonly and absence remains legacy unknown
+  ---
+  duration_ms: 87.080459
+  type: 'test'
+  ...
+# Subtest: original Store brand refuses look-alike construction
+ok 92 - original Store brand refuses look-alike construction
+  ---
+  duration_ms: 41.357625
+  type: 'test'
+  ...
+# Subtest: committed pending precedes exact transport and terminal receipt contains no bodies or URLs
+ok 93 - committed pending precedes exact transport and terminal receipt contains no bodies or URLs
+  ---
+  duration_ms: 84.876917
+  type: 'test'
+  ...
+# Subtest: same action duplicate returns original result without second physical send
+ok 94 - same action duplicate returns original result without second physical send
+  ---
+  duration_ms: 80.919791
+  type: 'test'
+  ...
+# Subtest: edited operationId cannot refresh an issued action
+ok 95 - edited operationId cannot refresh an issued action
+  ---
+  duration_ms: 45.801667
+  type: 'test'
+  ...
+# Subtest: edited actionId cannot refresh an issued action
+ok 96 - edited actionId cannot refresh an issued action
+  ---
+  duration_ms: 40.885166
+  type: 'test'
+  ...
+# Subtest: edited receiptEpoch cannot refresh an issued action
+ok 97 - edited receiptEpoch cannot refresh an issued action
+  ---
+  duration_ms: 39.50425
+  type: 'test'
+  ...
+# Subtest: changed sourceDigest refuses before any send
+ok 98 - changed sourceDigest refuses before any send
+  ---
+  duration_ms: 47.058375
+  type: 'test'
+  ...
+# Subtest: changed authorizationDigest refuses before any send
+ok 99 - changed authorizationDigest refuses before any send
+  ---
+  duration_ms: 43.308125
+  type: 'test'
+  ...
+# Subtest: changed initiatorDigest refuses before any send
+ok 100 - changed initiatorDigest refuses before any send
+  ---
+  duration_ms: 36.227291
+  type: 'test'
+  ...
+# Subtest: original deny-only qualification repeats at receiver admission
+ok 101 - original deny-only qualification repeats at receiver admission
+  ---
+  duration_ms: 61.565
+  type: 'test'
+  ...
+# Subtest: throw after transport invocation remains pending, never not_dispatched
+ok 102 - throw after transport invocation remains pending, never not_dispatched
+  ---
+  duration_ms: 57.611292
+  type: 'test'
+  ...
+# Subtest: definite original refusal before transport retains separate no-dispatch fact
+ok 103 - definite original refusal before transport retains separate no-dispatch fact
+  ---
+  duration_ms: 60.232333
+  type: 'test'
+  ...
+# Subtest: unverified arbitrary positive response never settles
+ok 104 - unverified arbitrary positive response never settles
+  ---
+  duration_ms: 53.469042
+  type: 'test'
+  ...
+# Subtest: exact not_inserted outcome preserves its own semantics
+ok 105 - exact not_inserted outcome preserves its own semantics
+  ---
+  duration_ms: 55.648083
+  type: 'test'
+  ...
+# Subtest: exact unknown outcome preserves its own semantics
+ok 106 - exact unknown outcome preserves its own semantics
+  ---
+  duration_ms: 63.056333
+  type: 'test'
+  ...
+# Subtest: late exact source ACK only settles its retained original pending claim
+ok 107 - late exact source ACK only settles its retained original pending claim
+  ---
+  duration_ms: 70.911416
+  type: 'test'
+  ...
+# Subtest: foreign ACK claimId never settles sibling
+ok 108 - foreign ACK claimId never settles sibling
+  ---
+  duration_ms: 57.667334
+  type: 'test'
+  ...
+# Subtest: foreign ACK operationId never settles sibling
+ok 109 - foreign ACK operationId never settles sibling
+  ---
+  duration_ms: 59.007709
+  type: 'test'
+  ...
+# Subtest: foreign ACK digest never settles sibling
+ok 110 - foreign ACK digest never settles sibling
+  ---
+  duration_ms: 53.073209
+  type: 'test'
+  ...
+# Subtest: foreign ACK receiptEpoch never settles sibling
+ok 111 - foreign ACK receiptEpoch never settles sibling
+  ---
+  duration_ms: 55.9155
+  type: 'test'
+  ...
+# Subtest: foreign ACK domainDigest never settles sibling
+ok 112 - foreign ACK domainDigest never settles sibling
+  ---
+  duration_ms: 52.712625
+  type: 'test'
+  ...
+# Subtest: forged sender cannot settle a real claim
+ok 113 - forged sender cannot settle a real claim
+  ---
+  duration_ms: 64.83875
+  type: 'test'
+  ...
+# Subtest: retirement drains actual enrolled publication continuation and prevents old action reuse
+ok 114 - retirement drains actual enrolled publication continuation and prevents old action reuse
+  ---
+  duration_ms: 120.68025
+  type: 'test'
+  ...
+# Subtest: retirement never evicts pending unknown and a later exact ACK still identifies it
+ok 115 - retirement never evicts pending unknown and a later exact ACK still identifies it
+  ---
+  duration_ms: 75.805958
+  type: 'test'
+  ...
+# Subtest: future-version row refuses without replacing evidence
+ok 116 - future-version row refuses without replacing evidence
+  ---
+  duration_ms: 72.508625
+  type: 'test'
+  ...
+# Subtest: malformed row refuses without replacing evidence
+ok 117 - malformed row refuses without replacing evidence
+  ---
+  duration_ms: 70.59975
+  type: 'test'
+  ...
+# Subtest: wrong-domain row refuses without replacing evidence
+ok 118 - wrong-domain row refuses without replacing evidence
+  ---
+  duration_ms: 64.57775
+  type: 'test'
+  ...
+# Subtest: live restore drift refuses old completion and does not rebind claim
+ok 119 - live restore drift refuses old completion and does not rebind claim
+  ---
+  duration_ms: 46.909416
+  type: 'test'
+  ...
+# Subtest: repeated exact receiver registration is idempotent for live probe identity
+ok 120 - repeated exact receiver registration is idempotent for live probe identity
+  ---
+  duration_ms: 21.22025
+  type: 'test'
+  ...
+# Subtest: canonical digest sorts object keys, preserves arrays, rejects unsupported values
+ok 121 - canonical digest sorts object keys, preserves arrays, rejects unsupported values
+  ---
+  duration_ms: 0.430833
+  type: 'test'
+  ...
+# Subtest: Backup excludes original meta key and reserved receipt laundering without rejecting user text
+ok 122 - Backup excludes original meta key and reserved receipt laundering without rejecting user text
+  ---
+  duration_ms: 0.6215
+  type: 'test'
+  ...
+# Subtest: presentation issuance never creates or advances durable epoch metadata
+ok 123 - presentation issuance never creates or advances durable epoch metadata
+  ---
+  duration_ms: 68.264709
+  type: 'test'
+  ...
+# Subtest: concurrent original sibling dispatches atomically share only their own committed epoch
+ok 124 - concurrent original sibling dispatches atomically share only their own committed epoch
+  ---
+  duration_ms: 103.193167
+  type: 'test'
+  ...
+# Subtest: cold competing owner wins and old unclaimed action cannot relabel its parent fence
+ok 125 - cold competing owner wins and old unclaimed action cannot relabel its parent fence
+  ---
+  duration_ms: 75.882084
+  type: 'test'
+  ...
+# Subtest: newer original epoch fences old pending pre-send continuation without native replay
+ok 126 - newer original epoch fences old pending pre-send continuation without native replay
+  ---
+  duration_ms: 78.941375
+  type: 'test'
+  ...
+# Subtest: newer original epoch fences held old native QUALIFY and stale cached dispatch
+ok 127 - newer original epoch fences held old native QUALIFY and stale cached dispatch
+  ---
+  duration_ms: 112.435833
+  type: 'test'
+  ...
+# Subtest: 501 successful cold restarts compact terminal epochs without a lifetime ceiling
+ok 128 - 501 successful cold restarts compact terminal epochs without a lifetime ceiling
+  ---
+  duration_ms: 19784.280625
+  type: 'test'
+  ...
+# Subtest: old pending gap plus 501 successful cold restarts uses merged intervals and retains unknown
+ok 129 - old pending gap plus 501 successful cold restarts uses merged intervals and retains unknown
+  ---
+  duration_ms: 18539.53125
+  type: 'test'
+  ...
+# Subtest: same-document SPA preserves authenticated receiver and exact old ACK settlement
+ok 130 - same-document SPA preserves authenticated receiver and exact old ACK settlement
+  ---
+  duration_ms: 48.109583
+  type: 'test'
+  ...
+# Subtest: historical backup projection excludes runtime history; actual current restore permits only a new-domain intentional claim
+ok 131 - historical backup projection excludes runtime history; actual current restore permits only a new-domain intentional claim
+  ---
+  duration_ms: 88.730875
+  type: 'test'
+  ...
+# Subtest: foreign physical database history fails closed without origin rebinding
+ok 132 - foreign physical database history fails closed without origin rebinding
+  ---
+  duration_ms: 67.111834
+  type: 'test'
+  ...
+# Subtest: migration state drift refuses durable admission without replacing existing metadata
+ok 133 - migration state drift refuses durable admission without replacing existing metadata
+  ---
+  duration_ms: 24.603583
+  type: 'test'
+  ...
+# Subtest: 500 retained pending claims refuse admission without eviction or epoch reset
+ok 134 - 500 retained pending claims refuse admission without eviction or epoch reset
+  ---
+  duration_ms: 91.238125
+  type: 'test'
+  ...
+# Subtest: transient capacity refuses while known original continuation is live, then safely rolls without metadata writes
+ok 135 - transient capacity refuses while known original continuation is live, then safely rolls without metadata writes
+  ---
+  duration_ms: 1553.164584
+  type: 'test'
+  ...
+# Subtest: generic Backup receipt cannot launder exact local native ACK or durable claim shape
+ok 136 - generic Backup receipt cannot launder exact local native ACK or durable claim shape
+  ---
+  duration_ms: 47.929042
+  type: 'test'
+  ...
+# Subtest: lost retirement notice recovers cache-only no-admission without recreating terminal ledger fact
+ok 137 - lost retirement notice recovers cache-only no-admission without recreating terminal ledger fact
+  ---
+  duration_ms: 90.8105
+  type: 'test'
+  ...
+# Subtest: retired-cache path first settles exact retained pending, and mismatched retained claim never gets absence reply
+ok 138 - retired-cache path first settles exact retained pending, and mismatched retained claim never gets absence reply
+  ---
+  duration_ms: 57.922875
+  type: 'test'
+  ...
+# Subtest: absent open-epoch or foreign-domain ACK cannot claim retired-cache permission
+ok 139 - absent open-epoch or foreign-domain ACK cannot claim retired-cache permission
+  ---
+  duration_ms: 58.5355
+  type: 'test'
+  ...
+# Subtest: late exact original success settles but does not publish inserted after another owner wins
+ok 140 - late exact original success settles but does not publish inserted after another owner wins
+  ---
+  duration_ms: 77.9525
+  type: 'test'
+  ...
+# Subtest: forged absent retired ACK is never native proof, ledger settlement or action admission
+ok 141 - forged absent retired ACK is never native proof, ledger settlement or action admission
+  ---
+  duration_ms: 62.73825
+  type: 'test'
+  ...
+# Subtest: one bounded reconciliation batch settles at most16 exact retained claims and cannot reset event budget
+ok 142 - one bounded reconciliation batch settles at most16 exact retained claims and cannot reset event budget
+  ---
+  duration_ms: 391.32725
+  type: 'test'
+  ...
+# Subtest: reconciliation rejects oversized, foreign and mismatched batches before any partial claim write
+ok 143 - reconciliation rejects oversized, foreign and mismatched batches before any partial claim write
+  ---
+  duration_ms: 37.198208
+  type: 'test'
+  ...
+# Subtest: near-cap original dispatch completes on shared budget while oversized retained unknown refuses before physical send
+ok 144 - near-cap original dispatch completes on shared budget while oversized retained unknown refuses before physical send
+  ---
+  duration_ms: 124.86025
+  type: 'test'
+  ...
+# Subtest: healthy byte pressure retires presentation tokens read-only and next intentional dispatch compacts terminal history
+ok 145 - healthy byte pressure retires presentation tokens read-only and next intentional dispatch compacts terminal history
+  ---
+  duration_ms: 96.547667
+  type: 'test'
+  ...
+# Subtest: held original post-ACK source validation is followed by final durable epoch fence
+ok 146 - held original post-ACK source validation is followed by final durable epoch fence
+  ---
+  duration_ms: 83.944792
+  type: 'test'
+  ...
+# (node:99454) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: deadline race retains underlying original source promise until actual completion
+ok 147 - deadline race retains underlying original source promise until actual completion
+  ---
+  duration_ms: 20.587167
+  type: 'test'
+  ...
+# Subtest: later genuine original action advances one bounded recovery prefix without refreshing same-event budget
+ok 148 - later genuine original action advances one bounded recovery prefix without refreshing same-event budget
+  ---
+  duration_ms: 443.377041
+  type: 'test'
+  ...
+# Subtest: beginInsertion and dispatch share the same original ticket without a fresh budget
+ok 149 - beginInsertion and dispatch share the same original ticket without a fresh budget
+  ---
+  duration_ms: 21.910292
+  type: 'test'
+  ...
+# Subtest: cold terminal retirement groups exact receivers and bounds notice fanout at16
+ok 150 - cold terminal retirement groups exact receivers and bounds notice fanout at16
+  ---
+  duration_ms: 89.562083
+  type: 'test'
+  ...
+# Subtest: generic Backup result cannot contain a whole exact local runtime ledger
+ok 151 - generic Backup result cannot contain a whole exact local runtime ledger
+  ---
+  duration_ms: 50.011333
+  type: 'test'
+  ...
+# Subtest: held action A probe never consumes sibling B event or deadline
+ok 152 - held action A probe never consumes sibling B event or deadline
+  ---
+  duration_ms: 40.808333
+  type: 'test'
+  ...
+# Subtest: held action A probe never consumes sibling B event or deadline after A expires
+ok 153 - held action A probe never consumes sibling B event or deadline after A expires
+  ---
+  duration_ms: 38.442167
+  type: 'test'
+  ...
+# Subtest: 500 pre-PENDING action events rotate transient token read-only instead of imposing a lifetime limit
+ok 154 - 500 pre-PENDING action events rotate transient token read-only instead of imposing a lifetime limit
+  ---
+  duration_ms: 1558.038
+  type: 'test'
+  ...
+# Subtest: same-own-epoch unknown gap permits live-drained terminal reclamation without losing late ACK
+ok 155 - same-own-epoch unknown gap permits live-drained terminal reclamation without losing late ACK
+  ---
+  duration_ms: 94.793
+  type: 'test'
+  ...
+# Subtest: live pressure certificate cannot be issued while original source continuation remains held
+ok 156 - live pressure certificate cannot be issued while original source continuation remains held
+  ---
+  duration_ms: 58.2115
+  type: 'test'
+  ...
+# Subtest: same-owner live retirement certificate cannot survive a foreign insertion generation winner
+ok 157 - same-owner live retirement certificate cannot survive a foreign insertion generation winner
+  ---
+  duration_ms: 124.616959
+  type: 'test'
+  ...
+1..157
+# tests 157
+# suites 0
+# pass 157
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46324.565459

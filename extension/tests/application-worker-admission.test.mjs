@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {assertApplicationWorkerAdmission,createApplicationWorkerActivity} from '../background/application-selection-commands.js';
 import {selectionAdmissionWorker,deferred,tick} from './harness/selection-admission-worker.mjs';
+import {PromptInsertionReceipts} from '../background/prompt-insertion-receipts.js';
 
 test('actual worker page hold covers early Prompt, Import, Sync, settings and capture ingress',async t=>{
  const w=await selectionAdmissionWorker(t);await w.addPage();const token=await w.bridge.editors.freezeExtensionPages(w.sender.documentId);t.after(()=>w.bridge.editors.release(token));
@@ -72,10 +73,16 @@ test('actual default unopened Store is initialized before original owners bind t
   const owner=w.bridge.owners[name],token=await owner.holdForApplicationSelection();
   assert.equal(owner.applicationSelectionHeld(token),true,name+' binds the original initialized Store');assert.equal(await owner.fenceApplicationSelection(token),true);assert.equal(owner.releaseApplicationSelection(token),true);
  }
- // Correct warm construction is not missing cold/provider proof. The default
- // Assist session remains absent, so full source coordination still refuses.
- await assert.rejects(w.bridge.coordination.holdApplicationSources(),{code:'GENERATION_WORKER_NOT_QUIET'});
- assert.equal((await w.rpc('PAIA_PROMPT_QUERY')).ok,true,'refused full scope did not strand original manual intake');
+ // The constructor's absent session is only this live instance's fact. It
+ // neither settles old providers nor supplies cold/global selection authority.
+ const assist=w.bridge.owners.promptAssist,receipts=new PromptInsertionReceipts(w.bridge.store,w.api);t.after(()=>receipts.dispose());
+ assert.equal(assist.session,null);assert.equal(assist.applicationSelectionSourceIs(w.bridge.store),true);
+ const before=await receipts.inspect(),token=await w.bridge.coordination.holdApplicationSources();
+ assert.equal(w.bridge.coordination.applicationSourcesHeld(token),true);assert.equal(await w.bridge.coordination.fenceApplicationSources(token),true);
+ assert.deepEqual(await receipts.inspect(),before);assert.equal(before.legacyCoverageUnknown,true);assert.equal(before.productionActivation,false);
+ for(const type of ['PAIA_GENERATION_ACTIVATE','PAIA_GENERATION_CONTINUE','PAIA_GENERATION_RESTART'])assert.equal((await w.rpc(type)).ok,false,type+' remains unavailable');
+ assert.equal(w.bridge.coordination.releaseApplicationSources(token),true);assert.equal(w.bridge.coordination.releaseApplicationSources(token),false);
+ assert.equal((await w.rpc('PAIA_PROMPT_QUERY')).ok,true,'released live scope did not strand original manual intake');
 });
 
 // Provide the real API shape without fabricating a receiver or native success.
