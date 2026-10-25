@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: original review restriction blocks every stateful original owner entry and exact release only removes its own restriction
+ok 1 - original review restriction blocks every stateful original owner entry and exact release only removes its own restriction
+  ---
+  duration_ms: 568.529709
+  type: 'test'
+  ...
+# Subtest: close invalidates the exact held review without reopening it
+ok 2 - close invalidates the exact held review without reopening it
+  ---
+  duration_ms: 455.796042
+  type: 'test'
+  ...
+# Subtest: sdk invalidates the exact held review without reopening it
+ok 3 - sdk invalidates the exact held review without reopening it
+  ---
+  duration_ms: 451.169042
+  type: 'test'
+  ...
+# Subtest: an attempted marker write cannot be reclassified as an untouched private review even after transaction rollback
+ok 4 - an attempted marker write cannot be reclassified as an untouched private review even after transaction rollback
+  ---
+  duration_ms: 458.327042
+  type: 'test'
+  ...
+# Subtest: foreign original owner, store or local object cannot obtain or release this private restriction
+ok 5 - foreign original owner, store or local object cannot obtain or release this private restriction
+  ---
+  duration_ms: 445.460875
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2552.540916

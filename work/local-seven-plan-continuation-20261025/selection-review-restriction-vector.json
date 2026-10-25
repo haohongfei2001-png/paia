@@ -1,0 +1,42 @@
+{
+  "extension/core/browser-native-sync/application-generation-selection.js": {
+    "bytes": 29419,
+    "sha256": "90c38ced258d1ac4168abeab27dc242b465fd8337d5fae70bc41af4ea0415056"
+  },
+  "extension/tests/application-selection-review-restriction.test.mjs": {
+    "bytes": 4631,
+    "sha256": "cf08c5d23c47faba6f197411f776f3c0ca6df7543b190873a24f25a961d5e0a0"
+  },
+  "work/local-seven-plan-continuation-20261025/selection-review-restriction-final.log": {
+    "bytes": 1373,
+    "sha256": "00c44de07ffbfbbb58c7c0841e989887b66b933ff19769eb5ae8ac38a2b513ee"
+  },
+  "work/local-seven-plan-continuation-20261025/selection-review-restriction-first-core.txt": {
+    "bytes": 29157,
+    "sha256": "e840a5d9b4e323aeb1638a2b90360107c8544d1a179397fabf905238f2f6c896"
+  },
+  "work/local-seven-plan-continuation-20261025/selection-review-restriction-first-test.txt": {
+    "bytes": 3853,
+    "sha256": "3eac7e67e5d972ec4875e9df7d21c9a3ecd6ad75f3e9aec72c0e74a147d83625"
+  },
+  "work/local-seven-plan-continuation-20261025/selection-review-restriction-pending-before-core.txt": {
+    "bytes": 29224,
+    "sha256": "996deaa8f93bd6e7511e75b02a65e2e46085b9f736e3f3716953035d5c995caf"
+  },
+  "work/local-seven-plan-continuation-20261025/selection-review-restriction-pending-before.log": {
+    "bytes": 2934,
+    "sha256": "dbefb2934061e6b128e66920528b418ee66762451d0dff287ae35aec973851f7"
+  },
+  "work/local-seven-plan-continuation-20261025/selection-review-restriction-reviewed-final.log": {
+    "bytes": 2073,
+    "sha256": "92c80da5e5f6424c2816e4e0bc82b7a14ad9b5d3d7bddbf8c778ceefbe54697d"
+  },
+  "work/local-seven-plan-continuation-20261025/selection-review-restriction-sticky-before.log": {
+    "bytes": 962,
+    "sha256": "8f963ab976cb6cf02a57b95f61da58996c859af6263a01990e51bb6eaacf9129"
+  },
+  "work/local-seven-plan-continuation-20261025/selection-review-restriction.log": {
+    "bytes": 1375,
+    "sha256": "b3aa2a7911cc49896c148575bbafa68a68239c49d6489e3d4216883f60c6c174"
+  }
+}

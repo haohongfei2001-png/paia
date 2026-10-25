@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: original review restriction blocks every stateful original owner entry and exact release only removes its own restriction
+ok 1 - original review restriction blocks every stateful original owner entry and exact release only removes its own restriction
+  ---
+  duration_ms: 590.997208
+  type: 'test'
+  ...
+# Subtest: close invalidates the exact held review without reopening it
+ok 2 - close invalidates the exact held review without reopening it
+  ---
+  duration_ms: 521.45975
+  type: 'test'
+  ...
+# Subtest: sdk invalidates the exact held review without reopening it
+ok 3 - sdk invalidates the exact held review without reopening it
+  ---
+  duration_ms: 455.845375
+  type: 'test'
+  ...
+# Subtest: an attempted marker write cannot be reclassified as an untouched private review even after transaction rollback
+ok 4 - an attempted marker write cannot be reclassified as an untouched private review even after transaction rollback
+  ---
+  duration_ms: 468.336291
+  type: 'test'
+  ...
+# Subtest: foreign original owner, store or local object cannot obtain or release this private restriction
+ok 5 - foreign original owner, store or local object cannot obtain or release this private restriction
+  ---
+  duration_ms: 448.79175
+  type: 'test'
+  ...
+# Subtest: already accepted original status retains its busy lifetime through the real read
+ok 6 - already accepted original status retains its busy lifetime through the real read
+  ---
+  duration_ms: 454.231875
+  type: 'test'
+  ...
+# Subtest: already accepted original continue retains its busy lifetime through the real read
+ok 7 - already accepted original continue retains its busy lifetime through the real read
+  ---
+  duration_ms: 458.6585
+  type: 'test'
+  ...
+# Subtest: already accepted original cancel retains its busy lifetime through the real read
+ok 8 - already accepted original cancel retains its busy lifetime through the real read
+  ---
+  duration_ms: 467.87375
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4060.118916

@@ -1,0 +1,30 @@
+{
+  "note": "Untracked files observed during current continuation. Authorship and source are unknown; not modified, removed, staged, or treated as candidates. Any final tracked-source package must exclude these by exact Git inventory rather than remove them.",
+  "files": [
+    {
+      "path": "extension/background/sync-local-lifecycle 2.js",
+      "bytes": 28789,
+      "sha256": "2dc7787fb596a02c2fbdb0ea472592772aed9a74e654481c497190fb9e781022"
+    },
+    {
+      "path": "extension/core/indexed-store 2.js",
+      "bytes": 69155,
+      "sha256": "ea161a78eaa62526bca5a7aedf2398c6cc976f44f74a8601e3142e434f3cb530"
+    },
+    {
+      "path": "extension/core/idb-repository 2.js",
+      "bytes": 76866,
+      "sha256": "b1831c9dac8f5bf3b7262a2bb37c554f63b7e9e233f7e15f215dbbeb93238d49"
+    },
+    {
+      "path": "extension/core/browser-native-sync/context-mutation-journal-owner 2.js",
+      "bytes": 21941,
+      "sha256": "84037127718696d995943091373ca1d0f6db1b630df68a9a6ef8ed287cb8b08f"
+    },
+    {
+      "path": "extension/core/browser-native-sync/context-desired-journal-owner 2.js",
+      "bytes": 8529,
+      "sha256": "23ead35df26417a94d09f2cb84f4c7bbf7117e594a8923af9f9c30f210e45b89"
+    }
+  ]
+}
