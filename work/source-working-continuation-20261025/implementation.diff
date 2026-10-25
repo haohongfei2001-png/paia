@@ -2,103 +2,47 @@ diff --git a/extension/core/browser-native-sync/group-checkpoint.js b/extension/
 index b5a7a87..d9581b6 100644
 --- a/extension/core/browser-native-sync/group-checkpoint.js
 +++ b/extension/core/browser-native-sync/group-checkpoint.js
-@@ -1,5 +1,5 @@
- import {chargeOriginalCheckpointPublicationWork,requireOriginalCheckpointPublicationControls,requireOriginalCheckpointPublicationCleanup} from './checkpoint-publication.js';
+@@ -2 +2 @@ import {chargeOriginalCheckpointPublicationWork,requireOriginalCheckpointPublica
 -import {sourceUnionPublicationGroups,requireSourceUnionPublicationPhysical} from './source-union-publication-continuation.js';
 +import {sourceUnionPublicationGroups,requireSourceUnionPublicationPhysical,requireSourceUnionWorkingFilter} from './source-union-publication-continuation.js';
- import {flushNavigationWrites} from '../archive-navigation-invalidation.js';
- import {flushSemanticWrites} from '../ai-usage/delta.js';
- import {decideLight,FILTER_VERSIONS} from '../smart-filter.js';
-@@ -251,11 +251,12 @@ const sourceUnionPhysicalMetadata=['sequence','revision-sequence','input-delta-s
- async function prepareSourceUnionLocalIdentity(restore){
-  const row=(await restore.store.run(()=>restore.live.transaction(false,t=>t.get('meta','thought-suppression-key'),['meta'])))??null;chargeRecoveryValue(restore.live,row);const fingerprint=await digest(row);sourceUnionTicket(restore);return {row,fingerprint};
- }
+@@ -254 +254 @@ async function prepareSourceUnionLocalIdentity(restore){
 -async function sourceUnionPhysicalCut(t,identity){
 +async function sourceUnionPhysicalCut(t,identity,working=null){
-  const inputStates=await readGroupRows(t,'inputStates'),revisionAllocations=(await readGroupRows(t,'revisions')).map(({id,sequence,listKey,documentList})=>({id,sequence,listKey,documentList})),metadata=[];
-  for(const id of sourceUnionPhysicalMetadata){const row=(await t.get('meta',id))??null;if(id==='thought-suppression-key'){if(!equalSourceWorkingPhysicalTree(row,identity.row))fail('BNS_RESTORE_LOCAL_CHANGED');metadata.push({id,fingerprint:identity.fingerprint});}else metadata.push({id,row});}
-  const filterInputs=[],evaluated=[],runtime=new Set(['decision','reasonCode','pendingKey','failed','evaluatedAt','decisionSequence','filteredKey']),allowed=new Set(['id','documentId','authorship','userEdited','filterOverride','presence','evaluationRevision','basedOnContentRevision',...Object.keys(FILTER_VERSIONS),...runtime]);
-  for(const row of await readGroupRows(t,'filterInputs')){
+@@ -258,0 +259 @@ async function sourceUnionPhysicalCut(t,identity){
 +  const edit=working?.groups.find(group=>group.prepared.descriptor.value.inputId===row.id);if(edit){filterInputs.push(requireSourceUnionWorkingFilter(edit,working.cut.filterInputs.find(item=>item.id===row.id),row));continue;}
-   if(Object.keys(row).some(key=>!allowed.has(key))||!Number.isSafeInteger(row.evaluationRevision)||row.evaluationRevision<0||Object.hasOwn(row,'failed')&&typeof row.failed!=='boolean'||!Object.entries(FILTER_VERSIONS).every(([key,value])=>row[key]===value))fail('BNS_RESTORE_LOCAL_CHANGED');
-   const state=inputStates.find(state=>state.id===row.id);if(!state||row.basedOnContentRevision!==state.contentRevision)fail('BNS_RESTORE_LOCAL_CHANGED');
-   if(Object.hasOwn(row,'evaluatedAt')){
-@@ -727,7 +728,7 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
-  let state=await restore.stage.read('restore');sourceUnionState(restore,state);
-  if(state.phase!=='activated'||state.replayId!==await sourceUnionReplayId(restore,state.base,state.selection)||!equal(active,{id:core.prefix+'active',namespace:state.replayId,restoreId:restore.restoreId,selection:state.selection,graphDigest:state.graphDigest}))fail('BNS_SOURCE_UNION_ACTIVATION_REQUIRED');
-  const replay=new BrowserNativeSyncCore(core.repository,{datasetId:core.datasetId,deviceId:core.deviceId,namespace:state.replayId}),operations=await allOperations(replay);
+@@ -730 +731 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
 - if(operations.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');if(operations.some(op=>!['sourceBootstrapMember','sourceBootstrapCommit','sourceAppendMember','sourceAppendCommit'].includes(op.type)))fail('BNS_GROUP_OWNER_UNSUPPORTED');
 + if(operations.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');if(operations.some(op=>!['sourceBootstrapMember','sourceBootstrapCommit','sourceAppendMember','sourceAppendCommit','inputWorkingMember','inputWorkingCommit'].includes(op.type)))fail('BNS_GROUP_OWNER_UNSUPPORTED');
-  if(!Array.isArray(state.receipt?.cuts)||state.receipt.cuts.length!==3||state.receipt.cuts.some(cut=>!Array.isArray(cut.items)))fail('BNS_RESTORE_STAGE_CHANGED');
-  // Do not let a caller choose an arbitrary old subset. The original receipt's
-  // own ordered hash chains authenticate every declared revision and each cut.
-@@ -739,6 +740,7 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
-  const protocol=sourceUnionProtocolRows(replay,{operations,heads:plan.heads,frontiers:[...frontiers].map(([deviceId,value])=>({deviceId,...value}))},state.base.fence.epoch);
-  for(const group of groups.added)for(const op of group.operations){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,'outbox',[op.operationId]);protocol.set(id,{id,operationId:op.operationId,revisionId:op.revisionId,state:'queued'});}
-  if(groups.added.length){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,'device',[core.deviceId]);protocol.set(id,{id,sequence:groups.added.reduce((n,group)=>n+group.operations.length,0)});}
+@@ -741,0 +743 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
 + for(const group of groups.working)for(const op of group.prepared.members){const value=op.value.entity,kind=op.value.entityType==='input'?'workingOwner':op.value.entityType==='revision'?'workingHistory':null;if(kind){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,kind,[value.id]);protocol.set(id,{id,revisionId:op.revisionId,...(kind==='workingOwner'?{deltaSequence:group.prepared.members.find(item=>item.value.entityType==='inputState').value.entity.deltaSequence}:{sequence:value.sequence})});}}
-  const prefix=replay.prefix+'generation:'+state.replayId+':',controls=await store.run(()=>replay.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix})).filter(row=>row.id.startsWith(prefix+'google-appdata-allocation:')||row.id.startsWith(prefix+'onedrive-upload-attempt:')),['meta']));
-  for(const row of await requireSourcePurgeProtocolControlReceipts(store,core,controls,state.replayId)){if(protocol.has(row.id))fail('BNS_RESTORE_STAGE_CHANGED');protocol.set(row.id,row);}
-  const identity=await prepareSourceUnionLocalIdentity(restore),cleanup=publicationWork&&requireOriginalCheckpointPublicationCleanup(publicationWork,core,store)&&!state.cleanup?.complete;
-@@ -747,7 +749,7 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
-   if(!equal(await restore.stage.get(t,'restore'),state)||!equal(await t.get('meta',active.id),active))fail('BNS_RESTORE_LOCAL_CHANGED');
-   const current=await authority(store,core,t);if(current.namespace!==state.replayId||current.generation!==operations.length||!Number.isSafeInteger(current.ownerGeneration)||current.ownerGeneration<state.base.ownerGeneration+1+groups.added.length||current.fence.epoch!==state.base.fence.epoch||!equal(current.settings,state.base.settings))fail('BNS_RESTORE_LOCAL_CHANGED');
-   await requireSourceUnionProtocol(replay,t,protocol);await requireGroupScope(store,t,canonical);
+@@ -750 +752 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
 -  await requireSourceUnionPublicationPhysical(core,t,state.sourceCut,await sourceUnionPhysicalCut(t,identity),groups,canonical);
 +  await requireSourceUnionPublicationPhysical(core,t,state.sourceCut,await sourceUnionPhysicalCut(t,identity,{groups:groups.working,cut:state.sourceCut}),groups,canonical);
-   if(publicationWork&&retain){
-    chargeOriginalCheckpointPublicationWork(publicationWork,core,store,undefined,0);const tables=new Map();
-    for(const table of t.tx.objectStoreNames)tables.set(table,await readGroupRows(t,table));
 diff --git a/extension/core/browser-native-sync/source-union-publication-continuation.js b/extension/core/browser-native-sync/source-union-publication-continuation.js
 index 251b7a8..36efa2e 100644
 --- a/extension/core/browser-native-sync/source-union-publication-continuation.js
 +++ b/extension/core/browser-native-sync/source-union-publication-continuation.js
-@@ -1,4 +1,6 @@
- import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,recordIndex,blockIndex,sourceCount,chatOf} from '../idb-repository.js';
+@@ -1,0 +2,2 @@ import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalReco
 +import {describeOriginalWorkingGroup} from './input-working-commit.js';
 +import {inputEditJournalData} from '../ia-store-owner.js';
- import {planInitialFilter} from '../smart-filter-store-owner.js';
- import {SOURCE_BOOTSTRAP_TYPES} from './source-bootstrap-codec.js';
- import {SOURCE_APPEND_TYPES} from './source-append-codec.js';
-@@ -18,9 +20,10 @@ function charge(core,value){const ticket=currentOriginalRecoveryWork(core.reposi
- export function sourceUnionPublicationGroups(core,plan,original){
-  const retained=new Set(original.operations.map(op=>op.revisionId)),identities=new Set(),previous=[],added=[];
-  for(const group of plan.groups){
+@@ -21 +23 @@ export function sourceUnionPublicationGroups(core,plan,original){
 -  if(!['sourceBootstrapCommit','sourceAppendCommit'].includes(group.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
 +  if(!['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
-   const n=group.operations.filter(op=>retained.has(op.revisionId)).length;
-   if(n&&(n!==group.operations.length||group.type!=='sourceBootstrapCommit'))invalid();(n?previous:added).push(group);
+@@ -23,0 +26 @@ export function sourceUnionPublicationGroups(core,plan,original){
 +  if(group.type==='inputWorkingCommit')continue;
-   const e=entities(group),claims=[...Object.entries(e).map(([kind,row])=>[kind,row.id]),['sourceKey',e.source.sourceKey],['dedupeKey',e.source.dedupeKey]];
-   // Only an original bootstrap claims a conversation. Append's exact retained
-   // bootstrap/document dependency was proved by the original group planner.
-@@ -32,15 +35,20 @@ export function sourceUnionPublicationGroups(core,plan,original){
-  if(added.length&&original.operations.some(op=>op.deviceId===core.deviceId))invalid();
-  let sequence=0;
-  for(const group of added){
+@@ -35 +38 @@ export function sourceUnionPublicationGroups(core,plan,original){
 -  const ops=group.operations,types=group.type==='sourceBootstrapCommit'?SOURCE_BOOTSTRAP_TYPES:SOURCE_APPEND_TYPES;
 +  const ops=group.operations,types=group.type==='inputWorkingCommit'?group.prepared.members.map(op=>op.value.entityType):group.type==='sourceBootstrapCommit'?SOURCE_BOOTSTRAP_TYPES:SOURCE_APPEND_TYPES;
-   if(ops.length!==types.length+1||group.prepared.descriptor.revisionId!==ops.at(-1).revisionId)invalid();
-   for(let i=0;i<ops.length;i++)if(ops[i].deviceId!==core.deviceId||ops[i].sequence!==++sequence||i<types.length&&ops[i].value.entityType!==types[i])invalid();
-  }
+@@ -39 +42,5 @@ export function sourceUnionPublicationGroups(core,plan,original){
 - return {previous,added};
 + const working=added.filter(group=>group.type==='inputWorkingCommit');
 + // First bounded continuation: one genuine first edit of a retained Input.
 + // Further mixed/local tails retain their explicit unsupported status.
 + if(working.length&&(working.length!==1||added.length!==1))fail('BNS_GROUP_OWNER_UNSUPPORTED');
 + return {previous,added,working};
- }
- 
- export async function requireSourceUnionPublicationPhysical(core,t,originalCut,currentCut,groups,canonical){
-  charge(core,originalCut);charge(core,currentCut);
+@@ -43,0 +51 @@ export async function requireSourceUnionPublicationPhysical(core,t,originalCut,c
 + if(groups.working.length)return requireWorkingPhysical(core,t,originalCut,currentCut,groups,canonical);
-  const expected=clone(originalCut),meta=new Map(expected.metadata.map(row=>[row.id,row]));
-  if(meta.size!==expected.metadata.length||expected.inputStates.length!==groups.previous.length||expected.revisionAllocations.length!==groups.previous.length||expected.filterInputs.length!==groups.previous.length)invalid();
-  const sequence=meta.get('sequence')?.row,history=meta.get('revision-sequence')?.row,delta=meta.get('input-delta-sequence')?.row;
-@@ -84,3 +92,45 @@ export async function requireSourceUnionPublicationPhysical(core,t,originalCut,c
-  charge(core,expected);if(!equalSourceWorkingPhysicalTree(currentCut,expected))invalid();
-  for(const [table,rows]of Object.entries(expectedRows)){order(rows);charge(core,rows);if(!equalSourceWorkingPhysicalTree(await readGroupRows(t,table),rows))invalid();}
- }
+@@ -86,0 +95,42 @@ export async function requireSourceUnionPublicationPhysical(core,t,originalCut,c
 +
 +
 +// Original protection keeps its local timestamp, but only this exact first
@@ -145,10 +89,7 @@ diff --git a/extension/tests/source-union-publication-continuation.test.mjs b/ex
 index b2b0edd..2eb9e6d 100644
 --- a/extension/tests/source-union-publication-continuation.test.mjs
 +++ b/extension/tests/source-union-publication-continuation.test.mjs
-@@ -219,3 +219,46 @@ for(const anchor of ['ancestor','local_0'])test('single original append to '+anc
-  const d=await fresh(t,'SYNTHETIC_single_append_installation_'+anchor);await recovery(d,f.cloud).recoverDiscovered();const received=await d.store.snapshot(),sort=values=>values.slice().sort((a,b)=>a.id.localeCompare(b.id));assert.deepEqual(sort(received.records),sort(snapshot.records));assert.deepEqual(sort(received.library.blocks),sort(snapshot.library.blocks));assert.deepEqual(sort(received.library.documents),sort(snapshot.library.documents));
-  const imported=await state(d);assert.equal(imported.inputStates.length,rows.inputStates.length);assert.equal(imported.revisions.length,rows.revisions.length);assert.deepEqual(imported.times,rows.times);const cold=await reopen(t,d);assert.deepEqual(sort((await cold.store.snapshot()).records),sort(snapshot.records));assert.deepEqual((await f.restore.stage.read('restore')).sourceCut,f.original.sourceCut);
- });
+@@ -221,0 +222,43 @@ for(const anchor of ['ancestor','local_0'])test('single original append to '+anc
 +
 +test('original Working edit after Source union publishes and cold restores complete immutable Source and history',async t=>{
 + const f=await restored(t,{added:0}),before=await state(f.c);f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});

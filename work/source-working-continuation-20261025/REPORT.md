@@ -45,3 +45,5 @@ New negatives cover Source/history/state corruption, missing/changed original ow
 ## Still open
 
 This is a first bounded Working path, not complete ordinary mixed-tail support. Multiple/continuous Working edits (including coalescing), Working after a new local Source/append, prior filter evaluations on the edited Input, Human/Context mixed tails, and old activated-task retargeting remain unsupported or separate queues. No new native/browser performance, Linux capacity, real account, cold global quiet or whole-product acceptance is claimed. Larger publication limits and all historical failures remain separate. Root must independently review this exact local candidate before integration; no push was performed.
+
+Evidence packaging note: the staged whitespace check flagged a context-only blank line in the embedded implementation diff; source checks were clean. The archived diff now uses zero context with identical code changes. No tests or runtime changes followed this packaging correction.
