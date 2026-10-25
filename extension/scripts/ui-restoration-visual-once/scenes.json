@@ -1,0 +1,326 @@
+{
+  "schema": 1,
+  "authorization": {
+    "maxRounds": 1,
+    "maxCapturesPerRound": 38,
+    "maxMinutesPerRound": 6,
+    "maxMinutesTotal": 6,
+    "syntheticOnly": true,
+    "loopbackOnly": true,
+    "fixtureLimits": {
+      "topics": 8,
+      "sectionsPerTopic": 2,
+      "inputsTotal": 12,
+      "contextItems": 3
+    },
+    "maxJobMinutesIncludingSetup": 10,
+    "automaticRetry": false,
+    "scope": "ui-visual-once-20261025"
+  },
+  "scenes": [
+    {
+      "id": "archive-neutral",
+      "group": "archive",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "archive-reader",
+      "group": "archive",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "thought-section-reader",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "context-inputs",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "archive-browse",
+      "group": "archive",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "archive-search",
+      "group": "archive",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "thought-home",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "thought-second-section",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "thought-write",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "thought-options",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "thought-ascending",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "context-home",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "context-info",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "context-rules",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "context-now",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "context-readonly-section",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "settings-content",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "settings-reading",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "settings-ai",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "settings-privacy",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "settings-data",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "settings-about",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "settings-risk-dialog",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "orb-idle",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "orb-expanded",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "orb-capsule",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "nib-normal",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "nib-search",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "archive-reader-narrow",
+      "group": "archive",
+      "adapter": "archive-thought",
+      "width": 390,
+      "height": 844,
+      "theme": "light"
+    },
+    {
+      "id": "thought-reader-narrow",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 390,
+      "height": 844,
+      "theme": "light"
+    },
+    {
+      "id": "context-home-narrow",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 390,
+      "height": 844,
+      "theme": "light"
+    },
+    {
+      "id": "context-inputs-narrow",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 390,
+      "height": 844,
+      "theme": "light"
+    },
+    {
+      "id": "settings-group-narrow",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 390,
+      "height": 844,
+      "theme": "light"
+    },
+    {
+      "id": "nib-narrow",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 390,
+      "height": 844,
+      "theme": "light"
+    },
+    {
+      "id": "thought-home-dark",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark"
+    },
+    {
+      "id": "thought-reader-dark",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark"
+    },
+    {
+      "id": "context-home-dark",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark"
+    },
+    {
+      "id": "context-inputs-dark",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark"
+    }
+  ]
+}

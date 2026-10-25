@@ -138,7 +138,9 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
 #settings-panel #smart-filter-settings{min-width:0}
 #settings-panel #ux-settings-group-back{display:none}
 #settings-panel :is(button,select,summary):focus-visible{outline:2px solid var(--focus);outline-offset:3px}
-#settings-panel :is(#settings-context-open){min-height:85px}
+/* SET2-UI-1.4: the destination label is sufficient; the separate actual
+   capability note stays visible. Use the common intrinsic 64px row floor. */
+#settings-panel #settings-context-open .ux-setting-description{display:none}
 .thought-reverse-edit-disable{margin:4px 0;background:transparent;border:1px solid var(--line);border-radius:6px;min-height:36px;color:var(--muted)}
 .thought-reverse-edit-feedback{display:block;color:var(--muted);font-size:12px}
 @media(max-width:1023px){
@@ -309,6 +311,20 @@ html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]
 #settings-capture-consent #settings-capture-confirm{background:var(--text);border-color:var(--text);color:var(--bg)}
 #settings-capture-consent #settings-capture-confirm:hover:not(:disabled){background:var(--muted);border-color:var(--muted)}
 @media(max-width:767px){#settings-capture-consent{padding:20px}#settings-capture-consent>header{gap:8px}}
+
+/* The independent Assist and Maintenance consent owners use the same native
+   Settings sheet. Scope presentation only: keep their complete disclosures,
+   original buttons, decision order, and permission/lifecycle guards intact. */
+:is(#settings-assist-consent,#settings-maintenance-consent){box-shadow:0 18px 60px rgba(23,35,60,.18);overscroll-behavior:contain;scroll-padding:16px}
+:is(#settings-assist-consent,#settings-maintenance-consent)::backdrop{background:rgba(23,35,60,.32)}
+:is(#settings-assist-consent,#settings-maintenance-consent)>h2{font:500 22px/1.455 var(--title-font);margin:0 0 20px}
+:is(#settings-assist-consent,#settings-maintenance-consent)>p{margin:0 0 16px;line-height:1.8}
+:is(#settings-assist-consent,#settings-maintenance-consent) .ux-settings-consent-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:28px}
+:is(#settings-assist-consent,#settings-maintenance-consent) .ux-settings-consent-actions button{min-height:44px;max-width:100%;padding:8px 16px;border:1px solid var(--control);border-radius:6px;background:var(--bg);color:var(--text);font:400 13px/1.7 var(--font);white-space:normal;overflow-wrap:anywhere;text-align:center}
+:is(#settings-assist-consent,#settings-maintenance-consent) .ux-settings-consent-actions button:hover:not(:disabled){background:var(--soft)}
+:is(#settings-assist-consent,#settings-maintenance-consent) :is(#settings-assist-confirm,#settings-maintenance-confirm){background:var(--text);border-color:var(--text);color:var(--bg)}
+:is(#settings-assist-consent,#settings-maintenance-consent) :is(#settings-assist-confirm,#settings-maintenance-confirm):hover:not(:disabled){background:var(--muted);border-color:var(--muted)}
+@media(max-width:767px){:is(#settings-assist-consent,#settings-maintenance-consent){padding:20px}}
 
 /* Approved existing-file preview and explicit confirmation; one original owner. */
 #settings-backup-dialog #backup-preview{background:transparent;border:0;border-radius:0;padding:0;margin:20px 0}

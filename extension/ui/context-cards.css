@@ -132,17 +132,26 @@ html[data-paia-theme="dark"] .context-page :is(.context-access,.topic-access)[da
 .context-inputs-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:15px}
 .context-inputs-toolbar .context-topic-filter{min-height:36px;padding:6px 12px;border-radius:7px;border:1px solid var(--line);font:12px/1.8 var(--font)}
 .context-reading-note{margin-left:auto;font:11px/1.8 var(--font);color:var(--muted)}
-.context-inputs .topic-field{display:flex;flex-direction:column;gap:0;max-width:none}
-.context-inputs .context-topic-row{width:100%;display:flex;justify-content:space-between;gap:22px;padding:17px 0;border-bottom:1px solid var(--line)}
-.context-inputs .context-topic-open{flex:1;min-width:0;min-height:44px;padding:8px 0;font:15px/1.8 var(--font)}
-.context-inputs .context-topic-row .topic-access{flex:none;gap:9px;min-width:110px;min-height:44px;padding:6px 11px;border-radius:8px;font:11px/1.8 var(--font)}
-.context-inputs .topic-access[data-on=true] .context-switch{background:#6c94d6}
-.context-inputs .topic-access[data-on=true] .context-switch:after{transform:translateX(11px)}
-.context-inputs .topic-access[data-paused=true] .context-switch{background:#aebed7}
+/* Owner-confirmed 2026-10-25 Inputs capsules. Each capsule retains two
+   sibling actions: its name opens local reading; its dot changes only the
+   existing Topic choice. No nested buttons, row separators or hidden Topics. */
+.context-inputs .topic-field{display:flex;flex-flow:row wrap;gap:12px;align-items:flex-start;align-content:flex-start;max-width:936px}
+.context-inputs .context-topic-row{width:auto;max-width:100%;display:inline-flex;align-items:center;gap:0;padding:0;border:0;border-radius:999px;background:var(--bg);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.context-inputs .context-topic-row:has(>.topic-access[data-on=true]){background:var(--selected);color:var(--selected-ink,var(--focus));box-shadow:inset 0 0 0 1px var(--selected)}
+.context-inputs .context-topic-row:has(>.topic-access[data-on=true][data-paused=true]){background:var(--soft);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.context-inputs .context-topic-open{flex:1 1 auto;min-width:44px;min-height:44px;padding:10px 4px 10px 16px;border:0;border-radius:999px 0 0 999px;font:13px/22px var(--font);color:inherit;background:transparent;overflow-wrap:anywhere;white-space:normal}
+.context-page .context-inputs .context-topic-row .topic-access{flex:0 0 46px;width:46px;min-width:46px;min-height:44px;align-self:stretch;justify-content:center;gap:0;padding:0;border:0;border-radius:0 999px 999px 0;font:13px/22px var(--font);color:inherit;background:transparent;box-shadow:none}
+.context-inputs .context-topic-state{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;white-space:nowrap}
+.context-inputs .topic-access .context-switch{width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:transparent;box-shadow:inset 0 0 0 1px currentColor}
+.context-inputs .topic-access .context-switch:after{content:none}
+.context-inputs .topic-access[data-on=true] .context-switch{background:currentColor;box-shadow:none}
+.context-inputs .context-topic-row:has(>button:hover:not(:disabled)){box-shadow:inset 0 0 0 1px var(--focus)}
+.context-inputs .context-topic-row>button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media(forced-colors:active){.context-inputs .context-topic-row{border:1px solid ButtonText;box-shadow:none}.context-inputs .context-topic-row:has(>.topic-access[data-on=true]){border-color:Highlight}.context-inputs .topic-access .context-switch{border:1px solid currentColor;box-shadow:none}}
 @media(max-width:1250px){.context-detail .context-section{grid-template-columns:104px minmax(0,1fr);gap:22px}}
 @media(max-width:1000px){.context-detail .context-section{grid-template-columns:85px minmax(0,1fr);gap:20px}}
-@media(max-width:760px){.context-detail .context-section{display:block}.context-detail .context-section>h2{padding-top:0;margin-bottom:10px}.context-detail .context-item .item-text{margin-left:0}.context-detail-footer{gap:12px;flex-wrap:wrap}.context-scope-preview-open,.context-inputs-toolbar .context-topic-filter{min-height:44px}.context-reading-note{flex-basis:100%;margin:0}.context-inputs .context-topic-row{gap:12px}.context-detail .context-head{gap:16px}.context-gate-caption{max-width:140px}}
-@media(max-width:530px){.context-detail .context-eyebrow,.context-crumb-current{display:none}.context-detail .context-head{flex-wrap:wrap}.context-detail-right{padding-top:0;align-items:flex-start}.context-gate-caption{text-align:left}.context-home-end{display:block}.context-home-end .context-local-boundary{display:block}.context-inputs .context-topic-row{gap:9px}.context-inputs .context-topic-row .topic-access{min-width:96px;font-size:10px;padding:6px 8px}.context-inputs .context-topic-open{font-size:13px}}
+@media(max-width:760px){.context-detail .context-section{display:block}.context-detail .context-section>h2{padding-top:0;margin-bottom:10px}.context-detail .context-item .item-text{margin-left:0}.context-detail-footer{gap:12px;flex-wrap:wrap}.context-scope-preview-open,.context-inputs-toolbar .context-topic-filter{min-height:44px}.context-reading-note{flex-basis:100%;margin:0}.context-inputs .topic-field{gap:10px}.context-detail .context-head{gap:16px}.context-gate-caption{max-width:140px}}
+@media(max-width:530px){.context-detail .context-eyebrow,.context-crumb-current{display:none}.context-detail .context-head{flex-wrap:wrap}.context-detail-right{padding-top:0;align-items:flex-start}.context-gate-caption{text-align:left}.context-home-end{display:block}.context-home-end .context-local-boundary{display:block}.context-inputs .context-topic-open{padding-left:14px}}
 
 .context-toolbar-copy{min-width:0}.context-editor-toolbar .maintenance{margin:3px 0 0;font:11px/1.8 var(--font)}
 

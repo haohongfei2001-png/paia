@@ -35,7 +35,7 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   await p.bringToFront();const box=await row.locator('.search-excerpt').boundingBox();await p.mouse.move(box.x+5,box.y+8);await p.mouse.down();await p.mouse.move(box.x+180,box.y+8,{steps:12});await p.mouse.up();
   assert.ok(await p.evaluate(()=>document.getSelection().toString().length>0),'real pointer drag selects excerpt');assert.equal(await p.locator('#document-panel').isVisible(),false,'selection does not open Reader');
   await row.focus();await p.keyboard.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());assert.match(await p.locator('#document-body').textContent(),/Do not publish unless approved/);assert.equal(await p.locator('#reader-scope-search').count(),0);assert.equal(await p.locator('input[type=search]:visible').count(),0);assert.equal(await p.locator('#scope-search').inputValue(),'SYNTHETIC_NEEDLE','opening Reader retains the separate Archive query');
-  assert.equal(await p.locator('#back .archive-back-label').textContent(),'返回搜索结果','Back names the recorded search origin');
+  assert.equal(await p.locator('#back').getAttribute('aria-label'),'返回搜索结果','icon-only Back names the recorded search origin accessibly');
   const originKey=await p.evaluate(()=>history.state.paiaReader.originKey);assert.match(originKey,/^[a-f0-9-]{36}$/);
   await eventually(()=>p.evaluate(()=>{const id=history.state.paiaReader.documentId;return [...document.querySelectorAll('.archive-navigator-window')].some(node=>node.dataset.documentId===id&&node.getAttribute('aria-current')==='page');}),'current Reader Conversation is ready in the async Navigator before composition');
   await p.evaluate(()=>{window.__iahHistoryWrites=[];const original=history.replaceState;history.replaceState=function(...args){window.__iahHistoryWrites.push({route:args[0]?.paiaReader,stack:new Error().stack});return original.apply(this,args);};});
@@ -50,7 +50,7 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   await p.evaluate(()=>{window.__iahLocaleNode=document.querySelector('#document-body [data-edit-id]');window.__iahLocaleText=window.__iahLocaleNode.textContent;});
   for(const [language,label]of [['en','Back to search results'],['zh-CN','返回搜索结果']]){
    const changed=await p.evaluate(language=>chrome.runtime.sendMessage({type:'UPDATE_PREFERENCES',changes:{language}}),language);assert.equal(changed.ok,true);
-   await eventually(()=>p.locator('#back .archive-back-label').textContent().then(text=>text===label),'Back responds to real live language preference');
+   await eventually(()=>p.locator('#back').getAttribute('aria-label').then(text=>text===label),'Back responds to real live language preference');
    assert.equal(await p.evaluate(()=>window.__iahLocaleNode===document.querySelector('#document-body [data-edit-id]')&&window.__iahLocaleNode.textContent===window.__iahLocaleText),true,'live locale preserves the exact editable node and body');
   }
   assert.equal(await p.locator('input[type=search]:visible').count(),0);
@@ -117,7 +117,7 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   const ordinary=p.locator('.archive-navigator-window').filter({hasText:'SYNTHETIC_FILTER_CONTEXT'});await eventually(()=>ordinary.isVisible());await ordinary.click();
   await eventually(async()=>JSON.stringify(await visibleIds())===JSON.stringify([normalId]),'ordinary Reader again hides every filtered Input');
   assert.deepEqual(await filterState(),filterBefore,'ordinary return does not persist temporary visibility');
-  assert.equal(await p.locator('#back .archive-back-label').textContent(),'返回项目浏览','tree origin has its own truthful normal-flow label');
+  assert.equal(await p.locator('#back').getAttribute('aria-label'),'返回项目浏览','tree origin has its own truthful normal-flow label');
   await p.locator('#back').click();await p.locator('#scope-search').fill('请继续');const readerFilteredHit=p.locator('.search-input[data-input-id="'+targetId+'"]');await eventually(()=>readerFilteredHit.count().then(n=>n===1),'ordinary Archive discovery includes eligible filtered Input');
   assert.deepEqual(await filterState(),filterBefore,'discovery coverage does not change persistent Input visibility before activation');await readerFilteredHit.click();await eventually(()=>p.locator('[data-edit-id="'+targetId+'"]').isVisible());
   assert.deepEqual((await visibleIds()).sort(),[normalId,targetId].sort(),'Archive discovery activation only temporarily reveals its matching Input');assert.deepEqual(await filterState(),filterBefore,'Archive discovery and arrival do not Keep/protect or rewrite any source/working/filter state');
@@ -167,7 +167,7 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
    assert.match(await p.locator('#notice').textContent(),/匹配.*(?:变化|改变|不再)|(?:match|phrase).*(?:changed|no longer)/i,'surviving Input whose prior body match vanished explains the changed match');
   }finally{await p.evaluate(()=>{chrome.runtime.sendMessage=window.__iahOriginalSend;for(const resolve of window.__iahHeldSearch)resolve();delete window.__iahOriginalSend;delete window.__iahHeldSearch;});await owner.close();}
   await p.reload();await eventually(()=>p.locator('#document-panel').isVisible());await eventually(()=>p.locator('#scope-search').isEnabled());
-  assert.equal(await p.locator('#back .archive-back-label').textContent(),'返回档案','cold origin does not claim exact search return');await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());assert.equal(await p.locator('#document-panel').isVisible(),false);assert.equal(await p.locator('#scope-search').inputValue(),'','lost same-tab origin safely returns to neutral Archive');assert.match(await p.locator('#notice').textContent(),/原搜索状态已不可用|original search state is unavailable/i,'lost recorded origin explains the neutral fallback');
+  assert.equal(await p.locator('#back').getAttribute('aria-label'),'返回档案','cold origin does not claim exact search return');await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());assert.equal(await p.locator('#document-panel').isVisible(),false);assert.equal(await p.locator('#scope-search').inputValue(),'','lost same-tab origin safely returns to neutral Archive');assert.match(await p.locator('#notice').textContent(),/原搜索状态已不可用|original search state is unavailable/i,'lost recorded origin explains the neutral fallback');
   for(const [action,index]of [['remove',0],['purge',1]]){
    const phrase='SYNTHETIC_DEEP_NORMAL '+index,record=(await h.state()).records.find(row=>row.originalText===phrase),target='block:'+record.id;
    await p.locator('#scope-search').fill(phrase);const stale=p.locator('.search-input[data-input-id="'+target+'"]');await eventually(()=>stale.count().then(n=>n===1));

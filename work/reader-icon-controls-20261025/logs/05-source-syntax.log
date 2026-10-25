@@ -1,0 +1,11 @@
+PASS syntax extension/ui/archive.js
+PASS syntax extension/ui/topic-workspace.js
+PASS syntax extension/tests/reader-icon-controls.test.mjs
+PASS syntax extension/tests/reader-icon-shell.test.mjs
+PASS syntax extension/tests/iah11-find-return.test.mjs
+PASS syntax extension/tests/archive-year-restoration-owner.test.mjs
+PASS syntax extension/tests/topic-reading-sort-publication.test.mjs
+PASS syntax extension/tests/iah11-result-presentation-chrome-e2e.test.mjs
+PASS syntax extension/tests/historical-d5-ai-comparison-chrome-e2e.test.mjs
+PASS git diff --check
+PASS final expanded reader-icon-controls syntax

@@ -1,0 +1,78 @@
+{
+  "base": "875a58ca89602c4ccb0daf05d3ba5ee2b3a471b0",
+  "scope": "source equality outside the finite presentation substitutions; not a browser or behavior execution",
+  "checks": [
+    {
+      "path": "extension/ui/archive.js",
+      "unchangedOutside": [
+        "paintArchiveBack",
+        "paintInputTimeOrder extracted presentation + locale repaint",
+        "renderDocument invokes the presentation helper"
+      ],
+      "result": "PASS"
+    },
+    {
+      "path": "extension/ui/topic-workspace.js",
+      "unchangedOutside": [
+        "icon helper import",
+        "syncReadingControls"
+      ],
+      "result": "PASS"
+    },
+    {
+      "path": "extension/ui/app-shell.js",
+      "result": "BYTE_IDENTICAL_TO_BASE",
+      "sha256": "c31b253429525f2e1c746d9bc2849f541579d6b2c3b7373b2bb13db4ae04693c"
+    },
+    {
+      "path": "extension/ui/icons.js",
+      "result": "BYTE_IDENTICAL_TO_BASE",
+      "sha256": "870c6c4f604cc71aeed9fba0a450a9fae98943c71e6e02d5baa54b9620e480c2"
+    },
+    {
+      "path": "extension/ui/topic-workspace-presentation.css",
+      "result": "BYTE_IDENTICAL_TO_BASE",
+      "sha256": "0e1011d46519d72fe1112abcc37a7e26d2362d509a051a71c384e92946d54e47"
+    },
+    {
+      "path": "extension/ui/reader.css",
+      "result": "BYTE_IDENTICAL_TO_BASE",
+      "sha256": "bae84bb8350d982a68eee20dd471c14871697ce660d26c931e793d913c8679c1"
+    },
+    {
+      "path": "extension/ui/app-shell.css",
+      "result": "BYTE_IDENTICAL_TO_BASE",
+      "sha256": "4c0191693b7d67d452f82afeae8aca4cef4cb086e957ab357165c1d8ce5badb4"
+    },
+    {
+      "path": "extension/ui/reader-navigation.js",
+      "result": "BYTE_IDENTICAL_TO_BASE",
+      "sha256": "98d27efddeedd956f3a61074d5e548362a5e3ca199c04e2c889869f28fc58487"
+    },
+    {
+      "path": "extension/ui/route-history.js",
+      "result": "BYTE_IDENTICAL_TO_BASE",
+      "sha256": "a09fb105c5f420671fa4d24baa02e3c19e06a02e8293e12be1943a9666d4ce3a"
+    },
+    {
+      "path": "extension/ui/library.js",
+      "result": "BYTE_IDENTICAL_TO_BASE",
+      "sha256": "70251c3abe79dd4cccd52af880a85a448a2b50e012213e354b501608fed2b7cd"
+    },
+    {
+      "path": "extension/ui/editor-primitives.js",
+      "result": "BYTE_IDENTICAL_TO_BASE",
+      "sha256": "ad6a6afda30817148e75dfb74e10aaef150967560e6a2104cc531b585b524f2b"
+    },
+    {
+      "path": "extension/manifest.json",
+      "result": "BYTE_IDENTICAL_TO_BASE",
+      "sha256": "d4d6caeb9ad11b77aa1044a21de2e4585059af7e9d41e7e914e439a8df15e551"
+    },
+    {
+      "path": "extension/package.json",
+      "result": "BYTE_IDENTICAL_TO_BASE",
+      "sha256": "db8762aaaddaf503b780cc88fb764eb61ac1e97ec958d2c645d6902c34f75b7f"
+    }
+  ]
+}
