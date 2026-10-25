@@ -1,0 +1,18 @@
+{
+  "extension/background/application-transport-coordination.js": {
+    "sha256": "5f8357c9cc34ab8dc6004a8d5dde6fa36f1e1967d39137ac79849311e3602b27",
+    "bytes": 8180
+  },
+  "extension/tests/application-transport-coordination.test.mjs": {
+    "sha256": "5df7b1406d028e45a6bc411a2c376c16656eb6280ba691dd24fde2d5d84ba26d",
+    "bytes": 4824
+  },
+  "extension/tests/application-transport-current-top.test.mjs": {
+    "sha256": "8b68993d86b2e8a61f338374a93bc9e365f1d0b913e3be888982ca409c2d8114",
+    "bytes": 7219
+  },
+  "extension/tests/harness/selection-admission-worker.mjs": {
+    "sha256": "832799537978f42c289a6be5d1d1b16ffd819edb5261268f3b623eaf7444f8c5",
+    "bytes": 8364
+  }
+}

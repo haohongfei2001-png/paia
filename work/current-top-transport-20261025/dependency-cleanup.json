@@ -1,0 +1,5 @@
+{
+  "removedOwnedSymlink": "services/ai-gateway/node_modules",
+  "verifiedExactTarget": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/services/ai-gateway/node_modules",
+  "targetStillExists": true
+}
