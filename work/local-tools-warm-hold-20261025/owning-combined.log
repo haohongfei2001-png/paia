@@ -1,0 +1,724 @@
+TAP version 13
+# Subtest: ANS-02 formal Backup round-trips durable relationship history across ChatGPT + Claude without restoring ephemeral order/UI state
+ok 1 - ANS-02 formal Backup round-trips durable relationship history across ChatGPT + Claude without restoring ephemeral order/UI state
+  ---
+  duration_ms: 235.449375
+  type: 'test'
+  ...
+# Subtest: ANS-02 Backup rejects unknown ANS metadata versions and broken relationship/reference graphs
+ok 2 - ANS-02 Backup rejects unknown ANS metadata versions and broken relationship/reference graphs
+  ---
+  duration_ms: 84.492584
+  type: 'test'
+  ...
+# Subtest: ANS-02 restore failure during ANS metadata commit rolls back Source, Input and relationship rows atomically
+ok 3 - ANS-02 restore failure during ANS metadata commit rolls back Source, Input and relationship rows atomically
+  ---
+  duration_ms: 104.193791
+  type: 'test'
+  ...
+# Subtest: product version agrees across manifest, version name and package identity
+ok 4 - product version agrees across manifest, version name and package identity
+  ---
+  duration_ms: 0.294083
+  type: 'test'
+  ...
+# Subtest: current compatible product version and every prior admitted minor retain strict existing-file admission
+ok 5 - current compatible product version and every prior admitted minor retain strict existing-file admission
+  ---
+  duration_ms: 1.409334
+  type: 'test'
+  ...
+# Subtest: current-version existing-file restore preserves Source and Input while production export stays retired
+ok 6 - current-version existing-file restore preserves Source and Input while production export stays retired
+  ---
+  duration_ms: 283.025666
+  type: 'test'
+  ...
+# Subtest: backup restores original-chat source counts after its last Input moves to a standalone document
+ok 7 - backup restores original-chat source counts after its last Input moves to a standalone document
+  ---
+  duration_ms: 205.177583
+  type: 'test'
+  ...
+# Subtest: formal backup round trip preserves working text, provenance, human edits and important revisions
+ok 8 - formal backup round trip preserves working text, provenance, human edits and important revisions
+  ---
+  duration_ms: 545.17275
+  type: 'test'
+  ...
+# Subtest: backup validates corruption/truncation/unknown schema and never accepts credentials
+ok 9 - backup validates corruption/truncation/unknown schema and never accepts credentials
+  ---
+  duration_ms: 84.435583
+  type: 'test'
+  ...
+# Subtest: restore item limit rejects the first row beyond the declared ceiling
+ok 10 - restore item limit rejects the first row beyond the declared ceiling
+  ---
+  duration_ms: 97.616459
+  type: 'test'
+  ...
+# Subtest: existing user work is never silently overwritten, even after valid preview
+ok 11 - existing user work is never silently overwritten, even after valid preview
+  ---
+  duration_ms: 70.200334
+  type: 'test'
+  ...
+# Subtest: empty-library restore refuses an existing document without source records
+ok 12 - empty-library restore refuses an existing document without source records
+  ---
+  duration_ms: 68.816792
+  type: 'test'
+  ...
+# Subtest: empty-library restore protects retained import, migration and orphan index state
+ok 13 - empty-library restore protects retained import, migration and orphan index state
+  ---
+  duration_ms: 179.225292
+  type: 'test'
+  ...
+# Subtest: explicit replace restores a validated backup atomically while retaining local purge fences
+ok 14 - explicit replace restores a validated backup atomically while retaining local purge fences
+  ---
+  duration_ms: 69.511333
+  type: 'test'
+  ...
+# Subtest: replace rejects a changed target after preview and preserves the later work
+ok 15 - replace rejects a changed target after preview and preserves the later work
+  ---
+  duration_ms: 54.461875
+  type: 'test'
+  ...
+# Subtest: replace storage failure rolls back the cleared old library
+ok 16 - replace storage failure rolls back the cleared old library
+  ---
+  duration_ms: 51.141417
+  type: 'test'
+  ...
+# Subtest: explicit merge adds a disjoint chat atomically and keeps existing work
+ok 17 - explicit merge adds a disjoint chat atomically and keeps existing work
+  ---
+  duration_ms: 35.394708
+  type: 'test'
+  ...
+# Subtest: merge refuses overlapping chat identity without changing the local library
+ok 18 - merge refuses overlapping chat identity without changing the local library
+  ---
+  duration_ms: 32.577333
+  type: 'test'
+  ...
+# Subtest: merge transaction failure rolls back imported content and keeps local work
+ok 19 - merge transaction failure rolls back imported content and keeps local work
+  ---
+  duration_ms: 33.274458
+  type: 'test'
+  ...
+# Subtest: purge fences exclude deleted text and reject resurrection from an older external backup
+ok 20 - purge fences exclude deleted text and reject resurrection from an older external backup
+  ---
+  duration_ms: 140.162417
+  type: 'test'
+  ...
+# Subtest: export detects data edits between chunks and refuses inconsistent snapshot
+ok 21 - export detects data edits between chunks and refuses inconsistent snapshot
+  ---
+  duration_ms: 57.087167
+  type: 'test'
+  ...
+# Subtest: restore failure rolls back all content and a worker loss leaves no persisted staging
+ok 22 - restore failure rolls back all content and a worker loss leaves no persisted staging
+  ---
+  duration_ms: 122.776791
+  type: 'test'
+  ...
+# Subtest: quota exhaustion aborts restore atomically and reports storage pressure
+ok 23 - quota exhaustion aborts restore atomically and reports storage pressure
+  ---
+  duration_ms: 133.976584
+  type: 'test'
+  ...
+# Subtest: concurrent page delivery is idempotent and a cached page cannot bypass a later purge fence
+ok 24 - concurrent page delivery is idempotent and a cached page cannot bypass a later purge fence
+  ---
+  duration_ms: 70.37825
+  type: 'test'
+  ...
+# Subtest: restore staging cannot be interleaved by concurrent message calls
+ok 25 - restore staging cannot be interleaved by concurrent message calls
+  ---
+  duration_ms: 127.901375
+  type: 'test'
+  ...
+# Subtest: settings interruption after atomic data commit is recovered idempotently after restart
+ok 26 - settings interruption after atomic data commit is recovered idempotently after restart
+  ---
+  duration_ms: 145.843375
+  type: 'test'
+  ...
+# Subtest: unknown settings publication after atomic restore stays held after restart without SDK replay or data changes
+ok 27 - unknown settings publication after atomic restore stays held after restart without SDK replay or data changes
+  ---
+  duration_ms: 120.230416
+  type: 'test'
+  ...
+# Subtest: restore accepts reading-only controls and preserves valid historical fields while rejecting malformed values
+ok 28 - restore accepts reading-only controls and preserves valid historical fields while rejecting malformed values
+  ---
+  duration_ms: 95.466542
+  type: 'test'
+  ...
+# Subtest: Claude structural detector selects exactly the Claude adapter and only human text is projected
+ok 29 - Claude structural detector selects exactly the Claude adapter and only human text is projected
+  ---
+  duration_ms: 3.820709
+  type: 'test'
+  ...
+# Subtest: platform namespace preserves historical ChatGPT identity while separating an identical Claude source
+ok 30 - platform namespace preserves historical ChatGPT identity while separating an identical Claude source
+  ---
+  duration_ms: 4.612584
+  type: 'test'
+  ...
+# Subtest: Claude export commits through the existing Source/Input pipeline without a new durable schema
+ok 31 - Claude export commits through the existing Source/Input pipeline without a new durable schema
+  ---
+  duration_ms: 64.088875
+  type: 'test'
+  ...
+# Subtest: format detection refuses to guess when no registered export shape is present
+ok 32 - format detection refuses to guess when no registered export shape is present
+  ---
+  duration_ms: 1.110417
+  type: 'test'
+  ...
+# Subtest: history completion UI follows the session-resolved adapter instead of a fixed provider
+ok 33 - history completion UI follows the session-resolved adapter instead of a fixed provider
+  ---
+  duration_ms: 35.560292
+  type: 'test'
+  ...
+# Subtest: CPV1-01.5 current-version recovery point round-trips a bounded synthetic library with human revisions
+ok 34 - CPV1-01.5 current-version recovery point round-trips a bounded synthetic library with human revisions
+  ---
+  duration_ms: 9543.470375
+  type: 'test'
+  ...
+# Subtest: unverified production adapter completes syntax inspection but never touches transport or archives
+ok 35 - unverified production adapter completes syntax inspection but never touches transport or archives
+  ---
+  duration_ms: 16.046416
+  type: 'test'
+  ...
+# Subtest: coordinator batches with backpressure and keeps preview separate from explicit commit
+ok 36 - coordinator batches with backpressure and keeps preview separate from explicit commit
+  ---
+  duration_ms: 222.591083
+  type: 'test'
+  ...
+# Subtest: lost acknowledgement resumes from atomic committed checkpoint after file reselection
+ok 37 - lost acknowledgement resumes from atomic committed checkpoint after file reselection
+  ---
+  duration_ms: 258.965875
+  type: 'test'
+  ...
+# Subtest: pause discards the selected file and requires new consent instead of silently resuming
+ok 38 - pause discards the selected file and requires new consent instead of silently resuming
+  ---
+  duration_ms: 13.357042
+  type: 'test'
+  ...
+# Subtest: pause while begin awaits acknowledgement revokes the arriving grant before any preflight
+ok 39 - pause while begin awaits acknowledgement revokes the arriving grant before any preflight
+  ---
+  duration_ms: 17.931542
+  type: 'test'
+  ...
+# Subtest: a corrupt later ZIP shard prevents every archive write, even after earlier preflight batches
+ok 40 - a corrupt later ZIP shard prevents every archive write, even after earlier preflight batches
+  ---
+  duration_ms: 15.861208
+  type: 'test'
+  ...
+# Subtest: known storage shortage blocks import before any write and can resume after headroom returns
+ok 41 - known storage shortage blocks import before any write and can resume after headroom returns
+  ---
+  duration_ms: 25.987375
+  type: 'test'
+  ...
+# Subtest: storage is rechecked after a successful preflight before the first write
+ok 42 - storage is rechecked after a successful preflight before the first write
+  ---
+  duration_ms: 15.507541
+  type: 'test'
+  ...
+# Subtest: file time range is transient selected-file evidence and never changes ledger preview or transport
+ok 43 - file time range is transient selected-file evidence and never changes ledger preview or transport
+  ---
+  duration_ms: 22.540667
+  type: 'test'
+  ...
+# Subtest: file time range honestly reports all unknown
+ok 44 - file time range honestly reports all unknown
+  ---
+  duration_ms: 12.487875
+  type: 'test'
+  ...
+# Subtest: file time range honestly reports mixed unknown
+ok 45 - file time range honestly reports mixed unknown
+  ---
+  duration_ms: 13.892541
+  type: 'test'
+  ...
+# Subtest: file time range honestly reports invalid and out-of-range
+ok 46 - file time range honestly reports invalid and out-of-range
+  ---
+  duration_ms: 12.591625
+  type: 'test'
+  ...
+# Subtest: same Source conflicting valid times across batches make the file range unavailable without changing admission
+ok 47 - same Source conflicting valid times across batches make the file range unavailable without changing admission
+  ---
+  duration_ms: 49.6315
+  type: 'test'
+  ...
+# Subtest: file range identifies Sources by platform and chat as well as message id
+ok 48 - file range identifies Sources by platform and chat as well as message id
+  ---
+  duration_ms: 19.203458
+  type: 'test'
+  ...
+# Subtest: late ready response cannot publish a file range into a newly selected session
+ok 49 - late ready response cannot publish a file range into a newly selected session
+  ---
+  duration_ms: 16.119875
+  type: 'test'
+  ...
+# Subtest: cancel rejection clears only transient range as soon as the selected file is released
+ok 50 - cancel rejection clears only transient range as soon as the selected file is released
+  ---
+  duration_ms: 10.606167
+  type: 'test'
+  ...
+# Subtest: pause clears transient range during its existing transport wait and preserves rejection handling
+ok 51 - pause clears transient range during its existing transport wait and preserves rejection handling
+  ---
+  duration_ms: 9.231791
+  type: 'test'
+  ...
+# Subtest: failure cleanup clears transient range before waiting and old cancellation never clears a new ready range
+ok 52 - failure cleanup clears transient range before waiting and old cancellation never clears a new ready range
+  ---
+  duration_ms: 13.198958
+  type: 'test'
+  ...
+# Subtest: production ledger has no verified adapter and refuses writes despite synthetic adapter claims
+ok 53 - production ledger has no verified adapter and refuses writes despite synthetic adapter claims
+  ---
+  duration_ms: 49.564083
+  type: 'test'
+  ...
+# Subtest: preflight persists no text/title, commits exact text/time once, retries do not double counters
+ok 54 - preflight persists no text/title, commits exact text/time once, retries do not double counters
+  ---
+  duration_ms: 47.082375
+  type: 'test'
+  ...
+# Subtest: batch digest mismatch and wrong owner cannot commit
+ok 55 - batch digest mismatch and wrong owner cannot commit
+  ---
+  duration_ms: 34.401875
+  type: 'test'
+  ...
+# Subtest: pause and worker restart require fresh consent and whole content fingerprint for resume
+ok 56 - pause and worker restart require fresh consent and whole content fingerprint for resume
+  ---
+  duration_ms: 27.46975
+  type: 'test'
+  ...
+# Subtest: cross-batch conflicting times are known before first record commit
+ok 57 - cross-batch conflicting times are known before first record commit
+  ---
+  duration_ms: 24.305375
+  type: 'test'
+  ...
+# Subtest: import protects authored library text, title, note, exclusion, revisions and capturedAt
+ok 58 - import protects authored library text, title, note, exclusion, revisions and capturedAt
+  ---
+  duration_ms: 35.368917
+  type: 'test'
+  ...
+# Subtest: permanent ignore after preflight wins and purge removes import source evidence
+ok 59 - permanent ignore after preflight wins and purge removes import source evidence
+  ---
+  duration_ms: 59.535209
+  type: 'test'
+  ...
+# Subtest: transaction abort rolls records, default blocks, facts and checkpoint back together
+ok 60 - transaction abort rolls records, default blocks, facts and checkpoint back together
+  ---
+  duration_ms: 40.186417
+  type: 'test'
+  ...
+# Subtest: same text distinct sources stay distinct and ambiguous sources are not active library text
+ok 61 - same text distinct sources stay distinct and ambiguous sources are not active library text
+  ---
+  duration_ms: 31.631417
+  type: 'test'
+  ...
+# Subtest: capture and import dedupe together, later empty response evidence cannot erase official time
+ok 62 - capture and import dedupe together, later empty response evidence cannot erase official time
+  ---
+  duration_ms: 40.774042
+  type: 'test'
+  ...
+# Subtest: existing reliable response time is preserved and contradictory export is explicitly partial
+ok 63 - existing reliable response time is preserved and contradictory export is explicitly partial
+  ---
+  duration_ms: 36.82375
+  type: 'test'
+  ...
+# Subtest: quota-style abort does not advance checkpoint and resume status marks missing in-memory grant
+ok 64 - quota-style abort does not advance checkpoint and resume status marks missing in-memory grant
+  ---
+  duration_ms: 18.465583
+  type: 'test'
+  ...
+# Subtest: all projected fields are allowlisted and only exact sent text user messages are admitted
+ok 65 - all projected fields are allowlisted and only exact sent text user messages are admitted
+  ---
+  duration_ms: 9.867625
+  type: 'test'
+  ...
+# Subtest: all resumable tasks remain reachable through bounded task pages
+ok 66 - all resumable tasks remain reachable through bounded task pages
+  ---
+  duration_ms: 36.230875
+  type: 'test'
+  ...
+# Subtest: legacy snapshot tombstones exclude all import facts both before and after preflight
+ok 67 - legacy snapshot tombstones exclude all import facts both before and after preflight
+  ---
+  duration_ms: 28.858666
+  type: 'test'
+  ...
+# Subtest: conflicting branch evidence across preflight batches never creates an active linear block
+ok 68 - conflicting branch evidence across preflight batches never creates an active linear block
+  ---
+  duration_ms: 22.770834
+  type: 'test'
+  ...
+# Subtest: too many legacy candidates fail before an unbounded legacy record materialization
+ok 69 - too many legacy candidates fail before an unbounded legacy record materialization
+  ---
+  duration_ms: 230.824125
+  type: 'test'
+  ...
+# Subtest: import file grant gates every read and content fingerprint
+ok 70 - import file grant gates every read and content fingerprint
+  ---
+  duration_ms: 2.196417
+  type: 'test'
+  ...
+# Subtest: full content fingerprint ignores names and detects a changed middle chunk
+ok 71 - full content fingerprint ignores names and detects a changed middle chunk
+  ---
+  duration_ms: 11.151333
+  type: 'test'
+  ...
+# Subtest: generic tokenizer retains selected scalars exactly across UTF-8 boundaries
+ok 72 - generic tokenizer retains selected scalars exactly across UTF-8 boundaries
+  ---
+  duration_ms: 2.702792
+  type: 'test'
+  ...
+# Subtest: stream rejects malformed or ambiguous JSON 4
+ok 73 - stream rejects malformed or ambiguous JSON 4
+  ---
+  duration_ms: 1.051708
+  type: 'test'
+  ...
+# Subtest: stream rejects malformed or ambiguous JSON 13
+ok 74 - stream rejects malformed or ambiguous JSON 13
+  ---
+  duration_ms: 0.371958
+  type: 'test'
+  ...
+# Subtest: stream rejects malformed or ambiguous JSON 8
+ok 75 - stream rejects malformed or ambiguous JSON 8
+  ---
+  duration_ms: 0.512417
+  type: 'test'
+  ...
+# Subtest: stream rejects malformed or ambiguous JSON 4
+ok 76 - stream rejects malformed or ambiguous JSON 4
+  ---
+  duration_ms: 0.116125
+  type: 'test'
+  ...
+# Subtest: stream rejects malformed or ambiguous JSON 7
+ok 77 - stream rejects malformed or ambiguous JSON 7
+  ---
+  duration_ms: 0.083125
+  type: 'test'
+  ...
+# Subtest: stream rejects malformed or ambiguous JSON 9
+ok 78 - stream rejects malformed or ambiguous JSON 9
+  ---
+  duration_ms: 0.27575
+  type: 'test'
+  ...
+# Subtest: stream rejects malformed or ambiguous JSON 11
+ok 79 - stream rejects malformed or ambiguous JSON 11
+  ---
+  duration_ms: 0.885792
+  type: 'test'
+  ...
+# Subtest: stream rejects bad UTF-8 and resource overruns without raw exceptions
+ok 80 - stream rejects bad UTF-8 and resource overruns without raw exceptions
+  ---
+  duration_ms: 1.918334
+  type: 'test'
+  ...
+# Subtest: very long skipped body and many array members do not accumulate conversation JSON
+ok 81 - very long skipped body and many array members do not accumulate conversation JSON
+  ---
+  duration_ms: 69.119334
+  type: 'test'
+  ...
+# Subtest: ZIP validates every candidate including a corrupt later shard before acceptance
+ok 82 - ZIP validates every candidate including a corrupt later shard before acceptance
+  ---
+  duration_ms: 1.479208
+  type: 'test'
+  ...
+# Subtest: ZIP resource/path/encryption/local-header guards
+ok 83 - ZIP resource/path/encryption/local-header guards
+  ---
+  duration_ms: 0.73775
+  type: 'test'
+  ...
+# Subtest: stored and deflate candidates pass CRC and unknown assets are not decoded
+ok 84 - stored and deflate candidates pass CRC and unknown assets are not decoded
+  ---
+  duration_ms: 8.291834
+  type: 'test'
+  ...
+# Subtest: backpressure awaits consumer and abort halts subsequent file reads
+ok 85 - backpressure awaits consumer and abort halts subsequent file reads
+  ---
+  duration_ms: 0.157167
+  type: 'test'
+  ...
+# Subtest: signed and unsigned ZIP descriptors are checked and truncated metadata stays a fixed error
+ok 86 - signed and unsigned ZIP descriptors are checked and truncated metadata stays a fixed error
+  ---
+  duration_ms: 2.360458
+  type: 'test'
+  ...
+# Subtest: reader applies decompression, candidate, total, and key limits and rejects raising ceilings
+ok 87 - reader applies decompression, candidate, total, and key limits and rejects raising ceilings
+  ---
+  duration_ms: 4.8415
+  type: 'test'
+  ...
+# Subtest: reader rejects multidisk and ZIP64 sentinels before any JSON consumer
+ok 88 - reader rejects multidisk and ZIP64 sentinels before any JSON consumer
+  ---
+  duration_ms: 0.197125
+  type: 'test'
+  ...
+# Subtest: import capability requires exact own archive page, not popup/content/subframe/foreign origin
+ok 89 - import capability requires exact own archive page, not popup/content/subframe/foreign origin
+  ---
+  duration_ms: 0.831292
+  type: 'test'
+  ...
+# Subtest: backend cannot be enabled with a client schema flag, fixture name, or unbound grant
+ok 90 - backend cannot be enabled with a client schema flag, fixture name, or unbound grant
+  ---
+  duration_ms: 0.213625
+  type: 'test'
+  ...
+# Subtest: production import registry stays empty; native messaging is optional rather than ambient authority
+ok 91 - production import registry stays empty; native messaging is optional rather than ambient authority
+  ---
+  duration_ms: 5.899333
+  type: 'test'
+  ...
+# Subtest: additive database v1 to v2 upgrade preserves every old row, index, and setting
+ok 92 - additive database v1 to v2 upgrade preserves every old row, index, and setting
+  ---
+  duration_ms: 64.739666
+  type: 'test'
+  ...
+# Subtest: read-only checker accepts valid original content, unplaced entries and durable revisions; emits aggregates only
+ok 93 - read-only checker accepts valid original content, unplaced entries and durable revisions; emits aggregates only
+  ---
+  duration_ms: 261.128625
+  type: 'test'
+  ...
+# Subtest: checker detects planted broken references and checkpoint but never repairs
+ok 94 - checker detects planted broken references and checkpoint but never repairs
+  ---
+  duration_ms: 73.711792
+  type: 'test'
+  ...
+# Subtest: checker fences changing data, deduplicates page calls and expires sessions
+ok 95 - checker fences changing data, deduplicates page calls and expires sessions
+  ---
+  duration_ms: 69.881334
+  type: 'test'
+  ...
+# Subtest: v0.11 backup envelope accepts prior and current v0.55 producers but rejects future v0.56 with its exact error
+ok 96 - v0.11 backup envelope accepts prior and current v0.55 producers but rejects future v0.56 with its exact error
+  ---
+  duration_ms: 1.020417
+  type: 'test'
+  ...
+# Subtest: current manifest backup producer is accepted while the next minor refuses
+ok 97 - current manifest backup producer is accepted while the next minor refuses
+  ---
+  duration_ms: 4.949167
+  type: 'test'
+  ...
+# Subtest: Import: original warm hold is readonly and exact token release does not replay
+ok 98 - Import: original warm hold is readonly and exact token release does not replay
+  ---
+  duration_ms: 80.58025
+  type: 'test'
+  ...
+# Subtest: Import: identity substitution and original snapshot change refuse
+ok 99 - Import: identity substitution and original snapshot change refuse
+  ---
+  duration_ms: 50.961541
+  type: 'test'
+  ...
+# Subtest: Backup: original warm hold is readonly and exact token release does not replay
+ok 100 - Backup: original warm hold is readonly and exact token release does not replay
+  ---
+  duration_ms: 46.695166
+  type: 'test'
+  ...
+# Subtest: Backup: identity substitution and original snapshot change refuse
+ok 101 - Backup: identity substitution and original snapshot change refuse
+  ---
+  duration_ms: 52.463833
+  type: 'test'
+  ...
+# Subtest: Integrity: original warm hold is readonly and exact token release does not replay
+ok 102 - Integrity: original warm hold is readonly and exact token release does not replay
+  ---
+  duration_ms: 45.81175
+  type: 'test'
+  ...
+# Subtest: Integrity: identity substitution and original snapshot change refuse
+ok 103 - Integrity: identity substitution and original snapshot change refuse
+  ---
+  duration_ms: 38.081417
+  type: 'test'
+  ...
+# Subtest: Import queued begin cannot issue its first write once hold closes admission
+ok 104 - Import queued begin cannot issue its first write once hold closes admission
+  ---
+  duration_ms: 30.926875
+  type: 'test'
+  ...
+# Subtest: Import nonterminal durable task refuses without clearing original grant or task
+ok 105 - Import nonterminal durable task refuses without clearing original grant or task
+  ---
+  duration_ms: 35.958834
+  type: 'test'
+  ...
+# Subtest: Backup stage validator remains an actual drain task and session items are preserved
+ok 106 - Backup stage validator remains an actual drain task and session items are preserved
+  ---
+  duration_ms: 23.164042
+  type: 'test'
+  ...
+# Subtest: Backup pending settings recovery is UNKNOWN, not an empty task-set proof
+ok 107 - Backup pending settings recovery is UNKNOWN, not an empty task-set proof
+  ---
+  duration_ms: 22.208042
+  type: 'test'
+  ...
+# Subtest: timeout retains real stage pending and prevents late acquire from reviving lease
+ok 108 - timeout retains real stage pending and prevents late acquire from reviving lease
+  ---
+  duration_ms: 22.172834
+  type: 'test'
+  ...
+# Subtest: Import handler is bound to exact original ledger and runtime
+ok 109 - Import handler is bound to exact original ledger and runtime
+  ---
+  duration_ms: 22.127625
+  type: 'test'
+  ...
+# Subtest: Integrity retains static session and original counts while held
+ok 110 - Integrity retains static session and original counts while held
+  ---
+  duration_ms: 26.392
+  type: 'test'
+  ...
+# Subtest: issued Import cancel transaction is drained through original commit and grant removal
+ok 111 - issued Import cancel transaction is drained through original commit and grant removal
+  ---
+  duration_ms: 21.875916
+  type: 'test'
+  ...
+# Subtest: Integrity actual native read stays in drain through its result continuation
+ok 112 - Integrity actual native read stays in drain through its result continuation
+  ---
+  duration_ms: 22.042541
+  type: 'test'
+  ...
+# Subtest: ordinary cumulative 2 MiB hold proof budget refuses without modifying evidence
+ok 113 - ordinary cumulative 2 MiB hold proof budget refuses without modifying evidence
+  ---
+  duration_ms: 23.973625
+  type: 'test'
+  ...
+# Subtest: queued settings recovery cannot begin a control write after hold
+ok 114 - queued settings recovery cannot begin a control write after hold
+  ---
+  duration_ms: 24.321083
+  type: 'test'
+  ...
+# Subtest: issued Backup SDK publication remains tracked; blocked cleanup leaves its recovery marker
+ok 115 - issued Backup SDK publication remains tracked; blocked cleanup leaves its recovery marker
+  ---
+  duration_ms: 26.449542
+  type: 'test'
+  ...
+# Subtest: strict Backup permits only optional bounded style intent and preserves all old preference constraints
+ok 116 - strict Backup permits only optional bounded style intent and preserves all old preference constraints
+  ---
+  duration_ms: 2.077375
+  type: 'test'
+  ...
+# Subtest: actual existing-file restore retains absent legacy preference without activation
+ok 117 - actual existing-file restore retains absent legacy preference without activation
+  ---
+  duration_ms: 117.92575
+  type: 'test'
+  ...
+# Subtest: actual existing-file restore retains concise preference without activation
+ok 118 - actual existing-file restore retains concise preference without activation
+  ---
+  duration_ms: 96.246917
+  type: 'test'
+  ...
+# Subtest: actual existing-file restore retains future_style preference without activation
+ok 119 - actual existing-file restore retains future_style preference without activation
+  ---
+  duration_ms: 69.686583
+  type: 'test'
+  ...
+1..119
+# tests 119
+# suites 0
+# pass 119
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9843.145417

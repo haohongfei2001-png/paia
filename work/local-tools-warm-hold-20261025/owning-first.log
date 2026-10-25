@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: product version agrees across manifest, version name and package identity
+ok 1 - product version agrees across manifest, version name and package identity
+  ---
+  duration_ms: 0.3595
+  type: 'test'
+  ...
+# Subtest: current compatible product version and every prior admitted minor retain strict existing-file admission
+ok 2 - current compatible product version and every prior admitted minor retain strict existing-file admission
+  ---
+  duration_ms: 1.809541
+  type: 'test'
+  ...
+# Subtest: current-version existing-file restore preserves Source and Input while production export stays retired
+ok 3 - current-version existing-file restore preserves Source and Input while production export stays retired
+  ---
+  duration_ms: 121.839125
+  type: 'test'
+  ...
+# Subtest: production ledger has no verified adapter and refuses writes despite synthetic adapter claims
+ok 4 - production ledger has no verified adapter and refuses writes despite synthetic adapter claims
+  ---
+  duration_ms: 19.725875
+  type: 'test'
+  ...
+# Subtest: preflight persists no text/title, commits exact text/time once, retries do not double counters
+ok 5 - preflight persists no text/title, commits exact text/time once, retries do not double counters
+  ---
+  duration_ms: 24.583791
+  type: 'test'
+  ...
+# Subtest: batch digest mismatch and wrong owner cannot commit
+ok 6 - batch digest mismatch and wrong owner cannot commit
+  ---
+  duration_ms: 10.680167
+  type: 'test'
+  ...
+# Subtest: pause and worker restart require fresh consent and whole content fingerprint for resume
+ok 7 - pause and worker restart require fresh consent and whole content fingerprint for resume
+  ---
+  duration_ms: 17.266084
+  type: 'test'
+  ...
+# Subtest: cross-batch conflicting times are known before first record commit
+ok 8 - cross-batch conflicting times are known before first record commit
+  ---
+  duration_ms: 13.883834
+  type: 'test'
+  ...
+# Subtest: import protects authored library text, title, note, exclusion, revisions and capturedAt
+ok 9 - import protects authored library text, title, note, exclusion, revisions and capturedAt
+  ---
+  duration_ms: 20.185458
+  type: 'test'
+  ...
+# Subtest: permanent ignore after preflight wins and purge removes import source evidence
+ok 10 - permanent ignore after preflight wins and purge removes import source evidence
+  ---
+  duration_ms: 26.666666
+  type: 'test'
+  ...
+# Subtest: transaction abort rolls records, default blocks, facts and checkpoint back together
+ok 11 - transaction abort rolls records, default blocks, facts and checkpoint back together
+  ---
+  duration_ms: 10.991542
+  type: 'test'
+  ...
+# Subtest: same text distinct sources stay distinct and ambiguous sources are not active library text
+ok 12 - same text distinct sources stay distinct and ambiguous sources are not active library text
+  ---
+  duration_ms: 12.738083
+  type: 'test'
+  ...
+# Subtest: capture and import dedupe together, later empty response evidence cannot erase official time
+ok 13 - capture and import dedupe together, later empty response evidence cannot erase official time
+  ---
+  duration_ms: 15.348
+  type: 'test'
+  ...
+# Subtest: existing reliable response time is preserved and contradictory export is explicitly partial
+ok 14 - existing reliable response time is preserved and contradictory export is explicitly partial
+  ---
+  duration_ms: 14.725333
+  type: 'test'
+  ...
+# Subtest: quota-style abort does not advance checkpoint and resume status marks missing in-memory grant
+ok 15 - quota-style abort does not advance checkpoint and resume status marks missing in-memory grant
+  ---
+  duration_ms: 8.375958
+  type: 'test'
+  ...
+# Subtest: all projected fields are allowlisted and only exact sent text user messages are admitted
+ok 16 - all projected fields are allowlisted and only exact sent text user messages are admitted
+  ---
+  duration_ms: 4.987625
+  type: 'test'
+  ...
+# Subtest: all resumable tasks remain reachable through bounded task pages
+ok 17 - all resumable tasks remain reachable through bounded task pages
+  ---
+  duration_ms: 18.543334
+  type: 'test'
+  ...
+# Subtest: legacy snapshot tombstones exclude all import facts both before and after preflight
+ok 18 - legacy snapshot tombstones exclude all import facts both before and after preflight
+  ---
+  duration_ms: 13.634541
+  type: 'test'
+  ...
+# Subtest: conflicting branch evidence across preflight batches never creates an active linear block
+ok 19 - conflicting branch evidence across preflight batches never creates an active linear block
+  ---
+  duration_ms: 10.126458
+  type: 'test'
+  ...
+# Subtest: too many legacy candidates fail before an unbounded legacy record materialization
+ok 20 - too many legacy candidates fail before an unbounded legacy record materialization
+  ---
+  duration_ms: 116.763166
+  type: 'test'
+  ...
+# Subtest: read-only checker accepts valid original content, unplaced entries and durable revisions; emits aggregates only
+ok 21 - read-only checker accepts valid original content, unplaced entries and durable revisions; emits aggregates only
+  ---
+  duration_ms: 153.373917
+  type: 'test'
+  ...
+# Subtest: checker detects planted broken references and checkpoint but never repairs
+ok 22 - checker detects planted broken references and checkpoint but never repairs
+  ---
+  duration_ms: 42.627
+  type: 'test'
+  ...
+# Subtest: checker fences changing data, deduplicates page calls and expires sessions
+ok 23 - checker fences changing data, deduplicates page calls and expires sessions
+  ---
+  duration_ms: 35.41
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 557.580333

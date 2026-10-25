@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: fences consume the same cumulative proof budget, never renew per call
+ok 1 - fences consume the same cumulative proof budget, never renew per call
+  ---
+  duration_ms: 80.239084
+  type: 'test'
+  ...
+# Subtest: second holds and foreign releases never clear the existing owner lease
+ok 2 - second holds and foreign releases never clear the existing owner lease
+  ---
+  duration_ms: 29.570083
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 310.257125

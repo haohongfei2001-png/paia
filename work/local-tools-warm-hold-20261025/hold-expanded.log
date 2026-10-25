@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: Import: original warm hold is readonly and exact token release does not replay
+ok 1 - Import: original warm hold is readonly and exact token release does not replay
+  ---
+  duration_ms: 54.5685
+  type: 'test'
+  ...
+# Subtest: Import: identity substitution and original snapshot change refuse
+ok 2 - Import: identity substitution and original snapshot change refuse
+  ---
+  duration_ms: 27.77125
+  type: 'test'
+  ...
+# Subtest: Backup: original warm hold is readonly and exact token release does not replay
+ok 3 - Backup: original warm hold is readonly and exact token release does not replay
+  ---
+  duration_ms: 25.808167
+  type: 'test'
+  ...
+# Subtest: Backup: identity substitution and original snapshot change refuse
+ok 4 - Backup: identity substitution and original snapshot change refuse
+  ---
+  duration_ms: 26.101333
+  type: 'test'
+  ...
+# Subtest: Integrity: original warm hold is readonly and exact token release does not replay
+ok 5 - Integrity: original warm hold is readonly and exact token release does not replay
+  ---
+  duration_ms: 27.802125
+  type: 'test'
+  ...
+# Subtest: Integrity: identity substitution and original snapshot change refuse
+ok 6 - Integrity: identity substitution and original snapshot change refuse
+  ---
+  duration_ms: 24.790375
+  type: 'test'
+  ...
+# Subtest: Import queued begin cannot issue its first write once hold closes admission
+ok 7 - Import queued begin cannot issue its first write once hold closes admission
+  ---
+  duration_ms: 20.127625
+  type: 'test'
+  ...
+# Subtest: Import nonterminal durable task refuses without clearing original grant or task
+ok 8 - Import nonterminal durable task refuses without clearing original grant or task
+  ---
+  duration_ms: 26.80375
+  type: 'test'
+  ...
+# Subtest: Backup stage validator remains an actual drain task and session items are preserved
+ok 9 - Backup stage validator remains an actual drain task and session items are preserved
+  ---
+  duration_ms: 20.011167
+  type: 'test'
+  ...
+# Subtest: Backup pending settings recovery is UNKNOWN, not an empty task-set proof
+ok 10 - Backup pending settings recovery is UNKNOWN, not an empty task-set proof
+  ---
+  duration_ms: 18.764208
+  type: 'test'
+  ...
+# Subtest: timeout retains real stage pending and prevents late acquire from reviving lease
+ok 11 - timeout retains real stage pending and prevents late acquire from reviving lease
+  ---
+  duration_ms: 21.286709
+  type: 'test'
+  ...
+# Subtest: Import handler is bound to exact original ledger and runtime
+ok 12 - Import handler is bound to exact original ledger and runtime
+  ---
+  duration_ms: 18.151667
+  type: 'test'
+  ...
+# Subtest: Integrity retains static session and original counts while held
+ok 13 - Integrity retains static session and original counts while held
+  ---
+  duration_ms: 23.5205
+  type: 'test'
+  ...
+# Subtest: issued Import cancel transaction is drained through original commit and grant removal
+ok 14 - issued Import cancel transaction is drained through original commit and grant removal
+  ---
+  duration_ms: 18.742417
+  type: 'test'
+  ...
+# Subtest: Integrity actual native read stays in drain through its result continuation
+ok 15 - Integrity actual native read stays in drain through its result continuation
+  ---
+  duration_ms: 17.445875
+  type: 'test'
+  ...
+# Subtest: ordinary cumulative 2 MiB hold proof budget refuses without modifying evidence
+ok 16 - ordinary cumulative 2 MiB hold proof budget refuses without modifying evidence
+  ---
+  duration_ms: 19.026708
+  type: 'test'
+  ...
+# Subtest: queued settings recovery cannot begin a control write after hold
+ok 17 - queued settings recovery cannot begin a control write after hold
+  ---
+  duration_ms: 19.884916
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 595.462083

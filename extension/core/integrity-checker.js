@@ -1,3 +1,4 @@
+import {localToolSelectionHold} from './local-tool-selection-hold.js';
 import {validateMemoryRow,key} from './memory/model.js';
 import {ArchiveError} from './constants.js';
 
@@ -7,13 +8,24 @@ const generation=async t=>(await t.get('meta','backup-data-generation'))?.value|
 // Read-only, bounded pages. Only aggregate counts cross the UI boundary; no row,
 // identity, body, credential or provider response is retained in a session.
 export class IntegrityChecker {
- constructor(store,{clock=()=>Date.now(),pageSize=100}={}){this.s=store;this.clock=clock;this.pageSize=pageSize;this.sessions=new Map();}
- expire(){for(const [id,s]of this.sessions)if(this.clock()-s.at>600000)this.sessions.delete(id);}
+ begin(){return this.#selection.entry(()=>this.#begin());}
+ page(q){return this.#selection.entry(()=>this.#page(q));}
+ scan(s){return this.#selection.entry(()=>this.#scan(s));}
+ #selection;
+ applicationSelectionSourceIs(store){return this.#selection.sourceIs(store);}
+ holdForApplicationSelection(){return this.#selection.hold();}
+ applicationSelectionHeld(token){return this.#selection.held(token);}
+ fenceApplicationSelection(token){return this.#selection.fence(token);}
+ releaseApplicationSelection(token){return this.#selection.release(token);}
+ releaseFailedApplicationSelection(error){return this.#selection.releaseFailed(error);}
+
+ constructor(store,{clock=()=>Date.now(),pageSize=100}={}){this.s=store;this.clock=clock;this.pageSize=pageSize;this.sessions=new Map();const sessions=this.sessions;this.#selection=localToolSelectionHold(store,()=>Object.getPrototypeOf(this)===originalPrototype&&this.s===store&&this.sessions===sessions&&originalMethods.every(([k,v])=>this[k]===v));}
+ expire(){this.#selection.admit();for(const [id,s]of this.sessions)if(this.clock()-s.at>600000)this.sessions.delete(id);}
  result(s){return {sessionId:s.id,state:s.state,checked:s.checked,total:s.total,counts:{...s.counts}};}
- async begin(){this.expire();if(this.sessions.size>=2)this.sessions.delete(this.sessions.keys().next().value);const snapshot=await this.s.repository.transaction(false,async t=>({generation:await generation(t),total:(await Promise.all(tables.map(n=>t.count(n)))).reduce((a,b)=>a+b,0)}));const s={id:crypto.randomUUID(),...snapshot,at:this.clock(),phase:0,cursor:null,checked:0,state:'loading',counts:Object.fromEntries(INTEGRITY_CATEGORIES.map(k=>[k,0]))};this.sessions.set(s.id,s);return this.result(s);}
- cancel({sessionId}={}){this.sessions.delete(sessionId);return {state:'idle'};}
- async page({sessionId}={}){this.expire();const s=this.sessions.get(sessionId);if(!s)throw new ArchiveError('INTEGRITY_SESSION_EXPIRED');if(s.pending)return s.pending;if(s.state!=='loading')return this.result(s);s.pending=this.scan(s).finally(()=>{s.pending=null;});return s.pending;}
- async scan(s){const update=await this.s.repository.transaction(false,async t=>{if(await generation(t)!==s.generation)return {state:'stale'};const name=tables[s.phase],page=await t.page(name,{after:s.cursor??undefined,limit:this.pageSize}),counts={...s.counts};for(const {value:row}of page.rows)await inspect(t,name,row,counts);return {counts,checked:s.checked+page.rows.length,cursor:page.next,phase:s.phase+(page.next?0:1),state:!page.next&&s.phase===tables.length-1?'ready':'loading'};});Object.assign(s,update,{at:this.clock()});return this.result(s);}
+ async #begin(){this.expire();if(this.sessions.size>=2)this.sessions.delete(this.sessions.keys().next().value);const snapshot=await this.s.repository.transaction(false,async t=>({generation:await generation(t),total:(await Promise.all(tables.map(n=>t.count(n)))).reduce((a,b)=>a+b,0)}));const s={id:crypto.randomUUID(),...snapshot,at:this.clock(),phase:0,cursor:null,checked:0,state:'loading',counts:Object.fromEntries(INTEGRITY_CATEGORIES.map(k=>[k,0]))};this.sessions.set(s.id,s);return this.result(s);}
+ cancel({sessionId}={}){this.#selection.admit();this.sessions.delete(sessionId);return {state:'idle'};}
+ async #page({sessionId}={}){this.expire();const s=this.sessions.get(sessionId);if(!s)throw new ArchiveError('INTEGRITY_SESSION_EXPIRED');if(s.pending)return s.pending;if(s.state!=='loading')return this.result(s);s.pending=this.#scan(s).finally(()=>{s.pending=null;});return s.pending;}
+ async #scan(s){const update=await this.s.repository.transaction(false,async t=>{if(await generation(t)!==s.generation)return {state:'stale'};const name=tables[s.phase],page=await t.page(name,{after:s.cursor??undefined,limit:this.pageSize}),counts={...s.counts};for(const {value:row}of page.rows)await inspect(t,name,row,counts);return {counts,checked:s.checked+page.rows.length,cursor:page.next,phase:s.phase+(page.next?0:1),state:!page.next&&s.phase===tables.length-1?'ready':'loading'};});Object.assign(s,update,{at:this.clock()});return this.result(s);}
 }
 async function missingSources(t,ids){for(const id of ids||[])if(typeof id!=='string'||!await t.get('records',id))return true;return false;}
 async function inspect(t,name,raw,c){const r=['records','blocks'].includes(name)?raw.value:raw;
@@ -43,3 +55,6 @@ async function inspect(t,name,raw,c){const r=['records','blocks'].includes(name)
   if(requestPrefix){const id=r.requestId||r.actionId;if(!id||!await t.get('meta',requestPrefix+id))c.invalid_organizer_checkpoint++;}
  }
 }
+
+const originalPrototype=IntegrityChecker.prototype;
+const originalMethods=Object.getOwnPropertyNames(originalPrototype).filter(k=>k!=='constructor').map(k=>[k,originalPrototype[k]]);
