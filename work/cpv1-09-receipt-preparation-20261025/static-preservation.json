@@ -1,0 +1,8 @@
+{
+  "exactThreeReversibleChanges": true,
+  "allOtherBytesIdentical": true,
+  "originalSourceReleaseAndTwoDomSignatures": true,
+  "timeoutMs": 180000,
+  "nativeExecuted": false,
+  "buildExecuted": false
+}

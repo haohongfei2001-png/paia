@@ -1,0 +1,97 @@
+TAP version 13
+# Subtest: new explicit actions use original prepare text and action without minting an insertion receipt
+not ok 1 - new explicit actions use original prepare text and action without minting an insertion receipt
+  ---
+  duration_ms: 3.392041
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/cpv1-09-receipt-preparation/extension/tests/cpv1-09-receipt-request-preparation.test.mjs:18:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    -   'PAIA_PROMPT_INSERT_PREPARE',
+        'PAIA_PROMPT_INSERT',
+    -   'PAIA_PROMPT_INSERT_PREPARE',
+        'PAIA_PROMPT_INSERT'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'PAIA_PROMPT_INSERT_PREPARE'
+    1: 'PAIA_PROMPT_INSERT'
+    2: 'PAIA_PROMPT_INSERT_PREPARE'
+    3: 'PAIA_PROMPT_INSERT'
+  actual:
+    0: 'PAIA_PROMPT_INSERT'
+    1: 'PAIA_PROMPT_INSERT'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/cpv1-09-receipt-preparation/extension/tests/cpv1-09-receipt-request-preparation.test.mjs:19:61)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: duplicate explicit request retains the exact prepared action and performs no second preparation
+not ok 2 - duplicate explicit request retains the exact prepared action and performs no second preparation
+  ---
+  duration_ms: 0.176917
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/cpv1-09-receipt-preparation/extension/tests/cpv1-09-receipt-request-preparation.test.mjs:23:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/cpv1-09-receipt-preparation/extension/tests/cpv1-09-receipt-request-preparation.test.mjs:24:49)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: original prepare rejection propagates and never fabricates a failed insertion response
+not ok 3 - original prepare rejection propagates and never fabricates a failed insertion response
+  ---
+  duration_ms: 0.121333
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/cpv1-09-receipt-preparation/extension/tests/cpv1-09-receipt-request-preparation.test.mjs:28:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/cpv1-09-receipt-preparation/extension/tests/cpv1-09-receipt-request-preparation.test.mjs:29:83)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: changed prepared text or missing action refuses before insert
+not ok 4 - changed prepared text or missing action refuses before insert
+  ---
+  duration_ms: 0.06625
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/cpv1-09-receipt-preparation/extension/tests/cpv1-09-receipt-request-preparation.test.mjs:31:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/cpv1-09-receipt-preparation/extension/tests/cpv1-09-receipt-request-preparation.test.mjs:32:145)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 47.776208

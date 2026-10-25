@@ -21,8 +21,12 @@ for(const runtime of ['source','release'])for(const signature of ['legacy','curr
   await rpc(ui,'PAIA_PROMPT_CHANGE',{change:{action:'create',revision:created.revision,text:'UNSELECTED_PRIVATE_LIBRARY_CANARY'}});
   await rpc(ui,'PAIA_PROMPT_CHANGE',{change:{action:'pin',id:created.id,revision:created.revision+1}});
   const targets=await rpc(ui,'PAIA_PROMPT_TARGETS'),target=targets.find(x=>x.url===url);assert.ok(target);
-  const request=()=>({id:created.id,text:chosen,tabId:target.id,url,operationId:crypto.randomUUID()});
-  const insert=async fields=>rpc(ui,'PAIA_PROMPT_INSERT',fields||request());
+  const request=async()=>{
+   const prepared=await rpc(ui,'PAIA_PROMPT_INSERT_PREPARE',{id:created.id,text:chosen,tabId:target.id,url});
+   assert.equal(prepared.text,chosen);assert.ok(prepared.insertionAction);
+   return {id:created.id,text:prepared.text,tabId:target.id,url,operationId:prepared.insertionAction.operationId,insertionAction:prepared.insertionAction};
+  };
+  const insert=async fields=>rpc(ui,'PAIA_PROMPT_INSERT',fields??await request());
   async function set(text,start=null,end=null){await chat.evaluate(args=>fixture.set(...args),[text,start,end]);await chat.waitForTimeout(60);}
   async function value(){return chat.evaluate(()=>fixture.text());}
   await t.test('empty exact Unicode/multiline/code, caret end, focus and actual framework state',async()=>{
@@ -56,7 +60,7 @@ for(const runtime of ['source','release'])for(const signature of ['legacy','curr
   });
   await t.test('uncertain acknowledgement preserves result with exactly one attempt and no retry',async()=>{
    await set('existing',8);await world.run("globalThis.__nativeInsert=document.execCommand.bind(document);document.execCommand=(...args)=>{__nativeInsert(...args);return false;}");
-   const req=request(),r=await insert(req);assert.equal(r.status,'uncertain');const once=await value();assert.equal(once,'existing'+chosen);assert.equal((await insert(req)).status,'uncertain');assert.equal(await value(),once);
+   const req=await request(),r=await insert(req);assert.equal(r.status,'uncertain');const once=await value();assert.equal(once,'existing'+chosen);assert.equal((await insert(req)).status,'uncertain');assert.equal(await value(),once);
    await world.run('document.execCommand=__nativeInsert;');
   });
   await t.test('insertion rejected leaves draft byte-for-byte intact; explicit browser clipboard fallback',async()=>{
@@ -67,7 +71,7 @@ for(const runtime of ['source','release'])for(const signature of ['legacy','curr
    await ui.evaluate(()=>{navigator.clipboard.writeText=async()=>{throw Error('synthetic denied');};});await ui.locator('#prompts button').nth(1).click();await eventually(async()=>await ui.locator('#status').textContent()==='Copy failed. Prompt remains available.');
   });
   await t.test('SPA mismatch and unsupported composer refuse without draft replacement',async()=>{
-   await set('保留');await chat.evaluate(()=>history.pushState({},'', '/c/changed-fixture'));assert.equal((await insert()).status,'failed');assert.equal(await value(),'保留');await chat.evaluate(url=>history.replaceState({},'',url),url);
+   await set('保留');const staleRequest=await request();await chat.evaluate(()=>history.pushState({},'', '/c/changed-fixture'));assert.equal((await insert(staleRequest)).status,'failed');assert.equal(await value(),'保留');await chat.evaluate(url=>history.replaceState({},'',url),url);
    await chat.evaluate(()=>fixture.view.dom.removeAttribute('contenteditable'));assert.equal((await insert()).status,'failed');assert.equal(await value(),'保留');
   });
   await t.test('zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure',async()=>{
