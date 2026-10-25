@@ -3,6 +3,19 @@ import {element} from './common.js';
 // One disposable reading-options state per owner, consumed on its next mount.
 const readingOptions=new WeakMap();
 
+// Reuse the original Section navigation subtree; responsive composition never
+// creates another selector, listener, Section state or reading/editor owner.
+export function presentTopicSectionNavigation({narrow=globalThis.innerWidth<1024,active=document.body.dataset.paiaSpace==='thoughts'&&document.body.dataset.paiaSurface==='reader'}={}){
+ const root=document.getElementById('thought-document'),outline=document.getElementById('topic-outline');
+ if(!root?.classList.contains('dvn-topic-composition')||!outline)return;
+ const header=document.querySelector('.workspace-header'),back=document.getElementById('back'),inHeader=active&&narrow&&back?.parentElement===header;
+ const host=inHeader?header:root,before=inHeader?back.nextSibling:document.getElementById('topic-continuous-before'),anchor=before?.parentElement===host?before:null;
+ if(outline.parentElement===host&&(outline===anchor||outline.nextSibling===anchor))return;
+ const focused=document.activeElement,retains=focused&&outline.contains(focused);
+ host.insertBefore(outline,anchor);
+ if(retains&&focused.isConnected&&[focused,document.body,null].includes(document.activeElement))focused.focus({preventScroll:true});
+}
+
 // A presentation of the existing Topic owner and its nodes. No body, history,
 // pagination, save or authorization state is owned here.
 export function topicPresentationFacts(overview,sort='desc'){
@@ -56,12 +69,14 @@ export class TopicWorkspacePresentation {
   const tabs=document.getElementById('topic-original-tabs');if(tabs)tabs.hidden=true;
   const order=document.getElementById('topic-time-order');if(order)order.hidden=!content;
   const outline=document.getElementById('topic-outline');if(outline)outline.hidden=!owner.id||!owner.sectionDirectory?.length;
+  presentTopicSectionNavigation();
   const state=owner.topicReader?.state(),before=document.getElementById('topic-continuous-before');if(state?.terminalPrevious&&!state.loadingPrevious&&!state.errorPrevious&&content)before.hidden=true;
  }
  dispose(){
   if(this.disposed)return;this.disposed=true;document.removeEventListener('selectionchange',this.onTitleSelection);if(this.selectionFrame!==null)cancelAnimationFrame(this.selectionFrame);
   readingOptions.set(this.owner,{topicId:this.topicId,view:this.view,open:this.options.open});
   const active=document.activeElement,moved=this.moves.some(({node})=>node===active||node.contains(active));
+  presentTopicSectionNavigation({active:false});
   this.root.classList.remove('dvn-topic-composition');for(const {node,parent,next}of this.moves.toReversed())if(parent?.isConnected)parent.insertBefore(node,next?.parentNode===parent?next:null);for(const node of this.created)node.remove();
   // Reparenting can blur the History invoker before the owner opens its dialog.
   // Restore only synchronous move loss, never replace another control's focus.

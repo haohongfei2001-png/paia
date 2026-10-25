@@ -1,0 +1,75 @@
+name: PAIA UI Restoration Final Eight Visual
+run-name: UI final eight visual ${{ github.sha }}
+on: create
+permissions:
+  contents: read
+concurrency:
+  group: paia-ui-restoration-oneoff-${{ github.sha }}
+  cancel-in-progress: false
+jobs:
+  visual:
+    if: github.event_name == 'create' && github.event.ref_type == 'branch' && github.event.ref == 'evidence/ui-visual-final-20261025' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CI: '1'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      PAIA_VISUAL_SOURCE_SHA: ${{ github.sha }}
+      PAIA_VISUAL_SCOPE: ui-visual-final-20261025
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Bind exact source and preserve setup identity
+        timeout-minutes: 1
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$PAIA_VISUAL_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$PAIA_VISUAL_SOURCE_SHA"
+          test "$GITHUB_SHA" = "$PAIA_VISUAL_SOURCE_SHA"
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          echo "PAIA_VISUAL_CAPTURE_DEADLINE_MS=$(( $(date +%s) * 1000 + 240000 ))" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/paia-ui-visual-final"
+          printf 'source=%s\nscope=%s\nrun=%s\nattempt=%s\n' "$PAIA_VISUAL_SOURCE_SHA" "$PAIA_VISUAL_SCOPE" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > "$RUNNER_TEMP/paia-ui-visual-final/job-binding.txt"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Existing pinned dependencies, hosted Chrome and CJK fonts
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          exec > >(tee -a "$RUNNER_TEMP/paia-ui-visual-final/setup.log") 2>&1
+          # The extension uses exact package.json versions and its existing
+          # npm-install convention; it has no extension package-lock to npm ci.
+          npm install --prefix extension --ignore-scripts --no-audit --no-fund --package-lock=false
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          if [ -z "$(fc-list :lang=zh)" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-color-emoji
+          fi
+          node -p "require('./extension/node_modules/playwright/package.json').version"
+          "$CHROME_BIN" --version
+      - name: One bounded actual-source capture attempt
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          node extension/scripts/ui-restoration-visual-once/runner.mjs \
+            --source "$GITHUB_WORKSPACE" --sha "$PAIA_VISUAL_SOURCE_SHA" \
+            --round 1 --execute-approved \
+            --output "$RUNNER_TEMP/paia-ui-visual-final" \
+            2>&1 | tee "$RUNNER_TEMP/paia-ui-visual-final/run.log"
+      - name: Preserve original result or first failure
+        if: always()
+        timeout-minutes: 1
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-restoration-visual-final-${{ github.run_id }}
+          path: ${{ runner.temp }}/paia-ui-visual-final/
+          if-no-files-found: warn
+          retention-days: 7

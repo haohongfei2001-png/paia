@@ -39,18 +39,20 @@ function expectedSummary(value,names,remainder,total=names.length+remainder){
 async function assertReadOnly(f,run){const before=await snapshot(f.s);await run();assert.deepEqual(await snapshot(f.s),before,'summary reads must not write any canonical data, preference, cache or receipt');}
 const description=async cards=>{
  const previous=Object.getOwnPropertyDescriptor(globalThis,'document');globalThis.document={addEventListener(){},documentElement:{lang:'en'},createElement:tag=>new PresentationNode(tag)};
- try{const page=new ContextCardsPage({host:null,onNavigate:()=>{}}),node=new PresentationNode('p');page.snapshot=await cards.snapshot();page.paintInputSummary(node);return {summary:node.textContent,count:page.inputCount(),snapshot:page.snapshot};}
+ try{const page=new ContextCardsPage({host:null,onNavigate:()=>{}}),node=new PresentationNode('p');page.snapshot=await cards.snapshot();page.paintInputSummary(node);return {summary:node.textContent,hidden:node.hidden,count:page.inputCount(),snapshot:page.snapshot};}
  finally{if(previous)Object.defineProperty(globalThis,'document',previous);else delete globalThis.document;}
 };
 
-test('CTX4-03 home names exactly five of twenty real selections in canonical order with fifteen remaining',()=>fixture(async f=>{
+// CTX4-UI-1.7 Home is qualified directory names only: no +N/statistic or
+// routine retained/empty prose. Backend retained-count/privacy checks stay intact.
+test('CTX4-03 home shows only five canonical names while metadata retains twenty selections',()=>fixture(async f=>{
  const expected=f.page.items.slice(0,5).map(row=>row.name),transaction=f.s.repository.transaction.bind(f.s.repository),reads=[];
  await assertReadOnly(f,async()=>{
   f.s.repository.transaction=(write,run,stores)=>transaction(write,t=>{const get=t.get.bind(t);t.get=(store,...args)=>{reads.push(store);return get(store,...args);};return run(t);},stores);
   try{expectedSummary(await f.summary(),expected,15,20);const card=await f.cards.snapshot();expectedSummary(card.topicChoices,expected,15,20);assert.equal(card.capabilities.external,false);assert.equal(card.connections,0);}finally{f.s.repository.transaction=transaction;}
  });
  assert.ok(reads.length>0);assert.equal(reads.some(name=>['thoughts','blocks','placements','dependencies'].includes(name)),false,'the home preview reads names without Thought or Input bodies');
- const rendered=await description(f.cards);for(const name of expected)assert.ok(rendered.summary.includes(name));assert.match(rendered.summary,/15/);for(const row of f.page.items.slice(5))assert.equal(rendered.summary.includes(row.name),false);assert.match(rendered.count,/20/);assert.equal(rendered.summary.includes('SYNTHETIC_PRIVATE'),false);
+ const rendered=await description(f.cards);for(const name of expected)assert.ok(rendered.summary.includes(name));assert.equal(rendered.summary,expected.join(' · '));assert.equal(rendered.hidden,false);for(const row of f.page.items.slice(5))assert.equal(rendered.summary.includes(row.name),false);assert.match(rendered.count,/20/);assert.equal(rendered.summary.includes('SYNTHETIC_PRIVATE'),false);
 },{count:20}));
 
 test('CTX4-03 home selected names follow same-ID rename, explicit off and later explicit selection',()=>fixture(async f=>{
@@ -75,7 +77,7 @@ test('CTX4-03 home legacy denial remains a saved choice preview rather than an e
 
 test('CTX4-03 home unselected and new identities never become preview names',()=>fixture(async f=>{
  await assertReadOnly(f,async()=>expectedSummary(await f.summary(),[],0));const second=f.page.items[1];await f.selectTopic(second.topicId);expectedSummary(await f.summary(),[second.name],0);await f.selectTopic(second.topicId,false);expectedSummary(await f.summary(),[],0);
- const rendered=await description(f.cards);assert.doesNotMatch(rendered.summary,/SYNTHETIC Summary/);assert.match(rendered.count,/^0\b/);
+ const rendered=await description(f.cards);assert.equal(rendered.summary,'');assert.equal(rendered.hidden,true);assert.match(rendered.count,/^0\b/);
 },{select:false}));
 
 test('CTX4-03 home dormant stable identity keeps its name while removed and restored choices stay in the remainder',()=>fixture(async f=>{
@@ -87,14 +89,14 @@ test('CTX4-03 home dormant stable identity keeps its name while removed and rest
 
 test('CTX4-03 home merge and revision restore never reuse stale source or survivor labels',()=>fixture(async f=>{
  const [source,survivor]=f.page.items;await f.s.startLayout({kind:'topic_merge',topicId:source.topicId,survivorId:survivor.topicId,expectedTopicRevision:(await raw(f.s,'topics',source.topicId)).organizationRevision,expectedSurvivorRevision:(await raw(f.s,'topics',survivor.topicId)).organizationRevision,operationId:op()});await f.s.drainLibraryMaintenance();
- expectedSummary(await f.summary(),[],2);const rendered=await description(f.cards);assert.doesNotMatch(rendered.summary,/SYNTHETIC Summary/);assert.match(rendered.summary,/retain/i);assert.match(rendered.count,/2/);
+ expectedSummary(await f.summary(),[],2);const rendered=await description(f.cards);assert.doesNotMatch(rendered.summary,/SYNTHETIC Summary/);assert.equal(rendered.summary,'');assert.equal(rendered.hidden,true);assert.match(rendered.count,/2/);
  const revision=(await f.s.revisions({kind:'topic',entityId:survivor.topicId})).items.find(row=>row.reason==='merge');assert.ok(revision);await f.s.restoreRevision({id:revision.id,side:'before',expectedRevision:(await raw(f.s,'topics',survivor.topicId)).revision,operationId:op()});expectedSummary(await f.summary(),[],2);
  await f.selectTopic(survivor.topicId);expectedSummary(await f.summary(),[survivor.name],1);await assertReadOnly(f,async()=>expectedSummary((await f.cards.snapshot()).topicChoices,[survivor.name],1));
 },{count:2}));
 
 for(const variant of ['missing_topic','restore_epoch'])test(`CTX4-03 home ${variant} keeps the stored count and never names a stale binding`,()=>fixture(async f=>{
  if(variant==='missing_topic')await f.s.foundationWrite(t=>t.delete('topics',f.page.items[0].topicId));else await f.s.write(t=>t.put('meta',{id:'recovery-restore-epoch',value:op()}));
- await assertReadOnly(f,async()=>expectedSummary(await f.summary(),[],1));const rendered=await description(f.cards);assert.match(rendered.summary,/retain/i);assert.equal(rendered.summary.includes(f.page.items[0].name),false);assert.match(rendered.count,/1/);
+ await assertReadOnly(f,async()=>expectedSummary(await f.summary(),[],1));const rendered=await description(f.cards);assert.equal(rendered.summary,'');assert.equal(rendered.hidden,true);assert.equal(rendered.summary.includes(f.page.items[0].name),false);assert.match(rendered.count,/1/);
 },{count:1}));
 
 for(const variant of ['hidden_source','removed_source','missing_source'])test(`CTX4-03 home ${variant} uses the actual safe-label mask instead of a source-derived name`,()=>fixture(async f=>{
@@ -117,7 +119,7 @@ for(const variant of ['version','duplicate','binding','unknown_name'])test(`CTX4
  const prefs=await raw(f.s,'meta',CONTEXT_TOPIC_ACCESS_ROW),items=(await f.cards.snapshot()).items;
  if(variant==='version')prefs.version=2;if(variant==='duplicate')prefs.choices.push(structuredClone(prefs.choices[0]));if(variant==='binding')delete prefs.choices[0].binding.createdAt;if(variant==='unknown_name')prefs.choices[0].name='SYNTHETIC_PRIVATE_RETAINED_NAME';await f.s.repository.transaction(true,t=>t.put('meta',prefs));
  await assertReadOnly(f,async()=>{const direct=await f.summary();assert.equal(direct.available,false);assert.equal(direct.selectedCount,null);assert.equal(direct.externalAllowed,false);const card=await f.cards.snapshot();assert.equal(card.topicChoices.available,false);assert.equal(card.topicChoices.selectedCount,null);assert.deepEqual(card.items,items);assert.equal(card.capabilities.info,true);assert.equal(card.capabilities.rules,true);assert.equal(card.capabilities.now,true);assert.equal(JSON.stringify(card.topicChoices).includes('SYNTHETIC_PRIVATE'),false);});
- const rendered=await description(f.cards);assert.match(rendered.count,/unavailable/);assert.doesNotMatch(rendered.count,/^0\b/);assert.match(rendered.summary,/cannot be read/);
+ const rendered=await description(f.cards);assert.match(rendered.count,/unavailable/);assert.doesNotMatch(rendered.count,/^0\b/);assert.match(rendered.summary,/cannot be read/);assert.equal(rendered.hidden,false);
 },{count:1}));
 
 for(const variant of ['no_names','too_many_names','non_string_name','overlong_name','empty_name','whitespace_name','nul_name','sparse_names','extra_name_property','negative_remainder','inconsistent_total','wrong_count','external_grant'])test(`CTX4-03 snapshot rejects malformed ${variant} callback fields without dropping independent Items`,()=>fixture(async f=>{

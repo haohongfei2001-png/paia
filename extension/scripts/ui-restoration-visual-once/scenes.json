@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "authorization": {
+    "maxRounds": 1,
+    "maxCapturesPerRound": 8,
+    "maxMinutesPerRound": 2,
+    "maxMinutesTotal": 2,
+    "syntheticOnly": true,
+    "loopbackOnly": true,
+    "fixtureLimits": {
+      "topics": 8,
+      "sectionsPerTopic": 2,
+      "inputsTotal": 12,
+      "contextItems": 3
+    },
+    "maxJobMinutesIncludingSetup": 5,
+    "automaticRetry": false,
+    "scope": "ui-visual-final-20261025"
+  },
+  "scenes": [
+    {
+      "id": "thought-reader-narrow",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 390,
+      "height": 844,
+      "theme": "light"
+    },
+    {
+      "id": "thought-options",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark"
+    },
+    {
+      "id": "settings-group-narrow",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 390,
+      "height": 844,
+      "theme": "light"
+    },
+    {
+      "id": "settings-risk-dialog",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "nib-search",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "nib-search-narrow",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 390,
+      "height": 844,
+      "theme": "light"
+    },
+    {
+      "id": "nib-status-dirty",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light"
+    },
+    {
+      "id": "nib-status-dirty-narrow",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 390,
+      "height": 844,
+      "theme": "light"
+    }
+  ]
+}
