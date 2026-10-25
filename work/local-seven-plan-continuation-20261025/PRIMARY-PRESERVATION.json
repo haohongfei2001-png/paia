@@ -1,9 +1,9 @@
 {
   "head": "8522134ac23a8e563161b4e3633d56e858e01d5c",
   "headUnchanged": true,
-  "originalExtensionUntrackedCount": 33,
+  "originalExtensionUntrackedCount": 0,
   "originalExtensionStatusUnchanged": true,
   "stashUnchanged": true,
   "trackedDiff": "",
-  "note": "Checks original tracked state, named untracked inventory and stash identity, not baseline byte hashes of unknown untracked files."
+  "note": "Inventory and tracked/stash identity only; no prior byte hashes exist for unknown untracked files."
 }

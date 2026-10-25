@@ -1,0 +1,27 @@
+# Independent design review: omit one encoder-only manifest upload
+
+Static review of checkout `54e15e911c297dd687d7162b7dcacb576c644c23`, `checkpoints.js`, `group-checkpoint.js`, `checkpoint-publication.js`, `segments.js` and `next-local-mainline-audit.md`. No runtime change or test execution by this reviewer. Final implementation review is pending.
+
+No fundamental blocker in the narrow design. The ordinary grouped compiler first verifies a complete unscoped manifest locally, then produces the final manifest with exactly `ownerScope` added. The final root and index child graph accepts only checkpoint-shard references; chunked entries accept only chunk references. Thus that exact current encoder intermediate is not a data dependency merely because it remains in the private local object map.
+
+Required implementation boundaries:
+
+1. Authenticate the candidate's original ref/encoded bytes/hash/codec using the original object reader. Its kind is exactly checkpoint-manifest, it is not the final ref, and its decoded value equals the entire final manifest after removing only its own ownerScope. A broad kind filter is forbidden.
+2. Require a unique candidate; multiple matching encodings are ambiguous and must refuse. Explicitly exclude any candidate appearing in the final manifest's parents, and retain all actual root/shard/chunk dependencies and their original order. No candidate means unchanged full profile.
+3. Keep both fully reconstructed ordered vectors. An existing journal must equal the complete old vector or the complete exact compact vector; never accept a subset, reordered vector, omission, duplicate or guessed profile. When no object is removed, full/compact are one shape, not a reason to reject an otherwise identical journal.
+4. A legacy ready/attempting/verified intermediate remains in that legacy journal and in its chosen object map. An attempting object is still GET-only; absence remains UNKNOWN. Do not rewrite it as compact, skip its GET, infer a successful upload or POST again.
+5. New classification/decoding/comparison must itself remain under the original cumulative budget. Original retained object limits, encoder verification, causal traversal, cut checks, per-upload requalification and final full cut remain intact. Removing an actual upload may save work; it does not prove that any particular third edit now fits.
+
+Useful small controls include exact final ref/content equality, unchanged dependency set/order, compact new task, genuine legacy full cold task including lost-response attempting intermediate, malformed/full-minus-wrong-object/reordered vector refusal, zero-extra-POST on cold UNKNOWN, and no-match fallback. Third-edit results must remain separate original unchanged positive cases on the new code, with their real outcome preserved and no budget/data/retry adjustment.
+
+## Frozen implementation review — 2026-10-25
+
+Reviewed commit `3c310d32dfa8e10521d81acbcc4d6d8b117bdf27`, parent `54e15e911c297dd687d7162b7dcacb576c644c23`, in `publication-intermediate-manifest`. Runtime SHA256 `b44986fd190bd7d98906b80bcc2c0f328b8f2d8d2256ac8d2f8fb13c51b2cc2a`. Working tree clean. The final 24-entry evidence manifest was verified from its own directory; initial verifier invocation from repository root failed only relative path lookup and made no edits.
+
+No blocking finding for this exact local change. `#prepareObjects` keeps the full original encoder map for readback, validates each non-final manifest through original reference/hash/codec reading, charges verification operands, requires exact decoded equality to the final owner manifest minus only `ownerScope`, rejects duplicate matches and parent/root dependencies, and removes exactly that one outbound object. `#same` accepts only the complete ordered original vector or the complete ordered compact vector. Durable attempted states and the existing GET-only recovery path are unchanged. No encoder, shard, chunk, parent, root, final manifest or work limit changed.
+
+New tests exercise both real transport implementations with synthetic HTTP providers, final discovery and byte identity, original-encoder full-vector cold fixtures (not historical producer execution), lost committed intermediate POST with GET-only continuation, and vector tampering. Explicit budget controls charge the actual private publication ticket supplied to original discovery, then require no POST, no journal change and no renewed ticket.
+
+Three original owning assertions were updated only where saved work now legitimately fits: repeated same-content writes retain the full snapshot; publish with reappeared disposable stage retains both cleanup count zero and all stage rows; ancestor append gains original fresh install/cold records, Working, history, filter and time comparisons. The `local_0` append resource refusal remains. Their old failures and old source remain in evidence.
+
+Results remain separate: focused corrected 11/11; two unchanged third-Working positive cases once 2/2; original three-file owning 159/162 (the three old limit expectations); exact changed cases 3/3; added budget first 1/2 (single oversized operand rejected by the earlier physical limit), corrected cumulative bytes 1/1. The mistaken preparation invocation and earlier fixture identity failures remain. This is not a single combined green run, native browser evidence, Linux capacity proof or whole-product acceptance. Reviewer ran no tests.

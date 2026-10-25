@@ -1,0 +1,16 @@
+{
+  "head": "815584ccca9c037673c3cc04fc7d950a9fcd011b",
+  "command": [
+    "/opt/homebrew/bin/python3.12",
+    "extension/scripts/build_current_release.py",
+    "/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/release-815584c"
+  ],
+  "exit": 0,
+  "wallMs": 2441.3425830425695,
+  "output": "/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/release-815584c",
+  "syntaxFiles": 78,
+  "afterTrackedDiff": "",
+  "sourceFingerprint": "6d52e34ffe9a152379ae3dd87041123ccf2ebec2de66a6fe8d0acdcba3a06cd8",
+  "outputFingerprint": "de4a69cedd0916d5d3360124c78388200b5db7e0701e9862e175016769f4e486",
+  "files": 708
+}
