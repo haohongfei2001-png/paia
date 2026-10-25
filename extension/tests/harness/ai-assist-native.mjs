@@ -8,7 +8,7 @@ import {installAssistDeadlineFixture} from './assist-deadline-fixture.mjs';
 // Explicit private test host: real isolated reply/composer owners communicate
 // with a real extension-origin IndexedDB session through this offline bridge.
 // The bridge is not a production RPC or a cross-process atomicity claim.
-export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,label,phase=()=>{}}) {
+export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,label,nativeService,phase=()=>{}}) {
  phase('setup');
  await routeComposer(h.context,dependencyRoot,{signature:'current'});
  const page=await h.context.newPage();let world,qualifyBinding;
@@ -125,39 +125,7 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
   for(const r of bounded.results){assert.equal(r.calls,1);assert.equal(r.deadline,25);assert.deepEqual(r.timer,{captured:true,armed:true,cancelled:true});assert.equal(r.aborted,true);assert.equal(r.published,false);assert.equal(r.code,r.stop==='timeout'?'OUTCOME_UNKNOWN':'STALE_BASE');assert.equal(r.resultDenied,true);assert.equal(r.inserts,0);assert.equal(r.unchanged,true);assert.deepEqual(r.jobs,['OUTCOME_UNKNOWN']);assert.deepEqual(r.attempts,[['OUTCOME_UNKNOWN',1,'RESERVATION_RETAINED']]);assert.equal(r.acks,0);assert.equal(r.bodyFree,true);}
   console.log('AI_NATIVE_BOUNDED_ASSIST',label,JSON.stringify(bounded));
   phase('insertion');
-  const insert=async(operationId,conditionPresented)=>h.archive.evaluate(async({operationId,conditionPresented})=>{
-   const f=__assistNative;return f.session.insert(f.handle,{operationId,conditionPresented,controller:{insert:async request=>{
-    if(request.isCurrent()!==true)return {status:'failed',reason:'stale_assist'};
-    const {isCurrent,qualify,...transport}=request,capability=crypto.randomUUID();
-    globalThis.__assistInsertCapabilities??=new Map();__assistInsertCapabilities.set(capability,{isCurrent,qualify});
-    try{return await __privateAssistInsert({...transport,capability});}finally{__assistInsertCapabilities.delete(capability);}
-   }}});
-  },{operationId,conditionPresented});
-  await page.evaluate(()=>fixture.set('ABCDE',1,4));
-  const op=await h.archive.evaluate(()=>crypto.randomUUID());
-  assert.deepEqual(await insert(op,false),{status:'failed',reason:'stale_assist'});
-  assert.equal(await page.evaluate(()=>fixture.text()),'ABCDE','unpresented condition denies delivery');
-  const insertedOp=await h.archive.evaluate(()=>crypto.randomUUID()),inserted=await insert(insertedOp,true);
-  assert.equal(inserted.status,'inserted');assert.equal(inserted.verified,true);
-  assert.equal(await page.evaluate(()=>fixture.text()),'ABCDExplain next.E','actual original composer preserves selected draft');
-  assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.enter),0);
-  assert.equal((await insert(insertedOp,true)).replayed,true);assert.equal(await page.evaluate(()=>fixture.text()),'ABCDExplain next.E','successful operation replay never inserts twice');
-  // A fresh operation under IME must fail before mutating the draft.
-  await page.evaluate(()=>{fixture.set('IME_DRAFT',3,3);fixture.view.dom.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:'中'}));});
-  const imeOp=await h.archive.evaluate(()=>crypto.randomUUID());
-  assert.equal((await insert(imeOp,true)).reason,'composition_active');
-  assert.equal(await page.evaluate(()=>fixture.text()),'IME_DRAFT');
-  await page.evaluate(()=>fixture.view.dom.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:'中'})));
-  const repeat=await insert(imeOp,true);assert.equal(repeat.replayed,true);assert.equal(repeat.reason,'composition_active');assert.equal(await page.evaluate(()=>fixture.text()),'IME_DRAFT');
-  // Mutation is consumed in the isolated delivery owner immediately before
-  // native composer invocation, independently of the synthetic host mirror.
-  await page.evaluate(()=>{fixture.set('DRAFT',2,2);fixture.view.dom.addEventListener('focus',()=>fixture.set('CHANGED_DRAFT',0,0),{once:true});document.querySelector('#blur').focus();});
-  const draft=await insert(await h.archive.evaluate(()=>crypto.randomUUID()),true);assert.equal(draft.status,'failed');assert.equal(draft.reason,'draft_changed');assert.equal(await page.evaluate(()=>fixture.text()),'CHANGED_DRAFT');
-  await page.evaluate(()=>fixture.set('UNCERTAIN',9,9));
-  await world.run('globalThis.originalAssistExec=document.execCommand.bind(document);document.execCommand=(...args)=>{originalAssistExec(...args);return false;};');
-  const uncertainOp=await h.archive.evaluate(()=>crypto.randomUUID()),uncertain=await insert(uncertainOp,true);assert.equal(uncertain.status,'uncertain');
-  const uncertainDraft=await page.evaluate(()=>fixture.text());await world.run('document.execCommand=originalAssistExec;');
-  assert.equal((await insert(uncertainOp,true)).replayed,true);assert.equal(await page.evaluate(()=>fixture.text()),uncertainDraft,'uncertain operation replay never inserts twice');
+  assert.equal((await h.archive.evaluate(()=>__assistNative.session.result(__assistNative.handle))).kind,'SUGGESTION','independent provider controls retain the original zero-Context result');
   // Selected Context changes after session.result() but before the actual
   // isolated content owner's qualification must never enter the composer.
   const retainedDraft=await page.evaluate(()=>fixture.text());
@@ -171,22 +139,22 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
    for(const key of ['global','rules'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});
    for(const change of ['edit','revoke']){
     const contextAbort=new AbortController(),contextExpires=Date.now()+600000,contextProcessing={resolve:async(_t,scope)=>({version:1,store:isolatedStore,scope,epoch:'synthetic-native-context',processing:true,expiresAt:contextExpires,revocationSignal:contextAbort.signal}),isCurrent:()=>!contextAbort.signal.aborted};
-    const id=crypto.randomUUID();await cards.change({kind:'put',card:'rules',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:0,body:'SYNTHETIC selected insertion Context',section:'Synthetic'});
+    let qualifications=0;const id=crypto.randomUUID();await cards.change({kind:'put',card:'rules',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:0,body:'SYNTHETIC selected insertion Context',section:'Synthetic'});
     const session=new LocalAssistSession(isolatedStore,{lease:f.lease,contextSelector:()=>[id],contextProcessing,contractVersion:'assist-insert-'+change,provider:{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>{calls++;return JSON.stringify({version:1,kind:'SUGGESTION',text:'MUST_NOT_INSERT',condition:''});}},resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}})});
     try{const lease=await f.lease.observe(f.sender),handle=await session.prepare({lease});await session.run(handle);
      const result=await session.insert(handle,{operationId:crypto.randomUUID(),controller:{insert:async request=>{
       const {isCurrent,qualify,...transport}=request,capability=crypto.randomUUID();
-      __assistInsertCapabilities.set(capability,{isCurrent,qualify:async()=>{
+      __assistInsertCapabilities.set(capability,{isCurrent,qualify:async()=>{qualifications++;
        if(change==='edit')await cards.change({kind:'put',card:'rules',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:1,body:'SYNTHETIC changed selected Context',section:'Synthetic'});
        else contextAbort.abort();
        return qualify();
       }});
       try{return await __privateAssistInsert({...transport,capability});}finally{__assistInsertCapabilities.delete(capability);}
-     }}});results.push({change,result});
+     }}});results.push({change,result,qualifications});
     }finally{session.dispose();}
    }return {results,calls};
   });
-  assert.equal(finalAuthority.calls,2);for(const entry of finalAuthority.results)assert.deepEqual(entry.result,{status:'failed',reason:'stale_assist'},entry.change);
+  assert.equal(finalAuthority.calls,2);for(const entry of finalAuthority.results){assert.deepEqual(entry.result,{status:'failed',reason:'stale_assist'},entry.change);assert.equal(entry.qualifications,1);}
   assert.equal(await page.evaluate(()=>fixture.text()),retainedDraft);assert.equal(await page.evaluate(()=>fixture.send),0);console.log('AI_NATIVE_FINAL_INSERT_AUTHORITY',label,JSON.stringify(finalAuthority));
   assert.equal((await h.archive.evaluate(()=>__assistNative.session.result(__assistNative.handle))).kind,'SUGGESTION','independent selected Context tests did not invalidate the original zero-Context session');
   // Live current-node mutation must invalidate immediately in the isolated owner.
@@ -195,9 +163,53 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
   assert.equal(await page.evaluate(()=>fixture.send),0);
   let revoked=false;try{await h.archive.evaluate(()=>__assistNative.session.result(__assistNative.handle));}catch{revoked=true;}assert.equal(revoked,true);
   assert.equal(await h.archive.evaluate(()=>__assistNative.calls()),1);assert.equal(await page.evaluate(()=>fixture.text()).then(x=>x.includes('UNQUALIFIED')),false);
+  // The separate worker is enabled only after all original private-session
+  // result/Context/latest-mutation assertions, so new replies cannot satisfy
+  // those rejection assertions by prematurely invalidating their old lease.
+  phase('receipt-insertion');
+  if(!nativeService)throw Error('Receipt-native signed service stage is required');
+  const worker=h.context.serviceWorkers().find(w=>w.url()===`chrome-extension://${h.extensionId}/background/service-worker.js`);if(!worker)throw Error('Original service worker missing');
+  const observationKey='__paiaAssistObserve_'+nativeService.descriptor.nonce.replaceAll('-',''),readOriginal=()=>worker.evaluate(key=>globalThis[key](),observationKey),workerBefore=await readOriginal();
+  const configured=await h.archive.evaluate(async()=>{const state=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_ASSIST_STATUS'});if(!state?.ok)throw Error('Original Assist status unavailable');return chrome.runtime.sendMessage({type:'PAIA_PROMPT_ASSIST_CONFIGURE',consentVersion:2,replyAccess:true,remoteProcessing:true,expectedGeneration:state.data.generation});});assert.equal(configured.ok,true);
+  await eventually(()=>world.run(`chrome.runtime.sendMessage({type:'PAIA_PROMPT_ASSIST_STATUS'}).then(r=>r.ok&&r.data.replyAccess&&r.data.remoteProcessing&&r.data.serviceAvailable)`),'actual configured Assist permissions');
+  await verifyOriginalReceiptInsertion({h,page,world,nativeService,readOriginal,workerBefore,label});
   await world.run('document.defaultView.dispatchEvent(new Event("pagehide"))');assert.equal(await world.run('privateAssist.enabled'),false);
   await h.archive.evaluate(()=>__assistNative.lease.configure({replyAccess:true,remoteProcessing:false}));
   let consentDenied=false;try{await h.archive.evaluate(()=>__assistNative.session.result(__assistNative.handle));}catch{consentDenied=true;}assert.equal(consentDenied,true);
-  console.log('AI_NATIVE_PRIVATE_ASSIST',label,JSON.stringify({native:true,zeroContext:true,oneAttempt:true,bodyFree:true,conditionGuard:true,selection:true,imeReplayDenied:true,draftChangedDenied:true,uncertainReplayDenied:true,latestMutationDenied:true,pagehide:true,consentDenied:true,send:0}));
+  console.log('AI_NATIVE_PRIVATE_ASSIST_LAYERED',label,JSON.stringify({native:true,zeroContext:true,privateSessionOneAttempt:true,receiptOpportunities:4,bodyFree:true,conditionGuard:true,selection:true,imeReplayDenied:true,draftChangedDenied:true,uncertainReplayDenied:true,latestMutationDenied:true,pagehide:true,consentDenied:true,send:0}));
  } finally {if(world&&qualifyBinding)world.cdp.off('Runtime.bindingCalled',qualifyBinding);await h.archive.evaluate(()=>{__assistNative?.session.dispose();__assistNative?.lease.dispose();}).catch(()=>{});await world?.run('privateAssist.dispose()').catch(()=>{});await page.close();}
+}
+
+
+// Actual configured worker producer, original iframe RPC and Chrome receipt path.
+// The separate synthetic sessions above retain deadline/Context qualification
+// assertions; none of their handles or results are used for these insertions.
+async function verifyOriginalReceiptInsertion({h,page,world,nativeService,readOriginal,workerBefore,label}){
+ await world.run(`globalThis.__actualAssistInsertResults=[];const original=PAIAAssistResultController.prototype.insert;globalThis.__restoreActualAssistObservation=()=>PAIAAssistResultController.prototype.insert=original;PAIAAssistResultController.prototype.insert=async function(...args){const result=await Reflect.apply(original,this,args);if(args[0]?.insertionMessage?.insertionReceipt)__actualAssistInsertResults.push(structuredClone(result));return result;};`);
+ const frame=()=>page.frames().find(f=>f.url().startsWith('chrome-extension://'+h.extensionId+'/ui/prompt-surface.html#'));
+ const rpc=async command=>{const f=frame();if(!f)throw Error('Original private iframe missing');return f.evaluate(async command=>chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_RPC',nonce:location.hash.slice(1),command}),command);};
+ const current=async()=>{let value;await eventually(async()=>{if(!frame())return false;const r=await rpc({type:'assist_current'});value=r?.ok?r.data?.result:null;return !!value?.insertionAction;},'original producer issues current insertion action');return value;};
+ const count=()=>world.run('__actualAssistInsertResults.length'),latest=()=>world.run('__actualAssistInsertResults.at(-1)');
+ const insert=(value,conditionPresented)=>rpc({type:'assist_insert',id:value.id,operationId:value.insertionAction.operationId,insertionAction:value.insertionAction,conditionPresented});
+ const replay=async value=>{const draft=await page.evaluate(()=>fixture.text()),before=await readOriginal(),n=await count();const response=await insert(value,true);assert.equal(response.ok,false);assert.equal(await count(),n);assert.equal(await page.evaluate(()=>fixture.text()),draft);const after=await readOriginal();const beforeReceipt=before.rows.meta.find(row=>row.id==='prompt-insertion-runtime:v1'),afterReceipt=after.rows.meta.find(row=>row.id==='prompt-insertion-runtime:v1');assert.ok(beforeReceipt);assert.deepEqual(afterReceipt,beforeReceipt);};
+ const receipt=async(value,expected)=>{const observation=await readOriginal(),row=observation.rows.meta.find(row=>row.id==='prompt-insertion-runtime:v1');assert.ok(row);const claims=row.claims.filter(claim=>claim.envelope.operationId===value.insertionAction.operationId);assert.equal(claims.length,1);assert.equal(claims[0].state,expected);assert.equal(claims[0].envelope.lane,'assist');assert.equal(claims[0].envelope.receiptEpoch,value.insertionAction.receiptEpoch);return claims[0];};
+ const next=async()=>{await page.evaluate(()=>fixture.start());await world.run('privateAssist.scan()');await page.evaluate(()=>fixture.finish());return current();};
+ try{
+  // These READY calls are authenticated by Chrome's actual top sender. They
+  // do not expose or invoke the original session through an observer hook.
+  await page.evaluate(()=>fixture.start());await world.run('privateAssist.scan()');await page.evaluate(()=>fixture.finish());
+  await eventually(()=>world.run('privateAssist.probe().ready===true'),'new prospective reply after actual worker enable');
+  const replies=await world.run(`(async()=>{const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_ASSIST_STATUS'});return Promise.all(Array.from({length:10},()=>chrome.runtime.sendMessage({type:'PAIA_PROMPT_ASSIST_READY',generation:r.data.generation})));})()`);assert.ok(replies.every(r=>r.ok));
+  const first=await current(),state=await readOriginal(),jobs=state.rows.organizerJobs,priorJobs=new Set(workerBefore.rows.organizerJobs.map(j=>j.id)),added=jobs.filter(j=>!priorJobs.has(j.id));
+  assert.equal(state.native,true);assert.equal(nativeService.physical(),1);assert.equal(added.length,1);assert.equal(added[0].state,'COMMITTED');assert.equal(added[0].childIds.length,1);assert.equal(added[0].items.length,0);assert.equal(new Set(state.entries.filter(x=>x.handleId!==null).map(x=>x.handleId)).size,1);
+  for(const name of ['records','blocks','inputStates','thoughts','placements','documents','libraryDocuments'])assert.deepEqual(state.rows[name],workerBefore.rows[name]);
+  assert.equal(JSON.stringify(state.rows).includes('ASSIST_NATIVE_CURRENT_ONLY'),false);assert.equal(JSON.stringify(state.rows).includes(first.text),false);assert.equal(nativeService.payload().reply.trim(),'ASSIST_NATIVE_CURRENT_ONLY');assert.deepEqual(nativeService.payload().context,[]);
+  await page.evaluate(()=>fixture.set('ABCDE',1,4));const denied=await insert(first,false);assert.equal(denied.ok,false);assert.equal(await count(),0);assert.equal(await page.evaluate(()=>fixture.text()),'ABCDE');
+  const inserted=await insert(first,true);assert.equal(inserted.ok,true);assert.equal(inserted.data.status,'inserted');assert.equal(inserted.data.verified,true);assert.equal((await latest()).status,'inserted');assert.equal((await latest()).verified,true);assert.equal(await page.evaluate(()=>fixture.text()),'ABCD'+first.text+'E');assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.enter),0);await receipt(first,'inserted');await replay(first);
+  const ime=await next();await page.evaluate(()=>{fixture.set('IME_DRAFT',3,3);fixture.view.dom.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:'中'}));});await insert(ime,true);assert.equal((await latest()).reason,'composition_active');assert.equal(await page.evaluate(()=>fixture.text()),'IME_DRAFT');await page.evaluate(()=>fixture.view.dom.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:'中'})));await receipt(ime,'not_inserted');await replay(ime);
+  const draft=await next();await page.evaluate(()=>{fixture.set('DRAFT',2,2);fixture.view.dom.addEventListener('focus',()=>fixture.set('CHANGED_DRAFT',0,0),{once:true});document.querySelector('#blur').focus();});await insert(draft,true);assert.equal((await latest()).status,'failed');assert.equal((await latest()).reason,'draft_changed');assert.equal(await page.evaluate(()=>fixture.text()),'CHANGED_DRAFT');await receipt(draft,'not_inserted');
+  const uncertain=await next();await page.evaluate(()=>fixture.set('UNCERTAIN',9,9));await world.run('globalThis.originalAssistExec=document.execCommand.bind(document);document.execCommand=(...args)=>{originalAssistExec(...args);return false;};');await insert(uncertain,true);assert.equal((await latest()).status,'uncertain');await world.run('document.execCommand=originalAssistExec;');await receipt(uncertain,'pending');await replay(uncertain);
+  assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.enter),0);assert.equal(nativeService.physical(),4);
+  console.log('AI_NATIVE_ASSIST_ORIGINAL_RECEIPT_CHAIN',label,JSON.stringify({firstOpportunityAttempts:1,laterDistinctOpportunities:3,receiptPath:true,emptyContext:true,condition:true,selection:true,ime:true,draft:true,uncertain:true,duplicateIframeActionDenied:true,nativeAcceptance:'actual execution required'}));
+ }finally{await world.run('__restoreActualAssistObservation?.();if(globalThis.originalAssistExec)document.execCommand=originalAssistExec;').catch(()=>{});}
 }

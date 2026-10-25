@@ -1,0 +1,238 @@
+{
+  "originalBase": "815584ccca9c037673c3cc04fc7d950a9fcd011b",
+  "completeAssertLines": 29,
+  "entries": [
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 68,
+      "originalAssertionLine": "assert.deepEqual(initial,{denied:true,calls:0});assert.equal(await world.run('assistReads'),0);",
+      "scope": "retained-private-session",
+      "observableProof": "Original private lease/session, real native IDB only if executed; actual worker owns separate opportunity and counters.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 72,
+      "originalAssertionLine": "assert.equal(await world.run('assistReads'),0,'open/observe never reads historical body');",
+      "scope": "retained-private-session",
+      "observableProof": "Original private lease/session, real native IDB only if executed; actual worker owns separate opportunity and counters.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 74,
+      "originalAssertionLine": "assert.equal(await world.run('privateAssist.probe().ready===true'),false,'streaming reply cannot qualify');",
+      "scope": "retained-private-session",
+      "observableProof": "Original private lease/session, real native IDB only if executed; actual worker owns separate opportunity and counters.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 84,
+      "originalAssertionLine": "assert.deepEqual(pipeline,{native:true,same:1,calls:1,result:{version:1,kind:'SUGGESTION',text:'Explain next.',condition:'After checking the prerequisite'},jobs:1,children:1,dependencies:0,state:'COMMITTED',attempts:[1],bodyFree:true,exactReply:true,context:[]});",
+      "scope": "retained-private-session",
+      "observableProof": "Original private lease/session, real native IDB only if executed; actual worker owns separate opportunity and counters.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 102,
+      "originalAssertionLine": "assert.deepEqual(beforeProvider,{calls:0,code:'OUTCOME_UNKNOWN',published:false,resultDenied:true,unchanged:true,jobs:['OUTCOME_UNKNOWN'],attempts:[['OUTCOME_UNKNOWN',1,'RESERVATION_RETAINED']],acks:0,bodyFree:true});",
+      "scope": "retained-private-deadline",
+      "observableProof": "Original held provider/snapshot and real session abort signal; bridge does NOT establish cross-transport abort.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 124,
+      "originalAssertionLine": "assert.equal(bounded.nativeFactory,true);assert.equal(bounded.results.length,8);",
+      "scope": "retained-private-deadline",
+      "observableProof": "Original held provider/snapshot and real session abort signal; bridge does NOT establish cross-transport abort.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 125,
+      "originalAssertionLine": "for(const r of bounded.results){assert.equal(r.calls,1);assert.equal(r.deadline,25);assert.deepEqual(r.timer,{captured:true,armed:true,cancelled:true});assert.equal(r.aborted,true);assert.equal(r.published,false);assert.equal(r.code,r.stop==='timeout'?'OUTCOME_UNKNOWN':'STALE_BASE');assert.equal(r.resultDenied,true);assert.equal(r.inserts,0);assert.equal(r.unchanged,true);assert.deepEqual(r.jobs,['OUTCOME_UNKNOWN']);assert.deepEqual(r.attempts,[['OUTCOME_UNKNOWN',1,'RESERVATION_RETAINED']]);assert.equal(r.acks,0);assert.equal(r.bodyFree,true);}",
+      "scope": "retained-private-deadline",
+      "observableProof": "Original held provider/snapshot and real session abort signal; bridge does NOT establish cross-transport abort.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 138,
+      "originalAssertionLine": "assert.deepEqual(await insert(op,false),{status:'failed',reason:'stale_assist'});",
+      "scope": "new-actual-receipt-route",
+      "observableProof": "Original iframe RPC sender -> original configured worker producer -> original receipt and native composer. Same observed result/action, exact ledger state + no-send/no-Enter. NOT_RUN.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 139,
+      "originalAssertionLine": "assert.equal(await page.evaluate(()=>fixture.text()),'ABCDE','unpresented condition denies delivery');",
+      "scope": "new-actual-receipt-route",
+      "observableProof": "Original iframe RPC sender -> original configured worker producer -> original receipt and native composer. Same observed result/action, exact ledger state + no-send/no-Enter. NOT_RUN.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 141,
+      "originalAssertionLine": "assert.equal(inserted.status,'inserted');assert.equal(inserted.verified,true);",
+      "scope": "new-actual-receipt-route",
+      "observableProof": "Original iframe RPC sender -> original configured worker producer -> original receipt and native composer. Same observed result/action, exact ledger state + no-send/no-Enter. NOT_RUN.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 142,
+      "originalAssertionLine": "assert.equal(await page.evaluate(()=>fixture.text()),'ABCDExplain next.E','actual original composer preserves selected draft');",
+      "scope": "new-actual-receipt-route",
+      "observableProof": "Original iframe RPC sender -> original configured worker producer -> original receipt and native composer. Same observed result/action, exact ledger state + no-send/no-Enter. NOT_RUN.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 143,
+      "originalAssertionLine": "assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.enter),0);",
+      "scope": "new-actual-receipt-route",
+      "observableProof": "Original iframe RPC sender -> original configured worker producer -> original receipt and native composer. Same observed result/action, exact ledger state + no-send/no-Enter. NOT_RUN.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 144,
+      "originalAssertionLine": "assert.equal((await insert(insertedOp,true)).replayed,true);assert.equal(await page.evaluate(()=>fixture.text()),'ABCDExplain next.E','successful operation replay never inserts twice');",
+      "scope": "not-equivalent-original-replay",
+      "observableProof": "Original bare composer replay is archived; LocalAssistSession only forwards. Actual receipt duplicate checks reject producer action + zero ledger/native increment; original receipt adapter VM tests cited separately. No native equivalence claimed.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 148,
+      "originalAssertionLine": "assert.equal((await insert(imeOp,true)).reason,'composition_active');",
+      "scope": "new-actual-receipt-route",
+      "observableProof": "Original iframe RPC sender -> original configured worker producer -> original receipt and native composer. Same observed result/action, exact ledger state + no-send/no-Enter. NOT_RUN.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 149,
+      "originalAssertionLine": "assert.equal(await page.evaluate(()=>fixture.text()),'IME_DRAFT');",
+      "scope": "new-actual-receipt-route",
+      "observableProof": "Original iframe RPC sender -> original configured worker producer -> original receipt and native composer. Same observed result/action, exact ledger state + no-send/no-Enter. NOT_RUN.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 151,
+      "originalAssertionLine": "const repeat=await insert(imeOp,true);assert.equal(repeat.replayed,true);assert.equal(repeat.reason,'composition_active');assert.equal(await page.evaluate(()=>fixture.text()),'IME_DRAFT');",
+      "scope": "not-equivalent-original-replay",
+      "observableProof": "Original bare composer replay is archived; LocalAssistSession only forwards. Actual receipt duplicate checks reject producer action + zero ledger/native increment; original receipt adapter VM tests cited separately. No native equivalence claimed.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 155,
+      "originalAssertionLine": "const draft=await insert(await h.archive.evaluate(()=>crypto.randomUUID()),true);assert.equal(draft.status,'failed');assert.equal(draft.reason,'draft_changed');assert.equal(await page.evaluate(()=>fixture.text()),'CHANGED_DRAFT');",
+      "scope": "new-actual-receipt-route",
+      "observableProof": "Original iframe RPC sender -> original configured worker producer -> original receipt and native composer. Same observed result/action, exact ledger state + no-send/no-Enter. NOT_RUN.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 158,
+      "originalAssertionLine": "const uncertainOp=await h.archive.evaluate(()=>crypto.randomUUID()),uncertain=await insert(uncertainOp,true);assert.equal(uncertain.status,'uncertain');",
+      "scope": "new-actual-receipt-route",
+      "observableProof": "Original iframe RPC sender -> original configured worker producer -> original receipt and native composer. Same observed result/action, exact ledger state + no-send/no-Enter. NOT_RUN.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 160,
+      "originalAssertionLine": "assert.equal((await insert(uncertainOp,true)).replayed,true);assert.equal(await page.evaluate(()=>fixture.text()),uncertainDraft,'uncertain operation replay never inserts twice');",
+      "scope": "not-equivalent-original-replay",
+      "observableProof": "Original bare composer replay is archived; LocalAssistSession only forwards. Actual receipt duplicate checks reject producer action + zero ledger/native increment; original receipt adapter VM tests cited separately. No native equivalence claimed.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 189,
+      "originalAssertionLine": "assert.equal(finalAuthority.calls,2);for(const entry of finalAuthority.results)assert.deepEqual(entry.result,{status:'failed',reason:'stale_assist'},entry.change);",
+      "scope": "retained-private-context",
+      "observableProof": "Original independent Context edit/revoke callback and unchanged draft; add qualification count exactly one, retain original zero-Context result before latest mutation. Actual selected-Context receipt route missing.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 190,
+      "originalAssertionLine": "assert.equal(await page.evaluate(()=>fixture.text()),retainedDraft);assert.equal(await page.evaluate(()=>fixture.send),0);console.log('AI_NATIVE_FINAL_INSERT_AUTHORITY',label,JSON.stringify(finalAuthority));",
+      "scope": "retained-private-context",
+      "observableProof": "Original independent Context edit/revoke callback and unchanged draft; add qualification count exactly one, retain original zero-Context result before latest mutation. Actual selected-Context receipt route missing.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 191,
+      "originalAssertionLine": "assert.equal((await h.archive.evaluate(()=>__assistNative.session.result(__assistNative.handle))).kind,'SUGGESTION','independent selected Context tests did not invalidate the original zero-Context session');",
+      "scope": "retained-private-context",
+      "observableProof": "Original independent Context edit/revoke callback and unchanged draft; add qualification count exactly one, retain original zero-Context result before latest mutation. Actual selected-Context receipt route missing.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 194,
+      "originalAssertionLine": "assert.equal(latestStale.status,'failed');assert.equal(latestStale.reason,'stale_assist');",
+      "scope": "retained-before-new-worker-replies",
+      "observableProof": "Original private result positive first, then current DOM mutation, stale result/calls/no-unqualified text. Actual worker enable moved after these so new replies cannot pre-invalidate this negative.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 195,
+      "originalAssertionLine": "assert.equal(await page.evaluate(()=>fixture.send),0);",
+      "scope": "retained-before-new-worker-replies",
+      "observableProof": "Original private result positive first, then current DOM mutation, stale result/calls/no-unqualified text. Actual worker enable moved after these so new replies cannot pre-invalidate this negative.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 196,
+      "originalAssertionLine": "let revoked=false;try{await h.archive.evaluate(()=>__assistNative.session.result(__assistNative.handle));}catch{revoked=true;}assert.equal(revoked,true);",
+      "scope": "retained-before-new-worker-replies",
+      "observableProof": "Original private result positive first, then current DOM mutation, stale result/calls/no-unqualified text. Actual worker enable moved after these so new replies cannot pre-invalidate this negative.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 197,
+      "originalAssertionLine": "assert.equal(await h.archive.evaluate(()=>__assistNative.calls()),1);assert.equal(await page.evaluate(()=>fixture.text()).then(x=>x.includes('UNQUALIFIED')),false);",
+      "scope": "retained-before-new-worker-replies",
+      "observableProof": "Original private result positive first, then current DOM mutation, stale result/calls/no-unqualified text. Actual worker enable moved after these so new replies cannot pre-invalidate this negative.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 198,
+      "originalAssertionLine": "await world.run('document.defaultView.dispatchEvent(new Event(\"pagehide\"))');assert.equal(await world.run('privateAssist.enabled'),false);",
+      "scope": "retained-private-retirement",
+      "observableProof": "Original pagehide/lease permission result denial; does not certify global worker shutdown or provider abort.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-assist-native.mjs",
+      "originalLine": 200,
+      "originalAssertionLine": "let consentDenied=false;try{await h.archive.evaluate(()=>__assistNative.session.result(__assistNative.handle));}catch{consentDenied=true;}assert.equal(consentDenied,true);",
+      "scope": "retained-private-retirement",
+      "observableProof": "Original pagehide/lease permission result denial; does not certify global worker shutdown or provider abort.",
+      "execution": "NOT_RUN in this package"
+    },
+    {
+      "originalFile": "ai-cost-session-lifecycle-cases.mjs",
+      "originalLine": 27,
+      "originalAssertionLine": "phase('network-invariants');assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);",
+      "scope": "retained-original-wrapper",
+      "observableProof": "Actual FakeChatGPT request counters/errors after original Organize + held Assist route; NOT_RUN.",
+      "execution": "NOT_RUN in this package"
+    }
+  ]
+}
