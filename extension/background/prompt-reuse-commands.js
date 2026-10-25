@@ -131,9 +131,9 @@ export class PromptReuseCommands{
     }
     return {status:'inserted',verified:true};
    }
-   if(response?.status==='failed')return {status:'failed',reason:['composition_active','composer_unavailable','unsupported_composer','draft_changed','insertion_rejected','insertion_unavailable','busy','draft_too_large','reload_required'].includes(response.reason)?response.reason:'insertion_unavailable'};
+   if(response?.status==='failed')return {status:'failed',reason:['composition_active','composer_unavailable','unsupported_composer','draft_changed','insertion_rejected','insertion_unavailable','busy','draft_too_large','reload_required','page_refresh_required'].includes(response.reason)?response.reason:'insertion_unavailable'};
    return {status:'uncertain',reason:'readback_unconfirmed'};
-  }catch{return {status:'uncertain',reason:'acknowledgement_unavailable'};}finally{uiOpen=false;clearTimeout(timer);if(!proved)this.#outcomeUnknown=true;}
+  }catch(error){if(error instanceof ArchiveError&&error.code==='PROMPT_PAGE_REFRESH_REQUIRED'){proved=true;return {status:'failed',reason:'page_refresh_required'};}return {status:'uncertain',reason:'acknowledgement_unavailable'};}finally{uiOpen=false;clearTimeout(timer);if(!proved)this.#outcomeUnknown=true;}
  }
  // These are instance-local source-task receipts, not host freeze, cold
  // insertion recovery or global selection authority. Unknown is sticky and

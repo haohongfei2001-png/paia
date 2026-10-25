@@ -142,7 +142,7 @@ export class AssistPromptCommands {
   if(c.type==='assist_dismiss'){const v=this.views.get(c.id);if(v&&v.host===host)this.views.delete(c.id);return {dismissed:true};}
   if(!auth.serviceAvailable)fail('AI_SERVICE_UNAVAILABLE');if(!this.consent.isCurrent(auth)||!host)fail('UNAVAILABLE');
   if(c.type==='assist_activate')fail('FORBIDDEN');
-  if(c.type==='assist_current'){const view=[...this.views.values()].find(v=>v.host===host);if(!view)return {result:null};try{const value=await this.session.result(view.handle);await assertCurrent();return {result:await this.#presentInsertion(view,value,tab,host,auth,identity,assertCurrent,receiptEpoch)};}catch{this.views.delete(view.id);await this.announce(view.state,false);return {result:null};}}
+  if(c.type==='assist_current'){const view=[...this.views.values()].find(v=>v.host===host);if(!view)return {result:null};try{const value=await this.session.result(view.handle);await assertCurrent();return {result:await this.#presentInsertion(view,value,tab,host,auth,identity,assertCurrent,receiptEpoch)};}catch(error){if(error instanceof ArchiveError&&error.code==='PROMPT_PAGE_REFRESH_REQUIRED')throw error;this.views.delete(view.id);await this.announce(view.state,false);return {result:null};}}
 
   const view=this.views.get(c.id);if(!view||view.host!==host)fail('STALE_BASE');view.assertCurrent=assertCurrent;await assertCurrent();const result=await this.session.result(view.handle);
   if(c.type==='assist_result')return this.#presentInsertion(view,result,tab,host,auth,identity,assertCurrent,receiptEpoch);
@@ -163,9 +163,9 @@ export class AssistPromptCommands {
      }else original=this.api.tabs.sendMessage(tab.id,message,{documentId:host.sender.documentId});
      // Keep original source revalidation inside the UI race and retirement drain.
      const sent=this.#track(original),response=await Promise.race([sent,new Promise(resolve=>{timer=setTimeout(()=>{uiOpen=false;resolve({status:'uncertain'});},2000);})]);proved=response?.status==='failed'||response?.status==='inserted'&&response.verified===true;return response;
-    }finally{uiOpen=false;if(!proved)this.#insertionUnknown=true;}
+    }catch(error){if(error instanceof ArchiveError&&error.code==='PROMPT_PAGE_REFRESH_REQUIRED'){proved=true;return {status:'failed',reason:'page_refresh_required'};}throw error;}finally{uiOpen=false;if(!proved)this.#insertionUnknown=true;}
    }}});
-   const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';return {status,verified:status==='inserted'};
+   const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';return {status,verified:status==='inserted',...(status==='failed'&&response?.reason==='page_refresh_required'?{reason:'page_refresh_required'}:{})};
   }catch{return {status:'uncertain',verified:false};}finally{clearTimeout(timer);view.inserting=null;}
  }
  async #insertionBinding(view,value,auth,identity,receiver){

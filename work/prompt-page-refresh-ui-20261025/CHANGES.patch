@@ -1,0 +1,207 @@
+diff --git a/extension/background/prompt-assist.js b/extension/background/prompt-assist.js
+index 51112d9..f882e4f 100644
+--- a/extension/background/prompt-assist.js
++++ b/extension/background/prompt-assist.js
+@@ -142,7 +142,7 @@ export class AssistPromptCommands {
+   if(c.type==='assist_dismiss'){const v=this.views.get(c.id);if(v&&v.host===host)this.views.delete(c.id);return {dismissed:true};}
+   if(!auth.serviceAvailable)fail('AI_SERVICE_UNAVAILABLE');if(!this.consent.isCurrent(auth)||!host)fail('UNAVAILABLE');
+   if(c.type==='assist_activate')fail('FORBIDDEN');
+-  if(c.type==='assist_current'){const view=[...this.views.values()].find(v=>v.host===host);if(!view)return {result:null};try{const value=await this.session.result(view.handle);await assertCurrent();return {result:await this.#presentInsertion(view,value,tab,host,auth,identity,assertCurrent,receiptEpoch)};}catch{this.views.delete(view.id);await this.announce(view.state,false);return {result:null};}}
++  if(c.type==='assist_current'){const view=[...this.views.values()].find(v=>v.host===host);if(!view)return {result:null};try{const value=await this.session.result(view.handle);await assertCurrent();return {result:await this.#presentInsertion(view,value,tab,host,auth,identity,assertCurrent,receiptEpoch)};}catch(error){if(error instanceof ArchiveError&&error.code==='PROMPT_PAGE_REFRESH_REQUIRED')throw error;this.views.delete(view.id);await this.announce(view.state,false);return {result:null};}}
+ 
+   const view=this.views.get(c.id);if(!view||view.host!==host)fail('STALE_BASE');view.assertCurrent=assertCurrent;await assertCurrent();const result=await this.session.result(view.handle);
+   if(c.type==='assist_result')return this.#presentInsertion(view,result,tab,host,auth,identity,assertCurrent,receiptEpoch);
+@@ -163,9 +163,9 @@ export class AssistPromptCommands {
+      }else original=this.api.tabs.sendMessage(tab.id,message,{documentId:host.sender.documentId});
+      // Keep original source revalidation inside the UI race and retirement drain.
+      const sent=this.#track(original),response=await Promise.race([sent,new Promise(resolve=>{timer=setTimeout(()=>{uiOpen=false;resolve({status:'uncertain'});},2000);})]);proved=response?.status==='failed'||response?.status==='inserted'&&response.verified===true;return response;
+-    }finally{uiOpen=false;if(!proved)this.#insertionUnknown=true;}
++    }catch(error){if(error instanceof ArchiveError&&error.code==='PROMPT_PAGE_REFRESH_REQUIRED'){proved=true;return {status:'failed',reason:'page_refresh_required'};}throw error;}finally{uiOpen=false;if(!proved)this.#insertionUnknown=true;}
+    }}});
+-   const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';return {status,verified:status==='inserted'};
++   const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';return {status,verified:status==='inserted',...(status==='failed'&&response?.reason==='page_refresh_required'?{reason:'page_refresh_required'}:{})};
+   }catch{return {status:'uncertain',verified:false};}finally{clearTimeout(timer);view.inserting=null;}
+  }
+  async #insertionBinding(view,value,auth,identity,receiver){
+diff --git a/extension/background/prompt-next.js b/extension/background/prompt-next.js
+index 85c4f46..d17ba70 100644
+--- a/extension/background/prompt-next.js
++++ b/extension/background/prompt-next.js
+@@ -177,7 +177,7 @@ export class NextPromptCommands{
+    await this.resolveFamily(g);
+    result=await this.#dispatchInsertion(tab,g,choice,c.operationId,admission,{action:c.insertionAction,identity,assertCurrent:current});
+   }catch{result={status:'uncertain'};}finally{if(this.#insertions.get(g)===pending)this.#insertions.delete(g);}
+-  const status=result?.status==='inserted'&&result.verified===true?'inserted':result?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted'};
++  const status=result?.status==='inserted'&&result.verified===true?'inserted':result?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted',...(status==='failed'&&result?.reason==='page_refresh_required'?{reason:'page_refresh_required'}:{})};
+  }
+  async card(command,tab,options={}){const admission=this.#admit(tab.id),promise=this.#track(this.#card(command,tab,options,admission),admission);if(command?.type==='next_insert')this.#receipts?.trackContinuation(this.#receiptCap,promise,admission.receiptEpoch);return promise;}
+  async #card(command,tab,{identity=null,assertCurrent:originalCurrent=async()=>{}},admission){
+@@ -191,7 +191,7 @@ export class NextPromptCommands{
+    if(this.#receipts&&(!command.insertionAction||!same(command.insertionAction,choice.insertionAction)||command.operationId!==command.insertionAction.operationId))fail();
+    if(!uuid(command.operationId)||command.conditionPresented!==true||g.attempted.has(choice.id))fail();
+    g.attempted.add(choice.id);const pending={operationId:command.operationId,choiceId:choice.id,checked:false};this.#insertions.set(g,pending);let response;try{await this.resolveFamily(g);await assertCurrent();response=await this.#dispatchInsertion(tab,g,choice,command.operationId,admission,{action:command.insertionAction,identity,assertCurrent});}catch{response={status:'uncertain'};}finally{if(this.#insertions.get(g)===pending)this.#insertions.delete(g);}
+-   const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted'};
++   const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted',...(status==='failed'&&response?.reason==='page_refresh_required'?{reason:'page_refresh_required'}:{})};
+   }
+   if(command?.type==='next_available'&&own(command,['type'])){
+    const g=this.groups.get(tab.id);if(!g||g.retired)return {available:false};try{await this.assertCurrent(g);this.#assertAdmission(admission);return {available:true};}catch{if(this.groups.get(tab.id)===g)this.groups.delete(tab.id);return {available:false};}
+@@ -237,7 +237,7 @@ export class NextPromptCommands{
+    const sent=this.#track(original);
+    const result=await Promise.race([sent,new Promise(resolve=>{timer=setTimeout(()=>{uiOpen=false;resolve({status:'uncertain'});},2000);})]);
+    proved=result?.status==='failed'||result?.status==='inserted'&&result.verified===true;return result;
+-  }finally{uiOpen=false;clearTimeout(timer);if(!proved)this.#insertionUnknown=true;}
++  }catch(error){if(error instanceof ArchiveError&&error.code==='PROMPT_PAGE_REFRESH_REQUIRED'){proved=true;return {status:'failed',reason:'page_refresh_required'};}throw error;}finally{uiOpen=false;clearTimeout(timer);if(!proved)this.#insertionUnknown=true;}
+  }
+  // Instance-local source-task proof only. The separately injected prospective
+  // insertion owner is not consumed by this token, which cannot authorize global
+diff --git a/extension/background/prompt-reuse-commands.js b/extension/background/prompt-reuse-commands.js
+index 7eea437..b2108dc 100644
+--- a/extension/background/prompt-reuse-commands.js
++++ b/extension/background/prompt-reuse-commands.js
+@@ -131,9 +131,9 @@ export class PromptReuseCommands{
+     }
+     return {status:'inserted',verified:true};
+    }
+-   if(response?.status==='failed')return {status:'failed',reason:['composition_active','composer_unavailable','unsupported_composer','draft_changed','insertion_rejected','insertion_unavailable','busy','draft_too_large','reload_required'].includes(response.reason)?response.reason:'insertion_unavailable'};
++   if(response?.status==='failed')return {status:'failed',reason:['composition_active','composer_unavailable','unsupported_composer','draft_changed','insertion_rejected','insertion_unavailable','busy','draft_too_large','reload_required','page_refresh_required'].includes(response.reason)?response.reason:'insertion_unavailable'};
+    return {status:'uncertain',reason:'readback_unconfirmed'};
+-  }catch{return {status:'uncertain',reason:'acknowledgement_unavailable'};}finally{uiOpen=false;clearTimeout(timer);if(!proved)this.#outcomeUnknown=true;}
++  }catch(error){if(error instanceof ArchiveError&&error.code==='PROMPT_PAGE_REFRESH_REQUIRED'){proved=true;return {status:'failed',reason:'page_refresh_required'};}return {status:'uncertain',reason:'acknowledgement_unavailable'};}finally{uiOpen=false;clearTimeout(timer);if(!proved)this.#outcomeUnknown=true;}
+  }
+  // These are instance-local source-task receipts, not host freeze, cold
+  // insertion recovery or global selection authority. Unknown is sticky and
+diff --git a/extension/background/prompt-surface.js b/extension/background/prompt-surface.js
+index 8caf4b9..922b512 100644
+--- a/extension/background/prompt-surface.js
++++ b/extension/background/prompt-surface.js
+@@ -131,7 +131,7 @@ export class PromptSurfaceCommands{
+    await context.assertCurrent();
+    if(c.type==='suggestion_current'){
+     if(!own(c,['type'])||Object.keys(c).length!==1)fail();
+-    let value;try{value=await this.assist?.card({type:'assist_current'},tab,context);}catch{/* Unavailable remote service never enables remote work here. */}
++    let value;try{value=await this.assist?.card({type:'assist_current'},tab,context);}catch(error){if(error instanceof ArchiveError&&error.code==='PROMPT_PAGE_REFRESH_REQUIRED')throw error;/* Unavailable remote service never enables remote work here. */}
+     await context.assertCurrent();if(value?.result?.kind==='SUGGESTION')return {source:'assist',result:value.result};
+     const local=await this.next?.card({type:'next_current'},tab,context);await context.assertCurrent();return {source:'local',result:local?.result??null};
+    }
+diff --git a/extension/core/constants.js b/extension/core/constants.js
+index ca46e55..5320bfd 100644
+--- a/extension/core/constants.js
++++ b/extension/core/constants.js
+@@ -5,7 +5,7 @@ export const QUOTA_BYTES = 10 * 1024 * 1024;
+ export const MAX_MESSAGE_LENGTH = 200000;
+ export const MAX_BATCH_SIZE = 200;
+ export const STATUS_CODES = new Set([
+-  'FEATURE_UNAVAILABLE','AI_SERVICE_UNAVAILABLE','STALE_BASE',
++  'FEATURE_UNAVAILABLE','AI_SERVICE_UNAVAILABLE','STALE_BASE','PROMPT_PAGE_REFRESH_REQUIRED',
+   'SOURCE_PURGE_OWNER_GATE','SOURCE_PURGE_UNAVAILABLE','REMOVAL_SCOPE_UNAVAILABLE',
+   'ADAPTER_LIMIT',
+   'MEMORY_PURPOSE_REQUIRED','MEMORY_EXPIRED','MEMORY_PROFILE_CONFLICT','MEMORY_NAME_EXISTS','MEMORY_INVALID','MEMORY_EXTERNAL_DISABLED', 'MEMORY_STALE','MEMORY_CONFIRM_REQUIRED','MEMORY_UNAVAILABLE','MEMORY_DENIED','MEMORY_LIMIT','MEMORY_EMPTY',
+diff --git a/extension/ui/prompt-assist-state.js b/extension/ui/prompt-assist-state.js
+index dd74dec..115da40 100644
+--- a/extension/ui/prompt-assist-state.js
++++ b/extension/ui/prompt-assist-state.js
+@@ -9,11 +9,11 @@ export class PromptAssistState{
+  constructor({send,changed=()=>{},newId=()=>crypto.randomUUID()}){this.send=send;this.changed=changed;this.newId=newId;this.source=null;this.result=null;this.busy=false;this.attempted=false;this.presented=null;this.message='';this.epoch=0;this.readEpoch=0;this.disposed=false;}
+  get active(){return this.busy;}
+  emit(){if(!this.disposed)this.changed(this);}
+- async refresh(){if(this.disposed)return false;const ticket=++this.readEpoch;try{const value=await this.send({type:'suggestion_current'});if(this.disposed||ticket!==this.readEpoch)return false;if(!exact(value,['source','result'])||!['assist','local'].includes(value.source))throw Error('UNCONFIRMED_ASSIST_STATE');const next=value.result===null?null:result(value.result);if(!same(this.result,next)||this.source!==value.source){++this.epoch;this.result=next;this.source=value.source;this.presented=null;this.attempted=false;this.busy=false;this.message='';}}catch{if(this.disposed||ticket!==this.readEpoch)return false;++this.epoch;this.busy=false;this.result=null;this.presented=null;this.source=null;}this.emit();return !!this.result;}
++ async refresh(){if(this.disposed)return false;const ticket=++this.readEpoch;try{const value=await this.send({type:'suggestion_current'});if(this.disposed||ticket!==this.readEpoch)return false;if(!exact(value,['source','result'])||!['assist','local'].includes(value.source))throw Error('UNCONFIRMED_ASSIST_STATE');const next=value.result===null?null:result(value.result);if(!same(this.result,next)||this.source!==value.source){++this.epoch;this.result=next;this.source=value.source;this.presented=null;this.attempted=false;this.busy=false;this.message='';}}catch(error){if(this.disposed||ticket!==this.readEpoch)return false;if(error?.message==='PROMPT_PAGE_REFRESH_REQUIRED'&&!this.attempted)this.message='page_refresh_required';++this.epoch;this.busy=false;this.result=null;this.presented=null;this.source=null;}this.emit();return !!this.result;}
+  // Compatibility for private callers only: this is a read, never activation.
+  activate(){return this.refresh();}
+  markPresented(value){if(same(value,this.result))this.presented={...value};}
+- async insert(){const shown=this.result,source=this.source;if(this.disposed||this.busy||this.attempted||!shown||!same(this.presented,shown))return false;const ticket=this.epoch;this.busy=true;this.message='inserting';this.emit();try{const qualified=result(await this.send({type:'suggestion_result',source,id:shown.id}));if(this.disposed||ticket!==this.epoch||!same(qualified,shown))throw Error('SUGGESTION_CHANGED');this.attempted=true;const ack=await this.send({type:'suggestion_insert',source,id:shown.id,operationId:shown.insertionAction?.operationId??this.newId(),...(shown.insertionAction?{insertionAction:shown.insertionAction}:{}),conditionPresented:true});if(this.disposed||ticket!==this.epoch)return false;const ok=ack?.status==='inserted'&&ack.verified===true;this.message=ok?'inserted':'uncertain';return ok;}catch{if(ticket===this.epoch){this.message=this.attempted?'uncertain':'changed';if(!this.attempted){this.result=null;this.presented=null;}}return false;}finally{if(ticket===this.epoch){this.busy=false;this.emit();}}}
++ async insert(){const shown=this.result,source=this.source;if(this.disposed||this.busy||this.attempted||!shown||!same(this.presented,shown))return false;const ticket=this.epoch;this.busy=true;this.message='inserting';this.emit();try{const qualified=result(await this.send({type:'suggestion_result',source,id:shown.id}));if(this.disposed||ticket!==this.epoch||!same(qualified,shown))throw Error('SUGGESTION_CHANGED');this.attempted=true;const ack=await this.send({type:'suggestion_insert',source,id:shown.id,operationId:shown.insertionAction?.operationId??this.newId(),...(shown.insertionAction?{insertionAction:shown.insertionAction}:{}),conditionPresented:true});if(this.disposed||ticket!==this.epoch)return false;const ok=ack?.status==='inserted'&&ack.verified===true;this.message=ok?'inserted':ack?.status==='failed'&&ack.reason==='page_refresh_required'?'page_refresh_required':'uncertain';return ok;}catch(error){if(ticket===this.epoch){this.message=this.attempted?'uncertain':error?.message==='PROMPT_PAGE_REFRESH_REQUIRED'?'page_refresh_required':'changed';if(!this.attempted){this.result=null;this.presented=null;}}return false;}finally{if(ticket===this.epoch){this.busy=false;this.emit();}}}
+  dismiss(){++this.readEpoch;++this.epoch;this.result=null;this.presented=null;this.busy=false;this.attempted=false;this.message='';this.emit();return Promise.resolve();}
+  async cancel(){await this.send({type:'assist_cancel'});return this.dismiss();}
+  invalidate(){if(this.busy)return;void this.refresh();}
+diff --git a/extension/ui/prompt-assist-view.js b/extension/ui/prompt-assist-view.js
+index 36cacd0..574560d 100644
+--- a/extension/ui/prompt-assist-view.js
++++ b/extension/ui/prompt-assist-view.js
+@@ -2,7 +2,7 @@ import {PromptAssistState} from './prompt-assist-state.js';
+ // No second panel, generation button or new skin. The original left 224 px
+ // capsule is the complete first-click insertion control for both result owners.
+ export function mountPromptAssist({send,tell,clearFeedback=()=>{},changed=()=>{}}){
+- const messages={inserting:'正在插入…',inserted:'已插入，未发送。',uncertain:'插入结果未确认。请先检查草稿，不会自动重试。',changed:'本轮回复或相关 Context 已变化。'};
++ const messages={page_refresh_required:'请先保留草稿，再主动刷新 ChatGPT 页面；历史未确认结果仍保留。',inserting:'正在插入…',inserted:'已插入，未发送。',uncertain:'插入结果未确认。请先检查草稿，不会自动重试。',changed:'本轮回复或相关 Context 已变化。'};
+  const state=new PromptAssistState({send,changed(){if(state.message)tell(messages[state.message]||'');else clearFeedback();changed();}});
+  void state.refresh();return {state,get active(){return state.active;},dismiss:()=>state.dismiss(),invalidate:()=>state.invalidate(),dispose:()=>state.dispose()};
+ }
+diff --git a/extension/ui/prompt-next.js b/extension/ui/prompt-next.js
+index d65071d..5c12a13 100644
+--- a/extension/ui/prompt-next.js
++++ b/extension/ui/prompt-next.js
+@@ -11,7 +11,7 @@ const dismiss=document.createElement('button');dismiss.className='next-dismiss';
+ capsule.append(condition,choices,dismiss,status);document.body.append(capsule);
+ let insertionUnconfirmed=false;
+ let group,busy=false,remaining=12000,start=0,timer,hover=false,focus=false;
+-async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_RPC',nonce,command});if(!r?.ok)throw Error('unavailable');return r.data;}
++async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_RPC',nonce,command});if(!r?.ok)throw Error(r?.error==='PROMPT_PAGE_REFRESH_REQUIRED'?'PROMPT_PAGE_REFRESH_REQUIRED':'unavailable');return r.data;}
+ const hide=()=>void rpc({type:'hide'}).catch(()=>{});
+ function timing(){if(timer){remaining-=performance.now()-start;clearTimeout(timer);timer=null;}if(hover||focus||busy)return;start=performance.now();timer=setTimeout(hide,Math.max(0,remaining));}
+ capsule.addEventListener('pointerenter',()=>{hover=true;timing();});capsule.addEventListener('pointerleave',()=>{hover=false;timing();});capsule.addEventListener('focusin',()=>{focus=true;timing();});capsule.addEventListener('focusout',()=>{focus=false;timing();});
+@@ -24,7 +24,7 @@ async function insert(choice,button){
+  try{result=await rpc({type:'insert',id:choice.id,operationId:choice.insertionAction?.operationId??crypto.randomUUID(),...(choice.insertionAction?{insertionAction:choice.insertionAction}:{})});}catch{result={status:'uncertain'};}
+  const success=result.status==='inserted'&&result.verified===true;
+  if(!success&&result.status!=='failed')insertionUnconfirmed=true;
+- status.textContent=success?'已插入，未发送。':result.status==='failed'?'无法安全插入。请检查输入框。':'插入结果未确认。请先检查草稿，不会自动重试。';
++ status.textContent=success?'已插入，未发送。':result.status==='failed'&&result.reason==='page_refresh_required'?'请先保留草稿，再主动刷新 ChatGPT 页面；历史未确认结果仍保留。':result.status==='failed'?'无法安全插入。请检查输入框。':'插入结果未确认。请先检查草稿，不会自动重试。';
+  busy=false;dismiss.disabled=false;
+  // This reply's choices are one-shot; reopening never retries an uncertain write.
+  for(const b of choices.querySelectorAll('button'))b.disabled=group.choices.find(x=>x.id===b.dataset.id)?.attempted===true;
+@@ -38,7 +38,7 @@ try{
+  condition.textContent=group.condition;condition.hidden=!group.condition;
+  for(const choice of group.choices){const button=document.createElement('button');button.type='button';button.dataset.id=choice.id;button.textContent=choice.label;button.disabled=choice.attempted;button.addEventListener('click',e=>{if(e.isTrusted)void insert(choice,button);});choices.append(button);}
+  resize();timing();new ResizeObserver(resize).observe(capsule);
+-}catch{hide();}
++}catch(error){if(error?.message==='PROMPT_PAGE_REFRESH_REQUIRED'){status.textContent='请先保留草稿，再主动刷新 ChatGPT 页面；历史未确认结果仍保留。';resize();}else hide();}
+ 
+ const nextSettled=()=>!!group&&!busy&&!insertionUnconfirmed;
+ installApplicationEditorGuard({prepare:nextSettled,current:nextSettled,release(){}});
+diff --git a/extension/ui/prompt-reuse-test.js b/extension/ui/prompt-reuse-test.js
+index 724ad72..cf0dedd 100644
+--- a/extension/ui/prompt-reuse-test.js
++++ b/extension/ui/prompt-reuse-test.js
+@@ -16,10 +16,10 @@ async function refresh(){
+    insert.type=copy.type='button';insert.textContent=item.text;copy.textContent='Copy explicitly';copy.hidden=true;
+    insert.addEventListener('click',async()=>{
+     if(!target.value){status.textContent='Open a supported ChatGPT tab first.';copy.hidden=false;return;}
+-    const selectedTarget=target.value,tab=JSON.parse(selectedTarget),current=()=>ticket===presentation&&row.isConnected&&target.value===selectedTarget;insert.disabled=true;status.textContent='Inserting…';
+-    try{const prepared=await command({type:'PAIA_PROMPT_INSERT_PREPARE',id:item.id,text:item.text,tabId:tab.id,url:tab.url});if(!current())return;if(!prepared.insertionAction||prepared.text!==item.text)throw Error('Changed');const r=await command({type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,tabId:tab.id,url:tab.url,operationId:prepared.insertionAction.operationId,insertionAction:prepared.insertionAction});
+-     if(!current())return;status.textContent=r.status==='inserted'?'Inserted and verified. Not sent.':r.status==='uncertain'?'Insertion uncertain. Inspect the draft before another insertion.':'Insertion failed. Draft was not replaced.';
+-    }catch{if(!current())return;status.textContent='Insertion not confirmed. Inspect the draft before another insertion.';}
++    const selectedTarget=target.value,tab=JSON.parse(selectedTarget),current=()=>ticket===presentation&&row.isConnected&&target.value===selectedTarget;insert.disabled=true;status.textContent='Inserting…';let insertionRequested=false;
++    try{const prepared=await command({type:'PAIA_PROMPT_INSERT_PREPARE',id:item.id,text:item.text,tabId:tab.id,url:tab.url});if(!current())return;if(!prepared.insertionAction||prepared.text!==item.text)throw Error('Changed');insertionRequested=true;const r=await command({type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,tabId:tab.id,url:tab.url,operationId:prepared.insertionAction.operationId,insertionAction:prepared.insertionAction});
++     if(!current())return;status.textContent=r.status==='failed'&&r.reason==='page_refresh_required'?'Preserve your draft, then refresh the ChatGPT page yourself. Previous unconfirmed insertions remain unconfirmed.':r.status==='inserted'?'Inserted and verified. Not sent.':r.status==='uncertain'?'Insertion uncertain. Inspect the draft before another insertion.':'Insertion failed. Draft was not replaced.';
++    }catch(error){if(!current())return;status.textContent=!insertionRequested&&error?.message==='PROMPT_PAGE_REFRESH_REQUIRED'?'Preserve your draft, then refresh the ChatGPT page yourself. Previous unconfirmed insertions remain unconfirmed.':'Insertion not confirmed. Inspect the draft before another insertion.';}
+     // Re-arm only on explicit refresh; no duplicate insertion retry.
+     copy.hidden=false;
+    });
+diff --git a/extension/ui/prompt-surface.js b/extension/ui/prompt-surface.js
+index 4a24c45..693e591 100644
+--- a/extension/ui/prompt-surface.js
++++ b/extension/ui/prompt-surface.js
+@@ -40,6 +40,7 @@ const copy={
+  '手工创建的常用表达':'Your manually created expression','你修改的常用表达':'Your edited expression','常用表达':'Frequent expression','填入整条':'Insert full text','复制整条':'Copy full text','返回':'Back',
+  '此表达已变化，请刷新。':'This expression changed. Please refresh.','已复制，请手动粘贴。':'Copied. Paste it manually.','未能复制，请检查浏览器权限。':'Could not copy. Check browser permissions.',
+  '未保存。内容可能已变化；你的编辑仍保留，请取消后刷新再试。':'Not saved. The content may have changed. Your edit is retained; cancel and refresh to retry.',
++ '请先保留草稿，再主动刷新 ChatGPT 页面；历史未确认结果仍保留。':'Preserve your draft, then refresh the ChatGPT page yourself. Previous unconfirmed results remain.',
+  '正在插入…':'Inserting…','已插入，未发送。':'Inserted, not sent.','插入结果未确认。请先检查草稿，不会自动重试。':'Insertion is unconfirmed. Check your draft; it will not retry automatically.','无法安全插入；请检查输入框或手动复制。':'Cannot insert safely. Check the input or copy manually.','复制':'Copy','此 Prompt 已变化，请刷新。':'This Prompt changed. Please refresh.',
+  '复用文本':'Reusable text','保存':'Save','未保存，编辑已保留。取消后刷新可重新编辑。':'Not saved. Your edit is retained. Cancel and refresh to edit again.','取消':'Cancel','选择要独立保留、不再自动合并的原表达。':'Select original expressions to keep separate from automatic grouping.','拆分':'Split','请选择一部分表达。':'Select some, but not all, expressions.','表达已变化，取消后刷新。':'The expression changed. Cancel and refresh.',
+  '拖动排序':'Drag to reorder','拖动此 Prompt':'Drag this Prompt','拖动到目标行之前；也可使用上移下移':'Drag before another row, or use Move up and Move down.','没有隐藏的 Prompt。':'No hidden Prompts.','常用表达会出现在这里，也可以新建自己的 Prompt。':'Frequent expressions appear here. You can also create a Prompt.',
+@@ -163,13 +164,13 @@ async function insert(item,b,reviewed=false,key=null){
+  if(editing||busy||drag||composing||attempted.has(item.id))return;
+  const selectedRange=checking?.item===item?checking.range:null;if(!selectedRange&&!quickPromptEligible(item.text)){tell('最多 150 个字符；编辑仍保留。');return;}
+  attempted.add(item.id);const original=list.querySelector(`[data-id="${item.id}"] .insert`);if(original)original.disabled=true;b.disabled=true;pending(true);tell('正在插入…');
+- let verified=false;const ticket=epoch;
++ let verified=false,insertionRequested=false;const ticket=epoch;
+  try{const ref=checking?.item===item?checking.ref:selectionRef(item),range=checking?.item===item?checking.range:null;
+   // The accepted click receives one original, source-bound action. Its issued
+   // operation ID and epoch are echoed unchanged, never freshened on insertion.
+   const prepared=await rpc({type:'PAIA_PROMPT_SELECTION_READ',ref,range,prepareInsertion:true});
+   if(disposed||ticket!==epoch||!prepared.insertionAction||prepared.text!==(range?item.text.slice(range.start,range.end):item.text)||!currentItems().some(x=>x.id===item.id&&x.text===item.text))throw Error('changed');
+-  const r=await rpc({type:'PAIA_PROMPT_SELECTION_INSERT',...(key?{activationKey:key}:{}),ref,range,target:prepared.target,operationId:prepared.insertionAction.operationId,insertionAction:prepared.insertionAction});if(disposed||ticket!==epoch)return;verified=r.status==='inserted'&&r.verified===true;if(!verified&&r.status!=='failed')insertionUnconfirmed=true;tell(verified?'已插入，未发送。':r.reason==='unsupported_line_endings'?'当前输入框无法原样保留 CRLF 换行，请复制原文。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch{if(disposed||ticket!==epoch)return;insertionUnconfirmed=true;tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{if(!disposed&&ticket===epoch)pending(false);}
++  insertionRequested=true;const r=await rpc({type:'PAIA_PROMPT_SELECTION_INSERT',...(key?{activationKey:key}:{}),ref,range,target:prepared.target,operationId:prepared.insertionAction.operationId,insertionAction:prepared.insertionAction});if(disposed||ticket!==epoch)return;verified=r.status==='inserted'&&r.verified===true;if(!verified&&r.status!=='failed')insertionUnconfirmed=true;tell(verified?'已插入，未发送。':r.status==='failed'&&r.reason==='page_refresh_required'?'请先保留草稿，再主动刷新 ChatGPT 页面；历史未确认结果仍保留。':r.reason==='unsupported_line_endings'?'当前输入框无法原样保留 CRLF 换行，请复制原文。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch(error){if(disposed||ticket!==epoch)return;if(!insertionRequested&&error?.message==='PROMPT_PAGE_REFRESH_REQUIRED')tell('请先保留草稿，再主动刷新 ChatGPT 页面；历史未确认结果仍保留。');else{insertionUnconfirmed=true;tell('插入结果未确认。请先检查草稿，不会自动重试。');}}finally{if(!disposed&&ticket===epoch)pending(false);}
+  if(verified){const feedback=b.id==='capsule-use'?b:original?.closest('.row');if(feedback)feedback.dataset.inserted='true';setTimeout(()=>{if(feedback)delete feedback.dataset.inserted;attempted.delete(item.id);if(original&&currentItems().some(current=>current.id===item.id&&current.text===item.text&&!current.hidden&&quickPromptEligible(current.text)))setPendingEligibility(original,false);paintCapsule();},480);paintCapsule();leaveCheck(false);return;}
+  const copy=button('复制',()=>copyWhole(item,true));status.append(copy);
+ }

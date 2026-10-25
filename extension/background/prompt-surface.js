@@ -131,7 +131,7 @@ export class PromptSurfaceCommands{
    await context.assertCurrent();
    if(c.type==='suggestion_current'){
     if(!own(c,['type'])||Object.keys(c).length!==1)fail();
-    let value;try{value=await this.assist?.card({type:'assist_current'},tab,context);}catch{/* Unavailable remote service never enables remote work here. */}
+    let value;try{value=await this.assist?.card({type:'assist_current'},tab,context);}catch(error){if(error instanceof ArchiveError&&error.code==='PROMPT_PAGE_REFRESH_REQUIRED')throw error;/* Unavailable remote service never enables remote work here. */}
     await context.assertCurrent();if(value?.result?.kind==='SUGGESTION')return {source:'assist',result:value.result};
     const local=await this.next?.card({type:'next_current'},tab,context);await context.assertCurrent();return {source:'local',result:local?.result??null};
    }

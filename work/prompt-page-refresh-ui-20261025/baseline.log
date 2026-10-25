@@ -1,0 +1,216 @@
+TAP version 13
+# Subtest: page refresh condition survives original safe error transport
+not ok 1 - page refresh condition survives original safe error transport
+  ---
+  duration_ms: 0.983459
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:63:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'STORAGE_FAILED'
+    - 'PROMPT_PAGE_REFRESH_REQUIRED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'PROMPT_PAGE_REFRESH_REQUIRED'
+  actual: 'STORAGE_FAILED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:63:81)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: manual pre-action presentation preserves exact refresh condition without a claim
+ok 2 - manual pre-action presentation preserves exact refresh condition without a claim
+  ---
+  duration_ms: 82.419875
+  type: 'test'
+  ...
+# Subtest: next pre-action presentation preserves exact refresh condition without a claim
+ok 3 - next pre-action presentation preserves exact refresh condition without a claim
+  ---
+  duration_ms: 39.552583
+  type: 'test'
+  ...
+# Subtest: assist pre-action presentation preserves exact refresh condition without a claim
+not ok 4 - assist pre-action presentation preserves exact refresh condition without a claim
+  ---
+  duration_ms: 210.290333
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:64:47'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'PROMPT_PAGE_REFRESH_REQUIRED'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:66:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: manual pre-PENDING insert preserves explicit refresh reason without dispatch
+not ok 5 - manual pre-PENDING insert preserves explicit refresh reason without dispatch
+  ---
+  duration_ms: 36.521875
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:70:47'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'uncertain'
+    - 'failed'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'failed'
+  actual: 'uncertain'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:73:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: next pre-PENDING insert preserves explicit refresh reason without dispatch
+not ok 6 - next pre-PENDING insert preserves explicit refresh reason without dispatch
+  ---
+  duration_ms: 41.754584
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:70:47'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'uncertain'
+    - 'failed'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'failed'
+  actual: 'uncertain'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:73:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: assist pre-PENDING insert preserves explicit refresh reason without dispatch
+not ok 7 - assist pre-PENDING insert preserves explicit refresh reason without dispatch
+  ---
+  duration_ms: 145.590708
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:70:47'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'uncertain'
+    - 'failed'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'failed'
+  actual: 'uncertain'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:73:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: suggestion initial refresh shows manual page refresh requirement
+not ok 8 - suggestion initial refresh shows manual page refresh requirement
+  ---
+  duration_ms: 0.225042
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:77:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + ''
+    - 'page_refresh_required'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'page_refresh_required'
+  actual: ''
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:77:186)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: suggestion final preparation refresh error sends no insertion and remains explicit
+not ok 9 - suggestion final preparation refresh error sends no insertion and remains explicit
+  ---
+  duration_ms: 0.225708
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:78:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'changed'
+    - 'page_refresh_required'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'page_refresh_required'
+  actual: 'changed'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:78:261)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: suggestion exact failed pre-PENDING outcome shows refresh while retaining one-shot attempt
+not ok 10 - suggestion exact failed pre-PENDING outcome shows refresh while retaining one-shot attempt
+  ---
+  duration_ms: 0.216959
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:79:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'uncertain'
+    - 'page_refresh_required'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'page_refresh_required'
+  actual: 'uncertain'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-profile-ui/extension/tests/prompt-page-refresh-ui.test.mjs:79:285)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unknown insertion stays unknown despite reason-shaped data
+ok 11 - unknown insertion stays unknown despite reason-shaped data
+  ---
+  duration_ms: 0.0675
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 3
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 916.873417

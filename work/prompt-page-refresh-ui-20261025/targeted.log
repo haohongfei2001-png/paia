@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: page refresh condition survives original safe error transport
+ok 1 - page refresh condition survives original safe error transport
+  ---
+  duration_ms: 1.128
+  type: 'test'
+  ...
+# Subtest: manual pre-action presentation preserves exact refresh condition without a claim
+ok 2 - manual pre-action presentation preserves exact refresh condition without a claim
+  ---
+  duration_ms: 68.667916
+  type: 'test'
+  ...
+# Subtest: next pre-action presentation preserves exact refresh condition without a claim
+ok 3 - next pre-action presentation preserves exact refresh condition without a claim
+  ---
+  duration_ms: 38.686041
+  type: 'test'
+  ...
+# Subtest: assist pre-action presentation preserves exact refresh condition without a claim
+ok 4 - assist pre-action presentation preserves exact refresh condition without a claim
+  ---
+  duration_ms: 336.941958
+  type: 'test'
+  ...
+# Subtest: manual pre-PENDING insert preserves explicit refresh reason without dispatch
+ok 5 - manual pre-PENDING insert preserves explicit refresh reason without dispatch
+  ---
+  duration_ms: 44.904042
+  type: 'test'
+  ...
+# Subtest: next pre-PENDING insert preserves explicit refresh reason without dispatch
+ok 6 - next pre-PENDING insert preserves explicit refresh reason without dispatch
+  ---
+  duration_ms: 50.427667
+  type: 'test'
+  ...
+# Subtest: assist pre-PENDING insert preserves explicit refresh reason without dispatch
+ok 7 - assist pre-PENDING insert preserves explicit refresh reason without dispatch
+  ---
+  duration_ms: 246.064042
+  type: 'test'
+  ...
+# Subtest: suggestion initial refresh shows manual page refresh requirement
+ok 8 - suggestion initial refresh shows manual page refresh requirement
+  ---
+  duration_ms: 0.232958
+  type: 'test'
+  ...
+# Subtest: suggestion final preparation refresh error sends no insertion and remains explicit
+ok 9 - suggestion final preparation refresh error sends no insertion and remains explicit
+  ---
+  duration_ms: 0.235541
+  type: 'test'
+  ...
+# Subtest: suggestion exact failed pre-PENDING outcome shows refresh while retaining one-shot attempt
+ok 10 - suggestion exact failed pre-PENDING outcome shows refresh while retaining one-shot attempt
+  ---
+  duration_ms: 0.227333
+  type: 'test'
+  ...
+# Subtest: unknown insertion stays unknown despite reason-shaped data
+ok 11 - unknown insertion stays unknown despite reason-shaped data
+  ---
+  duration_ms: 0.217083
+  type: 'test'
+  ...
+# Subtest: standalone manual prepare preserves phase-specific notice
+ok 12 - standalone manual prepare preserves phase-specific notice
+  ---
+  duration_ms: 2.312375
+  type: 'test'
+  ...
+# Subtest: standalone manual failed preserves phase-specific notice
+ok 13 - standalone manual failed preserves phase-specific notice
+  ---
+  duration_ms: 0.47425
+  type: 'test'
+  ...
+# Subtest: standalone manual unknown preserves phase-specific notice
+ok 14 - standalone manual unknown preserves phase-specific notice
+  ---
+  duration_ms: 0.555417
+  type: 'test'
+  ...
+# Subtest: standalone manual late-error preserves phase-specific notice
+ok 15 - standalone manual late-error preserves phase-specific notice
+  ---
+  duration_ms: 0.449
+  type: 'test'
+  ...
+# Subtest: manual board prepare retains existing unknown and one-shot ownership
+ok 16 - manual board prepare retains existing unknown and one-shot ownership
+  ---
+  duration_ms: 0.962583
+  type: 'test'
+  ...
+# Subtest: manual board failed retains existing unknown and one-shot ownership
+ok 17 - manual board failed retains existing unknown and one-shot ownership
+  ---
+  duration_ms: 0.37575
+  type: 'test'
+  ...
+# Subtest: manual board unknown retains existing unknown and one-shot ownership
+ok 18 - manual board unknown retains existing unknown and one-shot ownership
+  ---
+  duration_ms: 0.396083
+  type: 'test'
+  ...
+# Subtest: manual board late-error retains existing unknown and one-shot ownership
+ok 19 - manual board late-error retains existing unknown and one-shot ownership
+  ---
+  duration_ms: 0.352667
+  type: 'test'
+  ...
+# Subtest: legacy Next initial mismatch remains visible and does not hide/refresh/insert
+ok 20 - legacy Next initial mismatch remains visible and does not hide/refresh/insert
+  ---
+  duration_ms: 0.819917
+  type: 'test'
+  ...
+# Subtest: legacy Next generic failure retains prior unavailable behavior
+ok 21 - legacy Next generic failure retains prior unavailable behavior
+  ---
+  duration_ms: 0.390291
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1176.381458

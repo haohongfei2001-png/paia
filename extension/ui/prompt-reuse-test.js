@@ -16,10 +16,10 @@ async function refresh(){
    insert.type=copy.type='button';insert.textContent=item.text;copy.textContent='Copy explicitly';copy.hidden=true;
    insert.addEventListener('click',async()=>{
     if(!target.value){status.textContent='Open a supported ChatGPT tab first.';copy.hidden=false;return;}
-    const selectedTarget=target.value,tab=JSON.parse(selectedTarget),current=()=>ticket===presentation&&row.isConnected&&target.value===selectedTarget;insert.disabled=true;status.textContent='Inserting…';
-    try{const prepared=await command({type:'PAIA_PROMPT_INSERT_PREPARE',id:item.id,text:item.text,tabId:tab.id,url:tab.url});if(!current())return;if(!prepared.insertionAction||prepared.text!==item.text)throw Error('Changed');const r=await command({type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,tabId:tab.id,url:tab.url,operationId:prepared.insertionAction.operationId,insertionAction:prepared.insertionAction});
-     if(!current())return;status.textContent=r.status==='inserted'?'Inserted and verified. Not sent.':r.status==='uncertain'?'Insertion uncertain. Inspect the draft before another insertion.':'Insertion failed. Draft was not replaced.';
-    }catch{if(!current())return;status.textContent='Insertion not confirmed. Inspect the draft before another insertion.';}
+    const selectedTarget=target.value,tab=JSON.parse(selectedTarget),current=()=>ticket===presentation&&row.isConnected&&target.value===selectedTarget;insert.disabled=true;status.textContent='Inserting…';let insertionRequested=false;
+    try{const prepared=await command({type:'PAIA_PROMPT_INSERT_PREPARE',id:item.id,text:item.text,tabId:tab.id,url:tab.url});if(!current())return;if(!prepared.insertionAction||prepared.text!==item.text)throw Error('Changed');insertionRequested=true;const r=await command({type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,tabId:tab.id,url:tab.url,operationId:prepared.insertionAction.operationId,insertionAction:prepared.insertionAction});
+     if(!current())return;status.textContent=r.status==='failed'&&r.reason==='page_refresh_required'?'Preserve your draft, then refresh the ChatGPT page yourself. Previous unconfirmed insertions remain unconfirmed.':r.status==='inserted'?'Inserted and verified. Not sent.':r.status==='uncertain'?'Insertion uncertain. Inspect the draft before another insertion.':'Insertion failed. Draft was not replaced.';
+    }catch(error){if(!current())return;status.textContent=!insertionRequested&&error?.message==='PROMPT_PAGE_REFRESH_REQUIRED'?'Preserve your draft, then refresh the ChatGPT page yourself. Previous unconfirmed insertions remain unconfirmed.':'Insertion not confirmed. Inspect the draft before another insertion.';}
     // Re-arm only on explicit refresh; no duplicate insertion retry.
     copy.hidden=false;
    });

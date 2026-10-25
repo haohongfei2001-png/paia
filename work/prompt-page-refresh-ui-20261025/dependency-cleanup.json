@@ -1,0 +1,7 @@
+{
+  "ownedSymlink": "services/ai-gateway/node_modules",
+  "verifiedTarget": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/services/ai-gateway/node_modules",
+  "unlinked": true,
+  "originalDependencyDirectoryRetained": true,
+  "ownedTestProcess": "completed exit 0; no running session"
+}

@@ -177,7 +177,7 @@ export class NextPromptCommands{
    await this.resolveFamily(g);
    result=await this.#dispatchInsertion(tab,g,choice,c.operationId,admission,{action:c.insertionAction,identity,assertCurrent:current});
   }catch{result={status:'uncertain'};}finally{if(this.#insertions.get(g)===pending)this.#insertions.delete(g);}
-  const status=result?.status==='inserted'&&result.verified===true?'inserted':result?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted'};
+  const status=result?.status==='inserted'&&result.verified===true?'inserted':result?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted',...(status==='failed'&&result?.reason==='page_refresh_required'?{reason:'page_refresh_required'}:{})};
  }
  async card(command,tab,options={}){const admission=this.#admit(tab.id),promise=this.#track(this.#card(command,tab,options,admission),admission);if(command?.type==='next_insert')this.#receipts?.trackContinuation(this.#receiptCap,promise,admission.receiptEpoch);return promise;}
  async #card(command,tab,{identity=null,assertCurrent:originalCurrent=async()=>{}},admission){
@@ -191,7 +191,7 @@ export class NextPromptCommands{
    if(this.#receipts&&(!command.insertionAction||!same(command.insertionAction,choice.insertionAction)||command.operationId!==command.insertionAction.operationId))fail();
    if(!uuid(command.operationId)||command.conditionPresented!==true||g.attempted.has(choice.id))fail();
    g.attempted.add(choice.id);const pending={operationId:command.operationId,choiceId:choice.id,checked:false};this.#insertions.set(g,pending);let response;try{await this.resolveFamily(g);await assertCurrent();response=await this.#dispatchInsertion(tab,g,choice,command.operationId,admission,{action:command.insertionAction,identity,assertCurrent});}catch{response={status:'uncertain'};}finally{if(this.#insertions.get(g)===pending)this.#insertions.delete(g);}
-   const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted'};
+   const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted',...(status==='failed'&&response?.reason==='page_refresh_required'?{reason:'page_refresh_required'}:{})};
   }
   if(command?.type==='next_available'&&own(command,['type'])){
    const g=this.groups.get(tab.id);if(!g||g.retired)return {available:false};try{await this.assertCurrent(g);this.#assertAdmission(admission);return {available:true};}catch{if(this.groups.get(tab.id)===g)this.groups.delete(tab.id);return {available:false};}
@@ -237,7 +237,7 @@ export class NextPromptCommands{
    const sent=this.#track(original);
    const result=await Promise.race([sent,new Promise(resolve=>{timer=setTimeout(()=>{uiOpen=false;resolve({status:'uncertain'});},2000);})]);
    proved=result?.status==='failed'||result?.status==='inserted'&&result.verified===true;return result;
-  }finally{uiOpen=false;clearTimeout(timer);if(!proved)this.#insertionUnknown=true;}
+  }catch(error){if(error instanceof ArchiveError&&error.code==='PROMPT_PAGE_REFRESH_REQUIRED'){proved=true;return {status:'failed',reason:'page_refresh_required'};}throw error;}finally{uiOpen=false;clearTimeout(timer);if(!proved)this.#insertionUnknown=true;}
  }
  // Instance-local source-task proof only. The separately injected prospective
  // insertion owner is not consumed by this token, which cannot authorize global

@@ -1,0 +1,13 @@
+{
+  "extension/background/prompt-assist.js": "9d4e8efde6bf66395eb4209b11a94987d4ec6be1564426433fc8e08d3ff0c204",
+  "extension/background/prompt-next.js": "6dff45bf6ffbdd87672595a1fbab338252f2f309b69fd41af45e0c4896848e21",
+  "extension/background/prompt-reuse-commands.js": "e9a965721b7613208f0acd701bd7eceec9c5c7a42a20c1727ed90d64bdc7c014",
+  "extension/background/prompt-surface.js": "8cc66d4e781f3c515feabe31670c16f25b91867df38e522b775129cee2d9eaf6",
+  "extension/core/constants.js": "9e6da4ff717accc6db32248cd58385da9a0514ce8e6e6976c2faf2cfc55cbf86",
+  "extension/ui/prompt-assist-state.js": "f4c50772d56412fc8a6b2290d5a3043d4937e7e5058f34a4f02d0c604f056087",
+  "extension/ui/prompt-assist-view.js": "307a51067a037a13c0625e377a0b281ad1db2875d38292cb77aaa49fbb36c6a2",
+  "extension/ui/prompt-next.js": "3da46aafa10b1c129a184b8acd031838606b981f0f4fde5239250ca1d4a7cf31",
+  "extension/ui/prompt-reuse-test.js": "965bfad7298b01ea9aae9fddd78da85b62812ed84463b438b296b65bfb7b63e7",
+  "extension/ui/prompt-surface.js": "4204d5fc0b8e38a3bfd17f280e11aaccc596b718dd5fd3d94a4d824bd32c76c4",
+  "extension/tests/prompt-page-refresh-ui.test.mjs": "8a991429436814f44be22693874543f54a4ff4c14d5cf9fa527dda6965a27f82"
+}

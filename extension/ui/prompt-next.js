@@ -11,7 +11,7 @@ const dismiss=document.createElement('button');dismiss.className='next-dismiss';
 capsule.append(condition,choices,dismiss,status);document.body.append(capsule);
 let insertionUnconfirmed=false;
 let group,busy=false,remaining=12000,start=0,timer,hover=false,focus=false;
-async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_RPC',nonce,command});if(!r?.ok)throw Error('unavailable');return r.data;}
+async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_RPC',nonce,command});if(!r?.ok)throw Error(r?.error==='PROMPT_PAGE_REFRESH_REQUIRED'?'PROMPT_PAGE_REFRESH_REQUIRED':'unavailable');return r.data;}
 const hide=()=>void rpc({type:'hide'}).catch(()=>{});
 function timing(){if(timer){remaining-=performance.now()-start;clearTimeout(timer);timer=null;}if(hover||focus||busy)return;start=performance.now();timer=setTimeout(hide,Math.max(0,remaining));}
 capsule.addEventListener('pointerenter',()=>{hover=true;timing();});capsule.addEventListener('pointerleave',()=>{hover=false;timing();});capsule.addEventListener('focusin',()=>{focus=true;timing();});capsule.addEventListener('focusout',()=>{focus=false;timing();});
@@ -24,7 +24,7 @@ async function insert(choice,button){
  try{result=await rpc({type:'insert',id:choice.id,operationId:choice.insertionAction?.operationId??crypto.randomUUID(),...(choice.insertionAction?{insertionAction:choice.insertionAction}:{})});}catch{result={status:'uncertain'};}
  const success=result.status==='inserted'&&result.verified===true;
  if(!success&&result.status!=='failed')insertionUnconfirmed=true;
- status.textContent=success?'已插入，未发送。':result.status==='failed'?'无法安全插入。请检查输入框。':'插入结果未确认。请先检查草稿，不会自动重试。';
+ status.textContent=success?'已插入，未发送。':result.status==='failed'&&result.reason==='page_refresh_required'?'请先保留草稿，再主动刷新 ChatGPT 页面；历史未确认结果仍保留。':result.status==='failed'?'无法安全插入。请检查输入框。':'插入结果未确认。请先检查草稿，不会自动重试。';
  busy=false;dismiss.disabled=false;
  // This reply's choices are one-shot; reopening never retries an uncertain write.
  for(const b of choices.querySelectorAll('button'))b.disabled=group.choices.find(x=>x.id===b.dataset.id)?.attempted===true;
@@ -38,7 +38,7 @@ try{
  condition.textContent=group.condition;condition.hidden=!group.condition;
  for(const choice of group.choices){const button=document.createElement('button');button.type='button';button.dataset.id=choice.id;button.textContent=choice.label;button.disabled=choice.attempted;button.addEventListener('click',e=>{if(e.isTrusted)void insert(choice,button);});choices.append(button);}
  resize();timing();new ResizeObserver(resize).observe(capsule);
-}catch{hide();}
+}catch(error){if(error?.message==='PROMPT_PAGE_REFRESH_REQUIRED'){status.textContent='请先保留草稿，再主动刷新 ChatGPT 页面；历史未确认结果仍保留。';resize();}else hide();}
 
 const nextSettled=()=>!!group&&!busy&&!insertionUnconfirmed;
 installApplicationEditorGuard({prepare:nextSettled,current:nextSettled,release(){}});

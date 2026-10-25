@@ -1,0 +1,960 @@
+TAP version 13
+# Subtest: original host uses one transient R3 capsule without persisting the saved orb preference
+ok 1 - original host uses one transient R3 capsule without persisting the saved orb preference
+  ---
+  duration_ms: 12.196709
+  type: 'test'
+  ...
+# Subtest: a ready suggestion never closes an open board and appears when its original close is acknowledged
+ok 2 - a ready suggestion never closes an open board and appears when its original close is acknowledged
+  ---
+  duration_ms: 5.776625
+  type: 'test'
+  ...
+# Subtest: an automatic offer held by original drag is shown after drag completion without another generation event
+ok 3 - an automatic offer held by original drag is shown after drag completion without another generation event
+  ---
+  duration_ms: 1.736708
+  type: 'test'
+  ...
+# Subtest: IME and current composer activity suppress presentation without changing persistent shape
+ok 4 - IME and current composer activity suppress presentation without changing persistent shape
+  ---
+  duration_ms: 2.434958
+  type: 'test'
+  ...
+# Subtest: available false clears an empty automatic capsule and never demands a generation click
+ok 5 - available false clears an empty automatic capsule and never demands a generation click
+  ---
+  duration_ms: 1.322125
+  type: 'test'
+  ...
+# Subtest: body-free availability alone cannot bypass the original current-reply owner to open a paid suggestion
+ok 6 - body-free availability alone cannot bypass the original current-reply owner to open a paid suggestion
+  ---
+  duration_ms: 1.379541
+  type: 'test'
+  ...
+# Subtest: surface frames require exact origin, nonce, current host, positive frame and consent
+ok 7 - surface frames require exact origin, nonce, current host, positive frame and consent
+  ---
+  duration_ms: 2.287792
+  type: 'test'
+  ...
+# Subtest: host gets only geometry; frame insertion is forcibly bound to its own tab and cannot query arbitrary capabilities
+ok 8 - host gets only geometry; frame insertion is forcibly bound to its own tab and cannot query arbitrary capabilities
+  ---
+  duration_ms: 0.540291
+  type: 'test'
+  ...
+# Subtest: position is bounded device-only metadata, with no website or archive body storage
+ok 9 - position is bounded device-only metadata, with no website or archive body storage
+  ---
+  duration_ms: 0.281792
+  type: 'test'
+  ...
+# Subtest: safe geometry clamps orb and card, excludes native composer controls at 320px and expanded scale
+ok 10 - safe geometry clamps orb and card, excludes native composer controls at 320px and expanded scale
+  ---
+  duration_ms: 5.048875
+  type: 'test'
+  ...
+# Subtest: surface publishes only one static extension frame, no host library bridge or new privileged host
+ok 11 - surface publishes only one static extension frame, no host library bridge or new privileged host
+  ---
+  duration_ms: 4.322625
+  type: 'test'
+  ...
+# Subtest: popup diagnostic is consent-only, exact-view authorized and returns bounded metadata
+ok 12 - popup diagnostic is consent-only, exact-view authorized and returns bounded metadata
+  ---
+  duration_ms: 0.792958
+  type: 'test'
+  ...
+# Subtest: open geometry uses one visible anchor, projects the attached card into safe bands and restores without drift
+ok 13 - open geometry uses one visible anchor, projects the attached card into safe bands and restores without drift
+  ---
+  duration_ms: 1.63675
+  type: 'test'
+  ...
+# Subtest: SPA geometry save binds the initial sender URL to the exact live document, without authorizing stale navigation
+ok 14 - SPA geometry save binds the initial sender URL to the exact live document, without authorizing stale navigation
+  ---
+  duration_ms: 0.415167
+  type: 'test'
+  ...
+# Subtest: open surface preserves legacy metadata without moving the common composer anchor
+ok 15 - open surface preserves legacy metadata without moving the common composer anchor
+  ---
+  duration_ms: 0.965709
+  type: 'test'
+  ...
+# Subtest: saved open anchor remains viewport-bounded when scrolling moves the composer outside the viewport
+ok 16 - saved open anchor remains viewport-bounded when scrolling moves the composer outside the viewport
+  ---
+  duration_ms: 1.780125
+  type: 'test'
+  ...
+# Subtest: initial host mount stays hidden until held first geometry frame: composer top 8
+ok 17 - initial host mount stays hidden until held first geometry frame: composer top 8
+  ---
+  duration_ms: 3.503875
+  type: 'test'
+  ...
+# Subtest: initial host mount stays hidden until held first geometry frame: composer top 700
+ok 18 - initial host mount stays hidden until held first geometry frame: composer top 700
+  ---
+  duration_ms: 0.971334
+  type: 'test'
+  ...
+# Subtest: disposing the host cancels its pending presentation timer and removes composer activity listeners
+ok 19 - disposing the host cancels its pending presentation timer and removes composer activity listeners
+  ---
+  duration_ms: 1.801959
+  type: 'test'
+  ...
+# Subtest: open orb requests the private card close policy instead of only focusing or destroying its frame
+ok 20 - open orb requests the private card close policy instead of only focusing or destroying its frame
+  ---
+  duration_ms: 1.539125
+  type: 'test'
+  ...
+# Subtest: orb drag click suppression ends with its gesture and keyboard activation still requests closure
+ok 21 - orb drag click suppression ends with its gesture and keyboard activation still requests closure
+  ---
+  duration_ms: 2.407625
+  type: 'test'
+  ...
+# Subtest: orb drag temporarily excludes the iframe from hit testing and every terminal path releases capture once
+ok 22 - orb drag temporarily excludes the iframe from hit testing and every terminal path releases capture once
+  ---
+  duration_ms: 11.882
+  type: 'test'
+  ...
+# Subtest: host close request is nonce-only and bound to the exact active top document, consent and live card
+ok 23 - host close request is nonce-only and bound to the exact active top document, consent and live card
+  ---
+  duration_ms: 0.632333
+  type: 'test'
+  ...
+# Subtest: host close request rejects navigation or consent changes during its live probe; SPA uses the live document
+ok 24 - host close request rejects navigation or consent changes during its live probe; SPA uses the live document
+  ---
+  duration_ms: 0.260917
+  type: 'test'
+  ...
+# Subtest: approved double-card presentation uses one persistent circle and accessible owner
+ok 25 - approved double-card presentation uses one persistent circle and accessible owner
+  ---
+  duration_ms: 1.732916
+  type: 'test'
+  ...
+# Subtest: authenticated measure is geometry-only, bounded, exact-shaped and nonce-bound
+ok 26 - authenticated measure is geometry-only, bounded, exact-shaped and nonce-bound
+  ---
+  duration_ms: 3.426083
+  type: 'test'
+  ...
+# Subtest: host measurement accepts only current private nonce and preserves the frame
+ok 27 - host measurement accepts only current private nonce and preserves the frame
+  ---
+  duration_ms: 1.032708
+  type: 'test'
+  ...
+# Subtest: measure acknowledgements follow layout and cannot authorize a superseded nonce or generation
+ok 28 - measure acknowledgements follow layout and cannot authorize a superseded nonce or generation
+  ---
+  duration_ms: 1.594958
+  type: 'test'
+  ...
+# Subtest: surface exposes only normalized display preferences through the original read-only meta owner
+ok 29 - surface exposes only normalized display preferences through the original read-only meta owner
+  ---
+  duration_ms: 0.730125
+  type: 'test'
+  ...
+# Subtest: private query exposes only a strict automatic-presentation boolean and never host suggestion bodies
+ok 30 - private query exposes only a strict automatic-presentation boolean and never host suggestion bodies
+  ---
+  duration_ms: 1.578041
+  type: 'test'
+  ...
+# Subtest: first collapsed host reads only display choices and cannot persist them as geometry
+ok 31 - first collapsed host reads only display choices and cannot persist them as geometry
+  ---
+  duration_ms: 0.317416
+  type: 'test'
+  ...
+# Subtest: display-only activation never reinitializes an open private editor; consent activation retains its guard
+ok 32 - display-only activation never reinitializes an open private editor; consent activation retains its guard
+  ---
+  duration_ms: 4.367
+  type: 'test'
+  ...
+# Subtest: initial connected orb already has the saved accessible language and theme before its first animation frame
+ok 33 - initial connected orb already has the saved accessible language and theme before its first animation frame
+  ---
+  duration_ms: 1.380625
+  type: 'test'
+  ...
+# Subtest: only an authenticated private frame selects a strict device-local collapsed form
+ok 34 - only an authenticated private frame selects a strict device-local collapsed form
+  ---
+  duration_ms: 0.396459
+  type: 'test'
+  ...
+# Subtest: private close relays only the original nonce-bound host form, never a child-selected or stale form
+ok 35 - private close relays only the original nonce-bound host form, never a child-selected or stale form
+  ---
+  duration_ms: 0.541084
+  type: 'test'
+  ...
+# Subtest: real Assist presenter leaves local prompts usable and routes a fully visible original capsule first click
+ok 36 - real Assist presenter leaves local prompts usable and routes a fully visible original capsule first click
+  ---
+  duration_ms: 19.451167
+  type: 'test'
+  ...
+# Subtest: unpresentable condition is refused without silently dropping it or hiding local prompts
+ok 37 - unpresentable condition is refused without silently dropping it or hiding local prompts
+  ---
+  duration_ms: 1.660834
+  type: 'test'
+  ...
+# Subtest: Settings enables require distinct trusted confirmation; cancel and opening never write
+ok 38 - Settings enables require distinct trusted confirmation; cancel and opening never write
+  ---
+  duration_ms: 4.795334
+  type: 'test'
+  ...
+# Subtest: original More click closes its menu without generating or creating another suggestion panel
+ok 39 - original More click closes its menu without generating or creating another suggestion panel
+  ---
+  duration_ms: 29.166292
+  type: 'test'
+  ...
+# Subtest: Assist status cleanup cannot erase a newer local-prompt message
+ok 40 - Assist status cleanup cannot erase a newer local-prompt message
+  ---
+  duration_ms: 4.275125
+  type: 'test'
+  ...
+# Subtest: opening and refresh read only already qualified suggestions and never activate or read reply material
+ok 41 - opening and refresh read only already qualified suggestions and never activate or read reply material
+  ---
+  duration_ms: 24.248167
+  type: 'test'
+  ...
+# Subtest: unavailable has no suggestion or generation action at the consumption surface
+ok 42 - unavailable has no suggestion or generation action at the consumption surface
+  ---
+  duration_ms: 0.52225
+  type: 'test'
+  ...
+# Subtest: permission has no suggestion or generation action at the consumption surface
+ok 43 - permission has no suggestion or generation action at the consumption surface
+  ---
+  duration_ms: 0.106542
+  type: 'test'
+  ...
+# Subtest: no-reply has no suggestion or generation action at the consumption surface
+ok 44 - no-reply has no suggestion or generation action at the consumption surface
+  ---
+  duration_ms: 0.0885
+  type: 'test'
+  ...
+# Subtest: complete displayed expression and exact result are requalified before one first-click insertion
+ok 45 - complete displayed expression and exact result are requalified before one first-click insertion
+  ---
+  duration_ms: 0.413458
+  type: 'test'
+  ...
+# Subtest: same-id changed condition cannot insert text the user did not review
+ok 46 - same-id changed condition cannot insert text the user did not review
+  ---
+  duration_ms: 0.516958
+  type: 'test'
+  ...
+# Subtest: held final qualification and repeated click use one insertion attempt
+ok 47 - held final qualification and repeated click use one insertion attempt
+  ---
+  duration_ms: 0.458875
+  type: 'test'
+  ...
+# Subtest: explicit dismissal rejects a late read without requesting remote cancellation or new generation
+ok 48 - explicit dismissal rejects a late read without requesting remote cancellation or new generation
+  ---
+  duration_ms: 0.233541
+  type: 'test'
+  ...
+# Subtest: a new explicit cancellation invalidates the consumed result without another generation
+ok 49 - a new explicit cancellation invalidates the consumed result without another generation
+  ---
+  duration_ms: 0.5995
+  type: 'test'
+  ...
+# Subtest: relevant invalidation rejected by the original final qualification sends zero insert commands
+ok 50 - relevant invalidation rejected by the original final qualification sends zero insert commands
+  ---
+  duration_ms: 0.331875
+  type: 'test'
+  ...
+# Subtest: unrelated notification during unchanged original qualification does not cancel a valid insertion
+ok 51 - unrelated notification during unchanged original qualification does not cancel a valid insertion
+  ---
+  duration_ms: 2.627417
+  type: 'test'
+  ...
+# Subtest: lost insertion ACK is uncertain and never automatically retried
+ok 52 - lost insertion ACK is uncertain and never automatically retried
+  ---
+  duration_ms: 0.16925
+  type: 'test'
+  ...
+# Subtest: DEFER is not a suggestion and cannot be inserted
+ok 53 - DEFER is not a suggestion and cannot be inserted
+  ---
+  duration_ms: 0.058791
+  type: 'test'
+  ...
+# Subtest: malformed or unpresentable quick suggestion is not displayed {"id":"175ab221-36e8-4d72-89f2-9feb84371d20","kind":"SUGGESTION","text
+ok 54 - malformed or unpresentable quick suggestion is not displayed {"id":"175ab221-36e8-4d72-89f2-9feb84371d20","kind":"SUGGESTION","text
+  ---
+  duration_ms: 0.084125
+  type: 'test'
+  ...
+# Subtest: malformed or unpresentable quick suggestion is not displayed {"id":"wrong","kind":"SUGGESTION","text":"Try the next small step","co
+ok 55 - malformed or unpresentable quick suggestion is not displayed {"id":"wrong","kind":"SUGGESTION","text":"Try the next small step","co
+  ---
+  duration_ms: 0.024708
+  type: 'test'
+  ...
+# Subtest: malformed or unpresentable quick suggestion is not displayed {"id":"175ab221-36e8-4d72-89f2-9feb84371d20","kind":"SUGGESTION","text
+ok 56 - malformed or unpresentable quick suggestion is not displayed {"id":"175ab221-36e8-4d72-89f2-9feb84371d20","kind":"SUGGESTION","text
+  ---
+  duration_ms: 0.02475
+  type: 'test'
+  ...
+# Subtest: malformed or unpresentable quick suggestion is not displayed {"id":"175ab221-36e8-4d72-89f2-9feb84371d20","kind":"SUGGESTION","text
+ok 57 - malformed or unpresentable quick suggestion is not displayed {"id":"175ab221-36e8-4d72-89f2-9feb84371d20","kind":"SUGGESTION","text
+  ---
+  duration_ms: 0.036125
+  type: 'test'
+  ...
+# Subtest: malformed or unpresentable quick suggestion is not displayed {"id":"175ab221-36e8-4d72-89f2-9feb84371d20","kind":"SUGGESTION","text
+ok 58 - malformed or unpresentable quick suggestion is not displayed {"id":"175ab221-36e8-4d72-89f2-9feb84371d20","kind":"SUGGESTION","text
+  ---
+  duration_ms: 0.037083
+  type: 'test'
+  ...
+# Subtest: disposal prevents a late result or subsequent reads from changing the view
+ok 59 - disposal prevents a late result or subsequent reads from changing the view
+  ---
+  duration_ms: 0.04825
+  type: 'test'
+  ...
+# Subtest: original surface echoes immutable worker-issued action instead of minting a new operation
+ok 60 - original surface echoes immutable worker-issued action instead of minting a new operation
+  ---
+  duration_ms: 0.105167
+  type: 'test'
+  ...
+# Subtest: same visible expression with replaced issued action fails original first-click qualification
+ok 61 - same visible expression with replaced issued action fails original first-click qualification
+  ---
+  duration_ms: 0.12275
+  type: 'test'
+  ...
+# Subtest: a late exact insertion response cannot revive dismissed original issued-action UI
+ok 62 - a late exact insertion response cannot revive dismissed original issued-action UI
+  ---
+  duration_ms: 0.294708
+  type: 'test'
+  ...
+# Subtest: manual actual producer commits PENDING before exact top-document transport and terminal CAS
+ok 63 - manual actual producer commits PENDING before exact top-document transport and terminal CAS
+  ---
+  duration_ms: 177.751667
+  type: 'test'
+  ...
+# Subtest: standalone actual producer commits PENDING before exact top-document transport and terminal CAS
+ok 64 - standalone actual producer commits PENDING before exact top-document transport and terminal CAS
+  ---
+  duration_ms: 114.254458
+  type: 'test'
+  ...
+# Subtest: next actual producer commits PENDING before exact top-document transport and terminal CAS
+ok 65 - next actual producer commits PENDING before exact top-document transport and terminal CAS
+  ---
+  duration_ms: 121.503666
+  type: 'test'
+  ...
+# Subtest: legacy-next actual producer commits PENDING before exact top-document transport and terminal CAS
+ok 66 - legacy-next actual producer commits PENDING before exact top-document transport and terminal CAS
+  ---
+  duration_ms: 122.478375
+  type: 'test'
+  ...
+# Subtest: assist actual producer commits PENDING before exact top-document transport and terminal CAS
+ok 67 - assist actual producer commits PENDING before exact top-document transport and terminal CAS
+  ---
+  duration_ms: 310.789083
+  type: 'test'
+  ...
+# Subtest: manual legacy response cannot manufacture durable completion or replay
+ok 68 - manual legacy response cannot manufacture durable completion or replay
+  ---
+  duration_ms: 79.787125
+  type: 'test'
+  ...
+# Subtest: manual reject response cannot manufacture durable completion or replay
+ok 69 - manual reject response cannot manufacture durable completion or replay
+  ---
+  duration_ms: 77.478667
+  type: 'test'
+  ...
+# (node:56140) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: manual exact late ACK settles original durable claim without preference write or stale UI success
+ok 70 - manual exact late ACK settles original durable claim without preference write or stale UI success
+  ---
+  duration_ms: 113.950333
+  type: 'test'
+  ...
+# Subtest: manual cached result does not accept changed action authority
+ok 71 - manual cached result does not accept changed action authority
+  ---
+  duration_ms: 103.907208
+  type: 'test'
+  ...
+# Subtest: manual cached result does not accept changed initiator authority
+ok 72 - manual cached result does not accept changed initiator authority
+  ---
+  duration_ms: 86.726375
+  type: 'test'
+  ...
+# Subtest: receipt owner replacement and request-supplied owner are not producer authority
+ok 73 - receipt owner replacement and request-supplied owner are not producer authority
+  ---
+  duration_ms: 32.567125
+  type: 'test'
+  ...
+# Subtest: manual post-PENDING source change revalidates before dispatch and proves not-dispatched
+ok 74 - manual post-PENDING source change revalidates before dispatch and proves not-dispatched
+  ---
+  duration_ms: 59.539459
+  type: 'test'
+  ...
+# Subtest: manual post-PENDING consent change revalidates before dispatch and proves not-dispatched
+ok 75 - manual post-PENDING consent change revalidates before dispatch and proves not-dispatched
+  ---
+  duration_ms: 59.925
+  type: 'test'
+  ...
+# Subtest: manual post-PENDING receiver change revalidates before dispatch and proves not-dispatched
+ok 76 - manual post-PENDING receiver change revalidates before dispatch and proves not-dispatched
+  ---
+  duration_ms: 56.320625
+  type: 'test'
+  ...
+# Subtest: manual post-PENDING admission change revalidates before dispatch and proves not-dispatched
+ok 77 - manual post-PENDING admission change revalidates before dispatch and proves not-dispatched
+  ---
+  duration_ms: 56.077791
+  type: 'test'
+  ...
+# Subtest: next permission revoked after PENDING commit cannot reach physical insertion
+ok 78 - next permission revoked after PENDING commit cannot reach physical insertion
+  ---
+  duration_ms: 63.552792
+  type: 'test'
+  ...
+# Subtest: assist permission revoked after PENDING commit cannot reach physical insertion
+ok 79 - assist permission revoked after PENDING commit cannot reach physical insertion
+  ---
+  duration_ms: 175.255583
+  type: 'test'
+  ...
+# Subtest: manual original action cannot cross revoke and regrant of the Store consent epoch
+ok 80 - manual original action cannot cross revoke and regrant of the Store consent epoch
+  ---
+  duration_ms: 39.275875
+  type: 'test'
+  ...
+# Subtest: cached manual ACK does not restore success after exact source or receiving page changes
+ok 81 - cached manual ACK does not restore success after exact source or receiving page changes
+  ---
+  duration_ms: 77.314459
+  type: 'test'
+  ...
+# Subtest: epoch retirement waits for the actual early manual preference publication and rejects the old issued action
+ok 82 - epoch retirement waits for the actual early manual preference publication and rejects the old issued action
+  ---
+  duration_ms: 185.897333
+  type: 'test'
+  ...
+# Subtest: restart inspects retained uncertainty without automatic insertion or permission to replay
+ok 83 - restart inspects retained uncertainty without automatic insertion or permission to replay
+  ---
+  duration_ms: 76.578959
+  type: 'test'
+  ...
+# Subtest: next concurrent presentation preserves one original issued action
+ok 84 - next concurrent presentation preserves one original issued action
+  ---
+  duration_ms: 46.927291
+  type: 'test'
+  ...
+# Subtest: assist concurrent presentation preserves one original issued action
+ok 85 - assist concurrent presentation preserves one original issued action
+  ---
+  duration_ms: 152.913916
+  type: 'test'
+  ...
+# Subtest: next issued action cannot adopt a new Store consent epoch
+ok 86 - next issued action cannot adopt a new Store consent epoch
+  ---
+  duration_ms: 47.733333
+  type: 'test'
+  ...
+# Subtest: assist issued action cannot adopt a new Store consent epoch
+ok 87 - assist issued action cannot adopt a new Store consent epoch
+  ---
+  duration_ms: 169.313333
+  type: 'test'
+  ...
+# Subtest: manual source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+ok 88 - manual source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+  ---
+  duration_ms: 79.455292
+  type: 'test'
+  ...
+# Subtest: next source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+ok 89 - next source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+  ---
+  duration_ms: 64.819709
+  type: 'test'
+  ...
+# Subtest: assist source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+ok 90 - assist source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+  ---
+  duration_ms: 173.208
+  type: 'test'
+  ...
+# Subtest: exact early manual native ACK after source replacement settles only the claim without reuse publication
+ok 91 - exact early manual native ACK after source replacement settles only the claim without reuse publication
+  ---
+  duration_ms: 70.448166
+  type: 'test'
+  ...
+# Subtest: next exact late ACK settles only the original claim and retains sticky source uncertainty
+ok 92 - next exact late ACK settles only the original claim and retains sticky source uncertainty
+  ---
+  duration_ms: 80.657583
+  type: 'test'
+  ...
+# Subtest: assist exact late ACK settles only the original claim and retains sticky source uncertainty
+ok 93 - assist exact late ACK settles only the original claim and retains sticky source uncertainty
+  ---
+  duration_ms: 191.64
+  type: 'test'
+  ...
+# Subtest: retained legacy Next requires the exact original initiating iframe at presentation
+ok 94 - retained legacy Next requires the exact original initiating iframe at presentation
+  ---
+  duration_ms: 31.1175
+  type: 'test'
+  ...
+# Subtest: retained legacy Next requires the exact original initiating iframe at pending-commit
+ok 95 - retained legacy Next requires the exact original initiating iframe at pending-commit
+  ---
+  duration_ms: 64.420375
+  type: 'test'
+  ...
+# Subtest: retained legacy Next requires the exact original initiating iframe at receiver-qualification
+ok 96 - retained legacy Next requires the exact original initiating iframe at receiver-qualification
+  ---
+  duration_ms: 68.825125
+  type: 'test'
+  ...
+# Subtest: next early exact ACK after authorization changed settles ledger without stale UI success
+ok 97 - next early exact ACK after authorization changed settles ledger without stale UI success
+  ---
+  duration_ms: 78.918167
+  type: 'test'
+  ...
+# Subtest: assist early exact ACK after authorization changed settles ledger without stale UI success
+ok 98 - assist early exact ACK after authorization changed settles ledger without stale UI success
+  ---
+  duration_ms: 186.624542
+  type: 'test'
+  ...
+# Subtest: manual current-check tail remains inside the original 2s UI deadline and retirement drain
+ok 99 - manual current-check tail remains inside the original 2s UI deadline and retirement drain
+  ---
+  duration_ms: 78.997459
+  type: 'test'
+  ...
+# Subtest: next current-check tail remains inside the original 2s UI deadline and retirement drain
+ok 100 - next current-check tail remains inside the original 2s UI deadline and retirement drain
+  ---
+  duration_ms: 87.11025
+  type: 'test'
+  ...
+# Subtest: assist current-check tail remains inside the original 2s UI deadline and retirement drain
+ok 101 - assist current-check tail remains inside the original 2s UI deadline and retirement drain
+  ---
+  duration_ms: 193.124917
+  type: 'test'
+  ...
+# Subtest: manual earliest actual insertion receiver probe uses the original opaque action event
+ok 102 - manual earliest actual insertion receiver probe uses the original opaque action event
+  ---
+  duration_ms: 72.40175
+  type: 'test'
+  ...
+# Subtest: next earliest actual insertion receiver probe uses the original opaque action event
+ok 103 - next earliest actual insertion receiver probe uses the original opaque action event
+  ---
+  duration_ms: 86.591625
+  type: 'test'
+  ...
+# Subtest: assist earliest actual insertion receiver probe uses the original opaque action event
+ok 104 - assist earliest actual insertion receiver probe uses the original opaque action event
+  ---
+  duration_ms: 206.12875
+  type: 'test'
+  ...
+# Subtest: original standalone manual UI echoes prepared action and never creates a fresh operation ID
+ok 105 - original standalone manual UI echoes prepared action and never creates a fresh operation ID
+  ---
+  duration_ms: 1.335959
+  type: 'test'
+  ...
+# Subtest: standalone manual explicit refresh while preparation is pending prevents insertion of the old view
+ok 106 - standalone manual explicit refresh while preparation is pending prevents insertion of the old view
+  ---
+  duration_ms: 0.455042
+  type: 'test'
+  ...
+# Subtest: standalone manual exact late response cannot repaint a refreshed original view
+ok 107 - standalone manual exact late response cannot repaint a refreshed original view
+  ---
+  duration_ms: 0.353875
+  type: 'test'
+  ...
+# Subtest: real local owner and original R3 host retire inserted without idle resurrection or replay
+ok 108 - real local owner and original R3 host retire inserted without idle resurrection or replay
+  ---
+  duration_ms: 64.156333
+  type: 'test'
+  ...
+# Subtest: real local owner and original R3 host retire uncertain without idle resurrection or replay
+ok 109 - real local owner and original R3 host retire uncertain without idle resurrection or replay
+  ---
+  duration_ms: 6.422291
+  type: 'test'
+  ...
+# Subtest: original local candidate held by IME becomes visible after composition ends without another offer
+ok 110 - original local candidate held by IME becomes visible after composition ends without another offer
+  ---
+  duration_ms: 3.436625
+  type: 'test'
+  ...
+# Subtest: original local candidate held by private board editing becomes visible after original close
+ok 111 - original local candidate held by private board editing becomes visible after original close
+  ---
+  duration_ms: 3.568
+  type: 'test'
+  ...
+# Subtest: a id consumed notice cannot retire the original current opportunity
+ok 112 - a id consumed notice cannot retire the original current opportunity
+  ---
+  duration_ms: 3.337667
+  type: 'test'
+  ...
+# Subtest: a authorization consumed notice cannot retire the original current opportunity
+ok 113 - a authorization consumed notice cannot retire the original current opportunity
+  ---
+  duration_ms: 3.294458
+  type: 'test'
+  ...
+# Subtest: a revision consumed notice cannot retire the original current opportunity
+ok 114 - a revision consumed notice cannot retire the original current opportunity
+  ---
+  duration_ms: 3.805167
+  type: 'test'
+  ...
+# Subtest: a replyId consumed notice cannot retire the original current opportunity
+ok 115 - a replyId consumed notice cannot retire the original current opportunity
+  ---
+  duration_ms: 2.710042
+  type: 'test'
+  ...
+# Subtest: a cycle consumed notice cannot retire the original current opportunity
+ok 116 - a cycle consumed notice cannot retire the original current opportunity
+  ---
+  duration_ms: 2.648458
+  type: 'test'
+  ...
+# Subtest: a url consumed notice cannot retire the original current opportunity
+ok 117 - a url consumed notice cannot retire the original current opportunity
+  ---
+  duration_ms: 4.028333
+  type: 'test'
+  ...
+# Subtest: a conversation consumed notice cannot retire the original current opportunity
+ok 118 - a conversation consumed notice cannot retire the original current opportunity
+  ---
+  duration_ms: 1.687167
+  type: 'test'
+  ...
+# Subtest: a status consumed notice cannot retire the original current opportunity
+ok 119 - a status consumed notice cannot retire the original current opportunity
+  ---
+  duration_ms: 2.862416
+  type: 'test'
+  ...
+# Subtest: a extra consumed notice cannot retire the original current opportunity
+ok 120 - a extra consumed notice cannot retire the original current opportunity
+  ---
+  duration_ms: 1.572291
+  type: 'test'
+  ...
+# Subtest: a foreign extension consumed notice cannot retire the original current opportunity
+ok 121 - a foreign extension consumed notice cannot retire the original current opportunity
+  ---
+  duration_ms: 1.947584
+  type: 'test'
+  ...
+# Subtest: a page sender consumed notice cannot retire the original current opportunity
+ok 122 - a page sender consumed notice cannot retire the original current opportunity
+  ---
+  duration_ms: 3.457583
+  type: 'test'
+  ...
+# Subtest: late consumed notice for a settled previous reply cannot hide a new original candidate
+ok 123 - late consumed notice for a settled previous reply cannot hide a new original candidate
+  ---
+  duration_ms: 3.145625
+  type: 'test'
+  ...
+# Subtest: idle recovery refuses revoke without acquiring another reply snapshot
+ok 124 - idle recovery refuses revoke without acquiring another reply snapshot
+  ---
+  duration_ms: 2.97375
+  type: 'test'
+  ...
+# Subtest: idle recovery refuses reply without acquiring another reply snapshot
+ok 125 - idle recovery refuses reply without acquiring another reply snapshot
+  ---
+  duration_ms: 1.742042
+  type: 'test'
+  ...
+# Subtest: idle recovery refuses url without acquiring another reply snapshot
+ok 126 - idle recovery refuses url without acquiring another reply snapshot
+  ---
+  duration_ms: 2.877833
+  type: 'test'
+  ...
+# Subtest: idle recovery refuses hidden without acquiring another reply snapshot
+ok 127 - idle recovery refuses hidden without acquiring another reply snapshot
+  ---
+  duration_ms: 3.006042
+  type: 'test'
+  ...
+# Subtest: idle recovery refuses disposed without acquiring another reply snapshot
+ok 128 - idle recovery refuses disposed without acquiring another reply snapshot
+  ---
+  duration_ms: 1.975917
+  type: 'test'
+  ...
+# Subtest: unsettled notification delivery does not extend or repeat a completed original insertion
+ok 129 - unsettled notification delivery does not extend or repeat a completed original insertion
+  ---
+  duration_ms: 3.747208
+  type: 'test'
+  ...
+# Subtest: known failed edit retains original one-attempt and checked-copy policy rather than a consumed success
+ok 130 - known failed edit retains original one-attempt and checked-copy policy rather than a consumed success
+  ---
+  duration_ms: 3.147334
+  type: 'test'
+  ...
+# Subtest: a held original PRESENT cannot publish its old offer after the reply changes
+ok 131 - a held original PRESENT cannot publish its old offer after the reply changes
+  ---
+  duration_ms: 3.434875
+  type: 'test'
+  ...
+# Subtest: transport rejection retires one UNKNOWN attempt and gives body-free draft inspection feedback
+ok 132 - transport rejection retires one UNKNOWN attempt and gives body-free draft inspection feedback
+  ---
+  duration_ms: 4.981625
+  type: 'test'
+  ...
+# Subtest: a pending live reply change cannot accept an old consumed status before its DOM notification
+ok 133 - a pending live reply change cannot accept an old consumed status before its DOM notification
+  ---
+  duration_ms: 3.122875
+  type: 'test'
+  ...
+# Subtest: original UNKNOWN notice is delivered after the original host has already retired to orb
+ok 134 - original UNKNOWN notice is delivered after the original host has already retired to orb
+  ---
+  duration_ms: 3.926791
+  type: 'test'
+  ...
+# Subtest: page refresh condition survives original safe error transport
+ok 135 - page refresh condition survives original safe error transport
+  ---
+  duration_ms: 0.429166
+  type: 'test'
+  ...
+# Subtest: manual pre-action presentation preserves exact refresh condition without a claim
+ok 136 - manual pre-action presentation preserves exact refresh condition without a claim
+  ---
+  duration_ms: 101.303834
+  type: 'test'
+  ...
+# Subtest: next pre-action presentation preserves exact refresh condition without a claim
+ok 137 - next pre-action presentation preserves exact refresh condition without a claim
+  ---
+  duration_ms: 47.034292
+  type: 'test'
+  ...
+# Subtest: assist pre-action presentation preserves exact refresh condition without a claim
+ok 138 - assist pre-action presentation preserves exact refresh condition without a claim
+  ---
+  duration_ms: 274.617375
+  type: 'test'
+  ...
+# Subtest: manual pre-PENDING insert preserves explicit refresh reason without dispatch
+ok 139 - manual pre-PENDING insert preserves explicit refresh reason without dispatch
+  ---
+  duration_ms: 46.005334
+  type: 'test'
+  ...
+# Subtest: next pre-PENDING insert preserves explicit refresh reason without dispatch
+ok 140 - next pre-PENDING insert preserves explicit refresh reason without dispatch
+  ---
+  duration_ms: 65.483
+  type: 'test'
+  ...
+# Subtest: assist pre-PENDING insert preserves explicit refresh reason without dispatch
+ok 141 - assist pre-PENDING insert preserves explicit refresh reason without dispatch
+  ---
+  duration_ms: 190.884958
+  type: 'test'
+  ...
+# Subtest: suggestion initial refresh shows manual page refresh requirement
+ok 142 - suggestion initial refresh shows manual page refresh requirement
+  ---
+  duration_ms: 0.200708
+  type: 'test'
+  ...
+# Subtest: suggestion final preparation refresh error sends no insertion and remains explicit
+ok 143 - suggestion final preparation refresh error sends no insertion and remains explicit
+  ---
+  duration_ms: 0.191291
+  type: 'test'
+  ...
+# Subtest: suggestion exact failed pre-PENDING outcome shows refresh while retaining one-shot attempt
+ok 144 - suggestion exact failed pre-PENDING outcome shows refresh while retaining one-shot attempt
+  ---
+  duration_ms: 0.218542
+  type: 'test'
+  ...
+# Subtest: unknown insertion stays unknown despite reason-shaped data
+ok 145 - unknown insertion stays unknown despite reason-shaped data
+  ---
+  duration_ms: 0.120333
+  type: 'test'
+  ...
+# Subtest: standalone manual prepare preserves phase-specific notice
+ok 146 - standalone manual prepare preserves phase-specific notice
+  ---
+  duration_ms: 0.855208
+  type: 'test'
+  ...
+# Subtest: standalone manual failed preserves phase-specific notice
+ok 147 - standalone manual failed preserves phase-specific notice
+  ---
+  duration_ms: 0.380167
+  type: 'test'
+  ...
+# Subtest: standalone manual unknown preserves phase-specific notice
+ok 148 - standalone manual unknown preserves phase-specific notice
+  ---
+  duration_ms: 0.451
+  type: 'test'
+  ...
+# Subtest: standalone manual late-error preserves phase-specific notice
+ok 149 - standalone manual late-error preserves phase-specific notice
+  ---
+  duration_ms: 1.35225
+  type: 'test'
+  ...
+# Subtest: manual board prepare retains existing unknown and one-shot ownership
+ok 150 - manual board prepare retains existing unknown and one-shot ownership
+  ---
+  duration_ms: 1.746667
+  type: 'test'
+  ...
+# Subtest: manual board failed retains existing unknown and one-shot ownership
+ok 151 - manual board failed retains existing unknown and one-shot ownership
+  ---
+  duration_ms: 0.484625
+  type: 'test'
+  ...
+# Subtest: manual board unknown retains existing unknown and one-shot ownership
+ok 152 - manual board unknown retains existing unknown and one-shot ownership
+  ---
+  duration_ms: 0.450875
+  type: 'test'
+  ...
+# Subtest: manual board late-error retains existing unknown and one-shot ownership
+ok 153 - manual board late-error retains existing unknown and one-shot ownership
+  ---
+  duration_ms: 0.623791
+  type: 'test'
+  ...
+# Subtest: legacy Next initial mismatch remains visible and does not hide/refresh/insert
+ok 154 - legacy Next initial mismatch remains visible and does not hide/refresh/insert
+  ---
+  duration_ms: 0.882417
+  type: 'test'
+  ...
+# Subtest: legacy Next generic failure retains prior unavailable behavior
+ok 155 - legacy Next generic failure retains prior unavailable behavior
+  ---
+  duration_ms: 0.265208
+  type: 'test'
+  ...
+# Subtest: manual refresh-shaped transport error after PENDING remains unknown
+ok 156 - manual refresh-shaped transport error after PENDING remains unknown
+  ---
+  duration_ms: 88.595917
+  type: 'test'
+  ...
+# Subtest: next refresh-shaped transport error after PENDING remains unknown
+ok 157 - next refresh-shaped transport error after PENDING remains unknown
+  ---
+  duration_ms: 93.197875
+  type: 'test'
+  ...
+# Subtest: assist refresh-shaped transport error after PENDING remains unknown
+ok 158 - assist refresh-shaped transport error after PENDING remains unknown
+  ---
+  duration_ms: 282.685875
+  type: 'test'
+  ...
+1..158
+# tests 158
+# suites 0
+# pass 158
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4860.569708
