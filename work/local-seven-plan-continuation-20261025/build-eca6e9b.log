@@ -1,0 +1,10 @@
+PASS: 24764 package guardrails across 681 runtime resources
+Static audit only; actual logged-in Chrome verification requires separate recorded evidence.
+RELEASE_PRODUCT_GUARD_PASS 705 files
+{
+  "output": "/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/local-seven-plan-continuation-20261025/release-eca6e9b",
+  "version": "0.55.9",
+  "versionName": "v0.55.9 Development",
+  "files": 705,
+  "reused": false
+}
