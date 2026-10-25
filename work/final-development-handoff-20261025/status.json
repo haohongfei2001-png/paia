@@ -1,0 +1,10 @@
+{
+  "published_head": "27ddcd192d00a97b685736f49d984c501bfc9908",
+  "held_sync": "b30b87aca02805bf7f468579f962e42e7093ab1c",
+  "failed_source": "7ceb73c31b749c7e72cb4e3f32416c4437d9d222",
+  "native_preparation": "1b802acbe22abc0a574d27264a27995bd47cb955",
+  "historical_build": "08d06a3c3a143bb8db42dfb3ff4f152a05b9722b",
+  "archive_sha256": "f1b79155eb1314a246eadf1576990913f7af3704e2368194a94a724af860b9a1",
+  "pending_source_applied": false,
+  "release_qualification": false
+}
