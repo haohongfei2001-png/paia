@@ -1,0 +1,18 @@
+TAP version 13
+# (node:5650) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: timeout keeps the actual underlying transport and pending claim until it really settles
+ok 1 - timeout keeps the actual underlying transport and pending claim until it really settles
+  ---
+  duration_ms: 81.398916
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 252.9575

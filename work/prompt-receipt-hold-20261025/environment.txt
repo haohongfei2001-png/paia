@@ -1,0 +1,2 @@
+Node22.23.3 / macOS arm64. Small synthetic fake IndexedDB and SDK fixtures only.
+Reused exact existing PAIA dependency directory via temporary symlink services/ai-gateway/node_modules -> /Users/hhf/.codex/worktrees/organize-handoff-validation/paia/services/ai-gateway/node_modules. No installation/download. pg8.23.1 matches original lock. Temporary link removed after validation; original dependency directory preserved.

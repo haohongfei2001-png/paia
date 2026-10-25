@@ -1,0 +1,84 @@
+TAP version 13
+# Subtest: warm hold is readonly, retains legacy unknown, rejects new admissions and does not revive old actions
+ok 1 - warm hold is readonly, retains legacy unknown, rejects new admissions and does not revive old actions
+  ---
+  duration_ms: 111.685167
+  type: 'test'
+  ...
+# Subtest: hold drains already issued physical transport and its original terminal ledger settlement
+ok 2 - hold drains already issued physical transport and its original terminal ledger settlement
+  ---
+  duration_ms: 53.732333
+  type: 'test'
+  ...
+# Subtest: pending before physical send becomes original not_dispatched and does not send after hold
+ok 3 - pending before physical send becomes original not_dispatched and does not send after hold
+  ---
+  duration_ms: 44.6225
+  type: 'test'
+  ...
+# Subtest: settled transport with unknown native outcome refuses hold until exact original ACK settles
+ok 4 - settled transport with unknown native outcome refuses hold until exact original ACK settles
+  ---
+  duration_ms: 60.803375
+  type: 'test'
+  ...
+# Subtest: held receiver registration is an actual drain task, not an empty-set completion
+ok 5 - held receiver registration is an actual drain task, not an empty-set completion
+  ---
+  duration_ms: 27.63375
+  type: 'test'
+  ...
+# (node:5033) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: timeout keeps the actual underlying transport and pending claim until it really settles
+ok 6 - timeout keeps the actual underlying transport and pending claim until it really settles
+  ---
+  duration_ms: 53.276792
+  type: 'test'
+  ...
+# Subtest: fence rejects changed ledger without repairing it
+ok 7 - fence rejects changed ledger without repairing it
+  ---
+  duration_ms: 58.970792
+  type: 'test'
+  ...
+# Subtest: fence rejects changed gate without repairing it
+ok 8 - fence rejects changed gate without repairing it
+  ---
+  duration_ms: 60.052833
+  type: 'test'
+  ...
+# Subtest: fence rejects changed epoch without repairing it
+ok 9 - fence rejects changed epoch without repairing it
+  ---
+  duration_ms: 56.489208
+  type: 'test'
+  ...
+# Subtest: fence rejects changed generation without repairing it
+ok 10 - fence rejects changed generation without repairing it
+  ---
+  duration_ms: 63.142541
+  type: 'test'
+  ...
+# Subtest: late registered original continuation invalidates ready hold and remains tracked for a later hold
+ok 11 - late registered original continuation invalidates ready hold and remains tracked for a later hold
+  ---
+  duration_ms: 30.148708
+  type: 'test'
+  ...
+# Subtest: original owner identity refuses method and API-object replacement without using forged hold results
+ok 12 - original owner identity refuses method and API-object replacement without using forged hold results
+  ---
+  duration_ms: 16.557625
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 30525.495125

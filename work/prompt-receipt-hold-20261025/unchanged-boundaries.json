@@ -1,0 +1,27 @@
+[
+  {
+    "path": "extension/background/application-worker-coordination.js",
+    "sha256": "b079147376e7194937b45180befd62d3d343bdf16f99b7db46517aae6d464300",
+    "unchanged": true
+  },
+  {
+    "path": "extension/background/application-selection-commands.js",
+    "sha256": "92d4800443277a560a78a3af34ff9f183e6e4f40e71ebbc08953390f78f54f78",
+    "unchanged": true
+  },
+  {
+    "path": "extension/core/idb-repository.js",
+    "sha256": "671ab44f3cca6f63117a0735517c40b1f89347fb4ed2e226b6f47b5fb2abc6ca",
+    "unchanged": true
+  },
+  {
+    "path": "extension/core/prompt-insertion-runtime-format.js",
+    "sha256": "9a4e8c42da895c8a1a78c2b8081ad9c3a5f70f14e1a8611318413b853fa01a0e",
+    "unchanged": true
+  },
+  {
+    "path": "extension/manifest.json",
+    "sha256": "d4d6caeb9ad11b77aa1044a21de2e4585059af7e9d41e7e914e439a8df15e551",
+    "unchanged": true
+  }
+]

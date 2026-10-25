@@ -1,0 +1,41 @@
+TAP version 13
+# (node:5585) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: timeout keeps the actual underlying transport and pending claim until it really settles
+not ok 1 - timeout keeps the actual underlying transport and pending claim until it really settles
+  ---
+  duration_ms: 75.30175
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-hold/extension/tests/prompt-insertion-receipt-hold.test.mjs:65:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-hold/extension/background/prompt-insertion-receipts.js:60:169
+    MockTimers.tick (node:internal/test_runner/mock/mock_timers:655:7)
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-receipt-hold/extension/tests/prompt-insertion-receipt-hold.test.mjs:68:90)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: captured SDK invocation ignores own call replacement
+ok 2 - captured SDK invocation ignores own call replacement
+  ---
+  duration_ms: 62.127
+  type: 'test'
+  ...
+# Subtest: substituted Promise race and finally cannot manufacture drain completion while a real continuation remains pending
+ok 3 - substituted Promise race and finally cannot manufacture drain completion while a real continuation remains pending
+  ---
+  duration_ms: 23.401041
+  type: 'test'
+  ...
+# Error: Test "timeout keeps the actual underlying transport and pending claim until it really settles" at extension/tests/prompt-insertion-receipt-hold.test.mjs:65:1 generated asynchronous activity after the test ended. This activity created the error "Error: PROMPT_INSERTION_STALE" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+1..3
+# tests 3
+# suites 0
+# pass 2
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 371.367709

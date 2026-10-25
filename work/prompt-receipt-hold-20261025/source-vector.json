@@ -1,0 +1,50 @@
+[
+  {
+    "path": "extension/background/prompt-insertion-receipts.js",
+    "baseSha256": "4536d26f473381371f829fa51583410b7c1a6042305b50f560c80b14f79b6306",
+    "candidateSha256": "5947930afaa29feef469ddafb51f68ef5e105256206d4d1a8022e367e3ef428a",
+    "unchanged": false
+  },
+  {
+    "path": "extension/tests/prompt-insertion-receipt-hold.test.mjs",
+    "baseSha256": null,
+    "candidateSha256": "178d76005aff6fbbd0570eb82c68c1ed1ea9c28fa631f5a2465317b5254f708c",
+    "unchanged": false
+  },
+  {
+    "path": "extension/tests/prompt-insertion-receipts.test.mjs",
+    "baseSha256": "a69574d28a292a6f0640ad4400ba2ccf915bba2d22b00b2fd215dc3dcaef3588",
+    "candidateSha256": "a69574d28a292a6f0640ad4400ba2ccf915bba2d22b00b2fd215dc3dcaef3588",
+    "unchanged": true
+  },
+  {
+    "path": "extension/tests/prompt-insertion-producer-receipts.test.mjs",
+    "baseSha256": "c0d6bf1dfea26405494e555c877b5fabe54eb84af779f1acf4ac0480842e75a6",
+    "candidateSha256": "c0d6bf1dfea26405494e555c877b5fabe54eb84af779f1acf4ac0480842e75a6",
+    "unchanged": true
+  },
+  {
+    "path": "extension/tests/prompt-insertion-worker-receipts.test.mjs",
+    "baseSha256": "d57c8c689026b323180820935c2972e59aa69e0c0cbe876215bcfdba0c9445e4",
+    "candidateSha256": "d57c8c689026b323180820935c2972e59aa69e0c0cbe876215bcfdba0c9445e4",
+    "unchanged": true
+  },
+  {
+    "path": "extension/tests/prompt-insertion-ui-receipts.test.mjs",
+    "baseSha256": "9adc49d867ef8dcf3367027faf519f2b8db9e2a26a0f566a5ba11e65366f2796",
+    "candidateSha256": "9adc49d867ef8dcf3367027faf519f2b8db9e2a26a0f566a5ba11e65366f2796",
+    "unchanged": true
+  },
+  {
+    "path": "extension/tests/prompt-original-composer-receipts.test.mjs",
+    "baseSha256": "66a3fc3a648d892a4a8acf1c4277e953bcac3780a9be3b15ffe1789050b7c056",
+    "candidateSha256": "66a3fc3a648d892a4a8acf1c4277e953bcac3780a9be3b15ffe1789050b7c056",
+    "unchanged": true
+  },
+  {
+    "path": "extension/tests/prompt-insertion-local-checkpoint.test.mjs",
+    "baseSha256": "3e03d87fc04b20bb46e148a688ec95bc293dbabbafea05def014f92e68194d92",
+    "candidateSha256": "3e03d87fc04b20bb46e148a688ec95bc293dbabbafea05def014f92e68194d92",
+    "unchanged": true
+  }
+]
