@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: ordinary restored union can publish one new local group before disposable stage cleanup
+ok 1 - ordinary restored union can publish one new local group before disposable stage cleanup
+  ---
+  duration_ms: 912.243375
+  type: 'test'
+  ...
+# Subtest: publication discovery without its private prepare work remains read only
+ok 2 - publication discovery without its private prepare work remains read only
+  ---
+  duration_ms: 383.952542
+  type: 'test'
+  ...
+# Subtest: forged publication cleanup token cannot authorize the original stage owner
+ok 3 - forged publication cleanup token cannot authorize the original stage owner
+  ---
+  duration_ms: 323.679584
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof active mutation before any deletion or upload
+ok 4 - prepare cleanup refuses post-proof active mutation before any deletion or upload
+  ---
+  duration_ms: 405.3125
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof receipt mutation before any deletion or upload
+ok 5 - prepare cleanup refuses post-proof receipt mutation before any deletion or upload
+  ---
+  duration_ms: 387.541917
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof stage-item mutation before any deletion or upload
+ok 6 - prepare cleanup refuses post-proof stage-item mutation before any deletion or upload
+  ---
+  duration_ms: 434.361292
+  type: 'test'
+  ...
+# Subtest: pause before prepare cleanup leaves the stage intact and a new explicit prepare can continue
+ok 7 - pause before prepare cleanup leaves the stage intact and a new explicit prepare can continue
+  ---
+  duration_ms: 845.810958
+  type: 'test'
+  ...
+# Subtest: a failed original cleanup page retains progress without publishing and explicit reentry completes safely
+ok 8 - a failed original cleanup page retains progress without publishing and explicit reentry completes safely
+  ---
+  duration_ms: 826.783959
+  type: 'test'
+  ...
+# Subtest: cleanup consumes the original cumulative recovery work and never renews an exhausted ticket
+ok 9 - cleanup consumes the original cumulative recovery work and never renews an exhausted ticket
+  ---
+  duration_ms: 385.679291
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5100.85925

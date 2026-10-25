@@ -1,4 +1,4 @@
-import {createOriginalRecoveryWork,withOriginalRecoveryWork,finishOriginalRecoveryWork} from '../core/idb-repository.js';
+import {createOriginalRecoveryWork,withOriginalRecoveryWork,finishOriginalRecoveryWork,currentOriginalRecoveryWork,chargeOriginalRecoveryWork} from '../core/idb-repository.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -128,4 +128,48 @@ test('actual repeated complete-cut work exhausts the unchanged outer ledger with
 });
 test('ordinary restored union can publish one new local group before disposable stage cleanup',async t=>{
  const f=await fixture(t),session=recovery(f.c,f.cloud);await session.recoverDiscovered();await source(f.c,'uncleaned_local');const pub=producer(f.c,f.cloud);await pub.prepare();assert.equal((await pub.publish()).state,'confirmed');
+});
+
+async function uncleaned(t){const f=await fixture(t),session=recovery(f.c,f.cloud);await session.recoverDiscovered();await source(f.c,'cleanup_local');const restore=new GroupedCheckpointRestore(f.c.core,{store:f.c.store,restoreId:session.restoreId});return {...f,session,restore};}
+const stageRows=(f,s)=>s.meta.filter(row=>row.id.startsWith(f.c.core.prefix+'generation:'+f.session.restoreId+':'));
+test('publication prepare completes only the proven disposable stage and preserves every other physical row',async t=>{
+ const f=await uncleaned(t),before=await state(f.c),original=await f.restore.stage.read('restore'),prefix=f.c.core.prefix+'generation:'+f.session.restoreId+':';assert.ok(stageRows(f,before).length>1);
+ const pub=producer(f.c,f.cloud);assert.equal((await pub.prepare()).state,'prepared');const after=await state(f.c),retained=await f.restore.stage.read('restore');
+ assert.deepEqual(retained,{...original,cleanup:{namespace:1,after:null,complete:true}});assert.equal(stageRows(f,after).length,1);
+ for(const name of Object.keys(before))assert.deepEqual(name==='meta'?after[name].filter(r=>!r.id.startsWith(prefix)):after[name],name==='meta'?before[name].filter(r=>!r.id.startsWith(prefix)):before[name]);
+ assert.equal((await pub.publish()).state,'confirmed');
+});
+test('publication discovery without its private prepare work remains read only',async t=>{
+ const f=await uncleaned(t),before=await state(f.c),n=writes(f.cloud);await recovery(f.c,f.cloud).discoverPublicationParents();assert.deepEqual(await state(f.c),before);assert.equal(writes(f.cloud),n);
+});
+test('forged publication cleanup token cannot authorize the original stage owner',async t=>{
+ const f=await uncleaned(t),before=await state(f.c);await assert.rejects(window(f.c,()=>f.restore.cleanup({publication:{}})),{code:'BNS_SOURCE_UNION_PROOF_REQUIRED'});assert.deepEqual(await state(f.c),before);
+});
+for(const kind of ['active','receipt','stage-item'])test('prepare cleanup refuses post-proof '+kind+' mutation before any deletion or upload',async t=>{
+ const f=await uncleaned(t),original=GroupedCheckpointRestore.prototype.cleanup;let injected=false,afterTamper;
+ GroupedCheckpointRestore.prototype.cleanup=async function(options){if(options?.publication&&!injected){injected=true;await f.c.core.transaction(true,async tx=>{if(kind==='active'){const row=await tx.get('meta',f.c.core.prefix+'active');await tx.put('meta',{...row,restoreId:'SYNTHETIC_changed_restore'});}else if(kind==='receipt'){const row=await this.stage.get(tx,'restore');await tx.put('meta',{...row,graphDigest:'0'.repeat(64)});}else{const rows=await tx.all('meta'),row=rows.find(x=>x.id.startsWith(f.c.core.prefix+'generation:'+f.session.restoreId+':')&&x.item);await tx.put('meta',{...row,item:{...row.item,unexpected:true}});}});afterTamper=await state(f.c);}return original.call(this,options);};
+ t.after(()=>GroupedCheckpointRestore.prototype.cleanup=original);const n=writes(f.cloud);await assert.rejects(producer(f.c,f.cloud).prepare());assert.equal(injected,true);assert.deepEqual(await state(f.c),afterTamper);assert.equal(writes(f.cloud),n);
+});
+test('pause before prepare cleanup leaves the stage intact and a new explicit prepare can continue',async t=>{
+ const f=await uncleaned(t),original=GroupedCheckpointRestore.prototype.cleanup,pub=producer(f.c,f.cloud),before=await state(f.c);let paused=false;
+ GroupedCheckpointRestore.prototype.cleanup=async function(options){if(options?.publication&&!paused){paused=true;pub.pause();}return original.call(this,options);};
+ try{await assert.rejects(pub.prepare(),{code:'BNS_CHECKPOINT_PUBLICATION_INTERRUPTED'});}finally{GroupedCheckpointRestore.prototype.cleanup=original;}assert.equal(paused,true);assert.deepEqual(await state(f.c),before);pub.resume();assert.equal((await pub.prepare()).state,'prepared');assert.equal((await pub.publish()).state,'confirmed');
+});
+test('a failed original cleanup page retains progress without publishing and explicit reentry completes safely',async t=>{
+ const f=await uncleaned(t),original=GroupedCheckpointRestore.prototype.cleanup,old=await f.restore.stage.read('restore'),n=writes(f.cloud);let injected=false;
+ GroupedCheckpointRestore.prototype.cleanup=async function(options){if(options?.publication&&!injected){injected=true;await original.call(this,{...options,limit:1});throw Object.assign(Error('synthetic cleanup interruption'),{code:'BNS_RECOVERY_INTERRUPTED'});}return original.call(this,options);};
+ try{await assert.rejects(producer(f.c,f.cloud).prepare(),{code:'BNS_RECOVERY_INTERRUPTED'});}finally{GroupedCheckpointRestore.prototype.cleanup=original;}
+ const partial=await f.restore.stage.read('restore');assert.equal(partial.cleanup.complete,false);assert.deepEqual(partial.receipt,old.receipt);assert.deepEqual(partial.sourceCut,old.sourceCut);assert.equal(writes(f.cloud),n);
+ const pub=producer(f.c,f.cloud);assert.equal((await pub.prepare()).state,'prepared');assert.equal((await pub.publish()).state,'confirmed');
+});
+
+test('cleanup consumes the original cumulative recovery work and never renews an exhausted ticket',async t=>{
+ const f=await uncleaned(t),original=GroupedCheckpointRestore.prototype.cleanup,before=await state(f.c),n=writes(f.cloud);let ticket;
+ GroupedCheckpointRestore.prototype.cleanup=async function(options){if(options?.publication){ticket=currentOriginalRecoveryWork(f.c.core.repository);assert.ok(ticket);chargeOriginalRecoveryWork(f.c.core.repository,ticket,2*1024*1024);}return original.call(this,options);};
+ try{await assert.rejects(producer(f.c,f.cloud).prepare(),{code:'BNS_GROUP_RESOURCE_LIMIT'});}finally{GroupedCheckpointRestore.prototype.cleanup=original;}assert.ok(ticket);assert.deepEqual(await state(f.c),before);assert.equal(writes(f.cloud),n);
+});
+test('publish never acquires prepare cleanup authority even when the old disposable stage reappears',async t=>{
+ const f=await uncleaned(t),originalRows=stageRows(f,await state(f.c)),pub=producer(f.c,f.cloud);await pub.prepare();await f.c.core.transaction(true,async tx=>{for(const row of originalRows)await tx.put('meta',row);});const before=stageRows(f,await state(f.c)),original=GroupedCheckpointRestore.prototype.cleanup;let calls=0;
+ GroupedCheckpointRestore.prototype.cleanup=async function(options){if(options?.publication)calls++;return original.call(this,options);};
+ try{await assert.rejects(pub.publish(),{code:'BNS_CHECKPOINT_PUBLICATION_LIMIT'});}finally{GroupedCheckpointRestore.prototype.cleanup=original;}assert.equal(calls,0);assert.deepEqual(stageRows(f,await state(f.c)),before);assert.notEqual((await pub.status()).state,'confirmed');
 });

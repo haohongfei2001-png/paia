@@ -1,0 +1,26 @@
+TAP version 13
+# Subtest: ordinary restored union can publish one new local group before disposable stage cleanup
+not ok 1 - ordinary restored union can publish one new local group before disposable stage cleanup
+  ---
+  duration_ms: 530.4545
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-continuation/extension/tests/source-union-publication-continuation.test.mjs:129:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    ArchiveRepository.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-continuation/extension/core/idb-repository.js:579:1340)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    async BrowserNativeSyncCore.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-continuation/extension/core/browser-native-sync/core.js:192:66)
+    async execute (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/source-continuation/extension/core/indexed-store.js:214:11)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 709.909417

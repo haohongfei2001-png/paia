@@ -1,0 +1,35 @@
+{
+  "node": "v22.23.3",
+  "files": [
+    {
+      "path": "extension/core/browser-native-sync/checkpoint-publication.js",
+      "exitCode": 0,
+      "output": "",
+      "sha256": "0430a69dc7c6293f11b136f1132eeeaf5b42e254beb72feffc97e856e23deea7"
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint.js",
+      "exitCode": 0,
+      "output": "",
+      "sha256": "f6c0b450f91d6adb36414905794e9cddccadf50c2d6d2effc917a74d36715195"
+    },
+    {
+      "path": "extension/core/browser-native-sync/recovery-session.js",
+      "exitCode": 0,
+      "output": "",
+      "sha256": "eec66feff1a6783d031524b000d2ada34827ee404a9f36b9c10c8ca3ec145c71"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-union-publication-continuation.js",
+      "exitCode": 0,
+      "output": "",
+      "sha256": "be58e87f33bb280bfca0f3b0a4b15fa8f79c5ed2335efe0821115aac1b894092"
+    },
+    {
+      "path": "extension/tests/source-union-publication-continuation.test.mjs",
+      "exitCode": 0,
+      "output": "",
+      "sha256": "a54143790c84eb9c72165da559c2e988bf41e2dd11a5afb2eb1762816303e5be"
+    }
+  ]
+}

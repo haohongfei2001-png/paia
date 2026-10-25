@@ -1,0 +1,2008 @@
+TAP version 13
+# Subtest: local discovery traverses empty pages and restores original Source/Working with sender closed
+ok 1 - local discovery traverses empty pages and restores original Source/Working with sender closed
+  ---
+  duration_ms: 427.22075
+  type: 'test'
+  ...
+# Subtest: missing or corrupt transport bytes never activate; restart resumes original durable stage
+ok 2 - missing or corrupt transport bytes never activate; restart resumes original durable stage
+  ---
+  duration_ms: 277.098583
+  type: 'test'
+  ...
+# Subtest: pause during held transport rejects late completion and preserves original destination
+ok 3 - pause during held transport rejects late completion and preserves original destination
+  ---
+  duration_ms: 249.90625
+  type: 'test'
+  ...
+# Subtest: activation rollback and local edits keep their original exact owner fences
+ok 4 - activation rollback and local edits keep their original exact owner fences
+  ---
+  duration_ms: 274.260958
+  type: 'test'
+  ...
+# Subtest: discovery refuses missing instead of selecting an arbitrary checkpoint
+ok 5 - discovery refuses missing instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 144.694
+  type: 'test'
+  ...
+# Subtest: discovery refuses multiple instead of selecting an arbitrary checkpoint
+ok 6 - discovery refuses multiple instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 166.768083
+  type: 'test'
+  ...
+# Subtest: discovery refuses cycle instead of selecting an arbitrary checkpoint
+ok 7 - discovery refuses cycle instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 130.237292
+  type: 'test'
+  ...
+# Subtest: discovery refuses malformed instead of selecting an arbitrary checkpoint
+ok 8 - discovery refuses malformed instead of selecting an arbitrary checkpoint
+  ---
+  duration_ms: 129.686084
+  type: 'test'
+  ...
+# Subtest: historical checkpoints select the authenticated unique causal descendant, not list order
+ok 9 - historical checkpoints select the authenticated unique causal descendant, not list order
+  ---
+  duration_ms: 432.380416
+  type: 'test'
+  ...
+# Subtest: two genuine incomparable checkpoints cannot be silently chosen
+ok 10 - two genuine incomparable checkpoints cannot be silently chosen
+  ---
+  duration_ms: 182.037459
+  type: 'test'
+  ...
+# Subtest: pause after the real activation commit preserves the confirmed restored outcome
+ok 11 - pause after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 236.042333
+  type: 'test'
+  ...
+# Subtest: close after the real activation commit preserves the confirmed restored outcome
+ok 12 - close after the real activation commit preserves the confirmed restored outcome
+  ---
+  duration_ms: 237.891041
+  type: 'test'
+  ...
+# Subtest: pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+ok 13 - pause at the original in-transaction activation checkpoint rolls back; resume uses original receipt
+  ---
+  duration_ms: 300.806667
+  type: 'test'
+  ...
+# Subtest: lost post-commit response stays settlement-unknown until original durable activation proof is checked
+ok 14 - lost post-commit response stays settlement-unknown until original durable activation proof is checked
+  ---
+  duration_ms: 243.913333
+  type: 'test'
+  ...
+# Subtest: discovery enforces cumulative object budget before fetching or activating
+ok 15 - discovery enforces cumulative object budget before fetching or activating
+  ---
+  duration_ms: 115.026542
+  type: 'test'
+  ...
+# Subtest: claimed parent alone cannot make an older valid cut supersede newer canonical revisions
+ok 16 - claimed parent alone cannot make an older valid cut supersede newer canonical revisions
+  ---
+  duration_ms: 185.193625
+  type: 'test'
+  ...
+# Subtest: discovery deadline settles held listing and fences late completion
+ok 17 - discovery deadline settles held listing and fences late completion
+  ---
+  duration_ms: 156.684916
+  type: 'test'
+  ...
+# Subtest: discovery deadline settles held object and fences late completion
+ok 18 - discovery deadline settles held object and fences late completion
+  ---
+  duration_ms: 152.015709
+  type: 'test'
+  ...
+# Subtest: pause settles a held discovery without pretending to cancel underlying transport
+ok 19 - pause settles a held discovery without pretending to cancel underlying transport
+  ---
+  duration_ms: 121.936542
+  type: 'test'
+  ...
+# Subtest: close settles a held discovery without pretending to cancel underlying transport
+ok 20 - close settles a held discovery without pretending to cancel underlying transport
+  ---
+  duration_ms: 124.715625
+  type: 'test'
+  ...
+# Subtest: stage rejects transport length mismatch before the object reader copies bytes
+ok 21 - stage rejects transport length mismatch before the object reader copies bytes
+  ---
+  duration_ms: 123.574584
+  type: 'test'
+  ...
+# Subtest: discover rejects transport length mismatch before the object reader copies bytes
+ok 22 - discover rejects transport length mismatch before the object reader copies bytes
+  ---
+  duration_ms: 121.555792
+  type: 'test'
+  ...
+# Subtest: pause settles held staging before host completion and late bytes cannot change original destination
+ok 23 - pause settles held staging before host completion and late bytes cannot change original destination
+  ---
+  duration_ms: 232.812958
+  type: 'test'
+  ...
+# Subtest: close settles held staging before host completion and late bytes cannot change original destination
+ok 24 - close settles held staging before host completion and late bytes cannot change original destination
+  ---
+  duration_ms: 123.9955
+  type: 'test'
+  ...
+# Subtest: staging deadline bounds held object and permits original durable-stage resume
+ok 25 - staging deadline bounds held object and permits original durable-stage resume
+  ---
+  duration_ms: 321.651292
+  type: 'test'
+  ...
+# Subtest: late prior-stage bytes cannot disturb a new confirmed recovery after pause and resume
+ok 26 - late prior-stage bytes cannot disturb a new confirmed recovery after pause and resume
+  ---
+  duration_ms: 261.228084
+  type: 'test'
+  ...
+# Subtest: stage/recover consumes a direct authenticated successor through the original tail owner and activates once
+ok 27 - stage/recover consumes a direct authenticated successor through the original tail owner and activates once
+  ---
+  duration_ms: 436.946041
+  type: 'test'
+  ...
+# Subtest: fresh store and session reopen the original validated cut before consuming its successor
+ok 28 - fresh store and session reopen the original validated cut before consuming its successor
+  ---
+  duration_ms: 294.789625
+  type: 'test'
+  ...
+# Subtest: recoverDiscovered follows the complete listed parent chain with one final activation
+ok 29 - recoverDiscovered follows the complete listed parent chain with one final activation
+  ---
+  duration_ms: 406.148208
+  type: 'test'
+  ...
+# Subtest: discover then recover follows the complete listed parent chain with one final activation
+ok 30 - discover then recover follows the complete listed parent chain with one final activation
+  ---
+  duration_ms: 488.329834
+  type: 'test'
+  ...
+# Subtest: a skipped or unavailable checkpoint parent is not invented from revision inclusion
+ok 31 - a skipped or unavailable checkpoint parent is not invented from revision inclusion
+  ---
+  duration_ms: 265.548709
+  type: 'test'
+  ...
+# Subtest: a claimed successor which drops retained revisions preserves every prior stage and canonical row
+ok 32 - a claimed successor which drops retained revisions preserves every prior stage and canonical row
+  ---
+  duration_ms: 295.330709
+  type: 'test'
+  ...
+# Subtest: genuine incomparable checkpoint heads remain rejected even when one cut contains more revisions
+ok 33 - genuine incomparable checkpoint heads remain rejected even when one cut contains more revisions
+  ---
+  duration_ms: 182.268417
+  type: 'test'
+  ...
+# Subtest: positive/negative owner transition remains refused without dropping its original stage false
+ok 34 - positive/negative owner transition remains refused without dropping its original stage false
+  ---
+  duration_ms: 328.954167
+  type: 'test'
+  ...
+# Subtest: positive/negative owner transition remains refused without dropping its original stage true
+ok 35 - positive/negative owner transition remains refused without dropping its original stage true
+  ---
+  duration_ms: 312.22375
+  type: 'test'
+  ...
+# Subtest: lost original tail commit acknowledgement is recovered from the durable new manifest after a cold reopen
+ok 36 - lost original tail commit acknowledgement is recovered from the durable new manifest after a cold reopen
+  ---
+  duration_ms: 282.012583
+  type: 'test'
+  ...
+# Subtest: native tail transaction failure rolls back staged items and receipt state, then the same task retries
+ok 37 - native tail transaction failure rolls back staged items and receipt state, then the same task retries
+  ---
+  duration_ms: 283.645625
+  type: 'test'
+  ...
+# Subtest: original tail authority fence rejects local-edit after full preflight without erasing it
+ok 38 - original tail authority fence rejects local-edit after full preflight without erasing it
+  ---
+  duration_ms: 219.570833
+  type: 'test'
+  ...
+# Subtest: original tail authority fence rejects restore-epoch after full preflight without erasing it
+ok 39 - original tail authority fence rejects restore-epoch after full preflight without erasing it
+  ---
+  duration_ms: 203.072709
+  type: 'test'
+  ...
+# Subtest: pause during original-owner tail reread settles early and fences late transport bytes
+ok 40 - pause during original-owner tail reread settles early and fences late transport bytes
+  ---
+  duration_ms: 273.40175
+  type: 'test'
+  ...
+# Subtest: close during original-owner tail reread settles early and fences late transport bytes
+ok 41 - close during original-owner tail reread settles early and fences late transport bytes
+  ---
+  duration_ms: 271.325083
+  type: 'test'
+  ...
+# Subtest: pause after a durable tail commit preserves the advanced validated cut without early canonical activation
+ok 42 - pause after a durable tail commit preserves the advanced validated cut without early canonical activation
+  ---
+  duration_ms: 253.661708
+  type: 'test'
+  ...
+# Subtest: discovered recovery does not reset the 4096-reference work ticket before staging
+ok 43 - discovered recovery does not reset the 4096-reference work ticket before staging
+  ---
+  duration_ms: 220.515709
+  type: 'test'
+  ...
+# Subtest: already activated task cannot silently retarget its durable manifest
+ok 44 - already activated task cannot silently retarget its durable manifest
+  ---
+  duration_ms: 217.845958
+  type: 'test'
+  ...
+# Subtest: tail preflight cannot replace a mutated durable revision inventory with caller-derived deltas
+ok 45 - tail preflight cannot replace a mutated durable revision inventory with caller-derived deltas
+  ---
+  duration_ms: 210.703958
+  type: 'test'
+  ...
+# Subtest: tail reader deadline settles a held original-owner reread and preserves cold continuation
+ok 46 - tail reader deadline settles a held original-owner reread and preserves cold continuation
+  ---
+  duration_ms: 559.956583
+  type: 'test'
+  ...
+# Subtest: a causal route does not reset its deadline after the first durable tail edge
+ok 47 - a causal route does not reset its deadline after the first durable tail edge
+  ---
+  duration_ms: 757.06825
+  type: 'test'
+  ...
+# Subtest: one Source byte-boundary route retains all cuts and refuses its cumulative 2 MiB read budget
+ok 48 - one Source byte-boundary route retains all cuts and refuses its cumulative 2 MiB read budget
+  ---
+  duration_ms: 427.884584
+  type: 'test'
+  ...
+# Subtest: confirmed tail activation remains restored when pause arrives after original commit
+ok 49 - confirmed tail activation remains restored when pause arrives after original commit
+  ---
+  duration_ms: 244.5385
+  type: 'test'
+  ...
+# Subtest: confirmed tail activation remains restored when close arrives after original commit
+ok 50 - confirmed tail activation remains restored when close arrives after original commit
+  ---
+  duration_ms: 231.168708
+  type: 'test'
+  ...
+# Subtest: final activation shares the tail ticket and an actual native reference overflow rolls it back
+ok 51 - final activation shares the tail ticket and an actual native reference overflow rolls it back
+  ---
+  duration_ms: 417.430458
+  type: 'test'
+  ...
+# Subtest: ordinary recovery work brands repository and invocation without accepting copied tickets or raised caps
+ok 52 - ordinary recovery work brands repository and invocation without accepting copied tickets or raised caps
+  ---
+  duration_ms: 44.135375
+  type: 'test'
+  ...
+# Subtest: original pre-callback control reads and failed native work consume the same ordinary ticket
+ok 53 - original pre-callback control reads and failed native work consume the same ordinary ticket
+  ---
+  duration_ms: 27.303625
+  type: 'test'
+  ...
+# Subtest: original native payload reads accumulate across work windows and failed balance never resets
+ok 54 - original native payload reads accumulate across work windows and failed balance never resets
+  ---
+  duration_ms: 32.938792
+  type: 'test'
+  ...
+# Subtest: ordinary recovery windows reject reentry and concurrent double tickets
+ok 55 - ordinary recovery windows reject reentry and concurrent double tickets
+  ---
+  duration_ms: 21.176583
+  type: 'test'
+  ...
+# Subtest: closing a work window waits for an already-started late scope and never falls back to default work
+ok 56 - closing a work window waits for an already-started late scope and never falls back to default work
+  ---
+  duration_ms: 21.51575
+  type: 'test'
+  ...
+# Subtest: foreign canonicalGeneration stage is not admitted by the new ordinary tail
+ok 57 - foreign canonicalGeneration stage is not admitted by the new ordinary tail
+  ---
+  duration_ms: 173.624166
+  type: 'test'
+  ...
+# Subtest: foreign unknownOwner stage is not admitted by the new ordinary tail
+ok 58 - foreign unknownOwner stage is not admitted by the new ordinary tail
+  ---
+  duration_ms: 169.514458
+  type: 'test'
+  ...
+# Subtest: unchanged non-Source staged head keeps original recovery profile with historical listing false
+ok 59 - unchanged non-Source staged head keeps original recovery profile with historical listing false
+  ---
+  duration_ms: 107.483667
+  type: 'test'
+  ...
+# Subtest: unchanged non-Source staged head keeps original recovery profile with historical listing true
+ok 60 - unchanged non-Source staged head keeps original recovery profile with historical listing true
+  ---
+  duration_ms: 107.236667
+  type: 'test'
+  ...
+# Subtest: new non-Source successor stays fail-closed without changing its original staged head
+ok 61 - new non-Source successor stays fail-closed without changing its original staged head
+  ---
+  duration_ms: 98.459917
+  type: 'test'
+  ...
+# Subtest: shortened read phase tightens the original private deadline rather than starting a new clock
+ok 62 - shortened read phase tightens the original private deadline rather than starting a new clock
+  ---
+  duration_ms: 50.160083
+  type: 'test'
+  ...
+# Subtest: negative stage advances body-free then activates exact original denials without materializing either Source
+ok 63 - negative stage advances body-free then activates exact original denials without materializing either Source
+  ---
+  duration_ms: 1363.041958
+  type: 'test'
+  ...
+# Subtest: cold negative stage discovers its genuine successor and retains the same restore ID
+ok 64 - cold negative stage discovers its genuine successor and retains the same restore ID
+  ---
+  duration_ms: 1205.355666
+  type: 'test'
+  ...
+# Subtest: unchanged negative head is confirmation, not a fabricated tail
+ok 65 - unchanged negative head is confirmation, not a fabricated tail
+  ---
+  duration_ms: 1040.9455
+  type: 'test'
+  ...
+# Subtest: listed negative chain validates every edge and activates only its final cut
+ok 66 - listed negative chain validates every edge and activates only its final cut
+  ---
+  duration_ms: 2381.142791
+  type: 'test'
+  ...
+# Subtest: negative tail abort preserves exact durable outcome and cold retry
+ok 67 - negative tail abort preserves exact durable outcome and cold retry
+  ---
+  duration_ms: 1172.370459
+  type: 'test'
+  ...
+# Subtest: negative tail lost-ack preserves exact durable outcome and cold retry
+ok 68 - negative tail lost-ack preserves exact durable outcome and cold retry
+  ---
+  duration_ms: 1081.75325
+  type: 'test'
+  ...
+# Subtest: negative continuation refuses drop-denial without changing canonical or progress rows
+ok 69 - negative continuation refuses drop-denial without changing canonical or progress rows
+  ---
+  duration_ms: 863.726875
+  type: 'test'
+  ...
+# Subtest: negative continuation refuses multi-parent without changing canonical or progress rows
+ok 70 - negative continuation refuses multi-parent without changing canonical or progress rows
+  ---
+  duration_ms: 810.378167
+  type: 'test'
+  ...
+# Subtest: negative continuation refuses incomparable without changing canonical or progress rows
+ok 71 - negative continuation refuses incomparable without changing canonical or progress rows
+  ---
+  duration_ms: 870.636417
+  type: 'test'
+  ...
+# Subtest: negative continuation refuses missing-parent without changing canonical or progress rows
+ok 72 - negative continuation refuses missing-parent without changing canonical or progress rows
+  ---
+  duration_ms: 837.40275
+  type: 'test'
+  ...
+# Subtest: negative continuation refuses wrong-revisions without changing canonical or progress rows
+ok 73 - negative continuation refuses wrong-revisions without changing canonical or progress rows
+  ---
+  duration_ms: 808.430291
+  type: 'test'
+  ...
+# Subtest: local change after full negative preflight is retained and refuses stage replacement
+ok 74 - local change after full negative preflight is retained and refuses stage replacement
+  ---
+  duration_ms: 839.780042
+  type: 'test'
+  ...
+# Subtest: pause fences a held negative owner reread before any advancement
+ok 75 - pause fences a held negative owner reread before any advancement
+  ---
+  duration_ms: 808.922875
+  type: 'test'
+  ...
+# Subtest: close fences a held negative owner reread before any advancement
+ok 76 - close fences a held negative owner reread before any advancement
+  ---
+  duration_ms: 853.136292
+  type: 'test'
+  ...
+# Subtest: negative final activation consumes the same ticket and real reference overflow rolls it back
+ok 77 - negative final activation consumes the same ticket and real reference overflow rolls it back
+  ---
+  duration_ms: 1016.960917
+  type: 'test'
+  ...
+# Subtest: negative discovery cannot spend a fresh reference allowance at stage entry
+ok 78 - negative discovery cannot spend a fresh reference allowance at stage entry
+  ---
+  duration_ms: 773.957041
+  type: 'test'
+  ...
+# Subtest: negative activation meters real repeated payload reads under the cumulative byte ceiling
+ok 79 - negative activation meters real repeated payload reads under the cumulative byte ceiling
+  ---
+  duration_ms: 704.3395
+  type: 'test'
+  ...
+# Subtest: negative tail deadline is not renewed after whole-route validation
+ok 80 - negative tail deadline is not renewed after whole-route validation
+  ---
+  duration_ms: 1188.262834
+  type: 'test'
+  ...
+# Subtest: lifecycle anchor outside the durable negative chain is never adopted
+ok 81 - lifecycle anchor outside the durable negative chain is never adopted
+  ---
+  duration_ms: 652.613875
+  type: 'test'
+  ...
+# Subtest: already activated negative task only confirms its exact reference despite a newer remote head
+ok 82 - already activated negative task only confirms its exact reference despite a newer remote head
+  ---
+  duration_ms: 732.680875
+  type: 'test'
+  ...
+# Subtest: an unchanged-denial child cannot move the original lifecycle or staged binding
+ok 83 - an unchanged-denial child cannot move the original lifecycle or staged binding
+  ---
+  duration_ms: 724.499709
+  type: 'test'
+  ...
+# Subtest: unchanged discovered negative head still uses its discovery ticket for activation
+ok 84 - unchanged discovered negative head still uses its discovery ticket for activation
+  ---
+  duration_ms: 773.448708
+  type: 'test'
+  ...
+# Subtest: corrupted revisionIds negative anchor is refused before lifecycle candidate selection
+ok 85 - corrupted revisionIds negative anchor is refused before lifecycle candidate selection
+  ---
+  duration_ms: 683.421958
+  type: 'test'
+  ...
+# Subtest: corrupted databaseId negative anchor is refused before lifecycle candidate selection
+ok 86 - corrupted databaseId negative anchor is refused before lifecycle candidate selection
+  ---
+  duration_ms: 649.864208
+  type: 'test'
+  ...
+# Subtest: corrupted epoch negative anchor is refused before lifecycle candidate selection
+ok 87 - corrupted epoch negative anchor is refused before lifecycle candidate selection
+  ---
+  duration_ms: 640.220334
+  type: 'test'
+  ...
+# Subtest: corrupted manifest negative anchor is refused before lifecycle candidate selection
+ok 88 - corrupted manifest negative anchor is refused before lifecycle candidate selection
+  ---
+  duration_ms: 641.382125
+  type: 'test'
+  ...
+# Subtest: held selected-causal-tail acknowledgement is bounded without rewriting a confirmed native outcome
+ok 89 - held selected-causal-tail acknowledgement is bounded without rewriting a confirmed native outcome
+  ---
+  duration_ms: 2263.624125
+  type: 'test'
+  ...
+# Subtest: held confirmed-causal-tail acknowledgement is bounded without rewriting a confirmed native outcome
+ok 90 - held confirmed-causal-tail acknowledgement is bounded without rewriting a confirmed native outcome
+  ---
+  duration_ms: 2173.833792
+  type: 'test'
+  ...
+# Subtest: negative discovery missing-shard preserves the original stage and lifecycle anchor
+ok 91 - negative discovery missing-shard preserves the original stage and lifecycle anchor
+  ---
+  duration_ms: 559.656334
+  type: 'test'
+  ...
+# Subtest: negative discovery repeated-cursor preserves the original stage and lifecycle anchor
+ok 92 - negative discovery repeated-cursor preserves the original stage and lifecycle anchor
+  ---
+  duration_ms: 558.055291
+  type: 'test'
+  ...
+# Subtest: a live identical Source is never deleted by negative continuation after selecting a valid remote descendant
+ok 93 - a live identical Source is never deleted by negative continuation after selecting a valid remote descendant
+  ---
+  duration_ms: 682.405709
+  type: 'test'
+  ...
+# Subtest: direct negative owner tail cannot obtain a fresh allowance outside original recovery work
+ok 94 - direct negative owner tail cannot obtain a fresh allowance outside original recovery work
+  ---
+  duration_ms: 537.935459
+  type: 'test'
+  ...
+# Subtest: two genuine disjoint Source cuts produce a local proof, exact union and no writes
+ok 95 - two genuine disjoint Source cuts produce a local proof, exact union and no writes
+  ---
+  duration_ms: 606.638834
+  type: 'test'
+  ...
+# Subtest: listing/head order does not choose a winner or change local selection identity
+ok 96 - listing/head order does not choose a winner or change local selection identity
+  ---
+  duration_ms: 485.569541
+  type: 'test'
+  ...
+# Subtest: body-free receipt reauthenticates original cuts on a new ticket without transport
+ok 97 - body-free receipt reauthenticates original cuts on a new ticket without transport
+  ---
+  duration_ms: 590.486375
+  type: 'test'
+  ...
+# Subtest: opaque proof is bound to original Core, Store and the same work ticket
+ok 98 - opaque proof is bound to original Core, Store and the same work ticket
+  ---
+  duration_ms: 442.66025
+  type: 'test'
+  ...
+# Subtest: original union refuses sameConversation without changing destination
+ok 99 - original union refuses sameConversation without changing destination
+  ---
+  duration_ms: 414.132542
+  type: 'test'
+  ...
+# Subtest: original union refuses sameDevice without changing destination
+ok 100 - original union refuses sameDevice without changing destination
+  ---
+  duration_ms: 396.576334
+  type: 'test'
+  ...
+# Subtest: original union refuses working without changing destination
+ok 101 - original union refuses working without changing destination
+  ---
+  duration_ms: 455.056542
+  type: 'test'
+  ...
+# Subtest: a valid authenticated head cannot claim a parent whose operations it dropped
+ok 102 - a valid authenticated head cannot claim a parent whose operations it dropped
+  ---
+  duration_ms: 450.68575
+  type: 'test'
+  ...
+# Subtest: empty head delta and non-direct parent remain refused
+ok 103 - empty head delta and non-direct parent remain refused
+  ---
+  duration_ms: 791.436375
+  type: 'test'
+  ...
+# Subtest: corrupt or missing actual checkpoint bytes are not repaired from decoded claims
+ok 104 - corrupt or missing actual checkpoint bytes are not repaired from decoded claims
+  ---
+  duration_ms: 788.876166
+  type: 'test'
+  ...
+# Subtest: stored receipt refuses changed manifest bytes, reordered evidence, missing or extra operations
+ok 105 - stored receipt refuses changed manifest bytes, reordered evidence, missing or extra operations
+  ---
+  duration_ms: 447.292625
+  type: 'test'
+  ...
+# Subtest: selection refuses duplicates, sparse arrays, extra fields and forged identity
+ok 106 - selection refuses duplicates, sparse arrays, extra fields and forged identity
+  ---
+  duration_ms: 392.475125
+  type: 'test'
+  ...
+# Subtest: all cuts consume the same original reference and byte budgets
+ok 107 - all cuts consume the same original reference and byte budgets
+  ---
+  duration_ms: 357.094667
+  type: 'test'
+  ...
+# Subtest: original ticket expiry during transport cannot produce a late union proof
+ok 108 - original ticket expiry during transport cannot produce a late union proof
+  ---
+  duration_ms: 423.276334
+  type: 'test'
+  ...
+# Subtest: selection is explicitly local and contains both original parents only
+ok 109 - selection is explicitly local and contains both original parents only
+  ---
+  duration_ms: 356.359625
+  type: 'test'
+  ...
+# Subtest: union refuses original source identity collision across independently valid heads
+ok 110 - union refuses original source identity collision across independently valid heads
+  ---
+  duration_ms: 372.9875
+  type: 'test'
+  ...
+# Subtest: union refuses original sourceKey identity collision across independently valid heads
+ok 111 - union refuses original sourceKey identity collision across independently valid heads
+  ---
+  duration_ms: 394.507625
+  type: 'test'
+  ...
+# Subtest: union refuses original dedupeKey identity collision across independently valid heads
+ok 112 - union refuses original dedupeKey identity collision across independently valid heads
+  ---
+  duration_ms: 374.421084
+  type: 'test'
+  ...
+# Subtest: union refuses original document identity collision across independently valid heads
+ok 113 - union refuses original document identity collision across independently valid heads
+  ---
+  duration_ms: 374.520583
+  type: 'test'
+  ...
+# Subtest: union refuses original input identity collision across independently valid heads
+ok 114 - union refuses original input identity collision across independently valid heads
+  ---
+  duration_ms: 352.264417
+  type: 'test'
+  ...
+# Subtest: union refuses original baseline identity collision across independently valid heads
+ok 115 - union refuses original baseline identity collision across independently valid heads
+  ---
+  duration_ms: 345.464541
+  type: 'test'
+  ...
+# Subtest: selection and receipt getters are refused without executing them
+ok 116 - selection and receipt getters are refused without executing them
+  ---
+  duration_ms: 351.531916
+  type: 'test'
+  ...
+# Subtest: caller mutation after entry cannot replace the snapshotted selection or operations
+ok 117 - caller mutation after entry cannot replace the snapshotted selection or operations
+  ---
+  duration_ms: 416.410167
+  type: 'test'
+  ...
+# Subtest: read proof exposes frozen data but no prepared Source capability or branded plan
+ok 118 - read proof exposes frozen data but no prepared Source capability or branded plan
+  ---
+  duration_ms: 385.49875
+  type: 'test'
+  ...
+# Subtest: changed restore epoch during real transport invalidates the whole proof
+ok 119 - changed restore epoch during real transport invalidates the whole proof
+  ---
+  duration_ms: 377.981625
+  type: 'test'
+  ...
+# Subtest: original transactional proof assertion detects a same-ticket epoch change
+ok 120 - original transactional proof assertion detects a same-ticket epoch change
+  ---
+  duration_ms: 371.767625
+  type: 'test'
+  ...
+# Subtest: caller replacement of original Source validator cannot mint a proof
+ok 121 - caller replacement of original Source validator cannot mint a proof
+  ---
+  duration_ms: 351.607958
+  type: 'test'
+  ...
+# Subtest: LOCAL union stages and atomically activates complete retained Source groups on one original ticket
+ok 122 - LOCAL union stages and atomically activates complete retained Source groups on one original ticket
+  ---
+  duration_ms: 889.23525
+  type: 'test'
+  ...
+# Subtest: cold validated resume retains restore/replay/base identity and confirms after cleanup without stage bodies
+ok 123 - cold validated resume retains restore/replay/base identity and confirms after cleanup without stage bodies
+  ---
+  duration_ms: 833.061333
+  type: 'test'
+  ...
+# Subtest: original Source re-export works without synthetic manifest or native grant
+ok 124 - original Source re-export works without synthetic manifest or native grant
+  ---
+  duration_ms: 945.006042
+  type: 'test'
+  ...
+# Subtest: union source-union-applied-group interruption rolls back all canonical owners and active receipt
+ok 125 - union source-union-applied-group interruption rolls back all canonical owners and active receipt
+  ---
+  duration_ms: 726.496667
+  type: 'test'
+  ...
+# Subtest: union before-activation interruption rolls back all canonical owners and active receipt
+ok 126 - union before-activation interruption rolls back all canonical owners and active receipt
+  ---
+  duration_ms: 757.874583
+  type: 'test'
+  ...
+# Subtest: union after-activation interruption rolls back all canonical owners and active receipt
+ok 127 - union after-activation interruption rolls back all canonical owners and active receipt
+  ---
+  duration_ms: 787.122667
+  type: 'test'
+  ...
+# Subtest: terminal seal rejects after-activation stage tamper with whole rollback
+ok 128 - terminal seal rejects after-activation stage tamper with whole rollback
+  ---
+  duration_ms: 619.398417
+  type: 'test'
+  ...
+# Subtest: terminal seal rejects after-activation epoch tamper with whole rollback
+ok 129 - terminal seal rejects after-activation epoch tamper with whole rollback
+  ---
+  duration_ms: 564.293958
+  type: 'test'
+  ...
+# Subtest: terminal seal rejects after-activation source tamper with whole rollback
+ok 130 - terminal seal rejects after-activation source tamper with whole rollback
+  ---
+  duration_ms: 618.149417
+  type: 'test'
+  ...
+# Subtest: terminal seal rejects after-activation extra-protocol tamper with whole rollback
+ok 131 - terminal seal rejects after-activation extra-protocol tamper with whole rollback
+  ---
+  duration_ms: 583.708041
+  type: 'test'
+  ...
+# Subtest: cold receipt tamper refuses without canonical activation
+ok 132 - cold receipt tamper refuses without canonical activation
+  ---
+  duration_ms: 400.548209
+  type: 'test'
+  ...
+# Subtest: cold selection tamper refuses without canonical activation
+ok 133 - cold selection tamper refuses without canonical activation
+  ---
+  duration_ms: 430.376542
+  type: 'test'
+  ...
+# Subtest: cold replayId tamper refuses without canonical activation
+ok 134 - cold replayId tamper refuses without canonical activation
+  ---
+  duration_ms: 400.726584
+  type: 'test'
+  ...
+# Subtest: cold base tamper refuses without canonical activation
+ok 135 - cold base tamper refuses without canonical activation
+  ---
+  duration_ms: 398.962083
+  type: 'test'
+  ...
+# Subtest: missing work ticket and forged proof refuse before staging
+ok 136 - missing work ticket and forged proof refuse before staging
+  ---
+  duration_ms: 395.647833
+  type: 'test'
+  ...
+# Subtest: nonempty canonical target refuses and preserves existing Source
+ok 137 - nonempty canonical target refuses and preserves existing Source
+  ---
+  duration_ms: 363.191875
+  type: 'test'
+  ...
+# Subtest: expired original ticket refuses before immutable reads and staging
+ok 138 - expired original ticket refuses before immutable reads and staging
+  ---
+  duration_ms: 322.144875
+  type: 'test'
+  ...
+# Subtest: lost activation acknowledgement confirms exact committed union cold without replaying owners
+ok 139 - lost activation acknowledgement confirms exact committed union cold without replaying owners
+  ---
+  duration_ms: 656.714542
+  type: 'test'
+  ...
+# Subtest: actual repeated original reads share the original 4096-reference ticket with compilation, stage and activation
+ok 140 - actual repeated original reads share the original 4096-reference ticket with compilation, stage and activation
+  ---
+  duration_ms: 526.733292
+  type: 'test'
+  ...
+# Subtest: cleanup, re-export and follow-on local changes do not make native current admission or original selection acknowledgement broader
+ok 141 - cleanup, re-export and follow-on local changes do not make native current admission or original selection acknowledgement broader
+  ---
+  duration_ms: 625.384166
+  type: 'test'
+  ...
+# Subtest: stage terminal seal rejects stage mutation and preserves empty destination
+ok 142 - stage terminal seal rejects stage mutation and preserves empty destination
+  ---
+  duration_ms: 358.387875
+  type: 'test'
+  ...
+# Subtest: stage terminal seal rejects source mutation and preserves empty destination
+ok 143 - stage terminal seal rejects source mutation and preserves empty destination
+  ---
+  duration_ms: 348.997958
+  type: 'test'
+  ...
+# Subtest: stage terminal seal rejects epoch mutation and preserves empty destination
+ok 144 - stage terminal seal rejects epoch mutation and preserves empty destination
+  ---
+  duration_ms: 337.726792
+  type: 'test'
+  ...
+# Subtest: actual large Source bytes exceed the one original 2MiB ledger without canonical activation
+ok 145 - actual large Source bytes exceed the one original 2MiB ledger without canonical activation
+  ---
+  duration_ms: 474.502792
+  type: 'test'
+  ...
+# Subtest: abandon cleanup validates replay identity and cannot erase an attacker-chosen namespace
+ok 146 - abandon cleanup validates replay identity and cannot erase an attacker-chosen namespace
+  ---
+  duration_ms: 376.298167
+  type: 'test'
+  ...
+# Subtest: abandoned local union retains provenance but cannot resume activation
+ok 147 - abandoned local union retains provenance but cannot resume activation
+  ---
+  duration_ms: 366.215416
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses input-allocation change without rewriting it
+ok 148 - cold activated physical Source receipt refuses input-allocation change without rewriting it
+  ---
+  duration_ms: 622.121292
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses revision-allocation change without rewriting it
+ok 149 - cold activated physical Source receipt refuses revision-allocation change without rewriting it
+  ---
+  duration_ms: 588.4055
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses sequence change without rewriting it
+ok 150 - cold activated physical Source receipt refuses sequence change without rewriting it
+  ---
+  duration_ms: 549.913083
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses revision-counter change without rewriting it
+ok 151 - cold activated physical Source receipt refuses revision-counter change without rewriting it
+  ---
+  duration_ms: 567.766459
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses input-counter change without rewriting it
+ok 152 - cold activated physical Source receipt refuses input-counter change without rewriting it
+  ---
+  duration_ms: 487.740209
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses thought-counter change without rewriting it
+ok 153 - cold activated physical Source receipt refuses thought-counter change without rewriting it
+  ---
+  duration_ms: 442.995917
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses thought-epoch change without rewriting it
+ok 154 - cold activated physical Source receipt refuses thought-epoch change without rewriting it
+  ---
+  duration_ms: 422.944375
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses suppression-key change without rewriting it
+ok 155 - cold activated physical Source receipt refuses suppression-key change without rewriting it
+  ---
+  duration_ms: 427.048917
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses filter-mode change without rewriting it
+ok 156 - cold activated physical Source receipt refuses filter-mode change without rewriting it
+  ---
+  duration_ms: 383.568583
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses filter-policy change without rewriting it
+ok 157 - cold activated physical Source receipt refuses filter-policy change without rewriting it
+  ---
+  duration_ms: 408.719917
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses filter-override change without rewriting it
+ok 158 - cold activated physical Source receipt refuses filter-override change without rewriting it
+  ---
+  duration_ms: 442.371916
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses filter-user-edit change without rewriting it
+ok 159 - cold activated physical Source receipt refuses filter-user-edit change without rewriting it
+  ---
+  duration_ms: 460.755584
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses filter-ai change without rewriting it
+ok 160 - cold activated physical Source receipt refuses filter-ai change without rewriting it
+  ---
+  duration_ms: 506.406208
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses filter-unknown change without rewriting it
+ok 161 - cold activated physical Source receipt refuses filter-unknown change without rewriting it
+  ---
+  duration_ms: 505.181125
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses filter-presence change without rewriting it
+ok 162 - cold activated physical Source receipt refuses filter-presence change without rewriting it
+  ---
+  duration_ms: 451.615542
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses filter-reason change without rewriting it
+ok 163 - cold activated physical Source receipt refuses filter-reason change without rewriting it
+  ---
+  duration_ms: 450.527
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses filter-versions change without rewriting it
+ok 164 - cold activated physical Source receipt refuses filter-versions change without rewriting it
+  ---
+  duration_ms: 453.202875
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses preference change without rewriting it
+ok 165 - cold activated physical Source receipt refuses preference change without rewriting it
+  ---
+  duration_ms: 435.234083
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses protected-source change without rewriting it
+ok 166 - cold activated physical Source receipt refuses protected-source change without rewriting it
+  ---
+  duration_ms: 424.652625
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses source change without rewriting it
+ok 167 - cold activated physical Source receipt refuses source change without rewriting it
+  ---
+  duration_ms: 424.787583
+  type: 'test'
+  ...
+# Subtest: cold activated physical Source receipt refuses receipt-cut change without rewriting it
+ok 168 - cold activated physical Source receipt refuses receipt-cut change without rewriting it
+  ---
+  duration_ms: 417.514292
+  type: 'test'
+  ...
+# Subtest: actual original FilterRunner advances three broad generations while unchanged Source closure confirms cold
+ok 169 - actual original FilterRunner advances three broad generations while unchanged Source closure confirms cold
+  ---
+  duration_ms: 432.0185
+  type: 'test'
+  ...
+# Subtest: before-activation local allocation/identity mutation rolls back instead of becoming accepted receipt
+ok 170 - before-activation local allocation/identity mutation rolls back instead of becoming accepted receipt
+  ---
+  duration_ms: 334.579917
+  type: 'test'
+  ...
+# Subtest: after-activation local allocation/identity mutation rolls back instead of becoming accepted receipt
+ok 171 - after-activation local allocation/identity mutation rolls back instead of becoming accepted receipt
+  ---
+  duration_ms: 328.335208
+  type: 'test'
+  ...
+# Subtest: before-activation complete terminal inventory rejects organizer-controls mutation with whole rollback
+ok 172 - before-activation complete terminal inventory rejects organizer-controls mutation with whole rollback
+  ---
+  duration_ms: 322.440667
+  type: 'test'
+  ...
+# Subtest: before-activation complete terminal inventory rejects context-cards:v1 mutation with whole rollback
+ok 173 - before-activation complete terminal inventory rejects context-cards:v1 mutation with whole rollback
+  ---
+  duration_ms: 320.4205
+  type: 'test'
+  ...
+# Subtest: before-activation complete terminal inventory rejects smart-filter mutation with whole rollback
+ok 174 - before-activation complete terminal inventory rejects smart-filter mutation with whole rollback
+  ---
+  duration_ms: 302.728542
+  type: 'test'
+  ...
+# Subtest: before-activation complete terminal inventory rejects unrelated-meta mutation with whole rollback
+ok 175 - before-activation complete terminal inventory rejects unrelated-meta mutation with whole rollback
+  ---
+  duration_ms: 335.003875
+  type: 'test'
+  ...
+# Subtest: before-activation complete terminal inventory rejects aiu:delta:unexpected mutation with whole rollback
+ok 176 - before-activation complete terminal inventory rejects aiu:delta:unexpected mutation with whole rollback
+  ---
+  duration_ms: 355.654667
+  type: 'test'
+  ...
+# Subtest: before-activation complete terminal inventory rejects ans:index-state:v1:dirty:unexpected mutation with whole rollback
+ok 177 - before-activation complete terminal inventory rejects ans:index-state:v1:dirty:unexpected mutation with whole rollback
+  ---
+  duration_ms: 350.312625
+  type: 'test'
+  ...
+# Subtest: before-activation complete terminal inventory rejects deleted-meta mutation with whole rollback
+ok 178 - before-activation complete terminal inventory rejects deleted-meta mutation with whole rollback
+  ---
+  duration_ms: 291.430167
+  type: 'test'
+  ...
+# Subtest: after-activation complete terminal inventory rejects organizer-controls mutation with whole rollback
+ok 179 - after-activation complete terminal inventory rejects organizer-controls mutation with whole rollback
+  ---
+  duration_ms: 290.102584
+  type: 'test'
+  ...
+# Subtest: after-activation complete terminal inventory rejects context-cards:v1 mutation with whole rollback
+ok 180 - after-activation complete terminal inventory rejects context-cards:v1 mutation with whole rollback
+  ---
+  duration_ms: 288.805209
+  type: 'test'
+  ...
+# Subtest: after-activation complete terminal inventory rejects smart-filter mutation with whole rollback
+ok 181 - after-activation complete terminal inventory rejects smart-filter mutation with whole rollback
+  ---
+  duration_ms: 309.885875
+  type: 'test'
+  ...
+# Subtest: after-activation complete terminal inventory rejects unrelated-meta mutation with whole rollback
+ok 182 - after-activation complete terminal inventory rejects unrelated-meta mutation with whole rollback
+  ---
+  duration_ms: 299.081042
+  type: 'test'
+  ...
+# Subtest: after-activation complete terminal inventory rejects aiu:delta:unexpected mutation with whole rollback
+ok 183 - after-activation complete terminal inventory rejects aiu:delta:unexpected mutation with whole rollback
+  ---
+  duration_ms: 309.659833
+  type: 'test'
+  ...
+# Subtest: after-activation complete terminal inventory rejects ans:index-state:v1:dirty:unexpected mutation with whole rollback
+ok 184 - after-activation complete terminal inventory rejects ans:index-state:v1:dirty:unexpected mutation with whole rollback
+  ---
+  duration_ms: 306.672209
+  type: 'test'
+  ...
+# Subtest: after-activation complete terminal inventory rejects deleted-meta mutation with whole rollback
+ok 185 - after-activation complete terminal inventory rejects deleted-meta mutation with whole rollback
+  ---
+  duration_ms: 305.545333
+  type: 'test'
+  ...
+# Subtest: cold union rejects invalid or rolled-back backup generation -1
+ok 186 - cold union rejects invalid or rolled-back backup generation -1
+  ---
+  duration_ms: 373.411042
+  type: 'test'
+  ...
+# Subtest: cold union rejects invalid or rolled-back backup generation "999999"
+ok 187 - cold union rejects invalid or rolled-back backup generation "999999"
+  ---
+  duration_ms: 386.4605
+  type: 'test'
+  ...
+# Subtest: cold union rejects invalid or rolled-back backup generation 0
+ok 188 - cold union rejects invalid or rolled-back backup generation 0
+  ---
+  duration_ms: 372.248792
+  type: 'test'
+  ...
+# Subtest: google original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 189 - google original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 1568.203292
+  type: 'test'
+  ...
+# Subtest: google original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 190 - google original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 2920.241291
+  type: 'test'
+  ...
+# Subtest: onedrive original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 191 - onedrive original adapter full Source Working publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 1536.319291
+  type: 'test'
+  ...
+# Subtest: onedrive original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+ok 192 - onedrive original adapter full mixed families publication → close A → fresh B discovery → cold edit → publish → fresh C
+  ---
+  duration_ms: 3182.73725
+  type: 'test'
+  ...
+# Subtest: google lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+ok 193 - google lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+  ---
+  duration_ms: 383.341
+  type: 'test'
+  ...
+# Subtest: onedrive lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+ok 194 - onedrive lost committed remote write resumes from durable ref after cold reopen without duplicate POST
+  ---
+  duration_ms: 479.368458
+  type: 'test'
+  ...
+# Subtest: OneDrive lost session creation stays unknown across cold reopen, no second POST
+ok 195 - OneDrive lost session creation stays unknown across cold reopen, no second POST
+  ---
+  duration_ms: 231.34925
+  type: 'test'
+  ...
+# Subtest: prepared source edit refuses before remote write and preserves all local tables
+ok 196 - prepared source edit refuses before remote write and preserves all local tables
+  ---
+  duration_ms: 160.287916
+  type: 'test'
+  ...
+# Subtest: prepared source delete refuses before remote write and preserves all local tables
+ok 197 - prepared source delete refuses before remote write and preserves all local tables
+  ---
+  duration_ms: 274.155833
+  type: 'test'
+  ...
+# Subtest: foreign unmerged Source cannot claim causal parent merely from remote latest
+ok 198 - foreign unmerged Source cannot claim causal parent merely from remote latest
+  ---
+  duration_ms: 456.309208
+  type: 'test'
+  ...
+# Subtest: fixed original local journal committed lost ACK has one exact readback before any upload
+ok 199 - fixed original local journal committed lost ACK has one exact readback before any upload
+  ---
+  duration_ms: 90.004417
+  type: 'test'
+  ...
+# Subtest: fixed original local journal uncommitted lost ACK has one exact readback before any upload
+ok 200 - fixed original local journal uncommitted lost ACK has one exact readback before any upload
+  ---
+  duration_ms: 96.924791
+  type: 'test'
+  ...
+# Subtest: object in-flight pause records unknown and cold readback never duplicates that upload
+ok 201 - object in-flight pause records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 404.683667
+  type: 'test'
+  ...
+# Subtest: object in-flight close records unknown and cold readback never duplicates that upload
+ok 202 - object in-flight close records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 379.1445
+  type: 'test'
+  ...
+# Subtest: object in-flight binding records unknown and cold readback never duplicates that upload
+ok 203 - object in-flight binding records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 360.500542
+  type: 'test'
+  ...
+# Subtest: manifest in-flight pause records unknown and cold readback never duplicates that upload
+ok 204 - manifest in-flight pause records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 365.423375
+  type: 'test'
+  ...
+# Subtest: manifest in-flight close records unknown and cold readback never duplicates that upload
+ok 205 - manifest in-flight close records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 365.044
+  type: 'test'
+  ...
+# Subtest: manifest in-flight binding records unknown and cold readback never duplicates that upload
+ok 206 - manifest in-flight binding records unknown and cold readback never duplicates that upload
+  ---
+  duration_ms: 385.469125
+  type: 'test'
+  ...
+# Subtest: account generation change refuses old durable task before network and preserves all tables
+ok 207 - account generation change refuses old durable task before network and preserves all tables
+  ---
+  duration_ms: 89.468291
+  type: 'test'
+  ...
+# Subtest: swapped original local methods are refused without calling the replacement
+ok 208 - swapped original local methods are refused without calling the replacement
+  ---
+  duration_ms: 90.352292
+  type: 'test'
+  ...
+# Subtest: local edit after first immutable write rejects before discoverable manifest and preserves the edit
+ok 209 - local edit after first immutable write rejects before discoverable manifest and preserves the edit
+  ---
+  duration_ms: 224.961417
+  type: 'test'
+  ...
+# Subtest: missing previously verified immutable object stays blocked, no recreation
+ok 210 - missing previously verified immutable object stays blocked, no recreation
+  ---
+  duration_ms: 392.499917
+  type: 'test'
+  ...
+# Subtest: read deadline stops one explicit action, leaves ordinary library unchanged
+ok 211 - read deadline stops one explicit action, leaves ordinary library unchanged
+  ---
+  duration_ms: 69.4835
+  type: 'test'
+  ...
+# Subtest: google last pre-dispatch GET pause forbids first remote body write
+ok 212 - google last pre-dispatch GET pause forbids first remote body write
+  ---
+  duration_ms: 105.106958
+  type: 'test'
+  ...
+# Subtest: google last pre-dispatch GET delete forbids first remote body write
+ok 213 - google last pre-dispatch GET delete forbids first remote body write
+  ---
+  duration_ms: 297.15425
+  type: 'test'
+  ...
+# Subtest: onedrive last pre-dispatch GET pause forbids first remote body write
+ok 214 - onedrive last pre-dispatch GET pause forbids first remote body write
+  ---
+  duration_ms: 108.200458
+  type: 'test'
+  ...
+# Subtest: onedrive last pre-dispatch GET delete forbids first remote body write
+ok 215 - onedrive last pre-dispatch GET delete forbids first remote body write
+  ---
+  duration_ms: 272.3805
+  type: 'test'
+  ...
+# Subtest: unsettled original local set pause quarantines key until true completion
+ok 216 - unsettled original local set pause quarantines key until true completion
+  ---
+  duration_ms: 173.899583
+  type: 'test'
+  ...
+# Subtest: unsettled original local set timeout quarantines key until true completion
+ok 217 - unsettled original local set timeout quarantines key until true completion
+  ---
+  duration_ms: 378.233667
+  type: 'test'
+  ...
+# Subtest: google qualification completion after timeout cannot dispatch the first HTTP
+ok 218 - google qualification completion after timeout cannot dispatch the first HTTP
+  ---
+  duration_ms: 66.736667
+  type: 'test'
+  ...
+# Subtest: google qualification completion after close cannot dispatch the first HTTP
+ok 219 - google qualification completion after close cannot dispatch the first HTTP
+  ---
+  duration_ms: 47.689917
+  type: 'test'
+  ...
+# Subtest: onedrive qualification completion after timeout cannot dispatch the first HTTP
+ok 220 - onedrive qualification completion after timeout cannot dispatch the first HTTP
+  ---
+  duration_ms: 68.289459
+  type: 'test'
+  ...
+# Subtest: onedrive qualification completion after close cannot dispatch the first HTTP
+ok 221 - onedrive qualification completion after close cannot dispatch the first HTTP
+  ---
+  duration_ms: 52.103167
+  type: 'test'
+  ...
+# Subtest: private committed dispatch proof refuses cloned results and a later original Store operation
+ok 222 - private committed dispatch proof refuses cloned results and a later original Store operation
+  ---
+  duration_ms: 87.416666
+  type: 'test'
+  ...
+# Subtest: paused old provider GET cannot borrow resumed action work to issue POST
+ok 223 - paused old provider GET cannot borrow resumed action work to issue POST
+  ---
+  duration_ms: 179.626
+  type: 'test'
+  ...
+# Subtest: journal cannot claim confirmed with an unverified object
+ok 224 - journal cannot claim confirmed with an unverified object
+  ---
+  duration_ms: 94.145125
+  type: 'test'
+  ...
+# Subtest: LOCAL union reference restores exact sibling Source cuts, cold confirms and republishes genuine two-parent checkpoint
+ok 225 - LOCAL union reference restores exact sibling Source cuts, cold confirms and republishes genuine two-parent checkpoint
+  ---
+  duration_ms: 2226.54675
+  type: 'test'
+  ...
+# Subtest: unactivated nonempty device cannot advertise both union parents merely because cloud has two heads
+ok 226 - unactivated nonempty device cannot advertise both union parents merely because cloud has two heads
+  ---
+  duration_ms: 484.25825
+  type: 'test'
+  ...
+# Subtest: selected LOCAL union rejects tampered identity and exact-reference collision without canonical writes
+ok 227 - selected LOCAL union rejects tampered identity and exact-reference collision without canonical writes
+  ---
+  duration_ms: 496.98625
+  type: 'test'
+  ...
+# Subtest: held union object read pause settles immediately and late bytes cannot activate
+ok 228 - held union object read pause settles immediately and late bytes cannot activate
+  ---
+  duration_ms: 426.960625
+  type: 'test'
+  ...
+# Subtest: activated union refuses publication when remote inventory loses one-sibling
+ok 229 - activated union refuses publication when remote inventory loses one-sibling
+  ---
+  duration_ms: 822.988916
+  type: 'test'
+  ...
+# Subtest: activated union refuses publication when remote inventory loses all
+ok 230 - activated union refuses publication when remote inventory loses all
+  ---
+  duration_ms: 656.26975
+  type: 'test'
+  ...
+# Subtest: changed cloud parent cut with new Source operations cannot be named by stale activated union
+ok 231 - changed cloud parent cut with new Source operations cannot be named by stale activated union
+  ---
+  duration_ms: 1156.437792
+  type: 'test'
+  ...
+# Subtest: lost union publication upload ACK cold retry keeps genuine original two parents and never duplicates POST
+ok 232 - lost union publication upload ACK cold retry keeps genuine original two parents and never duplicates POST
+  ---
+  duration_ms: 1620.973875
+  type: 'test'
+  ...
+# Subtest: one cumulative discovery ticket includes duplicate listing work plus all sibling/compiler work
+ok 233 - one cumulative discovery ticket includes duplicate listing work plus all sibling/compiler work
+  ---
+  duration_ms: 459.557958
+  type: 'test'
+  ...
+# Subtest: cold validated LOCAL union continues with retained authenticated cut and no provider reads
+ok 234 - cold validated LOCAL union continues with retained authenticated cut and no provider reads
+  ---
+  duration_ms: 656.315791
+  type: 'test'
+  ...
+# Subtest: trusted union lifecycle selected not-saved retains exact task and reconciles cold CONTINUE
+ok 235 - trusted union lifecycle selected not-saved retains exact task and reconciles cold CONTINUE
+  ---
+  duration_ms: 661.99175
+  type: 'test'
+  ...
+# Subtest: trusted union lifecycle selected ack-lost retains exact task and reconciles cold CONTINUE
+ok 236 - trusted union lifecycle selected ack-lost retains exact task and reconciles cold CONTINUE
+  ---
+  duration_ms: 694.635917
+  type: 'test'
+  ...
+# Subtest: trusted union lifecycle selected readback-lost retains exact task and reconciles cold CONTINUE
+ok 237 - trusted union lifecycle selected readback-lost retains exact task and reconciles cold CONTINUE
+  ---
+  duration_ms: 703.086292
+  type: 'test'
+  ...
+# Subtest: trusted union lifecycle confirmed not-saved retains exact task and reconciles cold CONTINUE
+ok 238 - trusted union lifecycle confirmed not-saved retains exact task and reconciles cold CONTINUE
+  ---
+  duration_ms: 715.918667
+  type: 'test'
+  ...
+# Subtest: trusted union lifecycle confirmed ack-lost retains exact task and reconciles cold CONTINUE
+ok 239 - trusted union lifecycle confirmed ack-lost retains exact task and reconciles cold CONTINUE
+  ---
+  duration_ms: 673.194209
+  type: 'test'
+  ...
+# Subtest: trusted union lifecycle confirmed readback-lost retains exact task and reconciles cold CONTINUE
+ok 240 - trusted union lifecycle confirmed readback-lost retains exact task and reconciles cold CONTINUE
+  ---
+  duration_ms: 635.744791
+  type: 'test'
+  ...
+# Subtest: trusted union initial reservation pause fences late local storage ACK before any provider request
+ok 241 - trusted union initial reservation pause fences late local storage ACK before any provider request
+  ---
+  duration_ms: 604.246375
+  type: 'test'
+  ...
+# Subtest: initial reservation timeout cannot refresh a second ticket or begin discovery
+ok 242 - initial reservation timeout cannot refresh a second ticket or begin discovery
+  ---
+  duration_ms: 385.921208
+  type: 'test'
+  ...
+# Subtest: known atomic union activation stays restored when its subsequent confirmation callback fails
+ok 243 - known atomic union activation stays restored when its subsequent confirmation callback fails
+  ---
+  duration_ms: 667.338
+  type: 'test'
+  ...
+# Subtest: cold activated union pause bounds a held original local publication receipt read
+ok 244 - cold activated union pause bounds a held original local publication receipt read
+  ---
+  duration_ms: 1028.396958
+  type: 'test'
+  ...
+# Subtest: cold activated union deadline bounds a held original local publication receipt read
+ok 245 - cold activated union deadline bounds a held original local publication receipt read
+  ---
+  duration_ms: 3940.905625
+  type: 'test'
+  ...
+# Subtest: trusted preclassification cumulative quota refusal never opens a fresh lifecycle IO budget and cold resumes same ID
+ok 246 - trusted preclassification cumulative quota refusal never opens a fresh lifecycle IO budget and cold resumes same ID
+  ---
+  duration_ms: 624.246792
+  type: 'test'
+  ...
+# Subtest: trusted discovery deadline rejects held bytes without unticketed failure IO and late settlement cannot replace reserved task
+ok 247 - trusted discovery deadline rejects held bytes without unticketed failure IO and late settlement cannot replace reserved task
+  ---
+  duration_ms: 30522.103917
+  type: 'test'
+  ...
+# Subtest: trusted cold activated union refusal preserves confirmed durable row without fresh error IO
+ok 248 - trusted cold activated union refusal preserves confirmed durable row without fresh error IO
+  ---
+  duration_ms: 505.834166
+  type: 'test'
+  ...
+# Subtest: google all deleted negative only publishes → A closes → B cloud discovery → cold → C
+ok 249 - google all deleted negative only publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 2324.894
+  type: 'test'
+  ...
+# Subtest: google surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+ok 250 - google surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 4038.972542
+  type: 'test'
+  ...
+# Subtest: onedrive all deleted negative only publishes → A closes → B cloud discovery → cold → C
+ok 251 - onedrive all deleted negative only publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 2337.345458
+  type: 'test'
+  ...
+# Subtest: onedrive surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+ok 252 - onedrive surviving Working plus independent purge publishes → A closes → B cloud discovery → cold → C
+  ---
+  duration_ms: 4520.487958
+  type: 'test'
+  ...
+# Subtest: google original confirmed positive ancestor is retained by exact purge redaction and discovered without timestamps
+ok 253 - google original confirmed positive ancestor is retained by exact purge redaction and discovered without timestamps
+  ---
+  duration_ms: 1775.583375
+  type: 'test'
+  ...
+# Subtest: onedrive original confirmed positive ancestor is retained by exact purge redaction and discovered without timestamps
+ok 254 - onedrive original confirmed positive ancestor is retained by exact purge redaction and discovered without timestamps
+  ---
+  duration_ms: 1973.456584
+  type: 'test'
+  ...
+# Subtest: google unknown original upload then real purge and cold publish never repeats POST or PUT
+ok 255 - google unknown original upload then real purge and cold publish never repeats POST or PUT
+  ---
+  duration_ms: 228.086083
+  type: 'test'
+  ...
+# Subtest: onedrive unknown original upload then real purge and cold publish never repeats POST or PUT
+ok 256 - onedrive unknown original upload then real purge and cold publish never repeats POST or PUT
+  ---
+  duration_ms: 213.553625
+  type: 'test'
+  ...
+# Subtest: google negative publication pause at final adapter read fences the first write
+ok 257 - google negative publication pause at final adapter read fences the first write
+  ---
+  duration_ms: 143.784417
+  type: 'test'
+  ...
+# Subtest: onedrive negative publication pause at final adapter read fences the first write
+ok 258 - onedrive negative publication pause at final adapter read fences the first write
+  ---
+  duration_ms: 148.022708
+  type: 'test'
+  ...
+# Subtest: persistent negative restore pause at progress preserves every table and cold continuation uses original row
+ok 259 - persistent negative restore pause at progress preserves every table and cold continuation uses original row
+  ---
+  duration_ms: 1128.069708
+  type: 'test'
+  ...
+# Subtest: persistent negative restore pause at activate preserves every table and cold continuation uses original row
+ok 260 - persistent negative restore pause at activate preserves every table and cold continuation uses original row
+  ---
+  duration_ms: 1368.955333
+  type: 'test'
+  ...
+# Subtest: persistent negative restore pause at terminal preserves every table and cold continuation uses original row
+ok 261 - persistent negative restore pause at terminal preserves every table and cold continuation uses original row
+  ---
+  duration_ms: 1456.746084
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse allocation-ref without any remote writes
+ok 262 - exact original protocol controls refuse allocation-ref without any remote writes
+  ---
+  duration_ms: 710.581791
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse allocation-identity without any remote writes
+ok 263 - exact original protocol controls refuse allocation-identity without any remote writes
+  ---
+  duration_ms: 654.748958
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse restore-extra without any remote writes
+ok 264 - exact original protocol controls refuse restore-extra without any remote writes
+  ---
+  duration_ms: 668.51175
+  type: 'test'
+  ...
+# Subtest: exact original protocol controls refuse restore-database without any remote writes
+ok 265 - exact original protocol controls refuse restore-database without any remote writes
+  ---
+  duration_ms: 649.60075
+  type: 'test'
+  ...
+# Subtest: pause after the original activation callback is still observed by the final read fence
+ok 266 - pause after the original activation callback is still observed by the final read fence
+  ---
+  duration_ms: 618.921958
+  type: 'test'
+  ...
+# Subtest: cold durable negative stage refuses changed-target without changing any table
+ok 267 - cold durable negative stage refuses changed-target without changing any table
+  ---
+  duration_ms: 621.993959
+  type: 'test'
+  ...
+# Subtest: cold durable negative stage refuses wrong-revisions without changing any table
+ok 268 - cold durable negative stage refuses wrong-revisions without changing any table
+  ---
+  duration_ms: 600.119375
+  type: 'test'
+  ...
+# Subtest: cold durable negative stage refuses false-activated without changing any table
+ok 269 - cold durable negative stage refuses false-activated without changing any table
+  ---
+  duration_ms: 668.093
+  type: 'test'
+  ...
+# Subtest: original publication control authentication preserves no-ticket behavior and supports same-ticket actual receipt reads
+ok 270 - original publication control authentication preserves no-ticket behavior and supports same-ticket actual receipt reads
+  ---
+  duration_ms: 470.294583
+  type: 'test'
+  ...
+# Subtest: actual original IDB read leaves insufficient bytes for authentic local publication receipt result on the same ticket
+ok 271 - actual original IDB read leaves insufficient bytes for authentic local publication receipt result on the same ticket
+  ---
+  duration_ms: 353.755834
+  type: 'test'
+  ...
+# Subtest: held authentic local receipt uses original deadline and late resolution cannot escape a closed ticket
+ok 272 - held authentic local receipt uses original deadline and late resolution cannot escape a closed ticket
+  ---
+  duration_ms: 352.442083
+  type: 'test'
+  ...
+# Subtest: fresh local complete Source group survives cold reopen and publishes both exact original heads
+ok 273 - fresh local complete Source group survives cold reopen and publishes both exact original heads
+  ---
+  duration_ms: 2334.4365
+  type: 'test'
+  ...
+# Subtest: two local groups publish through a genuine sole common descendant retaining both original siblings
+ok 274 - two local groups publish through a genuine sole common descendant retaining both original siblings
+  ---
+  duration_ms: 3061.398709
+  type: 'test'
+  ...
+# Subtest: new local groups retain evaluated original and new filter decisions without changing stable sourceCut
+ok 275 - new local groups retain evaluated original and new filter decisions without changing stable sourceCut
+  ---
+  duration_ms: 792.032959
+  type: 'test'
+  ...
+# Subtest: lost upload acknowledgement with a new local group cold resumes the same publication without duplicate POST
+ok 276 - lost upload acknowledgement with a new local group cold resumes the same publication without duplicate POST
+  ---
+  duration_ms: 1710.582375
+  type: 'test'
+  ...
+# Subtest: publication refuses plain-edit and leaves all current rows untouched
+ok 277 - publication refuses plain-edit and leaves all current rows untouched
+  ---
+  duration_ms: 708.90125
+  type: 'test'
+  ...
+# Subtest: publication refuses working and leaves all current rows untouched
+ok 278 - publication refuses working and leaves all current rows untouched
+  ---
+  duration_ms: 729.88225
+  type: 'test'
+  ...
+# Subtest: publication refuses append and leaves all current rows untouched
+ok 279 - publication refuses append and leaves all current rows untouched
+  ---
+  duration_ms: 702.551667
+  type: 'test'
+  ...
+# Subtest: publication refuses foreign-device and leaves all current rows untouched
+ok 280 - publication refuses foreign-device and leaves all current rows untouched
+  ---
+  duration_ms: 755.744417
+  type: 'test'
+  ...
+# Subtest: publication refuses same-device-remote and leaves all current rows untouched
+ok 281 - publication refuses same-device-remote and leaves all current rows untouched
+  ---
+  duration_ms: 952.003
+  type: 'test'
+  ...
+# Subtest: publication refuses protected and leaves all current rows untouched
+ok 282 - publication refuses protected and leaves all current rows untouched
+  ---
+  duration_ms: 681.549417
+  type: 'test'
+  ...
+# Subtest: publication refuses human and leaves all current rows untouched
+ok 283 - publication refuses human and leaves all current rows untouched
+  ---
+  duration_ms: 702.335625
+  type: 'test'
+  ...
+# Subtest: publication refuses context and leaves all current rows untouched
+ok 284 - publication refuses context and leaves all current rows untouched
+  ---
+  duration_ms: 706.149
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered missing-outbox provenance before any upload
+ok 285 - publication refuses tampered missing-outbox provenance before any upload
+  ---
+  duration_ms: 645.470334
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered acknowledged-outbox provenance before any upload
+ok 286 - publication refuses tampered acknowledged-outbox provenance before any upload
+  ---
+  duration_ms: 672.837625
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered foreign-outbox provenance before any upload
+ok 287 - publication refuses tampered foreign-outbox provenance before any upload
+  ---
+  duration_ms: 542.730375
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered device-sequence provenance before any upload
+ok 288 - publication refuses tampered device-sequence provenance before any upload
+  ---
+  duration_ms: 511.886667
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered extra-device provenance before any upload
+ok 289 - publication refuses tampered extra-device provenance before any upload
+  ---
+  duration_ms: 514.68125
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered head provenance before any upload
+ok 290 - publication refuses tampered head provenance before any upload
+  ---
+  duration_ms: 458.278
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered generation provenance before any upload
+ok 291 - publication refuses tampered generation provenance before any upload
+  ---
+  duration_ms: 475.126958
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered unknown-protocol provenance before any upload
+ok 292 - publication refuses tampered unknown-protocol provenance before any upload
+  ---
+  duration_ms: 515.197042
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered missing-member provenance before any upload
+ok 293 - publication refuses tampered missing-member provenance before any upload
+  ---
+  duration_ms: 536.341333
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered old-revision provenance before any upload
+ok 294 - publication refuses tampered old-revision provenance before any upload
+  ---
+  duration_ms: 563.331875
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered restore-device provenance before any upload
+ok 295 - publication refuses tampered restore-device provenance before any upload
+  ---
+  duration_ms: 509.283833
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered restore-database provenance before any upload
+ok 296 - publication refuses tampered restore-database provenance before any upload
+  ---
+  duration_ms: 480.72025
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered restore-selection provenance before any upload
+ok 297 - publication refuses tampered restore-selection provenance before any upload
+  ---
+  duration_ms: 481.932542
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered sourceCut-origin provenance before any upload
+ok 298 - publication refuses tampered sourceCut-origin provenance before any upload
+  ---
+  duration_ms: 536.094459
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered active-origin provenance before any upload
+ok 299 - publication refuses tampered active-origin provenance before any upload
+  ---
+  duration_ms: 460.881667
+  type: 'test'
+  ...
+# Subtest: publication refuses changed old-input-allocation physical state
+ok 300 - publication refuses changed old-input-allocation physical state
+  ---
+  duration_ms: 480.097292
+  type: 'test'
+  ...
+# Subtest: publication refuses changed new-input-allocation physical state
+ok 301 - publication refuses changed new-input-allocation physical state
+  ---
+  duration_ms: 469.271125
+  type: 'test'
+  ...
+# Subtest: publication refuses changed old-history-allocation physical state
+ok 302 - publication refuses changed old-history-allocation physical state
+  ---
+  duration_ms: 477.569542
+  type: 'test'
+  ...
+# Subtest: publication refuses changed new-history-allocation physical state
+ok 303 - publication refuses changed new-history-allocation physical state
+  ---
+  duration_ms: 458.188666
+  type: 'test'
+  ...
+# Subtest: publication refuses changed record-counter physical state
+ok 304 - publication refuses changed record-counter physical state
+  ---
+  duration_ms: 452.709625
+  type: 'test'
+  ...
+# Subtest: publication refuses changed history-counter physical state
+ok 305 - publication refuses changed history-counter physical state
+  ---
+  duration_ms: 451.710292
+  type: 'test'
+  ...
+# Subtest: publication refuses changed delta-counter physical state
+ok 306 - publication refuses changed delta-counter physical state
+  ---
+  duration_ms: 465.771583
+  type: 'test'
+  ...
+# Subtest: publication refuses changed record-index physical state
+ok 307 - publication refuses changed record-index physical state
+  ---
+  duration_ms: 498.148083
+  type: 'test'
+  ...
+# Subtest: publication refuses changed block-index physical state
+ok 308 - publication refuses changed block-index physical state
+  ---
+  duration_ms: 443.114041
+  type: 'test'
+  ...
+# Subtest: publication refuses changed document-sequence physical state
+ok 309 - publication refuses changed document-sequence physical state
+  ---
+  duration_ms: 405.305958
+  type: 'test'
+  ...
+# Subtest: publication refuses changed filter-stable physical state
+ok 310 - publication refuses changed filter-stable physical state
+  ---
+  duration_ms: 405.148583
+  type: 'test'
+  ...
+# Subtest: publication refuses changed filter-runtime physical state
+ok 311 - publication refuses changed filter-runtime physical state
+  ---
+  duration_ms: 409.581917
+  type: 'test'
+  ...
+# Subtest: publication refuses changed extra-filter physical state
+ok 312 - publication refuses changed extra-filter physical state
+  ---
+  duration_ms: 431.029208
+  type: 'test'
+  ...
+# Subtest: publication refuses changed source-count physical state
+ok 313 - publication refuses changed source-count physical state
+  ---
+  duration_ms: 437.00325
+  type: 'test'
+  ...
+# Subtest: real repeated reads and new proof share the original reference quota without renewal
+ok 314 - real repeated reads and new proof share the original reference quota without renewal
+  ---
+  duration_ms: 537.072209
+  type: 'test'
+  ...
+# Subtest: expired original ticket cannot mint a publication continuation after held work resolves
+ok 315 - expired original ticket cannot mint a publication continuation after held work resolves
+  ---
+  duration_ms: 440.018792
+  type: 'test'
+  ...
+# Subtest: private publication cut rejects outbox change after discovery before encoding
+ok 316 - private publication cut rejects outbox change after discovery before encoding
+  ---
+  duration_ms: 584.257208
+  type: 'test'
+  ...
+# Subtest: private publication cut rejects active-pointer change after discovery before encoding
+ok 317 - private publication cut rejects active-pointer change after discovery before encoding
+  ---
+  duration_ms: 522.382041
+  type: 'test'
+  ...
+# Subtest: private publication cut rejects append change after discovery before encoding
+ok 318 - private publication cut rejects append change after discovery before encoding
+  ---
+  duration_ms: 543.154458
+  type: 'test'
+  ...
+# Subtest: private complete cut rejects outbox change allocated-before-post with truthful dispatched count
+ok 319 - private complete cut rejects outbox change allocated-before-post with truthful dispatched count
+  ---
+  duration_ms: 614.535459
+  type: 'test'
+  ...
+# Subtest: private complete cut rejects outbox change after-first-post with truthful dispatched count
+ok 320 - private complete cut rejects outbox change after-first-post with truthful dispatched count
+  ---
+  duration_ms: 629.57975
+  type: 'test'
+  ...
+# Subtest: actual second Store protocol mutation during provider await cannot borrow first repository fence
+ok 321 - actual second Store protocol mutation during provider await cannot borrow first repository fence
+  ---
+  duration_ms: 617.568625
+  type: 'test'
+  ...
+# Subtest: actual repeated complete-cut work exhausts the unchanged outer ledger without a replacement ticket
+ok 322 - actual repeated complete-cut work exhausts the unchanged outer ledger without a replacement ticket
+  ---
+  duration_ms: 1185.385
+  type: 'test'
+  ...
+# Subtest: ordinary restored union can publish one new local group before disposable stage cleanup
+ok 323 - ordinary restored union can publish one new local group before disposable stage cleanup
+  ---
+  duration_ms: 787.977417
+  type: 'test'
+  ...
+# Subtest: publication prepare completes only the proven disposable stage and preserves every other physical row
+ok 324 - publication prepare completes only the proven disposable stage and preserves every other physical row
+  ---
+  duration_ms: 843.501833
+  type: 'test'
+  ...
+# Subtest: publication discovery without its private prepare work remains read only
+ok 325 - publication discovery without its private prepare work remains read only
+  ---
+  duration_ms: 396.217291
+  type: 'test'
+  ...
+# Subtest: forged publication cleanup token cannot authorize the original stage owner
+ok 326 - forged publication cleanup token cannot authorize the original stage owner
+  ---
+  duration_ms: 342.882375
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof active mutation before any deletion or upload
+ok 327 - prepare cleanup refuses post-proof active mutation before any deletion or upload
+  ---
+  duration_ms: 418.349333
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof receipt mutation before any deletion or upload
+ok 328 - prepare cleanup refuses post-proof receipt mutation before any deletion or upload
+  ---
+  duration_ms: 423.482125
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof stage-item mutation before any deletion or upload
+ok 329 - prepare cleanup refuses post-proof stage-item mutation before any deletion or upload
+  ---
+  duration_ms: 417.561375
+  type: 'test'
+  ...
+# Subtest: pause before prepare cleanup leaves the stage intact and a new explicit prepare can continue
+ok 330 - pause before prepare cleanup leaves the stage intact and a new explicit prepare can continue
+  ---
+  duration_ms: 854.916708
+  type: 'test'
+  ...
+# Subtest: a failed original cleanup page retains progress without publishing and explicit reentry completes safely
+ok 331 - a failed original cleanup page retains progress without publishing and explicit reentry completes safely
+  ---
+  duration_ms: 854.187666
+  type: 'test'
+  ...
+# Subtest: cleanup consumes the original cumulative recovery work and never renews an exhausted ticket
+ok 332 - cleanup consumes the original cumulative recovery work and never renews an exhausted ticket
+  ---
+  duration_ms: 401.786291
+  type: 'test'
+  ...
+# Subtest: publish never acquires prepare cleanup authority even when the old disposable stage reappears
+ok 333 - publish never acquires prepare cleanup authority even when the old disposable stage reappears
+  ---
+  duration_ms: 814.468458
+  type: 'test'
+  ...
+1..333
+# tests 333
+# suites 0
+# pass 333
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 51648.262875

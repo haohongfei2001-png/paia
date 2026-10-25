@@ -20,6 +20,7 @@ const publicationWorkBindings=new WeakMap();
 function originalPublicationWork(token,core,store){
  const p=publicationWorkBindings.get(token);if(!p||p.core!==core||p.store!==store||core.repository!==p.repository||store.repository!==p.repository||store.databaseId!==p.databaseId)fail('BNS_CHECKPOINT_PUBLICATION_BINDING');p.current();return p;
 }
+export function requireOriginalCheckpointPublicationCleanup(token,core,store){return originalPublicationWork(token,core,store).work.action==='prepare';}
 export function chargeOriginalCheckpointPublicationWork(token,core,store,value,references=1){
  const p=originalPublicationWork(token,core,store);if(!Number.isSafeInteger(references)||references<0)fail('BNS_CHECKPOINT_PUBLICATION_LIMIT');p.work.refs+=references;if(value!==undefined)p.work.bytes+=measureSourceWorkingPhysicalTree(value).B;
  if(p.work.refs>LIMIT.refs||p.work.bytes>LIMIT.bytes)fail('BNS_CHECKPOINT_PUBLICATION_LIMIT');p.current();
@@ -101,7 +102,7 @@ export class RecoverableCheckpointPublication {
  async #same(work,row,finalCut=false){const prepared=await this.#prepareObjects(work,row.parents,finalCut);if(!equal(prepared.result.ref,row.ref)||!equal(prepared.result.cut,row.cut)||!equal([...prepared.objects.values()].map(x=>x.ref),row.objects.map(x=>x.ref)))fail('BNS_CHECKPOINT_PUBLICATION_CUT_CHANGED');return prepared;}
  async status(){return this.#exclusive(async work=>{const identity=await this.#identity(work),row=await this.#load(work,identity);return row?this.#view(row):{state:'idle',readiness:'not-prepared'};});}
  #view(row){return {state:row.state,taskId:row.taskId,ref:clone(row.ref),readiness:row.state==='confirmed'?'recoverable-checkpoint-confirmed':'checkpoint-publication-incomplete',verified:row.objects.filter(x=>x.state==='verified').length,objects:row.objects.length};}
- async prepare(){return this.#exclusive(async work=>{const identity=await this.#identity(work),previous=await this.#load(work,identity);if(previous&&previous.state!=='confirmed')return this.#view(previous);
+ async prepare(){return this.#exclusive(async work=>{work.action='prepare';const identity=await this.#identity(work),previous=await this.#load(work,identity);if(previous&&previous.state!=='confirmed')return this.#view(previous);
   const head=await this.#head(work),parentRefs=this.#headRefs(head),parents=parentRefs.map(ref=>ref.id).sort();const prepared=await this.#prepareObjects(work,parents);for(const parent of parentRefs)await this.#causal(work,prepared,parent);
   const row={version:1,identity,taskId:crypto.randomUUID(),state:'prepared',cut:clone(prepared.result.cut),ref:clone(prepared.result.ref),parents,previousObjects:[...new Map([...(previous?.previousObjects??[]),...(previous?.objects??[]).map(x=>x.ref)].map(ref=>[ref.id,ref])).values()],objects:[...prepared.objects.values()].map(x=>({ref:x.ref,state:'ready'}))};await this.#save(work,row);return this.#view(row);
  });}

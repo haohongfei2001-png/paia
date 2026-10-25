@@ -1,4 +1,4 @@
-import {chargeOriginalCheckpointPublicationWork,requireOriginalCheckpointPublicationControls} from './checkpoint-publication.js';
+import {chargeOriginalCheckpointPublicationWork,requireOriginalCheckpointPublicationControls,requireOriginalCheckpointPublicationCleanup} from './checkpoint-publication.js';
 import {sourceUnionPublicationGroups,requireSourceUnionPublicationPhysical} from './source-union-publication-continuation.js';
 import {flushNavigationWrites} from '../archive-navigation-invalidation.js';
 import {flushSemanticWrites} from '../ai-usage/delta.js';
@@ -42,7 +42,7 @@ import {sealManualMergeTransaction} from './manual-merge-terminal.js';
 import {topicDesiredMaterializer} from './topic-desired-journal.js';
 const own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
 const withoutId=({id,...row})=>row;
-const sourceUnionProofs=new WeakMap(),sourceUnionPublicationCuts=new WeakMap();
+const sourceUnionProofs=new WeakMap(),sourceUnionPublicationCuts=new WeakMap(),sourceUnionPublicationCleanup=new WeakMap();
 const canonicalGenerationStates=new WeakMap(),canonicalGenerationProofs=new WeakMap(),canonicalGenerationPublications=new WeakMap(),canonicalGenerationBindings=new WeakMap();
 function originalGenerationBinding(restore){const b=canonicalGenerationBindings.get(restore);if(!b||['store','live','stage','restoreId'].some(key=>Object.getOwnPropertyDescriptor(restore,key)?.value!==b[key]))fail('BNS_GENERATION_PROOF_REQUIRED');return b;}
 const generationRepositoryAuthorities=new WeakMap(),generationStorageChecks=new WeakMap(),defaultCheckpoint=async()=>{};
@@ -628,11 +628,15 @@ export class GroupedCheckpointRestore{
    return {state:'activated',namespace:state.mergeNamespace,merged:true};
   }));
  }
- async cleanup({abandon=false,limit=100}={}){
+ async cleanup({abandon=false,limit=100,publication=null}={}){
+  const bound=publication?sourceUnionPublicationCleanup.get(publication):null;
+  const checkPublication=()=>{if(!publication)return;if(!bound||bound.restore!==this||abandon||!requireOriginalCheckpointPublicationCleanup(bound.work,this.live,this.store))fail('BNS_SOURCE_UNION_PROOF_REQUIRED');};
+  checkPublication();let cleanedState;
   if(typeof abandon!=='boolean'||!Number.isSafeInteger(limit)||limit<1||limit>100)fail('BNS_GROUP_CLEANUP_INVALID');
   const prior=await this.stage.read('restore');if(prior?.kind===sourceUnionKind){sourceUnionTicket(this);sourceUnionState(this,prior);if(prior.replayId!==await sourceUnionReplayId(this,prior.base,prior.selection))fail('BNS_RESTORE_STAGE_CHANGED');}
-  return this.stage.transaction(true,async t=>{
-   const row=await this.stage.get(t,'restore');if(!row)fail('BNS_RESTORE_NOT_READY');
+  const result=await this.stage.transaction(true,async t=>{
+   checkPublication();const row=await this.stage.get(t,'restore');if(!row)fail('BNS_RESTORE_NOT_READY');
+   if(bound){if(!equal(row,bound.state)||!equal(await t.get('meta',this.live.prefix+'active'),bound.active))fail('BNS_RESTORE_STAGE_CHANGED');await requireSourceUnionInventory(this,t,row,bound.items);checkPublication();}
    if(row.kind===sourceUnionKind||prior?.kind===sourceUnionKind){sourceUnionTicket(this);if(!equal(row,prior))fail('BNS_RESTORE_STAGE_CHANGED');await requireOrdinarySourceUnion(this,t);}
    const active=await t.get('meta',this.live.prefix+'active');
    if(!['activated','merged','abandoned'].includes(row.phase)&&!abandon)fail('BNS_RESTORE_NOT_READY');
@@ -643,12 +647,13 @@ export class GroupedCheckpointRestore{
    while(namespace<names.length&&deleted<limit){
     if(names[namespace]===active?.namespace)fail('BNS_RESTORE_STAGE_CHANGED');
     const page=await t.primaryRangePage('meta',{prefix:this.stage.prefix+'generation:'+names[namespace]+':',after,limit:Math.min(100,limit-deleted)});
-    for(const {value}of page.rows)if(value.id!==row.id){await t.delete('meta',value.id);deleted++;}
+    for(const {value}of page.rows)if(value.id!==row.id){checkPublication();await t.delete('meta',value.id);deleted++;}
     after=page.next;if(!after){namespace++;after=null;}
    }
-   next.cleanup={namespace,after,complete:namespace===names.length};await this.stage.put(t,'restore',[],next);
+   next.cleanup={namespace,after,complete:namespace===names.length};checkPublication();await this.stage.put(t,'restore',[],next);checkPublication();cleanedState={...next,id:row.id};
    return {state:next.cleanup.complete?'cleaned':'cleaning',deleted,complete:next.cleanup.complete};
   },['meta']);
+  if(bound&&cleanedState)bound.state=cleanedState;checkPublication();return result;
  }
  async reconcileTail(operations,{ref,get,supported}={}){
   if(!ref||typeof get!=='function'||!Array.isArray(operations))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
@@ -719,7 +724,7 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
  const active=await store.run(()=>core.transaction(false,t=>t.get('meta',core.prefix+'active')));
  if(!active||!own(active,['id','namespace','restoreId','selection','graphDigest'])||!opaque(active.restoreId)||selection!==undefined&&!equal(active.selection,selection))fail('BNS_SOURCE_UNION_ACTIVATION_REQUIRED');
  const restore=new GroupedCheckpointRestore(core,{store,restoreId:active.restoreId});sourceUnionTicket(restore);
- const state=await restore.stage.read('restore');sourceUnionState(restore,state);
+ let state=await restore.stage.read('restore');sourceUnionState(restore,state);
  if(state.phase!=='activated'||state.replayId!==await sourceUnionReplayId(restore,state.base,state.selection)||!equal(active,{id:core.prefix+'active',namespace:state.replayId,restoreId:restore.restoreId,selection:state.selection,graphDigest:state.graphDigest}))fail('BNS_SOURCE_UNION_ACTIVATION_REQUIRED');
  const replay=new BrowserNativeSyncCore(core.repository,{datasetId:core.datasetId,deviceId:core.deviceId,namespace:state.replayId}),operations=await allOperations(replay);
  if(operations.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');if(operations.some(op=>!['sourceBootstrapMember','sourceBootstrapCommit'].includes(op.type)))fail('BNS_GROUP_OWNER_UNSUPPORTED');
@@ -736,19 +741,27 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
  if(groups.added.length){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,'device',[core.deviceId]);protocol.set(id,{id,sequence:groups.added.length*7});}
  const prefix=replay.prefix+'generation:'+state.replayId+':',controls=await store.run(()=>replay.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix})).filter(row=>row.id.startsWith(prefix+'google-appdata-allocation:')||row.id.startsWith(prefix+'onedrive-upload-attempt:')),['meta']));
  for(const row of await requireSourcePurgeProtocolControlReceipts(store,core,controls,state.replayId)){if(protocol.has(row.id))fail('BNS_RESTORE_STAGE_CHANGED');protocol.set(row.id,row);}
- const identity=await prepareSourceUnionLocalIdentity(restore);
- await store.run(()=>core.transaction(false,async t=>{
+ const identity=await prepareSourceUnionLocalIdentity(restore),cleanup=publicationWork&&requireOriginalCheckpointPublicationCleanup(publicationWork,core,store)&&!state.cleanup?.complete;
+ const verify=retain=>store.run(()=>core.transaction(false,async t=>{
   await requireOrdinarySourceUnion(restore,t);await requireSourceBootstrapUnionProof(proof,{core,store},t);await requireSourceUnionInventory(restore,t,state,packet.items);
   if(!equal(await restore.stage.get(t,'restore'),state)||!equal(await t.get('meta',active.id),active))fail('BNS_RESTORE_LOCAL_CHANGED');
   const current=await authority(store,core,t);if(current.namespace!==state.replayId||current.generation!==operations.length||!Number.isSafeInteger(current.ownerGeneration)||current.ownerGeneration<state.base.ownerGeneration+1+groups.added.length||current.fence.epoch!==state.base.fence.epoch||!equal(current.settings,state.base.settings))fail('BNS_RESTORE_LOCAL_CHANGED');
   await requireSourceUnionProtocol(replay,t,protocol);await requireGroupScope(store,t,canonical);
   await requireSourceUnionPublicationPhysical(core,t,state.sourceCut,await sourceUnionPhysicalCut(t,identity),groups);
-  if(publicationWork){
+  if(publicationWork&&retain){
    chargeOriginalCheckpointPublicationWork(publicationWork,core,store,undefined,0);const tables=new Map();
    for(const table of t.tx.objectStoreNames)tables.set(table,await readGroupRows(t,table));
    if(sourceUnionPublicationCuts.has(publicationWork))fail('BNS_SOURCE_UNION_PROOF_REQUIRED');sourceUnionPublicationCuts.set(publicationWork,{core,store,namespace:state.replayId,tables,fence:observeRepositoryWriteFence(core.repository)});
   }
- }));checkOriginalRecoveryWork(core.repository,ticket);
+ }));await verify(!cleanup);checkOriginalRecoveryWork(core.repository,ticket);
+ if(cleanup){
+  // Explicit publication preparation completes the original activated-stage
+  // owner before retaining its cut. Discovery/publish never gain this write.
+  // Both proof passes and every cleanup page consume this same recovery ticket.
+  const token=Object.freeze({});sourceUnionPublicationCleanup.set(token,{restore,work:publicationWork,state,active,items:packet.items});
+  try{for(;;){checkOriginalRecoveryWork(core.repository,ticket);if((await restore.cleanup({publication:token})).complete)break;}state=sourceUnionPublicationCleanup.get(token).state;sourceUnionState(restore,state);await verify(true);checkOriginalRecoveryWork(core.repository,ticket);}
+  finally{sourceUnionPublicationCleanup.delete(token);}
+ }
  return {selection:clone(state.selection),parents:state.selection.headRefs.map(ref=>ref.id),graphDigest:plan.digest,namespace:state.replayId,restoreId:restore.restoreId};
 }
 
