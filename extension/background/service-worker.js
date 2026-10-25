@@ -121,7 +121,7 @@ safety=new SafetyRunner(store);
 libraryRunner=new LibraryRunner(store);
 // Real original instances only. No command consumes a source hold until an
 // admitted global selection contract exists; construction grants no readiness.
-applicationWorkerCoordination=createApplicationWorkerCoordination({store,safety,libraryRunner,filterRunner:runner,maintenanceRunner,contextConnections,promptAssist,promptNext,promptCommands:promptReuse,promptSurface});
+applicationWorkerCoordination=createApplicationWorkerCoordination({store,safety,libraryRunner,filterRunner:runner,maintenanceRunner,contextConnections,promptAssist,promptNext,promptCommands:promptReuse,promptSurface,boundedOrganizer});
 applicationLocalToolsCoordination=createApplicationLocalToolsCoordination({imports,backups,integrity,store,runtime:chrome.runtime});
 applicationTransportCoordination=createApplicationTransportCoordination({sourceCoordination:applicationWorkerCoordination,captureRecovery,promptInsertionReceipts,store,api:chrome});
 }

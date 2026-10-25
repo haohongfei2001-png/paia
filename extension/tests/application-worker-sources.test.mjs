@@ -1,3 +1,7 @@
+import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
+import {createConfiguredOrganizeRunner} from '../core/organizer/configured-organize-runner.js';
+import {BoundedOrganizerWorkflow} from '../core/organizer/bounded-workflow.js';
+import {unavailableAIProvider,unavailableAICredentials} from '../core/organizer/unavailable-service.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {assistServiceFixture} from '../../services/ai-gateway/tests/assist-client-fixture.mjs';
@@ -29,7 +33,8 @@ async function fixture(t,{configuredAssist=true,unknownAssist=false}={}){
  const store=source.s,api=source.api,service=new PromptReuseService(store),promptCommands=new PromptReuseCommands(service,api),promptSurface=new PromptSurfaceCommands(promptCommands,api),promptNext=new NextPromptCommands(service,api,promptSurface),promptAssist=new AssistPromptCommands(store,api,{configuration:configuredAssist?source.configuration:null,surface:promptSurface});
  promptSurface.next=promptNext;promptSurface.assist=promptAssist;
  const contextConnections=new ContextConnections(store,api,{configuration:null}),safety=new SafetyRunner(store),libraryRunner=new LibraryRunner(store),filterRunner=new FilterRunner(store),maintenanceRunner=createMaintenanceRunner(store,null);
- const owners={store,safety,libraryRunner,filterRunner,maintenanceRunner,contextConnections,promptAssist,promptNext,promptCommands,promptSurface},coord=createApplicationWorkerCoordination(owners);
+ const original=new SimpleOriginalOrganizerRunner(store,{provider:unavailableAIProvider,credentials:unavailableAICredentials}),ai=createConfiguredOrganizeRunner(store,null),boundedOrganizer=new BoundedOrganizerWorkflow(store,{original,ai});
+ const owners={store,safety,libraryRunner,filterRunner,maintenanceRunner,contextConnections,promptAssist,promptNext,promptCommands,promptSurface,boundedOrganizer},coord=createApplicationWorkerCoordination(owners);
  t.after(()=>{coord.close();contextConnections.dispose();promptAssist.dispose();promptNext.dispose();promptCommands.dispose?.();promptSurface.dispose?.();maintenanceRunner.dispose();});
  return {...source,...owners,service,owners,coord};
 }

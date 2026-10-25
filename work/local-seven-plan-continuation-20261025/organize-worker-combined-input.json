@@ -1,0 +1,32 @@
+{
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "extension/tests/application-worker-organize-hold.test.mjs",
+    "extension/tests/application-worker-sources.test.mjs",
+    "extension/tests/application-worker-coordination.test.mjs",
+    "extension/tests/application-transport-coordination.test.mjs",
+    "extension/tests/application-local-tools-coordination.test.mjs",
+    "extension/tests/organize-application-selection-hold.test.mjs",
+    "extension/tests/original-simple-v072b.test.mjs",
+    "extension/tests/bounded-v081.test.mjs",
+    "extension/tests/organize-service-configuration.test.mjs"
+  ],
+  "base": "239041bdaefab1cde45c60f985753cdce2ba5a8c",
+  "sha256": {
+    "extension/background/application-worker-coordination.js": "075960e0b33461099044bcddabad1e135fd7fb1e2d230f37449a587a992abd9d",
+    "extension/background/service-worker.js": "bdf8b0e75db22febb734854aaa8b27e1f92e341d9ea84f880e819c175acf5a04",
+    "extension/tests/harness/selection-admission-worker.mjs": "379dd38dd016fb6fac634b1d6eb3e1dd6aae3ce55a474f15719d3ee87bc8628c",
+    "extension/core/organizer/application-selection-owner.js": "a63a20af9e8d589c2be0a1c3404e5f30445e8b9e2be32f01b83e8cb949db2651",
+    "extension/tests/application-worker-organize-hold.test.mjs": "ccc1d9f0acf3f076cea4d577a4ac00de32e9ee4297b8ce80d79dbb2e8429a4ef",
+    "extension/tests/application-worker-sources.test.mjs": "655d2037d9b77da88e2044eff836dfdf8a789baf3d5235ab878b4d531bc77b87",
+    "extension/tests/application-worker-coordination.test.mjs": "591bf77740f3ffbab6f7926c7f9bdbb02e29577dc6b9e69c5c31a72e291e8a1c",
+    "extension/tests/application-transport-coordination.test.mjs": "5831824adc0f9e544531dab4878ea7480056836ee824b8150b16498cdfc2c49d",
+    "extension/tests/application-local-tools-coordination.test.mjs": "3bbb32cf1c80e8f9662e9ab45396b98f813b1f1dcd217be3511bbec5a90c8900",
+    "extension/tests/organize-application-selection-hold.test.mjs": "738e031a0d3f98bf8a4c8ccb28a0ee6b761536289842e7bc35f886af10022476",
+    "extension/tests/original-simple-v072b.test.mjs": "3f5777c4278b04f5edba2ba067571e28d728d8db72db21c150d5261a71c677ac",
+    "extension/tests/bounded-v081.test.mjs": "71a1eb5718340e65b74229257c890bb5ed0916007867fcd26e19281d378515db",
+    "extension/tests/organize-service-configuration.test.mjs": "08ef78a8a118ea6b08a14b756cf67fb185d98ad0025ed433cfe659e7de3a5353"
+  }
+}

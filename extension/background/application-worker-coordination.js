@@ -1,3 +1,4 @@
+import {BoundedOrganizerWorkflow,holdBoundedOrganizerForApplicationSelection,boundedOrganizerHeldForApplicationSelection,releaseBoundedOrganizerForApplicationSelection} from '../core/organizer/bounded-workflow.js';
 import {ArchiveError} from '../core/constants.js';
 import {SafetyRunner} from '../core/thought-runner.js';
 import {LibraryRunner} from '../core/library-runner.js';
@@ -30,18 +31,19 @@ const bound=(owner,prototype,operations)=>({owner,prototype,...operations});
 // Fixed original source owners only. This composes their live task evidence,
 // not cold insertion/host freeze proof, editor safety or activation authority.
 // PREPARE must remain read-only and must not consume these invalidating holds.
-export function createApplicationWorkerCoordination({store,safety,libraryRunner,filterRunner,maintenanceRunner,contextConnections,promptAssist,promptNext,promptCommands,promptSurface}){
+export function createApplicationWorkerCoordination({store,safety,libraryRunner,filterRunner,maintenanceRunner,contextConnections,promptAssist,promptNext,promptCommands,promptSurface,boundedOrganizer}){
  const local=[bound(safety,SafetyRunner.prototype,safetyMethods),bound(libraryRunner,LibraryRunner.prototype,safetyMethods),bound(filterRunner,FilterRunner.prototype,filterMethods)];
  if(!store||local.some(({owner,prototype})=>!exact(owner,prototype)||owner.store!==store))fail();
  const repository=store.repository,database=repository?.db,databaseId=store.databaseId;
  const sources=[bound(contextConnections,ContextConnections.prototype,contextMethods),bound(promptAssist,AssistPromptCommands.prototype,assistMethods),bound(promptNext,NextPromptCommands.prototype,nextMethods),bound(promptCommands,PromptReuseCommands.prototype,promptMethods),bound(promptSurface,PromptSurfaceCommands.prototype,surfaceMethods)];
  const service=promptCommands?.service,session=promptAssist?.session;
  const identities=sources.map(({owner})=>({api:owner?.api,service:owner?.service,surface:owner?.surface}));
+ const organize={owner:boundedOrganizer,hold:()=>holdBoundedOrganizerForApplicationSelection(boundedOrganizer,store),current:token=>boundedOrganizerHeldForApplicationSelection(boundedOrganizer,store,token),release:token=>releaseBoundedOrganizerForApplicationSelection(boundedOrganizer,store,token)};
  const maintenance={owner:maintenanceRunner,hold:()=>holdMaintenanceForApplicationSelection(maintenanceRunner,store),current:token=>maintenanceHeldForApplicationSelection(maintenanceRunner,store,token),release:token=>releaseMaintenanceForApplicationSelection(maintenanceRunner,store,token)};
  let active=null,closed=false;
  const storeCurrent=()=>!!database&&store.repository===repository&&repository.db===database&&store.databaseId===databaseId;
  const localCurrent=()=>storeCurrent()&&local.every(({owner,prototype})=>exact(owner,prototype)&&owner.store===store);
- const sourcesCurrent=()=>localCurrent()&&sources.every(({owner,prototype,hold,current,fence,release},i)=>exact(owner,prototype)&&[hold,current,fence,release].every(method=>typeof method==='function')&&owner.api===identities[i].api&&owner.service===identities[i].service&&owner.surface===identities[i].surface)&&
+ const sourcesCurrent=()=>localCurrent()&&exact(boundedOrganizer,BoundedOrganizerWorkflow.prototype)&&boundedOrganizer.s===store&&sources.every(({owner,prototype,hold,current,fence,release},i)=>exact(owner,prototype)&&[hold,current,fence,release].every(method=>typeof method==='function')&&owner.api===identities[i].api&&owner.service===identities[i].service&&owner.surface===identities[i].surface)&&
   apply(contextMethods.source,contextConnections,[store])===true&&apply(assistMethods.source,promptAssist,[store])===true&&apply(nextMethods.source,promptNext,[store])===true&&
   exact(service,PromptReuseService.prototype)&&promptCommands.service===service&&service.s===store&&promptNext.service===service&&promptAssist.store===store&&promptAssist.session===session&&
   promptSurface.commands===promptCommands&&promptSurface.assist===promptAssist&&promptSurface.next===promptNext&&promptAssist.surface===promptSurface&&promptNext.surface===promptSurface;
@@ -62,7 +64,7 @@ export function createApplicationWorkerCoordination({store,safety,libraryRunner,
  const hold=async scope=>{
   if(closed||active)fail();
   try{if(!(scope==='sources'?sourcesCurrent():localCurrent()))fail();}catch{fail();}
-  const token=Object.freeze(Object.create(null)),state={token,scope,deadline:clock()+DEADLINE_MS,owners:scope==='sources'?[...local,...sources,maintenance]:[...local,maintenance],held:[],ready:false,valid:true};active=state;
+  const token=Object.freeze(Object.create(null)),state={token,scope,deadline:clock()+DEADLINE_MS,owners:scope==='sources'?[...local,...sources,maintenance,organize]:[...local,maintenance],held:[],ready:false,valid:true};active=state;
   try{
    // Invoke EVERY original admission hold in this turn before awaiting any
    // drain. A synchronous refusal must not strand earlier pending promises.
